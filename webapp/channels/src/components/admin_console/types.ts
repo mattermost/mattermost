@@ -66,7 +66,7 @@ type AdminDefinitionSettingRole = AdminDefinitionSettingBase & {
 }
 
 export type AdminDefinitionSettingInput = AdminDefinitionSettingBase & {
-    type: 'text' | 'bool' | 'longtext' | 'number' | 'color' | 'switch';
+    type: 'text' | 'bool' | 'longtext' | 'number' | 'color';
     placeholder?: string | MessageDescriptor;
     placeholder_values?: {[key: string]: any};
     validate?: Validator;

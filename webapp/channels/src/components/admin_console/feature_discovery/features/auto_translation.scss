@@ -4,21 +4,16 @@
     all: unset; // removes all inheritable and non-inheritable properties (use with caution)
     
     display: grid;
-    align-items: start;
-    font-family: Open Sans, sans-serif;
+    align-items: center;
+    font-family: 'Open Sans', sans-serif;
     font-style: normal;
     font-weight: normal;
     gap: 24px;
     grid-template-columns: 1fr auto;
 
-    .FeatureDiscovery_copyWrapper,
-    .FeatureDiscovery_imageWrapper {
-        all: unset; // removes all inheritable and non-inheritable properties (use with caution)
-        padding: 20px 0;
-    }
-
+    
     .FeatureDiscovery_copyWrapper {
-        padding-top: 8px;
+        padding: 0;
     }
 }
 

@@ -25,7 +25,6 @@ import RemoveFileSetting from 'components/admin_console/remove_file_setting';
 import RequestButton from 'components/admin_console/request_button/request_button';
 import SchemaText from 'components/admin_console/schema_text';
 import SettingsGroup from 'components/admin_console/settings_group';
-import SwitchSetting from 'components/admin_console/switch_setting';
 import TextSetting from 'components/admin_console/text_setting';
 import UserAutocompleteSetting from 'components/admin_console/user_autocomplete_setting';
 import FormError from 'components/form_error';
@@ -143,7 +142,6 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
             [Constants.SettingsTypes.TYPE_FILE_UPLOAD]: this.buildFileUploadSetting,
             [Constants.SettingsTypes.TYPE_ROLES]: this.buildRolesSetting,
             [Constants.SettingsTypes.TYPE_CUSTOM]: this.buildCustomSetting,
-            [Constants.SettingsTypes.TYPE_SWITCH]: this.buildSwitchSetting,
         };
         this.state = {
             saveNeeded: false,
@@ -524,28 +522,6 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
         return (
             <BooleanSetting
                 key={this.props.schema.id + '_bool_' + setting.key}
-                id={setting.key}
-                label={label}
-                helpText={helpText}
-                value={this.state[setting.key] ?? (setting.default || false)}
-                disabled={this.isDisabled(setting)}
-                setByEnv={isSetByEnv(setting.key, this.props.environmentConfig)}
-                onChange={this.handleChange}
-            />
-        );
-    };
-
-    buildSwitchSetting = (setting: AdminDefinitionSetting) => {
-        if (!this.props.schema || !setting.key || setting.type !== 'switch') {
-            return (<></>);
-        }
-
-        const label = renderLabel(setting, this.props.schema, this.props.intl);
-        const helpText = renderSettingHelpText(setting, this.props.schema, this.isDisabled(setting));
-
-        return (
-            <SwitchSetting
-                key={this.props.schema.id + '_switch_' + setting.key}
                 id={setting.key}
                 label={label}
                 helpText={helpText}

@@ -327,7 +327,6 @@ const LDAPWizard = (props: Props) => {
         [Constants.SettingsTypes.TYPE_USERNAME]: nullFunction,
         [Constants.SettingsTypes.TYPE_LANGUAGE]: nullFunction,
         [Constants.SettingsTypes.TYPE_ROLES]: nullFunction,
-        [Constants.SettingsTypes.TYPE_SWITCH]: nullFunction,
     };
 
     const isDisabled = (setting: AdminDefinitionSetting) => {

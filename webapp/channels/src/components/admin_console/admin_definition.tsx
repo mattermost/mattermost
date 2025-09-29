@@ -94,7 +94,8 @@ import IPFiltering from './ip_filtering';
 import LDAPWizard from './ldap_wizard';
 import LicenseSettings from './license_settings';
 import {searchableStrings as licenseSettingsSearchableStrings} from './license_settings/license_settings';
-import AutoTranslateInfo from './localization/auto_translate_info';
+import AutoTranslation from './localization/auto_translation';
+import Localization from './localization/localization';
 import MessageExportSettings, {searchableStrings as messageExportSearchableStrings} from './message_export_settings';
 import OpenIdConvert from './openid_convert';
 import PasswordSettings, {searchableStrings as passwordSearchableStrings} from './password_settings';
@@ -2444,145 +2445,36 @@ const AdminDefinition: AdminDefinitionType = {
                 schema: {
                     id: 'LocalizationSettings',
                     name: defineMessage({id: 'admin.site.localization', defaultMessage: 'Localization'}),
-                    sections: [{
-                        key: 'localization',
-                        settings: [
-                            {
-                                type: 'language',
-                                key: 'LocalizationSettings.DefaultServerLocale',
-                                label: defineMessage({id: 'admin.general.localization.serverLocaleTitle', defaultMessage: 'Default Server Language:'}),
-                                help_text: defineMessage({id: 'admin.general.localization.serverLocaleDescription', defaultMessage: 'Default language for system messages.'}),
-                                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.LOCALIZATION)),
-                            },
-                            {
-                                type: 'language',
-                                key: 'LocalizationSettings.DefaultClientLocale',
-                                label: defineMessage({id: 'admin.general.localization.clientLocaleTitle', defaultMessage: 'Default Client Language:'}),
-                                help_text: defineMessage({id: 'admin.general.localization.clientLocaleDescription', defaultMessage: 'Default language for newly created users and pages where the user hasn\'t logged in.'}),
-                                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.LOCALIZATION)),
-                            },
-                            {
-                                type: 'language',
-                                key: 'LocalizationSettings.AvailableLocales',
-                                label: defineMessage({id: 'admin.general.localization.availableLocalesTitle', defaultMessage: 'Available Languages:'}),
-                                help_text: defineMessage({id: 'admin.general.localization.availableLocalesDescription', defaultMessage: 'Set which languages are available for users in <strong>Settings > Display > Language</strong> (leave this field blank to have all supported languages available). If you\'re manually adding new languages, the <strong>Default Client Language</strong> must be added before saving this setting.\n \nWould like to help with translations? Join the <link>Mattermost Translation Server</link> to contribute.'}),
-                                help_text_markdown: false,
-                                help_text_values: {
-                                    link: (msg: string) => (
-                                        <ExternalLink
-                                            location='admin_console'
-                                            href='http://translate.mattermost.com/'
-                                        >
-                                            {msg}
-                                        </ExternalLink>
-                                    ),
-                                    strong: (msg: string) => <strong>{msg}</strong>,
-                                },
-                                multiple: true,
-                                no_result: defineMessage({id: 'admin.general.localization.availableLocalesNoResults', defaultMessage: 'No results found'}),
-                                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.LOCALIZATION)),
-                            },
-                            {
-                                type: 'bool',
-                                key: 'LocalizationSettings.EnableExperimentalLocales',
-                                label: defineMessage({id: 'admin.general.localization.enableExperimentalLocalesTitle', defaultMessage: 'Enable Experimental Locales:'}),
-                                help_text: defineMessage({id: 'admin.general.localization.enableExperimentalLocalesDescription', defaultMessage: 'When true, it allows users to select experimental (e.g., in progress) languages.'}),
-                                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.LOCALIZATION)),
-                            },
-                        ],
-                    }, {
-                        key: 'auto-translation',
-                        isHidden: it.any(
-                            it.configIsFalse('FeatureFlags', 'AutoTranslate'),
-                            it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
-                        ),
-                        settings: [
-                            {
-                                type: 'switch',
-                                key: 'AutoTranslationSettings.Enable',
-                                label: defineMessage({id: 'admin.general.localization.enableAutoTranslateTitle', defaultMessage: 'Auto-Translate'}),
-                                help_text: defineMessage({id: 'admin.general.localization.enableAutoTranslateDescription', defaultMessage: 'Configure auto-translation for channels and direct messages'}),
-                                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.LOCALIZATION)),
-                            },
-                            {
-                                type: 'dropdown',
-                                key: 'AutoTranslationSettings.Provider',
-                                isHidden: it.stateIsFalse('AutoTranslationSettings.Enable'),
-                                isDisabled: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.LOCALIZATION)),
-                                label: defineMessage({id: 'admin.general.localization.autoTranslateProviderTitle', defaultMessage: 'Translation Service'}),
-                                help_text: defineMessage({id: 'admin.general.localization.autoTranslateProviderDescription', defaultMessage: '<strong>NOTE:</strong> If using external translation services (e.g., cloud based),{br}message data may be processed outside of your environment.'}),
-                                help_text_markdown: false,
-                                help_text_values: {
-                                    strong: (msg: string) => <strong>{msg}</strong>,
-                                    br: <br/>,
-                                },
-                                options: [
-                                    {
-                                        value: 'libretranslate',
-                                        display_name: 'LibreTranslate',
-                                    },
-                                ],
-                            },
-                            {
-                                type: 'text',
-                                key: 'AutoTranslationSettings.LibreTranslate.URL',
-                                isHidden: it.not(it.all(
-                                    it.stateIsTrue('AutoTranslationSettings.Enable'),
-                                    it.stateEquals('AutoTranslationSettings.Provider', 'libretranslate'),
-                                )),
-                                isDisabled: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.LOCALIZATION)),
-                                label: defineMessage({id: 'admin.general.localization.autoTranslateProviderLibreTranslateURLTitle', defaultMessage: 'LibreTranslate API Endpoint'}),
-                                placeholder: defineMessage({id: 'admin.general.localization.autoTranslateProviderLibreTranslateURLExample', defaultMessage: 'e.g.: "https://libretranslate.yourdomain.com"'}),
-                            },
-                            {
-                                type: 'text',
-                                key: 'AutoTranslationSettings.LibreTranslate.APIKey',
-                                isHidden: it.not(it.all(
-                                    it.stateIsTrue('AutoTranslationSettings.Enable'),
-                                    it.stateEquals('AutoTranslationSettings.Provider', 'libretranslate'),
-                                )),
-                                isDisabled: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.LOCALIZATION)),
-                                label: defineMessage({id: 'admin.general.localization.autoTranslateProviderLibreTranslateAPIKeyTitle', defaultMessage: 'LibreTranslate API Key'}),
-                                placeholder: defineMessage({id: 'admin.general.localization.autoTranslateProviderLibreTranslateAPIKeyExample', defaultMessage: 'Enter LibreTranslate API Key'}),
-                                help_text: defineMessage({id: 'admin.general.localization.autoTranslateProviderLibreTranslateAPIKeyDescription', defaultMessage: 'If your LibreTranslate server requires an API key, enter it here. Otherwise, leave this field blank. View <link>LibreTranslate docs</link> for API Key management.'}),
-                                help_text_markdown: false,
-                                help_text_values: {
-                                    link: (msg: string) => (
-                                        <ExternalLink
-                                            location='admin_console'
-                                            href='https://docs.libretranslate.com/guides/manage_api_keys/'
-                                        >
-                                            {msg}
-                                        </ExternalLink>
-                                    ),
-                                },
-                            },
-                            {
-                                type: 'custom',
-                                key: 'AutoTranslateInfo',
-                                component: AutoTranslateInfo,
-                                isDisabled: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.LOCALIZATION)),
-                                isHidden: it.stateIsFalse('AutoTranslationSettings.Enable'),
-                            },
-                        ],
-                    }, {
-                        key: 'auto-translation-discovery',
-                        isHidden: it.any(
-                            it.all(
-                                it.configIsTrue('FeatureFlags', 'AutoTranslate'),
-                                it.minLicenseTier(LicenseSkus.EnterpriseAdvanced),
+                    settings: [
+                        {
+                            type: 'custom',
+                            key: 'LocalizationSettings',
+                            component: Localization,
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.LOCALIZATION)),
+                        },
+                        {
+                            type: 'custom',
+                            key: 'AutoTranslationSettings',
+                            component: AutoTranslation,
+                            isHidden: it.any(
+                                it.configIsFalse('FeatureFlags', 'AutoTranslate'),
+                                it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
                             ),
-                            it.configIsFalse('FeatureFlags', 'AutoTranslate'),
-                        ),
-                        settings: [
-                            {
-                                type: 'custom',
-                                component: AutoTranslationFeatureDiscovery,
-                                key: 'AutoTranslationFeatureDiscovery',
-                                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
-                            },
-                        ],
-                    }],
+                        },
+                        {
+                            type: 'custom',
+                            key: 'auto-translation-discovery',
+                            component: AutoTranslationFeatureDiscovery,
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
+                            isHidden: it.any(
+                                it.all(
+                                    it.configIsTrue('FeatureFlags', 'AutoTranslate'),
+                                    it.minLicenseTier(LicenseSkus.EnterpriseAdvanced),
+                                ),
+                                it.configIsFalse('FeatureFlags', 'AutoTranslate'),
+                            ),
+                        },
+                    ],
                 },
             },
             users_and_teams: {
