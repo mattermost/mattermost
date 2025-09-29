@@ -4,6 +4,7 @@
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
+import {injectIntl} from 'react-intl';
 
 import type {Emoji as EmojiType} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
@@ -23,6 +24,7 @@ import {addReaction} from 'actions/post_actions';
 import * as Emoji from 'utils/emoji';
 
 import Reaction from './reaction';
+import {makeGetNamesOfUsers} from './reaction_tooltip';
 
 type Props = {
     emojiName: string;
@@ -39,6 +41,8 @@ function makeMapStateToProps() {
             return reactions.some((reaction) => reaction.user_id === currentUserId);
         },
     );
+
+    const getNamesOfUsers = makeGetNamesOfUsers();
 
     return function mapStateToProps(state: GlobalState, ownProps: Props) {
         const channelId = ownProps.post.channel_id;
@@ -64,6 +68,7 @@ function makeMapStateToProps() {
             canRemoveReactions: canRemoveReactions(state, channelId),
             emojiImageUrl,
             currentUserReacted: didCurrentUserReact(state, ownProps.reactions),
+            users: getNamesOfUsers(state, ownProps.reactions),
         };
     };
 }
@@ -78,4 +83,4 @@ function mapDispatchToProps(dispatch: Dispatch) {
     };
 }
 
-export default connect(makeMapStateToProps, mapDispatchToProps)(Reaction);
+export default injectIntl(connect(makeMapStateToProps, mapDispatchToProps)(Reaction));

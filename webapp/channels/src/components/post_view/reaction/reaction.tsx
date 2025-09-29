@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {IntlShape} from 'react-intl';
 
 import type {Post} from '@mattermost/types/posts';
 import type {Reaction as ReactionType} from '@mattermost/types/reactions';
@@ -81,6 +82,12 @@ type Props = {
          */
         removeReaction: (postId: string, emojiName: string) => void;
     };
+
+    // Names of users for tooltip-like aria label, computed via selector
+    users?: string[];
+
+    // react-intl instance injected via HOC
+    intl?: IntlShape;
 }
 
 export default class Reaction extends React.PureComponent<Props, State> {
@@ -186,6 +193,8 @@ export default class Reaction extends React.PureComponent<Props, State> {
             emojiName,
             reactionCount,
             reactions,
+            users = [],
+            intl,
         } = this.props;
         const {displayNumber} = this.state;
         const reactedNumber = currentUserReacted ? reactionCount : reactionCount + 1;
@@ -196,9 +205,102 @@ export default class Reaction extends React.PureComponent<Props, State> {
         const readOnlyClass = (canAddReactions && canRemoveReactions) ? '' : 'Reaction--read-only';
 
         const emojiNameWithSpaces = this.props.emojiName.replace(/_/g, ' ');
-        let ariaLabelEmoji = `${Utils.localizeMessage({id: 'reaction.reactWidth.ariaLabel', defaultMessage: 'react with'})} ${emojiNameWithSpaces}`;
-        if (currentUserReacted && canRemoveReactions) {
-            ariaLabelEmoji = `${Utils.localizeMessage({id: 'reaction.removeReact.ariaLabel', defaultMessage: 'remove reaction'})} ${emojiNameWithSpaces}`;
+        let ariaLabelEmoji = `${emojiNameWithSpaces}`;
+
+        // If intl/users are available, append the same sentence shown in the tooltip
+        if (intl) {
+            const otherUsersCount = reactions.length - users.length;
+
+            let names: string | undefined;
+            if (otherUsersCount > 0) {
+                if (users.length > 0) {
+                    names = intl.formatMessage(
+                        {
+                            id: 'reaction.usersAndOthersReacted',
+                            defaultMessage: '{users} and {otherUsers, number} other {otherUsers, plural, one {user} other {users}}',
+                        },
+                        {
+                            users: users.join(', '),
+                            otherUsers: otherUsersCount,
+                        },
+                    );
+                } else {
+                    names = intl.formatMessage(
+                        {
+                            id: 'reaction.othersReacted',
+                            defaultMessage: '{otherUsers, number} {otherUsers, plural, one {user} other {users}}',
+                        },
+                        {
+                            otherUsers: otherUsersCount,
+                        },
+                    );
+                }
+            } else if (users.length > 1) {
+                names = intl.formatMessage(
+                    {
+                        id: 'reaction.usersReacted',
+                        defaultMessage: '{users} and {lastUser}',
+                    },
+                    {
+                        users: users.slice(0, -1).join(', '),
+                        lastUser: users[users.length - 1],
+                    },
+                );
+            } else {
+                names = users[0];
+            }
+
+            let reactionVerb: string;
+            if (users.length + otherUsersCount > 1) {
+                if (currentUserReacted) {
+                    reactionVerb = intl.formatMessage({
+                        id: 'reaction.reactionVerb.youAndUsers',
+                        defaultMessage: 'reacted',
+                    });
+                } else {
+                    reactionVerb = intl.formatMessage({
+                        id: 'reaction.reactionVerb.users',
+                        defaultMessage: 'reacted',
+                    });
+                }
+            } else if (currentUserReacted) {
+                reactionVerb = intl.formatMessage({
+                    id: 'reaction.reactionVerb.you',
+                    defaultMessage: 'reacted',
+                });
+            } else {
+                reactionVerb = intl.formatMessage({
+                    id: 'reaction.reactionVerb.user',
+                    defaultMessage: 'reacted',
+                });
+            }
+
+            const tooltipTitle = intl.formatMessage(
+                {
+                    id: 'reaction.reacted',
+                    defaultMessage: '{users} {reactionVerb} with {emoji}',
+                },
+                {
+                    users: names,
+                    reactionVerb,
+                    emoji: ':' + emojiName + ':',
+                },
+            );
+
+            let tooltipHint: string | undefined;
+            if (currentUserReacted && canRemoveReactions) {
+                tooltipHint = intl.formatMessage({
+                    id: 'reaction.a11y.clickToRemove',
+                    defaultMessage: 'Click to remove.',
+                });
+            } else if (!currentUserReacted && canAddReactions) {
+                tooltipHint = intl.formatMessage({
+                    id: 'reaction.a11y.clickToAdd',
+                    defaultMessage: 'Click to add.',
+                });
+            }
+
+            ariaLabelEmoji = tooltipHint ? `${tooltipTitle}. ${tooltipHint}` : tooltipTitle;
         }
 
         const emojiIcon = (
