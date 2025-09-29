@@ -189,7 +189,6 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockStore.On("Team").Return(&mockTeamStore)
 
 	mockContentFlaggingStore := mocks.ContentFlaggingStore{}
-	mockContentFlaggingStore.On("GetReviewerSettings").Return(nil, nil)
 	mockStore.On("ContentFlagging").Return(&mockContentFlaggingStore)
 
 	return &mockStore

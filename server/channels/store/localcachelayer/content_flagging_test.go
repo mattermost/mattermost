@@ -6,7 +6,6 @@ package localcachelayer
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -20,25 +19,39 @@ func TestContentFlaggingStore(t *testing.T) {
 }
 
 func TestContentFlaggingStoreGetReviewerSettingsCache(t *testing.T) {
-	reviewerSettings := &model.ReviewerIDsSettings{
-		ReviewerIds: []string{"user1", "user2", "user3"},
-	}
 	logger := mlog.CreateConsoleTestLogger(t)
+
+	setBasicMock := func(mockStore *mocks.Store, cachedStore LocalCacheStore) {
+		reviewerSettings := &model.ReviewerIDsSettings{
+			CommonReviewerIds: &[]string{"user1", "user2", "user3"},
+		}
+		mockContentFlaggingStore := mockStore.ContentFlagging().(*mocks.ContentFlaggingStore)
+		mockContentFlaggingStore.On("GetReviewerSettings").Return(reviewerSettings, nil)
+		cachedStore.contentFlagging.ContentFlaggingStore = mockContentFlaggingStore
+	}
 
 	t.Run("first call not cached, second cached and returning same data", func(t *testing.T) {
 		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
 		require.NoError(t, err)
+		setBasicMock(mockStore, cachedStore)
 
 		settings, err := cachedStore.ContentFlagging().GetReviewerSettings()
 		require.NoError(t, err)
-		assert.Equal(t, reviewerSettings, settings)
+		require.Len(t, *settings.CommonReviewerIds, 3)
+		require.Contains(t, *settings.CommonReviewerIds, "user1")
+		require.Contains(t, *settings.CommonReviewerIds, "user2")
+		require.Contains(t, *settings.CommonReviewerIds, "user3")
+
 		mockStore.ContentFlagging().(*mocks.ContentFlaggingStore).AssertNumberOfCalls(t, "GetReviewerSettings", 1)
-		
+
 		settings, err = cachedStore.ContentFlagging().GetReviewerSettings()
 		require.NoError(t, err)
-		assert.Equal(t, reviewerSettings, settings)
+		require.Len(t, *settings.CommonReviewerIds, 3)
+		require.Contains(t, *settings.CommonReviewerIds, "user1")
+		require.Contains(t, *settings.CommonReviewerIds, "user2")
+		require.Contains(t, *settings.CommonReviewerIds, "user3")
 		mockStore.ContentFlagging().(*mocks.ContentFlaggingStore).AssertNumberOfCalls(t, "GetReviewerSettings", 1)
 	})
 
@@ -47,12 +60,13 @@ func TestContentFlaggingStoreGetReviewerSettingsCache(t *testing.T) {
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
 		require.NoError(t, err)
+		setBasicMock(mockStore, cachedStore)
 
 		cachedStore.ContentFlagging().GetReviewerSettings()
 		mockStore.ContentFlagging().(*mocks.ContentFlaggingStore).AssertNumberOfCalls(t, "GetReviewerSettings", 1)
-		
+
 		cachedStore.ContentFlagging().ClearCaches()
-		
+
 		cachedStore.ContentFlagging().GetReviewerSettings()
 		mockStore.ContentFlagging().(*mocks.ContentFlaggingStore).AssertNumberOfCalls(t, "GetReviewerSettings", 2)
 	})
@@ -62,6 +76,7 @@ func TestContentFlaggingStoreGetReviewerSettingsCache(t *testing.T) {
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider, logger)
 		require.NoError(t, err)
+		setBasicMock(mockStore, cachedStore)
 
 		// First call to populate cache
 		cachedStore.ContentFlagging().GetReviewerSettings()
@@ -69,7 +84,7 @@ func TestContentFlaggingStoreGetReviewerSettingsCache(t *testing.T) {
 
 		// Simulate cluster invalidation message
 		msg := &model.ClusterMessage{
-			Event: model.ClusterEventInvalidateContentFlagging,
+			Event: model.ClusterEventInvalidateCacheForContentFlagging,
 		}
 		cachedStore.contentFlagging.handleClusterInvalidateContentFlagging(msg)
 

@@ -47,6 +47,8 @@ func (s LocalCacheContentFlaggingStore) GetReviewerSettings() (*model.ReviewerID
 		return nil, err
 	}
 
-	s.rootStore.doStandardAddToCache(s.rootStore.contentFlaggingCache, CACHE_KEY_REVIEWER_SETTINGS, reviewerSettings)
+	if reviewerSettings != nil {
+		s.rootStore.doStandardAddToCache(s.rootStore.contentFlaggingCache, CACHE_KEY_REVIEWER_SETTINGS, reviewerSettings)
+	}
 	return reviewerSettings, nil
 }

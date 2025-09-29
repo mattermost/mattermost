@@ -721,7 +721,7 @@ func (a *App) publishContentFlaggingReportUpdateEvent(targetId, teamId string, p
 }
 
 func (a *App) SaveContentFlaggingConfig(config model.ContentFlaggingSettingsRequest) *model.AppError {
-	err := a.Srv().Store().ContentFlagging().SaveReviewerSettings(*config.ReviewerSettings)
+	err := a.Srv().Store().ContentFlagging().SaveReviewerSettings(config.ReviewerSettings.ReviewerIDsSettings)
 	if err != nil {
 		return model.NewAppError("SaveContentFlaggingConfig", "app.content_flagging.save_reviewer_settings.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

@@ -21,14 +21,14 @@ func TestContentFlaggingStore(t *testing.T, rctx request.CTX, ss store.Store, s 
 
 func testSaveReviewerSettings(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("save empty settings", func(t *testing.T) {
+		ss.ContentFlagging().ClearCaches()
+
 		commonReviewers := []string{}
 		teamSettings := map[string]model.TeamReviewerSetting{}
 
-		reviewerSettings := model.ReviewSettingsRequest{
-			ReviewerIDsSettings: model.ReviewerIDsSettings{
-				CommonReviewerIds:    &commonReviewers,
-				TeamReviewersSetting: &teamSettings,
-			},
+		reviewerSettings := model.ReviewerIDsSettings{
+			CommonReviewerIds:    &commonReviewers,
+			TeamReviewersSetting: &teamSettings,
 		}
 
 		err := ss.ContentFlagging().SaveReviewerSettings(reviewerSettings)
@@ -44,16 +44,16 @@ func testSaveReviewerSettings(t *testing.T, rctx request.CTX, ss store.Store, s 
 	})
 
 	t.Run("save common reviewers only", func(t *testing.T) {
+		ss.ContentFlagging().ClearCaches()
+
 		userId1 := model.NewId()
 		userId2 := model.NewId()
 		commonReviewers := []string{userId1, userId2}
 		teamSettings := map[string]model.TeamReviewerSetting{}
 
-		reviewerSettings := model.ReviewSettingsRequest{
-			ReviewerIDsSettings: model.ReviewerIDsSettings{
-				CommonReviewerIds:    &commonReviewers,
-				TeamReviewersSetting: &teamSettings,
-			},
+		reviewerSettings := model.ReviewerIDsSettings{
+			CommonReviewerIds:    &commonReviewers,
+			TeamReviewersSetting: &teamSettings,
 		}
 
 		err := ss.ContentFlagging().SaveReviewerSettings(reviewerSettings)
@@ -69,6 +69,8 @@ func testSaveReviewerSettings(t *testing.T, rctx request.CTX, ss store.Store, s 
 	})
 
 	t.Run("save team settings only", func(t *testing.T) {
+		ss.ContentFlagging().ClearCaches()
+
 		teamId1 := model.NewId()
 		teamId2 := model.NewId()
 		enabled1 := true
@@ -86,11 +88,9 @@ func testSaveReviewerSettings(t *testing.T, rctx request.CTX, ss store.Store, s 
 			},
 		}
 
-		reviewerSettings := model.ReviewSettingsRequest{
-			ReviewerIDsSettings: model.ReviewerIDsSettings{
-				CommonReviewerIds:    &commonReviewers,
-				TeamReviewersSetting: &teamSettings,
-			},
+		reviewerSettings := model.ReviewerIDsSettings{
+			CommonReviewerIds:    &commonReviewers,
+			TeamReviewersSetting: &teamSettings,
 		}
 
 		err := ss.ContentFlagging().SaveReviewerSettings(reviewerSettings)
@@ -114,6 +114,8 @@ func testSaveReviewerSettings(t *testing.T, rctx request.CTX, ss store.Store, s 
 	})
 
 	t.Run("save team reviewers", func(t *testing.T) {
+		ss.ContentFlagging().ClearCaches()
+
 		teamId := model.NewId()
 		userId1 := model.NewId()
 		userId2 := model.NewId()
@@ -127,11 +129,9 @@ func testSaveReviewerSettings(t *testing.T, rctx request.CTX, ss store.Store, s 
 			},
 		}
 
-		reviewerSettings := model.ReviewSettingsRequest{
-			ReviewerIDsSettings: model.ReviewerIDsSettings{
-				CommonReviewerIds:    &commonReviewers,
-				TeamReviewersSetting: &teamSettings,
-			},
+		reviewerSettings := model.ReviewerIDsSettings{
+			CommonReviewerIds:    &commonReviewers,
+			TeamReviewersSetting: &teamSettings,
 		}
 
 		err := ss.ContentFlagging().SaveReviewerSettings(reviewerSettings)
@@ -151,6 +151,8 @@ func testSaveReviewerSettings(t *testing.T, rctx request.CTX, ss store.Store, s 
 	})
 
 	t.Run("update existing settings", func(t *testing.T) {
+		ss.ContentFlagging().ClearCaches()
+
 		// First save some initial settings
 		userId1 := model.NewId()
 		teamId1 := model.NewId()
@@ -164,11 +166,9 @@ func testSaveReviewerSettings(t *testing.T, rctx request.CTX, ss store.Store, s 
 			},
 		}
 
-		reviewerSettings := model.ReviewSettingsRequest{
-			ReviewerIDsSettings: model.ReviewerIDsSettings{
-				CommonReviewerIds:    &commonReviewers,
-				TeamReviewersSetting: &teamSettings,
-			},
+		reviewerSettings := model.ReviewerIDsSettings{
+			CommonReviewerIds:    &commonReviewers,
+			TeamReviewersSetting: &teamSettings,
 		}
 
 		err := ss.ContentFlagging().SaveReviewerSettings(reviewerSettings)
@@ -188,11 +188,9 @@ func testSaveReviewerSettings(t *testing.T, rctx request.CTX, ss store.Store, s 
 			},
 		}
 
-		newReviewerSettings := model.ReviewSettingsRequest{
-			ReviewerIDsSettings: model.ReviewerIDsSettings{
-				CommonReviewerIds:    &newCommonReviewers,
-				TeamReviewersSetting: &newTeamSettings,
-			},
+		newReviewerSettings := model.ReviewerIDsSettings{
+			CommonReviewerIds:    &newCommonReviewers,
+			TeamReviewersSetting: &newTeamSettings,
 		}
 
 		err = ss.ContentFlagging().SaveReviewerSettings(newReviewerSettings)
@@ -225,15 +223,15 @@ func testSaveReviewerSettings(t *testing.T, rctx request.CTX, ss store.Store, s 
 
 func testGetReviewerSettings(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("get empty settings", func(t *testing.T) {
+		ss.ContentFlagging().ClearCaches()
+
 		// Clear any existing settings first
 		emptyCommonReviewers := []string{}
 		emptyTeamSettings := map[string]model.TeamReviewerSetting{}
 
-		reviewerSettings := model.ReviewSettingsRequest{
-			ReviewerIDsSettings: model.ReviewerIDsSettings{
-				CommonReviewerIds:    &emptyCommonReviewers,
-				TeamReviewersSetting: &emptyTeamSettings,
-			},
+		reviewerSettings := model.ReviewerIDsSettings{
+			CommonReviewerIds:    &emptyCommonReviewers,
+			TeamReviewersSetting: &emptyTeamSettings,
 		}
 
 		err := ss.ContentFlagging().SaveReviewerSettings(reviewerSettings)
@@ -251,6 +249,8 @@ func testGetReviewerSettings(t *testing.T, rctx request.CTX, ss store.Store, s S
 
 func testSaveAndGetReviewerSettings(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("comprehensive save and get", func(t *testing.T) {
+		ss.ContentFlagging().ClearCaches()
+		
 		// Create comprehensive test data
 		commonUserId1 := model.NewId()
 		commonUserId2 := model.NewId()
@@ -284,11 +284,9 @@ func testSaveAndGetReviewerSettings(t *testing.T, rctx request.CTX, ss store.Sto
 			},
 		}
 
-		reviewerSettings := model.ReviewSettingsRequest{
-			ReviewerIDsSettings: model.ReviewerIDsSettings{
-				CommonReviewerIds:    &commonReviewers,
-				TeamReviewersSetting: &teamSettings,
-			},
+		reviewerSettings := model.ReviewerIDsSettings{
+			CommonReviewerIds:    &commonReviewers,
+			TeamReviewersSetting: &teamSettings,
 		}
 
 		// Save the settings

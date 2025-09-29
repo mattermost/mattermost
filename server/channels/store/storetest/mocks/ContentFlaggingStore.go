@@ -50,7 +50,7 @@ func (_m *ContentFlaggingStore) GetReviewerSettings() (*model.ReviewerIDsSetting
 }
 
 // SaveReviewerSettings provides a mock function with given fields: reviewerSettings
-func (_m *ContentFlaggingStore) SaveReviewerSettings(reviewerSettings model.ReviewSettingsRequest) error {
+func (_m *ContentFlaggingStore) SaveReviewerSettings(reviewerSettings model.ReviewerIDsSettings) error {
 	ret := _m.Called(reviewerSettings)
 
 	if len(ret) == 0 {
@@ -58,7 +58,7 @@ func (_m *ContentFlaggingStore) SaveReviewerSettings(reviewerSettings model.Revi
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(model.ReviewSettingsRequest) error); ok {
+	if rf, ok := ret.Get(0).(func(model.ReviewerIDsSettings) error); ok {
 		r0 = rf(reviewerSettings)
 	} else {
 		r0 = ret.Error(0)

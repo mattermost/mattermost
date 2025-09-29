@@ -3442,7 +3442,7 @@ func (s *TimerLayerContentFlaggingStore) GetReviewerSettings() (*model.ReviewerI
 	return result, err
 }
 
-func (s *TimerLayerContentFlaggingStore) SaveReviewerSettings(reviewerSettings model.ReviewSettingsRequest) error {
+func (s *TimerLayerContentFlaggingStore) SaveReviewerSettings(reviewerSettings model.ReviewerIDsSettings) error {
 	start := time.Now()
 
 	err := s.ContentFlaggingStore.SaveReviewerSettings(reviewerSettings)
@@ -5228,6 +5228,22 @@ func (s *TimerLayerJobStore) GetAllByTypesPage(rctx request.CTX, jobTypes []stri
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("JobStore.GetAllByTypesPage", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerJobStore) GetByTypeAndData(rctx request.CTX, jobType string, data map[string]string, useMaster bool, statuses ...string) ([]*model.Job, error) {
+	start := time.Now()
+
+	result, err := s.JobStore.GetByTypeAndData(rctx, jobType, data, useMaster, statuses...)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("JobStore.GetByTypeAndData", success, elapsed)
 	}
 	return result, err
 }

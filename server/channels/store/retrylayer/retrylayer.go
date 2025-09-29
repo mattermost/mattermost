@@ -4195,7 +4195,7 @@ func (s *RetryLayerContentFlaggingStore) GetReviewerSettings() (*model.ReviewerI
 
 }
 
-func (s *RetryLayerContentFlaggingStore) SaveReviewerSettings(reviewerSettings model.ReviewSettingsRequest) error {
+func (s *RetryLayerContentFlaggingStore) SaveReviewerSettings(reviewerSettings model.ReviewerIDsSettings) error {
 
 	tries := 0
 	for {
@@ -6501,6 +6501,27 @@ func (s *RetryLayerJobStore) GetAllByTypesPage(rctx request.CTX, jobTypes []stri
 	tries := 0
 	for {
 		result, err := s.JobStore.GetAllByTypesPage(rctx, jobTypes, offset, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerJobStore) GetByTypeAndData(rctx request.CTX, jobType string, data map[string]string, useMaster bool, statuses ...string) ([]*model.Job, error) {
+
+	tries := 0
+	for {
+		result, err := s.JobStore.GetByTypeAndData(rctx, jobType, data, useMaster, statuses...)
 		if err == nil {
 			return result, nil
 		}
