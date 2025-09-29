@@ -501,8 +501,8 @@
   {
     "id": "app.scheduled_post.failed_message_detail",
     "translation": {
-      "one": "- {{.Count}} i kanal {{.ChannelName}}. Reason: {{.ErrorReason}}",
-      "other": "- {{.Count}} i kanal {{.ChannelName}}. Reason: {{.ErrorReason}}"
+      "one": "- {{.Count}} i kanal {{.ChannelName}}. Årsak: {{.ErrorReason}}",
+      "other": "- {{.Count}} i kanaler {{.ChannelName}}. Årsak: {{.ErrorReason}}"
     }
   },
   {
