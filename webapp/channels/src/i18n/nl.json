@@ -4567,7 +4567,6 @@
   "interactive_dialog.element.optional": "(optioneel)",
   "interactive_dialog.lookup_failed": "Opzoeken mislukt",
   "interactive_dialog.submission_failed": "Versturen mislukt",
-  "interactive_dialog.submission_failed_validation": "Versturen mislukt met validatiefouten",
   "interactive_dialog.submit": "Verzenden",
   "interactive_dialog.submitting": "Bezig met verzenden...",
   "interactive_dialog.validation_failed": "Dialoogvalidatie mislukt: {errors}",
