@@ -19,42 +19,41 @@ import (
 
 var CPAFieldListCmd = &cobra.Command{
 	Use:     "list",
-	Short:   "List CPA fields",
-	Long:    "List all Custom Profile Attribute fields with their properties.",
-	Example: `  cpa field list`,
+	Short:   "List User Attributes fields",
+	Long:    "List all User Attributes fields with their properties.",
+	Example: `  user attributes field list`,
 	Args:    cobra.NoArgs,
 	RunE:    withClient(cpaFieldListCmdF),
 }
 
 var CPAFieldCreateCmd = &cobra.Command{
 	Use:   "create [name] [type]",
-	Short: "Create a CPA field",
-	Long:  `Create a new Custom Profile Attribute field with the specified name and type.`,
-	Example: `  cpa field create "Department" text --managed
-  cpa field create "Skills" multiselect --option Go --option React --option Python
-  cpa field create "Level" select --attrs '{"visibility":"always"}'`,
+	Short: "Create a User Attributes field",
+	Long:  `Create a new User Attributes field with the specified name and type.`,
+	Example: `  user attributes field create "Department" text --managed
+  user attributes field create "Skills" multiselect --option Go --option React --option Python
+  user attributes field create "Level" select --attrs '{"visibility":"always"}'`,
 	Args: cobra.ExactArgs(2),
 	RunE: withClient(cpaFieldCreateCmdF),
 }
 
 var CPAFieldEditCmd = &cobra.Command{
 	Use:   "edit [field]",
-	Short: "Edit a CPA field",
-	Long:  "Edit an existing Custom Profile Attribute field by ID or name.",
-	Example: `  cpa field edit n4qdbtro4j8x3n8z81p48ww9gr --name "Department Name" --managed
-  cpa field edit Department --option Go --option React --option Python --option Java
-  cpa field edit Skills --managed=false`,
+	Short: "Edit a User Attributes field",
+	Long:  "Edit an existing User Attributes field.",
+	Example: `  user attributes field edit n4qdbtro4j8x3n8z81p48ww9gr --name "Department Name" --managed
+  user attributes field edit Department --option Go --option React --option Python --option Java
+  user attributes field edit Skills --managed=false`,
 	Args: cobra.ExactArgs(1),
 	RunE: withClient(cpaFieldEditCmdF),
 }
 
 var CPAFieldDeleteCmd = &cobra.Command{
 	Use:   "delete [field]",
-	Short: "Delete a CPA field",
-	Long:  "Delete a Custom Profile Attribute field by ID or name. This will automatically delete all user values for this field.",
-	Example: `  cpa field delete n4qdbtro4j8x3n8z81p48ww9gr --confirm
-  cpa field delete Department --confirm
-  cpa field delete Skills --confirm`,
+	Short: "Delete a User Attributes field",
+	Long:  "Delete a User Attributes field. This will automatically delete all user values for this field.",
+	Example: `  user attributes field delete n4qdbtro4j8x3n8z81p48ww9gr --confirm
+  user attributes field delete Department --confirm`,
 	Args: cobra.ExactArgs(1),
 	RunE: withClient(cpaFieldDeleteCmdF),
 }
@@ -74,8 +73,8 @@ func init() {
 	// Delete flags
 	CPAFieldDeleteCmd.Flags().Bool("confirm", false, "Bypass confirmation prompt")
 
-	// Add subcommands to CPAFieldCmd
-	CPAFieldCmd.AddCommand(
+	// Add subcommands to UserAttributesFieldCmd
+	UserAttributesFieldCmd.AddCommand(
 		CPAFieldListCmd,
 		CPAFieldCreateCmd,
 		CPAFieldEditCmd,
