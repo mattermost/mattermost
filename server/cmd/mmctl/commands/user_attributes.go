@@ -16,31 +16,32 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var CPACmd = &cobra.Command{
-	Use:   "cpa",
-	Short: "Management of Custom Profile Attributes",
-	Long:  "Management of Custom Profile Attributes (CPA) fields and values.",
+var UserAttributesCmd = &cobra.Command{
+	Use:     "attributes",
+	Aliases: []string{"attrs", "cpa"},
+	Short:   "Management of User Attributes",
+	Long:    "Management of User Attributes fields and values.",
 }
 
-var CPAFieldCmd = &cobra.Command{
+var UserAttributesFieldCmd = &cobra.Command{
 	Use:   "field",
-	Short: "Management of CPA fields",
-	Long:  "Create, list, edit, and delete Custom Profile Attribute fields.",
+	Short: "Management of User Attributes fields",
+	Long:  "Create, list, edit, and delete User Attribute fields.",
 }
 
-var CPAValueCmd = &cobra.Command{
+var UserAttributesValueCmd = &cobra.Command{
 	Use:   "value",
-	Short: "Management of CPA values",
-	Long:  "List, set, and delete Custom Profile Attribute values for users.",
+	Short: "Management of User Attributes values",
+	Long:  "List, set, and delete User Attribute values for users.",
 }
 
 func init() {
-	CPACmd.AddCommand(
-		CPAFieldCmd,
-		CPAValueCmd,
+	UserAttributesCmd.AddCommand(
+		UserAttributesFieldCmd,
+		UserAttributesValueCmd,
 	)
 
-	RootCmd.AddCommand(CPACmd)
+	UserCmd.AddCommand(UserAttributesCmd)
 }
 
 // Helper function to build field attributes from command flags

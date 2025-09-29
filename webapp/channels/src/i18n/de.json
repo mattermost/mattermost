@@ -4567,7 +4567,6 @@
   "interactive_dialog.element.optional": "(wahlweise)",
   "interactive_dialog.lookup_failed": "Nachschlagen fehlgeschlagen",
   "interactive_dialog.submission_failed": "Übermittlung fehlgeschlagen",
-  "interactive_dialog.submission_failed_validation": "Übermittlung mit Validierungsfehlern fehlgeschlagen",
   "interactive_dialog.submit": "Absenden",
   "interactive_dialog.submitting": "Sende...",
   "interactive_dialog.validation_failed": "Die Dialogüberprüfung ist fehlgeschlagen: {errors}",

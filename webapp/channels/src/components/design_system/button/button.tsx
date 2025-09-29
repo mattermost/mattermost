@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {forwardRef, memo} from 'react';
+import React, {forwardRef, memo, useMemo} from 'react';
 import type {ButtonHTMLAttributes, ReactNode} from 'react';
 
 import './button.scss';
@@ -72,7 +72,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps & ButtonHTMLProps>(
     ) => {
         const isDisabled = disabled || loading;
 
-        const buttonClasses = classNames(
+        const buttonClasses = useMemo(() => classNames(
             'Button',
             `Button--${size}`,
             `Button--${emphasis}`,
@@ -84,38 +84,48 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps & ButtonHTMLProps>(
                 'Button--inverted': inverted,
             },
             className,
-        );
+        ), [size, emphasis, destructive, loading, fullWidth, width, inverted, className]);
+
+        const buttonStyle = useMemo(() => {
+            return width ? {width, ...htmlProps.style} : htmlProps.style;
+        }, [width, htmlProps.style]);
+
+        const spinnerClasses = useMemo(() => classNames(
+            'Button__spinner',
+            `Button__spinner--${size}`,
+            {
+                'Button__spinner--inverted': inverted,
+            },
+        ), [size, inverted]);
+
+        const iconBeforeClasses = useMemo(() => classNames(
+            'Button__icon',
+            `Button__icon--${size}`,
+            'Button__icon--before',
+        ), [size]);
+
+        const iconAfterClasses = useMemo(() => classNames(
+            'Button__icon',
+            `Button__icon--${size}`,
+            'Button__icon--after',
+        ), [size]);
 
         return (
             <button
                 ref={ref}
                 className={buttonClasses}
                 disabled={isDisabled}
-                style={width ? {width, ...htmlProps.style} : htmlProps.style}
+                style={buttonStyle}
                 {...htmlProps}
             >
                 {loading && (
                     <span className='Button__loading'>
-                        <i
-                            className={classNames(
-                                'Button__spinner',
-                                `Button__spinner--${size}`,
-                                {
-                                    'Button__spinner--inverted': inverted,
-                                },
-                            )}
-                        />
+                        <i className={spinnerClasses}/>
                     </span>
                 )}
 
                 {iconBefore && !loading && (
-                    <span
-                        className={classNames(
-                            'Button__icon',
-                            `Button__icon--${size}`,
-                            'Button__icon--before',
-                        )}
-                    >
+                    <span className={iconBeforeClasses}>
                         {iconBefore}
                     </span>
                 )}
@@ -127,13 +137,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps & ButtonHTMLProps>(
                 )}
 
                 {iconAfter && !loading && (
-                    <span
-                        className={classNames(
-                            'Button__icon',
-                            `Button__icon--${size}`,
-                            'Button__icon--after',
-                        )}
-                    >
+                    <span className={iconAfterClasses}>
                         {iconAfter}
                     </span>
                 )}

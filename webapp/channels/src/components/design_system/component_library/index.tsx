@@ -56,9 +56,12 @@ const setStoredValue = <T, >(key: string, value: T): void => {
 };
 
 const ComponentLibrary = () => {
-    const [selectedComponent, setSelectedComponent] = useState<ComponentName>(() =>
-        getStoredValue(STORAGE_KEYS.SELECTED_COMPONENT, defaultComponent),
-    );
+    const [selectedComponent, setSelectedComponent] = useState<ComponentName>(() => {
+        const stored = getStoredValue(STORAGE_KEYS.SELECTED_COMPONENT, defaultComponent);
+
+        // Ensure the stored value is valid, otherwise use the first component
+        return Object.keys(componentMap).includes(stored) ? stored as ComponentName : defaultComponent;
+    });
 
     const [selectedTheme, setSelectedTheme] = useState<ThemeName>(() =>
         getStoredValue(STORAGE_KEYS.SELECTED_THEME, defaultTheme),
@@ -80,7 +83,9 @@ const ComponentLibrary = () => {
         }));
     }, []);
 
-    const SelectedComponent = componentMap[selectedComponent];
+    // Ensure we always have a valid component, even if state is corrupted
+    const validComponent = Object.keys(componentMap).includes(selectedComponent) ? selectedComponent : defaultComponent;
+    const SelectedComponent = componentMap[validComponent];
     return (
         <div className={'cl cl--sidebar-layout'}>
             <div className={'cl__sidebar'}>
@@ -103,7 +108,7 @@ const ComponentLibrary = () => {
                         {Object.keys(componentMap).map((componentName) => (
                             <button
                                 key={componentName}
-                                className={`cl__component-nav-item ${selectedComponent === componentName ? 'cl__component-nav-item--active' : ''}`}
+                                className={`cl__component-nav-item ${validComponent === componentName ? 'cl__component-nav-item--active' : ''}`}
                                 onClick={() => {
                                     setSelectedComponent(componentName as ComponentName);
                                     setStoredValue(STORAGE_KEYS.SELECTED_COMPONENT, componentName as ComponentName);
