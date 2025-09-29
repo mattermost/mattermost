@@ -924,10 +924,6 @@
     "translation": "знизати плечима"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Новий формат для клієнтської конфігурації поки що не підтримується. Будь ласка, вкажіть format=old у рядку запиту."
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "Вибачте, ми не змогли знайти цю сторінку."
   },
@@ -2078,14 +2074,6 @@
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "Вхід через ботів заборонено."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Спроба входу за допомогою експериментальної функції ClientSideCert без надання дійсного сертифікату."
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Спроба використання експериментальної можливості ClientSideCertEnable без дійсної Enterprise ліцензії."
   },
   {
     "id": "api.user.login.inactive.app_error",

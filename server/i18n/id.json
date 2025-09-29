@@ -1778,10 +1778,6 @@
     "translation": "Maaf, tidak dapat menemukan halaman yang dimaksud"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Format baru untuk konfigurasi klien belum didukung. Harap tentukan ormat=old dalam string kueri."
-  },
-  {
     "id": "api.command_shrug.name",
     "translation": "shrug"
   },

@@ -21,6 +21,7 @@ func (api *API) InitCustomProfileAttributes() {
 		api.BaseRoutes.User.Handle("/custom_profile_attributes", api.APISessionRequired(listCPAValues)).Methods(http.MethodGet)
 		api.BaseRoutes.CustomProfileAttributesValues.Handle("", api.APISessionRequired(patchCPAValues)).Methods(http.MethodPatch)
 		api.BaseRoutes.CustomProfileAttributes.Handle("/group", api.APISessionRequired(getCPAGroup)).Methods(http.MethodGet)
+		api.BaseRoutes.User.Handle("/custom_profile_attributes", api.APISessionRequired(patchCPAValuesForUser)).Methods(http.MethodPatch)
 	}
 }
 
@@ -277,10 +278,13 @@ func listCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	userID := c.Params.UserId
-	canSee, err := c.App.UserCanSeeOtherUser(c.AppContext, c.AppContext.Session().UserId, userID)
-	if err != nil || !canSee {
-		c.SetPermissionError(model.PermissionViewMembers)
-		return
+	// we check unrestricted sessions to allow local mode requests to go through
+	if !c.AppContext.Session().IsUnrestricted() {
+		canSee, err := c.App.UserCanSeeOtherUser(c.AppContext, c.AppContext.Session().UserId, userID)
+		if err != nil || !canSee {
+			c.SetPermissionError(model.PermissionViewMembers)
+			return
+		}
 	}
 
 	values, appErr := c.App.ListCPAValues(userID)
@@ -294,6 +298,78 @@ func listCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		returnValue[value.FieldID] = value.Value
 	}
 	if err := json.NewEncoder(w).Encode(returnValue); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func patchCPAValuesForUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
+		c.Err = model.NewAppError("Api4.patchCPAValues", "api.custom_profile_attributes.license_error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	// Get userID from URL
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+	userID := c.Params.UserId
+
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), userID) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+
+	var updates map[string]json.RawMessage
+	if err := json.NewDecoder(r.Body).Decode(&updates); err != nil {
+		c.SetInvalidParamWithErr("value", err)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventPatchCPAValues, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "user_id", userID)
+
+	// if the user is not an admin, we need to check that there are no
+	// admin-managed fields
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		fields, appErr := c.App.ListCPAFields()
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+
+		// Check if any of the fields being updated are admin-managed
+		for _, field := range fields {
+			if _, isBeingUpdated := updates[field.ID]; isBeingUpdated {
+				// Convert to CPAField to check if managed
+				cpaField, fErr := model.NewCPAFieldFromPropertyField(field)
+				if fErr != nil {
+					c.Err = model.NewAppError("Api4.patchCPAValues", "app.custom_profile_attributes.property_field_conversion.app_error", nil, "", http.StatusInternalServerError).Wrap(fErr)
+					return
+				}
+				if cpaField.IsAdminManaged() {
+					c.Err = model.NewAppError("Api4.patchCPAValues", "app.custom_profile_attributes.property_field_is_managed.app_error", nil, "", http.StatusForbidden)
+					return
+				}
+			}
+		}
+	}
+
+	results := make(map[string]json.RawMessage, len(updates))
+	for fieldID, rawValue := range updates {
+		patchedValue, appErr := c.App.PatchCPAValue(userID, fieldID, rawValue, false)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+		results[fieldID] = patchedValue.Value
+	}
+
+	auditRec.Success()
+	auditRec.AddEventObjectType("patchCPAValues")
+
+	if err := json.NewEncoder(w).Encode(results); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

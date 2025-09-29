@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
@@ -12,12 +13,10 @@ import type {GetFilteredUsersStatsOpts, UsersStats} from '@mattermost/types/user
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import ExternalLink from 'components/external_link';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
-import {AboutLinks, CloudLinks, ModalIdentifiers} from 'utils/constants';
+import {AboutLinks, CloudLinks, LicenseSkus, ModalIdentifiers} from 'utils/constants';
 import {isLicenseExpired, isLicenseExpiring, isTrialLicense, licenseSKUWithFirstLetterCapitalized, isEnterpriseLicense} from 'utils/license_utils';
 
 import type {ModalData} from 'types/actions';
@@ -156,11 +155,6 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
             if (this.interval) {
                 clearInterval(this.interval);
                 this.interval = null;
-                if (error) {
-                    trackEvent('api', 'upgrade_to_e0_failed', {error});
-                } else {
-                    trackEvent('api', 'upgrade_to_e0_success');
-                }
             }
         } else if (percentage > 0 && !this.interval) {
             this.interval = setInterval(this.reloadPercentage, 2000);
@@ -223,7 +217,6 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
             this.setState({upgradingPercentage: 1});
             await this.reloadPercentage();
         } catch (error: any) {
-            trackEvent('api', 'upgrade_to_e0_failed', {error: error.message as string});
             this.setState({upgradeError: error.message, upgradingPercentage: 0});
         }
     };
@@ -281,12 +274,12 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
         </div>
     );
 
-    comparePlans = (
+    comparePlans = (this.props.license.SkuShortName === LicenseSkus.Entry ? null : (
         <div className='compare-plans-text'>
             {'Curious about upgrading? '}
             {this.createLink(CloudLinks.PRICING, 'Compare Plans')}
         </div>
-    );
+    ));
 
     render() {
         const {license, upgradedFromTE, isDisabled} = this.props;
@@ -371,7 +364,7 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
                                 totalUsers={this.props.totalUsers}
                                 location='license_settings'
                             />
-                            {!this.state.clickNormalUpgradeBtn && license.IsLicensed !== 'true' &&
+                            {!this.state.clickNormalUpgradeBtn && (license.IsLicensed !== 'true') &&
                                 this.props.prevTrialLicense?.IsLicensed !== 'true' &&
                                 <TrialBanner
                                     isDisabled={isDisabled}
@@ -399,7 +392,7 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
                                 {(!isTrialLicense(license)) && this.termsAndPolicy}
                             </div>
                             <div className='right-panel'>
-                                <div className='panel-card'>
+                                <div className={classNames('panel-card', {entry: license.SkuShortName === LicenseSkus.Entry})}>
                                     {rightPanel}
                                 </div>
                                 {!isEnterpriseLicense(license) && this.comparePlans}

@@ -316,22 +316,25 @@ type Dialog struct {
 	SubmitLabel      string          `json:"submit_label"`
 	NotifyOnCancel   bool            `json:"notify_on_cancel"`
 	State            string          `json:"state"`
+	SourceURL        string          `json:"source_url,omitempty"`
 }
 
 type DialogElement struct {
-	DisplayName string               `json:"display_name"`
-	Name        string               `json:"name"`
-	Type        string               `json:"type"`
-	SubType     string               `json:"subtype"`
-	Default     string               `json:"default"`
-	Placeholder string               `json:"placeholder"`
-	HelpText    string               `json:"help_text"`
-	Optional    bool                 `json:"optional"`
-	MinLength   int                  `json:"min_length"`
-	MaxLength   int                  `json:"max_length"`
-	DataSource  string               `json:"data_source"`
-	Options     []*PostActionOptions `json:"options"`
-	MultiSelect bool                 `json:"multiselect"`
+	DisplayName   string               `json:"display_name"`
+	Name          string               `json:"name"`
+	Type          string               `json:"type"`
+	SubType       string               `json:"subtype"`
+	Default       string               `json:"default"`
+	Placeholder   string               `json:"placeholder"`
+	HelpText      string               `json:"help_text"`
+	Optional      bool                 `json:"optional"`
+	MinLength     int                  `json:"min_length"`
+	MaxLength     int                  `json:"max_length"`
+	DataSource    string               `json:"data_source"`
+	DataSourceURL string               `json:"data_source_url,omitempty"`
+	Options       []*PostActionOptions `json:"options"`
+	MultiSelect   bool                 `json:"multiselect"`
+	Refresh       bool                 `json:"refresh,omitempty"`
 }
 
 type OpenDialogRequest struct {
@@ -352,9 +355,59 @@ type SubmitDialogRequest struct {
 	Cancelled  bool           `json:"cancelled"`
 }
 
+type SubmitDialogResponseType string
+
+const (
+	SubmitDialogResponseTypeEmpty    SubmitDialogResponseType = ""
+	SubmitDialogResponseTypeOK       SubmitDialogResponseType = "ok"
+	SubmitDialogResponseTypeForm     SubmitDialogResponseType = "form"
+	SubmitDialogResponseTypeNavigate SubmitDialogResponseType = "navigate"
+)
+
 type SubmitDialogResponse struct {
 	Error  string            `json:"error,omitempty"`
 	Errors map[string]string `json:"errors,omitempty"`
+	Type   string            `json:"type,omitempty"`
+	Form   *Dialog           `json:"form,omitempty"`
+}
+
+func (r *SubmitDialogResponse) IsValid() error {
+	// If Error or Errors are set, this is valid and everything else is ignored
+	if r.Error != "" || len(r.Errors) > 0 {
+		return nil
+	}
+
+	// Validate Type field and handle Form field appropriately for each type
+	switch SubmitDialogResponseType(r.Type) {
+	case SubmitDialogResponseTypeEmpty, SubmitDialogResponseTypeOK, SubmitDialogResponseTypeNavigate:
+		// Completion types - Form field should be nil
+		if r.Form != nil {
+			return errors.Errorf("form field must be nil for type %q", r.Type)
+		}
+	case SubmitDialogResponseTypeForm:
+		// Continuation type - Form field is required and must be valid
+		if r.Form == nil {
+			return errors.New("form field is required for form type")
+		}
+		if err := r.Form.IsValid(); err != nil {
+			return errors.Wrap(err, "invalid form")
+		}
+	default:
+		return errors.Errorf("invalid type %q, must be one of: empty, ok, form, navigate", r.Type)
+	}
+
+	return nil
+}
+
+// DialogSelectOption represents an option in a select dropdown for dialogs
+type DialogSelectOption struct {
+	Text  string `json:"text"`
+	Value string `json:"value"`
+}
+
+// LookupDialogResponse represents the response for a lookup dialog request.
+type LookupDialogResponse struct {
+	Items []DialogSelectOption `json:"items"`
 }
 
 func GenerateTriggerId(userId string, s crypto.Signer) (string, string, *AppError) {
@@ -528,10 +581,21 @@ func (e *DialogElement) IsValid() error {
 	case "select":
 		multiErr = multierror.Append(multiErr, checkMaxLength("Default", e.Default, DialogElementSelectMaxLength))
 		multiErr = multierror.Append(multiErr, checkMaxLength("Placeholder", e.Placeholder, DialogElementSelectMaxLength))
-		if e.DataSource != "" && e.DataSource != "users" && e.DataSource != "channels" {
-			multiErr = multierror.Append(multiErr, errors.Errorf("invalid data source %q, allowed are 'users' or 'channels'", e.DataSource))
+		if e.DataSource != "" && e.DataSource != "users" && e.DataSource != "channels" && e.DataSource != "dynamic" {
+			multiErr = multierror.Append(multiErr, errors.Errorf("invalid data source %q, allowed are 'users', 'channels', or 'dynamic'", e.DataSource))
 		}
-		if e.DataSource == "" {
+		if e.DataSource == "dynamic" {
+			// Dynamic selects should have a data_source_url
+			if e.DataSourceURL == "" {
+				multiErr = multierror.Append(multiErr, errors.New("dynamic data_source requires data_source_url"))
+			} else if !IsValidLookupURL(e.DataSourceURL) {
+				multiErr = multierror.Append(multiErr, errors.New("invalid data_source_url for dynamic select"))
+			}
+			// Dynamic selects should not have static options
+			if len(e.Options) > 0 {
+				multiErr = multierror.Append(multiErr, errors.New("dynamic select element should not have static options"))
+			}
+		} else if e.DataSource == "" {
 			if e.MultiSelect {
 				if !isMultiSelectDefaultInOptions(e.Default, e.Options) {
 					multiErr = multierror.Append(multiErr, errors.Errorf("multiselect default value %q contains values not in options", e.Default))
@@ -756,4 +820,23 @@ func DecryptPostActionCookie(encoded string, secret []byte) (string, error) {
 	}
 
 	return string(plain), nil
+}
+
+// IsValidLookupURL validates if a URL is safe for lookup operations
+func IsValidLookupURL(url string) bool {
+	if url == "" {
+		return false
+	}
+
+	// Allow plugin paths that start with /plugins/
+	if strings.HasPrefix(url, "/plugins/") {
+		// Additional validation for plugin paths - ensure no path traversal
+		if strings.Contains(url, "..") || strings.Contains(url, "//") {
+			return false
+		}
+		return true
+	}
+
+	// For external URLs, use the same basic validation as other models
+	return IsValidHTTPURL(url)
 }

@@ -21,7 +21,6 @@ describe('/components/create_team/components/display_name', () => {
         actions: {
             checkIfTeamExists: jest.fn().mockResolvedValue({data: true}),
             createTeam: jest.fn().mockResolvedValue({data: {name: 'test-team'}}),
-            trackEvent: jest.fn(),
         },
         history: {push: jest.fn()},
     };

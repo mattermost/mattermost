@@ -1456,7 +1456,6 @@ type LogSettings struct {
 	FileLocation           *string         `access:"environment_logging,write_restrictable,cloud_restrictable"`
 	EnableWebhookDebugging *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"`
 	EnableDiagnostics      *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
-	VerboseDiagnostics     *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
 	EnableSentry           *bool           `access:"environment_logging,write_restrictable,cloud_restrictable"` // telemetry: none
 	AdvancedLoggingJSON    json.RawMessage `access:"environment_logging,write_restrictable,cloud_restrictable"`
 	MaxFieldSize           *int            `access:"environment_logging,write_restrictable,cloud_restrictable"`
@@ -1514,10 +1513,6 @@ func (s *LogSettings) SetDefaults() {
 
 	if s.EnableDiagnostics == nil {
 		s.EnableDiagnostics = NewPointer(true)
-	}
-
-	if s.VerboseDiagnostics == nil {
-		s.VerboseDiagnostics = NewPointer(false)
 	}
 
 	if s.EnableSentry == nil {
@@ -3344,7 +3339,7 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 // Sanitize cleans up the plugin settings by removing any sensitive information.
 // It does so by checking if the setting is marked as secret in the plugin manifest.
 // If it is, the setting is replaced with a fake value.
-// If a plugin is no longer installed, all settings of it's are sanitized.
+// If a plugin is no longer installed or doesn't define any settings, no stored settings for that plugin are returned.
 // If the list of manifests in nil, i.e. plugins are disabled, all settings are sanitized.
 func (s *PluginSettings) Sanitize(pluginManifests []*Manifest) {
 	manifestMap := make(map[string]*Manifest, len(pluginManifests))
@@ -3357,17 +3352,25 @@ func (s *PluginSettings) Sanitize(pluginManifests []*Manifest) {
 		manifest := manifestMap[id]
 
 		for key := range settings {
-			if manifest == nil {
-				// Don't return plugin settings for plugins that are not installed
+			if manifest == nil ||
+				manifest.SettingsSchema == nil {
+				// Don't return any stored plugin settings if
+				//   - The plugin is no longer installed
+				//   - The plugin doesn't define any settings
 				delete(s.Plugins, id)
 				break
 			}
 
+			// notASecret is true when the plugin declared the settings key and it's not declared as secret
+			var notASecret bool
 			for _, definedSetting := range manifest.SettingsSchema.Settings {
-				if definedSetting.Secret && strings.EqualFold(definedSetting.Key, key) {
-					settings[key] = FakeSetting
+				if strings.EqualFold(definedSetting.Key, key) && !definedSetting.Secret {
+					notASecret = true
 					break
 				}
+			}
+			if !notASecret {
+				settings[key] = FakeSetting
 			}
 		}
 	}
@@ -3627,7 +3630,7 @@ func (s *ImageProxySettings) SetDefaults() {
 // ImportSettings defines configuration settings for file imports.
 type ImportSettings struct {
 	// The directory where to store the imported files.
-	Directory *string
+	Directory *string `access:"cloud_restrictable"`
 	// The number of days to retain the imported files before deleting them.
 	RetentionDays *int
 }
@@ -3658,7 +3661,7 @@ func (s *ImportSettings) SetDefaults() {
 // ExportSettings defines configuration settings for file exports.
 type ExportSettings struct {
 	// The directory where to store the exported files.
-	Directory *string // telemetry: none
+	Directory *string `access:"cloud_restrictable"` // telemetry: none
 	// The number of days to retain the exported files before deleting them.
 	RetentionDays *int
 }

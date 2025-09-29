@@ -24,7 +24,7 @@ func TestDoSetupContentFlaggingProperties(t *testing.T) {
 		require.NotNil(t, group)
 		require.Equal(t, model.ContentFlaggingGroupName, group.Name)
 
-		propertyFields, err := th.Server.propertyService.SearchPropertyFields(group.ID, "", model.PropertyFieldSearchOpts{PerPage: 100})
+		propertyFields, err := th.Server.propertyService.SearchPropertyFields(group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
 		require.NoError(t, err)
 		require.Len(t, propertyFields, 10)
 	})
@@ -45,7 +45,7 @@ func TestDoSetupContentFlaggingProperties(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, model.ContentFlaggingGroupName, group.Name)
 
-		propertyFields, err := th.Server.propertyService.SearchPropertyFields(group.ID, "", model.PropertyFieldSearchOpts{PerPage: 100})
+		propertyFields, err := th.Server.propertyService.SearchPropertyFields(group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
 		require.NoError(t, err)
 		require.Len(t, propertyFields, 10)
 	})

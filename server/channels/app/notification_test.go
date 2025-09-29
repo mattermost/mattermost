@@ -2883,7 +2883,7 @@ func TestReplyPostNotificationsWithCRT(t *testing.T) {
 
 		threadMembership, appErr := th.App.GetThreadMembershipForUser(u2.Id, rpost.Id)
 		require.Nil(t, appErr)
-		thread, appErr := th.App.GetThreadForUser(threadMembership, false)
+		thread, appErr := th.App.GetThreadForUser(th.Context, threadMembership, false)
 		require.Nil(t, appErr)
 		// Then: with notifications set to "all" we should
 		// not see a mention badge
@@ -3096,7 +3096,7 @@ func TestRemoveNotifications(t *testing.T) {
 
 		threadMembership, appErr := th.App.GetThreadMembershipForUser(u2.Id, rootPost.Id)
 		require.Nil(t, appErr)
-		thread, appErr := th.App.GetThreadForUser(threadMembership, false)
+		thread, appErr := th.App.GetThreadForUser(th.Context, threadMembership, false)
 		require.Nil(t, appErr)
 		require.Equal(t, int64(0), thread.UnreadMentions)
 		require.Equal(t, int64(0), thread.UnreadReplies)
@@ -3149,7 +3149,7 @@ func TestRemoveNotifications(t *testing.T) {
 
 		threadMembership, appErr := th.App.GetThreadMembershipForUser(u2.Id, rootPost.Id)
 		require.Nil(t, appErr)
-		thread, appErr := th.App.GetThreadForUser(threadMembership, false)
+		thread, appErr := th.App.GetThreadForUser(th.Context, threadMembership, false)
 		require.Nil(t, appErr)
 		require.Equal(t, int64(0), thread.UnreadMentions)
 		require.Equal(t, int64(0), thread.UnreadReplies)

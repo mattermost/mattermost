@@ -8,7 +8,7 @@ import type {Dispatch} from 'redux';
 
 import {interactiveDialogAppsFormEnabled} from 'mattermost-redux/selectors/entities/interactive_dialog';
 
-import {submitInteractiveDialog} from 'actions/integration_actions';
+import {submitInteractiveDialog, lookupInteractiveDialog} from 'actions/integration_actions';
 import {getEmojiMap} from 'selectors/emojis';
 
 import type {GlobalState} from 'types/store';
@@ -37,6 +37,7 @@ function mapStateToProps(state: GlobalState) {
         submitLabel: data.dialog.submit_label,
         notifyOnCancel: data.dialog.notify_on_cancel,
         state: data.dialog.state,
+        sourceUrl: data.dialog.source_url,
         emojiMap,
         isAppsFormEnabled,
         hasUrl: Boolean(data.url),
@@ -47,6 +48,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             submitInteractiveDialog,
+            lookupInteractiveDialog,
         }, dispatch),
     };
 }

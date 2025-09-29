@@ -202,7 +202,7 @@ describe('Customization', () => {
 ~~This has been strikethrough~~
 *This has been italicized*
 [This is a link to mattermost.com](https://mattermost.com)
-` + '`This is inline code`'; // eslint-disable-line no-useless-concat
+` + '`This is inline code`';
 
         // # Update custom brand text
         cy.findByTestId('TeamSettings.CustomBrandTextinput').clear().type(customBrandText);
