@@ -193,7 +193,7 @@ func (s *MmctlE2ETestSuite) TestCPAFieldEditCmd() {
 
 		err = cpaFieldEditCmdF(c, cmd, []string{"nonexistent-field-id"})
 		s.Require().NotNil(err)
-		s.Require().Contains(err.Error(), "failed to update CPA field")
+		s.Require().Contains(err.Error(), "failed to get field for \"nonexistent-field-id\"")
 	})
 
 	s.RunForSystemAdminAndLocal("Edit field using --name and --option flags", func(c client.Client) {
@@ -303,6 +303,58 @@ func (s *MmctlE2ETestSuite) TestCPAFieldEditCmd() {
 		// Verify that managed flag was set correctly
 		s.Require().Equal("admin", cpaField.Attrs.Managed)
 	})
+
+	s.RunForSystemAdminAndLocal("Edit field by name", func(c client.Client) {
+		printer.Clean()
+		s.cleanCPAFields()
+
+		// First create a field to edit
+		field := &model.CPAField{
+			PropertyField: model.PropertyField{
+				Name:       "Department",
+				Type:       model.PropertyFieldTypeText,
+				TargetType: "user",
+			},
+			Attrs: model.CPAAttrs{
+				Managed: "",
+			},
+		}
+
+		createdField, appErr := s.th.App.CreateCPAField(field)
+		s.Require().Nil(appErr)
+
+		// Now edit the field using its name instead of ID
+		cmd := &cobra.Command{}
+		cmd.Flags().String("name", "", "")
+		cmd.Flags().Bool("managed", false, "")
+		cmd.Flags().String("attrs", "", "")
+		cmd.Flags().StringSlice("option", []string{}, "")
+
+		err := cmd.Flags().Set("name", "Team")
+		s.Require().Nil(err)
+		err = cmd.Flags().Set("managed", "true")
+		s.Require().Nil(err)
+
+		// Edit using field name "Department" instead of the field ID
+		err = cpaFieldEditCmdF(c, cmd, []string{"Department"})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		// Verify the success message
+		output := printer.GetLines()[0].(string)
+		s.Require().Contains(output, "Field Team successfully updated")
+
+		// Verify field was actually updated by retrieving it
+		updatedField, appErr := s.th.App.GetCPAField(createdField.ID)
+		s.Require().Nil(appErr)
+		s.Require().Equal("Team", updatedField.Name)
+
+		// Convert to CPAField to check managed status
+		cpaField, err := model.NewCPAFieldFromPropertyField(updatedField)
+		s.Require().Nil(err)
+		s.Require().Equal("admin", cpaField.Attrs.Managed)
+	})
 }
 
 func (s *MmctlE2ETestSuite) TestCPAFieldDeleteCmd() {
@@ -355,6 +407,53 @@ func (s *MmctlE2ETestSuite) TestCPAFieldDeleteCmd() {
 		s.Require().False(fieldExists, "Field should have been deleted but still exists in the list")
 	})
 
+	s.RunForSystemAdminAndLocal("Delete existing field by name", func(c client.Client) {
+		printer.Clean()
+		s.cleanCPAFields()
+
+		// First create a field to delete
+		field := &model.CPAField{
+			PropertyField: model.PropertyField{
+				Name:       "Department",
+				Type:       model.PropertyFieldTypeText,
+				TargetType: "user",
+			},
+		}
+
+		createdField, appErr := s.th.App.CreateCPAField(field)
+		s.Require().Nil(appErr)
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", false, "")
+
+		err := cmd.Flags().Set("confirm", "true")
+		s.Require().Nil(err)
+
+		// Delete using field name instead of ID
+		err = cpaFieldDeleteCmdF(c, cmd, []string{"Department"})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		// Verify the success message
+		output := printer.GetLines()[0].(string)
+		s.Require().Contains(output, "Successfully deleted CPA field: Department")
+
+		// Verify field was actually deleted by checking if it exists in the list
+		fields, appErr := s.th.App.ListCPAFields()
+		s.Require().Nil(appErr)
+
+		// Field should not be in the list anymore
+		fieldExists := false
+		for _, field := range fields {
+			if field.ID == createdField.ID {
+				fieldExists = true
+				break
+			}
+		}
+		s.Require().False(fieldExists, "Field should have been deleted but still exists in the list")
+	})
+
 	s.RunForSystemAdminAndLocal("Delete nonexistent field", func(c client.Client) {
 		printer.Clean()
 		s.cleanCPAFields()
@@ -367,6 +466,21 @@ func (s *MmctlE2ETestSuite) TestCPAFieldDeleteCmd() {
 
 		err = cpaFieldDeleteCmdF(c, cmd, []string{"nonexistent-field-id"})
 		s.Require().NotNil(err)
-		s.Require().Contains(err.Error(), "failed to delete CPA field")
+		s.Require().Contains(err.Error(), `failed to get field for "nonexistent-field-id"`)
+	})
+
+	s.RunForSystemAdminAndLocal("Delete nonexistent field by name", func(c client.Client) {
+		printer.Clean()
+		s.cleanCPAFields()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", false, "")
+
+		err := cmd.Flags().Set("confirm", "true")
+		s.Require().Nil(err)
+
+		err = cpaFieldDeleteCmdF(c, cmd, []string{"NonexistentField"})
+		s.Require().NotNil(err)
+		s.Require().Contains(err.Error(), `failed to get field for "NonexistentField"`)
 	})
 }

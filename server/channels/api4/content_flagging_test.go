@@ -295,7 +295,7 @@ func TestFlagPost(t *testing.T) {
 			Comment: "This is spam content",
 		}
 
-		resp, err := client.FlagPost(context.Background(), post.Id, flagRequest)
+		resp, err := client.FlagPostForContentReview(context.Background(), post.Id, flagRequest)
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 	})
@@ -315,7 +315,7 @@ func TestFlagPost(t *testing.T) {
 			Comment: "This is spam content",
 		}
 
-		resp, err := client.FlagPost(context.Background(), post.Id, flagRequest)
+		resp, err := client.FlagPostForContentReview(context.Background(), post.Id, flagRequest)
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 	})
@@ -334,7 +334,7 @@ func TestFlagPost(t *testing.T) {
 			Comment: "This is spam content",
 		}
 
-		resp, err := client.FlagPost(context.Background(), model.NewId(), flagRequest)
+		resp, err := client.FlagPostForContentReview(context.Background(), model.NewId(), flagRequest)
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotFound, resp.StatusCode)
 	})
@@ -358,7 +358,7 @@ func TestFlagPost(t *testing.T) {
 			Comment: "This is spam content",
 		}
 
-		resp, err := client.FlagPost(context.Background(), post.Id, flagRequest)
+		resp, err := client.FlagPostForContentReview(context.Background(), post.Id, flagRequest)
 		require.Error(t, err)
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
 	})
@@ -382,7 +382,7 @@ func TestFlagPost(t *testing.T) {
 			Comment: "This is spam content",
 		}
 
-		resp, err := client.FlagPost(context.Background(), post.Id, flagRequest)
+		resp, err := client.FlagPostForContentReview(context.Background(), post.Id, flagRequest)
 		require.Error(t, err)
 		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
@@ -404,7 +404,7 @@ func TestFlagPost(t *testing.T) {
 			Comment: "This is sensitive data",
 		}
 
-		resp, err := client.FlagPost(context.Background(), post.Id, flagRequest)
+		resp, err := client.FlagPostForContentReview(context.Background(), post.Id, flagRequest)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 	})

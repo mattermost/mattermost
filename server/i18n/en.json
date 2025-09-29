@@ -6255,6 +6255,10 @@
     "translation": "Unable to get the job count by status and type."
   },
   {
+    "id": "app.job.get_existing_jobs.error",
+    "translation": "Unable to get existing jobs."
+  },
+  {
     "id": "app.job.get_newest_job_by_status_and_type.app_error",
     "translation": "Unable to get the newest job by status and type."
   },
@@ -7263,6 +7267,10 @@
   {
     "id": "app.submit_interactive_dialog.decode_json_error",
     "translation": "Encountered an error decoding JSON response from interactive dialog submission."
+  },
+  {
+    "id": "app.submit_interactive_dialog.invalid_response",
+    "translation": "Encountered an invalid response from interactive dialog submission."
   },
   {
     "id": "app.submit_interactive_dialog.json_error",
