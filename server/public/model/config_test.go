@@ -2475,9 +2475,9 @@ func TestAutoTranslationSettingsDefaults(t *testing.T) {
 
 		require.False(t, *c.AutoTranslationSettings.Enable)
 		require.Equal(t, "libretranslate", *c.AutoTranslationSettings.Provider)
-		require.Equal(t, 800, *c.AutoTranslationSettings.Timeouts.NewPost)
-		require.Equal(t, 2000, *c.AutoTranslationSettings.Timeouts.Fetch)
-		require.Equal(t, 300, *c.AutoTranslationSettings.Timeouts.Notification)
+		require.Equal(t, 800, *c.AutoTranslationSettings.TimeoutsMs.NewPost)
+		require.Equal(t, 2000, *c.AutoTranslationSettings.TimeoutsMs.Fetch)
+		require.Equal(t, 300, *c.AutoTranslationSettings.TimeoutsMs.Notification)
 		require.Equal(t, "", *c.AutoTranslationSettings.LibreTranslate.URL)
 		require.Equal(t, "", *c.AutoTranslationSettings.LibreTranslate.APIKey)
 		// TODO: Enable Agents provider in future release
@@ -2503,7 +2503,7 @@ func TestAutoTranslationSettingsIsValid(t *testing.T) {
 			name: "enabled with no provider should fail",
 			settings: AutoTranslationSettings{
 				Enable:   NewPointer(true),
-				Provider: NewPointer(""),
+				Provider: nil,
 			},
 			expectError: true,
 			errorId:     "model.config.is_valid.autotranslation.provider.app_error",

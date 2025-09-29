@@ -243,7 +243,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 			props["MobileAllowPdfLinkNavigation"] = strconv.FormatBool(*c.NativeAppSettings.MobileAllowPdfLinkNavigation)
 
 			props["ContentFlaggingEnabled"] = strconv.FormatBool(c.FeatureFlags.ContentFlagging && *c.ContentFlaggingSettings.EnableContentFlagging)
-			props["EnableAutoTranslation"] = strconv.FormatBool(c.FeatureFlags.AutoTranslate && *c.AutoTranslationSettings.Enable)
+			props["EnableAutoTranslation"] = strconv.FormatBool(c.FeatureFlags.AutoTranslation && *c.AutoTranslationSettings.Enable)
 		}
 	}
 

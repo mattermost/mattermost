@@ -79,9 +79,9 @@ type FeatureFlags struct {
 	// Enable channel admins to manage ABAC rules for their channels
 	ChannelAdminManageABACRules bool
 
-	// FEATURE_FLAG_REMOVAL: AutoTranslate - Remove this default when MVP is to be released
+	// FEATURE_FLAG_REMOVAL: AutoTranslation - Remove this when MVP is to be released
 	// Enable auto-translation feature for messages in channels
-	AutoTranslate bool
+	AutoTranslation bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -116,8 +116,8 @@ func (f *FeatureFlags) SetDefaults() {
 	// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this default when feature is GA
 	f.ChannelAdminManageABACRules = false // Default to false for safety
 
-	// FEATURE_FLAG_REMOVAL: AutoTranslate - Remove this default when MVP is to be released
-	f.AutoTranslate = false
+	// FEATURE_FLAG_REMOVAL: AutoTranslation - Remove this default when MVP is to be released
+	f.AutoTranslation = false
 }
 
 // ToMap returns the feature flags as a map[string]string

@@ -2693,13 +2693,13 @@ func (s *LocalizationSettings) SetDefaults() {
 type AutoTranslationSettings struct {
 	Enable         *bool                           `access:"site_localization,cloud_restrictable"`
 	Provider       *string                         `access:"site_localization,cloud_restrictable"`
-	Timeouts       *AutoTranslationTimeouts        `access:"site_localization,cloud_restrictable"`
+	TimeoutsMs     *AutoTranslationTimeoutsInMs    `access:"site_localization,cloud_restrictable"`
 	LibreTranslate *LibreTranslateProviderSettings `access:"site_localization,cloud_restrictable"`
 	// TODO: Enable Agents provider in future release
 	// Agents         *AgentsProviderSettings         `access:"site_localization,cloud_restrictable"`
 }
 
-type AutoTranslationTimeouts struct {
+type AutoTranslationTimeoutsInMs struct {
 	NewPost      *int `access:"site_localization,cloud_restrictable"`
 	Fetch        *int `access:"site_localization,cloud_restrictable"`
 	Notification *int `access:"site_localization,cloud_restrictable"`
@@ -2721,13 +2721,13 @@ func (s *AutoTranslationSettings) SetDefaults() {
 	}
 
 	if s.Provider == nil {
-		s.Provider = NewPointer("libretranslate")
+		s.Provider = NewPointer("")
 	}
 
-	if s.Timeouts == nil {
-		s.Timeouts = &AutoTranslationTimeouts{}
+	if s.TimeoutsMs == nil {
+		s.TimeoutsMs = &AutoTranslationTimeoutsInMs{}
 	}
-	s.Timeouts.SetDefaults()
+	s.TimeoutsMs.SetDefaults()
 
 	if s.LibreTranslate == nil {
 		s.LibreTranslate = &LibreTranslateProviderSettings{}
@@ -2741,7 +2741,7 @@ func (s *AutoTranslationSettings) SetDefaults() {
 	// s.Agents.SetDefaults()
 }
 
-func (s *AutoTranslationTimeouts) SetDefaults() {
+func (s *AutoTranslationTimeoutsInMs) SetDefaults() {
 	if s.NewPost == nil {
 		s.NewPost = NewPointer(800)
 	}
@@ -4680,39 +4680,38 @@ func (s *DataRetentionSettings) isValid() *AppError {
 }
 
 func (s *AutoTranslationSettings) isValid() *AppError {
-	if s.Enable != nil && *s.Enable {
-		if s.Provider == nil || *s.Provider == "" {
-			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.provider.app_error", nil, "", http.StatusBadRequest)
-		}
-		// TODO: Enable Agents provider in future release
-		if *s.Provider != "libretranslate" {
-			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.provider.unsupported.app_error", nil, "", http.StatusBadRequest)
-		}
+	if s.Enable == nil || !*s.Enable {
+		return nil
+	}
 
-		if *s.Provider == "libretranslate" {
-			if s.LibreTranslate == nil || s.LibreTranslate.URL == nil || *s.LibreTranslate.URL == "" || !IsValidHTTPURL(*s.LibreTranslate.URL) {
-				return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.libretranslate.url.app_error", nil, "", http.StatusBadRequest)
-			}
+	if *s.Provider == "" {
+		return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.provider.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	switch *s.Provider {
+	case "libretranslate":
+		if s.LibreTranslate == nil || s.LibreTranslate.URL == nil || *s.LibreTranslate.URL == "" || !IsValidHTTPURL(*s.LibreTranslate.URL) {
+			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.libretranslate.url.app_error", nil, "", http.StatusBadRequest)
 		}
+	// TODO: Enable Agents provider in future release
+	// case "agents":
+	// 	if s.Agents == nil || s.Agents.BotUserId == nil || *s.Agents.BotUserId == "" {
+	// 		return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.agents.bot_user_id.app_error", nil, "", http.StatusBadRequest)
+	// 	}
+	default:
+		return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.provider.unsupported.app_error", nil, "", http.StatusBadRequest)
+	}
 
-		// TODO: Enable Agents provider in future release
-		// if *s.Provider == "agents" {
-		// 	if s.Agents == nil || s.Agents.BotUserId == nil || *s.Agents.BotUserId == "" {
-		// 		return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.agents.bot_user_id.app_error", nil, "", http.StatusBadRequest)
-		// 	}
-		// }
-
-		// Validate timeouts if set
-		if s.Timeouts != nil {
-			if s.Timeouts.NewPost != nil && *s.Timeouts.NewPost <= 0 {
-				return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.new_post.app_error", nil, "", http.StatusBadRequest)
-			}
-			if s.Timeouts.Fetch != nil && *s.Timeouts.Fetch <= 0 {
-				return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.fetch.app_error", nil, "", http.StatusBadRequest)
-			}
-			if s.Timeouts.Notification != nil && *s.Timeouts.Notification <= 0 {
-				return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.notification.app_error", nil, "", http.StatusBadRequest)
-			}
+	// Validate timeouts if set
+	if s.TimeoutsMs != nil {
+		if s.TimeoutsMs.NewPost != nil && *s.TimeoutsMs.NewPost <= 0 {
+			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.new_post.app_error", nil, "", http.StatusBadRequest)
+		}
+		if s.TimeoutsMs.Fetch != nil && *s.TimeoutsMs.Fetch <= 0 {
+			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.fetch.app_error", nil, "", http.StatusBadRequest)
+		}
+		if s.TimeoutsMs.Notification != nil && *s.TimeoutsMs.Notification <= 0 {
+			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.notification.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 
