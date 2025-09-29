@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {IntlShape} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
 
 import type {Post} from '@mattermost/types/posts';
 import type {Reaction as ReactionType} from '@mattermost/types/reactions';
@@ -16,7 +16,7 @@ type State = {
     reactedClass: 'Reaction--reacted' | 'Reaction--reacting' | 'Reaction--unreacted' | 'Reaction--unreacting';
 };
 
-type Props = {
+type Props = WrappedComponentProps & {
 
     /*
      * The post to render the reaction for
@@ -84,8 +84,6 @@ type Props = {
     // Names of users for tooltip-like aria label, computed via selector
     users?: string[];
 
-    // react-intl instance injected via HOC
-    intl?: IntlShape;
 }
 
 export default class Reaction extends React.PureComponent<Props, State> {
