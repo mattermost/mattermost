@@ -64,7 +64,7 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
         renderWithIntl(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
 
         expect(screen.getByTestId('flagged_reviewers')).toBeChecked();
-        expect(screen.getByTestId('flagged_authors')).not.toBeChecked();
+        expect(screen.getByTestId('flagged_author')).not.toBeChecked();
 
         // Assigned section
         expect(screen.getByTestId('assigned_reviewers')).toBeChecked();
@@ -83,12 +83,12 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
     test('should handle checkbox change when adding a target', () => {
         renderWithIntl(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
 
-        const flaggedAuthorsCheckbox = screen.getByTestId('flagged_authors');
+        const flaggedAuthorsCheckbox = screen.getByTestId('flagged_author');
         fireEvent.click(flaggedAuthorsCheckbox);
 
         expect(defaultProps.onChange).toHaveBeenCalledWith('test-id', {
             EventTargetMapping: {
-                flagged: ['reviewers', 'authors'],
+                flagged: ['reviewers', 'author'],
                 assigned: ['reviewers'],
                 removed: ['reviewers', 'author'],
                 dismissed: ['reviewers'],
@@ -122,7 +122,7 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
     test('should not disable other checkboxes', () => {
         renderWithIntl(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
 
-        expect(screen.getByTestId('flagged_authors')).not.toBeDisabled();
+        expect(screen.getByTestId('flagged_author')).not.toBeDisabled();
         expect(screen.getByTestId('assigned_reviewers')).not.toBeDisabled();
         expect(screen.getByTestId('removed_reviewers')).not.toBeDisabled();
         expect(screen.getByTestId('removed_author')).not.toBeDisabled();
@@ -200,7 +200,7 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
         renderWithIntl(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
 
         // First change: add author to flagged
-        const flaggedAuthorsCheckbox = screen.getByTestId('flagged_authors');
+        const flaggedAuthorsCheckbox = screen.getByTestId('flagged_author');
         fireEvent.click(flaggedAuthorsCheckbox);
 
         // Second change: add reporter to removed
@@ -211,7 +211,7 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
 
         expect(defaultProps.onChange).toHaveBeenNthCalledWith(1, 'test-id', {
             EventTargetMapping: {
-                flagged: ['reviewers', 'authors'],
+                flagged: ['reviewers', 'author'],
                 assigned: ['reviewers'],
                 removed: ['reviewers', 'author'],
                 dismissed: ['reviewers'],
@@ -220,7 +220,7 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
 
         expect(defaultProps.onChange).toHaveBeenNthCalledWith(2, 'test-id', {
             EventTargetMapping: {
-                flagged: ['reviewers', 'authors'],
+                flagged: ['reviewers', 'author'],
                 assigned: ['reviewers'],
                 removed: ['reviewers', 'author', 'reporter'],
                 dismissed: ['reviewers'],
@@ -275,7 +275,7 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
 
         // All checkboxes should be unchecked
         expect(screen.getByTestId('flagged_reviewers')).not.toBeChecked();
-        expect(screen.getByTestId('flagged_authors')).not.toBeChecked();
+        expect(screen.getByTestId('flagged_author')).not.toBeChecked();
         expect(screen.getByTestId('assigned_reviewers')).not.toBeChecked();
         expect(screen.getByTestId('removed_reviewers')).not.toBeChecked();
         expect(screen.getByTestId('removed_author')).not.toBeChecked();
