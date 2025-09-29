@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {AutoTranslationSettings} from '@mattermost/types/config';
@@ -31,6 +31,15 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
         setAutoTranslationSettings(updatedSettings);
         props.onChange(props.id, updatedSettings);
     }, [props, autoTranslationSettings]);
+
+    const handleToggle = useCallback(() => {
+        handleChange('Enable', !autoTranslationSettings.Enable);
+    }, [autoTranslationSettings, handleChange]);
+
+    const providerHelpTextValues = useMemo(() => ({
+        br: <br/>,
+        strong: (msg: string) => <strong>{msg}</strong>,
+    }), []);
 
     const on = (
         <FormattedMessage
@@ -74,7 +83,7 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
                             id={'Enable'}
                             tabIndex={-1}
                             toggleClassName='btn-toggle-primary'
-                            onToggle={() => handleChange('Enable', !autoTranslationSettings.Enable)}
+                            onToggle={handleToggle}
                         />
                     </div>
                 </div>
@@ -97,7 +106,7 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
                         <FormattedMessage
                             id='admin.site.localization.autoTranslationProviderDescription'
                             defaultMessage='<strong>NOTE:</strong> If using external translation services (e.g., cloud based),{br}message data may be processed outside of your environment.'
-                            values={{br: <br/>, strong: (msg: string) => <strong>{msg}</strong>}}
+                            values={providerHelpTextValues}
                         />
                     }
                     value={autoTranslationSettings.Provider || 'libretranslate'}
