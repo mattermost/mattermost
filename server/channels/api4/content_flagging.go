@@ -48,6 +48,12 @@ func getFlaggingConfiguration(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	// A team ID is expected to be specified bny a content reviewer.
+	// When specified, we verify that the user is a content reviewer of the team.
+	// If the user is indeed a content reviewer, we return the configuration along with some extra fields
+	// that only a reviewer should be aware of.
+	// If no team ID is specified, we return the configuration as is, without the extra fields.
+	// This is the expected usage for non-reviewers.
 	teamId := r.URL.Query().Get("team_id")
 	asReviewer := false
 	if teamId != "" {

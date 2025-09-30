@@ -469,10 +469,6 @@ func (a *App) PermanentDeleteFlaggedPost(rctx request.CTX, actionRequest *model.
 		return appErr
 	}
 
-	if status == nil {
-		return model.NewAppError("removeFlaggedPost", "api.content_flagging.error.post_not_flagged", nil, "", http.StatusBadRequest)
-	}
-
 	statusValue := strings.Trim(string(status.Value), `"`)
 	if statusValue != model.ContentFlaggingStatusPending && statusValue != model.ContentFlaggingStatusAssigned {
 		return model.NewAppError("removeFlaggedPost", "api.content_flagging.error.post_not_in_progress", nil, "", http.StatusBadRequest)
@@ -587,10 +583,6 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 	status, appErr := a.GetPostContentFlaggingStatusValue(flaggedPost.Id)
 	if appErr != nil {
 		return appErr
-	}
-
-	if status == nil {
-		return model.NewAppError("removeFlaggedPost", "api.content_flagging.error.post_not_flagged", nil, "", http.StatusBadRequest)
 	}
 
 	statusValue := strings.Trim(string(status.Value), `"`)
