@@ -1754,10 +1754,6 @@
     "translation": "Content flagging feature is not enabled on this team."
   },
   {
-    "id": "api.content_flagging.error.post_not_flagged",
-    "translation": "Cannot fetch flagged post as the post is not flagged."
-  },
-  {
     "id": "api.content_flagging.error.post_not_in_progress",
     "translation": "The flagged post must be in pending or assigned status to be kept or removed."
   },
@@ -5155,6 +5151,10 @@
     "translation": "Failed to marshal flagging user's comment"
   },
   {
+    "id": "app.content_flagging.flag_post.marshal_reason.app_error",
+    "translation": "Failed to marshal flagging user's reason"
+  },
+  {
     "id": "app.content_flagging.flag_post_confirmation.message",
     "translation": "The message from @{{.username}} has been flagged for review. You will be notified once it is reviewed by a Content Reviewer. "
   },
@@ -5201,6 +5201,10 @@
   {
     "id": "app.content_flagging.restore_file_info.app_error",
     "translation": "Failed to restore file info for the flagged post."
+=======
+    "id": "app.content_flagging.no_status_property.app_error",
+    "translation": "Cannot fetch flagged post as the post is not flagged."
+>>>>>>> spillage_card_integration
   },
   {
     "id": "app.content_flagging.search_property_fields.app_error",

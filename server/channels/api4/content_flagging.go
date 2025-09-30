@@ -314,18 +314,14 @@ func getFlaggedPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	status, appErr := c.App.GetPostContentFlaggingStatusValue(postId)
+	// This validates that the post is flagged
+	_, appErr = c.App.GetPostContentFlaggingStatusValue(postId)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
-	if status == nil {
-		c.Err = model.NewAppError("getFlaggedPost", "api.content_flagging.error.post_not_flagged", nil, "", http.StatusNotFound)
-		return
-	}
-
-	post = c.App.PreparePostForClientWithEmbedsAndImages(c.AppContext, post, &model.PreparePostForClientOpts{IncludePriority: true, RetainContent: true, IncludeDeleted: true})
+	post = c.App.PreparePostForClientWithEmbedsAndImages(c.AppContext, post, &model.PreparePostForClientOpts{IncludePriority: true, RetainContent: true})
 	post, err := c.App.SanitizePostMetadataForUser(c.AppContext, post, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err

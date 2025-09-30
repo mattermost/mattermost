@@ -58,6 +58,14 @@ func (a *App) FlagPost(rctx request.CTX, post *model.Post, teamId, reportingUser
 	// generating unsafe JSON values
 	commentJsonValue := json.RawMessage(commentBytes)
 
+	reasonJson, err := json.Marshal(flagData.Reason)
+	if err != nil {
+		return model.NewAppError("FlagPost", "app.content_flagging.flag_post.marshal_reason.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	// Storing marshalled content into RawMessage to ensure proper escaping of special characters and prevent
+	// generating unsafe JSON values
+	reasonJsonValue := json.RawMessage(reasonJson)
+
 	commentRequired := a.Config().ContentFlaggingSettings.AdditionalSettings.ReporterCommentRequired
 	validReasons := a.Config().ContentFlaggingSettings.AdditionalSettings.Reasons
 	if appErr := flagData.IsValid(*commentRequired, *validReasons); appErr != nil {
@@ -104,7 +112,7 @@ func (a *App) FlagPost(rctx request.CTX, post *model.Post, teamId, reportingUser
 			TargetType: model.PropertyValueTargetTypePost,
 			GroupID:    groupId,
 			FieldID:    mappedFields[contentFlaggingPropertyNameReportingReason].ID,
-			Value:      json.RawMessage(fmt.Sprintf(`"%s"`, flagData.Reason)),
+			Value:      reasonJsonValue,
 		},
 		{
 			TargetID:   post.Id,
@@ -175,7 +183,7 @@ func (a *App) GetPostContentFlaggingStatusValue(postId string) (*model.PropertyV
 	}
 
 	if len(propertyValues) == 0 {
-		return nil, nil
+		return nil, model.NewAppError("GetPostContentFlaggingStatusValue", "app.content_flagging.no_status_property.app_error", nil, "", http.StatusNotFound)
 	}
 
 	return propertyValues[0], nil
@@ -184,11 +192,10 @@ func (a *App) GetPostContentFlaggingStatusValue(postId string) (*model.PropertyV
 func (a *App) canFlagPost(groupId, postId, userLocal string) *model.AppError {
 	status, appErr := a.GetPostContentFlaggingStatusValue(postId)
 	if appErr != nil {
+		if appErr.StatusCode == http.StatusNotFound {
+			return nil
+		}
 		return appErr
-	}
-
-	if status == nil {
-		return nil
 	}
 
 	var reason string
