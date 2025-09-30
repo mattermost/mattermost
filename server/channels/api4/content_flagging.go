@@ -272,14 +272,10 @@ func getFlaggedPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	status, appErr := c.App.GetPostContentFlaggingStatusValue(postId)
+	// This validates that the post is flagged
+	_, appErr = c.App.GetPostContentFlaggingStatusValue(postId)
 	if appErr != nil {
 		c.Err = appErr
-		return
-	}
-
-	if status == nil {
-		c.Err = model.NewAppError("getFlaggedPost", "api.content_flagging.error.post_not_flagged", nil, "", http.StatusNotFound)
 		return
 	}
 

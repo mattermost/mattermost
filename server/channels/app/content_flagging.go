@@ -183,7 +183,7 @@ func (a *App) GetPostContentFlaggingStatusValue(postId string) (*model.PropertyV
 	}
 
 	if len(propertyValues) == 0 {
-		return nil, nil
+		return nil, model.NewAppError("GetPostContentFlaggingStatusValue", "app.content_flagging.no_status_property.app_error", nil, "", http.StatusNotFound)
 	}
 
 	return propertyValues[0], nil
@@ -192,11 +192,10 @@ func (a *App) GetPostContentFlaggingStatusValue(postId string) (*model.PropertyV
 func (a *App) canFlagPost(groupId, postId, userLocal string) *model.AppError {
 	status, appErr := a.GetPostContentFlaggingStatusValue(postId)
 	if appErr != nil {
+		if appErr.StatusCode == http.StatusNotFound {
+			return nil
+		}
 		return appErr
-	}
-
-	if status == nil {
-		return nil
 	}
 
 	var reason string

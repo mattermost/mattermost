@@ -1754,10 +1754,6 @@
     "translation": "Content flagging feature is not enabled on this team."
   },
   {
-    "id": "api.content_flagging.error.post_not_flagged",
-    "translation": "Cannot fetch flagged post as the post is not flagged."
-  },
-  {
     "id": "api.content_flagging.error.reason_invalid",
     "translation": "Unknown reason specified for flagging message."
   },
@@ -5147,6 +5143,14 @@
     "translation": "Unable to soft-delete the flagged post."
   },
   {
+    "id": "app.content_flagging.flag_post.marshal_comment.app_error",
+    "translation": "Failed to marshal flagging user's comment"
+  },
+  {
+    "id": "app.content_flagging.flag_post.marshal_reason.app_error",
+    "translation": "Failed to marshal flagging user's reason"
+  },
+  {
     "id": "app.content_flagging.flag_post_confirmation.message",
     "translation": "The message from @{{.username}} has been flagged for review. You will be notified once it is reviewed by a Content Reviewer. "
   },
@@ -5161,6 +5165,10 @@
   {
     "id": "app.content_flagging.get_users_in_team.app_error",
     "translation": "Failed to search reviewers in team."
+  },
+  {
+    "id": "app.content_flagging.no_status_property.app_error",
+    "translation": "Cannot fetch flagged post as the post is not flagged."
   },
   {
     "id": "app.content_flagging.search_property_fields.app_error",

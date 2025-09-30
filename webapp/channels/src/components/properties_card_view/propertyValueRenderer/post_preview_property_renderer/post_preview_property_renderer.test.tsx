@@ -224,10 +224,10 @@ describe('PostPreviewPropertyRenderer', () => {
                     },
                     {
                         id: 'file-id-2',
-                        name: 'image.jpg',
-                        extension: 'jpg',
+                        name: 'file.txt',
+                        extension: 'txt',
                         size: 512000,
-                        mime_type: 'image/jpeg',
+                        mime_type: 'text/plain;charset=UTF-8',
                     },
                 ],
             },
@@ -254,10 +254,10 @@ describe('PostPreviewPropertyRenderer', () => {
                         },
                         'file-id-2': {
                             id: 'file-id-2',
-                            name: 'image.jpg',
-                            extension: 'jpg',
+                            name: 'file.txt',
+                            extension: 'txt',
                             size: 512000,
-                            mime_type: 'image/jpeg',
+                            mime_type: 'text/plain;charset=UTF-8',
                         },
                     },
                 },
@@ -279,6 +279,6 @@ describe('PostPreviewPropertyRenderer', () => {
 
         // Assert that file attachments are visible
         expect(getByText('document.pdf')).toBeVisible();
-        expect(getByText('image.jpg')).toBeVisible();
+        expect(getByText('file.txt')).toBeVisible();
     });
 });
