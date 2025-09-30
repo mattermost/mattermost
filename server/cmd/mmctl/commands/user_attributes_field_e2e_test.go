@@ -386,7 +386,7 @@ func (s *MmctlE2ETestSuite) TestCPAFieldEditCmd() {
 		originalGoID := ""
 		originalPythonID := ""
 		for _, option := range originalCPAField.Attrs.Options {
-			switch(option.Name) {
+			switch option.Name {
 			case "Go":
 				originalGoID = option.ID
 			case "Python":
