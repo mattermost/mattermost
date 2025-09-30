@@ -5139,6 +5139,14 @@
     "translation": "Unable to soft-delete the flagged post."
   },
   {
+    "id": "app.content_flagging.flag_post.marshal_comment.app_error",
+    "translation": "Failed to marshal reviewer's comment"
+  },
+  {
+    "id": "app.content_flagging.flag_post.marshal_reason.app_error",
+    "translation": "Failed to marshal reviewer's reason"
+  },
+  {
     "id": "app.content_flagging.flag_post_confirmation.message",
     "translation": "The message from @{{.username}} has been flagged for review. You will be notified once it is reviewed by a Content Reviewer. "
   },
