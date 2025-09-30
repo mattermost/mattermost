@@ -10798,5 +10798,13 @@
   {
     "id": "app.user.check_user_password.failed_update",
     "translation": "Nie udało się zaktualizować hasła użytkownika."
+  },
+  {
+    "id": "app.job.get_existing_jobs.error",
+    "translation": "Brak możliwości pobrania istniejących zadań."
+  },
+  {
+    "id": "app.submit_interactive_dialog.invalid_response",
+    "translation": "Napotkano nieprawidłową odpowiedź z interaktywnego przesyłania okna dialogowego."
   }
 ]
