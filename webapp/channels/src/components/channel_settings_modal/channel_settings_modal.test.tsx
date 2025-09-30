@@ -523,7 +523,7 @@ describe('ChannelSettingsModal', () => {
         });
 
         it('should close immediately when no unsaved changes exist', async () => {
-            renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>, makeTestState());
 
             await waitFor(() => {
                 expect(screen.getByRole('dialog')).toBeInTheDocument();
@@ -538,7 +538,7 @@ describe('ChannelSettingsModal', () => {
         });
 
         it('should prevent close on first attempt with unsaved changes', async () => {
-            renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>, makeTestState());
 
             await waitFor(() => {
                 expect(screen.getByRole('dialog')).toBeInTheDocument();
@@ -563,7 +563,7 @@ describe('ChannelSettingsModal', () => {
         });
 
         it('should allow close on second attempt (warn-once behavior)', async () => {
-            renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>, makeTestState());
 
             await waitFor(() => {
                 expect(screen.getByRole('dialog')).toBeInTheDocument();
@@ -590,7 +590,7 @@ describe('ChannelSettingsModal', () => {
         });
 
         it('should reset warning state when changes are saved', async () => {
-            renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>, makeTestState());
 
             await waitFor(() => {
                 expect(screen.getByRole('dialog')).toBeInTheDocument();

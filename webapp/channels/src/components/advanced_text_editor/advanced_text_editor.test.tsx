@@ -232,9 +232,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(textbox).not.toHaveFocus();
 
             // save is called with a short delayed after pressing escape key
-            act(() => {
-                jest.advanceTimersByTime(Constants.SAVE_DRAFT_TIMEOUT + 50);
-            });
+            jest.advanceTimersByTime(Constants.SAVE_DRAFT_TIMEOUT + 50);
             expect(mockedRemoveDraft).toHaveBeenCalled();
             expect(mockedUpdateDraft).not.toHaveBeenCalled();
 
