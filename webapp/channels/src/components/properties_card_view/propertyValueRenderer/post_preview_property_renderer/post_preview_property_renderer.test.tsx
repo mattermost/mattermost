@@ -224,17 +224,16 @@ describe('PostPreviewPropertyRenderer', () => {
                     },
                     {
                         id: 'file-id-2',
-                        name: 'audio.mp3',
-                        extension: 'mp3',
+                        name: 'file.txt',
+                        extension: 'txt',
                         size: 512000,
-                        mime_type: 'audio/mpeg',
+                        mime_type: 'text/plain;charset=UTF-8',
                     },
                 ],
             },
         } as Post;
 
         mockedClient4.getFlaggedPost.mockResolvedValue(postWithAttachments);
-
         mockUseChannel.mockReturnValue(mockChannel);
         mockUseTeam.mockReturnValue(mockTeam);
 
@@ -250,6 +249,6 @@ describe('PostPreviewPropertyRenderer', () => {
 
         // Assert that file attachments are visible
         expect(getByText('document.pdf')).toBeVisible();
-        expect(getByText('audio.mp3')).toBeVisible();
+        expect(getByText('file.txt')).toBeVisible();
     });
 });

@@ -1,34 +1,39 @@
-.. _mmctl_cpa_value_list:
+.. _mmctl_user_attributes_field_edit:
 
-mmctl cpa value list
---------------------
+mmctl user attributes field edit
+--------------------------------
 
-List CPA values for a user
+Edit a User Attributes field
 
 Synopsis
 ~~~~~~~~
 
 
-List all Custom Profile Attribute values for a specific user.
+Edit an existing User Attributes field.
 
 ::
 
-  mmctl cpa value list [user] [flags]
+  mmctl user attributes field edit [field] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-    cpa value list john.doe@company.com
-    cpa value list johndoe
+    user attributes field edit n4qdbtro4j8x3n8z81p48ww9gr --name "Department Name" --managed
+    user attributes field edit Department --option Go --option React --option Python --option Java
+    user attributes field edit Skills --managed=false
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help   help for list
+      --attrs string     Update full attrs JSON object
+  -h, --help             help for edit
+      --managed          Mark field as admin-managed (overrides --attrs)
+      --name string      Update field name
+      --option strings   Add an option for select/multiselect fields (overrides --attrs, can be repeated)
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -48,5 +53,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl cpa value <mmctl_cpa_value.rst>`_ 	 - Management of CPA values
+* `mmctl user attributes field <mmctl_user_attributes_field.rst>`_ 	 - Management of User Attributes fields
 
