@@ -2474,7 +2474,7 @@ func TestAutoTranslationSettingsDefaults(t *testing.T) {
 		c.SetDefaults()
 
 		require.False(t, *c.AutoTranslationSettings.Enable)
-		require.Equal(t, "libretranslate", *c.AutoTranslationSettings.Provider)
+		require.Equal(t, "", *c.AutoTranslationSettings.Provider)
 		require.Equal(t, 800, *c.AutoTranslationSettings.TimeoutsMs.NewPost)
 		require.Equal(t, 2000, *c.AutoTranslationSettings.TimeoutsMs.Fetch)
 		require.Equal(t, 300, *c.AutoTranslationSettings.TimeoutsMs.Notification)
