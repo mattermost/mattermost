@@ -15,7 +15,7 @@ exports[`components/integrations/EditOutgoingOAuthConnection should match snapsh
         "listen": [Function],
         "location": Object {
           "hash": "",
-          "pathname": "/",
+          "pathname": "undefinedundefined",
           "search": "",
           "state": undefined,
         },
@@ -760,7 +760,7 @@ exports[`components/integrations/EditOutgoingOAuthConnection should match snapsh
         "listen": [Function],
         "location": Object {
           "hash": "",
-          "pathname": "/",
+          "pathname": "undefinedundefined",
           "search": "",
           "state": undefined,
         },
@@ -1506,7 +1506,7 @@ exports[`components/integrations/EditOutgoingOAuthConnection should match snapsh
         "listen": [Function],
         "location": Object {
           "hash": "",
-          "pathname": "/",
+          "pathname": "undefinedundefined",
           "search": "",
           "state": undefined,
         },

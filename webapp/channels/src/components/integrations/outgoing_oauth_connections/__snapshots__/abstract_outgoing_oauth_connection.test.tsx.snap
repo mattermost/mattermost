@@ -15,7 +15,7 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
         "listen": [Function],
         "location": Object {
           "hash": "",
-          "pathname": "/",
+          "pathname": "undefinedundefined",
           "search": "",
           "state": undefined,
         },
@@ -592,7 +592,7 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
         "listen": [Function],
         "location": Object {
           "hash": "",
-          "pathname": "/",
+          "pathname": "undefinedundefined",
           "search": "",
           "state": undefined,
         },
