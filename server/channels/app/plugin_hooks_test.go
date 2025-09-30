@@ -2044,11 +2044,12 @@ func TestChannelHasBeenCreated(t *testing.T) {
 			posts, appErr := th.App.GetPosts(th.Context, channel.Id, 0, 1)
 
 			require.Nil(t, appErr)
-			assert.True(t, len(posts.Order) > 0)
 
-			post := posts.Posts[posts.Order[0]]
-			assert.Equal(t, channel.Id, post.ChannelId)
-			assert.Equal(t, "ChannelHasBeenCreated has been called for "+channel.Id, post.Message)
+			if assert.NotEmpty(t, posts.Order) {
+				post := posts.Posts[posts.Order[0]]
+				assert.Equal(t, channel.Id, post.ChannelId)
+				assert.Equal(t, "ChannelHasBeenCreated has been called for "+channel.Id, post.Message)
+			}
 		}, 5*time.Second, 100*time.Millisecond)
 	})
 
@@ -2071,10 +2072,11 @@ func TestChannelHasBeenCreated(t *testing.T) {
 			posts, appErr := th.App.GetPosts(th.Context, channel.Id, 0, 1)
 
 			require.Nil(t, appErr)
-			assert.True(t, len(posts.Order) > 0)
-			post := posts.Posts[posts.Order[0]]
-			assert.Equal(t, channel.Id, post.ChannelId)
-			assert.Equal(t, "ChannelHasBeenCreated has been called for "+channel.Id, post.Message)
+			if assert.NotEmpty(t, posts.Order) {
+				post := posts.Posts[posts.Order[0]]
+				assert.Equal(t, channel.Id, post.ChannelId)
+				assert.Equal(t, "ChannelHasBeenCreated has been called for "+channel.Id, post.Message)
+			}
 		}, 5*time.Second, 100*time.Millisecond)
 	})
 
@@ -2098,10 +2100,11 @@ func TestChannelHasBeenCreated(t *testing.T) {
 			posts, appErr := th.App.GetPosts(th.Context, channel.Id, 0, 1)
 
 			require.Nil(t, appErr)
-			assert.True(t, len(posts.Order) > 0)
-			post := posts.Posts[posts.Order[0]]
-			assert.Equal(t, channel.Id, post.ChannelId)
-			assert.Equal(t, "ChannelHasBeenCreated has been called for "+channel.Id, post.Message)
+			if assert.NotEmpty(t, posts.Order) {
+				post := posts.Posts[posts.Order[0]]
+				assert.Equal(t, channel.Id, post.ChannelId)
+				assert.Equal(t, "ChannelHasBeenCreated has been called for "+channel.Id, post.Message)
+			}
 		}, 5*time.Second, 100*time.Millisecond)
 	})
 }
