@@ -62,6 +62,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         deleteChannelPolicy: jest.fn(),
         getChannelMembers: jest.fn(),
         createJob: jest.fn(),
+        createAccessControlSyncJob: jest.fn(),
         updateAccessControlPolicyActive: jest.fn(),
         validateExpressionAgainstRequester: jest.fn(),
     };
@@ -944,6 +945,57 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 }],
                 imports: [],
             });
+        });
+
+        test('should prevent duplicate save button clicks', async () => {
+            // Ensure the searchUsers mock returns current user for validation to pass
+            mockActions.searchUsers.mockResolvedValue({
+                data: {
+                    users: [{
+                        id: 'current_user_id',
+                        username: 'testuser',
+                        first_name: 'Test',
+                        last_name: 'User',
+                    }],
+                },
+            });
+            mockActions.getChannelMembers.mockResolvedValue({data: []});
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            // Change expression to trigger unsaved state
+            const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+            onChangeCallback('user.attributes.department == "Engineering"');
+
+            // Wait for save button to appear
+            await waitFor(() => {
+                expect(screen.getByText('Save')).toBeInTheDocument();
+            });
+
+            const saveButton = screen.getByText('Save');
+
+            // Clear mock calls before testing duplicate prevention
+            mockActions.saveChannelPolicy.mockClear();
+
+            // Click save button multiple times rapidly
+            await userEvent.click(saveButton);
+            await userEvent.click(saveButton);
+            await userEvent.click(saveButton);
+
+            // Wait for async operations to complete
+            await waitFor(() => {
+                expect(mockActions.saveChannelPolicy).toHaveBeenCalled();
+            });
+
+            // Should only have been called once due to duplicate prevention
+            expect(mockActions.saveChannelPolicy).toHaveBeenCalledTimes(1);
         });
 
         test('should reset changes when Reset button is clicked', async () => {

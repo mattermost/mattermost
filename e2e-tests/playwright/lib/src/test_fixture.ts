@@ -27,7 +27,13 @@ import {
     initSetup,
     isOutsideRemoteUserHour,
 } from './server';
-import {toBeFocusedWithFocusVisible, hideDynamicChannelsContent, waitForAnimationEnd, waitUntil} from './test_action';
+import {
+    toBeFocusedWithFocusVisible,
+    hideDynamicChannelsContent,
+    waitForAnimationEnd,
+    waitUntil,
+    logFocusedElement,
+} from './test_action';
 import {pages} from './ui/pages';
 import {matchSnapshot} from './visual';
 import {stubNotification, waitForNotification} from './mock_browser_api';
@@ -85,6 +91,7 @@ export class PlaywrightExtended {
     readonly hideDynamicChannelsContent;
     readonly waitForAnimationEnd;
     readonly waitUntil;
+    readonly logFocusedElement;
 
     // ./mock_browser_api
     readonly stubNotification;
@@ -141,6 +148,7 @@ export class PlaywrightExtended {
         this.hideDynamicChannelsContent = hideDynamicChannelsContent;
         this.waitForAnimationEnd = waitForAnimationEnd;
         this.waitUntil = waitUntil;
+        this.logFocusedElement = logFocusedElement;
 
         // unauthenticated page
         this.loginPage = new pages.LoginPage(page);

@@ -93,6 +93,7 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
             deleteChannelPolicy: jest.fn(),
             getChannelMembers: jest.fn(),
             createJob: jest.fn(),
+            createAccessControlSyncJob: jest.fn(),
             updateAccessControlPolicyActive: jest.fn(),
             validateExpressionAgainstRequester: jest.fn(),
         });
