@@ -1,34 +1,60 @@
 package config
 
 import (
-	mlog "github.com/mattermost/logr/v2"
+	"encoding/json"
+	"fmt"
+	"path/filepath"
+	"strings"
+
+	logr "github.com/mattermost/logr/v2"
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-// Unified helper for file targets (regular + audit), with rotation options.
-func makeFileTarget(filename string, level string, asJSON bool, maxSizeMB, maxAgeDays, maxBackups int, compress bool) (mlog.TargetCfg, error) {
+// makeFileTarget builds a logr file target with rotation options.
+func makeFileTarget(filename, level string, asJSON bool, maxSizeMB, maxAgeDays, maxBackups int, compress bool) (logr.TargetCfg, error) {
+	if strings.TrimSpace(filename) == "" {
+		return logr.TargetCfg{}, fmt.Errorf("filename must not be empty")
+	}
+	filename = filepath.Clean(filename)
+
+	// Level filter
+	lvl := struct {
+		Level string `json:"level"`
+	}{Level: level}
+	lvlJSON, _ := json.Marshal(lvl)
+
 	format := "plain"
 	if asJSON {
 		format = "json"
 	}
-	return mlog.TargetCfg{
-		Type:       "file",
-		Level:      level,
-		Format:     format,
-		Async:      true,
-		BufferSize: 1000,
-		Options: map[string]any{
-			"filename":    filename,
-			"max_size":    maxSizeMB,
-			"max_age":     maxAgeDays,
-			"max_backups": maxBackups,
-			"compress":    compress,
-		},
+
+	// File target options for logr
+	opts := struct {
+		Filename    string `json:"filename"`
+		Max_size    int    `json:"max_size"`
+		Max_age     int    `json:"max_age"`
+		Max_backups int    `json:"max_backups"`
+		Compress    bool   `json:"compress"`
+	}{
+		Filename:    filename,
+		Max_size:    maxSizeMB,
+		Max_age:     maxAgeDays,
+		Max_backups: maxBackups,
+		Compress:    compress,
+	}
+	optsJSON, _ := json.Marshal(opts)
+
+	return logr.TargetCfg{
+		Type:      "file",
+		Options:   optsJSON,
+		Filters:   []logr.FilterCfg{{Type: "level", Options: lvlJSON}},
+		Format:    format,
+		QueueSize: 1000,
 	}, nil
 }
 
 // makeFileTargetFromAudit adapts ExperimentalAuditSettings to makeFileTarget.
-func makeFileTargetFromAudit(a *model.ExperimentalAuditSettings, level string, asJSON bool) (mlog.TargetCfg, error) {
+func makeFileTargetFromAudit(a *model.ExperimentalAuditSettings, level string, asJSON bool) (logr.TargetCfg, error) {
 	return makeFileTarget(
 		*a.FileName,
 		level,
