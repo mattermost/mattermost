@@ -70,7 +70,7 @@ func MloggerConfigFromAuditConfig(auditSettings model.ExperimentalAuditSettings,
 
 	// add the simple audit config
 	if auditSettings.FileEnabled != nil && *auditSettings.FileEnabled {
-		targetCfg, err = makeAuditFileTarget(&auditSettings, "error", true)
+		targetCfg, err = makeFileTargetFromAudit(&auditSettings, "error", true)
 		if err != nil {
 			return nil, err
 		}
@@ -212,6 +212,7 @@ func makeFileOptions(filename string) (json.RawMessage, error) {
 
 	return json.RawMessage(b), nil
 }
+
 // makeAuditFileOptions builds file options for AUDIT logs using ExperimentalAuditSettings.
 // Falls back to the regular logging defaults when fields are unset.
 func makeAuditFileOptions(a *model.ExperimentalAuditSettings) (json.RawMessage, error) {
@@ -261,37 +262,3 @@ func makeAuditFileOptions(a *model.ExperimentalAuditSettings) (json.RawMessage, 
 }
 
 // makeAuditFileTarget creates a file target for AUDIT logs using audit-specific options.
-func makeAuditFileTarget(a *model.ExperimentalAuditSettings, level string, asJSON bool) (mlog.TargetCfg, error) {
-	levels, err := stdLevels(level)
-	if err != nil {
-		return mlog.TargetCfg{}, err
-	}
-
-	fileOpts, err := makeAuditFileOptions(a)
-	if err != nil {
-		return mlog.TargetCfg{}, fmt.Errorf("cannot encode audit file options: %w", err)
-	}
-
-	// Match the queue size (1000) used by makeSimpleFileTarget in the corresponding file.
-	maxQueue := 1000
-	if a != nil && a.FileMaxQueueSize != nil {
-		maxQueue = *a.FileMaxQueueSize
-	}
-
-	target := mlog.TargetCfg{
-		Type:         "file",
-		Levels:       levels,
-		Options:      fileOpts,
-		MaxQueueSize: maxQueue,
-	}
-
-	if asJSON {
-		target.Format = "json"
-		target.FormatOptions = makeJSONFormatOptions()
-	} else {
-		target.Format = "plain"
-		target.FormatOptions = makePlainFormatOptions(false)
-	}
-	return target, nil
-}
-

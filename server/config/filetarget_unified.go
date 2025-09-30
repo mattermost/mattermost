@@ -1,49 +1,41 @@
 package config
 
 import (
-	"encoding/json"
-
 	mlog "github.com/mattermost/logr/v2"
+	"github.com/mattermost/mattermost/server/public/model"
 )
 
-// JSON shape used by the file target (lumberjack-like)
-type fileRotationOpts struct {
-	Filename   string `json:"filename"`
-	MaxSize    int    `json:"max_size"`
-	MaxAge     int    `json:"max_age"`
-	MaxBackups int    `json:"max_backups"`
-	Compress   bool   `json:"compress"`
-}
-
-// makeFileTarget creates a generic file target with rotation options.
-// Callers decide the level slice and format (json/plain) via the params.
-func makeFileTarget(filename string, minLevel string, asJSON bool, sizeMB, ageDays, backups int, compress bool) (mlog.TargetCfg, error) {
-	opts := fileRotationOpts{
-		Filename:   filename,
-		MaxSize:    sizeMB,
-		MaxAge:     ageDays,
-		MaxBackups: backups,
-		Compress:   compress,
-	}
-	raw, err := json.Marshal(opts)
-	if err != nil {
-		return mlog.TargetCfg{}, err
-	}
-
+// Unified helper for file targets (regular + audit), with rotation options.
+func makeFileTarget(filename string, level string, asJSON bool, maxSizeMB, maxAgeDays, maxBackups int, compress bool) (mlog.TargetCfg, error) {
 	format := "plain"
 	if asJSON {
 		format = "json"
 	}
-
-	// Keep this simple: let the target accept just the min level as a single entry.
-	// (If you already have a helper to expand levels, swap this slice for that.)
-	levels := []string{minLevel}
-
 	return mlog.TargetCfg{
-		Type:         "file",
-		Levels:       levels,
-		MaxQueueSize: LogMaxQueue,
-		Format:       format,
-		Options:      raw,
+		Type:       "file",
+		Level:      level,
+		Format:     format,
+		Async:      true,
+		BufferSize: 1000,
+		Options: map[string]any{
+			"filename":    filename,
+			"max_size":    maxSizeMB,
+			"max_age":     maxAgeDays,
+			"max_backups": maxBackups,
+			"compress":    compress,
+		},
 	}, nil
+}
+
+// makeFileTargetFromAudit adapts ExperimentalAuditSettings to makeFileTarget.
+func makeFileTargetFromAudit(a *model.ExperimentalAuditSettings, level string, asJSON bool) (mlog.TargetCfg, error) {
+	return makeFileTarget(
+		*a.FileName,
+		level,
+		asJSON,
+		int(*a.FileMaxSizeMB),
+		int(*a.FileMaxAgeDays),
+		int(*a.FileMaxBackups),
+		bool(*a.FileCompress),
+	)
 }
