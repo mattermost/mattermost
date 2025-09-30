@@ -147,6 +147,25 @@ func uploadFileSimple(c *Context, r *http.Request, timestamp time.Time) *model.F
 		return nil
 	}
 
+	channel, err := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+	if err != nil {
+		c.Err = model.NewAppError("uploadFileSimple",
+			"api.file.upload_file.get_channel.app_error",
+			nil, err.Error(), http.StatusBadRequest)
+		return nil
+	}
+
+	restrictDM, appErr := c.App.CheckIfChannelIsRestrictedDM(c.AppContext, channel)
+	if appErr != nil {
+		c.Err = appErr
+		return nil
+	}
+
+	if restrictDM {
+		c.Err = model.NewAppError("uploadFileSimple", "api.file.upload_file.restricted_dm.error", nil, "", http.StatusBadRequest)
+		return nil
+	}
+
 	clientId := r.Form.Get("client_id")
 	model.AddEventParameterToAuditRec(auditRec, "client_id", clientId)
 
@@ -299,6 +318,25 @@ NextPart:
 		}
 		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionUploadFile) {
 			c.SetPermissionError(model.PermissionUploadFile)
+			return nil
+		}
+
+		channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+		if appErr != nil {
+			c.Err = model.NewAppError("uploadFileMultipart",
+				"api.file.upload_file.get_channel.app_error",
+				nil, appErr.Error(), http.StatusBadRequest)
+			return nil
+		}
+
+		restrictDM, appErr := c.App.CheckIfChannelIsRestrictedDM(c.AppContext, channel)
+		if appErr != nil {
+			c.Err = appErr
+			return nil
+		}
+
+		if restrictDM {
+			c.Err = model.NewAppError("uploadFileSimple", "api.file.upload_file.restricted_dm.error", nil, "", http.StatusBadRequest)
 			return nil
 		}
 
