@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {parseISO, isValid} from 'date-fns';
+import {defineMessage} from 'react-intl';
 
 import type {DialogElement} from '@mattermost/types/integrations';
 
@@ -22,10 +23,10 @@ function validateDateTimeValue(value: string, elem: DialogElement): DialogError 
     // Use parseISO for consistent validation with stringToMoment
     const parsedDate = parseISO(value);
     if (!isValid(parsedDate)) {
-        return {
+        return defineMessage({
             id: 'interactive_dialog.error.bad_format',
             defaultMessage: 'Invalid date format',
-        };
+        });
     }
 
     // Validate format matches expected storage format
@@ -33,17 +34,17 @@ function validateDateTimeValue(value: string, elem: DialogElement): DialogError 
     if (isDateField) {
         // Date fields must be exactly YYYY-MM-DD
         if (!DATE_FORMAT_PATTERN.test(value)) {
-            return {
+            return defineMessage({
                 id: 'interactive_dialog.error.bad_format',
                 defaultMessage: 'Date field must be in YYYY-MM-DD format',
-            };
+            });
         }
     } else if (!DATETIME_FORMAT_PATTERN.test(value)) {
         // DateTime fields must match exact format we output: YYYY-MM-DDTHH:mm:ssZ
-        return {
+        return defineMessage({
             id: 'interactive_dialog.error.bad_format',
             defaultMessage: 'DateTime field must be in YYYY-MM-DDTHH:mm:ssZ format',
-        };
+        });
     }
     return null;
 }
@@ -60,57 +61,57 @@ export function checkDialogElementForError(elem: DialogElement, value: any): Dia
     }
 
     if (isEmpty && !elem.optional) {
-        return {
+        return defineMessage({
             id: 'interactive_dialog.error.required',
             defaultMessage: 'This field is required.',
-        };
+        });
     }
 
     const type = elem.type;
 
     if (type === 'text' || type === 'textarea') {
         if (value && value.length < elem.min_length) {
-            return {
+            return defineMessage({
                 id: 'interactive_dialog.error.too_short',
                 defaultMessage: 'Minimum input length is {minLength}.',
                 values: {minLength: elem.min_length},
-            };
+            });
         }
 
         if (elem.subtype === 'email') {
             if (value && !value.includes('@')) {
-                return {
+                return defineMessage({
                     id: 'interactive_dialog.error.bad_email',
                     defaultMessage: 'Must be a valid email address.',
-                };
+                });
             }
         }
 
         if (elem.subtype === 'number') {
             if (value && isNaN(value)) {
-                return {
+                return defineMessage({
                     id: 'interactive_dialog.error.bad_number',
                     defaultMessage: 'Must be a number.',
-                };
+                });
             }
         }
 
         if (elem.subtype === 'url') {
             if (value && !value.includes('http://') && !value.includes('https://')) {
-                return {
+                return defineMessage({
                     id: 'interactive_dialog.error.bad_url',
                     defaultMessage: 'URL must include http:// or https://.',
-                };
+                });
             }
         }
     } else if (type === 'radio') {
         const options = elem.options;
 
         if (typeof value !== 'undefined' && Array.isArray(options) && !options.some((e) => e.value === value)) {
-            return {
+            return defineMessage({
                 id: 'interactive_dialog.error.invalid_option',
                 defaultMessage: 'Must be a valid option',
-            };
+            });
         }
     } else if (type === 'date' || type === 'datetime') {
         // Validate date/datetime format and range constraints
