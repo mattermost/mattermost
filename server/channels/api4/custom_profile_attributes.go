@@ -278,10 +278,13 @@ func listCPAValues(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	userID := c.Params.UserId
-	canSee, err := c.App.UserCanSeeOtherUser(c.AppContext, c.AppContext.Session().UserId, userID)
-	if err != nil || !canSee {
-		c.SetPermissionError(model.PermissionViewMembers)
-		return
+	// we check unrestricted sessions to allow local mode requests to go through
+	if !c.AppContext.Session().IsUnrestricted() {
+		canSee, err := c.App.UserCanSeeOtherUser(c.AppContext, c.AppContext.Session().UserId, userID)
+		if err != nil || !canSee {
+			c.SetPermissionError(model.PermissionViewMembers)
+			return
+		}
 	}
 
 	values, appErr := c.App.ListCPAValues(userID)
