@@ -180,7 +180,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                             id='channelView.noSharedTeam'
                             defaultMessage='You no longer have any teams in common with this user. New messages cannot be posted.'
                             values={{
-                                b: (chunks: string) => <b>{chunks}</b>,
+                                b: (chunks) => <b>{chunks}</b>,
                             }}
                         />
                         <button
