@@ -50,6 +50,22 @@ func ContentFlaggingEnabledForTeam(config *model.Config, teamId string) bool {
 }
 
 func (a *App) FlagPost(rctx request.CTX, post *model.Post, teamId, reportingUserId string, flagData model.FlagContentRequest) *model.AppError {
+	commentBytes, err := json.Marshal(flagData.Comment)
+	if err != nil {
+		return model.NewAppError("FlagPost", "app.content_flagging.flag_post.marshal_comment.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	// Storing marshalled content into RawMessage to ensure proper escaping of special characters and prevent
+	// generating unsafe JSON values
+	commentJsonValue := json.RawMessage(commentBytes)
+
+	reasonJson, err := json.Marshal(flagData.Reason)
+	if err != nil {
+		return model.NewAppError("FlagPost", "app.content_flagging.flag_post.marshal_reason.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	// Storing marshalled content into RawMessage to ensure proper escaping of special characters and prevent
+	// generating unsafe JSON values
+	reasonJsonValue := json.RawMessage(reasonJson)
+
 	commentRequired := a.Config().ContentFlaggingSettings.AdditionalSettings.ReporterCommentRequired
 	validReasons := a.Config().ContentFlaggingSettings.AdditionalSettings.Reasons
 	if appErr := flagData.IsValid(*commentRequired, *validReasons); appErr != nil {
@@ -96,14 +112,14 @@ func (a *App) FlagPost(rctx request.CTX, post *model.Post, teamId, reportingUser
 			TargetType: model.PropertyValueTargetTypePost,
 			GroupID:    groupId,
 			FieldID:    mappedFields[contentFlaggingPropertyNameReportingReason].ID,
-			Value:      json.RawMessage(fmt.Sprintf(`"%s"`, flagData.Reason)),
+			Value:      reasonJsonValue,
 		},
 		{
 			TargetID:   post.Id,
 			TargetType: model.PropertyValueTargetTypePost,
 			GroupID:    groupId,
 			FieldID:    mappedFields[contentFlaggingPropertyNameReportingComment].ID,
-			Value:      json.RawMessage(fmt.Sprintf(`"%s"`, strings.Trim(flagData.Comment, "\""))),
+			Value:      commentJsonValue,
 		},
 		{
 			TargetID:   post.Id,
@@ -114,7 +130,7 @@ func (a *App) FlagPost(rctx request.CTX, post *model.Post, teamId, reportingUser
 		},
 	}
 
-	_, err := a.Srv().propertyService.CreatePropertyValues(propertyValues)
+	_, err = a.Srv().propertyService.CreatePropertyValues(propertyValues)
 	if err != nil {
 		return model.NewAppError("FlagPostForContentReview", "app.content_flagging.create_property_values.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
 	}
