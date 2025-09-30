@@ -12,5 +12,3 @@ CREATE TABLE IF NOT EXISTS ContentFlaggingTeamReviewers (
 	userid VARCHAR(26),
 	PRIMARY KEY (teamid, userid)
 );
-
-CREATE INDEX IF NOT EXISTS idx_contentflaggingteamreviewers_userid ON ContentFlaggingTeamReviewers (userid);
