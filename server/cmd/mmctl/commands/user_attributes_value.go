@@ -18,21 +18,21 @@ import (
 
 var CPAValueListCmd = &cobra.Command{
 	Use:   "list [user]",
-	Short: "List CPA values for a user",
-	Long:  "List all Custom Profile Attribute values for a specific user.",
-	Example: `  cpa value list john.doe@company.com
-  cpa value list johndoe`,
+	Short: "List User Attributes values for a user",
+	Long:  "List all User Attributes values for a specific user.",
+	Example: `  user attributes value list john.doe@company.com
+  user attributes value list johndoe`,
 	Args: cobra.ExactArgs(1),
 	RunE: withClient(cpaValueListCmdF),
 }
 
 var CPAValueSetCmd = &cobra.Command{
 	Use:   "set [user] [field]",
-	Short: "Set a CPA value for a user",
-	Long:  "Set a Custom Profile Attribute field value for a specific user by field ID or name.",
-	Example: `  cpa value set john.doe@company.com kx8m2w4r9p3q7n5t1j6h8s4c9e --value Engineering
-  cpa value set johndoe Department --value Engineering
-  cpa value set user123 Skills --value Go --value React --value Python`,
+	Short: "Set a User Attributes value for a user",
+	Long:  "Set a User Attributes field value for a specific user.",
+	Example: `  user attributes value set john.doe@company.com kx8m2w4r9p3q7n5t1j6h8s4c9e --value "Engineering"
+  user attributes value set johndoe Department --value "Go" --value "React" --value "Python"
+  user attributes value set user123 Skills --value "Senior"`,
 	Args: cobra.ExactArgs(2),
 	RunE: withClient(cpaValueSetCmdF),
 }
@@ -42,8 +42,8 @@ func init() {
 	CPAValueSetCmd.Flags().StringSlice("value", []string{}, "Value(s) to set for the field. Can be specified multiple times for multiselect/multiuser fields")
 	_ = CPAValueSetCmd.MarkFlagRequired("value")
 
-	// Add subcommands to CPAValueCmd
-	CPAValueCmd.AddCommand(
+	// Add subcommands to UserAttributesValueCmd
+	UserAttributesValueCmd.AddCommand(
 		CPAValueListCmd,
 		CPAValueSetCmd,
 	)
