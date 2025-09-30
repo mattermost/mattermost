@@ -11,6 +11,7 @@
 // Group: @channels @team_settings
 
 import {getRandomId, stubClipboard} from '../../../utils';
+import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 describe('Team Settings', () => {
     const randomId = getRandomId();
@@ -59,6 +60,8 @@ describe('Team Settings', () => {
             cy.get('#allowedDomains').click().type(emailDomain).type(' ');
             cy.findByText('Save').should('be.visible').click();
         });
+
+        cy.wait(TIMEOUTS.ONE_HUNDRED_MILLIS);
 
         cy.uiClose();
 
