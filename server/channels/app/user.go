@@ -1750,6 +1750,21 @@ func (a *App) GetTokenById(token string) (*model.Token, *model.AppError) {
 	return rtoken, nil
 }
 
+func (a *App) ConsumeTokenOnce(tokenStr string) (*model.Token, *model.AppError) {
+	token, err := a.Srv().Store().Token().ConsumeOnce(tokenStr)
+	if err != nil {
+		var status int
+		switch err.(type) {
+		case *store.ErrNotFound:
+			status = http.StatusNotFound
+		default:
+			status = http.StatusInternalServerError
+		}
+		return nil, model.NewAppError("ConsumeTokenOnce", "api.user.create_user.signup_link_invalid.app_error", nil, "", status).Wrap(err)
+	}
+	return token, nil
+}
+
 func (a *App) DeleteToken(token *model.Token) *model.AppError {
 	err := a.Srv().Store().Token().Delete(token.Token)
 	if err != nil {
