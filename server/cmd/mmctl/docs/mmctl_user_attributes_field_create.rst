@@ -1,28 +1,28 @@
-.. _mmctl_cpa_field_create:
+.. _mmctl_user_attributes_field_create:
 
-mmctl cpa field create
-----------------------
+mmctl user attributes field create
+----------------------------------
 
-Create a CPA field
+Create a User Attributes field
 
 Synopsis
 ~~~~~~~~
 
 
-Create a new Custom Profile Attribute field with the specified name and type.
+Create a new User Attributes field with the specified name and type.
 
 ::
 
-  mmctl cpa field create [name] [type] [flags]
+  mmctl user attributes field create [name] [type] [flags]
 
 Examples
 ~~~~~~~~
 
 ::
 
-    cpa field create "Department" text --managed
-    cpa field create "Skills" multiselect --option Go --option React --option Python
-    cpa field create "Level" select --attrs '{"visibility":"always"}'
+    user attributes field create "Department" text --managed
+    user attributes field create "Skills" multiselect --option Go --option React --option Python
+    user attributes field create "Level" select --attrs '{"visibility":"always"}'
 
 Options
 ~~~~~~~
@@ -52,5 +52,5 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl cpa field <mmctl_cpa_field.rst>`_ 	 - Management of CPA fields
+* `mmctl user attributes field <mmctl_user_attributes_field.rst>`_ 	 - Management of User Attributes fields
 
