@@ -1,0 +1,77 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.feature_toast {
+    background-color: var(--center-channel-bg);
+    border: var(--border-default);
+    border-radius: var(--radius-s);
+    box-shadow: var(--elevation-4);
+    display: flex;
+    gap: 12px;
+    padding: 24px;
+    position: absolute;
+    right: 24px;
+    top: 24px;
+    width: 386px;
+    // Just above the header but below
+    // other modals like the nearby 'help' icon
+    z-index: 16;
+}
+
+.feature_toast__icon {
+    flex-shrink: 0;
+}
+
+.feature_toast__main_content {
+    align-items: baseline;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    gap: 8px;
+
+    p {
+        margin: 0;
+    }
+
+    kbd {
+        height: fit-content;
+        flex: 0 0 auto;
+        font-weight: 500;
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        box-shadow: none;
+    }
+}
+
+.feature_toast__header_content {
+    display: flex;
+    align-items: center;
+    width: 100%;
+
+    h3 {
+        flex-grow: 1;
+        margin: 0;
+        font-size: 14px;
+        line-height: 20px;
+        vertical-align: middle;
+        font-weight: 600;
+    }
+
+    button {
+        border: none;
+        padding: 0;
+         background-color: transparent;
+    }
+
+    span:has(svg) {
+        // This was done because of a weird issue where
+        // the parent's line height was affecting
+        // this span, causing it to be 29px tall w/ a 24px svg.
+        line-height: 0;
+    }
+}
+
+
+.feature_toast__actions {
+    padding: 4px 0px;
+}

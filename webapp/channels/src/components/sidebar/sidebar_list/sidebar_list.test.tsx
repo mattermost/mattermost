@@ -112,6 +112,7 @@ describe('SidebarList', () => {
             stopDragging: jest.fn(),
             clearChannelSelection: jest.fn(),
             multiSelectChannelAdd: jest.fn(),
+            readMultipleChannels: jest.fn(),
         },
     };
 

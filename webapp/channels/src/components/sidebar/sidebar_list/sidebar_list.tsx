@@ -16,8 +16,11 @@ import type {Team} from '@mattermost/types/teams';
 
 import {General} from 'mattermost-redux/constants';
 
+import LocalStorageStore from 'stores/local_storage_store';
+
 import {makeAsyncComponent} from 'components/async_load';
 import Scrollbars from 'components/common/scrollbars';
+import MarkAllAsReadModal from 'components/mark_all_as_read_modal';
 import SidebarCategory from 'components/sidebar/sidebar_category';
 
 import {findNextUnreadChannelId} from 'utils/channel_utils';
@@ -62,12 +65,14 @@ type Props = WrappedComponentProps & {
         setDraggingState: (data: DraggingState) => void;
         stopDragging: () => void;
         clearChannelSelection: () => void;
+        readMultipleChannels: (channelIds: string[]) => void;
     };
 };
 
 type State = {
     showTopUnread: boolean;
     showBottomUnread: boolean;
+    showMarkAllReadModal: boolean;
 };
 
 // scrollMargin is the margin at the edge of the channel list that we leave when scrolling to a channel.
@@ -93,6 +98,7 @@ export class SidebarList extends React.PureComponent<Props, State> {
         this.state = {
             showTopUnread: false,
             showBottomUnread: false,
+            showMarkAllReadModal: false,
         };
         this.scrollbar = React.createRef();
 
@@ -105,11 +111,13 @@ export class SidebarList extends React.PureComponent<Props, State> {
     componentDidMount() {
         document.addEventListener('keydown', this.navigateChannelShortcut);
         document.addEventListener('keydown', this.navigateUnreadChannelShortcut);
+        document.addEventListener('keydown', this.markAllChannelsAsReadShortcut);
     }
 
     componentWillUnmount() {
         document.removeEventListener('keydown', this.navigateChannelShortcut);
         document.removeEventListener('keydown', this.navigateUnreadChannelShortcut);
+        document.removeEventListener('keydown', this.markAllChannelsAsReadShortcut);
     }
 
     componentDidUpdate(prevProps: Props) {
@@ -338,6 +346,19 @@ export class SidebarList extends React.PureComponent<Props, State> {
         }
     };
 
+    markAllChannelsAsReadShortcut = (e: KeyboardEvent) => {
+        if (!e.altKey && e.shiftKey && !e.ctrlKey && !e.metaKey && isKeyPressed(e, Constants.KeyCodes.ESCAPE)) {
+            e.preventDefault();
+            if (LocalStorageStore.getMarkAllReadWithoutConfirm()) {
+                this.markAllMessagesAsRead();
+            } else {
+                this.setState({
+                    showMarkAllReadModal: true,
+                });
+            }
+        }
+    };
+
     renderCategory = (category: ChannelCategory, index: number) => {
         return (
             <SidebarCategory
@@ -418,6 +439,26 @@ export class SidebarList extends React.PureComponent<Props, State> {
         }
 
         this.props.actions.stopDragging();
+    };
+
+    markAllMessagesAsRead = () => {
+        if (this.props.unreadChannelIds && this.props.unreadChannelIds.length > 0) {
+            this.props.actions.readMultipleChannels(this.props.unreadChannelIds);
+        }
+    };
+
+    onMarkAllAsReadConfirm = (dontShowAgain: boolean) => {
+        this.markAllMessagesAsRead();
+        LocalStorageStore.setMarkAllReadWithoutConfirm(dontShowAgain);
+        this.setState({
+            showMarkAllReadModal: false,
+        });
+    };
+
+    onMarkAllAsReadCancel = () => {
+        this.setState({
+            showMarkAllReadModal: false,
+        });
     };
 
     render() {
@@ -527,6 +568,11 @@ export class SidebarList extends React.PureComponent<Props, State> {
                         {channelList}
                     </Scrollbars>
                 </div>
+                <MarkAllAsReadModal
+                    show={this.state.showMarkAllReadModal}
+                    onConfirm={this.onMarkAllAsReadConfirm}
+                    onCancel={this.onMarkAllAsReadCancel}
+                />
             </>
         );
     }

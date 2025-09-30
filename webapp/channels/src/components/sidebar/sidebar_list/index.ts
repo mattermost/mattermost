@@ -6,6 +6,7 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {moveCategory} from 'mattermost-redux/actions/channel_categories';
+import {readMultipleChannels} from 'mattermost-redux/actions/channels';
 import {getCurrentChannelId, getUnreadChannelIds} from 'mattermost-redux/selectors/entities/channels';
 import {shouldShowUnreadsCategory, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
@@ -69,6 +70,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             stopDragging,
             clearChannelSelection,
             switchToLhsStaticPage,
+            readMultipleChannels,
         }, dispatch),
     };
 }

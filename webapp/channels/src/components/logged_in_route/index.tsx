@@ -10,6 +10,7 @@ import CloudPreviewModalController from 'components/cloud_preview_modal/cloud_pr
 import LoggedIn from 'components/logged_in';
 
 const OnBoardingTaskList = makeAsyncComponent('OnboardingTaskList', lazy(() => import('components/onboarding_tasklist')));
+const ClearUnreadsToast = makeAsyncComponent('ClearUnreadsToast', lazy(() => import('components/feature_toast/features/mark_all_as_read_toast')));
 
 type Props = {
     component: React.ComponentType<RouteComponentProps<any>>;
@@ -25,6 +26,7 @@ export default function LoggedInRoute(props: Props) {
             render={(routeProps) => (
                 <LoggedIn {...routeProps}>
                     <OnBoardingTaskList/>
+                    <ClearUnreadsToast/>
                     <CloudPreviewModalController/>
                     <Component {...(routeProps)}/>
                 </LoggedIn>
