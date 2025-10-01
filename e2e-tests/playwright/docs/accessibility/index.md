@@ -100,14 +100,15 @@ test('descriptive test title', {tag: ['@accessibility', '@feature_tag']}, async 
     await channelsPage.goto();
 
     // # Navigate to component under test
-    await globalHeader.settingsButton.click();
+    await page.getByRole('button', {name: 'Settings'}).click();
 
     // # Perform accessibility interaction (keyboard navigation, etc.)
     await page.keyboard.press('Tab');
+    const targetElement = page.getByRole('dialog', {name: 'Settings'});
     await pw.toBeFocusedWithFocusVisible(targetElement);
 
     // * Verify accessibility compliance with automated scan
-    const results = await axe.builder(page).include('#target-element-id').analyze();
+    const results = await axe.builder(page).include('[role="dialog"]').analyze();
     expect(results.violations).toHaveLength(0);
 
     // * Verify semantic structure with aria snapshot
@@ -130,7 +131,8 @@ Aria snapshots capture the accessibility tree structure, ensuring proper semanti
 - Complex structures that benefit from version control and diff tracking
 
 ```typescript
-await expect(element).toMatchAriaSnapshot({
+const notificationsPanel = page.getByRole('region', {name: 'Notifications'});
+await expect(notificationsPanel).toMatchAriaSnapshot({
     name: 'notifications-panel.yml',
 });
 ```

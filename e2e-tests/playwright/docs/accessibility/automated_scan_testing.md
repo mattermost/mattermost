@@ -64,7 +64,7 @@ test('component accessibility', async ({axe, page}) => {
 
 ```typescript
 test('modal accessibility', async ({axe, page}) => {
-    await page.click('[data-testid="open-modal"]');
+    await page.getByRole('button', {name: 'Open modal'}).click();
 
     const results = await axe.builder(page).include('[role="dialog"]').analyze();
 
@@ -81,7 +81,7 @@ test('form error state accessibility', async ({axe, page}) => {
     expect(results.violations).toHaveLength(0);
 
     // Test error state
-    await page.click('[type="submit"]');
+    await page.getByRole('button', {name: 'Submit'}).click();
     results = await axe.builder(page).include('form').analyze();
     expect(results.violations).toHaveLength(0);
 });

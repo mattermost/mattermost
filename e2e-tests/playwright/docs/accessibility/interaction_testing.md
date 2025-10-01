@@ -35,7 +35,7 @@ This guide covers **automated accessibility testing through user interaction sim
 ```typescript
 test('keyboard navigation through menu', async ({page}) => {
     // Open menu with keyboard
-    await page.locator('[data-testid="menu-button"]').focus();
+    await page.getByRole('button', {name: 'Menu'}).focus();
     await page.keyboard.press('Enter');
 
     // Navigate through menu items
@@ -56,7 +56,7 @@ test('keyboard navigation through menu', async ({page}) => {
     await expect(page.getByRole('menuitem')).toHaveCount(0);
 
     // Verify focus restoration
-    await expect(page.locator('[data-testid="menu-button"]')).toBeFocused();
+    await expect(page.getByRole('button', {name: 'Menu'})).toBeFocused();
 });
 ```
 
@@ -65,8 +65,8 @@ test('keyboard navigation through menu', async ({page}) => {
 ```typescript
 test('modal focus trapping', async ({page}) => {
     // Open modal
-    await page.click('[data-testid="open-modal"]');
-    const modal = page.locator('[role="dialog"]');
+    await page.getByRole('button', {name: 'Open modal'}).click();
+    const modal = page.getByRole('dialog');
 
     // Verify initial focus
     await expect(modal).toBeFocused();
@@ -95,8 +95,8 @@ test('modal focus trapping', async ({page}) => {
 
 ```typescript
 test('expandable section ARIA states', async ({page}) => {
-    const expandButton = page.locator('[aria-expanded]');
-    const expandableContent = page.locator('#expandable-content');
+    const expandButton = page.getByRole('button', {name: 'Expand section', expanded: false});
+    const expandableContent = page.getByRole('region', {name: 'Expandable content'});
 
     // Test initial collapsed state
     await expect(expandButton).toHaveAttribute('aria-expanded', 'false');
@@ -127,9 +127,9 @@ test('expandable section ARIA states', async ({page}) => {
 
 ```typescript
 test('form validation accessibility', async ({page}) => {
-    const form = page.locator('form');
-    const requiredField = form.locator('[required]');
-    const submitButton = form.locator('[type="submit"]');
+    const form = page.getByRole('form');
+    const requiredField = form.getByRole('textbox', {name: 'Email'});
+    const submitButton = form.getByRole('button', {name: 'Submit'});
 
     // Submit empty form to trigger validation
     await submitButton.focus();
@@ -137,23 +137,23 @@ test('form validation accessibility', async ({page}) => {
 
     // Verify error state accessibility
     await expect(requiredField).toHaveAttribute('aria-invalid', 'true');
-    await expect(page.locator('[role="alert"]')).toBeVisible();
+    await expect(page.getByRole('alert')).toBeVisible();
 
     // Verify focus moves to invalid field
     await expect(requiredField).toBeFocused();
 
     // Test error message association
-    const errorId = await page.locator('[role="alert"]').getAttribute('id');
+    const errorId = await page.getByRole('alert').getAttribute('id');
     await expect(requiredField).toHaveAttribute('aria-describedby', errorId);
 
     // Fix validation error
-    await requiredField.fill('valid input');
+    await requiredField.fill('valid@example.com');
     await submitButton.focus();
     await page.keyboard.press('Enter');
 
     // Verify error cleared
     await expect(requiredField).toHaveAttribute('aria-invalid', 'false');
-    await expect(page.locator('[role="alert"]')).toBeHidden();
+    await expect(page.getByRole('alert')).toBeHidden();
 });
 ```
 
@@ -161,8 +161,8 @@ test('form validation accessibility', async ({page}) => {
 
 ```typescript
 test('dynamic content announcements', async ({page}) => {
-    const liveRegion = page.locator('[aria-live]');
-    const triggerButton = page.locator('[data-testid="load-content"]');
+    const liveRegion = page.getByRole('status');
+    const triggerButton = page.getByRole('button', {name: 'Load content'});
 
     // Verify live region setup
     await expect(liveRegion).toHaveAttribute('aria-live', 'polite');
@@ -174,8 +174,8 @@ test('dynamic content announcements', async ({page}) => {
     await expect(liveRegion).toContainText('Loading complete');
 
     // Test urgent announcements
-    const urgentRegion = page.locator('[aria-live="assertive"]');
-    await page.click('[data-testid="urgent-action"]');
+    const urgentRegion = page.getByRole('alert');
+    await page.getByRole('button', {name: 'Urgent action'}).click();
     await expect(urgentRegion).toContainText('Critical update');
 });
 ```
@@ -197,7 +197,7 @@ async function toBeFocusedWithFocusVisible(locator: Locator) {
 }
 
 test('focus indicators visibility', async ({page}) => {
-    const button = page.locator('button').first();
+    const button = page.getByRole('button', {name: 'Save'});
 
     // Tab to button (should show focus indicator)
     await page.keyboard.press('Tab');
@@ -214,7 +214,7 @@ test('focus indicators visibility', async ({page}) => {
 
 ```typescript
 test('hierarchical menu navigation', async ({page}) => {
-    await page.locator('[data-testid="menu-button"]').focus();
+    await page.getByRole('button', {name: 'Menu'}).focus();
     await page.keyboard.press('Enter');
 
     // Navigate to submenu trigger
@@ -225,7 +225,7 @@ test('hierarchical menu navigation', async ({page}) => {
     await page.keyboard.press('ArrowRight');
 
     // Verify submenu opened and focused
-    const submenu = page.locator('[role="menu"]').nth(1);
+    const submenu = page.getByRole('menu').nth(1);
     await expect(submenu).toBeVisible();
     await expect(submenu.getByRole('menuitem').first()).toBeFocused();
 
@@ -245,9 +245,9 @@ test('hierarchical menu navigation', async ({page}) => {
 ```typescript
 test('screen reader content structure', async ({page}) => {
     // Test heading structure
-    const headings = page.locator('h1, h2, h3, h4, h5, h6');
+    const headings = page.getByRole('heading');
     const headingLevels = await headings.evaluateAll((elements) =>
-        elements.map((el) => parseInt(el.tagName.substring(1))),
+        elements.map((el) => parseInt(el.getAttribute('aria-level') || el.tagName.substring(1))),
     );
 
     // Verify logical heading hierarchy
@@ -257,9 +257,13 @@ test('screen reader content structure', async ({page}) => {
     }
 
     // Test landmark navigation
-    const landmarks = page.locator('[role="banner"], [role="navigation"], [role="main"], [role="contentinfo"]');
-    const landmarkCount = await landmarks.count();
-    expect(landmarkCount, 'Page should have proper landmarks').toBeGreaterThan(0);
+    const banner = page.getByRole('banner');
+    const navigation = page.getByRole('navigation');
+    const main = page.getByRole('main');
+    const contentinfo = page.getByRole('contentinfo');
+
+    await expect(banner).toBeVisible();
+    await expect(main).toBeVisible();
 
     // Test skip links
     await page.keyboard.press('Tab');
@@ -274,16 +278,16 @@ test('screen reader content structure', async ({page}) => {
 
 ```typescript
 // Test focus restoration after modal close
-async function testFocusRestoration(page: Page, triggerSelector: string, modalSelector: string) {
-    const trigger = page.locator(triggerSelector);
+async function testFocusRestoration(page: Page, triggerName: string, modalName: string) {
+    const trigger = page.getByRole('button', {name: triggerName});
 
     // Open modal
     await trigger.click();
-    await expect(page.locator(modalSelector)).toBeVisible();
+    await expect(page.getByRole('dialog', {name: modalName})).toBeVisible();
 
     // Close modal with Escape
     await page.keyboard.press('Escape');
-    await expect(page.locator(modalSelector)).toBeHidden();
+    await expect(page.getByRole('dialog', {name: modalName})).toBeHidden();
 
     // Verify focus returned
     await expect(trigger).toBeFocused();
@@ -392,7 +396,7 @@ await expect(field).toHaveAttribute('aria-describedby', errorId);
 
 // Error Handling (3.3.1, 3.3.2) - Essential for form accessibility
 await expect(field).toHaveAttribute('aria-invalid', 'true');
-await expect(page.locator('[role="alert"]')).toBeVisible();
+await expect(page.getByRole('alert')).toBeVisible();
 ```
 
 #### Testing Advantages:
