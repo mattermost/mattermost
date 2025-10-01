@@ -452,6 +452,10 @@
     "translation": "Failed to update the channel."
   },
   {
+    "id": "api.channel.patch_update_channel.restricted_dm.app_error",
+    "translation": "Cannot update a restricted direct message channel."
+  },
+  {
     "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
     "translation": "You are not allowed to update the name, display_name, and purpose of direct or group messages."
   },
@@ -674,6 +678,10 @@
   {
     "id": "api.command.execute_command.not_found.app_error",
     "translation": "Command with a trigger of '{{.Trigger}}' not found. To send a message beginning with \"/\", try adding an empty space at the beginning of the message."
+  },
+  {
+    "id": "api.command.execute_command.restricted_dm.error",
+    "translation": "Cannot post in a restricted DM"
   },
   {
     "id": "api.command.execute_command.start.app_error",
@@ -1958,6 +1966,10 @@
     "translation": "Can not save draft to deleted channel"
   },
   {
+    "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
+    "translation": "Cannot save draft to restricted direct message channel"
+  },
+  {
     "id": "api.drafts.disabled.app_error",
     "translation": "Drafts feature is disabled."
   },
@@ -2193,6 +2205,10 @@
     "translation": "File storage settings has unset values."
   },
   {
+    "id": "api.file.upload_file.get_channel.app_error",
+    "translation": "Cannot upload file to restricted DM"
+  },
+  {
     "id": "api.file.upload_file.incorrect_channelId.app_error",
     "translation": "Unable to upload the file. Incorrect channel ID: {{.channelId}}"
   },
@@ -2219,6 +2235,10 @@
   {
     "id": "api.file.upload_file.read_request.app_error",
     "translation": "Unable to upload file(s). Error reading or parsing request data."
+  },
+  {
+    "id": "api.file.upload_file.restricted_dm.error",
+    "translation": "Cannot upload file to restricted DM"
   },
   {
     "id": "api.file.upload_file.storage.app_error",
@@ -2625,6 +2645,10 @@
     "translation": "@{{.Username}} didn't get notified by this mention because they aren't a member of this team."
   },
   {
+    "id": "api.post.create_post.can_not_post_in_restricted_dm.error",
+    "translation": "Cannot post to restricted direct message channel."
+  },
+  {
     "id": "api.post.create_post.can_not_post_to_deleted.error",
     "translation": "Can not post to deleted channel."
   },
@@ -2651,6 +2675,10 @@
   {
     "id": "api.post.deduplicate_create_post.pending",
     "translation": "Rejected post since another client is making the same request."
+  },
+  {
+    "id": "api.post.delete_post.can_not_delete_from_restricted_dm.error",
+    "translation": "Cannot delete a post in a restricted direct message channel."
   },
   {
     "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
@@ -2709,6 +2737,10 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Can not update a post in a deleted channel."
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "Cannot update post in restricted direct message channel."
   },
   {
     "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
@@ -2785,6 +2817,10 @@
   {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
     "translation": "Can not update a post in a deleted channel."
+  },
+  {
+    "id": "api.post.update_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "Cannot update post in restricted direct message channel."
   },
   {
     "id": "api.post.update_post.find.app_error",
@@ -2867,8 +2903,16 @@
     "translation": "You cannot remove a reaction in an archived channel."
   },
   {
+    "id": "api.reaction.delete.restricted_dm.error",
+    "translation": "Cannot react in restricted DM"
+  },
+  {
     "id": "api.reaction.save.archived_channel.app_error",
     "translation": "You cannot react in an archived channel."
+  },
+  {
+    "id": "api.reaction.save.restricted_dm.error",
+    "translation": "Cannot react in restricted DM"
   },
   {
     "id": "api.reaction.save_reaction.invalid.app_error",
@@ -4805,6 +4849,10 @@
   {
     "id": "app.channel.get_channels_with_unreads_and_with_mentions.app_error",
     "translation": "Unable to check unreads and mentions"
+  },
+  {
+    "id": "app.channel.get_common_teams.app_error",
+    "translation": "Error get common teams for channel"
   },
   {
     "id": "app.channel.get_common_teams.incorrect_channel_type",
@@ -7111,6 +7159,10 @@
     "translation": "Cannot schedule post in an archived channel."
   },
   {
+    "id": "app.save_scheduled_post.restricted_dm.error",
+    "translation": "Cannot schedule post in a restricted DM"
+  },
+  {
     "id": "app.save_scheduled_post.save.app_error",
     "translation": "Error occurred saving the scheduled post."
   },
@@ -7539,6 +7591,10 @@
   {
     "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
     "translation": "Cannot upload to a deleted channel."
+  },
+  {
+    "id": "app.upload.create.cannot_upload_to_restricted_dm.error",
+    "translation": "Cannot upload file to a restricted direct message."
   },
   {
     "id": "app.upload.create.incorrect_channel_id.app_error",
