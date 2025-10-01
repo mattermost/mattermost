@@ -37,9 +37,7 @@ const AppsFormDateTimeField: React.FC<Props> = ({
             }
         }
 
-        // DISPLAY FALLBACK ONLY: Current time shown in UI when no value exists
-        // This does not set the form value - actual defaults should be set in initFormValues
-        // User must interact to save this time to the form
+        // Default to current time for display only
         return timezone ? moment.tz(timezone) : moment();
     }, [value, timezone]);
 
@@ -50,23 +48,17 @@ const AppsFormDateTimeField: React.FC<Props> = ({
 
     const timePickerInterval = field.time_interval || DEFAULT_TIME_INTERVAL_MINUTES;
 
-    // Determine if past dates should be allowed based on min_date constraint
     const allowPastDates = useMemo(() => {
-        // If there's a min_date constraint, check if it allows past dates
         if (field.min_date) {
             const resolvedMinDate = resolveRelativeDate(field.min_date);
             const minMoment = stringToMoment(resolvedMinDate, timezone);
             const currentMoment = timezone ? moment.tz(timezone) : moment();
 
-            // If min_date is today or in the future, don't allow past dates
             return !minMoment || minMoment.isBefore(currentMoment, 'day');
         }
 
-        // Default: allow past dates if no min_date constraint
         return true;
     }, [field.min_date, timezone]);
-
-    // Validation is now handled centrally in integration_utils.ts
 
     return (
         <div className='apps-form-datetime-input'>

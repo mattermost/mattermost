@@ -38,7 +38,6 @@ const AppsFormDateField: React.FC<Props> = ({
             return '';
         }
 
-        // Format in user's locale using Intl.DateTimeFormat
         try {
             const date = new Date(momentValue.year(), momentValue.month(), momentValue.date());
             if (isNaN(date.getTime())) {
@@ -59,7 +58,6 @@ const AppsFormDateField: React.FC<Props> = ({
             return;
         }
 
-        // Create a new moment directly from the Date object in the user's timezone
         const newMoment = timezone ? moment.tz(date, timezone) : moment(date);
 
         const newValue = momentToString(newMoment, false);
@@ -71,11 +69,9 @@ const AppsFormDateField: React.FC<Props> = ({
         setIsPopperOpen(isOpen);
     }, []);
 
-    // Calculate disabled days based on min_date and max_date constraints
     const disabledDays = useMemo(() => {
         const disabled = [];
 
-        // Disable dates before min_date
         if (field.min_date) {
             const resolvedMinDate = resolveRelativeDate(field.min_date);
             const minMoment = stringToMoment(resolvedMinDate, timezone);
@@ -85,7 +81,6 @@ const AppsFormDateField: React.FC<Props> = ({
             }
         }
 
-        // Disable dates after max_date
         if (field.max_date) {
             const resolvedMaxDate = resolveRelativeDate(field.max_date);
             const maxMoment = stringToMoment(resolvedMaxDate, timezone);

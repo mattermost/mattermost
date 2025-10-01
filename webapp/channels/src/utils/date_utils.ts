@@ -24,26 +24,24 @@ export function stringToMoment(value: string | null, timezone?: string): Moment 
         return null;
     }
 
-    // Handle relative dates/times - returns moment object directly to avoid double conversion
+    // Handle relative dates/times
     const relativeMoment = resolveRelativeDateToMoment(value, timezone);
     if (relativeMoment) {
         return relativeMoment;
     }
 
-    // Use parseISO for validation, but keep timezone logic separate
-    let momentValue: moment.Moment;
-
-    // First validate with parseISO
+    // Validate the date first
     try {
         const parsedDate = parseISO(value);
         if (!isValid(parsedDate)) {
-            return null; // parseISO validation failed
+            return null;
         }
     } catch (error) {
-        return null; // parseISO parsing failed
+        return null;
     }
 
-    // parseISO validation passed, now use moment for timezone handling
+    // And then validate the timezone
+    let momentValue: moment.Moment;
     if (timezone && moment.tz.zone(timezone)) {
         momentValue = moment.tz(value, timezone);
     } else {
@@ -68,12 +66,9 @@ export function momentToString(momentValue: Moment | null, isDateTime: boolean):
     }
 
     if (isDateTime) {
-        // Always store datetime in UTC format (YYYY-MM-DDTHH:mm:ssZ) for consistent server processing
-        // Input moment can be in any timezone - .utc() handles the conversion correctly
         return momentValue.utc().format(RFC3339_DATETIME_FORMAT);
     }
 
-    // Store date only: "2025-01-14"
     return momentValue.format('YYYY-MM-DD');
 }
 
@@ -94,20 +89,19 @@ function resolveRelativeDateToMoment(dateStr: string, timezone?: string): Moment
         return now.subtract(1, 'day').startOf('day');
 
     default: {
-        // Handle dynamic patterns like "+5d", "+2w", "+1m" (limit to 4 digits for security)
-        const dynamicMatch = dateStr.match(/^([+-]\d{1,4})([dwm])$/);
+        // Handle dynamic patterns like "+5d", "+2w", "+1m", "+3h"
+        const dynamicMatch = dateStr.match(/^([+-]\d{1,4})([dwmh])$/i);
         if (dynamicMatch) {
             const [, amount, unit] = dynamicMatch;
             const value = parseInt(amount, 10);
 
-            // Additional bounds checking for security
             if (Math.abs(value) > 9999) {
-                return null; // Return null if value is too large
+                return null;
             }
 
             let momentUnit: moment.unitOfTime.DurationConstructor;
 
-            switch (unit) {
+            switch (unit.toLowerCase()) {
             case 'd':
                 momentUnit = 'day';
                 return now.add(value, momentUnit).startOf('day');
@@ -117,12 +111,14 @@ function resolveRelativeDateToMoment(dateStr: string, timezone?: string): Moment
             case 'm':
                 momentUnit = 'month';
                 return now.add(value, momentUnit).startOf('day');
+            case 'h':
+                momentUnit = 'hour';
+                return now.add(value, momentUnit);
             default:
-                return null; // Return null if pattern not recognized
+                return null;
             }
         }
 
-        // Return null if not a recognized relative reference
         return null;
     }
     }
@@ -132,14 +128,11 @@ function resolveRelativeDateToMoment(dateStr: string, timezone?: string): Moment
  * Resolve relative date references to ISO strings
  */
 export function resolveRelativeDate(dateStr: string, timezone?: string): string {
-    // Try to resolve as relative date/time
     const relativeMoment = resolveRelativeDateToMoment(dateStr, timezone);
     if (relativeMoment) {
-        // All relative patterns (d/w/m) return date format since we removed hour support
         return relativeMoment.format('YYYY-MM-DD');
     }
 
-    // Return as-is if not a recognized relative reference
     return dateStr;
 }
 

@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {parseISO, isValid} from 'date-fns';
-
 import {isProductScope, type ProductScope} from './products';
 import {isArrayOf, isStringArray} from './utilities';
 
@@ -478,14 +476,14 @@ export type AppField = {
 
 /**
  * Validates if a string is a valid date format (ISO date, datetime, or relative reference)
+ * Uses native Date constructor which is permissive - server-side validation is authoritative
  */
 function isValidDateString(dateStr: string): boolean {
-    // Check for relative date patterns
     const relativePatterns = [
         /^today$/,
         /^tomorrow$/,
         /^yesterday$/,
-        /^[+-]\d{1,4}[dwm]$/, // Dynamic patterns like +5d, -2w, +1m (days, weeks, months only)
+        /^[+-]\d{1,4}[dwmh]$/i,
     ];
 
     for (const pattern of relativePatterns) {
@@ -494,13 +492,8 @@ function isValidDateString(dateStr: string): boolean {
         }
     }
 
-    // Use parseISO for all ISO date format validation (accepts any valid ISO format)
-    try {
-        const parsed = parseISO(dateStr);
-        return isValid(parsed);
-    } catch {
-        return false; // parseISO failed - invalid format or date
-    }
+    const date = new Date(dateStr);
+    return !isNaN(date.getTime());
 }
 
 function isAppField(v: unknown): v is AppField {

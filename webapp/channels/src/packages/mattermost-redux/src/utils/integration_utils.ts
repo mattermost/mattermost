@@ -20,7 +20,6 @@ type DialogError = {
  * Validates date/datetime field values for format and range constraints
  */
 function validateDateTimeValue(value: string, elem: DialogElement): DialogError | null {
-    // Use parseISO for consistent validation with stringToMoment
     const parsedDate = parseISO(value);
     if (!isValid(parsedDate)) {
         return defineMessage({
@@ -29,20 +28,17 @@ function validateDateTimeValue(value: string, elem: DialogElement): DialogError 
         });
     }
 
-    // Validate format matches expected storage format
     const isDateField = elem.type === 'date';
     if (isDateField) {
-        // Date fields must be exactly YYYY-MM-DD
         if (!DATE_FORMAT_PATTERN.test(value)) {
             return defineMessage({
-                id: 'interactive_dialog.error.bad_format',
+                id: 'interactive_dialog.error.bad_date_format',
                 defaultMessage: 'Date field must be in YYYY-MM-DD format',
             });
         }
     } else if (!DATETIME_FORMAT_PATTERN.test(value)) {
-        // DateTime fields must match exact format we output: YYYY-MM-DDTHH:mm:ssZ
         return defineMessage({
-            id: 'interactive_dialog.error.bad_format',
+            id: 'interactive_dialog.error.bad_datetime_format',
             defaultMessage: 'DateTime field must be in YYYY-MM-DDTHH:mm:ssZ format',
         });
     }

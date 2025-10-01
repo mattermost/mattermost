@@ -710,13 +710,11 @@ func validateRelativePattern(value string) bool {
 		return false
 	}
 
-	// Get the unit character (last character)
 	lastChar := strings.ToLower(string(value[len(value)-1]))
-	if !strings.Contains("dwm", lastChar) {
+	if !strings.Contains("dwmh", lastChar) {
 		return false
 	}
 
-	// Validate the number part
 	numberPart := value[1 : len(value)-1]
 	_, err := strconv.Atoi(numberPart)
 	return err == nil
@@ -734,7 +732,6 @@ func validateDateFormat(dateStr string) error {
 		return nil
 	}
 
-	// Accept relative formats and ISO date
 	if isValidRelativeFormat(dateStr) {
 		return nil
 	}
@@ -742,7 +739,6 @@ func validateDateFormat(dateStr string) error {
 		return nil
 	}
 
-	// Accept datetime formats with warning
 	for _, format := range commonDateTimeFormats {
 		if parsedTime, err := time.Parse(format, dateStr); err == nil {
 			dateOnly := parsedTime.Format(ISODateFormat)
@@ -759,7 +755,6 @@ func validateDateTimeFormat(dateTimeStr string) error {
 		return nil
 	}
 
-	// Try ISO datetime formats
 	for _, format := range commonDateTimeFormats {
 		if _, err := time.Parse(format, dateTimeStr); err == nil {
 			return nil
