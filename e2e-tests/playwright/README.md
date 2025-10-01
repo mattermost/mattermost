@@ -208,6 +208,7 @@ For comprehensive guidelines on writing accessibility tests, aria snapshots, and
 #### When Test IDs Are Acceptable
 
 Use `data-testid` only when:
+
 - Element has no semantic role (e.g., decorative divs)
 - Multiple identical elements need distinction
 - Component is not interactive or visible to assistive tech

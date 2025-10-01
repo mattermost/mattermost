@@ -180,37 +180,19 @@ test('dynamic content announcements', async ({page}) => {
 });
 ```
 
-## Advanced Testing Techniques
-
-### **1. Focus Visibility Testing**
+### **6. Focus Visibility Testing**
 
 ```typescript
-// Custom helper for focus-visible testing
-async function toBeFocusedWithFocusVisible(locator: Locator) {
-    await expect(locator).toBeVisible();
-    await expect(locator).toBeFocused();
-
-    // Check if element has focus-visible state
-    const hasFocusVisible = await locator.evaluate((element) => element.matches(':focus-visible'));
-
-    expect(hasFocusVisible, 'Element should have focus-visible state').toBe(true);
-}
-
 test('focus indicators visibility', async ({page}) => {
     const button = page.getByRole('button', {name: 'Save'});
 
     // Tab to button (should show focus indicator)
     await page.keyboard.press('Tab');
     await toBeFocusedWithFocusVisible(button);
-
-    // Click button (may not show focus indicator depending on browser)
-    await button.blur();
-    await button.click();
-    await expect(button).toBeFocused();
 });
 ```
 
-### **2. Complex Navigation Patterns**
+### **7. Complex Navigation Patterns**
 
 ```typescript
 test('hierarchical menu navigation', async ({page}) => {
@@ -239,171 +221,3 @@ test('hierarchical menu navigation', async ({page}) => {
     await expect(submenuTrigger).toBeFocused();
 });
 ```
-
-### **3. Screen Reader Simulation**
-
-```typescript
-test('screen reader content structure', async ({page}) => {
-    // Test heading structure
-    const headings = page.getByRole('heading');
-    const headingLevels = await headings.evaluateAll((elements) =>
-        elements.map((el) => parseInt(el.getAttribute('aria-level') || el.tagName.substring(1))),
-    );
-
-    // Verify logical heading hierarchy
-    for (let i = 1; i < headingLevels.length; i++) {
-        const levelDiff = headingLevels[i] - headingLevels[i - 1];
-        expect(levelDiff, 'Heading levels should not skip').toBeLessThanOrEqual(1);
-    }
-
-    // Test landmark navigation
-    const banner = page.getByRole('banner');
-    const navigation = page.getByRole('navigation');
-    const main = page.getByRole('main');
-    const contentinfo = page.getByRole('contentinfo');
-
-    await expect(banner).toBeVisible();
-    await expect(main).toBeVisible();
-
-    // Test skip links
-    await page.keyboard.press('Tab');
-    const firstFocusable = await page.evaluate(() => document.activeElement?.textContent);
-    expect(firstFocusable, 'First focusable should be skip link').toContain('Skip');
-});
-```
-
-## Utility Functions
-
-### **Focus Management Helpers**
-
-```typescript
-// Test focus restoration after modal close
-async function testFocusRestoration(page: Page, triggerName: string, modalName: string) {
-    const trigger = page.getByRole('button', {name: triggerName});
-
-    // Open modal
-    await trigger.click();
-    await expect(page.getByRole('dialog', {name: modalName})).toBeVisible();
-
-    // Close modal with Escape
-    await page.keyboard.press('Escape');
-    await expect(page.getByRole('dialog', {name: modalName})).toBeHidden();
-
-    // Verify focus returned
-    await expect(trigger).toBeFocused();
-}
-```
-
-## Performance Considerations
-
-### **Efficient Focus Testing**
-
-```typescript
-// Avoid repeated focus operations - batch them
-test('efficient focus testing', async ({page}) => {
-    const focusableElements = await getFocusableElements(page);
-    const count = await focusableElements.count();
-
-    // Test all elements in single loop
-    for (let i = 0; i < count; i++) {
-        await page.keyboard.press('Tab');
-        const element = focusableElements.nth(i);
-
-        // Batch multiple assertions
-        await Promise.all([
-            expect(element).toBeFocused(),
-            expect(element).toBeVisible(),
-            element.evaluate((el) => el.matches(':focus-visible')),
-        ]);
-    }
-});
-```
-
-## Integration with Axe Testing
-
-### **Combined Approach**
-
-```typescript
-test('keyboard navigation + accessibility scan', async ({page, axe}) => {
-    // Test keyboard navigation
-    await testTabSequence(page, ['#first', '#second', '#third']);
-
-    // Verify no accessibility violations during navigation
-    const results = await axe.builder(page).include('#navigation-area').analyze();
-
-    expect(results.violations).toHaveLength(0);
-
-    // Test focus states specifically
-    const focusResults = await axe
-        .builder(page)
-        .withRules(['focusable-element', 'focus-order-semantics', 'tabindex'])
-        .analyze();
-
-    expect(focusResults.violations).toHaveLength(0);
-});
-```
-
-## Summary
-
-### **Key Benefits of User Interaction Testing**
-
-- **Real User Experience** - Tests actual workflows assistive technology users follow
-- **Focus Management** - Validates logical focus order and restoration
-- **Keyboard Accessibility** - Ensures all functionality available via keyboard
-- **Screen Reader Support** - Verifies proper ARIA state management
-- **Error Handling** - Tests accessible validation and error recovery
-
-### **Accessibility Testing Impact & WCAG Coverage**
-
-#### **Coverage**
-
-| Interaction Pattern     | Automation Level | WCAG Criteria Validated | Essential For                                         |
-| ----------------------- | ---------------- | ----------------------- | ----------------------------------------------------- |
-| **Keyboard Navigation** | 95%              | 2.1.1, 2.1.2, 2.4.3     | Motor impaired users who cannot use pointing devices  |
-| **Focus Management**    | 90%              | 2.4.3, 2.4.7, 3.2.1     | Sighted keyboard users knowing current focus location |
-| **ARIA State Changes**  | 95%              | 4.1.2, 4.1.3, 1.3.1     | Assistive technologies understanding component states |
-| **Form Validation**     | 85%              | 3.3.1, 3.3.2, 3.3.3     | Users understanding and correcting form errors        |
-| **Modal Interactions**  | 90%              | 2.1.2, 2.4.3, 3.2.1     | Keyboard users navigating between elements safely     |
-| **Menu Navigation**     | 95%              | 2.1.1, 2.4.1, 4.1.2     | Screen reader users avoiding repetitive content       |
-
-#### **WCAG 2.1 Compliance Impact**
-
-**19 WCAG Success Criteria Directly Validated:**
-
-| WCAG Level   | Criteria Count | Coverage                                      | Impact                                         |
-| ------------ | -------------- | --------------------------------------------- | ---------------------------------------------- |
-| **Level A**  | 12 criteria    | 100% keyboard, 95% programmatic               | Critical baseline accessibility for all users  |
-| **Level AA** | 7 criteria     | 85% focus/navigation, 90% contrast/visibility | Enhanced usability for users with disabilities |
-
-#### **Key Testing Patterns with WCAG Mapping**
-
-```typescript
-// Skip Navigation (2.4.1) - Essential for keyboard users avoiding repetitive content
-await page.keyboard.press('Tab');
-expect(await page.evaluate(() => document.activeElement?.textContent)).toContain('Skip');
-
-// Focus Management (2.4.3, 2.4.7) - Essential for logical navigation and focus visibility
-await expect(element).toBeFocused();
-expect(await element.evaluate((el) => el.matches(':focus-visible'))).toBe(true);
-
-// Keyboard Accessibility (2.1.1, 2.1.2) - Essential for motor impaired users
-await page.keyboard.press('Tab'); // Navigate without mouse
-await page.keyboard.press('Escape'); // Exit without trapping focus
-
-// ARIA State Management (4.1.2) - Essential for assistive technologies
-await expect(button).toHaveAttribute('aria-expanded', 'true');
-await expect(field).toHaveAttribute('aria-describedby', errorId);
-
-// Error Handling (3.3.1, 3.3.2) - Essential for form accessibility
-await expect(field).toHaveAttribute('aria-invalid', 'true');
-await expect(page.getByRole('alert')).toBeVisible();
-```
-
-#### Testing Advantages:
-
-- **Real User Experience** - Simulates actual workflows assistive technology users follow
-- **WCAG Compliance** - Validates 19 critical success criteria automatically
-- **Regression Prevention** - Catches accessibility breaks before production
-- **Developer Confidence** - Provides measurable accessibility quality metrics
-
-This approach bridges the gap between automated rule-checking and real user experience validation, ensuring both WCAG compliance and genuine usability for people requiring accessibility.

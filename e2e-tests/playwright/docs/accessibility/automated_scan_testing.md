@@ -40,7 +40,7 @@ test('component accessibility', async ({axe, page}) => {
 
 ## What Can Be Automated
 
-### **Fully Automatable (90-95% Coverage)**
+### **Fully Automatable**
 
 - **HTML Structure & Semantics** - Markup validity, semantic elements, heading hierarchy
 - **ARIA Implementation** - Attributes, states, relationships, roles
@@ -129,17 +129,3 @@ test('modal dialog', async ({axe, page}) => {
 - **Convenience** - "This rule is annoying"
 - **Lack of Understanding** - "I don't know what this rule does"
 - **Time Pressure** - "We'll fix it later" (without tracking)
-
-## **Expected Coverage**
-
-**Overall: ~85% of accessibility requirements fully automated**
-
-| Area                 | Coverage |
-| -------------------- | -------- |
-| ARIA & Semantics     | 95%      |
-| Forms & Validation   | 90%      |
-| Interactive Elements | 85%      |
-| Color & Contrast     | 80%      |
-| Content Structure    | 95%      |
-
-**Approach:** Default comprehensive analysis with selective rule disabling only when necessary.
