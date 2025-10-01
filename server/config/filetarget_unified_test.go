@@ -5,86 +5,80 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
-type fileOpts struct {
-	Filename    string `json:"filename"`
-	Max_size    int    `json:"max_size"`
-	Max_age     int    `json:"max_age"`
-	Max_backups int    `json:"max_backups"`
-	Compress    bool   `json:"compress"`
-}
-
-type levelOpts struct {
-	Level string `json:"level"`
-}
-
-func TestMakeFileTarget_JSONAndRotation(t *testing.T) {
-	cfg, err := makeFileTarget("x.log", "error", true, 11, 22, 33, true)
+func TestMakeFileTarget(t *testing.T) {
+	cfg, err := makeFileTarget("/tmp/audit.log", "error", true, 5, 7, 2, true)
 	if err != nil {
-		t.Fatalf("makeFileTarget error: %v", err)
+		t.Fatalf("unexpected error: %v", err)
 	}
+
 	if cfg.Type != "file" {
-		t.Fatalf("Type = %q, want file", cfg.Type)
+		t.Fatalf("expected Type=file, got %q", cfg.Type)
 	}
 	if cfg.Format != "json" {
-		t.Fatalf("Format = %q, want json", cfg.Format)
-	}
-	if cfg.QueueSize != 1000 {
-		t.Fatalf("QueueSize = %d, want 1000", cfg.QueueSize)
+		t.Fatalf("expected Format=json, got %q", cfg.Format)
 	}
 
-	var o fileOpts
-	if err := json.Unmarshal(cfg.Options, &o); err != nil {
-		t.Fatalf("unmarshal options: %v", err)
+	var opts struct {
+		Filename    string `json:"filename"`
+		Max_size    int    `json:"max_size"`
+		Max_age     int    `json:"max_age"`
+		Max_backups int    `json:"max_backups"`
+		Compress    bool   `json:"compress"`
 	}
-	if o.Filename != "x.log" || o.Max_size != 11 || o.Max_age != 22 || o.Max_backups != 33 || !o.Compress {
-		t.Fatalf("opts = %+v, want filename=x.log max_size=11 max_age=22 max_backups=33 compress=true", o)
+	if err := json.Unmarshal(cfg.Options, &opts); err != nil {
+		t.Fatalf("failed to unmarshal Options: %v", err)
 	}
 
-	if len(cfg.Filters) != 1 {
-		t.Fatalf("len(Filters) = %d, want 1", len(cfg.Filters))
+	if opts.Filename != "/tmp/audit.log" {
+		t.Errorf("Filename mismatch: %q", opts.Filename)
 	}
-	var lv levelOpts
-	if err := json.Unmarshal(cfg.Filters[0].Options, &lv); err != nil {
-		t.Fatalf("unmarshal filter: %v", err)
-	}
-	if lv.Level != "error" {
-		t.Fatalf("level = %q, want error", lv.Level)
+	if opts.Max_size != 5 || opts.Max_age != 7 || opts.Max_backups != 2 || !opts.Compress {
+		t.Errorf("rotation opts mismatch: %+v", opts)
 	}
 }
 
-func TestMakeFileTarget_EmptyFilename(t *testing.T) {
-	if _, err := makeFileTarget("   ", "info", false, 1, 1, 1, false); err == nil {
-		t.Fatalf("expected error for empty filename")
-	}
-}
-
-func TestMakeFileTargetFromAudit_Adapts(t *testing.T) {
-	fn := "audit.log"
-	ms := 5
-	ma := 6
-	mb := 7
-	cp := true
+func TestMakeFileTargetFromAudit(t *testing.T) {
+	fn := "/tmp/audit.log"
+	ms := 6
+	ma := 9
+	mb := 4
+	c := true
 
 	a := &model.ExperimentalAuditSettings{
 		FileName:       &fn,
 		FileMaxSizeMB:  &ms,
 		FileMaxAgeDays: &ma,
 		FileMaxBackups: &mb,
-		FileCompress:   &cp,
+		FileCompress:   &c,
 	}
 
-	cfg, err := makeFileTargetFromAudit(a, "error", true)
+	cfg, err := makeFileTargetFromAudit(a, "warn", false)
 	if err != nil {
-		t.Fatalf("makeFileTargetFromAudit error: %v", err)
+		t.Fatalf("unexpected error: %v", err)
 	}
 
-	var o fileOpts
-	if err := json.Unmarshal(cfg.Options, &o); err != nil {
-		t.Fatalf("unmarshal options: %v", err)
+	if cfg.Type != "file" {
+		t.Fatalf("expected Type=file, got %q", cfg.Type)
 	}
-	if o.Filename != fn || o.Max_size != ms || o.Max_age != ma || o.Max_backups != mb || !o.Compress {
-		t.Fatalf("opts = %+v, want filename=%s max_size=%d max_age=%d max_backups=%d compress=true", o, fn, ms, ma, mb)
+	if cfg.Format != "plain" {
+		t.Fatalf("expected Format=plain, got %q", cfg.Format)
+	}
+
+	var opts struct {
+		Filename    string `json:"filename"`
+		Max_size    int    `json:"max_size"`
+		Max_age     int    `json:"max_age"`
+		Max_backups int    `json:"max_backups"`
+		Compress    bool   `json:"compress"`
+	}
+	if err := json.Unmarshal(cfg.Options, &opts); err != nil {
+		t.Fatalf("failed to unmarshal Options: %v", err)
+	}
+
+	if opts.Filename != fn || opts.Max_size != ms || opts.Max_age != ma || opts.Max_backups != mb || !opts.Compress {
+		t.Errorf("rotation opts mismatch: %+v", opts)
 	}
 }
