@@ -11,10 +11,10 @@ import (
 )
 
 type OAuthProvider interface {
-	GetUserFromJSON(c request.CTX, data io.Reader, tokenUser *model.User) (*model.User, error)
-	GetSSOSettings(c request.CTX, config *model.Config, service string) (*model.SSOSettings, error)
-	GetUserFromIdToken(c request.CTX, idToken string) (*model.User, error)
-	IsSameUser(c request.CTX, dbUser, oAuthUser *model.User) bool
+	GetUserFromJSON(rctx request.CTX, data io.Reader, tokenUser *model.User) (*model.User, error)
+	GetSSOSettings(rctx request.CTX, config *model.Config, service string) (*model.SSOSettings, error)
+	GetUserFromIdToken(rctx request.CTX, idToken string) (*model.User, error)
+	IsSameUser(rctx request.CTX, dbUser, oAuthUser *model.User) bool
 }
 
 var oauthProviders = make(map[string]OAuthProvider)

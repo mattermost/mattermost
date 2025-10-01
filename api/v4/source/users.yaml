@@ -74,6 +74,59 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+  /api/v4/users/login/sso/code-exchange:
+    post:
+      tags:
+        - users
+      summary: Exchange SSO login code for session tokens
+      description: >
+        Exchange a short-lived login_code for session tokens using SAML code exchange (mobile SSO flow).
+        This endpoint is part of the mobile SSO code-exchange flow to prevent tokens 
+        from appearing in deep links.
+
+        ##### Permissions
+
+        No permission required.
+      operationId: LoginSSOCodeExchange
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - login_code
+                - code_verifier
+                - state
+              properties:
+                login_code:
+                  description: Short-lived one-time code from SSO callback
+                  type: string
+                code_verifier:
+                  description: SAML verifier to prove code possession
+                  type: string
+                state:
+                  description: State parameter to prevent CSRF attacks
+                  type: string
+        description: SSO code exchange object
+        required: true
+      responses:
+        "200":
+          description: Code exchange successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    description: Session token for authentication
+                    type: string
+                  csrf:
+                    description: CSRF token for request validation
+                    type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
   /api/v4/users/logout:
     post:
       tags:
@@ -183,8 +236,9 @@
         Get a page of a list of users. Based on query string parameters, select
         users from a team, channel, or select users not in a specific channel.
 
-
         Since server version 4.0, some basic sorting is available using the `sort` query parameter. Sorting is currently only supported when selecting users on a team.
+
+        Some fields, like `email_verified` and `notify_props`, are only visible for the authorized user or if the authorized user has the `manage_system` permission.
 
         ##### Permissions
 

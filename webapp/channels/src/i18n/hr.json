@@ -213,8 +213,6 @@
   "admin.billing.subscription.planDetails.features.multilanguage": "Višejezični prijevodi",
   "admin.billing.subscription.planDetails.features.unlimitedUsers": "Neograničen broj korisnika",
   "admin.billing.subscription.planDetails.features.unlimittedUsersAndMessagingHistory": "Neograničen broj korisnika i poruka povijesti",
-  "admin.billing.subscription.planDetails.flatFeePerMonth": "/mjesec (Neograničen broj korisnika). ",
-  "admin.billing.subscription.planDetails.perUserPerMonth": "/korisnik/mjesec. ",
   "admin.billing.subscription.planDetails.productName.unknown": "Nepoznat proizvod",
   "admin.billing.subscription.planDetails.userCount": "{userCount} korisnika",
   "admin.billing.subscription.privateCloudCard.contactSupport": "Kontakt podrške",
@@ -419,7 +417,6 @@
   "admin.license.modal.done": "Obavljeno",
   "admin.license.remove": "Ukloni",
   "admin.license.trial-request.embargoed.button": "Zatvori",
-  "admin.license.trialCard.purchase_license": "Kupi licencu",
   "admin.license.upload-modal.file": "Datoteka",
   "admin.license.uploadFile": "Prenesi datoteku",
   "admin.log.Level": "Razina",
@@ -1894,10 +1891,7 @@
   "workspace_limits.file_storage.short.usage": "{actual} / {limit}",
   "workspace_limits.file_storage.usage": "{actual} od {limit} ({percent} %)",
   "workspace_limits.menu_limit.notify_admin": "Obavijesti administratora",
-  "workspace_limits.message_history.locked.cta.admin": "Nadogradi sada",
-  "workspace_limits.message_history.locked.cta.end_user": "Obavijesti administratora",
   "workspace_limits.message_history.short": "Poruke",
   "workspace_limits.message_history.short.usage": "{actual} / {limit}",
-  "workspace_limits.modals.close": "Zatvori",
-  "workspace_limits.search_limit.upgrade_now": "Nadogradi sada"
+  "workspace_limits.modals.close": "Zatvori"
 }
