@@ -977,7 +977,6 @@ func convertUserToBot(c client.Client, _ *cobra.Command, userArgs []string) erro
 	users, err := getUsersFromArgs(c, userArgs)
 
 	if err != nil {
-		printer.PrintError(err.Error())
 		return err
 	}
 
