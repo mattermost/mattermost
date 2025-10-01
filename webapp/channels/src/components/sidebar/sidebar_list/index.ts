@@ -8,6 +8,7 @@ import type {Dispatch} from 'redux';
 import {moveCategory} from 'mattermost-redux/actions/channel_categories';
 import {readMultipleChannels} from 'mattermost-redux/actions/channels';
 import {getCurrentChannelId, getUnreadChannelIds} from 'mattermost-redux/selectors/entities/channels';
+import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {shouldShowUnreadsCategory, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getThreadCountsInCurrentTeam} from 'mattermost-redux/selectors/entities/threads';
@@ -54,6 +55,7 @@ function mapStateToProps(state: GlobalState) {
         showUnreadsCategory: shouldShowUnreadsCategory(state),
         collapsedThreads,
         hasUnreadThreads,
+        markAllAsReadShortcutEnabled: getFeatureFlagValue(state, 'EnableShiftEscapeToMarkAllRead') === 'true',
         currentStaticPageId: getCurrentStaticPageId(state),
         staticPages: getVisibleStaticPages(state),
     };

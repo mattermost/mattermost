@@ -5498,6 +5498,7 @@
   "shortcuts.msgs.formatting_bar.post_priority": "Message priority",
   "shortcuts.msgs.header": "Messages",
   "shortcuts.msgs.input.header": "Works inside an empty input field",
+  "shortcuts.msgs.mark_all_read": "Mark all messages as read:\tShift|ESC",
   "shortcuts.msgs.markdown.bold": "Bold:\tCtrl|B",
   "shortcuts.msgs.markdown.bold.mac": "Bold:\t⌘|B",
   "shortcuts.msgs.markdown.code": "Code:\tCtrl|Alt|C",

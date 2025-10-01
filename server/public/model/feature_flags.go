@@ -82,6 +82,9 @@ type FeatureFlags struct {
 	// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this field when feature is GA
 	// Enable channel admins to manage ABAC rules for their channels
 	ChannelAdminManageABACRules bool
+
+	// Enable the SHIFT+ESC combo to mark _all_ chats, messages, and channels as read
+	EnableShiftEscapeToMarkAllRead bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -116,6 +119,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.MobileSSOCodeExchange = true
 	// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this default when feature is GA
 	f.ChannelAdminManageABACRules = false // Default to false for safety
+	f.EnableShiftEscapeToMarkAllRead = false
 }
 
 // ToMap returns the feature flags as a map[string]string

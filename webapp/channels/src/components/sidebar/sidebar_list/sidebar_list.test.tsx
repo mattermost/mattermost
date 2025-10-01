@@ -99,6 +99,7 @@ describe('SidebarList', () => {
         showUnreadsCategory: false,
         collapsedThreads: true,
         hasUnreadThreads: false,
+        markAllAsReadShortcutEnabled: false,
         currentStaticPageId: '',
         staticPages: [],
         actions: {

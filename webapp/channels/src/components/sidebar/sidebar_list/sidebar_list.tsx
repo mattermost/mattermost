@@ -55,6 +55,7 @@ type Props = WrappedComponentProps & {
     handleOpenMoreDirectChannelsModal: (e: Event) => void;
     onDragStart: (initial: DragStart) => void;
     onDragEnd: (result: DropResult) => void;
+    markAllAsReadShortcutEnabled: boolean;
 
     actions: {
         moveChannelsInSidebar: (categoryId: string, targetIndex: number, draggableChannelId: string) => void;
@@ -111,13 +112,17 @@ export class SidebarList extends React.PureComponent<Props, State> {
     componentDidMount() {
         document.addEventListener('keydown', this.navigateChannelShortcut);
         document.addEventListener('keydown', this.navigateUnreadChannelShortcut);
-        document.addEventListener('keydown', this.markAllChannelsAsReadShortcut);
+        if (this.props.markAllAsReadShortcutEnabled) {
+            document.addEventListener('keydown', this.markAllChannelsAsReadShortcut);
+        }
     }
 
     componentWillUnmount() {
         document.removeEventListener('keydown', this.navigateChannelShortcut);
         document.removeEventListener('keydown', this.navigateUnreadChannelShortcut);
-        document.removeEventListener('keydown', this.markAllChannelsAsReadShortcut);
+        if (this.props.markAllAsReadShortcutEnabled) {
+            document.removeEventListener('keydown', this.markAllChannelsAsReadShortcut);
+        }
     }
 
     componentDidUpdate(prevProps: Props) {
@@ -568,11 +573,15 @@ export class SidebarList extends React.PureComponent<Props, State> {
                         {channelList}
                     </Scrollbars>
                 </div>
-                <MarkAllAsReadModal
-                    show={this.state.showMarkAllReadModal}
-                    onConfirm={this.onMarkAllAsReadConfirm}
-                    onCancel={this.onMarkAllAsReadCancel}
-                />
+                {
+                    this.props.markAllAsReadShortcutEnabled && (
+                        <MarkAllAsReadModal
+                            show={this.state.showMarkAllReadModal}
+                            onConfirm={this.onMarkAllAsReadConfirm}
+                            onCancel={this.onMarkAllAsReadCancel}
+                        />
+                    )
+                }
             </>
         );
     }

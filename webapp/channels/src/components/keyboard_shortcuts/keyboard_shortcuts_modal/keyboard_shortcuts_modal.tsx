@@ -163,6 +163,7 @@ const KeyboardShortcutsModal = ({onExited}: Props): JSX.Element => {
                             <div className='section'>
                                 <div>
                                     <h3 className='section-title'><strong>{formatMessage(modalMessages.msgHeader)}</strong></h3>
+                                    <KeyboardShortcutSequence shortcut={KEYBOARD_SHORTCUTS.markAllRead}/>
                                     <div className='subsection'>
                                         <h4 className='subsection-title'>{formatMessage(modalMessages.msgInputHeader)}</h4>
                                         <KeyboardShortcutSequence shortcut={KEYBOARD_SHORTCUTS.msgEdit}/>

@@ -6,6 +6,8 @@ import {FormattedMessage, useIntl} from 'react-intl';
 
 import LocalStorageStore from 'stores/local_storage_store';
 
+import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
+
 import * as UserAgent from 'utils/user_agent';
 
 import {FeaturesToAnnounce} from '..';
@@ -13,11 +15,18 @@ import FeatureToast from '../feature_toast';
 
 export default function MarkAllAsReadToast() {
     const {formatMessage} = useIntl();
-    const [show, setShow] = useState(!UserAgent.isMobile() &&
+    const enableMarkAllReadShortcut = useGetFeatureFlagValue('EnableShiftEscapeToMarkAllRead') === 'true';
+    const [show, setShow] = useState(
+        enableMarkAllReadShortcut &&
+        !UserAgent.isMobile() &&
         !LocalStorageStore.getHasSeenFeatureToast(
             FeaturesToAnnounce.MARK_ALL_AS_READ_SHORTCUT,
         ),
     );
+
+    if (!enableMarkAllReadShortcut) {
+        return null;
+    }
 
     const onDismiss = () => {
         setShow(false);
