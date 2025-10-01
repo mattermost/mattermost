@@ -1,18 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import moment from 'moment-timezone';
 import React, {useCallback, useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
 
 import type {AppField} from '@mattermost/types/apps';
 
-import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
-
 import DatePicker from 'components/date_picker/date_picker';
 
-import {stringToMoment, momentToString, resolveRelativeDate} from 'utils/date_utils';
+import {stringToDate, dateToString, resolveRelativeDate} from 'utils/date_utils';
 
 type Props = {
     field: AppField;
@@ -26,44 +22,38 @@ const AppsFormDateField: React.FC<Props> = ({
     onChange,
 }) => {
     const intl = useIntl();
-    const timezone = useSelector(getCurrentTimezone);
     const [isPopperOpen, setIsPopperOpen] = useState(false);
 
-    const momentValue = useMemo(() => {
-        return stringToMoment(value, timezone);
-    }, [value, timezone]);
+    const dateValue = useMemo(() => {
+        return stringToDate(value);
+    }, [value]);
 
     const displayValue = useMemo(() => {
-        if (!momentValue) {
+        if (!dateValue) {
             return '';
         }
 
         try {
-            const date = new Date(momentValue.year(), momentValue.month(), momentValue.date());
-            if (isNaN(date.getTime())) {
-                return '';
-            }
             return new Intl.DateTimeFormat(intl.locale, {
                 year: 'numeric',
                 month: 'short',
                 day: 'numeric',
-            }).format(date);
+            }).format(dateValue);
         } catch {
             return '';
         }
-    }, [momentValue, intl.locale]);
+    }, [dateValue, intl.locale]);
 
     const handleDateChange = useCallback((date: Date | undefined) => {
         if (!date) {
             return;
         }
 
-        const newMoment = timezone ? moment.tz(date, timezone) : moment(date);
-
-        const newValue = momentToString(newMoment, false);
+        // Convert Date to ISO string (YYYY-MM-DD)
+        const newValue = dateToString(date);
         onChange(field.name, newValue);
         setIsPopperOpen(false);
-    }, [field.name, onChange, timezone]);
+    }, [field.name, onChange]);
 
     const handlePopperOpenState = useCallback((isOpen: boolean) => {
         setIsPopperOpen(isOpen);
@@ -74,24 +64,22 @@ const AppsFormDateField: React.FC<Props> = ({
 
         if (field.min_date) {
             const resolvedMinDate = resolveRelativeDate(field.min_date);
-            const minMoment = stringToMoment(resolvedMinDate, timezone);
-            if (minMoment) {
-                const minDate = new Date(minMoment.year(), minMoment.month(), minMoment.date());
+            const minDate = stringToDate(resolvedMinDate);
+            if (minDate) {
                 disabled.push({before: minDate});
             }
         }
 
         if (field.max_date) {
             const resolvedMaxDate = resolveRelativeDate(field.max_date);
-            const maxMoment = stringToMoment(resolvedMaxDate, timezone);
-            if (maxMoment) {
-                const maxDate = new Date(maxMoment.year(), maxMoment.month(), maxMoment.date());
+            const maxDate = stringToDate(resolvedMaxDate);
+            if (maxDate) {
                 disabled.push({after: maxDate});
             }
         }
 
         return disabled.length > 0 ? disabled : undefined;
-    }, [field.min_date, field.max_date, timezone]);
+    }, [field.min_date, field.max_date]);
 
     const placeholder = field.hint || intl.formatMessage({
         id: 'apps_form.date_field.placeholder',
@@ -110,8 +98,8 @@ const AppsFormDateField: React.FC<Props> = ({
                 locale={intl.locale}
                 datePickerProps={{
                     mode: 'single',
-                    selected: momentValue ? new Date(momentValue.year(), momentValue.month(), momentValue.date()) : undefined,
-                    defaultMonth: momentValue ? new Date(momentValue.year(), momentValue.month(), momentValue.date()) : undefined,
+                    selected: dateValue || undefined,
+                    defaultMonth: dateValue || undefined,
                     onSelect: handleDateChange,
                     disabled: field.readonly ? true : disabledDays,
                 }}

@@ -704,14 +704,14 @@ func isMultiSelectDefaultInOptions(defaultValue string, options []*PostActionOpt
 	return true
 }
 
-// validateRelativePattern validates relative date/time patterns like +1d, +2w, +1M, +3H
+// validateRelativePattern validates relative date patterns like +1d, +2w, +1m
 func validateRelativePattern(value string) bool {
 	if len(value) < 3 || len(value) > 5 || (value[0] != '+' && value[0] != '-') {
 		return false
 	}
 
 	lastChar := strings.ToLower(string(value[len(value)-1]))
-	if !strings.Contains("dwmh", lastChar) {
+	if !strings.Contains("dwm", lastChar) {
 		return false
 	}
 

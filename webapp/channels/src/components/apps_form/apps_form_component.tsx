@@ -209,9 +209,11 @@ const initFormValues = (form: AppForm, timezone?: string): AppFormValues => {
                 // Use sanitized time_interval (guaranteed to be valid)
                 const timePickerInterval = field.time_interval || DEFAULT_TIME_INTERVAL_MINUTES;
 
-                // Round the current time to the nearest time interval
-                const roundedMinutes = Math.round(currentTime.minutes() / timePickerInterval) * timePickerInterval;
-                const defaultMoment = currentTime.clone().minutes(roundedMinutes).seconds(0).milliseconds(0);
+                // Round up to next time interval
+                const minutesMod = currentTime.minutes() % timePickerInterval;
+                const defaultMoment = minutesMod === 0 ?
+                    currentTime.clone().seconds(0).milliseconds(0) :
+                    currentTime.clone().add(timePickerInterval - minutesMod, 'minutes').seconds(0).milliseconds(0);
                 defaultValue = momentToString(defaultMoment, true);
             }
 
