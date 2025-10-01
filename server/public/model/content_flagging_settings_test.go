@@ -122,8 +122,8 @@ func TestReviewerSettings_IsValid(t *testing.T) {
 				TeamAdminsAsReviewers:   NewPointer(false),
 			},
 			ReviewerIDsSettings: ReviewerIDsSettings{
-				CommonReviewerIds:    &[]string{"user1", "user2"},
-				TeamReviewersSetting: &map[string]TeamReviewerSetting{},
+				CommonReviewerIds:    []string{"user1", "user2"},
+				TeamReviewersSetting: map[string]*TeamReviewerSetting{},
 			},
 		}
 
@@ -139,8 +139,8 @@ func TestReviewerSettings_IsValid(t *testing.T) {
 				TeamAdminsAsReviewers:   NewPointer(false),
 			},
 			ReviewerIDsSettings: ReviewerIDsSettings{
-				CommonReviewerIds:    &[]string{},
-				TeamReviewersSetting: &map[string]TeamReviewerSetting{},
+				CommonReviewerIds:    []string{},
+				TeamReviewersSetting: map[string]*TeamReviewerSetting{},
 			},
 		}
 
@@ -156,8 +156,8 @@ func TestReviewerSettings_IsValid(t *testing.T) {
 				TeamAdminsAsReviewers:   NewPointer(false),
 			},
 			ReviewerIDsSettings: ReviewerIDsSettings{
-				CommonReviewerIds:    &[]string{},
-				TeamReviewersSetting: &map[string]TeamReviewerSetting{},
+				CommonReviewerIds:    []string{},
+				TeamReviewersSetting: map[string]*TeamReviewerSetting{},
 			},
 		}
 
@@ -174,11 +174,11 @@ func TestReviewerSettings_IsValid(t *testing.T) {
 				TeamAdminsAsReviewers:   NewPointer(false),
 			},
 			ReviewerIDsSettings: ReviewerIDsSettings{
-				CommonReviewerIds: &[]string{},
-				TeamReviewersSetting: &map[string]TeamReviewerSetting{
+				CommonReviewerIds: []string{},
+				TeamReviewersSetting: map[string]*TeamReviewerSetting{
 					"team1": {
 						Enabled:     NewPointer(true),
-						ReviewerIds: &[]string{"user1"},
+						ReviewerIds: []string{"user1"},
 					},
 				},
 			},
@@ -196,11 +196,11 @@ func TestReviewerSettings_IsValid(t *testing.T) {
 				TeamAdminsAsReviewers:   NewPointer(false),
 			},
 			ReviewerIDsSettings: ReviewerIDsSettings{
-				CommonReviewerIds: &[]string{},
-				TeamReviewersSetting: &map[string]TeamReviewerSetting{
+				CommonReviewerIds: []string{},
+				TeamReviewersSetting: map[string]*TeamReviewerSetting{
 					"team1": {
 						Enabled:     NewPointer(true),
-						ReviewerIds: &[]string{},
+						ReviewerIds: []string{},
 					},
 				},
 			},
@@ -219,11 +219,11 @@ func TestReviewerSettings_IsValid(t *testing.T) {
 				TeamAdminsAsReviewers:   NewPointer(false),
 			},
 			ReviewerIDsSettings: ReviewerIDsSettings{
-				CommonReviewerIds: &[]string{},
-				TeamReviewersSetting: &map[string]TeamReviewerSetting{
+				CommonReviewerIds: []string{},
+				TeamReviewersSetting: map[string]*TeamReviewerSetting{
 					"team1": {
 						Enabled:     NewPointer(true),
-						ReviewerIds: &[]string{},
+						ReviewerIds: []string{},
 					},
 				},
 			},
@@ -332,8 +332,8 @@ func TestContentFlaggingSettings_IsValid(t *testing.T) {
 					TeamAdminsAsReviewers:   NewPointer(false),
 				},
 				ReviewerIDsSettings: ReviewerIDsSettings{
-					CommonReviewerIds:    &[]string{},
-					TeamReviewersSetting: &map[string]TeamReviewerSetting{},
+					CommonReviewerIds:    []string{},
+					TeamReviewersSetting: map[string]*TeamReviewerSetting{},
 				},
 			},
 		}

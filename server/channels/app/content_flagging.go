@@ -33,17 +33,17 @@ func (a *App) ContentFlaggingEnabledForTeam(teamId string) (bool, *model.AppErro
 		return false, appErr
 	}
 
-	hasCommonReviewers := *reviewerSettings.CommonReviewers && len(*reviewerIDs.CommonReviewerIds) > 0
+	hasCommonReviewers := *reviewerSettings.CommonReviewers && len(reviewerIDs.CommonReviewerIds) > 0
 	if hasCommonReviewers {
 		return true, nil
 	}
 
-	teamSettings, exist := (*reviewerIDs.TeamReviewersSetting)[teamId]
+	teamSettings, exist := (reviewerIDs.TeamReviewersSetting)[teamId]
 	if !exist || (teamSettings.Enabled != nil && !*teamSettings.Enabled) {
 		return false, nil
 	}
 
-	if teamSettings.ReviewerIds != nil && len(*teamSettings.ReviewerIds) > 0 {
+	if len(teamSettings.ReviewerIds) > 0 {
 		return true, nil
 	}
 
@@ -325,14 +325,14 @@ func (a *App) getReviewersForTeam(teamId string, includeAdditionalReviewers bool
 	}
 
 	if *reviewerSettings.CommonReviewers {
-		for _, userID := range *reviewerIDs.CommonReviewerIds {
+		for _, userID := range reviewerIDs.CommonReviewerIds {
 			reviewerUserIDMap[userID] = true
 		}
 	} else {
 		// If common reviewers are not enabled, we still need to check if the team has specific reviewers
-		teamSettings, exist := (*reviewerIDs.TeamReviewersSetting)[teamId]
+		teamSettings, exist := reviewerIDs.TeamReviewersSetting[teamId]
 		if exist && *teamSettings.Enabled && teamSettings.ReviewerIds != nil {
-			for _, userID := range *teamSettings.ReviewerIds {
+			for _, userID := range teamSettings.ReviewerIds {
 				reviewerUserIDMap[userID] = true
 			}
 		}

@@ -23,15 +23,15 @@ func (s *SqlContentFlaggingStore) SaveReviewerSettings(reviewerSettings model.Re
 	}
 	defer finalizeTransactionX(tx, &err)
 
-	if err := s.saveCommonReviewers(tx, *reviewerSettings.CommonReviewerIds); err != nil {
+	if err := s.saveCommonReviewers(tx, reviewerSettings.CommonReviewerIds); err != nil {
 		return err
 	}
 
-	if err := s.saveTeamSettings(tx, *reviewerSettings.TeamReviewersSetting); err != nil {
+	if err := s.saveTeamSettings(tx, reviewerSettings.TeamReviewersSetting); err != nil {
 		return err
 	}
 
-	if err := s.saveTeamReviewers(tx, *reviewerSettings.TeamReviewersSetting); err != nil {
+	if err := s.saveTeamReviewers(tx, reviewerSettings.TeamReviewersSetting); err != nil {
 		return err
 	}
 
@@ -69,7 +69,7 @@ func (s *SqlContentFlaggingStore) saveCommonReviewers(tx *sqlxTxWrapper, commonR
 	return nil
 }
 
-func (s *SqlContentFlaggingStore) saveTeamSettings(tx *sqlxTxWrapper, teamSettings map[string]model.TeamReviewerSetting) error {
+func (s *SqlContentFlaggingStore) saveTeamSettings(tx *sqlxTxWrapper, teamSettings map[string]*model.TeamReviewerSetting) error {
 	// first delete existing team settings
 	deleteBuilder := s.getQueryBuilder().Delete("ContentFlaggingTeamSettings")
 	if _, err := tx.ExecBuilder(deleteBuilder); err != nil {
@@ -96,7 +96,7 @@ func (s *SqlContentFlaggingStore) saveTeamSettings(tx *sqlxTxWrapper, teamSettin
 	return nil
 }
 
-func (s *SqlContentFlaggingStore) saveTeamReviewers(tx *sqlxTxWrapper, teamSettings map[string]model.TeamReviewerSetting) error {
+func (s *SqlContentFlaggingStore) saveTeamReviewers(tx *sqlxTxWrapper, teamSettings map[string]*model.TeamReviewerSetting) error {
 	// first delete existing team reviewers
 	deleteBuilder := s.getQueryBuilder().Delete("ContentFlaggingTeamReviewers")
 	if _, err := tx.ExecBuilder(deleteBuilder); err != nil {
@@ -115,11 +115,11 @@ func (s *SqlContentFlaggingStore) saveTeamReviewers(tx *sqlxTxWrapper, teamSetti
 	dataExists := false
 
 	for teamID, teamSetting := range teamSettings {
-		if teamSetting.ReviewerIds == nil || len(*teamSetting.ReviewerIds) == 0 {
+		if len(teamSetting.ReviewerIds) == 0 {
 			continue
 		}
 
-		for _, userID := range *teamSetting.ReviewerIds {
+		for _, userID := range teamSetting.ReviewerIds {
 			insertBuilder = insertBuilder.Values(teamID, userID)
 		}
 		dataExists = true
@@ -140,7 +140,7 @@ func (s *SqlContentFlaggingStore) GetReviewerSettings() (*model.ReviewerIDsSetti
 		return nil, errors.Wrap(err, "SqlContentFlaggingStore.GetReviewerSettings failed to get common reviewers")
 	}
 
-	teamSettings := make(map[string]model.TeamReviewerSetting)
+	teamSettings := make(map[string]*model.TeamReviewerSetting)
 	teamSettings, err = s.getTeamSettings(teamSettings)
 	if err != nil {
 		return nil, errors.Wrap(err, "SqlContentFlaggingStore.GetReviewerSettings failed to get team settings")
@@ -152,8 +152,8 @@ func (s *SqlContentFlaggingStore) GetReviewerSettings() (*model.ReviewerIDsSetti
 	}
 
 	return &model.ReviewerIDsSettings{
-		CommonReviewerIds:    &commonReviewers,
-		TeamReviewersSetting: &teamSettings,
+		CommonReviewerIds:    commonReviewers,
+		TeamReviewersSetting: teamSettings,
 	}, nil
 }
 
@@ -170,7 +170,7 @@ func (s *SqlContentFlaggingStore) getCommonReviewers() ([]string, error) {
 	return commonReviewers, nil
 }
 
-func (s *SqlContentFlaggingStore) getTeamSettings(teamSettings map[string]model.TeamReviewerSetting) (map[string]model.TeamReviewerSetting, error) {
+func (s *SqlContentFlaggingStore) getTeamSettings(teamSettings map[string]*model.TeamReviewerSetting) (map[string]*model.TeamReviewerSetting, error) {
 	queryBuilder := s.getQueryBuilder().
 		Select("teamid", "enabled").
 		From("ContentFlaggingTeamSettings")
@@ -186,16 +186,16 @@ func (s *SqlContentFlaggingStore) getTeamSettings(teamSettings map[string]model.
 
 	for _, setting := range teamSettingsTemp {
 		enabled := setting.Enabled
-		teamSettings[setting.TeamID] = model.TeamReviewerSetting{
+		teamSettings[setting.TeamID] = &model.TeamReviewerSetting{
 			Enabled:     &enabled,
-			ReviewerIds: &[]string{},
+			ReviewerIds: []string{},
 		}
 	}
 
 	return teamSettings, nil
 }
 
-func (s *SqlContentFlaggingStore) getTeamReviewers(teamSettings map[string]model.TeamReviewerSetting) (map[string]model.TeamReviewerSetting, error) {
+func (s *SqlContentFlaggingStore) getTeamReviewers(teamSettings map[string]*model.TeamReviewerSetting) (map[string]*model.TeamReviewerSetting, error) {
 	queryBuilder := s.getQueryBuilder().
 		Select("teamid", "userid").
 		From("ContentFlaggingTeamReviewers")
@@ -211,13 +211,13 @@ func (s *SqlContentFlaggingStore) getTeamReviewers(teamSettings map[string]model
 
 	for _, tr := range teamReviewers {
 		if _, ok := teamSettings[tr.TeamID]; !ok {
-			teamSettings[tr.TeamID] = model.TeamReviewerSetting{
+			teamSettings[tr.TeamID] = &model.TeamReviewerSetting{
 				Enabled:     nil,
-				ReviewerIds: &[]string{},
+				ReviewerIds: []string{},
 			}
 		}
 
-		*teamSettings[tr.TeamID].ReviewerIds = append(*teamSettings[tr.TeamID].ReviewerIds, tr.UserID)
+		teamSettings[tr.TeamID].ReviewerIds = append(teamSettings[tr.TeamID].ReviewerIds, tr.UserID)
 	}
 
 	return teamSettings, nil

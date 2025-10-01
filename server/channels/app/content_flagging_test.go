@@ -24,7 +24,7 @@ func TestContentFlaggingEnabledForTeam(t *testing.T) {
 					CommonReviewers: model.NewPointer(true),
 				},
 				ReviewerIDsSettings: model.ReviewerIDsSettings{
-					CommonReviewerIds: &[]string{"reviewer_user_id_1", "reviewer_user_id_2"},
+					CommonReviewerIds: []string{"reviewer_user_id_1", "reviewer_user_id_2"},
 				},
 			},
 		}
@@ -45,10 +45,10 @@ func TestContentFlaggingEnabledForTeam(t *testing.T) {
 					CommonReviewers: model.NewPointer(false),
 				},
 				ReviewerIDsSettings: model.ReviewerIDsSettings{
-					TeamReviewersSetting: &map[string]model.TeamReviewerSetting{
+					TeamReviewersSetting: map[string]*model.TeamReviewerSetting{
 						"team1": {
 							Enabled:     model.NewPointer(true),
-							ReviewerIds: model.NewPointer([]string{"reviewer_user_id_1"}),
+							ReviewerIds: []string{"reviewer_user_id_1"},
 						},
 					},
 				},
@@ -72,7 +72,7 @@ func TestContentFlaggingEnabledForTeam(t *testing.T) {
 					TeamAdminsAsReviewers: model.NewPointer(true),
 				},
 				ReviewerIDsSettings: model.ReviewerIDsSettings{
-					TeamReviewersSetting: &map[string]model.TeamReviewerSetting{
+					TeamReviewersSetting: map[string]*model.TeamReviewerSetting{
 						"team1": {
 							Enabled: model.NewPointer(true),
 						},
@@ -133,7 +133,7 @@ func TestSaveContentFlaggingConfig(t *testing.T) {
 					TeamAdminsAsReviewers:   model.NewPointer(false),
 				},
 				ReviewerIDsSettings: model.ReviewerIDsSettings{
-					CommonReviewerIds: &[]string{th.BasicUser.Id, th.BasicUser2.Id},
+					CommonReviewerIds: []string{th.BasicUser.Id, th.BasicUser2.Id},
 				},
 			},
 		}
@@ -155,7 +155,7 @@ func TestSaveContentFlaggingConfig(t *testing.T) {
 		// Verify reviewer IDs were saved separately
 		reviewerIDs, appErr := th.App.GetContentFlaggingConfigReviewerIDs()
 		require.Nil(t, appErr)
-		require.Equal(t, *config.ReviewerSettings.CommonReviewerIds, *reviewerIDs.CommonReviewerIds)
+		require.Equal(t, config.ReviewerSettings.CommonReviewerIds, reviewerIDs.CommonReviewerIds)
 	})
 
 	t.Run("should save config with team reviewers", func(t *testing.T) {
@@ -170,10 +170,10 @@ func TestSaveContentFlaggingConfig(t *testing.T) {
 					TeamAdminsAsReviewers:   model.NewPointer(false),
 				},
 				ReviewerIDsSettings: model.ReviewerIDsSettings{
-					TeamReviewersSetting: &map[string]model.TeamReviewerSetting{
+					TeamReviewersSetting: map[string]*model.TeamReviewerSetting{
 						th.BasicTeam.Id: {
 							Enabled:     model.NewPointer(true),
-							ReviewerIds: model.NewPointer([]string{th.BasicUser.Id}),
+							ReviewerIds: []string{th.BasicUser.Id},
 						},
 					},
 				},
@@ -189,9 +189,9 @@ func TestSaveContentFlaggingConfig(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, reviewerIDs.TeamReviewersSetting)
 
-		teamSettings := (*reviewerIDs.TeamReviewersSetting)[th.BasicTeam.Id]
+		teamSettings := (reviewerIDs.TeamReviewersSetting)[th.BasicTeam.Id]
 		require.True(t, *teamSettings.Enabled)
-		require.Equal(t, []string{th.BasicUser.Id}, *teamSettings.ReviewerIds)
+		require.Equal(t, []string{th.BasicUser.Id}, teamSettings.ReviewerIds)
 	})
 
 	t.Run("should handle empty config", func(t *testing.T) {
@@ -222,7 +222,7 @@ func TestGetContentFlaggingConfigReviewerIDs(t *testing.T) {
 					CommonReviewers: model.NewPointer(true),
 				},
 				ReviewerIDsSettings: model.ReviewerIDsSettings{
-					CommonReviewerIds: &[]string{th.BasicUser.Id, th.BasicUser2.Id},
+					CommonReviewerIds: []string{th.BasicUser.Id, th.BasicUser2.Id},
 				},
 			},
 		}
@@ -234,7 +234,7 @@ func TestGetContentFlaggingConfigReviewerIDs(t *testing.T) {
 		reviewerIDs, appErr := th.App.GetContentFlaggingConfigReviewerIDs()
 		require.Nil(t, appErr)
 		require.NotNil(t, reviewerIDs)
-		require.Equal(t, []string{th.BasicUser.Id, th.BasicUser2.Id}, *reviewerIDs.CommonReviewerIds)
+		require.Equal(t, []string{th.BasicUser.Id, th.BasicUser2.Id}, reviewerIDs.CommonReviewerIds)
 	})
 
 	t.Run("should return team reviewer settings", func(t *testing.T) {
@@ -244,14 +244,14 @@ func TestGetContentFlaggingConfigReviewerIDs(t *testing.T) {
 					CommonReviewers: model.NewPointer(false),
 				},
 				ReviewerIDsSettings: model.ReviewerIDsSettings{
-					TeamReviewersSetting: &map[string]model.TeamReviewerSetting{
+					TeamReviewersSetting: map[string]*model.TeamReviewerSetting{
 						th.BasicTeam.Id: {
 							Enabled:     model.NewPointer(true),
-							ReviewerIds: model.NewPointer([]string{th.BasicUser.Id}),
+							ReviewerIds: []string{th.BasicUser.Id},
 						},
 						"team2": {
 							Enabled:     model.NewPointer(false),
-							ReviewerIds: model.NewPointer([]string{th.BasicUser2.Id}),
+							ReviewerIds: []string{th.BasicUser2.Id},
 						},
 					},
 				},
@@ -266,18 +266,18 @@ func TestGetContentFlaggingConfigReviewerIDs(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, reviewerIDs.TeamReviewersSetting)
 
-		teamSettings := *reviewerIDs.TeamReviewersSetting
+		teamSettings := reviewerIDs.TeamReviewersSetting
 		require.Len(t, teamSettings, 2)
 
 		// Check first team
 		team1Settings := teamSettings[th.BasicTeam.Id]
 		require.True(t, *team1Settings.Enabled)
-		require.Equal(t, []string{th.BasicUser.Id}, *team1Settings.ReviewerIds)
+		require.Equal(t, []string{th.BasicUser.Id}, team1Settings.ReviewerIds)
 
 		// Check second team
 		team2Settings := teamSettings["team2"]
 		require.False(t, *team2Settings.Enabled)
-		require.Equal(t, []string{th.BasicUser2.Id}, *team2Settings.ReviewerIds)
+		require.Equal(t, []string{th.BasicUser2.Id}, team2Settings.ReviewerIds)
 	})
 
 	t.Run("should return empty settings when no config saved", func(t *testing.T) {
@@ -294,10 +294,10 @@ func TestGetContentFlaggingConfigReviewerIDs(t *testing.T) {
 
 		// Should have default empty values
 		if reviewerIDs.CommonReviewerIds != nil {
-			require.Empty(t, *reviewerIDs.CommonReviewerIds)
+			require.Empty(t, reviewerIDs.CommonReviewerIds)
 		}
 		if reviewerIDs.TeamReviewersSetting != nil {
-			require.Empty(t, *reviewerIDs.TeamReviewersSetting)
+			require.Empty(t, reviewerIDs.TeamReviewersSetting)
 		}
 	})
 }
@@ -318,7 +318,7 @@ func TestGetContentReviewChannels(t *testing.T) {
 					CommonReviewers:         model.NewPointer(true),
 				},
 				ReviewerIDsSettings: model.ReviewerIDsSettings{
-					CommonReviewerIds: &[]string{th.BasicUser.Id, th.BasicUser2.Id},
+					CommonReviewerIds: []string{th.BasicUser.Id, th.BasicUser2.Id},
 				},
 			},
 		}
@@ -424,15 +424,15 @@ func TestGetContentReviewChannels(t *testing.T) {
 	t.Run("should return channels for team reviewers", func(t *testing.T) {
 		config := getBaseConfig()
 		config.ReviewerSettings.CommonReviewers = model.NewPointer(false)
-		config.ReviewerSettings.CommonReviewerIds = &[]string{th.BasicUser.Id}
+		config.ReviewerSettings.CommonReviewerIds = []string{th.BasicUser.Id}
 
 		config.ReviewerSettings.TeamAdminsAsReviewers = model.NewPointer(false)
 		config.ReviewerSettings.SystemAdminsAsReviewers = model.NewPointer(false)
 
-		config.ReviewerSettings.TeamReviewersSetting = &map[string]model.TeamReviewerSetting{
+		config.ReviewerSettings.TeamReviewersSetting = map[string]*model.TeamReviewerSetting{
 			th.BasicTeam.Id: {
 				Enabled:     model.NewPointer(true),
-				ReviewerIds: model.NewPointer([]string{th.BasicUser2.Id}),
+				ReviewerIds: []string{th.BasicUser2.Id},
 			},
 		}
 		appErr := th.App.SaveContentFlaggingConfig(config)
@@ -454,10 +454,10 @@ func TestGetContentReviewChannels(t *testing.T) {
 	t.Run("should not return channels for team reviewers when disabled for the team", func(t *testing.T) {
 		config := getBaseConfig()
 		config.ReviewerSettings.CommonReviewers = model.NewPointer(false)
-		config.ReviewerSettings.TeamReviewersSetting = &map[string]model.TeamReviewerSetting{
+		config.ReviewerSettings.TeamReviewersSetting = map[string]*model.TeamReviewerSetting{
 			th.BasicTeam.Id: {
 				Enabled:     model.NewPointer(false),
-				ReviewerIds: model.NewPointer([]string{th.BasicUser.Id}),
+				ReviewerIds: []string{th.BasicUser.Id},
 			},
 		}
 		appErr := th.App.SaveContentFlaggingConfig(config)
@@ -478,10 +478,10 @@ func TestGetContentReviewChannels(t *testing.T) {
 		config.ReviewerSettings.TeamAdminsAsReviewers = model.NewPointer(true)
 		config.ReviewerSettings.CommonReviewers = model.NewPointer(false)
 
-		config.ReviewerSettings.TeamReviewersSetting = &map[string]model.TeamReviewerSetting{
+		config.ReviewerSettings.TeamReviewersSetting = map[string]*model.TeamReviewerSetting{
 			th.BasicTeam.Id: {
 				Enabled:     model.NewPointer(true),
-				ReviewerIds: model.NewPointer([]string{th.BasicUser2.Id}),
+				ReviewerIds: []string{th.BasicUser2.Id},
 			},
 		}
 		appErr := th.App.SaveContentFlaggingConfig(config)
@@ -522,7 +522,7 @@ func TestGetReviewersForTeam(t *testing.T) {
 		config := &model.ContentFlaggingSettingsRequest{}
 		config.SetDefaults()
 		config.ReviewerSettings.CommonReviewers = model.NewPointer(true)
-		config.ReviewerSettings.CommonReviewerIds = &[]string{th.BasicUser.Id, th.BasicUser2.Id}
+		config.ReviewerSettings.CommonReviewerIds = []string{th.BasicUser.Id, th.BasicUser2.Id}
 		config.ReviewerSettings.SystemAdminsAsReviewers = model.NewPointer(true)
 
 		appErr := th.App.SaveContentFlaggingConfig(*config)
@@ -539,7 +539,7 @@ func TestGetReviewersForTeam(t *testing.T) {
 		config := &model.ContentFlaggingSettingsRequest{}
 		config.SetDefaults()
 		config.ReviewerSettings.CommonReviewers = model.NewPointer(true)
-		config.ReviewerSettings.CommonReviewerIds = &[]string{th.BasicUser.Id}
+		config.ReviewerSettings.CommonReviewerIds = []string{th.BasicUser.Id}
 		config.ReviewerSettings.SystemAdminsAsReviewers = model.NewPointer(true)
 
 		appErr := th.App.SaveContentFlaggingConfig(*config)
@@ -555,7 +555,7 @@ func TestGetReviewersForTeam(t *testing.T) {
 		require.Contains(t, reviewers, th.BasicUser.Id)
 		require.Contains(t, reviewers, th.SystemAdminUser.Id)
 
-		config.ReviewerSettings.CommonReviewerIds = &[]string{}
+		config.ReviewerSettings.CommonReviewerIds = []string{}
 		appErr = th.App.SaveContentFlaggingConfig(*config)
 		require.Nil(t, appErr)
 
@@ -564,7 +564,7 @@ func TestGetReviewersForTeam(t *testing.T) {
 		require.Len(t, reviewers, 1)
 		require.Contains(t, reviewers, th.SystemAdminUser.Id)
 
-		config.ReviewerSettings.CommonReviewerIds = &[]string{th.BasicUser.Id}
+		config.ReviewerSettings.CommonReviewerIds = []string{th.BasicUser.Id}
 		appErr = th.App.SaveContentFlaggingConfig(*config)
 		require.Nil(t, appErr)
 
@@ -581,7 +581,7 @@ func TestGetReviewersForTeam(t *testing.T) {
 		config := &model.ContentFlaggingSettingsRequest{}
 		config.SetDefaults()
 		config.ReviewerSettings.CommonReviewers = model.NewPointer(true)
-		config.ReviewerSettings.CommonReviewerIds = &[]string{th.BasicUser.Id}
+		config.ReviewerSettings.CommonReviewerIds = []string{th.BasicUser.Id}
 		config.ReviewerSettings.SystemAdminsAsReviewers = model.NewPointer(true)
 
 		appErr := th.App.SaveContentFlaggingConfig(*config)
@@ -605,7 +605,7 @@ func TestGetReviewersForTeam(t *testing.T) {
 		require.Contains(t, reviewers, th.BasicUser.Id)
 		require.Contains(t, reviewers, teamAdmin.Id)
 
-		config.ReviewerSettings.CommonReviewerIds = &[]string{}
+		config.ReviewerSettings.CommonReviewerIds = []string{}
 		appErr = th.App.SaveContentFlaggingConfig(*config)
 		require.Nil(t, appErr)
 
@@ -614,7 +614,7 @@ func TestGetReviewersForTeam(t *testing.T) {
 		require.Len(t, reviewers, 1)
 		require.Contains(t, reviewers, teamAdmin.Id)
 
-		config.ReviewerSettings.CommonReviewerIds = &[]string{th.BasicUser.Id}
+		config.ReviewerSettings.CommonReviewerIds = []string{th.BasicUser.Id}
 		appErr = th.App.SaveContentFlaggingConfig(*config)
 		require.Nil(t, appErr)
 
@@ -632,10 +632,10 @@ func TestGetReviewersForTeam(t *testing.T) {
 		config := &model.ContentFlaggingSettingsRequest{}
 		config.SetDefaults()
 		config.ReviewerSettings.CommonReviewers = model.NewPointer(false)
-		config.ReviewerSettings.TeamReviewersSetting = &map[string]model.TeamReviewerSetting{
+		config.ReviewerSettings.TeamReviewersSetting = map[string]*model.TeamReviewerSetting{
 			th.BasicTeam.Id: {
 				Enabled:     model.NewPointer(true),
-				ReviewerIds: model.NewPointer([]string{th.BasicUser2.Id}),
+				ReviewerIds: []string{th.BasicUser2.Id},
 			},
 		}
 
@@ -658,10 +658,10 @@ func TestGetReviewersForTeam(t *testing.T) {
 		config := &model.ContentFlaggingSettingsRequest{}
 		config.SetDefaults()
 		config.ReviewerSettings.CommonReviewers = model.NewPointer(false)
-		config.ReviewerSettings.TeamReviewersSetting = &map[string]model.TeamReviewerSetting{
+		config.ReviewerSettings.TeamReviewersSetting = map[string]*model.TeamReviewerSetting{
 			th.BasicTeam.Id: {
 				Enabled:     model.NewPointer(false),
-				ReviewerIds: model.NewPointer([]string{th.BasicUser.Id}),
+				ReviewerIds: []string{th.BasicUser.Id},
 			},
 		}
 
@@ -679,10 +679,10 @@ func TestGetReviewersForTeam(t *testing.T) {
 		config.ReviewerSettings.CommonReviewers = model.NewPointer(false)
 		config.ReviewerSettings.SystemAdminsAsReviewers = model.NewPointer(true)
 		config.ReviewerSettings.TeamAdminsAsReviewers = model.NewPointer(true)
-		config.ReviewerSettings.TeamReviewersSetting = &map[string]model.TeamReviewerSetting{
+		config.ReviewerSettings.TeamReviewersSetting = map[string]*model.TeamReviewerSetting{
 			th.BasicTeam.Id: {
 				Enabled:     model.NewPointer(true),
-				ReviewerIds: model.NewPointer([]string{th.BasicUser2.Id}),
+				ReviewerIds: []string{th.BasicUser2.Id},
 			},
 		}
 		appErr := th.App.SaveContentFlaggingConfig(*config)
@@ -702,7 +702,7 @@ func TestGetReviewersForTeam(t *testing.T) {
 		config := &model.ContentFlaggingSettingsRequest{}
 		config.SetDefaults()
 		config.ReviewerSettings.CommonReviewers = model.NewPointer(true)
-		config.ReviewerSettings.CommonReviewerIds = &[]string{th.BasicUser.Id, th.SystemAdminUser.Id}
+		config.ReviewerSettings.CommonReviewerIds = []string{th.BasicUser.Id, th.SystemAdminUser.Id}
 		config.ReviewerSettings.SystemAdminsAsReviewers = model.NewPointer(true)
 		appErr := th.App.SaveContentFlaggingConfig(*config)
 		require.Nil(t, appErr)
@@ -795,7 +795,7 @@ func TestFlagPost(t *testing.T) {
 		cfg := model.ContentFlaggingSettingsRequest{}
 		cfg.SetDefaults()
 		cfg.ReviewerSettings.CommonReviewers = model.NewPointer(true)
-		cfg.ReviewerSettings.CommonReviewerIds = &[]string{th.BasicUser.Id}
+		cfg.ReviewerSettings.CommonReviewerIds = []string{th.BasicUser.Id}
 		cfg.AdditionalSettings.ReporterCommentRequired = model.NewPointer(false)
 		cfg.AdditionalSettings.HideFlaggedContent = model.NewPointer(false)
 		cfg.AdditionalSettings.Reasons = &[]string{"spam", "harassment", "inappropriate"}
