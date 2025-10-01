@@ -1458,6 +1458,8 @@ describe('dialog_conversion', () => {
                     undefined,
                     undefined,
                     undefined,
+                    '',
+                    '',
                     legacyOptions,
                 );
 
@@ -1489,6 +1491,8 @@ describe('dialog_conversion', () => {
                     undefined,
                     undefined,
                     undefined,
+                    '',
+                    '',
                     legacyOptions,
                 );
 
@@ -1521,6 +1525,8 @@ describe('dialog_conversion', () => {
                     undefined,
                     undefined,
                     undefined,
+                    '',
+                    '',
                     legacyOptions,
                 );
 
@@ -1553,6 +1559,8 @@ describe('dialog_conversion', () => {
                     undefined,
                     undefined,
                     undefined,
+                    '',
+                    '',
                     legacyOptions,
                 );
 

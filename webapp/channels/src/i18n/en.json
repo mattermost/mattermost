@@ -4563,6 +4563,8 @@
   "integrations.successful": "Setup Successful",
   "interactive_dialog.cancel": "Cancel",
   "interactive_dialog.element.optional": "(optional)",
+  "interactive_dialog.error.bad_date_format": "Date field must be in YYYY-MM-DD format",
+  "interactive_dialog.error.bad_datetime_format": "DateTime field must be in YYYY-MM-DDTHH:mm:ssZ format",
   "interactive_dialog.error.bad_email": "Must be a valid email address.",
   "interactive_dialog.error.bad_format": "Date field must be in YYYY-MM-DD format",
   "interactive_dialog.error.bad_number": "Must be a number.",
