@@ -72,9 +72,9 @@ jest.mock('mattermost-redux/selectors/entities/roles', () => ({
     }),
 }));
 
-// Mock the feature flag selector for ABAC rules (always enabled as per user request)
+// Mock the general selectors
 jest.mock('selectors/general', () => ({
-    isChannelAdminManageABACControlEnabled: jest.fn().mockReturnValue(true),
+    isChannelAccessControlEnabled: jest.fn().mockReturnValue(true),
     getBasePath: jest.fn().mockReturnValue(''),
 }));
 
