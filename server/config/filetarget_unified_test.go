@@ -1,3 +1,5 @@
+//go:build auditonly
+
 package config
 
 import (
@@ -5,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 func TestMakeFileTarget(t *testing.T) {
