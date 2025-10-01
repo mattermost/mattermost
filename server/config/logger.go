@@ -69,7 +69,7 @@ func MloggerConfigFromAuditConfig(auditSettings model.ExperimentalAuditSettings,
 	var err error
 
 	// add the simple audit config
-	if auditSettings.FileEnabled != nil && *auditSettings.FileEnabled {
+	if *auditSettings.FileEnabled {
 		targetCfg, err = makeFileTargetFromAudit(&auditSettings, "error", true)
 		if err != nil {
 			return nil, err
