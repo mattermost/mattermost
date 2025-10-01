@@ -176,6 +176,7 @@ export type ChannelsState = {
     channelMemberCountsByGroup: RelationOneToOne<Channel, ChannelMemberCountsByGroup>;
     messageCounts: RelationOneToOne<Channel, ChannelMessageCount>;
     channelsMemberCount: Record<string, number>;
+    restrictedDMs: RelationOneToOne<Channel, boolean>;
 };
 
 export type ChannelModeration = {
