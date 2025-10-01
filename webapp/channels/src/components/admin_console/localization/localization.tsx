@@ -3,6 +3,7 @@
 
 import React, {useCallback, useMemo, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
+import styled from 'styled-components';
 
 import type {LocalizationSettings} from '@mattermost/types/config';
 
@@ -10,7 +11,6 @@ import BooleanSetting from 'components/admin_console/boolean_setting';
 import DropdownSetting from 'components/admin_console/dropdown_setting';
 import MultiSelectSetting from 'components/admin_console/multiselect_settings';
 import {
-    AdminSection,
     SectionContent,
     SectionHeader,
 } from 'components/admin_console/system_properties/controls';
@@ -22,6 +22,13 @@ import type {SystemConsoleCustomSettingsComponentProps} from '../schema_admin_se
 import './localization.scss';
 
 const locales = I18n.getAllLanguages();
+
+const AdminSection = styled.section.attrs({className: 'AdminPanel'})`
+    && {
+        overflow: visible;
+        margin-top: 0;
+    }
+`;
 
 export default function Localization(props: SystemConsoleCustomSettingsComponentProps) {
     const [localizationSettings, setLocalizationSettings] = useState<LocalizationSettings>(props.value as LocalizationSettings);
@@ -45,7 +52,7 @@ export default function Localization(props: SystemConsoleCustomSettingsComponent
     }, []);
 
     return (
-        <AdminSection style={{marginTop: '0'}}>
+        <AdminSection>
             <SectionHeader>
                 <hgroup>
                     <h1 className='localization-section-title'>
@@ -65,7 +72,6 @@ export default function Localization(props: SystemConsoleCustomSettingsComponent
 
             <SectionContent>
                 <DropdownSetting
-                    key={props.id + '_language_' + props.id + '.DefaultServerLocale'}
                     id={'DefaultServerLocale'}
                     label={
                         <FormattedMessage
@@ -86,7 +92,6 @@ export default function Localization(props: SystemConsoleCustomSettingsComponent
                     onChange={handleChange}
                 />
                 <DropdownSetting
-                    key={props.id + '_language_' + props.id + '.DefaultClientLocale'}
                     id={'DefaultClientLocale'}
                     label={
                         <FormattedMessage
@@ -107,7 +112,6 @@ export default function Localization(props: SystemConsoleCustomSettingsComponent
                     onChange={handleChange}
                 />
                 <MultiSelectSetting
-                    key={props.id + '_language_' + props.id + '.AvailableLocales'}
                     id={'AvailableLocales'}
                     label={
                         <FormattedMessage
@@ -145,7 +149,6 @@ export default function Localization(props: SystemConsoleCustomSettingsComponent
                     }
                 />
                 <BooleanSetting
-                    key={props.id + '_language_' + props.id + '.EnableExperimentalLocales'}
                     id={'EnableExperimentalLocales'}
                     label={
                         <FormattedMessage

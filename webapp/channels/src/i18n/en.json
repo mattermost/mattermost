@@ -385,7 +385,7 @@
   "admin.authentication.saml": "SAML 2.0",
   "admin.authentication.signup": "Signup",
   "admin.auto_translation_feature_discovery.copy": "Effortlessly collaborate across languages with auto-translation. Messages in shared channels are instantly translated based on each user’s language preference—no extra steps required.{br}<strong>Only available in Enterprise Advanced.</strong>",
-  "admin.auto_translation_feature_discovery.title": "Remove language barriers with Auto-translation",
+  "admin.auto_translation_feature_discovery.title": "Remove language barriers with auto-translation",
   "admin.banner.heading": "Note:",
   "admin.billing.company_info_display.companyDetails": "Company Details",
   "admin.billing.company_info_display.detailsProvided": "Your company name and address",

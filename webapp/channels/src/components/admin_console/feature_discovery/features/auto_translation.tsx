@@ -27,7 +27,7 @@ const AutoTranslationFeatureDiscovery: React.FC = () => {
                         minimumSKURequiredForFeature={LicenseSkus.EnterpriseAdvanced}
                         title={defineMessage({
                             id: 'admin.auto_translation_feature_discovery.title',
-                            defaultMessage: 'Remove language barriers with Auto-translation',
+                            defaultMessage: 'Remove language barriers with auto-translation',
                         })}
                         copy={defineMessage({
                             id: 'admin.auto_translation_feature_discovery.copy',

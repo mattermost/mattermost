@@ -91,7 +91,6 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
             {autoTranslationSettings.Enable &&
             <SectionContent>
                 <DropdownSetting
-                    key={props.id + '_Provider_' + props.id + '.AutoTranslationSettings.Provider'}
                     id={'Provider'}
                     label={
                         <FormattedMessage

@@ -34,7 +34,6 @@ export default function LibreTranslateSettings(props: SystemConsoleCustomSetting
     return (
         <>
             <TextSetting
-                key={'AutoTranslationSettings_text_LibreTranslate.URL'}
                 id='URL'
                 label={
                     <FormattedMessage
@@ -53,7 +52,6 @@ export default function LibreTranslateSettings(props: SystemConsoleCustomSetting
                 disabled={props.disabled}
             />
             <TextSetting
-                key={'AutoTranslationSettings_text_LibreTranslate.APIKey'}
                 id='APIKey'
                 label={
                     <FormattedMessage

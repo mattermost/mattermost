@@ -21,7 +21,8 @@
     font-size: 16px;
 }
 
-.localization-section-description, .helpText {
+.localization-section-description {
+    margin-bottom: 0;
     color: var(--center-channel-color-72);
     font-size: 14px;
     font-style: normal;

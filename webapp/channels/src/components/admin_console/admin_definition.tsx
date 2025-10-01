@@ -2466,13 +2466,13 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'auto-translation-discovery',
                             component: AutoTranslationFeatureDiscovery,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
-                            isHidden: it.any(
-                                it.all(
-                                    it.configIsTrue('FeatureFlags', 'AutoTranslation'),
-                                    it.minLicenseTier(LicenseSkus.EnterpriseAdvanced),
-                                ),
-                                it.configIsFalse('FeatureFlags', 'AutoTranslation'),
-                            ),
+                            // isHidden: it.any(
+                            //     it.all(
+                            //         it.configIsTrue('FeatureFlags', 'AutoTranslation'),
+                            //         it.minLicenseTier(LicenseSkus.EnterpriseAdvanced),
+                            //     ),
+                            //     it.configIsFalse('FeatureFlags', 'AutoTranslation'),
+                            // ),
                         },
                     ],
                 },
