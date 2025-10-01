@@ -5,7 +5,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-     - "postgres-13-data:/var/lib/postgresql/data"
+     - "postgres-14-data:/var/lib/postgresql/data"
     extends:
         file: build/docker-compose.common.yml
         service: postgres
@@ -117,4 +117,4 @@ networks:
           ip_range: 192.168.254.0/24
 
 volumes:
-  postgres-13-data:
+  postgres-14-data:
