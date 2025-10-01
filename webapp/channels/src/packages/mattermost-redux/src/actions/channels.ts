@@ -1416,6 +1416,16 @@ export function fetchMissingChannels(channelIDs: string[]): ActionFuncAsync<Arra
     };
 }
 
+export function fetchIsRestrictedDM(channelId: string) {
+    return bindClientFunc({
+        clientFunc: async () => {
+            const teams = (await Client4.getGroupMessageMembersCommonTeams(channelId)).data;
+            return {channelId, isRestricted: teams.length === 0};
+        },
+        onSuccess: ChannelTypes.RECEIVED_IS_DM_RESTRICTED,
+    });
+}
+
 export function getChannelAccessControlAttributes(channelId: string): ActionFuncAsync<AccessControlAttributes> {
     return async (dispatch, getState) => {
         let data;
