@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
 import type {Post} from '@mattermost/types/posts';
@@ -22,11 +23,6 @@ type Props = WrappedComponentProps & {
      * The post to render the reaction for
      */
     post: Post;
-
-    /*
-     * The user id of the logged in user
-     */
-    currentUserId: string;
 
     /*
      * The name of the emoji for the reaction
@@ -86,7 +82,7 @@ type Props = WrappedComponentProps & {
 
 }
 
-export default class Reaction extends React.PureComponent<Props, State> {
+export class Reaction extends React.PureComponent<Props, State> {
     private reactionButtonRef = React.createRef<HTMLButtonElement>();
     private reactionCountRef = React.createRef<HTMLSpanElement>();
     private animating = false;
@@ -303,6 +299,8 @@ export default class Reaction extends React.PureComponent<Props, State> {
             <img
                 className='Reaction__emoji emoticon'
                 src={this.props.emojiImageUrl}
+                alt=''
+                aria-hidden={true}
             />
         );
 
@@ -345,3 +343,5 @@ export default class Reaction extends React.PureComponent<Props, State> {
         );
     }
 }
+
+export default injectIntl(Reaction);
