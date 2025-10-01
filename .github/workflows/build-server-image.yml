@@ -93,11 +93,11 @@ jobs:
           load: true
           push: false
           pull: false
-          tags: mattermost/mattermost-build-server-fips:test
+          tags: mattermostdevelopment/mattermost-build-server-fips:test
 
       - name: buildenv/test
         run: |
-          docker run --rm --entrypoint bash mattermost/mattermost-build-server-fips:test -c "go version && node --version"
+          docker run --rm --entrypoint bash mattermostdevelopment/mattermost-build-server-fips:test -c "go version && node --version"
 
       - name: buildenv/push
         if: github.ref == 'refs/heads/master'
@@ -108,4 +108,4 @@ jobs:
           load: false
           push: true
           pull: true
-          tags: mattermost/mattermost-build-server-fips:${{ steps.go.outputs.GO_VERSION }}
+          tags: mattermostdevelopment/mattermost-build-server-fips:${{ steps.go.outputs.GO_VERSION }}
