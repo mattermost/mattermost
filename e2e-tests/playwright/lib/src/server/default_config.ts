@@ -754,7 +754,6 @@ const defaultServerConfig: AdminConfig = {
         AttributeBasedAccessControl: true,
         ContentFlagging: false,
         InteractiveDialogAppsForm: true,
-        ChannelAdminManageABACRules: false,
     },
     ImportSettings: {
         Directory: './import',
