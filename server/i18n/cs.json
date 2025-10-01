@@ -10798,5 +10798,13 @@
   {
     "id": "app.import.validate_user_import_data.invalid_image_path.error",
     "translation": "Cesta k profilovému obrázku uživatele je neplatná: \"{{.Path}}\""
+  },
+  {
+    "id": "app.job.get_existing_jobs.error",
+    "translation": "Nelze získat existující úlohy."
+  },
+  {
+    "id": "app.submit_interactive_dialog.invalid_response",
+    "translation": "Obdržena neplatná odpověď při odeslání interaktivního dialogu."
   }
 ]
