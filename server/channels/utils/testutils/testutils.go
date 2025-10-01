@@ -29,7 +29,7 @@ type CollectTWithLogf struct {
 	*assert.CollectT
 }
 
-func (*CollectTWithLogf) Logf(string, ...interface{}) {
+func (*CollectTWithLogf) Logf(string, ...any) {
 }
 
 func ReadTestFile(name string) ([]byte, error) {
