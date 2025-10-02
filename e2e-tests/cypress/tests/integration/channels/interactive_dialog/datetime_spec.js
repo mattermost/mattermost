@@ -199,8 +199,8 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
         });
 
         // Verify today is enabled and clickable
-        cy.get(`button:contains("${todayDay}")`).should('not.have.class', 'rdp-day_disabled').and('not.be.disabled');
-        cy.get(`button:contains("${todayDay}")`).click();
+        cy.get('.rdp').find('button').filter((i, el) => el.textContent === todayDay.toString()).should('not.have.class', 'rdp-day_disabled').and('not.be.disabled');
+        cy.get('.rdp').find('button').filter((i, el) => el.textContent === todayDay.toString()).click();
 
         // * Verify date selection
         cy.get('#appsModal').within(() => {
