@@ -18,10 +18,10 @@ const (
 )
 
 const (
-	ContentFlaggingStatusPending  = "pending"
-	ContentFlaggingStatusAssigned = "assigned"
-	ContentFlaggingStatusRemoved  = "removed"
-	ContentFlaggingStatusRetained = "retained"
+	ContentFlaggingStatusPending  = "Pending"
+	ContentFlaggingStatusAssigned = "Assigned"
+	ContentFlaggingStatusRemoved  = "Removed"
+	ContentFlaggingStatusRetained = "Retained"
 )
 
 type FlagContentRequest struct {
@@ -44,6 +44,22 @@ func (f *FlagContentRequest) IsValid(commentRequired bool, validReasons []string
 
 	if utf8.RuneCountInString(f.Comment) > commentMaxRunes {
 		return NewAppError("FlagContentRequest.IsValid", "api.content_flagging.error.comment_too_long", map[string]any{"MaxLength": commentMaxRunes}, "", http.StatusBadRequest)
+	}
+
+	return nil
+}
+
+type FlagContentActionRequest struct {
+	Comment string `json:"comment,omitempty"`
+}
+
+func (f *FlagContentActionRequest) IsValid(commentRequired bool) *AppError {
+	if commentRequired && f.Comment == "" {
+		return NewAppError("FlagContentActionRequest.IsValid", "api.content_flagging.error.comment_required", nil, "", http.StatusBadRequest)
+	}
+
+	if utf8.RuneCountInString(f.Comment) > commentMaxRunes {
+		return NewAppError("FlagContentActionRequest.IsValid", "api.content_flagging.error.comment_too_long", map[string]any{"MaxLength": commentMaxRunes}, "", http.StatusBadRequest)
 	}
 
 	return nil

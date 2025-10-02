@@ -293,9 +293,10 @@ func TestGetReviewersForTeam(t *testing.T) {
 
 			conf.ContentFlaggingSettings.ReviewerSettings.CommonReviewers = model.NewPointer(true)
 			conf.ContentFlaggingSettings.ReviewerSettings.CommonReviewerIds = &[]string{th.BasicUser.Id, th.BasicUser2.Id}
+			conf.ContentFlaggingSettings.ReviewerSettings.SystemAdminsAsReviewers = model.NewPointer(true)
 		})
 
-		reviewers, appErr := th.App.getReviewersForTeam(th.BasicTeam.Id)
+		reviewers, appErr := th.App.getReviewersForTeam(th.BasicTeam.Id, true)
 		require.Nil(t, appErr)
 		require.Len(t, reviewers, 2)
 		require.Contains(t, reviewers, th.BasicUser.Id)
@@ -316,7 +317,7 @@ func TestGetReviewersForTeam(t *testing.T) {
 		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, th.SystemAdminUser.Id, "")
 		require.Nil(t, appErr)
 
-		reviewers, appErr := th.App.getReviewersForTeam(th.BasicTeam.Id)
+		reviewers, appErr := th.App.getReviewersForTeam(th.BasicTeam.Id, true)
 		require.Nil(t, appErr)
 		require.Len(t, reviewers, 2)
 		require.Contains(t, reviewers, th.BasicUser.Id)
@@ -326,7 +327,7 @@ func TestGetReviewersForTeam(t *testing.T) {
 		th.UpdateConfig(func(conf *model.Config) {
 			conf.ContentFlaggingSettings.ReviewerSettings.CommonReviewerIds = &[]string{}
 		})
-		reviewers, appErr = th.App.getReviewersForTeam(th.BasicTeam.Id)
+		reviewers, appErr = th.App.getReviewersForTeam(th.BasicTeam.Id, true)
 		require.Nil(t, appErr)
 		require.Len(t, reviewers, 1)
 		require.Contains(t, reviewers, th.SystemAdminUser.Id)
@@ -338,7 +339,7 @@ func TestGetReviewersForTeam(t *testing.T) {
 		// If sysadmin is not a team member, they should not be returned as a reviewer
 		appErr = th.App.RemoveUserFromTeam(th.Context, th.BasicTeam.Id, th.SystemAdminUser.Id, "")
 		require.Nil(t, appErr)
-		reviewers, appErr = th.App.getReviewersForTeam(th.BasicTeam.Id)
+		reviewers, appErr = th.App.getReviewersForTeam(th.BasicTeam.Id, true)
 		require.Nil(t, appErr)
 		require.Len(t, reviewers, 1)
 		require.Contains(t, reviewers, th.BasicUser.Id)
@@ -366,7 +367,7 @@ func TestGetReviewersForTeam(t *testing.T) {
 		_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, model.TeamAdminRoleId)
 		require.Nil(t, appErr)
 
-		reviewers, appErr := th.App.getReviewersForTeam(th.BasicTeam.Id)
+		reviewers, appErr := th.App.getReviewersForTeam(th.BasicTeam.Id, true)
 		require.Nil(t, appErr)
 		require.Len(t, reviewers, 2)
 		require.Contains(t, reviewers, th.BasicUser.Id)
@@ -377,7 +378,7 @@ func TestGetReviewersForTeam(t *testing.T) {
 			conf.ContentFlaggingSettings.ReviewerSettings.CommonReviewerIds = &[]string{}
 		})
 
-		reviewers, appErr = th.App.getReviewersForTeam(th.BasicTeam.Id)
+		reviewers, appErr = th.App.getReviewersForTeam(th.BasicTeam.Id, true)
 		require.Nil(t, appErr)
 		require.Len(t, reviewers, 1)
 		require.Contains(t, reviewers, teamAdmin.Id)
@@ -389,7 +390,7 @@ func TestGetReviewersForTeam(t *testing.T) {
 		// If team admin is not a team member, they should not be returned as a reviewer
 		appErr = th.App.RemoveUserFromTeam(th.Context, th.BasicTeam.Id, teamAdmin.Id, "")
 		require.Nil(t, appErr)
-		reviewers, appErr = th.App.getReviewersForTeam(th.BasicTeam.Id)
+		reviewers, appErr = th.App.getReviewersForTeam(th.BasicTeam.Id, true)
 		require.Nil(t, appErr)
 		require.Len(t, reviewers, 1)
 		require.Contains(t, reviewers, th.BasicUser.Id)
@@ -412,13 +413,13 @@ func TestGetReviewersForTeam(t *testing.T) {
 		})
 
 		// Reviewers configured for th.BasicTeam
-		reviewers, appErr := th.App.getReviewersForTeam(th.BasicTeam.Id)
+		reviewers, appErr := th.App.getReviewersForTeam(th.BasicTeam.Id, true)
 		require.Nil(t, appErr)
 		require.Len(t, reviewers, 1)
 		require.Contains(t, reviewers, th.BasicUser2.Id)
 
 		// NO reviewers configured for team2
-		reviewers, appErr = th.App.getReviewersForTeam(team2.Id)
+		reviewers, appErr = th.App.getReviewersForTeam(team2.Id, true)
 		require.Nil(t, appErr)
 		require.Len(t, reviewers, 0)
 	})
@@ -438,7 +439,7 @@ func TestGetReviewersForTeam(t *testing.T) {
 			}
 		})
 
-		reviewers, appErr := th.App.getReviewersForTeam(th.BasicTeam.Id)
+		reviewers, appErr := th.App.getReviewersForTeam(th.BasicTeam.Id, true)
 		require.Nil(t, appErr)
 		require.Len(t, reviewers, 0)
 	})
@@ -463,7 +464,7 @@ func TestGetReviewersForTeam(t *testing.T) {
 		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, th.SystemAdminUser.Id, "")
 		require.Nil(t, appErr)
 
-		reviewers, appErr := th.App.getReviewersForTeam(th.BasicTeam.Id)
+		reviewers, appErr := th.App.getReviewersForTeam(th.BasicTeam.Id, true)
 		require.Nil(t, appErr)
 		require.Len(t, reviewers, 2)
 		require.Contains(t, reviewers, th.BasicUser2.Id)
@@ -483,7 +484,7 @@ func TestGetReviewersForTeam(t *testing.T) {
 		_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, th.SystemAdminUser.Id, "")
 		require.Nil(t, appErr)
 
-		reviewers, appErr := th.App.getReviewersForTeam(th.BasicTeam.Id)
+		reviewers, appErr := th.App.getReviewersForTeam(th.BasicTeam.Id, true)
 		require.Nil(t, appErr)
 		require.Len(t, reviewers, 2)
 		require.Contains(t, reviewers, th.BasicUser.Id)
@@ -501,7 +502,7 @@ func TestCanFlagPost(t *testing.T) {
 	t.Run("should be able to flag post which has not already been flagged", func(t *testing.T) {
 		post := th.CreatePost(th.BasicChannel)
 
-		groupId, appErr := th.App.contentFlaggingGroupId()
+		groupId, appErr := th.App.ContentFlaggingGroupId()
 		require.Nil(t, appErr)
 
 		appErr = th.App.canFlagPost(groupId, post.Id, "en")
@@ -511,7 +512,7 @@ func TestCanFlagPost(t *testing.T) {
 	t.Run("should not be able to flag post which has already been flagged", func(t *testing.T) {
 		post := th.CreatePost(th.BasicChannel)
 
-		groupId, appErr := th.App.contentFlaggingGroupId()
+		groupId, appErr := th.App.ContentFlaggingGroupId()
 		require.Nil(t, appErr)
 
 		statusField, err := th.Server.propertyService.GetPropertyFieldByName(groupId, "", contentFlaggingPropertyNameStatus)
@@ -589,10 +590,10 @@ func TestFlagPost(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify property values were created
-		groupId, appErr := th.App.contentFlaggingGroupId()
+		groupId, appErr := th.App.ContentFlaggingGroupId()
 		require.Nil(t, appErr)
 
-		mappedFields, appErr := th.App.getContentFlaggingMappedFields(groupId)
+		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 		require.Nil(t, appErr)
 
 		// Check status property
@@ -675,7 +676,7 @@ func TestFlagPost(t *testing.T) {
 
 		flagData := model.FlagContentRequest{
 			Reason:  "spam",
-			Comment: "This is spam content",
+			Comment: "\"This is spam content\"",
 		}
 
 		// Flag the post first time
@@ -697,7 +698,7 @@ func TestFlagPost(t *testing.T) {
 
 		flagData := model.FlagContentRequest{
 			Reason:  "spam",
-			Comment: "This is spam content",
+			Comment: "\"This is spam content\"",
 		}
 
 		appErr := th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
@@ -719,7 +720,7 @@ func TestFlagPost(t *testing.T) {
 
 		flagData := model.FlagContentRequest{
 			Reason:  "harassment",
-			Comment: "This is harassment",
+			Comment: "\"This is harassment\"",
 		}
 
 		appErr := th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
@@ -769,10 +770,10 @@ func TestFlagPost(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify property values were created with empty comment
-		groupId, appErr := th.App.contentFlaggingGroupId()
+		groupId, appErr := th.App.ContentFlaggingGroupId()
 		require.Nil(t, appErr)
 
-		mappedFields, appErr := th.App.getContentFlaggingMappedFields(groupId)
+		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 		require.Nil(t, appErr)
 
 		commentValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
@@ -790,7 +791,7 @@ func TestFlagPost(t *testing.T) {
 
 		flagData := model.FlagContentRequest{
 			Reason:  "spam",
-			Comment: "Test comment",
+			Comment: "\"Test comment\"",
 		}
 
 		beforeTime := model.GetMillis()
@@ -799,10 +800,10 @@ func TestFlagPost(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify reporting time property was set
-		groupId, appErr := th.App.contentFlaggingGroupId()
+		groupId, appErr := th.App.ContentFlaggingGroupId()
 		require.Nil(t, appErr)
 
-		mappedFields, appErr := th.App.getContentFlaggingMappedFields(groupId)
+		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
 		require.Nil(t, appErr)
 
 		timeValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
