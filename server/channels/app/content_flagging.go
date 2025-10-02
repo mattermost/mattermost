@@ -833,3 +833,7 @@ func (a *App) SearchReviewers(rctx request.CTX, term string, teamId string) ([]*
 
 	return reviewersList, nil
 }
+
+func (a *App) AssignFlaggedPostReviewer(rctx request.CTX, postId, reviewerId, assigneeId string) *model.AppError {
+
+}
