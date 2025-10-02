@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"slices"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 
@@ -29,6 +30,7 @@ func (api *API) InitContentFlagging() {
 	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/keep", api.APISessionRequired(keepFlaggedPost)).Methods(http.MethodPut)
 	api.BaseRoutes.ContentFlagging.Handle("/config", api.APISessionRequired(saveContentFlaggingSettings)).Methods(http.MethodPut)
 	api.BaseRoutes.ContentFlagging.Handle("/config", api.APISessionRequired(getContentFlaggingSettings)).Methods(http.MethodGet)
+	api.BaseRoutes.ContentFlagging.Handle("/team/{team_id:[A-Za-z0-9]+}/reviewers/search", api.APISessionRequired(searchReviewers)).Methods(http.MethodGet)
 }
 
 func requireContentFlaggingAvailable(c *Context) {
@@ -524,6 +526,53 @@ func getContentFlaggingSettings(c *Context, w http.ResponseWriter, r *http.Reque
 	responseBytes, err := json.Marshal(fullConfig)
 	if err != nil {
 		c.Err = model.NewAppError("getContentFlaggingSettings", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if _, err := w.Write(responseBytes); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func searchReviewers(c *Context, w http.ResponseWriter, r *http.Request) {
+	requireContentFlaggingEnabled(c)
+	if c.Err != nil {
+		return
+	}
+
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	teamId := c.Params.TeamId
+	userId := c.AppContext.Session().UserId
+	searchTerm := strings.TrimSpace(r.URL.Query().Get("term"))
+	if searchTerm == "" {
+		c.Err = model.NewAppError("searchReviewers", "api.content_flagging.error.empty_search_term", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	isReviewer, appErr := c.App.IsUserTeamContentReviewer(userId, teamId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if !isReviewer {
+		c.Err = model.NewAppError("searchReviewers", "api.content_flagging.error.reviewer_only", nil, "", http.StatusForbidden)
+		return
+	}
+
+	reviewers, appErr := c.App.SearchReviewers(c.AppContext, searchTerm, teamId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	responseBytes, err := json.Marshal(reviewers)
+	if err != nil {
+		c.Err = model.NewAppError("searchReviewers", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
 

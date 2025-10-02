@@ -1754,6 +1754,10 @@
     "translation": "Content flagging feature is disabled."
   },
   {
+    "id": "api.content_flagging.error.empty_search_term",
+    "translation": "No search term in query param `term` provided."
+  },
+  {
     "id": "api.content_flagging.error.license",
     "translation": "Your license does not support content flagging."
   },
@@ -5263,6 +5267,10 @@
     "translation": "Failed to save content reviewer settings to the database."
   },
   {
+    "id": "app.content_flagging.search_common_reviewers.app_error",
+    "translation": "Failed to search the term in Common Reviewers."
+  },
+  {
     "id": "app.content_flagging.search_property_fields.app_error",
     "translation": "Failed to search Content Flagging property fields."
   },
@@ -5273,6 +5281,18 @@
   {
     "id": "app.content_flagging.search_status_property.app_error",
     "translation": "Failed to search Property Values for the flagged post."
+  },
+  {
+    "id": "app.content_flagging.search_sysadmin_reviewers.app_error",
+    "translation": "Failed to search the search term in System Admin Reviewers."
+  },
+  {
+    "id": "app.content_flagging.search_team_admin_reviewers.app_error",
+    "translation": "Failed to search the search term in Team Admin Reviewers."
+  },
+  {
+    "id": "app.content_flagging.search_team_reviewers.app_error",
+    "translation": "Failed to search the search term in Team Reviewers."
   },
   {
     "id": "app.create_basic_user.save_member.app_error",

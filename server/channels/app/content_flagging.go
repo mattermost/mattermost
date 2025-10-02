@@ -24,6 +24,8 @@ const (
 	CONTENT_FLAGGING_MAX_PROPERTY_VALUES = 100
 
 	POST_PROP_KEY_FLAGGED_POST_ID = "reported_post_id"
+
+	CONTENT_FLAGGING_REVIEWER_SEARCH_INDIVIDUAL_LIMIT = 50
 )
 
 func (a *App) ContentFlaggingEnabledForTeam(teamId string) (bool, *model.AppError) {
@@ -763,4 +765,71 @@ func (a *App) GetContentFlaggingConfigReviewerIDs() (*model.ReviewerIDsSettings,
 	}
 
 	return reviewerSettings, nil
+}
+
+func (a *App) SearchReviewers(rctx request.CTX, term string, teamId string) ([]*model.User, *model.AppError) {
+	reviewerSettings := a.Config().ContentFlaggingSettings.ReviewerSettings
+
+	reviewers := map[string]*model.User{}
+
+	if reviewerSettings.CommonReviewers != nil && *reviewerSettings.CommonReviewers {
+		commonReviewers, err := a.Srv().Store().User().SearchCommonContentFlaggingReviewers(term)
+		if err != nil {
+			return nil, model.NewAppError("SearchReviewers", "app.content_flagging.search_common_reviewers.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		for _, user := range commonReviewers {
+			reviewers[user.Id] = user
+		}
+	} else {
+		teamReviewers, err := a.Srv().Store().User().SearchTeamContentFlaggingReviewers(teamId, term)
+		if err != nil {
+			return nil, model.NewAppError("SearchReviewers", "app.content_flagging.search_team_reviewers.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		for _, user := range teamReviewers {
+			reviewers[user.Id] = user
+		}
+	}
+
+	if reviewerSettings.SystemAdminsAsReviewers != nil && *reviewerSettings.SystemAdminsAsReviewers {
+		systemAdminReviewers, err := a.Srv().Store().User().Search(rctx, teamId, term, &model.UserSearchOptions{
+			AllowInactive:  false,
+			Role:           model.SystemAdminRoleId,
+			AllowEmails:    false,
+			AllowFullNames: true,
+			Limit:          CONTENT_FLAGGING_REVIEWER_SEARCH_INDIVIDUAL_LIMIT,
+		})
+		if err != nil {
+			return nil, model.NewAppError("SearchReviewers", "app.content_flagging.search_sysadmin_reviewers.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		for _, user := range systemAdminReviewers {
+			reviewers[user.Id] = user
+		}
+	}
+
+	if reviewerSettings.TeamAdminsAsReviewers != nil && *reviewerSettings.TeamAdminsAsReviewers {
+		teamAdminReviewers, err := a.Srv().Store().User().Search(rctx, teamId, term, &model.UserSearchOptions{
+			AllowInactive:  false,
+			TeamRoles:      []string{model.TeamAdminRoleId},
+			AllowEmails:    false,
+			AllowFullNames: true,
+			Limit:          CONTENT_FLAGGING_REVIEWER_SEARCH_INDIVIDUAL_LIMIT,
+		})
+		if err != nil {
+			return nil, model.NewAppError("SearchReviewers", "app.content_flagging.search_team_admin_reviewers.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		for _, user := range teamAdminReviewers {
+			reviewers[user.Id] = user
+		}
+	}
+
+	reviewersList := make([]*model.User, 0, len(reviewers))
+	for _, user := range reviewers {
+		reviewersList = append(reviewersList, user)
+	}
+
+	return reviewersList, nil
 }
