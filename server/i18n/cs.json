@@ -1733,15 +1733,15 @@
   },
   {
     "id": "api.user.update_user.accepted_guest_domain.app_error",
-    "translation": "Zadaný e-mail nepatří do zvolené domény. Obraťte se prosím na správce nebo zaregistrujte jiný e-mail."
+    "translation": "Zadaný e-mail nepatří do povolené domény pro hosty. Obraťte se prosím na správce nebo zaregistrujte jiný e-mail."
   },
   {
     "id": "api.user.update_user.accepted_domain.app_error",
-    "translation": "Zadaný e-mail nepatří do zvolené domény. Obraťte se prosím na správce nebo zaregistrujte jiný e-mail."
+    "translation": "Zadaný e-mail nepatří do povolené domény. Obraťte se prosím na správce nebo zaregistrujte jiný e-mail."
   },
   {
     "id": "api.user.update_password.valid_account.app_error",
-    "translation": "Aktualizační heslo se nezdařilo, protože příslušný platný účet nebyl nalezen."
+    "translation": "Aktualizace hesla se nezdařila, protože příslušný účet nebyl nalezen."
   },
   {
     "id": "api.user.update_password.oauth.app_error",
@@ -1761,7 +1761,7 @@
   },
   {
     "id": "api.user.update_password.context.app_error",
-    "translation": "Změna hesla není možná, protože hodnota user_id se neshoduje s user_id."
+    "translation": "Změna hesla není možná, protože hodnota user_id kontextu se neshoduje s user_id ve vlastnostech."
   },
   {
     "id": "api.user.update_oauth_user_attrs.get_user.app_error",
@@ -2621,7 +2621,7 @@
   },
   {
     "id": "api.user.complete_switch_with_oauth.parse.app_error",
-    "translation": "Nelze zpracovat data z uživatelského objektu {{.Service}}."
+    "translation": "Nelze zpracovat autentizační data z uživatelského objektu {{.Service}}."
   },
   {
     "id": "api.user.complete_switch_with_oauth.blank_email.app_error",
@@ -10469,7 +10469,7 @@
   },
   {
     "id": "api.user.authorize_oauth_user.saml_hook_error.app_error",
-    "translation": "Došlo k chybě v háku OnSamlLogin. Kontaktujte, prosím, systémového administrátora."
+    "translation": "Došlo k chybě v hooku OnSamlLogin. Kontaktujte, prosím, systémového administrátora."
   },
   {
     "id": "api.user.check_user_password.invalid_hash.app_error",
