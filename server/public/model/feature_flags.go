@@ -75,9 +75,9 @@ type FeatureFlags struct {
 	InteractiveDialogAppsForm bool
 
 	EnableMattermostEntry bool
-	// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this field when feature is GA
-	// Enable channel admins to manage ABAC rules for their channels
-	ChannelAdminManageABACRules bool
+
+	// Enable mobile SSO SAML code-exchange flow (no tokens in deep links)
+	MobileSSOCodeExchange bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -108,9 +108,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AttributeBasedAccessControl = true
 	f.ContentFlagging = false
 	f.InteractiveDialogAppsForm = true
-	f.EnableMattermostEntry = false
-	// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this default when feature is GA
-	f.ChannelAdminManageABACRules = false // Default to false for safety
+	f.EnableMattermostEntry = true
+	f.MobileSSOCodeExchange = true
 }
 
 // ToMap returns the feature flags as a map[string]string

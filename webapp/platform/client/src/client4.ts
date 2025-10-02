@@ -96,7 +96,7 @@ import type {
     OutgoingWebhook,
     SubmitDialogResponse,
 } from '@mattermost/types/integrations';
-import type {Job, JobTypeBase} from '@mattermost/types/jobs';
+import type {Job, JobType, JobTypeBase} from '@mattermost/types/jobs';
 import type {ServerLimits} from '@mattermost/types/limits';
 import type {
     MarketplaceApp,
@@ -1901,13 +1901,6 @@ export default class Client4 {
         );
     };
 
-    searchArchivedChannels = (teamId: string, term: string) => {
-        return this.doFetch<Channel[]>(
-            `${this.getTeamRoute(teamId)}/channels/search_archived`,
-            {method: 'post', body: JSON.stringify({term})},
-        );
-    };
-
     searchAllChannels(term: string, opts: {page: number; per_page: number} & ChannelSearchOpts & OptsSignalExt): Promise<ChannelsWithTotalCount>;
     searchAllChannels(term: string, opts: Omit<ChannelSearchOpts, 'page' | 'per_page'> & OptsSignalExt | undefined): Promise<ChannelWithTeamData[]>;
     searchAllChannels(term: string, opts: ChannelSearchOpts & OptsSignalExt = {}) {
@@ -3193,7 +3186,7 @@ export default class Client4 {
         );
     };
 
-    createJob = (job: JobTypeBase) => {
+    createJob = (job: JobTypeBase & { data?: any }) => {
         return this.doFetch<Job>(
             `${this.getJobsRoute()}`,
             {method: 'post', body: JSON.stringify(job)},
@@ -4463,9 +4456,13 @@ export default class Client4 {
         );
     };
 
-    getAccessControlPolicy = (id: string) => {
+    getAccessControlPolicy = (id: string, channelId?: string) => {
+        let url = `${this.getBaseRoute()}/access_control_policies/${id}`;
+        if (channelId) {
+            url += `?channelId=${encodeURIComponent(channelId)}`;
+        }
         return this.doFetch<AccessControlPolicy>(
-            `${this.getBaseRoute()}/access_control_policies/${id}`,
+            url,
             {method: 'get'},
         );
     };
@@ -4540,31 +4537,73 @@ export default class Client4 {
         );
     };
 
-    getAccessControlFields = (after: string, limit: number) => {
+    createAccessControlSyncJob = (jobData: {[key: string]: string}) => {
+        const job = {
+            type: 'access_control_sync' as JobType,
+            data: jobData,
+        };
+        return this.createJob(job);
+    };
+
+    getAccessControlFields = (after: string, limit: number, channelId?: string) => {
+        const params = new URLSearchParams({after, limit: limit.toString()});
+        if (channelId) {
+            params.append('channelId', channelId);
+        }
+
         return this.doFetch<UserPropertyField[]>(
-            `${this.getBaseRoute()}/access_control_policies/cel/autocomplete/fields?after=${after}&limit=${limit}`,
+            `${this.getBaseRoute()}/access_control_policies/cel/autocomplete/fields?${params.toString()}`,
             {method: 'get'},
         );
     };
 
-    checkAccessControlExpression = (expression: string) => {
+    checkAccessControlExpression = (expression: string, channelId?: string) => {
+        const requestBody: {expression: string; channelId?: string} = {expression};
+        if (channelId) {
+            requestBody.channelId = channelId;
+        }
+
         return this.doFetch<CELExpressionError[]>(
             `${this.getBaseRoute()}/access_control_policies/cel/check`,
-            {method: 'post', body: JSON.stringify({expression})},
+            {method: 'post', body: JSON.stringify(requestBody)},
         );
     };
 
-    testAccessControlExpression = (expression: string, term: string, after: string, limit: number) => {
+    testAccessControlExpression = (expression: string, term: string, after: string, limit: number, channelId?: string) => {
+        const requestBody: {expression: string; term: string; after: string; limit: number; channelId?: string} = {
+            expression, term, after, limit,
+        };
+        if (channelId) {
+            requestBody.channelId = channelId;
+        }
+
         return this.doFetch<AccessControlTestResult>(
             `${this.getBaseRoute()}/access_control_policies/cel/test`,
-            {method: 'post', body: JSON.stringify({expression, term, after, limit})},
+            {method: 'post', body: JSON.stringify(requestBody)},
         );
     };
 
-    expressionToVisualFormat = (expression: string) => {
+    expressionToVisualFormat = (expression: string, channelId?: string) => {
+        const requestBody: {expression: string; channelId?: string} = {expression};
+        if (channelId) {
+            requestBody.channelId = channelId;
+        }
+
         return this.doFetch<AccessControlVisualAST>(
             `${this.getBaseRoute()}/access_control_policies/cel/visual_ast`,
-            {method: 'post', body: JSON.stringify({expression})},
+            {method: 'post', body: JSON.stringify(requestBody)},
+        );
+    };
+
+    validateExpressionAgainstRequester = (expression: string, channelId?: string) => {
+        const requestBody: {expression: string; channelId?: string} = {expression};
+        if (channelId !== undefined) {
+            requestBody.channelId = channelId;
+        }
+
+        return this.doFetch<{requester_matches: boolean}>(
+            `${this.getBaseRoute()}/access_control_policies/cel/validate_requester`,
+            {method: 'post', body: JSON.stringify(requestBody)},
         );
     };
 

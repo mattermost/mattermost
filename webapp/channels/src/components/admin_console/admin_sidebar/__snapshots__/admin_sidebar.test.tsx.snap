@@ -295,6 +295,30 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               }
             />
             <AdminSidebarSection
+              definitionKey="user_management.groups_feature_discovery"
+              key="user_management.groups_feature_discovery"
+              name="user_management/groups"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="enterprise"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Groups"
+                  id="admin.sidebar.groups"
+                />
+              }
+            />
+            <AdminSidebarSection
               definitionKey="user_management.teams"
               key="user_management.teams"
               name="user_management/teams"
@@ -324,6 +348,30 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Permissions"
                   id="admin.sidebar.permissions"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="user_management.system_roles_feature_discovery"
+              key="user_management.system_roles_feature_discovery"
+              name="user_management/system_roles"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="enterprise"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Delegated Granular Administration"
+                  id="admin.sidebar.systemRoles"
                 />
               }
             />
@@ -467,6 +515,30 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
                 />
               }
             />
+            <AdminSidebarSection
+              definitionKey="environment.mobile_security_feature_discovery"
+              key="environment.mobile_security_feature_discovery"
+              name="environment/mobile_security_feature_discovery"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Mobile Security"
+                  id="admin.sidebar.mobileSecurity"
+                />
+              }
+            />
           </AdminSidebarCategory>
           <AdminSidebarCategory
             definitionKey="site"
@@ -527,6 +599,30 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Notifications"
                   id="admin.sidebar.notifications"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="site.announcement_banner_feature_discovery"
+              key="site.announcement_banner_feature_discovery"
+              name="site_config/announcement_banner"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="System-wide Notifications"
+                  id="admin.sidebar.announcement"
                 />
               }
             />
@@ -649,13 +745,122 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               }
             />
             <AdminSidebarSection
-              definitionKey="authentication.gitlab"
-              key="authentication.gitlab"
+              definitionKey="authentication.ldap_feature_discovery"
+              key="authentication.ldap_feature_discovery"
+              name="authentication/ldap"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="AD/LDAP"
+                  id="admin.sidebar.ldap"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="authentication.saml_feature_discovery"
+              key="authentication.saml_feature_discovery"
+              name="authentication/saml"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="SAML 2.0"
+                  id="admin.sidebar.saml"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="authentication.openid_feature_discovery"
+              key="authentication.openid_feature_discovery"
+              name="authentication/openid"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="OpenID Connect"
+                  id="admin.sidebar.openid"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="authentication.gitlab_feature_discovery"
+              key="authentication.gitlab_feature_discovery"
               name="authentication/gitlab"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
               title={
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="GitLab"
                   id="admin.sidebar.gitlab"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="authentication.guest_access_feature_discovery"
+              key="authentication.guest_access_feature_discovery"
+              name="authentication/guest_access"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Guest Access"
+                  id="admin.sidebar.guest_access"
                 />
               }
             />
@@ -765,6 +970,97 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Embedding"
                   id="admin.sidebar.embedding"
+                />
+              }
+            />
+          </AdminSidebarCategory>
+          <AdminSidebarCategory
+            definitionKey="compliance"
+            icon={
+              <FormatListBulletedIcon
+                color="currentColor"
+                size={16}
+              />
+            }
+            key="compliance"
+            parentLink="/admin_console"
+            sectionClass=""
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Compliance"
+                id="admin.sidebar.compliance"
+              />
+            }
+          >
+            <AdminSidebarSection
+              definitionKey="compliance.data_retention_feature_discovery"
+              key="compliance.data_retention_feature_discovery"
+              name="compliance/data_retention"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="enterprise"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Data Retention Policy"
+                  id="admin.sidebar.dataRetentionPolicy"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="compliance.compliance_export_feature_discovery"
+              key="compliance.compliance_export_feature_discovery"
+              name="compliance/export"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="enterprise"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Compliance Export"
+                  id="admin.sidebar.complianceExport"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="compliance.custom_terms_of_service_feature_discovery"
+              key="compliance.custom_terms_of_service_feature_discovery"
+              name="compliance/custom_terms_of_service"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="enterprise"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Custom Terms of Service"
+                  id="admin.sidebar.customTermsOfService"
                 />
               }
             />
@@ -1593,6 +1889,30 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="OpenID Connect"
                   id="admin.sidebar.openid"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="authentication.gitlab_feature_discovery"
+              key="authentication.gitlab_feature_discovery"
+              name="authentication/gitlab"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="GitLab"
+                  id="admin.sidebar.gitlab"
                 />
               }
             />
@@ -2647,6 +2967,30 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
               }
             />
             <AdminSidebarSection
+              definitionKey="authentication.gitlab_feature_discovery"
+              key="authentication.gitlab_feature_discovery"
+              name="authentication/gitlab"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="GitLab"
+                  id="admin.sidebar.gitlab"
+                />
+              }
+            />
+            <AdminSidebarSection
               definitionKey="authentication.guest_access_feature_discovery"
               key="authentication.guest_access_feature_discovery"
               name="authentication/guest_access"
@@ -3619,6 +3963,30 @@ exports[`components/AdminSidebar should match snapshot with license with profess
               }
             />
             <AdminSidebarSection
+              definitionKey="authentication.gitlab_feature_discovery"
+              key="authentication.gitlab_feature_discovery"
+              name="authentication/gitlab"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="GitLab"
+                  id="admin.sidebar.gitlab"
+                />
+              }
+            />
+            <AdminSidebarSection
               definitionKey="authentication.guest_access_feature_discovery"
               key="authentication.guest_access_feature_discovery"
               name="authentication/guest_access"
@@ -4047,6 +4415,30 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               }
             />
             <AdminSidebarSection
+              definitionKey="user_management.groups_feature_discovery"
+              key="user_management.groups_feature_discovery"
+              name="user_management/groups"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="enterprise"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Groups"
+                  id="admin.sidebar.groups"
+                />
+              }
+            />
+            <AdminSidebarSection
               definitionKey="user_management.teams"
               key="user_management.teams"
               name="user_management/teams"
@@ -4076,6 +4468,30 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Permissions"
                   id="admin.sidebar.permissions"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="user_management.system_roles_feature_discovery"
+              key="user_management.system_roles_feature_discovery"
+              name="user_management/system_roles"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="enterprise"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Delegated Granular Administration"
+                  id="admin.sidebar.systemRoles"
                 />
               }
             />
@@ -4219,6 +4635,30 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
                 />
               }
             />
+            <AdminSidebarSection
+              definitionKey="environment.mobile_security_feature_discovery"
+              key="environment.mobile_security_feature_discovery"
+              name="environment/mobile_security_feature_discovery"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Mobile Security"
+                  id="admin.sidebar.mobileSecurity"
+                />
+              }
+            />
           </AdminSidebarCategory>
           <AdminSidebarCategory
             definitionKey="site"
@@ -4279,6 +4719,30 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Notifications"
                   id="admin.sidebar.notifications"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="site.announcement_banner_feature_discovery"
+              key="site.announcement_banner_feature_discovery"
+              name="site_config/announcement_banner"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="System-wide Notifications"
+                  id="admin.sidebar.announcement"
                 />
               }
             />
@@ -4401,13 +4865,122 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               }
             />
             <AdminSidebarSection
-              definitionKey="authentication.gitlab"
-              key="authentication.gitlab"
+              definitionKey="authentication.ldap_feature_discovery"
+              key="authentication.ldap_feature_discovery"
+              name="authentication/ldap"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="AD/LDAP"
+                  id="admin.sidebar.ldap"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="authentication.saml_feature_discovery"
+              key="authentication.saml_feature_discovery"
+              name="authentication/saml"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="SAML 2.0"
+                  id="admin.sidebar.saml"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="authentication.openid_feature_discovery"
+              key="authentication.openid_feature_discovery"
+              name="authentication/openid"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="OpenID Connect"
+                  id="admin.sidebar.openid"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="authentication.gitlab_feature_discovery"
+              key="authentication.gitlab_feature_discovery"
               name="authentication/gitlab"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
               title={
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="GitLab"
                   id="admin.sidebar.gitlab"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="authentication.guest_access_feature_discovery"
+              key="authentication.guest_access_feature_discovery"
+              name="authentication/guest_access"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Guest Access"
+                  id="admin.sidebar.guest_access"
                 />
               }
             />
@@ -4517,6 +5090,97 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Embedding"
                   id="admin.sidebar.embedding"
+                />
+              }
+            />
+          </AdminSidebarCategory>
+          <AdminSidebarCategory
+            definitionKey="compliance"
+            icon={
+              <FormatListBulletedIcon
+                color="currentColor"
+                size={16}
+              />
+            }
+            key="compliance"
+            parentLink="/admin_console"
+            sectionClass=""
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Compliance"
+                id="admin.sidebar.compliance"
+              />
+            }
+          >
+            <AdminSidebarSection
+              definitionKey="compliance.data_retention_feature_discovery"
+              key="compliance.data_retention_feature_discovery"
+              name="compliance/data_retention"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="enterprise"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Data Retention Policy"
+                  id="admin.sidebar.dataRetentionPolicy"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="compliance.compliance_export_feature_discovery"
+              key="compliance.compliance_export_feature_discovery"
+              name="compliance/export"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="enterprise"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Compliance Export"
+                  id="admin.sidebar.complianceExport"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="compliance.custom_terms_of_service_feature_discovery"
+              key="compliance.custom_terms_of_service_feature_discovery"
+              name="compliance/custom_terms_of_service"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="enterprise"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Custom Terms of Service"
+                  id="admin.sidebar.customTermsOfService"
                 />
               }
             />
@@ -4764,6 +5428,30 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               }
             />
             <AdminSidebarSection
+              definitionKey="user_management.groups_feature_discovery"
+              key="user_management.groups_feature_discovery"
+              name="user_management/groups"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="enterprise"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Groups"
+                  id="admin.sidebar.groups"
+                />
+              }
+            />
+            <AdminSidebarSection
               definitionKey="user_management.teams"
               key="user_management.teams"
               name="user_management/teams"
@@ -4793,6 +5481,30 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Permissions"
                   id="admin.sidebar.permissions"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="user_management.system_roles_feature_discovery"
+              key="user_management.system_roles_feature_discovery"
+              name="user_management/system_roles"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="enterprise"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Delegated Granular Administration"
+                  id="admin.sidebar.systemRoles"
                 />
               }
             />
@@ -4936,6 +5648,30 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
                 />
               }
             />
+            <AdminSidebarSection
+              definitionKey="environment.mobile_security_feature_discovery"
+              key="environment.mobile_security_feature_discovery"
+              name="environment/mobile_security_feature_discovery"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Mobile Security"
+                  id="admin.sidebar.mobileSecurity"
+                />
+              }
+            />
           </AdminSidebarCategory>
           <AdminSidebarCategory
             definitionKey="site"
@@ -4996,6 +5732,30 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Notifications"
                   id="admin.sidebar.notifications"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="site.announcement_banner_feature_discovery"
+              key="site.announcement_banner_feature_discovery"
+              name="site_config/announcement_banner"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="System-wide Notifications"
+                  id="admin.sidebar.announcement"
                 />
               }
             />
@@ -5118,13 +5878,122 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               }
             />
             <AdminSidebarSection
-              definitionKey="authentication.gitlab"
-              key="authentication.gitlab"
+              definitionKey="authentication.ldap_feature_discovery"
+              key="authentication.ldap_feature_discovery"
+              name="authentication/ldap"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="AD/LDAP"
+                  id="admin.sidebar.ldap"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="authentication.saml_feature_discovery"
+              key="authentication.saml_feature_discovery"
+              name="authentication/saml"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="SAML 2.0"
+                  id="admin.sidebar.saml"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="authentication.openid_feature_discovery"
+              key="authentication.openid_feature_discovery"
+              name="authentication/openid"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="OpenID Connect"
+                  id="admin.sidebar.openid"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="authentication.gitlab_feature_discovery"
+              key="authentication.gitlab_feature_discovery"
               name="authentication/gitlab"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
               title={
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="GitLab"
                   id="admin.sidebar.gitlab"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="authentication.guest_access_feature_discovery"
+              key="authentication.guest_access_feature_discovery"
+              name="authentication/guest_access"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Guest Access"
+                  id="admin.sidebar.guest_access"
                 />
               }
             />
@@ -5234,6 +6103,97 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Embedding"
                   id="admin.sidebar.embedding"
+                />
+              }
+            />
+          </AdminSidebarCategory>
+          <AdminSidebarCategory
+            definitionKey="compliance"
+            icon={
+              <FormatListBulletedIcon
+                color="currentColor"
+                size={16}
+              />
+            }
+            key="compliance"
+            parentLink="/admin_console"
+            sectionClass=""
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Compliance"
+                id="admin.sidebar.compliance"
+              />
+            }
+          >
+            <AdminSidebarSection
+              definitionKey="compliance.data_retention_feature_discovery"
+              key="compliance.data_retention_feature_discovery"
+              name="compliance/data_retention"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="enterprise"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Data Retention Policy"
+                  id="admin.sidebar.dataRetentionPolicy"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="compliance.compliance_export_feature_discovery"
+              key="compliance.compliance_export_feature_discovery"
+              name="compliance/export"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="enterprise"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Compliance Export"
+                  id="admin.sidebar.complianceExport"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="compliance.custom_terms_of_service_feature_discovery"
+              key="compliance.custom_terms_of_service_feature_discovery"
+              name="compliance/custom_terms_of_service"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="enterprise"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Custom Terms of Service"
+                  id="admin.sidebar.customTermsOfService"
                 />
               }
             />
@@ -5442,6 +6402,30 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               }
             />
             <AdminSidebarSection
+              definitionKey="user_management.groups_feature_discovery"
+              key="user_management.groups_feature_discovery"
+              name="user_management/groups"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="enterprise"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Groups"
+                  id="admin.sidebar.groups"
+                />
+              }
+            />
+            <AdminSidebarSection
               definitionKey="user_management.teams"
               key="user_management.teams"
               name="user_management/teams"
@@ -5471,6 +6455,30 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Permissions"
                   id="admin.sidebar.permissions"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="user_management.system_roles_feature_discovery"
+              key="user_management.system_roles_feature_discovery"
+              name="user_management/system_roles"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="enterprise"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Delegated Granular Administration"
+                  id="admin.sidebar.systemRoles"
                 />
               }
             />
@@ -5614,6 +6622,30 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
                 />
               }
             />
+            <AdminSidebarSection
+              definitionKey="environment.mobile_security_feature_discovery"
+              key="environment.mobile_security_feature_discovery"
+              name="environment/mobile_security_feature_discovery"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Mobile Security"
+                  id="admin.sidebar.mobileSecurity"
+                />
+              }
+            />
           </AdminSidebarCategory>
           <AdminSidebarCategory
             definitionKey="site"
@@ -5674,6 +6706,30 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Notifications"
                   id="admin.sidebar.notifications"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="site.announcement_banner_feature_discovery"
+              key="site.announcement_banner_feature_discovery"
+              name="site_config/announcement_banner"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="System-wide Notifications"
+                  id="admin.sidebar.announcement"
                 />
               }
             />
@@ -5796,13 +6852,122 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               }
             />
             <AdminSidebarSection
-              definitionKey="authentication.gitlab"
-              key="authentication.gitlab"
+              definitionKey="authentication.ldap_feature_discovery"
+              key="authentication.ldap_feature_discovery"
+              name="authentication/ldap"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="AD/LDAP"
+                  id="admin.sidebar.ldap"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="authentication.saml_feature_discovery"
+              key="authentication.saml_feature_discovery"
+              name="authentication/saml"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="SAML 2.0"
+                  id="admin.sidebar.saml"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="authentication.openid_feature_discovery"
+              key="authentication.openid_feature_discovery"
+              name="authentication/openid"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="OpenID Connect"
+                  id="admin.sidebar.openid"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="authentication.gitlab_feature_discovery"
+              key="authentication.gitlab_feature_discovery"
               name="authentication/gitlab"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
               title={
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="GitLab"
                   id="admin.sidebar.gitlab"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="authentication.guest_access_feature_discovery"
+              key="authentication.guest_access_feature_discovery"
+              name="authentication/guest_access"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Guest Access"
+                  id="admin.sidebar.guest_access"
                 />
               }
             />
@@ -5912,6 +7077,97 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Embedding"
                   id="admin.sidebar.embedding"
+                />
+              }
+            />
+          </AdminSidebarCategory>
+          <AdminSidebarCategory
+            definitionKey="compliance"
+            icon={
+              <FormatListBulletedIcon
+                color="currentColor"
+                size={16}
+              />
+            }
+            key="compliance"
+            parentLink="/admin_console"
+            sectionClass=""
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Compliance"
+                id="admin.sidebar.compliance"
+              />
+            }
+          >
+            <AdminSidebarSection
+              definitionKey="compliance.data_retention_feature_discovery"
+              key="compliance.data_retention_feature_discovery"
+              name="compliance/data_retention"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="enterprise"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Data Retention Policy"
+                  id="admin.sidebar.dataRetentionPolicy"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="compliance.compliance_export_feature_discovery"
+              key="compliance.compliance_export_feature_discovery"
+              name="compliance/export"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="enterprise"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Compliance Export"
+                  id="admin.sidebar.complianceExport"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="compliance.custom_terms_of_service_feature_discovery"
+              key="compliance.custom_terms_of_service_feature_discovery"
+              name="compliance/custom_terms_of_service"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="enterprise"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Custom Terms of Service"
+                  id="admin.sidebar.customTermsOfService"
                 />
               }
             />
@@ -7524,6 +8780,30 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="OpenID Connect"
                   id="admin.sidebar.openid"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="authentication.gitlab_feature_discovery"
+              key="authentication.gitlab_feature_discovery"
+              name="authentication/gitlab"
+              restrictedIndicator={
+                <RestrictedIndicator
+                  blocked={true}
+                  minimumPlanRequiredForFeature="professional"
+                  tooltipMessageBlocked={
+                    Object {
+                      "defaultMessage": "This is {article} {minimumPlanRequiredForFeature} feature, available with an upgrade or free {trialLength}-day trial",
+                      "id": "admin.sidebar.restricted_indicator.tooltip.message.blocked",
+                    }
+                  }
+                  useModal={false}
+                />
+              }
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="GitLab"
+                  id="admin.sidebar.gitlab"
                 />
               }
             />

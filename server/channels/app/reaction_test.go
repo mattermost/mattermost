@@ -4,6 +4,7 @@
 package app
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -94,6 +95,121 @@ func TestSaveReactionForPost(t *testing.T) {
 		result, err := th.App.SaveReactionForPost(th.Context, reaction)
 		require.Nil(t, err)
 		require.NotNil(t, result)
+	})
+
+	t.Run("cannot save reaction in restricted DM", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.RestrictDirectMessage = model.DirectMessageTeam
+		})
+
+		// Create a DM channel between two users who don't share a team
+		dmChannel := th.CreateDmChannel(th.BasicUser2)
+
+		// Ensure the two users do not share a team
+		teams, err := th.App.GetTeamsForUser(th.BasicUser.Id)
+		require.Nil(t, err)
+		for _, team := range teams {
+			teamErr := th.App.RemoveUserFromTeam(th.Context, team.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+			require.Nil(t, teamErr)
+		}
+		teams, err = th.App.GetTeamsForUser(th.BasicUser2.Id)
+		require.Nil(t, err)
+		for _, team := range teams {
+			teamErr := th.App.RemoveUserFromTeam(th.Context, team.Id, th.BasicUser2.Id, th.SystemAdminUser.Id)
+			require.Nil(t, teamErr)
+		}
+
+		// Create separate teams for each user
+		team1 := th.CreateTeam()
+		team2 := th.CreateTeam()
+		th.LinkUserToTeam(th.BasicUser, team1)
+		th.LinkUserToTeam(th.BasicUser2, team2)
+
+		// Create a post in the DM channel
+		post := &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: dmChannel.Id,
+			Message:   "test post",
+		}
+		post, err = th.App.CreatePost(th.Context, post, dmChannel, model.CreatePostFlags{})
+		require.Nil(t, err)
+
+		reaction := &model.Reaction{
+			UserId:    th.BasicUser.Id,
+			PostId:    post.Id,
+			EmojiName: "smile",
+		}
+
+		_, appErr := th.App.SaveReactionForPost(th.Context, reaction)
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.reaction.save.restricted_dm.error", appErr.Id)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+
+		// Reset config
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.RestrictDirectMessage = model.DirectMessageAny
+		})
+	})
+}
+
+func TestDeleteReactionForPostWithRestrictedDM(t *testing.T) {
+	mainHelper.Parallel(t)
+	t.Run("cannot delete reaction in restricted DM", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.RestrictDirectMessage = model.DirectMessageTeam
+		})
+
+		// Create a DM channel between two users who don't share a team
+		dmChannel := th.CreateDmChannel(th.BasicUser2)
+
+		// Ensure the two users do not share a team
+		teams, err := th.App.GetTeamsForUser(th.BasicUser.Id)
+		require.Nil(t, err)
+		for _, team := range teams {
+			teamErr := th.App.RemoveUserFromTeam(th.Context, team.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+			require.Nil(t, teamErr)
+		}
+		teams, err = th.App.GetTeamsForUser(th.BasicUser2.Id)
+		require.Nil(t, err)
+		for _, team := range teams {
+			teamErr := th.App.RemoveUserFromTeam(th.Context, team.Id, th.BasicUser2.Id, th.SystemAdminUser.Id)
+			require.Nil(t, teamErr)
+		}
+
+		// Create separate teams for each user
+		team1 := th.CreateTeam()
+		team2 := th.CreateTeam()
+		th.LinkUserToTeam(th.BasicUser, team1)
+		th.LinkUserToTeam(th.BasicUser2, team2)
+
+		// Create a post in the DM channel
+		post := &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: dmChannel.Id,
+			Message:   "test post",
+		}
+		post, err = th.App.CreatePost(th.Context, post, dmChannel, model.CreatePostFlags{})
+		require.Nil(t, err)
+
+		reaction := &model.Reaction{
+			UserId:    th.BasicUser.Id,
+			PostId:    post.Id,
+			EmojiName: "smile",
+		}
+
+		appErr := th.App.DeleteReactionForPost(th.Context, reaction)
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.reaction.delete.restricted_dm.error", appErr.Id)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+
+		// Reset config
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.RestrictDirectMessage = model.DirectMessageAny
+		})
 	})
 }
 

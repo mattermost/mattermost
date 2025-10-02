@@ -40,6 +40,7 @@ import {getCloudSubscription} from 'mattermost-redux/actions/cloud';
 import {clearErrors, logError} from 'mattermost-redux/actions/errors';
 import {setServerVersion, getClientConfig, getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {getGroup as fetchGroup} from 'mattermost-redux/actions/groups';
+import {getServerLimits} from 'mattermost-redux/actions/limits';
 import {
     getCustomEmojiForReaction,
     getPosts,
@@ -913,6 +914,11 @@ export function handleLeaveTeamEvent(msg) {
         });
     }
 
+    const config = getConfig(state);
+    if (config.RestrictDirectMessage === 'team') {
+        actions.push({type: ChannelTypes.RESTRICTED_DMS_TEAMS_CHANGED});
+    }
+
     dispatch(batchActions(actions));
     const currentUser = getCurrentUser(state);
 
@@ -1068,6 +1074,10 @@ function handleUserAddedEvent(msg) {
         // This event is fired when a user first joins the server, so refresh analytics to see if we're now over the user limit
         if (license.Cloud === 'true' && isCurrentUserSystemAdmin(doGetState())) {
             doDispatch(getStandardAnalytics());
+        }
+
+        if (msg.data.team_id && config.RestrictDirectMessage === 'team') {
+            dispatch({type: ChannelTypes.RESTRICTED_DMS_TEAMS_CHANGED});
         }
     };
 }
@@ -1407,6 +1417,9 @@ function handleConfigChanged(msg) {
 
 function handleLicenseChanged(msg) {
     store.dispatch({type: GeneralTypes.CLIENT_LICENSE_RECEIVED, data: msg.data.license});
+
+    // Refresh server limits when license changes since limits may have changed
+    dispatch(getServerLimits());
 }
 
 function handlePluginStatusesChangedEvent(msg) {

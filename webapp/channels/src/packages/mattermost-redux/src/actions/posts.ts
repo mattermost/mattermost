@@ -1014,8 +1014,10 @@ export async function getMentionsAndStatusesForPosts(postsArrayOrMap: Post[]|Pos
         const loadedProfiles = new Set<string>((data || []).map((p) => p.username));
         const groupsToCheck = Array.from(usernamesAndGroupsToLoad).filter((name) => !loadedProfiles.has(name));
 
-        const getGroupsPromise = dispatch(getGroupsByNames(groupsToCheck));
-        promises.push(getGroupsPromise);
+        if (groupsToCheck.length > 0) {
+            const getGroupsPromise = dispatch(getGroupsByNames(groupsToCheck));
+            promises.push(getGroupsPromise);
+        }
     }
 
     return Promise.all(promises);
