@@ -11,6 +11,7 @@ import ChannelsSidebarRight from './channels/sidebar_right';
 import ChannelSettingsModal from './channels/channel_settings/channel_settings_modal';
 import DeletePostModal from './channels/delete_post_modal';
 import FindChannelsModal from './channels/find_channels_modal';
+import InvitePeopleModal from './channels/invite_people_modal';
 import SettingsModal from './channels/settings/settings_modal';
 import Footer from './footer';
 import GlobalHeader from './global_header';
@@ -28,6 +29,8 @@ import ScheduleMessageModal from './channels/schedule_message_modal';
 import ScheduledPostIndicator from './channels/scheduled_post_indicator';
 import ScheduledDraftModal from './channels/scheduled_draft_modal';
 import UserAccountMenu from './user_account_menu';
+import TeamMenu from './channels/team_menu';
+import TeamSettingsModal from './channels/team_settings/team_settings_modal';
 import ProfileModal from './channels/profile_modal';
 import UserProfilePopover from './channels/user_profile_popover';
 import SystemConsoleSidebar from './system_console/sidebar';
@@ -62,6 +65,7 @@ const components = {
     FindChannelsModal,
     DeletePostModal,
     DeleteScheduledPostModal,
+    InvitePeopleModal,
     SettingsModal,
     PostDotMenu,
     PostMenu,
@@ -88,6 +92,8 @@ const components = {
     MessagePriority,
     UserProfilePopover,
     UserAccountMenu,
+    TeamMenu,
+    TeamSettingsModal,
     DeletePostConfirmationDialog,
     RestorePostConfirmationDialog,
     ProfileModal,
@@ -110,6 +116,7 @@ export {
     FindChannelsModal,
     DeletePostModal,
     DeleteScheduledPostModal,
+    InvitePeopleModal,
     SettingsModal,
     PostDotMenu,
     PostMenu,
@@ -136,6 +143,8 @@ export {
     MessagePriority,
     UserProfilePopover,
     UserAccountMenu,
+    TeamMenu,
+    TeamSettingsModal,
     DeletePostConfirmationDialog,
     RestorePostConfirmationDialog,
     ProfileModal,
