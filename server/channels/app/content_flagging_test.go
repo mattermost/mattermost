@@ -392,8 +392,8 @@ func TestGetContentReviewChannels(t *testing.T) {
 		defer func() {
 			_ = th.App.PermanentDeleteUser(th.Context, teamAdmin)
 		}()
-
 		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, teamAdmin.Id, "")
+
 		require.Nil(t, appErr)
 
 		_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, model.TeamAdminRoleId)
@@ -790,7 +790,6 @@ func TestFlagPost(t *testing.T) {
 	defer th.TearDown()
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-
 	getBaseConfig := func() model.ContentFlaggingSettingsRequest {
 		cfg := model.ContentFlaggingSettingsRequest{}
 		cfg.SetDefaults()
@@ -966,6 +965,7 @@ func TestFlagPost(t *testing.T) {
 		}
 
 		appErr = th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
+
 		require.Nil(t, appErr)
 
 		// The reviewer posts are created async in a go routine. Wait for a short time to allow it to complete.
@@ -1044,6 +1044,7 @@ func TestFlagPost(t *testing.T) {
 
 		beforeTime := model.GetMillis()
 		appErr = th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
+
 		afterTime := model.GetMillis()
 		require.Nil(t, appErr)
 

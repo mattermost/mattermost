@@ -359,6 +359,7 @@ func TestGetFlaggedPost(t *testing.T) {
 
 	t.Run("Should return 403 when user is not a reviewer", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
 		config := model.ContentFlaggingSettingsRequest{
 			ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
 				EnableContentFlagging: model.NewPointer(true),
