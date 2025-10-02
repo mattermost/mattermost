@@ -40,70 +40,70 @@ func TestUserStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 		require.NoError(t, err, "failed cleaning up test user %s", u.Username)
 	}
 
-	//t.Run("IsEmpty", func(t *testing.T) { testIsEmpty(t, rctx, ss) })
-	//t.Run("Count", func(t *testing.T) { testCount(t, rctx, ss) })
-	//t.Run("AnalyticsActiveCount", func(t *testing.T) { testUserStoreAnalyticsActiveCount(t, rctx, ss, s) })
-	//t.Run("AnalyticsActiveCountForPeriod", func(t *testing.T) { testUserStoreAnalyticsActiveCountForPeriod(t, rctx, ss, s) })
-	//t.Run("AnalyticsGetInactiveUsersCount", func(t *testing.T) { testUserStoreAnalyticsGetInactiveUsersCount(t, rctx, ss) })
-	//t.Run("AnalyticsGetInactiveUsersCountIgnoreBots", func(t *testing.T) { testUserStoreAnalyticsGetInactiveUsersCountIgnoreBots(t, rctx, ss) })
-	//t.Run("AnalyticsGetSystemAdminCount", func(t *testing.T) { testUserStoreAnalyticsGetSystemAdminCount(t, rctx, ss) })
-	//t.Run("AnalyticsGetGuestCount", func(t *testing.T) { testUserStoreAnalyticsGetGuestCount(t, rctx, ss) })
-	//t.Run("AnalyticsGetExternalUsers", func(t *testing.T) { testUserStoreAnalyticsGetExternalUsers(t, rctx, ss) })
-	//t.Run("Save", func(t *testing.T) { testUserStoreSave(t, rctx, ss) })
-	//t.Run("Update", func(t *testing.T) { testUserStoreUpdate(t, rctx, ss) })
-	//t.Run("UpdateUpdateAt", func(t *testing.T) { testUserStoreUpdateUpdateAt(t, rctx, ss) })
-	//t.Run("UpdateFailedPasswordAttempts", func(t *testing.T) { testUserStoreUpdateFailedPasswordAttempts(t, rctx, ss) })
-	//t.Run("Get", func(t *testing.T) { testUserStoreGet(t, rctx, ss) })
-	//t.Run("GetAllUsingAuthService", func(t *testing.T) { testGetAllUsingAuthService(t, rctx, ss) })
-	//t.Run("GetAllProfiles", func(t *testing.T) { testUserStoreGetAllProfiles(t, rctx, ss) })
-	//t.Run("GetProfiles", func(t *testing.T) { testUserStoreGetProfiles(t, rctx, ss) })
-	//t.Run("GetProfilesInChannel", func(t *testing.T) { testUserStoreGetProfilesInChannel(t, rctx, ss) })
-	//t.Run("GetProfilesInChannelByStatus", func(t *testing.T) { testUserStoreGetProfilesInChannelByStatus(t, rctx, ss, s) })
-	//t.Run("GetProfilesInChannelByAdmin", func(t *testing.T) { testUserStoreGetProfilesInChannelByAdmin(t, rctx, ss, s) })
-	//t.Run("GetProfilesWithoutTeam", func(t *testing.T) { testUserStoreGetProfilesWithoutTeam(t, rctx, ss) })
-	//t.Run("GetAllProfilesInChannel", func(t *testing.T) { testUserStoreGetAllProfilesInChannel(t, rctx, ss) })
-	//t.Run("GetProfilesNotInChannel", func(t *testing.T) { testUserStoreGetProfilesNotInChannel(t, rctx, ss) })
-	//t.Run("GetProfilesByIds", func(t *testing.T) { testUserStoreGetProfilesByIds(t, rctx, ss) })
-	//t.Run("GetProfileByGroupChannelIdsForUser", func(t *testing.T) { testUserStoreGetProfileByGroupChannelIdsForUser(t, rctx, ss) })
-	//t.Run("GetProfilesByUsernames", func(t *testing.T) { testUserStoreGetProfilesByUsernames(t, rctx, ss) })
-	//t.Run("GetSystemAdminProfiles", func(t *testing.T) { testUserStoreGetSystemAdminProfiles(t, rctx, ss) })
-	//t.Run("GetByEmail", func(t *testing.T) { testUserStoreGetByEmail(t, rctx, ss) })
-	//t.Run("GetByAuthData", func(t *testing.T) { testUserStoreGetByAuthData(t, rctx, ss) })
-	//t.Run("GetByUsername", func(t *testing.T) { testUserStoreGetByUsername(t, rctx, ss) })
-	//t.Run("GetForLogin", func(t *testing.T) { testUserStoreGetForLogin(t, rctx, ss) })
-	//t.Run("UpdatePassword", func(t *testing.T) { testUserStoreUpdatePassword(t, rctx, ss) })
-	//t.Run("Delete", func(t *testing.T) { testUserStoreDelete(t, rctx, ss) })
-	//t.Run("UpdateAuthData", func(t *testing.T) { testUserStoreUpdateAuthData(t, rctx, ss) })
-	//t.Run("ResetAuthDataToEmailForUsers", func(t *testing.T) { testUserStoreResetAuthDataToEmailForUsers(t, rctx, ss) })
-	//t.Run("UserUnreadCount", func(t *testing.T) { testUserUnreadCount(t, rctx, ss) })
-	//t.Run("UpdateMfaSecret", func(t *testing.T) { testUserStoreUpdateMfaSecret(t, rctx, ss) })
-	//t.Run("UpdateMfaActive", func(t *testing.T) { testUserStoreUpdateMfaActive(t, rctx, ss) })
-	//t.Run("GetRecentlyActiveUsersForTeam", func(t *testing.T) { testUserStoreGetRecentlyActiveUsersForTeam(t, rctx, ss, s) })
-	//t.Run("GetNewUsersForTeam", func(t *testing.T) { testUserStoreGetNewUsersForTeam(t, rctx, ss) })
-	//t.Run("Search", func(t *testing.T) { testUserStoreSearch(t, rctx, ss) })
-	//t.Run("SearchNotInChannel", func(t *testing.T) { testUserStoreSearchNotInChannel(t, rctx, ss) })
-	//t.Run("SearchInChannel", func(t *testing.T) { testUserStoreSearchInChannel(t, rctx, ss) })
-	//t.Run("SearchNotInTeam", func(t *testing.T) { testUserStoreSearchNotInTeam(t, rctx, ss) })
-	//t.Run("SearchWithoutTeam", func(t *testing.T) { testUserStoreSearchWithoutTeam(t, rctx, ss) })
-	//t.Run("SearchInGroup", func(t *testing.T) { testUserStoreSearchInGroup(t, rctx, ss) })
-	//t.Run("SearchNotInGroup", func(t *testing.T) { testUserStoreSearchNotInGroup(t, rctx, ss) })
+	t.Run("IsEmpty", func(t *testing.T) { testIsEmpty(t, rctx, ss) })
+	t.Run("Count", func(t *testing.T) { testCount(t, rctx, ss) })
+	t.Run("AnalyticsActiveCount", func(t *testing.T) { testUserStoreAnalyticsActiveCount(t, rctx, ss, s) })
+	t.Run("AnalyticsActiveCountForPeriod", func(t *testing.T) { testUserStoreAnalyticsActiveCountForPeriod(t, rctx, ss, s) })
+	t.Run("AnalyticsGetInactiveUsersCount", func(t *testing.T) { testUserStoreAnalyticsGetInactiveUsersCount(t, rctx, ss) })
+	t.Run("AnalyticsGetInactiveUsersCountIgnoreBots", func(t *testing.T) { testUserStoreAnalyticsGetInactiveUsersCountIgnoreBots(t, rctx, ss) })
+	t.Run("AnalyticsGetSystemAdminCount", func(t *testing.T) { testUserStoreAnalyticsGetSystemAdminCount(t, rctx, ss) })
+	t.Run("AnalyticsGetGuestCount", func(t *testing.T) { testUserStoreAnalyticsGetGuestCount(t, rctx, ss) })
+	t.Run("AnalyticsGetExternalUsers", func(t *testing.T) { testUserStoreAnalyticsGetExternalUsers(t, rctx, ss) })
+	t.Run("Save", func(t *testing.T) { testUserStoreSave(t, rctx, ss) })
+	t.Run("Update", func(t *testing.T) { testUserStoreUpdate(t, rctx, ss) })
+	t.Run("UpdateUpdateAt", func(t *testing.T) { testUserStoreUpdateUpdateAt(t, rctx, ss) })
+	t.Run("UpdateFailedPasswordAttempts", func(t *testing.T) { testUserStoreUpdateFailedPasswordAttempts(t, rctx, ss) })
+	t.Run("Get", func(t *testing.T) { testUserStoreGet(t, rctx, ss) })
+	t.Run("GetAllUsingAuthService", func(t *testing.T) { testGetAllUsingAuthService(t, rctx, ss) })
+	t.Run("GetAllProfiles", func(t *testing.T) { testUserStoreGetAllProfiles(t, rctx, ss) })
+	t.Run("GetProfiles", func(t *testing.T) { testUserStoreGetProfiles(t, rctx, ss) })
+	t.Run("GetProfilesInChannel", func(t *testing.T) { testUserStoreGetProfilesInChannel(t, rctx, ss) })
+	t.Run("GetProfilesInChannelByStatus", func(t *testing.T) { testUserStoreGetProfilesInChannelByStatus(t, rctx, ss, s) })
+	t.Run("GetProfilesInChannelByAdmin", func(t *testing.T) { testUserStoreGetProfilesInChannelByAdmin(t, rctx, ss, s) })
+	t.Run("GetProfilesWithoutTeam", func(t *testing.T) { testUserStoreGetProfilesWithoutTeam(t, rctx, ss) })
+	t.Run("GetAllProfilesInChannel", func(t *testing.T) { testUserStoreGetAllProfilesInChannel(t, rctx, ss) })
+	t.Run("GetProfilesNotInChannel", func(t *testing.T) { testUserStoreGetProfilesNotInChannel(t, rctx, ss) })
+	t.Run("GetProfilesByIds", func(t *testing.T) { testUserStoreGetProfilesByIds(t, rctx, ss) })
+	t.Run("GetProfileByGroupChannelIdsForUser", func(t *testing.T) { testUserStoreGetProfileByGroupChannelIdsForUser(t, rctx, ss) })
+	t.Run("GetProfilesByUsernames", func(t *testing.T) { testUserStoreGetProfilesByUsernames(t, rctx, ss) })
+	t.Run("GetSystemAdminProfiles", func(t *testing.T) { testUserStoreGetSystemAdminProfiles(t, rctx, ss) })
+	t.Run("GetByEmail", func(t *testing.T) { testUserStoreGetByEmail(t, rctx, ss) })
+	t.Run("GetByAuthData", func(t *testing.T) { testUserStoreGetByAuthData(t, rctx, ss) })
+	t.Run("GetByUsername", func(t *testing.T) { testUserStoreGetByUsername(t, rctx, ss) })
+	t.Run("GetForLogin", func(t *testing.T) { testUserStoreGetForLogin(t, rctx, ss) })
+	t.Run("UpdatePassword", func(t *testing.T) { testUserStoreUpdatePassword(t, rctx, ss) })
+	t.Run("Delete", func(t *testing.T) { testUserStoreDelete(t, rctx, ss) })
+	t.Run("UpdateAuthData", func(t *testing.T) { testUserStoreUpdateAuthData(t, rctx, ss) })
+	t.Run("ResetAuthDataToEmailForUsers", func(t *testing.T) { testUserStoreResetAuthDataToEmailForUsers(t, rctx, ss) })
+	t.Run("UserUnreadCount", func(t *testing.T) { testUserUnreadCount(t, rctx, ss) })
+	t.Run("UpdateMfaSecret", func(t *testing.T) { testUserStoreUpdateMfaSecret(t, rctx, ss) })
+	t.Run("UpdateMfaActive", func(t *testing.T) { testUserStoreUpdateMfaActive(t, rctx, ss) })
+	t.Run("GetRecentlyActiveUsersForTeam", func(t *testing.T) { testUserStoreGetRecentlyActiveUsersForTeam(t, rctx, ss, s) })
+	t.Run("GetNewUsersForTeam", func(t *testing.T) { testUserStoreGetNewUsersForTeam(t, rctx, ss) })
+	t.Run("Search", func(t *testing.T) { testUserStoreSearch(t, rctx, ss) })
+	t.Run("SearchNotInChannel", func(t *testing.T) { testUserStoreSearchNotInChannel(t, rctx, ss) })
+	t.Run("SearchInChannel", func(t *testing.T) { testUserStoreSearchInChannel(t, rctx, ss) })
+	t.Run("SearchNotInTeam", func(t *testing.T) { testUserStoreSearchNotInTeam(t, rctx, ss) })
+	t.Run("SearchWithoutTeam", func(t *testing.T) { testUserStoreSearchWithoutTeam(t, rctx, ss) })
+	t.Run("SearchInGroup", func(t *testing.T) { testUserStoreSearchInGroup(t, rctx, ss) })
+	t.Run("SearchNotInGroup", func(t *testing.T) { testUserStoreSearchNotInGroup(t, rctx, ss) })
 	t.Run("SearchCommonContentFlaggingReviewers", func(t *testing.T) { testUserStoreSearchCommonContentFlaggingReviewers(t, rctx, ss) })
 	t.Run("SearchTeamContentFlaggingReviewers", func(t *testing.T) { testUserStoreSearchTeamContentFlaggingReviewers(t, rctx, ss) })
-	//t.Run("GetProfilesNotInTeam", func(t *testing.T) { testUserStoreGetProfilesNotInTeam(t, rctx, ss) })
-	//t.Run("ClearAllCustomRoleAssignments", func(t *testing.T) { testUserStoreClearAllCustomRoleAssignments(t, rctx, ss) })
-	//t.Run("GetAllAfter", func(t *testing.T) { testUserStoreGetAllAfter(t, rctx, ss) })
-	//t.Run("GetUsersBatchForIndexing", func(t *testing.T) { testUserStoreGetUsersBatchForIndexing(t, rctx, ss) })
-	//t.Run("GetTeamGroupUsers", func(t *testing.T) { testUserStoreGetTeamGroupUsers(t, rctx, ss) })
-	//t.Run("GetChannelGroupUsers", func(t *testing.T) { testUserStoreGetChannelGroupUsers(t, rctx, ss) })
-	//t.Run("PromoteGuestToUser", func(t *testing.T) { testUserStorePromoteGuestToUser(t, rctx, ss) })
-	//t.Run("DemoteUserToGuest", func(t *testing.T) { testUserStoreDemoteUserToGuest(t, rctx, ss) })
-	//t.Run("DeactivateGuests", func(t *testing.T) { testDeactivateGuests(t, rctx, ss) })
-	//t.Run("ResetLastPictureUpdate", func(t *testing.T) { testUserStoreResetLastPictureUpdate(t, rctx, ss) })
-	//t.Run("GetKnownUsers", func(t *testing.T) { testGetKnownUsers(t, rctx, ss) })
-	//t.Run("GetUsersWithInvalidEmails", func(t *testing.T) { testGetUsersWithInvalidEmails(t, rctx, ss) })
-	//t.Run("UpdateLastLogin", func(t *testing.T) { testUpdateLastLogin(t, rctx, ss) })
-	//t.Run("GetUserReport", func(t *testing.T) { testGetUserReport(t, rctx, ss, s) })
-	//t.Run("MfaUsedTimestamps", func(t *testing.T) { testMfaUsedTimestamps(t, rctx, ss) })
+	t.Run("GetProfilesNotInTeam", func(t *testing.T) { testUserStoreGetProfilesNotInTeam(t, rctx, ss) })
+	t.Run("ClearAllCustomRoleAssignments", func(t *testing.T) { testUserStoreClearAllCustomRoleAssignments(t, rctx, ss) })
+	t.Run("GetAllAfter", func(t *testing.T) { testUserStoreGetAllAfter(t, rctx, ss) })
+	t.Run("GetUsersBatchForIndexing", func(t *testing.T) { testUserStoreGetUsersBatchForIndexing(t, rctx, ss) })
+	t.Run("GetTeamGroupUsers", func(t *testing.T) { testUserStoreGetTeamGroupUsers(t, rctx, ss) })
+	t.Run("GetChannelGroupUsers", func(t *testing.T) { testUserStoreGetChannelGroupUsers(t, rctx, ss) })
+	t.Run("PromoteGuestToUser", func(t *testing.T) { testUserStorePromoteGuestToUser(t, rctx, ss) })
+	t.Run("DemoteUserToGuest", func(t *testing.T) { testUserStoreDemoteUserToGuest(t, rctx, ss) })
+	t.Run("DeactivateGuests", func(t *testing.T) { testDeactivateGuests(t, rctx, ss) })
+	t.Run("ResetLastPictureUpdate", func(t *testing.T) { testUserStoreResetLastPictureUpdate(t, rctx, ss) })
+	t.Run("GetKnownUsers", func(t *testing.T) { testGetKnownUsers(t, rctx, ss) })
+	t.Run("GetUsersWithInvalidEmails", func(t *testing.T) { testGetUsersWithInvalidEmails(t, rctx, ss) })
+	t.Run("UpdateLastLogin", func(t *testing.T) { testUpdateLastLogin(t, rctx, ss) })
+	t.Run("GetUserReport", func(t *testing.T) { testGetUserReport(t, rctx, ss, s) })
+	t.Run("MfaUsedTimestamps", func(t *testing.T) { testMfaUsedTimestamps(t, rctx, ss) })
 }
 
 func testUserStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -6685,41 +6685,41 @@ func testUserStoreSearchCommonContentFlaggingReviewers(t *testing.T, rctx reques
 	ss.ContentFlagging().ClearCaches()
 
 	// Create test users
-	u1, err := ss.User().Save(rctx, &model.User{
+	u1, saveErr := ss.User().Save(rctx, &model.User{
 		Email:     MakeEmail(),
 		Username:  "reviewer1" + model.NewId(),
 		FirstName: "John",
 		LastName:  "Reviewer",
 		Nickname:  "johnny",
 	})
-	require.NoError(t, err)
+	require.NoError(t, saveErr)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u1.Id)) }()
 
-	u2, err := ss.User().Save(rctx, &model.User{
+	u2, saveErr := ss.User().Save(rctx, &model.User{
 		Email:     MakeEmail(),
 		Username:  "reviewer2" + model.NewId(),
 		FirstName: "Jane",
 		LastName:  "Smith",
 		Nickname:  "janie",
 	})
-	require.NoError(t, err)
+	require.NoError(t, saveErr)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u2.Id)) }()
 
-	u3, err := ss.User().Save(rctx, &model.User{
+	u3, saveErr := ss.User().Save(rctx, &model.User{
 		Email:    MakeEmail(),
 		Username: "notreviewer" + model.NewId(),
 		DeleteAt: model.GetMillis(), // Inactive user
 	})
-	require.NoError(t, err)
+	require.NoError(t, saveErr)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u3.Id)) }()
 
-	u4, err := ss.User().Save(rctx, &model.User{
+	u4, saveErr := ss.User().Save(rctx, &model.User{
 		Email:     MakeEmail(),
 		Username:  "otheruser" + model.NewId(),
 		FirstName: "Bob",
 		LastName:  "Johnson",
 	})
-	require.NoError(t, err)
+	require.NoError(t, saveErr)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u4.Id)) }()
 
 	// Set up content flagging reviewer settings with u1 and u2 as common reviewers
@@ -6728,8 +6728,8 @@ func testUserStoreSearchCommonContentFlaggingReviewers(t *testing.T, rctx reques
 		TeamReviewersSetting: map[string]*model.TeamReviewerSetting{},
 	}
 
-	err = ss.ContentFlagging().SaveReviewerSettings(reviewerSettings)
-	require.NoError(t, err)
+	saveErr = ss.ContentFlagging().SaveReviewerSettings(reviewerSettings)
+	require.NoError(t, saveErr)
 
 	t.Run("search with empty term returns all common reviewers", func(t *testing.T) {
 		users, err := ss.User().SearchCommonContentFlaggingReviewers("")
@@ -6788,7 +6788,7 @@ func testUserStoreSearchCommonContentFlaggingReviewers(t *testing.T, rctx reques
 	t.Run("search does not return inactive users", func(t *testing.T) {
 		// Add inactive user as common reviewer
 		reviewerSettings.CommonReviewerIds = append(reviewerSettings.CommonReviewerIds, u3.Id)
-		err = ss.ContentFlagging().SaveReviewerSettings(reviewerSettings)
+		err := ss.ContentFlagging().SaveReviewerSettings(reviewerSettings)
 		require.NoError(t, err)
 
 		users, err := ss.User().SearchCommonContentFlaggingReviewers("notreviewer")
@@ -6810,41 +6810,41 @@ func testUserStoreSearchTeamContentFlaggingReviewers(t *testing.T, rctx request.
 	teamId := model.NewId()
 
 	// Create test users
-	u1, err := ss.User().Save(rctx, &model.User{
+	u1, saveErr := ss.User().Save(rctx, &model.User{
 		Email:     MakeEmail(),
 		Username:  "teamreviewer1" + model.NewId(),
 		FirstName: "Alice",
 		LastName:  "TeamReviewer",
 		Nickname:  "alice",
 	})
-	require.NoError(t, err)
+	require.NoError(t, saveErr)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u1.Id)) }()
 
-	u2, err := ss.User().Save(rctx, &model.User{
+	u2, saveErr := ss.User().Save(rctx, &model.User{
 		Email:     MakeEmail(),
 		Username:  "teamreviewer2" + model.NewId(),
 		FirstName: "Charlie",
 		LastName:  "Brown",
 		Nickname:  "charlie",
 	})
-	require.NoError(t, err)
+	require.NoError(t, saveErr)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u2.Id)) }()
 
-	u3, err := ss.User().Save(rctx, &model.User{
+	u3, saveErr := ss.User().Save(rctx, &model.User{
 		Email:    MakeEmail(),
 		Username: "inactiveteamreviewer" + model.NewId(),
 		DeleteAt: model.GetMillis(), // Inactive user
 	})
-	require.NoError(t, err)
+	require.NoError(t, saveErr)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u3.Id)) }()
 
-	u4, err := ss.User().Save(rctx, &model.User{
+	u4, saveErr := ss.User().Save(rctx, &model.User{
 		Email:     MakeEmail(),
 		Username:  "nonteamreviewer" + model.NewId(),
 		FirstName: "David",
 		LastName:  "Wilson",
 	})
-	require.NoError(t, err)
+	require.NoError(t, saveErr)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u4.Id)) }()
 
 	// Set up content flagging reviewer settings with team-specific reviewers
@@ -6859,8 +6859,8 @@ func testUserStoreSearchTeamContentFlaggingReviewers(t *testing.T, rctx request.
 		},
 	}
 
-	err = ss.ContentFlagging().SaveReviewerSettings(reviewerSettings)
-	require.NoError(t, err)
+	saveErr = ss.ContentFlagging().SaveReviewerSettings(reviewerSettings)
+	require.NoError(t, saveErr)
 
 	t.Run("search with empty term returns all team reviewers", func(t *testing.T) {
 		users, err := ss.User().SearchTeamContentFlaggingReviewers(teamId, "")
@@ -6920,7 +6920,7 @@ func testUserStoreSearchTeamContentFlaggingReviewers(t *testing.T, rctx request.
 		// Add inactive user as team reviewer
 		reviewerSettings.TeamReviewersSetting[teamId].ReviewerIds = append(
 			reviewerSettings.TeamReviewersSetting[teamId].ReviewerIds, u3.Id)
-		err = ss.ContentFlagging().SaveReviewerSettings(reviewerSettings)
+		err := ss.ContentFlagging().SaveReviewerSettings(reviewerSettings)
 		require.NoError(t, err)
 
 		users, err := ss.User().SearchTeamContentFlaggingReviewers(teamId, "inactiveteamreviewer")
