@@ -134,33 +134,6 @@ func withClient(fn func(c client.Client, cmd *cobra.Command, args []string) erro
 	}
 }
 
-// withClientAndExitCode wraps command functions that return (bool, error) to work with cobra.
-// The boolean indicates whether the command should exit with code 1 (true) or 0 (false).
-// This is useful for health check commands where you want to print output and then exit
-// with a specific exit code without displaying error messages.
-//
-// Usage:
-//
-//	RunE: withClientAndExitCode(myCommandFunc)
-//
-// where myCommandFunc has signature:
-//
-//	func(c client.Client, cmd *cobra.Command, args []string) (bool, error)
-func withClientAndExitCode(fn func(c client.Client, cmd *cobra.Command, args []string) (bool, error)) func(cmd *cobra.Command, args []string) error {
-	return withClient(func(c client.Client, cmd *cobra.Command, args []string) error {
-		shouldExit, err := fn(c, cmd, args)
-		if err != nil {
-			return err
-		}
-		if shouldExit {
-			// Flush the printer as the program will exit soon
-			printer.Flush()
-			os.Exit(1)
-		}
-		return nil
-	})
-}
-
 func localOnlyPrecheck(cmd *cobra.Command, args []string) {
 	local := viper.GetBool("local")
 	if !local {

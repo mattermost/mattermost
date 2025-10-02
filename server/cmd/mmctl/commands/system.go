@@ -65,7 +65,7 @@ var SystemStatusCmd = &cobra.Command{
 	Long:    "Prints the server status calculated using several basic server healthchecks",
 	Example: `  system status`,
 	Args:    cobra.NoArgs,
-	RunE:    withClientAndExitCode(systemStatusCmdF),
+	RunE:    withClient(systemStatusCmdF),
 }
 
 var SystemSupportPacketCmd = &cobra.Command{
@@ -148,7 +148,7 @@ func systemVersionCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 	return nil
 }
 
-func systemStatusCmdF(c client.Client, cmd *cobra.Command, _ []string) (bool, error) {
+func systemStatusCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 	printer.SetSingle(true)
 
 	status, _, err := c.GetPingWithOptions(context.TODO(), model.SystemPingOptions{
@@ -156,7 +156,7 @@ func systemStatusCmdF(c client.Client, cmd *cobra.Command, _ []string) (bool, er
 		RESTSemantics: true,
 	})
 	if err != nil {
-		return false, fmt.Errorf("unable to fetch server status: %w", err)
+		return fmt.Errorf("unable to fetch server status: %w", err)
 	}
 
 	printer.PrintT(`Server status: {{.status}}
@@ -169,18 +169,18 @@ Ios Minimum Version: {{.IosMinVersion}}
 Database Status: {{.database_status}}
 Filestore Status: {{.filestore_status}}`, status)
 
-	// Check health status and return true if any component is unhealthy (will cause exit with code 1)
+	// Check health status and return non-zero exit code if any component is unhealthy
 	if status["status"] != model.StatusOk {
-		return true, nil
+		return fmt.Errorf("server status is unhealthy: %s", status["status"])
 	}
 	if dbStatus := status["database_status"]; dbStatus != "" && dbStatus != model.StatusOk {
-		return true, nil
+		return fmt.Errorf("database status is unhealthy: %s", dbStatus)
 	}
 	if filestoreStatus := status["filestore_status"]; filestoreStatus != "" && filestoreStatus != model.StatusOk {
-		return true, nil
+		return fmt.Errorf("filestore status is unhealthy: %s", filestoreStatus)
 	}
 
-	return false, nil
+	return nil
 }
 
 func systemSupportPacketCmdF(c client.Client, cmd *cobra.Command, _ []string) error {

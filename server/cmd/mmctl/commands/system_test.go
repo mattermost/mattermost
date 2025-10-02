@@ -197,8 +197,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 			Return(expectedStatus, &model.Response{}, nil).
 			Times(1)
 
-		shouldExit, err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
-		s.Require().False(shouldExit)
+		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
@@ -218,8 +217,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 			Return(expectedStatus, &model.Response{}, nil).
 			Times(1)
 
-		shouldExit, err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
-		s.Require().False(shouldExit)
+		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
@@ -238,8 +236,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
-		shouldExit, err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
-		s.Require().False(shouldExit)
+		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
@@ -262,8 +259,7 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 			Return(emptyDbStatus, &model.Response{}, nil).
 			Times(1)
 
-		shouldExit, err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
-		s.Require().False(shouldExit)
+		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
@@ -286,9 +282,9 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 			Return(unhealthyStatus, &model.Response{}, nil).
 			Times(1)
 
-		shouldExit, err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
-		s.Require().True(shouldExit)
-		s.Require().Nil(err)
+		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "server status is unhealthy")
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], unhealthyStatus)
@@ -311,9 +307,9 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 			Return(unhealthyStatus, &model.Response{}, nil).
 			Times(1)
 
-		shouldExit, err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
-		s.Require().True(shouldExit)
-		s.Require().Nil(err)
+		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "database status is unhealthy")
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], unhealthyStatus)
@@ -336,9 +332,9 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 			Return(unhealthyStatus, &model.Response{}, nil).
 			Times(1)
 
-		shouldExit, err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
-		s.Require().True(shouldExit)
-		s.Require().Nil(err)
+		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "filestore status is unhealthy")
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], unhealthyStatus)
