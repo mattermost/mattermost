@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"slices"
 
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 
@@ -24,6 +25,8 @@ func (api *API) InitContentFlagging() {
 	api.BaseRoutes.ContentFlagging.Handle("/fields", api.APISessionRequired(getContentFlaggingFields)).Methods(http.MethodGet)
 	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/field_values", api.APISessionRequired(getPostPropertyValues)).Methods(http.MethodGet)
 	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}", api.APISessionRequired(getFlaggedPost)).Methods(http.MethodGet)
+	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/remove", api.APISessionRequired(removeFlaggedPost)).Methods(http.MethodPut)
+	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/keep", api.APISessionRequired(keepFlaggedPost)).Methods(http.MethodPut)
 }
 
 func requireContentFlaggingEnabled(c *Context) {
@@ -45,7 +48,30 @@ func getFlaggingConfiguration(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	config := getFlaggingConfig(c.App.Config().ContentFlaggingSettings)
+	// A team ID is expected to be specified bny a content reviewer.
+	// When specified, we verify that the user is a content reviewer of the team.
+	// If the user is indeed a content reviewer, we return the configuration along with some extra fields
+	// that only a reviewer should be aware of.
+	// If no team ID is specified, we return the configuration as is, without the extra fields.
+	// This is the expected usage for non-reviewers.
+	teamId := r.URL.Query().Get("team_id")
+	asReviewer := false
+	if teamId != "" {
+		isReviewer, appErr := c.App.IsUserTeamContentReviewer(c.AppContext.Session().UserId, teamId)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+
+		if !isReviewer {
+			c.Err = model.NewAppError("getFlaggingConfiguration", "api.content_flagging.error.reviewer_only", nil, "", http.StatusForbidden)
+			return
+		}
+
+		asReviewer = true
+	}
+
+	config := getFlaggingConfig(c.App.Config().ContentFlaggingSettings, asReviewer)
 
 	responseBytes, err := json.Marshal(config)
 	if err != nil {
@@ -112,6 +138,11 @@ func flagPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	postId := c.Params.PostId
 	userId := c.AppContext.Session().UserId
 
+	auditRec := c.MakeAuditRecord(model.AuditEventFlagPost, model.AuditStatusFail)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+	model.AddEventParameterToAuditRec(auditRec, "postId", postId)
+	model.AddEventParameterToAuditRec(auditRec, "userId", userId)
+
 	post, appErr := c.App.GetPostIfAuthorized(c.AppContext, postId, c.AppContext.Session(), false)
 	if appErr != nil {
 		c.Err = appErr
@@ -136,14 +167,26 @@ func flagPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.Success()
+	auditRec.AddEventObjectType("post")
+
 	writeOKResponse(w)
 }
 
-func getFlaggingConfig(contentFlaggingSettings model.ContentFlaggingSettings) *model.ContentFlaggingReportingConfig {
-	return &model.ContentFlaggingReportingConfig{
+func getFlaggingConfig(contentFlaggingSettings model.ContentFlaggingSettings, asReviewer bool) *model.ContentFlaggingReportingConfig {
+	config := &model.ContentFlaggingReportingConfig{
 		Reasons:                 contentFlaggingSettings.AdditionalSettings.Reasons,
 		ReporterCommentRequired: contentFlaggingSettings.AdditionalSettings.ReporterCommentRequired,
+		ReviewerCommentRequired: contentFlaggingSettings.AdditionalSettings.ReviewerCommentRequired,
 	}
+
+	if asReviewer {
+		config.NotifyReporterOnRemoval = model.NewPointer(slices.Contains(contentFlaggingSettings.NotificationSettings.EventTargetMapping[model.EventContentRemoved], model.TargetReporter))
+
+		config.NotifyReporterOnDismissal = model.NewPointer(slices.Contains(contentFlaggingSettings.NotificationSettings.EventTargetMapping[model.EventContentDismissed], model.TargetReporter))
+	}
+
+	return config
 }
 
 func getContentFlaggingFields(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -249,6 +292,11 @@ func getFlaggedPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	postId := c.Params.PostId
 	userId := c.AppContext.Session().UserId
 
+	auditRec := c.MakeAuditRecord(model.AuditEventGetFlaggedPost, model.AuditStatusFail)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+	model.AddEventParameterToAuditRec(auditRec, "postId", postId)
+	model.AddEventParameterToAuditRec(auditRec, "userId", userId)
+
 	post, appErr := c.App.GetSinglePost(c.AppContext, postId, true)
 	if appErr != nil {
 		c.Err = appErr
@@ -290,4 +338,100 @@ func getFlaggedPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("getFlaggedPost", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
+
+	auditRec.Success()
+}
+
+func removeFlaggedPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	actionRequest, userId, post := keepRemoveFlaggedPostChecks(c, r)
+	if c.Err != nil {
+		c.Err.Where = "removeFlaggedPost"
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventPermanentlyRemoveFlaggedPost, model.AuditStatusFail)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+	model.AddEventParameterToAuditRec(auditRec, "postId", post.Id)
+	model.AddEventParameterToAuditRec(auditRec, "userId", userId)
+
+	if appErr := c.App.PermanentDeleteFlaggedPost(c.AppContext, actionRequest, userId, post); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
+	writeOKResponse(w)
+}
+
+func keepFlaggedPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	actionRequest, userId, post := keepRemoveFlaggedPostChecks(c, r)
+	if c.Err != nil {
+		c.Err.Where = "keepFlaggedPost"
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventKeepFlaggedPost, model.AuditStatusFail)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+	model.AddEventParameterToAuditRec(auditRec, "postId", post.Id)
+	model.AddEventParameterToAuditRec(auditRec, "userId", userId)
+
+	if appErr := c.App.KeepFlaggedPost(c.AppContext, actionRequest, userId, post); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
+	writeOKResponse(w)
+}
+
+func keepRemoveFlaggedPostChecks(c *Context, r *http.Request) (*model.FlagContentActionRequest, string, *model.Post) {
+	requireContentFlaggingEnabled(c)
+	if c.Err != nil {
+		return nil, "", nil
+	}
+
+	c.RequirePostId()
+	if c.Err != nil {
+		return nil, "", nil
+	}
+
+	var actionRequest model.FlagContentActionRequest
+	if err := json.NewDecoder(r.Body).Decode(&actionRequest); err != nil {
+		c.SetInvalidParamWithErr("flagContentActionRequestBody", err)
+		return nil, "", nil
+	}
+
+	postId := c.Params.PostId
+	userId := c.AppContext.Session().UserId
+
+	post, appErr := c.App.GetSinglePost(c.AppContext, postId, true)
+	if appErr != nil {
+		c.Err = appErr
+		return nil, "", nil
+	}
+
+	channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return nil, "", nil
+	}
+
+	isReviewer, appErr := c.App.IsUserTeamContentReviewer(userId, channel.TeamId)
+	if appErr != nil {
+		c.Err = appErr
+		return nil, "", nil
+	}
+
+	if !isReviewer {
+		c.Err = model.NewAppError("", "api.content_flagging.error.reviewer_only", nil, "", http.StatusForbidden)
+		return nil, "", nil
+	}
+
+	commentRequired := c.App.Config().ContentFlaggingSettings.AdditionalSettings.ReviewerCommentRequired
+	if err := actionRequest.IsValid(*commentRequired); err != nil {
+		c.Err = err
+		return nil, "", nil
+	}
+
+	return &actionRequest, userId, post
 }

@@ -36,7 +36,7 @@ function getOptionColors(colorName: string): {backgroundColor: string; color: st
     switch (colorName) {
     case 'light_blue':
         return {
-            backgroundColor: 'rgba(var(--button-bg-rgb), 0.08)',
+            backgroundColor: 'var(--sidebar-text-active-border)',
             color: '#FFF',
         };
     case 'dark_blue':

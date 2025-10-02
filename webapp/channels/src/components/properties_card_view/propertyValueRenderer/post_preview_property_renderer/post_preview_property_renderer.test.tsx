@@ -234,42 +234,12 @@ describe('PostPreviewPropertyRenderer', () => {
         } as Post;
 
         mockedClient4.getFlaggedPost.mockResolvedValue(postWithAttachments);
-
-        const stateWithFiles = {
-            ...baseState,
-            entities: {
-                ...baseState.entities,
-                posts: {posts: {}},
-                files: {
-                    fileIdsByPostId: {
-                        [postWithAttachments.id]: ['file-id-1', 'file-id-2'],
-                    },
-                    files: {
-                        'file-id-1': {
-                            id: 'file-id-1',
-                            name: 'document.pdf',
-                            extension: 'pdf',
-                            size: 1024000,
-                            mime_type: 'application/pdf',
-                        },
-                        'file-id-2': {
-                            id: 'file-id-2',
-                            name: 'file.txt',
-                            extension: 'txt',
-                            size: 512000,
-                            mime_type: 'text/plain;charset=UTF-8',
-                        },
-                    },
-                },
-            },
-        };
-
         mockUseChannel.mockReturnValue(mockChannel);
         mockUseTeam.mockReturnValue(mockTeam);
 
         const {getByTestId, getByText} = renderWithContext(
             <PostPreviewPropertyRenderer {...defaultProps}/>,
-            stateWithFiles,
+            baseState,
         );
 
         await act(async () => {});

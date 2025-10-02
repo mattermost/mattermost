@@ -1121,4 +1121,5 @@ type PreparePostForClientOpts struct {
 	IsEditPost      bool
 	IncludePriority bool
 	RetainContent   bool
+	IncludeDeleted  bool
 }

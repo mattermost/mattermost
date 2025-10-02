@@ -444,3 +444,269 @@ func (a *App) GetPostContentFlaggingPropertyValues(postId string) ([]*model.Prop
 
 	return propertyValues, nil
 }
+
+func (a *App) PermanentDeleteFlaggedPost(rctx request.CTX, actionRequest *model.FlagContentActionRequest, reviewerId string, flaggedPost *model.Post) *model.AppError {
+	// when a flagged post is removed, the following things need to be done
+	// 1. Hard delete corresponding file infos
+	// 2. Hard delete file infos associated to post's edit history
+	// 3. Hard delete post's edit history
+	// 4. Hard delete the files from file storage
+	// 5. Hard delete post's priority data
+	// 6. Hard delete post's post acknowledgements
+	// 7. Hard delete post reminders
+	// 8. Scrub the post's content - message, props
+
+	commentBytes, jsonErr := json.Marshal(actionRequest.Comment)
+	if jsonErr != nil {
+		return model.NewAppError("PermanentlyRemoveFlaggedPost", "app.content_flagging.permanently_delete.marshal_comment.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+	}
+	// Storing marshalled content into RawMessage to ensure proper escaping of special characters and prevent
+	// generating unsafe JSON values
+	commentJsonValue := json.RawMessage(commentBytes)
+
+	status, appErr := a.GetPostContentFlaggingStatusValue(flaggedPost.Id)
+	if appErr != nil {
+		return appErr
+	}
+
+	statusValue := strings.Trim(string(status.Value), `"`)
+	if statusValue != model.ContentFlaggingStatusPending && statusValue != model.ContentFlaggingStatusAssigned {
+		return model.NewAppError("removeFlaggedPost", "api.content_flagging.error.post_not_in_progress", nil, "", http.StatusBadRequest)
+	}
+
+	editHistories, appErr := a.GetEditHistoryForPost(flaggedPost.Id)
+	if appErr != nil {
+		//editHistories = []*model.Post{}
+
+		if appErr.StatusCode != http.StatusNotFound {
+			rctx.Logger().Error("PermanentlyRemoveFlaggedPost: Failed to get edit history for flaggedPost", mlog.Err(appErr), mlog.String("post_id", flaggedPost.Id))
+		}
+	}
+
+	for _, editHistory := range editHistories {
+		if filesDeleteAppErr := a.PermanentDeleteFilesByPost(rctx, editHistory.Id); filesDeleteAppErr != nil {
+			rctx.Logger().Error("PermanentlyRemoveFlaggedPost: Failed to permanently delete files for one of the edit history posts", mlog.Err(filesDeleteAppErr), mlog.String("post_id", editHistory.Id))
+		}
+
+		if deletePostAppErr := a.PermanentDeletePost(rctx, editHistory.Id, reviewerId); deletePostAppErr != nil {
+			rctx.Logger().Error("PermanentlyRemoveFlaggedPost: Failed to permanently delete one of the edit history posts", mlog.Err(deletePostAppErr), mlog.String("post_id", editHistory.Id))
+		}
+	}
+
+	if filesDeleteAppErr := a.PermanentDeleteFilesByPost(rctx, flaggedPost.Id); filesDeleteAppErr != nil {
+		rctx.Logger().Error("PermanentlyRemoveFlaggedPost: Failed to permanently delete files for the flaggedPost", mlog.Err(filesDeleteAppErr), mlog.String("post_id", flaggedPost.Id))
+	}
+
+	if err := a.DeletePriorityForPost(flaggedPost.Id); err != nil {
+		rctx.Logger().Error("PermanentlyRemoveFlaggedPost: Failed to delete flaggedPost priority for the flaggedPost", mlog.Err(err), mlog.String("post_id", flaggedPost.Id))
+	}
+
+	if err := a.Srv().Store().PostAcknowledgement().DeleteAllForPost(flaggedPost.Id); err != nil {
+		rctx.Logger().Error("PermanentlyRemoveFlaggedPost: Failed to delete flaggedPost acknowledgements for the flaggedPost", mlog.Err(err), mlog.String("post_id", flaggedPost.Id))
+	}
+
+	if err := a.Srv().Store().Post().DeleteAllPostRemindersForPost(flaggedPost.Id); err != nil {
+		rctx.Logger().Error("PermanentlyRemoveFlaggedPost: Failed to delete flaggedPost reminders for the flaggedPost", mlog.Err(err), mlog.String("post_id", flaggedPost.Id))
+	}
+
+	scrubPost(flaggedPost)
+	_, err := a.Srv().Store().Post().Overwrite(rctx, flaggedPost)
+	if err != nil {
+		return model.NewAppError("PermanentlyRemoveFlaggedPost", "app.content_flagging.permanently_delete.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
+	}
+
+	groupId, appErr := a.ContentFlaggingGroupId()
+	if appErr != nil {
+		return appErr
+	}
+
+	mappedFields, appErr := a.GetContentFlaggingMappedFields(groupId)
+	if appErr != nil {
+		return appErr
+	}
+
+	propertyValues := []*model.PropertyValue{
+		{
+			TargetID:   flaggedPost.Id,
+			TargetType: model.PropertyValueTargetTypePost,
+			GroupID:    groupId,
+			FieldID:    mappedFields[contentFlaggingPropertyNameActorUserID].ID,
+			Value:      json.RawMessage(fmt.Sprintf(`"%s"`, reviewerId)),
+		},
+		{
+			TargetID:   flaggedPost.Id,
+			TargetType: model.PropertyValueTargetTypePost,
+			GroupID:    groupId,
+			FieldID:    mappedFields[contentFlaggingPropertyNameActorComment].ID,
+			Value:      commentJsonValue,
+		},
+		{
+			TargetID:   flaggedPost.Id,
+			TargetType: model.PropertyValueTargetTypePost,
+			GroupID:    groupId,
+			FieldID:    mappedFields[contentFlaggingPropertyNameActionTime].ID,
+			Value:      json.RawMessage(fmt.Sprintf("%d", model.GetMillis())),
+		},
+	}
+
+	_, err = a.Srv().propertyService.CreatePropertyValues(propertyValues)
+	if err != nil {
+		return model.NewAppError("PermanentlyRemoveFlaggedPost", "app.content_flagging.create_property_values.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
+	}
+
+	status.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRemoved))
+	_, err = a.Srv().propertyService.UpdatePropertyValue(groupId, status)
+	if err != nil {
+		return model.NewAppError("PermanentlyRemoveFlaggedPost", "app.content_flagging.permanently_delete.update_property_value.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
+	}
+
+	a.Srv().Go(func() {
+		channel, appErr := a.GetChannel(rctx, flaggedPost.ChannelId)
+		if appErr != nil {
+			rctx.Logger().Error("Failed to get channel for flagged post while publishing report change after permanently removing flagged post", mlog.Err(appErr), mlog.String("post_id", flaggedPost.Id), mlog.String("channel_id", flaggedPost.ChannelId))
+			return
+		}
+
+		propertyValues = append(propertyValues, status)
+		if err := a.publishContentFlaggingReportUpdateEvent(flaggedPost.Id, channel.TeamId, propertyValues); err != nil {
+			rctx.Logger().Error("Failed to publish report change after permanently removing flagged post", mlog.Err(err), mlog.String("post_id", flaggedPost.Id))
+		}
+	})
+
+	return nil
+}
+
+func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContentActionRequest, reviewerId string, flaggedPost *model.Post) *model.AppError {
+	// for keeping a flagged flaggedPost we need to-
+	// 1. Undelete the flaggedPost if it was deleted, that's it
+
+	status, appErr := a.GetPostContentFlaggingStatusValue(flaggedPost.Id)
+	if appErr != nil {
+		return appErr
+	}
+
+	statusValue := strings.Trim(string(status.Value), `"`)
+	if statusValue != model.ContentFlaggingStatusPending && statusValue != model.ContentFlaggingStatusAssigned {
+		return model.NewAppError("removeFlaggedPost", "api.content_flagging.error.post_not_in_progress", nil, "", http.StatusBadRequest)
+	}
+
+	if flaggedPost.DeleteAt > 0 {
+		flaggedPost.DeleteAt = 0
+		flaggedPost.UpdateAt = model.GetMillis()
+		flaggedPost.PreCommit()
+		_, err := a.Srv().Store().Post().Overwrite(rctx, flaggedPost)
+		if err != nil {
+			return model.NewAppError("KeepFlaggedPost", "app.content_flagging.keep_post.undelete.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
+		}
+
+		err = a.Srv().Store().FileInfo().RestoreForPostByIds(rctx, flaggedPost.Id, flaggedPost.FileIds)
+		if err != nil {
+			return model.NewAppError("KeepFlaggedPost", "app.content_flagging.restore_file_info.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	groupId, appErr := a.ContentFlaggingGroupId()
+	if appErr != nil {
+		return appErr
+	}
+
+	mappedFields, appErr := a.GetContentFlaggingMappedFields(groupId)
+	if appErr != nil {
+		return appErr
+	}
+
+	commentBytes, err := json.Marshal(actionRequest.Comment)
+	if err != nil {
+		return model.NewAppError("KeepFlaggedPost", "app.content_flagging.keep_flag_post.marshal_comment.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	// Storing marshalled content into RawMessage to ensure proper escaping of special characters and prevent
+	// generating unsafe JSON values
+	commentJsonValue := json.RawMessage(commentBytes)
+
+	propertyValues := []*model.PropertyValue{
+		{
+			TargetID:   flaggedPost.Id,
+			TargetType: model.PropertyValueTargetTypePost,
+			GroupID:    groupId,
+			FieldID:    mappedFields[contentFlaggingPropertyNameActorUserID].ID,
+			Value:      json.RawMessage(fmt.Sprintf(`"%s"`, reviewerId)),
+		},
+		{
+			TargetID:   flaggedPost.Id,
+			TargetType: model.PropertyValueTargetTypePost,
+			GroupID:    groupId,
+			FieldID:    mappedFields[contentFlaggingPropertyNameActorComment].ID,
+			Value:      commentJsonValue,
+		},
+		{
+			TargetID:   flaggedPost.Id,
+			TargetType: model.PropertyValueTargetTypePost,
+			GroupID:    groupId,
+			FieldID:    mappedFields[contentFlaggingPropertyNameActionTime].ID,
+			Value:      json.RawMessage(fmt.Sprintf("%d", model.GetMillis())),
+		},
+	}
+
+	_, err = a.Srv().propertyService.CreatePropertyValues(propertyValues)
+	if err != nil {
+		return model.NewAppError("PermanentlyRemoveFlaggedPost", "app.content_flagging.create_property_values.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
+	}
+
+	status.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRetained))
+	_, err = a.Srv().propertyService.UpdatePropertyValue(groupId, status)
+	if err != nil {
+		return model.NewAppError("PermanentlyRemoveFlaggedPost", "app.content_flagging.keep_post.status_update.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
+	}
+
+	a.Srv().Go(func() {
+		channel, getChannelErr := a.GetChannel(rctx, flaggedPost.ChannelId)
+		if getChannelErr != nil {
+			rctx.Logger().Error("Failed to get channel for flagged post while publishing report change after permanently removing flagged post", mlog.Err(getChannelErr), mlog.String("post_id", flaggedPost.Id), mlog.String("channel_id", flaggedPost.ChannelId))
+			return
+		}
+
+		propertyValues = append(propertyValues, status)
+		if err := a.publishContentFlaggingReportUpdateEvent(flaggedPost.Id, channel.TeamId, propertyValues); err != nil {
+			rctx.Logger().Error("Failed to publish report change after permanently removing flagged flaggedPost", mlog.Err(err), mlog.String("post_id", flaggedPost.Id))
+		}
+	})
+
+	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", flaggedPost.ChannelId, "", nil, "")
+	appErr = a.publishWebsocketEventForPost(rctx, flaggedPost, message)
+	if appErr != nil {
+		rctx.Logger().Error("Failed to publish websocket event for post edit while keeping flagged post", mlog.Err(appErr), mlog.String("post_id", flaggedPost.Id))
+	}
+	a.invalidateCacheForChannelPosts(flaggedPost.ChannelId)
+
+	return nil
+}
+
+func scrubPost(post *model.Post) {
+	post.Message = "*Content deleted as part of Content Flagging review process*"
+	post.MessageSource = post.Message
+	post.Hashtags = ""
+	post.Metadata = nil
+	post.FileIds = []string{}
+	post.SetProps(make(map[string]any))
+}
+
+func (a *App) publishContentFlaggingReportUpdateEvent(targetId, teamId string, propertyValues []*model.PropertyValue) *model.AppError {
+	reviewersUserIDs, appErr := a.getReviewersForTeam(teamId, true)
+	if appErr != nil {
+		return appErr
+	}
+
+	bytes, err := json.Marshal(propertyValues)
+	if err != nil {
+		return model.NewAppError("publishContentFlaggingReportUpdateEvent", "app.content_flagging.marshal_property_values.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
+	}
+
+	for _, userId := range reviewersUserIDs {
+		message := model.NewWebSocketEvent(model.WebsocketContentFlaggingReportValueUpdated, "", "", userId, nil, "")
+		message.Add("property_values", string(bytes))
+		message.Add("target_id", targetId)
+		a.Publish(message)
+	}
+
+	return nil
+}

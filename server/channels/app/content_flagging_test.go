@@ -583,7 +583,7 @@ func TestFlagPost(t *testing.T) {
 
 		flagData := model.FlagContentRequest{
 			Reason:  "spam",
-			Comment: "\"This is spam content\"",
+			Comment: "This is spam content",
 		}
 
 		appErr := th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
@@ -634,7 +634,7 @@ func TestFlagPost(t *testing.T) {
 		})
 		require.NoError(t, err)
 		require.Len(t, commentValues, 1)
-		require.Equal(t, "\"\\\"This is spam content\\\"\"", string(commentValues[0].Value))
+		require.Equal(t, `"This is spam content"`, string(commentValues[0].Value))
 	})
 
 	t.Run("should fail with invalid reason", func(t *testing.T) {

@@ -35,12 +35,12 @@ export function getTeamContentFlaggingStatus(teamId: string): ActionFuncAsync<{e
     };
 }
 
-export function getContentFlaggingConfig(): ActionFuncAsync<ContentFlaggingConfig> {
+export function getContentFlaggingConfig(teamId?: string): ActionFuncAsync<ContentFlaggingConfig> {
     return async (dispatch, getState) => {
         let response;
 
         try {
-            response = await Client4.getContentFlaggingConfig();
+            response = await Client4.getContentFlaggingConfig(teamId);
 
             dispatch({
                 type: ContentFlaggingTypes.RECEIVED_CONTENT_FLAGGING_CONFIG,
