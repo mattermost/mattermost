@@ -723,7 +723,7 @@ func TestSearchReviewers(t *testing.T) {
 			config.ContentFlaggingSettings.SetDefaults()
 		})
 
-		reviewers, resp, err := client.SearchReviewers(context.Background(), th.BasicTeam.Id, "test")
+		reviewers, resp, err := client.SearchContentFlaggingReviewers(context.Background(), th.BasicTeam.Id, "test")
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 		require.Nil(t, reviewers)
@@ -738,7 +738,7 @@ func TestSearchReviewers(t *testing.T) {
 			config.ContentFlaggingSettings.SetDefaults()
 		})
 
-		reviewers, resp, err := client.SearchReviewers(context.Background(), th.BasicTeam.Id, "test")
+		reviewers, resp, err := client.SearchContentFlaggingReviewers(context.Background(), th.BasicTeam.Id, "test")
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 		require.Nil(t, reviewers)
@@ -765,7 +765,7 @@ func TestSearchReviewers(t *testing.T) {
 		appErr := th.App.SaveContentFlaggingConfig(config)
 		require.Nil(t, appErr)
 
-		reviewers, resp, err := client.SearchReviewers(context.Background(), th.BasicTeam.Id, "")
+		reviewers, resp, err := client.SearchContentFlaggingReviewers(context.Background(), th.BasicTeam.Id, "")
 		require.Error(t, err)
 		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 		require.Nil(t, reviewers)
@@ -792,7 +792,7 @@ func TestSearchReviewers(t *testing.T) {
 		appErr := th.App.SaveContentFlaggingConfig(config)
 		require.Nil(t, appErr)
 
-		reviewers, resp, err := client.SearchReviewers(context.Background(), th.BasicTeam.Id, "   ")
+		reviewers, resp, err := client.SearchContentFlaggingReviewers(context.Background(), th.BasicTeam.Id, "   ")
 		require.Error(t, err)
 		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 		require.Nil(t, reviewers)
@@ -824,7 +824,7 @@ func TestSearchReviewers(t *testing.T) {
 		appErr := th.App.SaveContentFlaggingConfig(config)
 		require.Nil(t, appErr)
 
-		reviewers, resp, err := client.SearchReviewers(context.Background(), th.BasicTeam.Id, "test")
+		reviewers, resp, err := client.SearchContentFlaggingReviewers(context.Background(), th.BasicTeam.Id, "test")
 		require.Error(t, err)
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
 		require.Nil(t, reviewers)
@@ -851,7 +851,7 @@ func TestSearchReviewers(t *testing.T) {
 		appErr := th.App.SaveContentFlaggingConfig(config)
 		require.Nil(t, appErr)
 
-		reviewers, resp, err := client.SearchReviewers(context.Background(), th.BasicTeam.Id, "basic")
+		reviewers, resp, err := client.SearchContentFlaggingReviewers(context.Background(), th.BasicTeam.Id, "basic")
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.NotNil(t, reviewers)
@@ -883,7 +883,7 @@ func TestSearchReviewers(t *testing.T) {
 		appErr := th.App.SaveContentFlaggingConfig(config)
 		require.Nil(t, appErr)
 
-		reviewers, resp, err := client.SearchReviewers(context.Background(), th.BasicTeam.Id, "basic")
+		reviewers, resp, err := client.SearchContentFlaggingReviewers(context.Background(), th.BasicTeam.Id, "basic")
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.NotNil(t, reviewers)
