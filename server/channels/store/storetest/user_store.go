@@ -87,6 +87,8 @@ func TestUserStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("SearchWithoutTeam", func(t *testing.T) { testUserStoreSearchWithoutTeam(t, rctx, ss) })
 	t.Run("SearchInGroup", func(t *testing.T) { testUserStoreSearchInGroup(t, rctx, ss) })
 	t.Run("SearchNotInGroup", func(t *testing.T) { testUserStoreSearchNotInGroup(t, rctx, ss) })
+	t.Run("SearchCommonContentFlaggingReviewers", func(t *testing.T) { testUserStoreSearchCommonContentFlaggingReviewers(t, rctx, ss) })
+	t.Run("SearchTeamContentFlaggingReviewers", func(t *testing.T) { testUserStoreSearchTeamContentFlaggingReviewers(t, rctx, ss) })
 	t.Run("GetProfilesNotInTeam", func(t *testing.T) { testUserStoreGetProfilesNotInTeam(t, rctx, ss) })
 	t.Run("ClearAllCustomRoleAssignments", func(t *testing.T) { testUserStoreClearAllCustomRoleAssignments(t, rctx, ss) })
 	t.Run("GetAllAfter", func(t *testing.T) { testUserStoreGetAllAfter(t, rctx, ss) })
@@ -6676,4 +6678,281 @@ func testMfaUsedTimestamps(t *testing.T, rctx request.CTX, ss store.Store) {
 	tss, err = ss.User().GetMfaUsedTimestamps(u1.Id)
 	require.NoError(t, err)
 	require.Equal(t, []int{1, 2, 3}, tss)
+}
+
+func testUserStoreSearchCommonContentFlaggingReviewers(t *testing.T, rctx request.CTX, ss store.Store) {
+	// Clear content flagging caches
+	ss.ContentFlagging().ClearCaches()
+
+	// Create test users
+	u1, err := ss.User().Save(rctx, &model.User{
+		Email:     MakeEmail(),
+		Username:  "reviewer1" + model.NewId(),
+		FirstName: "John",
+		LastName:  "Reviewer",
+		Nickname:  "johnny",
+	})
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u1.Id)) }()
+
+	u2, err := ss.User().Save(rctx, &model.User{
+		Email:     MakeEmail(),
+		Username:  "reviewer2" + model.NewId(),
+		FirstName: "Jane",
+		LastName:  "Smith",
+		Nickname:  "janie",
+	})
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u2.Id)) }()
+
+	u3, err := ss.User().Save(rctx, &model.User{
+		Email:    MakeEmail(),
+		Username: "notreviewer" + model.NewId(),
+		DeleteAt: model.GetMillis(), // Inactive user
+	})
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u3.Id)) }()
+
+	u4, err := ss.User().Save(rctx, &model.User{
+		Email:     MakeEmail(),
+		Username:  "otheruser" + model.NewId(),
+		FirstName: "Bob",
+		LastName:  "Johnson",
+	})
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u4.Id)) }()
+
+	// Set up content flagging reviewer settings with u1 and u2 as common reviewers
+	reviewerSettings := model.ReviewerIDsSettings{
+		CommonReviewerIds: []string{u1.Id, u2.Id},
+		TeamReviewersSetting: map[string]*model.TeamReviewerSetting{},
+	}
+
+	err = ss.ContentFlagging().SaveReviewerSettings(reviewerSettings)
+	require.NoError(t, err)
+
+	t.Run("search with empty term returns all common reviewers", func(t *testing.T) {
+		users, err := ss.User().SearchCommonContentFlaggingReviewers("")
+		require.NoError(t, err)
+		require.Len(t, users, 2)
+		
+		userIds := []string{users[0].Id, users[1].Id}
+		assert.Contains(t, userIds, u1.Id)
+		assert.Contains(t, userIds, u2.Id)
+	})
+
+	t.Run("search by username", func(t *testing.T) {
+		users, err := ss.User().SearchCommonContentFlaggingReviewers("reviewer1")
+		require.NoError(t, err)
+		require.Len(t, users, 1)
+		assert.Equal(t, u1.Id, users[0].Id)
+	})
+
+	t.Run("search by first name", func(t *testing.T) {
+		users, err := ss.User().SearchCommonContentFlaggingReviewers("John")
+		require.NoError(t, err)
+		require.Len(t, users, 1)
+		assert.Equal(t, u1.Id, users[0].Id)
+	})
+
+	t.Run("search by last name", func(t *testing.T) {
+		users, err := ss.User().SearchCommonContentFlaggingReviewers("Smith")
+		require.NoError(t, err)
+		require.Len(t, users, 1)
+		assert.Equal(t, u2.Id, users[0].Id)
+	})
+
+	t.Run("search by nickname", func(t *testing.T) {
+		users, err := ss.User().SearchCommonContentFlaggingReviewers("johnny")
+		require.NoError(t, err)
+		require.Len(t, users, 1)
+		assert.Equal(t, u1.Id, users[0].Id)
+	})
+
+	t.Run("search with partial match", func(t *testing.T) {
+		users, err := ss.User().SearchCommonContentFlaggingReviewers("review")
+		require.NoError(t, err)
+		require.Len(t, users, 2)
+		
+		userIds := []string{users[0].Id, users[1].Id}
+		assert.Contains(t, userIds, u1.Id)
+		assert.Contains(t, userIds, u2.Id)
+	})
+
+	t.Run("search with no matches", func(t *testing.T) {
+		users, err := ss.User().SearchCommonContentFlaggingReviewers("nonexistent")
+		require.NoError(t, err)
+		require.Empty(t, users)
+	})
+
+	t.Run("search does not return inactive users", func(t *testing.T) {
+		// Add inactive user as common reviewer
+		reviewerSettings.CommonReviewerIds = append(reviewerSettings.CommonReviewerIds, u3.Id)
+		err = ss.ContentFlagging().SaveReviewerSettings(reviewerSettings)
+		require.NoError(t, err)
+
+		users, err := ss.User().SearchCommonContentFlaggingReviewers("notreviewer")
+		require.NoError(t, err)
+		require.Empty(t, users) // Should not return inactive user
+	})
+
+	t.Run("search does not return non-reviewers", func(t *testing.T) {
+		users, err := ss.User().SearchCommonContentFlaggingReviewers("otheruser")
+		require.NoError(t, err)
+		require.Empty(t, users) // u4 is not a common reviewer
+	})
+}
+
+func testUserStoreSearchTeamContentFlaggingReviewers(t *testing.T, rctx request.CTX, ss store.Store) {
+	// Clear content flagging caches
+	ss.ContentFlagging().ClearCaches()
+
+	teamId := model.NewId()
+
+	// Create test users
+	u1, err := ss.User().Save(rctx, &model.User{
+		Email:     MakeEmail(),
+		Username:  "teamreviewer1" + model.NewId(),
+		FirstName: "Alice",
+		LastName:  "TeamReviewer",
+		Nickname:  "alice",
+	})
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u1.Id)) }()
+
+	u2, err := ss.User().Save(rctx, &model.User{
+		Email:     MakeEmail(),
+		Username:  "teamreviewer2" + model.NewId(),
+		FirstName: "Charlie",
+		LastName:  "Brown",
+		Nickname:  "charlie",
+	})
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u2.Id)) }()
+
+	u3, err := ss.User().Save(rctx, &model.User{
+		Email:    MakeEmail(),
+		Username: "inactiveteamreviewer" + model.NewId(),
+		DeleteAt: model.GetMillis(), // Inactive user
+	})
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u3.Id)) }()
+
+	u4, err := ss.User().Save(rctx, &model.User{
+		Email:     MakeEmail(),
+		Username:  "nonteamreviewer" + model.NewId(),
+		FirstName: "David",
+		LastName:  "Wilson",
+	})
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u4.Id)) }()
+
+	// Set up content flagging reviewer settings with team-specific reviewers
+	enabled := true
+	reviewerSettings := model.ReviewerIDsSettings{
+		CommonReviewerIds: []string{},
+		TeamReviewersSetting: map[string]*model.TeamReviewerSetting{
+			teamId: {
+				Enabled:     &enabled,
+				ReviewerIds: []string{u1.Id, u2.Id},
+			},
+		},
+	}
+
+	err = ss.ContentFlagging().SaveReviewerSettings(reviewerSettings)
+	require.NoError(t, err)
+
+	t.Run("search with empty term returns all team reviewers", func(t *testing.T) {
+		users, err := ss.User().SearchTeamContentFlaggingReviewers(teamId, "")
+		require.NoError(t, err)
+		require.Len(t, users, 2)
+		
+		userIds := []string{users[0].Id, users[1].Id}
+		assert.Contains(t, userIds, u1.Id)
+		assert.Contains(t, userIds, u2.Id)
+	})
+
+	t.Run("search by username", func(t *testing.T) {
+		users, err := ss.User().SearchTeamContentFlaggingReviewers(teamId, "teamreviewer1")
+		require.NoError(t, err)
+		require.Len(t, users, 1)
+		assert.Equal(t, u1.Id, users[0].Id)
+	})
+
+	t.Run("search by first name", func(t *testing.T) {
+		users, err := ss.User().SearchTeamContentFlaggingReviewers(teamId, "Alice")
+		require.NoError(t, err)
+		require.Len(t, users, 1)
+		assert.Equal(t, u1.Id, users[0].Id)
+	})
+
+	t.Run("search by last name", func(t *testing.T) {
+		users, err := ss.User().SearchTeamContentFlaggingReviewers(teamId, "Brown")
+		require.NoError(t, err)
+		require.Len(t, users, 1)
+		assert.Equal(t, u2.Id, users[0].Id)
+	})
+
+	t.Run("search by nickname", func(t *testing.T) {
+		users, err := ss.User().SearchTeamContentFlaggingReviewers(teamId, "charlie")
+		require.NoError(t, err)
+		require.Len(t, users, 1)
+		assert.Equal(t, u2.Id, users[0].Id)
+	})
+
+	t.Run("search with partial match", func(t *testing.T) {
+		users, err := ss.User().SearchTeamContentFlaggingReviewers(teamId, "teamreviewer")
+		require.NoError(t, err)
+		require.Len(t, users, 2)
+		
+		userIds := []string{users[0].Id, users[1].Id}
+		assert.Contains(t, userIds, u1.Id)
+		assert.Contains(t, userIds, u2.Id)
+	})
+
+	t.Run("search with no matches", func(t *testing.T) {
+		users, err := ss.User().SearchTeamContentFlaggingReviewers(teamId, "nonexistent")
+		require.NoError(t, err)
+		require.Empty(t, users)
+	})
+
+	t.Run("search does not return inactive users", func(t *testing.T) {
+		// Add inactive user as team reviewer
+		reviewerSettings.TeamReviewersSetting[teamId].ReviewerIds = append(
+			reviewerSettings.TeamReviewersSetting[teamId].ReviewerIds, u3.Id)
+		err = ss.ContentFlagging().SaveReviewerSettings(reviewerSettings)
+		require.NoError(t, err)
+
+		users, err := ss.User().SearchTeamContentFlaggingReviewers(teamId, "inactiveteamreviewer")
+		require.NoError(t, err)
+		require.Empty(t, users) // Should not return inactive user
+	})
+
+	t.Run("search does not return non-team-reviewers", func(t *testing.T) {
+		users, err := ss.User().SearchTeamContentFlaggingReviewers(teamId, "nonteamreviewer")
+		require.NoError(t, err)
+		require.Empty(t, users) // u4 is not a team reviewer
+	})
+
+	t.Run("search with different team returns empty", func(t *testing.T) {
+		differentTeamId := model.NewId()
+		users, err := ss.User().SearchTeamContentFlaggingReviewers(differentTeamId, "teamreviewer")
+		require.NoError(t, err)
+		require.Empty(t, users) // No reviewers for different team
+	})
+
+	t.Run("search with disabled team returns empty", func(t *testing.T) {
+		disabledTeamId := model.NewId()
+		disabled := false
+		reviewerSettings.TeamReviewersSetting[disabledTeamId] = &model.TeamReviewerSetting{
+			Enabled:     &disabled,
+			ReviewerIds: []string{u1.Id},
+		}
+		err = ss.ContentFlagging().SaveReviewerSettings(reviewerSettings)
+		require.NoError(t, err)
+
+		users, err := ss.User().SearchTeamContentFlaggingReviewers(disabledTeamId, "teamreviewer1")
+		require.NoError(t, err)
+		require.Empty(t, users) // Should not return reviewers for disabled team
+	})
 }
