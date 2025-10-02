@@ -5,12 +5,17 @@ import {Locator, expect} from '@playwright/test';
 
 export default class ChannelsSidebarLeft {
     readonly container: Locator;
+
+    readonly teamMenuButton: Locator;
+    readonly browseOrCreateChannelButton: Locator;
     readonly findChannelButton;
     readonly scheduledPostBadge;
 
     constructor(container: Locator) {
         this.container = container;
 
+        this.teamMenuButton = container.locator('#sidebarTeamMenuButton');
+        this.browseOrCreateChannelButton = container.locator('#browseOrAddChannelMenuButton');
         this.findChannelButton = container.getByRole('button', {name: 'Find Channels'});
         this.scheduledPostBadge = container.locator('span.scheduledPostBadge');
     }
