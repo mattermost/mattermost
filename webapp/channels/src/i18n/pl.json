@@ -163,7 +163,7 @@
   "add_oauth_app.description.help": "Opis twojej aplikacji OAuth 2.0.",
   "add_oauth_app.descriptionRequired": "Opis aplikacji OAuth 2.0 jest wymagany.",
   "add_oauth_app.doneHelp": "Twoja aplikacja OAuth 2.0 została skonfigurowana. Proszę używać następującego ID oraz sekretu klienta, kiedy żądasz autoryzacji dla Twojej aplikacji (zobacz <link>oAuth 2.0 Applications</link> w celu uzyskania dalszych szczegółów).",
-  "add_oauth_app.doneUrlHelp": "To są twoje autoryzowane URLe do przekierowań.",
+  "add_oauth_app.doneUrlHelp": "Oto twoje autoryzowane adresy URL przekierowań.",
   "add_oauth_app.header": "Dodaj",
   "add_oauth_app.homepage.help": "To jest adres URL dla strony głównej aplikacji OAuth 2.0. W zależności od konfiguracji Twojego serwera, użyj HTTP lub HTTPS w swoim adresie URL.",
   "add_oauth_app.homepageRequired": "Strona główna aplikacji OAuth 2.0 jest wymagana.",
