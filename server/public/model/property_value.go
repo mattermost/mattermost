@@ -14,6 +14,9 @@ import (
 const (
 	PropertyValueTargetIDMaxRunes   = 255
 	PropertyValueTargetTypeMaxRunes = 255
+
+	PropertyValueTargetTypePost = "post"
+	PropertyValueTargetTypeUser = "user"
 )
 
 type PropertyValue struct {
