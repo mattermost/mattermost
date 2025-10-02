@@ -1068,3 +1068,288 @@ func TestFlagPost(t *testing.T) {
 		require.True(t, reportingTime >= beforeTime && reportingTime <= afterTime)
 	})
 }
+
+func TestSearchReviewers(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+	getBaseConfig := func() model.ContentFlaggingSettingsRequest {
+		config := model.ContentFlaggingSettingsRequest{}
+		config.SetDefaults()
+		return config
+	}
+
+	t.Run("should return common reviewers when searching", func(t *testing.T) {
+		config := getBaseConfig()
+		config.ReviewerSettings.CommonReviewers = model.NewPointer(true)
+		config.ReviewerSettings.CommonReviewerIds = []string{th.BasicUser.Id, th.BasicUser2.Id}
+		config.ReviewerSettings.SystemAdminsAsReviewers = model.NewPointer(false)
+		config.ReviewerSettings.TeamAdminsAsReviewers = model.NewPointer(false)
+
+		appErr := th.App.SaveContentFlaggingConfig(config)
+		require.Nil(t, appErr)
+
+		// Search for users by username
+		reviewers, appErr := th.App.SearchReviewers(th.Context, th.BasicUser.Username, th.BasicTeam.Id)
+		require.Nil(t, appErr)
+		require.Len(t, reviewers, 1)
+		require.Equal(t, th.BasicUser.Id, reviewers[0].Id)
+
+		// Search for users by partial username
+		reviewers, appErr = th.App.SearchReviewers(th.Context, th.BasicUser.Username[:3], th.BasicTeam.Id)
+		require.Nil(t, appErr)
+		require.True(t, len(reviewers) >= 1)
+
+		// Verify the basic user is in the results
+		found := false
+		for _, reviewer := range reviewers {
+			if reviewer.Id == th.BasicUser.Id {
+				found = true
+				break
+			}
+		}
+		require.True(t, found)
+	})
+
+	t.Run("should return team reviewers when common reviewers disabled", func(t *testing.T) {
+		config := getBaseConfig()
+		config.ReviewerSettings.CommonReviewers = model.NewPointer(false)
+		config.ReviewerSettings.TeamReviewersSetting = map[string]*model.TeamReviewerSetting{
+			th.BasicTeam.Id: {
+				Enabled:     model.NewPointer(true),
+				ReviewerIds: []string{th.BasicUser2.Id},
+			},
+		}
+		config.ReviewerSettings.SystemAdminsAsReviewers = model.NewPointer(false)
+		config.ReviewerSettings.TeamAdminsAsReviewers = model.NewPointer(false)
+
+		appErr := th.App.SaveContentFlaggingConfig(config)
+		require.Nil(t, appErr)
+
+		// Search for team reviewer
+		reviewers, appErr := th.App.SearchReviewers(th.Context, th.BasicUser2.Username, th.BasicTeam.Id)
+		require.Nil(t, appErr)
+		require.Len(t, reviewers, 1)
+		require.Equal(t, th.BasicUser2.Id, reviewers[0].Id)
+
+		// Search should not return users not configured as team reviewers
+		reviewers, appErr = th.App.SearchReviewers(th.Context, th.BasicUser.Username, th.BasicTeam.Id)
+		require.Nil(t, appErr)
+		require.Len(t, reviewers, 0)
+	})
+
+	t.Run("should return system admins as additional reviewers", func(t *testing.T) {
+		config := getBaseConfig()
+		config.ReviewerSettings.CommonReviewers = model.NewPointer(false)
+		config.ReviewerSettings.SystemAdminsAsReviewers = model.NewPointer(true)
+		config.ReviewerSettings.TeamAdminsAsReviewers = model.NewPointer(false)
+
+		appErr := th.App.SaveContentFlaggingConfig(config)
+		require.Nil(t, appErr)
+
+		// Add system admin to team
+		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, th.SystemAdminUser.Id, "")
+		require.Nil(t, appErr)
+		defer func() {
+			_ = th.App.RemoveUserFromTeam(th.Context, th.BasicTeam.Id, th.SystemAdminUser.Id, "")
+		}()
+
+		// Search for system admin
+		reviewers, appErr := th.App.SearchReviewers(th.Context, th.SystemAdminUser.Username, th.BasicTeam.Id)
+		require.Nil(t, appErr)
+		require.Len(t, reviewers, 1)
+		require.Equal(t, th.SystemAdminUser.Id, reviewers[0].Id)
+	})
+
+	t.Run("should return team admins as additional reviewers", func(t *testing.T) {
+		config := getBaseConfig()
+		config.ReviewerSettings.CommonReviewers = model.NewPointer(false)
+		config.ReviewerSettings.SystemAdminsAsReviewers = model.NewPointer(false)
+		config.ReviewerSettings.TeamAdminsAsReviewers = model.NewPointer(true)
+
+		appErr := th.App.SaveContentFlaggingConfig(config)
+		require.Nil(t, appErr)
+
+		// Create a new user and make them team admin
+		teamAdmin := th.CreateUser()
+		defer func() {
+			_ = th.App.PermanentDeleteUser(th.Context, teamAdmin)
+		}()
+
+		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, teamAdmin.Id, "")
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, model.TeamAdminRoleId)
+		require.Nil(t, appErr)
+
+		// Search for team admin
+		reviewers, appErr := th.App.SearchReviewers(th.Context, teamAdmin.Username, th.BasicTeam.Id)
+		require.Nil(t, appErr)
+		require.Len(t, reviewers, 1)
+		require.Equal(t, teamAdmin.Id, reviewers[0].Id)
+	})
+
+	t.Run("should return combined reviewers from multiple sources", func(t *testing.T) {
+		config := getBaseConfig()
+		config.ReviewerSettings.CommonReviewers = model.NewPointer(true)
+		config.ReviewerSettings.CommonReviewerIds = []string{th.BasicUser.Id}
+		config.ReviewerSettings.SystemAdminsAsReviewers = model.NewPointer(true)
+		config.ReviewerSettings.TeamAdminsAsReviewers = model.NewPointer(true)
+
+		appErr := th.App.SaveContentFlaggingConfig(config)
+		require.Nil(t, appErr)
+
+		// Add system admin to team
+		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, th.SystemAdminUser.Id, "")
+		require.Nil(t, appErr)
+		defer func() {
+			_ = th.App.RemoveUserFromTeam(th.Context, th.BasicTeam.Id, th.SystemAdminUser.Id, "")
+		}()
+
+		// Create a team admin
+		teamAdmin := th.CreateUser()
+		defer func() {
+			_ = th.App.PermanentDeleteUser(th.Context, teamAdmin)
+		}()
+
+		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, teamAdmin.Id, "")
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.UpdateTeamMemberRoles(th.Context, th.BasicTeam.Id, teamAdmin.Id, model.TeamAdminRoleId)
+		require.Nil(t, appErr)
+
+		// Search with empty term should return all reviewers
+		reviewers, appErr := th.App.SearchReviewers(th.Context, "", th.BasicTeam.Id)
+		require.Nil(t, appErr)
+		require.True(t, len(reviewers) >= 3)
+
+		// Verify all expected reviewers are present
+		reviewerIds := make([]string, len(reviewers))
+		for i, reviewer := range reviewers {
+			reviewerIds[i] = reviewer.Id
+		}
+		require.Contains(t, reviewerIds, th.BasicUser.Id)
+		require.Contains(t, reviewerIds, th.SystemAdminUser.Id)
+		require.Contains(t, reviewerIds, teamAdmin.Id)
+	})
+
+	t.Run("should deduplicate reviewers from multiple sources", func(t *testing.T) {
+		config := getBaseConfig()
+		config.ReviewerSettings.CommonReviewers = model.NewPointer(true)
+		config.ReviewerSettings.CommonReviewerIds = []string{th.SystemAdminUser.Id}
+		config.ReviewerSettings.SystemAdminsAsReviewers = model.NewPointer(true)
+		config.ReviewerSettings.TeamAdminsAsReviewers = model.NewPointer(false)
+
+		appErr := th.App.SaveContentFlaggingConfig(config)
+		require.Nil(t, appErr)
+
+		// Add system admin to team
+		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, th.SystemAdminUser.Id, "")
+		require.Nil(t, appErr)
+		defer func() {
+			_ = th.App.RemoveUserFromTeam(th.Context, th.BasicTeam.Id, th.SystemAdminUser.Id, "")
+		}()
+
+		// Search for system admin (who is both common reviewer and system admin)
+		reviewers, appErr := th.App.SearchReviewers(th.Context, th.SystemAdminUser.Username, th.BasicTeam.Id)
+		require.Nil(t, appErr)
+		require.Len(t, reviewers, 1)
+		require.Equal(t, th.SystemAdminUser.Id, reviewers[0].Id)
+	})
+
+	t.Run("should return empty results when no reviewers match search term", func(t *testing.T) {
+		config := getBaseConfig()
+		config.ReviewerSettings.CommonReviewers = model.NewPointer(true)
+		config.ReviewerSettings.CommonReviewerIds = []string{th.BasicUser.Id}
+		config.ReviewerSettings.SystemAdminsAsReviewers = model.NewPointer(false)
+		config.ReviewerSettings.TeamAdminsAsReviewers = model.NewPointer(false)
+
+		appErr := th.App.SaveContentFlaggingConfig(config)
+		require.Nil(t, appErr)
+
+		// Search for non-existent user
+		reviewers, appErr := th.App.SearchReviewers(th.Context, "nonexistentuser", th.BasicTeam.Id)
+		require.Nil(t, appErr)
+		require.Len(t, reviewers, 0)
+	})
+
+	t.Run("should return empty results when no reviewers configured", func(t *testing.T) {
+		config := getBaseConfig()
+		config.ReviewerSettings.CommonReviewers = model.NewPointer(false)
+		config.ReviewerSettings.SystemAdminsAsReviewers = model.NewPointer(false)
+		config.ReviewerSettings.TeamAdminsAsReviewers = model.NewPointer(false)
+
+		appErr := th.App.SaveContentFlaggingConfig(config)
+		require.Nil(t, appErr)
+
+		// Search should return no results
+		reviewers, appErr := th.App.SearchReviewers(th.Context, th.BasicUser.Username, th.BasicTeam.Id)
+		require.Nil(t, appErr)
+		require.Len(t, reviewers, 0)
+	})
+
+	t.Run("should work with team reviewers and additional reviewers combined", func(t *testing.T) {
+		config := getBaseConfig()
+		config.ReviewerSettings.CommonReviewers = model.NewPointer(false)
+		config.ReviewerSettings.TeamReviewersSetting = map[string]*model.TeamReviewerSetting{
+			th.BasicTeam.Id: {
+				Enabled:     model.NewPointer(true),
+				ReviewerIds: []string{th.BasicUser.Id},
+			},
+		}
+		config.ReviewerSettings.SystemAdminsAsReviewers = model.NewPointer(true)
+		config.ReviewerSettings.TeamAdminsAsReviewers = model.NewPointer(false)
+
+		appErr := th.App.SaveContentFlaggingConfig(config)
+		require.Nil(t, appErr)
+
+		// Add system admin to team
+		_, _, appErr = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, th.SystemAdminUser.Id, "")
+		require.Nil(t, appErr)
+		defer func() {
+			_ = th.App.RemoveUserFromTeam(th.Context, th.BasicTeam.Id, th.SystemAdminUser.Id, "")
+		}()
+
+		// Search with empty term should return both team reviewer and system admin
+		reviewers, appErr := th.App.SearchReviewers(th.Context, "", th.BasicTeam.Id)
+		require.Nil(t, appErr)
+		require.True(t, len(reviewers) >= 2)
+
+		reviewerIds := make([]string, len(reviewers))
+		for i, reviewer := range reviewers {
+			reviewerIds[i] = reviewer.Id
+		}
+		require.Contains(t, reviewerIds, th.BasicUser.Id)
+		require.Contains(t, reviewerIds, th.SystemAdminUser.Id)
+	})
+
+	t.Run("should handle search by email and full name", func(t *testing.T) {
+		config := getBaseConfig()
+		config.ReviewerSettings.CommonReviewers = model.NewPointer(true)
+		config.ReviewerSettings.CommonReviewerIds = []string{th.BasicUser.Id}
+		config.ReviewerSettings.SystemAdminsAsReviewers = model.NewPointer(false)
+		config.ReviewerSettings.TeamAdminsAsReviewers = model.NewPointer(false)
+
+		appErr := th.App.SaveContentFlaggingConfig(config)
+		require.Nil(t, appErr)
+
+		// Search by first name (if the user has one set)
+		if th.BasicUser.FirstName != "" {
+			reviewers, appErr := th.App.SearchReviewers(th.Context, th.BasicUser.FirstName, th.BasicTeam.Id)
+			require.Nil(t, appErr)
+			require.True(t, len(reviewers) >= 1)
+
+			found := false
+			for _, reviewer := range reviewers {
+				if reviewer.Id == th.BasicUser.Id {
+					found = true
+					break
+				}
+			}
+			require.True(t, found)
+		}
+	})
+}
