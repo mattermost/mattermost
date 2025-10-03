@@ -25,7 +25,7 @@ import Provider from '../provider';
 import type {Loading, ProviderResultsGroup} from '../suggestion_results';
 
 const profilesInChannelOptions = {active: true};
-const regexForAtMention = /(?:^|\W)@([\p{L}\d\-_. ]*)$/iu;
+const regexForAtMention = /(?:^|\W)[@＠]([\p{L}\d\-_. ]*)$/iu;
 
 type UserProfileWithLastViewAt = UserProfile & {last_viewed_at?: number};
 

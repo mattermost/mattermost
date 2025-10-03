@@ -28,11 +28,12 @@ func makeStandardMentionParser(keywords MentionKeywords) *StandardMentionParser 
 
 // Processes text to filter mentioned users and other potential mentions
 func (p *StandardMentionParser) ProcessText(text string) {
-	systemMentions := map[string]bool{"@here": true, "@channel": true, "@all": true}
+	systemMentions := map[string]bool{"@here": true, "@channel": true, "@all": true, "＠here": true, "＠channel": true, "＠all": true}
 
 	for _, word := range strings.FieldsFunc(text, func(c rune) bool {
 		// Split on any whitespace or punctuation that can't be part of an at mention or emoji pattern
-		return !(c == ':' || c == '.' || c == '-' || c == '_' || c == '@' || unicode.IsLetter(c) || unicode.IsNumber(c))
+		// Include full-width @ (＠, U+FF20) as a valid character
+		return !(c == ':' || c == '.' || c == '-' || c == '_' || c == '@' || c == '＠' || unicode.IsLetter(c) || unicode.IsNumber(c))
 	}) {
 		// skip word with format ':word:' with an assumption that it is an emoji format only
 		if word[0] == ':' && word[len(word)-1] == ':' {
@@ -61,7 +62,7 @@ func (p *StandardMentionParser) ProcessText(text string) {
 			continue
 		}
 
-		if _, ok := systemMentions[word]; !ok && strings.HasPrefix(word, "@") {
+		if _, ok := systemMentions[word]; !ok && (strings.HasPrefix(word, "@") || strings.HasPrefix(word, "＠")) {
 			// No need to bother about unicode as we are looking for ASCII characters.
 			last := word[len(word)-1]
 			switch last {
@@ -69,7 +70,12 @@ func (p *StandardMentionParser) ProcessText(text string) {
 			case '.', '-', ':':
 				word = word[:len(word)-1]
 			}
-			p.results.OtherPotentialMentions = append(p.results.OtherPotentialMentions, word[1:])
+			// Handle both half-width @ and full-width ＠
+			if strings.HasPrefix(word, "＠") {
+				p.results.OtherPotentialMentions = append(p.results.OtherPotentialMentions, word[len("＠"):])
+			} else {
+				p.results.OtherPotentialMentions = append(p.results.OtherPotentialMentions, word[1:])
+			}
 		} else if strings.ContainsAny(word, ".-:") {
 			// This word contains a character that may be the end of a sentence, so split further
 			splitWords := strings.FieldsFunc(word, func(c rune) bool {
@@ -80,8 +86,13 @@ func (p *StandardMentionParser) ProcessText(text string) {
 				if p.checkForMention(splitWord) {
 					continue
 				}
-				if _, ok := systemMentions[splitWord]; !ok && strings.HasPrefix(splitWord, "@") {
-					p.results.OtherPotentialMentions = append(p.results.OtherPotentialMentions, splitWord[1:])
+				if _, ok := systemMentions[splitWord]; !ok && (strings.HasPrefix(splitWord, "@") || strings.HasPrefix(splitWord, "＠")) {
+					// Handle both half-width @ and full-width ＠
+					if strings.HasPrefix(splitWord, "＠") {
+						p.results.OtherPotentialMentions = append(p.results.OtherPotentialMentions, splitWord[len("＠"):])
+					} else {
+						p.results.OtherPotentialMentions = append(p.results.OtherPotentialMentions, splitWord[1:])
+					}
 				}
 			}
 		}
@@ -100,21 +111,22 @@ func (p *StandardMentionParser) Results() *MentionResults {
 func (p *StandardMentionParser) checkForMention(word string) bool {
 	var mentionType MentionType
 
-	switch strings.ToLower(word) {
-	case "@here":
+	wordLower := strings.ToLower(word)
+	switch wordLower {
+	case "@here", "＠here":
 		p.results.HereMentioned = true
 		mentionType = ChannelMention
-	case "@channel":
+	case "@channel", "＠channel":
 		p.results.ChannelMentioned = true
 		mentionType = ChannelMention
-	case "@all":
+	case "@all", "＠all":
 		p.results.AllMentioned = true
 		mentionType = ChannelMention
 	default:
 		mentionType = KeywordMention
 	}
 
-	if ids, match := p.keywords[strings.ToLower(word)]; match {
+	if ids, match := p.keywords[wordLower]; match {
 		p.addMentions(ids, mentionType)
 		return true
 	}

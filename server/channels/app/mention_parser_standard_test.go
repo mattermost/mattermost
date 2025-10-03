@@ -204,6 +204,42 @@ func TestCheckForMentionUsers(t *testing.T) {
 				AllMentioned: true,
 			},
 		},
+		"FullWidthHereMention": {
+			Word: "＠here",
+			Expected: &MentionResults{
+				HereMentioned: true,
+			},
+		},
+		"FullWidthChannelMention": {
+			Word: "＠channel",
+			Expected: &MentionResults{
+				ChannelMentioned: true,
+			},
+		},
+		"FullWidthAllMention": {
+			Word: "＠all",
+			Expected: &MentionResults{
+				AllMentioned: true,
+			},
+		},
+		"FullWidthUppercaseUser1": {
+			Word:     "＠User",
+			Keywords: map[string][]string{"@user": {id1}},
+			Expected: &MentionResults{
+				Mentions: map[string]MentionType{
+					id1: KeywordMention,
+				},
+			},
+		},
+		"FullWidthLowercaseUser2": {
+			Word:     "＠user2",
+			Keywords: map[string][]string{"@user2": {id2}},
+			Expected: &MentionResults{
+				Mentions: map[string]MentionType{
+					id2: KeywordMention,
+				},
+			},
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			p := makeStandardMentionParser(mapsToMentionKeywords(tc.Keywords, nil))
@@ -259,6 +295,18 @@ func TestCheckForMentionGroups(t *testing.T) {
 		},
 		"matching upper case group with preceding @": {
 			Word: "@Engineering",
+			Groups: map[string]*model.Group{
+				groupID1: {Id: groupID1, Name: model.NewPointer("engineering")},
+				groupID2: {Id: groupID2, Name: model.NewPointer("developers")},
+			},
+			Expected: &MentionResults{
+				GroupMentions: map[string]MentionType{
+					groupID1: GroupMention,
+				},
+			},
+		},
+		"Full-width @ matching group": {
+			Word: "＠engineering",
 			Groups: map[string]*model.Group{
 				groupID1: {Id: groupID1, Name: model.NewPointer("engineering")},
 				groupID2: {Id: groupID2, Name: model.NewPointer("developers")},
@@ -424,6 +472,58 @@ func TestProcessText(t *testing.T) {
 				},
 				GroupMentions:          map[string]MentionType{groupID1: GroupMention},
 				OtherPotentialMentions: []string{"systembot"},
+			},
+		},
+		"Full-width @ mention user in text": {
+			Text:     "hello user ＠user1",
+			Keywords: map[string][]string{"@user1": {userID1}},
+			Groups: map[string]*model.Group{
+				groupID1: {Id: groupID1, Name: model.NewPointer("engineering")},
+				groupID2: {Id: groupID2, Name: model.NewPointer("developers")},
+			},
+			Expected: &MentionResults{
+				Mentions: map[string]MentionType{
+					userID1: KeywordMention,
+				},
+			},
+		},
+		"Full-width @ mention here": {
+			Text:     "hello all ＠here",
+			Keywords: map[string][]string{},
+			Expected: &MentionResults{
+				HereMentioned: true,
+			},
+		},
+		"Full-width @ mention channel": {
+			Text:     "hey ＠channel",
+			Keywords: map[string][]string{},
+			Expected: &MentionResults{
+				ChannelMentioned: true,
+			},
+		},
+		"Full-width @ mention all": {
+			Text:     "hello ＠all",
+			Keywords: map[string][]string{},
+			Expected: &MentionResults{
+				AllMentioned: true,
+			},
+		},
+		"Full-width @ mention potential user": {
+			Text:     "hello ＠potentialuser",
+			Keywords: map[string][]string{},
+			Expected: &MentionResults{
+				OtherPotentialMentions: []string{"potentialuser"},
+			},
+		},
+		"Full-width @ mention group": {
+			Text:     "＠engineering",
+			Keywords: map[string][]string{"@user1": {userID1}},
+			Groups: map[string]*model.Group{
+				groupID1: {Id: groupID1, Name: model.NewPointer("engineering")},
+				groupID2: {Id: groupID2, Name: model.NewPointer("developers")},
+			},
+			Expected: &MentionResults{
+				GroupMentions: map[string]MentionType{groupID1: GroupMention},
 			},
 		},
 	} {
