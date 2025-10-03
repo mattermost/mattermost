@@ -885,6 +885,8 @@ export const StoragePrefixes = {
     DELINQUENCY: 'delinquency_',
     HIDE_JOINED_CHANNELS: 'hideJoinedChannels',
     HIDE_NOTIFICATION_PERMISSION_REQUEST_BANNER: 'hideNotificationPermissionRequestBanner',
+    MARK_ALL_READ_WITHOUT_CONFIRM: 'mark_all_as_read_without_confirm',
+    HAS_SEEN_FEATURE_TOAST: 'has_seen_feature_toast',
 };
 
 export const LandingPreferenceTypes = {

@@ -16,8 +16,6 @@ import type {Team} from '@mattermost/types/teams';
 
 import {General} from 'mattermost-redux/constants';
 
-import LocalStorageStore from 'stores/local_storage_store';
-
 import {makeAsyncComponent} from 'components/async_load';
 import Scrollbars from 'components/common/scrollbars';
 import MarkAllAsReadModal from 'components/mark_all_as_read_modal';
@@ -38,6 +36,7 @@ const UnreadChannels = makeAsyncComponent('UnreadChannels', lazy(() => import('.
 
 type Props = WrappedComponentProps & {
     currentTeam?: Team;
+    currentUserId: string;
     currentChannelId: string;
     categories: ChannelCategory[];
     unreadChannelIds: string[];
@@ -55,6 +54,7 @@ type Props = WrappedComponentProps & {
     handleOpenMoreDirectChannelsModal: (e: Event) => void;
     onDragStart: (initial: DragStart) => void;
     onDragEnd: (result: DropResult) => void;
+    markAllAsReadWithoutConfirm: boolean;
     markAllAsReadShortcutEnabled: boolean;
 
     actions: {
@@ -67,6 +67,7 @@ type Props = WrappedComponentProps & {
         stopDragging: () => void;
         clearChannelSelection: () => void;
         readMultipleChannels: (channelIds: string[]) => void;
+        setMarkAllAsReadWithoutConfirm: (userId: string, value: boolean) => void;
     };
 };
 
@@ -354,7 +355,7 @@ export class SidebarList extends React.PureComponent<Props, State> {
     markAllChannelsAsReadShortcut = (e: KeyboardEvent) => {
         if (!e.altKey && e.shiftKey && !e.ctrlKey && !e.metaKey && isKeyPressed(e, Constants.KeyCodes.ESCAPE)) {
             e.preventDefault();
-            if (LocalStorageStore.getMarkAllReadWithoutConfirm()) {
+            if (this.props.markAllAsReadWithoutConfirm) {
                 this.markAllMessagesAsRead();
             } else {
                 this.setState({
@@ -454,7 +455,10 @@ export class SidebarList extends React.PureComponent<Props, State> {
 
     onMarkAllAsReadConfirm = (dontShowAgain: boolean) => {
         this.markAllMessagesAsRead();
-        LocalStorageStore.setMarkAllReadWithoutConfirm(dontShowAgain);
+        this.props.actions.setMarkAllAsReadWithoutConfirm(
+            this.props.currentUserId,
+            dontShowAgain,
+        );
         this.setState({
             showMarkAllReadModal: false,
         });
