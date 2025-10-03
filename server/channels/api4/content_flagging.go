@@ -635,13 +635,17 @@ func assignFlaggedPostReviewer(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// This validates that the post is flagged
-	_, appErr = c.App.GetPostContentFlaggingStatusValue(postId)
+	auditRec := c.MakeAuditRecord(model.AuditEventSetReviewer, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "assigningUserId", assignedBy)
+	model.AddEventParameterToAuditRec(auditRec, "reviewerUserId", reviewerId)
+
+	appErr = c.App.AssignFlaggedPostReviewer(c.AppContext, postId, reviewerId, assignedBy)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
-	c.App.AssignFlaggedPostReviewer(c.AppContext, postId, reviewerId, assignedBy)
-
+	auditRec.Success()
+	writeOKResponse(w)
 }

@@ -834,6 +834,51 @@ func (a *App) SearchReviewers(rctx request.CTX, term string, teamId string) ([]*
 	return reviewersList, nil
 }
 
-func (a *App) AssignFlaggedPostReviewer(rctx request.CTX, postId, reviewerId, assigneeId string) *model.AppError {
+func (a *App) AssignFlaggedPostReviewer(rctx request.CTX, flaggedPostId, reviewerId, assigneeId string) *model.AppError {
+	statusPropertyValue, appErr := a.GetPostContentFlaggingStatusValue(flaggedPostId)
+	if appErr != nil {
+		return appErr
+	}
 
+	status := strings.Trim(string(statusPropertyValue.Value), `"`)
+	if status != model.ContentFlaggingStatusPending && status != model.ContentFlaggingStatusAssigned {
+		return model.NewAppError("AssignFlaggedPostReviewer", "api.content_flagging.error.post_not_in_progress", nil, "", http.StatusBadRequest)
+	}
+
+	groupId, appErr := a.ContentFlaggingGroupId()
+	if appErr != nil {
+		return appErr
+	}
+
+	mappedFields, appErr := a.GetContentFlaggingMappedFields(groupId)
+	if appErr != nil {
+		return appErr
+	}
+
+	if _, ok := mappedFields[contentFlaggingPropertyNameReviewerUserID]; !ok {
+		return model.NewAppError("AssignFlaggedPostReviewer", "app.content_flagging.assign_reviewer.no_reviewer_field.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	assigneePropertyValue := &model.PropertyValue{
+		TargetID:   flaggedPostId,
+		TargetType: model.PropertyValueTargetTypePost,
+		GroupID:    groupId,
+		FieldID:    mappedFields[contentFlaggingPropertyNameReviewerUserID].ID,
+		Value:      json.RawMessage(fmt.Sprintf(`"%s"`, reviewerId)),
+	}
+
+	_, err := a.Srv().propertyService.UpsertPropertyValue(assigneePropertyValue)
+	if err != nil {
+		return model.NewAppError("AssignFlaggedPostReviewer", "app.content_flagging.assign_reviewer.upsert_property_value.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
+	}
+
+	if status == model.ContentFlaggingStatusPending {
+		statusPropertyValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusAssigned))
+		_, err = a.Srv().propertyService.UpdatePropertyValue(groupId, statusPropertyValue)
+		if err != nil {
+			return model.NewAppError("AssignFlaggedPostReviewer", "app.content_flagging.assign_reviewer.update_status_property_value.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	return nil
 }
