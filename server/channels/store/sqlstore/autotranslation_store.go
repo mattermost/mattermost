@@ -318,10 +318,11 @@ func (s *SqlAutoTranslationStore) Save(rctx request.CTX, objectType, objectID, d
 
 func (s *SqlAutoTranslationStore) Search(rctx request.CTX, dstLang, searchTerm string, limit int) ([]*model.Translation, *model.AppError) {
 	ftsQuery := s.getQueryBuilder().
-		Select("object_type", "object_id", "dst_lang", "text", "confidence", "ts_rank(to_tsvector('simple', COALESCE(content_search_text, text)), plainto_tsquery('simple', ?)) AS score").
+		Select("object_type", "object_id", "dst_lang", "text", "confidence").
+		Column("ts_rank(to_tsvector('simple', COALESCE(content_search_text, text)), plainto_tsquery('simple', ?)) AS score", searchTerm).
 		From("translations").
 		Where(sq.Eq{"dst_lang": dstLang}).
-		Where("to_tsvector('simple', COALESCE(content_search_text, text)) @@ plainto_tsquery('simple', ?)").
+		Where("to_tsvector('simple', COALESCE(content_search_text, text)) @@ plainto_tsquery('simple', ?)", searchTerm).
 		OrderBy("score DESC").
 		Limit(uint64(limit))
 
@@ -340,19 +341,20 @@ func (s *SqlAutoTranslationStore) Search(rctx request.CTX, dstLang, searchTerm s
 		Score      float64  `db:"score"`
 	}
 
-	queryArgs := append([]interface{}{searchTerm, searchTerm}, args...)
 	var results []searchResult
-	if err := s.GetReplica().Select(&results, queryString, queryArgs...); err != nil {
+	if err := s.GetReplica().Select(&results, queryString, args...); err != nil {
 		return nil, model.NewAppError("SqlAutoTranslationStore.Search",
 			"store.sql_autotranslation.search.app_error", nil, err.Error(), 500)
 	}
 
+	// Fallback to trigram similarity search if FTS returns no results
 	if len(results) == 0 {
 		trigramQuery := s.getQueryBuilder().
-			Select("object_type", "object_id", "dst_lang", "text", "confidence", "similarity(COALESCE(content_search_text, text), ?) AS score").
+			Select("object_type", "object_id", "dst_lang", "text", "confidence").
+			Column("similarity(COALESCE(content_search_text, text), ?) AS score", searchTerm).
 			From("translations").
 			Where(sq.Eq{"dst_lang": dstLang}).
-			Where("COALESCE(content_search_text, text) ILIKE '%' || ? || '%'").
+			Where("COALESCE(content_search_text, text) ILIKE '%' || ? || '%'", searchTerm).
 			OrderBy("score DESC").
 			Limit(uint64(limit))
 
@@ -362,8 +364,7 @@ func (s *SqlAutoTranslationStore) Search(rctx request.CTX, dstLang, searchTerm s
 				"store.sql_autotranslation.query_build_error", nil, err.Error(), 500)
 		}
 
-		queryArgs := append([]interface{}{searchTerm, searchTerm}, args...)
-		if err := s.GetReplica().Select(&results, queryString, queryArgs...); err != nil {
+		if err := s.GetReplica().Select(&results, queryString, args...); err != nil {
 			return nil, model.NewAppError("SqlAutoTranslationStore.Search",
 				"store.sql_autotranslation.search_trigram.app_error", nil, err.Error(), 500)
 		}
