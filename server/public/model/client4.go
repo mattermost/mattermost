@@ -734,6 +734,21 @@ func (c *Client4) GetFlaggingConfiguration(ctx context.Context) (*ContentFlaggin
 	return &config, BuildResponse(r), nil
 }
 
+func (c *Client4) FlagPostForContentReview(ctx context.Context, postId string, flagRequest *FlagContentRequest) (*Response, error) {
+	buf, err := json.Marshal(flagRequest)
+	if err != nil {
+		return nil, NewAppError("FlagPostForContentReview", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPost(ctx, fmt.Sprintf("%s/post/%s/flag", c.contentFlaggingRoute(), postId), string(buf))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 func (c *Client4) GetTeamPostFlaggingFeatureStatus(ctx context.Context, teamId string) (map[string]bool, *Response, error) {
 	r, err := c.DoAPIGet(ctx, c.contentFlaggingRoute()+"/team/"+teamId+"/status", "")
 	if err != nil {
@@ -745,6 +760,32 @@ func (c *Client4) GetTeamPostFlaggingFeatureStatus(ctx context.Context, teamId s
 		return nil, nil, NewAppError("GetFlaggingConfiguration", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return status, BuildResponse(r), nil
+}
+
+func (c *Client4) GetPostPropertyValues(ctx context.Context, postId string) (*[]PropertyValue, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.contentFlaggingRoute()+"/post/"+postId+"/field_values", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var propertyValues []PropertyValue
+	if err := json.NewDecoder(r.Body).Decode(&propertyValues); err != nil {
+		return nil, nil, NewAppError("GetFlaggingConfiguration", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &propertyValues, BuildResponse(r), nil
+}
+
+func (c *Client4) GetContentFlaggedPost(ctx context.Context, postId string) (*Post, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.contentFlaggingRoute()+"/post/"+postId, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var post Post
+	if err := json.NewDecoder(r.Body).Decode(&post); err != nil {
+		return nil, nil, NewAppError("GetContentFlaggedPost", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &post, BuildResponse(r), nil
 }
 
 func (c *Client4) bookmarksRoute(channelId string) string {
