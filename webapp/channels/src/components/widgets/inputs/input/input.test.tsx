@@ -52,9 +52,7 @@ describe('components/widgets/inputs/Input', () => {
         expect(iconElement).toBeInTheDocument();
 
         // Click directly on the icon element
-        await act(async () => {
-            userEvent.click(iconElement);
-        });
+        await userEvent.click(iconElement);
 
         // Verify onClear was called
         expect(onClear).toHaveBeenCalledTimes(1);
@@ -167,16 +165,11 @@ describe('components/widgets/inputs/Input', () => {
             // Find the input
             const inputElement = screen.getByDisplayValue('a');
 
+            // Clear the input first
             // Simulate change to trigger validation
-            await act(async () => {
-                // Clear the input first
-                userEvent.clear(inputElement);
-
-                // Then type the new value
-                userEvent.type(inputElement, 'a');
-
-                inputElement.blur();
-            });
+            await userEvent.clear(inputElement);
+            await userEvent.type(inputElement, 'a');
+            act(() => inputElement.blur());
 
             // Check for error styling
             const fieldset = screen.getByTestId('input-wrapper');

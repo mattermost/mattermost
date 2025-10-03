@@ -104,7 +104,7 @@ const TeamEditionRightPanel: React.FC<TeamEditionRightPanelProps> = ({
                         id='admin.licenseSettings.teamEdition.teamEditionRightPanel.acceptTermsInitial'
                         defaultMessage='By clicking <b>Upgrade</b>, I agree to the terms of the Mattermost '
                         values={{
-                            b: (chunks: string) => <b>{chunks}</b>,
+                            b: (chunks) => <b>{chunks}</b>,
                         }}
                     />
                     <a

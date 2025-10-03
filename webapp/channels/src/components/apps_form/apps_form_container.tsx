@@ -18,7 +18,7 @@ import AppsForm from './apps_form_component';
 type Props = {
     intl: IntlShape;
     form?: AppForm;
-    context?: AppContext;
+    appContext?: AppContext;
     onExited: () => void;
     onHide?: () => void;
     actions: {
@@ -58,11 +58,11 @@ class AppsFormContainer extends React.PureComponent<Props, State> {
             const errMsg = this.props.intl.formatMessage({id: 'apps.error.form.no_submit', defaultMessage: '`submit` is not defined'});
             return {error: makeCallErrorResponse(makeErrorMsg(errMsg))};
         }
-        if (!this.props.context) {
+        if (!this.props.appContext) {
             return {error: makeCallErrorResponse('unreachable: empty context')};
         }
 
-        const creq = createCallRequest(form.submit, this.props.context, {}, submission.values);
+        const creq = createCallRequest(form.submit, this.props.appContext, {}, submission.values);
         const res = await this.props.actions.doAppSubmit(creq, this.props.intl) as DoAppCallResult<FormResponseData>;
         if (res.error) {
             return res;
@@ -126,11 +126,11 @@ class AppsFormContainer extends React.PureComponent<Props, State> {
                 defaultMessage: 'Called refresh on no refresh field.',
             })))};
         }
-        if (!this.props.context) {
+        if (!this.props.appContext) {
             return {error: makeCallErrorResponse('unreachable: empty context')};
         }
 
-        const creq = createCallRequest(form.source, this.props.context, {}, values);
+        const creq = createCallRequest(form.source, this.props.appContext, {}, values);
         creq.selected_field = field.name;
 
         const res = await this.props.actions.doAppFetchForm(creq, this.props.intl);
@@ -179,11 +179,11 @@ class AppsFormContainer extends React.PureComponent<Props, State> {
                 defaultMessage: '`lookup` is not defined.',
             })))};
         }
-        if (!this.props.context) {
+        if (!this.props.appContext) {
             return {error: makeCallErrorResponse('unreachable: empty context')};
         }
 
-        const creq = createCallRequest(field.lookup, this.props.context, {}, values);
+        const creq = createCallRequest(field.lookup, this.props.appContext, {}, values);
         creq.selected_field = field.name;
         creq.query = userInput;
 
@@ -193,7 +193,7 @@ class AppsFormContainer extends React.PureComponent<Props, State> {
     render() {
         const {form} = this.state;
 
-        if (!form?.submit || !this.props.context) {
+        if (!form?.submit || !this.props.appContext) {
             return null;
         }
 

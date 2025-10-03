@@ -21,7 +21,6 @@ jest.mock('components/common/hooks/useChannel');
 jest.mock('components/common/hooks/usePost');
 jest.mock('mattermost-redux/actions/posts');
 jest.mock('components/common/hooks/useContentFlaggingFields');
-jest.mock('mattermost-redux/client');
 
 const mockedUseUser = require('components/common/hooks/useUser').useUser as jest.MockedFunction<any>;
 const mockUseChannel = require('components/common/hooks/useChannel').useChannel as jest.MockedFunction<any>;
@@ -30,8 +29,6 @@ const mockedUsePost = require('components/common/hooks/usePost').usePost as jest
 const mockGetPost = require('mattermost-redux/actions/posts').getPost as jest.MockedFunction<any>;
 const useContentFlaggingFields = require('components/common/hooks/useContentFlaggingFields').useContentFlaggingFields as jest.MockedFunction<any>;
 const usePostContentFlaggingValues = require('components/common/hooks/useContentFlaggingFields').usePostContentFlaggingValues as jest.MockedFunction<any>;
-
-const mockedClient4 = jest.mocked(Client4);
 
 describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
     const reportingUser = TestHelper.getUserMock({
@@ -312,7 +309,8 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
 
         useContentFlaggingFields.mockReturnValue(contentFlaggingFields);
         usePostContentFlaggingValues.mockReturnValue(postContentFlaggingValues);
-        mockedClient4.getFlaggedPost = jest.fn().mockResolvedValue(reportedPost);
+
+        Client4.getFlaggedPost = jest.fn().mockResolvedValue(reportedPost);
     });
 
     it('should render selected fields when not in RHS', async () => {

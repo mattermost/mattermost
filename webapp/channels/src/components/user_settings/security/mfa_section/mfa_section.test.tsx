@@ -9,6 +9,7 @@ import React from 'react';
 import MfaSection from 'components/user_settings/security/mfa_section/mfa_section';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {act} from 'tests/react_testing_utils';
 import {getHistory} from 'utils/browser_history';
 
 describe('MfaSection', () => {
@@ -123,9 +124,13 @@ describe('MfaSection', () => {
                 preventDefault: jest.fn(),
             } as unknown as React.MouseEvent<HTMLElement>;
 
-            wrapper.setState({serverError: 'An error has occurred'});
+            act(() => {
+                wrapper.setState({serverError: 'An error has occurred'});
+            });
 
-            await (wrapper.instance() as MfaSection).removeMfa(mockEvent);
+            await act(async () => {
+                await (wrapper.instance() as MfaSection).removeMfa(mockEvent);
+            });
 
             expect(baseProps.updateSection).toHaveBeenCalledWith('');
             expect(wrapper.state('serverError')).toEqual(null);
@@ -144,7 +149,9 @@ describe('MfaSection', () => {
                 preventDefault: jest.fn(),
             } as unknown as React.MouseEvent<HTMLElement>;
 
-            await (wrapper.instance() as MfaSection).removeMfa(mockEvent);
+            await act(async () => {
+                await (wrapper.instance() as MfaSection).removeMfa(mockEvent);
+            });
 
             expect(baseProps.updateSection).not.toHaveBeenCalled();
             expect(getHistory().push).toHaveBeenCalledWith('/mfa/setup');
@@ -161,7 +168,9 @@ describe('MfaSection', () => {
 
             baseProps.actions.deactivateMfa.mockImplementation(() => Promise.resolve({error}));
 
-            await (wrapper.instance() as MfaSection).removeMfa(mockEvent);
+            await act(async () => {
+                await (wrapper.instance() as MfaSection).removeMfa(mockEvent);
+            });
 
             expect(baseProps.updateSection).not.toHaveBeenCalled();
             expect(wrapper.state('serverError')).toEqual(error.message);

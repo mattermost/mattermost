@@ -100,8 +100,15 @@ export function getUser(state: GlobalState, id: UserProfile['id']): UserProfile 
     return state.entities.users.profiles[id];
 }
 
-export function getUsersByIDs(state: GlobalState, ids: Array<UserProfile['id']>): UserProfile[] {
-    return ids.map((userId) => getUser(state, userId));
+export function makeGetUsersByIds(): (state: GlobalState, ids: Array<UserProfile['id']>) => UserProfile[] {
+    return createSelector(
+        'getUsersByIds',
+        getUsers,
+        (state: GlobalState, ids: string[]) => ids,
+        (users, ids) => {
+            return ids.map((userId) => users[userId]);
+        },
+    );
 }
 
 export const getUsersByUsername: (a: GlobalState) => Record<string, UserProfile> = createSelector(
@@ -680,17 +687,17 @@ export function makeGetProfilesNotInChannel(): (state: GlobalState, channelId: C
 export function makeGetProfilesByIdsAndUsernames(): (
     state: GlobalState,
     props: {
-        allUserIds: Array<UserProfile['id']>;
-        allUsernames: Array<UserProfile['username']>;
+        allUserIds?: Array<UserProfile['id']>;
+        allUsernames?: Array<UserProfile['username']>;
     }
 ) => UserProfile[] {
     return createSelector(
         'makeGetProfilesByIdsAndUsernames',
         getUsers,
         getUsersByUsername,
-        (state: GlobalState, props: {allUserIds: Array<UserProfile['id']>; allUsernames: Array<UserProfile['username']>}) => props.allUserIds,
+        (state: GlobalState, props: {allUserIds?: Array<UserProfile['id']>; allUsernames?: Array<UserProfile['username']>}) => props.allUserIds,
         (state, props) => props.allUsernames,
-        (allProfilesById: Record<string, UserProfile>, allProfilesByUsername: Record<string, UserProfile>, allUserIds: string[], allUsernames: string[]) => {
+        (allProfilesById: Record<string, UserProfile>, allProfilesByUsername: Record<string, UserProfile>, allUserIds: string[] = [], allUsernames: string[] = []) => {
             const userProfiles: UserProfile[] = [];
 
             if (allUserIds && allUserIds.length > 0) {

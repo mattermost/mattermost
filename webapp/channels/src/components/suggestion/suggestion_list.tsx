@@ -174,7 +174,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
                     defaultMessage='No items match <b>{value}</b>'
                     values={{
                         value: this.props.pretext || '""',
-                        b: (chunks: string) => <b>{chunks}</b>,
+                        b: (chunks) => <b>{chunks}</b>,
                     }}
                 />
             </ul>

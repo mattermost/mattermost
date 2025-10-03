@@ -2,50 +2,47 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Modal} from 'react-bootstrap';
 
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext, screen, userEvent, waitForElementToBeRemoved} from 'tests/react_testing_utils';
 
 import ConfirmModalRedux from './confirm_modal_redux';
 
 describe('ConfirmModalRedux', () => {
     const baseProps = {
+        cancelButtonText: 'cancel',
+        confirmButtonText: 'submit',
         onExited: jest.fn(),
     };
 
-    // These tests will time out when failing, so we override the timeout period to make them fail faster.
-
-    test('should call closeModal after confirming', (done) => {
-        baseProps.onExited.mockImplementation(() => done());
-
-        const wrapper = mountWithIntl(
+    test('should call closeModal after confirming', async () => {
+        renderWithContext(
             <ConfirmModalRedux
                 {...baseProps}
             />,
         );
 
-        expect(wrapper.find(Modal).prop('show')).toBe(true);
+        expect(screen.getByRole('dialog')).toBeVisible();
         expect(baseProps.onExited).not.toHaveBeenCalled();
 
-        wrapper.find('#confirmModalButton').simulate('click');
+        await userEvent.click(screen.getByText(baseProps.confirmButtonText));
 
-        expect(wrapper.find(Modal).prop('show')).toBe(false);
-    }, 5000);
+        await waitForElementToBeRemoved(screen.getByRole('dialog'));
+        expect(baseProps.onExited).toHaveBeenCalled();
+    });
 
-    test('should call onExited after cancelling', (done) => {
-        baseProps.onExited.mockImplementation(() => done());
-
-        const wrapper = mountWithIntl(
+    test('should call onExited after cancelling', async () => {
+        renderWithContext(
             <ConfirmModalRedux
                 {...baseProps}
             />,
         );
 
-        expect(wrapper.find(Modal).prop('show')).toBe(true);
+        expect(screen.getByRole('dialog')).toBeVisible();
         expect(baseProps.onExited).not.toHaveBeenCalled();
 
-        wrapper.find('#cancelModalButton').simulate('click');
+        await userEvent.click(screen.getByText(baseProps.cancelButtonText));
 
-        expect(wrapper.find(Modal).prop('show')).toBe(false);
-    }, 5000);
+        await waitForElementToBeRemoved(screen.getByRole('dialog'));
+        expect(baseProps.onExited).toHaveBeenCalled();
+    });
 });

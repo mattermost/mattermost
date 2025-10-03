@@ -3,7 +3,7 @@
 
 import debounce from 'lodash/debounce';
 import type {ReactNode} from 'react';
-import React, {memo, useEffect, useRef} from 'react';
+import React, {memo, useLayoutEffect, useRef} from 'react';
 
 import {ListItemSizeObserver} from './list_item_size_observer';
 
@@ -11,7 +11,7 @@ const RESIZE_DEBOUNCE_TIME = 200; // in ms
 
 const listItemSizeObserver = ListItemSizeObserver.getInstance();
 
-interface Props {
+export interface Props {
     item: ReactNode;
     itemId: string;
     index: number;
@@ -35,20 +35,20 @@ const ListItem = (props: Props) => {
     // This prevents stale closures in the ResizeObserver callback
     // and ensures event handlers always have the latest values
     // we also update these refs whenever their source values change
-    useEffect(() => {
+    useLayoutEffect(() => {
         heightRef.current = props.height;
         widthRef.current = props.width;
         indexRef.current = props.index;
     }, [props.itemId, props.height, props.width, props.index]);
 
     // This effect is used to measure the height of the row as soon as the component mounts
-    useEffect(() => {
+    useLayoutEffect(() => {
         const newHeight = Math.ceil(rowRef?.current?.offsetHeight ?? 0);
         props.onHeightChange(props.itemId, newHeight, false);
     }, [props.itemId]);
 
     // This effects adds the observer which calls height change callback debounced
-    useEffect(() => {
+    useLayoutEffect(() => {
         const debouncedOnHeightChange = debounce((changedHeight: number) => {
             // Check if component is still mounted as it may have been
             // unmounted by the time the debounced function is called
