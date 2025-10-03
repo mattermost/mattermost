@@ -62,6 +62,7 @@ const PostMessagePreview = (props: Props) => {
                 compactDisplay={compactDisplay}
                 isInPermalink={true}
                 handleFileDropdownOpened={handleFileDropdownOpened}
+                usePostAsSource={props.usePostAsSource}
             />
         );
     }

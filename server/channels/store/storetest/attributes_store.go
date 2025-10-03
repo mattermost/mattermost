@@ -135,7 +135,7 @@ func createTestUsers(t *testing.T, rctx request.CTX, ss store.Store) ([]*model.U
 
 	pva1, err := ss.PropertyValue().Create(&model.PropertyValue{
 		TargetID:   u1.Id,
-		TargetType: "user",
+		TargetType: model.PropertyValueTargetTypeUser,
 		GroupID:    groupID,
 		FieldID:    fieldA.ID,
 		Value:      vala1,
@@ -144,7 +144,7 @@ func createTestUsers(t *testing.T, rctx request.CTX, ss store.Store) ([]*model.U
 
 	pvb1, err := ss.PropertyValue().Create(&model.PropertyValue{
 		TargetID:   u1.Id,
-		TargetType: "user",
+		TargetType: model.PropertyValueTargetTypeUser,
 		GroupID:    groupID,
 		FieldID:    fieldB.ID,
 		Value:      valab1,
@@ -153,7 +153,7 @@ func createTestUsers(t *testing.T, rctx request.CTX, ss store.Store) ([]*model.U
 
 	pva2, err := ss.PropertyValue().Create(&model.PropertyValue{
 		TargetID:   u2.Id,
-		TargetType: "user",
+		TargetType: model.PropertyValueTargetTypeUser,
 		GroupID:    groupID,
 		FieldID:    fieldA.ID,
 		Value:      vala2,
@@ -162,7 +162,7 @@ func createTestUsers(t *testing.T, rctx request.CTX, ss store.Store) ([]*model.U
 
 	pva3, err := ss.PropertyValue().Create(&model.PropertyValue{
 		TargetID:   u3.Id,
-		TargetType: "user",
+		TargetType: model.PropertyValueTargetTypeUser,
 		GroupID:    groupID,
 		FieldID:    fieldA.ID,
 		Value:      vala1,
@@ -171,7 +171,7 @@ func createTestUsers(t *testing.T, rctx request.CTX, ss store.Store) ([]*model.U
 
 	pva4, err := ss.PropertyValue().Create(&model.PropertyValue{
 		TargetID:   u3.Id,
-		TargetType: "user",
+		TargetType: model.PropertyValueTargetTypeUser,
 		GroupID:    groupID,
 		FieldID:    fieldC.ID,
 		Value:      valc2,

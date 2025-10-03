@@ -257,7 +257,7 @@ function profiles(state: UsersState['profiles'] = {}, action: MMReduxAction) {
         }, {});
     }
     case UserTypes.RECEIVED_PROFILES_LIST: {
-        const users: UserProfile[] = action.data;
+        const users: UserProfile[] = action.data || [] as UserProfile[];
 
         return users.reduce(receiveUserProfile, state);
     }
