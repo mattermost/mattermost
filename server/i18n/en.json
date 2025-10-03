@@ -10585,16 +10585,16 @@
     "translation": "Channel not found."
   },
   {
+    "id": "store.sql_autotranslation.get.app_error",
+    "translation": "Unable to get translation."
+  },
+  {
     "id": "store.sql_autotranslation.get_active_languages.app_error",
     "translation": "Unable to get active languages."
   },
   {
     "id": "store.sql_autotranslation.get_channel_enabled.app_error",
     "translation": "Unable to get channel autotranslation enabled status."
-  },
-  {
-    "id": "store.sql_autotranslation.get.app_error",
-    "translation": "Unable to get translation."
   },
   {
     "id": "store.sql_autotranslation.get_user_enabled.app_error",
@@ -10613,6 +10613,14 @@
     "translation": "Failed to build query."
   },
   {
+    "id": "store.sql_autotranslation.save.app_error",
+    "translation": "Unable to save translation."
+  },
+  {
+    "id": "store.sql_autotranslation.save.meta_marshal_error",
+    "translation": "Failed to marshal translation metadata."
+  },
+  {
     "id": "store.sql_autotranslation.search.app_error",
     "translation": "Unable to search translations."
   },
@@ -10627,14 +10635,6 @@
   {
     "id": "store.sql_autotranslation.set_user_enabled.app_error",
     "translation": "Unable to set user autotranslation enabled status."
-  },
-  {
-    "id": "store.sql_autotranslation.save.app_error",
-    "translation": "Unable to save translation."
-  },
-  {
-    "id": "store.sql_autotranslation.save.meta_marshal_error",
-    "translation": "Failed to marshal translation metadata."
   },
   {
     "id": "store.sql_bot.get.missing.app_error",
