@@ -409,7 +409,7 @@ mocks: store-mocks filestore-mocks ldap-mocks plugin-mocks einterfaces-mocks sea
 
 layers: store-layers pluginapi
 
-generated: mocks layers
+generated: mocks layers gen-serialized migrations-extract build-templates mmctl-docs
 
 check-prereqs-enterprise: setup-go-work ## Checks prerequisite software status for enterprise.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -582,6 +582,7 @@ validate-go-version: ## Validates the installed version of go against Mattermost
 	fi
 
 build-templates: ## Compile all mjml email templates
+	npm install -g mjml@4.9.0
 	cd $(TEMPLATES_DIR) && $(MAKE) build
 
 run-server: setup-go-work prepackaged-binaries validate-go-version start-docker client ## Starts the server.
