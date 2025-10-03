@@ -366,6 +366,8 @@ func init() {
 	ListUsersCmd.Flags().Bool("all", false, "Fetch all users. --page flag will be ignore if provided")
 	ListUsersCmd.Flags().String("team", "", "If supplied, only users belonging to this team will be listed")
 	ListUsersCmd.Flags().Bool("inactive", false, "If supplied, only users which are inactive will be fetch")
+	ListUsersCmd.Flags().Bool("roles", false, "If supplied, display user roles")
+	ListUsersCmd.Flags().String("role", "", "If supplied, only users with the given role will be fetch")
 
 	UserConvertCmd.Flags().Bool("bot", false, "If supplied, convert users to bots")
 	UserConvertCmd.Flags().Bool("user", false, "If supplied, convert a bot to a user")
@@ -818,28 +820,54 @@ func listUsersCmdF(c client.Client, command *cobra.Command, args []string) error
 		return err
 	}
 
+	roleName, err := command.Flags().GetString("role")
+	if err != nil {
+		return err
+	}
+
+	showRoles, err := command.Flags().GetBool("roles")
+	if err != nil {
+		return err
+	}
+
 	if showAll {
 		page = 0
 	}
 
-	var team *model.Team
+	var teamId string
 	if teamName != "" {
-		var err error
-		team, _, err = c.GetTeamByName(context.TODO(), teamName, "")
+		team, _, err := c.GetTeamByName(context.TODO(), teamName, "")
 		if err != nil {
 			return errors.Wrap(err, fmt.Sprintf("Failed to get team %s", teamName))
 		}
+		teamId = team.Id
+	}
+
+	var roleId string
+	if roleName != "" {
+		role, _, err := c.GetRoleByName(context.TODO(), roleName)
+		if err != nil {
+			return errors.Wrap(err, fmt.Sprintf("Failed to get role %s", roleName))
+		}
+		roleId = role.Id
 	}
 
 	params := url.Values{}
 	if inactive {
 		params.Add("inactive", "true")
 	}
-	if team != nil {
-		params.Add("in_team", team.Id)
+	if teamId != "" {
+		params.Add("in_team", teamId)
+	}
+	if roleId != "" {
+		params.Add("role", roleId)
 	}
 
 	tpl := `{{.Id}}: {{.Username}} ({{.Email}})`
+	if showRoles {
+		tpl += " - {{.Roles}}"
+	}
+
 	for {
 		users, _, err := c.GetUsersWithCustomQueryParameters(context.TODO(), page, perPage, params.Encode(), "")
 		if err != nil {
