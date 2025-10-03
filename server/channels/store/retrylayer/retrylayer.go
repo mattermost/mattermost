@@ -14293,6 +14293,27 @@ func (s *RetryLayerTokenStore) Cleanup(expiryTime int64) {
 
 }
 
+func (s *RetryLayerTokenStore) ConsumeOnce(tokenStr string) (*model.Token, error) {
+
+	tries := 0
+	for {
+		result, err := s.TokenStore.ConsumeOnce(tokenStr)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerTokenStore) Delete(token string) error {
 
 	tries := 0
@@ -15763,6 +15784,27 @@ func (s *RetryLayerUserStore) Search(rctx request.CTX, teamID string, term strin
 
 }
 
+func (s *RetryLayerUserStore) SearchCommonContentFlaggingReviewers(term string) ([]*model.User, error) {
+
+	tries := 0
+	for {
+		result, err := s.UserStore.SearchCommonContentFlaggingReviewers(term)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerUserStore) SearchInChannel(channelID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
 
 	tries := 0
@@ -15852,6 +15894,27 @@ func (s *RetryLayerUserStore) SearchNotInTeam(notInTeamID string, term string, o
 	tries := 0
 	for {
 		result, err := s.UserStore.SearchNotInTeam(notInTeamID, term, options)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerUserStore) SearchTeamContentFlaggingReviewers(teamId string, term string) ([]*model.User, error) {
+
+	tries := 0
+	for {
+		result, err := s.UserStore.SearchTeamContentFlaggingReviewers(teamId, term)
 		if err == nil {
 			return result, nil
 		}

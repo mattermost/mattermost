@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"slices"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 
@@ -29,6 +30,8 @@ func (api *API) InitContentFlagging() {
 	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/keep", api.APISessionRequired(keepFlaggedPost)).Methods(http.MethodPut)
 	api.BaseRoutes.ContentFlagging.Handle("/config", api.APISessionRequired(saveContentFlaggingSettings)).Methods(http.MethodPut)
 	api.BaseRoutes.ContentFlagging.Handle("/config", api.APISessionRequired(getContentFlaggingSettings)).Methods(http.MethodGet)
+	api.BaseRoutes.ContentFlagging.Handle("/team/{team_id:[A-Za-z0-9]+}/reviewers/search", api.APISessionRequired(searchReviewers)).Methods(http.MethodGet)
+	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/assign/{user_id:[A-Za-z0-9]+}", api.APISessionRequired(assignFlaggedPostReviewer)).Methods(http.MethodPost)
 }
 
 func requireContentFlaggingAvailable(c *Context) {
@@ -530,4 +533,119 @@ func getContentFlaggingSettings(c *Context, w http.ResponseWriter, r *http.Reque
 	if _, err := w.Write(responseBytes); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+func searchReviewers(c *Context, w http.ResponseWriter, r *http.Request) {
+	requireContentFlaggingEnabled(c)
+	if c.Err != nil {
+		return
+	}
+
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	teamId := c.Params.TeamId
+	userId := c.AppContext.Session().UserId
+	searchTerm := strings.TrimSpace(r.URL.Query().Get("term"))
+	if searchTerm == "" {
+		c.Err = model.NewAppError("searchReviewers", "api.content_flagging.error.empty_search_term", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	isReviewer, appErr := c.App.IsUserTeamContentReviewer(userId, teamId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if !isReviewer {
+		c.Err = model.NewAppError("searchReviewers", "api.content_flagging.error.reviewer_only", nil, "", http.StatusForbidden)
+		return
+	}
+
+	reviewers, appErr := c.App.SearchReviewers(c.AppContext, searchTerm, teamId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	responseBytes, err := json.Marshal(reviewers)
+	if err != nil {
+		c.Err = model.NewAppError("searchReviewers", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if _, err := w.Write(responseBytes); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func assignFlaggedPostReviewer(c *Context, w http.ResponseWriter, r *http.Request) {
+	requireContentFlaggingEnabled(c)
+	if c.Err != nil {
+		return
+	}
+
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	postId := c.Params.PostId
+	post, appErr := c.App.GetSinglePost(c.AppContext, postId, true)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	assignedBy := c.AppContext.Session().UserId
+	isReviewer, appErr := c.App.IsUserTeamContentReviewer(assignedBy, channel.TeamId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if !isReviewer {
+		c.Err = model.NewAppError("assignFlaggedPostReviewer", "api.content_flagging.error.reviewer_only", nil, "", http.StatusForbidden)
+		return
+	}
+
+	reviewerId := c.Params.UserId
+	isReviewer, appErr = c.App.IsUserTeamContentReviewer(reviewerId, channel.TeamId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if !isReviewer {
+		c.Err = model.NewAppError("assignFlaggedPostReviewer", "api.content_flagging.error.assignee_not_reviewer", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventSetReviewer, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "assigningUserId", assignedBy)
+	model.AddEventParameterToAuditRec(auditRec, "reviewerUserId", reviewerId)
+
+	appErr = c.App.AssignFlaggedPostReviewer(c.AppContext, postId, reviewerId, assignedBy)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
+	writeOKResponse(w)
 }

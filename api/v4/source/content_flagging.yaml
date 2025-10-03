@@ -301,3 +301,43 @@
               description: Internal server error.
             '403':
               description: User does not have permission to manage system configuration.
+  /api/v4/content_flagging/team/{team_id}/reviewers/search:
+    get:
+      summary: Search content reviewers in a team
+      description: |
+        Searches for content reviewers of a specific team based on a provided term. Only a content reviewer can access this endpoint.
+
+        An enterprise advanced license is required.
+      tags:
+        - Content Flagging
+      parameters:
+        - in: path
+          name: team_id
+          required: true
+          schema:
+            type: string
+          description: The ID of the team to search for content reviewers for
+        - in: query
+          name: term
+          required: true
+          schema:
+            type: string
+          description: The search term to filter content reviewers by
+      responses:
+        '200':
+          description: Content reviewers retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+                description: An array of user objects representing the content reviewers that match the search criteria
+        '403':
+          description: Forbidden - User does not have permission to access this team.
+        '404':
+          description: The specified team was not found or the feature is disabled via the feature flag.
+        '500':
+          description: Internal server error.
+        '501':
+          description: Feature is disabled either via config or an Enterprise Advanced license is not available.

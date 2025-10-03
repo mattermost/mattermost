@@ -816,6 +816,20 @@ func (c *Client4) GetContentFlaggingSettings(ctx context.Context) (*ContentFlagg
 	return &config, BuildResponse(r), nil
 }
 
+func (c *Client4) SearchContentFlaggingReviewers(ctx context.Context, teamID, term string) ([]*User, *Response, error) {
+	query := "?term=" + url.QueryEscape(term)
+	r, err := c.DoAPIGet(ctx, c.contentFlaggingRoute()+"/team/"+teamID+"/reviewers/search"+query, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var reviewers []*User
+	if err := json.NewDecoder(r.Body).Decode(&reviewers); err != nil {
+		return nil, nil, NewAppError("SearchContentFlaggingReviewers", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return reviewers, BuildResponse(r), nil
+}
+
 func (c *Client4) bookmarksRoute(channelId string) string {
 	return c.channelRoute(channelId) + "/bookmarks"
 }

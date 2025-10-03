@@ -4684,6 +4684,13 @@ export default class Client4 {
         );
     };
 
+    searchContentFlaggingReviewers = (term: string, teamId: string) => {
+        return this.doFetch<UserProfile[]>(
+            `${this.getContentFlaggingRoute()}/team/${teamId}/reviewers/search${buildQueryString({term})}`,
+            {method: 'get'},
+        );
+    };
+
     saveContentFlaggingConfig = (config: ContentFlaggingSettings) => {
         return this.doFetch(
             `${this.getContentFlaggingRoute()}/config`,

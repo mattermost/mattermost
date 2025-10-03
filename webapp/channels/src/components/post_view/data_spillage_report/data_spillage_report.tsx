@@ -34,7 +34,7 @@ const orderedFieldName = [
     'action_time',
     'post_preview',
     'post_id',
-    'reviewer',
+    'reviewer_user_id',
     'reporting_user_id',
     'reporting_time',
     'reporting_comment',
@@ -48,7 +48,7 @@ const shortModeFieldOrder = [
     'status',
     'reporting_reason',
     'post_preview',
-    'reviewer',
+    'reviewer_user_id',
 ];
 
 type Props = {
@@ -127,7 +127,7 @@ export function DataSpillageReport({post, isRHS}: Props) {
     const mode = isRHS ? 'full' : 'short';
 
     const metadata = useMemo<PropertiesCardViewMetadata>(() => {
-        return {
+        const fieldMetadata = {
             post_preview: {
                 getPost: loadFlaggedPost,
                 fetchDeletedPost: true,
@@ -136,7 +136,18 @@ export function DataSpillageReport({post, isRHS}: Props) {
                 placeholder: formatMessage({id: 'data_spillage_report_post.reporting_comment.placeholder', defaultMessage: 'No comment'}),
             },
         };
-    }, [formatMessage]);
+
+        if (channel) {
+            // @ts-ignore
+            fieldMetadata.reviewer_user_id = {
+                searchUsers: getSearchContentReviewersFunction(channel.team_id),
+            };
+        }
+
+        return fieldMetadata;
+    }, [channel, formatMessage]);
+
+    console.log({metadata});
 
     const footer = useMemo(() => {
         if (isRHS) {
@@ -189,4 +200,10 @@ export function DataSpillageReport({post, isRHS}: Props) {
 
 async function loadFlaggedPost(postId: string) {
     return Client4.getFlaggedPost(postId);
+}
+
+function getSearchContentReviewersFunction(teamId: string) {
+    return (term: string) => {
+        return Client4.searchContentFlaggingReviewers(term, teamId);
+    };
 }

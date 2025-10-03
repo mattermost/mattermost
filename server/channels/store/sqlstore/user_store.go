@@ -89,6 +89,14 @@ func getUsersColumns() []string {
 	}
 }
 
+func getBotInfoColumns() []string {
+	return []string{
+		"b.UserId IS NOT NULL AS IsBot",
+		"COALESCE(b.Description, '') AS BotDescription",
+		"COALESCE(b.LastIconUpdate, 0) AS BotLastIconUpdate",
+	}
+}
+
 func newSqlUserStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.UserStore {
 	us := &SqlUserStore{
 		SqlStore: sqlStore,
@@ -99,11 +107,7 @@ func newSqlUserStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 		// Together with getUsersColumns, the order specified here must match
 		// with [SqlUserStore.Get] and [SqlUserStore.GetAllProfilesInChannel].
 		Select(getUsersColumns()...).
-		Columns(
-			"b.UserId IS NOT NULL AS IsBot",
-			"COALESCE(b.Description, '') AS BotDescription",
-			"COALESCE(b.LastIconUpdate, 0) AS BotLastIconUpdate",
-		).
+		Columns(getBotInfoColumns()...).
 		From("Users").
 		LeftJoin("Bots b ON ( b.UserId = Users.Id )")
 
@@ -1569,6 +1573,43 @@ func (us SqlUserStore) Search(rctx request.CTX, teamId string, term string, opti
 		query = query.Join("TeamMembers tm ON ( tm.UserId = Users.Id AND tm.DeleteAt = 0 AND tm.TeamId = ? )", teamId)
 	}
 	return us.performSearch(query, term, options)
+}
+
+func (us SqlUserStore) SearchCommonContentFlaggingReviewers(term string) ([]*model.User, error) {
+	query := us.getQueryBuilder().
+		Select(getUsersColumns()...).
+		Columns(getBotInfoColumns()...).
+		From("ContentFlaggingCommonReviewers").
+		LeftJoin("Users ON Users.Id = ContentFlaggingCommonReviewers.UserId").
+		LeftJoin("Bots b ON (b.UserId = Users.Id)")
+
+	searchOptions := &model.UserSearchOptions{
+		AllowEmails:    false,
+		AllowFullNames: true,
+		AllowInactive:  false,
+		Limit:          50,
+	}
+
+	return us.performSearch(query, term, searchOptions)
+}
+
+func (us SqlUserStore) SearchTeamContentFlaggingReviewers(teamId, term string) ([]*model.User, error) {
+	query := us.getQueryBuilder().
+		Select(getUsersColumns()...).
+		Columns(getBotInfoColumns()...).
+		From("ContentFlaggingTeamReviewers").
+		LeftJoin("Users ON Users.Id = ContentFlaggingTeamReviewers.UserId").
+		LeftJoin("Bots b ON (b.UserId = Users.Id)").
+		Where("ContentFlaggingTeamReviewers.TeamId = ?", teamId)
+
+	searchOptions := &model.UserSearchOptions{
+		AllowEmails:    false,
+		AllowFullNames: true,
+		AllowInactive:  false,
+		Limit:          50,
+	}
+
+	return us.performSearch(query, term, searchOptions)
 }
 
 func (us SqlUserStore) SearchWithoutTeam(term string, options *model.UserSearchOptions) ([]*model.User, error) {

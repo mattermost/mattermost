@@ -11243,6 +11243,22 @@ func (s *TimerLayerTokenStore) Cleanup(expiryTime int64) {
 	}
 }
 
+func (s *TimerLayerTokenStore) ConsumeOnce(tokenStr string) (*model.Token, error) {
+	start := time.Now()
+
+	result, err := s.TokenStore.ConsumeOnce(tokenStr)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TokenStore.ConsumeOnce", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerTokenStore) Delete(token string) error {
 	start := time.Now()
 
@@ -12439,6 +12455,22 @@ func (s *TimerLayerUserStore) Search(rctx request.CTX, teamID string, term strin
 	return result, err
 }
 
+func (s *TimerLayerUserStore) SearchCommonContentFlaggingReviewers(term string) ([]*model.User, error) {
+	start := time.Now()
+
+	result, err := s.UserStore.SearchCommonContentFlaggingReviewers(term)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.SearchCommonContentFlaggingReviewers", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerUserStore) SearchInChannel(channelID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
 	start := time.Now()
 
@@ -12515,6 +12547,22 @@ func (s *TimerLayerUserStore) SearchNotInTeam(notInTeamID string, term string, o
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.SearchNotInTeam", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerUserStore) SearchTeamContentFlaggingReviewers(teamId string, term string) ([]*model.User, error) {
+	start := time.Now()
+
+	result, err := s.UserStore.SearchTeamContentFlaggingReviewers(teamId, term)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.SearchTeamContentFlaggingReviewers", success, elapsed)
 	}
 	return result, err
 }
