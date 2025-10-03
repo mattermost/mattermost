@@ -23,7 +23,7 @@ describe('Channel Switcher', () => {
     let channelC: Channel;
 
     before(() => {
-        cy.apiInitSetup({channelPrefix: {name: `${channelNamePrefix}-a`, displayName: `${channelDisplayNamePrefix} A`}}).then(({team, channel, user, offTopicUrl: url}) => {
+        cy.apiInitSetup({channelPrefix: {name: `${channelNamePrefix}-a`, displayName: `${channelDisplayNamePrefix} A`}}).then(({team, user, offTopicUrl: url}) => {
             testTeam = team;
             offTopicUrl = url;
 
