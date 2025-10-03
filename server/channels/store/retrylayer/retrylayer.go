@@ -13467,6 +13467,27 @@ func (s *RetryLayerTokenStore) Cleanup(expiryTime int64) {
 
 }
 
+func (s *RetryLayerTokenStore) ConsumeOnce(tokenStr string) (*model.Token, error) {
+
+	tries := 0
+	for {
+		result, err := s.TokenStore.ConsumeOnce(tokenStr)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerTokenStore) Delete(token string) error {
 
 	tries := 0

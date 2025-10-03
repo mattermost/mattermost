@@ -19,6 +19,36 @@ func (_m *TokenStore) Cleanup(expiryTime int64) {
 	_m.Called(expiryTime)
 }
 
+// ConsumeOnce provides a mock function with given fields: tokenStr
+func (_m *TokenStore) ConsumeOnce(tokenStr string) (*model.Token, error) {
+	ret := _m.Called(tokenStr)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ConsumeOnce")
+	}
+
+	var r0 *model.Token
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (*model.Token, error)); ok {
+		return rf(tokenStr)
+	}
+	if rf, ok := ret.Get(0).(func(string) *model.Token); ok {
+		r0 = rf(tokenStr)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Token)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(tokenStr)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Delete provides a mock function with given fields: token
 func (_m *TokenStore) Delete(token string) error {
 	ret := _m.Called(token)

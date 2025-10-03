@@ -59,6 +59,9 @@ type FeatureFlags struct {
 	ExperimentalCrossTeamSearch bool
 
 	CustomProfileAttributes bool
+
+	// Enable mobile SSO SAML code-exchange flow (no tokens in deep links)
+	MobileSSOCodeExchange bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -84,6 +87,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ExperimentalAuditSettingsSystemConsoleUI = false
 	f.ExperimentalCrossTeamSearch = false
 	f.CustomProfileAttributes = false
+	f.MobileSSOCodeExchange = true
 }
 
 // ToMap returns the feature flags as a map[string]string
