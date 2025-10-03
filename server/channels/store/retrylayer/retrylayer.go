@@ -7683,6 +7683,27 @@ func (s *RetryLayerPostStore) Delete(rctx request.CTX, postID string, timestamp 
 
 }
 
+func (s *RetryLayerPostStore) DeleteAllPostRemindersForPost(postId string) error {
+
+	tries := 0
+	for {
+		err := s.PostStore.DeleteAllPostRemindersForPost(postId)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerPostStore) Get(rctx request.CTX, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error) {
 
 	tries := 0
@@ -8609,6 +8630,27 @@ func (s *RetryLayerPostAcknowledgementStore) Delete(acknowledgement *model.PostA
 	tries := 0
 	for {
 		err := s.PostAcknowledgementStore.Delete(acknowledgement)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPostAcknowledgementStore) DeleteAllForPost(postID string) error {
+
+	tries := 0
+	for {
+		err := s.PostAcknowledgementStore.DeleteAllForPost(postID)
 		if err == nil {
 			return nil
 		}
@@ -9554,6 +9596,27 @@ func (s *RetryLayerPropertyValueStore) Create(value *model.PropertyValue) (*mode
 	tries := 0
 	for {
 		result, err := s.PropertyValueStore.Create(value)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPropertyValueStore) CreateMany(values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+
+	tries := 0
+	for {
+		result, err := s.PropertyValueStore.CreateMany(values)
 		if err == nil {
 			return result, nil
 		}
