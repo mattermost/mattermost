@@ -209,7 +209,7 @@ type PropertyFieldSearchOpts struct {
 	GroupID        string
 	TargetType     string
 	TargetIDs      []string
-	SinceUpdateAt  int64 // UpdateAt after which to send the items
+	SinceUpdateAt  int64 // UpdatedAt after which to send the items
 	IncludeDeleted bool
 	Cursor         PropertyFieldSearchCursor
 	PerPage        int
