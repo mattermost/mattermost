@@ -741,6 +741,15 @@ export type LocalizationSettings = {
     EnableExperimentalLocales: boolean;
 };
 
+export type AutoTranslationSettings = {
+    Enable: boolean;
+    Provider: 'libretranslate';
+    LibreTranslate: {
+        URL: string;
+        APIKey: string;
+    };
+};
+
 export type SamlSettings = {
     Enable: boolean;
     EnableSyncWithLdap: boolean;
@@ -1058,6 +1067,7 @@ export type AdminConfig = {
     ConnectedWorkspacesSettings: ConnectedWorkspacesSettings;
     AccessControlSettings: AccessControlSettings;
     ContentFlaggingSettings: ContentFlaggingSettings;
+    AutoTranslationSettings: AutoTranslationSettings;
 };
 
 export type ReplicaLagSetting = {
