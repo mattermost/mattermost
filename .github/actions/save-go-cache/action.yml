@@ -1,0 +1,28 @@
+name: Save Go Cache
+description: Saves Go module and build cache
+inputs:
+  prefix:
+    description: 'Cache key prefix'
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Trim Go Cache
+      shell: bash
+      run: |
+        # Prune the cache of files not touched in the past 5 days.
+        find ~/.cache/go-build -type f -mmin +90 -delete
+    - name: Set Go cache date
+      shell: bash
+      run: |
+        # Generate a cache key for the current date, effectively updating caches daily.
+        echo "GO_CACHE_DATE=$(date +%Y-%m-%d)" >> $GITHUB_ENV
+    - name: Save Go cache
+      uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+      with:
+        # Caches both the downloaded modules and the compiled build cache.
+        path: |
+          ~/go/pkg/mod
+          ~/.cache/go-build
+        # Save to eg Linux-go-$hash-YYYY-MM-DD to keep the cache fresh
+        key: "${{ inputs.prefix }}-${{ runner.os }}-go-${{ hashFiles('go.mod') }}-${{ env.GO_CACHE_DATE }}"

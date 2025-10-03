@@ -1,0 +1,8 @@
+name: Populate Go Cache
+description: Downloads Go modules to populate the cache
+runs:
+  using: composite
+  steps:
+    - name: Download Go modules
+      run: go mod download
+      shell: bash

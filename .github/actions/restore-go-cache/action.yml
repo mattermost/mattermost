@@ -1,0 +1,20 @@
+name: Restore Go Cache
+description: Restores Go module and build cache
+inputs:
+  prefix:
+    description: 'Cache key prefix'
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Restore Go cache
+      uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+      with:
+        path: |
+          ~/go/pkg/mod
+          ~/.cache/go-build
+        # always grab from the restore-keys pattern below,
+        # like Linux-go-$hash-YYYY-MM-DD as saved by CI
+        key: nonexistent
+        restore-keys: |
+          ${{ inputs.prefix }}-${{ runner.os }}-go-${{ hashFiles('go.mod') }}-
