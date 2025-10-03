@@ -25,7 +25,7 @@ import Provider from '../provider';
 import type {Loading, ProviderResultsGroup} from '../suggestion_results';
 
 const profilesInChannelOptions = {active: true};
-const regexForAtMention = /(?:^|\W)@([\p{L}\d\-_. ]*)$/iu;
+const regexForAtMention = /(?:^|\W)[@＠]([\p{L}\d\-_. ]*)$/iu;
 
 type UserProfileWithLastViewAt = UserProfile & {last_viewed_at?: number};
 
@@ -63,6 +63,7 @@ export default class AtMentionProvider extends Provider {
     public data: any;
     public lastCompletedWord: string;
     public lastPrefixWithNoResults: string;
+    public triggerCharacter: string;
     public getProfilesInChannel: (state: GlobalState, channelId: string, filters?: Filters | undefined) => UserProfile[];
     public addLastViewAtToProfiles: (state: GlobalState, profiles: UserProfile[]) => UserProfileWithLastViewAt[];
 
@@ -366,7 +367,7 @@ export default class AtMentionProvider extends Provider {
         }
 
         resultCallback({
-            matchedPretext: `@${this.latestPrefix}`,
+            matchedPretext: `${this.triggerCharacter}${this.latestPrefix}`,
             groups,
         });
     }
@@ -376,6 +377,8 @@ export default class AtMentionProvider extends Provider {
         if (!captured) {
             return false;
         }
+
+        this.triggerCharacter = pretext.match(/[@＠]/)?.[0] || '@';
 
         if (this.lastCompletedWord && captured[0].trim().startsWith(this.lastCompletedWord.trim())) {
             // It appears we're still matching a channel handle that we already completed
@@ -422,9 +425,11 @@ export default class AtMentionProvider extends Provider {
         return true;
     }
 
-    handleCompleteWord(term: string) {
+    handleCompleteWord(term: string, matchedPretext: string) {
         this.lastCompletedWord = term;
         this.lastPrefixWithNoResults = '';
+
+        return matchedPretext.replace(/＠/g, '@');
     }
 
     createFromProfile(profile: UserProfile | UserProfileWithLastViewAt): CreatedProfile {

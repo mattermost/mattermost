@@ -1402,6 +1402,296 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
             ],
         });
     });
+
+    describe('full-width at symbol (＠) support', () => {
+        describe('basic full-width suggestions', () => {
+            it('should handle full-width ＠ character for autocomplete', async () => {
+                const inputText = '＠';
+                const expectedMatched = '＠';
+                const finalGroups = [
+                    membersGroup([userid10, userid3, userid1, userid2, userid4]),
+                    groupsGroup([groupid1, groupid2, groupid3]),
+                    specialMentionsGroup([{username: 'here'}, {username: 'channel'}, {username: 'all'}]),
+                    nonMembersGroup([userid5, userid6]),
+                ];
+
+                const testParams = {
+                    ...baseParams,
+                    autocompleteUsersInChannel: jest.fn().mockImplementation(() => new Promise((resolve) => {
+                        resolve({data: {
+                            users: [userid4],
+                            out_of_channel: [userid5, userid6],
+                        }});
+                    })),
+                    searchAssociatedGroupsForReference: jest.fn().mockImplementation(() => new Promise((resolve) => {
+                        resolve({
+                            data: [groupid1, groupid2, groupid3],
+                        });
+                        expect(mentionProvider.updateMatches(callback, finalGroups)).toEqual(true);
+                    })),
+                };
+
+                const mentionProvider = new AtMentionProvider(testParams);
+                jest.spyOn(mentionProvider, 'getProfilesWithLastViewAtInChannel').mockReturnValue([userid10, userid3, userid1, userid2]);
+
+                const callback = jest.fn();
+                const handled = mentionProvider.handlePretextChanged(inputText, callback);
+
+                expect(handled).toBe(true);
+                expect(mentionProvider.triggerCharacter).toBe('＠');
+
+                // First call: local profiles, groups and special mentions
+                expect(callback).toHaveBeenNthCalledWith(1, {
+                    matchedPretext: expectedMatched,
+                    groups: [
+                        membersGroup([userid10, userid3, userid1, userid2]),
+                        groupsGroup([groupid1, groupid2, groupid3]),
+                        specialMentionsGroup([{username: 'here'}, {username: 'channel'}, {username: 'all'}]),
+                    ],
+                });
+
+                jest.runOnlyPendingTimers();
+
+                // Second call: with loading indicator
+                expect(callback).toHaveBeenNthCalledWith(2, {
+                    matchedPretext: expectedMatched,
+                    groups: expect.arrayContaining([
+                        expect.objectContaining({key: 'members'}),
+                        expect.objectContaining({key: 'groups'}),
+                        expect.objectContaining({key: 'specialMentions'}),
+                        expect.objectContaining({key: 'otherMembers'}),
+                    ]),
+                });
+
+                // Wait for async operations to complete
+                await Promise.resolve();
+
+                // Third call: complete results including non-members
+                expect(callback).toHaveBeenNthCalledWith(3, {
+                    matchedPretext: expectedMatched,
+                    groups: finalGroups,
+                });
+            });
+
+            it('should extract username prefix correctly with full-width ＠', async () => {
+                const inputText = '＠us';
+
+                const testParams = {
+                    ...baseParams,
+                    autocompleteUsersInChannel: jest.fn().mockResolvedValue({
+                        data: {users: [userid4], out_of_channel: [userid5, userid6]},
+                    }),
+                    searchAssociatedGroupsForReference: jest.fn().mockResolvedValue({data: []}),
+                };
+
+                const mentionProvider = new AtMentionProvider(testParams);
+                jest.spyOn(mentionProvider, 'getProfilesWithLastViewAtInChannel').mockReturnValue([userid10, userid3, userid1, userid2]);
+
+                const callback = jest.fn();
+                mentionProvider.handlePretextChanged(inputText, callback);
+
+                expect(testParams.autocompleteUsersInChannel).toHaveBeenCalledWith('us');
+                expect(mentionProvider.triggerCharacter).toBe('＠');
+            });
+        });
+
+        describe('triggerCharacter state management', () => {
+            it('should store full-width symbol when typed', () => {
+                const mentionProvider = new AtMentionProvider(baseParams);
+                jest.spyOn(mentionProvider, 'getProfilesWithLastViewAtInChannel').mockReturnValue([]);
+
+                const callback = jest.fn();
+                mentionProvider.handlePretextChanged('message ＠', callback);
+
+                expect(mentionProvider.triggerCharacter).toBe('＠');
+            });
+
+            it('should store half-width symbol when typed', () => {
+                const mentionProvider = new AtMentionProvider(baseParams);
+                jest.spyOn(mentionProvider, 'getProfilesWithLastViewAtInChannel').mockReturnValue([]);
+
+                const callback = jest.fn();
+                mentionProvider.handlePretextChanged('message @', callback);
+
+                expect(mentionProvider.triggerCharacter).toBe('@');
+            });
+
+            it('should update correctly when alternating between symbols', () => {
+                const mentionProvider = new AtMentionProvider(baseParams);
+                jest.spyOn(mentionProvider, 'getProfilesWithLastViewAtInChannel').mockReturnValue([userid1, userid2]);
+
+                const callback = jest.fn();
+
+                mentionProvider.handlePretextChanged('@first', callback);
+                expect(mentionProvider.triggerCharacter).toBe('@');
+
+                mentionProvider.handlePretextChanged('＠second', callback);
+                expect(mentionProvider.triggerCharacter).toBe('＠');
+
+                mentionProvider.handlePretextChanged('@third', callback);
+                expect(mentionProvider.triggerCharacter).toBe('@');
+            });
+        });
+
+        describe('handleCompleteWord normalization', () => {
+            it('should convert full-width ＠ to half-width @ on completion', () => {
+                const mentionProvider = new AtMentionProvider(baseParams);
+                const normalized = mentionProvider.handleCompleteWord('user', '＠user');
+
+                expect(normalized).toBe('@user');
+                expect(mentionProvider.lastCompletedWord).toBe('user');
+            });
+
+            it('should preserve half-width @ symbol', () => {
+                const mentionProvider = new AtMentionProvider(baseParams);
+                const result = mentionProvider.handleCompleteWord('user2', '@user2');
+
+                expect(result).toBe('@user2');
+                expect(mentionProvider.lastCompletedWord).toBe('user2');
+            });
+
+            it('should normalize within text context', () => {
+                const mentionProvider = new AtMentionProvider(baseParams);
+                const result = mentionProvider.handleCompleteWord('channel', 'hello ＠channel');
+
+                expect(result).toBe('hello @channel');
+            });
+
+            it('should normalize multiple full-width symbols', () => {
+                const mentionProvider = new AtMentionProvider(baseParams);
+                const result = mentionProvider.handleCompleteWord('user', '＠one and ＠user');
+
+                expect(result).toBe('@one and @user');
+            });
+        });
+
+        describe('matchedPretext consistency', () => {
+            it('should preserve full-width ＠ in matchedPretext', async () => {
+                const inputText = '＠user';
+                const testParams = {
+                    ...baseParams,
+                    autocompleteUsersInChannel: jest.fn().mockResolvedValue({
+                        data: {users: [userid1], out_of_channel: []},
+                    }),
+                    searchAssociatedGroupsForReference: jest.fn().mockResolvedValue({data: []}),
+                };
+
+                const mentionProvider = new AtMentionProvider(testParams);
+                jest.spyOn(mentionProvider, 'getProfilesWithLastViewAtInChannel').mockReturnValue([userid1, userid2]);
+
+                const callback = jest.fn();
+                mentionProvider.handlePretextChanged(inputText, callback);
+
+                await Promise.resolve();
+
+                callback.mock.calls.forEach((call) => {
+                    expect(call[0].matchedPretext).toBe('＠user');
+                });
+            });
+
+            it('should preserve half-width @ in matchedPretext', async () => {
+                const inputText = '@user';
+                const testParams = {
+                    ...baseParams,
+                    autocompleteUsersInChannel: jest.fn().mockResolvedValue({
+                        data: {users: [userid1], out_of_channel: []},
+                    }),
+                    searchAssociatedGroupsForReference: jest.fn().mockResolvedValue({data: []}),
+                };
+
+                const mentionProvider = new AtMentionProvider(testParams);
+                jest.spyOn(mentionProvider, 'getProfilesWithLastViewAtInChannel').mockReturnValue([userid1, userid2]);
+
+                const callback = jest.fn();
+                mentionProvider.handlePretextChanged(inputText, callback);
+
+                await Promise.resolve();
+
+                callback.mock.calls.forEach((call) => {
+                    expect(call[0].matchedPretext).toBe('@user');
+                });
+            });
+        });
+
+        describe('edge cases', () => {
+            it('should handle empty string after full-width ＠', () => {
+                const mentionProvider = new AtMentionProvider(baseParams);
+                jest.spyOn(mentionProvider, 'getProfilesWithLastViewAtInChannel').mockReturnValue([userid1, userid2]);
+
+                const callback = jest.fn();
+                const handled = mentionProvider.handlePretextChanged('＠', callback);
+
+                expect(handled).toBe(true);
+                expect(mentionProvider.triggerCharacter).toBe('＠');
+                expect(callback).toHaveBeenCalled();
+            });
+
+            it('should handle whitespace before full-width ＠', () => {
+                const mentionProvider = new AtMentionProvider(baseParams);
+                jest.spyOn(mentionProvider, 'getProfilesWithLastViewAtInChannel').mockReturnValue([userid1]);
+
+                const callback = jest.fn();
+                const handled = mentionProvider.handlePretextChanged('hello ＠user', callback);
+
+                expect(handled).toBe(true);
+                expect(mentionProvider.triggerCharacter).toBe('＠');
+            });
+
+            it('should not trigger when ＠ is within a word', () => {
+                const mentionProvider = new AtMentionProvider(baseParams);
+
+                const callback = jest.fn();
+                const handled = mentionProvider.handlePretextChanged('email＠example.com', callback);
+
+                expect(handled).toBe(false);
+                expect(callback).not.toHaveBeenCalled();
+            });
+
+            it('should handle special characters in username with ＠', () => {
+                const mentionProvider = new AtMentionProvider(baseParams);
+                jest.spyOn(mentionProvider, 'getProfilesWithLastViewAtInChannel').mockReturnValue([userid6]);
+
+                const callback = jest.fn();
+                const handled = mentionProvider.handlePretextChanged('＠user-name', callback);
+
+                expect(handled).toBe(true);
+            });
+        });
+
+        describe('complete workflow integration', () => {
+            it('should maintain consistency through type → suggest → select → normalize', async () => {
+                const testParams = {
+                    ...baseParams,
+                    autocompleteUsersInChannel: jest.fn().mockResolvedValue({
+                        data: {users: [userid1], out_of_channel: []},
+                    }),
+                    searchAssociatedGroupsForReference: jest.fn().mockResolvedValue({data: []}),
+                };
+
+                const mentionProvider = new AtMentionProvider(testParams);
+                jest.spyOn(mentionProvider, 'getProfilesWithLastViewAtInChannel').mockReturnValue([userid1]);
+
+                const callback = jest.fn();
+
+                // User types full-width
+                mentionProvider.handlePretextChanged('＠use', callback);
+                expect(mentionProvider.triggerCharacter).toBe('＠');
+
+                await Promise.resolve();
+
+                // Verify suggestion maintains full-width
+                const firstCall = callback.mock.calls[0][0];
+                expect(firstCall.matchedPretext).toBe('＠use');
+
+                // User selects completion
+                const finalized = mentionProvider.handleCompleteWord('user', '＠user');
+
+                // Verify normalization
+                expect(finalized).toBe('@user');
+                expect(mentionProvider.lastCompletedWord).toBe('user');
+            });
+        });
+    });
 });
 
 for (const [name, func] of [
