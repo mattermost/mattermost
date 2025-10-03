@@ -78,6 +78,9 @@ type FeatureFlags struct {
 
 	// Enable mobile SSO SAML code-exchange flow (no tokens in deep links)
 	MobileSSOCodeExchange bool
+
+	// Enable the SHIFT+ESC combo to mark _all_ chats, messages, and channels as read
+	EnableShiftEscapeToMarkAllRead bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -110,6 +113,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.InteractiveDialogAppsForm = true
 	f.EnableMattermostEntry = true
 	f.MobileSSOCodeExchange = true
+	f.EnableShiftEscapeToMarkAllRead = false
 }
 
 // ToMap returns the feature flags as a map[string]string
