@@ -273,7 +273,7 @@ func (s *SqlAutoTranslationStore) Get(rctx request.CTX, objectType, objectID, ds
 	return result, nil
 }
 
-func (s *SqlAutoTranslationStore) Save(rctx request.CTX, objectType, objectID, dstLang, providerID, normHash, text string, confidence *float64, meta map[string]interface{}) *model.AppError {
+func (s *SqlAutoTranslationStore) Save(rctx request.CTX, objectType, objectID, dstLang, providerID, normHash, text string, confidence *float64, meta map[string]any) *model.AppError {
 	now := model.GetMillis()
 
 	var metaJSON []byte

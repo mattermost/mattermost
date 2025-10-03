@@ -835,7 +835,7 @@ func (s *RetryLayerAutoTranslationStore) IsUserEnabled(rctx request.CTX, userID 
 
 }
 
-func (s *RetryLayerAutoTranslationStore) Save(rctx request.CTX, objectType string, objectID string, dstLang string, providerID string, normHash string, text string, confidence *float64, meta map[string]interface{}) *model.AppError {
+func (s *RetryLayerAutoTranslationStore) Save(rctx request.CTX, objectType string, objectID string, dstLang string, providerID string, normHash string, text string, confidence *float64, meta map[string]any) *model.AppError {
 
 	return s.AutoTranslationStore.Save(rctx, objectType, objectID, dstLang, providerID, normHash, text, confidence, meta)
 

@@ -1152,7 +1152,7 @@ type AutoTranslationStore interface {
 	// Pass nil for filterUserIDs to include all users, or a pointer to a slice to filter to specific users.
 	GetActiveDestinationLanguages(rctx request.CTX, channelID, excludeUserID string, filterUserIDs *[]string) ([]string, *model.AppError)
 	Get(rctx request.CTX, objectType, objectID, dstLang string) (*model.Translation, *model.AppError)
-	Save(rctx request.CTX, objectType, objectID, dstLang, providerID, normHash, text string, confidence *float64, meta map[string]interface{}) *model.AppError
+	Save(rctx request.CTX, objectType, objectID, dstLang, providerID, normHash, text string, confidence *float64, meta map[string]any) *model.AppError
 	Search(rctx request.CTX, dstLang, searchTerm string, limit int) ([]*model.Translation, *model.AppError)
 }
 

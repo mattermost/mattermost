@@ -813,7 +813,7 @@ func (s *TimerLayerAutoTranslationStore) IsUserEnabled(rctx request.CTX, userID 
 	return result, resultVar1
 }
 
-func (s *TimerLayerAutoTranslationStore) Save(rctx request.CTX, objectType string, objectID string, dstLang string, providerID string, normHash string, text string, confidence *float64, meta map[string]interface{}) *model.AppError {
+func (s *TimerLayerAutoTranslationStore) Save(rctx request.CTX, objectType string, objectID string, dstLang string, providerID string, normHash string, text string, confidence *float64, meta map[string]any) *model.AppError {
 	start := time.Now()
 
 	result := s.AutoTranslationStore.Save(rctx, objectType, objectID, dstLang, providerID, normHash, text, confidence, meta)
