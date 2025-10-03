@@ -429,7 +429,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 endif
 
-check-style: plugin-checker vet modernize golangci-lint ## Runs style/lint checks
+check-style: plugin-checker vet modernize golangci-lint vet-api ## Runs style/lint checks
 
 gotestsum:
 	$(GO) install gotest.tools/gotestsum@v1.11.0

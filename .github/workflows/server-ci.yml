@@ -99,21 +99,6 @@ jobs:
         run: make gen-serialized
       - name: Check serialized
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the serialized files using 'make gen-serialized'"; exit 1; fi
-  check-mattermost-vet-api:
-    name: Vet API
-    needs: go
-    runs-on: ubuntu-22.04
-    container: mattermostdevelopment/mattermost-build-server:${{ needs.go.outputs.version }}
-    defaults:
-      run:
-        working-directory: server
-    steps:
-      - name: Checkout mattermost project
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Run setup-go-work
-        run: make setup-go-work
-      - name: Run mattermost-vet-api
-        run: make vet-api
   check-migrations:
     name: Check migration files
     needs: go
