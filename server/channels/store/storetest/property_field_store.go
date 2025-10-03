@@ -1021,8 +1021,8 @@ func testSearchPropertyFieldsSince(t *testing.T, _ request.CTX, ss store.Store) 
 	})
 
 	t.Run("SinceUpdateAt with boundary condition", func(t *testing.T) {
-		// Get fields updated after field3's timestamp
-		// Should get both field2 (updated) and field3, so expect 2 results
+		// Get fields updated after just before field3's timestamp
+		// Should get both field3 and field2 (which was updated last and now has the most recent UpdateAt), so expect 2 results
 		results, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
 			GroupID:       groupID,
 			SinceUpdateAt: field3.UpdateAt - 1, // Slightly before field3's timestamp
