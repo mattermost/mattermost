@@ -16,7 +16,7 @@ import {
     isCollapsedThreadsEnabled,
 } from 'mattermost-redux/selectors/entities/preferences';
 import {getAllUserMentionKeys} from 'mattermost-redux/selectors/entities/search';
-import {getCurrentUserId, getCurrentUser, getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUserId, getCurrentUser, getStatusForUserId, getUser, getUserByUsername} from 'mattermost-redux/selectors/entities/users';
 import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
 import {ensureString, isSystemMessage, isUserAddedInChannel} from 'mattermost-redux/utils/post_utils';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
@@ -213,6 +213,26 @@ const getNotificationUsername = (state: GlobalState, post: Post, msgProps: NewPo
     return Utils.localizeMessage({id: 'channel_loader.someone', defaultMessage: 'Someone'});
 };
 
+const replaceMentionsWithDisplayNames = (text: string, state: GlobalState): string => {
+    const teammateNameDisplay = getTeammateNameDisplaySetting(state);
+    
+    // Replace user mentions with display names
+    return text.replace(Constants.MENTIONS_REGEX, (match, username) => {
+        // Skip special mentions (@channel, @all, @here)
+        if (['channel', 'all', 'here'].includes(username.toLowerCase())) {
+            return match;
+        }
+        
+        const user = getUserByUsername(state, username);
+        if (user) {
+            const displayName = displayUsername(user, teammateNameDisplay, false);
+            return `@${displayName}`;
+        }
+        
+        return match;
+    });
+};
+
 const getNotificationBody = (state: GlobalState, post: Post, msgProps: NewPostMessageProps) => {
     const username = getNotificationUsername(state, post, msgProps);
 
@@ -230,6 +250,8 @@ const getNotificationBody = (state: GlobalState, post: Post, msgProps: NewPostMe
         image = Boolean(image || (attachment.image_url?.length));
     });
 
+    // Replace mentions with display names before stripping markdown
+    notifyText = replaceMentionsWithDisplayNames(notifyText, state);
     const strippedMarkdownNotifyText = stripMarkdown(notifyText);
 
     let body = `@${username}`;
