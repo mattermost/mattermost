@@ -59,12 +59,12 @@ jobs:
     env:
       GOFLAGS: -buildvcs=false # TODO: work around "error obtaining VCS status: exit status 128" in a container
     steps:
+      - name: Checkout mattermost project
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Restore Go cache
         uses: ./.github/actions/restore-go-cache
         with:
           prefix: check-style
-      - name: Checkout mattermost project
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Populate Go cache
