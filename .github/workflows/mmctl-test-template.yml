@@ -39,6 +39,22 @@ jobs:
 
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - name: Setup cache key prefix
+        id: cache
+        run: |
+          # Sanitize the input name to make it safe for cache keys
+          SAFE_NAME=$(echo "${{ inputs.name }}" | tr ' /' '-' | tr -cd '[:alnum:]-')
+          echo "PREFIX=${SAFE_NAME}" >> "${GITHUB_OUTPUT}"
+      - name: Restore Go cache
+        uses: ./.github/actions/restore-go-cache
+        with:
+          prefix: ${{ steps.cache.outputs.PREFIX }}
+          working-directory: server
+      - name: Resolve Go cache paths
+        id: go-paths
+        run: |
+          echo "GOMODCACHE=$(go env GOMODCACHE)" >> "${GITHUB_OUTPUT}"
+          echo "GOCACHE=$(go env GOCACHE)" >> "${GITHUB_OUTPUT}"
       - name: Setup BUILD_IMAGE
         id: build
         run: |
@@ -84,7 +100,11 @@ jobs:
             --env MM_SQLSETTINGS_DATASOURCE="${{ inputs.datasource }}" \
             --env MMCTL_TESTFLAGS="$TESTFLAGS" \
             --env FIPS_ENABLED="${{ inputs.fips-enabled }}" \
+            --env GOMODCACHE=/root/go/pkg/mod \
+            --env GOCACHE=/root/.cache/go-build \
             -v $PWD:/mattermost \
+            -v ${{ steps.go-paths.outputs.GOMODCACHE }}:/root/go/pkg/mod \
+            -v ${{ steps.go-paths.outputs.GOCACHE }}:/root/.cache/go-build \
             -w /mattermost/server \
             $BUILD_IMAGE \
             make test-mmctl BUILD_NUMBER=$GITHUB_HEAD_REF-$GITHUB_RUN_ID
@@ -93,6 +113,13 @@ jobs:
         run: |
           cd server/build
           docker compose --ansi never stop
+
+      - name: Save Go cache
+        if: ${{ github.ref_name == 'master' }}
+        uses: ./.github/actions/save-go-cache
+        with:
+          prefix: ${{ steps.cache.outputs.PREFIX }}
+          working-directory: server
 
       - name: Archive logs
         if: ${{ always() }}
