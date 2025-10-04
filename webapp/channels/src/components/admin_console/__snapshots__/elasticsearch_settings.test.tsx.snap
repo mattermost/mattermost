@@ -264,12 +264,6 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
           />
         }
         disabled={true}
-        errorMessage={
-          Object {
-            "defaultMessage": "Test Failure: {error}",
-            "id": "admin.requestButton.requestFailure",
-          }
-        }
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Tests if the Mattermost server can connect to the Elasticsearch server specified. Testing the connection only saves the configuration if the test is successful. A successful test will also re-initialize the client if you have started Elasticsearch after starting Mattermost. But this will not restart the workers. To do that, please toggle \\"Enable Elasticsearch Indexing\\"."
@@ -277,10 +271,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
           />
         }
         id="testConfig"
-        includeDetailedError={false}
         requestAction={[Function]}
-        saveNeeded={false}
-        showSuccessMessage={true}
         successMessage={
           Object {
             "defaultMessage": "Test successful. Configuration saved.",
@@ -345,7 +336,6 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
           />
         }
         id="rebuildChannelsIndexButton"
-        includeDetailedError={false}
         label={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Rebuild Channels Index"
@@ -353,8 +343,6 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
           />
         }
         requestAction={[MockFunction]}
-        saveNeeded={false}
-        showSuccessMessage={true}
         successMessage={
           Object {
             "defaultMessage": "Channels index rebuild job triggered successfully.",
@@ -383,7 +371,6 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
           />
         }
         id="purgeIndexesSection"
-        includeDetailedError={false}
         label={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Purge Indexes:"
@@ -391,8 +378,6 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
           />
         }
         requestAction={[MockFunction]}
-        saveNeeded={false}
-        showSuccessMessage={true}
         successMessage={
           Object {
             "defaultMessage": "Indexes purged successfully.",
@@ -757,12 +742,6 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
           />
         }
         disabled={false}
-        errorMessage={
-          Object {
-            "defaultMessage": "Test Failure: {error}",
-            "id": "admin.requestButton.requestFailure",
-          }
-        }
         helpText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Tests if the Mattermost server can connect to the Elasticsearch server specified. Testing the connection only saves the configuration if the test is successful. A successful test will also re-initialize the client if you have started Elasticsearch after starting Mattermost. But this will not restart the workers. To do that, please toggle \\"Enable Elasticsearch Indexing\\"."
@@ -770,10 +749,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
           />
         }
         id="testConfig"
-        includeDetailedError={false}
         requestAction={[Function]}
-        saveNeeded={false}
-        showSuccessMessage={true}
         successMessage={
           Object {
             "defaultMessage": "Test successful. Configuration saved.",
@@ -817,7 +793,6 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
             id="admin.elasticsearch.rebuildChannelsIndex.title"
           />
         }
-        disabled={false}
         errorMessage={
           Object {
             "defaultMessage": "Failed to trigger channels index rebuild job: {error}",
@@ -837,7 +812,6 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
           />
         }
         id="rebuildChannelsIndexButton"
-        includeDetailedError={false}
         label={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Rebuild Channels Index"
@@ -845,8 +819,6 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
           />
         }
         requestAction={[MockFunction]}
-        saveNeeded={false}
-        showSuccessMessage={true}
         successMessage={
           Object {
             "defaultMessage": "Channels index rebuild job triggered successfully.",
@@ -875,7 +847,6 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
           />
         }
         id="purgeIndexesSection"
-        includeDetailedError={false}
         label={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Purge Indexes:"
@@ -883,8 +854,6 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
           />
         }
         requestAction={[MockFunction]}
-        saveNeeded={false}
-        showSuccessMessage={true}
         successMessage={
           Object {
             "defaultMessage": "Indexes purged successfully.",
