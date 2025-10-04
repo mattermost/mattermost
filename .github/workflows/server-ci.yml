@@ -96,7 +96,11 @@ jobs:
   test-postgres-binary:
     if: github.event_name == 'push' # Only run postgres binary tests on master/release pushes: odds are low this regresses, so save the cycles for pull requests.
     name: Postgres with binary parameters
-    needs: go
+    needs:
+      - go
+      - check-go-mod-tidy
+      - check-style
+      - check-generated
     uses: ./.github/workflows/server-test-template.yml
     secrets: inherit
     with:
@@ -108,7 +112,11 @@ jobs:
       fips-enabled: false
   test-postgres-normal:
     name: Postgres
-    needs: go
+    needs:
+      - go
+      - check-go-mod-tidy
+      - check-style
+      - check-generated
     uses: ./.github/workflows/server-test-template.yml
     secrets: inherit
     with:
@@ -122,7 +130,11 @@ jobs:
     # Skip FIPS testing for forks, which won't have docker login credentials.
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
     name: Postgres (FIPS)
-    needs: go
+    needs:
+      - go
+      - check-go-mod-tidy
+      - check-style
+      - check-generated
     uses: ./.github/workflows/server-test-template.yml
     secrets: inherit
     with:
@@ -136,7 +148,11 @@ jobs:
     name: Generate Test Coverage
     # Skip coverage generation for cherry-pick PRs into release branches.
     if: ${{ github.event_name != 'pull_request' || !startsWith(github.event.pull_request.base.ref, 'release-') }}
-    needs: go
+    needs:
+      - go
+      - check-go-mod-tidy
+      - check-style
+      - check-generated
     uses: ./.github/workflows/server-test-template.yml
     secrets: inherit
     with:
