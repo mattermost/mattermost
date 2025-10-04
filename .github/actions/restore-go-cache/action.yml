@@ -4,17 +4,25 @@ inputs:
   prefix:
     description: 'Cache key prefix'
     required: true
+env:
+  CACHE_VERSION: v1
 runs:
   using: composite
   steps:
+    - name: Resolve Go cache paths
+      id: go-paths
+      shell: bash
+      run: |
+        echo "GOMODCACHE=$(go env GOMODCACHE)" >> "${GITHUB_OUTPUT}"
+        echo "GOCACHE=$(go env GOCACHE)" >> "${GITHUB_OUTPUT}"
     - name: Restore Go cache
       uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
       with:
         path: |
-          ~/go/pkg/mod
-          ~/.cache/go-build
+          ${{ steps.go-paths.outputs.GOMODCACHE }}
+          ${{ steps.go-paths.outputs.GOCACHE }}
         # always grab from the restore-keys pattern below,
-        # like Linux-go-$hash-YYYY-MM-DD as saved by CI
+        # like $prefix-v1-Linux-go-$hash-YYYY-MM-DD as saved by CI
         key: nonexistent
         restore-keys: |
-          ${{ inputs.prefix }}-${{ runner.os }}-go-${{ hashFiles('go.mod') }}-
+          ${{ inputs.prefix }}-${{ env.CACHE_VERSION }}-${{ runner.os }}-go-${{ hashFiles('go.mod') }}-

@@ -4,14 +4,22 @@ inputs:
   prefix:
     description: 'Cache key prefix'
     required: true
+env:
+  CACHE_VERSION: v1
 runs:
   using: composite
   steps:
+    - name: Resolve Go cache paths
+      id: go-paths
+      shell: bash
+      run: |
+        echo "GOMODCACHE=$(go env GOMODCACHE)" >> "${GITHUB_OUTPUT}"
+        echo "GOCACHE=$(go env GOCACHE)" >> "${GITHUB_OUTPUT}"
     - name: Trim Go Cache
       shell: bash
       run: |
         # Prune the cache of files not touched in the past 5 days.
-        find ~/.cache/go-build -type f -mmin +90 -delete
+        find "${{ steps.go-paths.outputs.GOCACHE }}" -type f -mmin +90 -delete
     - name: Set Go cache date
       shell: bash
       run: |
@@ -22,7 +30,7 @@ runs:
       with:
         # Caches both the downloaded modules and the compiled build cache.
         path: |
-          ~/go/pkg/mod
-          ~/.cache/go-build
-        # Save to eg Linux-go-$hash-YYYY-MM-DD to keep the cache fresh
-        key: "${{ inputs.prefix }}-${{ runner.os }}-go-${{ hashFiles('go.mod') }}-${{ env.GO_CACHE_DATE }}"
+          ${{ steps.go-paths.outputs.GOMODCACHE }}
+          ${{ steps.go-paths.outputs.GOCACHE }}
+        # Save to eg $prefix-v1-Linux-go-$hash-YYYY-MM-DD to keep the cache fresh
+        key: "${{ inputs.prefix }}-${{ env.CACHE_VERSION }}-${{ runner.os }}-go-${{ hashFiles('go.mod') }}-${{ env.GO_CACHE_DATE }}"
