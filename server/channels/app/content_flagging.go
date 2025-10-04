@@ -26,27 +26,31 @@ const (
 	POST_PROP_KEY_FLAGGED_POST_ID = "reported_post_id"
 )
 
-func ContentFlaggingEnabledForTeam(config *model.Config, teamId string) bool {
-	reviewerSettings := config.ContentFlaggingSettings.ReviewerSettings
+func (a *App) ContentFlaggingEnabledForTeam(teamId string) (bool, *model.AppError) {
+	reviewerSettings := a.Config().ContentFlaggingSettings.ReviewerSettings
+	reviewerIDs, appErr := a.GetContentFlaggingConfigReviewerIDs()
+	if appErr != nil {
+		return false, appErr
+	}
 
-	hasCommonReviewers := *reviewerSettings.CommonReviewers
+	hasCommonReviewers := *reviewerSettings.CommonReviewers && len(reviewerIDs.CommonReviewerIds) > 0
 	if hasCommonReviewers {
-		return true
+		return true, nil
 	}
 
-	teamSettings, exist := (*reviewerSettings.TeamReviewersSetting)[teamId]
+	teamSettings, exist := (reviewerIDs.TeamReviewersSetting)[teamId]
 	if !exist || (teamSettings.Enabled != nil && !*teamSettings.Enabled) {
-		return false
+		return false, nil
 	}
 
-	if teamSettings.ReviewerIds != nil && len(*teamSettings.ReviewerIds) > 0 {
-		return true
+	if len(teamSettings.ReviewerIds) > 0 {
+		return true, nil
 	}
 
 	hasAdditionalReviewers := (reviewerSettings.TeamAdminsAsReviewers != nil && *reviewerSettings.TeamAdminsAsReviewers) ||
 		(reviewerSettings.SystemAdminsAsReviewers != nil && *reviewerSettings.SystemAdminsAsReviewers)
 
-	return hasAdditionalReviewers
+	return hasAdditionalReviewers, nil
 }
 
 func (a *App) FlagPost(rctx request.CTX, post *model.Post, teamId, reportingUserId string, flagData model.FlagContentRequest) *model.AppError {
@@ -229,7 +233,7 @@ func (a *App) GetContentFlaggingMappedFields(groupId string) (map[string]*model.
 	return mappedFields, nil
 }
 
-func (a *App) createContentReviewPost(rctx request.CTX, reportedPostId, teamId, reportingUserId, reportingReason, flaggedPostChannelId, flaggedPostAuthorId string) *model.AppError {
+func (a *App) createContentReviewPost(rctx request.CTX, flaggedPostId, teamId, reportingUserId, reportingReason, flaggedPostChannelId, flaggedPostAuthorId string) *model.AppError {
 	contentReviewBot, appErr := a.getContentReviewBot(rctx)
 	if appErr != nil {
 		return appErr
@@ -276,7 +280,7 @@ func (a *App) createContentReviewPost(rctx request.CTX, reportedPostId, teamId, 
 			Type:      model.ContentFlaggingPostType,
 			ChannelId: channel.Id,
 		}
-		post.AddProp(POST_PROP_KEY_FLAGGED_POST_ID, reportedPostId)
+		post.AddProp(POST_PROP_KEY_FLAGGED_POST_ID, flaggedPostId)
 		_, appErr := a.CreatePost(rctx, post, channel, model.CreatePostFlags{})
 		if appErr != nil {
 			rctx.Logger().Error("Failed to create content review post in one of the channels", mlog.Err(appErr), mlog.String("channel_id", channel.Id), mlog.String("team_id", teamId))
@@ -315,16 +319,20 @@ func (a *App) getReviewersForTeam(teamId string, includeAdditionalReviewers bool
 	reviewerUserIDMap := map[string]bool{}
 
 	reviewerSettings := a.Config().ContentFlaggingSettings.ReviewerSettings
+	reviewerIDs, appErr := a.GetContentFlaggingConfigReviewerIDs()
+	if appErr != nil {
+		return nil, appErr
+	}
 
 	if *reviewerSettings.CommonReviewers {
-		for _, userID := range *reviewerSettings.CommonReviewerIds {
+		for _, userID := range reviewerIDs.CommonReviewerIds {
 			reviewerUserIDMap[userID] = true
 		}
 	} else {
 		// If common reviewers are not enabled, we still need to check if the team has specific reviewers
-		teamSettings, exist := (*reviewerSettings.TeamReviewersSetting)[teamId]
+		teamSettings, exist := reviewerIDs.TeamReviewersSetting[teamId]
 		if exist && *teamSettings.Enabled && teamSettings.ReviewerIds != nil {
-			for _, userID := range *teamSettings.ReviewerIds {
+			for _, userID := range teamSettings.ReviewerIds {
 				reviewerUserIDMap[userID] = true
 			}
 		}
@@ -709,4 +717,50 @@ func (a *App) publishContentFlaggingReportUpdateEvent(targetId, teamId string, p
 	}
 
 	return nil
+}
+
+func (a *App) SaveContentFlaggingConfig(config model.ContentFlaggingSettingsRequest) *model.AppError {
+	err := a.Srv().Store().ContentFlagging().SaveReviewerSettings(config.ReviewerSettings.ReviewerIDsSettings)
+	if err != nil {
+		return model.NewAppError("SaveContentFlaggingConfig", "app.content_flagging.save_reviewer_settings.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	systemConfig := a.Config().Clone()
+	systemConfig.ContentFlaggingSettings = model.ContentFlaggingSettings{}
+	systemConfig.ContentFlaggingSettings.EnableContentFlagging = config.EnableContentFlagging
+	systemConfig.ContentFlaggingSettings.NotificationSettings = config.NotificationSettings
+	systemConfig.ContentFlaggingSettings.AdditionalSettings = config.AdditionalSettings
+	systemConfig.ContentFlaggingSettings.ReviewerSettings = &model.ReviewerSettings{
+		CommonReviewers:         config.ReviewerSettings.CommonReviewers,
+		SystemAdminsAsReviewers: config.ReviewerSettings.SystemAdminsAsReviewers,
+		TeamAdminsAsReviewers:   config.ReviewerSettings.TeamAdminsAsReviewers,
+	}
+
+	_, _, appErr := a.SaveConfig(systemConfig, true)
+	if appErr != nil {
+		return appErr
+	}
+
+	a.clearContentFlaggingConfigCache()
+	return nil
+}
+
+func (a *App) clearContentFlaggingConfigCache() {
+	a.Srv().Store().ContentFlagging().ClearCaches()
+	if cluster := a.Cluster(); cluster != nil && *a.Config().ClusterSettings.Enable {
+		cluster.SendClusterMessage(&model.ClusterMessage{
+			Event:    model.ClusterEventInvalidateCacheForContentFlagging,
+			SendType: model.ClusterSendReliable,
+			Data:     nil,
+		})
+	}
+}
+
+func (a *App) GetContentFlaggingConfigReviewerIDs() (*model.ReviewerIDsSettings, *model.AppError) {
+	reviewerSettings, err := a.Srv().Store().ContentFlagging().GetReviewerSettings()
+	if err != nil {
+		return nil, model.NewAppError("GetContentFlaggingConfig", "app.content_flagging.get_reviewer_settings.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return reviewerSettings, nil
 }

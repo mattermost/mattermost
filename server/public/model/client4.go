@@ -788,6 +788,34 @@ func (c *Client4) GetContentFlaggedPost(ctx context.Context, postId string) (*Po
 	return &post, BuildResponse(r), nil
 }
 
+func (c *Client4) SaveContentFlaggingSettings(ctx context.Context, config *ContentFlaggingSettingsRequest) (*Response, error) {
+	buf, err := json.Marshal(config)
+	if err != nil {
+		return nil, NewAppError("SaveContentFlaggingSettings", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPut(ctx, c.contentFlaggingRoute()+"/config", string(buf))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) GetContentFlaggingSettings(ctx context.Context) (*ContentFlaggingSettingsRequest, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.contentFlaggingRoute()+"/config", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var config ContentFlaggingSettingsRequest
+	if err := json.NewDecoder(r.Body).Decode(&config); err != nil {
+		return nil, nil, NewAppError("GetContentFlaggingSettings", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &config, BuildResponse(r), nil
+}
+
 func (c *Client4) bookmarksRoute(channelId string) string {
 	return c.channelRoute(channelId) + "/bookmarks"
 }

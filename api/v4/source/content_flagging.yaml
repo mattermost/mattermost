@@ -256,3 +256,48 @@
           description: Internal server error.
         '501':
           description: Feature is disabled either via config or an Enterprise Advanced license is not available.
+  /api/v4/content_flagging/config:
+    get:
+      summary: Get the system content flagging configuration
+      description: |
+        Returns the system configuration for content flagging, including settings related to notifications, flagging configurations, etc..
+        Only system admins can access this endpoint.
+      tags:
+        - Content Flagging
+      responses:
+        '200':
+          description: Configuration retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContentFlaggingConfig"
+        '404':
+          description: Feature is disabled via the feature flag.
+        '500':
+          description: Internal server error.
+        '403':
+          description: User does not have permission to manage system configuration.
+    put:
+        summary: Update the system content flagging configuration
+        description: |
+            Updates the system configuration for content flagging, including settings related to notifications, flagging configurations, etc..
+            Only system admins can access this endpoint.
+        tags:
+            - Content Flagging
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContentFlaggingConfig"
+        responses:
+            '200':
+              description: Configuration updated successfully
+            '400':
+              description: Bad request - Invalid input data or missing required fields.
+            '404':
+              description: Feature is disabled via the feature flag.
+            '500':
+              description: Internal server error.
+            '403':
+              description: User does not have permission to manage system configuration.
