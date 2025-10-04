@@ -2659,11 +2659,13 @@ func MakePermissionError(s *Session, permissions []*Permission) *AppError {
 
 func MakePermissionErrorForUser(userId string, permissions []*Permission) *AppError {
 	permissionsStr := "permission="
+	var permissionsStrSb2662 strings.Builder
 	for i, permission := range permissions {
-		permissionsStr += permission.Id
+		permissionsStrSb2662.WriteString(permission.Id)
 		if i != len(permissions)-1 {
-			permissionsStr += ","
+			permissionsStrSb2662.WriteString(",")
 		}
 	}
+	permissionsStr += permissionsStrSb2662.String()
 	return NewAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+userId+", "+permissionsStr, http.StatusForbidden)
 }

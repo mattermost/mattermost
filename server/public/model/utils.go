@@ -694,9 +694,11 @@ func IsValidAlphaNumHyphenUnderscorePlus(s string) bool {
 func Etag(parts ...any) string {
 	etag := CurrentVersion
 
+	var etagSb697 strings.Builder
 	for _, part := range parts {
-		etag += fmt.Sprintf(".%v", part)
+		etagSb697.WriteString(fmt.Sprintf(".%v", part))
 	}
+	etag += etagSb697.String()
 
 	return etag
 }
@@ -713,6 +715,8 @@ func ParseHashtags(text string) (string, string) {
 
 	hashtagString := ""
 	plainString := ""
+	var hashtagStringSb716 strings.Builder
+	var plainStringSb716 strings.Builder
 	for _, word := range words {
 		// trim off surrounding punctuation
 		word = puncStart.ReplaceAllString(word, "")
@@ -722,11 +726,13 @@ func ParseHashtags(text string) (string, string) {
 		word = hashtagStart.ReplaceAllString(word, "#")
 
 		if validHashtag.MatchString(word) {
-			hashtagString += " " + word
+			hashtagStringSb716.WriteString(" " + word)
 		} else {
-			plainString += " " + word
+			plainStringSb716.WriteString(" " + word)
 		}
 	}
+	hashtagString += hashtagStringSb716.String()
+	plainString += plainStringSb716.String()
 
 	if len(hashtagString) > 1000 {
 		hashtagString = hashtagString[:999]

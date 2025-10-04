@@ -25,9 +25,11 @@ func (d *ReferenceDefinition) Title() string {
 
 func parseReferenceDefinition(markdown string, ranges []Range) (*ReferenceDefinition, []Range) {
 	raw := ""
+	var rawSb28 strings.Builder
 	for _, r := range ranges {
-		raw += markdown[r.Position:r.End]
+		rawSb28.WriteString(markdown[r.Position:r.End])
 	}
+	raw += rawSb28.String()
 
 	label, next, ok := parseLinkLabel(raw, 0)
 	if !ok {
