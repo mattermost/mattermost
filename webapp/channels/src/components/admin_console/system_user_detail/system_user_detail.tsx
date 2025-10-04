@@ -8,11 +8,9 @@ import type {IntlShape, WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
-import type {ServerError} from '@mattermost/types/errors';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import AdminUserCard from 'components/admin_console/admin_user_card/admin_user_card';
@@ -49,8 +47,12 @@ export type Props = PropsFromRedux & RouteComponentProps<Params> & WrappedCompon
 export type State = {
     user?: UserProfile;
     emailField: string;
+    usernameField: string;
+    authDataField: string;
     isLoading: boolean;
     error?: string | null;
+    emailError?: string | null;
+    usernameError?: string | null;
     isSaveNeeded: boolean;
     isSaving: boolean;
     teams: TeamMembership[];
@@ -59,6 +61,7 @@ export type State = {
     showResetPasswordModal: boolean;
     showDeactivateMemberModal: boolean;
     showTeamSelectorModal: boolean;
+    showSaveConfirmationModal: boolean;
 };
 
 export class SystemUserDetail extends PureComponent<Props, State> {
@@ -66,8 +69,12 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         super(props);
         this.state = {
             emailField: '',
+            usernameField: '',
+            authDataField: '',
             isLoading: false,
             error: null,
+            emailError: null,
+            usernameError: null,
             isSaveNeeded: false,
             isSaving: false,
             teams: [],
@@ -76,6 +83,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             showResetPasswordModal: false,
             showDeactivateMemberModal: false,
             showTeamSelectorModal: false,
+            showSaveConfirmationModal: false,
         };
     }
 
@@ -83,12 +91,16 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         this.setState({isLoading: true});
 
         try {
-            const {data, error} = await this.props.getUser(userId) as ActionResult<UserProfile, ServerError>;
+            const {data, error} = await this.props.getUser(userId);
             if (data) {
                 this.setState({
                     user: data,
-                    emailField: data.email, // Set emailField to the email of the user for editing purposes
+                    emailField: data.email,
+                    usernameField: data.username,
+                    authDataField: data.auth_data || '',
                     isLoading: false,
+                    emailError: null,
+                    usernameError: null,
                 });
             } else {
                 throw new Error(error ? error.message : 'Unknown error');
@@ -113,9 +125,11 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
     handleTeamsLoaded = (teams: TeamMembership[]) => {
         const teamIds = teams.map((team) => team.team_id);
-        this.setState({teams});
-        this.setState({teamIds});
-        this.setState({refreshTeams: false});
+        this.setState({
+            teams,
+            teamIds,
+            refreshTeams: false,
+        });
     };
 
     handleAddUserToTeams = (teams: Team[]) => {
@@ -138,7 +152,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         }
 
         try {
-            const {error} = await this.props.updateUserActive(this.state.user.id, true) as ActionResult<boolean, ServerError>;
+            const {error} = await this.props.updateUserActive(this.state.user.id, true);
             if (error) {
                 throw new Error(error.message);
             }
@@ -148,7 +162,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             console.error('SystemUserDetails-handleActivateUser', err); // eslint-disable-line no-console
 
             // Show the actual server error message instead of generic message
-            const errorMessage = (err as Error).message || this.props.intl.formatMessage({id: 'admin.user_item.userActivateFailed', defaultMessage: 'Failed to activate user'});
+            const errorMessage = err instanceof Error ? err.message : this.props.intl.formatMessage({id: 'admin.user_item.userActivateFailed', defaultMessage: 'Failed to activate user'});
             this.setState({error: errorMessage});
         }
     };
@@ -159,7 +173,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         }
 
         try {
-            const {error} = await this.props.updateUserActive(this.state.user.id, false) as ActionResult<boolean, ServerError>;
+            const {error} = await this.props.updateUserActive(this.state.user.id, false);
             if (error) {
                 throw new Error(error.message);
             }
@@ -169,7 +183,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             console.error('SystemUserDetails-handleDeactivateMember', err); // eslint-disable-line no-console
 
             // Show the actual server error message instead of generic message
-            const errorMessage = (err as Error).message || this.props.intl.formatMessage({id: 'admin.user_item.userDeactivateFailed', defaultMessage: 'Failed to deactivate user'});
+            const errorMessage = err instanceof Error ? err.message : this.props.intl.formatMessage({id: 'admin.user_item.userDeactivateFailed', defaultMessage: 'Failed to deactivate user'});
             this.setState({error: errorMessage});
         }
 
@@ -182,7 +196,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         }
 
         try {
-            const {error} = await this.props.updateUserMfa(this.state.user.id, false) as ActionResult<boolean, ServerError>;
+            const {error} = await this.props.updateUserMfa(this.state.user.id, false);
             if (error) {
                 throw new Error(error.message);
             }
@@ -195,20 +209,84 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         }
     };
 
-    handleEmailChange = (event: ChangeEvent<HTMLInputElement>) => {
+    private hasUnsavedChanges = (emailValue?: string, usernameValue?: string, authDataValue?: string): boolean => {
         if (!this.state.user) {
+            return false;
+        }
+
+        const emailToCheck = emailValue === undefined ? this.state.emailField : emailValue;
+        const usernameToCheck = usernameValue === undefined ? this.state.usernameField : usernameValue;
+        const authDataToCheck = authDataValue === undefined ? this.state.authDataField : authDataValue;
+
+        const didEmailChanged = this.state.user.auth_service === '' && emailToCheck !== this.state.user.email;
+        const didUsernameChanged = this.state.user.auth_service === '' && usernameToCheck !== this.state.user.username;
+        const didAuthDataChanged = authDataToCheck !== (this.state.user.auth_data || '');
+
+        return didEmailChanged || didUsernameChanged || didAuthDataChanged;
+    };
+
+    handleEmailChange = (event: ChangeEvent<HTMLInputElement>) => {
+        if (!this.state.user || this.state.user.auth_service) {
             return;
         }
 
         const {target: {value}} = event;
 
-        const didEmailChanged = value !== this.state.user.email;
+        // Validate email
+        let emailError = null;
+        if (value.trim() && !isEmail(value)) {
+            emailError = this.props.intl.formatMessage({id: 'admin.user_item.invalidEmail', defaultMessage: 'Invalid email address'});
+        }
+
+        const hasChanges = this.hasUnsavedChanges(value);
+
         this.setState({
             emailField: value,
-            isSaveNeeded: didEmailChanged,
+            emailError,
+            isSaveNeeded: hasChanges,
         });
 
-        this.props.setNavigationBlocked(didEmailChanged);
+        this.props.setNavigationBlocked(hasChanges);
+    };
+
+    handleUsernameChange = (event: ChangeEvent<HTMLInputElement>) => {
+        if (!this.state.user || this.state.user.auth_service) {
+            return;
+        }
+
+        const {target: {value}} = event;
+
+        // Validate username
+        let usernameError = null;
+        if (!value.trim()) {
+            usernameError = this.props.intl.formatMessage({id: 'admin.user_item.invalidUsername', defaultMessage: 'Username cannot be empty'});
+        }
+
+        const hasChanges = this.hasUnsavedChanges(undefined, value);
+
+        this.setState({
+            usernameField: value,
+            usernameError,
+            isSaveNeeded: hasChanges,
+        });
+
+        this.props.setNavigationBlocked(hasChanges);
+    };
+
+    handleAuthDataChange = (event: ChangeEvent<HTMLInputElement>) => {
+        if (!this.state.user) {
+            return;
+        }
+
+        const {target: {value}} = event;
+        const hasChanges = this.hasUnsavedChanges(undefined, undefined, value);
+
+        this.setState({
+            authDataField: value,
+            isSaveNeeded: hasChanges,
+        });
+
+        this.props.setNavigationBlocked(hasChanges);
     };
 
     handleSubmit = async (event: MouseEvent<HTMLButtonElement>) => {
@@ -218,37 +296,93 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             return;
         }
 
-        if (this.state.user.email === this.state.emailField) {
+        // Check for validation errors before proceeding
+        if (this.state.emailError || this.state.usernameError) {
             return;
         }
 
-        if (!isEmail(this.state.user.email)) {
-            this.setState({error: this.props.intl.formatMessage({id: 'admin.user_item.invalidEmail', defaultMessage: 'Invalid email address'})});
+        const emailChanged = !this.state.user.auth_service && this.state.user.email !== this.state.emailField;
+        const usernameChanged = !this.state.user.auth_service && this.state.user.username !== this.state.usernameField;
+        const authDataChanged = (this.state.user.auth_data || '') !== this.state.authDataField;
+
+        if (!emailChanged && !usernameChanged && !authDataChanged) {
             return;
         }
 
-        const updatedUser = Object.assign({}, this.state.user, {email: this.state.emailField.trim().toLowerCase()});
+        // Show confirmation dialog first
+        this.setState({showSaveConfirmationModal: true});
+    };
+
+    handleConfirmSave = async () => {
+        if (!this.state.user) {
+            return;
+        }
 
         this.setState({
             error: null,
             isSaving: true,
+            showSaveConfirmationModal: false,
         });
 
         try {
-            const {data, error} = await this.props.patchUser(updatedUser) as ActionResult<UserProfile, ServerError>;
-            if (data) {
-                this.setState({
-                    user: data,
-                    emailField: data.email,
-                    error: null,
-                    isSaving: false,
-                    isSaveNeeded: false,
-                });
-            } else {
-                throw new Error(error ? error.message : 'Unknown error');
+            let userData: UserProfile = this.state.user;
+
+            // Handle email/username updates (only if no auth_service)
+            const emailChanged = !this.state.user.auth_service && this.state.emailField !== this.state.user.email;
+            const usernameChanged = !this.state.user.auth_service && this.state.usernameField !== this.state.user.username;
+
+            if (emailChanged || usernameChanged) {
+                const updatedUser: UserProfile = {...this.state.user};
+
+                if (emailChanged) {
+                    updatedUser.email = this.state.emailField.trim().toLowerCase();
+                }
+
+                if (usernameChanged) {
+                    updatedUser.username = this.state.usernameField.trim();
+                }
+
+                const {data, error} = await this.props.patchUser(updatedUser);
+                if (data) {
+                    userData = data;
+                } else {
+                    throw new Error(error ? error.message : 'Failed to update user profile');
+                }
             }
+
+            // Handle auth_data update
+            const authDataChanged = this.state.authDataField !== (this.state.user.auth_data || '');
+            if (authDataChanged) {
+                const {data, error} = await this.props.updateUserAuth(this.state.user.id, {
+                    auth_data: this.state.authDataField.trim(),
+                    auth_service: this.state.user.auth_service,
+                });
+
+                if (data) {
+                    // Update the user data with the new auth information
+                    userData = {
+                        ...userData,
+                        auth_data: data.auth_data,
+                        auth_service: data.auth_service,
+                    };
+                } else {
+                    throw new Error(error ? error.message : 'Failed to update user auth data');
+                }
+            }
+
+            this.setState({
+                user: userData,
+                emailField: userData.email,
+                usernameField: userData.username,
+                authDataField: userData.auth_data || '',
+                error: null,
+                emailError: null,
+                usernameError: null,
+                isSaving: false,
+                isSaveNeeded: false,
+            });
         } catch (err) {
-            console.error('SystemUserDetails-handleSubmit', err); // eslint-disable-line no-console
+            console.error('SystemUserDetails-handleConfirmSave', err); // eslint-disable-line no-console
 
             this.setState({
                 error: this.props.intl.formatMessage({id: 'admin.user_item.userUpdateFailed', defaultMessage: 'Failed to update user'}),
@@ -293,6 +427,10 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
     toggleCloseTeamSelectorModal = () => {
         this.setState({showTeamSelectorModal: false});
+    };
+
+    toggleCloseSaveConfirmationModal = () => {
+        this.setState({showSaveConfirmationModal: false});
     };
 
     openConfirmEditUserSettingsModal = () => {
@@ -374,13 +512,53 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                             defaultMessage='Email'
                                         />
                                         <EmailIcon/>
-                                        <input
-                                            className='form-control'
-                                            type='text'
-                                            value={this.state.emailField}
-                                            onChange={this.handleEmailChange}
-                                            disabled={this.state.error !== null || this.state.isSaving}
-                                        />
+                                        {this.state.user?.auth_service ? (
+                                            <WithTooltip
+                                                title={this.props.intl.formatMessage({
+                                                    id: 'admin.userDetail.managedByProvider.title',
+                                                    defaultMessage: 'Managed by login provider',
+                                                })}
+                                                hint={this.props.intl.formatMessage({
+                                                    id: 'admin.userDetail.managedByProvider.email',
+                                                    defaultMessage: 'This email is managed by the {authService} login provider and cannot be changed here.',
+                                                }, {
+                                                    authService: this.state.user.auth_service.toUpperCase(),
+                                                })}
+                                            >
+                                                <input
+                                                    className='form-control'
+                                                    type='text'
+                                                    value={this.state.emailField}
+                                                    disabled={true}
+                                                    readOnly={true}
+                                                    style={{cursor: 'not-allowed'}}
+                                                />
+                                            </WithTooltip>
+                                        ) : (
+                                            <>
+                                                <input
+                                                    className={classNames('form-control', {
+                                                        error: this.state.emailError,
+                                                    })}
+                                                    type='text'
+                                                    value={this.state.emailField}
+                                                    onChange={this.handleEmailChange}
+                                                    disabled={this.state.error !== null || this.state.isSaving}
+                                                    aria-describedby={this.state.emailError ? 'email-error' : undefined}
+                                                    aria-invalid={this.state.emailError ? 'true' : 'false'}
+                                                />
+                                                {this.state.emailError && (
+                                                    <div
+                                                        id='email-error'
+                                                        className='field-error'
+                                                        role='alert'
+                                                        aria-live='polite'
+                                                    >
+                                                        {this.state.emailError}
+                                                    </div>
+                                                )}
+                                            </>
+                                        )}
                                     </label>
                                     <label>
                                         <FormattedMessage
@@ -388,7 +566,55 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                             defaultMessage='Username'
                                         />
                                         <AtIcon/>
-                                        <span>{this.state.user?.username}</span>
+                                        {this.state.user?.auth_service ? (
+                                            <WithTooltip
+                                                title={this.props.intl.formatMessage({
+                                                    id: 'admin.userDetail.managedByProvider.title',
+                                                    defaultMessage: 'Managed by login provider',
+                                                })}
+                                                hint={this.props.intl.formatMessage({
+                                                    id: 'admin.userDetail.managedByProvider.username',
+                                                    defaultMessage: 'This username is managed by the {authService} login provider and cannot be changed here.',
+                                                }, {
+                                                    authService: this.state.user.auth_service.toUpperCase(),
+                                                })}
+                                            >
+                                                <input
+                                                    className='form-control'
+                                                    type='text'
+                                                    value={this.state.usernameField}
+                                                    disabled={true}
+                                                    readOnly={true}
+                                                    style={{cursor: 'not-allowed'}}
+                                                    placeholder='Enter username'
+                                                />
+                                            </WithTooltip>
+                                        ) : (
+                                            <>
+                                                <input
+                                                    className={classNames('form-control', {
+                                                        error: this.state.usernameError,
+                                                    })}
+                                                    type='text'
+                                                    value={this.state.usernameField}
+                                                    onChange={this.handleUsernameChange}
+                                                    disabled={this.state.error !== null || this.state.isSaving}
+                                                    placeholder='Enter username'
+                                                    aria-describedby={this.state.usernameError ? 'username-error' : undefined}
+                                                    aria-invalid={this.state.usernameError ? 'true' : 'false'}
+                                                />
+                                                {this.state.usernameError && (
+                                                    <div
+                                                        id='username-error'
+                                                        className='field-error'
+                                                        role='alert'
+                                                        aria-live='polite'
+                                                    >
+                                                        {this.state.usernameError}
+                                                    </div>
+                                                )}
+                                            </>
+                                        )}
                                     </label>
                                     <label>
                                         <FormattedMessage
@@ -398,14 +624,21 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                         <SheidOutlineIcon/>
                                         <span>{getUserAuthenticationTextField(this.props.intl, this.props.mfaEnabled, this.state.user)}</span>
                                     </label>
-                                    {Boolean(this.state.user?.auth_data && this.state.user?.auth_service) && (
+                                    {this.state.user?.auth_service && (
                                         <label>
                                             <FormattedMessage
                                                 id='admin.userManagement.userDetail.authData'
                                                 defaultMessage='Auth Data'
                                             />
                                             <SheidOutlineIcon/>
-                                            <span>{this.state.user?.auth_data}</span>
+                                            <input
+                                                className='form-control'
+                                                type='text'
+                                                value={this.state.authDataField}
+                                                onChange={this.handleAuthDataChange}
+                                                disabled={this.state.error !== null || this.state.isSaving}
+                                                placeholder='Enter auth data'
+                                            />
                                         </label>
                                     )}
                                 </>
@@ -548,10 +781,14 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                 <div className='admin-console-save'>
                     <SaveButton
                         saving={this.state.isSaving}
-                        disabled={!this.state.isSaveNeeded || this.state.isLoading || this.state.error !== null || this.state.isSaving}
+                        disabled={!this.state.isSaveNeeded || this.state.isLoading || this.state.error !== null || this.state.isSaving || this.state.emailError !== null || this.state.usernameError !== null}
                         onClick={this.handleSubmit}
                     />
-                    <div className='error-message'>
+                    <div
+                        className='error-message'
+                        role='alert'
+                        aria-live='polite'
+                    >
                         <FormError error={this.state.error}/>
                     </div>
                 </div>
@@ -607,6 +844,78 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                         excludeGroupConstrained={true}
                     />
                 )}
+
+                <ConfirmModal
+                    show={this.state.showSaveConfirmationModal}
+                    title={
+                        <FormattedMessage
+                            id='admin.userDetail.saveChangesModal.title'
+                            defaultMessage='Confirm Changes'
+                        />
+                    }
+                    message={
+                        <div>
+                            <FormattedMessage
+                                id='admin.userDetail.saveChangesModal.message'
+                                defaultMessage='You are about to save the following changes to {username}:'
+                                values={{
+                                    username: this.state.user?.username ?? '',
+                                }}
+                            />
+                            <ul style={{marginTop: '10px', marginBottom: '10px'}}>
+                                {this.state.user && !this.state.user.auth_service && this.state.emailField !== this.state.user.email && (
+                                    <li>
+                                        <FormattedMessage
+                                            id='admin.userDetail.saveChangesModal.emailChange'
+                                            defaultMessage='Email: {oldEmail} → {newEmail}'
+                                            values={{
+                                                oldEmail: this.state.user.email,
+                                                newEmail: this.state.emailField,
+                                            }}
+                                        />
+                                    </li>
+                                )}
+                                {this.state.user && !this.state.user.auth_service && this.state.usernameField !== this.state.user.username && (
+                                    <li>
+                                        <FormattedMessage
+                                            id='admin.userDetail.saveChangesModal.usernameChange'
+                                            defaultMessage='Username: {oldUsername} → {newUsername}'
+                                            values={{
+                                                oldUsername: this.state.user.username,
+                                                newUsername: this.state.usernameField,
+                                            }}
+                                        />
+                                    </li>
+                                )}
+                                {this.state.user && this.state.authDataField !== (this.state.user.auth_data || '') && (
+                                    <li>
+                                        <FormattedMessage
+                                            id='admin.userDetail.saveChangesModal.authDataChange'
+                                            defaultMessage='Auth Data: {oldAuthData} → {newAuthData}'
+                                            values={{
+                                                oldAuthData: this.state.user.auth_data || '(empty)',
+                                                newAuthData: this.state.authDataField || '(empty)',
+                                            }}
+                                        />
+                                    </li>
+                                )}
+                            </ul>
+                            <FormattedMessage
+                                id='admin.userDetail.saveChangesModal.warning'
+                                defaultMessage='Are you sure you want to proceed with these changes?'
+                            />
+                        </div>
+                    }
+                    confirmButtonClass='btn btn-primary'
+                    confirmButtonText={
+                        <FormattedMessage
+                            id='admin.userDetail.saveChangesModal.save'
+                            defaultMessage='Save Changes'
+                        />
+                    }
+                    onConfirm={this.handleConfirmSave}
+                    onCancel={this.toggleCloseSaveConfirmationModal}
+                />
             </div>
         );
     }
