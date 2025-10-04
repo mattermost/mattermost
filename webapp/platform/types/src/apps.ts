@@ -467,7 +467,34 @@ export type AppField = {
     subtype?: string;
     min_length?: number;
     max_length?: number;
+
+    // Date props
+    min_date?: string;
+    max_date?: string;
+    time_interval?: number;
 };
+
+/**
+ * Validates if a string is a valid date format (ISO date, datetime, or relative reference)
+ * Uses native Date constructor which is permissive - server-side validation is authoritative
+ */
+function isValidDateString(dateStr: string): boolean {
+    const relativePatterns = [
+        /^today$/,
+        /^tomorrow$/,
+        /^yesterday$/,
+        /^[+-]\d{1,4}[dwm]$/i,
+    ];
+
+    for (const pattern of relativePatterns) {
+        if (pattern.test(dateStr)) {
+            return true;
+        }
+    }
+
+    const date = new Date(dateStr);
+    return !isNaN(date.getTime());
+}
 
 function isAppField(v: unknown): v is AppField {
     if (typeof v !== 'object' || v === null) {
@@ -537,6 +564,32 @@ function isAppField(v: unknown): v is AppField {
     }
 
     if (field.max_length !== undefined && typeof field.max_length !== 'number') {
+        return false;
+    }
+
+    if (field.min_date !== undefined) {
+        if (typeof field.min_date !== 'string') {
+            return false;
+        }
+
+        // Validate that min_date is a valid date format (ISO or relative)
+        if (!isValidDateString(field.min_date)) {
+            return false;
+        }
+    }
+
+    if (field.max_date !== undefined) {
+        if (typeof field.max_date !== 'string') {
+            return false;
+        }
+
+        // Validate that max_date is a valid date format (ISO or relative)
+        if (!isValidDateString(field.max_date)) {
+            return false;
+        }
+    }
+
+    if (field.time_interval !== undefined && typeof field.time_interval !== 'number') {
         return false;
     }
 

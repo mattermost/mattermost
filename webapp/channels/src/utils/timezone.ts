@@ -36,3 +36,17 @@ export function isBeforeTime(dateTime1: Moment, dateTime2: Moment) {
 
     return a.isBefore(b);
 }
+
+export function isValidTimezone(timezone: string): boolean {
+    return moment.tz.zone(timezone) !== null;
+}
+
+export function parseDateInTimezone(value: string, timezone?: string): Moment | null {
+    if (!timezone || !isValidTimezone(timezone)) {
+        const parsed = moment(value);
+        return parsed.isValid() ? parsed : null;
+    }
+
+    const parsed = moment.tz(value, timezone);
+    return parsed.isValid() ? parsed : null;
+}
