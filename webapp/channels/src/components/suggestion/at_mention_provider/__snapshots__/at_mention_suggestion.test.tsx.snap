@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`at mention suggestion should display nick name of non signed in user 1`] = `
 <AtMentionSuggestion

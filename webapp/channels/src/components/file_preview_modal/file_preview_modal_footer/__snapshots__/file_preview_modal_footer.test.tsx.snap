@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/file_preview_modal/file_preview_modal_footer/FilePreviewModalFooter should match snapshot the desktop view 1`] = `
 <div

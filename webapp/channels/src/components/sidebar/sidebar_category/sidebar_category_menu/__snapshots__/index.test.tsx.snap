@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/sidebar/sidebar_category/sidebar_category_menu should match snapshot and contain correct buttons 1`] = `
 <Memo(SidebarCategoryGenericMenu)

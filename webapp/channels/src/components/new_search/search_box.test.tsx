@@ -54,13 +54,13 @@ describe('components/new_search/SearchBox', () => {
     test('should call close on esc keydown', () => {
         renderWithContext(<SearchBox {...baseProps}/>);
         fireEvent.keyDown(screen.getByPlaceholderText('Search messages'), {key: 'Escape', code: 'Escape'});
-        expect(baseProps.onClose).toBeCalledTimes(1);
+        expect(baseProps.onClose).toHaveBeenCalledTimes(1);
     });
 
     test('should call search on enter keydown', () => {
         renderWithContext(<SearchBox {...baseProps}/>);
         fireEvent.keyDown(screen.getByPlaceholderText('Search messages'), {key: 'Enter', code: 'Enter'});
-        expect(baseProps.onSearch).toBeCalledTimes(1);
+        expect(baseProps.onSearch).toHaveBeenCalledTimes(1);
     });
 
     test('should be able to select with the up and down arrows', async () => {

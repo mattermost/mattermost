@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/integrations/outgoing_oauth_connections/OAuthConnectionAudienceInput should match snapshot when an audience url with a wildcard is configured, and typed in value starts with configured audience url 1`] = `
 <BrowserRouter>

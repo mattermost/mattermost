@@ -118,7 +118,7 @@ describe('components/PermalinkView', () => {
 
         await waitFor(() => {
             expect(baseProps.actions.focusPost).toHaveBeenCalledTimes(1);
-            expect(baseProps.actions.focusPost).toBeCalledWith(baseProps.match.params.postid, baseProps.returnTo, baseProps.currentUserId);
+            expect(baseProps.actions.focusPost).toHaveBeenCalledWith(baseProps.match.params.postid, baseProps.returnTo, baseProps.currentUserId);
         });
     });
 
@@ -135,7 +135,7 @@ describe('components/PermalinkView', () => {
 
         await waitFor(() => {
             expect(baseProps.actions.focusPost).toHaveBeenCalledTimes(2);
-            expect(baseProps.actions.focusPost).toBeCalledWith(newPostid, baseProps.returnTo, baseProps.currentUserId);
+            expect(baseProps.actions.focusPost).toHaveBeenCalledWith(newPostid, baseProps.returnTo, baseProps.currentUserId);
         });
     });
 
@@ -391,7 +391,7 @@ describe('components/PermalinkView', () => {
                     {type: 'MOCK_LOAD_CHANNELS_FOR_CURRENT_USER'},
                     {type: 'MOCK_GET_CHANNEL_STATS', args: ['channelid1']},
                 ]);
-                expect(getHistory().replace).not.toBeCalled();
+                expect(getHistory().replace).not.toHaveBeenCalled();
             });
 
             describe('focusPost - with prompt', () => {

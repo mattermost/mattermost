@@ -119,7 +119,7 @@ describe('components/threading/ThreadViewer', () => {
 
         expect(() => {
             shallow(<ThreadViewer {...props}/>);
-        }).not.toThrowError("Cannot read property 'reply_count' of undefined");
+        }).not.toThrow("Cannot read property 'reply_count' of undefined");
     });
 
     test('should not break if root post is ID only', () => {
@@ -131,7 +131,7 @@ describe('components/threading/ThreadViewer', () => {
 
         expect(() => {
             shallow(<ThreadViewer {...props}/>);
-        }).not.toThrowError("Cannot read property 'reply_count' of undefined");
+        }).not.toThrow("Cannot read property 'reply_count' of undefined");
     });
 
     test('should call fetchThread when no thread on mount', (done) => {
