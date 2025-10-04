@@ -381,6 +381,85 @@ func (s *SqlAccessControlPolicyStore) SetActiveStatus(rctx request.CTX, id strin
 	return existingPolicy, nil
 }
 
+func (s *SqlAccessControlPolicyStore) SetActiveStatusMultiple(rctx request.CTX, list []model.AccessControlPolicyActiveUpdate) ([]*model.AccessControlPolicy, error) {
+	tx, err := s.GetMaster().Beginx()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to start transaction")
+	}
+	defer finalizeTransactionX(tx, &err)
+
+	// Group by active status for batch updates
+	activeTrue := []string{}
+	activeFalse := []string{}
+	ids := make([]any, 0, len(list))
+	for _, entry := range list {
+		ids = append(ids, entry.ID)
+		if entry.Active {
+			activeTrue = append(activeTrue, entry.ID)
+			continue
+		}
+		activeFalse = append(activeFalse, entry.ID)
+	}
+
+	// Update active=true policies
+	if len(activeTrue) > 0 {
+		query, args, qbErr := s.getQueryBuilder().
+			Update("AccessControlPolicies").
+			Set("Active", true).
+			Where(sq.Eq{"ID": activeTrue}).
+			ToSql()
+
+		if qbErr != nil {
+			return nil, errors.Wrap(qbErr, "failed to build active=true update query")
+		}
+
+		_, err = tx.Exec(query, args...)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to update active=true policies")
+		}
+	}
+
+	// Update active=false policies
+	if len(activeFalse) > 0 {
+		query, args, qbErr := s.getQueryBuilder().
+			Update("AccessControlPolicies").
+			Set("Active", false).
+			Where(sq.Eq{"ID": activeFalse}).
+			ToSql()
+
+		if qbErr != nil {
+			return nil, errors.Wrap(qbErr, "failed to build active=false update query")
+		}
+
+		_, err = tx.Exec(query, args...)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to update active=false policies")
+		}
+	}
+
+	p := []storeAccessControlPolicy{}
+	query := s.selectQueryBuilder.Where(sq.Eq{"ID": ids})
+
+	err = tx.SelectBuilder(&p, query)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to find policies with ids=%v", ids)
+	}
+
+	policies := make([]*model.AccessControlPolicy, len(p))
+	for i := range p {
+		policies[i], err = p[i].toModel()
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to parse policy with id=%s", p[i].ID)
+		}
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
+	}
+
+	return policies, nil
+}
+
 func (s *SqlAccessControlPolicyStore) Get(_ request.CTX, id string) (*model.AccessControlPolicy, error) {
 	p := storeAccessControlPolicy{}
 	query := s.selectQueryBuilder.Where(sq.Eq{"ID": id})

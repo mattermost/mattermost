@@ -6,7 +6,7 @@ import React, {useState, useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
-import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
+import type {AccessControlPolicy, AccessControlPolicyActiveUpdate, AccessControlPolicyRule} from '@mattermost/types/access_control';
 import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
 import type {AccessControlSettings} from '@mattermost/types/config';
 import type {JobTypeBase} from '@mattermost/types/jobs';
@@ -15,7 +15,6 @@ import type {UserPropertyField} from '@mattermost/types/properties';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import BlockableLink from 'components/admin_console/blockable_link';
-import BooleanSetting from 'components/admin_console/boolean_setting';
 import Card from 'components/card/card';
 import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
 import ChannelSelectorModal from 'components/channel_selector_modal';
@@ -46,7 +45,7 @@ interface PolicyActions {
     assignChannelsToAccessControlPolicy: (policyId: string, channelIds: string[]) => Promise<ActionResult>;
     unassignChannelsFromAccessControlPolicy: (policyId: string, channelIds: string[]) => Promise<ActionResult>;
     createJob: (job: JobTypeBase & { data: any }) => Promise<ActionResult>;
-    updateAccessControlPolicyActive: (policyId: string, active: boolean) => Promise<ActionResult>;
+    updateAccessControlPoliciesActive: (states: AccessControlPolicyActiveUpdate[]) => Promise<ActionResult>;
 }
 
 export interface PolicyDetailsProps {
@@ -60,6 +59,11 @@ interface ChannelChanges {
     removed: Record<string, ChannelWithTeamData>;
     added: Record<string, ChannelWithTeamData>;
     removedCount: number;
+}
+
+interface PolicyActiveStatus {
+    id: string;
+    active: boolean;
 }
 
 function PolicyDetails({
@@ -79,6 +83,7 @@ function PolicyDetails({
         added: {},
         removedCount: 0,
     });
+    const [policyActiveStatusChanges, setPolicyActiveStatusChanges] = useState<PolicyActiveStatus[]>([]);
     const [saveNeeded, setSaveNeeded] = useState(false);
     const [channelsCount, setChannelsCount] = useState(0);
     const [autocompleteResult, setAutocompleteResult] = useState<UserPropertyField[]>([]);
@@ -189,19 +194,7 @@ function PolicyDetails({
             return;
         }
 
-        // --- Step 2: Update Policy Active ---
-        try {
-            await actions.updateAccessControlPolicyActive(currentPolicyId, autoSyncMembership);
-        } catch (error) {
-            setServerError(formatMessage({
-                id: 'admin.access_control.policy.edit_policy.error.update_active_status',
-                defaultMessage: 'Error updating policy active status: {error}',
-            }, {error: error.message}));
-            success = false;
-            return;
-        }
-
-        // --- Step 3: Assign Channels ---
+        // --- Step 2: Assign Channels ---
         if (success) {
             try {
                 if (channelChanges.removedCount > 0) {
@@ -220,6 +213,21 @@ function PolicyDetails({
                 success = false;
                 return;
             }
+        }
+
+        // --- Step 3: Handle Policy Active Status Changes ---
+        if (success && policyActiveStatusChanges.length > 0) {
+            try {
+                await actions.updateAccessControlPoliciesActive(policyActiveStatusChanges);
+            } catch (error) {
+                setServerError(formatMessage({
+                    id: 'admin.access_control.policy.edit_policy.error.update_active_status',
+                    defaultMessage: 'Error updating policy active status: {error}',
+                }, {error: error.message}));
+                success = false;
+                return;
+            }
+            setPolicyActiveStatusChanges([]);
         }
 
         // --- Step 4: Create Job if necessary ---
@@ -314,6 +322,12 @@ function PolicyDetails({
         actions.setNavigationBlocked(true);
     };
 
+    const handlePolicyActiveStatusChange = (changes: PolicyActiveStatus[]) => {
+        setPolicyActiveStatusChanges(changes);
+        setSaveNeeded(true);
+        actions.setNavigationBlocked(true);
+    };
+
     const hasChannels = () => {
         // If there are channels on the server (minus any pending removals) or newly added channels
         return (
@@ -360,30 +374,6 @@ function PolicyDetails({
                             labelClassName='col-sm-4 vertically-centered-label'
                             inputClassName='col-sm-8'
                             autoFocus={policyId === undefined}
-                        />
-                        <BooleanSetting
-                            id='admin.access_control.policy.edit_policy.autoSyncMembership'
-                            label={
-                                <div className='vertically-centered-label'>
-                                    <FormattedMessage
-                                        id='admin.access_control.policy.edit_policy.autoSyncMembership'
-                                        defaultMessage='Auto-add members based on access rules:'
-                                    />
-                                </div>
-                            }
-                            value={autoSyncMembership}
-                            onChange={(_, value) => {
-                                setAutoSyncMembership(value);
-                                setSaveNeeded(true);
-                                actions.setNavigationBlocked(true);
-                            }}
-                            setByEnv={false}
-                            helpText={
-                                <FormattedMessage
-                                    id='admin.access_control.policy.edit_policy.autoSyncMembership.description'
-                                    defaultMessage='Users who match the attribute values configured below will be automatically added as new members. Regardless of this setting, users who later no longer match the configured attribute values will be removed from the channel after the next sync.'
-                                />
-                            }
                         />
                     </div>
                     {attributesLoaded && autocompleteResult.length === 0 && (<div className='admin-console__warning-notice'>
@@ -528,6 +518,8 @@ function PolicyDetails({
                                 channelsToRemove={channelChanges.removed}
                                 channelsToAdd={channelChanges.added}
                                 policyId={policyId}
+                                policyActiveStatusChanges={policyActiveStatusChanges}
+                                onPolicyActiveStatusChange={handlePolicyActiveStatusChange}
                             />
                         </Card.Body>
                     </Card>
