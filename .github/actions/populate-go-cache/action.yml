@@ -1,8 +1,14 @@
 name: Populate Go Cache
 description: Downloads Go modules to populate the cache
+inputs:
+  working-directory:
+    description: 'Working directory containing go.mod'
+    required: false
+    default: '.'
 runs:
   using: composite
   steps:
     - name: Download Go modules
       run: go mod download
       shell: bash
+      working-directory: ${{ inputs.working-directory }}

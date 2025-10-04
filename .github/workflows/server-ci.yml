@@ -69,6 +69,8 @@ jobs:
         run: make setup-go-work
       - name: Populate Go cache
         uses: ./.github/actions/populate-go-cache
+        with:
+          working-directory: server
       - name: Run check-style
         run: make check-style
       - name: Save Go cache
@@ -165,7 +167,11 @@ jobs:
       go-version: ${{ needs.go.outputs.version }}
   test-mmctl:
     name: Run mmctl tests
-    needs: go
+    needs:
+      - go
+      - check-go-mod-tidy
+      - check-style
+      - check-generated
     uses: ./.github/workflows/mmctl-test-template.yml
     secrets: inherit
     with:
@@ -179,7 +185,11 @@ jobs:
     name: Run mmctl tests (FIPS)
     # Skip FIPS testing for forks, which won't have docker login credentials.
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
-    needs: go
+    needs:
+      - go
+      - check-go-mod-tidy
+      - check-style
+      - check-generated
     uses: ./.github/workflows/mmctl-test-template.yml
     secrets: inherit
     with:
@@ -191,7 +201,11 @@ jobs:
       fips-enabled: true
   build-mattermost-server:
     name: Build mattermost server app
-    needs: go
+    needs:
+      - go
+      - check-go-mod-tidy
+      - check-style
+      - check-generated
     runs-on: ubuntu-22.04
     container: mattermostdevelopment/mattermost-build-server:${{ needs.go.outputs.version }}
     defaults:
