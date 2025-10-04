@@ -109,3 +109,17 @@ export function isEmail(email: string): boolean {
     // this prevents <Outlook Style> outlook.style@domain.com addresses and multiple comma-separated addresses from being accepted
     return (/^[^ ,@]+@[^ ,@]+$/).test(email);
 }
+
+// maps Custom Profile Attribute value types to appropriate HTML schemes (only different for phone -> tel)
+export function getURLSchemeFromValueType(valueType?: string): string {
+    switch (valueType) {
+    case 'email':
+        return 'email';
+    case 'url':
+        return 'url';
+    case 'phone':
+        return 'tel';
+    default:
+        return 'text';
+    }
+}

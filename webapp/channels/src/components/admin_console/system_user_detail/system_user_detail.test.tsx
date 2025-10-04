@@ -30,6 +30,7 @@ describe('SystemUserDetail', () => {
         showManageUserSettings: false,
         showLockedManageUserSettings: false,
         mfaEnabled: false,
+        customProfileAttributeFields: [],
         patchUser: jest.fn(),
         updateUserMfa: jest.fn(),
         getUser: getUserMock,
@@ -38,6 +39,9 @@ describe('SystemUserDetail', () => {
         addUserToTeam: jest.fn(),
         openModal: jest.fn(),
         getUserPreferences: jest.fn(),
+        getCustomProfileAttributeFields: jest.fn().mockResolvedValue({data: []}),
+        getCustomProfileAttributeValues: jest.fn().mockResolvedValue({data: {}}),
+        saveCustomProfileAttribute: jest.fn().mockResolvedValue({data: {}}),
         intl: {
             formatMessage: jest.fn(),
         } as MockIntl,
