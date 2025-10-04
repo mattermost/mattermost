@@ -109,7 +109,6 @@ jobs:
           docker compose --ansi never stop
 
       - name: Save Go cache
-        if: ${{ github.ref_name == 'master' || github.ref_name == 'github-actions-go-cache' }}
         uses: ./.github/actions/save-go-cache
         with:
           prefix: ${{ inputs.name }}
