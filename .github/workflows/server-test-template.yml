@@ -62,6 +62,7 @@ jobs:
         uses: ./.github/actions/restore-go-cache
         with:
           prefix: ${{ steps.cache.outputs.PREFIX }}
+          working-directory: server
       - name: Resolve Go cache paths
         id: go-paths
         run: |
@@ -135,6 +136,7 @@ jobs:
         uses: ./.github/actions/save-go-cache
         with:
           prefix: ${{ steps.cache.outputs.PREFIX }}
+          working-directory: server
 
       - name: Archive logs
         if: ${{ always() }}

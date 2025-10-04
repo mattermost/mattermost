@@ -4,8 +4,10 @@ inputs:
   prefix:
     description: 'Cache key prefix'
     required: true
-env:
-  CACHE_VERSION: v1
+  working-directory:
+    description: 'Working directory containing go.mod'
+    required: false
+    default: '.'
 runs:
   using: composite
   steps:
@@ -25,4 +27,4 @@ runs:
         # like $prefix-v1-Linux-go-$hash-YYYY-MM-DD as saved by CI
         key: nonexistent
         restore-keys: |
-          ${{ inputs.prefix }}-${{ env.CACHE_VERSION }}-${{ runner.os }}-go-${{ hashFiles('go.mod') }}-
+          ${{ inputs.prefix }}-v1-${{ runner.os }}-go-${{ hashFiles(format('{0}/go.mod', inputs.working-directory)) }}-
