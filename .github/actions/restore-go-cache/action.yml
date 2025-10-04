@@ -11,6 +11,12 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Sanitize cache prefix
+      id: sanitize
+      shell: bash
+      run: |
+        SAFE_PREFIX=$(echo "${{ inputs.prefix }}" | tr ' /' '-' | tr -cd '[:alnum:]-')
+        echo "PREFIX=${SAFE_PREFIX}" >> "${GITHUB_OUTPUT}"
     - name: Resolve Go cache paths
       id: go-paths
       shell: bash
@@ -27,4 +33,4 @@ runs:
         # like $prefix-v1-Linux-go-$hash-YYYY-MM-DD as saved by CI
         key: nonexistent
         restore-keys: |
-          ${{ inputs.prefix }}-v1-${{ runner.os }}-go-${{ hashFiles(format('{0}/go.mod', inputs.working-directory)) }}-
+          ${{ steps.sanitize.outputs.PREFIX }}-v1-${{ runner.os }}-go-${{ hashFiles(format('{0}/go.mod', inputs.working-directory)) }}-

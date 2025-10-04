@@ -39,16 +39,10 @@ jobs:
 
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Setup cache key prefix
-        id: cache
-        run: |
-          # Sanitize the input name to make it safe for cache keys
-          SAFE_NAME=$(echo "${{ inputs.name }}" | tr ' /' '-' | tr -cd '[:alnum:]-')
-          echo "PREFIX=${SAFE_NAME}" >> "${GITHUB_OUTPUT}"
       - name: Restore Go cache
         uses: ./.github/actions/restore-go-cache
         with:
-          prefix: ${{ steps.cache.outputs.PREFIX }}
+          prefix: ${{ inputs.name }}
           working-directory: server
       - name: Resolve Go cache paths
         id: go-paths
@@ -118,7 +112,7 @@ jobs:
         if: ${{ github.ref_name == 'master' }}
         uses: ./.github/actions/save-go-cache
         with:
-          prefix: ${{ steps.cache.outputs.PREFIX }}
+          prefix: ${{ inputs.name }}
           working-directory: server
 
       - name: Archive logs
