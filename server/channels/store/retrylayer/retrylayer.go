@@ -6459,6 +6459,27 @@ func (s *RetryLayerJobStore) GetAllByTypesPage(rctx request.CTX, jobTypes []stri
 
 }
 
+func (s *RetryLayerJobStore) GetByTypeAndData(rctx request.CTX, jobType string, data map[string]string, useMaster bool, statuses ...string) ([]*model.Job, error) {
+
+	tries := 0
+	for {
+		result, err := s.JobStore.GetByTypeAndData(rctx, jobType, data, useMaster, statuses...)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerJobStore) GetCountByStatusAndType(status string, jobType string) (int64, error) {
 
 	tries := 0
@@ -14211,6 +14232,27 @@ func (s *RetryLayerThreadStore) UpdateTeamIdForChannelThreads(channelId string, 
 func (s *RetryLayerTokenStore) Cleanup(expiryTime int64) {
 
 	s.TokenStore.Cleanup(expiryTime)
+
+}
+
+func (s *RetryLayerTokenStore) ConsumeOnce(tokenStr string) (*model.Token, error) {
+
+	tries := 0
+	for {
+		result, err := s.TokenStore.ConsumeOnce(tokenStr)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
 
 }
 

@@ -1,0 +1,36 @@
+name: Restore Go Cache
+description: Restores Go module and build cache
+inputs:
+  prefix:
+    description: 'Cache key prefix'
+    required: true
+  working-directory:
+    description: 'Working directory containing go.mod'
+    required: false
+    default: '.'
+runs:
+  using: composite
+  steps:
+    - name: Sanitize cache prefix
+      id: sanitize
+      shell: bash
+      run: |
+        SAFE_PREFIX=$(echo "${{ inputs.prefix }}" | tr ' /' '-' | tr -cd '[:alnum:]-')
+        echo "PREFIX=${SAFE_PREFIX}" >> "${GITHUB_OUTPUT}"
+    - name: Resolve Go cache paths
+      id: go-paths
+      shell: bash
+      run: |
+        echo "GOMODCACHE=$(go env GOMODCACHE)" >> "${GITHUB_OUTPUT}"
+        echo "GOCACHE=$(go env GOCACHE)" >> "${GITHUB_OUTPUT}"
+    - name: Restore Go cache
+      uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+      with:
+        path: |
+          ${{ steps.go-paths.outputs.GOMODCACHE }}
+          ${{ steps.go-paths.outputs.GOCACHE }}
+        # always grab from the restore-keys pattern below,
+        # like $prefix-v1-Linux-go-$hash-YYYY-MM-DD as saved by CI
+        key: nonexistent
+        restore-keys: |
+          ${{ steps.sanitize.outputs.PREFIX }}-v1-${{ runner.os }}-go-${{ hashFiles(format('{0}/go.mod', inputs.working-directory)) }}-
