@@ -7,7 +7,7 @@ exports[`components/ReactionList should render when there are reactions 1`] = `
   aria-label="reactions"
   className="post-reaction-list"
 >
-  <Connect(Reaction)
+  <Connect(injectIntl(Reaction))
     emojiName="expressionless"
     key="expressionless"
     post={
