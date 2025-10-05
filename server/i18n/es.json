@@ -8938,5 +8938,13 @@
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
     "translation": "No se pudo anular la invitación de remoto al canal"
+  },
+  {
+    "id": "api.access_control_policy.get_channels.limit.app_error",
+    "translation": "El obtener el límite de canales no es válido"
+  },
+  {
+    "id": "api.channel.add_user.to.channel.rejected",
+    "translation": "El usuario no tiene los atributos requeridos para unirse al canal."
   }
 ]
