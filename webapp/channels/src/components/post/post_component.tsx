@@ -31,6 +31,7 @@ import PostBodyAdditionalContent from 'components/post_view/post_body_additional
 import PostMessageContainer from 'components/post_view/post_message_view';
 import PostPreHeader from 'components/post_view/post_pre_header';
 import PostTime from 'components/post_view/post_time';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import ReactionList from 'components/post_view/reaction_list';
 import ThreadFooter from 'components/threading/channel_threads/thread_footer';
 import type { Props as TimestampProps } from 'components/timestamp/timestamp';
