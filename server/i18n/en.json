@@ -2149,6 +2149,10 @@
     "translation": "File doesn't have a thumbnail image."
   },
   {
+    "id": "api.file.get_file.plugin_hook_timeout",
+    "translation": "Plugin hook timed out"
+  },
+  {
     "id": "api.file.get_public_link.disabled.app_error",
     "translation": "Public links have been disabled."
   },
