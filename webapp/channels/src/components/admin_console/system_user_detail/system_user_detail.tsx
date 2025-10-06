@@ -855,6 +855,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                 )}
 
                 <ConfirmModal
+                    id='admin-userDetail-saveChangesModal'
                     show={this.state.showSaveConfirmationModal}
                     title={
                         <FormattedMessage
@@ -871,7 +872,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                     username: this.state.user?.username ?? '',
                                 }}
                             />
-                            <ul style={{marginTop: '10px', marginBottom: '10px'}}>
+                            <ul className='changes-list'>
                                 {this.state.user && !this.state.user.auth_service && this.state.emailField !== this.state.user.email && (
                                     <li>
                                         <FormattedMessage
