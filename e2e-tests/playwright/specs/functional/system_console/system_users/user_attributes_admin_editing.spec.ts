@@ -31,7 +31,7 @@ import {
 const testUserAttributes: CustomProfileAttribute[] = [
     {
         name: 'Department',
-        value: 'Engineering', 
+        value: 'Engineering',
         type: 'text',
         attrs: {
             visibility: 'when_set', // Ensure it's not synced
@@ -40,18 +40,18 @@ const testUserAttributes: CustomProfileAttribute[] = [
     {
         name: 'Work Email',
         value: 'work@company.com',
-        type: 'text', 
+        type: 'text',
         attrs: {
             value_type: 'email',
             visibility: 'when_set', // Ensure it's not synced
         },
     },
     {
-        name: 'Personal Website', 
+        name: 'Personal Website',
         value: 'https://johndoe.com',
         type: 'text',
         attrs: {
-            value_type: 'url', 
+            value_type: 'url',
             visibility: 'when_set', // Ensure it's not synced
         },
     },
@@ -59,23 +59,23 @@ const testUserAttributes: CustomProfileAttribute[] = [
         name: 'Location',
         type: 'select',
         attrs: {
-            visibility: 'when_set', // Ensure it's not synced  
+            visibility: 'when_set', // Ensure it's not synced
         },
         options: [
             {name: 'Remote', color: '#00FFFF'},
-            {name: 'Office', color: '#FF00FF'}, 
+            {name: 'Office', color: '#FF00FF'},
             {name: 'Hybrid', color: '#FFFF00'},
         ],
     },
     {
         name: 'Skills',
-        type: 'multiselect', 
+        type: 'multiselect',
         attrs: {
             visibility: 'when_set', // Ensure it's not synced
         },
         options: [
             {name: 'JavaScript', color: '#F0DB4F'},
-            {name: 'React', color: '#61DAFB'}, 
+            {name: 'React', color: '#61DAFB'},
             {name: 'Python', color: '#3776AB'},
             {name: 'Go', color: '#00ADD8'},
         ],
@@ -167,19 +167,21 @@ test.describe('System Console - Admin User Profile Editing', () => {
         await expect(systemConsolePage.page.locator('label').filter({hasText: /^Username/})).toBeVisible();
         await expect(systemConsolePage.page.locator('label').filter({hasText: /^Authentication Method/})).toBeVisible();
         // Email field - check for system email (avoid Work Email by being more specific)
-        const systemEmailExists = await systemConsolePage.page.locator('input[type="email"]').count() > 0;
+        const systemEmailExists = (await systemConsolePage.page.locator('input[type="email"]').count()) > 0;
         expect(systemEmailExists).toBe(true);
 
         // * Verify custom user attributes are present
         for (const field of testUserAttributes) {
-            await expect(systemConsolePage.page.locator('label').filter({hasText: new RegExp(field.name)})).toBeVisible();
+            await expect(
+                systemConsolePage.page.locator('label').filter({hasText: new RegExp(field.name)}),
+            ).toBeVisible();
         }
 
         // * Verify we have input fields (at least 4-5 total)
         const inputElements = systemConsolePage.page.locator('input, select');
         const inputCount = await inputElements.count();
         expect(inputCount).toBeGreaterThan(4);
-        
+
         // * Verify fields are arranged in rows with two columns
         const fieldRows = systemConsolePage.page.locator('.field-row');
         const rowCount = await fieldRows.count();
@@ -235,12 +237,13 @@ test.describe('System Console - Admin User Profile Editing', () => {
         // * Verify Skills multiselect component is displayed
         const skillsLabel = systemConsolePage.page.locator('label').filter({hasText: /Skills/});
         await expect(skillsLabel).toBeVisible();
-        
+
         // * Verify the multiselect control is present (React Select component)
         // Look for common React Select patterns
-        const hasMultiselectElement = await skillsLabel.locator('div, [class*="select"], [class*="Select"]').count() > 0;
+        const hasMultiselectElement =
+            (await skillsLabel.locator('div, [class*="select"], [class*="Select"]').count()) > 0;
         expect(hasMultiselectElement).toBe(true);
-        
+
         // # Make a change to a different field to trigger save state
         const departmentLabel = systemConsolePage.page.locator('label').filter({hasText: /Department/});
         const departmentInput = departmentLabel.locator('input').first();
@@ -249,7 +252,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
         // # Verify save button becomes enabled
         const saveButton = systemConsolePage.page.locator('[data-testid="saveSetting"]');
         await expect(saveButton).toBeEnabled();
-        
+
         // # Save the form
         await saveButton.click();
 
@@ -259,7 +262,7 @@ test.describe('System Console - Admin User Profile Editing', () => {
 
         // * Verify save completed
         await expect(saveButton).toBeDisabled();
-        
+
         // * Verify the change persisted
         await expect(departmentInput).toHaveValue('Engineering Updated');
     });
