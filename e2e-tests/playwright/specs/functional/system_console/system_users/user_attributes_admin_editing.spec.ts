@@ -17,6 +17,7 @@ import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
 import {Client4} from '@mattermost/client';
 import {UserPropertyField} from '@mattermost/types/properties';
+
 import {expect, test} from '@mattermost/playwright-lib';
 
 import {
@@ -243,7 +244,6 @@ test.describe('System Console - Admin User Profile Editing', () => {
         // # Make a change to a different field to trigger save state
         const departmentLabel = systemConsolePage.page.locator('label').filter({hasText: /Department/});
         const departmentInput = departmentLabel.locator('input').first();
-        const originalValue = await departmentInput.inputValue();
         await departmentInput.fill('Engineering Updated');
 
         // # Verify save button becomes enabled
