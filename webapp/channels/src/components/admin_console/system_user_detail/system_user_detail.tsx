@@ -544,7 +544,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                                     value={this.state.emailField}
                                                     onChange={this.handleEmailChange}
                                                     disabled={this.state.error !== null || this.state.isSaving}
-                                                    aria-describedby={this.state.emailError ? 'email-error' : undefined}
+                                                    aria-describedby= 'email-error'
                                                     aria-invalid={this.state.emailError ? 'true' : 'false'}
                                                 />
                                                 {this.state.emailError && (
@@ -606,7 +606,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                                         id: 'admin.userManagement.userDetail.username.input',
                                                         defaultMessage: 'Enter username',
                                                     })}
-                                                    aria-describedby={this.state.usernameError ? 'username-error' : undefined}
+                                                    aria-describedby='username-error'
                                                     aria-invalid={this.state.usernameError ? 'true' : 'false'}
                                                 />
                                                 {this.state.usernameError && (
