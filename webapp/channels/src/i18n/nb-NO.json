@@ -4358,7 +4358,6 @@
   "search_hint.enter_to_search": "Trykk Enter for å søke",
   "search_hint.enter_to_select": "Trykk Enter for å velge",
   "search_hint.filter": "Filtrer søket ditt med:",
-  "search_hint.reset_filters": "Filtrene dine ble tilbakestilt fordi du valgte et annet team",
   "search_item.channelArchived": "Arkivert",
   "search_item.direct": "Direkte melding (med {username})",
   "search_item.file_tag.direct_message": "Direktemelding",
