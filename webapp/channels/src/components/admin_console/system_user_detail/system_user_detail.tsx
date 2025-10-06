@@ -18,7 +18,7 @@ import type {Team, TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
-import {isEmail, getURLSchemeFromValueType} from 'mattermost-redux/utils/helpers';
+import {isEmail, getInputTypeFromValueType} from 'mattermost-redux/utils/helpers';
 
 import AdminUserCard from 'components/admin_console/admin_user_card/admin_user_card';
 import BlockableLink from 'components/admin_console/blockable_link';
@@ -411,7 +411,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             }
             case 'text':
             default: {
-                const inputType = getURLSchemeFromValueType(field.attrs?.value_type);
+                const inputType = getInputTypeFromValueType(field.attrs?.value_type);
 
                 return (
                     <input

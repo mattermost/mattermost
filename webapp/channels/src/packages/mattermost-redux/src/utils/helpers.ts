@@ -7,7 +7,6 @@ import type {FieldValueType} from '@mattermost/types/properties';
 
 import {createSelectorCreator, defaultMemoize} from 'mattermost-redux/selectors/create_selector';
 
-
 // eslint-disable-next-line @typescript-eslint/ban-types
 export function memoizeResult<F extends Function>(func: F, measure: Function | undefined = undefined): F {
     let lastArgs: IArguments|null = null;
