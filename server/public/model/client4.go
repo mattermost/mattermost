@@ -816,6 +816,16 @@ func (c *Client4) GetContentFlaggingSettings(ctx context.Context) (*ContentFlagg
 	return &config, BuildResponse(r), nil
 }
 
+func (c *Client4) AssignContentFlaggingReviewer(ctx context.Context, postId, reviewerId string) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, fmt.Sprintf("%s/post/%s/assign/%s", c.contentFlaggingRoute(), postId, reviewerId), "")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
 func (c *Client4) SearchContentFlaggingReviewers(ctx context.Context, teamID, term string) ([]*User, *Response, error) {
 	query := "?term=" + url.QueryEscape(term)
 	r, err := c.DoAPIGet(ctx, c.contentFlaggingRoute()+"/team/"+teamID+"/reviewers/search"+query, "")

@@ -891,7 +891,7 @@ func TestSearchReviewers(t *testing.T) {
 	})
 }
 
-func TestAssignFlaggedPostReviewer(t *testing.T) {
+func TestAssignContentFlaggingReviewer(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
@@ -913,7 +913,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 		})
 
 		post := th.CreatePost()
-		resp, err := client.AssignFlaggedPostReviewer(context.Background(), post.Id, th.BasicUser.Id)
+		resp, err := client.AssignContentFlaggingReviewer(context.Background(), post.Id, th.BasicUser.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 	})
@@ -928,7 +928,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 		})
 
 		post := th.CreatePost()
-		resp, err := client.AssignFlaggedPostReviewer(context.Background(), post.Id, th.BasicUser.Id)
+		resp, err := client.AssignContentFlaggingReviewer(context.Background(), post.Id, th.BasicUser.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 	})
@@ -942,7 +942,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 			config.ContentFlaggingSettings.SetDefaults()
 		})
 
-		resp, err := client.AssignFlaggedPostReviewer(context.Background(), model.NewId(), th.BasicUser.Id)
+		resp, err := client.AssignContentFlaggingReviewer(context.Background(), model.NewId(), th.BasicUser.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotFound, resp.StatusCode)
 	})
@@ -969,7 +969,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 		require.Nil(t, appErr)
 
 		post := th.CreatePost()
-		resp, err := client.AssignFlaggedPostReviewer(context.Background(), post.Id, "invalid-user-id")
+		resp, err := client.AssignContentFlaggingReviewer(context.Background(), post.Id, "invalidUserId")
 		require.Error(t, err)
 		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
@@ -1001,7 +1001,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 		require.Nil(t, appErr)
 
 		post := th.CreatePost()
-		resp, err := client.AssignFlaggedPostReviewer(context.Background(), post.Id, th.BasicUser.Id)
+		resp, err := client.AssignContentFlaggingReviewer(context.Background(), post.Id, th.BasicUser.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
 	})
@@ -1033,7 +1033,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 
 		post := th.CreatePost()
 		// Try to assign non-reviewer user
-		resp, err := client.AssignFlaggedPostReviewer(context.Background(), post.Id, nonReviewerUser.Id)
+		resp, err := client.AssignContentFlaggingReviewer(context.Background(), post.Id, nonReviewerUser.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
@@ -1075,7 +1075,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 		require.Equal(t, http.StatusOK, flagResp.StatusCode)
 
 		// Now assign the reviewer
-		resp, err := client.AssignFlaggedPostReviewer(context.Background(), post.Id, reviewerUser.Id)
+		resp, err := client.AssignContentFlaggingReviewer(context.Background(), post.Id, reviewerUser.Id)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 	})
@@ -1122,7 +1122,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 		require.Equal(t, http.StatusOK, flagResp.StatusCode)
 
 		// Now assign the reviewer
-		resp, err := client.AssignFlaggedPostReviewer(context.Background(), post.Id, reviewerUser.Id)
+		resp, err := client.AssignContentFlaggingReviewer(context.Background(), post.Id, reviewerUser.Id)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 	})

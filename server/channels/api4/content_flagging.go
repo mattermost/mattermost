@@ -615,7 +615,7 @@ func assignFlaggedPostReviewer(c *Context, w http.ResponseWriter, r *http.Reques
 	model.AddEventParameterToAuditRec(auditRec, "assigningUserId", assignedBy)
 	model.AddEventParameterToAuditRec(auditRec, "reviewerUserId", reviewerId)
 
-	appErr = c.App.AssignFlaggedPostReviewer(c.AppContext, postId, reviewerId, assignedBy)
+	appErr = c.App.AssignFlaggedPostReviewer(postId, reviewerId, assignedBy)
 	if appErr != nil {
 		c.Err = appErr
 		return

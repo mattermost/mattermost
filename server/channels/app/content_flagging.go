@@ -830,7 +830,7 @@ func (a *App) SearchReviewers(rctx request.CTX, term string, teamId string) ([]*
 	return reviewersList, nil
 }
 
-func (a *App) AssignFlaggedPostReviewer(rctx request.CTX, flaggedPostId, reviewerId, assigneeId string) *model.AppError {
+func (a *App) AssignFlaggedPostReviewer(flaggedPostId, reviewerId, assigneeId string) *model.AppError {
 	statusPropertyValue, appErr := a.GetPostContentFlaggingStatusValue(flaggedPostId)
 	if appErr != nil {
 		return appErr
