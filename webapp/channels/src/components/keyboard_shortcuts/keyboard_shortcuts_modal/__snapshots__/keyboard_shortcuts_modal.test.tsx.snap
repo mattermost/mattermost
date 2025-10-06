@@ -328,14 +328,6 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
                   Messages
                 </strong>
               </h3>
-              <Memo(KeyboardShortcutSequence)
-                shortcut={
-                  Object {
-                    "defaultMessage": "Mark all messages as read:	Shift|ESC",
-                    "id": "shortcuts.msgs.mark_all_read",
-                  }
-                }
-              />
               <div
                 className="subsection"
               >
@@ -983,14 +975,6 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
                   Messages
                 </strong>
               </h3>
-              <Memo(KeyboardShortcutSequence)
-                shortcut={
-                  Object {
-                    "defaultMessage": "Mark all messages as read:	Shift|ESC",
-                    "id": "shortcuts.msgs.mark_all_read",
-                  }
-                }
-              />
               <div
                 className="subsection"
               >

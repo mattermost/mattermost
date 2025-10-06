@@ -4237,6 +4237,7 @@
   "feature_restricted_modal.agreement": "By selecting <highlight>Try free for {trialLength} days</highlight>, I agree to the <linkEvaluation>Mattermost Software Evaluation Agreement</linkEvaluation>, <linkPrivacy>Privacy Policy</linkPrivacy>, and receiving product emails.",
   "feature_restricted_modal.button.notify": "Notify admin",
   "feature_restricted_modal.button.plans": "View plans",
+  "feature_toast.tooltipCloseBtn": "Close",
   "feedback.cancelButton.text": "Cancel",
   "feedback.downgradeWorkspace.downgrade": "Downgrade",
   "feedback.downgradeWorkspace.exploringOptions": "Exploring other solutions",
