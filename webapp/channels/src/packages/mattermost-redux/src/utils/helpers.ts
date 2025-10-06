@@ -3,7 +3,10 @@
 
 import shallowEqual from 'shallow-equals';
 
+import type {FieldValueType} from '@mattermost/types/properties';
+
 import {createSelectorCreator, defaultMemoize} from 'mattermost-redux/selectors/create_selector';
+
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export function memoizeResult<F extends Function>(func: F, measure: Function | undefined = undefined): F {
@@ -111,15 +114,6 @@ export function isEmail(email: string): boolean {
 }
 
 // maps Custom Profile Attribute value types to appropriate HTML schemes (only different for phone -> tel)
-export function getURLSchemeFromValueType(valueType?: string): string {
-    switch (valueType) {
-    case 'email':
-        return 'email';
-    case 'url':
-        return 'url';
-    case 'phone':
-        return 'tel';
-    default:
-        return 'text';
-    }
+export function getInputTypeFromValueType(valueType?: FieldValueType): string {
+    return valueType === 'phone' ? 'tel' : String(valueType);
 }

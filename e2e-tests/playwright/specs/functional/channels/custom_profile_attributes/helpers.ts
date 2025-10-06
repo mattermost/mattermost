@@ -377,7 +377,7 @@ export async function setupCustomProfileAttributeValues(
     fields: Record<string, UserPropertyField>,
 ): Promise<void> {
     // Create a map of attribute values by field ID
-    const valuesByFieldId: Record<string, string> = {};
+    const valuesByFieldId: Record<string, string | string[]> = {};
 
     for (const attr of attributes) {
         let fieldID = '';
