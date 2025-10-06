@@ -51,6 +51,16 @@ func (a *App) UpsertDraft(rctx request.CTX, draft *model.Draft, connectionID str
 		return nil, err
 	}
 
+	restrictDM, err := a.CheckIfChannelIsRestrictedDM(rctx, channel)
+	if err != nil {
+		return nil, err
+	}
+
+	if restrictDM {
+		err := model.NewAppError("CreateDraft", "api.draft.create_draft.can_not_draft_to_restricted_dm.error", nil, "", http.StatusBadRequest)
+		return nil, err
+	}
+
 	_, nErr := a.Srv().Store().User().Get(context.Background(), draft.UserId)
 	if nErr != nil {
 		return nil, model.NewAppError("CreateDraft", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)

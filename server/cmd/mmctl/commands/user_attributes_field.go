@@ -19,41 +19,41 @@ import (
 
 var CPAFieldListCmd = &cobra.Command{
 	Use:     "list",
-	Short:   "List CPA fields",
-	Long:    "List all Custom Profile Attribute fields with their properties.",
-	Example: `  cpa field list`,
+	Short:   "List User Attributes fields",
+	Long:    "List all User Attributes fields with their properties.",
+	Example: `  user attributes field list`,
 	Args:    cobra.NoArgs,
 	RunE:    withClient(cpaFieldListCmdF),
 }
 
 var CPAFieldCreateCmd = &cobra.Command{
 	Use:   "create [name] [type]",
-	Short: "Create a CPA field",
-	Long:  `Create a new Custom Profile Attribute field with the specified name and type.`,
-	Example: `  cpa field create "Department" text --managed
-  cpa field create "Skills" multiselect --option Go --option React --option Python
-  cpa field create "Level" select --attrs '{"visibility":"always"}'`,
+	Short: "Create a User Attributes field",
+	Long:  `Create a new User Attributes field with the specified name and type.`,
+	Example: `  user attributes field create "Department" text --managed
+  user attributes field create "Skills" multiselect --option Go --option React --option Python
+  user attributes field create "Level" select --attrs '{"visibility":"always"}'`,
 	Args: cobra.ExactArgs(2),
 	RunE: withClient(cpaFieldCreateCmdF),
 }
 
 var CPAFieldEditCmd = &cobra.Command{
-	Use:   "edit [field-id]",
-	Short: "Edit a CPA field",
-	Long:  "Edit an existing Custom Profile Attribute field.",
-	Example: `  cpa field edit n4qdbtro4j8x3n8z81p48ww9gr --name "Department Name" --managed
-  cpa field edit 8kj9xm4p6f3y7n2z9q5w8r1t4v --option Go --option React --option Python --option Java
-  cpa field edit 3h7k9m2x5b8v4n6p1q9w7r3t2y --managed=false`,
+	Use:   "edit [field]",
+	Short: "Edit a User Attributes field",
+	Long:  "Edit an existing User Attributes field.",
+	Example: `  user attributes field edit n4qdbtro4j8x3n8z81p48ww9gr --name "Department Name" --managed
+  user attributes field edit Department --option Go --option React --option Python --option Java
+  user attributes field edit Skills --managed=false`,
 	Args: cobra.ExactArgs(1),
 	RunE: withClient(cpaFieldEditCmdF),
 }
 
 var CPAFieldDeleteCmd = &cobra.Command{
-	Use:   "delete [field-id]",
-	Short: "Delete a CPA field",
-	Long:  "Delete a Custom Profile Attribute field. This will automatically delete all user values for this field.",
-	Example: `  cpa field delete n4qdbtro4j8x3n8z81p48ww9gr --confirm
-  cpa field delete 8kj9xm4p6f3y7n2z9q5w8r1t4v --confirm`,
+	Use:   "delete [field]",
+	Short: "Delete a User Attributes field",
+	Long:  "Delete a User Attributes field. This will automatically delete all user values for this field.",
+	Example: `  user attributes field delete n4qdbtro4j8x3n8z81p48ww9gr --confirm
+  user attributes field delete Department --confirm`,
 	Args: cobra.ExactArgs(1),
 	RunE: withClient(cpaFieldDeleteCmdF),
 }
@@ -73,8 +73,8 @@ func init() {
 	// Delete flags
 	CPAFieldDeleteCmd.Flags().Bool("confirm", false, "Bypass confirmation prompt")
 
-	// Add subcommands to CPAFieldCmd
-	CPAFieldCmd.AddCommand(
+	// Add subcommands to UserAttributesFieldCmd
+	UserAttributesFieldCmd.AddCommand(
 		CPAFieldListCmd,
 		CPAFieldCreateCmd,
 		CPAFieldEditCmd,
@@ -164,7 +164,7 @@ func cpaFieldCreateCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 	}
 
 	// Build attrs from flags
-	attrs, err := buildFieldAttrs(cmd)
+	attrs, err := buildFieldAttrs(cmd, nil)
 	if err != nil {
 		return err
 	}
@@ -199,7 +199,10 @@ func cpaFieldCreateCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 }
 
 func cpaFieldEditCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	fieldID := args[0]
+	field, fErr := getFieldFromArg(c, args[0])
+	if fErr != nil {
+		return fErr
+	}
 
 	// Build patch object
 	patch := &model.PropertyFieldPatch{}
@@ -211,7 +214,7 @@ func cpaFieldEditCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 
 	// Build attrs from flags if any changes
 	if hasAttrsChanges(cmd) {
-		attrs, err := buildFieldAttrs(cmd)
+		attrs, err := buildFieldAttrs(cmd, field.Attrs)
 		if err != nil {
 			return err
 		}
@@ -221,7 +224,7 @@ func cpaFieldEditCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 	}
 
 	// Update the field
-	updatedField, _, err := c.PatchCPAField(context.TODO(), fieldID, patch)
+	updatedField, _, err := c.PatchCPAField(context.TODO(), field.ID, patch)
 	if err != nil {
 		return fmt.Errorf("failed to update CPA field: %w", err)
 	}
@@ -247,8 +250,6 @@ func cpaFieldEditCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 }
 
 func cpaFieldDeleteCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	fieldID := args[0]
-
 	confirmFlag, _ := cmd.Flags().GetBool("confirm")
 	if !confirmFlag {
 		if err := getConfirmation("Are you sure you want to delete this CPA field?", true); err != nil {
@@ -256,13 +257,18 @@ func cpaFieldDeleteCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 		}
 	}
 
+	field, fErr := getFieldFromArg(c, args[0])
+	if fErr != nil {
+		return fErr
+	}
+
 	// Delete the field
-	_, err := c.DeleteCPAField(context.TODO(), fieldID)
+	_, err := c.DeleteCPAField(context.TODO(), field.ID)
 	if err != nil {
 		return fmt.Errorf("failed to delete CPA field: %w", err)
 	}
 
 	printer.SetSingle(true)
-	printer.Print(fmt.Sprintf("Successfully deleted CPA field: %s", fieldID))
+	printer.Print(fmt.Sprintf("Successfully deleted CPA field: %s", args[0]))
 	return nil
 }

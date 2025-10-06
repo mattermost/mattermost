@@ -11,7 +11,7 @@ import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import SetupSystemSvg from 'components/common/svg_images_components/setup_system';
 import ExternalLink from 'components/external_link';
 
-import {LicenseSkus} from 'utils/constants';
+import {LicenseSkus, LicenseLinks} from 'utils/constants';
 
 export interface EnterpriseEditionProps {
     isTrialLicense: boolean;
@@ -167,7 +167,17 @@ const EnterpriseEditionRightPanel = ({
             return (
                 <FormattedMessage
                     id='admin.license.entryPlanSubtitle'
-                    defaultMessage='Purchase a plan to unlock full access, or start a trial to remove limits while you evaluate Enterprise Advanced.'
+                    defaultMessage='Purchase a plan to unlock full access, or <link>start a trial</link> to remove limits while you evaluate Enterprise Advanced.'
+                    values={{
+                        link: (msg: React.ReactNode) => (
+                            <ExternalLink
+                                location='entry_trial_license'
+                                href={LicenseLinks.TRIAL_INFO_LINK}
+                            >
+                                {msg}
+                            </ExternalLink>
+                        ),
+                    }}
                 />
             );
         }
@@ -218,19 +228,9 @@ const EnterpriseEditionRightPanel = ({
                     >
                         <FormattedMessage
                             id='admin.license.contactSales'
-                            defaultMessage='Contact sales'
+                            defaultMessage='Questions? Contact sales'
                         />
                     </button>
-                    <ExternalLink
-                        href='https://mattermost.com/trial'
-                        location='enterprise_edition_right_panel_entry_trial'
-                        className='btn btn-tertiary trial-btn'
-                    >
-                        <FormattedMessage
-                            id='admin.license.getFreeTrial'
-                            defaultMessage='Get a free 30-day trial license'
-                        />
-                    </ExternalLink>
                 </div>
             </div>
         );

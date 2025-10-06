@@ -1,15 +1,15 @@
-.. _mmctl_cpa_value:
+.. _mmctl_user_attributes_value:
 
-mmctl cpa value
----------------
+mmctl user attributes value
+---------------------------
 
-Management of CPA values
+Management of User Attributes values
 
 Synopsis
 ~~~~~~~~
 
 
-List, set, and delete Custom Profile Attribute values for users.
+List, set, and delete User Attribute values for users.
 
 Options
 ~~~~~~~
@@ -36,7 +36,7 @@ Options inherited from parent commands
 SEE ALSO
 ~~~~~~~~
 
-* `mmctl cpa <mmctl_cpa.rst>`_ 	 - Management of Custom Profile Attributes
-* `mmctl cpa value list <mmctl_cpa_value_list.rst>`_ 	 - List CPA values for a user
-* `mmctl cpa value set <mmctl_cpa_value_set.rst>`_ 	 - Set a CPA value for a user
+* `mmctl user attributes <mmctl_user_attributes.rst>`_ 	 - Management of User Attributes
+* `mmctl user attributes value list <mmctl_user_attributes_value_list.rst>`_ 	 - List User Attributes values for a user
+* `mmctl user attributes value set <mmctl_user_attributes_value_set.rst>`_ 	 - Set a User Attributes value for a user
 
