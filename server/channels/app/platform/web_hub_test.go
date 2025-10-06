@@ -46,7 +46,6 @@ func dummyWebsocketHandler(tb testing.TB) http.HandlerFunc {
 func registerDummyWebConn(tb testing.TB, th *TestHelper, addr net.Addr, session *model.Session) *WebConn {
 	d := websocket.Dialer{}
 	c, _, err := d.Dial("ws://"+addr.String()+"/ws", nil)
-	assert.NoError(tb, err)
 	if err != nil {
 		tb.Fatalf("Failed to dial websocket: %v", err)
 	}
@@ -58,7 +57,7 @@ func registerDummyWebConn(tb testing.TB, th *TestHelper, addr net.Addr, session 
 		Locale:    "en",
 	}
 	wc := th.Service.NewWebConn(cfg, th.Suite, &hookRunner{})
-	assert.NoError(tb, th.Service.HubRegister(wc))
+
 	if err := th.Service.HubRegister(wc); err != nil {
 		tb.Fatalf("Failed to register WebConn: %v", err)
 	}
