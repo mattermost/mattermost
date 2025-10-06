@@ -197,7 +197,7 @@ export function getUsersFromMentionedUsernamesAndGroups(usernamesAndGroups: stri
         // Removing usernames from the list will leave only the group names
         const mentionedGroups = usernamesAndGroups.filter((name) => !mentionedUsernames.includes(name));
 
-        if (isLicensed) {
+        if (isLicensed && mentionedGroups.length > 0) {
             await dispatch(getGroupsByNames(mentionedGroups));
         }
 
