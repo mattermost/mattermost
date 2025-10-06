@@ -91,8 +91,13 @@ export class AppsForm extends React.PureComponent<Props, State> {
 
     static getDerivedStateFromProps(nextProps: Props, prevState: State) {
         if (nextProps.form !== prevState.form) {
+            const values = {
+                ...prevState.values,
+                ...initFormValues(nextProps.form),
+            };
+
             return {
-                values: initFormValues(nextProps.form),
+                values,
                 form: nextProps.form,
             };
         }

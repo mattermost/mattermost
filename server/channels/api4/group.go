@@ -867,7 +867,9 @@ func getGroupsByNames(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("getGroupsByNames", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	} else if len(groupNames) == 0 {
-		c.SetInvalidParam("group_names")
+		if _, err = w.Write([]byte("[]")); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
 		return
 	}
 

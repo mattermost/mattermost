@@ -20,7 +20,7 @@ import {
     setShowPreviewOnChannelSettingsHeaderModal,
     setShowPreviewOnChannelSettingsPurposeModal,
 } from 'actions/views/textbox';
-import {isChannelAdminManageABACControlEnabled} from 'selectors/general';
+import {isChannelAccessControlEnabled} from 'selectors/general';
 
 import {focusElement} from 'utils/a11y_utils';
 import Constants from 'utils/constants';
@@ -81,10 +81,9 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
         haveIChannelPermission(state, channel.team_id, channel.id, Permissions.MANAGE_CHANNEL_ACCESS_RULES),
     );
 
-    // FEATURE_FLAG_REMOVAL: ChannelAdminManageABACControl - Remove the feature flag check when feature is GA
-    const channelAdminABACControlEnabled = useSelector(isChannelAdminManageABACControlEnabled);
+    const channelAdminABACControlEnabled = useSelector(isChannelAccessControlEnabled);
 
-    const shouldShowAccessRulesTab = channelAdminABACControlEnabled && canManageChannelAccessRules && channel.type === Constants.PRIVATE_CHANNEL;
+    const shouldShowAccessRulesTab = channelAdminABACControlEnabled && canManageChannelAccessRules && channel.type === Constants.PRIVATE_CHANNEL && !channel.group_constrained;
 
     const [show, setShow] = useState(isOpen);
 
@@ -96,6 +95,9 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
 
     // State to track if there are unsaved changes
     const [areThereUnsavedChanges, setAreThereUnsavedChanges] = useState(false);
+
+    // State to track if user has been warned about unsaved changes
+    const [hasBeenWarned, setHasBeenWarned] = useState(false);
 
     // Refs
     const modalBodyRef = useRef<HTMLDivElement>(null);
@@ -124,7 +126,18 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
     };
 
     const handleHide = () => {
-        handleHideConfirm();
+        // Prevent modal closing if there are unsaved changes (warn once, then allow)
+        if (areThereUnsavedChanges && !hasBeenWarned) {
+            setHasBeenWarned(true);
+
+            // Show error message in SaveChangesPanel
+            setShowTabSwitchError(true);
+            setTimeout(() => {
+                setShowTabSwitchError(false);
+            }, SHOW_PANEL_ERROR_STATE_TAB_SWITCH_TIMEOUT);
+        } else {
+            handleHideConfirm();
+        }
     };
 
     const handleHideConfirm = () => {
@@ -138,6 +151,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
     const handleExited = () => {
         // Clear anything if needed
         setActiveTab(ChannelSettingsTabs.INFO);
+        setHasBeenWarned(false);
         if (focusOriginElement) {
             focusElement(focusOriginElement, true);
         }
@@ -265,6 +279,7 @@ function ChannelSettingsModal({channelId, isOpen, onExited, focusOriginElement}:
             className='ChannelSettingsModal settings-modal'
             show={show}
             onHide={handleHide}
+            preventClose={areThereUnsavedChanges && !hasBeenWarned}
             onExited={handleExited}
             compassDesign={true}
             modalHeaderText={modalTitle}
