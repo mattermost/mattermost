@@ -124,7 +124,7 @@ func newWebHub(ps *PlatformService) *Hub {
 		activeUsers:     make(chan *webConnActiveUsersMessage),
 		hubSemaphore:    make(chan struct{}, hubSemaphoreCount),
 		stringStructMapPool: sync.Pool{
-			New: func() interface{} {
+			New: func() any {
 				// Pre-allocate with reasonable capacity hint
 				return make(map[string]struct{}, 64)
 			},
@@ -653,9 +653,13 @@ func (h *Hub) Start() {
 
 					if err != nil {
 						h.platform.logger.Error("Failed to get channel members for active users query", mlog.String("channel_id", req.channelID), mlog.Err(err))
+						req.result <- []string{}
+						// Return map to pool before sending result
+						h.stringStructMapPool.Put(userIDMap)
+						continue
 					}
 
-					if len(members) == 0 || err != nil {
+					if len(members) == 0 {
 						req.result <- []string{}
 						// Return map to pool before sending result
 						h.stringStructMapPool.Put(userIDMap)
