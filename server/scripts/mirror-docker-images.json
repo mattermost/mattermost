@@ -2,7 +2,8 @@
   "postgres": {
     "10": "postgres:10@sha256:7a484b11fcabd39596b1bf08780cdb61fa9b0d8bfad0844dbdce3a6922df95d1",
     "12": "postgres:12@sha256:cc7a021d9aff3aa02788d35c27a5cc32d4790ad92d72232a6be75b76ab7d79db",
-    "13": "postgres:13@sha256:1b154a7bbf474aa1a2e67dc7c976835645fe6c3425320e7ad3f5a926d509e8fc"
+    "13": "postgres:13@sha256:1b154a7bbf474aa1a2e67dc7c976835645fe6c3425320e7ad3f5a926d509e8fc",
+    "14": "postgres:14@sha256:1c418702ab77adc7e84c7e726c2ab4f9cb63b8f997341ffcfab56629bab1429d"
   },
   "mysql": {
     "8.0.32": "mysql/mysql-server:8.0.32@sha256:d6c8301b7834c5b9c2b733b10b7e630f441af7bc917c74dba379f24eeeb6a313"
