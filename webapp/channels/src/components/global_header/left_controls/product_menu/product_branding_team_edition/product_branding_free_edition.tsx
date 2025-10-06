@@ -21,7 +21,11 @@ const ProductBrandingFreeEditionContainer = styled.span`
 `;
 
 const StyledLogo = styled(Logo)`
-    path {
+    #logoMark polygon {
+        fill: rgba(var(--sidebar-text-rgb), 0.75);
+    }
+    #type path,
+    #type polygon {
         fill: rgba(var(--sidebar-text-rgb), 0.75);
     }
 `;
@@ -54,8 +58,8 @@ const ProductBrandingFreeEdition = (): JSX.Element => {
     return (
         <ProductBrandingFreeEditionContainer tabIndex={-1}>
             <StyledLogo
-                width={116}
-                height={20}
+                width={160}
+                height={60}
             />
             <Badge>{badgeText}</Badge>
         </ProductBrandingFreeEditionContainer>
