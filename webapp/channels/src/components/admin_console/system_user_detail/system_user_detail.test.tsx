@@ -14,7 +14,7 @@ import SystemUserDetail, {getUserAuthenticationTextField} from 'components/admin
 import type {Params, Props} from 'components/admin_console/system_user_detail/system_user_detail';
 
 import type {MockIntl} from 'tests/helpers/intl-test-helper';
-import {renderWithContext, waitFor, within} from 'tests/react_testing_utils';
+import {renderWithContext, waitFor, waitForElementToBeRemoved, within} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -148,9 +148,7 @@ describe('SystemUserDetail', () => {
             };
             renderWithContext(<SystemUserDetail {...props}/>);
 
-            await waitFor(() => {
-                expect(screen.queryByTestId('loadingSpinner')).not.toBeInTheDocument();
-            });
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
 
             const emailInputs = screen.getAllByDisplayValue(user.email);
             const emailInput = emailInputs.find((input) => !(input as HTMLInputElement).disabled);
@@ -172,9 +170,7 @@ describe('SystemUserDetail', () => {
             };
             renderWithContext(<SystemUserDetail {...props}/>);
 
-            await waitFor(() => {
-                expect(screen.queryByTestId('loadingSpinner')).not.toBeInTheDocument();
-            });
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
 
             const usernameInputs = screen.getAllByDisplayValue(user.username);
             const usernameInput = usernameInputs.find((input) => !(input as HTMLInputElement).disabled);
@@ -198,9 +194,7 @@ describe('SystemUserDetail', () => {
             };
             renderWithContext(<SystemUserDetail {...props}/>);
 
-            await waitFor(() => {
-                expect(screen.queryByTestId('loadingSpinner')).not.toBeInTheDocument();
-            });
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
 
             const emailInputs = screen.getAllByDisplayValue(user.email);
             const emailInput = emailInputs.find((input) => !(input as HTMLInputElement).disabled);
@@ -222,9 +216,7 @@ describe('SystemUserDetail', () => {
             };
             renderWithContext(<SystemUserDetail {...props}/>);
 
-            await waitFor(() => {
-                expect(screen.queryByTestId('loadingSpinner')).not.toBeInTheDocument();
-            });
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
 
             const emailInputs = screen.getAllByDisplayValue(user.email);
             const emailInput = emailInputs.find((input) => !(input as HTMLInputElement).disabled);
@@ -249,9 +241,7 @@ describe('SystemUserDetail', () => {
             };
             renderWithContext(<SystemUserDetail {...props}/>);
 
-            await waitFor(() => {
-                expect(screen.queryByTestId('loadingSpinner')).not.toBeInTheDocument();
-            });
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
 
             const usernameInputs = screen.getAllByDisplayValue(user.username);
             const usernameInput = usernameInputs.find((input) => !(input as HTMLInputElement).disabled);
@@ -317,9 +307,7 @@ describe('SystemUserDetail', () => {
 
             renderWithContext(<SystemUserDetail {...props}/>);
 
-            await waitFor(() => {
-                expect(screen.queryByTestId('loadingSpinner')).not.toBeInTheDocument();
-            });
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
 
             // Find and click activate button
             const activateButton = screen.getByText('Activate');
