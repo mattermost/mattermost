@@ -119,7 +119,7 @@ describe('components/sidebar/sidebar_header/sidebar_team_menu', () => {
         await waitFor(() => {
             expect(screen.getByText('Team settings')).toBeInTheDocument();
             expect(screen.getByText('Manage members')).toBeInTheDocument();
-            expect(screen.getByText('Leave team')).toBeInTheDocument();
+            expect(screen.getByText('Leave team')).not.toBeVisible();
             expect(screen.getByText('Create a team')).toBeInTheDocument();
             expect(screen.getByText('Learn about teams')).toBeInTheDocument();
         });
@@ -149,7 +149,7 @@ describe('components/sidebar/sidebar_header/sidebar_team_menu', () => {
         screen.getByText(currentTeam.display_name).click();
 
         await waitFor(() => {
-            expect(screen.getByText('Leave team')).toBeInTheDocument();
+            expect(screen.getByText('Leave team')).not.toBeVisible();
         });
     });
 
