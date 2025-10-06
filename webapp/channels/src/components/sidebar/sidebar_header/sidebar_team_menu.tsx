@@ -116,8 +116,10 @@ export default function SidebarTeamMenu(props: Props) {
                     isCloud={isCloud}
                 />
             )}
-            <Menu.Separator/>
-            <LearnAboutTeamsMenuItem/>
+            <div style={{display: 'none'}}>
+                <Menu.Separator/>
+                <LearnAboutTeamsMenuItem/>
+            </div>
             <PluginMenuItems/>
         </Menu.Container>
     );
