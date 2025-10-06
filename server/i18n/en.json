@@ -1742,6 +1742,10 @@
     "translation": "Failed to update server translations."
   },
   {
+    "id": "api.content_flagging.error.assignee_not_reviewer",
+    "translation": "Only aa content reviewer can be assigned as a reviewer."
+  },
+  {
     "id": "api.content_flagging.error.comment_required",
     "translation": "Please add a comment explaining why you’re flagging this message."
   },
@@ -5173,6 +5177,18 @@
   {
     "id": "app.compliance.save.saving.app_error",
     "translation": "We encountered an error saving the compliance report."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.no_reviewer_field.app_error",
+    "translation": "No Reviewer ID property field found."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.update_status_property_value.app_error",
+    "translation": "Failed to update Status property value on setting reviewer."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.upsert_property_value.app_error",
+    "translation": "Failed to set flagged post reviewer."
   },
   {
     "id": "app.content_flagging.can_flag_post.in_progress",
