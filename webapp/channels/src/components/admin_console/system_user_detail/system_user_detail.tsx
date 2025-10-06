@@ -544,7 +544,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                                     value={this.state.emailField}
                                                     onChange={this.handleEmailChange}
                                                     disabled={this.state.isSaving}
-                                                    aria-describedby= 'email-error'
+                                                    aria-describedby='email-error'
                                                     aria-invalid={this.state.emailError ? 'true' : 'false'}
                                                 />
                                                 {this.state.emailError && (
