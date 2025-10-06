@@ -10710,10 +10710,6 @@
     "translation": "您的许可证不支持内容标记功能。"
   },
   {
-    "id": "api.not_implemented",
-    "translation": "此功能尚未实现。"
-  },
-  {
     "id": "app.access_control.insufficient_permissions",
     "translation": "您没有权限管理此访问控制策略。"
   },

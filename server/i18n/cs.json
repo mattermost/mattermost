@@ -10448,10 +10448,6 @@
     "translation": "Neplatný typ testu: {{.TestType}}"
   },
   {
-    "id": "api.not_implemented",
-    "translation": "Tato vlastnost není implementována."
-  },
-  {
     "id": "api.remote_cluster.import_not_allowed.app_error",
     "translation": "Import vzdáleného clusteru není povolen"
   },

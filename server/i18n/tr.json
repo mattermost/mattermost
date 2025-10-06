@@ -10448,10 +10448,6 @@
     "translation": "Sınama türü geçersiz: {{.TestType}}"
   },
   {
-    "id": "api.not_implemented",
-    "translation": "Bu özellik henüz eklenmemiş."
-  },
-  {
     "id": "api.remote_cluster.import_not_allowed.app_error",
     "translation": "Uzak kümeden içe aktarıma izin verilmiyor"
   },
