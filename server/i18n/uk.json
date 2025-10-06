@@ -3825,7 +3825,7 @@
   },
   {
     "id": "model.config.is_valid.sql_driver.app_error",
-    "translation": "Неправильне ім'я драйвера для налаштувань SQL. Має бути 'mysql' або 'postgres'."
+    "translation": "Неправильне ім'я драйвера для SQL-налаштувань. Повинно бути 'postgres'."
   },
   {
     "id": "model.config.is_valid.sql_idle.app_error",
@@ -4697,7 +4697,7 @@
   },
   {
     "id": "model.user.is_valid.auth_data_type.app_error",
-    "translation": "Неправильний користувач, дані авторизації повинні бути задані з типом авторизації."
+    "translation": "Недійсний користувач: дані автентифікації можна встановити лише в тому випадку, якщо користувач використовує для автентифікації зовнішню службу автентифікації, а не електронну пошту/пароль."
   },
   {
     "id": "model.user.is_valid.auth_data_pwd.app_error",
