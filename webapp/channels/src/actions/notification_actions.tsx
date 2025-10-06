@@ -215,20 +215,15 @@ const getNotificationUsername = (state: GlobalState, post: Post, msgProps: NewPo
 
 const replaceMentionsWithDisplayNames = (text: string, state: GlobalState): string => {
     const teammateNameDisplay = getTeammateNameDisplaySetting(state);
-    
-    // Replace user mentions with display names
     return text.replace(Constants.MENTIONS_REGEX, (match, username) => {
-        // Skip special mentions (@channel, @all, @here)
         if (['channel', 'all', 'here'].includes(username.toLowerCase())) {
             return match;
         }
-        
         const user = getUserByUsername(state, username);
         if (user) {
             const displayName = displayUsername(user, teammateNameDisplay, false);
             return `@${displayName}`;
         }
-        
         return match;
     });
 };
@@ -250,7 +245,6 @@ const getNotificationBody = (state: GlobalState, post: Post, msgProps: NewPostMe
         image = Boolean(image || (attachment.image_url?.length));
     });
 
-    // Replace mentions with display names before stripping markdown
     notifyText = replaceMentionsWithDisplayNames(notifyText, state);
     const strippedMarkdownNotifyText = stripMarkdown(notifyText);
 
