@@ -10446,5 +10446,9 @@
   {
     "id": "api.team.invite_guests.policy_enforced_channel.app_error",
     "translation": "Неможливо запросити користувачів-гостей до цього каналу, оскільки він має обмеження доступу на основі атрибутів користувача."
+  },
+  {
+    "id": "api.access_control_policy.get_channels.limit.app_error",
+    "translation": "Обмеження на кількість каналів недійсне."
   }
 ]
