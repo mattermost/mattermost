@@ -434,7 +434,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.groups', defaultMessage: 'Groups'}),
                 isHidden: it.any(
                     it.licensedForFeature('LDAPGroups'),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'Groups',
@@ -563,7 +562,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.systemRoles', defaultMessage: 'Delegated Granular Administration'}),
                 isHidden: it.any(
                     it.licensedForFeature('LDAPGroups'),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'SystemRoles',
@@ -610,7 +608,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.user_attributes', defaultMessage: 'User Attributes'}),
                 isHidden: it.any(
                     it.minLicenseTier(LicenseSkus.Enterprise),
-                    it.not(it.enterpriseReady),
                     it.configIsFalse('FeatureFlags', 'CustomProfileAttributes'),
                 ),
                 schema: {
@@ -631,7 +628,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: `system_attributes/attribute_based_access_control/edit_policy/:policy_id(${ID_PATH_PATTERN})`,
                 isHidden: it.any(
                     it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
-                    it.not(it.licensedForSku(LicenseSkus.EnterpriseAdvanced)),
+                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                 ),
                 isDisabled: it.any(
@@ -647,7 +644,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'system_attributes/attribute_based_access_control/edit_policy',
                 isHidden: it.any(
                     it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
-                    it.not(it.licensedForSku(LicenseSkus.EnterpriseAdvanced)),
+                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                     it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
                 ),
@@ -730,7 +727,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.attributeBasedAccessControl', defaultMessage: 'Attribute-Based Access'}),
                 isHidden: it.any(
                     it.minLicenseTier(LicenseSkus.EnterpriseAdvanced),
-                    it.not(it.enterpriseReady),
                     it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
                 ),
                 schema: {
@@ -2189,7 +2185,6 @@ const AdminDefinition: AdminDefinitionType = {
                 isHidden: it.any(
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.MOBILE_SECURITY)),
                     it.minLicenseTier(LicenseSkus.Enterprise),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'MobileSecurityFeatureDiscoverySettings',
@@ -2528,7 +2523,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'dropdown',
                             key: 'TeamSettings.RestrictDirectMessage',
                             label: defineMessage({id: 'admin.team.restrictDirectMessage', defaultMessage: 'Enable users to open Direct Message channels with:'}),
-                            help_text: defineMessage({id: 'admin.team.restrictDirectMessageDesc', defaultMessage: '"Any user on the Mattermost server" enables users to open a Direct Message channel with any user on the server, even if they are not on any teams together. "Any member of the team" limits the ability in the Direct Messages "More" menu to only open Direct Message channels with users who are in the same team. Note: This setting only affects the UI, not permissions on the server.'}),
+                            help_text: defineMessage({id: 'admin.team.restrictDirectMessageDesc', defaultMessage: '"Any user on the Mattermost server" enables users to open a Direct Message channel with any user on the server, even if they are not on any teams together. "Any member of the team" limits the ability in the Direct Messages "More" menu to only open Direct Message channels with users who are in the same team.'}),
                             options: [
                                 {
                                     value: 'any',
@@ -2881,7 +2876,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.announcement', defaultMessage: 'System-wide Notifications'}),
                 isHidden: it.any(
                     it.licensedForFeature('Announcement'),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'AnnouncementSettings',
@@ -3263,7 +3257,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'site_config/content_flagging',
                 title: defineMessage({id: 'admin.sidebar.contentFlagging', defaultMessage: 'Content Flagging'}),
                 isHidden: it.any(
-                    it.not(it.licensedForSku(LicenseSkus.EnterpriseAdvanced)),
+                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                     it.configIsFalse('FeatureFlags', 'ContentFlagging'),
                 ),
@@ -3716,7 +3710,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.ldap', defaultMessage: 'AD/LDAP'}),
                 isHidden: it.any(
                     it.licensedForFeature('LDAP'),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'LdapSettings',
@@ -4194,7 +4187,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.saml', defaultMessage: 'SAML 2.0'}),
                 isHidden: it.any(
                     it.licensedForFeature('SAML'),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'SamlSettings',
@@ -4888,7 +4880,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.openid', defaultMessage: 'OpenID Connect'}),
                 isHidden: it.any(
                     it.any(it.licensedForFeature('OpenId'), it.cloudLicensed),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'OpenIdSettings',
@@ -4910,7 +4901,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.gitlab', defaultMessage: 'GitLab'}),
                 isHidden: it.any(
                     it.licensedForFeature('OpenId'),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'GitLabSettings',
@@ -5013,7 +5003,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.guest_access', defaultMessage: 'Guest Access'}),
                 isHidden: it.any(
                     it.licensedForFeature('GuestAccounts'),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'GuestAccountsSettings',
@@ -5453,7 +5442,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.dataRetentionPolicy', defaultMessage: 'Data Retention Policy'}),
                 isHidden: it.any(
                     it.licensedForFeature('DataRetention'),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'DataRetentionSettings',
@@ -5490,7 +5478,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.complianceExport', defaultMessage: 'Compliance Export'}),
                 isHidden: it.any(
                     it.licensedForFeature('MessageExport'),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'MessageExportSettings',
@@ -5744,7 +5731,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.customTermsOfService', defaultMessage: 'Custom Terms of Service'}),
                 isHidden: it.any(
                     it.licensedForFeature('CustomTermsOfService'),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'TermsOfServiceSettings',

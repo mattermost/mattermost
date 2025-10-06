@@ -287,7 +287,7 @@ func TestSendAutoResponseSuccess(t *testing.T) {
 	assert.Nil(t, err)
 	assert.True(t, sent)
 
-	list, err := th.App.GetPosts(th.BasicChannel.Id, 0, 1)
+	list, err := th.App.GetPosts(th.Context, th.BasicChannel.Id, 0, 1)
 	require.Nil(t, err)
 
 	autoResponderPostFound := false
@@ -341,7 +341,7 @@ func TestSendAutoResponseSuccessOnThread(t *testing.T) {
 	assert.Nil(t, err)
 	assert.True(t, sent)
 
-	list, err := th.App.GetPosts(th.BasicChannel.Id, 0, 1)
+	list, err := th.App.GetPosts(th.Context, th.BasicChannel.Id, 0, 1)
 	require.Nil(t, err)
 
 	autoResponderPostFound := false
@@ -386,7 +386,7 @@ func TestSendAutoResponseFailure(t *testing.T) {
 	assert.Nil(t, err)
 	assert.False(t, sent)
 
-	if list, err := th.App.GetPosts(th.BasicChannel.Id, 0, 1); err != nil {
+	if list, err := th.App.GetPosts(th.Context, th.BasicChannel.Id, 0, 1); err != nil {
 		require.Nil(t, err)
 	} else {
 		autoResponderPostFound := false

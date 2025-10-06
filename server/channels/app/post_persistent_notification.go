@@ -338,7 +338,7 @@ func (a *App) sendPersistentNotifications(post *model.Post, channel *model.Chann
 	}
 
 	if len(desktopUsers) != 0 {
-		post = a.PreparePostForClient(request.EmptyContext(a.Log()), post, false, false, true)
+		post = a.PreparePostForClient(request.EmptyContext(a.Log()), post, &model.PreparePostForClientOpts{IncludePriority: true})
 		postJSON, jsonErr := post.ToJSON()
 		if jsonErr != nil {
 			return errors.Wrapf(jsonErr, "failed to encode post to JSON")

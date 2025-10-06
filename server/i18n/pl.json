@@ -10756,10 +10756,6 @@
     "translation": "Ukrywanie archiwizowanych kanałów nie jest już obsługiwane. Zamiast tego ustaw te kanały jako prywatne i usuń ich członków."
   },
   {
-    "id": "api.not_implemented",
-    "translation": "Ta funkcja nie została zaimplementowana."
-  },
-  {
     "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
     "translation": "Nie można zaktualizować wartości pola Atrybut profilu niestandardowego zarządzanego przez administratora"
   },
@@ -10786,5 +10782,25 @@
   {
     "id": "model.config.is_valid.client_side_cert_enable.app_error",
     "translation": "Uwierzytelnianie oparte na certyfikatach zostało usunięte. Wyłącz ClientSideCertEnable, aby kontynuować."
+  },
+  {
+    "id": "api.user.check_user_password.invalid_hash.app_error",
+    "translation": "Format hashowanego hasła jest nieprawidłowy i nie mógł zostać przetworzony."
+  },
+  {
+    "id": "app.user.check_user_password.failed_migration",
+    "translation": "Nie udało się zmigrować hasła użytkownika do najnowszej metody haszowania."
+  },
+  {
+    "id": "app.user.check_user_password.failed_update",
+    "translation": "Nie udało się zaktualizować hasła użytkownika."
+  },
+  {
+    "id": "app.job.get_existing_jobs.error",
+    "translation": "Brak możliwości pobrania istniejących zadań."
+  },
+  {
+    "id": "app.submit_interactive_dialog.invalid_response",
+    "translation": "Napotkano nieprawidłową odpowiedź z interaktywnego przesyłania okna dialogowego."
   }
 ]

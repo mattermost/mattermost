@@ -484,6 +484,7 @@ export const ModalIdentifiers = {
     ATTRIBUTE_MODAL_LDAP: 'attribute_modal_ldap',
     ATTRIBUTE_MODAL_SAML: 'attribute_modal_saml',
     FLAG_POST: 'flag_post',
+    REMOVE_FLAGGED_POST: 'remove_flagged_post',
 };
 
 export const UserStatuses = {
@@ -701,6 +702,7 @@ export const SocketEvents = {
     CPA_FIELD_UPDATED: 'custom_profile_attributes_field_updated',
     CPA_FIELD_DELETED: 'custom_profile_attributes_field_deleted',
     CPA_VALUES_UPDATED: 'custom_profile_attributes_values_updated',
+    CONTENT_FLAGGING_REPORT_VALUE_CHANGED: 'content_flagging_report_value_updated',
 };
 
 export const TutorialSteps = {
@@ -1169,7 +1171,7 @@ export const DeveloperLinks = {
 
 export const LicenseLinks = {
     CONTACT_SALES: 'https://mattermost.com/contact-sales/',
-    ENTRY_LIMITS_INFO: 'https://mattermost.com/pl/entry',
+    ENTRY_LIMITS_INFO: 'https://mattermost.com/pl/mattermost-entry-limits',
     TRIAL_INFO_LINK: 'https://mattermost.com/trial',
     EMBARGOED_COUNTRIES: 'https://mattermost.com/pl/limitations-for-embargoed-countries',
     SOFTWARE_SERVICES_LICENSE_AGREEMENT: 'https://mattermost.com/pl/software-and-services-license-agreement',
@@ -1482,20 +1484,8 @@ export const ZoomSettings = {
 };
 
 export const DataSpillagePropertyNames = {
-    Status: 'Status',
-    FlaggedBy: 'Flagged by',
-    Reason: 'Reason',
-    Comment: 'Comment',
-    ReportingTime: 'Reporting Time',
-    ReviewingUser: 'Reviewing User',
-    ActionBy: 'Action By',
-    ActionComment: 'Action Comment',
-    ActionTime: 'Action Time',
-    Message: 'Message',
-    PostedIn: 'Posted in',
-    Team: 'Team',
-    PostedBy: 'Posted by',
-    PostedAt: 'Posted at',
+    FlaggedBy: 'reporting_user_id',
+    Status: 'status',
 };
 
 export const Constants = {

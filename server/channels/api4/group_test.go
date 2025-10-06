@@ -1342,7 +1342,7 @@ func TestPatchGroupChannel(t *testing.T) {
 	assert.NotNil(t, groupSyncable)
 	assert.True(t, groupSyncable.AutoAdd)
 
-	role, appErr := th.App.GetRoleByName(context.Background(), "channel_user")
+	role, appErr := th.App.GetRoleByName(th.Context, "channel_user")
 	require.Nil(t, appErr)
 	originalPermissions := role.Permissions
 	_, appErr = th.App.PatchRole(role, &model.RolePatch{Permissions: &[]string{}})
@@ -2371,9 +2371,9 @@ func TestGetGroupsByNames(t *testing.T) {
 	t.Run("search for groups is empty", func(t *testing.T) {
 		searchTerms := []string{}
 		groups, resp, err := th.SystemAdminClient.GetGroupsByNames(context.Background(), searchTerms)
-		require.Error(t, err)
-		CheckBadRequestStatus(t, resp)
-		assert.Nil(t, groups)
+		require.NoError(t, err)
+		require.Empty(t, groups, "no groups should be returned")
+		CheckOKStatus(t, resp)
 	})
 
 	t.Run("attempt search without session", func(t *testing.T) {
