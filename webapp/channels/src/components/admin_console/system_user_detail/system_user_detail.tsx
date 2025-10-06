@@ -515,11 +515,11 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                         {this.state.user?.auth_service ? (
                                             <WithTooltip
                                                 title={this.props.intl.formatMessage({
-                                                    id: 'admin.userDetail.managedByProvider.title',
+                                                    id: 'admin.userManagement.userDetail.managedByProvider.title',
                                                     defaultMessage: 'Managed by login provider',
                                                 })}
                                                 hint={this.props.intl.formatMessage({
-                                                    id: 'admin.userDetail.managedByProvider.email',
+                                                    id: 'admin.userManagement.userDetail.managedByProvider.email',
                                                     defaultMessage: 'This email is managed by the {authService} login provider and cannot be changed here.',
                                                 }, {
                                                     authService: this.state.user.auth_service.toUpperCase(),
@@ -569,11 +569,11 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                         {this.state.user?.auth_service ? (
                                             <WithTooltip
                                                 title={this.props.intl.formatMessage({
-                                                    id: 'admin.userDetail.managedByProvider.title',
+                                                    id: 'admin.userManagement.userDetail.managedByProvider.title',
                                                     defaultMessage: 'Managed by login provider',
                                                 })}
                                                 hint={this.props.intl.formatMessage({
-                                                    id: 'admin.userDetail.managedByProvider.username',
+                                                    id: 'admin.userManagement.userDetail.managedByProvider.username',
                                                     defaultMessage: 'This username is managed by the {authService} login provider and cannot be changed here.',
                                                 }, {
                                                     authService: this.state.user.auth_service.toUpperCase(),
@@ -586,7 +586,10 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                                     disabled={true}
                                                     readOnly={true}
                                                     style={{cursor: 'not-allowed'}}
-                                                    placeholder='Enter username'
+                                                    placeholder={this.props.intl.formatMessage({
+                                                        id: 'admin.userManagement.userDetail.username.input',
+                                                        defaultMessage: 'Enter username',
+                                                    })}
                                                 />
                                             </WithTooltip>
                                         ) : (
@@ -599,7 +602,10 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                                     value={this.state.usernameField}
                                                     onChange={this.handleUsernameChange}
                                                     disabled={this.state.error !== null || this.state.isSaving}
-                                                    placeholder='Enter username'
+                                                    placeholder={this.props.intl.formatMessage({
+                                                        id: 'admin.userManagement.userDetail.username.input',
+                                                        defaultMessage: 'Enter username',
+                                                    })}
                                                     aria-describedby={this.state.usernameError ? 'username-error' : undefined}
                                                     aria-invalid={this.state.usernameError ? 'true' : 'false'}
                                                 />
@@ -637,7 +643,10 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                                 value={this.state.authDataField}
                                                 onChange={this.handleAuthDataChange}
                                                 disabled={this.state.error !== null || this.state.isSaving}
-                                                placeholder='Enter auth data'
+                                                placeholder={this.props.intl.formatMessage({
+                                                        id: 'admin.userManagement.userDetail.authData.input',
+                                                        defaultMessage: 'Enter auth data',
+                                                })}
                                             />
                                         </label>
                                     )}
