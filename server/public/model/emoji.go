@@ -17,22 +17,24 @@ const (
 var EmojiPattern = regexp.MustCompile(`:[a-zA-Z0-9_+-]+:`)
 
 type Emoji struct {
-	Id        string `json:"id"`
-	CreateAt  int64  `json:"create_at"`
-	UpdateAt  int64  `json:"update_at"`
-	DeleteAt  int64  `json:"delete_at"`
-	CreatorId string `json:"creator_id"`
-	Name      string `json:"name"`
+	Id          string `json:"id"`
+	CreateAt    int64  `json:"create_at"`
+	UpdateAt    int64  `json:"update_at"`
+	DeleteAt    int64  `json:"delete_at"`
+	CreatorId   string `json:"creator_id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
 }
 
 func (emoji *Emoji) Auditable() map[string]any {
 	return map[string]any{
-		"id":         emoji.Id,
-		"create_at":  emoji.CreateAt,
-		"update_at":  emoji.UpdateAt,
-		"delete_at":  emoji.CreateAt,
-		"creator_id": emoji.CreatorId,
-		"name":       emoji.Name,
+		"id":          emoji.Id,
+		"create_at":   emoji.CreateAt,
+		"update_at":   emoji.UpdateAt,
+		"delete_at":   emoji.CreateAt,
+		"creator_id":  emoji.CreatorId,
+		"name":        emoji.Name,
+		"description": emoji.Description,
 	}
 }
 

@@ -94,6 +94,35 @@ func (a *App) CreateEmoji(rctx request.CTX, sessionUserId string, emoji *model.E
 	return emoji, nil
 }
 
+func (a *App) UpdateEmoji(rctx request.CTX, emoji *model.Emoji) (*model.Emoji, *model.AppError) {
+	if !*a.Config().ServiceSettings.EnableCustomEmoji {
+		return nil, model.NewAppError("UpdateEmoji", "api.emoji.disabled.app_error", nil, "", http.StatusForbidden)
+	}
+
+	oldEmoji, err := a.Srv().Store().Emoji().Get(rctx, emoji.Id, true)
+	if err != nil {
+		return nil, model.NewAppError("UpdateEmoji", "app.emoji.get.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	// Only allow updating the description field
+	oldEmoji.Description = emoji.Description
+
+	updatedEmoji, err := a.Srv().Store().Emoji().Update(oldEmoji)
+	if err != nil {
+		return nil, model.NewAppError("UpdateEmoji", "app.emoji.update.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	message := model.NewWebSocketEvent(model.WebsocketEventEmojiAdded, "", "", "", nil, "")
+	emojiJSON, jsonErr := json.Marshal(updatedEmoji)
+	if jsonErr != nil {
+		return nil, model.NewAppError("UpdateEmoji", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+	}
+	message.Add("emoji", string(emojiJSON))
+	a.Publish(message)
+
+	return updatedEmoji, nil
+}
+
 func (a *App) GetEmojiList(rctx request.CTX, page, perPage int, sort string) ([]*model.Emoji, *model.AppError) {
 	list, err := a.Srv().Store().Emoji().GetList(page*perPage, perPage, sort)
 	if err != nil {

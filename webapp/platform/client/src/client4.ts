@@ -3043,6 +3043,13 @@ export default class Client4 {
         );
     };
 
+    patchCustomEmoji = (emoji: CustomEmoji) => {
+        return this.doFetch<CustomEmoji>(
+            `${this.getEmojiRoute(emoji.id)}/patch`,
+            {method: 'put', body: emoji},
+        );
+    };
+
     deleteCustomEmoji = (emojiId: string) => {
         return this.doFetch<StatusOK>(
             `${this.getEmojiRoute(emojiId)}`,

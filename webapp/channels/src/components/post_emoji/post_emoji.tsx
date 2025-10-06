@@ -3,15 +3,16 @@
 
 import React from 'react';
 
-import WithTooltip from 'components/with_tooltip';
+import EmojiTooltip from 'components/emoji_tooltip';
 
 export interface Props {
     children: React.ReactNode;
     name: string;
     imageUrl: string;
+    emojiDescription?: string;
 }
 
-const PostEmoji = ({children, name, imageUrl}: Props) => {
+const PostEmoji = ({children, name, imageUrl, emojiDescription}: Props) => {
     const emojiText = `:${name}:`;
     const backgroundImageUrl = `url(${imageUrl})`;
 
@@ -20,10 +21,10 @@ const PostEmoji = ({children, name, imageUrl}: Props) => {
     }
 
     return (
-        <WithTooltip
+        <EmojiTooltip
+            emojiName={name}
+            emojiDescription={emojiDescription}
             title={emojiText}
-            emoji={name}
-            isEmojiLarge={true}
         >
             <span
                 className='emoticon'
@@ -33,7 +34,7 @@ const PostEmoji = ({children, name, imageUrl}: Props) => {
             >
                 {children}
             </span>
-        </WithTooltip>
+        </EmojiTooltip>
     );
 };
 

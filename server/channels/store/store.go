@@ -709,6 +709,7 @@ type DesktopTokensStore interface {
 
 type EmojiStore interface {
 	Save(emoji *model.Emoji) (*model.Emoji, error)
+	Update(emoji *model.Emoji) (*model.Emoji, error)
 	Get(rctx request.CTX, id string, allowFromCache bool) (*model.Emoji, error)
 	GetByName(rctx request.CTX, name string, allowFromCache bool) (*model.Emoji, error)
 	GetMultipleByName(rctx request.CTX, names []string) ([]*model.Emoji, error)

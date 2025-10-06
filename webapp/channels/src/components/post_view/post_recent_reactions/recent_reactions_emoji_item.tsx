@@ -9,6 +9,8 @@ import type {Emoji} from '@mattermost/types/emojis';
 
 import {getEmojiImageUrl, getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 
+import EmojiTooltip from 'components/emoji_tooltip';
+
 type Props = {
     emoji: Emoji;
     onItemClick: (emoji: Emoji) => void;
@@ -26,27 +28,45 @@ const EmojiItem = ({emoji, onItemClick, order}: Props) => {
 
     const emojiName = getEmojiName(emoji);
 
+    // Get emoji description
+    let emojiDescription = '';
+    if ('description' in emoji && emoji.description) {
+        // For custom emojis, use the description field
+        emojiDescription = emoji.description;
+    } else if ('name' in emoji) {
+        // For system emojis, use the name field (unicode description)
+        emojiDescription = emoji.name;
+    }
+
+    const emojiText = `:${emojiName}:`;
+
     return (
-        <div
-            className={classNames(itemClassName, 'post-menu__emoticon')}
-            onClick={handleClick}
+        <EmojiTooltip
+            emojiName={emojiName}
+            emojiDescription={emojiDescription}
+            title={emojiText}
         >
-            <button
-                id={`recent_reaction_${order}`}
-                data-testid={itemClassName + '_emoji'}
-                className='emoticon--post-menu'
-                style={{backgroundImage: `url(${getEmojiImageUrl(emoji)})`, backgroundColor: 'transparent'}}
-                aria-label={formatMessage(
-                    {
-                        id: 'emoji_picker_item.emoji_aria_label',
-                        defaultMessage: '{emojiName} emoji',
-                    },
-                    {
-                        emojiName: (emojiName).replace(/_/g, ' '),
-                    },
-                )}
-            />
-        </div>
+            <div
+                className={classNames(itemClassName, 'post-menu__emoticon')}
+                onClick={handleClick}
+            >
+                <button
+                    id={`recent_reaction_${order}`}
+                    data-testid={itemClassName + '_emoji'}
+                    className='emoticon--post-menu'
+                    style={{backgroundImage: `url(${getEmojiImageUrl(emoji)})`, backgroundColor: 'transparent'}}
+                    aria-label={formatMessage(
+                        {
+                            id: 'emoji_picker_item.emoji_aria_label',
+                            defaultMessage: '{emojiName} emoji',
+                        },
+                        {
+                            emojiName: (emojiName).replace(/_/g, ' '),
+                        },
+                    )}
+                />
+            </div>
+        </EmojiTooltip>
     );
 };
 

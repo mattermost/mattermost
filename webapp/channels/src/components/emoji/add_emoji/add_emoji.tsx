@@ -23,23 +23,35 @@ import type EmojiMap from 'utils/emoji_map';
 export interface AddEmojiProps {
     actions: {
         createCustomEmoji: (term: CustomEmoji, imageData: File) => Promise<ActionResult>;
+        patchCustomEmoji?: (emoji: CustomEmoji) => Promise<ActionResult>;
+        getCustomEmoji?: (emojiId: string) => Promise<ActionResult>;
     };
     emojiMap: EmojiMap;
     user: UserProfile;
     team: Team;
+    match?: {
+        params: {
+            emojiId?: string;
+        };
+    };
 }
 
 type EmojiCreateArgs = {
     creator_id: string;
     name: string;
+    description: string;
 };
 
 type AddEmojiState = {
     name: string;
+    description: string;
     image: File | null;
     imageUrl: string | ArrayBuffer | null;
     saving: boolean;
     error: React.ReactNode;
+    loading: boolean;
+    isEditMode: boolean;
+    emojiId: string;
 };
 
 interface AddErrorResponse {
@@ -54,13 +66,45 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
     constructor(props: AddEmojiProps) {
         super(props);
 
+        const isEditMode = Boolean(props.match?.params?.emojiId);
+        const emojiId = props.match?.params?.emojiId || '';
+
         this.state = {
             name: '',
+            description: '',
             image: null,
             imageUrl: '',
             saving: false,
             error: null,
+            loading: isEditMode,
+            isEditMode,
+            emojiId,
         };
+    }
+
+    async componentDidMount() {
+        if (this.state.isEditMode && this.props.actions.getCustomEmoji) {
+            const result = await this.props.actions.getCustomEmoji(this.state.emojiId);
+            if ('data' in result) {
+                const emoji = (result as {data: CustomEmoji}).data;
+                this.setState({
+                    name: emoji.name,
+                    description: emoji.description || '',
+                    imageUrl: `${this.props.user ? '/api/v4' : ''}/emoji/${emoji.id}/image`,
+                    loading: false,
+                });
+            } else {
+                this.setState({
+                    loading: false,
+                    error: (
+                        <FormattedMessage
+                            id='add_emoji.failedToLoad'
+                            defaultMessage='Failed to load emoji'
+                        />
+                    ),
+                });
+            }
+        }
     }
 
     handleFormSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
@@ -73,7 +117,7 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
 
     handleSubmit = async (e: SyntheticEvent<unknown>): Promise<void> => {
         const {actions, emojiMap, user, team} = this.props;
-        const {image, name, saving} = this.state;
+        const {image, name, description, saving, isEditMode, emojiId} = this.state;
 
         e.preventDefault();
 
@@ -86,9 +130,53 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
             error: null,
         });
 
+        // Handle edit mode
+        if (isEditMode && actions.patchCustomEmoji) {
+            const emoji: CustomEmoji = {
+                id: emojiId,
+                create_at: 0,
+                update_at: 0,
+                delete_at: 0,
+                creator_id: user.id,
+                name: name,
+                description: description.trim(),
+                category: 'custom',
+            };
+
+            const response = await actions.patchCustomEmoji(emoji);
+
+            if ('data' in response) {
+                getHistory().push('/' + team.name + '/emoji');
+                return;
+            }
+
+            if ('error' in response) {
+                const responseError = response as AddErrorResponse;
+                if (responseError) {
+                    this.setState({
+                        saving: false,
+                        error: responseError.error.message,
+                    });
+                    return;
+                }
+            }
+
+            this.setState({
+                saving: false,
+                error: (
+                    <FormattedMessage
+                        id='add_emoji.failedToUpdate'
+                        defaultMessage='Something went wrong when updating the custom emoji.'
+                    />
+                ),
+            });
+            return;
+        }
+
         const emoji: EmojiCreateArgs = {
             creator_id: user.id,
             name: name.trim().toLowerCase(),
+            description: description.trim(),
         };
 
         // trim surrounding colons if the user accidentally included them in the name
@@ -222,6 +310,12 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
         });
     };
 
+    updateDescription = (e: ChangeEvent<HTMLTextAreaElement>): void => {
+        this.setState({
+            description: e.target.value,
+        });
+    };
+
     updateImage = (e: ChangeEvent<HTMLInputElement>): void => {
         if (e.target.files == null || e.target.files.length === 0) {
             this.setState({
@@ -245,6 +339,21 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
     };
 
     render(): JSX.Element {
+        const {isEditMode, loading} = this.state;
+
+        if (loading) {
+            return (
+                <div className='backstage-content row'>
+                    <div className='backstage-form'>
+                        <FormattedMessage
+                            id='add_emoji.loading'
+                            defaultMessage='Loading...'
+                        />
+                    </div>
+                </div>
+            );
+        }
+
         let filename = null;
         if (this.state.image) {
             filename = (
@@ -295,8 +404,8 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
                         />
                     </Link>
                     <FormattedMessage
-                        id='add_emoji.header'
-                        defaultMessage='Add'
+                        id={isEditMode ? 'edit_emoji.header' : 'add_emoji.header'}
+                        defaultMessage={isEditMode ? 'Edit' : 'Add'}
                     />
                 </BackstageHeader>
                 <div className='backstage-form'>
@@ -322,6 +431,8 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
                                     className='form-control'
                                     value={this.state.name}
                                     onChange={this.updateName}
+                                    disabled={isEditMode}
+                                    readOnly={isEditMode}
                                 />
                                 <div className='form__help'>
                                     <FormattedMessage
@@ -334,40 +445,69 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
                         <div className='form-group'>
                             <label
                                 className='control-label col-sm-4'
-                                htmlFor='image'
+                                htmlFor='description'
                             >
                                 <FormattedMessage
-                                    id='add_emoji.image'
-                                    defaultMessage='Image'
+                                    id='add_emoji.description'
+                                    defaultMessage='Description'
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8'>
-                                <div>
-                                    <div className='add-emoji__upload'>
-                                        <button className='btn btn-primary'>
-                                            <FormattedMessage
-                                                id='add_emoji.image.button'
-                                                defaultMessage='Select'
-                                            />
-                                        </button>
-                                        <input
-                                            id='select-emoji'
-                                            type='file'
-                                            accept={Constants.ACCEPT_EMOJI_IMAGE}
-                                            multiple={false}
-                                            onChange={this.updateImage}
-                                        />
-                                    </div>
-                                    {filename}
-                                    <div className='form__help'>
-                                        <FormattedMessage
-                                            id='add_emoji.image.help'
-                                            defaultMessage='Specify a .gif, .png, or .jpg file of up to 64 KB for your emoji. The dimensions can be up to 128 pixels by 128 pixels.'
-                                        />
-                                    </div>
+                                <textarea
+                                    id='description'
+                                    maxLength={1024}
+                                    className='form-control'
+                                    value={this.state.description}
+                                    onChange={this.updateDescription}
+                                    rows={3}
+                                />
+                                <div className='form__help'>
+                                    <FormattedMessage
+                                        id='add_emoji.description.help'
+                                        defaultMessage='Provide an optional description for your custom emoji (up to 1024 characters).'
+                                    />
                                 </div>
                             </div>
                         </div>
+                        {!isEditMode && (
+                            <div className='form-group'>
+                                <label
+                                    className='control-label col-sm-4'
+                                    htmlFor='image'
+                                >
+                                    <FormattedMessage
+                                        id='add_emoji.image'
+                                        defaultMessage='Image'
+                                    />
+                                </label>
+                                <div className='col-md-5 col-sm-8'>
+                                    <div>
+                                        <div className='add-emoji__upload'>
+                                            <button className='btn btn-primary'>
+                                                <FormattedMessage
+                                                    id='add_emoji.image.button'
+                                                    defaultMessage='Select'
+                                                />
+                                            </button>
+                                            <input
+                                                id='select-emoji'
+                                                type='file'
+                                                accept={Constants.ACCEPT_EMOJI_IMAGE}
+                                                multiple={false}
+                                                onChange={this.updateImage}
+                                            />
+                                        </div>
+                                        {filename}
+                                        <div className='form__help'>
+                                            <FormattedMessage
+                                                id='add_emoji.image.help'
+                                                defaultMessage='Specify a .gif, .png, or .jpg file of up to 64 KB for your emoji. The dimensions can be up to 128 pixels by 128 pixels.'
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                         {preview}
                         <div className='backstage-form__footer'>
                             <FormError

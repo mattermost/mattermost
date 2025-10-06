@@ -19,8 +19,20 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
     const emojiMap = getEmojiMap(state);
     const emoji = emojiMap.get(ownProps.name);
 
+    let emojiDescription = '';
+    if (emoji) {
+        // For custom emojis, use the description field
+        if ('description' in emoji && emoji.description) {
+            emojiDescription = emoji.description;
+        } else if ('name' in emoji) {
+            // For system emojis, use the name field (unicode description)
+            emojiDescription = emoji.name;
+        }
+    }
+
     return {
         imageUrl: emoji ? getEmojiImageUrl(emoji) : '',
+        emojiDescription,
     };
 }
 

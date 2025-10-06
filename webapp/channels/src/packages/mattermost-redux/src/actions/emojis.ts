@@ -194,6 +194,27 @@ export function loadProfilesForCustomEmojis(emojis: CustomEmoji[]): ActionFuncAs
     };
 }
 
+export function patchCustomEmoji(emoji: CustomEmoji): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        let data;
+        try {
+            data = await Client4.patchCustomEmoji(emoji);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch({
+            type: EmojiTypes.RECEIVED_CUSTOM_EMOJI,
+            data,
+        });
+
+        return {data};
+    };
+}
+
 export function deleteCustomEmoji(emojiId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         try {

@@ -631,6 +631,18 @@ $emoji-footer-height:  $emoji-footer-border-width + $emoji-half-height + $emoji-
             font-weight: bold;
             user-select: text;
         }
+
+        .emoji-picker__preview-description {
+            display: block;
+            margin-top: 4px;
+            font-size: 12px;
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            user-select: text;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 250px;
+        }
     }
 
     .emoji-picker__preview-image-box {

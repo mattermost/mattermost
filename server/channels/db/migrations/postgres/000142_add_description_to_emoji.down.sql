@@ -1,0 +1,1 @@
+ALTER TABLE emoji DROP COLUMN IF EXISTS description;

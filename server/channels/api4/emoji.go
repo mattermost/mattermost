@@ -27,6 +27,7 @@ func (api *API) InitEmoji() {
 	api.BaseRoutes.Emojis.Handle("/autocomplete", api.APISessionRequired(autocompleteEmojis)).Methods(http.MethodGet)
 	api.BaseRoutes.Emoji.Handle("", api.APISessionRequired(deleteEmoji)).Methods(http.MethodDelete)
 	api.BaseRoutes.Emoji.Handle("", api.APISessionRequired(getEmoji)).Methods(http.MethodGet)
+	api.BaseRoutes.Emoji.Handle("/patch", api.APISessionRequired(patchEmoji)).Methods(http.MethodPut)
 	api.BaseRoutes.EmojiByName.Handle("", api.APISessionRequired(getEmojiByName)).Methods(http.MethodGet)
 	api.BaseRoutes.Emoji.Handle("/image", api.APISessionRequiredTrustRequester(getEmojiImage)).Methods(http.MethodGet)
 }
@@ -126,6 +127,48 @@ func getEmojiList(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(listEmoji); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func patchEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireEmojiId()
+	if c.Err != nil {
+		return
+	}
+
+	var emoji model.Emoji
+	if jsonErr := json.NewDecoder(r.Body).Decode(&emoji); jsonErr != nil {
+		c.SetInvalidParam("emoji")
+		return
+	}
+
+	emoji.Id = c.Params.EmojiId
+
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateEmoji, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddEventResultState(&emoji)
+	auditRec.AddEventObjectType("emoji")
+
+	oldEmoji, err := c.App.GetEmoji(c.AppContext, c.Params.EmojiId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if oldEmoji.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystemWideEmojis) {
+		c.SetPermissionError(model.PermissionManageSystemWideEmojis)
+		return
+	}
+
+	updatedEmoji, err := c.App.UpdateEmoji(c.AppContext, &emoji)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	if err := json.NewEncoder(w).Encode(updatedEmoji); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
