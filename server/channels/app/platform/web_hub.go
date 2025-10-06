@@ -11,6 +11,7 @@ import (
 	"runtime"
 	"runtime/debug"
 	"strconv"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -66,6 +67,12 @@ type webConnCountMessage struct {
 	result chan int
 }
 
+type webConnActiveUsersMessage struct {
+	channelID     string
+	excludeUserID string
+	result        chan []string
+}
+
 var hubSemaphoreCount = runtime.NumCPU() * 4
 
 // Hub is the central place to manage all websocket connections in the server.
@@ -89,10 +96,14 @@ type Hub struct {
 	checkRegistered chan *webConnSessionMessage
 	checkConn       chan *webConnCheckMessage
 	connCount       chan *webConnCountMessage
+	activeUsers     chan *webConnActiveUsersMessage
 	broadcastHooks  map[string]BroadcastHook
 
 	// Hub-specific semaphore for limiting concurrent goroutines
 	hubSemaphore chan struct{}
+
+	// Pool for temporary maps to reduce allocations in hot paths
+	stringStructMapPool sync.Pool
 }
 
 // newWebHub creates a new Hub.
@@ -110,7 +121,14 @@ func newWebHub(ps *PlatformService) *Hub {
 		checkRegistered: make(chan *webConnSessionMessage),
 		checkConn:       make(chan *webConnCheckMessage),
 		connCount:       make(chan *webConnCountMessage),
+		activeUsers:     make(chan *webConnActiveUsersMessage),
 		hubSemaphore:    make(chan struct{}, hubSemaphoreCount),
+		stringStructMapPool: sync.Pool{
+			New: func() interface{} {
+				// Pre-allocate with reasonable capacity hint
+				return make(map[string]struct{}, 64)
+			},
+		},
 	}
 }
 
@@ -360,6 +378,36 @@ func (ps *PlatformService) WebConnCountForUser(userID string) int {
 	return 0
 }
 
+// GetActiveUserIDsForChannel returns user IDs with active WebSocket connections in a channel,
+// excluding the specified user ID (typically the user in session).
+// This iterates across all hubs to find users with active connections.
+// It leverages the byChannelID index when EnableWebHubChannelIteration is enabled for optimal performance.
+func (ps *PlatformService) GetActiveUserIDsForChannel(channelID, excludeUserID string) []string {
+	// Guard against empty channel ID or no hubs
+	if channelID == "" || len(ps.hubs) == 0 {
+		return []string{}
+	}
+
+	// Use map[string]struct{} for memory efficiency (follows model.StringSet pattern)
+	userIDMap := make(map[string]struct{}, 256)
+
+	// Iterate through all hubs to collect active users
+	for _, hub := range ps.hubs {
+		userIDs := hub.GetActiveUserIDsForChannel(channelID, excludeUserID)
+		for _, userID := range userIDs {
+			userIDMap[userID] = struct{}{}
+		}
+	}
+
+	// Convert map to slice
+	userIDs := make([]string, 0, len(userIDMap))
+	for userID := range userIDMap {
+		userIDs = append(userIDs, userID)
+	}
+
+	return userIDs
+}
+
 // Register registers a connection to the hub.
 func (h *Hub) Register(webConn *WebConn) error {
 	wr := &webConnRegisterMessage{
@@ -422,6 +470,27 @@ func (h *Hub) WebConnCountForUser(userID string) int {
 	case <-h.stop:
 	}
 	return 0
+}
+
+// GetActiveUserIDsForChannel returns user IDs with active WebSocket connections in a specific channel,
+// excluding the specified user ID.
+func (h *Hub) GetActiveUserIDsForChannel(channelID, excludeUserID string) []string {
+	// Guard against empty channel ID
+	if channelID == "" {
+		return []string{}
+	}
+
+	req := &webConnActiveUsersMessage{
+		channelID:     channelID,
+		excludeUserID: excludeUserID,
+		result:        make(chan []string),
+	}
+	select {
+	case h.activeUsers <- req:
+		return <-req.result
+	case <-h.stop:
+	}
+	return []string{}
 }
 
 // Broadcast broadcasts the message to all connections in the hub.
@@ -558,6 +627,78 @@ func (h *Hub) Start() {
 				req.result <- res
 			case req := <-h.connCount:
 				req.result <- connIndex.ForUserActiveCount(req.userID)
+			case req := <-h.activeUsers:
+				startTime := time.Now()
+
+				// Get map from pool to reduce allocations
+				userIDMap := h.stringStructMapPool.Get().(map[string]struct{})
+
+				// Clear map in case it's reused
+				for k := range userIDMap {
+					delete(userIDMap, k)
+				}
+
+				fastIteration := *h.platform.Config().ServiceSettings.EnableWebHubChannelIteration
+
+				if fastIteration {
+					// Use efficient channel-based iteration when enabled
+					for conn := range connIndex.ForChannel(req.channelID) {
+						if conn.Active.Load() && conn.UserId != "" && conn.UserId != req.excludeUserID {
+							userIDMap[conn.UserId] = struct{}{}
+						}
+					}
+				} else {
+					// Fall back to checking all connections (less efficient)
+					members, err := h.platform.Store.Channel().GetAllChannelMemberIdsByChannelId(req.channelID)
+
+					if err != nil {
+						h.platform.logger.Error("Failed to get channel members for active users query", mlog.String("channel_id", req.channelID), mlog.Err(err))
+					}
+
+					if len(members) == 0 || err != nil {
+						req.result <- []string{}
+						// Return map to pool before sending result
+						h.stringStructMapPool.Put(userIDMap)
+						continue
+					}
+
+					membersMap := make(map[string]struct{}, len(members))
+					for _, m := range members {
+						membersMap[m] = struct{}{}
+					}
+
+					allConns := connIndex.All()
+					for conn := range allConns {
+						if !conn.Active.Load() || conn.UserId == "" || conn.UserId == req.excludeUserID {
+							continue
+						}
+
+						if _, ok := membersMap[conn.UserId]; ok {
+							userIDMap[conn.UserId] = struct{}{}
+						}
+					}
+				}
+
+				// Convert map to slice
+				userIDs := make([]string, 0, len(userIDMap))
+				for userID := range userIDMap {
+					userIDs = append(userIDs, userID)
+				}
+
+				// Return map to pool before sending result
+				h.stringStructMapPool.Put(userIDMap)
+
+				// Debug logging for slow queries
+				if duration := time.Since(startTime); duration > 100*time.Millisecond {
+					h.platform.logger.Debug("Active users query took longer than expected",
+						mlog.String("channel_id", req.channelID),
+						mlog.Duration("duration", duration),
+						mlog.Int("result_count", len(userIDs)),
+						mlog.Int("hub_index", h.connectionIndex),
+					)
+				}
+
+				req.result <- userIDs
 			case <-ticker.C:
 				connIndex.RemoveInactiveConnections()
 			case webConnReg := <-h.register:
