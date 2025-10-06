@@ -10,12 +10,12 @@ import type {
 
 import {useUser} from 'components/common/hooks/useUser';
 import PreviewPostAvatar from 'components/post_view/post_message_preview/avatar/avatar';
+import type {UserPropertyMetadata} from 'components/properties_card_view/properties_card_view';
 import UserProfileComponent from 'components/user_profile';
 
 import {SelectableUserPropertyRenderer} from './selectable_user_property_renderer';
 
 import './user_property_renderer.scss';
-import { UserPropertyMetadata } from "components/properties_card_view/properties_card_view";
 
 type Props = {
     field: PropertyField;
@@ -32,6 +32,7 @@ export default function UserPropertyRenderer({field, value, metadata}: Props) {
             <SelectableUserPropertyRenderer
                 field={field}
                 metadata={metadata}
+                initialValue={userId}
             />
         );
     }

@@ -8,12 +8,12 @@ import type {
     PropertyValue,
 } from '@mattermost/types/properties';
 
-import {
+import type {
     FieldMetadata,
     PostPreviewFieldMetadata,
     TextFieldMetadata,
     UserPropertyMetadata,
-} from "components/properties_card_view/properties_card_view";
+} from 'components/properties_card_view/properties_card_view';
 
 import ChannelPropertyRenderer from './channel_property_renderer/channel_property_renderer';
 import PostPreviewPropertyRenderer from './post_preview_property_renderer/post_preview_property_renderer';

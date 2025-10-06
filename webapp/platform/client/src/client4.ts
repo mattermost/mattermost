@@ -4691,6 +4691,13 @@ export default class Client4 {
         );
     };
 
+    setContentFlaggingReviewer = (postId: string, reviewerId: string) => {
+        return this.doFetch(
+            `${this.getContentFlaggingRoute()}/post/${postId}/assign/${reviewerId}`,
+            {method: 'post'},
+        );
+    };
+
     saveContentFlaggingConfig = (config: ContentFlaggingSettings) => {
         return this.doFetch(
             `${this.getContentFlaggingRoute()}/config`,

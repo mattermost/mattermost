@@ -10,11 +10,11 @@ import type {
     PropertyField,
     PropertyValue,
 } from '@mattermost/types/properties';
+import type {UserProfile} from '@mattermost/types/users';
 
 import PropertyValueRenderer from './propertyValueRenderer/propertyValueRenderer';
 
 import './properties_card_view.scss';
-import { UserProfile } from "@mattermost/types/users";
 
 export type PostPreviewFieldMetadata = {
     getPost?: (postId: string) => Promise<Post>;
@@ -23,6 +23,7 @@ export type PostPreviewFieldMetadata = {
 
 export type UserPropertyMetadata = {
     searchUsers?: (term: string) => Promise<UserProfile[]>;
+    setUser?: (userId: string) => void;
 }
 
 export type TextFieldMetadata = {

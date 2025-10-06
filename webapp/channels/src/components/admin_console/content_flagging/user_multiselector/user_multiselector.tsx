@@ -41,7 +41,7 @@ type MultiSelectProps = {
 }
 
 type SingleSelectProps = {
-    singleSelectOnChange?: (selectedUserIds: string) => void;
+    singleSelectOnChange?: (selectedUserId: string) => void;
     singleSelectInitialValue?: string;
 }
 
@@ -127,10 +127,12 @@ export function UserSelector({id, isMulti, className, multiSelectOnChange, multi
                 }));
 
             callback(users);
+            return null;
         } catch (error) {
             // eslint-disable-next-line no-console
             console.error(error);
             callback([]);
+            return null;
         }
     }, 200), [searchFunc]);
 

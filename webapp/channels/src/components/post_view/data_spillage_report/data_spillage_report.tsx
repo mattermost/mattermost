@@ -138,16 +138,16 @@ export function DataSpillageReport({post, isRHS}: Props) {
         };
 
         if (channel) {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore
             fieldMetadata.reviewer_user_id = {
                 searchUsers: getSearchContentReviewersFunction(channel.team_id),
+                setUser: saveReviewerSelection(reportedPostId),
             };
         }
 
         return fieldMetadata;
-    }, [channel, formatMessage]);
-
-    console.log({metadata});
+    }, [channel, formatMessage, reportedPostId]);
 
     const footer = useMemo(() => {
         if (isRHS) {
@@ -205,5 +205,11 @@ async function loadFlaggedPost(postId: string) {
 function getSearchContentReviewersFunction(teamId: string) {
     return (term: string) => {
         return Client4.searchContentFlaggingReviewers(term, teamId);
+    };
+}
+
+function saveReviewerSelection(postId: string) {
+    return (userId: string) => {
+        return Client4.setContentFlaggingReviewer(postId, userId);
     };
 }
