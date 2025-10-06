@@ -10806,5 +10806,13 @@
   {
     "id": "app.user.check_user_password.failed_update",
     "translation": "Het is niet gelukt om het wachtwoord van de gebruiker bij te werken."
+  },
+  {
+    "id": "app.job.get_existing_jobs.error",
+    "translation": "Niet in staat om bestaande taken op te halen."
+  },
+  {
+    "id": "app.submit_interactive_dialog.invalid_response",
+    "translation": "Er is een ongeldige reactie gevonden bij het indienen van een interactief dialoogvenster."
   }
 ]
