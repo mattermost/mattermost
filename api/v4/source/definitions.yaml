@@ -4295,7 +4295,7 @@ components:
           description: text is the actual text that renders in the channel banner. Markdown is supported.
         background_color:
           type: string
-          description: background_color is the HEX color code for the banner's backgroubd
+          description: background_color is the HEX color code for the banner's background
     ContentFlaggingConfig:
       type: object
       properties:

@@ -748,7 +748,7 @@
   "admin.connectionSecurityTitle": "Connection Security:",
   "admin.connectionSecurityTls": "TLS",
   "admin.connectionSecurityTlsDescription": "Encrypts the communication between Mattermost and your server.",
-  "admin.content_flagging.enableTitle": "Enable content Flagging",
+  "admin.content_flagging.enableTitle": "Enable content flagging",
   "admin.contentFlagging.additionalSettings.description": "Configure how you want the flagging to behave",
   "admin.contentFlagging.additionalSettings.hideFlaggedPosts": "Hide message from channel while it is being reviewed",
   "admin.contentFlagging.additionalSettings.reasonsForFlagging": "Reasons for flagging",

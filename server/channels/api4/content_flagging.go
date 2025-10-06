@@ -57,7 +57,7 @@ func getFlaggingConfiguration(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// A team ID is expected to be specified bny a content reviewer.
+	// A team ID is expected to be specified by a content reviewer.
 	// When specified, we verify that the user is a content reviewer of the team.
 	// If the user is indeed a content reviewer, we return the configuration along with some extra fields
 	// that only a reviewer should be aware of.
@@ -82,14 +82,9 @@ func getFlaggingConfiguration(c *Context, w http.ResponseWriter, r *http.Request
 
 	config := getFlaggingConfig(c.App.Config().ContentFlaggingSettings, asReviewer)
 
-	responseBytes, err := json.Marshal(config)
-	if err != nil {
-		c.Err = model.NewAppError("getFlaggingConfiguration", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
-
-	if _, err := w.Write(responseBytes); err != nil {
+	if err := json.NewEncoder(w).Encode(config); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+		c.Err = model.NewAppError("getFlaggingConfiguration", "api.encoding_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 }
 
@@ -120,14 +115,9 @@ func getTeamPostFlaggingFeatureStatus(c *Context, w http.ResponseWriter, r *http
 		"enabled": enabled,
 	}
 
-	responseBytes, err := json.Marshal(payload)
-	if err != nil {
-		c.Err = model.NewAppError("getTeamPostFlaggingFeatureStatus", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
-
-	if _, err := w.Write(responseBytes); err != nil {
+	if err := json.NewEncoder(w).Encode(payload); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+		c.Err = model.NewAppError("getTeamPostFlaggingFeatureStatus", "api.encoding_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 }
 
@@ -225,14 +215,9 @@ func getContentFlaggingFields(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	responseBytes, err := json.Marshal(mappedFields)
-	if err != nil {
-		c.Err = model.NewAppError("getContentFlaggingFields", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
-
-	if _, err := w.Write(responseBytes); err != nil {
+	if err := json.NewEncoder(w).Encode(mappedFields); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+		c.Err = model.NewAppError("getContentFlaggingFields", "api.encoding_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 }
 
@@ -280,14 +265,9 @@ func getPostPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responseBytes, err := json.Marshal(propertyValues)
-	if err != nil {
-		c.Err = model.NewAppError("getPostPropertyValues", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
-
-	if _, err := w.Write(responseBytes); err != nil {
+	if err := json.NewEncoder(w).Encode(propertyValues); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+		c.Err = model.NewAppError("getPostPropertyValues", "api.encoding_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 }
 
@@ -521,13 +501,8 @@ func getContentFlaggingSettings(c *Context, w http.ResponseWriter, r *http.Reque
 		},
 	}
 
-	responseBytes, err := json.Marshal(fullConfig)
-	if err != nil {
-		c.Err = model.NewAppError("getContentFlaggingSettings", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
-
-	if _, err := w.Write(responseBytes); err != nil {
+	if err := json.NewEncoder(w).Encode(fullConfig); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+		c.Err = model.NewAppError("getContentFlaggingSettings", "api.encoding_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 }

@@ -1,14 +1,14 @@
 CREATE TABLE IF NOT EXISTS ContentFlaggingCommonReviewers (
-	userid VARCHAR(26) PRIMARY KEY
+	UserId VARCHAR(26) PRIMARY KEY
 );
 
 CREATE TABLE IF NOT EXISTS ContentFlaggingTeamSettings (
-	teamid VARCHAR(26) PRIMARY KEY,
-	enabled BOOLEAN
+	TeamId VARCHAR(26) PRIMARY KEY,
+	Enabled BOOLEAN
 );
 
 CREATE TABLE IF NOT EXISTS ContentFlaggingTeamReviewers (
-	teamid VARCHAR(26),
-	userid VARCHAR(26),
-	PRIMARY KEY (teamid, userid)
+	TeamId VARCHAR(26),
+	UserId VARCHAR(26),
+	PRIMARY KEY (TeamId, UserId)
 );
