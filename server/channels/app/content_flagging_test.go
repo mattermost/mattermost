@@ -109,6 +109,212 @@ func TestContentFlaggingEnabledForTeam(t *testing.T) {
 	})
 }
 
+func TestAssignFlaggedPostReviewer(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+	getBaseConfig := func() model.ContentFlaggingSettingsRequest {
+		config := model.ContentFlaggingSettingsRequest{}
+		config.SetDefaults()
+		config.ReviewerSettings.CommonReviewers = model.NewPointer(true)
+		config.ReviewerSettings.CommonReviewerIds = []string{th.BasicUser.Id}
+		config.AdditionalSettings.ReporterCommentRequired = model.NewPointer(false)
+		config.AdditionalSettings.HideFlaggedContent = model.NewPointer(false)
+		config.AdditionalSettings.Reasons = &[]string{"spam", "harassment", "inappropriate"}
+		return config
+	}
+
+	setupFlaggedPost := func() *model.Post {
+		appErr := th.App.SaveContentFlaggingConfig(getBaseConfig())
+		require.Nil(t, appErr)
+
+		post := th.CreatePost(th.BasicChannel)
+
+		flagData := model.FlagContentRequest{
+			Reason:  "spam",
+			Comment: "This is spam content",
+		}
+
+		appErr = th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
+		require.Nil(t, appErr)
+
+		return post
+	}
+
+	t.Run("should successfully assign reviewer to pending flagged post", func(t *testing.T) {
+		post := setupFlaggedPost()
+
+		appErr := th.App.AssignFlaggedPostReviewer(post.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+		require.Nil(t, appErr)
+
+		// Verify status was updated to assigned
+		statusValue, appErr := th.App.GetPostContentFlaggingStatusValue(post.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, `"`+model.ContentFlaggingStatusAssigned+`"`, string(statusValue.Value))
+
+		// Verify reviewer property was created
+		groupId, appErr := th.App.ContentFlaggingGroupId()
+		require.Nil(t, appErr)
+
+		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
+		require.Nil(t, appErr)
+
+		reviewerValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+			TargetIDs: []string{post.Id},
+			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
+			FieldID:   mappedFields[contentFlaggingPropertyNameReviewerUserID].ID,
+		})
+		require.NoError(t, err)
+		require.Len(t, reviewerValues, 1)
+		require.Equal(t, `"`+th.BasicUser.Id+`"`, string(reviewerValues[0].Value))
+	})
+
+	t.Run("should successfully reassign reviewer to already assigned flagged post", func(t *testing.T) {
+		post := setupFlaggedPost()
+
+		// First assignment
+		appErr := th.App.AssignFlaggedPostReviewer(post.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+		require.Nil(t, appErr)
+
+		// Second assignment (reassignment)
+		appErr = th.App.AssignFlaggedPostReviewer(post.Id, th.BasicUser2.Id, th.SystemAdminUser.Id)
+		require.Nil(t, appErr)
+
+		// Verify status remains assigned
+		statusValue, appErr := th.App.GetPostContentFlaggingStatusValue(post.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, `"`+model.ContentFlaggingStatusAssigned+`"`, string(statusValue.Value))
+
+		// Verify reviewer property was updated
+		groupId, appErr := th.App.ContentFlaggingGroupId()
+		require.Nil(t, appErr)
+
+		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
+		require.Nil(t, appErr)
+
+		reviewerValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+			TargetIDs: []string{post.Id},
+			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
+			FieldID:   mappedFields[contentFlaggingPropertyNameReviewerUserID].ID,
+		})
+		require.NoError(t, err)
+		require.Len(t, reviewerValues, 1)
+		require.Equal(t, `"`+th.BasicUser2.Id+`"`, string(reviewerValues[0].Value))
+	})
+
+	t.Run("should fail when trying to assign reviewer to non-flagged post", func(t *testing.T) {
+		post := th.CreatePost(th.BasicChannel)
+
+		appErr := th.App.AssignFlaggedPostReviewer(post.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+	})
+
+	t.Run("should fail when trying to assign reviewer to retained post", func(t *testing.T) {
+		post := setupFlaggedPost()
+
+		// First retain the post
+		actionRequest := &model.FlagContentActionRequest{
+			Comment: "Keeping this post",
+		}
+		appErr := th.App.KeepFlaggedPost(th.Context, actionRequest, th.BasicUser.Id, post)
+		require.Nil(t, appErr)
+
+		// Try to assign reviewer to retained post
+		appErr = th.App.AssignFlaggedPostReviewer(post.Id, th.BasicUser2.Id, th.SystemAdminUser.Id)
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.content_flagging.error.post_not_in_progress", appErr.Id)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("should fail when trying to assign reviewer to removed post", func(t *testing.T) {
+		post := setupFlaggedPost()
+
+		// First remove the post
+		actionRequest := &model.FlagContentActionRequest{
+			Comment: "Removing this post",
+		}
+		appErr := th.App.PermanentDeleteFlaggedPost(th.Context, actionRequest, th.BasicUser.Id, post)
+		require.Nil(t, appErr)
+
+		// Try to assign reviewer to removed post
+		appErr = th.App.AssignFlaggedPostReviewer(post.Id, th.BasicUser2.Id, th.SystemAdminUser.Id)
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.content_flagging.error.post_not_in_progress", appErr.Id)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+	})
+
+	t.Run("should handle assignment with same reviewer ID", func(t *testing.T) {
+		post := setupFlaggedPost()
+
+		// Assign reviewer
+		appErr := th.App.AssignFlaggedPostReviewer(post.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+		require.Nil(t, appErr)
+
+		// Assign same reviewer again
+		appErr = th.App.AssignFlaggedPostReviewer(post.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+		require.Nil(t, appErr)
+
+		// Verify status remains assigned
+		statusValue, appErr := th.App.GetPostContentFlaggingStatusValue(post.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, `"`+model.ContentFlaggingStatusAssigned+`"`, string(statusValue.Value))
+
+		// Verify reviewer property still exists with correct value
+		groupId, appErr := th.App.ContentFlaggingGroupId()
+		require.Nil(t, appErr)
+
+		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
+		require.Nil(t, appErr)
+
+		reviewerValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+			TargetIDs: []string{post.Id},
+			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
+			FieldID:   mappedFields[contentFlaggingPropertyNameReviewerUserID].ID,
+		})
+		require.NoError(t, err)
+		require.Len(t, reviewerValues, 1)
+		require.Equal(t, `"`+th.BasicUser.Id+`"`, string(reviewerValues[0].Value))
+	})
+
+	t.Run("should handle assignment with empty reviewer ID", func(t *testing.T) {
+		post := setupFlaggedPost()
+
+		appErr := th.App.AssignFlaggedPostReviewer(post.Id, "", th.SystemAdminUser.Id)
+		require.Nil(t, appErr)
+
+		// Verify status was updated to assigned
+		statusValue, appErr := th.App.GetPostContentFlaggingStatusValue(post.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, `"`+model.ContentFlaggingStatusAssigned+`"`, string(statusValue.Value))
+
+		// Verify reviewer property was created with empty value
+		groupId, appErr := th.App.ContentFlaggingGroupId()
+		require.Nil(t, appErr)
+
+		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
+		require.Nil(t, appErr)
+
+		reviewerValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
+			TargetIDs: []string{post.Id},
+			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
+			FieldID:   mappedFields[contentFlaggingPropertyNameReviewerUserID].ID,
+		})
+		require.NoError(t, err)
+		require.Len(t, reviewerValues, 1)
+		require.Equal(t, `""`, string(reviewerValues[0].Value))
+	})
+
+	t.Run("should handle assignment with invalid post ID", func(t *testing.T) {
+		appErr := th.App.AssignFlaggedPostReviewer("invalid_post_id", th.BasicUser.Id, th.SystemAdminUser.Id)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+	})
+}
+
 func TestSaveContentFlaggingConfig(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
