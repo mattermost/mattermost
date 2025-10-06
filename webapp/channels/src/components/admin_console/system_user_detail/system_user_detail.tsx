@@ -543,7 +543,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                                     type='text'
                                                     value={this.state.emailField}
                                                     onChange={this.handleEmailChange}
-                                                    disabled={this.state.error !== null || this.state.isSaving}
+                                                    disabled={this.state.isSaving}
                                                     aria-describedby= 'email-error'
                                                     aria-invalid={this.state.emailError ? 'true' : 'false'}
                                                 />
@@ -601,7 +601,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                                     type='text'
                                                     value={this.state.usernameField}
                                                     onChange={this.handleUsernameChange}
-                                                    disabled={this.state.error !== null || this.state.isSaving}
+                                                    disabled={this.state.isSaving}
                                                     placeholder={this.props.intl.formatMessage({
                                                         id: 'admin.userManagement.userDetail.username.input',
                                                         defaultMessage: 'Enter username',
@@ -642,7 +642,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                                 type='text'
                                                 value={this.state.authDataField}
                                                 onChange={this.handleAuthDataChange}
-                                                disabled={this.state.error !== null || this.state.isSaving}
+                                                disabled={this.state.isSaving}
                                                 placeholder={this.props.intl.formatMessage({
                                                         id: 'admin.userManagement.userDetail.authData.input',
                                                         defaultMessage: 'Enter auth data',
@@ -760,7 +760,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                         type='button'
                                         className='btn btn-primary'
                                         onClick={this.toggleOpenTeamSelectorModal}
-                                        disabled={this.state.isLoading || this.state.error !== null}
+                                        disabled={this.state.isLoading}
                                     >
                                         <FormattedMessage
                                             id='admin.userManagement.userDetail.addTeam'
@@ -790,7 +790,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                 <div className='admin-console-save'>
                     <SaveButton
                         saving={this.state.isSaving}
-                        disabled={!this.state.isSaveNeeded || this.state.isLoading || this.state.error !== null || this.state.isSaving || this.state.emailError !== null || this.state.usernameError !== null}
+                        disabled={!this.state.isSaveNeeded || this.state.isLoading || this.state.isSaving || this.state.emailError !== null || this.state.usernameError !== null}
                         onClick={this.handleSubmit}
                     />
                     <div
