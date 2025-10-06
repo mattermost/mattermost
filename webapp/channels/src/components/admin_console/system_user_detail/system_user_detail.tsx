@@ -644,8 +644,8 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                                 onChange={this.handleAuthDataChange}
                                                 disabled={this.state.isSaving}
                                                 placeholder={this.props.intl.formatMessage({
-                                                        id: 'admin.userManagement.userDetail.authData.input',
-                                                        defaultMessage: 'Enter auth data',
+                                                    id: 'admin.userManagement.userDetail.authData.input',
+                                                    defaultMessage: 'Enter auth data',
                                                 })}
                                             />
                                         </label>
