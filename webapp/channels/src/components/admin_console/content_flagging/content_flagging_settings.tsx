@@ -120,7 +120,7 @@ export default function ContentFlaggingSettings() {
                             label={
                                 <FormattedMessage
                                     id='admin.content_flagging.enableTitle'
-                                    defaultMessage='Enable content Flagging'
+                                    defaultMessage='Enable content flagging'
                                 />
                             }
                             value={contentFlaggingSettings?.EnableContentFlagging || false}

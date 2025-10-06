@@ -2089,6 +2089,10 @@
     "translation": "Unable to seek to file start."
   },
   {
+    "id": "api.encoding_error",
+    "translation": "Encountered an error encoding JSON for the API response"
+  },
+  {
     "id": "api.error_get_first_admin_complete_setup",
     "translation": "Error trying to retrieve first admin complete setup from the store."
   },
