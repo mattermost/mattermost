@@ -180,7 +180,31 @@ func (s *MmctlUnitTestSuite) TestServerVersionCmd() {
 }
 
 func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
-	s.Run("Print server status", func() {
+	s.Run("Print server status - all healthy", func() {
+		printer.Clean()
+
+		expectedStatus := map[string]string{
+			"status":           model.StatusOk,
+			"database_status":  model.StatusOk,
+			"filestore_status": model.StatusOk,
+		}
+		s.client.
+			EXPECT().
+			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+				FullStatus:    true,
+				RESTSemantics: true,
+			}).
+			Return(expectedStatus, &model.Response{}, nil).
+			Times(1)
+
+		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], expectedStatus)
+	})
+
+	s.Run("Status fields missing - should succeed", func() {
 		printer.Clean()
 
 		expectedStatus := map[string]any{"status": "OK"}
@@ -216,6 +240,104 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		s.Require().Error(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
+	})
+
+	s.Run("Empty string database status is ignored", func() {
+		printer.Clean()
+
+		emptyDbStatus := map[string]string{
+			"status":           model.StatusOk,
+			"database_status":  "",
+			"filestore_status": model.StatusOk,
+		}
+		s.client.
+			EXPECT().
+			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+				FullStatus:    true,
+				RESTSemantics: true,
+			}).
+			Return(emptyDbStatus, &model.Response{}, nil).
+			Times(1)
+
+		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+	})
+
+	s.Run("Unhealthy server status should return true", func() {
+		printer.Clean()
+
+		unhealthyStatus := map[string]string{
+			"status":           model.StatusUnhealthy,
+			"database_status":  model.StatusOk,
+			"filestore_status": model.StatusOk,
+		}
+		s.client.
+			EXPECT().
+			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+				FullStatus:    true,
+				RESTSemantics: true,
+			}).
+			Return(unhealthyStatus, &model.Response{}, nil).
+			Times(1)
+
+		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "server status is unhealthy")
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], unhealthyStatus)
+	})
+
+	s.Run("Unhealthy database status should return true", func() {
+		printer.Clean()
+
+		unhealthyStatus := map[string]string{
+			"status":           model.StatusOk,
+			"database_status":  model.StatusUnhealthy,
+			"filestore_status": model.StatusOk,
+		}
+		s.client.
+			EXPECT().
+			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+				FullStatus:    true,
+				RESTSemantics: true,
+			}).
+			Return(unhealthyStatus, &model.Response{}, nil).
+			Times(1)
+
+		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "database status is unhealthy")
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], unhealthyStatus)
+	})
+
+	s.Run("Unhealthy filestore status should return true", func() {
+		printer.Clean()
+
+		unhealthyStatus := map[string]string{
+			"status":           model.StatusOk,
+			"database_status":  model.StatusOk,
+			"filestore_status": model.StatusUnhealthy,
+		}
+		s.client.
+			EXPECT().
+			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+				FullStatus:    true,
+				RESTSemantics: true,
+			}).
+			Return(unhealthyStatus, &model.Response{}, nil).
+			Times(1)
+
+		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "filestore status is unhealthy")
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], unhealthyStatus)
 	})
 }
 
