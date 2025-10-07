@@ -1561,3 +1561,355 @@ func TestSearchReviewers(t *testing.T) {
 		}
 	})
 }
+
+func TestGetReviewerPostsForFlaggedPost(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+	getBaseConfig := func() model.ContentFlaggingSettingsRequest {
+		config := model.ContentFlaggingSettingsRequest{}
+		config.SetDefaults()
+		config.ReviewerSettings.CommonReviewers = model.NewPointer(true)
+		config.ReviewerSettings.CommonReviewerIds = []string{th.BasicUser.Id}
+		config.AdditionalSettings.ReporterCommentRequired = model.NewPointer(false)
+		config.AdditionalSettings.HideFlaggedContent = model.NewPointer(false)
+		config.AdditionalSettings.Reasons = &[]string{"spam", "harassment", "inappropriate"}
+		return config
+	}
+
+	setupFlaggedPost := func() *model.Post {
+		appErr := th.App.SaveContentFlaggingConfig(getBaseConfig())
+		require.Nil(t, appErr)
+
+		post := th.CreatePost(th.BasicChannel)
+
+		flagData := model.FlagContentRequest{
+			Reason:  "spam",
+			Comment: "This is spam content",
+		}
+
+		appErr = th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
+		require.Nil(t, appErr)
+
+		return post
+	}
+
+	t.Run("should return reviewer posts for flagged post", func(t *testing.T) {
+		post := setupFlaggedPost()
+
+		// Wait for async reviewer post creation to complete
+		time.Sleep(2 * time.Second)
+
+		groupId, appErr := th.App.ContentFlaggingGroupId()
+		require.Nil(t, appErr)
+
+		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
+		require.Nil(t, appErr)
+
+		flaggedPostIdField, ok := mappedFields[contentFlaggingPropertyNameFlaggedPostId]
+		require.True(t, ok)
+
+		reviewerPostIds, appErr := th.App.getReviewerPostsForFlaggedPost(groupId, post.Id, flaggedPostIdField.ID)
+		require.Nil(t, appErr)
+		require.Len(t, reviewerPostIds, 1)
+
+		// Verify the reviewer post exists and has the correct properties
+		reviewerPost, appErr := th.App.GetSinglePost(th.Context, reviewerPostIds[0], false)
+		require.Nil(t, appErr)
+		require.Equal(t, model.ContentFlaggingPostType, reviewerPost.Type)
+		require.Contains(t, reviewerPost.GetProps(), POST_PROP_KEY_FLAGGED_POST_ID)
+		require.Equal(t, post.Id, reviewerPost.GetProps()[POST_PROP_KEY_FLAGGED_POST_ID])
+	})
+
+	t.Run("should return empty list when no reviewer posts exist", func(t *testing.T) {
+		post := th.CreatePost(th.BasicChannel)
+
+		groupId, appErr := th.App.ContentFlaggingGroupId()
+		require.Nil(t, appErr)
+
+		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
+		require.Nil(t, appErr)
+
+		flaggedPostIdField, ok := mappedFields[contentFlaggingPropertyNameFlaggedPostId]
+		require.True(t, ok)
+
+		reviewerPostIds, appErr := th.App.getReviewerPostsForFlaggedPost(groupId, post.Id, flaggedPostIdField.ID)
+		require.Nil(t, appErr)
+		require.Len(t, reviewerPostIds, 0)
+	})
+
+	t.Run("should handle multiple reviewer posts for same flagged post", func(t *testing.T) {
+		// Create a config with multiple reviewers
+		config := getBaseConfig()
+		config.ReviewerSettings.CommonReviewerIds = []string{th.BasicUser.Id, th.BasicUser2.Id}
+		appErr := th.App.SaveContentFlaggingConfig(config)
+		require.Nil(t, appErr)
+
+		post := th.CreatePost(th.BasicChannel)
+
+		flagData := model.FlagContentRequest{
+			Reason:  "spam",
+			Comment: "This is spam content",
+		}
+
+		appErr = th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.SystemAdminUser.Id, flagData)
+		require.Nil(t, appErr)
+
+		// Wait for async reviewer post creation to complete
+		time.Sleep(2 * time.Second)
+
+		groupId, appErr := th.App.ContentFlaggingGroupId()
+		require.Nil(t, appErr)
+
+		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
+		require.Nil(t, appErr)
+
+		flaggedPostIdField, ok := mappedFields[contentFlaggingPropertyNameFlaggedPostId]
+		require.True(t, ok)
+
+		reviewerPostIds, appErr := th.App.getReviewerPostsForFlaggedPost(groupId, post.Id, flaggedPostIdField.ID)
+		require.Nil(t, appErr)
+		require.Len(t, reviewerPostIds, 2)
+
+		// Verify both reviewer posts exist and have correct properties
+		for _, postId := range reviewerPostIds {
+			reviewerPost, appErr := th.App.GetSinglePost(th.Context, postId, false)
+			require.Nil(t, appErr)
+			require.Equal(t, model.ContentFlaggingPostType, reviewerPost.Type)
+			require.Contains(t, reviewerPost.GetProps(), POST_PROP_KEY_FLAGGED_POST_ID)
+			require.Equal(t, post.Id, reviewerPost.GetProps()[POST_PROP_KEY_FLAGGED_POST_ID])
+		}
+	})
+
+	t.Run("should handle invalid flagged post ID", func(t *testing.T) {
+		groupId, appErr := th.App.ContentFlaggingGroupId()
+		require.Nil(t, appErr)
+
+		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
+		require.Nil(t, appErr)
+
+		flaggedPostIdField, ok := mappedFields[contentFlaggingPropertyNameFlaggedPostId]
+		require.True(t, ok)
+
+		reviewerPostIds, appErr := th.App.getReviewerPostsForFlaggedPost(groupId, "invalid_post_id", flaggedPostIdField.ID)
+		require.Nil(t, appErr)
+		require.Len(t, reviewerPostIds, 0)
+	})
+}
+
+func TestPostReviewerMessage(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+	getBaseConfig := func() model.ContentFlaggingSettingsRequest {
+		config := model.ContentFlaggingSettingsRequest{}
+		config.SetDefaults()
+		config.ReviewerSettings.CommonReviewers = model.NewPointer(true)
+		config.ReviewerSettings.CommonReviewerIds = []string{th.BasicUser.Id}
+		config.AdditionalSettings.ReporterCommentRequired = model.NewPointer(false)
+		config.AdditionalSettings.HideFlaggedContent = model.NewPointer(false)
+		config.AdditionalSettings.Reasons = &[]string{"spam", "harassment", "inappropriate"}
+		return config
+	}
+
+	setupFlaggedPost := func() *model.Post {
+		appErr := th.App.SaveContentFlaggingConfig(getBaseConfig())
+		require.Nil(t, appErr)
+
+		post := th.CreatePost(th.BasicChannel)
+
+		flagData := model.FlagContentRequest{
+			Reason:  "spam",
+			Comment: "This is spam content",
+		}
+
+		appErr = th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
+		require.Nil(t, appErr)
+
+		return post
+	}
+
+	t.Run("should post reviewer message to thread", func(t *testing.T) {
+		post := setupFlaggedPost()
+
+		// Wait for async reviewer post creation to complete
+		time.Sleep(2 * time.Second)
+
+		groupId, appErr := th.App.ContentFlaggingGroupId()
+		require.Nil(t, appErr)
+
+		testMessage := "Test reviewer message"
+		appErr = th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id)
+		require.Nil(t, appErr)
+
+		// Wait for async message posting to complete
+		time.Sleep(2 * time.Second)
+
+		// Verify message was posted to the reviewer thread
+		contentReviewBot, appErr := th.App.getContentReviewBot(th.Context)
+		require.Nil(t, appErr)
+
+		dmChannel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, contentReviewBot.UserId)
+		require.Nil(t, appErr)
+
+		posts, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
+			ChannelId: dmChannel.Id,
+			Page:      0,
+			PerPage:   10,
+		})
+		require.Nil(t, appErr)
+
+		// Find the original review post and the test message
+		var reviewPost *model.Post
+		var testMessagePost *model.Post
+		for _, p := range posts.Posts {
+			if p.Type == "custom_spillage_report" {
+				reviewPost = p
+			} else if p.RootId != "" && p.Message == testMessage {
+				testMessagePost = p
+			}
+		}
+		require.NotNil(t, reviewPost)
+		require.NotNil(t, testMessagePost)
+		require.Equal(t, reviewPost.Id, testMessagePost.RootId)
+		require.Equal(t, contentReviewBot.UserId, testMessagePost.UserId)
+	})
+
+	t.Run("should handle multiple reviewer channels", func(t *testing.T) {
+		// Create a config with multiple reviewers
+		config := getBaseConfig()
+		config.ReviewerSettings.CommonReviewerIds = []string{th.BasicUser.Id, th.BasicUser2.Id}
+		appErr := th.App.SaveContentFlaggingConfig(config)
+		require.Nil(t, appErr)
+
+		post := th.CreatePost(th.BasicChannel)
+
+		flagData := model.FlagContentRequest{
+			Reason:  "spam",
+			Comment: "This is spam content",
+		}
+
+		appErr = th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.SystemAdminUser.Id, flagData)
+		require.Nil(t, appErr)
+
+		// Wait for async reviewer post creation to complete
+		time.Sleep(2 * time.Second)
+
+		groupId, appErr := th.App.ContentFlaggingGroupId()
+		require.Nil(t, appErr)
+
+		testMessage := "Test message for multiple reviewers"
+		appErr = th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id)
+		require.Nil(t, appErr)
+
+		// Wait for async message posting to complete
+		time.Sleep(2 * time.Second)
+
+		// Verify message was posted to both reviewer threads
+		contentReviewBot, appErr := th.App.getContentReviewBot(th.Context)
+		require.Nil(t, appErr)
+
+		// Check first reviewer's channel
+		dmChannel1, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, contentReviewBot.UserId)
+		require.Nil(t, appErr)
+
+		posts1, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
+			ChannelId: dmChannel1.Id,
+			Page:      0,
+			PerPage:   10,
+		})
+		require.Nil(t, appErr)
+
+		// Check second reviewer's channel
+		dmChannel2, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser2.Id, contentReviewBot.UserId)
+		require.Nil(t, appErr)
+
+		posts2, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
+			ChannelId: dmChannel2.Id,
+			Page:      0,
+			PerPage:   10,
+		})
+		require.Nil(t, appErr)
+
+		// Verify test message exists in both channels
+		var testMessagePost1, testMessagePost2 *model.Post
+		for _, p := range posts1.Posts {
+			if p.RootId != "" && p.Message == testMessage {
+				testMessagePost1 = p
+				break
+			}
+		}
+		for _, p := range posts2.Posts {
+			if p.RootId != "" && p.Message == testMessage {
+				testMessagePost2 = p
+				break
+			}
+		}
+		require.NotNil(t, testMessagePost1)
+		require.NotNil(t, testMessagePost2)
+		require.Equal(t, contentReviewBot.UserId, testMessagePost1.UserId)
+		require.Equal(t, contentReviewBot.UserId, testMessagePost2.UserId)
+	})
+
+	t.Run("should handle case when no reviewer posts exist", func(t *testing.T) {
+		post := th.CreatePost(th.BasicChannel)
+
+		groupId, appErr := th.App.ContentFlaggingGroupId()
+		require.Nil(t, appErr)
+
+		testMessage := "Test message for non-flagged post"
+		appErr = th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id)
+		require.Nil(t, appErr)
+
+		// Should not error, but no messages should be posted since no reviewer posts exist
+		// This is a graceful handling case
+	})
+
+	t.Run("should handle message with special characters", func(t *testing.T) {
+		post := setupFlaggedPost()
+
+		// Wait for async reviewer post creation to complete
+		time.Sleep(2 * time.Second)
+
+		groupId, appErr := th.App.ContentFlaggingGroupId()
+		require.Nil(t, appErr)
+
+		testMessage := "Test message with special chars: @user #channel ~team & <script>alert('xss')</script>"
+		appErr = th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id)
+		require.Nil(t, appErr)
+
+		// Wait for async message posting to complete
+		time.Sleep(2 * time.Second)
+
+		// Verify message was posted correctly with special characters preserved
+		contentReviewBot, appErr := th.App.getContentReviewBot(th.Context)
+		require.Nil(t, appErr)
+
+		dmChannel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, contentReviewBot.UserId)
+		require.Nil(t, appErr)
+
+		posts, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
+			ChannelId: dmChannel.Id,
+			Page:      0,
+			PerPage:   10,
+		})
+		require.Nil(t, appErr)
+
+		// Find the test message
+		var testMessagePost *model.Post
+		for _, p := range posts.Posts {
+			if p.RootId != "" && p.Message == testMessage {
+				testMessagePost = p
+				break
+			}
+		}
+		require.NotNil(t, testMessagePost)
+		require.Equal(t, testMessage, testMessagePost.Message)
+	})
+}
