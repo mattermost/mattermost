@@ -31,6 +31,7 @@ describe('components/TeamSettings', () => {
         hasChangeTabError: false,
         setHasChanges: jest.fn(),
         setHasChangeTabError: jest.fn(),
+        setJustSaved: jest.fn(),
         closeModal: jest.fn(),
         collapseModal: jest.fn(),
     };

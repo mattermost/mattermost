@@ -16,36 +16,41 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var CPACmd = &cobra.Command{
-	Use:   "cpa",
-	Short: "Management of Custom Profile Attributes",
-	Long:  "Management of Custom Profile Attributes (CPA) fields and values.",
+var UserAttributesCmd = &cobra.Command{
+	Use:     "attributes",
+	Aliases: []string{"attrs", "cpa"},
+	Short:   "Management of User Attributes",
+	Long:    "Management of User Attributes fields and values.",
 }
 
-var CPAFieldCmd = &cobra.Command{
+var UserAttributesFieldCmd = &cobra.Command{
 	Use:   "field",
-	Short: "Management of CPA fields",
-	Long:  "Create, list, edit, and delete Custom Profile Attribute fields.",
+	Short: "Management of User Attributes fields",
+	Long:  "Create, list, edit, and delete User Attribute fields.",
 }
 
-var CPAValueCmd = &cobra.Command{
+var UserAttributesValueCmd = &cobra.Command{
 	Use:   "value",
-	Short: "Management of CPA values",
-	Long:  "List, set, and delete Custom Profile Attribute values for users.",
+	Short: "Management of User Attributes values",
+	Long:  "List, set, and delete User Attribute values for users.",
 }
 
 func init() {
-	CPACmd.AddCommand(
-		CPAFieldCmd,
-		CPAValueCmd,
+	UserAttributesCmd.AddCommand(
+		UserAttributesFieldCmd,
+		UserAttributesValueCmd,
 	)
 
-	RootCmd.AddCommand(CPACmd)
+	UserCmd.AddCommand(UserAttributesCmd)
 }
 
-// Helper function to build field attributes from command flags
-func buildFieldAttrs(cmd *cobra.Command) (model.StringInterface, error) {
-	attrs := make(model.StringInterface)
+// Helper function to build field attributes from command flags. If existingAttrs is
+// provided, it will be used as the base and merged with flag changes
+func buildFieldAttrs(cmd *cobra.Command, existingAttrs model.StringInterface) (model.StringInterface, error) {
+	var attrs = make(model.StringInterface)
+	if existingAttrs != nil {
+		maps.Copy(attrs, existingAttrs)
+	}
 
 	// First parse --attrs if provided
 	if attrsStr, err := cmd.Flags().GetString("attrs"); err == nil && attrsStr != "" && cmd.Flags().Changed("attrs") {
@@ -70,11 +75,29 @@ func buildFieldAttrs(cmd *cobra.Command) (model.StringInterface, error) {
 	// Handle --option flags for select/multiselect fields
 	if options, err := cmd.Flags().GetStringSlice("option"); err == nil && len(options) > 0 && cmd.Flags().Changed("option") {
 		var selectOptions []*model.CustomProfileAttributesSelectOption
+
+		existingOptionsMap := make(map[string]*model.CustomProfileAttributesSelectOption)
+		if existingOptions, ok := attrs["options"]; ok {
+			existingOptionsJSON, err := json.Marshal(existingOptions)
+			if err == nil {
+				var existingSelectOptions []*model.CustomProfileAttributesSelectOption
+				if err := json.Unmarshal(existingOptionsJSON, &existingSelectOptions); err == nil {
+					for _, option := range existingSelectOptions {
+						existingOptionsMap[option.Name] = option
+					}
+				}
+			}
+		}
+
 		for _, optionName := range options {
-			selectOptions = append(selectOptions, &model.CustomProfileAttributesSelectOption{
-				ID:   model.NewId(),
-				Name: optionName,
-			})
+			if existingOption, exists := existingOptionsMap[optionName]; exists {
+				selectOptions = append(selectOptions, existingOption)
+			} else {
+				selectOptions = append(selectOptions, &model.CustomProfileAttributesSelectOption{
+					ID:   model.NewId(),
+					Name: optionName,
+				})
+			}
 		}
 		attrs["options"] = selectOptions
 	}

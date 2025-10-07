@@ -243,8 +243,8 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
         expect(screen.getByText('Mattermost Entry')).toBeInTheDocument();
 
         // Check for the subtitle with limits link
-        expect(screen.getByText(/Entry offers Enterprise Advanced capabilities with/)).toBeInTheDocument();
-        expect(screen.getByText('limits')).toBeInTheDocument();
+        expect(screen.getByText(/Entry offers Enterprise Advanced capabilities/)).toBeInTheDocument();
+        expect(screen.getByText('with limits')).toBeInTheDocument();
 
         // Check for the "Have a license?" section
         expect(screen.getByText('Have a license?')).toBeInTheDocument();
