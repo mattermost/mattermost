@@ -36,6 +36,8 @@ type TestHelper struct {
 	SystemAdminUser *model.User
 
 	runShutdown sync.Once
+
+	tempWorkspace string
 }
 
 type mockSuite struct{}
@@ -158,10 +160,11 @@ func setupTestHelper(dbStore store.Store, dbSettings *model.SqlSettings, enterpr
 	}
 
 	th := &TestHelper{
-		Context: request.TestContext(tb),
-		Service: ps,
-		Suite:   &mockSuite{},
-		Store:   dbStore,
+		Context:       request.TestContext(tb),
+		Service:       ps,
+		Suite:         &mockSuite{},
+		Store:         dbStore,
+		tempWorkspace: tempWorkspace,
 	}
 
 	if _, ok := dbStore.(*mocks.Store); ok {
@@ -218,6 +221,10 @@ func (th *TestHelper) Shutdown(tb testing.TB) {
 		require.NoError(tb, err)
 		err = th.Service.ShutdownConfig()
 		require.NoError(tb, err)
+		if th.tempWorkspace != "" {
+			err := os.RemoveAll(th.tempWorkspace)
+			require.NoError(tb, err)
+		}
 	})
 }
 

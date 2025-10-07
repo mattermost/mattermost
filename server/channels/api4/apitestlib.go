@@ -174,6 +174,7 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, sqlSettings *model.SqlS
 		TestLogger:        testLogger,
 		LogBuffer:         buffer,
 		Store:             dbStore,
+		tempWorkspace:     tempWorkspace,
 	}
 
 	if searchEngine != nil {
@@ -234,10 +235,6 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, sqlSettings *model.SqlS
 
 	th.LocalClient = th.CreateLocalClient(*memoryConfig.ServiceSettings.LocalModeSocketLocation)
 
-	if th.tempWorkspace == "" {
-		th.tempWorkspace = tempWorkspace
-	}
-
 	tb.Cleanup(func() {
 		if th.IncludeCacheLayer {
 			// Clean all the caches
@@ -247,7 +244,6 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, sqlSettings *model.SqlS
 
 		th.ShutdownApp()
 
-		// Cleanup the workspace
 		if th.tempWorkspace != "" {
 			err := os.RemoveAll(th.tempWorkspace)
 			require.NoError(tb, err)

@@ -127,6 +127,7 @@ func setupTestHelper(dbStore store.Store, sqlStore *sqlstore.SqlStore, sqlSettin
 		ConfigStore:       configStore,
 		Store:             dbStore,
 		SQLStore:          sqlStore,
+		tempWorkspace:     tempWorkspace,
 	}
 
 	th.App.Srv().SetLicense(getLicense(enterprise, memoryConfig))
@@ -163,10 +164,6 @@ func setupTestHelper(dbStore store.Store, sqlStore *sqlstore.SqlStore, sqlSettin
 		*cfg.PasswordSettings.Number = false
 	})
 
-	if th.tempWorkspace == "" {
-		th.tempWorkspace = tempWorkspace
-	}
-
 	tb.Cleanup(func() {
 		if th.IncludeCacheLayer {
 			// Clean all the caches
@@ -175,6 +172,7 @@ func setupTestHelper(dbStore store.Store, sqlStore *sqlstore.SqlStore, sqlSettin
 		}
 
 		th.ShutdownApp()
+
 		if th.tempWorkspace != "" {
 			err := os.RemoveAll(th.tempWorkspace)
 			require.NoError(tb, err)
