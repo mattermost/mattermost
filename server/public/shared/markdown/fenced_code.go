@@ -24,9 +24,11 @@ type FencedCode struct {
 }
 
 func (b *FencedCode) Code() (result string) {
+	var resultSb27 strings.Builder
 	for _, code := range b.RawCode {
-		result += strings.Repeat(" ", code.Indentation) + b.markdown[code.Range.Position:code.Range.End]
+		resultSb27.WriteString(strings.Repeat(" ", code.Indentation) + b.markdown[code.Range.Position:code.Range.End])
 	}
+	result += resultSb27.String()
 	return
 }
 

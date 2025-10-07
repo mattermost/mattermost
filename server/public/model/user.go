@@ -5,6 +5,7 @@ package model
 
 import (
 	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -265,7 +266,7 @@ func (r *ViewUsersRestrictions) Hash() string {
 	sort.Strings(ids)
 	hash := sha256.New()
 	hash.Write([]byte(strings.Join(ids, "")))
-	return fmt.Sprintf("%x", hash.Sum(nil))
+	return hex.EncodeToString(hash.Sum(nil))
 }
 
 //msgp:ignore UserSlice

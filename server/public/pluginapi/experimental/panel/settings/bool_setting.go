@@ -58,7 +58,7 @@ func (s *boolSetting) Get(userID string) (any, error) {
 }
 
 func (s *boolSetting) GetSlackAttachments(userID, settingHandler string, disabled bool) (*model.SlackAttachment, error) {
-	title := fmt.Sprintf("Setting: %s", s.title)
+	title := "Setting: " + s.title
 	currentValueMessage := DisabledString
 
 	actions := []*model.PostAction{}
@@ -72,7 +72,7 @@ func (s *boolSetting) GetSlackAttachments(userID, settingHandler string, disable
 		if currentValue == TrueString {
 			currentTextValue = "Yes"
 		}
-		currentValueMessage = fmt.Sprintf("Current value: %s", currentTextValue)
+		currentValueMessage = "Current value: " + currentTextValue
 
 		actionTrue := model.PostAction{
 			Type: model.PostActionTypeButton,

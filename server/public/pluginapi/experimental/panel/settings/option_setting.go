@@ -50,7 +50,7 @@ func (s *optionSetting) Get(userID string) (any, error) {
 }
 
 func (s *optionSetting) GetSlackAttachments(userID, settingHandler string, disabled bool) (*model.SlackAttachment, error) {
-	title := fmt.Sprintf("Setting: %s", s.title)
+	title := "Setting: " + s.title
 	currentValueMessage := DisabledString
 
 	actions := []*model.PostAction{}

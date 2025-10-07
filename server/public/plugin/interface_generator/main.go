@@ -86,7 +86,7 @@ func FieldListToNames(fieldList *ast.FieldList, variadicForm bool) string {
 		for _, name := range field.Names {
 			paramName := name.Name
 			if _, ok := field.Type.(*ast.Ellipsis); ok && variadicForm {
-				paramName = fmt.Sprintf("%s...", paramName)
+				paramName = paramName + "..."
 			}
 			result = append(result, paramName)
 		}
@@ -119,10 +119,12 @@ func FieldListToEncodedErrors(structPrefix string, fieldList *ast.FieldList, fil
 			name = string(nextLetter)
 			nextLetter++
 		} else {
+			var nameSb122 strings.Builder
 			for range field.Names {
-				name += string(nextLetter)
+				nameSb122.WriteString(string(nextLetter))
 				nextLetter++
 			}
+			name += nameSb122.String()
 		}
 
 		result = append(result, structPrefix+name+" = encodableError("+structPrefix+name+")")
@@ -181,7 +183,7 @@ func FieldListToRecordSuccess(structPrefix string, fieldList *ast.FieldList) str
 	if result == "" {
 		return "true"
 	}
-	return fmt.Sprintf("%s == nil", result)
+	return result + " == nil"
 }
 
 func FieldListToStructList(fieldList *ast.FieldList, fileset *token.FileSet) string {
