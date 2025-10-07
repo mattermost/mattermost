@@ -733,10 +733,10 @@ func (s *TimerLayerAuditStore) Save(audit *model.Audit) error {
 	return err
 }
 
-func (s *TimerLayerAutoTranslationStore) Get(rctx request.CTX, objectType string, objectID string, dstLang string) (*model.Translation, *model.AppError) {
+func (s *TimerLayerAutoTranslationStore) Get(objectType string, objectID string, dstLang string) (*model.Translation, *model.AppError) {
 	start := time.Now()
 
-	result, resultVar1 := s.AutoTranslationStore.Get(rctx, objectType, objectID, dstLang)
+	result, resultVar1 := s.AutoTranslationStore.Get(objectType, objectID, dstLang)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -749,10 +749,10 @@ func (s *TimerLayerAutoTranslationStore) Get(rctx request.CTX, objectType string
 	return result, resultVar1
 }
 
-func (s *TimerLayerAutoTranslationStore) GetActiveDestinationLanguages(rctx request.CTX, channelID string, excludeUserID string, filterUserIDs *[]string) ([]string, *model.AppError) {
+func (s *TimerLayerAutoTranslationStore) GetActiveDestinationLanguages(channelID string, excludeUserID string, filterUserIDs *[]string) ([]string, *model.AppError) {
 	start := time.Now()
 
-	result, resultVar1 := s.AutoTranslationStore.GetActiveDestinationLanguages(rctx, channelID, excludeUserID, filterUserIDs)
+	result, resultVar1 := s.AutoTranslationStore.GetActiveDestinationLanguages(channelID, excludeUserID, filterUserIDs)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -765,10 +765,10 @@ func (s *TimerLayerAutoTranslationStore) GetActiveDestinationLanguages(rctx requ
 	return result, resultVar1
 }
 
-func (s *TimerLayerAutoTranslationStore) GetUserLanguage(rctx request.CTX, userID string, channelID string) (string, *model.AppError) {
+func (s *TimerLayerAutoTranslationStore) GetUserLanguage(userID string, channelID string) (string, *model.AppError) {
 	start := time.Now()
 
-	result, resultVar1 := s.AutoTranslationStore.GetUserLanguage(rctx, userID, channelID)
+	result, resultVar1 := s.AutoTranslationStore.GetUserLanguage(userID, channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -781,10 +781,10 @@ func (s *TimerLayerAutoTranslationStore) GetUserLanguage(rctx request.CTX, userI
 	return result, resultVar1
 }
 
-func (s *TimerLayerAutoTranslationStore) IsChannelEnabled(rctx request.CTX, channelID string) (bool, *model.AppError) {
+func (s *TimerLayerAutoTranslationStore) IsChannelEnabled(channelID string) (bool, *model.AppError) {
 	start := time.Now()
 
-	result, resultVar1 := s.AutoTranslationStore.IsChannelEnabled(rctx, channelID)
+	result, resultVar1 := s.AutoTranslationStore.IsChannelEnabled(channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -797,10 +797,10 @@ func (s *TimerLayerAutoTranslationStore) IsChannelEnabled(rctx request.CTX, chan
 	return result, resultVar1
 }
 
-func (s *TimerLayerAutoTranslationStore) IsUserEnabled(rctx request.CTX, userID string, channelID string) (bool, *model.AppError) {
+func (s *TimerLayerAutoTranslationStore) IsUserEnabled(userID string, channelID string) (bool, *model.AppError) {
 	start := time.Now()
 
-	result, resultVar1 := s.AutoTranslationStore.IsUserEnabled(rctx, userID, channelID)
+	result, resultVar1 := s.AutoTranslationStore.IsUserEnabled(userID, channelID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -813,10 +813,10 @@ func (s *TimerLayerAutoTranslationStore) IsUserEnabled(rctx request.CTX, userID 
 	return result, resultVar1
 }
 
-func (s *TimerLayerAutoTranslationStore) Save(rctx request.CTX, objectType string, objectID string, dstLang string, providerID string, normHash string, text string, confidence *float64, meta map[string]any) *model.AppError {
+func (s *TimerLayerAutoTranslationStore) Save(translation *model.Translation) *model.AppError {
 	start := time.Now()
 
-	result := s.AutoTranslationStore.Save(rctx, objectType, objectID, dstLang, providerID, normHash, text, confidence, meta)
+	result := s.AutoTranslationStore.Save(translation)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -829,10 +829,10 @@ func (s *TimerLayerAutoTranslationStore) Save(rctx request.CTX, objectType strin
 	return result
 }
 
-func (s *TimerLayerAutoTranslationStore) Search(rctx request.CTX, dstLang string, searchTerm string, limit int) ([]*model.Translation, *model.AppError) {
+func (s *TimerLayerAutoTranslationStore) Search(dstLang string, searchTerm string, limit int) ([]*model.Translation, *model.AppError) {
 	start := time.Now()
 
-	result, resultVar1 := s.AutoTranslationStore.Search(rctx, dstLang, searchTerm, limit)
+	result, resultVar1 := s.AutoTranslationStore.Search(dstLang, searchTerm, limit)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -845,10 +845,10 @@ func (s *TimerLayerAutoTranslationStore) Search(rctx request.CTX, dstLang string
 	return result, resultVar1
 }
 
-func (s *TimerLayerAutoTranslationStore) SetChannelEnabled(rctx request.CTX, channelID string, enabled bool) *model.AppError {
+func (s *TimerLayerAutoTranslationStore) SetChannelEnabled(channelID string, enabled bool) *model.AppError {
 	start := time.Now()
 
-	result := s.AutoTranslationStore.SetChannelEnabled(rctx, channelID, enabled)
+	result := s.AutoTranslationStore.SetChannelEnabled(channelID, enabled)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -861,10 +861,10 @@ func (s *TimerLayerAutoTranslationStore) SetChannelEnabled(rctx request.CTX, cha
 	return result
 }
 
-func (s *TimerLayerAutoTranslationStore) SetUserEnabled(rctx request.CTX, userID string, channelID string, enabled bool) *model.AppError {
+func (s *TimerLayerAutoTranslationStore) SetUserEnabled(userID string, channelID string, enabled bool) *model.AppError {
 	start := time.Now()
 
-	result := s.AutoTranslationStore.SetUserEnabled(rctx, userID, channelID, enabled)
+	result := s.AutoTranslationStore.SetUserEnabled(userID, channelID, enabled)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

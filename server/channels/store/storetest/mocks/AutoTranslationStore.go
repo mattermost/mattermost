@@ -6,7 +6,6 @@ package mocks
 
 import (
 	model "github.com/mattermost/mattermost/server/public/model"
-	request "github.com/mattermost/mattermost/server/public/shared/request"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -15,9 +14,9 @@ type AutoTranslationStore struct {
 	mock.Mock
 }
 
-// Get provides a mock function with given fields: rctx, objectType, objectID, dstLang
-func (_m *AutoTranslationStore) Get(rctx request.CTX, objectType string, objectID string, dstLang string) (*model.Translation, *model.AppError) {
-	ret := _m.Called(rctx, objectType, objectID, dstLang)
+// Get provides a mock function with given fields: objectType, objectID, dstLang
+func (_m *AutoTranslationStore) Get(objectType string, objectID string, dstLang string) (*model.Translation, *model.AppError) {
+	ret := _m.Called(objectType, objectID, dstLang)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Get")
@@ -25,19 +24,19 @@ func (_m *AutoTranslationStore) Get(rctx request.CTX, objectType string, objectI
 
 	var r0 *model.Translation
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, string, string, string) (*model.Translation, *model.AppError)); ok {
-		return rf(rctx, objectType, objectID, dstLang)
+	if rf, ok := ret.Get(0).(func(string, string, string) (*model.Translation, *model.AppError)); ok {
+		return rf(objectType, objectID, dstLang)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX, string, string, string) *model.Translation); ok {
-		r0 = rf(rctx, objectType, objectID, dstLang)
+	if rf, ok := ret.Get(0).(func(string, string, string) *model.Translation); ok {
+		r0 = rf(objectType, objectID, dstLang)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Translation)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, string, string, string) *model.AppError); ok {
-		r1 = rf(rctx, objectType, objectID, dstLang)
+	if rf, ok := ret.Get(1).(func(string, string, string) *model.AppError); ok {
+		r1 = rf(objectType, objectID, dstLang)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -47,9 +46,9 @@ func (_m *AutoTranslationStore) Get(rctx request.CTX, objectType string, objectI
 	return r0, r1
 }
 
-// GetActiveDestinationLanguages provides a mock function with given fields: rctx, channelID, excludeUserID, filterUserIDs
-func (_m *AutoTranslationStore) GetActiveDestinationLanguages(rctx request.CTX, channelID string, excludeUserID string, filterUserIDs *[]string) ([]string, *model.AppError) {
-	ret := _m.Called(rctx, channelID, excludeUserID, filterUserIDs)
+// GetActiveDestinationLanguages provides a mock function with given fields: channelID, excludeUserID, filterUserIDs
+func (_m *AutoTranslationStore) GetActiveDestinationLanguages(channelID string, excludeUserID string, filterUserIDs *[]string) ([]string, *model.AppError) {
+	ret := _m.Called(channelID, excludeUserID, filterUserIDs)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetActiveDestinationLanguages")
@@ -57,19 +56,19 @@ func (_m *AutoTranslationStore) GetActiveDestinationLanguages(rctx request.CTX, 
 
 	var r0 []string
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, string, string, *[]string) ([]string, *model.AppError)); ok {
-		return rf(rctx, channelID, excludeUserID, filterUserIDs)
+	if rf, ok := ret.Get(0).(func(string, string, *[]string) ([]string, *model.AppError)); ok {
+		return rf(channelID, excludeUserID, filterUserIDs)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX, string, string, *[]string) []string); ok {
-		r0 = rf(rctx, channelID, excludeUserID, filterUserIDs)
+	if rf, ok := ret.Get(0).(func(string, string, *[]string) []string); ok {
+		r0 = rf(channelID, excludeUserID, filterUserIDs)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]string)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, string, string, *[]string) *model.AppError); ok {
-		r1 = rf(rctx, channelID, excludeUserID, filterUserIDs)
+	if rf, ok := ret.Get(1).(func(string, string, *[]string) *model.AppError); ok {
+		r1 = rf(channelID, excludeUserID, filterUserIDs)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -79,9 +78,9 @@ func (_m *AutoTranslationStore) GetActiveDestinationLanguages(rctx request.CTX, 
 	return r0, r1
 }
 
-// GetUserLanguage provides a mock function with given fields: rctx, userID, channelID
-func (_m *AutoTranslationStore) GetUserLanguage(rctx request.CTX, userID string, channelID string) (string, *model.AppError) {
-	ret := _m.Called(rctx, userID, channelID)
+// GetUserLanguage provides a mock function with given fields: userID, channelID
+func (_m *AutoTranslationStore) GetUserLanguage(userID string, channelID string) (string, *model.AppError) {
+	ret := _m.Called(userID, channelID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetUserLanguage")
@@ -89,17 +88,17 @@ func (_m *AutoTranslationStore) GetUserLanguage(rctx request.CTX, userID string,
 
 	var r0 string
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, string, string) (string, *model.AppError)); ok {
-		return rf(rctx, userID, channelID)
+	if rf, ok := ret.Get(0).(func(string, string) (string, *model.AppError)); ok {
+		return rf(userID, channelID)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX, string, string) string); ok {
-		r0 = rf(rctx, userID, channelID)
+	if rf, ok := ret.Get(0).(func(string, string) string); ok {
+		r0 = rf(userID, channelID)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, string, string) *model.AppError); ok {
-		r1 = rf(rctx, userID, channelID)
+	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+		r1 = rf(userID, channelID)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -109,9 +108,9 @@ func (_m *AutoTranslationStore) GetUserLanguage(rctx request.CTX, userID string,
 	return r0, r1
 }
 
-// IsChannelEnabled provides a mock function with given fields: rctx, channelID
-func (_m *AutoTranslationStore) IsChannelEnabled(rctx request.CTX, channelID string) (bool, *model.AppError) {
-	ret := _m.Called(rctx, channelID)
+// IsChannelEnabled provides a mock function with given fields: channelID
+func (_m *AutoTranslationStore) IsChannelEnabled(channelID string) (bool, *model.AppError) {
+	ret := _m.Called(channelID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for IsChannelEnabled")
@@ -119,17 +118,17 @@ func (_m *AutoTranslationStore) IsChannelEnabled(rctx request.CTX, channelID str
 
 	var r0 bool
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, string) (bool, *model.AppError)); ok {
-		return rf(rctx, channelID)
+	if rf, ok := ret.Get(0).(func(string) (bool, *model.AppError)); ok {
+		return rf(channelID)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX, string) bool); ok {
-		r0 = rf(rctx, channelID)
+	if rf, ok := ret.Get(0).(func(string) bool); ok {
+		r0 = rf(channelID)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, string) *model.AppError); ok {
-		r1 = rf(rctx, channelID)
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(channelID)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -139,9 +138,9 @@ func (_m *AutoTranslationStore) IsChannelEnabled(rctx request.CTX, channelID str
 	return r0, r1
 }
 
-// IsUserEnabled provides a mock function with given fields: rctx, userID, channelID
-func (_m *AutoTranslationStore) IsUserEnabled(rctx request.CTX, userID string, channelID string) (bool, *model.AppError) {
-	ret := _m.Called(rctx, userID, channelID)
+// IsUserEnabled provides a mock function with given fields: userID, channelID
+func (_m *AutoTranslationStore) IsUserEnabled(userID string, channelID string) (bool, *model.AppError) {
+	ret := _m.Called(userID, channelID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for IsUserEnabled")
@@ -149,17 +148,17 @@ func (_m *AutoTranslationStore) IsUserEnabled(rctx request.CTX, userID string, c
 
 	var r0 bool
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, string, string) (bool, *model.AppError)); ok {
-		return rf(rctx, userID, channelID)
+	if rf, ok := ret.Get(0).(func(string, string) (bool, *model.AppError)); ok {
+		return rf(userID, channelID)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX, string, string) bool); ok {
-		r0 = rf(rctx, userID, channelID)
+	if rf, ok := ret.Get(0).(func(string, string) bool); ok {
+		r0 = rf(userID, channelID)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, string, string) *model.AppError); ok {
-		r1 = rf(rctx, userID, channelID)
+	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+		r1 = rf(userID, channelID)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -169,17 +168,17 @@ func (_m *AutoTranslationStore) IsUserEnabled(rctx request.CTX, userID string, c
 	return r0, r1
 }
 
-// Save provides a mock function with given fields: rctx, objectType, objectID, dstLang, providerID, normHash, text, confidence, meta
-func (_m *AutoTranslationStore) Save(rctx request.CTX, objectType string, objectID string, dstLang string, providerID string, normHash string, text string, confidence *float64, meta map[string]interface{}) *model.AppError {
-	ret := _m.Called(rctx, objectType, objectID, dstLang, providerID, normHash, text, confidence, meta)
+// Save provides a mock function with given fields: translation
+func (_m *AutoTranslationStore) Save(translation *model.Translation) *model.AppError {
+	ret := _m.Called(translation)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Save")
 	}
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, string, string, string, string, string, string, *float64, map[string]interface{}) *model.AppError); ok {
-		r0 = rf(rctx, objectType, objectID, dstLang, providerID, normHash, text, confidence, meta)
+	if rf, ok := ret.Get(0).(func(*model.Translation) *model.AppError); ok {
+		r0 = rf(translation)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
@@ -189,9 +188,9 @@ func (_m *AutoTranslationStore) Save(rctx request.CTX, objectType string, object
 	return r0
 }
 
-// Search provides a mock function with given fields: rctx, dstLang, searchTerm, limit
-func (_m *AutoTranslationStore) Search(rctx request.CTX, dstLang string, searchTerm string, limit int) ([]*model.Translation, *model.AppError) {
-	ret := _m.Called(rctx, dstLang, searchTerm, limit)
+// Search provides a mock function with given fields: dstLang, searchTerm, limit
+func (_m *AutoTranslationStore) Search(dstLang string, searchTerm string, limit int) ([]*model.Translation, *model.AppError) {
+	ret := _m.Called(dstLang, searchTerm, limit)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Search")
@@ -199,19 +198,19 @@ func (_m *AutoTranslationStore) Search(rctx request.CTX, dstLang string, searchT
 
 	var r0 []*model.Translation
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, string, string, int) ([]*model.Translation, *model.AppError)); ok {
-		return rf(rctx, dstLang, searchTerm, limit)
+	if rf, ok := ret.Get(0).(func(string, string, int) ([]*model.Translation, *model.AppError)); ok {
+		return rf(dstLang, searchTerm, limit)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX, string, string, int) []*model.Translation); ok {
-		r0 = rf(rctx, dstLang, searchTerm, limit)
+	if rf, ok := ret.Get(0).(func(string, string, int) []*model.Translation); ok {
+		r0 = rf(dstLang, searchTerm, limit)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Translation)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, string, string, int) *model.AppError); ok {
-		r1 = rf(rctx, dstLang, searchTerm, limit)
+	if rf, ok := ret.Get(1).(func(string, string, int) *model.AppError); ok {
+		r1 = rf(dstLang, searchTerm, limit)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -221,17 +220,17 @@ func (_m *AutoTranslationStore) Search(rctx request.CTX, dstLang string, searchT
 	return r0, r1
 }
 
-// SetChannelEnabled provides a mock function with given fields: rctx, channelID, enabled
-func (_m *AutoTranslationStore) SetChannelEnabled(rctx request.CTX, channelID string, enabled bool) *model.AppError {
-	ret := _m.Called(rctx, channelID, enabled)
+// SetChannelEnabled provides a mock function with given fields: channelID, enabled
+func (_m *AutoTranslationStore) SetChannelEnabled(channelID string, enabled bool) *model.AppError {
+	ret := _m.Called(channelID, enabled)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SetChannelEnabled")
 	}
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, string, bool) *model.AppError); ok {
-		r0 = rf(rctx, channelID, enabled)
+	if rf, ok := ret.Get(0).(func(string, bool) *model.AppError); ok {
+		r0 = rf(channelID, enabled)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
@@ -241,17 +240,17 @@ func (_m *AutoTranslationStore) SetChannelEnabled(rctx request.CTX, channelID st
 	return r0
 }
 
-// SetUserEnabled provides a mock function with given fields: rctx, userID, channelID, enabled
-func (_m *AutoTranslationStore) SetUserEnabled(rctx request.CTX, userID string, channelID string, enabled bool) *model.AppError {
-	ret := _m.Called(rctx, userID, channelID, enabled)
+// SetUserEnabled provides a mock function with given fields: userID, channelID, enabled
+func (_m *AutoTranslationStore) SetUserEnabled(userID string, channelID string, enabled bool) *model.AppError {
+	ret := _m.Called(userID, channelID, enabled)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SetUserEnabled")
 	}
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, string, string, bool) *model.AppError); ok {
-		r0 = rf(rctx, userID, channelID, enabled)
+	if rf, ok := ret.Get(0).(func(string, string, bool) *model.AppError); ok {
+		r0 = rf(userID, channelID, enabled)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)

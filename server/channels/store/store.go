@@ -1142,18 +1142,18 @@ type AttributesStore interface {
 }
 
 type AutoTranslationStore interface {
-	IsChannelEnabled(rctx request.CTX, channelID string) (bool, *model.AppError)
-	SetChannelEnabled(rctx request.CTX, channelID string, enabled bool) *model.AppError
-	IsUserEnabled(rctx request.CTX, userID, channelID string) (bool, *model.AppError)
-	SetUserEnabled(rctx request.CTX, userID, channelID string, enabled bool) *model.AppError
-	GetUserLanguage(rctx request.CTX, userID, channelID string) (string, *model.AppError)
+	IsChannelEnabled(channelID string) (bool, *model.AppError)
+	SetChannelEnabled(channelID string, enabled bool) *model.AppError
+	IsUserEnabled(userID, channelID string) (bool, *model.AppError)
+	SetUserEnabled(userID, channelID string, enabled bool) *model.AppError
+	GetUserLanguage(userID, channelID string) (string, *model.AppError)
 	// GetActiveDestinationLanguages returns distinct locales of users who have auto-translation enabled.
 	// Optional filterUserIDs parameter restricts results to specific user IDs (typically those with active WebSocket connections).
 	// Pass nil for filterUserIDs to include all users, or a pointer to a slice to filter to specific users.
-	GetActiveDestinationLanguages(rctx request.CTX, channelID, excludeUserID string, filterUserIDs *[]string) ([]string, *model.AppError)
-	Get(rctx request.CTX, objectType, objectID, dstLang string) (*model.Translation, *model.AppError)
-	Save(rctx request.CTX, objectType, objectID, dstLang, providerID, normHash, text string, confidence *float64, meta map[string]any) *model.AppError
-	Search(rctx request.CTX, dstLang, searchTerm string, limit int) ([]*model.Translation, *model.AppError)
+	GetActiveDestinationLanguages(channelID, excludeUserID string, filterUserIDs *[]string) ([]string, *model.AppError)
+	Get(objectType, objectID, dstLang string) (*model.Translation, *model.AppError)
+	Save(translation *model.Translation) *model.AppError
+	Search(dstLang, searchTerm string, limit int) ([]*model.Translation, *model.AppError)
 }
 
 // ChannelSearchOpts contains options for searching channels.

@@ -805,57 +805,57 @@ func (s *RetryLayerAuditStore) Save(audit *model.Audit) error {
 
 }
 
-func (s *RetryLayerAutoTranslationStore) Get(rctx request.CTX, objectType string, objectID string, dstLang string) (*model.Translation, *model.AppError) {
+func (s *RetryLayerAutoTranslationStore) Get(objectType string, objectID string, dstLang string) (*model.Translation, *model.AppError) {
 
-	return s.AutoTranslationStore.Get(rctx, objectType, objectID, dstLang)
-
-}
-
-func (s *RetryLayerAutoTranslationStore) GetActiveDestinationLanguages(rctx request.CTX, channelID string, excludeUserID string, filterUserIDs *[]string) ([]string, *model.AppError) {
-
-	return s.AutoTranslationStore.GetActiveDestinationLanguages(rctx, channelID, excludeUserID, filterUserIDs)
+	return s.AutoTranslationStore.Get(objectType, objectID, dstLang)
 
 }
 
-func (s *RetryLayerAutoTranslationStore) GetUserLanguage(rctx request.CTX, userID string, channelID string) (string, *model.AppError) {
+func (s *RetryLayerAutoTranslationStore) GetActiveDestinationLanguages(channelID string, excludeUserID string, filterUserIDs *[]string) ([]string, *model.AppError) {
 
-	return s.AutoTranslationStore.GetUserLanguage(rctx, userID, channelID)
-
-}
-
-func (s *RetryLayerAutoTranslationStore) IsChannelEnabled(rctx request.CTX, channelID string) (bool, *model.AppError) {
-
-	return s.AutoTranslationStore.IsChannelEnabled(rctx, channelID)
+	return s.AutoTranslationStore.GetActiveDestinationLanguages(channelID, excludeUserID, filterUserIDs)
 
 }
 
-func (s *RetryLayerAutoTranslationStore) IsUserEnabled(rctx request.CTX, userID string, channelID string) (bool, *model.AppError) {
+func (s *RetryLayerAutoTranslationStore) GetUserLanguage(userID string, channelID string) (string, *model.AppError) {
 
-	return s.AutoTranslationStore.IsUserEnabled(rctx, userID, channelID)
-
-}
-
-func (s *RetryLayerAutoTranslationStore) Save(rctx request.CTX, objectType string, objectID string, dstLang string, providerID string, normHash string, text string, confidence *float64, meta map[string]any) *model.AppError {
-
-	return s.AutoTranslationStore.Save(rctx, objectType, objectID, dstLang, providerID, normHash, text, confidence, meta)
+	return s.AutoTranslationStore.GetUserLanguage(userID, channelID)
 
 }
 
-func (s *RetryLayerAutoTranslationStore) Search(rctx request.CTX, dstLang string, searchTerm string, limit int) ([]*model.Translation, *model.AppError) {
+func (s *RetryLayerAutoTranslationStore) IsChannelEnabled(channelID string) (bool, *model.AppError) {
 
-	return s.AutoTranslationStore.Search(rctx, dstLang, searchTerm, limit)
-
-}
-
-func (s *RetryLayerAutoTranslationStore) SetChannelEnabled(rctx request.CTX, channelID string, enabled bool) *model.AppError {
-
-	return s.AutoTranslationStore.SetChannelEnabled(rctx, channelID, enabled)
+	return s.AutoTranslationStore.IsChannelEnabled(channelID)
 
 }
 
-func (s *RetryLayerAutoTranslationStore) SetUserEnabled(rctx request.CTX, userID string, channelID string, enabled bool) *model.AppError {
+func (s *RetryLayerAutoTranslationStore) IsUserEnabled(userID string, channelID string) (bool, *model.AppError) {
 
-	return s.AutoTranslationStore.SetUserEnabled(rctx, userID, channelID, enabled)
+	return s.AutoTranslationStore.IsUserEnabled(userID, channelID)
+
+}
+
+func (s *RetryLayerAutoTranslationStore) Save(translation *model.Translation) *model.AppError {
+
+	return s.AutoTranslationStore.Save(translation)
+
+}
+
+func (s *RetryLayerAutoTranslationStore) Search(dstLang string, searchTerm string, limit int) ([]*model.Translation, *model.AppError) {
+
+	return s.AutoTranslationStore.Search(dstLang, searchTerm, limit)
+
+}
+
+func (s *RetryLayerAutoTranslationStore) SetChannelEnabled(channelID string, enabled bool) *model.AppError {
+
+	return s.AutoTranslationStore.SetChannelEnabled(channelID, enabled)
+
+}
+
+func (s *RetryLayerAutoTranslationStore) SetUserEnabled(userID string, channelID string, enabled bool) *model.AppError {
+
+	return s.AutoTranslationStore.SetUserEnabled(userID, channelID, enabled)
 
 }
 

@@ -11,7 +11,6 @@ import (
 	sq "github.com/mattermost/squirrel"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -20,16 +19,16 @@ type SqlAutoTranslationStore struct {
 }
 
 type Translation struct {
-	ObjectType        string          `db:"object_type"`
-	ObjectID          string          `db:"object_id"`
-	DstLang           string          `db:"dst_lang"`
-	ProviderID        string          `db:"provider_id"`
-	NormHash          string          `db:"norm_hash"`
-	Text              string          `db:"text"`
-	Confidence        *float64        `db:"confidence"`
-	Meta              model.StringMap `db:"meta"`
-	UpdateAt          int64           `db:"updateat"`
-	ContentSearchText *string         `db:"content_search_text"`
+	ObjectType        string         `db:"object_type"`
+	ObjectID          string         `db:"object_id"`
+	DstLang           string         `db:"dst_lang"`
+	ProviderID        string         `db:"provider_id"`
+	NormHash          string         `db:"norm_hash"`
+	Text              string         `db:"text"`
+	Confidence        *float64       `db:"confidence"`
+	Meta              map[string]any `db:"meta"`
+	UpdateAt          int64          `db:"updateat"`
+	ContentSearchText *string        `db:"content_search_text"`
 }
 
 func newSqlAutoTranslationStore(sqlStore *SqlStore) store.AutoTranslationStore {
@@ -38,7 +37,7 @@ func newSqlAutoTranslationStore(sqlStore *SqlStore) store.AutoTranslationStore {
 	}
 }
 
-func (s *SqlAutoTranslationStore) IsChannelEnabled(rctx request.CTX, channelID string) (bool, *model.AppError) {
+func (s *SqlAutoTranslationStore) IsChannelEnabled(channelID string) (bool, *model.AppError) {
 	query := s.getQueryBuilder().
 		Select("COALESCE((props->'autotranslation'->>'enabled')::boolean, false)").
 		From("channels").
@@ -67,7 +66,7 @@ func (s *SqlAutoTranslationStore) IsChannelEnabled(rctx request.CTX, channelID s
 	return *enabled, nil
 }
 
-func (s *SqlAutoTranslationStore) SetChannelEnabled(rctx request.CTX, channelID string, enabled bool) *model.AppError {
+func (s *SqlAutoTranslationStore) SetChannelEnabled(channelID string, enabled bool) *model.AppError {
 	enabledJSON := "false"
 	if enabled {
 		enabledJSON = "true"
@@ -104,7 +103,7 @@ func (s *SqlAutoTranslationStore) SetChannelEnabled(rctx request.CTX, channelID 
 	return nil
 }
 
-func (s *SqlAutoTranslationStore) IsUserEnabled(rctx request.CTX, userID, channelID string) (bool, *model.AppError) {
+func (s *SqlAutoTranslationStore) IsUserEnabled(userID, channelID string) (bool, *model.AppError) {
 	query := s.getQueryBuilder().
 		Select("COALESCE((cm.props->'autotranslation'->>'enabled')::boolean, false)").
 		From("channelmembers cm").
@@ -135,7 +134,7 @@ func (s *SqlAutoTranslationStore) IsUserEnabled(rctx request.CTX, userID, channe
 	return *enabled, nil
 }
 
-func (s *SqlAutoTranslationStore) SetUserEnabled(rctx request.CTX, userID, channelID string, enabled bool) *model.AppError {
+func (s *SqlAutoTranslationStore) SetUserEnabled(userID, channelID string, enabled bool) *model.AppError {
 	enabledJSON := "false"
 	if enabled {
 		enabledJSON = "true"
@@ -173,7 +172,7 @@ func (s *SqlAutoTranslationStore) SetUserEnabled(rctx request.CTX, userID, chann
 	return nil
 }
 
-func (s *SqlAutoTranslationStore) GetUserLanguage(rctx request.CTX, userID, channelID string) (string, *model.AppError) {
+func (s *SqlAutoTranslationStore) GetUserLanguage(userID, channelID string) (string, *model.AppError) {
 	query := s.getQueryBuilder().
 		Select("u.locale").
 		From("users u").
@@ -201,7 +200,7 @@ func (s *SqlAutoTranslationStore) GetUserLanguage(rctx request.CTX, userID, chan
 	return locale, nil
 }
 
-func (s *SqlAutoTranslationStore) GetActiveDestinationLanguages(rctx request.CTX, channelID, excludeUserID string, filterUserIDs *[]string) ([]string, *model.AppError) {
+func (s *SqlAutoTranslationStore) GetActiveDestinationLanguages(channelID, excludeUserID string, filterUserIDs *[]string) ([]string, *model.AppError) {
 	query := s.getQueryBuilder().
 		Select("DISTINCT u.locale").
 		From("channelmembers cm").
@@ -240,7 +239,7 @@ func (s *SqlAutoTranslationStore) GetActiveDestinationLanguages(rctx request.CTX
 	return languages, nil
 }
 
-func (s *SqlAutoTranslationStore) Get(rctx request.CTX, objectType, objectID, dstLang string) (*model.Translation, *model.AppError) {
+func (s *SqlAutoTranslationStore) Get(objectType, objectID, dstLang string) (*model.Translation, *model.AppError) {
 	query := s.getQueryBuilder().
 		Select("object_type", "object_id", "dst_lang", "provider_id", "norm_hash", "text", "confidence", "meta", "updateat").
 		From("translations").
@@ -261,9 +260,17 @@ func (s *SqlAutoTranslationStore) Get(rctx request.CTX, objectType, objectID, ds
 			"store.sql_autotranslation.get.app_error", nil, err.Error(), 500)
 	}
 
+	var translationTypeStr string
+	if v, ok := translation.Meta["type"]; ok {
+		if s, ok := v.(string); ok {
+			translationTypeStr = s
+		}
+	}
 	result := &model.Translation{
+		ObjectID:   translation.ObjectID,
+		ObjectType: translation.ObjectType,
 		Lang:       translation.DstLang,
-		Type:       model.TranslationType(translation.ObjectType),
+		Type:       model.TranslationType(translationTypeStr),
 		Text:       translation.Text,
 		Confidence: translation.Confidence,
 		State:      model.TranslationStateReady,
@@ -273,20 +280,34 @@ func (s *SqlAutoTranslationStore) Get(rctx request.CTX, objectType, objectID, ds
 	return result, nil
 }
 
-func (s *SqlAutoTranslationStore) Save(rctx request.CTX, objectType, objectID, dstLang, providerID, normHash, text string, confidence *float64, meta map[string]any) *model.AppError {
+func (s *SqlAutoTranslationStore) Save(translation *model.Translation) *model.AppError {
 	now := model.GetMillis()
 
 	var metaJSON []byte
 	var err error
-	if meta != nil {
-		metaJSON, err = json.Marshal(meta)
+	if translation.Meta != nil {
+		metaJSON, err = json.Marshal(translation.Meta)
 		if err != nil {
 			return model.NewAppError("SqlAutoTranslationStore.Save",
 				"store.sql_autotranslation.save.meta_marshal_error", nil, err.Error(), 500)
 		}
 	}
 
-	contentSearchText := text
+	contentSearchText := translation.Text
+	if translation.Type == model.TranslationTypeObject && len(translation.ObjectJSON) > 0 {
+		contentSearchText = string(translation.ObjectJSON)
+	}
+
+	objectType := string(translation.Type)
+	objectID := translation.ObjectID
+	dstLang := translation.Lang
+	providerID := translation.Provider
+	normHash := ""
+	if translation.NormHash != nil {
+		normHash = *translation.NormHash
+	}
+	text := contentSearchText
+	confidence := translation.Confidence
 
 	query := s.getQueryBuilder().
 		Insert("translations").
@@ -316,9 +337,9 @@ func (s *SqlAutoTranslationStore) Save(rctx request.CTX, objectType, objectID, d
 	return nil
 }
 
-func (s *SqlAutoTranslationStore) Search(rctx request.CTX, dstLang, searchTerm string, limit int) ([]*model.Translation, *model.AppError) {
+func (s *SqlAutoTranslationStore) Search(dstLang, searchTerm string, limit int) ([]*model.Translation, *model.AppError) {
 	ftsQuery := s.getQueryBuilder().
-		Select("object_type", "object_id", "dst_lang", "text", "confidence").
+		Select("object_type", "object_id", "dst_lang", "text", "confidence", "meta").
 		Column("ts_rank(to_tsvector('simple', COALESCE(content_search_text, text)), plainto_tsquery('simple', ?)) AS score", searchTerm).
 		From("translations").
 		Where(sq.Eq{"dst_lang": dstLang}).
@@ -333,12 +354,13 @@ func (s *SqlAutoTranslationStore) Search(rctx request.CTX, dstLang, searchTerm s
 	}
 
 	type searchResult struct {
-		ObjectType string   `db:"object_type"`
-		ObjectID   string   `db:"object_id"`
-		DstLang    string   `db:"dst_lang"`
-		Text       string   `db:"text"`
-		Confidence *float64 `db:"confidence"`
-		Score      float64  `db:"score"`
+		ObjectType string         `db:"object_type"`
+		ObjectID   string         `db:"object_id"`
+		DstLang    string         `db:"dst_lang"`
+		Text       string         `db:"text"`
+		Confidence *float64       `db:"confidence"`
+		Score      float64        `db:"score"`
+		Meta       map[string]any `db:"meta"`
 	}
 
 	var results []searchResult
@@ -373,8 +395,10 @@ func (s *SqlAutoTranslationStore) Search(rctx request.CTX, dstLang, searchTerm s
 	translations := make([]*model.Translation, len(results))
 	for i, result := range results {
 		translations[i] = &model.Translation{
+			ObjectID:   result.ObjectID,
+			ObjectType: result.ObjectType,
 			Lang:       result.DstLang,
-			Type:       model.TranslationTypeString,
+			Type:       model.TranslationType(result.Meta["type"].(string)),
 			Text:       result.Text,
 			Confidence: result.Confidence,
 			State:      model.TranslationStateReady,
