@@ -4,9 +4,11 @@
 package model
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
-	"strings"
+	"unicode/utf8"
 )
 
 type PropertyFieldType string
@@ -18,6 +20,10 @@ const (
 	PropertyFieldTypeDate        PropertyFieldType = "date"
 	PropertyFieldTypeUser        PropertyFieldType = "user"
 	PropertyFieldTypeMultiuser   PropertyFieldType = "multiuser"
+
+	PropertyFieldNameMaxRunes       = 255
+	PropertyFieldTargetIDMaxRunes   = 255
+	PropertyFieldTargetTypeMaxRunes = 255
 )
 
 type PropertyField struct {
@@ -33,8 +39,8 @@ type PropertyField struct {
 	DeleteAt   int64             `json:"delete_at"`
 }
 
-func (pf *PropertyField) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (pf *PropertyField) Auditable() map[string]any {
+	return map[string]any{
 		"id":          pf.ID,
 		"group_id":    pf.GroupID,
 		"name":        pf.Name,
@@ -48,15 +54,16 @@ func (pf *PropertyField) Auditable() map[string]interface{} {
 	}
 }
 
+// PreSave will set the Id if missing. It will also fill in the CreateAt, UpdateAt
+// times and ensure DeleteAt is 0. It should be run before saving the field to the db.
 func (pf *PropertyField) PreSave() {
 	if pf.ID == "" {
 		pf.ID = NewId()
 	}
 
-	if pf.CreateAt == 0 {
-		pf.CreateAt = GetMillis()
-	}
+	pf.CreateAt = GetMillis()
 	pf.UpdateAt = pf.CreateAt
+	pf.DeleteAt = 0
 }
 
 func (pf *PropertyField) IsValid() error {
@@ -70,6 +77,18 @@ func (pf *PropertyField) IsValid() error {
 
 	if pf.Name == "" {
 		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "name", "Reason": "value cannot be empty"}, "id="+pf.ID, http.StatusBadRequest)
+	}
+
+	if utf8.RuneCountInString(pf.Name) > PropertyFieldNameMaxRunes {
+		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "name", "Reason": "value exceeds maximum length"}, "id="+pf.ID, http.StatusBadRequest)
+	}
+
+	if utf8.RuneCountInString(pf.TargetType) > PropertyFieldTargetTypeMaxRunes {
+		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "target_type", "Reason": "value exceeds maximum length"}, "id="+pf.ID, http.StatusBadRequest)
+	}
+
+	if utf8.RuneCountInString(pf.TargetID) > PropertyFieldTargetIDMaxRunes {
+		return NewAppError("PropertyField.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "target_id", "Reason": "value exceeds maximum length"}, "id="+pf.ID, http.StatusBadRequest)
 	}
 
 	if pf.Type != PropertyFieldTypeText &&
@@ -92,10 +111,6 @@ func (pf *PropertyField) IsValid() error {
 	return nil
 }
 
-func (pf *PropertyField) SanitizeInput() {
-	pf.Name = strings.TrimSpace(pf.Name)
-}
-
 type PropertyFieldPatch struct {
 	Name       *string            `json:"name"`
 	Type       *PropertyFieldType `json:"type"`
@@ -104,8 +119,8 @@ type PropertyFieldPatch struct {
 	TargetType *string            `json:"target_type"`
 }
 
-func (pfp *PropertyFieldPatch) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (pfp *PropertyFieldPatch) Auditable() map[string]any {
+	return map[string]any{
 		"name":        pfp.Name,
 		"type":        pfp.Type,
 		"attrs":       pfp.Attrs,
@@ -114,10 +129,34 @@ func (pfp *PropertyFieldPatch) Auditable() map[string]interface{} {
 	}
 }
 
-func (pfp *PropertyFieldPatch) SanitizeInput() {
-	if pfp.Name != nil {
-		pfp.Name = NewPointer(strings.TrimSpace(*pfp.Name))
+func (pfp *PropertyFieldPatch) IsValid() error {
+	if pfp.Name != nil && *pfp.Name == "" {
+		return NewAppError("PropertyFieldPatch.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "name", "Reason": "value cannot be empty"}, "", http.StatusBadRequest)
 	}
+
+	if pfp.Name != nil && utf8.RuneCountInString(*pfp.Name) > PropertyFieldNameMaxRunes {
+		return NewAppError("PropertyFieldPatch.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "name", "Reason": "value exceeds maximum length"}, "", http.StatusBadRequest)
+	}
+
+	if pfp.TargetType != nil && utf8.RuneCountInString(*pfp.TargetType) > PropertyFieldTargetTypeMaxRunes {
+		return NewAppError("PropertyFieldPatch.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "target_type", "Reason": "value exceeds maximum length"}, "", http.StatusBadRequest)
+	}
+
+	if pfp.TargetID != nil && utf8.RuneCountInString(*pfp.TargetID) > PropertyFieldTargetIDMaxRunes {
+		return NewAppError("PropertyFieldPatch.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "target_id", "Reason": "value exceeds maximum length"}, "", http.StatusBadRequest)
+	}
+
+	if pfp.Type != nil &&
+		*pfp.Type != PropertyFieldTypeText &&
+		*pfp.Type != PropertyFieldTypeSelect &&
+		*pfp.Type != PropertyFieldTypeMultiselect &&
+		*pfp.Type != PropertyFieldTypeDate &&
+		*pfp.Type != PropertyFieldTypeUser &&
+		*pfp.Type != PropertyFieldTypeMultiuser {
+		return NewAppError("PropertyFieldPatch.IsValid", "model.property_field.is_valid.app_error", map[string]any{"FieldName": "type", "Reason": "unknown value"}, "", http.StatusBadRequest)
+	}
+
+	return nil
 }
 
 func (pf *PropertyField) Patch(patch *PropertyFieldPatch) {
@@ -169,7 +208,7 @@ func (p PropertyFieldSearchCursor) IsValid() error {
 type PropertyFieldSearchOpts struct {
 	GroupID        string
 	TargetType     string
-	TargetID       string
+	TargetIDs      []string
 	IncludeDeleted bool
 	Cursor         PropertyFieldSearchCursor
 	PerPage        int
@@ -177,4 +216,148 @@ type PropertyFieldSearchOpts struct {
 
 func (pf *PropertyField) GetAttr(key string) any {
 	return pf.Attrs[key]
+}
+
+const PropertyFieldAttributeOptions = "options"
+
+type PropertyOption interface {
+	GetID() string
+	GetName() string
+	SetID(id string)
+	IsValid() error
+}
+
+type PropertyOptions[T PropertyOption] []T
+
+func NewPropertyOptionsFromFieldAttrs[T PropertyOption](optionsArr any) (PropertyOptions[T], error) {
+	options := PropertyOptions[T]{}
+	b, err := json.Marshal(optionsArr)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal options: %w", err)
+	}
+
+	err = json.Unmarshal(b, &options)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal options: %w", err)
+	}
+
+	for i := range options {
+		if options[i].GetID() == "" {
+			options[i].SetID(NewId())
+		}
+	}
+
+	return options, nil
+}
+
+func (p PropertyOptions[T]) IsValid() error {
+	if len(p) == 0 {
+		return errors.New("options list cannot be empty")
+	}
+
+	seenNames := make(map[string]struct{})
+	for i, option := range p {
+		if err := option.IsValid(); err != nil {
+			return fmt.Errorf("invalid option at index %d: %w", i, err)
+		}
+
+		if _, exists := seenNames[option.GetName()]; exists {
+			return fmt.Errorf("duplicate option name found at index %d: %s", i, option.GetName())
+		}
+		seenNames[option.GetName()] = struct{}{}
+	}
+
+	return nil
+}
+
+// PluginPropertyOption provides a simple implementation of PropertyOption for plugins
+// using a map[string]string for flexible key-value storage
+type PluginPropertyOption struct {
+	Data map[string]string `json:"data"`
+}
+
+func NewPluginPropertyOption(id, name string) *PluginPropertyOption {
+	return &PluginPropertyOption{
+		Data: map[string]string{
+			"id":   id,
+			"name": name,
+		},
+	}
+}
+
+func (p *PluginPropertyOption) GetID() string {
+	if p.Data == nil {
+		return ""
+	}
+	return p.Data["id"]
+}
+
+func (p *PluginPropertyOption) GetName() string {
+	if p.Data == nil {
+		return ""
+	}
+	return p.Data["name"]
+}
+
+func (p *PluginPropertyOption) SetID(id string) {
+	if p.Data == nil {
+		p.Data = make(map[string]string)
+	}
+	p.Data["id"] = id
+}
+
+func (p *PluginPropertyOption) IsValid() error {
+	if p.Data == nil {
+		return errors.New("data cannot be nil")
+	}
+
+	id := p.GetID()
+	if id == "" {
+		return errors.New("id cannot be empty")
+	}
+
+	if !IsValidId(id) {
+		return errors.New("id is not a valid ID")
+	}
+
+	name := p.GetName()
+	if name == "" {
+		return errors.New("name cannot be empty")
+	}
+
+	return nil
+}
+
+// GetValue retrieves a custom value from the option data
+func (p *PluginPropertyOption) GetValue(key string) string {
+	if p.Data == nil {
+		return ""
+	}
+	return p.Data[key]
+}
+
+// SetValue sets a custom value in the option data
+func (p *PluginPropertyOption) SetValue(key, value string) {
+	if p.Data == nil {
+		p.Data = make(map[string]string)
+	}
+	p.Data[key] = value
+}
+
+// MarshalJSON implements custom JSON marshaling to avoid wrapping in "data"
+func (p *PluginPropertyOption) MarshalJSON() ([]byte, error) {
+	if p.Data == nil {
+		return json.Marshal(map[string]string{})
+	}
+	return json.Marshal(p.Data)
+}
+
+// UnmarshalJSON implements custom JSON unmarshaling to handle unwrapped JSON
+func (p *PluginPropertyOption) UnmarshalJSON(data []byte) error {
+	var result map[string]string
+	if err := json.Unmarshal(data, &result); err != nil {
+		return err
+	}
+	p.Data = result
+	return nil
 }

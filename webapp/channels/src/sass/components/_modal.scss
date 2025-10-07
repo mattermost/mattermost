@@ -63,10 +63,16 @@
             font-weight: 400;
         }
 
+        .input-wrapper > div {
+            display: flex;
+            flex-direction: column;
+        }
+
         .custom-textarea {
-            height: auto;
-            min-height: 8em;
+            height: auto !important;
+            min-height: 46px;
             max-height: 60vh;
+            flex-basis: 8em;
             -webkit-overflow-scrolling: touch;
             -ms-overflow-style: auto;
             overflow-y: auto;
@@ -328,6 +334,7 @@
             background: transparent;
             color: functions.v(center-channel-color);
             font-size: 22px;
+            font-weight: 600;
             line-height: 28px;
             word-break: break-word;
         }
@@ -685,10 +692,6 @@
             height: 40px;
             padding: 0 16px;
         }
-
-        &.filter-row--full {
-            width: 100%;
-        }
     }
 
     .member-count {
@@ -755,7 +758,7 @@
         flex: 20;
     }
 
-    >div {
+    >div:not([data-simplebar]) {
         overflow: auto;
         min-height: 100%;
     }
@@ -979,24 +982,30 @@
 
 .filtered-user-list {
     display: flex;
-    width: 100%;
     height: calc(90vh - 120px);
     flex-direction: column;
 
-    >div {
-        flex: 1 1 auto;
+    .filter-row,
+    .filter-controls,
+    .more-modal__dropdown {
+        flex: 0;
     }
 
     .multi-select__wrapper {
         display: flex;
-        height: 1px;
+        min-height: 0;
         flex-direction: column;
-        flex-grow: 500;
+
+        .more-modal__list {
+            overflow: initial;
+        }
     }
 
     .more-modal__list {
-        height: 1px;
-        flex-grow: 500;
+        position: relative;
+        overflow: clip;
+        min-height: 0;
+        flex: 1;
     }
 
     .filter-button {
@@ -1059,10 +1068,6 @@
             color: variables.$gray;
             font-size: 1.25em;
             text-align: center;
-        }
-
-        .filter-row--full {
-            flex-grow: 0;
         }
     }
 

@@ -27,11 +27,12 @@ describe('Leave Channel Command', () => {
     it('Should be redirected to last channel when user leaves channel with /leave command', () => {
         // # Go to newly created channel
         cy.get('#sidebarItem_' + testChannel.name).click({force: true});
-        cy.findAllByTestId('postView').should('be.visible');
+
+        cy.findAllByTestId('postView').last().scrollIntoView().should('be.visible');
 
         // # Post /leave command in center channel
         cy.postMessage('/leave ');
-        cy.wait(TIMEOUTS.TWO_SEC); // eslint-disable-line cypress/no-unnecessary-waiting
+        cy.wait(TIMEOUTS.TWO_SEC);
 
         // * Assert that user is redirected to townsquare
         cy.url().should('include', '/channels/town-square');

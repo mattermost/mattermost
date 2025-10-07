@@ -12,14 +12,12 @@ import type {PreferenceType} from '@mattermost/types/preferences';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import PurchaseLink from 'components/announcement_bar/purchase_link/purchase_link';
 import ExternalLink from 'components/external_link';
 
 import alertIcon from 'images/icons/round-white-info-icon.svg';
 import warningIcon from 'images/icons/warning-icon.svg';
-import {AnnouncementBarTypes, AnnouncementBarMessages, Preferences, ConfigurationBanners, Constants, TELEMETRY_CATEGORIES} from 'utils/constants';
+import {AnnouncementBarTypes, AnnouncementBarMessages, Preferences, ConfigurationBanners, Constants} from 'utils/constants';
 import {daysToLicenseExpire, isLicenseExpired, isLicenseExpiring, isLicensePastGracePeriod, isTrialLicense} from 'utils/license_utils';
 import {getSkuDisplayName} from 'utils/subscription';
 import {getViewportSize} from 'utils/utils';
@@ -57,11 +55,6 @@ const ConfigurationAnnouncementBar = (props: Props) => {
     };
 
     const dismissExpiredLicense = () => {
-        trackEvent(
-            TELEMETRY_CATEGORIES.SELF_HOSTED_LICENSE_EXPIRED,
-            'dismissed_license_expired_banner',
-        );
-
         props.actions.savePreferences(props.currentUserId, [{
             category: Preferences.CONFIGURATION_BANNERS,
             user_id: props.currentUserId,
@@ -98,7 +91,10 @@ const ConfigurationAnnouncementBar = (props: Props) => {
                     message={
                         <div className='announcement-bar__configuration'>
                             {message}
-                            <RenewalLink telemetryInfo={renewLinkTelemetry}/>
+                            <RenewalLink
+                                className='btn btn-tertiary btn-xs btn-inverted annnouncementBar__renewLicense'
+                                telemetryInfo={renewLinkTelemetry}
+                            />
                         </div>
                     }
                     tooltipMsg={message}
@@ -112,6 +108,7 @@ const ConfigurationAnnouncementBar = (props: Props) => {
         if (isTrialLicense(props.license) && typeof daysUntilLicenseExpires !== 'undefined' && daysUntilLicenseExpires <= 14 && !props.dismissedExpiringTrialLicense) {
             const purchaseLicense = (
                 <PurchaseLink
+                    className='btn btn-tertiary btn-xs btn-inverted annnouncementBar__purchaseNow'
                     buttonTextElement={
                         <FormattedMessage
                             id='announcement_bar.error.purchase_a_license_now'
@@ -200,7 +197,10 @@ const ConfigurationAnnouncementBar = (props: Props) => {
                     message={
                         <div className='announcement-bar__configuration'>
                             {message}
-                            <RenewalLink telemetryInfo={renewLinkTelemetry}/>
+                            <RenewalLink
+                                className='btn btn-tertiary btn-xs btn-inverted annnouncementBar__renewLicense'
+                                telemetryInfo={renewLinkTelemetry}
+                            />
                         </div>
                     }
                     tooltipMsg={message}

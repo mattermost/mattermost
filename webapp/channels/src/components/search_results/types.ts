@@ -34,7 +34,7 @@ export type OwnProps = {
 };
 
 export type StateProps = {
-    results: Post[];
+    results: Array<Post|string>;
     fileResults: FileInfo[];
     matches: Record<string, string[]>;
     searchTerms: string;

@@ -19,7 +19,9 @@ type Props = {
     intl: IntlShape;
     form?: AppForm;
     context?: AppContext;
+    timezone?: string;
     onExited: () => void;
+    onHide?: () => void;
     actions: {
         doAppSubmit: DoAppSubmit<any>;
         doAppFetchForm: DoAppFetchForm<any>;
@@ -199,7 +201,9 @@ class AppsFormContainer extends React.PureComponent<Props, State> {
         return (
             <AppsForm
                 form={form}
+                timezone={this.props.timezone}
                 onExited={this.props.onExited}
+                onHide={this.props.onHide}
                 actions={{
                     submit: this.submitForm,
                     performLookupCall: this.performLookupCall,

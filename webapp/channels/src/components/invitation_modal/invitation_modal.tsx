@@ -14,8 +14,6 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import {focusElement} from 'utils/a11y_utils';
 
 import {InviteType} from './invite_as';
@@ -82,8 +80,7 @@ export type Props = {
     channelToInvite?: Channel;
     initialValue?: string;
     inviteAsGuest?: boolean;
-    roleForTrackFlow: {started_by_role: string};
-    focusOriginElement: string;
+    focusOriginElement?: string;
 }
 
 export const View = {
@@ -132,7 +129,9 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
     };
 
     handleExit = () => {
-        focusElement(this.props.focusOriginElement, true);
+        if (this.props.focusOriginElement) {
+            focusElement(this.props.focusOriginElement, true);
+        }
         this.props.onExited?.();
     };
 
@@ -179,10 +178,6 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
             return;
         }
         const inviteAs = this.state.invite.inviteType;
-        if (inviteAs === InviteType.MEMBER && this.props.isCloud) {
-            trackEvent('cloud_invite_users', 'click_send_invitations', {num_invitations: this.state.invite.usersEmails.length, ...this.props.roleForTrackFlow});
-        }
-        trackEvent('invite_users', 'click_invite', this.props.roleForTrackFlow);
 
         const users: UserProfile[] = [];
         const emails: string[] = [];
@@ -260,15 +255,39 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
 
     debouncedSearchChannels = debounce((term) => this.props.currentTeam && this.props.actions.searchChannels(this.props.currentTeam.id, term), 150);
 
+    // Filter channels based on the current invite type and search term
+    filterChannels = (channels: Channel[], isGuestInvite: boolean, searchTerm: string = '') => {
+        return channels.filter((channel) => {
+            // For guest invites, filter out policy_enforced channels
+            if (isGuestInvite && channel.policy_enforced) {
+                return false;
+            }
+
+            // If there's a search term, filter by name match
+            if (searchTerm) {
+                const lowerSearchTerm = searchTerm.toLowerCase();
+                return channel.display_name.toLowerCase().includes(lowerSearchTerm) ||
+                       channel.name.toLowerCase().includes(lowerSearchTerm);
+            }
+
+            return true;
+        });
+    };
+
     channelsLoader = async (value: string) => {
-        if (!value) {
-            return this.props.invitableChannels;
+        const isGuestInvite = this.state.invite.inviteType === InviteType.GUEST;
+
+        // If there's a search term, search the channels from the server
+        if (value) {
+            this.debouncedSearchChannels(value);
         }
 
-        this.debouncedSearchChannels(value);
-        return this.props.invitableChannels.filter((channel) => {
-            return channel.display_name.toLowerCase().startsWith(value.toLowerCase()) || channel.name.toLowerCase().startsWith(value.toLowerCase());
-        });
+        // Apply filtering to the channels
+        return this.filterChannels(
+            this.props.invitableChannels,
+            isGuestInvite,
+            value,
+        );
     };
 
     onChannelsChange = (channels: Channel[]) => {

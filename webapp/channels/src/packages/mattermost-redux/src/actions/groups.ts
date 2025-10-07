@@ -4,9 +4,8 @@
 import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
-import type {GroupPatch, SyncablePatch, GroupCreateWithUserIds, CustomGroupPatch, GroupSearchParams, GetGroupsParams, GetGroupsForUserParams, Group} from '@mattermost/types/groups';
+import type {GroupPatch, SyncablePatch, GroupCreateWithUserIds, CustomGroupPatch, GroupSearchParams, GetGroupsParams, GetGroupsForUserParams, Group, GroupMember} from '@mattermost/types/groups';
 import {SyncableType, GroupSource} from '@mattermost/types/groups';
-import type {UserProfile} from '@mattermost/types/users';
 
 import {ChannelTypes, GroupTypes, UserTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
@@ -303,6 +302,27 @@ export function getGroupsByUserId(userID: string) {
     });
 }
 
+export function getGroupsByNames(names: string[]): ActionFuncAsync<Group[]> {
+    return async (dispatch, getState) => {
+        let groups;
+
+        try {
+            groups = await Client4.getGroupsByNames(names);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch({
+            type: GroupTypes.RECEIVED_GROUPS,
+            data: groups,
+        });
+
+        return {data: groups};
+    };
+}
+
 export function getGroupsByUserIdPaginated(opts: GetGroupsForUserParams) {
     return bindClientFunc({
         clientFunc: async (opts) => {
@@ -344,7 +364,7 @@ export function createGroupWithUserIds(group: GroupCreateWithUserIds): ActionFun
     };
 }
 
-export function addUsersToGroup(groupId: string, userIds: string[]): ActionFuncAsync<UserProfile[]> {
+export function addUsersToGroup(groupId: string, userIds: string[]): ActionFuncAsync<GroupMember[]> {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -366,7 +386,7 @@ export function addUsersToGroup(groupId: string, userIds: string[]): ActionFuncA
     };
 }
 
-export function removeUsersFromGroup(groupId: string, userIds: string[]): ActionFuncAsync<UserProfile[]> {
+export function removeUsersFromGroup(groupId: string, userIds: string[]): ActionFuncAsync<GroupMember[]> {
     return async (dispatch, getState) => {
         let data;
         try {

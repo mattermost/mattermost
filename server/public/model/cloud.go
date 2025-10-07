@@ -191,6 +191,7 @@ type Subscription struct {
 	CancelAt                *int64   `json:"cancel_at"`
 	WillRenew               string   `json:"will_renew"`
 	SimulatedCurrentTimeMs  *int64   `json:"simulated_current_time_ms"`
+	IsCloudPreview          bool     `json:"is_cloud_preview"`
 }
 
 func (s *Subscription) DaysToExpiration() int64 {
@@ -341,6 +342,23 @@ type Feedback struct {
 type WorkspaceDeletionRequest struct {
 	SubscriptionID string    `json:"subscription_id"`
 	Feedback       *Feedback `json:"delete_feedback"`
+}
+
+// MessageDescriptor represents an i18n message descriptor
+type MessageDescriptor struct {
+	ID             string         `json:"id"`
+	DefaultMessage string         `json:"defaultMessage"`
+	Values         map[string]any `json:"values,omitempty"`
+}
+
+// PreviewModalContentData represents the structure of modal content data from S3
+type PreviewModalContentData struct {
+	SKULabel    MessageDescriptor `json:"skuLabel"`
+	Title       MessageDescriptor `json:"title"`
+	Subtitle    MessageDescriptor `json:"subtitle"`
+	VideoURL    string            `json:"videoUrl"`
+	VideoPoster string            `json:"videoPoster,omitempty"`
+	UseCase     string            `json:"useCase"`
 }
 
 func (p *Product) IsYearly() bool {

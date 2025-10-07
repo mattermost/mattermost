@@ -1,0 +1,39 @@
+.cloud-preview-modal-fab {
+    position: fixed;
+    z-index: 999;
+    bottom: 16px;
+    left: 16px;
+
+    &__button {
+        display: flex;
+        width: 36px;
+        height: 36px;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
+        border-radius: 50%;
+        background-color: var(--center-channel-bg);
+        box-shadow: 0px 8px 24px 0px rgba(0, 0, 0, 0.16);
+        cursor: pointer;
+
+        &:active {
+            box-shadow: 0px 4px 16px 0px rgba(0, 0, 0, 0.12);
+        }
+
+        &:focus {
+            box-shadow: 0px 8px 24px 0px rgba(0, 0, 0, 0.16), 0 0 0 2px var(--button-bg);
+            outline: none;
+        }
+
+        .icon {
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            font-size: 24px;
+        }
+    }
+}
+
+// Hide the cloud preview modal FAB when calls expanded view is present
+#calls-expanded-view ~ .cloud-preview-modal-fab,
+.cloud-preview-modal-fab:has(~ #calls-expanded-view) {
+    display: none;
+}

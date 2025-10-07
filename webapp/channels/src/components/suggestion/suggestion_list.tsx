@@ -1,34 +1,27 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import cloneDeep from 'lodash/cloneDeep';
 import React from 'react';
-import ReactDOM from 'react-dom';
-import {FormattedMessage} from 'react-intl';
-
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import {Constants} from 'utils/constants';
-import {isEmptyObject} from 'utils/utils';
+
+import SuggestionListContents, {UngroupedSuggestions} from './suggestion_list_contents';
+import type {SuggestionResults} from './suggestion_results';
+import {countResults, hasResults} from './suggestion_results';
 
 export interface Props {
-    ariaLiveRef?: React.RefObject<HTMLDivElement>;
     inputRef?: React.RefObject<HTMLDivElement>;
     open: boolean;
     position?: 'top' | 'bottom';
-    renderDividers?: string[];
     renderNoResults?: boolean;
     onCompleteWord: (term: string, matchedPretext: string, e?: React.KeyboardEventHandler<HTMLDivElement>) => boolean;
     preventClose?: () => void;
     onItemHover: (term: string) => void;
     pretext: string;
     cleared: boolean;
-    matchedPretext: string[];
-    items: any[];
-    terms: string[];
+    results: SuggestionResults;
     selection: string;
-    components: Array<React.ComponentType<any>>;
-    wrapperHeight?: number;
 
     // suggestionBoxAlgn is an optional object that can be passed to align the SuggestionList with the keyboard caret
     // as the user is typing.
@@ -41,14 +34,11 @@ export interface Props {
 
 export default class SuggestionList extends React.PureComponent<Props> {
     static defaultProps = {
-        renderDividers: [],
         renderNoResults: false,
     };
-    contentRef: React.RefObject<HTMLUListElement>;
+    contentRef: React.RefObject<HTMLElement>;
     wrapperRef: React.RefObject<HTMLDivElement>;
-    itemRefs: Map<string, any>;
-    currentLabel: string | null;
-    currentItem: any;
+    itemRefs: Map<string, HTMLElement | null>;
     maxHeight: number;
 
     constructor(props: Props) {
@@ -57,8 +47,6 @@ export default class SuggestionList extends React.PureComponent<Props> {
         this.contentRef = React.createRef();
         this.wrapperRef = React.createRef();
         this.itemRefs = new Map();
-        this.currentLabel = '';
-        this.currentItem = {};
         this.maxHeight = 0;
     }
 
@@ -71,17 +59,9 @@ export default class SuggestionList extends React.PureComponent<Props> {
             this.scrollToItem(this.props.selection);
         }
 
-        if (!isEmptyObject(this.currentItem)) {
-            this.generateLabel(this.currentItem);
-        }
-
-        if (this.props.items.length > 0 && prevProps.items.length === 0) {
+        if (hasResults(this.props.results) && !hasResults(prevProps.results)) {
             this.updateMaxHeight();
         }
-    }
-
-    componentWillUnmount() {
-        this.removeLabel();
     }
 
     updateMaxHeight = () => {
@@ -101,42 +81,6 @@ export default class SuggestionList extends React.PureComponent<Props> {
         }
     };
 
-    announceLabel() {
-        const suggestionReadOut = this.props.ariaLiveRef?.current;
-        if (suggestionReadOut) {
-            suggestionReadOut.textContent = this.currentLabel;
-        }
-    }
-
-    removeLabel() {
-        const suggestionReadOut = this.props.ariaLiveRef?.current;
-        if (suggestionReadOut) {
-            suggestionReadOut.textContent = '';
-        }
-    }
-
-    generateLabel(item: any) {
-        if (item.username) {
-            this.currentLabel = item.username;
-            if ((item.first_name || item.last_name) && item.nickname) {
-                this.currentLabel += ` ${item.first_name} ${item.last_name} ${item.nickname}`;
-            } else if (item.nickname) {
-                this.currentLabel += ` ${item.nickname}`;
-            } else if (item.first_name || item.last_name) {
-                this.currentLabel += ` ${item.first_name} ${item.last_name}`;
-            }
-        } else if (item.type === 'mention.channels') {
-            this.currentLabel = item.channel.display_name;
-        } else if (item.emoji) {
-            this.currentLabel = item.name;
-        }
-
-        if (this.currentLabel) {
-            this.currentLabel = this.currentLabel.toLowerCase();
-        }
-        this.announceLabel();
-    }
-
     getContent = () => {
         return this.contentRef.current;
     };
@@ -155,7 +99,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
             const contentTopPadding = this.getComputedCssProperty(content, 'paddingTop');
             const contentBottomPadding = this.getComputedCssProperty(content, 'paddingTop');
 
-            const item = ReactDOM.findDOMNode(this.itemRefs.get(term));
+            const item = this.itemRefs.get(term);
             if (!item) {
                 return;
             }
@@ -211,9 +155,9 @@ export default class SuggestionList extends React.PureComponent<Props> {
                 className='suggestion-list__divider'
                 role='separator'
             >
-                <span>
+                <h2>
                     <FormattedMessage id={id}/>
-                </span>
+                </h2>
             </li>
         );
     }
@@ -223,7 +167,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
             <ul
                 key='list-no-results'
                 className='suggestion-list__no-results'
-                ref={this.contentRef}
+                ref={this.contentRef as React.RefObject<HTMLUListElement>}
             >
                 <FormattedMessage
                     id='suggestionList.noMatches'
@@ -238,80 +182,89 @@ export default class SuggestionList extends React.PureComponent<Props> {
     }
 
     render() {
-        const {renderDividers} = this.props;
-
         if (!this.props.open || this.props.cleared) {
             return null;
         }
 
-        const clonedItems = cloneDeep(this.props.items);
-
-        const items = [];
-        if (clonedItems.length === 0) {
-            if (!this.props.renderNoResults) {
-                return null;
-            }
-            items.push(this.renderNoResults());
-        }
-
-        let prevItemType = null;
-        for (let i = 0; i < this.props.items.length; i++) {
-            const item = this.props.items[i];
-            const term = this.props.terms[i];
-            const isSelection = term === this.props.selection;
-
-            // ReactComponent names need to be upper case when used in JSX
-            const Component = this.props.components[i];
-            if ((renderDividers?.includes('all') || renderDividers?.includes(item.type)) && prevItemType !== item.type) {
-                items.push(this.renderDivider(item.type));
-                prevItemType = item.type;
-            }
-
-            if (item.loading) {
-                items.push(<LoadingSpinner key={item.type}/>);
-                continue;
-            }
-
-            if (isSelection) {
-                this.currentItem = item;
-            }
-
-            items.push(
-                <Component
-                    key={term}
-                    ref={(ref: any) => this.itemRefs.set(term, ref)}
-                    item={this.props.items[i]}
-                    term={term}
-                    matchedPretext={this.props.matchedPretext[i]}
-                    isSelection={isSelection}
-                    onClick={this.props.onCompleteWord}
-                    onMouseMove={this.props.onItemHover}
-                />,
-            );
-        }
         const mainClass = 'suggestion-list suggestion-list--' + this.props.position;
         const contentClass = 'suggestion-list__content suggestion-list__content--' + this.props.position;
+        const contentStyle = {
+            maxHeight: this.maxHeight,
+            ...this.getTransform(),
+        };
+
+        let contents;
+        if (hasResults(this.props.results)) {
+            contents = (
+                <SuggestionListContents
+                    ref={this.contentRef}
+                    id='suggestionList'
+                    className={contentClass}
+                    style={contentStyle}
+
+                    results={this.props.results}
+                    selectedTerm={this.props.selection}
+
+                    getItemId={(term) => `suggestionList_item_${term}`}
+                    setItemRef={(term, ref) => {
+                        this.itemRefs.set(term, ref);
+                    }}
+                    onItemClick={this.props.onCompleteWord}
+                    onItemHover={this.props.onItemHover}
+                    onMouseDown={this.props.preventClose}
+                />
+            );
+        } else if (this.props.renderNoResults) {
+            contents = (
+                <UngroupedSuggestions
+                    id='suggestionList'
+                    className={contentClass}
+                    style={contentStyle}
+
+                    onMouseDown={this.props.preventClose}
+                >
+                    {this.renderNoResults()}
+                </UngroupedSuggestions>
+            );
+        }
+
+        if (!contents) {
+            return null;
+        }
 
         return (
             <div
                 ref={this.wrapperRef}
                 className={mainClass}
             >
-                <ul
-                    id='suggestionList'
-                    data-testid='suggestionList'
-                    role='listbox'
-                    ref={this.contentRef}
-                    style={{
-                        maxHeight: this.maxHeight,
-                        ...this.getTransform(),
-                    }}
-                    className={contentClass}
-                    onMouseDown={this.props.preventClose}
-                >
-                    {items}
-                </ul>
+                {contents}
+                <SuggestionListStatus results={this.props.results}/>
             </div>
         );
     }
+}
+
+export function SuggestionListStatus({results}: Pick<Props, 'results'>) {
+    const {formatMessage} = useIntl();
+
+    const statusText = formatMessage(
+        {
+            id: 'suggestionList.suggestionsAvailable',
+            defaultMessage: '{count, number} {count, plural, one {suggestion} other {suggestions}} available',
+        },
+        {
+            count: countResults(results),
+        },
+    );
+
+    return (
+        <div
+            className='sr-only'
+            aria-atomic={true}
+            aria-live='polite'
+            role='status'
+        >
+            {statusText}
+        </div>
+    );
 }

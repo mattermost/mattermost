@@ -70,6 +70,7 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
           >
             <label>
               <input
+                class="a11y--active a11y--focused"
                 type="checkbox"
               />
               Notify me about replies to threads I'm following
@@ -162,6 +163,9 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
           class="setting-list-item"
         >
           <hr />
+          <div
+            role="alert"
+          />
           <button
             class="btn btn-primary "
             data-testid="saveSetting"
@@ -174,6 +178,7 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
           </button>
           <button
             class="btn btn-tertiary"
+            data-testid="cancelButton"
             id="cancelSetting"
           >
             Cancel
@@ -191,7 +196,7 @@ exports[`DesktopNotificationSettings should match snapshot, on min setting 1`] =
     class="section-min"
   >
     <div
-      class="secion-min__header"
+      class="section-min__header"
     >
       <h4
         class="section-min__title"
@@ -207,6 +212,7 @@ exports[`DesktopNotificationSettings should match snapshot, on min setting 1`] =
         id="desktopAndMobileEdit"
       >
         <i
+          aria-hidden="true"
           class="icon-pencil-outline"
           title="Edit Icon"
         />
@@ -293,6 +299,7 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
           >
             <label>
               <input
+                class="a11y--active a11y--focused"
                 type="checkbox"
               />
               Use different settings for my mobile devices
@@ -374,6 +381,9 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
           class="setting-list-item"
         >
           <hr />
+          <div
+            role="alert"
+          />
           <button
             class="btn btn-primary "
             data-testid="saveSetting"
@@ -386,6 +396,7 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
           </button>
           <button
             class="btn btn-tertiary"
+            data-testid="cancelButton"
             id="cancelSetting"
           >
             Cancel

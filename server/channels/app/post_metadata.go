@@ -34,11 +34,10 @@ type linkMetadataCache struct {
 	OpenGraph *opengraph.OpenGraph
 	PostImage *model.PostImage
 	Permalink *model.Permalink
+	URL       string
 }
 
 const MaxMetadataImageSize = MaxOpenGraphResponseSize
-
-const UnsafeLinksPostProp = "unsafe_links"
 
 func (s *Server) initPostMetadata() {
 	// Dump any cached links if the proxy settings have changed so image URLs can be updated
@@ -54,7 +53,7 @@ func (s *Server) initPostMetadata() {
 	})
 }
 
-func (a *App) PreparePostListForClient(c request.CTX, originalList *model.PostList) *model.PostList {
+func (a *App) PreparePostListForClient(rctx request.CTX, originalList *model.PostList) *model.PostList {
 	list := &model.PostList{
 		Posts:                     make(map[string]*model.Post, len(originalList.Posts)),
 		Order:                     originalList.Order,
@@ -65,7 +64,7 @@ func (a *App) PreparePostListForClient(c request.CTX, originalList *model.PostLi
 	}
 
 	for id, originalPost := range originalList.Posts {
-		post := a.PreparePostForClientWithEmbedsAndImages(c, originalPost, false, false, false)
+		post := a.PreparePostForClientWithEmbedsAndImages(rctx, originalPost, &model.PreparePostForClientOpts{})
 
 		list.Posts[id] = post
 	}
@@ -89,7 +88,7 @@ func (a *App) PreparePostListForClient(c request.CTX, originalList *model.PostLi
 
 // OverrideIconURLIfEmoji changes the post icon override URL prop, if it has an emoji icon,
 // so that it points to the URL (relative) of the emoji - static if emoji is default, /api if custom.
-func (a *App) OverrideIconURLIfEmoji(c request.CTX, post *model.Post) {
+func (a *App) OverrideIconURLIfEmoji(rctx request.CTX, post *model.Post) {
 	prop, ok := post.GetProps()[model.PostPropsOverrideIconEmoji]
 	if !ok || prop == nil {
 		return
@@ -106,25 +105,25 @@ func (a *App) OverrideIconURLIfEmoji(c request.CTX, post *model.Post) {
 
 	emojiName = strings.ReplaceAll(emojiName, ":", "")
 
-	if emojiURL, err := a.GetEmojiStaticURL(c, emojiName); err == nil {
+	if emojiURL, err := a.GetEmojiStaticURL(rctx, emojiName); err == nil {
 		post.AddProp(model.PostPropsOverrideIconURL, emojiURL)
 	} else {
-		c.Logger().Warn("Failed to retrieve URL for overridden profile icon (emoji)", mlog.String("emojiName", emojiName), mlog.Err(err))
+		rctx.Logger().Warn("Failed to retrieve URL for overridden profile icon (emoji)", mlog.String("emojiName", emojiName), mlog.Err(err))
 	}
 }
 
-func (a *App) PreparePostForClient(c request.CTX, originalPost *model.Post, isNewPost, isEditPost, includePriority bool) *model.Post {
+func (a *App) PreparePostForClient(rctx request.CTX, originalPost *model.Post, opts *model.PreparePostForClientOpts) *model.Post {
 	post := originalPost.Clone()
 
 	// Proxy image links before constructing metadata so that requests go through the proxy
 	post = a.PostWithProxyAddedToImageURLs(post)
 
-	a.OverrideIconURLIfEmoji(c, post)
+	a.OverrideIconURLIfEmoji(rctx, post)
 	if post.Metadata == nil {
 		post.Metadata = &model.PostMetadata{}
 	}
 
-	if post.DeleteAt > 0 {
+	if post.DeleteAt > 0 && !opts.RetainContent {
 		// For deleted posts we don't fill out metadata nor do we return the post content
 		post.Message = ""
 		post.Metadata = &model.PostMetadata{}
@@ -132,31 +131,31 @@ func (a *App) PreparePostForClient(c request.CTX, originalPost *model.Post, isNe
 	}
 
 	// Emojis and reaction counts
-	if emojis, reactions, err := a.getEmojisAndReactionsForPost(c, post); err != nil {
-		c.Logger().Warn("Failed to get emojis and reactions for a post", mlog.String("post_id", post.Id), mlog.Err(err))
+	if emojis, reactions, err := a.getEmojisAndReactionsForPost(rctx, post); err != nil {
+		rctx.Logger().Warn("Failed to get emojis and reactions for a post", mlog.String("post_id", post.Id), mlog.Err(err))
 	} else {
 		post.Metadata.Emojis = emojis
 		post.Metadata.Reactions = reactions
 	}
 
 	// Files
-	if fileInfos, _, err := a.getFileMetadataForPost(c, post, isNewPost || isEditPost); err != nil {
-		c.Logger().Warn("Failed to get files for a post", mlog.String("post_id", post.Id), mlog.Err(err))
+	if fileInfos, _, err := a.getFileMetadataForPost(rctx, post, opts.IsNewPost || opts.IsEditPost, opts.IncludeDeleted); err != nil {
+		rctx.Logger().Warn("Failed to get files for a post", mlog.String("post_id", post.Id), mlog.Err(err))
 	} else {
 		post.Metadata.Files = fileInfos
 	}
 
-	if includePriority && a.IsPostPriorityEnabled() && post.RootId == "" {
+	if opts.IncludePriority && a.IsPostPriorityEnabled() && post.RootId == "" {
 		// Post's Priority if any
 		if priority, err := a.GetPriorityForPost(post.Id); err != nil {
-			c.Logger().Warn("Failed to get post priority for a post", mlog.String("post_id", post.Id), mlog.Err(err))
+			rctx.Logger().Warn("Failed to get post priority for a post", mlog.String("post_id", post.Id), mlog.Err(err))
 		} else {
 			post.Metadata.Priority = priority
 		}
 
 		// Post's acknowledgements if any
 		if acknowledgements, err := a.GetAcknowledgementsForPost(post.Id); err != nil {
-			c.Logger().Warn("Failed to get post acknowledgements for a post", mlog.String("post_id", post.Id), mlog.Err(err))
+			rctx.Logger().Warn("Failed to get post acknowledgements for a post", mlog.String("post_id", post.Id), mlog.Err(err))
 		} else {
 			post.Metadata.Acknowledgements = acknowledgements
 		}
@@ -165,13 +164,13 @@ func (a *App) PreparePostForClient(c request.CTX, originalPost *model.Post, isNe
 	return post
 }
 
-func (a *App) PreparePostForClientWithEmbedsAndImages(c request.CTX, originalPost *model.Post, isNewPost, isEditPost, includePriority bool) *model.Post {
-	post := a.PreparePostForClient(c, originalPost, isNewPost, isEditPost, includePriority)
-	post = a.getEmbedsAndImages(c, post, isNewPost)
+func (a *App) PreparePostForClientWithEmbedsAndImages(rctx request.CTX, originalPost *model.Post, opts *model.PreparePostForClientOpts) *model.Post {
+	post := a.PreparePostForClient(rctx, originalPost, opts)
+	post = a.getEmbedsAndImages(rctx, post, opts.IsNewPost)
 	return post
 }
 
-func (a *App) getEmbedsAndImages(c request.CTX, post *model.Post, isNewPost bool) *model.Post {
+func (a *App) getEmbedsAndImages(rctx request.CTX, post *model.Post, isNewPost bool) *model.Post {
 	if post.Metadata == nil {
 		post.Metadata = &model.PostMetadata{}
 	}
@@ -181,9 +180,9 @@ func (a *App) getEmbedsAndImages(c request.CTX, post *model.Post, isNewPost bool
 	}
 
 	// Embeds and image dimensions
-	firstLink, images := a.getFirstLinkAndImages(c, post.Message)
+	firstLink, images := a.getFirstLinkAndImages(rctx, post.Message)
 
-	if unsafeLinksProp := post.GetProp(UnsafeLinksPostProp); unsafeLinksProp != nil {
+	if unsafeLinksProp := post.GetProp(model.PostPropsUnsafeLinks); unsafeLinksProp != nil {
 		if prop, ok := unsafeLinksProp.(string); ok && prop == "true" {
 			images = []string{}
 			if !looksLikeAPermalink(firstLink, *a.Config().ServiceSettings.SiteURL) {
@@ -192,17 +191,17 @@ func (a *App) getEmbedsAndImages(c request.CTX, post *model.Post, isNewPost bool
 		}
 	}
 
-	if embed, err := a.getEmbedForPost(c, post, firstLink, isNewPost); err != nil {
+	if embed, err := a.getEmbedForPost(rctx, post, firstLink, isNewPost); err != nil {
 		appErr, ok := err.(*model.AppError)
 		isNotFound := ok && appErr.StatusCode == http.StatusNotFound
 		// Ignore NotFound errors.
 		if !isNotFound {
-			c.Logger().Debug("Failed to get embedded content for a post", mlog.String("post_id", post.Id), mlog.Err(err))
+			rctx.Logger().Debug("Failed to get embedded content for a post", mlog.String("post_id", post.Id), mlog.Err(err))
 		}
 	} else if embed != nil {
 		post.Metadata.Embeds = append(post.Metadata.Embeds, embed)
 	}
-	post.Metadata.Images = a.getImagesForPost(c, post, images, isNewPost)
+	post.Metadata.Images = a.getImagesForPost(rctx, post, images, isNewPost)
 	return post
 }
 
@@ -229,19 +228,19 @@ func removeEmbeddedPostsFromMetadata(post *model.Post) {
 	post.Metadata.Embeds = newEmbeds
 }
 
-func (a *App) sanitizePostMetadataForUserAndChannel(c request.CTX, post *model.Post, previewedPost *model.PreviewPost, previewedChannel *model.Channel, userID string) *model.Post {
+func (a *App) sanitizePostMetadataForUserAndChannel(rctx request.CTX, post *model.Post, previewedPost *model.PreviewPost, previewedChannel *model.Channel, userID string) *model.Post {
 	if post.Metadata == nil || len(post.Metadata.Embeds) == 0 || previewedPost == nil {
 		return post
 	}
 
-	if previewedChannel != nil && !a.HasPermissionToReadChannel(c, userID, previewedChannel) {
+	if previewedChannel != nil && !a.HasPermissionToReadChannel(rctx, userID, previewedChannel) {
 		removePermalinkMetadataFromPost(post)
 	}
 
 	return post
 }
 
-func (a *App) SanitizePostMetadataForUser(c request.CTX, post *model.Post, userID string) (*model.Post, *model.AppError) {
+func (a *App) SanitizePostMetadataForUser(rctx request.CTX, post *model.Post, userID string) (*model.Post, *model.AppError) {
 	if post.Metadata == nil || len(post.Metadata.Embeds) == 0 {
 		return post, nil
 	}
@@ -251,22 +250,22 @@ func (a *App) SanitizePostMetadataForUser(c request.CTX, post *model.Post, userI
 		return post, nil
 	}
 
-	previewedChannel, err := a.GetChannel(c, previewPost.Post.ChannelId)
+	previewedChannel, err := a.GetChannel(rctx, previewPost.Post.ChannelId)
 	if err != nil {
 		return nil, err
 	}
 
-	if previewedChannel != nil && !a.HasPermissionToReadChannel(c, userID, previewedChannel) {
+	if previewedChannel != nil && !a.HasPermissionToReadChannel(rctx, userID, previewedChannel) {
 		removePermalinkMetadataFromPost(post)
 	}
 
 	return post, nil
 }
 
-func (a *App) SanitizePostListMetadataForUser(c request.CTX, postList *model.PostList, userID string) (*model.PostList, *model.AppError) {
+func (a *App) SanitizePostListMetadataForUser(rctx request.CTX, postList *model.PostList, userID string) (*model.PostList, *model.AppError) {
 	clonedPostList := postList.Clone()
 	for postID, post := range clonedPostList.Posts {
-		sanitizedPost, err := a.SanitizePostMetadataForUser(c, post, userID)
+		sanitizedPost, err := a.SanitizePostMetadataForUser(rctx, post, userID)
 		if err != nil {
 			return nil, err
 		}
@@ -275,15 +274,15 @@ func (a *App) SanitizePostListMetadataForUser(c request.CTX, postList *model.Pos
 	return clonedPostList, nil
 }
 
-func (a *App) getFileMetadataForPost(rctx request.CTX, post *model.Post, fromMaster bool) ([]*model.FileInfo, int64, *model.AppError) {
+func (a *App) getFileMetadataForPost(rctx request.CTX, post *model.Post, fromMaster, includeDeleted bool) ([]*model.FileInfo, int64, *model.AppError) {
 	if len(post.FileIds) == 0 {
 		return nil, 0, nil
 	}
 
-	return a.GetFileInfosForPost(rctx, post.Id, fromMaster, false)
+	return a.GetFileInfosForPost(rctx, post.Id, fromMaster, includeDeleted)
 }
 
-func (a *App) getEmojisAndReactionsForPost(c request.CTX, post *model.Post) ([]*model.Emoji, []*model.Reaction, *model.AppError) {
+func (a *App) getEmojisAndReactionsForPost(rctx request.CTX, post *model.Post) ([]*model.Emoji, []*model.Reaction, *model.AppError) {
 	var reactions []*model.Reaction
 	if post.HasReactions {
 		var err *model.AppError
@@ -293,7 +292,7 @@ func (a *App) getEmojisAndReactionsForPost(c request.CTX, post *model.Post) ([]*
 		}
 	}
 
-	emojis, err := a.getCustomEmojisForPost(c, post, reactions)
+	emojis, err := a.getCustomEmojisForPost(rctx, post, reactions)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -301,8 +300,8 @@ func (a *App) getEmojisAndReactionsForPost(c request.CTX, post *model.Post) ([]*
 	return emojis, reactions, nil
 }
 
-func (a *App) getEmbedForPost(c request.CTX, post *model.Post, firstLink string, isNewPost bool) (*model.PostEmbed, error) {
-	if _, ok := post.GetProps()["attachments"]; ok {
+func (a *App) getEmbedForPost(rctx request.CTX, post *model.Post, firstLink string, isNewPost bool) (*model.PostEmbed, error) {
+	if _, ok := post.GetProps()[model.PostPropsAttachments]; ok {
 		return &model.PostEmbed{
 			Type: model.PostEmbedMessageAttachment,
 		}, nil
@@ -324,7 +323,7 @@ func (a *App) getEmbedForPost(c request.CTX, post *model.Post, firstLink string,
 		return nil, nil
 	}
 
-	og, image, permalink, err := a.getLinkMetadata(c, firstLink, post.CreateAt, isNewPost, post.GetPreviewedPostProp())
+	og, image, permalink, err := a.getLinkMetadata(rctx, firstLink, post.CreateAt, isNewPost, post.GetPreviewedPostProp())
 	if err != nil {
 		return nil, err
 	}
@@ -359,7 +358,7 @@ func (a *App) getEmbedForPost(c request.CTX, post *model.Post, firstLink string,
 	}, nil
 }
 
-func (a *App) getImagesForPost(c request.CTX, post *model.Post, imageURLs []string, isNewPost bool) map[string]*model.PostImage {
+func (a *App) getImagesForPost(rctx request.CTX, post *model.Post, imageURLs []string, isNewPost bool) map[string]*model.PostImage {
 	images := map[string]*model.PostImage{}
 
 	for _, embed := range post.Metadata.Embeds {
@@ -369,12 +368,12 @@ func (a *App) getImagesForPost(c request.CTX, post *model.Post, imageURLs []stri
 			imageURLs = append(imageURLs, embed.URL)
 
 		case model.PostEmbedMessageAttachment:
-			imageURLs = append(imageURLs, a.getImagesInMessageAttachments(c, post)...)
+			imageURLs = append(imageURLs, a.getImagesInMessageAttachments(rctx, post)...)
 
 		case model.PostEmbedOpengraph:
 			openGraph, ok := embed.Data.(*opengraph.OpenGraph)
 			if !ok {
-				c.Logger().Warn("Could not read the image data: the data could not be casted to OpenGraph",
+				rctx.Logger().Warn("Could not read the image data: the data could not be casted to OpenGraph",
 					mlog.String("post_id", post.Id),
 					mlog.String("data type", fmt.Sprintf("%t", embed.Data)),
 				)
@@ -409,12 +408,12 @@ func (a *App) getImagesForPost(c request.CTX, post *model.Post, imageURLs []stri
 			continue
 		}
 
-		if _, image, _, err := a.getLinkMetadata(c, imageURL, post.CreateAt, isNewPost, post.GetPreviewedPostProp()); err != nil {
+		if _, image, _, err := a.getLinkMetadata(rctx, imageURL, post.CreateAt, isNewPost, post.GetPreviewedPostProp()); err != nil {
 			appErr, ok := err.(*model.AppError)
 			isNotFound := ok && appErr.StatusCode == http.StatusNotFound
 			// Ignore NotFound errors.
 			if !isNotFound {
-				c.Logger().Debug("Failed to get dimensions of an image in a post",
+				rctx.Logger().Debug("Failed to get dimensions of an image in a post",
 					mlog.String("post_id", post.Id),
 					mlog.String("image_url", imageURL),
 					mlog.Err(err),
@@ -477,7 +476,7 @@ func getEmojiNamesForPost(post *model.Post, reactions []*model.Reaction) []strin
 	return names
 }
 
-func (a *App) getCustomEmojisForPost(c request.CTX, post *model.Post, reactions []*model.Reaction) ([]*model.Emoji, *model.AppError) {
+func (a *App) getCustomEmojisForPost(rctx request.CTX, post *model.Post, reactions []*model.Reaction) ([]*model.Emoji, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableCustomEmoji {
 		// Only custom emoji are returned
 		return []*model.Emoji{}, nil
@@ -488,7 +487,7 @@ func (a *App) getCustomEmojisForPost(c request.CTX, post *model.Post, reactions 
 		return []*model.Emoji{}, nil
 	}
 
-	return a.GetMultipleEmojiByName(c, names)
+	return a.GetMultipleEmojiByName(rctx, names)
 }
 
 func (a *App) isLinkAllowedForPreview(rctx request.CTX, link string) bool {
@@ -533,22 +532,22 @@ func normalizeDomains(domains string) []string {
 // Given a string, returns the first autolinked URL in the string as well as an array of all Markdown
 // images of the form ![alt text](image url). Note that this does not return Markdown links of the
 // form [text](url).
-func (a *App) getFirstLinkAndImages(c request.CTX, str string) (string, []string) {
+func (a *App) getFirstLinkAndImages(rctx request.CTX, str string) (string, []string) {
 	firstLink := ""
 	images := []string{}
 
 	markdown.Inspect(str, func(blockOrInline any) bool {
 		switch v := blockOrInline.(type) {
 		case *markdown.Autolink:
-			if link := v.Destination(); firstLink == "" && a.isLinkAllowedForPreview(c, link) {
+			if link := v.Destination(); firstLink == "" && a.isLinkAllowedForPreview(rctx, link) {
 				firstLink = link
 			}
 		case *markdown.InlineImage:
-			if link := v.Destination(); a.isLinkAllowedForPreview(c, link) {
+			if link := v.Destination(); a.isLinkAllowedForPreview(rctx, link) {
 				images = append(images, link)
 			}
 		case *markdown.ReferenceImage:
-			if link := v.ReferenceDefinition.Destination(); a.isLinkAllowedForPreview(c, link) {
+			if link := v.ReferenceDefinition.Destination(); a.isLinkAllowedForPreview(rctx, link) {
 				images = append(images, link)
 			}
 		}
@@ -620,7 +619,7 @@ func (a *App) containsPermalink(rctx request.CTX, post *model.Post) bool {
 	return looksLikeAPermalink(link, a.GetSiteURL())
 }
 
-func (a *App) getLinkMetadata(c request.CTX, requestURL string, timestamp int64, isNewPost bool, previewedPostPropVal string) (*opengraph.OpenGraph, *model.PostImage, *model.Permalink, error) {
+func (a *App) getLinkMetadata(rctx request.CTX, requestURL string, timestamp int64, isNewPost bool, previewedPostPropVal string) (*opengraph.OpenGraph, *model.PostImage, *model.Permalink, error) {
 	requestURL = resolveMetadataURL(requestURL, a.GetSiteURL())
 
 	// If it's an embedded image, nothing to do.
@@ -644,22 +643,21 @@ func (a *App) getLinkMetadata(c request.CTX, requestURL string, timestamp int64,
 	if !isNewPost {
 		og, image, ok = a.getLinkMetadataFromDatabase(requestURL, timestamp)
 		if ok && previewedPostPropVal == "" {
-			cacheLinkMetadata(c, requestURL, timestamp, og, image, nil)
+			cacheLinkMetadata(rctx, requestURL, timestamp, og, image, nil)
 			return og, image, nil, nil
 		}
 	}
 
 	var err error
 	if looksLikeAPermalink(requestURL, a.GetSiteURL()) && *a.Config().ServiceSettings.EnablePermalinkPreviews {
-		permalink, err = a.getLinkMetadataForPermalink(c, requestURL)
-
+		permalink, err = a.getLinkMetadataForPermalink(rctx, requestURL)
 		if err != nil {
 			return nil, nil, nil, err
 		}
 	} else if oEmbedProvider := oembed.FindEndpointForURL(requestURL); oEmbedProvider != nil {
-		og, err = a.getLinkMetadataFromOEmbed(c, requestURL, oEmbedProvider)
+		og, err = a.getLinkMetadataFromOEmbed(rctx, requestURL, oEmbedProvider)
 	} else {
-		og, image, err = a.getLinkMetadataForURL(c, requestURL)
+		og, image, err = a.getLinkMetadataForURL(rctx, requestURL)
 
 		// We intentionally don't return early on an error because we want to save that there is no metadata for this link
 
@@ -667,21 +665,21 @@ func (a *App) getLinkMetadata(c request.CTX, requestURL string, timestamp int64,
 	}
 
 	// Write back to cache and database, even if there was an error and the results are nil
-	cacheLinkMetadata(c, requestURL, timestamp, og, image, permalink)
+	cacheLinkMetadata(rctx, requestURL, timestamp, og, image, permalink)
 
 	return og, image, permalink, err
 }
 
-func (a *App) getLinkMetadataForPermalink(c request.CTX, requestURL string) (*model.Permalink, error) {
+func (a *App) getLinkMetadataForPermalink(rctx request.CTX, requestURL string) (*model.Permalink, error) {
 	referencedPostID := requestURL[len(requestURL)-26:]
 
-	referencedPost, appErr := a.GetSinglePost(c, referencedPostID, false)
+	referencedPost, appErr := a.GetSinglePost(rctx, referencedPostID, false)
 	// TODO: Look into saving a value in the LinkMetadata.Data field to prevent perpetually re-querying for the deleted post.
 	if appErr != nil {
 		return nil, appErr
 	}
 
-	referencedChannel, appErr := a.GetChannel(c, referencedPost.ChannelId)
+	referencedChannel, appErr := a.GetChannel(rctx, referencedPost.ChannelId)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -698,19 +696,19 @@ func (a *App) getLinkMetadataForPermalink(c request.CTX, requestURL string) (*mo
 
 	// Get metadata for embedded post
 	var permalink *model.Permalink
-	if a.containsPermalink(c, referencedPost) {
+	if a.containsPermalink(rctx, referencedPost) {
 		// referencedPost contains a permalink: we don't get its metadata
 		permalink = &model.Permalink{PreviewPost: model.NewPreviewPost(referencedPost, referencedTeam, referencedChannel)}
 	} else {
 		// referencedPost does not contain a permalink: we get its metadata
-		referencedPostWithMetadata := a.PreparePostForClientWithEmbedsAndImages(c, referencedPost, false, false, false)
+		referencedPostWithMetadata := a.PreparePostForClientWithEmbedsAndImages(rctx, referencedPost, &model.PreparePostForClientOpts{})
 		permalink = &model.Permalink{PreviewPost: model.NewPreviewPost(referencedPostWithMetadata, referencedTeam, referencedChannel)}
 	}
 
 	return permalink, nil
 }
 
-func (a *App) getLinkMetadataFromOEmbed(c request.CTX, requestURL string, provider *oembed.ProviderEndpoint) (*opengraph.OpenGraph, error) {
+func (a *App) getLinkMetadataFromOEmbed(rctx request.CTX, requestURL string, provider *oembed.ProviderEndpoint) (*opengraph.OpenGraph, error) {
 	request, err := http.NewRequest("GET", provider.GetProviderURL(requestURL), nil)
 	if err != nil {
 		return nil, err
@@ -724,13 +722,13 @@ func (a *App) getLinkMetadataFromOEmbed(c request.CTX, requestURL string, provid
 
 	res, err := client.Do(request)
 	if err != nil {
-		c.Logger().Warn("error fetching oEmbed data", mlog.Err(err))
+		rctx.Logger().Warn("error fetching oEmbed data", mlog.Err(err))
 		return nil, errors.Wrap(err, "getLinkMetadataFromOEmbed: Unable to get oEmbed data")
 	}
 
 	defer func() {
 		if _, err = io.Copy(io.Discard, res.Body); err != nil {
-			c.Logger().Warn("error discarding oEmbed response body", mlog.Err(err))
+			rctx.Logger().Warn("error discarding oEmbed response body", mlog.Err(err))
 		}
 		res.Body.Close()
 	}()
@@ -738,7 +736,7 @@ func (a *App) getLinkMetadataFromOEmbed(c request.CTX, requestURL string, provid
 	return a.parseOpenGraphFromOEmbed(requestURL, res.Body)
 }
 
-func (a *App) getLinkMetadataForURL(c request.CTX, requestURL string) (*opengraph.OpenGraph, *model.PostImage, error) {
+func (a *App) getLinkMetadataForURL(rctx request.CTX, requestURL string) (*opengraph.OpenGraph, *model.PostImage, error) {
 	var request *http.Request
 	// Make request for a web page or an image
 	request, err := http.NewRequest("GET", requestURL, nil)
@@ -763,7 +761,7 @@ func (a *App) getLinkMetadataForURL(c request.CTX, requestURL string) (*opengrap
 		var res *http.Response
 		res, err = client.Do(request)
 		if err != nil {
-			c.Logger().Warn("error fetching OG image data", mlog.Err(err))
+			rctx.Logger().Warn("error fetching OG image data", mlog.Err(err))
 		}
 
 		if res != nil {
@@ -775,7 +773,7 @@ func (a *App) getLinkMetadataForURL(c request.CTX, requestURL string) (*opengrap
 	if body != nil {
 		defer func() {
 			if _, err = io.Copy(io.Discard, body); err != nil {
-				c.Logger().Warn("error discarding OG image response body", mlog.Err(err))
+				rctx.Logger().Warn("error discarding OG image response body", mlog.Err(err))
 			}
 			body.Close()
 		}()
@@ -786,7 +784,7 @@ func (a *App) getLinkMetadataForURL(c request.CTX, requestURL string) (*opengrap
 
 	if err == nil {
 		// Parse the data
-		og, image, err = a.parseLinkMetadata(requestURL, body, contentType)
+		og, image, err = a.parseLinkMetadata(rctx, requestURL, body, contentType)
 	}
 	og = model.TruncateOpenGraph(og) // remove unwanted length of texts
 
@@ -812,6 +810,11 @@ func getLinkMetadataFromCache(requestURL string, timestamp int64) (*opengraph.Op
 	var cached linkMetadataCache
 	err := platform.LinkCache().Get(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), &cached)
 	if err != nil {
+		return nil, nil, nil, false
+	}
+
+	// Verify that the cached entry matches the requested URL
+	if cached.URL != requestURL {
 		return nil, nil, nil, false
 	}
 
@@ -863,6 +866,7 @@ func cacheLinkMetadata(rctx request.CTX, requestURL string, timestamp int64, og 
 		OpenGraph: og,
 		PostImage: image,
 		Permalink: permalink,
+		URL:       requestURL,
 	}
 
 	if err := platform.LinkCache().SetWithExpiry(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), metadata, platform.LinkCacheDuration); err != nil {
@@ -880,7 +884,7 @@ func peekContentType(p *bufio.Reader) string {
 	return http.DetectContentType(byt)
 }
 
-func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType string) (*opengraph.OpenGraph, *model.PostImage, error) {
+func (a *App) parseLinkMetadata(rctx request.CTX, requestURL string, body io.Reader, contentType string) (*opengraph.OpenGraph, *model.PostImage, error) {
 	if contentType == "" {
 		bufRd := bufio.NewReader(body)
 		// If the content-type is missing we try to detect it from the actual data.
@@ -895,7 +899,7 @@ func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType s
 
 		return nil, image, nil
 	} else if strings.HasPrefix(contentType, "image") {
-		image, err := parseImages(io.LimitReader(body, MaxMetadataImageSize))
+		image, err := parseImages(rctx, requestURL, io.LimitReader(body, MaxMetadataImageSize))
 		return nil, image, err
 	} else if strings.HasPrefix(contentType, "text/html") {
 		og := a.parseOpenGraphMetadata(requestURL, body, contentType)
@@ -911,7 +915,7 @@ func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType s
 	return nil, nil, nil
 }
 
-func parseImages(body io.Reader) (*model.PostImage, error) {
+func parseImages(rctx request.CTX, requestURL string, body io.Reader) (*model.PostImage, error) {
 	// Store any data that is read for the config for any further processing
 	buf := &bytes.Buffer{}
 	t := io.TeeReader(body, buf)
@@ -929,12 +933,14 @@ func parseImages(body io.Reader) (*model.PostImage, error) {
 	}
 
 	if format == "jpeg" {
-		if imageOrientation, err := imaging.GetImageOrientation(io.MultiReader(buf, body)); err == nil &&
+		if imageOrientation, err := imaging.GetImageOrientation(io.MultiReader(buf, body), format); err == nil &&
 			(imageOrientation == imaging.RotatedCWMirrored ||
 				imageOrientation == imaging.RotatedCCW ||
 				imageOrientation == imaging.RotatedCCWMirrored ||
 				imageOrientation == imaging.RotatedCW) {
 			image.Width, image.Height = image.Height, image.Width
+		} else if err != nil {
+			rctx.Logger().Warn("Failed to get image orientation", mlog.Err(err), mlog.String("request_url", requestURL))
 		}
 	}
 

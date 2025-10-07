@@ -40,16 +40,6 @@ var CommandListCmd = &cobra.Command{
 	RunE:    withClient(listCommandCmdF),
 }
 
-var CommandDeleteCmd = &cobra.Command{
-	Use:        "delete [commandID]",
-	Short:      "Delete a slash command",
-	Long:       `Delete a slash command. Commands can be specified by command ID.`,
-	Example:    `  command delete commandID`,
-	Deprecated: "please use \"mmctl channel archive\" instead",
-	Args:       cobra.ExactArgs(1),
-	RunE:       withClient(archiveCommandCmdF),
-}
-
 var CommandArchiveCmd = &cobra.Command{
 	Use:     "archive [commandID]",
 	Short:   "Archive a slash command",
@@ -113,7 +103,6 @@ func init() {
 	CommandCmd.AddCommand(
 		CommandCreateCmd,
 		CommandListCmd,
-		CommandDeleteCmd,
 		CommandModifyCmd,
 		CommandMoveCmd,
 		CommandShowCmd,
@@ -294,7 +283,7 @@ func modifyCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error
 
 	modifiedCommand, _, err := c.UpdateCommand(context.TODO(), command)
 	if err != nil {
-		return fmt.Errorf("unable to modify command '%s'. %s", command.DisplayName, err.Error())
+		return fmt.Errorf("unable to modify command '%s': %w", command.DisplayName, err)
 	}
 
 	printer.PrintT("modified command {{.DisplayName}}", modifiedCommand)
@@ -316,7 +305,7 @@ func moveCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	resp, err := c.MoveCommand(context.TODO(), newTeam.Id, command.Id)
 	if err != nil {
-		return fmt.Errorf("unable to move command '%s'. %s", command.Id, err.Error())
+		return fmt.Errorf("unable to move command '%s': %w", command.Id, err)
 	}
 
 	if resp.StatusCode == http.StatusOK {

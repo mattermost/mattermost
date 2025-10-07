@@ -9,6 +9,7 @@ import type {RelationOneToOne} from '@mattermost/types/utilities';
 import {Permissions} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getDataRetentionCustomPolicy} from 'mattermost-redux/selectors/entities/admin';
+import {contentFlaggingFeatureEnabled} from 'mattermost-redux/selectors/entities/content_flagging';
 import {getConfig, isCompatibleWithJoinViewTeamPermissions} from 'mattermost-redux/selectors/entities/general';
 import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles_helpers';
 import {createIdsSelector} from 'mattermost-redux/utils/helpers';
@@ -380,4 +381,13 @@ export function getTeamIdByChannelId(state: GlobalState, channelId: string): str
     }
     const channel = channels[channelId];
     return channel ? channel.team_id : undefined;
+}
+
+export function contentFlaggingEnabledInTeam(state: GlobalState, teamId: string): boolean {
+    const featureEnabled = contentFlaggingFeatureEnabled(state);
+    if (!featureEnabled) {
+        return false;
+    }
+
+    return Boolean(state.entities.teams.contentFlaggingStatus[teamId]);
 }

@@ -6,8 +6,9 @@ package model
 import (
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/md5"
+	"crypto/pbkdf2"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/base32"
 	"encoding/json"
 	"errors"
@@ -53,37 +54,39 @@ func (bm *Bitmask) UnsetBit(flag Bitmask) {
 }
 
 type RemoteCluster struct {
-	RemoteId      string  `json:"remote_id"`
-	RemoteTeamId  string  `json:"remote_team_id"` // Deprecated: this field is no longer used. It's only kept for backwards compatibility.
-	Name          string  `json:"name"`
-	DisplayName   string  `json:"display_name"`
-	SiteURL       string  `json:"site_url"`
-	DefaultTeamId string  `json:"default_team_id"`
-	CreateAt      int64   `json:"create_at"`
-	DeleteAt      int64   `json:"delete_at"`
-	LastPingAt    int64   `json:"last_ping_at"`
-	Token         string  `json:"token"`
-	RemoteToken   string  `json:"remote_token"`
-	Topics        string  `json:"topics"`
-	CreatorId     string  `json:"creator_id"`
-	PluginID      string  `json:"plugin_id"` // non-empty when sync message are to be delivered via plugin API
-	Options       Bitmask `json:"options"`   // bit-flag set of options
+	RemoteId             string  `json:"remote_id"`
+	RemoteTeamId         string  `json:"remote_team_id"` // Deprecated: this field is no longer used. It's only kept for backwards compatibility.
+	Name                 string  `json:"name"`
+	DisplayName          string  `json:"display_name"`
+	SiteURL              string  `json:"site_url"`
+	DefaultTeamId        string  `json:"default_team_id"`
+	CreateAt             int64   `json:"create_at"`
+	DeleteAt             int64   `json:"delete_at"`
+	LastPingAt           int64   `json:"last_ping_at"`
+	LastGlobalUserSyncAt int64   `json:"last_global_user_sync_at"` // Timestamp of last global user sync
+	Token                string  `json:"token"`
+	RemoteToken          string  `json:"remote_token"`
+	Topics               string  `json:"topics"`
+	CreatorId            string  `json:"creator_id"`
+	PluginID             string  `json:"plugin_id"` // non-empty when sync message are to be delivered via plugin API
+	Options              Bitmask `json:"options"`   // bit-flag set of options
 }
 
-func (rc *RemoteCluster) Auditable() map[string]interface{} {
-	return map[string]interface{}{
-		"remote_id":       rc.RemoteId,
-		"remote_team_id":  rc.RemoteTeamId,
-		"name":            rc.Name,
-		"display_name":    rc.DisplayName,
-		"site_url":        rc.SiteURL,
-		"default_team_id": rc.DefaultTeamId,
-		"create_at":       rc.CreateAt,
-		"delete_at":       rc.DeleteAt,
-		"last_ping_at":    rc.LastPingAt,
-		"creator_id":      rc.CreatorId,
-		"plugin_id":       rc.PluginID,
-		"options":         rc.Options,
+func (rc *RemoteCluster) Auditable() map[string]any {
+	return map[string]any{
+		"remote_id":                rc.RemoteId,
+		"remote_team_id":           rc.RemoteTeamId,
+		"name":                     rc.Name,
+		"display_name":             rc.DisplayName,
+		"site_url":                 rc.SiteURL,
+		"default_team_id":          rc.DefaultTeamId,
+		"create_at":                rc.CreateAt,
+		"delete_at":                rc.DeleteAt,
+		"last_ping_at":             rc.LastPingAt,
+		"last_global_user_sync_at": rc.LastGlobalUserSyncAt,
+		"creator_id":               rc.CreatorId,
+		"plugin_id":                rc.PluginID,
+		"options":                  rc.Options,
 	}
 }
 
@@ -148,8 +151,8 @@ type RemoteClusterPatch struct {
 	DefaultTeamId *string `json:"default_team_id"`
 }
 
-func (rcp *RemoteClusterPatch) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (rcp *RemoteClusterPatch) Auditable() map[string]any {
+	return map[string]any{
 		"display_name":    rcp.DisplayName,
 		"default_team_id": rcp.DefaultTeamId,
 	}
@@ -177,11 +180,11 @@ type RemoteClusterWithInvite struct {
 }
 
 func newIDFromBytes(b []byte) string {
-	hash := md5.New()
+	hash := sha256.New()
 	_, _ = hash.Write(b)
 	buf := hash.Sum(nil)
 
-	var encoding = base32.NewEncoding("ybndrfg8ejkmcpqxot1uwisza345h769").WithPadding(base32.NoPadding)
+	encoding := base32.NewEncoding("ybndrfg8ejkmcpqxot1uwisza345h769").WithPadding(base32.NoPadding)
 	id := encoding.EncodeToString(buf)
 	return id[:26]
 }
@@ -260,8 +263,8 @@ func (rc *RemoteCluster) fixTopics() {
 	var sb strings.Builder
 	sb.WriteString(" ")
 
-	ss := strings.Split(rc.Topics, " ")
-	for _, c := range ss {
+	ss := strings.SplitSeq(rc.Topics, " ")
+	for c := range ss {
 		cc := strings.TrimSpace(c)
 		if cc != "" {
 			sb.WriteString(cc)
@@ -300,8 +303,8 @@ type RemoteClusterFrame struct {
 	Msg      RemoteClusterMsg `json:"msg"`
 }
 
-func (f *RemoteClusterFrame) Auditable() map[string]interface{} {
-	return map[string]interface{}{
+func (f *RemoteClusterFrame) Auditable() map[string]any {
+	return map[string]any{
 		"remote_id": f.RemoteId,
 		"msg_id":    f.Msg.Id,
 		"topic":     f.Msg.Topic,
@@ -363,10 +366,12 @@ type RemoteClusterPing struct {
 
 // RemoteClusterInvite represents an invitation to establish a simple trust with a remote cluster.
 type RemoteClusterInvite struct {
-	RemoteId     string `json:"remote_id"`
-	RemoteTeamId string `json:"remote_team_id"` // Deprecated: this field is no longer used. It's only kept for backwards compatibility.
-	SiteURL      string `json:"site_url"`
-	Token        string `json:"token"`
+	RemoteId       string `json:"remote_id"`
+	RemoteTeamId   string `json:"remote_team_id"` // Deprecated: this field is no longer used. It's only kept for backwards compatibility.
+	SiteURL        string `json:"site_url"`
+	Token          string `json:"token"`
+	RefreshedToken string `json:"refreshed_token,omitempty"` // New token generated by the remote cluster when accepting an invitation
+	Version        int    `json:"version,omitempty"`
 }
 
 func (rci *RemoteClusterInvite) IsValid() *AppError {
@@ -397,9 +402,19 @@ func (rci *RemoteClusterInvite) Encrypt(password string) ([]byte, error) {
 		return nil, err
 	}
 
-	key, err := scrypt.Key([]byte(password), salt, 32768, 8, 1, 32)
-	if err != nil {
-		return nil, err
+	var key []byte
+	if rci.Version >= 3 {
+		// Use PBKDF2 for version 3 and above
+		key, err = pbkdf2.Key(sha256.New, password, salt, 600000, 32)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		// Use scrypt for older versions
+		key, err = scrypt.Key([]byte(password), salt, 32768, 8, 1, 32)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	block, err := aes.NewCipher(key[:])
@@ -433,9 +448,31 @@ func (rci *RemoteClusterInvite) Decrypt(encrypted []byte, password string) error
 	salt := encrypted[:16]
 	encrypted = encrypted[16:]
 
-	key, err := scrypt.Key([]byte(password), salt, 32768, 8, 1, 32)
-	if err != nil {
-		return err
+	// Try PBKDF2 first (for version 3+)
+	if err := rci.tryDecrypt(encrypted, password, salt, true); err == nil {
+		return nil
+	}
+
+	// Fall back to scrypt (for older versions)
+	return rci.tryDecrypt(encrypted, password, salt, false)
+}
+
+func (rci *RemoteClusterInvite) tryDecrypt(encrypted []byte, password string, salt []byte, usePBKDF2 bool) error {
+	var key []byte
+	var err error
+
+	if usePBKDF2 {
+		// Use PBKDF2 for version 3 and above
+		key, err = pbkdf2.Key(sha256.New, password, salt, 600000, 32)
+		if err != nil {
+			return err
+		}
+	} else {
+		// Use scrypt for older versions
+		key, err = scrypt.Key([]byte(password), salt, 32768, 8, 1, 32)
+		if err != nil {
+			return err
+		}
 	}
 
 	block, err := aes.NewCipher(key[:])

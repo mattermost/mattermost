@@ -14,6 +14,7 @@ import (
 )
 
 func TestSetAutoResponderStatus(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -55,6 +56,7 @@ func TestSetAutoResponderStatus(t *testing.T) {
 }
 
 func TestDisableAutoResponder(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -90,6 +92,7 @@ func TestDisableAutoResponder(t *testing.T) {
 }
 
 func TestSendAutoResponseIfNecessary(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("should send auto response when enabled", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -110,7 +113,8 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 		savedPost, _ := th.App.CreatePost(th.Context, &model.Post{
 			ChannelId: channel.Id,
 			Message:   NewTestId(),
-			UserId:    th.BasicUser.Id},
+			UserId:    th.BasicUser.Id,
+		},
 			th.BasicChannel,
 			model.CreatePostFlags{SetOnline: true})
 
@@ -140,7 +144,8 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 		savedPost, _ := th.App.CreatePost(th.Context, &model.Post{
 			ChannelId: channel.Id,
 			Message:   NewTestId(),
-			UserId:    th.BasicUser.Id},
+			UserId:    th.BasicUser.Id,
+		},
 			th.BasicChannel,
 			model.CreatePostFlags{SetOnline: true})
 
@@ -157,7 +162,8 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 		savedPost, _ := th.App.CreatePost(th.Context, &model.Post{
 			ChannelId: th.BasicChannel.Id,
 			Message:   NewTestId(),
-			UserId:    th.BasicUser.Id},
+			UserId:    th.BasicUser.Id,
+		},
 			th.BasicChannel,
 			model.CreatePostFlags{SetOnline: true})
 
@@ -197,7 +203,8 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 		savedPost, _ := th.App.CreatePost(th.Context, &model.Post{
 			ChannelId: channel.Id,
 			Message:   NewTestId(),
-			UserId:    botUser.Id},
+			UserId:    botUser.Id,
+		},
 			th.BasicChannel,
 			model.CreatePostFlags{SetOnline: true})
 
@@ -249,6 +256,7 @@ func TestSendAutoResponseIfNecessary(t *testing.T) {
 }
 
 func TestSendAutoResponseSuccess(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -269,7 +277,8 @@ func TestSendAutoResponseSuccess(t *testing.T) {
 	savedPost, _ := th.App.CreatePost(th.Context, &model.Post{
 		ChannelId: th.BasicChannel.Id,
 		Message:   "zz" + model.NewId() + "a",
-		UserId:    th.BasicUser.Id},
+		UserId:    th.BasicUser.Id,
+	},
 		th.BasicChannel,
 		model.CreatePostFlags{SetOnline: true})
 
@@ -278,7 +287,7 @@ func TestSendAutoResponseSuccess(t *testing.T) {
 	assert.Nil(t, err)
 	assert.True(t, sent)
 
-	list, err := th.App.GetPosts(th.BasicChannel.Id, 0, 1)
+	list, err := th.App.GetPosts(th.Context, th.BasicChannel.Id, 0, 1)
 	require.Nil(t, err)
 
 	autoResponderPostFound := false
@@ -292,6 +301,7 @@ func TestSendAutoResponseSuccess(t *testing.T) {
 }
 
 func TestSendAutoResponseSuccessOnThread(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -312,7 +322,8 @@ func TestSendAutoResponseSuccessOnThread(t *testing.T) {
 	parentPost, _ := th.App.CreatePost(th.Context, &model.Post{
 		ChannelId: th.BasicChannel.Id,
 		Message:   "zz" + model.NewId() + "a",
-		UserId:    th.BasicUser.Id},
+		UserId:    th.BasicUser.Id,
+	},
 		th.BasicChannel,
 		model.CreatePostFlags{SetOnline: true})
 
@@ -330,7 +341,7 @@ func TestSendAutoResponseSuccessOnThread(t *testing.T) {
 	assert.Nil(t, err)
 	assert.True(t, sent)
 
-	list, err := th.App.GetPosts(th.BasicChannel.Id, 0, 1)
+	list, err := th.App.GetPosts(th.Context, th.BasicChannel.Id, 0, 1)
 	require.Nil(t, err)
 
 	autoResponderPostFound := false
@@ -344,6 +355,7 @@ func TestSendAutoResponseSuccessOnThread(t *testing.T) {
 }
 
 func TestSendAutoResponseFailure(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -364,7 +376,8 @@ func TestSendAutoResponseFailure(t *testing.T) {
 	savedPost, _ := th.App.CreatePost(th.Context, &model.Post{
 		ChannelId: th.BasicChannel.Id,
 		Message:   "zz" + model.NewId() + "a",
-		UserId:    th.BasicUser.Id},
+		UserId:    th.BasicUser.Id,
+	},
 		th.BasicChannel,
 		model.CreatePostFlags{SetOnline: true})
 
@@ -373,7 +386,7 @@ func TestSendAutoResponseFailure(t *testing.T) {
 	assert.Nil(t, err)
 	assert.False(t, sent)
 
-	if list, err := th.App.GetPosts(th.BasicChannel.Id, 0, 1); err != nil {
+	if list, err := th.App.GetPosts(th.Context, th.BasicChannel.Id, 0, 1); err != nil {
 		require.Nil(t, err)
 	} else {
 		autoResponderPostFound := false

@@ -39,7 +39,6 @@
     }
 
     .modal-body {
-        max-height: 100%;
         padding: 0;
 
         &.divider {
@@ -52,8 +51,21 @@
             border: var(--border-default);
             border-radius: 4px;
 
+            &.form-control--lg {
+                height: 48px;
+                font-size: 16px;
+                padding-left: 16px;
+                padding-right: 16px;
+
+                & + .input-clear {
+                    top: 17px;
+                    right: 16px;
+                }
+            }
+
             &:focus {
                 border-color: var(--button-bg);
+                box-shadow: 0 0 0 1px var(--button-bg);
             }
 
             &.has-error {
@@ -98,6 +110,8 @@
 
     &.GenericModal__compassDesign {
         .modal-content {
+            max-height: 90vh;
+
             .modal-body {
                 .GenericModal__body {
                     padding: 0;
@@ -137,13 +151,13 @@
                 }
             }
         }
+    }
 
-        @media screen and (max-width: 640px) {
-            margin: 0 !important;
+    @media screen and (max-width: 640px) {
+        margin: 0 !important;
 
-            .modal-header {
-                box-shadow: var(--elevation-2);
-            }
+        .modal-header {
+            box-shadow: var(--elevation-2);
         }
     }
 

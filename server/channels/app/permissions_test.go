@@ -4,7 +4,6 @@
 package app
 
 import (
-	"context"
 	"encoding/json"
 	"testing"
 
@@ -23,12 +22,13 @@ func (tw testWriter) Write(p []byte) (int, error) {
 }
 
 func TestExportPermissions(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
 	var scheme *model.Scheme
 	var roles []*model.Role
-	withMigrationMarkedComplete(th, func() {
+	withMigrationMarkedComplete(t, th, func() {
 		scheme, roles = th.CreateScheme()
 	})
 
@@ -41,10 +41,8 @@ func TestExportPermissions(t *testing.T) {
 		},
 	}
 
-	err := th.App.ExportPermissions(tw)
-	if err != nil {
-		t.Error(err)
-	}
+	err := th.App.ExportPermissions(th.Context, tw)
+	require.NoError(t, err)
 
 	if len(results) == 0 {
 		t.Error("Expected export to have returned something.")
@@ -90,19 +88,21 @@ func TestExportPermissions(t *testing.T) {
 }
 
 func TestMigration(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
-	role, err := th.App.GetRoleByName(context.Background(), model.SystemAdminRoleId)
+	role, err := th.App.GetRoleByName(th.Context, model.SystemAdminRoleId)
 	require.Nil(t, err)
 	assert.Contains(t, role.Permissions, model.PermissionCreateEmojis.Id)
 	assert.Contains(t, role.Permissions, model.PermissionDeleteEmojis.Id)
 	assert.Contains(t, role.Permissions, model.PermissionDeleteOthersEmojis.Id)
 	assert.Contains(t, role.Permissions, model.PermissionUseGroupMentions.Id)
 
-	th.App.ResetPermissionsSystem()
+	appErr := th.App.ResetPermissionsSystem()
+	require.Nil(t, appErr)
 
-	role, err = th.App.GetRoleByName(context.Background(), model.SystemAdminRoleId)
+	role, err = th.App.GetRoleByName(th.Context, model.SystemAdminRoleId)
 	require.Nil(t, err)
 	assert.Contains(t, role.Permissions, model.PermissionCreateEmojis.Id)
 	assert.Contains(t, role.Permissions, model.PermissionDeleteEmojis.Id)
@@ -110,13 +110,16 @@ func TestMigration(t *testing.T) {
 	assert.Contains(t, role.Permissions, model.PermissionUseGroupMentions.Id)
 }
 
-func withMigrationMarkedComplete(th *TestHelper, f func()) {
+func withMigrationMarkedComplete(t *testing.T, th *TestHelper, f func()) {
 	// Mark the migration as done.
-	th.App.Srv().Store().System().PermanentDeleteByName(model.MigrationKeyAdvancedPermissionsPhase2)
-	th.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
+	_, err := th.App.Srv().Store().System().PermanentDeleteByName(model.MigrationKeyAdvancedPermissionsPhase2)
+	require.NoError(t, err)
+	err = th.App.Srv().Store().System().Save(&model.System{Name: model.MigrationKeyAdvancedPermissionsPhase2, Value: "true"})
+	require.NoError(t, err)
 	// Un-mark the migration at the end of the test.
 	defer func() {
-		th.App.Srv().Store().System().PermanentDeleteByName(model.MigrationKeyAdvancedPermissionsPhase2)
+		_, err := th.App.Srv().Store().System().PermanentDeleteByName(model.MigrationKeyAdvancedPermissionsPhase2)
+		require.NoError(t, err)
 	}()
 	f()
 }

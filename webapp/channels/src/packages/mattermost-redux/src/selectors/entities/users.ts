@@ -100,6 +100,10 @@ export function getUser(state: GlobalState, id: UserProfile['id']): UserProfile 
     return state.entities.users.profiles[id];
 }
 
+export function getUsersByIDs(state: GlobalState, ids: Array<UserProfile['id']>): UserProfile[] {
+    return ids.map((userId) => getUser(state, userId));
+}
+
 export const getUsersByUsername: (a: GlobalState) => Record<string, UserProfile> = createSelector(
     'getUsersByUsername',
     getUsers,

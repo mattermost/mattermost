@@ -11,6 +11,7 @@
 // Group: @channels @channel @channel_settings
 
 import {Team} from '@mattermost/types/teams';
+
 import {
     beMuted,
     beUnmuted,
@@ -34,24 +35,35 @@ describe('Channel Settings', () => {
 
     it('MM-T882 Channel URL validation works properly', () => {
         cy.apiCreateChannel(testTeam.id, 'channel-test', 'Channel').then(({channel}) => {
-            // # Go to test channel
+        // # Go to test channel
             cy.visit(`/${testTeam.name}/channels/${channel.name}`);
 
-            // # Go to channel dropdown > Rename channel
-            cy.get('#channelHeaderDropdownIcon').click();
-            cy.findByText('Rename Channel').click();
+            // # Go to channel dropdown > Channel Settings Modal
+            cy.get('#channelHeaderDropdownButton').click();
+            cy.findByText('Channel Settings').click();
 
-            // # Try to enter existing URL and save
-            cy.get('#channel_name').clear().type('town-square');
-            cy.get('#save-button').click();
+            // # Change channel name (this should NOT affect the URL anymore)
+            cy.get('#input_channel-settings-name').clear().type('town-square');
+
+            // # Now explicitly change the URL to trigger the validation error
+            cy.get('.url-input-button').click();
+            cy.get('.url-input-container input').clear().type('town-square');
+            cy.get('.url-input-container button.url-input-button').click();
+
+            // # Try to save
+            cy.get('[data-testid="SaveChangesPanel__save-btn"]').click();
 
             // # Error is displayed and URL is unchanged
-            cy.get('.has-error').should('be.visible').and('contain', 'A channel with that name already exists on the same team.');
+            cy.get('.SaveChangesPanel').should('contain', 'There are errors in the form above');
+            cy.get('.url-input-error').should('be.visible').and('contain.text', 'A channel with that name already exists on the same team.');
+
             cy.url().should('include', `/${testTeam.name}/channels/${channel.name}`);
 
             // # Enter a new URL and save
-            cy.get('#channel_name').clear().type('another-town-square');
-            cy.get('#save-button').click();
+            cy.get('.url-input-container input').clear().type('another-town-square');
+            cy.get('.url-input-button').click();
+            cy.get('.url-input-container button.url-input-button').click();
+            cy.get('[data-testid="SaveChangesPanel__save-btn"]').click();
 
             // * URL is updated and no errors are displayed
             cy.url().should('include', `/${testTeam.name}/channels/another-town-square`);
@@ -63,7 +75,7 @@ describe('Channel Settings', () => {
         cy.visit(`/${testTeam.name}/channels/off-topic`);
 
         // # Go to channel dropdown > Mute channel
-        cy.get('#channelHeaderDropdownIcon').click();
+        cy.get('#channelHeaderTitle').click();
         cy.get('#channelHeaderDropdownMenu').should('exist').
             findByText('Mute Channel').should('be.visible').click();
 
@@ -79,7 +91,7 @@ describe('Channel Settings', () => {
             get('a').should('have.class', 'muted');
 
         // # Click Unmute channel while menu is open
-        cy.get('#channelHeaderDropdownIcon').click();
+        cy.get('#channelHeaderTitle').click();
         cy.get('#channelHeaderDropdownMenu').should('exist').
             findByText('Unmute Channel').should('be.visible').click();
 

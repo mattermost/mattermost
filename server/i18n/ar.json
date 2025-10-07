@@ -1,1 +1,18 @@
-[]
+[
+  {
+    "id": "April",
+    "translation": "ابريل"
+  },
+  {
+    "id": "August",
+    "translation": "أغسطص"
+  },
+  {
+    "id": "December",
+    "translation": "ديسمبر"
+  },
+  {
+    "id": "February",
+    "translation": "فبراير"
+  }
+]
