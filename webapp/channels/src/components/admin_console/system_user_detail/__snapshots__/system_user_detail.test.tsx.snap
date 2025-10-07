@@ -49,9 +49,7 @@ exports[`SystemUserDetail should match default snapshot 1`] = `
               class="AdminUserCard__user-info"
             >
               <span>
-                
                  
-                
               </span>
               <span
                 class="AdminUserCard__user-nickname"
@@ -277,9 +275,7 @@ exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
               class="AdminUserCard__user-info"
             >
               <span>
-                
                  
-                
               </span>
               <span
                 class="AdminUserCard__user-nickname"
@@ -505,9 +501,7 @@ exports[`SystemUserDetail should not show manage user settings button when user 
               class="AdminUserCard__user-info"
             >
               <span>
-                
                  
-                
               </span>
               <span
                 class="AdminUserCard__user-nickname"
@@ -733,9 +727,7 @@ exports[`SystemUserDetail should show manage user settings button as activated 1
               class="AdminUserCard__user-info"
             >
               <span>
-                
                  
-                
               </span>
               <span
                 class="AdminUserCard__user-nickname"
@@ -967,9 +959,7 @@ exports[`SystemUserDetail should show manage user settings button as disabled wh
               class="AdminUserCard__user-info"
             >
               <span>
-                
                  
-                
               </span>
               <span
                 class="AdminUserCard__user-nickname"
@@ -1195,9 +1185,7 @@ exports[`SystemUserDetail should show the activate user button as disabled when 
               class="AdminUserCard__user-info"
             >
               <span>
-                
                  
-                
               </span>
               <span
                 class="AdminUserCard__user-nickname"

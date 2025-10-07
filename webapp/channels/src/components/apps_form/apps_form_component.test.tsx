@@ -182,7 +182,7 @@ describe('AppsFormComponent', () => {
             const fields = [selectField];
             const props = {
                 ...baseProps,
-                context: {},
+                appsContext: {},
                 form: {
                     fields,
                 },
@@ -1117,7 +1117,7 @@ describe('AppsFormComponent', () => {
     });
 
     describe('onHide and Modal Behavior', () => {
-        test('should call onHide prop when onHide is triggered', () => {
+        test('should call onHide prop when onHide is triggered', async () => {
             const mockOnHide = jest.fn();
 
             const props = {
@@ -1128,7 +1128,7 @@ describe('AppsFormComponent', () => {
             renderWithContext(<AppsForm {...props}/>);
 
             const cancelButton = screen.getByRole('button', {name: /cancel/i});
-            userEvent.click(cancelButton);
+            await userEvent.click(cancelButton);
 
             expect(mockOnHide).toHaveBeenCalled();
         });
@@ -1145,8 +1145,8 @@ describe('AppsFormComponent', () => {
             }).not.toThrow();
 
             const cancelButton = screen.getByRole('button', {name: /cancel/i});
-            expect(() => {
-                userEvent.click(cancelButton);
+            expect(async () => {
+                await userEvent.click(cancelButton);
             }).not.toThrow();
         });
 
@@ -1168,8 +1168,8 @@ describe('AppsFormComponent', () => {
             expect(cancelButton).toBeInTheDocument();
 
             // Clicking cancel should handle submit_on_cancel logic
-            expect(() => {
-                userEvent.click(cancelButton);
+            expect(async () => {
+                await userEvent.click(cancelButton);
             }).not.toThrow();
         });
     });
