@@ -610,13 +610,11 @@ func (s *SqlGroupStore) GetMemberUsersInTeam(groupID string, teamID string) ([]*
 func (s *SqlGroupStore) GetMemberUsersNotInChannel(groupID string, channelID string) ([]*model.User, error) {
 	groupMembers := []*model.User{}
 
-	query := `
-		SELECT
-			Users.*
-		FROM
-			GroupMembers
-			JOIN Users ON Users.Id = GroupMembers.UserId
-		WHERE
+	query := s.getQueryBuilder().
+		Select("Users.*").
+		From("GroupMembers").
+		Join("Users ON Users.Id = GroupMembers.UserId").
+		Where(`
 			GroupId = ?
 			AND GroupMembers.UserId NOT IN (
 				SELECT ChannelMembers.UserId
@@ -633,9 +631,14 @@ func (s *SqlGroupStore) GetMemberUsersNotInChannel(groupID string, channelID str
 			)
 			AND GroupMembers.DeleteAt = 0
 			AND Users.DeleteAt = 0
-		`
+		`, groupID, channelID, channelID)
 
-	if err := s.GetReplica().Select(&groupMembers, query, groupID, channelID, channelID); err != nil {
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "get_member_users_not_in_channel_tosql")
+	}
+
+	if err := s.GetReplica().Select(&groupMembers, queryString, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to member Users for groupId=%s and channelId!=%s", groupID, channelID)
 	}
 
