@@ -5774,7 +5774,7 @@ func createConcurrentReplies(rctx request.CTX, ss store.Store, rootPostId, chann
 
 func testConcurrentReplies(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("No duplicate key violations on concurrent replies", func(t *testing.T) {
-		numTestIterations := 20    // Number of times to repeat the entire test
+		numTestIterations := 25    // Number of times to repeat the entire test
 		numConcurrentReplies := 50 // Number of concurrent replies per iteration
 
 		for iteration := range numTestIterations {
@@ -5826,7 +5826,7 @@ func testConcurrentReplies(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 
 		// Create concurrent replies
-		numConcurrentReplies := 50
+		numConcurrentReplies := 75
 		savedPosts, errorList := createConcurrentReplies(rctx, ss, savedRootPost.Id, channel.Id, numConcurrentReplies)
 		require.Empty(t, errorList, "Setup should succeed without errors")
 
