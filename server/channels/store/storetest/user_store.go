@@ -6681,10 +6681,8 @@ func testMfaUsedTimestamps(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testUserStoreSearchCommonContentFlaggingReviewers(t *testing.T, rctx request.CTX, ss store.Store) {
-	// Clear content flagging caches
 	ss.ContentFlagging().ClearCaches()
 
-	// Create test users
 	u1, saveErr := ss.User().Save(rctx, &model.User{
 		Email:     MakeEmail(),
 		Username:  "reviewer1" + model.NewId(),
@@ -6722,7 +6720,6 @@ func testUserStoreSearchCommonContentFlaggingReviewers(t *testing.T, rctx reques
 	require.NoError(t, saveErr)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u4.Id)) }()
 
-	// Set up content flagging reviewer settings with u1 and u2 as common reviewers
 	reviewerSettings := model.ReviewerIDsSettings{
 		CommonReviewerIds:    []string{u1.Id, u2.Id},
 		TeamReviewersSetting: map[string]*model.TeamReviewerSetting{},
@@ -6804,12 +6801,10 @@ func testUserStoreSearchCommonContentFlaggingReviewers(t *testing.T, rctx reques
 }
 
 func testUserStoreSearchTeamContentFlaggingReviewers(t *testing.T, rctx request.CTX, ss store.Store) {
-	// Clear content flagging caches
 	ss.ContentFlagging().ClearCaches()
 
 	teamId := model.NewId()
 
-	// Create test users
 	u1, saveErr := ss.User().Save(rctx, &model.User{
 		Email:     MakeEmail(),
 		Username:  "teamreviewer1" + model.NewId(),
@@ -6847,7 +6842,6 @@ func testUserStoreSearchTeamContentFlaggingReviewers(t *testing.T, rctx request.
 	require.NoError(t, saveErr)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u4.Id)) }()
 
-	// Set up content flagging reviewer settings with team-specific reviewers
 	enabled := true
 	reviewerSettings := model.ReviewerIDsSettings{
 		CommonReviewerIds: []string{},
