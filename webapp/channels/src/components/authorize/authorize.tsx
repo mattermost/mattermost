@@ -134,7 +134,7 @@ export default class Authorize extends React.PureComponent<Props, State> {
                                 defaultMessage='Authorize <b>{appName}</b> to Connect to Your <b>Mattermost</b> User Account'
                                 values={{
                                     appName: app.name,
-                                    b: (chunks: string) => <b>{chunks}</b>,
+                                    b: (chunks) => <b>{chunks}</b>,
                                 }}
                             />
                         </div>
@@ -145,7 +145,7 @@ export default class Authorize extends React.PureComponent<Props, State> {
                             defaultMessage='The app <b>{appName}</b> would like the ability to access and modify your basic information.'
                             values={{
                                 appName: app.name,
-                                b: (chunks: string) => <b>{chunks}</b>,
+                                b: (chunks) => <b>{chunks}</b>,
                             }}
                         />
                     </p>
@@ -155,7 +155,7 @@ export default class Authorize extends React.PureComponent<Props, State> {
                             defaultMessage='Allow <b>{appName}</b> access?'
                             values={{
                                 appName: app.name,
-                                b: (chunks: string) => <b>{chunks}</b>,
+                                b: (chunks) => <b>{chunks}</b>,
                             }}
                         />
                     </h2>
