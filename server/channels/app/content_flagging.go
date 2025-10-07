@@ -155,7 +155,7 @@ func (a *App) FlagPost(rctx request.CTX, post *model.Post, teamId, reportingUser
 
 	flaggedPostIdField, ok := mappedFields[contentFlaggingPropertyNameFlaggedPostId]
 	if !ok {
-		return model.NewAppError("FlagPost", "app.content_flagging.flag_post.missing_flagged_post_id_field.app_error", nil, "", http.StatusInternalServerError)
+		return model.NewAppError("FlagPost", "app.content_flagging.missing_flagged_post_id_field.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	a.Srv().Go(func() {
@@ -973,7 +973,7 @@ func (a *App) postReviewerMessage(rctx request.CTX, message, contentFlaggingGrou
 
 	flaggedPostIdField, ok := mappedFields[contentFlaggingPropertyNameFlaggedPostId]
 	if !ok {
-		return model.NewAppError("postAssignReviewerMessage", "app.content_flagging.post_assign_reviewer.no_flagged_post_id_field.app_error", nil, "", http.StatusInternalServerError)
+		return model.NewAppError("postAssignReviewerMessage", "app.content_flagging.missing_flagged_post_id_field.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	postIds, appErr := a.getReviewerPostsForFlaggedPost(contentFlaggingGroupId, flaggedPostId, flaggedPostIdField.ID)
