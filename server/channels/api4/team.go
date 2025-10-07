@@ -480,12 +480,13 @@ func deleteTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		if *c.App.Config().ServiceSettings.EnableAPITeamDeletion {
 			err = c.App.PermanentDeleteTeamId(c.AppContext, c.Params.TeamId)
 		} else {
-			key := "api.user.delete_team.not_enabled.app_error"
 			user, usrErr := c.App.GetUser(c.AppContext.Session().UserId)
 			if usrErr == nil && user != nil && user.IsSystemAdmin() {
-				key = "api.user.delete_team.not_enabled.for_admin.app_error" // More verbose error message for system admins
+				// More verbose error message for system admins
+				err = model.NewAppError("deleteTeam", "api.user.delete_team.not_enabled.for_admin.app_error", nil, "teamId="+c.Params.TeamId, http.StatusUnauthorized)
+			} else {
+				err = model.NewAppError("deleteTeam", "api.user.delete_team.not_enabled.app_error", nil, "teamId="+c.Params.TeamId, http.StatusUnauthorized)
 			}
-			err = model.NewAppError("deleteTeam", key, nil, "teamId="+c.Params.TeamId, http.StatusUnauthorized)
 		}
 	} else {
 		err = c.App.SoftDeleteTeam(c.Params.TeamId)
