@@ -148,7 +148,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 	t.Run("should successfully assign reviewer to pending flagged post", func(t *testing.T) {
 		post := setupFlaggedPost()
 
-		appErr := th.App.AssignFlaggedPostReviewer(post.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+		appErr := th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
 		require.Nil(t, appErr)
 
 		// Verify status was updated to assigned
@@ -177,11 +177,11 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 		post := setupFlaggedPost()
 
 		// First assignment
-		appErr := th.App.AssignFlaggedPostReviewer(post.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+		appErr := th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
 		require.Nil(t, appErr)
 
 		// Second assignment (reassignment)
-		appErr = th.App.AssignFlaggedPostReviewer(post.Id, th.BasicUser2.Id, th.SystemAdminUser.Id)
+		appErr = th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicUser2.Id, th.SystemAdminUser.Id)
 		require.Nil(t, appErr)
 
 		// Verify status remains assigned
@@ -209,7 +209,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 	t.Run("should fail when trying to assign reviewer to non-flagged post", func(t *testing.T) {
 		post := th.CreatePost(th.BasicChannel)
 
-		appErr := th.App.AssignFlaggedPostReviewer(post.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+		appErr := th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
 		require.NotNil(t, appErr)
 		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
 	})
@@ -225,7 +225,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Try to assign reviewer to retained post
-		appErr = th.App.AssignFlaggedPostReviewer(post.Id, th.BasicUser2.Id, th.SystemAdminUser.Id)
+		appErr = th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicUser2.Id, th.SystemAdminUser.Id)
 		require.NotNil(t, appErr)
 		require.Equal(t, "api.content_flagging.error.post_not_in_progress", appErr.Id)
 		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
@@ -242,7 +242,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Try to assign reviewer to removed post
-		appErr = th.App.AssignFlaggedPostReviewer(post.Id, th.BasicUser2.Id, th.SystemAdminUser.Id)
+		appErr = th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicUser2.Id, th.SystemAdminUser.Id)
 		require.NotNil(t, appErr)
 		require.Equal(t, "api.content_flagging.error.post_not_in_progress", appErr.Id)
 		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
@@ -252,11 +252,11 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 		post := setupFlaggedPost()
 
 		// Assign reviewer
-		appErr := th.App.AssignFlaggedPostReviewer(post.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+		appErr := th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
 		require.Nil(t, appErr)
 
 		// Assign same reviewer again
-		appErr = th.App.AssignFlaggedPostReviewer(post.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+		appErr = th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
 		require.Nil(t, appErr)
 
 		// Verify status remains assigned
@@ -284,7 +284,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 	t.Run("should handle assignment with empty reviewer ID", func(t *testing.T) {
 		post := setupFlaggedPost()
 
-		appErr := th.App.AssignFlaggedPostReviewer(post.Id, "", th.SystemAdminUser.Id)
+		appErr := th.App.AssignFlaggedPostReviewer(th.Context, post.Id, "", th.SystemAdminUser.Id)
 		require.Nil(t, appErr)
 
 		// Verify status was updated to assigned
@@ -310,7 +310,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 	})
 
 	t.Run("should handle assignment with invalid post ID", func(t *testing.T) {
-		appErr := th.App.AssignFlaggedPostReviewer("invalid_post_id", th.BasicUser.Id, th.SystemAdminUser.Id)
+		appErr := th.App.AssignFlaggedPostReviewer(th.Context, "invalid_post_id", th.BasicUser.Id, th.SystemAdminUser.Id)
 		require.NotNil(t, appErr)
 		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
 	})
