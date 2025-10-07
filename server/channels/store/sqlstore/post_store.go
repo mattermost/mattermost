@@ -3049,6 +3049,7 @@ func (s *SqlPostStore) savePostsPersistentNotifications(transaction *sqlxTxWrapp
 }
 
 func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts []*model.Post) error {
+	// ... (Code to collect rootIds and postsByRoot is unchanged) ...
 	postsByRoot := map[string][]*model.Post{}
 	var rootIds []string
 	for _, post := range posts {
@@ -3062,7 +3063,7 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 		return nil
 	}
 
-	// Use FOR UPDATE to lock the thread rows
+	// 1. SELECT existing threads with FOR UPDATE to acquire locks on existing rows.
 	threadsByRootsSql, threadsByRootsArgs, err := s.getQueryBuilder().
 		Select(
 			"Threads.PostId",
@@ -3074,7 +3075,7 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 		).
 		From("Threads").
 		Where(sq.Eq{"Threads.PostId": rootIds}).
-		Suffix("FOR UPDATE"). // Add row-level locking
+		Suffix("FOR UPDATE"). // Re-introducing row-level locking for existing rows
 		ToSql()
 	if err != nil {
 		return errors.Wrap(err, "updateThreadsFromPosts_ToSql")
@@ -3094,8 +3095,10 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 	teamIdByChannelId := map[string]string{}
 
 	for rootId, posts := range postsByRoot {
-		if thread, found := threadByRoot[rootId]; !found {
-			// Thread doesn't exist, try to create it
+		thread, found := threadByRoot[rootId]
+
+		if !found {
+			// **CASE 1: Thread record does not exist.**
 			channelId := posts[0].ChannelId
 			teamId, ok := teamIdByChannelId[channelId]
 			if !ok {
@@ -3106,7 +3109,8 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 				teamIdByChannelId[channelId] = teamId
 			}
 
-			// Use ON CONFLICT DO NOTHING - let one transaction win
+			// 1. Atomically ensure the thread exists.
+			// The losing transaction does nothing but doesn't error.
 			_, err := transaction.Exec(`
 				INSERT INTO Threads (PostId, ChannelId, ReplyCount, LastReplyAt, Participants, ThreadTeamId)
 				VALUES ($1, $2, 0, 0, '[]'::jsonb, $3)
@@ -3117,102 +3121,54 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 				return err
 			}
 
-			_, err = transaction.Exec(`
-			UPDATE Threads
-			SET 
-				ReplyCount = (
-					SELECT COUNT(*) 
-					FROM Posts 
-					WHERE Posts.RootId = $1 AND Posts.DeleteAt = 0
-				),
-				LastReplyAt = (
-					SELECT COALESCE(MAX(Posts.CreateAt), 0) 
-					FROM Posts 
-					WHERE Posts.RootId = $1 AND Posts.DeleteAt = 0
-				),
-				Participants = (
-					SELECT COALESCE(
-						jsonb_agg(UserId ORDER BY RepliedAt ASC),
-						'[]'::jsonb
-					)
-					FROM (
-						SELECT Posts.UserId, MAX(Posts.CreateAt) as RepliedAt 
-						FROM Posts 
-						WHERE Posts.RootId = $1 AND Posts.DeleteAt = 0 
-						GROUP BY Posts.UserId
-					) AS user_replies
-				)
-			WHERE PostId = $1
-		`, rootId)
+			// 2. IMPORTANT: Re-select the thread FOR UPDATE.
+			// This forces the current transaction to wait until the thread is created and
+			// committed by the winning transaction, or it locks the newly created row.
+			thread = &model.Thread{}
+			err = transaction.Get(thread, `
+				SELECT 
+					PostId, ChannelId, ReplyCount, LastReplyAt, Participants, COALESCE(ThreadDeleteAt, 0) AS DeleteAt
+				FROM Threads 
+				WHERE PostId=$1 FOR UPDATE
+			`, rootId)
 
-			// Now update the thread with actual calculated values
-			// This happens after the insert, so the thread definitely exists
-			err = s.recalculateThreadMetadata(transaction, rootId)
+			// If the thread still doesn't exist after the insert race, we have a fatal error.
 			if err != nil {
-				return err
+				return errors.Wrapf(err, "failed to re-select or lock thread %s after creation attempt", rootId)
 			}
-		} else {
-			// Thread exists, update incrementally
-			for _, post := range posts {
-				thread.ReplyCount += 1
-				if thread.Participants.Contains(post.UserId) {
-					thread.Participants = thread.Participants.Remove(post.UserId)
-				}
-				thread.Participants = append(thread.Participants, post.UserId)
-				if post.CreateAt > thread.LastReplyAt {
-					thread.LastReplyAt = post.CreateAt
-				}
+
+			// The thread is now guaranteed to exist, and we have a row lock.
+			// FALL THROUGH to the existing thread logic below.
+
+		}
+
+		// **CASE 2: Thread record exists (or was just created and locked).**
+		// Now we proceed with the safe, incremental update logic.
+
+		for _, post := range posts {
+			thread.ReplyCount += 1
+			// Participants: Remove then re-add to move to end (recent activity)
+			if thread.Participants.Contains(post.UserId) {
+				thread.Participants = thread.Participants.Remove(post.UserId)
 			}
-			if _, err := transaction.NamedExec(`UPDATE Threads
-				SET ChannelId = :ChannelId,
-					ReplyCount = :ReplyCount,
-					LastReplyAt = :LastReplyAt,
-					Participants = :Participants
-				WHERE PostId=:PostId`, thread); err != nil {
-				return err
+			thread.Participants = append(thread.Participants, post.UserId)
+
+			if post.CreateAt > thread.LastReplyAt {
+				thread.LastReplyAt = post.CreateAt
 			}
+		}
+
+		// The UPDATE is safe because we hold a FOR UPDATE lock from step 1 or step 2.
+		if _, err := transaction.NamedExec(`UPDATE Threads
+			SET ChannelId = :ChannelId,
+				ReplyCount = :ReplyCount,
+				LastReplyAt = :LastReplyAt,
+				Participants = :Participants
+			WHERE PostId=:PostId`, thread); err != nil {
+			return err
 		}
 	}
 	return nil
-}
-
-// Helper function to recalculate thread metadata from Posts table
-func (s *SqlPostStore) recalculateThreadMetadata(transaction *sqlxTxWrapper, rootId string) error {
-	data := []struct {
-		UserId    string
-		RepliedAt int64
-	}{}
-
-	if err := transaction.Select(&data, "SELECT Posts.UserId, MAX(Posts.CreateAt) as RepliedAt FROM Posts WHERE Posts.RootId=? AND Posts.DeleteAt=0 GROUP BY Posts.UserId ORDER BY RepliedAt ASC", rootId); err != nil {
-		return err
-	}
-
-	var participants model.StringArray
-	for _, item := range data {
-		participants = append(participants, item.UserId)
-	}
-
-	var count int64
-	err := transaction.Get(&count, "SELECT COUNT(Posts.Id) FROM Posts WHERE Posts.RootId=? AND Posts.DeleteAt=0", rootId)
-	if err != nil {
-		return err
-	}
-
-	var lastReplyAt int64
-	err = transaction.Get(&lastReplyAt, "SELECT COALESCE(MAX(Posts.CreateAt), 0) FROM Posts WHERE Posts.RootId=? AND Posts.DeleteAt=0", rootId)
-	if err != nil {
-		return err
-	}
-
-	_, err = transaction.Exec(`
-		UPDATE Threads
-		SET ReplyCount = $1,
-			LastReplyAt = $2,
-			Participants = $3
-		WHERE PostId = $4
-	`, count, lastReplyAt, participants, rootId)
-
-	return err
 }
 
 func (s *SqlPostStore) SetPostReminder(reminder *model.PostReminder) error {
