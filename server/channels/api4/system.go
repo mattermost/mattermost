@@ -68,6 +68,7 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.APIRoot.Handle("/server_busy", api.APISessionRequired(clearServerBusy)).Methods(http.MethodDelete)
 	api.BaseRoutes.APIRoot.Handle("/upgrade_to_enterprise", api.APISessionRequired(upgradeToEnterprise)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/upgrade_to_enterprise/status", api.APISessionRequired(upgradeToEnterpriseStatus)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/upgrade_to_enterprise/allowed", api.APISessionRequired(isAllowedToUpgradeToEnterprise)).Methods(http.MethodGet)
 	api.BaseRoutes.APIRoot.Handle("/restart", api.APISessionRequired(restart)).Methods(http.MethodPost)
 	api.BaseRoutes.System.Handle("/notices/{team_id:[A-Za-z0-9]+}", api.APISessionRequired(getProductNotices)).Methods(http.MethodGet)
 	api.BaseRoutes.System.Handle("/notices/view", api.APISessionRequired(updateViewedProductNotices)).Methods(http.MethodPut)
@@ -204,7 +205,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if deviceID := r.FormValue("device_id"); deviceID != "" {
-		s["CanReceiveNotifications"] = c.App.SendTestPushNotification(deviceID)
+		s["CanReceiveNotifications"] = c.App.SendTestPushNotification(c.AppContext, deviceID)
 	}
 
 	s["ActiveSearchBackend"] = c.App.ActiveSearchBackend()
@@ -702,20 +703,22 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	err := c.App.SendAckToPushProxy(&ack)
+	c.AppContext.WithLogger(c.AppContext.Logger().With(
+		mlog.String("type", model.NotificationTypePush),
+		mlog.String("ack_id", ack.Id),
+		mlog.String("push_type", ack.NotificationType),
+		mlog.String("post_id", ack.PostId),
+		mlog.String("ack_type", ack.NotificationType),
+		mlog.String("device_type", ack.ClientPlatform),
+		mlog.Int("received_at", ack.ClientReceivedAt),
+	))
+	err := c.App.SendAckToPushProxy(c.AppContext, &ack)
 	if ack.IsIdLoaded {
 		if err != nil {
 			c.App.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonPushProxySendError, ack.ClientPlatform)
-			c.App.NotificationsLog().Error("Notification ack not sent to push proxy",
-				mlog.String("type", model.NotificationTypePush),
+			c.AppContext.Logger().LogM(mlog.MlvlNotificationError, "Notification ack not sent to push proxy",
 				mlog.String("status", model.NotificationStatusError),
 				mlog.String("reason", model.NotificationReasonPushProxySendError),
-				mlog.String("ack_id", ack.Id),
-				mlog.String("push_type", ack.NotificationType),
-				mlog.String("post_id", ack.PostId),
-				mlog.String("ack_type", ack.NotificationType),
-				mlog.String("device_type", ack.ClientPlatform),
-				mlog.Int("received_at", ack.ClientReceivedAt),
 				mlog.Err(err),
 			)
 		} else {
@@ -905,6 +908,26 @@ func upgradeToEnterpriseStatus(c *Context, w http.ResponseWriter, r *http.Reques
 	if _, err := w.Write([]byte(model.StringInterfaceToJSON(s))); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+func isAllowedToUpgradeToEnterprise(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	err := c.App.Srv().CanIUpgradeToE0()
+	if err != nil {
+		var iaErr *upgrader.InvalidArch
+		if errors.As(err, &iaErr) {
+			c.Err = model.NewAppError("isAllowedToUpgradeToEnterprise", "api.upgrade_to_enterprise.system_not_supported.app_error", nil, "", http.StatusForbidden).Wrap(err)
+			return
+		}
+		c.Err = model.NewAppError("isAllowedToUpgradeToEnterprise", err.Error(), nil, "", http.StatusForbidden).Wrap(err)
+		return
+	}
+
+	ReturnStatusOK(w)
 }
 
 func restart(c *Context, w http.ResponseWriter, r *http.Request) {

@@ -427,7 +427,7 @@ func TestCreateWebhookPostWithOverriddenIcon(t *testing.T) {
 		require.Nil(t, appErr)
 		assert.Equal(t, "https://example.com/icon.png", post.GetProp(model.PostPropsOverrideIconURL))
 
-		clientPost := th.App.PreparePostForClient(th.Context, post, true, false, false)
+		clientPost := th.App.PreparePostForClient(th.Context, post, &model.PreparePostForClientOpts{IsNewPost: true})
 
 		assert.Equal(t, "https://example.com/icon.png", clientPost.GetProp(model.PostPropsOverrideIconURL))
 	})
@@ -450,7 +450,7 @@ func TestCreateWebhookPostWithOverriddenIcon(t *testing.T) {
 		require.Nil(t, appErr)
 		assert.Equal(t, "smile", post.GetProp(model.PostPropsOverrideIconEmoji))
 
-		clientPost := th.App.PreparePostForClient(th.Context, post, true, false, false)
+		clientPost := th.App.PreparePostForClient(th.Context, post, &model.PreparePostForClientOpts{IsNewPost: true})
 
 		assert.Equal(t, "/static/emoji/1f604.png", clientPost.GetProp(model.PostPropsOverrideIconURL))
 	})
@@ -475,7 +475,7 @@ func TestCreateWebhookPostWithOverriddenIcon(t *testing.T) {
 		require.Nil(t, appErr)
 		assert.Equal(t, emoji.Name, post.GetProp(model.PostPropsOverrideIconEmoji))
 
-		clientPost := th.App.PreparePostForClient(th.Context, post, true, false, false)
+		clientPost := th.App.PreparePostForClient(th.Context, post, &model.PreparePostForClientOpts{IsNewPost: true})
 
 		assert.Equal(t, fmt.Sprintf("/api/v4/emoji/%s/image", emoji.Id), clientPost.GetProp(model.PostPropsOverrideIconURL))
 	})
@@ -498,7 +498,7 @@ func TestCreateWebhookPostWithOverriddenIcon(t *testing.T) {
 		require.Nil(t, appErr)
 		assert.Equal(t, ":smile:", post.GetProp(model.PostPropsOverrideIconEmoji))
 
-		clientPost := th.App.PreparePostForClient(th.Context, post, true, false, false)
+		clientPost := th.App.PreparePostForClient(th.Context, post, &model.PreparePostForClientOpts{IsNewPost: true})
 
 		assert.Equal(t, "/static/emoji/1f604.png", clientPost.GetProp(model.PostPropsOverrideIconURL))
 	})
@@ -820,7 +820,7 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 		go func() {
 			for range 5 {
 				time.Sleep(time.Second)
-				posts, _ := th.App.GetPosts(channel.Id, 0, 5)
+				posts, _ := th.App.GetPosts(th.Context, channel.Id, 0, 5)
 				if len(posts.Posts) > 0 {
 					for _, post := range posts.Posts {
 						createdPost <- post

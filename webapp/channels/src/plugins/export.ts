@@ -46,7 +46,6 @@ interface WindowWithLibraries {
     ReactRouterDom: typeof import('react-router-dom');
     PropTypes: typeof import('prop-types');
     Luxon: typeof import('luxon');
-    StyledComponents: typeof import('styled-components');
     PostUtils: {
         formatText: typeof formatText;
         messageHtmlToComponent: (html: string, ...args: any[]) => JSX.Element;
@@ -103,7 +102,6 @@ window.ReactBootstrap = require('react-bootstrap');
 window.ReactRouterDom = require('react-router-dom');
 window.PropTypes = require('prop-types');
 window.Luxon = require('luxon');
-window.StyledComponents = require('styled-components');
 
 // Functions exposed on window for plugins to use.
 window.PostUtils = {

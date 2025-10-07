@@ -942,6 +942,22 @@ function roles(state: RelationOneToOne<Channel, Set<string>> = {}, action: MMRed
     }
 }
 
+function restrictedDMs(state: ChannelsState['restrictedDMs'] = {}, action: MMReduxAction) {
+    switch (action.type) {
+    case ChannelTypes.RECEIVED_IS_DM_RESTRICTED: {
+        return {
+            ...state,
+            [action.data.channelId]: action.data.isRestricted,
+        };
+    }
+    case ChannelTypes.RESTRICTED_DMS_TEAMS_CHANGED:
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
+    default:
+        return state;
+    }
+}
+
 export default combineReducers({
 
     // the current selected channel
@@ -983,4 +999,6 @@ export default combineReducers({
 
     // object where key is the channel id and value is the member count for the channel
     channelsMemberCount,
+
+    restrictedDMs,
 });

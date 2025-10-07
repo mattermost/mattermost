@@ -648,11 +648,11 @@ export const permissionRolesStrings: Record<string, Record<string, MessageDescri
     manage_channel_access_rules: defineMessages({
         name: {
             id: 'admin.permissions.permission.manage_channel_access_rules.name',
-            defaultMessage: 'Manage Channel Access Rules',
+            defaultMessage: 'Manage Channel Access Control Policy',
         },
         description: {
             id: 'admin.permissions.permission.manage_channel_access_rules.description',
-            defaultMessage: 'Configure attribute-based access control rules for channels.',
+            defaultMessage: 'Configure attribute-based access control policy for channels.',
         },
     }),
 };

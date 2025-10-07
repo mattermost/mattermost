@@ -66,8 +66,7 @@ type PlatformService struct {
 	isFirstUserAccountLock sync.Mutex
 	isFirstUserAccount     atomic.Bool
 
-	logger              *mlog.Logger
-	notificationsLogger *mlog.Logger
+	logger *mlog.Logger
 
 	startMetrics bool
 	metrics      *platformMetrics

@@ -924,10 +924,6 @@
     "translation": "пожимание плечами"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Новый формат конфигурации клиента пока не поддерживается. Пожалуйста, укажите format=old в строке запроса."
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "Извините, мы не смогли найти страницу."
   },
@@ -2078,14 +2074,6 @@
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "Логин бота запрещен."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Попытка войти с использованием экспериментальной возможности ClientSideCert без предоставления действительного сертификата."
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Попытка использования экспериментальной возможности ClientSideCert без действительной корпоративной лицензии."
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -8044,14 +8032,6 @@
     "translation": "Список администраторов пуст."
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Не удается получить пользователей для архивного канала"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Не удается получить сообщения для архивного канала"
-  },
-  {
     "id": "api.user.upload_profile_user.check_image_limits.app_error",
     "translation": "Ошибка проверки ограничений изображения. Разрешение слишком высокое."
   },
@@ -9858,10 +9838,6 @@
   {
     "id": "api.channel.bookmark.update_channel_bookmark_sort_order.deleted_channel.forbidden.app_error",
     "translation": "Не удалось обновить порядок сортировки закладок канала."
-  },
-  {
-    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
-    "translation": "Невозможно получить закладки для заархивированного канала"
   },
   {
     "id": "app.delete_scheduled_post.delete_permission.error",

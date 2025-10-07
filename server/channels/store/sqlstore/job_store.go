@@ -225,7 +225,7 @@ func (jss SqlJobStore) UpdateStatusOptimistically(id string, currentStatus strin
 	return job[0], nil
 }
 
-func (jss SqlJobStore) Get(c request.CTX, id string) (*model.Job, error) {
+func (jss SqlJobStore) Get(rctx request.CTX, id string) (*model.Job, error) {
 	query, args, err := jss.jobQuery.
 		Where(sq.Eq{"Id": id}).ToSql()
 	if err != nil {
@@ -243,7 +243,7 @@ func (jss SqlJobStore) Get(c request.CTX, id string) (*model.Job, error) {
 	return &status, nil
 }
 
-func (jss SqlJobStore) GetAllByTypesPage(c request.CTX, jobTypes []string, page int, perPage int) ([]*model.Job, error) {
+func (jss SqlJobStore) GetAllByTypesPage(rctx request.CTX, jobTypes []string, page int, perPage int) ([]*model.Job, error) {
 	offset := page * perPage
 	query, args, err := jss.jobQuery.
 		Where(sq.Eq{"Type": jobTypes}).
@@ -262,7 +262,7 @@ func (jss SqlJobStore) GetAllByTypesPage(c request.CTX, jobTypes []string, page 
 	return jobs, nil
 }
 
-func (jss SqlJobStore) GetAllByType(c request.CTX, jobType string) ([]*model.Job, error) {
+func (jss SqlJobStore) GetAllByType(rctx request.CTX, jobType string) ([]*model.Job, error) {
 	query, args, err := jss.jobQuery.
 		Where(sq.Eq{"Type": jobType}).
 		OrderBy("CreateAt DESC").ToSql()
@@ -278,7 +278,7 @@ func (jss SqlJobStore) GetAllByType(c request.CTX, jobType string) ([]*model.Job
 	return statuses, nil
 }
 
-func (jss SqlJobStore) GetAllByTypeAndStatus(c request.CTX, jobType string, status string) ([]*model.Job, error) {
+func (jss SqlJobStore) GetAllByTypeAndStatus(rctx request.CTX, jobType string, status string) ([]*model.Job, error) {
 	query, args, err := jss.jobQuery.
 		Where(sq.Eq{"Type": jobType, "Status": status}).
 		OrderBy("CreateAt DESC").ToSql()
@@ -294,7 +294,7 @@ func (jss SqlJobStore) GetAllByTypeAndStatus(c request.CTX, jobType string, stat
 	return jobs, nil
 }
 
-func (jss SqlJobStore) GetAllByTypePage(c request.CTX, jobType string, page int, perPage int) ([]*model.Job, error) {
+func (jss SqlJobStore) GetAllByTypePage(rctx request.CTX, jobType string, page int, perPage int) ([]*model.Job, error) {
 	offset := page * perPage
 	query, args, err := jss.jobQuery.
 		Where(sq.Eq{"Type": jobType}).
@@ -313,7 +313,7 @@ func (jss SqlJobStore) GetAllByTypePage(c request.CTX, jobType string, page int,
 	return statuses, nil
 }
 
-func (jss SqlJobStore) GetAllByStatus(c request.CTX, status string) ([]*model.Job, error) {
+func (jss SqlJobStore) GetAllByStatus(rctx request.CTX, status string) ([]*model.Job, error) {
 	statuses := []*model.Job{}
 	query, args, err := jss.jobQuery.
 		Where(sq.Eq{"Status": status}).
@@ -329,7 +329,7 @@ func (jss SqlJobStore) GetAllByStatus(c request.CTX, status string) ([]*model.Jo
 	return statuses, nil
 }
 
-func (jss SqlJobStore) GetAllByTypesAndStatusesPage(c request.CTX, jobType []string, status []string, offset int, limit int) ([]*model.Job, error) {
+func (jss SqlJobStore) GetAllByTypesAndStatusesPage(rctx request.CTX, jobType []string, status []string, offset int, limit int) ([]*model.Job, error) {
 	query, args, err := jss.jobQuery.
 		Where(sq.Eq{"Type": jobType, "Status": status}).
 		OrderBy("CreateAt DESC").
@@ -385,6 +385,38 @@ func (jss SqlJobStore) GetCountByStatusAndType(status string, jobType string) (i
 		return int64(0), errors.Wrapf(err, "failed to count Jobs with status=%s and type=%s", status, jobType)
 	}
 	return count, nil
+}
+
+func (jss SqlJobStore) GetByTypeAndData(rctx request.CTX, jobType string, data map[string]string, useMaster bool, statuses ...string) ([]*model.Job, error) {
+	query := jss.jobQuery.Where(sq.Eq{"Type": jobType})
+
+	// Add status filtering if provided - enables full usage of idx_jobs_status_type index
+	if len(statuses) > 0 {
+		query = query.Where(sq.Eq{"Status": statuses})
+	}
+
+	// Add JSON data filtering for each key-value pair
+	for key, value := range data {
+		query = query.Where(sq.Expr("Data->? = ?", key, fmt.Sprintf(`"%s"`, value)))
+	}
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "get_by_type_and_data_tosql")
+	}
+
+	var jobs []*model.Job
+	// For consistency-critical operations (like job deduplication), use master
+	db := jss.GetReplica()
+	if useMaster {
+		db = jss.GetMaster()
+	}
+
+	if err := db.Select(&jobs, queryString, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to get Jobs by type and data")
+	}
+
+	return jobs, nil
 }
 
 func (jss SqlJobStore) Delete(id string) (string, error) {

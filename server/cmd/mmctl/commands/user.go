@@ -89,25 +89,6 @@ var SendPasswordResetEmailCmd = &cobra.Command{
 	RunE:    withClient(sendPasswordResetEmailCmdF),
 }
 
-var UpdateUserEmailCmd = &cobra.Command{
-	Use:        "email [user] [new email]",
-	Short:      "Change email of the user",
-	Long:       "Change the email address associated with a user.",
-	Example:    "  user email testuser user@example.com",
-	Deprecated: "Please use 'mmctl user edit email' instead.",
-	RunE:       withClient(updateUserEmailCmdF),
-}
-
-var UpdateUsernameCmd = &cobra.Command{
-	Use:        "username [user] [new username]",
-	Short:      "Change username of the user",
-	Long:       "Change username of the user.",
-	Example:    "  user username testuser newusername",
-	Deprecated: "Please use 'mmctl user edit username' instead.",
-	Args:       cobra.ExactArgs(2),
-	RunE:       withClient(updateUsernameCmdF),
-}
-
 var ChangePasswordUserCmd = &cobra.Command{
 	Use:   "change-password <user>",
 	Short: "Changes a user's password",
@@ -441,8 +422,6 @@ Global Flags:
 		UserCreateCmd,
 		UserInviteCmd,
 		SendPasswordResetEmailCmd,
-		UpdateUserEmailCmd,
-		UpdateUsernameCmd,
 		ChangePasswordUserCmd,
 		ResetUserMfaCmd,
 		UserEditCmd,
@@ -640,62 +619,6 @@ func sendPasswordResetEmailCmdF(c client.Client, cmd *cobra.Command, args []stri
 	}
 
 	return result.ErrorOrNil()
-}
-
-func updateUserEmailCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	printer.SetSingle(true)
-
-	if len(args) != 2 {
-		return errors.New("expected two arguments. See help text for details")
-	}
-
-	newEmail := args[1]
-
-	if !model.IsValidEmail(newEmail) {
-		return errors.New("invalid email: '" + newEmail + "'")
-	}
-
-	user, err := getUserFromArg(c, args[0])
-	if err != nil {
-		return err
-	}
-
-	user.Email = newEmail
-
-	ruser, _, err := c.UpdateUser(context.TODO(), user)
-	if err != nil {
-		return errors.New(err.Error())
-	}
-
-	printer.PrintT("User {{.Username}} updated successfully", ruser)
-
-	return nil
-}
-
-func updateUsernameCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	printer.SetSingle(true)
-
-	newUsername := args[1]
-
-	if !model.IsValidUsername(newUsername) {
-		return errors.New("invalid username: '" + newUsername + "'")
-	}
-
-	user := getUserFromUserArg(c, args[0])
-	if user == nil {
-		return errors.New("unable to find user '" + args[0] + "'")
-	}
-
-	user.Username = newUsername
-
-	ruser, _, err := c.UpdateUser(context.TODO(), user)
-	if err != nil {
-		return errors.New(err.Error())
-	}
-
-	printer.PrintT("User {{.Username}} updated successfully", ruser)
-
-	return nil
 }
 
 func changePasswordUserCmdF(c client.Client, cmd *cobra.Command, args []string) error {

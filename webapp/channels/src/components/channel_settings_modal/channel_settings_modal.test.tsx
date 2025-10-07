@@ -16,6 +16,10 @@ import ChannelSettingsModal from './channel_settings_modal';
 // Variables to control permission check results in tests
 let mockPrivateChannelPermission = true;
 let mockPublicChannelPermission = true;
+let mockManageChannelAccessRulesPermission = false;
+
+// Variable to control group-constrained status in tests
+let mockGroupConstrained = false;
 
 // Mock the redux selectors
 jest.mock('mattermost-redux/selectors/entities/channels', () => ({
@@ -38,8 +42,16 @@ jest.mock('mattermost-redux/selectors/entities/channels', () => ({
             creator_id: 'creator1',
             last_root_post_at: 0,
             scheme_id: '',
-            group_constrained: false,
+            group_constrained: mockGroupConstrained,
         };
+    }),
+}));
+
+// Mock the channel banner selector
+jest.mock('mattermost-redux/selectors/entities/channel_banner', () => ({
+    selectChannelBannerEnabled: jest.fn().mockImplementation((state) => {
+        // Return true only for advanced license, false for all others
+        return state?.entities?.general?.license?.SkuShortName === 'advanced';
     }),
 }));
 
@@ -53,14 +65,53 @@ jest.mock('mattermost-redux/selectors/entities/roles', () => ({
         if (permission === 'delete_public_channel') {
             return mockPublicChannelPermission;
         }
+        if (permission === 'manage_channel_access_rules') {
+            return mockManageChannelAccessRulesPermission;
+        }
         return true;
     }),
 }));
 
-// Mock the child components to simplify testing
+// Mock the general selectors
+jest.mock('selectors/general', () => ({
+    isChannelAccessControlEnabled: jest.fn().mockReturnValue(true),
+    getBasePath: jest.fn().mockReturnValue(''),
+}));
+
+// Mock child components to provide controlled testing interfaces
 jest.mock('./channel_settings_info_tab', () => {
-    return function MockInfoTab(): JSX.Element {
-        return <div data-testid='info-tab'>{'Info Tab Content'}</div>;
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const React = require('react');
+
+    return function MockChannelSettingsInfoTab({
+        setAreThereUnsavedChanges,
+        showTabSwitchError,
+    }: {
+        setAreThereUnsavedChanges?: (value: boolean) => void;
+        showTabSwitchError?: boolean;
+    }) {
+        return React.createElement('div', {'data-testid': 'info-tab'}, [
+            'Info Tab Content',
+
+            // Provide test controls for state management
+            setAreThereUnsavedChanges && React.createElement('button', {
+                key: 'set-unsaved',
+                'data-testid': 'set-unsaved-changes',
+                onClick: () => setAreThereUnsavedChanges(true),
+            }, 'Make Unsaved Changes'),
+
+            setAreThereUnsavedChanges && React.createElement('button', {
+                key: 'save',
+                'data-testid': 'save-changes',
+                onClick: () => setAreThereUnsavedChanges(false),
+            }, 'Save Changes'),
+
+            // Display warning message during error states
+            showTabSwitchError && React.createElement('div', {
+                key: 'warning',
+                'data-testid': 'warning-panel',
+            }, 'You have unsaved changes'),
+        ]);
     };
 });
 
@@ -73,6 +124,12 @@ jest.mock('./channel_settings_configuration_tab', () => {
 jest.mock('./channel_settings_archive_tab', () => {
     return function MockArchiveTab(): JSX.Element {
         return <div data-testid='archive-tab'>{'Archive Tab Content'}</div>;
+    };
+});
+
+jest.mock('./channel_settings_access_rules_tab', () => {
+    return function MockAccessRulesTab(): JSX.Element {
+        return <div data-testid='access-rules-tab'>{'Access Rules Tab Content'}</div>;
     };
 });
 
@@ -121,6 +178,8 @@ describe('ChannelSettingsModal', () => {
         mockChannelType = 'O'; // Default to public channel
         mockPrivateChannelPermission = true;
         mockPublicChannelPermission = true;
+        mockManageChannelAccessRulesPermission = false; // Default to no access rules permission
+        mockGroupConstrained = false; // Default to not group-constrained
     });
 
     it('should render the modal with correct header text', async () => {
@@ -289,5 +348,283 @@ describe('ChannelSettingsModal', () => {
         };
         renderWithContext(<ChannelSettingsModal {...baseProps}/>, baseState as GlobalState);
         expect(screen.getByTestId('configuration-tab-button')).toBeInTheDocument();
+    });
+
+    describe('Access Control tab visibility', () => {
+        it('should show Access Control tab for private channel when user has permission', async () => {
+            mockChannelType = 'P';
+            mockManageChannelAccessRulesPermission = true;
+
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+
+            // Wait for the sidebar to load
+            await waitFor(() => {
+                expect(screen.getByTestId('settings-sidebar')).toBeInTheDocument();
+            });
+
+            // The Access Control tab should be visible
+            expect(screen.getByRole('tab', {name: 'access_rules'})).toBeInTheDocument();
+            expect(screen.getByText('Access Control')).toBeInTheDocument();
+        });
+
+        it('should not show Access Control tab for private channel when user lacks permission', async () => {
+            mockChannelType = 'P';
+            mockManageChannelAccessRulesPermission = false;
+
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+
+            // Wait for the sidebar to load
+            await waitFor(() => {
+                expect(screen.getByTestId('settings-sidebar')).toBeInTheDocument();
+            });
+
+            // The Access Control tab should not be visible
+            expect(screen.queryByRole('tab', {name: 'access_rules'})).not.toBeInTheDocument();
+            expect(screen.queryByText('Access Control')).not.toBeInTheDocument();
+        });
+
+        it('should not show Access Control tab for public channel even with permission', async () => {
+            mockChannelType = 'O';
+            mockManageChannelAccessRulesPermission = true;
+
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+
+            // Wait for the sidebar to load
+            await waitFor(() => {
+                expect(screen.getByTestId('settings-sidebar')).toBeInTheDocument();
+            });
+
+            // The Access Control tab should not be visible for public channels
+            expect(screen.queryByRole('tab', {name: 'access_rules'})).not.toBeInTheDocument();
+            expect(screen.queryByText('Access Control')).not.toBeInTheDocument();
+        });
+
+        it('should not show Access Control tab for public channel without permission', async () => {
+            mockChannelType = 'O';
+            mockManageChannelAccessRulesPermission = false;
+
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+
+            // Wait for the sidebar to load
+            await waitFor(() => {
+                expect(screen.getByTestId('settings-sidebar')).toBeInTheDocument();
+            });
+
+            // The Access Control tab should not be visible
+            expect(screen.queryByRole('tab', {name: 'access_rules'})).not.toBeInTheDocument();
+            expect(screen.queryByText('Access Control')).not.toBeInTheDocument();
+        });
+
+        it('should be able to navigate to Access Control tab when visible', async () => {
+            mockChannelType = 'P';
+            mockManageChannelAccessRulesPermission = true;
+
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+
+            // Wait for the sidebar to load
+            await waitFor(() => {
+                expect(screen.getByTestId('settings-sidebar')).toBeInTheDocument();
+            });
+
+            // Initially the info tab should be active
+            expect(screen.getByTestId('info-tab')).toBeInTheDocument();
+
+            // Find and click the Access Control tab
+            const accessControlTab = screen.getByRole('tab', {name: 'access_rules'});
+            await userEvent.click(accessControlTab);
+
+            // Now the Access Control tab content should be visible
+            expect(screen.getByTestId('access-rules-tab')).toBeInTheDocument();
+            expect(screen.getByText('Access Rules Tab Content')).toBeInTheDocument();
+        });
+
+        it('should show correct tab label as "Access Control"', async () => {
+            mockChannelType = 'P';
+            mockManageChannelAccessRulesPermission = true;
+
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+
+            // Wait for the sidebar to load
+            await waitFor(() => {
+                expect(screen.getByTestId('settings-sidebar')).toBeInTheDocument();
+            });
+
+            // Verify the tab shows the correct label
+            const accessControlTab = screen.getByRole('tab', {name: 'access_rules'});
+            expect(accessControlTab).toHaveTextContent('Access Control');
+        });
+
+        it('should show Access Control tab for default channel if private and user has permission', async () => {
+            mockChannelType = 'P';
+            mockManageChannelAccessRulesPermission = true;
+
+            renderWithContext(
+                <ChannelSettingsModal
+                    {...{...baseProps, channelId: 'default_channel'}}
+                />,
+            );
+
+            // Wait for the sidebar to load
+            await waitFor(() => {
+                expect(screen.getByTestId('settings-sidebar')).toBeInTheDocument();
+            });
+
+            // Access Control tab visibility is not restricted for default channel - only depends on channel type and permission
+            expect(screen.getByRole('tab', {name: 'access_rules'})).toBeInTheDocument();
+        });
+
+        it('should not show Access Control tab for group-constrained private channel even with permission', async () => {
+            mockChannelType = 'P';
+            mockManageChannelAccessRulesPermission = true;
+            mockGroupConstrained = true;
+
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+
+            // Wait for the sidebar to load
+            await waitFor(() => {
+                expect(screen.getByTestId('settings-sidebar')).toBeInTheDocument();
+            });
+
+            // The Access Control tab should not be visible for group-constrained channels
+            expect(screen.queryByRole('tab', {name: 'access_rules'})).not.toBeInTheDocument();
+            expect(screen.queryByText('Access Control')).not.toBeInTheDocument();
+        });
+
+        it('should not show Access Control tab for group-constrained private channel without permission', async () => {
+            mockChannelType = 'P';
+            mockManageChannelAccessRulesPermission = false;
+            mockGroupConstrained = true;
+
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+
+            // Wait for the sidebar to load
+            await waitFor(() => {
+                expect(screen.getByTestId('settings-sidebar')).toBeInTheDocument();
+            });
+
+            // The Access Control tab should not be visible (for multiple reasons)
+            expect(screen.queryByRole('tab', {name: 'access_rules'})).not.toBeInTheDocument();
+            expect(screen.queryByText('Access Control')).not.toBeInTheDocument();
+        });
+
+        it('should not show Access Control tab for group-constrained public channel', async () => {
+            mockChannelType = 'O';
+            mockManageChannelAccessRulesPermission = true;
+            mockGroupConstrained = true;
+
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+
+            // Wait for the sidebar to load
+            await waitFor(() => {
+                expect(screen.getByTestId('settings-sidebar')).toBeInTheDocument();
+            });
+
+            // The Access Control tab should not be visible (for multiple reasons: public + group-constrained)
+            expect(screen.queryByRole('tab', {name: 'access_rules'})).not.toBeInTheDocument();
+            expect(screen.queryByText('Access Control')).not.toBeInTheDocument();
+        });
+    });
+
+    describe('warn-once modal closing behavior', () => {
+        beforeEach(() => {
+            jest.clearAllMocks();
+        });
+
+        it('should close immediately when no unsaved changes exist', async () => {
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+
+            await waitFor(() => {
+                expect(screen.getByRole('dialog')).toBeInTheDocument();
+            });
+
+            const closeButton = screen.getByLabelText(/close/i);
+            await userEvent.click(closeButton);
+
+            await waitFor(() => {
+                expect(baseProps.onExited).toHaveBeenCalled();
+            });
+        });
+
+        it('should prevent close on first attempt with unsaved changes', async () => {
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+
+            await waitFor(() => {
+                expect(screen.getByRole('dialog')).toBeInTheDocument();
+            });
+
+            // Set component to unsaved state
+            const setUnsavedButton = screen.getByTestId('set-unsaved-changes');
+            await userEvent.click(setUnsavedButton);
+
+            // Attempt to close modal with unsaved changes
+            const closeButton = screen.getByLabelText(/close/i);
+            await userEvent.click(closeButton);
+
+            // Verify warning is displayed
+            await waitFor(() => {
+                expect(screen.getByTestId('warning-panel')).toBeInTheDocument();
+            });
+
+            // Verify modal remains open
+            expect(screen.getByRole('dialog')).toBeInTheDocument();
+            expect(baseProps.onExited).not.toHaveBeenCalled();
+        });
+
+        it('should allow close on second attempt (warn-once behavior)', async () => {
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+
+            await waitFor(() => {
+                expect(screen.getByRole('dialog')).toBeInTheDocument();
+            });
+
+            // Set component to unsaved state
+            await userEvent.click(screen.getByTestId('set-unsaved-changes'));
+
+            const closeButton = screen.getByLabelText(/close/i);
+
+            // First close attempt triggers warning
+            await userEvent.click(closeButton);
+
+            await waitFor(() => {
+                expect(screen.getByTestId('warning-panel')).toBeInTheDocument();
+            });
+
+            // Second close attempt closes modal
+            await userEvent.click(closeButton);
+
+            await waitFor(() => {
+                expect(baseProps.onExited).toHaveBeenCalled();
+            });
+        });
+
+        it('should reset warning state when changes are saved', async () => {
+            renderWithContext(<ChannelSettingsModal {...baseProps}/>);
+
+            await waitFor(() => {
+                expect(screen.getByRole('dialog')).toBeInTheDocument();
+            });
+
+            // Set component to unsaved state
+            await userEvent.click(screen.getByTestId('set-unsaved-changes'));
+
+            const closeButton = screen.getByLabelText(/close/i);
+
+            // Trigger warning by attempting to close
+            await userEvent.click(closeButton);
+
+            await waitFor(() => {
+                expect(screen.getByTestId('warning-panel')).toBeInTheDocument();
+            });
+
+            // Save changes to reset state
+            await userEvent.click(screen.getByTestId('save-changes'));
+
+            // Close modal with no unsaved changes
+            await userEvent.click(closeButton);
+
+            await waitFor(() => {
+                expect(baseProps.onExited).toHaveBeenCalled();
+            });
+        });
     });
 });

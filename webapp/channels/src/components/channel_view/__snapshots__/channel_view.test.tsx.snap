@@ -10,11 +10,13 @@ exports[`components/channel_view Should match snapshot if channel is archived 1`
     overlayType="center"
   />
   <ChannelHeader
+    canRestrictDirectMessage={false}
     channelId="channelId"
     channelIsArchived={true}
     deactivatedChannel={false}
     enableOnboardingFlow={true}
     enableWebSocketEventScope={false}
+    fetchIsRestrictedDM={[MockFunction]}
     goToLastViewedChannel={[MockFunction]}
     history={Object {}}
     isChannelBookmarksEnabled={false}
@@ -28,8 +30,8 @@ exports[`components/channel_view Should match snapshot if channel is archived 1`
       }
     }
     missingChannelRole={false}
+    restrictDirectMessage={false}
     teamUrl="/team"
-    viewArchivedChannels={false}
   />
   <ChannelBanner
     channelId="channelId"
@@ -78,11 +80,13 @@ exports[`components/channel_view Should match snapshot if channel is deactivated
     overlayType="center"
   />
   <ChannelHeader
+    canRestrictDirectMessage={false}
     channelId="channelId"
     channelIsArchived={false}
     deactivatedChannel={true}
     enableOnboardingFlow={true}
     enableWebSocketEventScope={false}
+    fetchIsRestrictedDM={[MockFunction]}
     goToLastViewedChannel={[MockFunction]}
     history={Object {}}
     isChannelBookmarksEnabled={false}
@@ -96,8 +100,8 @@ exports[`components/channel_view Should match snapshot if channel is deactivated
       }
     }
     missingChannelRole={false}
+    restrictDirectMessage={false}
     teamUrl="/team"
-    viewArchivedChannels={false}
   />
   <ChannelBanner
     channelId="channelId"
@@ -145,11 +149,13 @@ exports[`components/channel_view Should match snapshot with base props 1`] = `
     overlayType="center"
   />
   <ChannelHeader
+    canRestrictDirectMessage={false}
     channelId="channelId"
     channelIsArchived={false}
     deactivatedChannel={false}
     enableOnboardingFlow={true}
     enableWebSocketEventScope={false}
+    fetchIsRestrictedDM={[MockFunction]}
     goToLastViewedChannel={[MockFunction]}
     history={Object {}}
     isChannelBookmarksEnabled={false}
@@ -163,8 +169,8 @@ exports[`components/channel_view Should match snapshot with base props 1`] = `
       }
     }
     missingChannelRole={false}
+    restrictDirectMessage={false}
     teamUrl="/team"
-    viewArchivedChannels={false}
   />
   <ChannelBanner
     channelId="channelId"

@@ -67,7 +67,7 @@ func (a *App) ListCPAFields() ([]*model.PropertyField, *model.AppError) {
 		PerPage: CustomProfileAttributesFieldLimit,
 	}
 
-	fields, err := a.Srv().propertyService.SearchPropertyFields(groupID, "", opts)
+	fields, err := a.Srv().propertyService.SearchPropertyFields(groupID, opts)
 	if err != nil {
 		return nil, model.NewAppError("GetCPAFields", "app.custom_profile_attributes.search_property_fields.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -205,8 +205,9 @@ func (a *App) ListCPAValues(userID string) ([]*model.PropertyValue, *model.AppEr
 		return nil, model.NewAppError("GetCPAFields", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	values, err := a.Srv().propertyService.SearchPropertyValues(groupID, userID, model.PropertyValueSearchOpts{
-		PerPage: CustomProfileAttributesFieldLimit,
+	values, err := a.Srv().propertyService.SearchPropertyValues(groupID, model.PropertyValueSearchOpts{
+		TargetIDs: []string{userID},
+		PerPage:   CustomProfileAttributesFieldLimit,
 	})
 	if err != nil {
 		return nil, model.NewAppError("ListCPAValues", "app.custom_profile_attributes.list_property_values.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -270,7 +271,7 @@ func (a *App) PatchCPAValues(userID string, fieldValueMap map[string]json.RawMes
 
 		value := &model.PropertyValue{
 			GroupID:    groupID,
-			TargetType: "user",
+			TargetType: model.PropertyValueTargetTypeUser,
 			TargetID:   userID,
 			FieldID:    fieldID,
 			Value:      sanitizedValue,

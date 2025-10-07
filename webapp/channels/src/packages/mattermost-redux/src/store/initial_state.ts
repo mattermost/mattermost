@@ -67,6 +67,7 @@ const state: GlobalState = {
             channelMemberCountsByGroup: {},
             messageCounts: {},
             channelsMemberCount: {},
+            restrictedDMs: {},
         },
         channelBookmarks: {
             byChannelId: {},
@@ -223,6 +224,7 @@ const state: GlobalState = {
             errorsByTeamId: {},
             byChannelOrThreadId: {},
         },
+        contentFlagging: {},
     },
     errors: [],
     requests: {
