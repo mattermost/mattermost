@@ -1790,22 +1790,20 @@ func (s *SqlGroupStore) CountChannelMembersMinusGroupMembers(channelID string, g
 func (s *SqlGroupStore) AdminRoleGroupsForSyncableMember(userID, syncableID string, syncableType model.GroupSyncableType) ([]string, error) {
 	var groupIds []string
 
-	query := fmt.Sprintf(`
-		SELECT
-			GroupMembers.GroupId
-		FROM
-			GroupMembers
-		INNER JOIN
-			Group%[1]ss ON Group%[1]ss.GroupId = GroupMembers.GroupId
-		WHERE
-			GroupMembers.UserId = ?
+	query := s.getQueryBuilder().
+		Select("GroupMembers.GroupId").
+		From("GroupMembers").
+		InnerJoin(fmt.Sprintf("Group%[1]ss ON Group%[1]ss.GroupId = GroupMembers.GroupId", syncableType)).
+		Where(
+			fmt.Sprintf(`GroupMembers.UserId = ?
 			AND GroupMembers.DeleteAt = 0
 			AND %[1]sId = ?
 			AND Group%[1]ss.DeleteAt = 0
-			AND Group%[1]ss.SchemeAdmin = TRUE`, syncableType)
+			AND Group%[1]ss.SchemeAdmin = TRUE`, syncableType),
+			userID, syncableID,
+		)
 
-	err := s.GetReplica().Select(&groupIds, query, userID, syncableID)
-	if err != nil {
+	if err := s.GetReplica().SelectBuilder(&groupIds, query); err != nil {
 		return nil, errors.Wrap(err, "failed to find Group ids")
 	}
 
