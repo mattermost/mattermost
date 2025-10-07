@@ -59,7 +59,7 @@ const SearchSuggestions = ({
 
     const searchPluginSuggestions = useSelector(getSearchPluginSuggestions);
 
-    const getItemId = useCallback((term) => `searchBoxSuggestions_item_${term}`, []);
+    const getItemId = useCallback((term: string) => `searchBoxSuggestions_item_${term}`, []);
 
     if (searchType === '' || searchType === 'messages' || searchType === 'files') {
         if (!hasResults(results)) {

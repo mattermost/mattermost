@@ -125,7 +125,6 @@ exports[`components/FilePreviewModal should fall back to default preview if plug
           onClick={[Function]}
         >
           <LoadingImagePreview
-            containerClass="view-image__loading"
             loading={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="Loading"
@@ -266,7 +265,6 @@ exports[`components/FilePreviewModal should match snapshot 1`] = `
           onClick={[Function]}
         >
           <LoadingImagePreview
-            containerClass="view-image__loading"
             loading={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="Loading"
@@ -407,7 +405,6 @@ exports[`components/FilePreviewModal should match snapshot for external file 1`]
           onClick={[Function]}
         >
           <LoadingImagePreview
-            containerClass="view-image__loading"
             loading={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="Loading"
