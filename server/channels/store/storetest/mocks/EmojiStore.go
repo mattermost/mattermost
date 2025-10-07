@@ -213,6 +213,36 @@ func (_m *EmojiStore) Search(name string, prefixOnly bool, limit int) ([]*model.
 	return r0, r1
 }
 
+// Update provides a mock function with given fields: emoji
+func (_m *EmojiStore) Update(emoji *model.Emoji) (*model.Emoji, error) {
+	ret := _m.Called(emoji)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Update")
+	}
+
+	var r0 *model.Emoji
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.Emoji) (*model.Emoji, error)); ok {
+		return rf(emoji)
+	}
+	if rf, ok := ret.Get(0).(func(*model.Emoji) *model.Emoji); ok {
+		r0 = rf(emoji)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Emoji)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.Emoji) error); ok {
+		r1 = rf(emoji)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // NewEmojiStore creates a new instance of EmojiStore. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewEmojiStore(t interface {
