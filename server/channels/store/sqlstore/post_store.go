@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -3063,6 +3064,16 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 		return nil
 	}
 
+	var uniqueRootIds []string
+	seen := map[string]bool{}
+	for _, id := range rootIds {
+		if !seen[id] {
+			uniqueRootIds = append(uniqueRootIds, id)
+			seen[id] = true
+		}
+	}
+	sort.Strings(uniqueRootIds)
+
 	threadsByRootsSql, threadsByRootsArgs, err := s.getQueryBuilder().
 		Select(
 			"Threads.PostId",
@@ -3073,8 +3084,8 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 			"COALESCE(Threads.ThreadDeleteAt, 0) AS DeleteAt",
 		).
 		From("Threads").
-		Where(sq.Eq{"Threads.PostId": rootIds}).
-		Suffix("FOR UPDATE"). // Re-introducing row-level locking for existing rows
+		Where(sq.Eq{"Threads.PostId": uniqueRootIds}).
+		Suffix("FOR UPDATE").
 		ToSql()
 	if err != nil {
 		return errors.Wrap(err, "updateThreadsFromPosts_ToSql")
@@ -3093,7 +3104,11 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 
 	teamIdByChannelId := map[string]string{}
 
-	for rootId, posts := range postsByRoot {
+	// **DEADLOCK FIX: Iterate over the sorted uniqueRootIds slice**
+	for _, rootId := range uniqueRootIds {
+		// Look up the posts associated with this rootId from the map
+		posts := postsByRoot[rootId]
+
 		thread, found := threadByRoot[rootId]
 
 		if !found {
