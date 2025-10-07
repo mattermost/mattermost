@@ -42,9 +42,6 @@ linters:
           - misspell
         path: platform/shared/markdown/html_entities.go
       - linters:
-          - unqueryvet
-        path: channels/store/sqlstore/post_store.go
-      - linters:
           - staticcheck
         text: SA1019
       - linters:
