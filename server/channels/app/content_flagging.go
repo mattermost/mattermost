@@ -600,6 +600,13 @@ func (a *App) PermanentDeleteFlaggedPost(rctx request.CTX, actionRequest *model.
 		}
 	})
 
+	a.Srv().Go(func() {
+		postErr := a.postDeletePostReviewerMessage(rctx, flaggedPost.Id, reviewerId, actionRequest.Comment, groupId)
+		if postErr != nil {
+			rctx.Logger().Error("Failed to post delete post reviewer message after permanently removing flagged post", mlog.Err(postErr), mlog.String("post_id", flaggedPost.Id))
+		}
+	})
+
 	return nil
 }
 
@@ -704,6 +711,13 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 		rctx.Logger().Error("Failed to publish websocket event for post edit while keeping flagged post", mlog.Err(appErr), mlog.String("post_id", flaggedPost.Id))
 	}
 	a.invalidateCacheForChannelPosts(flaggedPost.ChannelId)
+
+	a.Srv().Go(func() {
+		postErr := a.postKeepPostReviewerMessage(rctx, flaggedPost.Id, reviewerId, actionRequest.Comment, groupId)
+		if postErr != nil {
+			rctx.Logger().Error("Failed to post keep post reviewer message after retaining flagged post", mlog.Err(postErr), mlog.String("post_id", flaggedPost.Id))
+		}
+	})
 
 	return nil
 }
@@ -920,6 +934,34 @@ func (a *App) postAssignReviewerMessage(rctx request.CTX, contentFlaggingGroupId
 	}
 
 	message := fmt.Sprintf("@%s was assigned as a reviewer by @%s", reviewerUser.Username, assignedByUser.Username)
+	return a.postReviewerMessage(rctx, message, contentFlaggingGroupId, flaggedPostId)
+}
+
+func (a *App) postDeletePostReviewerMessage(rctx request.CTX, flaggedPostId, actorUserId, comment, contentFlaggingGroupId string) *model.AppError {
+	actorUser, appErr := a.GetUser(actorUserId)
+	if appErr != nil {
+		return appErr
+	}
+
+	message := fmt.Sprintf("The flagged message was removed by @%s", actorUser.Username)
+	if comment != "" {
+		message = fmt.Sprintf("%s\n\nWith comment:\n\n> %s", message, comment)
+	}
+
+	return a.postReviewerMessage(rctx, message, contentFlaggingGroupId, flaggedPostId)
+}
+
+func (a *App) postKeepPostReviewerMessage(rctx request.CTX, flaggedPostId, actorUserId, comment, contentFlaggingGroupId string) *model.AppError {
+	actorUser, appErr := a.GetUser(actorUserId)
+	if appErr != nil {
+		return appErr
+	}
+
+	message := fmt.Sprintf("The flagged message was retained by @%s", actorUser.Username)
+	if comment != "" {
+		message = fmt.Sprintf("%s\n\nWith comment:\n\n> %s", message, comment)
+	}
+
 	return a.postReviewerMessage(rctx, message, contentFlaggingGroupId, flaggedPostId)
 }
 
