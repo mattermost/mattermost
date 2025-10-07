@@ -4664,6 +4664,7 @@
   "join_team_group_constrained_denied_adminText": "Aby dołączyć do tego zespołu, musisz być członkiem powiązanej grupy. Możesz dodać grupę do tego zespołu <a>tutaj</a>.",
   "katex.error": "Nie można skompilować twojego kodu LaTeX. Sprawdź składnię i spróbuj ponownie.",
   "keep_remove_flag_content_modal.action_keep.body": "Masz zamiar zachować oflagowaną wiadomość autorstwa {flaggedPostAuthor} opublikowaną w kanale {flaggedPostChannel} i oflagowaną do sprawdzenia przez {reportingUser}.",
+  "keep_remove_flag_content_modal.action_keep.button_text": "Zachowaj wiadomość",
   "last_users_message.added_to_channel.type": "zostało **dodanych do kanału** przez {actor}.",
   "last_users_message.added_to_team.type": "zostało **dodanych do zespołu** przez {actor}.",
   "last_users_message.first": "{firstUser} i ",
