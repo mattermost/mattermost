@@ -27,6 +27,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest"
 	"github.com/mattermost/mattermost/server/public/plugin/utils"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
@@ -1262,7 +1263,6 @@ func TestHookReactionHasBeenAdded(t *testing.T) {
 	defer th.TearDown()
 
 	var mockAPI plugintest.API
-	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
 	mockAPI.On("LogDebug", "smile").Return(nil)
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
@@ -1298,6 +1298,10 @@ func TestHookReactionHasBeenAdded(t *testing.T) {
 	}
 	_, err := th.App.SaveReactionForPost(th.Context, reaction)
 	require.Nil(t, err)
+
+	assert.EventuallyWithT(t, func(c *assert.CollectT) {
+		mockAPI.AssertExpectations(&testutils.CollectTWithLogf{CollectT: c})
+	}, 5*time.Second, 100*time.Millisecond)
 }
 
 func TestHookReactionHasBeenRemoved(t *testing.T) {
@@ -1306,7 +1310,6 @@ func TestHookReactionHasBeenRemoved(t *testing.T) {
 	defer th.TearDown()
 
 	var mockAPI plugintest.API
-	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
 	mockAPI.On("LogDebug", "star").Return(nil)
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
@@ -1345,9 +1348,9 @@ func TestHookReactionHasBeenRemoved(t *testing.T) {
 
 	require.Nil(t, err)
 
-	require.Eventually(t, func() bool {
-		return mockAPI.AssertCalled(t, "LogDebug", "star")
-	}, 2*time.Second, 100*time.Millisecond)
+	assert.EventuallyWithT(t, func(c *assert.CollectT) {
+		mockAPI.AssertExpectations(&testutils.CollectTWithLogf{CollectT: c})
+	}, 5*time.Second, 100*time.Millisecond)
 }
 
 func TestHookRunDataRetention(t *testing.T) {
@@ -1886,15 +1889,15 @@ func TestHookPreferencesHaveChanged(t *testing.T) {
 
 		mockAPI.On("LogDebug", "category=test_category name=test_name_1 value=test_value_1")
 		mockAPI.On("LogDebug", "category=test_category name=test_name_2 value=test_value_2")
-		defer mockAPI.AssertExpectations(t)
 
 		// Run test
 		err := th.App.UpdatePreferences(th.Context, th.BasicUser.Id, preferences)
 
 		require.Nil(t, err)
 
-		// Hooks are run in a goroutine, so wait for those to complete
-		time.Sleep(2 * time.Second)
+		assert.EventuallyWithT(t, func(c *assert.CollectT) {
+			mockAPI.AssertExpectations(&testutils.CollectTWithLogf{CollectT: c})
+		}, 5*time.Second, 100*time.Millisecond)
 	})
 
 	t.Run("should be called when preferences are changed by plugin code", func(t *testing.T) {
@@ -2041,14 +2044,15 @@ func TestChannelHasBeenCreated(t *testing.T) {
 		require.NotNil(t, channel)
 
 		assert.EventuallyWithT(t, func(t *assert.CollectT) {
-			posts, appErr := th.App.GetPosts(channel.Id, 0, 1)
+			posts, appErr := th.App.GetPosts(th.Context, channel.Id, 0, 1)
 
 			require.Nil(t, appErr)
-			assert.True(t, len(posts.Order) > 0)
 
-			post := posts.Posts[posts.Order[0]]
-			assert.Equal(t, channel.Id, post.ChannelId)
-			assert.Equal(t, "ChannelHasBeenCreated has been called for "+channel.Id, post.Message)
+			if assert.NotEmpty(t, posts.Order) {
+				post := posts.Posts[posts.Order[0]]
+				assert.Equal(t, channel.Id, post.ChannelId)
+				assert.Equal(t, "ChannelHasBeenCreated has been called for "+channel.Id, post.Message)
+			}
 		}, 5*time.Second, 100*time.Millisecond)
 	})
 
@@ -2068,13 +2072,14 @@ func TestChannelHasBeenCreated(t *testing.T) {
 		require.NotNil(t, channel)
 
 		assert.EventuallyWithT(t, func(t *assert.CollectT) {
-			posts, appErr := th.App.GetPosts(channel.Id, 0, 1)
+			posts, appErr := th.App.GetPosts(th.Context, channel.Id, 0, 1)
 
 			require.Nil(t, appErr)
-			assert.True(t, len(posts.Order) > 0)
-			post := posts.Posts[posts.Order[0]]
-			assert.Equal(t, channel.Id, post.ChannelId)
-			assert.Equal(t, "ChannelHasBeenCreated has been called for "+channel.Id, post.Message)
+			if assert.NotEmpty(t, posts.Order) {
+				post := posts.Posts[posts.Order[0]]
+				assert.Equal(t, channel.Id, post.ChannelId)
+				assert.Equal(t, "ChannelHasBeenCreated has been called for "+channel.Id, post.Message)
+			}
 		}, 5*time.Second, 100*time.Millisecond)
 	})
 
@@ -2095,13 +2100,14 @@ func TestChannelHasBeenCreated(t *testing.T) {
 		require.NotNil(t, channel)
 
 		assert.EventuallyWithT(t, func(t *assert.CollectT) {
-			posts, appErr := th.App.GetPosts(channel.Id, 0, 1)
+			posts, appErr := th.App.GetPosts(th.Context, channel.Id, 0, 1)
 
 			require.Nil(t, appErr)
-			assert.True(t, len(posts.Order) > 0)
-			post := posts.Posts[posts.Order[0]]
-			assert.Equal(t, channel.Id, post.ChannelId)
-			assert.Equal(t, "ChannelHasBeenCreated has been called for "+channel.Id, post.Message)
+			if assert.NotEmpty(t, posts.Order) {
+				post := posts.Posts[posts.Order[0]]
+				assert.Equal(t, channel.Id, post.ChannelId)
+				assert.Equal(t, "ChannelHasBeenCreated has been called for "+channel.Id, post.Message)
+			}
 		}, 5*time.Second, 100*time.Millisecond)
 	})
 }
@@ -2179,7 +2185,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		require.Nil(t, appErr)
 
 		assert.EventuallyWithT(t, func(t *assert.CollectT) {
-			posts, appErr := th.App.GetPosts(channel.Id, 0, 30)
+			posts, appErr := th.App.GetPosts(th.Context, channel.Id, 0, 30)
 
 			require.Nil(t, appErr)
 			assert.True(t, len(posts.Order) > 0)
@@ -2228,7 +2234,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		assert.Eventually(t, func() bool {
 			// Typically, the post we're looking for will be the latest, but there's a race between the plugin and
 			// "User has joined the channel" post which means the plugin post may not the the latest one
-			posts, appErr := th.App.GetPosts(channel.Id, 0, 10)
+			posts, appErr := th.App.GetPosts(th.Context, channel.Id, 0, 10)
 			require.Nil(t, appErr)
 
 			for _, postId := range posts.Order {
@@ -2264,7 +2270,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 
 		var posts *model.PostList
 		require.EventuallyWithT(t, func(c *assert.CollectT) {
-			posts, appErr = th.App.GetPosts(channel.Id, 0, 10)
+			posts, appErr = th.App.GetPosts(th.Context, channel.Id, 0, 10)
 			assert.Nil(t, appErr)
 		}, 2*time.Second, 100*time.Millisecond)
 
@@ -2295,7 +2301,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 
 		var posts *model.PostList
 		require.EventuallyWithT(t, func(c *assert.CollectT) {
-			posts, appErr = th.App.GetPosts(channel.Id, 0, 10)
+			posts, appErr = th.App.GetPosts(th.Context, channel.Id, 0, 10)
 			assert.Nil(t, appErr)
 		}, 2*time.Second, 100*time.Millisecond)
 
@@ -2327,7 +2333,7 @@ func TestUserHasJoinedChannel(t *testing.T) {
 
 		var posts *model.PostList
 		require.EventuallyWithT(t, func(c *assert.CollectT) {
-			posts, appErr = th.App.GetPosts(channel.Id, 0, 10)
+			posts, appErr = th.App.GetPosts(th.Context, channel.Id, 0, 10)
 			assert.Nil(t, appErr)
 		}, 2*time.Second, 100*time.Millisecond)
 

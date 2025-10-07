@@ -623,6 +623,18 @@ func (c *Client4) customProfileAttributesRoute() string {
 	return "/custom_profile_attributes"
 }
 
+func (c *Client4) bookmarksRoute(channelId string) string {
+	return c.channelRoute(channelId) + "/bookmarks"
+}
+
+func (c *Client4) bookmarkRoute(channelId, bookmarkId string) string {
+	return fmt.Sprintf(c.bookmarksRoute(channelId)+"/%v", bookmarkId)
+}
+
+func (c *Client4) clientPerfMetricsRoute() string {
+	return "/client_perf"
+}
+
 func (c *Client4) userCustomProfileAttributesRoute(userID string) string {
 	return fmt.Sprintf("%s/custom_profile_attributes", c.userRoute(userID))
 }
@@ -651,19 +663,6 @@ func (c *Client4) accessControlPolicyRoute(policyID string) string {
 	return fmt.Sprintf(c.accessControlPoliciesRoute()+"/%v", url.PathEscape(policyID))
 }
 
-func (c *Client4) bookmarksRoute(channelId string) string {
-	return c.channelRoute(channelId) + "/bookmarks"
-}
-
-func (c *Client4) bookmarkRoute(channelId, bookmarkId string) string {
-	return fmt.Sprintf(c.bookmarksRoute(channelId)+"/%v", bookmarkId)
-}
-
-func (c *Client4) clientPerfMetricsRoute() string {
-	return "/client_perf"
-}
-
-// DoAPIGet makes a GET request to the specified URL with an optional ETag for caching.
 // Returns the HTTP response or any error that occurred during the request.
 func (c *Client4) DoAPIGet(ctx context.Context, url string, etag string) (*http.Response, error) {
 	return c.doAPIRequest(ctx, http.MethodGet, c.APIURL+url, "", etag)
@@ -3475,6 +3474,26 @@ func (c *Client4) DeleteScheduledPost(ctx context.Context, scheduledPostId strin
 
 	defer closeBody(r)
 	return DecodeJSONFromResponse[*ScheduledPost](r)
+}
+
+func (c *Client4) FlagPostForContentReview(ctx context.Context, postId string, flagRequest *FlagContentRequest) (*Response, error) {
+	r, err := c.DoAPIPostJSON(ctx, fmt.Sprintf("%s/post/%s/flag", c.contentFlaggingRoute(), postId), flagRequest)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) GetContentFlaggedPost(ctx context.Context, postId string) (*Post, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.contentFlaggingRoute()+"/post/"+postId, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	return DecodeJSONFromResponse[*Post](r)
 }
 
 func (c *Client4) GetFlaggingConfiguration(ctx context.Context) (*ContentFlaggingReportingConfig, *Response, error) {
@@ -7491,6 +7510,15 @@ func (c *Client4) PatchCPAValuesForUser(ctx context.Context, userID string, valu
 	}
 	defer closeBody(r)
 	return DecodeJSONFromResponse[map[string]json.RawMessage](r)
+}
+
+func (c *Client4) GetPostPropertyValues(ctx context.Context, postId string) ([]PropertyValue, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.contentFlaggingRoute()+"/post/"+postId+"/field_values", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]PropertyValue](r) // TODO: Fix!
 }
 
 // Access Control Policies Section

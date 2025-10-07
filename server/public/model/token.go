@@ -41,3 +41,7 @@ func (t *Token) IsValid() *AppError {
 
 	return nil
 }
+
+func (t *Token) IsExpired() bool {
+	return GetMillis() > (t.CreateAt + MaxTokenExipryTime)
+}

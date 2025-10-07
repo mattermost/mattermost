@@ -483,5 +483,33 @@
   {
     "id": "api.channel.channel_member_counts_by_group.license.error",
     "translation": "Lisensen din støtter ikke grupper"
+  },
+  {
+    "id": "api.post.get_message_for_notification.files_sent",
+    "translation": {
+      "one": "{{.Count}} fil sendt: {{.Filenames}}",
+      "other": "{{.Count}} filer sendt: {{.Filenames}}"
+    }
+  },
+  {
+    "id": "api.post.get_message_for_notification.images_sent",
+    "translation": {
+      "one": "{{.Count}} bilde sendt: {{.Filenames}}",
+      "other": "{{.Count}} bilder sendt: {{.Filenames}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "one": "- {{.Count}} i kanal {{.ChannelName}}. Årsak: {{.ErrorReason}}",
+      "other": "- {{.Count}} i kanaler {{.ChannelName}}. Årsak: {{.ErrorReason}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "one": "Kunne ikke sende {{.Count}} planlagt innlegg.",
+      "other": "Kunne ikke sende {{.Count}} planlagte innlegg."
+    }
   }
 ]

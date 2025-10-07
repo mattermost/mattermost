@@ -4514,7 +4514,6 @@
   "interactive_dialog.cancel": "Avbryt",
   "interactive_dialog.element.optional": "(valfritt)",
   "interactive_dialog.submission_failed": "Misslyckades att skicka",
-  "interactive_dialog.submission_failed_validation": "Misslyckades att skicka, valideringsfel",
   "interactive_dialog.submit": "Skicka",
   "interactive_dialog.submitting": "Skickar...",
   "interactive_dialog.validation_failed": "Valideringsfel: {errors}",
