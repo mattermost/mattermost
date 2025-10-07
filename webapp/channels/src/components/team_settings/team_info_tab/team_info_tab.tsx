@@ -47,7 +47,7 @@ const translations = defineMessages({
 });
 type Props = PropsFromRedux & OwnProps;
 
-const InfoTab = ({team, hasChanges, maxFileSize, closeModal, collapseModal, hasChangeTabError, setHasChangeTabError, setHasChanges, actions}: Props) => {
+const InfoTab = ({team, hasChanges, maxFileSize, closeModal, collapseModal, hasChangeTabError, setHasChangeTabError, setHasChanges, setJustSaved, actions}: Props) => {
     const [name, setName] = useState<Team['display_name']>(team.display_name);
     const [description, setDescription] = useState<Team['description']>(team.description);
     const [teamIconFile, setTeamIconFile] = useState<File | undefined>();
@@ -100,13 +100,15 @@ const InfoTab = ({team, hasChanges, maxFileSize, closeModal, collapseModal, hasC
         }
         setSaveChangesPanelState('saved');
         setHasChangeTabError(false);
-    }, [handleNameDescriptionSubmit, handleTeamIconSubmit, setHasChangeTabError]);
+        setJustSaved(true); // Flag that save just completed
+    }, [handleNameDescriptionSubmit, handleTeamIconSubmit, setHasChangeTabError, setJustSaved]);
 
     const handleClose = useCallback(() => {
         setSaveChangesPanelState('editing');
         setHasChanges(false);
         setHasChangeTabError(false);
-    }, [setHasChangeTabError, setHasChanges]);
+        setJustSaved(false); // Reset flag when panel closes
+    }, [setHasChangeTabError, setHasChanges, setJustSaved]);
 
     const handleCancel = useCallback(() => {
         setName(team.display_name ?? team.name);

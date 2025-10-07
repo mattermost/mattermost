@@ -573,7 +573,7 @@ const ChannelInviteModalComponent = (props: Props) => {
                 id='channel_invite.no_options_message'
                 defaultMessage='No matches found - <InvitationModalLink>Invite them to the team</InvitationModalLink>'
                 values={{
-                    InvitationModalLink: (chunks: string) => (
+                    InvitationModalLink: (chunks) => (
                         <InviteModalLink
                             id='customNoOptionsMessageLink'
                             abacChannelPolicyEnforced={props.channel.policy_enforced}

@@ -33,11 +33,20 @@ const useTextboxFocus = (
     const focusTextbox = useCallback((keepFocus = false) => {
         const postTextboxDisabled = !canPost;
         if (textboxRef.current && postTextboxDisabled) {
-            textboxRef.current.blur(); // Fixes Firefox bug which causes keyboard shortcuts to be ignored (MM-22482)
+            // Fixes Firefox bug which causes keyboard shortcuts to be ignored (MM-22482)
+            requestAnimationFrame(() => {
+                textboxRef.current?.blur();
+            });
             return;
         }
         if (textboxRef.current && (keepFocus || !UserAgent.isMobile())) {
-            textboxRef.current.focus();
+            // Focus immediately, so we capture any typed text.
+            textboxRef.current?.focus();
+
+            // Also re-focus after the next animation frame, to work around issues where the RHS is "opening".
+            requestAnimationFrame(() => {
+                textboxRef.current?.focus();
+            });
         }
     }, [canPost, textboxRef]);
 

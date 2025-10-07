@@ -27,3 +27,33 @@ export async function toBeFocusedWithFocusVisible(locator: Locator) {
     await expect(locator).toBeFocused();
     return locator.evaluate((element) => element.matches(':focus-visible'));
 }
+
+export async function logFocusedElement(page: Page) {
+    const focusedElementInfo = await page.evaluate(() => {
+        const activeElement = document.activeElement;
+        if (!activeElement) {
+            return 'No element has focus';
+        }
+
+        const tagName = activeElement.tagName.toLowerCase();
+        const id = activeElement.id ? `#${activeElement.id}` : '(none)';
+        const className = activeElement.className ? `.${Array.from(activeElement.classList).join('.')}` : '(none)';
+        const role = activeElement.getAttribute('role') || '';
+        const ariaLabel = activeElement.getAttribute('aria-label') || '';
+        const text = activeElement.textContent?.slice(0, 50) || '';
+        const htmlElement = activeElement as HTMLElement;
+
+        return {
+            selector: `tag: ${tagName} | id: ${id} | class: ${className}`,
+            role: role,
+            ariaLabel: ariaLabel,
+            text: text.length > 50 ? `${text}...` : text,
+            nodeName: activeElement.nodeName,
+            isVisible: htmlElement.offsetWidth > 0 && htmlElement.offsetHeight > 0,
+        };
+    });
+
+    // eslint-disable-next-line no-console
+    console.log('Currently focused element:', focusedElementInfo);
+    return focusedElementInfo;
+}
