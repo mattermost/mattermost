@@ -173,10 +173,10 @@ Filestore Status: {{.filestore_status}}`, status)
 	if status["status"] != model.StatusOk {
 		return fmt.Errorf("server status is unhealthy: %s", status["status"])
 	}
-	if dbStatus := status["database_status"]; dbStatus != "" && dbStatus != model.StatusOk {
+	if dbStatus, ok := status["database_status"]; ok && dbStatus != model.StatusOk {
 		return fmt.Errorf("database status is unhealthy: %s", dbStatus)
 	}
-	if filestoreStatus := status["filestore_status"]; filestoreStatus != "" && filestoreStatus != model.StatusOk {
+	if filestoreStatus, ok := status["filestore_status"]; ok && filestoreStatus != model.StatusOk {
 		return fmt.Errorf("filestore status is unhealthy: %s", filestoreStatus)
 	}
 
