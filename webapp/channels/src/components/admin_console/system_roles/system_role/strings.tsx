@@ -200,6 +200,12 @@ export const sectionStrings: Record<string, Record<string, MessageDescriptor>> =
             defaultMessage: 'Developer',
         },
     }),
+    environment_mobile_security: defineMessages({
+        name: {
+            id: 'admin.permissions.sysconsole_section_environment_mobile_security.name',
+            defaultMessage: 'Mobile Security',
+        },
+    }),
     site: defineMessages({
         name: {
             id: 'admin.permissions.sysconsole_section_site.name',
@@ -426,12 +432,6 @@ export const sectionStrings: Record<string, Record<string, MessageDescriptor>> =
         name: {
             id: 'admin.permissions.sysconsole_section_experimental_feature_flags.name',
             defaultMessage: 'Feature Flags',
-        },
-    }),
-    experimental_bleve: defineMessages({
-        name: {
-            id: 'admin.permissions.sysconsole_section_experimental_bleve.name',
-            defaultMessage: 'Bleve',
         },
     }),
 };

@@ -39,7 +39,7 @@ describe('Settings > Sidebar > General', () => {
         });
 
         // # Open team menu and click "View Members"
-        cy.uiOpenTeamMenu('View Members');
+        cy.uiOpenTeamMenu('View members');
 
         // # Search for username and check that no nickname is present
         cy.get('.modal-title').should('be.visible');
@@ -68,7 +68,7 @@ describe('Settings > Sidebar > General', () => {
         });
 
         // # Open team menu and click "View Members"
-        cy.uiOpenTeamMenu('View Members');
+        cy.uiOpenTeamMenu('View members');
 
         // # Search for username and check that expected nickname is present
         cy.get('.modal-title').should('be.visible');
@@ -100,7 +100,8 @@ describe('Settings > Sidebar > General', () => {
             cy.uiClose();
 
             // # Open channel menu and click 'Add Members'
-            cy.uiOpenChannelMenu('Add Members');
+            cy.uiOpenChannelMenu('Members');
+            cy.uiGetButton('Add').click();
 
             // * Verify that the modal is open
             cy.get('#addUsersToChannelModal').should('be.visible').findByText(`Add people to ${channel.display_name}`);

@@ -90,6 +90,7 @@ export const renderWithContext = (
 
             results.rerender(renderState.component);
         },
+        store: testStore,
     };
 };
 
@@ -115,12 +116,25 @@ export const renderHookWithContext = <TProps, TResult>(
     };
     replaceGlobalStore(() => renderState.store);
 
-    return renderHook(callback, {
+    const results = renderHook(callback, {
         wrapper: ({children}) => {
             // Every time this is called, these values should be updated from `renderState`
             return <Providers {...renderState}>{children}</Providers>;
         },
     });
+
+    return {
+        ...results,
+
+        /**
+         * Rerenders the component after replacing the entire store state with the provided one.
+         */
+        replaceStoreState: (newInitialState: DeepPartial<GlobalState>) => {
+            renderState.store = configureOrMockStore(newInitialState, renderState.options.useMockedStore, partialOptions?.pluginReducers);
+
+            results.rerender();
+        },
+    };
 };
 
 function configureOrMockStore<T>(initialState: DeepPartial<T>, useMockedStore: boolean, extraReducersKeys?: string[]) {

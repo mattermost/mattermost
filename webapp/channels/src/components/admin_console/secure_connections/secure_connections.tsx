@@ -167,7 +167,7 @@ const AddMenu = ({buttonClassNames, disabled}: {buttonClassNames?: string; disab
 };
 
 const msg = defineMessages({
-    pageTitle: {id: 'admin.sidebar.secureConnections', defaultMessage: 'Connected Workspaces (Beta)'},
+    pageTitle: {id: 'admin.sidebar.secureConnections', defaultMessage: 'Connected Workspaces'},
     title: {id: 'admin.secure_connections.title', defaultMessage: 'Connected Workspaces'},
     subtitle: {id: 'admin.secure_connections.subtitle', defaultMessage: 'Connected workspaces with this server'},
     placeholderTitle: {id: 'admin.secure_connections.placeholder.title', defaultMessage: 'Share channels'},

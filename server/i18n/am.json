@@ -76,30 +76,6 @@
     "translation": "ቻናሉን ማስተካከል አልተቻለም."
   },
   {
-    "id": "bleveengine.index_user.error",
-    "translation": "ቻናሉን ማስተካከል አልተቻለም."
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "ቻናሉን ማስተካከል አልተቻለም."
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "ቻናሉን ማስተካከል አልተቻለም."
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "ቻናሉን ማስተካከል አልተቻለም."
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "ቻናሉን ማስተካከል አልተቻለም."
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "ቻናሉን ማስተካከል አልተቻለም."
-  },
-  {
     "id": "app.plugin.write_file.saving.app_error",
     "translation": "ሰርቲፊኬት ፋይሉን በመሰረዝ ላይ ሳለ ስህተት ተከስቷል."
   },

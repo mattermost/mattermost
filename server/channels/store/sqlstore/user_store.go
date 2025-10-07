@@ -218,7 +218,8 @@ func (us SqlUserStore) Update(rctx request.CTX, user *model.User, trustedUpdateD
 	}
 
 	oldUser := model.User{}
-	err := us.GetMaster().Get(&oldUser, "SELECT * FROM Users WHERE Id=?", user.Id)
+	query := us.usersQuery.Where(sq.Eq{"Users.Id": user.Id})
+	err := us.GetMaster().GetBuilder(&oldUser, query)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get User with userId=%s", user.Id)
 	}
@@ -243,25 +244,36 @@ func (us SqlUserStore) Update(rctx request.CTX, user *model.User, trustedUpdateD
 	if !trustedUpdateData {
 		user.Roles = oldUser.Roles
 		user.DeleteAt = oldUser.DeleteAt
-	}
 
-	if user.IsOAuthUser() {
-		if !trustedUpdateData {
+		if user.IsOAuthUser() {
 			user.Email = oldUser.Email
 		}
-	} else if user.IsLDAPUser() && !trustedUpdateData {
-		if user.Username != oldUser.Username || user.Email != oldUser.Email {
-			return nil, store.NewErrInvalidInput("User", "id", user.Id)
+
+		if user.IsLDAPUser() {
+			if user.Username != oldUser.Username {
+				return nil, store.NewErrInvalidInput("User", "id", user.Id)
+			}
+			if user.Email != oldUser.Email {
+				return nil, store.NewErrInvalidInput("User", "email", user.Id)
+			}
 		}
-	} else if user.Email != oldUser.Email {
-		user.EmailVerified = false
+
+		if user.Email != oldUser.Email {
+			user.EmailVerified = false
+		}
+	}
+
+	// In the past, changing the email of a SSO user would mark the email as unverified.
+	// This is a lazy migration to fix broken records.
+	if user.IsSSOUser() {
+		user.EmailVerified = true
 	}
 
 	if user.Username != oldUser.Username {
 		user.UpdateMentionKeysFromUsername(oldUser.Username)
 	}
 
-	query := `UPDATE Users
+	updateQuery := `UPDATE Users
 			SET CreateAt=:CreateAt, UpdateAt=:UpdateAt, DeleteAt=:DeleteAt, Username=:Username, Password=:Password,
 				AuthData=:AuthData, AuthService=:AuthService,Email=:Email, EmailVerified=:EmailVerified,
 				Nickname=:Nickname, FirstName=:FirstName, LastName=:LastName, Position=:Position, Roles=:Roles,
@@ -272,7 +284,7 @@ func (us SqlUserStore) Update(rctx request.CTX, user *model.User, trustedUpdateD
 			WHERE Id=:Id`
 
 	user.Props = wrapBinaryParamStringMap(us.IsBinaryParamEnabled(), user.Props)
-	res, err := us.GetMaster().NamedExec(query, user)
+	res, err := us.GetMaster().NamedExec(updateQuery, user)
 	if err != nil {
 		if IsUniqueConstraintError(err, []string{"Email", "users_email_key", "idx_users_email_unique"}) {
 			return nil, store.NewErrConflict("Email", err, user.Email)
@@ -498,10 +510,10 @@ func (us SqlUserStore) GetMfaUsedTimestamps(userId string) ([]int, error) {
 }
 
 // GetMany returns a list of users for the provided list of ids
-func (us SqlUserStore) GetMany(ctx context.Context, ids []string) ([]*model.User, error) {
+func (us SqlUserStore) GetMany(rctx request.CTX, ids []string) ([]*model.User, error) {
 	query := us.usersQuery.Where(sq.Eq{"Id": ids})
 	users := []*model.User{}
-	if err := us.SqlStore.DBXFromContext(ctx).SelectBuilderCtx(ctx, &users, query); err != nil {
+	if err := us.SqlStore.DBXFromContext(rctx.Context()).SelectBuilderCtx(rctx.Context(), &users, query); err != nil {
 		return nil, errors.Wrap(err, "users_get_many_select")
 	}
 
@@ -583,8 +595,15 @@ func (us SqlUserStore) GetEtagForAllProfiles() string {
 
 func (us SqlUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*model.User, error) {
 	isPostgreSQL := us.DriverName() == model.DatabaseDriverPostgres
+
+	// Determine ordering based on Sort option - default to Username ASC for backwards compatibility
+	orderBy := "Users.Username ASC"
+	if options.Sort == "update_at_asc" {
+		orderBy = "Users.UpdateAt ASC"
+	}
+
 	query := us.usersQuery.
-		OrderBy("Users.Username ASC").
+		OrderBy(orderBy).
 		Offset(uint64(options.Page * options.PerPage)).Limit(uint64(options.PerPage))
 
 	query = applyViewRestrictionsFilter(query, options.ViewRestrictions, true)
@@ -596,6 +615,10 @@ func (us SqlUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*model.U
 		query = query.Where("Users.DeleteAt != 0")
 	} else if options.Active {
 		query = query.Where("Users.DeleteAt = 0")
+	}
+
+	if options.UpdatedAfter > 0 {
+		query = query.Where(sq.Gt{"Users.UpdateAt": options.UpdatedAfter})
 	}
 
 	users := []*model.User{}
@@ -1090,7 +1113,7 @@ func (us SqlUserStore) GetNewUsersForTeam(teamId string, offset, limit int, view
 	return users, nil
 }
 
-func (us SqlUserStore) GetProfileByIds(ctx context.Context, userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) ([]*model.User, error) {
+func (us SqlUserStore) GetProfileByIds(rctx request.CTX, userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) ([]*model.User, error) {
 	if options == nil {
 		options = &store.UserGetByIdsOpts{}
 	}
@@ -1115,7 +1138,7 @@ func (us SqlUserStore) GetProfileByIds(ctx context.Context, userIds []string, op
 		return nil, errors.Wrap(err, "get_profile_by_ids_tosql")
 	}
 
-	if err := us.SqlStore.DBXFromContext(ctx).Select(&users, queryString, args...); err != nil {
+	if err := us.SqlStore.DBXFromContext(rctx.Context()).Select(&users, queryString, args...); err != nil {
 		return nil, errors.Wrap(err, "failed to find Users")
 	}
 
@@ -1144,9 +1167,8 @@ func (us SqlUserStore) GetProfileByGroupChannelIdsForUser(userId string, channel
           ChannelId = cm.ChannelId
         )`, userId)
 
-	query := us.getQueryBuilder().
-		Select("Users.*, cm.ChannelId").
-		From("Users").
+	query := us.usersQuery.
+		Columns("cm.ChannelId").
 		Join("ChannelMembers cm ON Users.Id = cm.UserId").
 		Join("Channels c ON cm.ChannelId = c.Id").
 		Where(sq.Eq{"c.Type": model.ChannelTypeGroup, "cm.ChannelId": channelIds}).
@@ -1812,7 +1834,8 @@ func (us SqlUserStore) ClearAllCustomRoleAssignments() (err error) {
 		defer finalizeTransactionX(transaction, &err)
 
 		users := []*model.User{}
-		if err := transaction.Select(&users, "SELECT * from Users WHERE Id > ? ORDER BY Id LIMIT 1000", lastUserId); err != nil {
+		query := us.usersQuery.Where(sq.Gt{"Users.Id": lastUserId}).OrderBy("Users.Id").Limit(1000)
+		if err := transaction.SelectBuilder(&users, query); err != nil {
 			return errors.Wrapf(err, "failed to find Users with id > %s", lastUserId)
 		}
 
@@ -1825,7 +1848,7 @@ func (us SqlUserStore) ClearAllCustomRoleAssignments() (err error) {
 
 			var newRoles []string
 
-			for _, role := range strings.Fields(user.Roles) {
+			for role := range strings.FieldsSeq(user.Roles) {
 				for name := range builtInRoles {
 					if name == role {
 						newRoles = append(newRoles, role)
@@ -2037,10 +2060,10 @@ func applyViewRestrictionsFilter(query sq.SelectBuilder, restrictions *model.Vie
 		channels[i] = v
 	}
 	resultQuery := query
-	if restrictions.Teams != nil && len(restrictions.Teams) > 0 {
+	if len(restrictions.Teams) > 0 {
 		resultQuery = resultQuery.Join(fmt.Sprintf("TeamMembers rtm ON ( rtm.UserId = Users.Id AND rtm.DeleteAt = 0 AND rtm.TeamId IN (%s))", sq.Placeholders(len(teams))), teams...)
 	}
-	if restrictions.Channels != nil && len(restrictions.Channels) > 0 {
+	if len(restrictions.Channels) > 0 {
 		resultQuery = resultQuery.Join(fmt.Sprintf("ChannelMembers rcm ON ( rcm.UserId = Users.Id AND rcm.ChannelId IN (%s))", sq.Placeholders(len(channels))), channels...)
 	}
 
@@ -2359,7 +2382,7 @@ func (us SqlUserStore) GetUserCountForReport(filter *model.UserReportOptions) (i
 
 func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.UserReportQuery, error) {
 	isPostgres := us.DriverName() == model.DatabaseDriverPostgres
-	selectColumns := []string{"Users.*", "MAX(s.LastActivityAt) AS LastStatusAt"}
+	selectColumns := append(getUsersColumns(), "MAX(s.LastActivityAt) AS LastStatusAt")
 	if isPostgres {
 		selectColumns = append(selectColumns,
 			"MAX(ps.LastPostDate) AS LastPostDate",
@@ -2444,7 +2467,7 @@ func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.
 		}
 
 		parentQuery = us.getQueryBuilder().
-			Select("*").
+			Select("data.*").
 			FromSelect(query, "data").
 			OrderBy(filter.SortColumn+" "+reverseSortDirection, "Id")
 	}

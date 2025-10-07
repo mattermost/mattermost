@@ -20,6 +20,7 @@ const ChannelHeader = makeAsyncComponent('ChannelHeader', lazy(() => import('com
 const FileUploadOverlay = makeAsyncComponent('FileUploadOverlay', lazy(() => import('components/file_upload_overlay')));
 const ChannelBookmarks = makeAsyncComponent('ChannelBookmarks', lazy(() => import('components/channel_bookmarks')));
 const AdvancedCreatePost = makeAsyncComponent('AdvancedCreatePost', lazy(() => import('components/advanced_create_post')));
+const ChannelBanner = makeAsyncComponent('ChannelBanner', lazy(() => import('components/channel_banner/channel_banner')));
 
 export type Props = PropsFromRedux & RouteComponentProps<{
     postid?: string;
@@ -99,10 +100,10 @@ export default class ChannelView extends React.PureComponent<Props, State> {
         if (prevProps.channelId !== this.props.channelId && this.props.enableWebSocketEventScope) {
             WebSocketClient.updateActiveChannel(this.props.channelId);
         }
-        if (prevProps.channelId !== this.props.channelId || prevProps.channelIsArchived !== this.props.channelIsArchived) {
-            if (this.props.channelIsArchived && !this.props.viewArchivedChannels) {
-                this.props.goToLastViewedChannel();
-            }
+
+        // If we're restricting direct messages and the value is not yet set, fetch it
+        if (this.props.canRestrictDirectMessage && this.props.restrictDirectMessage === undefined) {
+            this.props.fetchIsRestrictedDM(this.props.channelId);
         }
     }
 
@@ -165,6 +166,35 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                     </div>
                 </div>
             );
+        } else if (this.props.restrictDirectMessage) {
+            createPost = (
+                <div
+                    className='post-create__container'
+                    id='post-create'
+                >
+                    <div
+                        id='noSharedTeamMessage'
+                        className='channel-archived__message'
+                    >
+                        <FormattedMessage
+                            id='channelView.noSharedTeam'
+                            defaultMessage='You no longer have any teams in common with this user. New messages cannot be posted.'
+                            values={{
+                                b: (chunks: string) => <b>{chunks}</b>,
+                            }}
+                        />
+                        <button
+                            className='btn btn-primary channel-archived__close-btn'
+                            onClick={this.onClickCloseChannel}
+                        >
+                            <FormattedMessage
+                                id='center_panel.noSharedTeam.closeChannel'
+                                defaultMessage='Close Channel'
+                            />
+                        </button>
+                    </div>
+                </div>
+            );
         } else if (this.props.missingChannelRole || this.state.waitForLoader) {
             createPost = <InputLoading updateWaitForLoader={this.onUpdateInputShowLoader}/>;
         } else {
@@ -193,6 +223,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                 />
                 <ChannelHeader {...this.props}/>
                 {this.props.isChannelBookmarksEnabled && <ChannelBookmarks channelId={this.props.channelId}/>}
+                <ChannelBanner channelId={this.props.channelId}/>
                 <DeferredPostView
                     channelId={this.props.channelId}
                     focusedPostId={this.state.focusedPostId}

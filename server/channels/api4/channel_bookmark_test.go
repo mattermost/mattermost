@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"os"
 	"testing"
 	"time"
 
@@ -16,9 +15,7 @@ import (
 )
 
 func TestCreateChannelBookmark(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ChannelBookmarks", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_ChannelBookmarks")
-
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	err := th.App.SetPhase2PermissionsMigrationStatus(true)
@@ -41,7 +38,7 @@ func TestCreateChannelBookmark(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
-	guest, guestClient := th.CreateGuestAndClient()
+	guest, guestClient := th.CreateGuestAndClient(t)
 
 	t.Run("a user should be able to create a channel bookmark in a public channel", func(t *testing.T) {
 		channelBookmark := &model.ChannelBookmark{
@@ -280,9 +277,7 @@ func TestCreateChannelBookmark(t *testing.T) {
 }
 
 func TestEditChannelBookmark(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ChannelBookmarks", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_ChannelBookmarks")
-
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	err := th.App.SetPhase2PermissionsMigrationStatus(true)
@@ -297,7 +292,7 @@ func TestEditChannelBookmark(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
-	guest, guestClient := th.CreateGuestAndClient()
+	guest, guestClient := th.CreateGuestAndClient(t)
 
 	t.Run("a user editing a channel bookmark in public and private channels", func(t *testing.T) {
 		testCases := []struct {
@@ -690,9 +685,7 @@ func TestEditChannelBookmark(t *testing.T) {
 }
 
 func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ChannelBookmarks", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_ChannelBookmarks")
-
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	err := th.App.SetPhase2PermissionsMigrationStatus(true)
@@ -732,7 +725,7 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
-	guest, guestClient := th.CreateGuestAndClient()
+	guest, guestClient := th.CreateGuestAndClient(t)
 
 	t.Run("a user updating a bookmark's order in public and private channels", func(t *testing.T) {
 		testCases := []struct {
@@ -1102,9 +1095,7 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 }
 
 func TestDeleteChannelBookmark(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ChannelBookmarks", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_ChannelBookmarks")
-
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	err := th.App.SetPhase2PermissionsMigrationStatus(true)
@@ -1121,7 +1112,7 @@ func TestDeleteChannelBookmark(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
-	guest, guestClient := th.CreateGuestAndClient()
+	guest, guestClient := th.CreateGuestAndClient(t)
 
 	t.Run("a user deleting bookmarks in public and private channels", func(t *testing.T) {
 		testCases := []struct {
@@ -1461,9 +1452,7 @@ func TestDeleteChannelBookmark(t *testing.T) {
 }
 
 func TestListChannelBookmarksForChannel(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ChannelBookmarks", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_ChannelBookmarks")
-
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	err := th.App.SetPhase2PermissionsMigrationStatus(true)
@@ -1494,7 +1483,7 @@ func TestListChannelBookmarksForChannel(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
 	th.App.Srv().SetLicense(model.NewTestLicense())
 
-	guest, guestClient := th.CreateGuestAndClient()
+	guest, guestClient := th.CreateGuestAndClient(t)
 
 	publicBookmark1 := createBookmark("one", th.BasicChannel.Id)
 	publicBookmark2 := createBookmark("two", th.BasicChannel.Id)
@@ -1662,52 +1651,7 @@ func TestListChannelBookmarksForChannel(t *testing.T) {
 		}
 	})
 
-	t.Run("bookmark listing should not work in an archived channel without ExperimentalViewArchivedChannels", func(t *testing.T) {
-		experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
-		defer func() {
-			th.App.UpdateConfig(func(cfg *model.Config) {
-				cfg.TeamSettings.ExperimentalViewArchivedChannels = &experimentalViewArchivedChannels
-			})
-		}()
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.TeamSettings.ExperimentalViewArchivedChannels = false
-		})
-
-		channelBookmark := &model.ChannelBookmark{
-			ChannelId:   th.BasicDeletedChannel.Id,
-			DisplayName: "Link bookmark test",
-			LinkUrl:     "https://mattermost.com",
-			Type:        model.ChannelBookmarkLink,
-			Emoji:       ":smile:",
-		}
-
-		_, _, _ = th.SystemAdminClient.RestoreChannel(context.Background(), channelBookmark.ChannelId)
-
-		cb, resp, err := th.Client.CreateChannelBookmark(context.Background(), channelBookmark)
-		require.NoError(t, err)
-		CheckCreatedStatus(t, resp)
-		require.NotNil(t, cb)
-
-		_, _ = th.SystemAdminClient.DeleteChannel(context.Background(), cb.ChannelId)
-
-		// try to list the channel bookmarks
-		bookmarks, resp, err := th.Client.ListChannelBookmarksForChannel(context.Background(), cb.ChannelId, 0)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
-		require.Nil(t, bookmarks)
-	})
-
-	t.Run("bookmark listing should work in an archived channel with ExperimentalViewArchivedChannels", func(t *testing.T) {
-		experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
-		defer func() {
-			th.App.UpdateConfig(func(cfg *model.Config) {
-				cfg.TeamSettings.ExperimentalViewArchivedChannels = &experimentalViewArchivedChannels
-			})
-		}()
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.TeamSettings.ExperimentalViewArchivedChannels = true
-		})
-
+	t.Run("bookmark listing should work in an archived channel", func(t *testing.T) {
 		channelBookmark := &model.ChannelBookmark{
 			ChannelId:   th.BasicDeletedChannel.Id,
 			DisplayName: "Link bookmark test",

@@ -22,6 +22,15 @@ type FeatureFlags struct {
 	// Enable DMs and GMs for shared channels.
 	EnableSharedChannelsDMs bool
 
+	// Enable plugins in shared channels.
+	EnableSharedChannelsPlugins bool
+
+	// Enable synchronization of channel members in shared channels
+	EnableSharedChannelsMemberSync bool
+
+	// Enable syncing all users for remote clusters in shared channels
+	EnableSyncAllUsersForRemoteCluster bool
+
 	// AppsEnabled toggles the Apps framework functionalities both in server and client side
 	AppsEnabled bool
 
@@ -56,9 +65,19 @@ type FeatureFlags struct {
 
 	ExperimentalAuditSettingsSystemConsoleUI bool
 
-	ExperimentalCrossTeamSearch bool
-
 	CustomProfileAttributes bool
+
+	AttributeBasedAccessControl bool
+
+	ContentFlagging bool
+
+	// Enable AppsForm for Interactive Dialogs instead of legacy dialog implementation
+	InteractiveDialogAppsForm bool
+
+	EnableMattermostEntry bool
+
+	// Enable mobile SSO SAML code-exchange flow (no tokens in deep links)
+	MobileSSOCodeExchange bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -66,6 +85,9 @@ func (f *FeatureFlags) SetDefaults() {
 	f.TestBoolFeature = false
 	f.EnableRemoteClusterService = false
 	f.EnableSharedChannelsDMs = false
+	f.EnableSharedChannelsMemberSync = false
+	f.EnableSyncAllUsersForRemoteCluster = false
+	f.EnableSharedChannelsPlugins = true
 	f.AppsEnabled = false
 	f.NormalizeLdapDNs = false
 	f.DeprecateCloudFree = false
@@ -81,9 +103,13 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ChannelBookmarks = true
 	f.WebSocketEventScope = true
 	f.NotificationMonitoring = true
-	f.ExperimentalAuditSettingsSystemConsoleUI = false
-	f.ExperimentalCrossTeamSearch = true
-	f.CustomProfileAttributes = false
+	f.ExperimentalAuditSettingsSystemConsoleUI = true
+	f.CustomProfileAttributes = true
+	f.AttributeBasedAccessControl = true
+	f.ContentFlagging = false
+	f.InteractiveDialogAppsForm = true
+	f.EnableMattermostEntry = true
+	f.MobileSSOCodeExchange = true
 }
 
 // ToMap returns the feature flags as a map[string]string

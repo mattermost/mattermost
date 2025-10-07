@@ -67,6 +67,7 @@ exports[`components/ChannelHeader should match snapshot with last active display
                 "username": "some-user",
               }
             }
+            remoteNames={Array []}
           />
           <div
             className="channel-header__icons"
@@ -324,6 +325,7 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
                 "username": "some-user",
               }
             }
+            remoteNames={Array []}
           />
           <div
             className="channel-header__icons"
@@ -512,7 +514,9 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle) />
+          <Memo(ChannelHeaderTitle)
+            remoteNames={Array []}
+          />
           <div
             className="channel-header__icons"
           >
@@ -668,7 +672,9 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle) />
+          <Memo(ChannelHeaderTitle)
+            remoteNames={Array []}
+          />
           <div
             className="channel-header__icons"
           >
@@ -824,7 +830,9 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle) />
+          <Memo(ChannelHeaderTitle)
+            remoteNames={Array []}
+          />
           <div
             className="channel-header__icons"
           >
@@ -980,7 +988,9 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle) />
+          <Memo(ChannelHeaderTitle)
+            remoteNames={Array []}
+          />
           <div
             className="channel-header__icons"
           >
@@ -1136,7 +1146,9 @@ exports[`components/ChannelHeader should render archived view 1`] = `
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle) />
+          <Memo(ChannelHeaderTitle)
+            remoteNames={Array []}
+          />
           <div
             className="channel-header__icons"
           >
@@ -1292,7 +1304,9 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle) />
+          <Memo(ChannelHeaderTitle)
+            remoteNames={Array []}
+          />
           <div
             className="channel-header__icons"
           >
@@ -1468,7 +1482,9 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle) />
+          <Memo(ChannelHeaderTitle)
+            remoteNames={Array []}
+          />
           <div
             className="channel-header__icons"
           >
@@ -1666,6 +1682,7 @@ exports[`components/ChannelHeader should render properly when custom status is e
                 "username": "some-user",
               }
             }
+            remoteNames={Array []}
           />
           <div
             className="channel-header__icons"
@@ -1919,6 +1936,7 @@ exports[`components/ChannelHeader should render properly when custom status is s
                 "username": "some-user",
               }
             }
+            remoteNames={Array []}
           />
           <div
             className="channel-header__icons"
@@ -2148,7 +2166,9 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle) />
+          <Memo(ChannelHeaderTitle)
+            remoteNames={Array []}
+          />
           <div
             className="channel-header__icons"
           >
@@ -2304,7 +2324,9 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle) />
+          <Memo(ChannelHeaderTitle)
+            remoteNames={Array []}
+          />
           <div
             className="channel-header__icons"
           >
@@ -2460,7 +2482,9 @@ exports[`components/ChannelHeader should render properly when populated with cha
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle) />
+          <Memo(ChannelHeaderTitle)
+            remoteNames={Array []}
+          />
           <div
             className="channel-header__icons"
           >
@@ -2637,7 +2661,9 @@ exports[`components/ChannelHeader should render shared view 1`] = `
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle) />
+          <Memo(ChannelHeaderTitle)
+            remoteNames={Array []}
+          />
           <div
             className="channel-header__icons"
           >
@@ -2700,53 +2726,6 @@ exports[`components/ChannelHeader should render shared view 1`] = `
         </div>
       </div>
     </div>
-    <Connect(injectIntl(ChannelHeaderPlug))
-      channel={
-        Object {
-          "create_at": 0,
-          "creator_id": "id",
-          "delete_at": 0,
-          "display_name": "name",
-          "group_constrained": false,
-          "header": "header",
-          "id": "channel_id",
-          "last_post_at": 0,
-          "last_root_post_at": 0,
-          "name": "Test",
-          "purpose": "purpose",
-          "scheme_id": "id",
-          "shared": true,
-          "team_id": "team_id",
-          "type": "O",
-          "update_at": 0,
-        }
-      }
-      channelMember={
-        Object {
-          "channel_id": "channel_id",
-          "last_update_at": 0,
-          "last_viewed_at": 0,
-          "mention_count": 0,
-          "mention_count_root": 0,
-          "msg_count": 0,
-          "msg_count_root": 0,
-          "notify_props": Object {
-            "channel_auto_follow_threads": "off",
-            "desktop": "default",
-            "email": "default",
-            "ignore_channel_mentions": "default",
-            "mark_unread": "all",
-            "push": "default",
-          },
-          "roles": "channel_user",
-          "scheme_admin": false,
-          "scheme_user": true,
-          "urgent_mention_count": 0,
-          "user_id": "user_id",
-        }
-      }
-    />
-    <Connect(CallButton) />
     <ChannelInfoButton
       channel={
         Object {
@@ -2796,7 +2775,9 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
         <div
           className="channel-header__title dropdown"
         >
-          <Memo(ChannelHeaderTitle) />
+          <Memo(ChannelHeaderTitle)
+            remoteNames={Array []}
+          />
           <div
             className="channel-header__icons"
           >

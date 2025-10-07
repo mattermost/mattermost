@@ -67,6 +67,21 @@ func (s *SqlPropertyFieldStore) Get(groupID, id string) (*model.PropertyField, e
 	return &field, nil
 }
 
+func (s *SqlPropertyFieldStore) GetFieldByName(groupID, targetID, name string) (*model.PropertyField, error) {
+	builder := s.tableSelectQuery.
+		Where(sq.Eq{"GroupID": groupID}).
+		Where(sq.Eq{"TargetID": targetID}).
+		Where(sq.Eq{"Name": name}).
+		Where(sq.Eq{"DeleteAt": 0})
+
+	var field model.PropertyField
+	if err := s.GetReplica().GetBuilder(&field, builder); err != nil {
+		return nil, errors.Wrap(err, "property_field_get_by_name_select")
+	}
+
+	return &field, nil
+}
+
 func (s *SqlPropertyFieldStore) GetMany(groupID string, ids []string) ([]*model.PropertyField, error) {
 	builder := s.tableSelectQuery.Where(sq.Eq{"id": ids})
 
@@ -99,6 +114,25 @@ func (s *SqlPropertyFieldStore) CountForGroup(groupID string, includeDeleted boo
 
 	if err := s.GetReplica().GetBuilder(&count, builder); err != nil {
 		return int64(0), errors.Wrap(err, "failed to count Sessions")
+	}
+	return count, nil
+}
+
+func (s *SqlPropertyFieldStore) CountForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error) {
+	var count int64
+	builder := s.getQueryBuilder().
+		Select("COUNT(id)").
+		From("PropertyFields").
+		Where(sq.Eq{"GroupID": groupID}).
+		Where(sq.Eq{"TargetType": targetType}).
+		Where(sq.Eq{"TargetID": targetID})
+
+	if !includeDeleted {
+		builder = builder.Where(sq.Eq{"DeleteAt": 0})
+	}
+
+	if err := s.GetReplica().GetBuilder(&count, builder); err != nil {
+		return int64(0), errors.Wrap(err, "failed to count property fields for target")
 	}
 	return count, nil
 }
@@ -138,8 +172,8 @@ func (s *SqlPropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSea
 		builder = builder.Where(sq.Eq{"TargetType": opts.TargetType})
 	}
 
-	if opts.TargetID != "" {
-		builder = builder.Where(sq.Eq{"TargetID": opts.TargetID})
+	if len(opts.TargetIDs) > 0 {
+		builder = builder.Where(sq.Eq{"TargetID": opts.TargetIDs})
 	}
 
 	fields := []*model.PropertyField{}
@@ -150,7 +184,7 @@ func (s *SqlPropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSea
 	return fields, nil
 }
 
-func (s *SqlPropertyFieldStore) Update(fields []*model.PropertyField) (_ []*model.PropertyField, err error) {
+func (s *SqlPropertyFieldStore) Update(groupID string, fields []*model.PropertyField) (_ []*model.PropertyField, err error) {
 	if len(fields) == 0 {
 		return nil, nil
 	}
@@ -207,6 +241,10 @@ func (s *SqlPropertyFieldStore) Update(fields []*model.PropertyField) (_ []*mode
 		Set("DeleteAt", deleteAtCase).
 		Where(sq.Eq{"id": ids})
 
+	if groupID != "" {
+		builder = builder.Where(sq.Eq{"GroupID": groupID})
+	}
+
 	result, err := transaction.ExecBuilder(builder)
 	if err != nil {
 		return nil, errors.Wrap(err, "property_field_update_exec")
@@ -227,11 +265,15 @@ func (s *SqlPropertyFieldStore) Update(fields []*model.PropertyField) (_ []*mode
 	return fields, nil
 }
 
-func (s *SqlPropertyFieldStore) Delete(id string) error {
+func (s *SqlPropertyFieldStore) Delete(groupID string, id string) error {
 	builder := s.getQueryBuilder().
 		Update("PropertyFields").
 		Set("DeleteAt", model.GetMillis()).
 		Where(sq.Eq{"id": id})
+
+	if groupID != "" {
+		builder = builder.Where(sq.Eq{"GroupID": groupID})
+	}
 
 	result, err := s.GetMaster().ExecBuilder(builder)
 	if err != nil {

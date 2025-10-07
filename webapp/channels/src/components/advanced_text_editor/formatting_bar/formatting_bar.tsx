@@ -10,6 +10,8 @@ import styled from 'styled-components';
 
 import {DotsHorizontalIcon} from '@mattermost/compass-icons/components';
 
+import WithTooltip from 'components/with_tooltip';
+
 import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 
 import FormattingIcon, {IconContainer} from './formatting_icon';
@@ -242,20 +244,28 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
 
             {hasHiddenControls && (
                 <>
-                    <IconContainer
-                        id={'HiddenControlsButton' + location}
-                        ref={setReference}
-                        className={classNames({active: showHiddenControls})}
-                        aria-label={HiddenControlsButtonAriaLabel}
-                        type='button'
-                        {...getClickReferenceProps()}
-                        {...getDismissReferenceProps()}
+                    <WithTooltip
+                        title={formatMessage({
+                            id: 'shortcuts.msgs.formatting_bar.more_formatting_options',
+                            defaultMessage: 'More formatting options',
+                        })}
+                        disabled={showHiddenControls}
                     >
-                        <DotsHorizontalIcon
-                            color={'currentColor'}
-                            size={18}
-                        />
-                    </IconContainer>
+                        <IconContainer
+                            id={'HiddenControlsButton' + location}
+                            ref={setReference}
+                            className={classNames({active: showHiddenControls})}
+                            aria-label={HiddenControlsButtonAriaLabel}
+                            type='button'
+                            {...getClickReferenceProps()}
+                            {...getDismissReferenceProps()}
+                        >
+                            <DotsHorizontalIcon
+                                color={'currentColor'}
+                                size={18}
+                            />
+                        </IconContainer>
+                    </WithTooltip>
                 </>
             )}
 

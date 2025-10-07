@@ -149,6 +149,7 @@ exports[`components/ChannelSelectorModal exclude already selected 1`] = `
           "id": "multiselect.addChannelsPlaceholder",
         }
       }
+      required={false}
       saveButtonPosition="top"
       saving={false}
       savingEnabled={true}
@@ -336,6 +337,7 @@ exports[`components/ChannelSelectorModal should match snapshot 1`] = `
           "id": "multiselect.addChannelsPlaceholder",
         }
       }
+      required={false}
       saveButtonPosition="top"
       saving={false}
       savingEnabled={true}

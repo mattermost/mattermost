@@ -108,7 +108,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     >
       <i
         aria-hidden="true"
-        className="fa fa-clock-o"
+        className="icon icon-clock-outline"
         title="Access History Icon"
       />
       <MemoizedFormattedMessage
@@ -121,7 +121,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       dialogType={
         Object {
           "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
+          "WrappedComponent": Object {
+            "$$typeof": Symbol(react.memo),
+            "compare": null,
+            "type": [Function],
+          },
           "compare": null,
           "type": [Function],
         }
@@ -131,7 +135,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     >
       <i
         aria-hidden="true"
-        className="fa fa-clock-o"
+        className="icon icon-clock-outline"
         title="Active Sessions Icon"
       />
       <MemoizedFormattedMessage
@@ -251,7 +255,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     >
       <i
         aria-hidden="true"
-        className="fa fa-clock-o"
+        className="icon icon-clock-outline"
         title="Access History Icon"
       />
       <MemoizedFormattedMessage
@@ -264,7 +268,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       dialogType={
         Object {
           "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
+          "WrappedComponent": Object {
+            "$$typeof": Symbol(react.memo),
+            "compare": null,
+            "type": [Function],
+          },
           "compare": null,
           "type": [Function],
         }
@@ -274,7 +282,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     >
       <i
         aria-hidden="true"
-        className="fa fa-clock-o"
+        className="icon icon-clock-outline"
         title="Active Sessions Icon"
       />
       <MemoizedFormattedMessage
@@ -394,7 +402,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     >
       <i
         aria-hidden="true"
-        className="fa fa-clock-o"
+        className="icon icon-clock-outline"
         title="Access History Icon"
       />
       <MemoizedFormattedMessage
@@ -407,7 +415,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       dialogType={
         Object {
           "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
+          "WrappedComponent": Object {
+            "$$typeof": Symbol(react.memo),
+            "compare": null,
+            "type": [Function],
+          },
           "compare": null,
           "type": [Function],
         }
@@ -417,7 +429,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     >
       <i
         aria-hidden="true"
-        className="fa fa-clock-o"
+        className="icon icon-clock-outline"
         title="Active Sessions Icon"
       />
       <MemoizedFormattedMessage
@@ -537,7 +549,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     >
       <i
         aria-hidden="true"
-        className="fa fa-clock-o"
+        className="icon icon-clock-outline"
         title="Access History Icon"
       />
       <MemoizedFormattedMessage
@@ -550,7 +562,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       dialogType={
         Object {
           "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
+          "WrappedComponent": Object {
+            "$$typeof": Symbol(react.memo),
+            "compare": null,
+            "type": [Function],
+          },
           "compare": null,
           "type": [Function],
         }
@@ -560,7 +576,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     >
       <i
         aria-hidden="true"
-        className="fa fa-clock-o"
+        className="icon icon-clock-outline"
         title="Active Sessions Icon"
       />
       <MemoizedFormattedMessage
@@ -681,7 +697,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     >
       <i
         aria-hidden="true"
-        className="fa fa-clock-o"
+        className="icon icon-clock-outline"
         title="Access History Icon"
       />
       <MemoizedFormattedMessage
@@ -694,7 +710,11 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       dialogType={
         Object {
           "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
+          "WrappedComponent": Object {
+            "$$typeof": Symbol(react.memo),
+            "compare": null,
+            "type": [Function],
+          },
           "compare": null,
           "type": [Function],
         }
@@ -704,7 +724,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     >
       <i
         aria-hidden="true"
-        className="fa fa-clock-o"
+        className="icon icon-clock-outline"
         title="Active Sessions Icon"
       />
       <MemoizedFormattedMessage

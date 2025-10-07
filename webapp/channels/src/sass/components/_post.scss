@@ -53,7 +53,6 @@
         }
 
         p {
-            margin: 0;
             white-space: pre-wrap;
         }
 
@@ -750,12 +749,15 @@
 
         .post__img {
             width: 16px;
-            padding-top: 1px;
 
-            img,
-            button {
+            .profile-icon {
                 display: none;
             }
+        }
+
+        .post__link {
+            padding-top: 3px;
+            margin: 0;
         }
 
         .attachment {
@@ -776,6 +778,10 @@
         }
 
         &.post--comment {
+            .post__body {
+                padding-left: 8px;
+            }
+
             .attachment {
                 .attachment__body__wrap {
                     .btn-close {
@@ -799,11 +805,9 @@
         }
 
         .status-wrapper {
-            height: 14px;
-
             .status {
                 position: relative;
-                top: auto;
+                top: 1px;
                 right: auto;
                 bottom: auto;
                 left: -2px;
@@ -823,7 +827,7 @@
         blockquote {
             display: flex;
             flex-direction: column;
-            padding: 3px 0 3px 20px;
+            padding: 0 0 0 8px;
 
             &::before {
                 top: 0;
@@ -854,7 +858,7 @@
         }
 
         .post__body {
-            padding: 2px 0 0;
+            padding: 2px 0 0 0;
             background: transparent !important;
             line-height: 1.5;
 
@@ -969,7 +973,6 @@
     }
 
     .post-edited__indicator {
-        display: flex;
         align-items: center;
         color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 11px;
@@ -1012,8 +1015,8 @@
 
     &.post--comment {
         .post__body {
-            padding-left: 7px;
-            border-left: 4px solid rgba(var(--center-channel-color-rgb), 0.2);
+            padding-left: 12px;
+            border-left: 4px solid rgba(var(--button-bg-rgb), 0.24);
         }
 
         &.mention-comment {
@@ -1269,7 +1272,7 @@
         .shared-user-icon {
             width: 16px;
             height: 20px;
-            margin: 0 0 0 4px;
+            margin: 0 0 0 2px;
             color: rgba(var(--center-channel-color-rgb), 0.75);
             font-size: 16px;
             line-height: 20px;
@@ -1410,39 +1413,6 @@
                     margin: 0;
                     font-size: 1em;
                 }
-            }
-
-            li.list-item--task-list ul,
-            li.list-item--task-list ol {
-                margin-left: 20px;
-            }
-
-            li.list-item--task-list ul {
-                padding-left: 0;
-            }
-
-            li:not(.list-item--task-list) li.list-item--task-list,
-            li:not(.list-item--task-list) li.list-item--task-list ~ li {
-                margin-left: -20px;
-            }
-
-            li input[type="checkbox"]:disabled {
-                cursor: default;
-                vertical-align: top;
-            }
-        }
-
-        ul li.list-item--task-list,
-        ul li.list-item--task-list ~ li {
-            list-style-type: none;
-        }
-
-        ul li.list-item--task-list ~ li:not(.list-item--task-list) {
-            text-indent: 3px;
-
-            &::before {
-                margin-right: 8px;
-                content: "\2022";
             }
         }
 
@@ -2276,6 +2246,19 @@
                 &-text {
                     color: var(--button-bg);
                 }
+            }
+        }
+    }
+
+    &.post--comment {
+        .post__body {
+            border-color: rgba(var(--button-bg-rgb), 0.24);
+        }
+
+        &.other--root {
+            .post-comment {
+                border-color: rgba(var(--center-channel-color-rgb), 0.1);
+                background-color: rgba(var(--center-channel-color-rgb), 0.05);
             }
         }
     }

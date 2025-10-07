@@ -36,7 +36,6 @@ func (ps *PlatformService) GenerateSupportPacket(rctx request.CTX, options *mode
 
 	if options != nil && options.IncludeLogs {
 		functions["mattermost log"] = ps.GetLogFile
-		functions["notification log"] = ps.GetNotificationLogFile
 	}
 
 	var (
@@ -141,8 +140,12 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	/* Cluster */
 	if cluster := ps.Cluster(); cluster != nil {
 		d.Cluster.ID = cluster.GetClusterId()
-		clusterInfo := cluster.GetClusterInfos()
-		d.Cluster.NumberOfNodes = len(clusterInfo)
+		clusterInfo, e := cluster.GetClusterInfos()
+		if e != nil {
+			rErr = multierror.Append(rErr, errors.Wrap(e, "error while getting cluster infos"))
+		} else {
+			d.Cluster.NumberOfNodes = len(clusterInfo)
+		}
 	}
 
 	/* LDAP */
@@ -177,6 +180,12 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	if se := ps.SearchEngine.ElasticsearchEngine; se != nil {
 		d.ElasticSearch.ServerVersion = se.GetFullVersion()
 		d.ElasticSearch.ServerPlugins = se.GetPlugins()
+		if *ps.Config().ElasticsearchSettings.EnableIndexing {
+			appErr := se.TestConfig(rctx, ps.Config())
+			if appErr != nil {
+				d.ElasticSearch.Error = appErr.Error()
+			}
+		}
 	}
 
 	b, err := yaml.Marshal(&d)
@@ -192,7 +201,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 }
 
 func (ps *PlatformService) getSanitizedConfigFile(rctx request.CTX) (*model.FileData, error) {
-	config := ps.getSanitizedConfig(rctx)
+	config := ps.getSanitizedConfig(rctx, &model.SanitizeOptions{PartiallyRedactDataSources: true})
 	spConfig := model.SupportPacketConfig{
 		Config:       config,
 		FeatureFlags: *config.FeatureFlags,

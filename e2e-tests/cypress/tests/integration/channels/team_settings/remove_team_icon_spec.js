@@ -10,6 +10,8 @@
 // Stage: @prod
 // Group: @channels @team_settings
 
+import * as TIMEOUTS from '../../../fixtures/timeouts';
+
 describe('Teams Settings', () => {
     let testTeam;
 
@@ -38,6 +40,8 @@ describe('Teams Settings', () => {
         cy.get('#teamIconImage').should('be.visible');
         cy.get('#teamIconInitial').should('not.exist');
 
+        cy.wait(TIMEOUTS.QUARTER_SEC);
+
         // # Close the team settings dialog
         cy.uiClose();
 
@@ -61,7 +65,7 @@ describe('Teams Settings', () => {
 
 function openTeamSettingsDialog() {
     // # Open team menu and click 'Team Settings'
-    cy.uiOpenTeamMenu('Team Settings');
+    cy.uiOpenTeamMenu('Team settings');
 
     // * Verify the team settings dialog is open
     cy.get('#teamSettingsModalLabel').should('be.visible').and('contain', 'Team Settings');

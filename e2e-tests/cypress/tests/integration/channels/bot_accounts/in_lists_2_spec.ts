@@ -13,6 +13,7 @@ import {Bot} from '@mattermost/types/bots';
 import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
+
 import {createBotPatch} from '../../../support/api/bots';
 import {generateRandomUser} from '../../../support/api/user';
 
@@ -72,7 +73,7 @@ describe('Bots in lists', () => {
 
             // # Open channel members
             cy.get('.channel-header__trigger').click();
-            cy.findByText('Manage Members').click();
+            cy.findByText('Manage members').click();
 
             cy.get('.more-modal__row .more-modal__name').then(async ($query) => {
                 // # Extract usernames from jQuery collection

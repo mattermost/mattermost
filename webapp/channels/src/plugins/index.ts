@@ -11,7 +11,6 @@ import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selecto
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 
 import {unregisterAdminConsolePlugin} from 'actions/admin_actions';
-import {trackPluginInitialization} from 'actions/telemetry_actions';
 import {unregisterPluginTranslationsSource} from 'actions/views/root';
 import {unregisterAllPluginWebSocketEvents, unregisterPluginReconnectHandler} from 'actions/websocket_actions';
 import store from 'stores/redux_store';
@@ -62,11 +61,6 @@ window.plugins = {};
 // During the beta, plugins manipulated the global window.plugins data structure directly. This
 // remains possible, but is officially deprecated and may be removed in a future release.
 function registerPlugin(id: string, plugin: Plugin): void {
-    // Don't register plugins if MMEMBED cookie is set
-    if (document.cookie.includes('MMEMBED=1')) {
-        return;
-    }
-
     const oldPlugin = window.plugins[id];
     if (oldPlugin && oldPlugin.uninitialize) {
         oldPlugin.uninitialize();
@@ -112,8 +106,6 @@ export async function initializePlugins(): Promise<void> {
             console.error(loadErr.message); //eslint-disable-line no-console
         });
     }));
-
-    trackPluginInitialization(data);
 }
 
 // getPlugins queries the server for all enabled plugins

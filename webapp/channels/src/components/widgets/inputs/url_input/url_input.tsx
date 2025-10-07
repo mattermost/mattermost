@@ -70,13 +70,17 @@ function UrlInput({
             onBlur(event);
         }
     };
-
     const handleOnButtonClick = () => {
         if (!hasError) {
             setEditing(!editing);
         }
     };
 
+    const handlePropagateKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+        if (event.key === 'Enter') {
+            event.stopPropagation();
+        }
+    };
     const urlInputLabel = (
         <span
             className='url-input-label'
@@ -116,12 +120,14 @@ function UrlInput({
                         hasError={hasError}
                         onChange={handleOnInputChange}
                         onBlur={handleOnInputBlur}
+                        aria-describedby='url-input-error'
                     />
                 )}
                 <button
                     className={classNames('url-input-button', {disabled: hasError})}
                     disabled={hasError}
                     onClick={handleOnButtonClick}
+                    onKeyDown={handlePropagateKeyDown}
                 >
                     <span className='url-input-button-label'>
                         {editing ? formatMessage({id: 'url_input.buttonLabel.done', defaultMessage: 'Done'}) : formatMessage({id: 'url_input.buttonLabel.edit', defaultMessage: 'Edit'})}
@@ -131,7 +137,12 @@ function UrlInput({
             {error && (
                 <div className='url-input-error'>
                     <i className='icon icon-alert-outline'/>
-                    <span>{error}</span>
+                    <span
+                        id='url-input-error'
+                        role='alert'
+                    >
+                        {error}
+                    </span>
                 </div>
             )}
         </div>
