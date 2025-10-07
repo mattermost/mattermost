@@ -3049,10 +3049,10 @@ func (s *SqlPostStore) savePostsPersistentNotifications(transaction *sqlxTxWrapp
 }
 
 func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts []*model.Post) error {
-	// ... (Code to collect rootIds and postsByRoot is unchanged) ...
 	postsByRoot := map[string][]*model.Post{}
 	var rootIds []string
 	for _, post := range posts {
+		// skip if post is not a part of a thread
 		if post.RootId == "" {
 			continue
 		}
@@ -3063,7 +3063,6 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 		return nil
 	}
 
-	// 1. SELECT existing threads with FOR UPDATE to acquire locks on existing rows.
 	threadsByRootsSql, threadsByRootsArgs, err := s.getQueryBuilder().
 		Select(
 			"Threads.PostId",
@@ -3098,7 +3097,7 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 		thread, found := threadByRoot[rootId]
 
 		if !found {
-			// **CASE 1: Thread record does not exist.**
+			// Thread record does not exist.
 			channelId := posts[0].ChannelId
 			teamId, ok := teamIdByChannelId[channelId]
 			if !ok {
@@ -3109,8 +3108,7 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 				teamIdByChannelId[channelId] = teamId
 			}
 
-			// 1. Atomically ensure the thread exists.
-			// The losing transaction does nothing but doesn't error.
+			// Atomically ensure the thread exists.
 			_, err := transaction.Exec(`
 				INSERT INTO Threads (PostId, ChannelId, ReplyCount, LastReplyAt, Participants, ThreadTeamId)
 				VALUES ($1, $2, 0, 0, '[]'::jsonb, $3)
@@ -3121,9 +3119,7 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 				return err
 			}
 
-			// 2. IMPORTANT: Re-select the thread FOR UPDATE.
-			// This forces the current transaction to wait until the thread is created and
-			// committed by the winning transaction, or it locks the newly created row.
+			// Re-select the thread FOR UPDATE.
 			thread = &model.Thread{}
 			err = transaction.Get(thread, `
 				SELECT 
@@ -3137,17 +3133,12 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 				return errors.Wrapf(err, "failed to re-select or lock thread %s after creation attempt", rootId)
 			}
 
-			// The thread is now guaranteed to exist, and we have a row lock.
-			// FALL THROUGH to the existing thread logic below.
-
 		}
 
-		// **CASE 2: Thread record exists (or was just created and locked).**
-		// Now we proceed with the safe, incremental update logic.
-
+		// Thread record exists, proceed with the safe, incremental update logic
 		for _, post := range posts {
 			thread.ReplyCount += 1
-			// Participants: Remove then re-add to move to end (recent activity)
+			// Participants: Remove then re-add to move to end
 			if thread.Participants.Contains(post.UserId) {
 				thread.Participants = thread.Participants.Remove(post.UserId)
 			}
@@ -3158,7 +3149,6 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 			}
 		}
 
-		// The UPDATE is safe because we hold a FOR UPDATE lock from step 1 or step 2.
 		if _, err := transaction.NamedExec(`UPDATE Threads
 			SET ChannelId = :ChannelId,
 				ReplyCount = :ReplyCount,
