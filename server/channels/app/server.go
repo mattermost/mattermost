@@ -85,7 +85,7 @@ const (
 	debugScheduledPostJobInterval = 2 * time.Second
 )
 
-var SentryDSN = "https://9d7c9cccf549479799f880bcf4f26323@o94110.ingest.sentry.io/5212327"
+var SentryDSN = "https://04337f87f1ff7e0031b9be256ee99535@o4510146945548288.ingest.us.sentry.io/4510147136389120"
 
 // This is a placeholder to allow the existing release pipelines to run without failing to insert
 // the key that's now hard-coded above. Remove this once we converge on the unified delivery
