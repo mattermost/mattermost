@@ -927,7 +927,6 @@
   "admin.license.enterpriseEdition": "Edição de Empresa",
   "admin.license.entryPlanSubtitle": "Compre um plano para desbloquear o acesso completo, ou inicie uma versão de testes para remover os limites enquanto avalia Enterprise Advanced.",
   "admin.license.freeEdition.title": "Gratuita",
-  "admin.license.getFreeTrial": "Obtenha uma licença de testes de 30 dias gratuita",
   "admin.license.key": "Código da licença: ",
   "admin.license.keyAddNew": "Adicionar uma nova licença",
   "admin.license.keyRemove": "Remover a licença e reverter para Mattermost Gratuito",

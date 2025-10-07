@@ -14,8 +14,10 @@ import {makeAsyncComponent} from 'components/async_load';
 
 import {createCallContext} from 'utils/apps';
 import {
-    convertDialogToAppForm,
     convertAppFormValuesToDialogSubmission,
+    convertDialogToAppForm,
+    convertServerDialogResponseToAppForm,
+    extractPrimitiveValues,
     type ConversionOptions,
     type ValidationError,
 } from 'utils/dialog_conversion';
@@ -25,30 +27,33 @@ import type {DoAppCallResult} from 'types/apps';
 
 const AppsFormContainer = makeAsyncComponent('AppsFormContainer', React.lazy(() => import('components/apps_form/apps_form_container')));
 
-type ConversionContext = ConversionOptions;
-
 // Enhanced Props interface with better type safety
 interface Props extends WrappedComponentProps {
 
-    // Legacy InteractiveDialog props (now properly typed)
+    // Core dialog properties
     elements?: DialogElement[];
     title?: string;
     introductionText?: string;
     iconUrl?: string;
     submitLabel?: string;
+
+    // Dialog behavior
     url?: string;
     callbackId?: string;
     state?: string;
     notifyOnCancel?: boolean;
-    emojiMap?: EmojiMap;
     onExited?: () => void;
+
+    // Enhanced functionality
+    sourceUrl?: string; // Optional URL for form refresh functionality
+    emojiMap?: EmojiMap;
+    conversionOptions?: Partial<ConversionOptions>;
+
+    // Required actions
     actions: {
         submitInteractiveDialog: (submission: DialogSubmission) => Promise<ActionResult<SubmitDialogResponse>>;
         lookupInteractiveDialog: (submission: DialogSubmission) => Promise<ActionResult<{items: Array<{text: string; value: string}>}>>;
     };
-
-    // Enhanced configuration options
-    conversionOptions?: Partial<ConversionContext>;
 }
 
 /**
@@ -70,7 +75,7 @@ interface Props extends WrappedComponentProps {
  *   elements={dialogElements}
  *   title="Sample Dialog"
  *   actions={{ submitInteractiveDialog }}
- *   onExited={() => console.log('Dialog closed')}
+ *   onExited={() => handleDialogClose()}
  * />
  *
  * // Enhanced mode with full validation for new implementations
@@ -81,16 +86,22 @@ interface Props extends WrappedComponentProps {
  *     enhanced: true
  *   }}
  *   actions={{ submitInteractiveDialog }}
- *   onExited={() => console.log('Dialog closed')}
+ *   onExited={() => handleDialogClose()}
  * />
  * ```
  */
 class InteractiveDialogAdapter extends React.PureComponent<Props> {
     // Default conversion context - enhanced mode disabled for backwards compatibility
-    private readonly conversionContext: ConversionContext = {
+    private readonly conversionContext: ConversionOptions = {
         enhanced: false, // Legacy mode: minimal validation, non-blocking errors
         ...this.props.conversionOptions,
     };
+
+    // Track current dialog elements for validation
+    private currentDialogElements: DialogElement[] | undefined;
+
+    // Accumulate form values across multiform steps (client-side accumulation)
+    private accumulatedValues: Record<string, any> = {};
 
     /**
      * Logging utilities for adapter diagnostics
@@ -134,14 +145,16 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
     };
 
     private convertToAppForm = (): {form?: AppForm; error?: string} => {
-        const {elements, title, introductionText, iconUrl, submitLabel} = this.props;
-
+        const {elements, title, introductionText, iconUrl, submitLabel, sourceUrl, state} = this.props;
+        this.currentDialogElements = elements;
         const {form, errors} = convertDialogToAppForm(
             elements,
             title,
             introductionText,
             iconUrl,
             submitLabel,
+            sourceUrl || '',
+            state || '',
             this.conversionContext,
         );
 
@@ -154,31 +167,116 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
     };
 
     /**
-     * Enhanced submission adapter with comprehensive input validation and sanitization
+     * Common logic for processing form values - used by both submit and refresh
+     */
+    private processFormValues = (currentValues: Record<string, any>): void => {
+        // Normalize current values to extract primitive values from select objects
+        const normalizedCurrentValues = extractPrimitiveValues(currentValues);
+
+        // Accumulate values: merge current with existing accumulated values
+        this.accumulatedValues = {
+            ...this.accumulatedValues, // Previous steps' values (including other pages)
+            ...normalizedCurrentValues, // Current form normalized values
+        };
+    };
+
+    /**
+     * Common error handling for dialog submission responses
+     */
+    private handleSubmissionError = (result: any, errorId: string, defaultMessage: string) => {
+        // Handle server-side validation errors
+        if (result?.data?.error || result?.data?.errors) {
+            return {
+                error: {
+                    type: 'error' as const,
+                    text: result.data.error || this.props.intl.formatMessage({
+                        id: `${errorId}_validation`,
+                        defaultMessage: `${defaultMessage} with validation errors`,
+                    }),
+                    data: {
+                        errors: result.data.errors || {},
+                    },
+                },
+            };
+        }
+
+        // Handle network/action-level errors
+        if (result?.error) {
+            return {
+                error: {
+                    type: 'error' as const,
+                    text: this.props.intl.formatMessage({
+                        id: errorId,
+                        defaultMessage,
+                    }),
+                    data: {
+                        errors: {},
+                    },
+                },
+            };
+        }
+
+        return null; // No error
+    };
+
+    /**
+     * Common logic for converting server dialog response to AppForm
+     */
+    private convertServerResponseToForm = (serverForm: any) => {
+        const {form, errors} = convertServerDialogResponseToAppForm(serverForm, this.conversionContext);
+
+        // Update current elements for reference
+        this.currentDialogElements = form.fields?.map((field) => ({
+            name: field.name,
+            type: field.type === 'static_select' ? 'select' : field.type,
+            display_name: field.label,
+        } as any)) || [];
+
+        // Handle validation errors if any
+        if (errors.length > 0) {
+            this.logWarn('Form conversion validation errors', {
+                errorCount: errors.length,
+                errors,
+            });
+        }
+
+        return form;
+    };
+
+    /**
+     * Enhanced submission adapter
      */
     private submitAdapter = async (call: AppCallRequest): Promise<DoAppCallResult<unknown>> => {
         try {
-            // Validate and convert AppCallRequest values back to legacy format
-            const values = call.values || {};
-            const {submission: convertedValues, errors} = convertAppFormValuesToDialogSubmission(
-                values,
-                this.props.elements,
-                this.conversionContext,
-            );
+            // Process and accumulate form values
+            const currentValues = call.values || {};
+            this.processFormValues(currentValues);
 
-            // Handle validation errors if any
-            if (errors.length > 0) {
-                this.logWarn('Form submission validation errors', {
-                    errorCount: errors.length,
-                    errors,
-                });
+            // For final submission, use accumulated normalized values
+            const finalSubmission = this.accumulatedValues;
+            const dialogState = call.state || this.props.state || '';
+
+            // Validate final submission if we have dialog elements
+            if (this.currentDialogElements && this.conversionContext.enhanced) {
+                const {errors} = convertAppFormValuesToDialogSubmission(
+                    finalSubmission,
+                    this.currentDialogElements,
+                    this.conversionContext,
+                );
+
+                if (errors.length > 0) {
+                    this.logWarn('Form submission validation errors', {
+                        errorCount: errors.length,
+                        errors,
+                    });
+                }
             }
 
             const legacySubmission: DialogSubmission = {
                 url: this.props.url || '',
                 callback_id: this.props.callbackId || '',
-                state: this.props.state || '',
-                submission: convertedValues as {[x: string]: string},
+                state: dialogState, // Dialog state for multiform step tracking
+                submission: finalSubmission as {[x: string]: string},
                 user_id: '', // Populated by submitInteractiveDialog action
                 channel_id: '', // Populated by submitInteractiveDialog action
                 team_id: '', // Populated by submitInteractiveDialog action
@@ -187,39 +285,26 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
 
             const result = await this.props.actions.submitInteractiveDialog(legacySubmission);
 
-            // Handle server-side validation errors from the response data (like original dialog)
-            if (result?.data?.error || result?.data?.errors) {
+            // Handle errors using common error handler
+            const errorResult = this.handleSubmissionError(result, 'interactive_dialog.submission_failed', 'Submission failed');
+            if (errorResult) {
+                return errorResult;
+            }
+
+            // Check if the response contains a new form (multi-step functionality)
+            if (result?.data?.type === 'form' && result?.data?.form) {
+                const form = this.convertServerResponseToForm(result.data.form);
+
                 return {
-                    error: {
-                        type: 'error' as const,
-                        text: result.data.error || this.props.intl.formatMessage({
-                            id: 'interactive_dialog.submission_failed_validation',
-                            defaultMessage: 'Submission failed with validation errors',
-                        }),
-                        data: {
-                            errors: result.data.errors || {},
-                        },
+                    data: {
+                        type: 'form' as const,
+                        form,
                     },
                 };
             }
 
-            // Handle network/action-level errors
-            if (result?.error) {
-                return {
-                    error: {
-                        type: 'error' as const,
-                        text: this.props.intl.formatMessage({
-                            id: 'interactive_dialog.submission_failed',
-                            defaultMessage: 'Submission failed',
-                        }),
-                        data: {
-                            errors: {},
-                        },
-                    },
-                };
-            }
-
-            // Success response
+            // Success response - clear all accumulated values since multiform is complete
+            this.accumulatedValues = {};
             return {
                 data: {
                     type: 'ok' as const,
@@ -227,6 +312,9 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
                 },
             };
         } catch (error) {
+            // Clear all accumulated values on error to avoid state leakage
+            this.accumulatedValues = {};
+
             this.logError('Dialog submission failed', {
                 error: error instanceof Error ? error.message : String(error),
                 callbackId: this.props.callbackId,
@@ -253,6 +341,9 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
      * Enhanced cancel adapter with proper error handling
      */
     private cancelAdapter = async (): Promise<void> => {
+        // Clear all accumulated values when dialog is cancelled to avoid state leakage
+        this.accumulatedValues = {};
+
         if (!this.props.notifyOnCancel) {
             return;
         }
@@ -421,15 +512,90 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
     };
 
     /**
-     * No-op refresh adapter for unsupported legacy feature
+     * Field refresh adapter for Interactive Dialogs
+     * Handles form refresh when fields with refresh=true are changed
      */
-    private refreshOnSelect = async (): Promise<DoAppCallResult<unknown>> => {
-        this.logWarn('Unexpected refresh call in Interactive Dialog adapter - this should not happen');
-        return {
-            data: {
-                type: 'ok' as const,
-            },
-        };
+    private refreshOnSelect = async (call: AppCallRequest = {} as AppCallRequest): Promise<DoAppCallResult<unknown>> => {
+        try {
+            // Check if we have a source URL for field refresh
+            if (!this.props.sourceUrl) {
+                this.logWarn('Field refresh requested but no sourceUrl provided', {
+                    fieldName: call.selected_field,
+                    suggestion: 'Add sourceUrl to dialog definition',
+                });
+                return {
+                    data: {
+                        type: 'ok' as const,
+                    },
+                };
+            }
+
+            // Process and accumulate form values (same as submit)
+            const currentValues = call.values || {};
+            this.processFormValues(currentValues);
+
+            // For refresh, send all accumulated normalized values
+            const refreshPayload = this.accumulatedValues;
+
+            const refreshSubmission: DialogSubmission = {
+                url: this.props.sourceUrl,
+                callback_id: this.props.callbackId || '',
+                state: call.state || this.props.state || '',
+                submission: refreshPayload as {[x: string]: string}, // Send complete accumulated payload
+                user_id: '',
+                channel_id: '',
+                team_id: '',
+                cancelled: false,
+                type: 'refresh', // Indicate this is a field refresh request
+            };
+
+            const result = await this.props.actions.submitInteractiveDialog(refreshSubmission);
+
+            // Handle errors using common error handler
+            const errorResult = this.handleSubmissionError(result, 'interactive_dialog.refresh_failed', 'Field refresh failed');
+            if (errorResult) {
+                return errorResult;
+            }
+
+            // Check if the response contains a refreshed form
+            if (result?.data?.type === 'form' && result?.data?.form) {
+                const form = this.convertServerResponseToForm(result.data.form);
+
+                return {
+                    data: {
+                        type: 'form' as const,
+                        form,
+                    },
+                };
+            }
+
+            // Default success response (no form changes)
+            return {
+                data: {
+                    type: 'ok' as const,
+                },
+            };
+        } catch (error) {
+            this.logError('Field refresh failed', {
+                error: error instanceof Error ? error.message : String(error),
+                fieldName: call?.selected_field || 'unknown',
+                sourceUrl: this.props.sourceUrl,
+            });
+            return {
+                error: {
+                    type: 'error' as const,
+                    text: error instanceof Error ? error.message : this.props.intl.formatMessage({
+                        id: 'interactive_dialog.refresh_failed',
+                        defaultMessage: 'Field refresh failed',
+                    }),
+                    data: {
+                        errors: {
+                            field_refresh: String(error),
+                        },
+                    },
+                },
+            };
+        }
     };
 
     /**
@@ -511,7 +677,7 @@ class InteractiveDialogAdapter extends React.PureComponent<Props> {
         return (
             <AppsFormContainer
                 form={form}
-                context={context}
+                appContext={context}
                 onExited={this.props.onExited || (() => {})}
                 onHide={this.cancelAdapter}
                 actions={{

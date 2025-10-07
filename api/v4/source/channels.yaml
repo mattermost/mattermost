@@ -2497,3 +2497,43 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+  "/api/v4/channels/{channel_id}/common_teams":
+    get:
+      tags:
+        - channels
+        - group message
+      summary: Get common teams for members of a Group Message.
+      description: |
+        Gets all the common teams for all active members of a Group Message channel.
+        Returns empty list of no common teams are found.
+
+        __Minimum server version__: 9.1
+
+        ##### Permissions
+        Must be authenticated and have the `read_channel` permission for the channel.
+      operationId: GetGroupMessageMembersCommonTeams
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Common teams retrieval successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Team"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+

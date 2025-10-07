@@ -5,3 +5,5 @@ playwright-report
 storage_state
 test-results
 results
+specs/**/*.yml
+specs/**/*.yaml

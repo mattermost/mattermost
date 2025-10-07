@@ -7802,5 +7802,9 @@
   {
     "id": "api.channel.update_channel.not_allowed.app_error",
     "translation": "정책이 적용된 채널들은 업데이트할 수 없습니다."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.rejected",
+    "translation": "사용자는 채널에 참여하는데 필요한 속성(attributes)이 없습니다."
   }
 ]

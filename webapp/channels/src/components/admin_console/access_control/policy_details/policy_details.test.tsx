@@ -3,11 +3,11 @@
 
 import {shallow} from 'enzyme';
 import React from 'react';
-import {act} from 'react-dom/test-utils';
 
 import type {ChannelWithTeamData} from '@mattermost/types/channels';
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
+import {act} from 'tests/react_testing_utils';
 
 import PolicyDetails from './policy_details';
 
@@ -93,6 +93,7 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
             deleteChannelPolicy: jest.fn(),
             getChannelMembers: jest.fn(),
             createJob: jest.fn(),
+            createAccessControlSyncJob: jest.fn(),
             updateAccessControlPolicyActive: jest.fn(),
             validateExpressionAgainstRequester: jest.fn(),
         });
