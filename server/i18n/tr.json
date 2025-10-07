@@ -2072,7 +2072,7 @@
   },
   {
     "id": "api.user.login.inactive.app_error",
-    "translation": "Hesabınız kullanımdan kaldırılmış olduğundan oturum açılamadı. Lütfen bir yönetici ile görüşün."
+    "translation": "Hesabınız etkisizleştirilmiş olduğundan oturum açılamadı. Lütfen bir yönetici ile görüşün."
   },
   {
     "id": "api.user.login.not_verified.app_error",
@@ -2980,7 +2980,7 @@
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
-    "translation": "Geçerli lisansta uyumluluk özelliği bulunmuyor. Lütfen Enterprise tarifesi lisansına geçmesi için sistem yöneticiniz ile görüşün."
+    "translation": "Geçerli lisansta uyumluluk özelliği bulunmuyor. Lütfen Enterprise lisansı tarifesine geçmesi için sistem yöneticiniz ile görüşün."
   },
   {
     "id": "ent.compliance.run_failed.error",
@@ -3096,7 +3096,7 @@
   },
   {
     "id": "ent.ldap.do_login.licence_disable.app_error",
-    "translation": "Geçerli lisansta AD/LDAP özelliği bulunmuyor. Lütfen Enterprise tarifesi lisansına geçmesi için sistem yöneticiniz ile görüşün."
+    "translation": "Geçerli lisansta AD/LDAP özelliği bulunmuyor. Lütfen Enterprise lisansı tarifesine geçmesi için sistem yöneticiniz ile görüşün."
   },
   {
     "id": "ent.ldap.do_login.matched_to_many_users.app_error",
@@ -3268,7 +3268,7 @@
   },
   {
     "id": "mfa.generate_qr_code.create_code.app_error",
-    "translation": "QR kodu üretilirken sorun çıktı."
+    "translation": "Kare kod oluşturulurken sorun çıktı."
   },
   {
     "id": "mfa.mfa_disabled.app_error",
@@ -3548,7 +3548,7 @@
   },
   {
     "id": "model.config.is_valid.allow_cookies_for_subdomains.app_error",
-    "translation": "Alt etki alanlarında çerezlere izin verilmesi için site adresinin ayarlanmış olması gereklidir."
+    "translation": "Alt etki alanlarında tanımlama bilgilerine izin verilmesi için site adresi ayarlanmış olmalıdır."
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
@@ -3564,7 +3564,7 @@
   },
   {
     "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
-    "translation": "Veri saklama görevinin başlangıç zamanı SS:DD biçiminde 24 saat düzeninde olmalıdır."
+    "translation": "Verileri tutma görevinin başlangıç zamanı SS:DD biçiminde 24 saat düzeninde olmalıdır."
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
@@ -3780,7 +3780,7 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "Kimlik hizmeti sağlayıcı adresi boş bir dizge olamaz."
+    "translation": "Kimlik hizmeti sağlayıcı yayınlayan adresi boş bir dizge olamaz."
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
@@ -4644,7 +4644,7 @@
   },
   {
     "id": "app.plugin.restart.app_error",
-    "translation": "Uygulama eki yükseltme işlemi sırasında yeniden başlatılamadı."
+    "translation": "Üst tarifeye geçilirken uygulama eki yeniden başlatılamadı."
   },
   {
     "id": "app.plugin.signature_decode.app_error",
@@ -6872,7 +6872,7 @@
   },
   {
     "id": "app.user.analytics_get_inactive_users_count.app_error",
-    "translation": "Etkin olmayan kullanıcılar sayılamadı."
+    "translation": "Etkisizleştirilmiş kullanıcılar sayılamadı."
   },
   {
     "id": "app.user.analytics_daily_active_users.app_error",
@@ -7987,7 +7987,7 @@
   },
   {
     "id": "ent.data_retention.run_failed.error",
-    "translation": "Veri saklama görevi yürütülemedi."
+    "translation": "Verileri tutma görevi yürütülemedi."
   },
   {
     "id": "api.templates.license_up_for_renewal_title",
@@ -8375,11 +8375,11 @@
   },
   {
     "id": "app.cloud.upgrade_plan_bot_message_single",
-    "translation": "{{.WorkspaceName}} çalışma alanının {{.UsersNum}} üyesi şurası için çalışma alanının güncellenmesini istedi: "
+    "translation": "{{.WorkspaceName}} çalışma alanının {{.UsersNum}} üyesi şu çalışma alanının üst tarifeye geçirilmesini istedi: "
   },
   {
     "id": "app.cloud.upgrade_plan_bot_message",
-    "translation": "{{.WorkspaceName}} çalışma alanının {{.UsersNum}} üyesi şurası için çalışma alanının güncellenmesini istedi: "
+    "translation": "{{.WorkspaceName}} çalışma alanının {{.UsersNum}} üyesi şu çalışma alanının üst tarifeye geçirilmesini istedi: "
   },
   {
     "id": "app.cloud.trial_plan_bot_message_single",
@@ -9127,7 +9127,7 @@
   },
   {
     "id": "api.getUsersForReporting.invalid_active_filter",
-    "translation": "Hem etkin hem de etkin olmayan kullanıcılar gizlenemez."
+    "translation": "Hem etkin hem de etkisizleştirilmiş kullanıcılar gizlenemez."
   },
   {
     "id": "api.user.create_user.user_limits.exceeded",
@@ -9671,7 +9671,7 @@
   },
   {
     "id": "app.user.update.lastAdmin.app_error",
-    "translation": "Son sistem yöneticisinin yetkileri alınamaz."
+    "translation": "Son sistem yöneticisinin rolü düşürülemez."
   },
   {
     "id": "plugin_reattach_request.is_valid.manifest.app_error",
@@ -10448,10 +10448,6 @@
     "translation": "Sınama türü geçersiz: {{.TestType}}"
   },
   {
-    "id": "api.not_implemented",
-    "translation": "Bu özellik henüz eklenmemiş."
-  },
-  {
     "id": "api.remote_cluster.import_not_allowed.app_error",
     "translation": "Uzak kümeden içe aktarıma izin verilmiyor"
   },
@@ -10794,5 +10790,13 @@
   {
     "id": "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled",
     "translation": "Onaylayanlar için yeni işaretlenmiş iletilerin bildirimleri kapatılamaz."
+  },
+  {
+    "id": "app.job.get_existing_jobs.error",
+    "translation": "Var olan görevler alınamadı."
+  },
+  {
+    "id": "app.submit_interactive_dialog.invalid_response",
+    "translation": "Etkileşimli pencere gönderiminde geçersiz bir yanıtla karşılaşıldı."
   }
 ]

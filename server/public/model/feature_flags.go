@@ -79,6 +79,9 @@ type FeatureFlags struct {
 	// Enable channel admins to manage ABAC rules for their channels
 	ChannelAdminManageABACRules bool
 
+	// Enable mobile SSO SAML code-exchange flow (no tokens in deep links)
+	MobileSSOCodeExchange bool
+
 	// FEATURE_FLAG_REMOVAL: AutoTranslation - Remove this when MVP is to be released
 	// Enable auto-translation feature for messages in channels
 	AutoTranslation bool
@@ -115,6 +118,8 @@ func (f *FeatureFlags) SetDefaults() {
 	f.EnableMattermostEntry = true
 	// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this default when feature is GA
 	f.ChannelAdminManageABACRules = false // Default to false for safety
+
+	f.MobileSSOCodeExchange = true
 
 	// FEATURE_FLAG_REMOVAL: AutoTranslation - Remove this default when MVP is to be released
 	f.AutoTranslation = false

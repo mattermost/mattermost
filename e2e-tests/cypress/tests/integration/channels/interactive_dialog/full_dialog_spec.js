@@ -128,7 +128,7 @@ describe('Interactive Dialog - Apps Form', () => {
                             cy.get('span').should('have.text', element.placeholder);
                         });
                     } else {
-                        cy.get(`#${element.name}`).should('be.visible').and('have.value', element.default).and('have.attr', 'placeholder', element.placeholder);
+                        cy.get(`#${element.name}`).should('be.visible').and('have.value', element.default || '').and('have.attr', 'placeholder', element.placeholder || '');
                     }
 
                     // * Verify that input element are given with the correct type of "input", "email", "number" and "password".

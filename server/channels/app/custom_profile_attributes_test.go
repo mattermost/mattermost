@@ -583,7 +583,7 @@ func TestDeleteCPAField(t *testing.T) {
 	for i := range 3 {
 		newValue := &model.PropertyValue{
 			TargetID:   model.NewId(),
-			TargetType: "user",
+			TargetType: model.PropertyValueTargetTypeUser,
 			GroupID:    cpaGroupID,
 			FieldID:    createdField.ID,
 			Value:      json.RawMessage(fmt.Sprintf(`"Value %d"`, i)),
@@ -662,7 +662,7 @@ func TestGetCPAValue(t *testing.T) {
 	t.Run("should fail if the group id is invalid", func(t *testing.T) {
 		propertyValue := &model.PropertyValue{
 			TargetID:   model.NewId(),
-			TargetType: "user",
+			TargetType: model.PropertyValueTargetTypeUser,
 			GroupID:    model.NewId(),
 			FieldID:    fieldID,
 			Value:      json.RawMessage(`"Value"`),
@@ -678,7 +678,7 @@ func TestGetCPAValue(t *testing.T) {
 	t.Run("should succeed if id exists", func(t *testing.T) {
 		propertyValue := &model.PropertyValue{
 			TargetID:   model.NewId(),
-			TargetType: "user",
+			TargetType: model.PropertyValueTargetTypeUser,
 			GroupID:    cpaGroupID,
 			FieldID:    fieldID,
 			Value:      json.RawMessage(`"Value"`),
@@ -702,7 +702,7 @@ func TestGetCPAValue(t *testing.T) {
 
 		propertyValue := &model.PropertyValue{
 			TargetID:   model.NewId(),
-			TargetType: "user",
+			TargetType: model.PropertyValueTargetTypeUser,
 			GroupID:    cpaGroupID,
 			FieldID:    createdField.ID,
 			Value:      json.RawMessage(`["option1", "option2", "option3"]`),
@@ -751,7 +751,7 @@ func TestListCPAValues(t *testing.T) {
 
 			value := &model.PropertyValue{
 				TargetID:   userID,
-				TargetType: "user",
+				TargetType: model.PropertyValueTargetTypeUser,
 				GroupID:    cpaGroupID,
 				FieldID:    field.ID,
 				Value:      json.RawMessage(fmt.Sprintf(`"Value %d"`, i)),

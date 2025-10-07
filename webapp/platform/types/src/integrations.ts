@@ -156,6 +156,7 @@ type Dialog = {
     submit_label?: string;
     notify_on_cancel?: boolean;
     state?: string;
+    source_url?: string;
 };
 
 export type DialogSubmission = {
@@ -169,6 +170,7 @@ export type DialogSubmission = {
         [x: string]: string | string[];
     };
     cancelled: boolean;
+    type?: string;
 };
 
 export type DialogElement = {
@@ -189,9 +191,15 @@ export type DialogElement = {
         text: string;
         value: any;
     }>;
+    refresh?: boolean;
+    min_date?: string;
+    max_date?: string;
+    time_interval?: number;
 };
 
 export type SubmitDialogResponse = {
     error?: string;
     errors?: Record<string, string>;
+    type?: string;
+    form?: Dialog;
 };

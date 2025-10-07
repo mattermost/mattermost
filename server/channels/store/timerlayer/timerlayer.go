@@ -6272,6 +6272,22 @@ func (s *TimerLayerPostStore) Delete(rctx request.CTX, postID string, timestamp 
 	return err
 }
 
+func (s *TimerLayerPostStore) DeleteAllPostRemindersForPost(postId string) error {
+	start := time.Now()
+
+	err := s.PostStore.DeleteAllPostRemindersForPost(postId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.DeleteAllPostRemindersForPost", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerPostStore) Get(rctx request.CTX, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	start := time.Now()
 
@@ -7023,6 +7039,22 @@ func (s *TimerLayerPostAcknowledgementStore) Delete(acknowledgement *model.PostA
 	return err
 }
 
+func (s *TimerLayerPostAcknowledgementStore) DeleteAllForPost(postID string) error {
+	start := time.Now()
+
+	err := s.PostAcknowledgementStore.DeleteAllForPost(postID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostAcknowledgementStore.DeleteAllForPost", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerPostAcknowledgementStore) Get(postID string, userID string) (*model.PostAcknowledgement, error) {
 	start := time.Now()
 
@@ -7739,6 +7771,22 @@ func (s *TimerLayerPropertyValueStore) Create(value *model.PropertyValue) (*mode
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PropertyValueStore.Create", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPropertyValueStore) CreateMany(values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	start := time.Now()
+
+	result, err := s.PropertyValueStore.CreateMany(values)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PropertyValueStore.CreateMany", success, elapsed)
 	}
 	return result, err
 }
