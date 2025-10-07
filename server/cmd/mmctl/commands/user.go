@@ -905,7 +905,6 @@ func convertUserToBot(c client.Client, _ *cobra.Command, userArgs []string) erro
 	for _, user := range users {
 		bot, _, err := c.ConvertUserToBot(context.TODO(), user.Id)
 		if err != nil {
-			printer.PrintError(err.Error())
 			multiErr = multierror.Append(multiErr, err)
 			continue
 		}
