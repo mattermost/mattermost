@@ -649,22 +649,7 @@ func (h *Hub) Start() {
 					}
 				} else {
 					// Fall back to checking all connections (less efficient)
-					members, err := h.platform.Store.Channel().GetAllChannelMemberIdsByChannelId(req.channelID)
-
-					if err != nil {
-						h.platform.logger.Error("Failed to get channel members for active users query", mlog.String("channel_id", req.channelID), mlog.Err(err))
-						req.result <- []string{}
-						// Return map to pool before sending result
-						h.stringStructMapPool.Put(userIDMap)
-						continue
-					}
-
-					if len(members) == 0 {
-						req.result <- []string{}
-						// Return map to pool before sending result
-						h.stringStructMapPool.Put(userIDMap)
-						continue
-					}
+					members, _ := h.platform.Store.Channel().GetAllChannelMemberIdsByChannelId(req.channelID)
 
 					membersMap := make(map[string]struct{}, len(members))
 					for _, m := range members {
