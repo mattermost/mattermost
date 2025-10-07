@@ -3052,7 +3052,6 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 	postsByRoot := map[string][]*model.Post{}
 	var rootIds []string
 	for _, post := range posts {
-		// skip if post is not a part of a thread
 		if post.RootId == "" {
 			continue
 		}
@@ -3062,6 +3061,8 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 	if len(rootIds) == 0 {
 		return nil
 	}
+
+	// Use FOR UPDATE to lock the thread rows
 	threadsByRootsSql, threadsByRootsArgs, err := s.getQueryBuilder().
 		Select(
 			"Threads.PostId",
@@ -3073,6 +3074,7 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 		).
 		From("Threads").
 		Where(sq.Eq{"Threads.PostId": rootIds}).
+		Suffix("FOR UPDATE"). // Add row-level locking
 		ToSql()
 	if err != nil {
 		return errors.Wrap(err, "updateThreadsFromPosts_ToSql")
@@ -3093,69 +3095,64 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 
 	for rootId, posts := range postsByRoot {
 		if thread, found := threadByRoot[rootId]; !found {
-			data := []struct {
-				UserId    string
-				RepliedAt int64
-			}{}
-
-			// calculate participants
-			if err := transaction.Select(&data, "SELECT Posts.UserId, MAX(Posts.CreateAt) as RepliedAt FROM Posts WHERE Posts.RootId=? AND Posts.DeleteAt=0 GROUP BY Posts.UserId ORDER BY RepliedAt ASC", rootId); err != nil {
-				return err
-			}
-
-			var participants model.StringArray
-			for _, item := range data {
-				participants = append(participants, item.UserId)
-			}
-
-			// calculate reply count
-			var count int64
-			err := transaction.Get(&count, "SELECT COUNT(Posts.Id) FROM Posts WHERE Posts.RootId=? And Posts.DeleteAt=0", rootId)
-			if err != nil {
-				return err
-			}
-			// calculate last reply at
-			var lastReplyAt int64
-			err = transaction.Get(&lastReplyAt, "SELECT COALESCE(MAX(Posts.CreateAt), 0) FROM Posts WHERE Posts.RootID=? and Posts.DeleteAt=0", rootId)
-			if err != nil {
-				return err
-			}
-
+			// Thread doesn't exist, try to create it
 			channelId := posts[0].ChannelId
 			teamId, ok := teamIdByChannelId[channelId]
 			if !ok {
-				// get teamId for channel
 				err = transaction.Get(&teamId, "SELECT COALESCE(Channels.TeamId, '') FROM Channels WHERE Channels.Id=?", channelId)
 				if err != nil {
 					return err
 				}
-
-				// store teamId for channel for efficiency
 				teamIdByChannelId[channelId] = teamId
 			}
-			// no metadata entry, create one
-			if _, err := transaction.Exec(`INSERT INTO Threads
-				(PostId, ChannelId, ReplyCount, LastReplyAt, Participants, ThreadTeamId)
-				VALUES ($1, $2, $3, $4, $5, $6)
-				ON CONFLICT (PostId) DO UPDATE SET
-					ReplyCount = Threads.ReplyCount + EXCLUDED.ReplyCount,
-					LastReplyAt = GREATEST(Threads.LastReplyAt, EXCLUDED.LastReplyAt),
-					Participants = COALESCE(
-							(
-								SELECT jsonb_agg(DISTINCT elem)
-								FROM (
-									SELECT jsonb_array_elements(Threads.Participants) AS elem
-									UNION
-									SELECT jsonb_array_elements(EXCLUDED.Participants) AS elem
-								) merged
-							),
-							'[]'::jsonb
-						)
-			`, rootId, channelId, count, lastReplyAt, participants, teamId); err != nil {
+
+			// Use ON CONFLICT DO NOTHING - let one transaction win
+			_, err := transaction.Exec(`
+				INSERT INTO Threads (PostId, ChannelId, ReplyCount, LastReplyAt, Participants, ThreadTeamId)
+				VALUES ($1, $2, 0, 0, '[]'::jsonb, $3)
+				ON CONFLICT (PostId) DO NOTHING
+			`, rootId, channelId, teamId)
+
+			if err != nil {
+				return err
+			}
+
+			_, err = transaction.Exec(`
+			UPDATE Threads
+			SET 
+				ReplyCount = (
+					SELECT COUNT(*) 
+					FROM Posts 
+					WHERE Posts.RootId = $1 AND Posts.DeleteAt = 0
+				),
+				LastReplyAt = (
+					SELECT COALESCE(MAX(Posts.CreateAt), 0) 
+					FROM Posts 
+					WHERE Posts.RootId = $1 AND Posts.DeleteAt = 0
+				),
+				Participants = (
+					SELECT COALESCE(
+						jsonb_agg(UserId ORDER BY RepliedAt ASC),
+						'[]'::jsonb
+					)
+					FROM (
+						SELECT Posts.UserId, MAX(Posts.CreateAt) as RepliedAt 
+						FROM Posts 
+						WHERE Posts.RootId = $1 AND Posts.DeleteAt = 0 
+						GROUP BY Posts.UserId
+					) AS user_replies
+				)
+			WHERE PostId = $1
+		`, rootId)
+
+			// Now update the thread with actual calculated values
+			// This happens after the insert, so the thread definitely exists
+			err = s.recalculateThreadMetadata(transaction, rootId)
+			if err != nil {
 				return err
 			}
 		} else {
-			// metadata exists, update it
+			// Thread exists, update incrementally
 			for _, post := range posts {
 				thread.ReplyCount += 1
 				if thread.Participants.Contains(post.UserId) {
@@ -3177,6 +3174,45 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 		}
 	}
 	return nil
+}
+
+// Helper function to recalculate thread metadata from Posts table
+func (s *SqlPostStore) recalculateThreadMetadata(transaction *sqlxTxWrapper, rootId string) error {
+	data := []struct {
+		UserId    string
+		RepliedAt int64
+	}{}
+
+	if err := transaction.Select(&data, "SELECT Posts.UserId, MAX(Posts.CreateAt) as RepliedAt FROM Posts WHERE Posts.RootId=? AND Posts.DeleteAt=0 GROUP BY Posts.UserId ORDER BY RepliedAt ASC", rootId); err != nil {
+		return err
+	}
+
+	var participants model.StringArray
+	for _, item := range data {
+		participants = append(participants, item.UserId)
+	}
+
+	var count int64
+	err := transaction.Get(&count, "SELECT COUNT(Posts.Id) FROM Posts WHERE Posts.RootId=? AND Posts.DeleteAt=0", rootId)
+	if err != nil {
+		return err
+	}
+
+	var lastReplyAt int64
+	err = transaction.Get(&lastReplyAt, "SELECT COALESCE(MAX(Posts.CreateAt), 0) FROM Posts WHERE Posts.RootId=? AND Posts.DeleteAt=0", rootId)
+	if err != nil {
+		return err
+	}
+
+	_, err = transaction.Exec(`
+		UPDATE Threads
+		SET ReplyCount = $1,
+			LastReplyAt = $2,
+			Participants = $3
+		WHERE PostId = $4
+	`, count, lastReplyAt, participants, rootId)
+
+	return err
 }
 
 func (s *SqlPostStore) SetPostReminder(reminder *model.PostReminder) error {
