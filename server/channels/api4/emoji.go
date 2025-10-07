@@ -145,7 +145,7 @@ func patchEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	emoji.Id = c.Params.EmojiId
 
-	auditRec := c.MakeAuditRecord(model.AuditEventUpdateEmoji, model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventDeleteEmoji, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddEventResultState(&emoji)
 	auditRec.AddEventObjectType("emoji")
@@ -156,8 +156,8 @@ func patchEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if oldEmoji.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystemWideEmojis) {
-		c.SetPermissionError(model.PermissionManageSystemWideEmojis)
+	if oldEmoji.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOthersEmojis) {
+		c.SetPermissionError(model.PermissionManageOthersEmojis)
 		return
 	}
 
