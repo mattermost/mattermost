@@ -973,9 +973,7 @@ func userConvertCmdF(c client.Client, cmd *cobra.Command, userArgs []string) err
 }
 
 func convertUserToBot(c client.Client, _ *cobra.Command, userArgs []string) error {
-
 	users, err := getUsersFromArgs(c, userArgs)
-
 	if err != nil {
 		return err
 	}
