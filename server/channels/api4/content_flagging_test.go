@@ -14,8 +14,6 @@ import (
 )
 
 func TestGetFlaggingConfiguration(t *testing.T) {
-	mainHelper.Parallel(t)
-
 	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
 	th := Setup(t)
 	defer func() {
@@ -57,8 +55,6 @@ func TestGetFlaggingConfiguration(t *testing.T) {
 }
 
 func TestSaveContentFlaggingSettings(t *testing.T) {
-	mainHelper.Parallel(t)
-
 	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
 	th := Setup(t).InitBasic()
 	defer func() {
@@ -143,8 +139,6 @@ func TestSaveContentFlaggingSettings(t *testing.T) {
 }
 
 func TestGetContentFlaggingSettings(t *testing.T) {
-	mainHelper.Parallel(t)
-
 	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
 	th := Setup(t).InitBasic()
 	defer func() {
@@ -202,8 +196,6 @@ func TestGetContentFlaggingSettings(t *testing.T) {
 }
 
 func TestGetPostPropertyValues(t *testing.T) {
-	mainHelper.Parallel(t)
-
 	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
 	th := Setup(t).InitBasic()
 	defer func() {
@@ -305,8 +297,6 @@ func TestGetPostPropertyValues(t *testing.T) {
 }
 
 func TestGetFlaggedPost(t *testing.T) {
-	mainHelper.Parallel(t)
-
 	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
 	th := Setup(t).InitBasic()
 	defer func() {
@@ -457,8 +447,6 @@ func TestGetFlaggedPost(t *testing.T) {
 }
 
 func TestFlagPost(t *testing.T) {
-	mainHelper.Parallel(t)
-
 	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
 	th := Setup(t).InitBasic()
 	defer func() {
@@ -619,8 +607,6 @@ func TestFlagPost(t *testing.T) {
 }
 
 func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
-	mainHelper.Parallel(t)
-
 	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
 	th := Setup(t)
 	defer func() {
@@ -704,8 +690,6 @@ func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
 }
 
 func TestSearchReviewers(t *testing.T) {
-	mainHelper.Parallel(t)
-
 	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
 	th := Setup(t).InitBasic()
 	defer func() {
@@ -892,8 +876,6 @@ func TestSearchReviewers(t *testing.T) {
 }
 
 func TestAssignContentFlaggingReviewer(t *testing.T) {
-	mainHelper.Parallel(t)
-
 	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
 	th := Setup(t).InitBasic()
 	defer func() {
