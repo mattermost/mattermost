@@ -5026,7 +5026,7 @@ func (c *Client4) RegisterOAuthClient(ctx context.Context, request *ClientRegist
 	if err != nil {
 		return nil, nil, NewAppError("RegisterOAuthClient", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.DoAPIPostBytes(ctx, c.oAuthRegisterRoute(), buf)
+	r, err := c.doAPIRequestBytes(ctx, http.MethodPost, c.oAuthRegisterRoute(), buf, "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
