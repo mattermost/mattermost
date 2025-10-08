@@ -511,5 +511,9 @@
       "one": "Kunne ikke sende {{.Count}} planlagt innlegg.",
       "other": "Kunne ikke sende {{.Count}} planlagte innlegg."
     }
+  },
+  {
+    "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
+    "translation": "Kunne ikke hente metadata fra URL-adressen til Identity Provider."
   }
 ]
