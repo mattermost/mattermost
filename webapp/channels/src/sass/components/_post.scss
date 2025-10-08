@@ -1455,12 +1455,35 @@
             z-index: 100;
             top: 0;
             right: 0;
-            padding: 5px 7px;
-            background: functions.alpha-color(variables.$black, 0.7);
-            color: variables.$white;
             font-size: 0.9em;
+            display: inline-flex;
+            align-items: center;
+            column-gap: 8px;
+            white-space: nowrap;
 
-            a {
+            .post__status {
+                gap: 6px;
+                padding: 4px 8px;
+                border-radius: 4px;
+                background: var(--center-channel-bg);
+            }
+
+            &__links {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                margin-left: 8px;
+                padding: 5px 7px;
+                border-radius: 4px;
+                background: functions.alpha-color(variables.$black, 0.7);
+
+                a {
+                    color: variables.$white;
+                }
+            }
+
+            &__divider {
+                display: inline-flex;
                 color: variables.$white;
             }
         }

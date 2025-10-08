@@ -338,21 +338,8 @@ function PostComponent(props: Props) {
         props.actions.selectPostCard(post);
     };
 
-    // When adding clickable targets within a root post to exclude from post's on click to open thread,
-    // please add to/maintain the selector below
-    const statusIndicator = isFailed ? (
-        <span
-            className='post__status post__status--failed'
-            role='alert'
-        >
-            <i className='icon icon-alert-outline' />
-            <FormattedMessage
-                id='post.status.failed'
-                defaultMessage='Message failed to send'
-            />
-        </span>
-    ) : null;
-
+    // When adding clickable targets within a root post to exclude from the post click handler,
+    // remember to update the selector below.
     const isEligibleForClick = useMemo(() => makeIsEligibleForClick('.post-image__column, .embed-responsive-item, .attachment, .hljs, code'), []);
 
     const handlePostClick = useCallback((e: MouseEvent<HTMLDivElement>) => {
@@ -607,7 +594,6 @@ function PostComponent(props: Props) {
                                         timestampProps={{ ...props.timestampProps, style: props.isConsecutivePost && !props.compactDisplay ? 'narrow' : undefined }}
                                     />
                                 }
-                                {statusIndicator}
                                 {priority}
                                 {post.props && post.props.card &&
                                     <WithTooltip
