@@ -1462,8 +1462,8 @@
             white-space: nowrap;
 
             &__error-message {
-                padding: 0;
-                background: transparent;
+                padding: 2px 6px;
+                background: functions.alpha-color(variables.$white, 0.7);
             }
 
             &__action-buttons {

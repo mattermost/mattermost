@@ -45,7 +45,7 @@ const FailedPostOptions = ({
                 <i className='icon icon-alert-outline'/>
                 <FormattedMessage
                     id='post.status.failed'
-                    defaultMessage='Message failed to send'
+                    defaultMessage='Send failed'
                 />
             </span>
             <span className='pending-post-actions__action-buttons'>
