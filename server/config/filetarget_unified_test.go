@@ -1,4 +1,5 @@
-//go:build auditonly
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
 
 package config
 
@@ -7,20 +8,14 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMakeFileTarget(t *testing.T) {
 	cfg, err := makeFileTarget("/tmp/audit.log", "error", true, 5, 7, 2, true)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	if cfg.Type != "file" {
-		t.Fatalf("expected Type=file, got %q", cfg.Type)
-	}
-	if cfg.Format != "json" {
-		t.Fatalf("expected Format=json, got %q", cfg.Format)
-	}
+	require.NoError(t, err)
+	require.Equal(t, "file", cfg.Type)
+	require.Equal(t, "json", cfg.Format)
 
 	var opts struct {
 		Filename    string `json:"filename"`
@@ -29,16 +24,12 @@ func TestMakeFileTarget(t *testing.T) {
 		Max_backups int    `json:"max_backups"`
 		Compress    bool   `json:"compress"`
 	}
-	if err := json.Unmarshal(cfg.Options, &opts); err != nil {
-		t.Fatalf("failed to unmarshal Options: %v", err)
-	}
-
-	if opts.Filename != "/tmp/audit.log" {
-		t.Errorf("Filename mismatch: %q", opts.Filename)
-	}
-	if opts.Max_size != 5 || opts.Max_age != 7 || opts.Max_backups != 2 || !opts.Compress {
-		t.Errorf("rotation opts mismatch: %+v", opts)
-	}
+	require.NoError(t, json.Unmarshal(cfg.Options, &opts))
+	require.Equal(t, "/tmp/audit.log", opts.Filename)
+	require.Equal(t, 5, opts.Max_size)
+	require.Equal(t, 7, opts.Max_age)
+	require.Equal(t, 2, opts.Max_backups)
+	require.True(t, opts.Compress)
 }
 
 func TestMakeFileTargetFromAudit(t *testing.T) {
@@ -47,7 +38,6 @@ func TestMakeFileTargetFromAudit(t *testing.T) {
 	ma := 9
 	mb := 4
 	c := true
-
 	a := &model.ExperimentalAuditSettings{
 		FileName:       &fn,
 		FileMaxSizeMB:  &ms,
@@ -57,16 +47,9 @@ func TestMakeFileTargetFromAudit(t *testing.T) {
 	}
 
 	cfg, err := makeFileTargetFromAudit(a, "warn", false)
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
-
-	if cfg.Type != "file" {
-		t.Fatalf("expected Type=file, got %q", cfg.Type)
-	}
-	if cfg.Format != "plain" {
-		t.Fatalf("expected Format=plain, got %q", cfg.Format)
-	}
+	require.NoError(t, err)
+	require.Equal(t, "file", cfg.Type)
+	require.Equal(t, "plain", cfg.Format)
 
 	var opts struct {
 		Filename    string `json:"filename"`
@@ -75,11 +58,10 @@ func TestMakeFileTargetFromAudit(t *testing.T) {
 		Max_backups int    `json:"max_backups"`
 		Compress    bool   `json:"compress"`
 	}
-	if err := json.Unmarshal(cfg.Options, &opts); err != nil {
-		t.Fatalf("failed to unmarshal Options: %v", err)
-	}
-
-	if opts.Filename != fn || opts.Max_size != ms || opts.Max_age != ma || opts.Max_backups != mb || !opts.Compress {
-		t.Errorf("rotation opts mismatch: %+v", opts)
-	}
+	require.NoError(t, json.Unmarshal(cfg.Options, &opts))
+	require.Equal(t, fn, opts.Filename)
+	require.Equal(t, ms, opts.Max_size)
+	require.Equal(t, ma, opts.Max_age)
+	require.Equal(t, mb, opts.Max_backups)
+	require.True(t, opts.Compress)
 }
