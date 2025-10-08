@@ -1088,12 +1088,10 @@ func TestFlagPost(t *testing.T) {
 	})
 
 	t.Run("should fail when comment is required but not provided", func(t *testing.T) {
-		appErr := th.App.SaveContentFlaggingConfig(getBaseConfig())
+		config := getBaseConfig()
+		config.AdditionalSettings.ReporterCommentRequired = model.NewPointer(true)
+		appErr := th.App.SaveContentFlaggingConfig(config)
 		require.Nil(t, appErr)
-
-		th.UpdateConfig(func(conf *model.Config) {
-			conf.ContentFlaggingSettings.AdditionalSettings.ReporterCommentRequired = model.NewPointer(true)
-		})
 
 		post := th.CreatePost(th.BasicChannel)
 
@@ -1104,11 +1102,6 @@ func TestFlagPost(t *testing.T) {
 
 		appErr = th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
 		require.NotNil(t, appErr)
-
-		// Reset config
-		th.UpdateConfig(func(conf *model.Config) {
-			conf.ContentFlaggingSettings.AdditionalSettings.ReporterCommentRequired = model.NewPointer(false)
-		})
 	})
 
 	t.Run("should fail when trying to flag already flagged post", func(t *testing.T) {
@@ -1133,12 +1126,10 @@ func TestFlagPost(t *testing.T) {
 	})
 
 	t.Run("should hide flagged content when configured", func(t *testing.T) {
-		appErr := th.App.SaveContentFlaggingConfig(getBaseConfig())
+		config := getBaseConfig()
+		config.AdditionalSettings.HideFlaggedContent = model.NewPointer(true)
+		appErr := th.App.SaveContentFlaggingConfig(config)
 		require.Nil(t, appErr)
-
-		th.UpdateConfig(func(conf *model.Config) {
-			conf.ContentFlaggingSettings.AdditionalSettings.HideFlaggedContent = model.NewPointer(true)
-		})
 
 		post := th.CreatePost(th.BasicChannel)
 
@@ -1154,11 +1145,6 @@ func TestFlagPost(t *testing.T) {
 		deletedPost, appErr := th.App.GetSinglePost(th.Context, post.Id, false)
 		require.NotNil(t, appErr)
 		require.Nil(t, deletedPost)
-
-		// Reset config
-		th.UpdateConfig(func(conf *model.Config) {
-			conf.ContentFlaggingSettings.AdditionalSettings.HideFlaggedContent = model.NewPointer(false)
-		})
 	})
 
 	t.Run("should create content review post for reviewers", func(t *testing.T) {
