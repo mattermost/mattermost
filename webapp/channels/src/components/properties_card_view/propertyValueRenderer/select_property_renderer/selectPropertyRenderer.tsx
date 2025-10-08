@@ -27,7 +27,7 @@ export default function SelectPropertyRenderer({field, value}: Props) {
                 color,
             }}
         >
-            {value.value}
+            {value.value as string}
         </div>
     );
 }
@@ -36,7 +36,7 @@ function getOptionColors(colorName: string): {backgroundColor: string; color: st
     switch (colorName) {
     case 'light_blue':
         return {
-            backgroundColor: 'rgba(var(--button-bg-rgb), 0.08)',
+            backgroundColor: 'var(--sidebar-text-active-border)',
             color: '#FFF',
         };
     case 'dark_blue':
@@ -49,8 +49,12 @@ function getOptionColors(colorName: string): {backgroundColor: string; color: st
             backgroundColor: 'var(--error-text)',
             color: '#FFF',
         };
+    case 'light_grey':
+        return {
+            backgroundColor: 'rgba(var(--center-channel-color-rgb), 0.12)',
+            color: 'rgba(var(--center-channel-color-rgb), 1)',
+        };
     default:
-        // Default is light grey color
         return {
             backgroundColor: 'rgba(var(--center-channel-color-rgb), 0.12)',
             color: 'rgba(var(--center-channel-color-rgb), 1)',

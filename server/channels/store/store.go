@@ -414,6 +414,7 @@ type PostStore interface {
 	GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, cursor model.GetPostsSinceForSyncCursor, limit int) ([]*model.Post, model.GetPostsSinceForSyncCursor, error)
 	SetPostReminder(reminder *model.PostReminder) error
 	GetPostReminders(now int64) ([]*model.PostReminder, error)
+	DeleteAllPostRemindersForPost(postId string) error
 	GetPostReminderMetadata(postID string) (*PostReminderMetadata, error)
 	// GetNthRecentPostTime returns the CreateAt time of the nth most recent post.
 	GetNthRecentPostTime(n int64) (int64, error)
@@ -1064,6 +1065,7 @@ type PostAcknowledgementStore interface {
 	SaveWithModel(acknowledgement *model.PostAcknowledgement) (*model.PostAcknowledgement, error)
 	BatchSave(acknowledgements []*model.PostAcknowledgement) ([]*model.PostAcknowledgement, error)
 	Delete(acknowledgement *model.PostAcknowledgement) error
+	DeleteAllForPost(postID string) error
 	BatchDelete(acknowledgements []*model.PostAcknowledgement) error
 }
 
@@ -1117,6 +1119,7 @@ type PropertyFieldStore interface {
 
 type PropertyValueStore interface {
 	Create(value *model.PropertyValue) (*model.PropertyValue, error)
+	CreateMany(values []*model.PropertyValue) ([]*model.PropertyValue, error)
 	Get(groupID, id string) (*model.PropertyValue, error)
 	GetMany(groupID string, ids []string) ([]*model.PropertyValue, error)
 	SearchPropertyValues(opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error)

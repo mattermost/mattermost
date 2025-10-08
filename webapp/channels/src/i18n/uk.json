@@ -5013,7 +5013,6 @@
   "search_hint.enter_to_search": "Натисніть Enter для пошуку",
   "search_hint.enter_to_select": "Натисніть Enter, щоб вибрати",
   "search_hint.filter": "Фільтруйте пошук за допомогою:",
-  "search_hint.reset_filters": "Ваші фільтри скинуто, оскільки ви вибрали іншу команду",
   "search_item.channelArchived": "Архівовано",
   "search_item.direct": "Приватне повідомлення (з {username})",
   "search_item.file_tag.direct_message": "Приватне повідомлення",

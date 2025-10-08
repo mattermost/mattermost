@@ -35,7 +35,7 @@ function TestResultsModal({
     isStacked = false,
     actions,
 }: Props): JSX.Element {
-    const dispatch = useDispatch<any>();
+    const dispatch = useDispatch();
     const [term, setTerm] = useState<string>('');
     const [users, setUsers] = useState<UserProfile[]>([]);
     const [total, setTotal] = useState<number>(0);

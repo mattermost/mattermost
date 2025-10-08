@@ -110,7 +110,7 @@ export default class InstalledCommands extends React.PureComponent<Props> {
                         id='installed_commands.search.empty'
                         defaultMessage='No slash commands match <b>{searchTerm}</b>'
                         values={{
-                            b: (chunks: string) => <b>{chunks}</b>,
+                            b: (chunks) => <b>{chunks}</b>,
                         }}
                     />
                 }

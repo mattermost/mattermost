@@ -28,7 +28,6 @@ type Props = {
     inputClassName: string;
     helpText?: React.ReactNode | string;
     placeholder?: string;
-    footer?: Node;
     disabled?: boolean;
     toggleFocus?: ((focus: boolean) => void) | null;
     listComponent: typeof SuggestionList | typeof ModalSuggestionList;
@@ -110,7 +109,6 @@ export default class AutocompleteSelector extends React.PureComponent<Props, Sta
         const {
             providers,
             placeholder,
-            footer,
             label,
             labelClassName,
             helpText,
@@ -178,7 +176,6 @@ export default class AutocompleteSelector extends React.PureComponent<Props, Sta
                         listPosition={listPosition}
                     />
                     {helpTextContent}
-                    {footer}
                 </div>
             </div>
         );
