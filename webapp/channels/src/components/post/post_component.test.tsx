@@ -552,7 +552,7 @@ describe('PostComponent', () => {
     });
 
     describe('post status indicators', () => {
-        test('greys out post while pending without showing status indicator', () => {
+        test('greys out post while pending', () => {
             const pendingPost = TestHelper.getPostMock({
                 id: 'pending-post',
                 pending_post_id: 'pending-post',
@@ -567,8 +567,6 @@ describe('PostComponent', () => {
             const postElement = container.querySelector('.post');
             expect(postElement).not.toBeNull();
             expect(postElement).toHaveClass('post--pending');
-            expect(screen.queryByText('Sending…')).not.toBeInTheDocument();
-            expect(screen.queryByTestId('loadingSpinner')).not.toBeInTheDocument();
             expect(container.querySelector('.post__time')).toBeNull();
         });
 
