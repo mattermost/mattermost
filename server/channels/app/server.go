@@ -274,7 +274,7 @@ func NewServer(options ...Option) (*Server, error) {
 	// below this. Otherwise, please add it to Channels struct in app/channels.go.
 	// -------------------------------------------------------------------------
 
-	if *s.platform.Config().LogSettings.EnableDiagnostics && *s.platform.Config().LogSettings.EnableSentry {
+	if *s.platform.Config().LogSettings.EnableSentry {
 		switch model.GetServiceEnvironment() {
 		case model.ServiceEnvironmentDev:
 			mlog.Warn("Sentry reporting is enabled, but service environment is dev. Disabling reporting.")
@@ -868,7 +868,7 @@ func (s *Server) Start() error {
 
 	switch model.GetServiceEnvironment() {
 	case model.ServiceEnvironmentProduction, model.ServiceEnvironmentTest:
-		if *s.platform.Config().LogSettings.EnableDiagnostics && *s.platform.Config().LogSettings.EnableSentry {
+		if *s.platform.Config().LogSettings.EnableSentry {
 			sentryHandler := sentryhttp.New(sentryhttp.Options{
 				Repanic: true,
 			})
