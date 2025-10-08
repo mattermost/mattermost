@@ -40,8 +40,8 @@
 
     &__header {
         display: flex;
-        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-        background-color: rgba(var(--center-channel-color-rgb), 0.04);
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+        border-radius: var(--radius-s);
     }
 
     &__header-cell {
