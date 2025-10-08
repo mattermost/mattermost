@@ -552,7 +552,7 @@ describe('PostComponent', () => {
     });
 
     describe('post status indicators', () => {
-        test('shows sending indicator while post is pending', () => {
+        test('greys out post while pending without showing status indicator', () => {
             const pendingPost = TestHelper.getPostMock({
                 id: 'pending-post',
                 pending_post_id: 'pending-post',
@@ -567,8 +567,8 @@ describe('PostComponent', () => {
             const postElement = container.querySelector('.post');
             expect(postElement).not.toBeNull();
             expect(postElement).toHaveClass('post--pending');
-            expect(screen.getByText('Sending…')).toBeInTheDocument();
-            expect(screen.getByTestId('loadingSpinner')).toBeInTheDocument();
+            expect(screen.queryByText('Sending…')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('loadingSpinner')).not.toBeInTheDocument();
             expect(container.querySelector('.post__time')).toBeNull();
         });
 
@@ -587,6 +587,7 @@ describe('PostComponent', () => {
             const postElement = container.querySelector('.post');
             expect(postElement).not.toBeNull();
             expect(postElement).not.toHaveClass('post--pending');
+            expect(postElement).toHaveClass('post--failed');
             expect(screen.getByText('Message failed to send')).toBeInTheDocument();
             expect(screen.queryByTestId('loadingSpinner')).not.toBeInTheDocument();
             expect(screen.getByText('Retry')).toBeInTheDocument();

@@ -31,7 +31,6 @@ import PostBodyAdditionalContent from 'components/post_view/post_body_additional
 import PostMessageContainer from 'components/post_view/post_message_view';
 import PostPreHeader from 'components/post_view/post_pre_header';
 import PostTime from 'components/post_view/post_time';
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import ReactionList from 'components/post_view/reaction_list';
 import ThreadFooter from 'components/threading/channel_threads/thread_footer';
 import type { Props as TimestampProps } from 'components/timestamp/timestamp';
@@ -301,6 +300,7 @@ function PostComponent(props: Props) {
             'same--user': props.isConsecutivePost && (!props.compactDisplay || props.location === Locations.RHS_COMMENT),
             'cursor--pointer': alt && !props.channelIsArchived,
             'post--pending': isPending,
+            'post--failed': isFailed,
             'post--hide-controls': post.failed || post.state === Posts.POST_DELETED,
             'post--comment same--root': fromAutoResponder,
             'post--pinned-or-flagged': (post.is_pinned || props.isFlagged) && props.location === Locations.CENTER,
@@ -340,18 +340,7 @@ function PostComponent(props: Props) {
 
     // When adding clickable targets within a root post to exclude from post's on click to open thread,
     // please add to/maintain the selector below
-    const statusIndicator = isPending ? (
-        <span
-            className='post__status post__status--sending'
-            aria-live='polite'
-        >
-            <LoadingSpinner style={{ fontSize: '12px' }} />
-            <FormattedMessage
-                id='post.status.sending'
-                defaultMessage='Sending…'
-            />
-        </span>
-    ) : isFailed ? (
+    const statusIndicator = isFailed ? (
         <span
             className='post__status post__status--failed'
             role='alert'
@@ -699,5 +688,3 @@ function PostComponent(props: Props) {
 }
 
 export default withPostErrorBoundary(PostComponent);
-
-
