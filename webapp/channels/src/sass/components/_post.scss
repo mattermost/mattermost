@@ -1462,8 +1462,8 @@
             white-space: nowrap;
 
             .post__status {
-                padding: 3px 6px;
-                background: var(--center-channel-bg);
+                padding: 0;
+                background: transparent;
             }
 
             &__links {
