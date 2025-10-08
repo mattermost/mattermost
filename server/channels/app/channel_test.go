@@ -2379,6 +2379,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			moderations, appErr := th.App.PatchChannelModerationsForChannel(th.Context, channel, tc.ChannelModerationsPatch)
 			if tc.ShouldError {
 				require.NotNil(t, appErr)
+				require.Equal(t, http.StatusForbidden, appErr.StatusCode)
 				return
 			}
 			require.Nil(t, appErr)
