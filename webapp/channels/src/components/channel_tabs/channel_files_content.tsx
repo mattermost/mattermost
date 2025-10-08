@@ -67,33 +67,27 @@ function ChannelFilesContent({channelId}: Props) {
 
     if (!fileAttachmentsEnabled) {
         return (
-            <div className='channel-tab-panel-content channel-tab-panel-content--files'>
-                <div className='channel-tab-panel-content__placeholder'>
-                    <h3>{'Files'}</h3>
-                    <p>{'File attachments are not enabled for this server.'}</p>
-                </div>
+            <div className='channel-tab-panel-content__placeholder'>
+                <h3>{'Files'}</h3>
+                <p>{'File attachments are not enabled for this server.'}</p>
             </div>
         );
     }
 
     if (!channel || channel.id !== channelId) {
         return (
-            <div className='channel-tab-panel-content channel-tab-panel-content--files'>
-                <div className='channel-tab-panel-content__placeholder'>
-                    <h3>{'Files'}</h3>
-                    <p>{'Loading files...'}</p>
-                </div>
+            <div className='channel-tab-panel-content__placeholder'>
+                <h3>{'Files'}</h3>
+                <p>{'Loading files...'}</p>
             </div>
         );
     }
 
     if (isLoading) {
         return (
-            <div className='channel-tab-panel-content channel-tab-panel-content--files'>
-                <div className='channel-tab-panel-content__placeholder'>
-                    <h3>{'Files'}</h3>
-                    <p>{'Loading files...'}</p>
-                </div>
+            <div className='channel-tab-panel-content__placeholder'>
+                <h3>{'Files'}</h3>
+                <p>{'Loading files...'}</p>
             </div>
         );
     }
@@ -101,11 +95,9 @@ function ChannelFilesContent({channelId}: Props) {
     const fileResultsArray = Object.values(fileResults);
     if (fileResultsArray.length === 0) {
         return (
-            <div className='channel-tab-panel-content channel-tab-panel-content--files'>
-                <div className='channel-tab-panel-content__placeholder'>
-                    <h3>{'Files'}</h3>
-                    <p>{'No files found in this channel.'}</p>
-                </div>
+            <div className='channel-tab-panel-content__placeholder'>
+                <h3>{'Files'}</h3>
+                <p>{'No files found in this channel.'}</p>
             </div>
         );
     }
@@ -128,20 +120,18 @@ function ChannelFilesContent({channelId}: Props) {
     });
 
     return (
-        <div className='channel-tab-panel-content channel-tab-panel-content--files'>
-            <div className='channel-files-content'>
-                <div className='channel-files-content__header'>
-                    <h3 className='channel-files-content__title'>{'Files'}</h3>
-                </div>
-                <div className='channel-files-content__table'>
-                    <ChannelFilesTable
-                        files={tableFiles}
-                        isLoading={isLoading}
-                        actions={{
-                            openModal: (modalData: unknown) => dispatch(openModal(modalData as Parameters<typeof openModal>[0])),
-                        }}
-                    />
-                </div>
+        <div className='channel-files-content'>
+            <div className='channel-files-content__header'>
+                <h3 className='channel-files-content__title'>{'Files'}</h3>
+            </div>
+            <div className='channel-files-content__table'>
+                <ChannelFilesTable
+                    files={tableFiles}
+                    isLoading={isLoading}
+                    actions={{
+                        openModal: (modalData: unknown) => dispatch(openModal(modalData as Parameters<typeof openModal>[0])),
+                    }}
+                />
             </div>
         </div>
     );

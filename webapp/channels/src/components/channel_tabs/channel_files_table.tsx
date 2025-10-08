@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useState, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import FilePreviewModal from 'components/file_preview_modal';
@@ -30,7 +30,66 @@ interface Props {
     };
 }
 
+type SortColumn = 'name' | 'user' | 'date' | 'size';
+type SortDirection = 'asc' | 'desc';
+
 function ChannelFilesTable({files, isLoading, actions}: Props) {
+    const [sortColumn, setSortColumn] = useState<SortColumn>('date');
+    const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+
+    const handleHeaderClick = (column: SortColumn) => {
+        if (sortColumn === column) {
+            // Toggle direction if same column
+            setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+        } else {
+            // Set new column with default direction
+            setSortColumn(column);
+            setSortDirection(column === 'date' ? 'desc' : 'asc'); // Default newest first for date
+        }
+    };
+
+    const sortedFiles = useMemo(() => {
+        if (!files.length) {
+            return files;
+        }
+
+        const sorted = [...files].sort((a, b) => {
+            let comparison = 0;
+
+            switch (sortColumn) {
+            case 'name':
+                comparison = a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+                break;
+            case 'user':
+                comparison = (a.user_name || '').toLowerCase().localeCompare((b.user_name || '').toLowerCase());
+                break;
+            case 'date':
+                comparison = a.create_at - b.create_at;
+                break;
+            case 'size':
+                comparison = a.size - b.size;
+                break;
+            default:
+                return 0;
+            }
+
+            return sortDirection === 'asc' ? comparison : -comparison;
+        });
+
+        return sorted;
+    }, [files, sortColumn, sortDirection]);
+
+    const renderSortIcon = (column: SortColumn) => {
+        if (sortColumn !== column) {
+            return <i className='icon icon-unfold-more-horizontal channel-files-table__sort-icon'/>;
+        }
+        return (
+            <i
+                className={`icon ${sortDirection === 'asc' ? 'icon-arrow-up' : 'icon-arrow-down'} channel-files-table__sort-icon channel-files-table__sort-icon--active`}
+            />
+        );
+    };
+
     const formatFileSize = (bytes: number): string => {
         if (bytes === 0) {
             return '0 B';
@@ -97,42 +156,89 @@ function ChannelFilesTable({files, isLoading, actions}: Props) {
     return (
         <div className='channel-files-table'>
             <div className='channel-files-table__header'>
-                <div className='channel-files-table__header-cell channel-files-table__header-cell--name'>
+                <div
+                    className='channel-files-table__header-cell channel-files-table__header-cell--name channel-files-table__header-cell--clickable'
+                    onClick={() => handleHeaderClick('name')}
+                    role='button'
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleHeaderClick('name');
+                        }
+                    }}
+                >
                     <span className='channel-files-table__header-text'>
                         <FormattedMessage
                             id='channel_tabs.files.table.name'
                             defaultMessage='Name'
                         />
                     </span>
+                    {renderSortIcon('name')}
                 </div>
-                <div className='channel-files-table__header-cell channel-files-table__header-cell--user'>
+                <div
+                    className='channel-files-table__header-cell channel-files-table__header-cell--user channel-files-table__header-cell--clickable'
+                    onClick={() => handleHeaderClick('user')}
+                    role='button'
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleHeaderClick('user');
+                        }
+                    }}
+                >
                     <span className='channel-files-table__header-text'>
                         <FormattedMessage
                             id='channel_tabs.files.table.sent_by'
                             defaultMessage='Sent by'
                         />
                     </span>
+                    {renderSortIcon('user')}
                 </div>
-                <div className='channel-files-table__header-cell channel-files-table__header-cell--date'>
+                <div
+                    className='channel-files-table__header-cell channel-files-table__header-cell--date channel-files-table__header-cell--clickable'
+                    onClick={() => handleHeaderClick('date')}
+                    role='button'
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleHeaderClick('date');
+                        }
+                    }}
+                >
                     <span className='channel-files-table__header-text'>
                         <FormattedMessage
                             id='channel_tabs.files.table.date_sent'
                             defaultMessage='Date sent'
                         />
                     </span>
-                    <i className='icon icon-chevron-down channel-files-table__sort-icon'/>
+                    {renderSortIcon('date')}
                 </div>
-                <div className='channel-files-table__header-cell channel-files-table__header-cell--size'>
+                <div
+                    className='channel-files-table__header-cell channel-files-table__header-cell--size channel-files-table__header-cell--clickable'
+                    onClick={() => handleHeaderClick('size')}
+                    role='button'
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleHeaderClick('size');
+                        }
+                    }}
+                >
                     <span className='channel-files-table__header-text'>
                         <FormattedMessage
                             id='channel_tabs.files.table.file_size'
                             defaultMessage='File size'
                         />
                     </span>
+                    {renderSortIcon('size')}
                 </div>
             </div>
             <div className='channel-files-table__body'>
-                {files.map((file) => (
+                {sortedFiles.map((file) => (
                     <div
                         key={file.id}
                         className='channel-files-table__row'
