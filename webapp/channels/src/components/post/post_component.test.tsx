@@ -586,9 +586,9 @@ describe('PostComponent', () => {
             expect(postElement).not.toBeNull();
             expect(postElement).not.toHaveClass('post--pending');
             expect(postElement).toHaveClass('post--failed');
-            expect(screen.getByText('Message failed to send')).toBeInTheDocument();
-            expect(screen.queryByTestId('loadingSpinner')).not.toBeInTheDocument();
+            expect(screen.getByText('Send failed')).toBeInTheDocument();
             expect(screen.getByText('Retry')).toBeInTheDocument();
+            expect(screen.getByText('Cancel')).toBeInTheDocument();
         });
     });
 });
