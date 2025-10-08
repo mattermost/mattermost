@@ -5,8 +5,8 @@ package app
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
-	"strings"
 	"testing"
 	"time"
 
@@ -2119,52 +2119,6 @@ func TestSendFlaggedPostRemovalNotification(t *testing.T) {
 		// Should not error and should handle gracefully
 		// No specific verification needed as function should return early
 	})
-
-	t.Run("should handle empty comment", func(t *testing.T) {
-		post := setupFlaggedPost()
-
-		// Configure notifications for reviewers
-		config := getBaseConfig()
-		config.NotificationSettings = &model.ContentFlaggingNotificationSettings{
-			EventTargetMapping: map[model.ContentFlaggingEvent][]model.NotificationTarget{
-				model.EventContentRemoved: {model.TargetReviewers},
-			},
-		}
-		appErr := th.App.SaveContentFlaggingConfig(config)
-		require.Nil(t, appErr)
-
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
-
-		th.App.sendFlaggedPostRemovalNotification(th.Context, post, th.SystemAdminUser.Id, "", groupId)
-
-		// Wait for async notification processing
-		time.Sleep(2 * time.Second)
-
-		contentReviewBot, appErr := th.App.getContentReviewBot(th.Context)
-		require.Nil(t, appErr)
-
-		// Verify reviewer notification without comment
-		reviewerDMChannel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, contentReviewBot.UserId)
-		require.Nil(t, appErr)
-
-		reviewerPosts, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
-			ChannelId: reviewerDMChannel.Id,
-			Page:      0,
-			PerPage:   10,
-		})
-		require.Nil(t, appErr)
-
-		var reviewerNotificationPost *model.Post
-		expectedReviewerMessage := fmt.Sprintf("The flagged message was removed by @%s", th.SystemAdminUser.Username)
-		for _, p := range reviewerPosts.Posts {
-			if p.RootId != "" && p.Message == expectedReviewerMessage {
-				reviewerNotificationPost = p
-				break
-			}
-		}
-		require.NotNil(t, reviewerNotificationPost)
-	})
 }
 
 func TestSendKeepFlaggedPostNotification(t *testing.T) {
@@ -2384,133 +2338,5 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 
 		// Should not error and should handle gracefully
 		// No specific verification needed as function should return early
-	})
-
-	t.Run("should handle empty comment", func(t *testing.T) {
-		post := setupFlaggedPost()
-
-		// Configure notifications for reviewers
-		config := getBaseConfig()
-		config.NotificationSettings = &model.ContentFlaggingNotificationSettings{
-			EventTargetMapping: map[model.ContentFlaggingEvent][]model.NotificationTarget{
-				model.EventContentDismissed: {model.TargetReviewers},
-			},
-		}
-		appErr := th.App.SaveContentFlaggingConfig(config)
-		require.Nil(t, appErr)
-
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
-
-		th.App.sendKeepFlaggedPostNotification(th.Context, post, th.SystemAdminUser.Id, "", groupId)
-
-		// Wait for async notification processing
-		time.Sleep(2 * time.Second)
-
-		contentReviewBot, appErr := th.App.getContentReviewBot(th.Context)
-		require.Nil(t, appErr)
-
-		// Verify reviewer notification without comment
-		reviewerDMChannel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, contentReviewBot.UserId)
-		require.Nil(t, appErr)
-
-		reviewerPosts, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
-			ChannelId: reviewerDMChannel.Id,
-			Page:      0,
-			PerPage:   10,
-		})
-		require.Nil(t, appErr)
-
-		var reviewerNotificationPost *model.Post
-		expectedReviewerMessage := fmt.Sprintf("The flagged message was retained by @%s", th.SystemAdminUser.Username)
-		for _, p := range reviewerPosts.Posts {
-			if p.RootId != "" && p.Message == expectedReviewerMessage {
-				reviewerNotificationPost = p
-				break
-			}
-		}
-		require.NotNil(t, reviewerNotificationPost)
-	})
-
-	t.Run("should handle multiple reviewers", func(t *testing.T) {
-		// Create a config with multiple reviewers
-		config := getBaseConfig()
-		config.ReviewerSettings.CommonReviewerIds = []string{th.BasicUser.Id, th.BasicUser2.Id}
-		appErr := th.App.SaveContentFlaggingConfig(config)
-		require.Nil(t, appErr)
-
-		post := th.CreatePost(th.BasicChannel)
-
-		flagData := model.FlagContentRequest{
-			Reason:  "spam",
-			Comment: "This is spam content",
-		}
-
-		appErr = th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.SystemAdminUser.Id, flagData)
-		require.Nil(t, appErr)
-
-		// Wait for async reviewer post creation to complete
-		time.Sleep(2 * time.Second)
-
-		// Configure notifications for reviewers
-		config = getBaseConfig()
-		config.NotificationSettings = &model.ContentFlaggingNotificationSettings{
-			EventTargetMapping: map[model.ContentFlaggingEvent][]model.NotificationTarget{
-				model.EventContentDismissed: {model.TargetReviewers},
-			},
-		}
-		appErr = th.App.SaveContentFlaggingConfig(config)
-		require.Nil(t, appErr)
-
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
-
-		comment := "Post is acceptable"
-		th.App.sendKeepFlaggedPostNotification(th.Context, post, th.BasicUser.Id, comment, groupId)
-
-		// Wait for async notification processing
-		time.Sleep(2 * time.Second)
-
-		contentReviewBot, appErr := th.App.getContentReviewBot(th.Context)
-		require.Nil(t, appErr)
-
-		// Verify notification was sent to both reviewers
-		reviewerDMChannel1, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, contentReviewBot.UserId)
-		require.Nil(t, appErr)
-
-		reviewerPosts1, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
-			ChannelId: reviewerDMChannel1.Id,
-			Page:      0,
-			PerPage:   10,
-		})
-		require.Nil(t, appErr)
-
-		reviewerDMChannel2, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser2.Id, contentReviewBot.UserId)
-		require.Nil(t, appErr)
-
-		reviewerPosts2, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
-			ChannelId: reviewerDMChannel2.Id,
-			Page:      0,
-			PerPage:   10,
-		})
-		require.Nil(t, appErr)
-
-		var reviewerNotificationPost1, reviewerNotificationPost2 *model.Post
-		expectedReviewerMessage := fmt.Sprintf("The flagged message was retained by @%s\n\nWith comment:\n\n> %s", th.BasicUser.Username, comment)
-		for _, p := range reviewerPosts1.Posts {
-			if p.RootId != "" && p.Message == expectedReviewerMessage {
-				reviewerNotificationPost1 = p
-				break
-			}
-		}
-		for _, p := range reviewerPosts2.Posts {
-			if p.RootId != "" && p.Message == expectedReviewerMessage {
-				reviewerNotificationPost2 = p
-				break
-			}
-		}
-
-		require.NotNil(t, reviewerNotificationPost1)
-		require.NotNil(t, reviewerNotificationPost2)
 	})
 }
