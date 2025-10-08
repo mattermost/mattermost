@@ -145,7 +145,7 @@ describe('components/login/Login', () => {
 
         expect(await screen.findByText('Your session has expired. Please log in again.')).toBeVisible();
 
-        screen.getByLabelText('Close').click();
+        await userEvent.click(screen.getByLabelText('Close'));
 
         expect(screen.queryByText('Your session has expired. Please log in again.')).not.toBeInTheDocument();
     });
@@ -215,7 +215,7 @@ describe('components/login/Login', () => {
 
         expect(await screen.findByText('Sign-in method changed successfully')).toBeVisible();
 
-        screen.getByLabelText('Close').click();
+        await userEvent.click(screen.getByLabelText('Close'));
 
         expect(screen.queryByText('Sign-in method changed successfully')).not.toBeInTheDocument();
     });
@@ -241,12 +241,12 @@ describe('components/login/Login', () => {
         expect(await screen.findByText('Your session has expired. Please log in again.')).toBeVisible();
 
         const emailInput = screen.getByLabelText('Email');
-        userEvent.type(emailInput, 'user1');
+        await userEvent.type(emailInput, 'user1');
 
         const passwordInput = screen.getByLabelText('Password');
-        userEvent.type(passwordInput, 'passw');
+        await userEvent.type(passwordInput, 'passw');
 
-        screen.getByRole('button', {name: 'Log in'}).click();
+        await userEvent.click(screen.getByRole('button', {name: 'Log in'}));
 
         expect(screen.queryByText('Your session has expired. Please log in again.')).not.toBeInTheDocument();
     });
@@ -300,7 +300,7 @@ describe('components/login/Login', () => {
         );
 
         // Try to submit without entering username
-        screen.getByRole('button', {name: 'Log in'}).click();
+        await userEvent.click(screen.getByRole('button', {name: 'Log in'}));
 
         // Verify username field is focused
         const usernameInput = screen.getByLabelText('Email');

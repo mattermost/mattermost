@@ -1,12 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ReactWrapper} from 'enzyme';
 import {shallow} from 'enzyme';
 import nock from 'nock';
 import React from 'react';
 import type {ComponentProps} from 'react';
-import {act} from 'react-dom/test-utils';
 import type {match} from 'react-router-dom';
 
 import {CollapsedThreads} from '@mattermost/types/config';
@@ -21,6 +19,7 @@ import PermalinkView from 'components/permalink_view/permalink_view';
 
 import TestHelper from 'packages/mattermost-redux/test/test_helper';
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {act, waitFor} from 'tests/react_testing_utils';
 import mockStore from 'tests/test_store';
 import {getHistory} from 'utils/browser_history';
 import {joinPrivateChannelPrompt} from 'utils/channel_utils';
@@ -113,41 +112,43 @@ describe('components/PermalinkView', () => {
     });
 
     test('should call baseProps.actions.focusPost on doPermalinkEvent', async () => {
-        await act(async () => {
-            mountWithIntl(
-                <PermalinkView {...baseProps}/>,
-            );
-        });
+        mountWithIntl(
+            <PermalinkView {...baseProps}/>,
+        );
 
-        expect(baseProps.actions.focusPost).toHaveBeenCalledTimes(1);
-        expect(baseProps.actions.focusPost).toBeCalledWith(baseProps.match.params.postid, baseProps.returnTo, baseProps.currentUserId);
+        await waitFor(() => {
+            expect(baseProps.actions.focusPost).toHaveBeenCalledTimes(1);
+            expect(baseProps.actions.focusPost).toBeCalledWith(baseProps.match.params.postid, baseProps.returnTo, baseProps.currentUserId);
+        });
     });
 
     test('should call baseProps.actions.focusPost when postid changes', async () => {
-        let wrapper: ReactWrapper<JSX.Element>;
-        await act(async () => {
-            wrapper = mountWithIntl(
-                <PermalinkView {...baseProps}/>,
-            );
-        });
-        const newPostid = `${baseProps.match.params.postid}_new`;
-        await wrapper!.setProps({...baseProps, match: {params: {postid: newPostid}}} as any);
+        const wrapper = mountWithIntl(
+            <PermalinkView {...baseProps}/>,
+        );
 
-        expect(baseProps.actions.focusPost).toHaveBeenCalledTimes(2);
-        expect(baseProps.actions.focusPost).toBeCalledWith(newPostid, baseProps.returnTo, baseProps.currentUserId);
+        const newPostid = `${baseProps.match.params.postid}_new`;
+
+        act(() => {
+            wrapper.setProps({...baseProps, match: {params: {postid: newPostid}}} as any);
+        });
+
+        await waitFor(() => {
+            expect(baseProps.actions.focusPost).toHaveBeenCalledTimes(2);
+            expect(baseProps.actions.focusPost).toBeCalledWith(newPostid, baseProps.returnTo, baseProps.currentUserId);
+        });
     });
 
     test('should match snapshot with archived channel', async () => {
         const props = {...baseProps, channelIsArchived: true};
 
-        let wrapper: ReactWrapper<any>;
-        await act(async () => {
-            wrapper = mountWithIntl(
-                <PermalinkView {...props}/>,
-            );
-        });
+        const wrapper = mountWithIntl(
+            <PermalinkView {...props}/>,
+        );
 
-        expect(wrapper!).toMatchSnapshot();
+        await waitFor(() => {});
+
+        expect(wrapper).toMatchSnapshot();
     });
 
     describe('actions', () => {
