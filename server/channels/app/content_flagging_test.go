@@ -1976,15 +1976,14 @@ func TestSendFlaggedPostRemovalNotification(t *testing.T) {
 		require.Nil(t, appErr)
 
 		var authorNotificationPost *model.Post
+		expectedAuthorMessage := fmt.Sprintf("Your post having ID `%s` in the channel `%s` which was flagged for review as been permanently removed by a reviewer.", post.Id, th.BasicChannel.DisplayName)
 		for _, p := range authorPosts.Posts {
-			if strings.Contains(p.Message, "permanently removed by a reviewer") {
+			if p.Message == expectedAuthorMessage {
 				authorNotificationPost = p
 				break
 			}
 		}
 		require.NotNil(t, authorNotificationPost)
-		require.Contains(t, authorNotificationPost.Message, post.Id)
-		require.Contains(t, authorNotificationPost.Message, th.BasicChannel.DisplayName)
 
 		// Verify reporter notification
 		reporterDMChannel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser2.Id, contentReviewBot.UserId)
@@ -1998,15 +1997,14 @@ func TestSendFlaggedPostRemovalNotification(t *testing.T) {
 		require.Nil(t, appErr)
 
 		var reporterNotificationPost *model.Post
+		expectedReporterMessage := fmt.Sprintf("The post having ID `%s` in the channel `%s` which you flagged for review has been permanently removed by a reviewer.", post.Id, th.BasicChannel.DisplayName)
 		for _, p := range reporterPosts.Posts {
-			if strings.Contains(p.Message, "permanently removed by a reviewer") {
+			if p.Message == expectedReporterMessage {
 				reporterNotificationPost = p
 				break
 			}
 		}
 		require.NotNil(t, reporterNotificationPost)
-		require.Contains(t, reporterNotificationPost.Message, post.Id)
-		require.Contains(t, reporterNotificationPost.Message, th.BasicChannel.DisplayName)
 
 		// Verify reviewer notification
 		reviewerDMChannel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, contentReviewBot.UserId)
@@ -2020,15 +2018,14 @@ func TestSendFlaggedPostRemovalNotification(t *testing.T) {
 		require.Nil(t, appErr)
 
 		var reviewerNotificationPost *model.Post
+		expectedReviewerMessage := fmt.Sprintf("The flagged message was removed by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, comment)
 		for _, p := range reviewerPosts.Posts {
-			if p.RootId != "" && strings.Contains(p.Message, "was removed by") {
+			if p.RootId != "" && p.Message == expectedReviewerMessage {
 				reviewerNotificationPost = p
 				break
 			}
 		}
 		require.NotNil(t, reviewerNotificationPost)
-		require.Contains(t, reviewerNotificationPost.Message, th.SystemAdminUser.Username)
-		require.Contains(t, reviewerNotificationPost.Message, comment)
 	})
 
 	t.Run("should send notification only to author when configured", func(t *testing.T) {
@@ -2068,8 +2065,9 @@ func TestSendFlaggedPostRemovalNotification(t *testing.T) {
 		require.Nil(t, appErr)
 
 		var authorNotificationPost *model.Post
+		expectedAuthorMessage := fmt.Sprintf("Your post having ID `%s` in the channel `%s` which was flagged for review as been permanently removed by a reviewer.", post.Id, th.BasicChannel.DisplayName)
 		for _, p := range authorPosts.Posts {
-			if strings.Contains(p.Message, "permanently removed by a reviewer") {
+			if p.Message == expectedAuthorMessage {
 				authorNotificationPost = p
 				break
 			}
@@ -2088,8 +2086,9 @@ func TestSendFlaggedPostRemovalNotification(t *testing.T) {
 		require.Nil(t, appErr)
 
 		var reporterNotificationPost *model.Post
+		expectedReporterMessage := fmt.Sprintf("The post having ID `%s` in the channel `%s` which you flagged for review has been permanently removed by a reviewer.", post.Id, th.BasicChannel.DisplayName)
 		for _, p := range reporterPosts.Posts {
-			if strings.Contains(p.Message, "permanently removed by a reviewer") {
+			if p.Message == expectedReporterMessage {
 				reporterNotificationPost = p
 				break
 			}
@@ -2157,15 +2156,14 @@ func TestSendFlaggedPostRemovalNotification(t *testing.T) {
 		require.Nil(t, appErr)
 
 		var reviewerNotificationPost *model.Post
+		expectedReviewerMessage := fmt.Sprintf("The flagged message was removed by @%s", th.SystemAdminUser.Username)
 		for _, p := range reviewerPosts.Posts {
-			if p.RootId != "" && strings.Contains(p.Message, "was removed by") {
+			if p.RootId != "" && p.Message == expectedReviewerMessage {
 				reviewerNotificationPost = p
 				break
 			}
 		}
 		require.NotNil(t, reviewerNotificationPost)
-		require.Contains(t, reviewerNotificationPost.Message, th.SystemAdminUser.Username)
-		require.NotContains(t, reviewerNotificationPost.Message, "With comment:")
 	})
 }
 
@@ -2244,15 +2242,14 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 		require.Nil(t, appErr)
 
 		var authorNotificationPost *model.Post
+		expectedAuthorMessage := fmt.Sprintf("Your post having ID `%s` in the channel `%s` which was flagged for review as been restored by a reviewer.", post.Id, th.BasicChannel.DisplayName)
 		for _, p := range authorPosts.Posts {
-			if strings.Contains(p.Message, "restored by a reviewer") {
+			if p.Message == expectedAuthorMessage {
 				authorNotificationPost = p
 				break
 			}
 		}
 		require.NotNil(t, authorNotificationPost)
-		require.Contains(t, authorNotificationPost.Message, post.Id)
-		require.Contains(t, authorNotificationPost.Message, th.BasicChannel.DisplayName)
 
 		// Verify reporter notification
 		reporterDMChannel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser2.Id, contentReviewBot.UserId)
@@ -2266,15 +2263,14 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 		require.Nil(t, appErr)
 
 		var reporterNotificationPost *model.Post
+		expectedReporterMessage := fmt.Sprintf("The post having ID `%s` in the channel `%s` which you flagged for review has been restored by a reviewer.", post.Id, th.BasicChannel.DisplayName)
 		for _, p := range reporterPosts.Posts {
-			if strings.Contains(p.Message, "restored by a reviewer") {
+			if p.Message == expectedReporterMessage {
 				reporterNotificationPost = p
 				break
 			}
 		}
 		require.NotNil(t, reporterNotificationPost)
-		require.Contains(t, reporterNotificationPost.Message, post.Id)
-		require.Contains(t, reporterNotificationPost.Message, th.BasicChannel.DisplayName)
 
 		// Verify reviewer notification
 		reviewerDMChannel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, contentReviewBot.UserId)
@@ -2288,15 +2284,14 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 		require.Nil(t, appErr)
 
 		var reviewerNotificationPost *model.Post
+		expectedReviewerMessage := fmt.Sprintf("The flagged message was retained by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, comment)
 		for _, p := range reviewerPosts.Posts {
-			if p.RootId != "" && strings.Contains(p.Message, "was retained by") {
+			if p.RootId != "" && p.Message == expectedReviewerMessage {
 				reviewerNotificationPost = p
 				break
 			}
 		}
 		require.NotNil(t, reviewerNotificationPost)
-		require.Contains(t, reviewerNotificationPost.Message, th.SystemAdminUser.Username)
-		require.Contains(t, reviewerNotificationPost.Message, comment)
 	})
 
 	t.Run("should send notification only to reporter when configured", func(t *testing.T) {
@@ -2336,8 +2331,9 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 		require.Nil(t, appErr)
 
 		var reporterNotificationPost *model.Post
+		expectedReporterMessage := fmt.Sprintf("The post having ID `%s` in the channel `%s` which you flagged for review has been restored by a reviewer.", post.Id, th.BasicChannel.DisplayName)
 		for _, p := range reporterPosts.Posts {
-			if strings.Contains(p.Message, "restored by a reviewer") {
+			if p.Message == expectedReporterMessage {
 				reporterNotificationPost = p
 				break
 			}
@@ -2356,8 +2352,9 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 		require.Nil(t, appErr)
 
 		var authorNotificationPost *model.Post
+		expectedAuthorMessage := fmt.Sprintf("Your post having ID `%s` in the channel `%s` which was flagged for review as been restored by a reviewer.", post.Id, th.BasicChannel.DisplayName)
 		for _, p := range authorPosts.Posts {
-			if strings.Contains(p.Message, "restored by a reviewer") {
+			if p.Message == expectedAuthorMessage {
 				authorNotificationPost = p
 				break
 			}
@@ -2425,15 +2422,14 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 		require.Nil(t, appErr)
 
 		var reviewerNotificationPost *model.Post
+		expectedReviewerMessage := fmt.Sprintf("The flagged message was retained by @%s", th.SystemAdminUser.Username)
 		for _, p := range reviewerPosts.Posts {
-			if p.RootId != "" && strings.Contains(p.Message, "was retained by") {
+			if p.RootId != "" && p.Message == expectedReviewerMessage {
 				reviewerNotificationPost = p
 				break
 			}
 		}
 		require.NotNil(t, reviewerNotificationPost)
-		require.Contains(t, reviewerNotificationPost.Message, th.SystemAdminUser.Username)
-		require.NotContains(t, reviewerNotificationPost.Message, "With comment:")
 	})
 
 	t.Run("should handle multiple reviewers", func(t *testing.T) {
@@ -2500,14 +2496,15 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 		require.Nil(t, appErr)
 
 		var reviewerNotificationPost1, reviewerNotificationPost2 *model.Post
+		expectedReviewerMessage := fmt.Sprintf("The flagged message was retained by @%s\n\nWith comment:\n\n> %s", th.BasicUser.Username, comment)
 		for _, p := range reviewerPosts1.Posts {
-			if p.RootId != "" && strings.Contains(p.Message, "was retained by") {
+			if p.RootId != "" && p.Message == expectedReviewerMessage {
 				reviewerNotificationPost1 = p
 				break
 			}
 		}
 		for _, p := range reviewerPosts2.Posts {
-			if p.RootId != "" && strings.Contains(p.Message, "was retained by") {
+			if p.RootId != "" && p.Message == expectedReviewerMessage {
 				reviewerNotificationPost2 = p
 				break
 			}
@@ -2515,9 +2512,5 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 
 		require.NotNil(t, reviewerNotificationPost1)
 		require.NotNil(t, reviewerNotificationPost2)
-		require.Contains(t, reviewerNotificationPost1.Message, th.BasicUser.Username)
-		require.Contains(t, reviewerNotificationPost2.Message, th.BasicUser.Username)
-		require.Contains(t, reviewerNotificationPost1.Message, comment)
-		require.Contains(t, reviewerNotificationPost2.Message, comment)
 	})
 }
