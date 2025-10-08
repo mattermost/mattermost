@@ -38,7 +38,7 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
 
     const providerHelpTextValues = useMemo(() => ({
         br: <br/>,
-        strong: (msg: string) => <strong>{msg}</strong>,
+        strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
     }), []);
 
     const on = (

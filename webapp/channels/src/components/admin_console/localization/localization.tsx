@@ -125,15 +125,15 @@ export default function Localization(props: SystemConsoleCustomSettingsComponent
                             id='admin.general.localization.availableLocalesDescription'
                             defaultMessage="Set which languages are available for users in <strong>Settings > Display > Language</strong> (leave this field blank to have all supported languages available). If you\'re manually adding new languages, the <strong>Default Client Language</strong> must be added before saving this setting.\n \nWould like to help with translations? Join the <link>Mattermost Translation Server</link> to contribute."
                             values={{
-                                link: (msg: string) => (
+                                link: (msg: React.ReactNode) => (
                                     <ExternalLink
                                         location='admin_console'
-                                        href='http://translate.mattermost.com/'
+                                        href='https://translate.mattermost.com/'
                                     >
                                         {msg}
                                     </ExternalLink>
                                 ),
-                                strong: (msg: string) => <strong>{msg}</strong>,
+                                strong: (msg: React.ReactNode) => <strong>{msg}</strong>,
                             }}
                         />
                     }
