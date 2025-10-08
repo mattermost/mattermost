@@ -72,7 +72,7 @@ func TestRunBroadcastHooks(t *testing.T) {
 		result := hub.runBroadcastHooks(event, webConn, hookIDs, hookArgs)
 
 		assert.NotSame(t, event, result)
-		assert.NotSame(t, event.GetData(), result.GetData())
+		assert.NotSame(t, model.NewPointer(event.GetData()), model.NewPointer(result.GetData()))
 		assert.Equal(t, map[string]any{}, event.GetData())
 		assert.Equal(t, result.GetData(), map[string]any{
 			"changes_made": 1,
@@ -109,7 +109,7 @@ func TestRunBroadcastHooks(t *testing.T) {
 
 		var hookIDs []string
 		var hookArgs []map[string]any
-		for i := 0; i < 10; i++ {
+		for i := range 10 {
 			hookIDs = append(hookIDs, broadcastTest)
 			hookArgs = append(hookArgs, map[string]any{
 				"makes_changes": i == 6,
@@ -119,7 +119,7 @@ func TestRunBroadcastHooks(t *testing.T) {
 		result := hub.runBroadcastHooks(event, webConn, hookIDs, hookArgs)
 
 		assert.NotSame(t, event, result)
-		assert.NotSame(t, event.GetData(), result.GetData())
+		assert.NotSame(t, model.NewPointer(event.GetData()), model.NewPointer(result.GetData()))
 		assert.Equal(t, event.GetData(), map[string]any{})
 		assert.Equal(t, result.GetData(), map[string]any{
 			"changes_made": 1,
@@ -131,7 +131,7 @@ func TestRunBroadcastHooks(t *testing.T) {
 
 		var hookIDs []string
 		var hookArgs []map[string]any
-		for i := 0; i < 10; i++ {
+		for range 10 {
 			hookIDs = append(hookIDs, broadcastTest)
 			hookArgs = append(hookArgs, map[string]any{
 				"makes_changes": true,
@@ -141,7 +141,7 @@ func TestRunBroadcastHooks(t *testing.T) {
 		result := hub.runBroadcastHooks(event, webConn, hookIDs, hookArgs)
 
 		assert.NotSame(t, event, result)
-		assert.NotSame(t, event.GetData(), result.GetData())
+		assert.NotSame(t, model.NewPointer(event.GetData()), model.NewPointer(result.GetData()))
 		assert.Equal(t, event.GetData(), map[string]any{})
 		assert.Equal(t, result.GetData(), map[string]any{
 			"changes_made": 10,
