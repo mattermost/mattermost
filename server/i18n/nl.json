@@ -10764,10 +10764,6 @@
     "translation": "Het verbergen van gearchiveerde kanalen wordt niet langer ondersteund. Maak deze kanalen privé en verwijder in plaats daarvan leden."
   },
   {
-    "id": "api.not_implemented",
-    "translation": "Deze functie is niet geïmplementeerd."
-  },
-  {
     "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
     "translation": "Kan waarde voor een door de beheerder beheerd aangepast profielattribuutveld niet bijwerken"
   },
@@ -10794,5 +10790,25 @@
   {
     "id": "model.config.is_valid.client_side_cert_enable.app_error",
     "translation": "Certificaat-gebaseerde authenticatie is verwijderd. Schakel ClientSideCertEnable uit om verder te gaan."
+  },
+  {
+    "id": "api.user.check_user_password.invalid_hash.app_error",
+    "translation": "Het formaat van het gehashte wachtwoord is ongeldig en kon niet worden verwerkt."
+  },
+  {
+    "id": "app.user.check_user_password.failed_migration",
+    "translation": "Het is niet gelukt om het wachtwoord van de gebruiker te migreren naar de nieuwste hashingmethode."
+  },
+  {
+    "id": "app.user.check_user_password.failed_update",
+    "translation": "Het is niet gelukt om het wachtwoord van de gebruiker bij te werken."
+  },
+  {
+    "id": "app.job.get_existing_jobs.error",
+    "translation": "Niet in staat om bestaande taken op te halen."
+  },
+  {
+    "id": "app.submit_interactive_dialog.invalid_response",
+    "translation": "Er is een ongeldige reactie gevonden bij het indienen van een interactief dialoogvenster."
   }
 ]

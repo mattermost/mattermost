@@ -325,7 +325,7 @@ func (a *App) GetOrCreateDirectChannel(rctx request.CTX, userID, otherUserID str
 
 	if *a.Config().TeamSettings.RestrictDirectMessage == model.DirectMessageTeam &&
 		!a.SessionHasPermissionTo(*rctx.Session(), model.PermissionManageSystem) {
-		users, err := a.GetUsersByIds([]string{userID, otherUserID}, &store.UserGetByIdsOpts{})
+		users, err := a.GetUsersByIds(rctx, []string{userID, otherUserID}, &store.UserGetByIdsOpts{})
 		if err != nil {
 			return nil, err
 		}
@@ -401,7 +401,7 @@ func (a *App) handleCreationEvent(rctx request.CTX, userID, otherUserID string, 
 }
 
 func (a *App) createDirectChannel(rctx request.CTX, userID string, otherUserID string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
-	users, err := a.Srv().Store().User().GetMany(context.Background(), []string{userID, otherUserID})
+	users, err := a.Srv().Store().User().GetMany(rctx, []string{userID, otherUserID})
 	if err != nil {
 		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -536,8 +536,7 @@ func (a *App) createGroupChannel(rctx request.CTX, userIDs []string, creatorID s
 	// we skip cache and use master when fetching profiles to avoid
 	// issues in shared channels and HA, when users are created from a
 	// shared channels GM invite right before creating the GM
-	ctx := sqlstore.RequestContextWithMaster(rctx).Context()
-	users, err := a.Srv().Store().User().GetProfileByIds(ctx, userIDs, nil, false)
+	users, err := a.Srv().Store().User().GetProfileByIds(sqlstore.RequestContextWithMaster(rctx), userIDs, nil, false)
 	if err != nil {
 		return nil, model.NewAppError("createGroupChannel", "app.user.get_profiles.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -689,7 +688,7 @@ func (a *App) GetGroupChannel(rctx request.CTX, userIDs []string) (*model.Channe
 		return nil, model.NewAppError("GetGroupChannel", "api.channel.create_group.bad_size.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	users, err := a.Srv().Store().User().GetProfileByIds(context.Background(), userIDs, nil, true)
+	users, err := a.Srv().Store().User().GetProfileByIds(rctx, userIDs, nil, true)
 	if err != nil {
 		return nil, model.NewAppError("GetGroupChannel", "app.user.get_profiles.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -932,13 +931,21 @@ func (a *App) RestoreChannel(rctx request.CTX, channel *model.Channel, userID st
 }
 
 func (a *App) PatchChannel(rctx request.CTX, channel *model.Channel, patch *model.ChannelPatch, userID string) (*model.Channel, *model.AppError) {
+	restrictDM, err := a.CheckIfChannelIsRestrictedDM(rctx, channel)
+	if err != nil {
+		return nil, err
+	}
+	if restrictDM {
+		return nil, model.NewAppError("PatchChannel", "api.channel.patch_update_channel.restricted_dm.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	oldChannelDisplayName := channel.DisplayName
 	oldChannelHeader := channel.Header
 	oldChannelPurpose := channel.Purpose
 
 	channel.Patch(patch)
 	a.handleChannelCategoryName(channel)
-	channel, err := a.UpdateChannel(rctx, channel)
+	channel, err = a.UpdateChannel(rctx, channel)
 	if err != nil {
 		return nil, err
 	}
@@ -1023,14 +1030,14 @@ func (a *App) GetChannelModerationsForChannel(rctx request.CTX, channel *model.C
 		return nil, err
 	}
 
-	memberRole, err := a.GetRoleByName(context.Background(), memberRoleName)
+	memberRole, err := a.GetRoleByName(rctx, memberRoleName)
 	if err != nil {
 		return nil, err
 	}
 
 	var guestRole *model.Role
 	if guestRoleName != "" {
-		guestRole, err = a.GetRoleByName(context.Background(), guestRoleName)
+		guestRole, err = a.GetRoleByName(rctx, guestRoleName)
 		if err != nil {
 			return nil, err
 		}
@@ -1040,14 +1047,14 @@ func (a *App) GetChannelModerationsForChannel(rctx request.CTX, channel *model.C
 	if err != nil {
 		return nil, err
 	}
-	higherScopedMemberRole, err := a.GetRoleByName(context.Background(), higherScopedMemberRoleName)
+	higherScopedMemberRole, err := a.GetRoleByName(rctx, higherScopedMemberRoleName)
 	if err != nil {
 		return nil, err
 	}
 
 	var higherScopedGuestRole *model.Role
 	if higherScopedGuestRoleName != "" {
-		higherScopedGuestRole, err = a.GetRoleByName(context.Background(), higherScopedGuestRoleName)
+		higherScopedGuestRole, err = a.GetRoleByName(rctx, higherScopedGuestRoleName)
 		if err != nil {
 			return nil, err
 		}
@@ -1063,15 +1070,14 @@ func (a *App) PatchChannelModerationsForChannel(rctx request.CTX, channel *model
 		return nil, err
 	}
 
-	ctx := sqlstore.WithMaster(context.Background())
-	higherScopedMemberRole, err := a.GetRoleByName(ctx, higherScopedMemberRoleName)
+	higherScopedMemberRole, err := a.GetRoleByName(RequestContextWithMaster(rctx), higherScopedMemberRoleName)
 	if err != nil {
 		return nil, err
 	}
 
 	var higherScopedGuestRole *model.Role
 	if higherScopedGuestRoleName != "" {
-		higherScopedGuestRole, err = a.GetRoleByName(ctx, higherScopedGuestRoleName)
+		higherScopedGuestRole, err = a.GetRoleByName(RequestContextWithMaster(rctx), higherScopedGuestRoleName)
 		if err != nil {
 			return nil, err
 		}
@@ -1103,7 +1109,7 @@ func (a *App) PatchChannelModerationsForChannel(rctx request.CTX, channel *model
 
 		// Send a websocket event about this new role. The other new roles—member and guest—get emitted when they're updated.
 		var adminRole *model.Role
-		adminRole, err = a.GetRoleByName(ctx, scheme.DefaultChannelAdminRole)
+		adminRole, err = a.GetRoleByName(rctx, scheme.DefaultChannelAdminRole)
 		if err != nil {
 			return nil, err
 		}
@@ -1123,14 +1129,14 @@ func (a *App) PatchChannelModerationsForChannel(rctx request.CTX, channel *model
 
 	guestRoleName := scheme.DefaultChannelGuestRole
 	memberRoleName := scheme.DefaultChannelUserRole
-	memberRole, err := a.GetRoleByName(ctx, memberRoleName)
+	memberRole, err := a.GetRoleByName(rctx, memberRoleName)
 	if err != nil {
 		return nil, err
 	}
 
 	var guestRole *model.Role
 	if guestRoleName != "" {
-		guestRole, err = a.GetRoleByName(ctx, guestRoleName)
+		guestRole, err = a.GetRoleByName(rctx, guestRoleName)
 		if err != nil {
 			return nil, err
 		}
@@ -1271,7 +1277,7 @@ func (a *App) UpdateChannelMemberRoles(rctx request.CTX, channelID string, userI
 
 	for roleName := range strings.FieldsSeq(newRoles) {
 		var role *model.Role
-		role, err = a.GetRoleByName(context.Background(), roleName)
+		role, err = a.GetRoleByName(rctx, roleName)
 		if err != nil {
 			err.StatusCode = http.StatusBadRequest
 			return nil, err
@@ -1627,7 +1633,7 @@ func (a *App) addUserToChannel(rctx request.CTX, user *model.User, channel *mode
 		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	channelMember, nErr := a.Srv().Store().Channel().GetMember(context.Background(), channel.Id, user.Id)
+	channelMember, nErr := a.Srv().Store().Channel().GetMember(rctx, channel.Id, user.Id)
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		if !errors.As(nErr, &nfErr) {
@@ -1638,7 +1644,7 @@ func (a *App) addUserToChannel(rctx request.CTX, user *model.User, channel *mode
 	}
 
 	if channel.IsGroupConstrained() {
-		nonMembers, err := a.FilterNonGroupChannelMembers([]string{user.Id}, channel)
+		nonMembers, err := a.FilterNonGroupChannelMembers(rctx, []string{user.Id}, channel)
 		if err != nil {
 			return nil, model.NewAppError("addUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -1774,7 +1780,7 @@ type ChannelMemberOpts struct {
 
 // AddChannelMember adds a user to a channel. It is a wrapper over AddUserToChannel.
 func (a *App) AddChannelMember(rctx request.CTX, userID string, channel *model.Channel, opts ChannelMemberOpts) (*model.ChannelMember, *model.AppError) {
-	if member, err := a.Srv().Store().Channel().GetMember(context.Background(), channel.Id, userID); err != nil {
+	if member, err := a.Srv().Store().Channel().GetMember(rctx, channel.Id, userID); err != nil {
 		var nfErr *store.ErrNotFound
 		if !errors.As(err, &nfErr) {
 			return nil, model.NewAppError("AddChannelMember", "app.channel.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -2213,7 +2219,7 @@ func (a *App) GetChannelMember(rctx request.CTX, channelID string, userID string
 }
 
 func (s *Server) getChannelMember(rctx request.CTX, channelID string, userID string) (*model.ChannelMember, *model.AppError) {
-	channelMember, err := s.Store().Channel().GetMember(rctx.Context(), channelID, userID)
+	channelMember, err := s.Store().Channel().GetMember(rctx, channelID, userID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -2228,7 +2234,7 @@ func (s *Server) getChannelMember(rctx request.CTX, channelID string, userID str
 }
 
 func (s *Server) getChannelMemberLastViewedAt(rctx request.CTX, channelID string, userID string) (int64, *model.AppError) {
-	lastViewedAt, err := s.Store().Channel().GetMemberLastViewedAt(rctx.Context(), channelID, userID)
+	lastViewedAt, err := s.Store().Channel().GetMemberLastViewedAt(rctx, channelID, userID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -2401,7 +2407,7 @@ func (a *App) JoinChannel(rctx request.CTX, channel *model.Channel, userID strin
 		close(userChan)
 	}()
 	go func() {
-		member, err := a.Srv().Store().Channel().GetMember(context.Background(), channel.Id, userID)
+		member, err := a.Srv().Store().Channel().GetMember(rctx, channel.Id, userID)
 		memberChan <- store.StoreResult[*model.ChannelMember]{Data: member, NErr: err}
 		close(memberChan)
 	}()
@@ -2679,7 +2685,7 @@ func (a *App) removeUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 	}
 
 	if channel.IsGroupConstrained() && userIDToRemove != removerUserId && !user.IsBot {
-		nonMembers, err := a.FilterNonGroupChannelMembers([]string{userIDToRemove}, channel)
+		nonMembers, err := a.FilterNonGroupChannelMembers(rctx, []string{userIDToRemove}, channel)
 		if err != nil {
 			return model.NewAppError("removeUserFromChannel", "api.channel.remove_user_from_channel.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -2977,7 +2983,7 @@ func (a *App) markChannelAsUnreadFromPostCRTUnsupported(rctx request.CTX, postID
 		if mErr != nil {
 			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(mErr)
 		}
-		thread, mErr := a.Srv().Store().Thread().GetThreadForUser(threadMembership, true, a.IsPostPriorityEnabled())
+		thread, mErr := a.Srv().Store().Thread().GetThreadForUser(rctx, threadMembership, true, a.IsPostPriorityEnabled())
 		if mErr != nil {
 			return nil, model.NewAppError("MarkChannelAsUnreadFromPost", "app.channel.update_last_viewed_at_post.app_error", nil, "", http.StatusInternalServerError).Wrap(mErr)
 		}
@@ -3113,17 +3119,6 @@ func (a *App) SearchChannels(rctx request.CTX, teamID string, term string) (mode
 	return channelList, nil
 }
 
-func (a *App) SearchArchivedChannels(rctx request.CTX, teamID string, term string, userID string) (model.ChannelList, *model.AppError) {
-	term = strings.TrimSpace(term)
-
-	channelList, err := a.Srv().Store().Channel().SearchArchivedInTeam(teamID, term, userID)
-	if err != nil {
-		return nil, model.NewAppError("SearchArchivedChannels", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	return channelList, nil
-}
-
 func (a *App) SearchChannelsForUser(rctx request.CTX, userID, teamID, term string) (model.ChannelList, *model.AppError) {
 	includeDeleted := true
 
@@ -3168,7 +3163,7 @@ func (a *App) MarkChannelsAsViewed(rctx request.CTX, channelIDs []string, userID
 	}
 
 	// We use channelsToView to later only update those, or early return if no channel is to be read
-	channelsToView, channelsToClearPushNotifications, times, err := a.Srv().Store().Channel().GetChannelsWithUnreadsAndWithMentions(rctx.Context(), channelIDs, userID, user.NotifyProps)
+	channelsToView, channelsToClearPushNotifications, times, err := a.Srv().Store().Channel().GetChannelsWithUnreadsAndWithMentions(rctx, channelIDs, userID, user.NotifyProps)
 	if err != nil {
 		return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.get_channels_with_unreads_and_with_mentions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -3473,7 +3468,7 @@ func (a *App) GetPinnedPosts(rctx request.CTX, channelID string) (*model.PostLis
 }
 
 func (a *App) ToggleMuteChannel(rctx request.CTX, channelID, userID string) (*model.ChannelMember, *model.AppError) {
-	member, nErr := a.Srv().Store().Channel().GetMember(context.Background(), channelID, userID)
+	member, nErr := a.Srv().Store().Channel().GetMember(rctx, channelID, userID)
 	if nErr != nil {
 		var appErr *model.AppError
 		var nfErr *store.ErrNotFound
@@ -3673,7 +3668,7 @@ func (a *App) ClearChannelMembersCache(rctx request.CTX, channelID string) error
 }
 
 func (a *App) GetMemberCountsByGroup(rctx request.CTX, channelID string, includeTimezones bool) ([]*model.ChannelMemberCountByGroup, *model.AppError) {
-	channelMemberCounts, err := a.Srv().Store().Channel().GetMemberCountsByGroup(rctx.Context(), channelID, includeTimezones)
+	channelMemberCounts, err := a.Srv().Store().Channel().GetMemberCountsByGroup(rctx, channelID, includeTimezones)
 	if err != nil {
 		return nil, model.NewAppError("GetMemberCountsByGroup", "app.channel.get_member_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -3685,14 +3680,14 @@ func (a *App) getDirectChannel(rctx request.CTX, userID, otherUserID string) (*m
 	return a.Srv().getDirectChannel(rctx, userID, otherUserID)
 }
 
-func (a *App) GetGroupMessageMembersCommonTeams(rctx request.CTX, channelID string) ([]*model.Team, *model.AppError) {
+func (a *App) GetDirectOrGroupMessageMembersCommonTeams(rctx request.CTX, channelID string) ([]*model.Team, *model.AppError) {
 	channel, appErr := a.GetChannel(rctx, channelID)
 	if appErr != nil {
 		return nil, appErr
 	}
 
-	if channel.Type != model.ChannelTypeGroup {
-		return nil, model.NewAppError("GetGroupMessageMembersCommonTeams", "app.channel.get_common_teams.incorrect_channel_type", nil, "", http.StatusBadRequest)
+	if channel.Type != model.ChannelTypeGroup && channel.Type != model.ChannelTypeDirect {
+		return nil, model.NewAppError("GetDirectOrGroupMessageMembersCommonTeams", "app.channel.get_common_teams.incorrect_channel_type", nil, "", http.StatusBadRequest)
 	}
 
 	users, appErr := a.GetUsersInChannel(&model.UserGetOptions{
@@ -3710,7 +3705,7 @@ func (a *App) GetGroupMessageMembersCommonTeams(rctx request.CTX, channelID stri
 
 	commonTeamIDs, err := a.Srv().Store().Team().GetCommonTeamIDsForMultipleUsers(userIDs)
 	if err != nil {
-		return nil, model.NewAppError("GetGroupMessageMembersCommonTeams", "app.channel.get_common_teams.store_get_common_teams_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("GetDirectOrGroupMessageMembersCommonTeams", "app.channel.get_common_teams.store_get_common_teams_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	teams := []*model.Team{}
@@ -3813,7 +3808,7 @@ func (a *App) setSidebarCategoriesForConvertedGroupMessage(rctx request.CTX, gmC
 }
 
 func (a *App) validateForConvertGroupMessageToChannel(rctx request.CTX, convertedByUserId string, originalChannel *model.Channel, gmConversionRequest *model.GroupMessageConversionRequestBody) *model.AppError {
-	commonTeams, appErr := a.GetGroupMessageMembersCommonTeams(rctx, originalChannel.Id)
+	commonTeams, appErr := a.GetDirectOrGroupMessageMembersCommonTeams(rctx, originalChannel.Id)
 	if appErr != nil {
 		return appErr
 	}
@@ -3926,6 +3921,23 @@ func (s *Server) getDirectChannel(rctx request.CTX, userID, otherUserID string) 
 	}
 
 	return channel, nil
+}
+
+func (a *App) CheckIfChannelIsRestrictedDM(rctx request.CTX, channel *model.Channel) (bool, *model.AppError) {
+	if *a.Config().TeamSettings.RestrictDirectMessage != model.DirectMessageTeam {
+		return false, nil
+	}
+
+	if channel.Type != model.ChannelTypeDirect && channel.Type != model.ChannelTypeGroup {
+		return false, nil
+	}
+
+	teams, err := a.GetDirectOrGroupMessageMembersCommonTeams(rctx, channel.Id)
+	if err != nil {
+		return false, model.NewAppError("CheckIfChannelIsRestrictedDM", "app.channel.get_common_teams.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return len(teams) == 0, nil
 }
 
 func (a *App) ChannelAccessControlled(rctx request.CTX, channelID string) (bool, *model.AppError) {

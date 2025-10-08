@@ -1,0 +1,40 @@
+diff --git a/node_modules/dom-accessibility-api/dist/accessible-name-and-description.js b/node_modules/dom-accessibility-api/dist/accessible-name-and-description.js
+index 94a27b7..3337e2a 100644
+--- a/node_modules/dom-accessibility-api/dist/accessible-name-and-description.js
++++ b/node_modules/dom-accessibility-api/dist/accessible-name-and-description.js
+@@ -442,7 +442,14 @@ function computeTextAlternative(root) {
+     var skipToStep2E = context.recursion && isControl(current) && compute === "name";
+     if (!skipToStep2E) {
+       var ariaLabel = ((0, _util.isElement)(current) && current.getAttribute("aria-label") || "").trim();
+-      if (ariaLabel !== "" && compute === "name") {
++
++      // @hmhealey I commented out the check below for `compute === "name"` because the current version of this library
++      // doesn't allow for one element's description to use another element's aria-label when that other element is in
++      // the first element's aria-describedby. Chrome and Firefox both support that, and based on my reading of
++      // https://www.w3.org/TR/accname-1.2/#computation-steps, step "2.4 AriaLabel" states that that should it should
++      // be supported. This is likely also why the current version of this library fails the
++      // accname/description_from_content_of_describedby_element-manual test from https://github.com/web-platform-tests/wpt.
++      if (ariaLabel !== ""/* && compute === "name"*/) {
+         consultedNodes.add(current);
+         return ariaLabel;
+       }
+diff --git a/node_modules/dom-accessibility-api/dist/accessible-name-and-description.mjs b/node_modules/dom-accessibility-api/dist/accessible-name-and-description.mjs
+index 05f9ca6..8d37d55 100644
+--- a/node_modules/dom-accessibility-api/dist/accessible-name-and-description.mjs
++++ b/node_modules/dom-accessibility-api/dist/accessible-name-and-description.mjs
+@@ -437,7 +437,14 @@ export function computeTextAlternative(root) {
+     var skipToStep2E = context.recursion && isControl(current) && compute === "name";
+     if (!skipToStep2E) {
+       var ariaLabel = (isElement(current) && current.getAttribute("aria-label") || "").trim();
+-      if (ariaLabel !== "" && compute === "name") {
++
++      // @hmhealey I commented out the check below for `compute === "name"` because the current version of this library
++      // doesn't allow for one element's description to use another element's aria-label when that other element is in
++      // the first element's aria-describedby. Chrome and Firefox both support that, and based on my reading of
++      // https://www.w3.org/TR/accname-1.2/#computation-steps, step "2.4 AriaLabel" states that that should it should
++      // be supported. This is likely also why the current version of this library fails the
++      // accname/description_from_content_of_describedby_element-manual test from https://github.com/web-platform-tests/wpt.
++      if (ariaLabel !== ""/* && compute === "name"*/) {
+         consultedNodes.add(current);
+         return ariaLabel;
+       }

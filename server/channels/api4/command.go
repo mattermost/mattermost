@@ -344,6 +344,17 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		// some other team can't be run against this one
 		commandArgs.TeamId = channel.TeamId
 	} else {
+		restrictDM, appErr := c.App.CheckIfChannelIsRestrictedDM(c.AppContext, channel)
+		if appErr != nil {
+			c.Err = err
+			return
+		}
+
+		if restrictDM {
+			c.Err = model.NewAppError("createPost", "api.command.execute_command.restricted_dm.error", nil, "", http.StatusBadRequest)
+			return
+		}
+
 		// if the slash command was used in a DM or GM, ensure that the user is a member of the specified team, so that
 		// they can't just execute slash commands against arbitrary teams
 		if c.AppContext.Session().GetTeamByTeamId(commandArgs.TeamId) == nil {

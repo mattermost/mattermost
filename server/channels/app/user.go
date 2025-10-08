@@ -5,7 +5,6 @@ package app
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -453,8 +452,8 @@ func (a *App) GetUser(userID string) (*model.User, *model.AppError) {
 	return user, nil
 }
 
-func (a *App) GetUsers(userIDs []string) ([]*model.User, *model.AppError) {
-	users, err := a.ch.srv.userService.GetUsers(userIDs)
+func (a *App) GetUsers(rctx request.CTX, userIDs []string) ([]*model.User, *model.AppError) {
+	users, err := a.ch.srv.userService.GetUsers(rctx, userIDs)
 	if err != nil {
 		return nil, model.NewAppError("GetUsers", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -749,8 +748,8 @@ func (a *App) GetChannelGroupUsers(channelID string) ([]*model.User, *model.AppE
 	return users, nil
 }
 
-func (a *App) GetUsersByIds(userIDs []string, options *store.UserGetByIdsOpts) ([]*model.User, *model.AppError) {
-	users, err := a.ch.srv.userService.GetUsersByIds(userIDs, options)
+func (a *App) GetUsersByIds(rctx request.CTX, userIDs []string, options *store.UserGetByIdsOpts) ([]*model.User, *model.AppError) {
+	users, err := a.ch.srv.userService.GetUsersByIds(rctx, userIDs, options)
 	if err != nil {
 		return nil, model.NewAppError("GetUsersByIds", "app.user.get_profiles.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -1751,6 +1750,21 @@ func (a *App) GetTokenById(token string) (*model.Token, *model.AppError) {
 	return rtoken, nil
 }
 
+func (a *App) ConsumeTokenOnce(tokenStr string) (*model.Token, *model.AppError) {
+	token, err := a.Srv().Store().Token().ConsumeOnce(tokenStr)
+	if err != nil {
+		var status int
+		switch err.(type) {
+		case *store.ErrNotFound:
+			status = http.StatusNotFound
+		default:
+			status = http.StatusInternalServerError
+		}
+		return nil, model.NewAppError("ConsumeTokenOnce", "api.user.create_user.signup_link_invalid.app_error", nil, "", status).Wrap(err)
+	}
+	return token, nil
+}
+
 func (a *App) DeleteToken(token *model.Token) *model.AppError {
 	err := a.Srv().Store().Token().Delete(token.Token)
 	if err != nil {
@@ -2359,29 +2373,29 @@ func (a *App) RestrictUsersGetByPermissions(rctx request.CTX, userID string, opt
 
 // FilterNonGroupTeamMembers returns the subset of the given user IDs of the users who are not members of groups
 // associated to the team excluding bots.
-func (a *App) FilterNonGroupTeamMembers(userIDs []string, team *model.Team) ([]string, error) {
+func (a *App) FilterNonGroupTeamMembers(rctx request.CTX, userIDs []string, team *model.Team) ([]string, error) {
 	teamGroupUsers, err := a.GetTeamGroupUsers(team.Id)
 	if err != nil {
 		return nil, err
 	}
-	return a.filterNonGroupUsers(userIDs, teamGroupUsers)
+	return a.filterNonGroupUsers(rctx, userIDs, teamGroupUsers)
 }
 
 // FilterNonGroupChannelMembers returns the subset of the given user IDs of the users who are not members of groups
 // associated to the channel excluding bots
-func (a *App) FilterNonGroupChannelMembers(userIDs []string, channel *model.Channel) ([]string, error) {
+func (a *App) FilterNonGroupChannelMembers(rctx request.CTX, userIDs []string, channel *model.Channel) ([]string, error) {
 	channelGroupUsers, err := a.GetChannelGroupUsers(channel.Id)
 	if err != nil {
 		return nil, err
 	}
-	return a.filterNonGroupUsers(userIDs, channelGroupUsers)
+	return a.filterNonGroupUsers(rctx, userIDs, channelGroupUsers)
 }
 
 // filterNonGroupUsers is a helper function that takes a list of user ids and a list of users
 // and returns the list of normal users present in userIDs but not in groupUsers.
-func (a *App) filterNonGroupUsers(userIDs []string, groupUsers []*model.User) ([]string, error) {
+func (a *App) filterNonGroupUsers(rctx request.CTX, userIDs []string, groupUsers []*model.User) ([]string, error) {
 	nonMemberIds := []string{}
-	users, err := a.Srv().Store().User().GetProfileByIds(context.Background(), userIDs, nil, false)
+	users, err := a.Srv().Store().User().GetProfileByIds(rctx, userIDs, nil, false)
 	if err != nil {
 		return nil, err
 	}
@@ -2683,7 +2697,7 @@ func (a *App) ConvertBotToUser(rctx request.CTX, bot *model.Bot, userPatch *mode
 	return user, nil
 }
 
-func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThreadsOpts) (*model.Threads, *model.AppError) {
+func (a *App) GetThreadsForUser(rctx request.CTX, userID, teamID string, options model.GetUserThreadsOpts) (*model.Threads, *model.AppError) {
 	var result model.Threads
 	var eg errgroup.Group
 	postPriorityIsEnabled := a.IsPostPriorityEnabled()
@@ -2742,7 +2756,7 @@ func (a *App) GetThreadsForUser(userID, teamID string, options model.GetUserThre
 
 	if !options.TotalsOnly {
 		eg.Go(func() error {
-			threads, err := a.Srv().Store().Thread().GetThreadsForUser(userID, teamID, options)
+			threads, err := a.Srv().Store().Thread().GetThreadsForUser(rctx, userID, teamID, options)
 			if err != nil {
 				return errors.Wrapf(err, "failed to get threads for user id=%s", userID)
 			}
@@ -2782,8 +2796,8 @@ func (a *App) GetThreadMembershipForUser(userId, threadId string) (*model.Thread
 	return threadMembership, nil
 }
 
-func (a *App) GetThreadForUser(threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, *model.AppError) {
-	thread, nErr := a.Srv().Store().Thread().GetThreadForUser(threadMembership, extended, a.IsPostPriorityEnabled())
+func (a *App) GetThreadForUser(rctx request.CTX, threadMembership *model.ThreadMembership, extended bool) (*model.ThreadResponse, *model.AppError) {
+	thread, nErr := a.Srv().Store().Thread().GetThreadForUser(rctx, threadMembership, extended, a.IsPostPriorityEnabled())
 	if nErr != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -2869,7 +2883,7 @@ func (a *App) UpdateThreadFollowForUserFromChannelAdd(rctx request.CTX, userID, 
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventThreadUpdated, teamID, "", userID, nil, "")
-	userThread, err := a.Srv().Store().Thread().GetThreadForUser(tm, true, a.IsPostPriorityEnabled())
+	userThread, err := a.Srv().Store().Thread().GetThreadForUser(rctx, tm, true, a.IsPostPriorityEnabled())
 	if err != nil {
 		var errNotFound *store.ErrNotFound
 		if errors.As(err, &errNotFound) {
@@ -2947,7 +2961,7 @@ func (a *App) UpdateThreadReadForUser(rctx request.CTX, currentSessionId, userID
 	if nErr != nil {
 		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
-	thread, err := a.GetThreadForUser(membership, false)
+	thread, err := a.GetThreadForUser(rctx, membership, false)
 	if err != nil {
 		return nil, err
 	}

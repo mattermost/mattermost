@@ -883,17 +883,13 @@ export function autocompleteChannelsForSearch(teamId: string, term: string): Act
     };
 }
 
-export function searchChannels(teamId: string, term: string, archived?: boolean): ActionFuncAsync<Channel[]> {
+export function searchChannels(teamId: string, term: string): ActionFuncAsync<Channel[]> {
     return async (dispatch, getState) => {
         dispatch({type: ChannelTypes.GET_CHANNELS_REQUEST, data: null});
 
         let channels;
         try {
-            if (archived) {
-                channels = await Client4.searchArchivedChannels(teamId, term);
-            } else {
-                channels = await Client4.searchChannels(teamId, term);
-            }
+            channels = await Client4.searchChannels(teamId, term);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch({type: ChannelTypes.GET_CHANNELS_FAILURE, error});
@@ -1418,6 +1414,16 @@ export function fetchMissingChannels(channelIDs: string[]): ActionFuncAsync<Arra
             data: missingChannelIDs,
         };
     };
+}
+
+export function fetchIsRestrictedDM(channelId: string) {
+    return bindClientFunc({
+        clientFunc: async () => {
+            const teams = (await Client4.getGroupMessageMembersCommonTeams(channelId)).data;
+            return {channelId, isRestricted: teams.length === 0};
+        },
+        onSuccess: ChannelTypes.RECEIVED_IS_DM_RESTRICTED,
+    });
 }
 
 export function getChannelAccessControlAttributes(channelId: string): ActionFuncAsync<AccessControlAttributes> {

@@ -1100,3 +1100,298 @@ func TestIsMultiSelectDefaultInOptions(t *testing.T) {
 		assert.False(t, result)
 	})
 }
+
+func TestSubmitDialogResponse_IsValid(t *testing.T) {
+	validDialog := &Dialog{
+		Title: "Test Dialog",
+	}
+
+	tests := map[string]struct {
+		response *SubmitDialogResponse
+		wantErr  string
+	}{
+		"error takes precedence - with error field": {
+			response: &SubmitDialogResponse{
+				Error: "something went wrong",
+				Type:  "invalid_type",
+				Form:  validDialog,
+			},
+			wantErr: "",
+		},
+		"error takes precedence - with errors field": {
+			response: &SubmitDialogResponse{
+				Errors: map[string]string{"field1": "required"},
+				Type:   "invalid_type",
+				Form:   validDialog,
+			},
+			wantErr: "",
+		},
+		"valid empty type with no form": {
+			response: &SubmitDialogResponse{
+				Type: "",
+			},
+			wantErr: "",
+		},
+		"valid ok type with no form": {
+			response: &SubmitDialogResponse{
+				Type: "ok",
+			},
+			wantErr: "",
+		},
+		"valid navigate type with no form": {
+			response: &SubmitDialogResponse{
+				Type: "navigate",
+			},
+			wantErr: "",
+		},
+		"valid form type with valid form": {
+			response: &SubmitDialogResponse{
+				Type: "form",
+				Form: validDialog,
+			},
+			wantErr: "",
+		},
+		"invalid empty type with form": {
+			response: &SubmitDialogResponse{
+				Type: "",
+				Form: validDialog,
+			},
+			wantErr: "form field must be nil for type \"\"",
+		},
+		"invalid ok type with form": {
+			response: &SubmitDialogResponse{
+				Type: "ok",
+				Form: validDialog,
+			},
+			wantErr: "form field must be nil for type \"ok\"",
+		},
+		"invalid navigate type with form": {
+			response: &SubmitDialogResponse{
+				Type: "navigate",
+				Form: validDialog,
+			},
+			wantErr: "form field must be nil for type \"navigate\"",
+		},
+		"invalid form type with no form": {
+			response: &SubmitDialogResponse{
+				Type: "form",
+			},
+			wantErr: "form field is required for form type",
+		},
+		"invalid form type with invalid form": {
+			response: &SubmitDialogResponse{
+				Type: "form",
+				Form: &Dialog{}, // Invalid dialog
+			},
+			wantErr: "invalid form: 1 error occurred:\n\t* invalid dialog title \"\"",
+		},
+		"invalid type": {
+			response: &SubmitDialogResponse{
+				Type: "invalid",
+			},
+			wantErr: "invalid type \"invalid\", must be one of: empty, ok, form, navigate",
+		},
+	}
+
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
+			err := tt.response.IsValid()
+			if tt.wantErr == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.Error(t, err)
+				assert.Contains(t, err.Error(), tt.wantErr)
+			}
+		})
+	}
+}
+
+func TestValidateDateFormat(t *testing.T) {
+	tests := []struct {
+		name        string
+		input       string
+		expectError bool
+	}{
+		{"valid YYYY-MM-DD format", "2025-01-15", false},
+		{"valid date with leading zeros", "2025-01-01", false},
+		{"valid leap year date", "2024-02-29", false},
+		{"invalid format missing day", "2025-01", true},
+		{"invalid format with slashes", "2025/01/15", true},
+		{"invalid month", "2025-13-01", true},
+		{"invalid day", "2025-01-32", true},
+		{"invalid leap year", "2023-02-29", true},
+		{"empty string", "", false}, // Empty string is valid (no error)
+		{"partial date", "2025", true},
+		{"valid datetime format (should extract date)", "2025-01-15T10:30:00", true},
+		{"valid datetime with timezone", "2025-01-15T10:30:00Z", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validateDateFormat(tt.input)
+			if tt.expectError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestValidateDateTimeFormat(t *testing.T) {
+	tests := []struct {
+		name        string
+		input       string
+		expectError bool
+	}{
+		{"valid RFC3339 format", "2025-01-15T10:30:00Z", false},
+		{"valid with timezone offset", "2025-01-15T10:30:00-05:00", false},
+		{"valid with positive timezone", "2025-01-15T10:30:00+02:00", false},
+		{"valid with milliseconds", "2025-01-15T10:30:00.123Z", false},
+		{"valid format without timezone", "2025-01-15T10:30:00", false},
+		{"valid format without seconds", "2025-01-15T10:30", false},
+		{"invalid date part", "2025-13-01T10:30:00Z", true},
+		{"invalid time part", "2025-01-15T25:30:00Z", true},
+		{"invalid timezone format", "2025-01-15T10:30:00GMT", true},
+		{"date only format", "2025-01-15", true},
+		{"empty string", "", false}, // Empty string is valid (no error)
+		{"invalid format with space", "2025-01-15 10:30:00", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := validateDateTimeFormat(tt.input)
+			if tt.expectError {
+				assert.Error(t, err)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestDialogElementDateTimeValidation(t *testing.T) {
+	t.Run("should validate DialogElement with date/datetime type", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Test Date",
+			Name:        "test_date",
+			Type:        "date",
+			MinDate:     "2025-01-01",
+			MaxDate:     "2025-12-31",
+			Optional:    false,
+		}
+		err := element.IsValid()
+		assert.NoError(t, err)
+	})
+
+	t.Run("should validate DialogElement with datetime type and time properties", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:  "Test DateTime",
+			Name:         "test_datetime",
+			Type:         "datetime",
+			MinDate:      "2025-01-01",
+			MaxDate:      "2025-12-31",
+			TimeInterval: 30,
+			Optional:     false,
+		}
+		err := element.IsValid()
+		assert.NoError(t, err)
+	})
+
+	t.Run("should reject DialogElement with invalid min_date", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName: "Test Date",
+			Name:        "test_date",
+			Type:        "date",
+			MinDate:     "invalid-date",
+			Optional:    false,
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid date format")
+	})
+
+	t.Run("should reject DialogElement with invalid time_interval", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:  "Test DateTime",
+			Name:         "test_datetime",
+			Type:         "datetime",
+			TimeInterval: -1, // Invalid
+			Optional:     false,
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "time_interval")
+	})
+
+	t.Run("should reject DialogElement with time_interval that is not a divisor of 1440", func(t *testing.T) {
+		element := DialogElement{
+			DisplayName:  "Test DateTime",
+			Name:         "test_datetime",
+			Type:         "datetime",
+			TimeInterval: 729, // Invalid - not a divisor of 1440
+			Optional:     false,
+		}
+		err := element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "divisor of 1440")
+	})
+
+	t.Run("should accept DialogElement with valid time_interval divisors", func(t *testing.T) {
+		validIntervals := []int{1, 2, 3, 4, 5, 6, 8, 10, 12, 15, 20, 24, 30, 40, 60, 72, 90, 120, 180, 240, 360, 480, 720, 1440}
+
+		for _, interval := range validIntervals {
+			element := DialogElement{
+				DisplayName:  "Test DateTime",
+				Name:         "test_datetime",
+				Type:         "datetime",
+				TimeInterval: interval,
+				Optional:     false,
+			}
+			err := element.IsValid()
+			assert.NoError(t, err, "time_interval %d should be valid", interval)
+		}
+	})
+
+	t.Run("should reject DialogElement with invalid time_interval non-divisors", func(t *testing.T) {
+		invalidIntervals := []int{7, 11, 13, 17, 23, 25, 33, 37, 50, 55, 70, 100, 300, 500, 729, 1000}
+
+		for _, interval := range invalidIntervals {
+			element := DialogElement{
+				DisplayName:  "Test DateTime",
+				Name:         "test_datetime",
+				Type:         "datetime",
+				TimeInterval: interval,
+				Optional:     false,
+			}
+			err := element.IsValid()
+			assert.Error(t, err, "time_interval %d should be invalid", interval)
+			assert.Contains(t, err.Error(), "divisor of 1440")
+		}
+	})
+
+	t.Run("should use default time_interval of 60 minutes when zero", func(t *testing.T) {
+		// Valid with default 60-minute interval
+		element := DialogElement{
+			DisplayName:  "Test DateTime",
+			Name:         "test_datetime",
+			Type:         "datetime",
+			TimeInterval: DefaultTimeIntervalMinutes,
+			Optional:     false,
+		}
+		err := element.IsValid()
+		assert.NoError(t, err)
+
+		// Invalid with default 60-minute interval
+		element = DialogElement{
+			DisplayName:  "Test DateTime",
+			Name:         "test_datetime",
+			Type:         "datetime",
+			TimeInterval: 0, // Should use default of 60
+			Optional:     false,
+		}
+		err = element.IsValid()
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "time_interval of 0 will be reset to default")
+	})
+}

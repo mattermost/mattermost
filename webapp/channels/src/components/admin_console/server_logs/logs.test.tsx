@@ -65,7 +65,7 @@ describe('components/admin_console/server_logs/Logs', () => {
     test.each(['caller', 'msg', 'worker', 'job_id', 'whatever'])('should search input be performed on %s attribute',
         async (searchString: string) => {
             const searchInput = screen.getByTestId('searchInput');
-            userEvent.type(searchInput, searchString);
+            await userEvent.type(searchInput, searchString);
 
             await waitFor(() => {
                 expect(screen.queryByText('msg 1')).toBeInTheDocument();
@@ -77,7 +77,7 @@ describe('components/admin_console/server_logs/Logs', () => {
     test.each(['level', 'timestamp'])('should search input not be performed on %s attribute',
         async (searchString: string) => {
             const searchInput = screen.getByTestId('searchInput');
-            userEvent.type(searchInput, searchString);
+            await userEvent.type(searchInput, searchString);
 
             await waitFor(() => {
                 expect(screen.queryByText('msg 1')).not.toBeInTheDocument();

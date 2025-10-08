@@ -255,14 +255,17 @@
 
                     .group-display-name,
                     .group-name {
-                        display: block;
+                        display: flex;
                         overflow: hidden;
                         max-width: 200px;
+                        align-items: center;
+                        gap: 8px;
                         text-overflow: ellipsis;
                         white-space: nowrap;
 
-                        i {
-                            color: rgba(var(--center-channel-color-rgb), 0.56);
+                        i,
+                        svg {
+                            color: rgba(var(--center-channel-color-rgb), 0.64);
                             font-size: 16px;
                         }
                     }
@@ -299,21 +302,6 @@
                             span.MenuItem__primary-text {
                                 font-size: 14px;
                                 line-height: 20px;
-
-                                &.leave-group-action {
-                                    color: var(--dnd-indicator);
-                                }
-
-                                span.icon {
-                                    display: inline-flex;
-                                    width: auto;
-                                    height: auto;
-                                    align-self: center;
-                                    padding-right: 12px;
-                                    color: rgba(var(--center-channel-color-rgb), 0.64);
-                                    font-size: 18px;
-                                    line-height: 18px;
-                                }
                             }
                         }
                     }
