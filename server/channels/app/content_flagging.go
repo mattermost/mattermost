@@ -861,7 +861,7 @@ func (a *App) SearchReviewers(rctx request.CTX, term string, teamId string) ([]*
 	return reviewersList, nil
 }
 
-func (a *App) AssignFlaggedPostReviewer(rctx request.CTX, flaggedPostId, reviewerId, assigneeId string) *model.AppError {
+func (a *App) AssignFlaggedPostReviewer(rctx request.CTX, flaggedPostId, flaggedPostTeamId, reviewerId, assigneeId string) *model.AppError {
 	statusPropertyValue, appErr := a.GetPostContentFlaggingStatusValue(flaggedPostId)
 	if appErr != nil {
 		return appErr
@@ -894,14 +894,14 @@ func (a *App) AssignFlaggedPostReviewer(rctx request.CTX, flaggedPostId, reviewe
 		Value:      json.RawMessage(fmt.Sprintf(`"%s"`, reviewerId)),
 	}
 
-	_, err := a.Srv().propertyService.UpsertPropertyValue(assigneePropertyValue)
+	assigneePropertyValue, err := a.Srv().propertyService.UpsertPropertyValue(assigneePropertyValue)
 	if err != nil {
 		return model.NewAppError("AssignFlaggedPostReviewer", "app.content_flagging.assign_reviewer.upsert_property_value.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
 	}
 
 	if status == model.ContentFlaggingStatusPending {
 		statusPropertyValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusAssigned))
-		_, err = a.Srv().propertyService.UpdatePropertyValue(groupId, statusPropertyValue)
+		statusPropertyValue, err = a.Srv().propertyService.UpdatePropertyValue(groupId, statusPropertyValue)
 		if err != nil {
 			return model.NewAppError("AssignFlaggedPostReviewer", "app.content_flagging.assign_reviewer.update_status_property_value.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
 		}
@@ -911,6 +911,13 @@ func (a *App) AssignFlaggedPostReviewer(rctx request.CTX, flaggedPostId, reviewe
 		postErr := a.postAssignReviewerMessage(rctx, groupId, flaggedPostId, reviewerId, assigneeId)
 		if postErr != nil {
 			rctx.Logger().Error("Failed to post assign reviewer message", mlog.Err(postErr), mlog.String("flagged_post_id", flaggedPostId), mlog.String("reviewer_id", reviewerId), mlog.String("assignee_id", assigneeId))
+		}
+	})
+
+	a.Srv().Go(func() {
+		updateEventAppErr := a.publishContentFlaggingReportUpdateEvent(flaggedPostId, flaggedPostTeamId, []*model.PropertyValue{assigneePropertyValue, statusPropertyValue})
+		if updateEventAppErr != nil {
+			rctx.Logger().Error("Failed to publish report change after assigning reviewer", mlog.Err(updateEventAppErr), mlog.String("flagged_post_id", flaggedPostId), mlog.String("reviewer_id", reviewerId), mlog.String("assignee_id", assigneeId))
 		}
 	})
 

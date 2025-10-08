@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 
 import type {PropertyField} from '@mattermost/types/properties';
@@ -18,7 +18,13 @@ type Props = {
 
 export function SelectableUserPropertyRenderer({field, metadata, initialValue}: Props) {
     const {formatMessage} = useIntl();
-    const [value, setValue] = useState(initialValue || '');
+    const [value, setValue] = useState('');
+
+    useEffect(() => {
+        if (initialValue) {
+            setValue(initialValue);
+        }
+    }, [initialValue]);
 
     const placeholder = (
         <span className='SelectableUserPropertyRenderer_placeholder'>
