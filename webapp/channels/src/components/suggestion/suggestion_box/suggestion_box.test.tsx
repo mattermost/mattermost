@@ -115,10 +115,10 @@ describe('SuggestionBox', () => {
             expect(providerSpy).toHaveBeenCalledTimes(1);
         });
 
-        expect(screen.queryByRole('listbox')).toBeVisible();
-
-        expect(screen.queryByRole('listbox')).toBeVisible();
-        expect(screen.getByText('Suggestion: testtest')).toBeVisible();
+        await waitFor(() => {
+            expect(screen.queryByRole('listbox')).toBeVisible();
+            expect(screen.getByText('Suggestion: testtest')).toBeVisible();
+        });
 
         // Typing more text should cause the suggestion to be updaetd
         await userEvent.keyboard('words');
