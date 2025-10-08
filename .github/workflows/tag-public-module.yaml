@@ -34,6 +34,24 @@ jobs:
         run: |
           echo LATEST_MODULE_TAG=$(git tag --list 'server/public/*' --format='%(refname:lstrip=-1)'  --sort -v:refname | head -1) >> ${GITHUB_ENV}
 
+      - name: release/validate-commit-sha
+        run: |
+          if [ -n "$COMMIT_SHA" ]; then
+            # Validate commit SHA format (40 character hex string)
+            if [[ ! "$COMMIT_SHA" =~ ^[a-f0-9]{40}$ ]]; then
+              echo "Error: Invalid commit SHA format. Must be a 40-character hexadecimal string."
+              exit 1
+            fi
+            # Verify the commit exists in the repository
+            if ! git cat-file -e "$COMMIT_SHA" 2>/dev/null; then
+              echo "Error: Commit SHA '$COMMIT_SHA' does not exist in the repository."
+              exit 1
+            fi
+            echo "Commit SHA validation passed: $COMMIT_SHA"
+          else
+            echo "No commit SHA provided, will use HEAD"
+          fi
+
       - name: release/generate-module-release-notes
         run: |
           echo "RELEASE_NOTES<<EOF" >> ${GITHUB_ENV}
