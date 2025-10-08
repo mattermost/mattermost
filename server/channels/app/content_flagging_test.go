@@ -1944,8 +1944,8 @@ func TestSendFlaggedPostRemovalNotification(t *testing.T) {
 
 		// Configure notifications for all targets
 		config := getBaseConfig()
-		config.NotificationSettings = &model.NotificationSettings{
-			EventTargetMapping: map[string][]string{
+		config.NotificationSettings = &model.ContentFlaggingNotificationSettings{
+			EventTargetMapping: map[model.ContentFlaggingEvent][]model.NotificationTarget{
 				model.EventContentRemoved: {model.TargetAuthor, model.TargetReporter, model.TargetReviewers},
 			},
 		}
@@ -2036,8 +2036,8 @@ func TestSendFlaggedPostRemovalNotification(t *testing.T) {
 
 		// Configure notifications only for author
 		config := getBaseConfig()
-		config.NotificationSettings = &model.NotificationSettings{
-			EventTargetMapping: map[string][]string{
+		config.NotificationSettings = &model.ContentFlaggingNotificationSettings{
+			EventTargetMapping: map[model.ContentFlaggingEvent][]model.NotificationTarget{
 				model.EventContentRemoved: {model.TargetAuthor},
 			},
 		}
@@ -2102,8 +2102,8 @@ func TestSendFlaggedPostRemovalNotification(t *testing.T) {
 
 		// Configure no notifications
 		config := getBaseConfig()
-		config.NotificationSettings = &model.NotificationSettings{
-			EventTargetMapping: map[string][]string{},
+		config.NotificationSettings = &model.ContentFlaggingNotificationSettings{
+			EventTargetMapping: map[model.ContentFlaggingEvent][]model.NotificationTarget{},
 		}
 		appErr := th.App.SaveContentFlaggingConfig(config)
 		require.Nil(t, appErr)
@@ -2126,8 +2126,8 @@ func TestSendFlaggedPostRemovalNotification(t *testing.T) {
 
 		// Configure notifications for reviewers
 		config := getBaseConfig()
-		config.NotificationSettings = &model.NotificationSettings{
-			EventTargetMapping: map[string][]string{
+		config.NotificationSettings = &model.ContentFlaggingNotificationSettings{
+			EventTargetMapping: map[model.ContentFlaggingEvent][]model.NotificationTarget{
 				model.EventContentRemoved: {model.TargetReviewers},
 			},
 		}
@@ -2212,8 +2212,8 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 
 		// Configure notifications for all targets
 		config := getBaseConfig()
-		config.NotificationSettings = &model.NotificationSettings{
-			EventTargetMapping: map[string][]string{
+		config.NotificationSettings = &model.ContentFlaggingNotificationSettings{
+			EventTargetMapping: map[model.ContentFlaggingEvent][]model.NotificationTarget{
 				model.EventContentDismissed: {model.TargetAuthor, model.TargetReporter, model.TargetReviewers},
 			},
 		}
@@ -2304,8 +2304,8 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 
 		// Configure notifications only for reporter
 		config := getBaseConfig()
-		config.NotificationSettings = &model.NotificationSettings{
-			EventTargetMapping: map[string][]string{
+		config.NotificationSettings = &model.ContentFlaggingNotificationSettings{
+			EventTargetMapping: map[model.ContentFlaggingEvent][]model.NotificationTarget{
 				model.EventContentDismissed: {model.TargetReporter},
 			},
 		}
@@ -2370,8 +2370,8 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 
 		// Configure no notifications
 		config := getBaseConfig()
-		config.NotificationSettings = &model.NotificationSettings{
-			EventTargetMapping: map[string][]string{},
+		config.NotificationSettings = &model.ContentFlaggingNotificationSettings{
+			EventTargetMapping: map[model.ContentFlaggingEvent][]model.NotificationTarget{},
 		}
 		appErr := th.App.SaveContentFlaggingConfig(config)
 		require.Nil(t, appErr)
@@ -2394,8 +2394,8 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 
 		// Configure notifications for reviewers
 		config := getBaseConfig()
-		config.NotificationSettings = &model.NotificationSettings{
-			EventTargetMapping: map[string][]string{
+		config.NotificationSettings = &model.ContentFlaggingNotificationSettings{
+			EventTargetMapping: map[model.ContentFlaggingEvent][]model.NotificationTarget{
 				model.EventContentDismissed: {model.TargetReviewers},
 			},
 		}
@@ -2457,13 +2457,13 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 		time.Sleep(2 * time.Second)
 
 		// Configure notifications for reviewers
-		config := getBaseConfig()
-		config.NotificationSettings = &model.NotificationSettings{
-			EventTargetMapping: map[string][]string{
+		config = getBaseConfig()
+		config.NotificationSettings = &model.ContentFlaggingNotificationSettings{
+			EventTargetMapping: map[model.ContentFlaggingEvent][]model.NotificationTarget{
 				model.EventContentDismissed: {model.TargetReviewers},
 			},
 		}
-		appErr := th.App.SaveContentFlaggingConfig(config)
+		appErr = th.App.SaveContentFlaggingConfig(config)
 		require.Nil(t, appErr)
 
 		groupId, appErr := th.App.ContentFlaggingGroupId()
