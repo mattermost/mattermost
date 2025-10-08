@@ -5263,6 +5263,14 @@
     "translation": "Unable to find Flagged Post ID property field."
   },
   {
+    "id": "app.content_flagging.missing_reporting_user_id_field.app_error",
+    "translation": "Unable to find reporting user field."
+  },
+  {
+    "id": "app.content_flagging.missing_reporting_user_id_property_value.app_error",
+    "translation": "Unable to find value for reporting user field."
+  },
+  {
     "id": "app.content_flagging.no_status_property.app_error",
     "translation": "Cannot fetch flagged post as the post is not flagged."
   },
