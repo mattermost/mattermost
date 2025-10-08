@@ -6,6 +6,7 @@ import React from 'react';
 import type {match} from 'react-router-dom';
 
 import ChannelView from 'components/channel_view/index';
+import ChannelViewWithTabs from 'components/channel_view/channel_view_with_tabs_index';
 
 import {getHistory} from 'utils/browser_history';
 import Constants from 'utils/constants';
@@ -65,6 +66,8 @@ export default class ChannelIdentifierRouter extends React.PureComponent<Props> 
     };
 
     render() {
-        return <ChannelView/>;
+        // Temporary: Use new tab-based channel view for testing
+        // TODO: Remove this and implement proper feature flag
+        return <ChannelViewWithTabs/>;
     }
 }

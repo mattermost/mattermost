@@ -1,0 +1,83 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.channel-tab {
+    border: none;
+    background: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 0 4px 0;
+    margin: 0 1px;
+    border-bottom: 2px solid transparent;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    color: rgba(var(--center-channel-color-rgb), 0.75);
+
+    &:hover {
+        .channel-tab__content {
+            background-color: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.88);
+        }
+    }
+
+    &--active {
+        border-bottom: 2px solid var(--button-bg);
+
+        .channel-tab__content {
+            color: var(--button-bg);
+        }
+
+        &:hover {
+            background: none;
+
+            .channel-tab__content {
+                color: var(--button-bg);
+                background: none;
+            }
+        }
+    }
+
+    &__content {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        padding: 4px 8px;
+        border-radius: var(--radius-s);
+        min-width: 0;
+    }
+
+    &__icon {
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+        line-height: 1;
+        margin-left: -4px;
+
+        .icon {
+            font-size: 16px;
+        }
+    }
+
+    &__text {
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 16px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    &__dropdown-icon {
+        font-size: 14px;
+        margin-left: -4px;
+        margin-right: -4px;
+        opacity: 0.56;
+        transition: opacity 0.15s ease;
+
+        .channel-tab:hover & {
+            opacity: 0.72;
+        }
+    }
+}
