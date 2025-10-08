@@ -599,20 +599,12 @@
         }
     }
 
-    &.post--pending,
-    &.post--failed {
-        .post__body {
-            opacity: 0.65;
-        }
-    }
-
     .post__status {
         display: inline-flex;
         align-items: center;
         gap: 4px;
         margin-left: 8px;
         font-size: 12px;
-        color: rgba(var(--center-channel-color-rgb), 0.72);
 
         &:first-child {
             margin-left: 0;
@@ -620,6 +612,14 @@
 
         &--failed {
             color: var(--error-text);
+        }
+    }
+
+    .post__body-main {
+        display: block;
+
+        &--dimmed {
+            opacity: 0.65;
         }
     }
 
@@ -1462,9 +1462,7 @@
             white-space: nowrap;
 
             .post__status {
-                gap: 6px;
-                padding: 4px 8px;
-                border-radius: 4px;
+                padding: 3px 6px;
                 background: var(--center-channel-bg);
             }
 
@@ -1472,9 +1470,8 @@
                 display: inline-flex;
                 align-items: center;
                 gap: 6px;
-                margin-left: 8px;
+                margin-left: 4px;
                 padding: 5px 7px;
-                border-radius: 4px;
                 background: functions.alpha-color(variables.$black, 0.7);
 
                 a {

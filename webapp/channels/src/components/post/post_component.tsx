@@ -403,6 +403,9 @@ function PostComponent(props: Props) {
     }, [handleCommentClick, handleJumpClick, props.currentTeam?.id, teamId]);
 
     const postClass = classNames('post__body', { 'post--edited': PostUtils.isEdited(post), 'search-item-snippet': isSearchResultItem });
+    const postBodyMainClass = classNames('post__body-main', {
+        'post__body-main--dimmed': isPending || isFailed,
+    });
 
     let comment;
     if (props.isFirstReply && post.type !== Constants.PostTypes.EPHEMERAL) {
@@ -639,32 +642,34 @@ function PostComponent(props: Props) {
                             id={isRHS ? undefined : `${post.id}_message`}
                         >
                             {post.failed && <FailedPostOptions post={post} />}
-                            <AutoHeightSwitcher
-                                showSlot={slotBasedOnEditOrMessageView}
-                                shouldScrollIntoView={props.isPostBeingEdited}
-                                slot1={message}
-                                slot2={<EditPost />}
-                                onTransitionEnd={() => document.dispatchEvent(new Event(AppEvents.FOCUS_EDIT_TEXTBOX))}
-                            />
-                            {
-                                showFileAttachments &&
-                                <FileAttachmentListContainer
-                                    post={post}
-                                    compactDisplay={props.compactDisplay}
-                                    handleFileDropdownOpened={handleFileDropdownOpened}
+                            <div className={postBodyMainClass}>
+                                <AutoHeightSwitcher
+                                    showSlot={slotBasedOnEditOrMessageView}
+                                    shouldScrollIntoView={props.isPostBeingEdited}
+                                    slot1={message}
+                                    slot2={<EditPost />}
+                                    onTransitionEnd={() => document.dispatchEvent(new Event(AppEvents.FOCUS_EDIT_TEXTBOX))}
                                 />
-                            }
-                            <div className='post__body-reactions-acks'>
-                                {props.isPostAcknowledgementsEnabled && post.metadata?.priority?.requested_ack && (
-                                    <PostAcknowledgements
-                                        authorId={post.user_id}
-                                        isDeleted={post.state === Posts.POST_DELETED}
-                                        postId={post.id}
+                                {
+                                    showFileAttachments &&
+                                    <FileAttachmentListContainer
+                                        post={post}
+                                        compactDisplay={props.compactDisplay}
+                                        handleFileDropdownOpened={handleFileDropdownOpened}
                                     />
-                                )}
-                                {showReactions && <ReactionList post={post} />}
+                                }
+                                <div className='post__body-reactions-acks'>
+                                    {props.isPostAcknowledgementsEnabled && post.metadata?.priority?.requested_ack && (
+                                        <PostAcknowledgements
+                                            authorId={post.user_id}
+                                            isDeleted={post.state === Posts.POST_DELETED}
+                                            postId={post.id}
+                                        />
+                                    )}
+                                    {showReactions && <ReactionList post={post} />}
+                                </div>
+                                {threadFooter}
                             </div>
-                            {threadFooter}
                         </div>
                     </div>
                 </div>
