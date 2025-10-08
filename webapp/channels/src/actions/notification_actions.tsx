@@ -219,7 +219,7 @@ const replaceMentionsWithDisplayNames = (text: string, state: GlobalState): stri
         if (['channel', 'all', 'here'].includes(username.toLowerCase())) {
             return match;
         }
-        const user = getUserByUsername(state, username);
+        const user = getUserByUsername(state, username.toLowerCase());
         if (user) {
             const displayName = displayUsername(user, teammateNameDisplay, false);
             return `@${displayName}`;
