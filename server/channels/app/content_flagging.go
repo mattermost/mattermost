@@ -925,6 +925,15 @@ func (a *App) AssignFlaggedPostReviewer(rctx request.CTX, flaggedPostId, flagged
 }
 
 func (a *App) postAssignReviewerMessage(rctx request.CTX, contentFlaggingGroupId, flaggedPostId, reviewerId, assignedById string) *model.AppError {
+	notificationSettings := a.Config().ContentFlaggingSettings.NotificationSettings
+	if notificationSettings == nil {
+		return nil
+	}
+
+	if !slices.Contains(notificationSettings.EventTargetMapping[model.EventAssigned], model.TargetReviewers) {
+		return nil
+	}
+
 	reviewerUser, appErr := a.GetUser(reviewerId)
 	if appErr != nil {
 		return appErr
