@@ -72,9 +72,6 @@ function BookmarksTab({
                         </div>
                     ),
                 }}
-                menuButtonTooltip={{
-                    text: tab.label,
-                }}
                 menu={{
                     id: `${menuId}-menu`,
                 }}
