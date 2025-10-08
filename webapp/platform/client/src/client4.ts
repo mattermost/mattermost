@@ -2172,6 +2172,13 @@ export default class Client4 {
         );
     };
 
+    updateUserCustomProfileAttributesValues = (userID: string, attributeValues: Record<string, string | string[]>) => {
+        return this.doFetch<Record<string, string | string[]>>(
+            `${this.getUserRoute(userID)}/custom_profile_attributes`,
+            {method: 'PATCH', body: JSON.stringify(attributeValues)},
+        );
+    };
+
     getUserCustomProfileAttributesValues = async (userID: string) => {
         const data = await this.doFetch<Record<string, string>>(
             `${this.getUserRoute(userID)}/custom_profile_attributes`,

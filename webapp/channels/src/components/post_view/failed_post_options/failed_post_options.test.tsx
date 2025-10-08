@@ -34,7 +34,7 @@ describe('components/post_view/FailedPostOptions', () => {
         expect(screen.getAllByRole('link')).toHaveLength(2);
     });
 
-    test('should create post on retry', () => {
+    test('should create post on retry', async () => {
         const props = {
             ...baseProps,
             actions: {
@@ -47,16 +47,16 @@ describe('components/post_view/FailedPostOptions', () => {
 
         const retryLink = screen.getByText('Retry');
 
-        userEvent.click(retryLink);
+        await userEvent.click(retryLink);
 
         expect(props.actions.createPost.mock.calls.length).toBe(1);
 
-        userEvent.click(retryLink);
+        await userEvent.click(retryLink);
 
         expect(props.actions.createPost.mock.calls.length).toBe(2);
     });
 
-    test('should remove post on cancel', () => {
+    test('should remove post on cancel', async () => {
         const props = {
             ...baseProps,
             actions: {
@@ -69,7 +69,7 @@ describe('components/post_view/FailedPostOptions', () => {
 
         const cancelLink = screen.getByText('Cancel');
 
-        userEvent.click(cancelLink);
+        await userEvent.click(cancelLink);
 
         expect(props.actions.removePost.mock.calls.length).toBe(1);
     });

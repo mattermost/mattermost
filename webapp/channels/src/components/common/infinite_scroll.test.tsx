@@ -7,6 +7,7 @@ import React from 'react';
 import InfiniteScroll from 'components/common/infinite_scroll';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {act, waitFor} from 'tests/react_testing_utils';
 
 describe('/components/common/InfiniteScroll', () => {
     const baseProps = {
@@ -52,28 +53,43 @@ describe('/components/common/InfiniteScroll', () => {
         expect(node.current!.removeEventListener).toHaveBeenCalledTimes(1);
     });
 
-    test('should execute call back function when scroll reaches the bottom and there \'s more data and no current fetch is taking place', () => {
+    test('should execute call back function when scroll reaches the bottom and there \'s more data and no current fetch is taking place', async () => {
         const instance = wrapper.instance();
 
         expect(baseProps.callBack).toHaveBeenCalledTimes(0);
 
-        instance.handleScroll();
-        expect(wrapper.state().isFetching).toBe(true);
-        expect(baseProps.callBack).toHaveBeenCalledTimes(1);
+        act(() => {
+            instance.handleScroll();
+        });
+
+        await waitFor(() => {
+            expect(wrapper.state().isFetching).toBe(true);
+            expect(baseProps.callBack).toHaveBeenCalledTimes(1);
+        });
     });
 
-    test('should not execute call back even if scroll is a the bottom when there \'s no more data', () => {
-        wrapper.setState({isEndofData: true});
+    test('should not execute call back even if scroll is a the bottom when there \'s no more data', async () => {
+        act(() => {
+            wrapper.setState({isEndofData: true});
+        });
+
         const instance = wrapper.instance();
 
-        instance.handleScroll();
+        act(() => {
+            instance.handleScroll();
+        });
+
         expect(baseProps.callBack).toHaveBeenCalledTimes(0);
     });
 
     test('should not show loading screen if there is no data', () => {
         let loadingDiv = wrapper.find('.loading-screen');
         expect(loadingDiv.exists()).toBe(false);
-        wrapper.setState({isFetching: true});
+
+        act(() => {
+            wrapper.setState({isFetching: true});
+        });
+
         expect(wrapper).toMatchSnapshot();
         expect(wrapper.state().isFetching).toBe(true);
 
