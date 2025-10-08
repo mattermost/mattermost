@@ -2,9 +2,12 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
 import type {UserProfile} from '@mattermost/types/users';
 
+import {fetchRemoteClusterInfo} from 'mattermost-redux/actions/shared_channels';
 import {getCurrentUserId, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
 
 import type {GlobalState} from 'types/store';
@@ -22,4 +25,12 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     };
 }
 
-export default connect(mapStateToProps)(UserDetails);
+function mapDispatchToProps(dispatch: Dispatch) {
+    return {
+        actions: bindActionCreators({
+            fetchRemoteClusterInfo,
+        }, dispatch),
+    };
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(UserDetails);

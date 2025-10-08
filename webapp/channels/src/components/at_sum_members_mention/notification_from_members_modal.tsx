@@ -11,6 +11,7 @@ import {GenericModal} from '@mattermost/components';
 import type {ChannelMembership} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {fetchRemoteClusterInfo} from 'mattermost-redux/actions/shared_channels';
 import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
@@ -22,7 +23,8 @@ import {openDirectChannelToUserId} from 'actions/channel_actions';
 import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
-import MemberList from 'components/channel_members_rhs/member_list';
+import type {ListItem} from 'components/channel_members_rhs/member_list';
+import MemberList, {ListItemType} from 'components/channel_members_rhs/member_list';
 
 import {ModalIdentifiers} from 'utils/constants';
 import {mapFeatureIdToTranslation} from 'utils/notify_admin_utils';
@@ -41,17 +43,6 @@ export interface ChannelMember {
     membership?: ChannelMembership;
     status?: string;
     displayName: string;
-}
-
-enum ListItemType {
-    Member = 'member',
-    FirstSeparator = 'first-separator',
-    Separator = 'separator',
-}
-
-export interface ListItem {
-    type: ListItemType;
-    data: ChannelMember | JSX.Element;
 }
 
 const MembersContainer = styled.div`
@@ -103,6 +94,10 @@ function NotificationFromMembersModal(props: Props) {
         history.push(teamUrl + '/messages/@' + user.username);
     }, [openDirectChannelToUserId, history, teamUrl]);
 
+    const handleFetchRemoteClusterInfo = useCallback((remoteId: string, forceRefresh?: boolean) => {
+        dispatch(fetchRemoteClusterInfo(remoteId, forceRefresh));
+    }, [dispatch]);
+
     const handleOnClose = () => {
         dispatch(closeModal(ModalIdentifiers.SUM_OF_MEMBERS_MODAL));
     };
@@ -144,6 +139,7 @@ function NotificationFromMembersModal(props: Props) {
                     searchTerms={''}
                     editing={false}
                     openDirectMessage={openDirectMessage}
+                    fetchRemoteClusterInfo={handleFetchRemoteClusterInfo}
                     loadMore={loadMore}
                     hasNextPage={false}
                     isNextPageLoading={false}

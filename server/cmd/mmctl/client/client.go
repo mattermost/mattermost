@@ -5,6 +5,7 @@ package client
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 	"net/http"
 
@@ -74,6 +75,7 @@ type Client interface {
 	InviteUsersToTeam(ctx context.Context, teamID string, userEmails []string) (*model.Response, error)
 	SendPasswordResetEmail(ctx context.Context, email string) (*model.Response, error)
 	UpdateUser(ctx context.Context, user *model.User) (*model.User, *model.Response, error)
+	UpdateUserAuth(ctx context.Context, userId string, userAuth *model.UserAuth) (*model.UserAuth, *model.Response, error)
 	UpdateUserMfa(ctx context.Context, userID, code string, activate bool) (*model.Response, error)
 	UpdateUserPassword(ctx context.Context, userID, currentPassword, newPassword string) (*model.Response, error)
 	UpdateUserHashedPassword(ctx context.Context, userID, newHashedPassword string) (*model.Response, error)
@@ -92,12 +94,12 @@ type Client interface {
 	DeleteCommand(ctx context.Context, commandID string) (*model.Response, error)
 	GetConfig(ctx context.Context) (*model.Config, *model.Response, error)
 	GetConfigWithOptions(ctx context.Context, options model.GetConfigOptions) (map[string]any, *model.Response, error)
-	GetOldClientConfig(ctx context.Context, etag string) (map[string]string, *model.Response, error)
+	GetClientConfig(ctx context.Context, etag string) (map[string]string, *model.Response, error)
 	UpdateConfig(context.Context, *model.Config) (*model.Config, *model.Response, error)
 	PatchConfig(context.Context, *model.Config) (*model.Config, *model.Response, error)
 	ReloadConfig(ctx context.Context) (*model.Response, error)
 	MigrateConfig(ctx context.Context, from, to string) (*model.Response, error)
-	SyncLdap(ctx context.Context, reAddRemovedMembers *bool) (*model.Response, error)
+	SyncLdap(ctx context.Context) (*model.Response, error)
 	MigrateIdLdap(ctx context.Context, toAttribute string) (*model.Response, error)
 	GetUsers(ctx context.Context, page, perPage int, etag string) ([]*model.User, *model.Response, error)
 	UpdateUserActive(ctx context.Context, userID string, activate bool) (*model.Response, error)
@@ -121,8 +123,8 @@ type Client interface {
 	MigrateAuthToLdap(ctx context.Context, fromAuthService string, matchField string, force bool) (*model.Response, error)
 	MigrateAuthToSaml(ctx context.Context, fromAuthService string, usersMap map[string]string, auto bool) (*model.Response, error)
 	GetPing(ctx context.Context) (string, *model.Response, error)
-	GetPingWithFullServerStatus(ctx context.Context) (map[string]string, *model.Response, error)
-	GetPingWithOptions(ctx context.Context, options model.SystemPingOptions) (map[string]string, *model.Response, error)
+	GetPingWithFullServerStatus(ctx context.Context) (map[string]any, *model.Response, error)
+	GetPingWithOptions(ctx context.Context, options model.SystemPingOptions) (map[string]any, *model.Response, error)
 	CreateUpload(ctx context.Context, us *model.UploadSession) (*model.UploadSession, *model.Response, error)
 	GetUpload(ctx context.Context, uploadID string) (*model.UploadSession, *model.Response, error)
 	GetUploadsForUser(ctx context.Context, userID string) ([]*model.UploadSession, *model.Response, error)
@@ -164,4 +166,11 @@ type Client interface {
 	DeletePreferences(ctx context.Context, userId string, preferences model.Preferences) (*model.Response, error)
 	PermanentDeletePost(ctx context.Context, postID string) (*model.Response, error)
 	DeletePost(ctx context.Context, postId string) (*model.Response, error)
+	ListCPAFields(ctx context.Context) ([]*model.PropertyField, *model.Response, error)
+	CreateCPAField(ctx context.Context, field *model.PropertyField) (*model.PropertyField, *model.Response, error)
+	PatchCPAField(ctx context.Context, fieldID string, patch *model.PropertyFieldPatch) (*model.PropertyField, *model.Response, error)
+	DeleteCPAField(ctx context.Context, fieldID string) (*model.Response, error)
+	ListCPAValues(ctx context.Context, userID string) (map[string]json.RawMessage, *model.Response, error)
+	PatchCPAValues(ctx context.Context, values map[string]json.RawMessage) (map[string]json.RawMessage, *model.Response, error)
+	PatchCPAValuesForUser(ctx context.Context, userID string, values map[string]json.RawMessage) (map[string]json.RawMessage, *model.Response, error)
 }

@@ -12,7 +12,7 @@ import {
     isTextUrl,
     hasPlainText,
     createFileFromClipboardDataItem,
-    pasteHandler,
+    pasteHandler, isKnownTargetForPaste,
 } from './paste';
 
 const validClipboardData: any = {
@@ -457,5 +457,67 @@ describe('createFileFromClipboardDataItem', () => {
         const file = createFileFromClipboardDataItem(item, 'pasted') as File;
 
         expect(file.name).toContain('.jpeg');
+    });
+});
+
+describe('isKnownTargetForPaste', () => {
+    test('editing mode should return true only for edit_textbox', () => {
+        expect(isKnownTargetForPaste(
+            {target: {id: 'edit_textbox'}} as unknown as ClipboardEvent,
+            Locations.RHS_COMMENT,
+            true,
+        )).toBe(true);
+
+        expect(isKnownTargetForPaste(
+            {target: {id: 'edit_textbox'}} as unknown as ClipboardEvent,
+            Locations.CENTER,
+            true,
+        )).toBe(true);
+
+        expect(isKnownTargetForPaste(
+            {target: {id: 'post_textbox'}} as unknown as ClipboardEvent,
+            Locations.CENTER,
+            true,
+        )).toBe(false);
+
+        expect(isKnownTargetForPaste(
+            {target: {id: 'reply_textbox'}} as unknown as ClipboardEvent,
+            Locations.RHS_COMMENT,
+            true,
+        )).toBe(false);
+    });
+
+    test('in non-editing state, center channel can only have post textbox', () => {
+        expect(isKnownTargetForPaste(
+            {target: {id: 'post_textbox'}} as unknown as ClipboardEvent,
+            Locations.CENTER,
+            false,
+        )).toBe(true);
+
+        expect(isKnownTargetForPaste(
+            {target: {id: 'edit_textbox'}} as unknown as ClipboardEvent,
+            Locations.CENTER,
+            false,
+        )).toBe(false);
+
+        expect(isKnownTargetForPaste(
+            {target: {id: 'reply_textbox'}} as unknown as ClipboardEvent,
+            Locations.CENTER,
+            false,
+        )).toBe(false);
+    });
+
+    test('in non-editing state, RHS can only have reply textbox', () => {
+        expect(isKnownTargetForPaste(
+            {target: {id: 'reply_textbox'}} as unknown as ClipboardEvent,
+            Locations.RHS_COMMENT,
+            false,
+        )).toBe(true);
+
+        expect(isKnownTargetForPaste(
+            {target: {id: 'edit_textbox'}} as unknown as ClipboardEvent,
+            Locations.RHS_COMMENT,
+            false,
+        )).toBe(false);
     });
 });

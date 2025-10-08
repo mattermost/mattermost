@@ -95,20 +95,11 @@ var ExportJobCancelCmd = &cobra.Command{
 }
 
 func init() {
-	ExportCreateCmd.Flags().Bool("attachments", false, "Set to true to include file attachments in the export file.")
-	_ = ExportCreateCmd.Flags().MarkHidden("attachments")
-	_ = ExportCreateCmd.Flags().MarkDeprecated("attachments", "the tool now includes attachments by default. The flag will be removed in a future version.")
-
 	ExportCreateCmd.Flags().Bool("no-attachments", false, "Exclude file attachments from the export file.")
 	ExportCreateCmd.Flags().Bool("include-archived-channels", false, "Include archived channels in the export file.")
 	ExportCreateCmd.Flags().Bool("include-profile-pictures", false, "Include profile pictures in the export file.")
 	ExportCreateCmd.Flags().Bool("no-roles-and-schemes", false, "Exclude roles and custom permission schemes from the export file.")
 
-	ExportDownloadCmd.Flags().Bool("resume", false, "Set to true to resume an export download.")
-	_ = ExportDownloadCmd.Flags().MarkHidden("resume")
-	// Intentionally the message does not start with a capital letter because
-	// cobra prepends "Flag --resume has been deprecated,"
-	_ = ExportDownloadCmd.Flags().MarkDeprecated("resume", "the tool now resumes a download automatically. The flag will be removed in a future version.")
 	ExportDownloadCmd.Flags().Int("num-retries", 5, "Number of retries to do to resume a download.")
 
 	ExportJobListCmd.Flags().Int("page", 0, "Page number to fetch for the list of export jobs")

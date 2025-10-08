@@ -169,6 +169,7 @@ var PermissionReadLicenseInformation *Permission
 var PermissionManageLicenseInformation *Permission
 var PermissionManagePublicChannelBanner *Permission
 var PermissionManagePrivateChannelBanner *Permission
+var PermissionManageChannelAccessRules *Permission
 
 var PermissionSysconsoleReadAbout *Permission
 var PermissionSysconsoleWriteAbout *Permission
@@ -840,6 +841,7 @@ func initializePermissions() {
 		PermissionScopeSystem,
 	}
 
+	// DEPRECATED
 	PermissionPurgeBleveIndexes = &Permission{
 		"purge_bleve_indexes",
 		"",
@@ -847,6 +849,7 @@ func initializePermissions() {
 		PermissionScopeSystem,
 	}
 
+	// DEPRECATED
 	PermissionCreatePostBleveIndexesJob = &Permission{
 		"create_post_bleve_indexes_job",
 		"",
@@ -854,6 +857,7 @@ func initializePermissions() {
 		PermissionScopeSystem,
 	}
 
+	// DEPRECATED
 	PermissionManagePostBleveIndexesJob = &Permission{
 		"manage_post_bleve_indexes_job",
 		"",
@@ -1294,6 +1298,13 @@ func initializePermissions() {
 
 	PermissionManagePrivateChannelBanner = &Permission{
 		"manage_private_channel_banner",
+		"",
+		"",
+		PermissionScopeChannel,
+	}
+
+	PermissionManageChannelAccessRules = &Permission{
+		"manage_channel_access_rules",
 		"",
 		"",
 		PermissionScopeChannel,
@@ -2087,12 +2098,15 @@ func initializePermissions() {
 		"",
 		PermissionScopeSystem,
 	}
+
+	// DEPRECATED
 	PermissionSysconsoleReadExperimentalBleve = &Permission{
 		"sysconsole_read_experimental_bleve",
 		"",
 		"",
 		PermissionScopeSystem,
 	}
+	// DEPRECATED
 	PermissionSysconsoleWriteExperimentalBleve = &Permission{
 		"sysconsole_write_experimental_bleve",
 		"",
@@ -2323,7 +2337,6 @@ func initializePermissions() {
 		PermissionSysconsoleReadComplianceCustomTermsOfService,
 		PermissionSysconsoleReadExperimentalFeatures,
 		PermissionSysconsoleReadExperimentalFeatureFlags,
-		PermissionSysconsoleReadExperimentalBleve,
 		PermissionSysconsoleReadProductsBoards,
 		PermissionSysconsoleReadIPFilters,
 	}
@@ -2383,7 +2396,6 @@ func initializePermissions() {
 		PermissionSysconsoleWriteComplianceCustomTermsOfService,
 		PermissionSysconsoleWriteExperimentalFeatures,
 		PermissionSysconsoleWriteExperimentalFeatureFlags,
-		PermissionSysconsoleWriteExperimentalBleve,
 		PermissionSysconsoleWriteProductsBoards,
 		PermissionSysconsoleWriteIPFilters,
 	}
@@ -2443,9 +2455,6 @@ func initializePermissions() {
 		PermissionManageElasticsearchPostAggregationJob,
 		PermissionReadElasticsearchPostIndexingJob,
 		PermissionReadElasticsearchPostAggregationJob,
-		PermissionPurgeBleveIndexes,
-		PermissionCreatePostBleveIndexesJob,
-		PermissionManagePostBleveIndexesJob,
 		PermissionCreateLdapSyncJob,
 		PermissionManageLdapSyncJob,
 		PermissionReadLdapSyncJob,
@@ -2538,6 +2547,7 @@ func initializePermissions() {
 		PermissionOrderBookmarkPrivateChannel,
 		PermissionManagePublicChannelBanner,
 		PermissionManagePrivateChannelBanner,
+		PermissionManageChannelAccessRules,
 	}
 
 	GroupScopedPermissions := []*Permission{
@@ -2569,6 +2579,11 @@ func initializePermissions() {
 		PermissionSysconsoleWriteIntegrations,
 		PermissionSysconsoleReadCompliance,
 		PermissionSysconsoleWriteCompliance,
+		PermissionPurgeBleveIndexes,
+		PermissionCreatePostBleveIndexesJob,
+		PermissionManagePostBleveIndexesJob,
+		PermissionSysconsoleReadExperimentalBleve,
+		PermissionSysconsoleWriteExperimentalBleve,
 	}
 
 	PlaybookScopedPermissions := []*Permission{

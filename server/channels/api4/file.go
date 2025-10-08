@@ -138,12 +138,31 @@ func uploadFileSimple(c *Context, r *http.Request, timestamp time.Time) *model.F
 		return nil
 	}
 
-	auditRec := c.MakeAuditRecord("uploadFileSimple", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUploadFileSimple, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
 
 	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionUploadFile) {
 		c.SetPermissionError(model.PermissionUploadFile)
+		return nil
+	}
+
+	channel, err := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+	if err != nil {
+		c.Err = model.NewAppError("uploadFileSimple",
+			"api.file.upload_file.get_channel.app_error",
+			nil, err.Error(), http.StatusBadRequest)
+		return nil
+	}
+
+	restrictDM, appErr := c.App.CheckIfChannelIsRestrictedDM(c.AppContext, channel)
+	if appErr != nil {
+		c.Err = appErr
+		return nil
+	}
+
+	if restrictDM {
+		c.Err = model.NewAppError("uploadFileSimple", "api.file.upload_file.restricted_dm.error", nil, "", http.StatusBadRequest)
 		return nil
 	}
 
@@ -302,6 +321,25 @@ NextPart:
 			return nil
 		}
 
+		channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+		if appErr != nil {
+			c.Err = model.NewAppError("uploadFileMultipart",
+				"api.file.upload_file.get_channel.app_error",
+				nil, appErr.Error(), http.StatusBadRequest)
+			return nil
+		}
+
+		restrictDM, appErr := c.App.CheckIfChannelIsRestrictedDM(c.AppContext, channel)
+		if appErr != nil {
+			c.Err = appErr
+			return nil
+		}
+
+		if restrictDM {
+			c.Err = model.NewAppError("uploadFileSimple", "api.file.upload_file.restricted_dm.error", nil, "", http.StatusBadRequest)
+			return nil
+		}
+
 		// If there's no clientIds when the first file comes, expect
 		// none later.
 		if nFiles == 0 && len(clientIds) == 0 {
@@ -319,7 +357,7 @@ NextPart:
 			clientId = clientIds[nFiles]
 		}
 
-		auditRec := c.MakeAuditRecord("uploadFileMultipart", model.AuditStatusFail)
+		auditRec := c.MakeAuditRecord(model.AuditEventUploadFileMultipart, model.AuditStatusFail)
 		model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
 		model.AddEventParameterToAuditRec(auditRec, "client_id", clientId)
 
@@ -426,7 +464,7 @@ func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 			clientId = clientIds[i]
 		}
 
-		auditRec := c.MakeAuditRecord("uploadFileMultipartLegacy", model.AuditStatusFail)
+		auditRec := c.MakeAuditRecord(model.AuditEventUploadFileMultipartLegacy, model.AuditStatusFail)
 		defer c.LogAuditRec(auditRec)
 		model.AddEventParameterToAuditRec(auditRec, "channel_id", channelId)
 		model.AddEventParameterToAuditRec(auditRec, "client_id", clientId)
@@ -471,7 +509,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	forceDownload, _ := strconv.ParseBool(r.URL.Query().Get("download"))
 
-	auditRec := c.MakeAuditRecord("getFile", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventGetFile, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "force_download", forceDownload)
 
@@ -569,7 +607,7 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("getFileLink", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventGetFileLink, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	info, err := c.App.GetFileInfo(c.AppContext, c.Params.FileId)

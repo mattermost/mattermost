@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
@@ -16,7 +15,7 @@ import UserListRow from './user_list_row';
 type Props = {
     rowComponentType?: React.ComponentType<any>;
     length?: number;
-    actions?: ReactNode[];
+    actions?: Array<React.ComponentType<any>>;
     actionUserProps?: {
         [userId: string]: {
             channel?: Channel;
@@ -91,7 +90,7 @@ export default class UserList extends React.PureComponent <Props> {
             content = (
                 <div
                     key='no-users-found'
-                    className='more-modal__placeholder-row'
+                    className='more-modal__placeholder-row no-users-found'
                     data-testid='noUsersFound'
                 >
                     <p>

@@ -552,7 +552,7 @@ func TestCreateUserWithToken(t *testing.T) {
 
 		_, _, err := th.Client.CreateUserWithToken(context.Background(), &user, "")
 		require.Error(t, err)
-		CheckErrorID(t, err, "api.user.create_user.missing_token.app_error")
+		assert.ErrorContains(t, err, "token ID is required")
 	})
 
 	t.Run("TokenExpired", func(t *testing.T) {
@@ -902,7 +902,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 
 		_, _, err := th.Client.CreateUserWithInviteId(context.Background(), &user, "")
 		require.Error(t, err)
-		CheckErrorID(t, err, "api.user.create_user.missing_invite_id.app_error")
+		assert.ErrorContains(t, err, "invite ID is required")
 	})
 
 	t.Run("ExpiredInviteId", func(t *testing.T) {
@@ -3320,7 +3320,7 @@ func TestGetUsersInChannel(t *testing.T) {
 	_, _, err = th.SystemAdminClient.GetUsersInChannel(context.Background(), channelId, 0, 60, "")
 	require.NoError(t, err)
 
-	t.Run("Should forbid getting the members of an archived channel if users are not allowed to view archived messages", func(t *testing.T) {
+	t.Run("Should allow getting the members of an archived channel", func(t *testing.T) {
 		th.LoginBasic()
 		channel, _, appErr := th.SystemAdminClient.CreateChannel(context.Background(), &model.Channel{
 			DisplayName: "User Created Channel",
@@ -3336,34 +3336,11 @@ func TestGetUsersInChannel(t *testing.T) {
 		_, err = th.SystemAdminClient.DeleteChannel(context.Background(), channel.Id)
 		require.NoError(t, err)
 
-		experimentalViewArchivedChannels := *th.App.Config().TeamSettings.ExperimentalViewArchivedChannels
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalViewArchivedChannels = true })
-		defer th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.TeamSettings.ExperimentalViewArchivedChannels = experimentalViewArchivedChannels
-		})
-
-		// the endpoint should work fine for all clients when viewing
-		// archived channels is enabled
 		for _, client := range []*model.Client4{th.SystemAdminClient, th.Client, th.LocalClient} {
 			users, _, userErr := client.GetUsersInChannel(context.Background(), channel.Id, 0, 1000, "")
 			require.NoError(t, userErr)
 			require.Len(t, users, 3)
 		}
-
-		// the endpoint should return forbidden if viewing archived
-		// channels is disabled for all clients but the Local one
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalViewArchivedChannels = false })
-		for _, client := range []*model.Client4{th.SystemAdminClient, th.Client} {
-			users, resp, userErr := client.GetUsersInChannel(context.Background(), channel.Id, 0, 1000, "")
-			require.Error(t, userErr)
-			require.Len(t, users, 0)
-			CheckForbiddenStatus(t, resp)
-		}
-
-		// local client should be able to get the users still
-		users, _, appErr := th.LocalClient.GetUsersInChannel(context.Background(), channel.Id, 0, 1000, "")
-		require.NoError(t, appErr)
-		require.Len(t, users, 3)
 	})
 }
 
@@ -3853,7 +3830,7 @@ func TestResetPassword(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 	code := ""
-	for i := 0; i < model.TokenSize; i++ {
+	for range model.TokenSize {
 		code += "a"
 	}
 	resp, err = th.Client.ResetPassword(context.Background(), code, "newpwd")
@@ -4455,49 +4432,6 @@ func TestLogin(t *testing.T) {
 	})
 }
 
-func TestLoginWithLag(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-	_, err := th.Client.Logout(context.Background())
-	require.NoError(t, err)
-
-	t.Run("with replication lag, caches cleared", func(t *testing.T) {
-		if !replicaFlag {
-			t.Skipf("requires test flag: -mysql-replica")
-		}
-
-		if *th.App.Config().SqlSettings.DriverName != model.DatabaseDriverMysql {
-			t.Skipf("requires %q database driver", model.DatabaseDriverMysql)
-		}
-
-		mainHelper.SQLStore.UpdateLicense(model.NewTestLicense("ldap"))
-		mainHelper.ToggleReplicasOff()
-
-		appErr := th.App.RevokeAllSessions(th.Context, th.BasicUser.Id)
-		require.Nil(t, appErr)
-
-		mainHelper.ToggleReplicasOn()
-		defer mainHelper.ToggleReplicasOff()
-
-		cmdErr := mainHelper.SetReplicationLagForTesting(5)
-		require.NoError(t, cmdErr)
-		defer func() {
-			err = mainHelper.SetReplicationLagForTesting(0)
-			require.NoError(t, err)
-		}()
-
-		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
-		require.NoError(t, err)
-
-		appErr = th.App.Srv().InvalidateAllCaches()
-		require.Nil(t, appErr)
-
-		session, appErr := th.App.GetSession(th.Client.AuthToken)
-		require.Nil(t, appErr)
-		require.NotNil(t, session)
-	})
-}
-
 func TestLoginCookies(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should return cookies with X-Requested-With header", func(t *testing.T) {
@@ -4673,123 +4607,6 @@ func TestLoginCookies(t *testing.T) {
 		}
 		// no cookie set
 		assert.Equal(t, "", cloudSessionCookie)
-	})
-}
-
-func TestCBALogin(t *testing.T) {
-	mainHelper.Parallel(t)
-	t.Run("primary", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-		th.App.Srv().SetLicense(model.NewTestLicense("future_features"))
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.EnableBotAccountCreation = true
-		})
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ExperimentalSettings.ClientSideCertEnable = true
-			*cfg.ExperimentalSettings.ClientSideCertCheck = model.ClientSideCertCheckPrimaryAuth
-		})
-
-		t.Run("missing cert header", func(t *testing.T) {
-			_, err := th.Client.Logout(context.Background())
-			require.NoError(t, err)
-			_, resp, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
-			require.Error(t, err)
-			CheckBadRequestStatus(t, resp)
-		})
-
-		t.Run("missing cert subject", func(t *testing.T) {
-			_, err := th.Client.Logout(context.Background())
-			require.NoError(t, err)
-			th.Client.HTTPHeader["X-SSL-Client-Cert"] = "valid_cert_fake"
-			_, resp, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
-			require.Error(t, err)
-			CheckBadRequestStatus(t, resp)
-		})
-
-		t.Run("emails mismatch", func(t *testing.T) {
-			_, err := th.Client.Logout(context.Background())
-			require.NoError(t, err)
-			th.Client.HTTPHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=mis_match" + th.BasicUser.Email
-			_, resp, err := th.Client.Login(context.Background(), th.BasicUser.Email, "")
-			require.Error(t, err)
-			CheckUnauthorizedStatus(t, resp)
-		})
-
-		t.Run("successful cba login", func(t *testing.T) {
-			th.Client.HTTPHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=" + th.BasicUser.Email
-			user, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, "")
-			require.NoError(t, err)
-			require.NotNil(t, user)
-			require.Equal(t, th.BasicUser.Id, user.Id)
-		})
-
-		t.Run("bot login rejected", func(t *testing.T) {
-			bot, _, err := th.SystemAdminClient.CreateBot(context.Background(), &model.Bot{
-				Username: "bot",
-			})
-			require.NoError(t, err)
-
-			botUser, _, err := th.SystemAdminClient.GetUser(context.Background(), bot.UserId, "")
-			require.NoError(t, err)
-
-			th.Client.HTTPHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=" + botUser.Email
-
-			_, _, err = th.Client.Login(context.Background(), botUser.Email, "")
-			CheckErrorID(t, err, "api.user.login.bot_login_forbidden.app_error")
-		})
-	})
-
-	t.Run("secondary", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-		th.App.Srv().SetLicense(model.NewTestLicense("future_features"))
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.EnableBotAccountCreation = true
-		})
-
-		th.Client.HTTPHeader["X-SSL-Client-Cert"] = "valid_cert_fake"
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ExperimentalSettings.ClientSideCertEnable = true
-			*cfg.ExperimentalSettings.ClientSideCertCheck = model.ClientSideCertCheckSecondaryAuth
-		})
-
-		t.Run("password required", func(t *testing.T) {
-			th.Client.HTTPHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=" + th.BasicUser.Email
-			_, resp, err := th.Client.Login(context.Background(), th.BasicUser.Email, "")
-			require.Error(t, err)
-			CheckBadRequestStatus(t, resp)
-		})
-
-		t.Run("successful cba login with password", func(t *testing.T) {
-			th.Client.HTTPHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=" + th.BasicUser.Email
-			user, _, err := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
-			require.NoError(t, err)
-			require.NotNil(t, user)
-			require.Equal(t, th.BasicUser.Id, user.Id)
-		})
-
-		t.Run("bot login rejected", func(t *testing.T) {
-			bot, _, err := th.SystemAdminClient.CreateBot(context.Background(), &model.Bot{
-				Username: "bot",
-			})
-			require.NoError(t, err)
-
-			botUser, _, err := th.SystemAdminClient.GetUser(context.Background(), bot.UserId, "")
-			require.NoError(t, err)
-
-			_, err = th.SystemAdminClient.UpdateUserPassword(context.Background(), bot.UserId, "", "password")
-			require.NoError(t, err)
-
-			th.Client.HTTPHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=" + botUser.Email
-
-			_, _, err = th.Client.Login(context.Background(), botUser.Email, "password")
-			CheckErrorID(t, err, "api.user.login.bot_login_forbidden.app_error")
-		})
 	})
 }
 
@@ -6603,6 +6420,51 @@ func TestVerifyUserEmailWithoutToken(t *testing.T) {
 	}, "Should verify a new user")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		// Enable MFA for this test
+		th.App.Srv().SetLicense(model.NewTestLicense("mfa"))
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = true })
+
+		email := th.GenerateTestEmail()
+		user := model.User{Email: email, Nickname: "Test User", Password: "password123", Username: GenerateTestUsername(), Roles: model.SystemUserRoleId}
+		ruser, _, _ := th.Client.CreateUser(context.Background(), &user)
+
+		// Set some NotifyProps to ensure we have data to verify is preserved
+		ruser.NotifyProps = map[string]string{
+			"email":   "true",
+			"push":    "mention",
+			"desktop": "mention",
+			"channel": "true",
+		}
+		_, appErr := th.App.UpdateUser(th.Context, ruser, false)
+		require.Nil(t, appErr)
+
+		// Set up MFA secret for the user
+		secret, appErr := th.App.GenerateMfaSecret(ruser.Id)
+		require.Nil(t, appErr)
+		err := th.Server.Store().User().UpdateMfaSecret(ruser.Id, secret.Secret)
+		require.NoError(t, err)
+
+		// Verify the user has a password hash and MFA secret in the database
+		dbUser, appErr := th.App.GetUser(ruser.Id)
+		require.Nil(t, appErr)
+		require.NotEmpty(t, dbUser.Password, "User should have a password hash in database")
+		require.NotEmpty(t, dbUser.MfaSecret, "User should have MFA secret in database")
+
+		// Call the API endpoint
+		vuser, _, err := client.VerifyUserEmailWithoutToken(context.Background(), ruser.Id)
+		require.NoError(t, err)
+		require.Equal(t, ruser.Id, vuser.Id)
+
+		// Verify sensitive fields are sanitized in the response
+		require.Empty(t, vuser.Password, "Password hash should be sanitized from response")
+		require.Empty(t, vuser.MfaSecret, "MFA secret should be sanitized from response")
+
+		// Verify admin-level fields like NotifyProps are preserved for system admin
+		require.NotEmpty(t, vuser.NotifyProps, "NotifyProps should be preserved for system admin")
+		require.Equal(t, "true", vuser.NotifyProps["email"], "NotifyProps data should be preserved for system admin")
+	}, "Should sanitize password hash and MFA secret from response")
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		vuser, _, err := client.VerifyUserEmailWithoutToken(context.Background(), "randomId")
 		require.Error(t, err)
 		CheckErrorID(t, err, "api.context.invalid_url_param.app_error")
@@ -7189,7 +7051,7 @@ func TestGetThreadsForUser(t *testing.T) {
 		client := th.Client
 
 		var rootIds []*model.Post
-		for i := 0; i < 30; i++ {
+		for range 30 {
 			rpost, resp, err := client.CreatePost(context.Background(), &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
 			require.NoError(t, err)
 			CheckCreatedStatus(t, resp)
@@ -7220,7 +7082,7 @@ func TestGetThreadsForUser(t *testing.T) {
 		client := th.Client
 
 		var rootIds []*model.Post
-		for i := 0; i < 30; i++ {
+		for i := range 30 {
 			rpost, _ := postAndCheck(t, client, &model.Post{ChannelId: th.BasicChannel.Id, Message: fmt.Sprintf("testMsg-%d", i)})
 			rootIds = append(rootIds, rpost)
 			postAndCheck(t, client, &model.Post{ChannelId: th.BasicChannel.Id, Message: fmt.Sprintf("testReply-%d", i), RootId: rpost.Id})
@@ -7269,7 +7131,7 @@ func TestGetThreadsForUser(t *testing.T) {
 		sysadminClient := th.SystemAdminClient
 
 		var rootIds []*model.Post
-		for i := 0; i < 10; i++ {
+		for i := range 10 {
 			rpost, resp, err := client.CreatePost(context.Background(), &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
 			require.NoError(t, err)
 			CheckCreatedStatus(t, resp)
@@ -7308,7 +7170,7 @@ func TestGetThreadsForUser(t *testing.T) {
 		sysadminClient := th.SystemAdminClient
 
 		var rootIds []*model.Post
-		for i := 0; i < 10; i++ {
+		for i := range 10 {
 			rpost, resp, err := client.CreatePost(context.Background(), &model.Post{ChannelId: th.BasicChannel.Id, Message: "testMsg"})
 			require.NoError(t, err)
 			CheckCreatedStatus(t, resp)
@@ -9284,7 +9146,7 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 
 		th.App.Channels().Ldap = mockLdap
 
-		for i := 0; i < 5; i++ {
+		for i := range 5 {
 			mockedLdapUser := ldapUser
 			mockedLdapUser.FailedAttempts = i
 			mockLdap.Mock.On("DoLogin", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(mockedLdapUser, &model.AppError{Id: "ent.ldap.do_login.invalid_password.app_error"})
@@ -9436,6 +9298,7 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 		require.Equal(t, int(0), sysadminUser.FailedAttempts)
 	})
 }
+
 func TestSearchUsersWithMfaEnforced(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

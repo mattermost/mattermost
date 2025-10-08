@@ -44,7 +44,7 @@ func listExports(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteExport(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("deleteExport", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventDeleteExport, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "export_name", c.Params.ExportName)
 
@@ -89,7 +89,7 @@ func downloadExport(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func generatePresignURLExport(c *Context, w http.ResponseWriter, r *http.Request) {
-	auditRec := c.MakeAuditRecord("generatePresignURLExport", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventGeneratePresignURLExport, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	model.AddEventParameterToAuditRec(auditRec, "export_name", c.Params.ExportName)

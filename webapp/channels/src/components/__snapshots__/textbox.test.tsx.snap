@@ -136,11 +136,6 @@ exports[`components/TextBox should match snapshot with additional, optional prop
         },
       ]
     }
-    renderDividers={
-      Array [
-        "all",
-      ]
-    }
     spellCheck="true"
     style={
       Object {
@@ -281,11 +276,6 @@ exports[`components/TextBox should match snapshot with required props 1`] = `
           "requestStarted": false,
           "triggerCharacter": ":",
         },
-      ]
-    }
-    renderDividers={
-      Array [
-        "all",
       ]
     }
     spellCheck="true"
@@ -430,11 +420,6 @@ exports[`components/TextBox should throw error when new property is too long 1`]
         },
       ]
     }
-    renderDividers={
-      Array [
-        "all",
-      ]
-    }
     spellCheck="true"
     style={
       Object {
@@ -575,11 +560,6 @@ exports[`components/TextBox should throw error when value is too long 1`] = `
           "requestStarted": false,
           "triggerCharacter": ":",
         },
-      ]
-    }
-    renderDividers={
-      Array [
-        "all",
       ]
     }
     spellCheck="true"

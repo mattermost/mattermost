@@ -130,7 +130,19 @@ const Input = React.forwardRef((
 
     const handleOnBlur = (event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setFocused(false);
-        validateInput();
+
+        if (event.relatedTarget && (event.relatedTarget as HTMLElement).click) {
+            const target = event.relatedTarget as HTMLElement;
+            const listener = () => {
+                validateInput();
+                if (target) {
+                    target.removeEventListener('click', listener);
+                }
+            };
+            target.addEventListener('click', listener);
+        } else {
+            validateInput();
+        }
 
         if (onBlur) {
             onBlur(event);

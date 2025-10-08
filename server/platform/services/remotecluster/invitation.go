@@ -80,7 +80,7 @@ func makeConfirmFrame(rc *model.RemoteCluster, siteURL string) (*model.RemoteClu
 		SiteURL:        siteURL,
 		Token:          rc.Token,
 		RefreshedToken: rc.RemoteToken,
-		Version:        2,
+		Version:        3,
 	}
 	confirmRaw, err := json.Marshal(confirm)
 	if err != nil {

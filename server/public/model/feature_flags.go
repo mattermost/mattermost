@@ -70,6 +70,14 @@ type FeatureFlags struct {
 	AttributeBasedAccessControl bool
 
 	ContentFlagging bool
+
+	// Enable AppsForm for Interactive Dialogs instead of legacy dialog implementation
+	InteractiveDialogAppsForm bool
+
+	EnableMattermostEntry bool
+
+	// Enable mobile SSO SAML code-exchange flow (no tokens in deep links)
+	MobileSSOCodeExchange bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -99,6 +107,9 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CustomProfileAttributes = true
 	f.AttributeBasedAccessControl = true
 	f.ContentFlagging = false
+	f.InteractiveDialogAppsForm = true
+	f.EnableMattermostEntry = true
+	f.MobileSSOCodeExchange = true
 }
 
 // ToMap returns the feature flags as a map[string]string

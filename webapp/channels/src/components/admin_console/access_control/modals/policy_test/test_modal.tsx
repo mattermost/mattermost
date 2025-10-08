@@ -33,7 +33,7 @@ function TestResultsModal({
     onExited,
     actions,
 }: Props): JSX.Element {
-    const dispatch = useDispatch<any>();
+    const dispatch = useDispatch();
     const [term, setTerm] = useState<string>('');
     const [users, setUsers] = useState<UserProfile[]>([]);
     const [total, setTotal] = useState<number>(0);
@@ -82,7 +82,7 @@ function TestResultsModal({
 
     return (
         <Modal
-            dialogClassName='a11y__modal more-modal'
+            dialogClassName='a11y__modal more-modal TestResultsModal'
             show={true}
             onHide={onExited}
             role='none'

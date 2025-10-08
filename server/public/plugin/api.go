@@ -132,6 +132,8 @@ type API interface {
 
 	// GetUsers a list of users based on search options.
 	//
+	// Not all fields in UserGetOptions are supported by this API.
+	//
 	// @tag User
 	// Minimum server version: 5.10
 	GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError)
@@ -1446,8 +1448,20 @@ type API interface {
 	// SearchPropertyFields searches for property fields with filtering options.
 	//
 	// @tag PropertyField
-	// Minimum server version: 10.10
-	SearchPropertyFields(groupID, targetID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
+	// Minimum server version: 11.0
+	SearchPropertyFields(groupID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error)
+
+	// CountPropertyFields counts property fields for a group.
+	//
+	// @tag PropertyField
+	// Minimum server version: 11.0
+	CountPropertyFields(groupID string, includeDeleted bool) (int64, error)
+
+	// CountPropertyFieldsForTarget counts property fields for a specific target.
+	//
+	// @tag PropertyField
+	// Minimum server version: 11.0
+	CountPropertyFieldsForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error)
 
 	// CreatePropertyValue creates a new property value.
 	//
@@ -1488,8 +1502,8 @@ type API interface {
 	// SearchPropertyValues searches for property values with filtering options.
 	//
 	// @tag PropertyValue
-	// Minimum server version: 10.10
-	SearchPropertyValues(groupID, targetID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error)
+	// Minimum server version: 11.0
+	SearchPropertyValues(groupID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error)
 
 	// RegisterPropertyGroup registers a new property group.
 	//

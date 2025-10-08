@@ -24,7 +24,7 @@ describe('components/ClusterSettings', () => {
                 ClusterName: 'test',
                 OverrideHostname: '',
                 UseIPAddress: false,
-                EnableExperimentalGossipEncryption: false,
+                EnableGossipEncryption: false,
                 EnableGossipCompression: false,
                 GossipPort: 8074,
                 SteamingPort: 8075,
@@ -38,7 +38,7 @@ describe('components/ClusterSettings', () => {
         );
         expect(wrapper).toMatchSnapshot();
 
-        expect(wrapper.find('#EnableExperimentalGossipEncryption').prop('value')).toBe(false);
+        expect(wrapper.find('#EnableGossipEncryption').prop('value')).toBe(false);
     });
 
     test('should match snapshot, encryption enabled', () => {
@@ -52,7 +52,7 @@ describe('components/ClusterSettings', () => {
                 ClusterName: 'test',
                 OverrideHostname: '',
                 UseIPAddress: false,
-                EnableExperimentalGossipEncryption: true,
+                EnableGossipEncryption: true,
                 EnableGossipCompression: false,
                 GossipPort: 8074,
                 SteamingPort: 8075,
@@ -66,7 +66,7 @@ describe('components/ClusterSettings', () => {
         );
         expect(wrapper).toMatchSnapshot();
 
-        expect(wrapper.find('#EnableExperimentalGossipEncryption').prop('value')).toBe(true);
+        expect(wrapper.find('#EnableGossipEncryption').prop('value')).toBe(true);
     });
 
     test('should match snapshot, compression enabled', () => {
@@ -80,7 +80,7 @@ describe('components/ClusterSettings', () => {
                 ClusterName: 'test',
                 OverrideHostname: '',
                 UseIPAddress: false,
-                EnableExperimentalGossipEncryption: false,
+                EnableGossipEncryption: false,
                 EnableGossipCompression: true,
                 GossipPort: 8074,
                 SteamingPort: 8075,
@@ -108,7 +108,7 @@ describe('components/ClusterSettings', () => {
                 ClusterName: 'test',
                 OverrideHostname: '',
                 UseIPAddress: false,
-                EnableExperimentalGossipEncryption: false,
+                EnableGossipEncryption: false,
                 EnableGossipCompression: false,
                 GossipPort: 8074,
                 SteamingPort: 8075,

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {act, screen} from '@testing-library/react';
+import {act, screen, fireEvent} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
@@ -52,12 +52,81 @@ describe('components/widgets/inputs/Input', () => {
         expect(iconElement).toBeInTheDocument();
 
         // Click directly on the icon element
-        await act(async () => {
-            userEvent.click(iconElement);
-        });
+        await userEvent.click(iconElement);
 
         // Verify onClear was called
         expect(onClear).toHaveBeenCalledTimes(1);
+    });
+
+    describe('handleOnBlur functionality', () => {
+        test('should validate immediately when blur occurs without relatedTarget', async () => {
+            const mockValidate = jest.fn();
+            const mockOnBlur = jest.fn();
+
+            const {container} = renderWithContext(
+                <Input
+                    name='test'
+                    value=''
+                    validate={mockValidate}
+                    onBlur={mockOnBlur}
+                />,
+            );
+
+            const input = container.querySelector('input') as HTMLInputElement;
+
+            await act(async () => {
+                fireEvent.focus(input);
+                fireEvent.blur(input);
+            });
+
+            expect(mockValidate).toHaveBeenCalledTimes(1);
+            expect(mockOnBlur).toHaveBeenCalledTimes(1);
+        });
+
+        test('should defer validation when relatedTarget has click method', async () => {
+            const mockValidate = jest.fn();
+
+            const {container} = renderWithContext(
+                <Input
+                    name='test'
+                    value=''
+                    validate={mockValidate}
+                />,
+            );
+
+            const input = container.querySelector('input') as HTMLInputElement;
+
+            // Create button and ensure it has click method
+            const button = document.createElement('button');
+            document.body.appendChild(button);
+
+            await act(async () => {
+                fireEvent.focus(input);
+
+                // Manually trigger the blur with relatedTarget
+                const event = {
+                    target: input,
+                    relatedTarget: button,
+                    preventDefault: jest.fn(),
+                    stopPropagation: jest.fn(),
+                } as any;
+
+                fireEvent.blur(input, event);
+            });
+
+            // Should not validate immediately
+            expect(mockValidate).not.toHaveBeenCalled();
+
+            // Click the button
+            await act(async () => {
+                fireEvent.click(button);
+            });
+
+            // Should validate after click
+            expect(mockValidate).toHaveBeenCalledTimes(1);
+
+            document.body.removeChild(button);
+        });
     });
 
     describe('minLength validation', () => {
@@ -96,16 +165,11 @@ describe('components/widgets/inputs/Input', () => {
             // Find the input
             const inputElement = screen.getByDisplayValue('a');
 
+            // Clear the input first
             // Simulate change to trigger validation
-            await act(async () => {
-                // Clear the input first
-                userEvent.clear(inputElement);
-
-                // Then type the new value
-                userEvent.type(inputElement, 'a');
-
-                inputElement.blur();
-            });
+            await userEvent.clear(inputElement);
+            await userEvent.type(inputElement, 'a');
+            act(() => inputElement.blur());
 
             // Check for error styling
             const fieldset = screen.getByTestId('input-wrapper');

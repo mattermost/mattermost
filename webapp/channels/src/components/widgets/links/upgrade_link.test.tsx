@@ -10,18 +10,6 @@ import mockStore from 'tests/test_store';
 
 import UpgradeLink from './upgrade_link';
 
-let trackEventCall = 0;
-
-jest.mock('actions/telemetry_actions.jsx', () => {
-    const original = jest.requireActual('actions/telemetry_actions.jsx');
-    return {
-        ...original,
-        trackEvent: () => {
-            trackEventCall = 1;
-        },
-    };
-});
-
 describe('components/widgets/links/UpgradeLink', () => {
     const mockDispatch = jest.fn();
     jest.mock('react-redux', () => ({
@@ -36,7 +24,7 @@ describe('components/widgets/links/UpgradeLink', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should trigger telemetry call when button clicked', (done) => {
+    test('should open window when button clicked', () => {
         const mockWindowOpen = jest.fn();
         global.window.open = mockWindowOpen;
         const store = mockStore({
@@ -51,15 +39,11 @@ describe('components/widgets/links/UpgradeLink', () => {
             },
         });
         const wrapper = mountWithIntl(
-            <Provider store={store}><UpgradeLink telemetryInfo='testing'/></Provider>,
+            <Provider store={store}><UpgradeLink/></Provider>,
         );
         expect(wrapper.find('button').exists()).toEqual(true);
         wrapper.find('button').simulate('click');
 
-        setImmediate(() => {
-            expect(trackEventCall).toBe(1);
-            done();
-        });
         expect(wrapper).toMatchSnapshot();
         expect(mockWindowOpen).toHaveBeenCalled();
     });

@@ -27,7 +27,7 @@
                 justify-content: center;
 
                 .should-verify-body-content-button-resend {
-                    @include mixins.tertiary-button;
+                    @include mixins.primary-button;
                 }
 
                 .should-verify-body-content-button-return {

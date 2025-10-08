@@ -136,7 +136,7 @@ func (s *MemoryStore) SetAtomicWithRetries(key string, valueFunc func(oldValue [
 		return errors.New("function must not be nil")
 	}
 
-	for i := 0; i < numRetries; i++ {
+	for range numRetries {
 		var oldVal []byte
 		if err := s.Get(key, &oldVal); err != nil {
 			return errors.Wrapf(err, "failed to get value for key %s", key)

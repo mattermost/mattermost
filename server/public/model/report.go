@@ -158,11 +158,5 @@ func (u *UserReportQuery) ToReport() *UserReport {
 }
 
 func IsValidReportExportFormat(format string) bool {
-	for _, fmt := range ReportExportFormats {
-		if format == fmt {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(ReportExportFormats, format)
 }
