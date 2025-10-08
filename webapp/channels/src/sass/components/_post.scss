@@ -1461,12 +1461,12 @@
             column-gap: 8px;
             white-space: nowrap;
 
-            .post__status {
+            &__error-message {
                 padding: 0;
                 background: transparent;
             }
 
-            &__links {
+            &__action-buttons {
                 display: inline-flex;
                 align-items: center;
                 gap: 6px;
@@ -1477,11 +1477,6 @@
                 a {
                     color: variables.$white;
                 }
-            }
-
-            &__divider {
-                display: inline-flex;
-                color: variables.$white;
             }
         }
     }

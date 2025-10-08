@@ -39,7 +39,7 @@ const FailedPostOptions = ({
     return (
         <span className='pending-post-actions'>
             <span
-                className='post__status post__status--failed'
+                className='post__status post__status--failed pending-post-actions__error-message'
                 role='alert'
             >
                 <i className='icon icon-alert-outline'/>
@@ -48,7 +48,7 @@ const FailedPostOptions = ({
                     defaultMessage='Message failed to send'
                 />
             </span>
-            <span className='pending-post-actions__links'>
+            <span className='pending-post-actions__action-buttons'>
                 <a
                     className='post-retry'
                     href='#'
@@ -59,7 +59,7 @@ const FailedPostOptions = ({
                         defaultMessage='Retry'
                     />
                 </a>
-                <span className='pending-post-actions__divider'>-</span>
+                {' - '}
                 <a
                     className='post-cancel'
                     href='#'
