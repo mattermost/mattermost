@@ -10752,10 +10752,6 @@
     "translation": "Das Verstecken von archivierten Kanälen wird nicht mehr unterstützt. Mache diese Kanäle stattdessen privat und entferne Mitglieder."
   },
   {
-    "id": "api.not_implemented",
-    "translation": "Diese Funktion ist nicht implementiert."
-  },
-  {
     "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
     "translation": "Wert für ein vom Administrator verwaltetes benutzerdefiniertes Profilattributfeld kann nicht aktualisiert werden"
   },
@@ -10794,5 +10790,13 @@
   {
     "id": "app.user.check_user_password.failed_update",
     "translation": "Das Passwort des Benutzers konnte nicht aktualisiert werden."
+  },
+  {
+    "id": "app.job.get_existing_jobs.error",
+    "translation": "Nicht in der Lage, bestehende Jobs zu bekommen."
+  },
+  {
+    "id": "app.submit_interactive_dialog.invalid_response",
+    "translation": "Es wurde eine ungültige Antwort bei der Übermittlung eines interaktiven Dialogs gefunden."
   }
 ]

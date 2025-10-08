@@ -122,7 +122,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                             id='channelView.archivedChannelWithDeactivatedUser'
                             defaultMessage='You are viewing an archived channel with a <b>deactivated user</b>. New messages cannot be posted.'
                             values={{
-                                b: (chunks: string) => <b>{chunks}</b>,
+                                b: (chunks) => <b>{chunks}</b>,
                             }}
                         />
                         <button
@@ -151,7 +151,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                             id='channelView.archivedChannel'
                             defaultMessage='You are viewing an <b>archived channel</b>. New messages cannot be posted.'
                             values={{
-                                b: (chunks: string) => <b>{chunks}</b>,
+                                b: (chunks) => <b>{chunks}</b>,
                             }}
                         />
                         <button
@@ -180,7 +180,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                             id='channelView.noSharedTeam'
                             defaultMessage='You no longer have any teams in common with this user. New messages cannot be posted.'
                             values={{
-                                b: (chunks: string) => <b>{chunks}</b>,
+                                b: (chunks) => <b>{chunks}</b>,
                             }}
                         />
                         <button
@@ -221,7 +221,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                     overlayType='center'
                     id={DropOverlayIdCenterChannel}
                 />
-                <ChannelHeader {...this.props}/>
+                <ChannelHeader/>
                 {this.props.isChannelBookmarksEnabled && <ChannelBookmarks channelId={this.props.channelId}/>}
                 <ChannelBanner channelId={this.props.channelId}/>
                 <DeferredPostView
