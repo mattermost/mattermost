@@ -22,7 +22,7 @@
     "@types/color-hash": "1.0.2",
     "@types/react-is": "18.2.1",
     "@types/turndown": "5.0.5",
-    "bootstrap": "3.4.1",
+    "bootstrap": "4.0.0",
     "buffer": "6.0.3",
     "chart.js": "3.8.2",
     "classnames": "2.3.2",
