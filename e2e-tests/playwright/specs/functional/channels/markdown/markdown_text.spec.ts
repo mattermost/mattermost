@@ -59,11 +59,9 @@ test.describe('Markdown message', () => {
             
             // Get the last post and verify HTML content
             const lastPost = await channelsPage.getLastPost();
-            const postId = await lastPost.getId();
             
-            // Verify that HTML Content is correct
-            const postMessageElement = channelsPage.page.locator(`#postMessageText_${postId}`);
-            const actualHtml = await postMessageElement.innerHTML();
+            // Verify that HTML Content is correct using POM method
+            const actualHtml = await lastPost.getMessageHtml();
             expect(actualHtml).toBe(expectedHtml);
         });
     }
@@ -89,11 +87,9 @@ test.describe('Markdown message', () => {
         
         // Get the last post and verify HTML content
         const lastPost = await channelsPage.getLastPost();
-        const postId = await lastPost.getId();
         
-        // Verify that HTML Content is correct
-        const postMessageElement = channelsPage.page.locator(`#postMessageText_${postId}`);
-        const actualHtml = await postMessageElement.innerHTML();
+        // Verify that HTML Content is correct using POM method
+        const actualHtml = await lastPost.getMessageHtml();
         expect(actualHtml).toBe(expectedHtml);
     });
 });

@@ -85,4 +85,23 @@ export default class ChannelsPost {
     async toContainText(text: string) {
         await expect(this.container).toContainText(text);
     }
+
+    /**
+     * Get the post message text element locator
+     * @returns Promise<Locator> for the post message text element
+     */
+    async getMessageTextElement() {
+        const postId = await this.getId();
+        return this.container.locator(`#postMessageText_${postId}`);
+    }
+
+    /**
+     * Get the HTML content of the post message
+     * @returns Promise<string> The innerHTML of the post message element
+     */
+    async getMessageHtml() {
+        const postId = await this.getId();
+        const messageElement = this.container.locator(`#postMessageText_${postId}`);
+        return await messageElement.innerHTML();
+    }
 }
