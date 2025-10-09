@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -17,6 +18,7 @@ func TestAccessControlPolicyStore(t *testing.T, rctx request.CTX, ss store.Store
 	t.Run("Delete", func(t *testing.T) { testAccessControlPolicyStoreDelete(t, rctx, ss) })
 	t.Run("SetActive", func(t *testing.T) { testAccessControlPolicyStoreSetActive(t, rctx, ss) })
 	t.Run("GetAll", func(t *testing.T) { testAccessControlPolicyStoreGetAll(t, rctx, ss) })
+	t.Run("GetPolicyHistory", func(t *testing.T) { testAccessControlPolicyStoreGetPolicyHistory(t, rctx, ss) })
 }
 
 func testAccessControlPolicyStoreSaveAndGet(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -401,5 +403,163 @@ func testAccessControlPolicyStoreGetAll(t *testing.T, rctx request.CTX, ss store
 		require.NotNil(t, policies)
 		require.Len(t, policies, 1)
 		require.Equal(t, parentPolicy.ID, policies[0].ID)
+	})
+}
+
+func testAccessControlPolicyStoreGetPolicyHistory(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("should return empty slice for non-existent policy", func(t *testing.T) {
+		policies, err := ss.AccessControlPolicy().GetPolicyHistory(rctx, model.NewId(), 10)
+		require.NoError(t, err)
+		require.Empty(t, policies)
+	})
+
+	t.Run("should validate input parameters", func(t *testing.T) {
+		// Test empty ID
+		_, err := ss.AccessControlPolicy().GetPolicyHistory(rctx, "", 10)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "cannot be empty")
+
+		// Test invalid ID format
+		_, err = ss.AccessControlPolicy().GetPolicyHistory(rctx, "invalid-id-format", 10)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "invalid policy ID format")
+	})
+
+	t.Run("should return empty history for newly created policy", func(t *testing.T) {
+		policyID := model.NewId()
+		newPolicy := &model.AccessControlPolicy{
+			ID:       policyID,
+			Name:     "New Policy",
+			Type:     model.AccessControlPolicyTypeChannel,
+			Active:   true,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Rules: []model.AccessControlPolicyRule{
+				{Expression: "user.department == 'engineering'", Actions: []string{"*"}},
+			},
+			Props: make(map[string]interface{}),
+		}
+
+		// Save new policy (first time)
+		savedPolicy, err := ss.AccessControlPolicy().Save(rctx, newPolicy)
+		require.NoError(t, err)
+		require.NotNil(t, savedPolicy)
+
+		t.Cleanup(func() {
+			err := ss.AccessControlPolicy().Delete(rctx, policyID)
+			require.NoError(t, err)
+		})
+
+		// Should have no history for newly created policy
+		policies, err := ss.AccessControlPolicy().GetPolicyHistory(rctx, policyID, 10)
+		require.NoError(t, err)
+		require.Empty(t, policies) // No history entries yet
+	})
+
+	t.Run("should return policy history in descending revision order after updates", func(t *testing.T) {
+		policyID := model.NewId()
+		originalPolicy := &model.AccessControlPolicy{
+			ID:       policyID,
+			Name:     "Test Policy",
+			Type:     model.AccessControlPolicyTypeChannel,
+			Active:   true,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Rules: []model.AccessControlPolicyRule{
+				{Expression: "user.department == 'engineering'", Actions: []string{"*"}},
+			},
+			Props: make(map[string]interface{}),
+		}
+
+		// Save initial policy
+		savedPolicy, err := ss.AccessControlPolicy().Save(rctx, originalPolicy)
+		require.NoError(t, err)
+		require.Equal(t, 1, savedPolicy.Revision)
+
+		t.Cleanup(func() {
+			err := ss.AccessControlPolicy().Delete(rctx, policyID)
+			require.NoError(t, err)
+		})
+
+		// Update policy first time (moves original to history)
+		updatedPolicy := *originalPolicy
+		updatedPolicy.Rules = []model.AccessControlPolicyRule{
+			{Expression: "user.department == 'sales'", Actions: []string{"*"}},
+		}
+		secondVersion, err := ss.AccessControlPolicy().Save(rctx, &updatedPolicy)
+		require.NoError(t, err)
+		require.Equal(t, 2, secondVersion.Revision)
+
+		// Update policy second time (moves first update to history)
+		updatedPolicy2 := updatedPolicy
+		updatedPolicy2.Rules = []model.AccessControlPolicyRule{
+			{Expression: "user.department == 'marketing'", Actions: []string{"*"}},
+		}
+		thirdVersion, err := ss.AccessControlPolicy().Save(rctx, &updatedPolicy2)
+		require.NoError(t, err)
+		require.Equal(t, 3, thirdVersion.Revision)
+
+		// Get policy history - should return in DESC order by revision
+		policies, err := ss.AccessControlPolicy().GetPolicyHistory(rctx, policyID, 10)
+		require.NoError(t, err)
+		require.Len(t, policies, 2) // Should have 2 history records (original + first update)
+		
+		// Verify ordering: most recent revision first
+		require.Equal(t, 2, policies[0].Revision) // First update (sales)
+		require.Equal(t, 1, policies[1].Revision) // Original (engineering)
+		
+		// Verify content
+		require.Equal(t, "user.department == 'sales'", policies[0].Rules[0].Expression)
+		require.Equal(t, "user.department == 'engineering'", policies[1].Rules[0].Expression)
+	})
+
+	t.Run("should respect limit parameter", func(t *testing.T) {
+		policyID := model.NewId()
+		originalPolicy := &model.AccessControlPolicy{
+			ID:       policyID,
+			Name:     "Limit Test Policy",
+			Type:     model.AccessControlPolicyTypeChannel,
+			Active:   true,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Rules: []model.AccessControlPolicyRule{
+				{Expression: "user.department == 'engineering'", Actions: []string{"*"}},
+			},
+			Props: make(map[string]interface{}),
+		}
+
+		// Create multiple revisions to test limit
+		_, err := ss.AccessControlPolicy().Save(rctx, originalPolicy)
+		require.NoError(t, err)
+
+		t.Cleanup(func() {
+			err := ss.AccessControlPolicy().Delete(rctx, policyID)
+			require.NoError(t, err)
+		})
+
+		// Create 3 more updates (4 total revisions, 3 in history)
+		for i := 1; i <= 3; i++ {
+			updatedPolicy := *originalPolicy
+			updatedPolicy.Rules = []model.AccessControlPolicyRule{
+				{Expression: fmt.Sprintf("user.department == 'dept%d'", i), Actions: []string{"*"}},
+			}
+			_, err := ss.AccessControlPolicy().Save(rctx, &updatedPolicy)
+			require.NoError(t, err)
+		}
+
+		// Test limit = 1
+		policies, err := ss.AccessControlPolicy().GetPolicyHistory(rctx, policyID, 1)
+		require.NoError(t, err)
+		require.Len(t, policies, 1) // Should only return 1 despite having 3 history entries
+		require.Equal(t, 3, policies[0].Revision) // Most recent history entry
+
+		// Test limit = 2
+		policies, err = ss.AccessControlPolicy().GetPolicyHistory(rctx, policyID, 2)
+		require.NoError(t, err)
+		require.Len(t, policies, 2)
+		require.Equal(t, 3, policies[0].Revision)
+		require.Equal(t, 2, policies[1].Revision)
+
+		// Test limit = 0 (should use default)
+		policies, err = ss.AccessControlPolicy().GetPolicyHistory(rctx, policyID, 0)
+		require.NoError(t, err)
+		require.Len(t, policies, 3) // Should return all 3 history entries
 	})
 }

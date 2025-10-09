@@ -5,6 +5,8 @@ package api4
 
 import (
 	"context"
+	"encoding/json"
+	"net/http"
 	"os"
 	"testing"
 
@@ -863,5 +865,96 @@ func TestSearchChannelsForAccessControlPolicy(t *testing.T) {
 		_, resp, err := th.Client.SearchChannelsForAccessControlPolicy(context.Background(), samplePolicy.ID, model.ChannelSearch{})
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+	})
+}
+
+func TestGetChannelActivityWarning(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL", "true")
+	th := Setup(t).InitBasic()
+	t.Cleanup(func() {
+		th.TearDown()
+		os.Unsetenv("MM_FEATUREFLAGS_ATTRIBUTEBASEDACCESSCONTROL")
+	})
+
+	channelPolicy := &model.AccessControlPolicy{
+		ID:   th.BasicChannel.Id,
+		Type: model.AccessControlPolicyTypeChannel,
+	}
+
+	t.Run("GetChannelActivityWarning without authentication", func(t *testing.T) {
+		th.Client.Logout(context.Background())
+		resp, err := th.Client.DoAPIGet(context.Background(), "/access_control_policies/"+channelPolicy.ID+"/activity", "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+	})
+
+	t.Run("GetChannelActivityWarning without license", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.DoAPIGet(context.Background(), "/access_control_policies/"+channelPolicy.ID+"/activity", "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
+	})
+
+	t.Run("GetChannelActivityWarning with regular user", func(t *testing.T) {
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "SetLicense should return true")
+
+		// Ensure the regular user is logged in
+		th.LoginBasic()
+
+		// Create and set up the mock
+		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().Channels().AccessControl = mockAccessControlService
+
+		// Mock the GetPolicy call that happens in ValidateAccessControlPolicyPermission
+		mockAccessControlService.On("GetPolicy", mock.AnythingOfType("*request.Context"), channelPolicy.ID).Return(channelPolicy, nil).Times(1)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+
+		resp, err := th.Client.DoAPIGet(context.Background(), "/access_control_policies/"+channelPolicy.ID+"/activity", "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+	})
+
+	t.Run("GetChannelActivityWarning with invalid policy ID", func(t *testing.T) {
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "SetLicense should return true")
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+
+		// Invalid ID format causes route not to match, resulting in 404
+		resp, err := th.SystemAdminClient.DoAPIGet(context.Background(), "/access_control_policies/invalid_id/activity", "")
+		require.Error(t, err)
+		require.Equal(t, http.StatusNotFound, resp.StatusCode)
+	})
+
+	t.Run("GetChannelActivityWarning with system admin", func(t *testing.T) {
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "SetLicense should return true")
+
+		// Create and set up the mock
+		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		mockAccessControlService.On("GetPolicy", mock.AnythingOfType("*request.Context"), channelPolicy.ID).Return(channelPolicy, nil).Times(1)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+
+		resp, err := th.SystemAdminClient.DoAPIGet(context.Background(), "/access_control_policies/"+channelPolicy.ID+"/activity", "")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		// Validate proper response structure
+		type ActivityWarningResponse struct {
+			ShouldShowWarning bool `json:"should_show_warning"`
+		}
+
+		var activityResponse ActivityWarningResponse
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&activityResponse))
+		require.Contains(t, []bool{true, false}, activityResponse.ShouldShowWarning, "should_show_warning should be a boolean")
 	})
 }

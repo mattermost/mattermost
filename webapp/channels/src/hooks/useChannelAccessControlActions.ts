@@ -19,9 +19,11 @@ import {
     deleteAccessControlPolicy,
     validateExpressionAgainstRequester,
     createAccessControlSyncJob,
+    getChannelActivityWarning,
 } from 'mattermost-redux/actions/access_control';
 import {getChannelMembers} from 'mattermost-redux/actions/channels';
 import {createJob} from 'mattermost-redux/actions/jobs';
+import {savePreferences} from 'mattermost-redux/actions/preferences';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 export interface ChannelAccessControlActions {
@@ -36,6 +38,10 @@ export interface ChannelAccessControlActions {
     updateAccessControlPolicyActive: (policyId: string, active: boolean) => Promise<ActionResult>;
     validateExpressionAgainstRequester: (expression: string) => Promise<ActionResult<{requester_matches: boolean}>>;
     createAccessControlSyncJob: (jobData: {policy_id: string}) => Promise<ActionResult>;
+    getChannelActivityWarning: (policyId: string) => Promise<ActionResult<{
+        should_show_warning: boolean;
+    }>>;
+    savePreferences: (userId: string, preferences: any[]) => Promise<ActionResult>;
 }
 
 /**
@@ -132,6 +138,20 @@ export const useChannelAccessControlActions = (channelId?: string): ChannelAcces
          */
         createAccessControlSyncJob: (jobData: {policy_id: string}) => {
             return dispatch(createAccessControlSyncJob(jobData));
+        },
+
+        /**
+         * Get channel activity warning for a policy
+         */
+        getChannelActivityWarning: (policyId: string) => {
+            return dispatch(getChannelActivityWarning(policyId));
+        },
+
+        /**
+         * Save user preferences
+         */
+        savePreferences: (userId: string, preferences: any[]) => {
+            return dispatch(savePreferences(userId, preferences));
         },
     }), [dispatch, channelId]);
 };

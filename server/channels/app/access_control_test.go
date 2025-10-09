@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	mocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
+	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 )
 
 func TestGetChannelsForPolicy(t *testing.T) {
@@ -1277,5 +1278,430 @@ func TestIsSystemPolicyAppliedToChannel(t *testing.T) {
 
 		result := th.App.isSystemPolicyAppliedToChannel(rctx, systemPolicyID, channelID)
 		assert.False(t, result)
+	})
+}
+
+func TestShouldShowChannelActivityWarning(t *testing.T) {
+	t.Run("should return false when getLastRuleChangeTimestamp returns error", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		rctx := request.TestContext(t)
+		channelID := model.NewId()
+
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+		mockAccessControlPolicyStore := storemocks.AccessControlPolicyStore{}
+		mockAccessControlPolicyStore.On("GetPolicyHistory", mock.AnythingOfType("*request.Context"), channelID, 2).Return(nil, model.NewAppError("GetPolicyHistory", "app.access_control.get_policy_history.app_error", nil, "error", http.StatusInternalServerError))
+		mockStore.On("AccessControlPolicy").Return(&mockAccessControlPolicyStore)
+
+		shouldWarn, appErr := th.App.ShouldShowChannelActivityWarning(rctx, channelID)
+
+		require.NotNil(t, appErr)
+		require.False(t, shouldWarn)
+		assert.Equal(t, "app.access_control.get_policy_history.app_error", appErr.Id)
+	})
+
+	t.Run("should return false when no policy history exists and no posts since channel creation", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		rctx := request.TestContext(t)
+		channelID := model.NewId()
+
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+		mockAccessControlPolicyStore := storemocks.AccessControlPolicyStore{}
+		mockChannelStore := storemocks.ChannelStore{}
+		mockPostStore := storemocks.PostStore{}
+
+		// No policy history exists
+		mockAccessControlPolicyStore.On("GetPolicyHistory", mock.AnythingOfType("*request.Context"), channelID, 2).Return([]*model.AccessControlPolicy{}, nil)
+		
+		// Channel exists with creation timestamp
+		channel := &model.Channel{Id: channelID, CreateAt: 1000}
+		mockChannelStore.On("Get", channelID, true).Return(channel, nil)
+		
+		// No posts since channel creation
+		emptyPostList := &model.PostList{Posts: map[string]*model.Post{}}
+		mockPostStore.On("GetPostsSince", mock.AnythingOfType("*request.Context"), model.GetPostsSinceOptions{
+			ChannelId: channelID,
+			Time:      1000,
+		}, false, mock.AnythingOfType("map[string]bool")).Return(emptyPostList, nil)
+
+		mockStore.On("AccessControlPolicy").Return(&mockAccessControlPolicyStore)
+		mockStore.On("Channel").Return(&mockChannelStore)
+		mockStore.On("Post").Return(&mockPostStore)
+
+		shouldWarn, appErr := th.App.ShouldShowChannelActivityWarning(rctx, channelID)
+
+		require.Nil(t, appErr)
+		assert.False(t, shouldWarn)
+	})
+
+	t.Run("should return error when no policy history exists but channel get fails", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		rctx := request.TestContext(t)
+		channelID := model.NewId()
+
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+		mockAccessControlPolicyStore := storemocks.AccessControlPolicyStore{}
+		mockChannelStore := storemocks.ChannelStore{}
+
+		// No policy history exists
+		mockAccessControlPolicyStore.On("GetPolicyHistory", mock.AnythingOfType("*request.Context"), channelID, 2).Return([]*model.AccessControlPolicy{}, nil)
+		
+		// Channel get fails
+		mockChannelStore.On("Get", channelID, true).Return(nil, model.NewAppError("Get", "app.channel.get.app_error", nil, "error", http.StatusInternalServerError))
+
+		mockStore.On("AccessControlPolicy").Return(&mockAccessControlPolicyStore)
+		mockStore.On("Channel").Return(&mockChannelStore)
+
+		shouldWarn, appErr := th.App.ShouldShowChannelActivityWarning(rctx, channelID)
+
+		require.NotNil(t, appErr)
+		require.False(t, shouldWarn)
+		assert.Equal(t, "app.access_control.get_channel.app_error", appErr.Id)
+	})
+
+	t.Run("should return true when no policy history exists but posts exist since channel creation", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		rctx := request.TestContext(t)
+		channelID := model.NewId()
+
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+		mockAccessControlPolicyStore := storemocks.AccessControlPolicyStore{}
+		mockChannelStore := storemocks.ChannelStore{}
+		mockPostStore := storemocks.PostStore{}
+
+		// No policy history exists
+		mockAccessControlPolicyStore.On("GetPolicyHistory", mock.AnythingOfType("*request.Context"), channelID, 2).Return([]*model.AccessControlPolicy{}, nil)
+		
+		// Channel exists with creation timestamp
+		channel := &model.Channel{Id: channelID, CreateAt: 1000}
+		mockChannelStore.On("Get", channelID, true).Return(channel, nil)
+		
+		// Posts exist since channel creation (CreateAt > 1000)
+		// Note: Only regular posts (Type == "") are counted by the implementation
+		postsAfterCreation := &model.PostList{
+			Posts: map[string]*model.Post{
+				"post1": {Id: "post1", CreateAt: 1100, Message: "Regular post", Type: ""},
+				"post2": {Id: "post2", CreateAt: 1200, Message: "System message", Type: "system_join"}, // Should be ignored
+			},
+		}
+		mockPostStore.On("GetPostsSince", mock.AnythingOfType("*request.Context"), model.GetPostsSinceOptions{
+			ChannelId: channelID,
+			Time:      1000,
+		}, false, mock.AnythingOfType("map[string]bool")).Return(postsAfterCreation, nil)
+
+		mockStore.On("AccessControlPolicy").Return(&mockAccessControlPolicyStore)
+		mockStore.On("Channel").Return(&mockChannelStore)
+		mockStore.On("Post").Return(&mockPostStore)
+
+		shouldWarn, appErr := th.App.ShouldShowChannelActivityWarning(rctx, channelID)
+
+		require.Nil(t, appErr)
+		assert.True(t, shouldWarn)
+	})
+
+	t.Run("should return false when only one policy revision exists and no posts since creation", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		rctx := request.TestContext(t)
+		channelID := model.NewId()
+
+		singlePolicy := []*model.AccessControlPolicy{
+			{
+				ID:       channelID,
+				CreateAt: 1000,
+				Rules:    []model.AccessControlPolicyRule{{Expression: "user.department == 'engineering'"}},
+			},
+		}
+
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+		mockAccessControlPolicyStore := storemocks.AccessControlPolicyStore{}
+		mockAccessControlPolicyStore.On("GetPolicyHistory", mock.AnythingOfType("*request.Context"), channelID, 2).Return(singlePolicy, nil)
+		
+		// Mock the current policy (our fix calls Get() when there's one policy in history)
+		currentPolicy := &model.AccessControlPolicy{
+			ID:       channelID,
+			CreateAt: 2000, // Modified after the historical policy
+			Rules:    []model.AccessControlPolicyRule{{Expression: "user.department == 'engineering'"}},
+		}
+		mockAccessControlPolicyStore.On("Get", mock.AnythingOfType("*request.Context"), channelID).Return(currentPolicy, nil)
+		mockStore.On("AccessControlPolicy").Return(&mockAccessControlPolicyStore)
+
+		// Mock empty post list (no posts since current policy modification at 2000)
+		mockPostStore := storemocks.PostStore{}
+		mockPostStore.On("GetPostsSince", mock.AnythingOfType("*request.Context"), model.GetPostsSinceOptions{
+			ChannelId: channelID,
+			Time:      2000, // Uses current policy's CreateAt timestamp
+		}, false, mock.AnythingOfType("map[string]bool")).Return(&model.PostList{Posts: map[string]*model.Post{}}, nil)
+		mockStore.On("Post").Return(&mockPostStore)
+
+		shouldWarn, appErr := th.App.ShouldShowChannelActivityWarning(rctx, channelID)
+
+		require.Nil(t, appErr)
+		assert.False(t, shouldWarn)
+	})
+
+	t.Run("should return true when only one policy revision exists and posts exist since creation", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		rctx := request.TestContext(t)
+		channelID := model.NewId()
+
+		singlePolicy := []*model.AccessControlPolicy{
+			{
+				ID:       channelID,
+				CreateAt: 1000,
+				Rules:    []model.AccessControlPolicyRule{{Expression: "user.department == 'engineering'"}},
+			},
+		}
+
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+		mockAccessControlPolicyStore := storemocks.AccessControlPolicyStore{}
+		mockAccessControlPolicyStore.On("GetPolicyHistory", mock.AnythingOfType("*request.Context"), channelID, 2).Return(singlePolicy, nil)
+		
+		// Mock the current policy (our fix calls Get() when there's one policy in history)
+		currentPolicy := &model.AccessControlPolicy{
+			ID:       channelID,
+			CreateAt: 2000, // Modified after the historical policy
+			Rules:    []model.AccessControlPolicyRule{{Expression: "user.department == 'engineering'"}},
+		}
+		mockAccessControlPolicyStore.On("Get", mock.AnythingOfType("*request.Context"), channelID).Return(currentPolicy, nil)
+		mockStore.On("AccessControlPolicy").Return(&mockAccessControlPolicyStore)
+
+		// Mock post list with posts created AFTER current policy modification (CreateAt > 2000)
+		// Note: Only regular posts (Type == "") are counted by the implementation
+		postsAfterCreation := &model.PostList{
+			Posts: map[string]*model.Post{
+				"post1": {Id: "post1", CreateAt: 2100, Message: "Regular post", Type: ""},
+				"post2": {Id: "post2", CreateAt: 2200, Message: "System message", Type: "system_join"}, // Should be ignored
+				"post3": {Id: "post3", CreateAt: 2300, Message: "Another regular post", Type: ""},
+			},
+			Order: []string{"post1", "post2", "post3"},
+		}
+		mockPostStore := storemocks.PostStore{}
+		mockPostStore.On("GetPostsSince", mock.AnythingOfType("*request.Context"), model.GetPostsSinceOptions{
+			ChannelId: channelID,
+			Time:      2000, // Uses current policy's CreateAt timestamp
+		}, false, mock.AnythingOfType("map[string]bool")).Return(postsAfterCreation, nil)
+		mockStore.On("Post").Return(&mockPostStore)
+
+		shouldWarn, appErr := th.App.ShouldShowChannelActivityWarning(rctx, channelID)
+
+		require.Nil(t, appErr)
+		assert.True(t, shouldWarn) // Should warn because posts exist after policy creation
+	})
+
+	t.Run("should return false when only system messages exist after policy creation", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		rctx := request.TestContext(t)
+		channelID := model.NewId()
+
+		singlePolicy := []*model.AccessControlPolicy{
+			{
+				ID:       channelID,
+				CreateAt: 1000,
+				Rules:    []model.AccessControlPolicyRule{{Expression: "user.department == 'engineering'"}},
+			},
+		}
+
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+		mockAccessControlPolicyStore := storemocks.AccessControlPolicyStore{}
+		mockAccessControlPolicyStore.On("GetPolicyHistory", mock.AnythingOfType("*request.Context"), channelID, 2).Return(singlePolicy, nil)
+		
+		// Mock the current policy (our fix calls Get() when there's one policy in history)
+		currentPolicy := &model.AccessControlPolicy{
+			ID:       channelID,
+			CreateAt: 2000, // Modified after the historical policy
+			Rules:    []model.AccessControlPolicyRule{{Expression: "user.department == 'engineering'"}},
+		}
+		mockAccessControlPolicyStore.On("Get", mock.AnythingOfType("*request.Context"), channelID).Return(currentPolicy, nil)
+		mockStore.On("AccessControlPolicy").Return(&mockAccessControlPolicyStore)
+
+		// Mock post list with ONLY system messages (Type != "") after current policy modification
+		onlySystemPosts := &model.PostList{
+			Posts: map[string]*model.Post{
+				"post1": {Id: "post1", CreateAt: 2100, Message: "User joined", Type: "system_join"},
+				"post2": {Id: "post2", CreateAt: 2200, Message: "Channel created", Type: "system_header_change"},
+			},
+			Order: []string{"post1", "post2"},
+		}
+		mockPostStore := storemocks.PostStore{}
+		mockPostStore.On("GetPostsSince", mock.AnythingOfType("*request.Context"), model.GetPostsSinceOptions{
+			ChannelId: channelID,
+			Time:      2000, // Uses current policy's CreateAt timestamp
+		}, false, mock.AnythingOfType("map[string]bool")).Return(onlySystemPosts, nil)
+		mockStore.On("Post").Return(&mockPostStore)
+
+		shouldWarn, appErr := th.App.ShouldShowChannelActivityWarning(rctx, channelID)
+
+		require.Nil(t, appErr)
+		assert.False(t, shouldWarn) // Should not warn - only system messages, no regular user posts
+	})
+
+	t.Run("should return false when rules haven't changed", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		rctx := request.TestContext(t)
+		channelID := model.NewId()
+
+		policyHistory := []*model.AccessControlPolicy{
+			{
+				ID:       channelID,
+				CreateAt: 2000,
+				Rules:    []model.AccessControlPolicyRule{{Expression: "user.department == 'engineering'"}},
+			},
+			{
+				ID:       channelID,
+				CreateAt: 1000,
+				Rules:    []model.AccessControlPolicyRule{{Expression: "user.department == 'engineering'"}}, // Same rules
+			},
+		}
+
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+		mockAccessControlPolicyStore := storemocks.AccessControlPolicyStore{}
+		mockAccessControlPolicyStore.On("GetPolicyHistory", mock.AnythingOfType("*request.Context"), channelID, 2).Return(policyHistory, nil)
+		mockStore.On("AccessControlPolicy").Return(&mockAccessControlPolicyStore)
+
+		// No Post store mock needed - rules haven't changed, so returns early with false
+
+		shouldWarn, appErr := th.App.ShouldShowChannelActivityWarning(rctx, channelID)
+
+		require.Nil(t, appErr)
+		assert.False(t, shouldWarn)
+	})
+
+	t.Run("should return false when rules changed but no posts exist since change", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		rctx := request.TestContext(t)
+		channelID := model.NewId()
+
+		policyHistory := []*model.AccessControlPolicy{
+			{
+				ID:       channelID,
+				CreateAt: 2000,
+				Rules:    []model.AccessControlPolicyRule{{Expression: "user.department == 'sales'"}}, // Latest revision
+			},
+			{
+				ID:       channelID,
+				CreateAt: 1000,
+				Rules:    []model.AccessControlPolicyRule{{Expression: "user.department == 'engineering'"}}, // Previous revision
+			},
+		}
+
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+		mockAccessControlPolicyStore := storemocks.AccessControlPolicyStore{}
+		mockAccessControlPolicyStore.On("GetPolicyHistory", mock.AnythingOfType("*request.Context"), channelID, 2).Return(policyHistory, nil)
+		mockStore.On("AccessControlPolicy").Return(&mockAccessControlPolicyStore)
+
+		// Mock post store to return empty post list
+		mockPostStore := storemocks.PostStore{}
+		mockPostStore.On("GetPostsSince", mock.AnythingOfType("*request.Context"), model.GetPostsSinceOptions{
+			ChannelId: channelID,
+			Time:      2000,
+		}, false, mock.AnythingOfType("map[string]bool")).Return(&model.PostList{Posts: map[string]*model.Post{}}, nil)
+		mockStore.On("Post").Return(&mockPostStore)
+
+		shouldWarn, appErr := th.App.ShouldShowChannelActivityWarning(rctx, channelID)
+
+		require.Nil(t, appErr)
+		assert.False(t, shouldWarn)
+	})
+
+	t.Run("should return true when rules changed and posts exist since change", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		rctx := request.TestContext(t)
+		channelID := model.NewId()
+
+		policyHistory := []*model.AccessControlPolicy{
+			{
+				ID:       channelID,
+				CreateAt: 2000,
+				Rules:    []model.AccessControlPolicyRule{{Expression: "user.department == 'sales'"}}, // Latest revision
+			},
+			{
+				ID:       channelID,
+				CreateAt: 1000,
+				Rules:    []model.AccessControlPolicyRule{{Expression: "user.department == 'engineering'"}}, // Previous revision
+			},
+		}
+
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+		mockAccessControlPolicyStore := storemocks.AccessControlPolicyStore{}
+		mockAccessControlPolicyStore.On("GetPolicyHistory", mock.AnythingOfType("*request.Context"), channelID, 2).Return(policyHistory, nil)
+		mockStore.On("AccessControlPolicy").Return(&mockAccessControlPolicyStore)
+
+		// Mock post store to return posts since timestamp
+		postsWithData := &model.PostList{
+			Posts: map[string]*model.Post{
+				"post1": {Id: "post1", CreateAt: 2100, Message: "Test message"},
+			},
+			Order: []string{"post1"},
+		}
+		mockPostStore := storemocks.PostStore{}
+		mockPostStore.On("GetPostsSince", mock.AnythingOfType("*request.Context"), model.GetPostsSinceOptions{
+			ChannelId: channelID,
+			Time:      2000,
+		}, false, mock.AnythingOfType("map[string]bool")).Return(postsWithData, nil)
+		mockStore.On("Post").Return(&mockPostStore)
+
+		shouldWarn, appErr := th.App.ShouldShowChannelActivityWarning(rctx, channelID)
+
+		require.Nil(t, appErr)
+		assert.True(t, shouldWarn)
+	})
+
+	t.Run("should return error when countPostsSinceTimestamp fails", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		rctx := request.TestContext(t)
+		channelID := model.NewId()
+
+		policyHistory := []*model.AccessControlPolicy{
+			{
+				ID:       channelID,
+				CreateAt: 2000,
+				Rules:    []model.AccessControlPolicyRule{{Expression: "user.department == 'sales'"}},
+			},
+			{
+				ID:       channelID,
+				CreateAt: 1000,
+				Rules:    []model.AccessControlPolicyRule{{Expression: "user.department == 'engineering'"}},
+			},
+		}
+
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+		mockAccessControlPolicyStore := storemocks.AccessControlPolicyStore{}
+		mockAccessControlPolicyStore.On("GetPolicyHistory", mock.AnythingOfType("*request.Context"), channelID, 2).Return(policyHistory, nil)
+		mockStore.On("AccessControlPolicy").Return(&mockAccessControlPolicyStore)
+
+		// Mock post store to return error
+		mockPostStore := storemocks.PostStore{}
+		mockPostStore.On("GetPostsSince", mock.AnythingOfType("*request.Context"), model.GetPostsSinceOptions{
+			ChannelId: channelID,
+			Time:      2000,
+		}, false, mock.AnythingOfType("map[string]bool")).Return(&model.PostList{}, model.NewAppError("GetPostsSince", "app.access_control.count_posts.app_error", nil, "database error", http.StatusInternalServerError))
+		mockStore.On("Post").Return(&mockPostStore)
+
+		shouldWarn, appErr := th.App.ShouldShowChannelActivityWarning(rctx, channelID)
+
+		require.NotNil(t, appErr)
+		require.False(t, shouldWarn)
+		assert.Equal(t, "app.access_control.count_posts.app_error", appErr.Id)
 	})
 }

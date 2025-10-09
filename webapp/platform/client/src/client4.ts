@@ -4619,6 +4619,16 @@ export default class Client4 {
         );
     };
 
+    getChannelActivityWarning = (policyId: string) => {
+        return this.doFetch<{
+            should_show_warning: boolean;
+        }>(
+            `${this.getBaseRoute()}/access_control_policies/${policyId}/activity`,
+            {method: 'get'},
+        );
+    };
+
+
     getTeamContentFlaggingStatus = (teamId: string) => {
         return this.doFetch<{enabled: boolean}>(
             `${this.getContentFlaggingRoute()}/team/${teamId}/status`,
