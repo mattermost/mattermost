@@ -16,7 +16,6 @@ import type {LinkInfo} from './file_preview_modal/types';
 type Props = {
     fileInfo: FileInfo;
     fileUrl: string;
-    className: string;
     getContent?: (code: string) => void;
 };
 
