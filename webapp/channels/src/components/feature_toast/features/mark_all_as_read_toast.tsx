@@ -3,30 +3,22 @@
 
 import React, {useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
 
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-
-import {useGlobalState} from 'stores/hooks';
+import {Preferences} from 'mattermost-redux/constants';
 
 import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
+import usePreference from 'components/common/hooks/usePreference';
 
-import {StoragePrefixes} from 'utils/constants';
 import * as UserAgent from 'utils/user_agent';
 
-import {createHasSeenFeatureSuffix, FeaturesToAnnounce} from '..';
 import FeatureToast from '../feature_toast';
 
 export default function MarkAllAsReadToast() {
-    const currentUserID = useSelector(getCurrentUserId);
     const {formatMessage} = useIntl();
     const enableMarkAllReadShortcut = useGetFeatureFlagValue('EnableShiftEscapeToMarkAllRead') === 'true';
-    const [userHasSeenMarkAllReadToast, setUserHasSeenMarkAllReadToast] = useGlobalState<boolean>(
-        false,
-        StoragePrefixes.HAS_SEEN_FEATURE_TOAST,
-        createHasSeenFeatureSuffix(
-            currentUserID,
-            FeaturesToAnnounce.MARK_ALL_AS_READ_SHORTCUT),
+    const [userHasSeenMarkAllReadToast, setUserHasSeenMarkAllReadToast] = usePreference(
+        Preferences.CATEGORY_NEW_FEATURES,
+        Preferences.HAS_SEEN_MARK_ALL_READ_FEATURE,
     );
     const [show, setShow] = useState(
         enableMarkAllReadShortcut &&
@@ -40,7 +32,7 @@ export default function MarkAllAsReadToast() {
 
     const onDismiss = () => {
         setShow(false);
-        setUserHasSeenMarkAllReadToast(true);
+        setUserHasSeenMarkAllReadToast('true');
     };
 
     const titleText = formatMessage({
