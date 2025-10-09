@@ -1087,6 +1087,9 @@ func (c *CommonTestSuite) TestPurgeIndexes() {
 
 		found, _, err = c.GetDocumentFn("test_"+IndexBaseUsers, user.Id)
 		c.False(found)
+		// Elasticsearch and Opensearch behave differently when there are no
+		// documents to return: they may error out or not, but if the error is
+		// because no documents were found, it will always be a 404 error
 		if err != nil {
 			c.ErrorContains(err, "404")
 		}
@@ -1126,6 +1129,9 @@ func (c *CommonTestSuite) TestPurgeIndexes() {
 		// Validate the indexes are gone
 		found, _, err = c.GetDocumentFn(IndexBasePosts, post.Id)
 		c.False(found)
+		// Elasticsearch and Opensearch behave differently when there are no
+		// documents to return: they may error out or not, but if the error is
+		// because no documents were found, it will always be a 404 error
 		if err != nil {
 			c.ErrorContains(err, "404")
 		}
@@ -1153,6 +1159,9 @@ func (c *CommonTestSuite) TestPurgeIndexList() {
 
 		found, _, err = c.GetDocumentFn(IndexBaseChannels, channel.Id)
 		c.False(found)
+		// Elasticsearch and Opensearch behave differently when there are no
+		// documents to return: they may error out or not, but if the error is
+		// because no documents were found, it will always be a 404 error
 		if err != nil {
 			c.ErrorContains(err, "404")
 		}
@@ -1188,6 +1197,10 @@ func (c *CommonTestSuite) TestPurgeIndexList() {
 		// now it should be gone as we're no longer ignoring it
 		found, _, err = c.GetDocumentFn(IndexBaseChannels, channel.Id)
 		c.False(found)
+		// Elasticsearch and Opensearch behave differently when there are no
+		// documents to return: they may error out or not, but if the error
+		// happened because no documents were found, it will always be a 404
+		// error.
 		if err != nil {
 			c.ErrorContains(err, "404")
 		}
