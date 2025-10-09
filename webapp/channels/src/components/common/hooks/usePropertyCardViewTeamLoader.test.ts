@@ -127,9 +127,9 @@ describe('usePropertyCardViewTeamLoader', () => {
         });
 
         test('should call getTeam again when teamId changes', async () => {
-            const getTeamMock = jest.fn()
-                .mockResolvedValueOnce(team1)
-                .mockResolvedValueOnce(team2);
+            const getTeamMock = jest.fn().
+                mockResolvedValueOnce(team1).
+                mockResolvedValueOnce(team2);
 
             let teamId = 'team1';
             const {result, rerender} = renderHookWithContext(
