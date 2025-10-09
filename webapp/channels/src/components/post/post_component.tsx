@@ -590,7 +590,10 @@ function PostComponent(props: Props) {
                                 }
                                 {priority}
                                 {Boolean(post.props && post.props.ai_generated_by) && typeof post.props.ai_generated_by === 'string' && (
-                                    <AiGeneratedIndicator userId={post.props.ai_generated_by}/>
+                                    <AiGeneratedIndicator
+                                        userId={post.props.ai_generated_by}
+                                        postAuthorId={post.user_id}
+                                    />
                                 )}
                                 {Boolean(post.props && post.props.card) &&
                                     <WithTooltip

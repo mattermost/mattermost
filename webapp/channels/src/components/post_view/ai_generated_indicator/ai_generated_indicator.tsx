@@ -14,13 +14,23 @@ import type {GlobalState} from 'types/store';
 
 type Props = {
     userId: string;
+    postAuthorId: string;
 };
 
-function AiGeneratedIndicator({userId}: Props) {
+function AiGeneratedIndicator({userId, postAuthorId}: Props) {
     const intl = useIntl();
     const user = useSelector((state: GlobalState) => getUser(state, userId));
 
     const tooltipText = useMemo(() => {
+        const isSameAsAuthor = userId === postAuthorId;
+
+        if (isSameAsAuthor) {
+            return intl.formatMessage({
+                id: 'post_info.ai_generated.self',
+                defaultMessage: 'AI-generated',
+            });
+        }
+
         const username = user?.username || intl.formatMessage({
             id: 'post_info.ai_generated.unknown_user',
             defaultMessage: 'Unknown User',
@@ -33,7 +43,7 @@ function AiGeneratedIndicator({userId}: Props) {
             },
             {username},
         );
-    }, [user?.username, intl]);
+    }, [userId, postAuthorId, user?.username, intl]);
 
     return (
         <WithTooltip title={tooltipText}>
