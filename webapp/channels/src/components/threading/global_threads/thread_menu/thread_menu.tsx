@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useCallback} from 'react';
+import React, {memo, useCallback, useEffect, useState} from 'react';
 import type {ReactNode} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
@@ -21,7 +21,10 @@ import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {useReadout} from 'hooks/useReadout';
+import DesktopApp from 'utils/desktop_api';
+import {popoutThread} from 'utils/popouts/popout_windows';
 import {getSiteURL} from 'utils/url';
+import {isDesktopApp} from 'utils/user_agent';
 import {copyToClipboard} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -45,7 +48,8 @@ function ThreadMenu({
     hasUnreads,
     children,
 }: Props) {
-    const {formatMessage} = useIntl();
+    const intl = useIntl();
+    const {formatMessage} = intl;
     const dispatch = useDispatch();
     const {
         params: {
@@ -84,6 +88,22 @@ function ThreadMenu({
         unreadTimestamp,
     ]);
 
+    // TODO: This should be in a reusable component but since this menu hasn't been
+    // migrated to the new menu component yet, we'll leave it here for now.
+    const [canPopout, setCanPopout] = useState(false);
+    const checkIfCanPopout = useCallback(async () => {
+        const canPopout = await DesktopApp.canPopout();
+        setCanPopout(canPopout);
+    }, []);
+    const popout = useCallback(() => {
+        popoutThread(intl, threadId, team);
+    }, [threadId, team, intl]);
+    useEffect(() => {
+        if (isDesktopApp()) {
+            checkIfCanPopout();
+        }
+    }, []);
+
     return (
         <MenuWrapper
             stopPropagationOnToggle={true}
@@ -96,6 +116,17 @@ function ThreadMenu({
                 })}
                 openLeft={true}
             >
+                {canPopout && (
+                    <Menu.ItemAction
+                        buttonClass='PopoutMenuItem'
+                        text={formatMessage({
+                            id: 'threading.threadMenu.openInNewWindow',
+                            defaultMessage: 'Open in new window',
+                        })}
+                        onClick={popout}
+                        icon={<i className='icon icon-dock-window'/>}
+                    />
+                )}
                 <Menu.ItemAction
                     {...isFollowing ? {
                         text: formatMessage({

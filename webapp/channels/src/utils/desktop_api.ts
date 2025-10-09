@@ -3,7 +3,7 @@
 
 import semver from 'semver';
 
-import type {DesktopAPI} from '@mattermost/desktop-api';
+import type {DesktopAPI, PopoutViewProps} from '@mattermost/desktop-api';
 
 import {isDesktopApp} from 'utils/user_agent';
 
@@ -52,6 +52,32 @@ export class DesktopAppAPI {
             window.removeEventListener('message', this.postMessageListener);
         });
     }
+
+    setupDesktopPopout = async (path: string, desktopProps?: PopoutViewProps) => {
+        const popoutId = await this.openPopout(path, desktopProps ?? {});
+        if (!popoutId) {
+            return {};
+        }
+        return {
+            send: (channel: string, ...args: unknown[]) => {
+                this.sendToPopoutWindow(popoutId, channel, ...args);
+            },
+            message: (listener: (channel: string, ...args: unknown[]) => void) => {
+                return this.onMessageFromPopoutWindow((id, channel, ...args) => {
+                    if (id === popoutId) {
+                        listener(channel, ...args);
+                    }
+                });
+            },
+            closed: (listener: () => void) => {
+                return this.onPopoutWindowClosed((id) => {
+                    if (id === popoutId) {
+                        listener();
+                    }
+                });
+            },
+        };
+    };
 
     /*******************************************************
      * Getters/setters for Desktop App specific information
@@ -110,6 +136,18 @@ export class DesktopAppAPI {
         };
     };
 
+    canPopout = async () => {
+        return Boolean(await window.desktopAPI?.canPopout?.());
+    };
+
+    private openPopout = (path: string, props: PopoutViewProps) => {
+        return window.desktopAPI?.openPopout?.(path, props);
+    };
+
+    canUsePopoutOption = (optionName: string) => {
+        return Boolean(window.desktopAPI?.canUsePopoutOption?.(optionName));
+    };
+
     /**
      * Listeners
      */
@@ -160,6 +198,18 @@ export class DesktopAppAPI {
 
     onReceiveMetrics = (listener: (metricsMap: Map<string, {cpu?: number; memory?: number}>) => void) => {
         return window.desktopAPI?.onSendMetrics?.(listener);
+    };
+
+    onMessageFromParentWindow = (listener: (channel: string, ...args: unknown[]) => void) => {
+        return window.desktopAPI?.onMessageFromParent?.(listener);
+    };
+
+    private onMessageFromPopoutWindow = (listener: (id: string, channel: string, ...args: unknown[]) => void) => {
+        return window.desktopAPI?.onMessageFromPopout?.(listener);
+    };
+
+    private onPopoutWindowClosed = (listener: (id: string) => void) => {
+        return window.desktopAPI?.onPopoutClosed?.(listener);
     };
 
     /**
@@ -220,6 +270,9 @@ export class DesktopAppAPI {
     signalLogin = () => window.desktopAPI?.onLogin?.();
     signalLogout = () => window.desktopAPI?.onLogout?.();
     reactAppInitialized = () => window.desktopAPI?.reactAppInitialized?.();
+
+    sendToParentWindow = (channel: string, ...args: unknown[]) => window.desktopAPI?.sendToParent?.(channel, ...args);
+    sendToPopoutWindow = (id: string, channel: string, ...args: unknown[]) => window.desktopAPI?.sendToPopout?.(id, channel, ...args);
 
     /*********************************************************************
      * Helper functions for legacy code
