@@ -4139,7 +4139,6 @@
   "search_hint.enter_to_search": "Appuyer sur Entrée pour lancer la recherche",
   "search_hint.enter_to_select": "Appuyer sur Entrée pour sélectionner",
   "search_hint.filter": "Filtrer la recherche avec :",
-  "search_hint.reset_filters": "Vous filtres seront réinitialisés car vous avez choisi une équipe différente",
   "search_item.channelArchived": "Archivé",
   "search_item.direct": "Message personnel (avec {username})",
   "search_item.file_tag.direct_message": "Message personnel",

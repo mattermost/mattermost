@@ -73,7 +73,7 @@
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "OAuth2アプリケーションを削除中にエラーが発生しました。"
+    "translation": "証明書を削除中にエラーが発生しました。"
   },
   {
     "id": "api.admin.saml.metadata.app_error",
@@ -10710,10 +10710,6 @@
     "translation": "あなたのライセンスはコンテントフラグをサポートしていません。"
   },
   {
-    "id": "api.not_implemented",
-    "translation": "この機能は実装されていません。"
-  },
-  {
     "id": "app.access_control.insufficient_permissions",
     "translation": "あなたにはこのアクセス制御ポリシーを管理する権限がありません。"
   },
@@ -10772,5 +10768,17 @@
   {
     "id": "model.config.is_valid.experimental_view_archived_channels.app_error",
     "translation": "アーカイブ済みチャンネルを非表示にする機能はサポートされていません。これらのチャンネルを非公開にするか、メンバーを削除してください。"
+  },
+  {
+    "id": "api.user.check_user_password.invalid_hash.app_error",
+    "translation": "ハッシュ化されたパスワードのフォーマットが無効であるため解析できません。"
+  },
+  {
+    "id": "app.user.check_user_password.failed_migration",
+    "translation": "ユーザーのパスワードを最新のハッシュメソッドに移行するのに失敗しました。"
+  },
+  {
+    "id": "app.user.check_user_password.failed_update",
+    "translation": "ユーザーのパスワードの更新に失敗しました。"
   }
 ]
