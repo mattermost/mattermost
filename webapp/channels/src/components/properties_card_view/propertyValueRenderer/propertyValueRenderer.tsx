@@ -9,8 +9,10 @@ import type {
 } from '@mattermost/types/properties';
 
 import type {
+    ChannelFieldMetadata,
     FieldMetadata,
     PostPreviewFieldMetadata,
+    TeamFieldMetadata,
     TextFieldMetadata,
     UserPropertyMetadata,
 } from 'components/properties_card_view/properties_card_view';
@@ -83,9 +85,19 @@ function RenderTextSubtype({field, value, metadata}: Props) {
             />
         );
     case 'channel':
-        return <ChannelPropertyRenderer value={value}/>;
+        return (
+            <ChannelPropertyRenderer
+                value={value}
+                metadata={metadata as ChannelFieldMetadata}
+            />
+        );
     case 'team':
-        return <TeamPropertyRenderer value={value}/>;
+        return (
+            <TeamPropertyRenderer
+                value={value}
+                metadata={metadata as TeamFieldMetadata}
+            />
+        );
     case 'timestamp':
         return <TimestampPropertyRenderer value={value}/>;
     default:

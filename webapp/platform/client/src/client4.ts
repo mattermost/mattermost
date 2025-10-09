@@ -4718,6 +4718,20 @@ export default class Client4 {
             {method: 'get'},
         );
     };
+
+    getFlaggedPostChannel = (flaggedPostId: string) => {
+        return this.doFetch<Channel>(
+            `${this.getContentFlaggingRoute()}/post/${flaggedPostId}/channel`,
+            {method: 'get'},
+        );
+    };
+
+    getFlaggedPostTeam = (flaggedPostId: string) => {
+        return this.doFetch<Team>(
+            `${this.getContentFlaggingRoute()}/post/${flaggedPostId}/team`,
+            {method: 'get'},
+        );
+    };
 }
 
 export function parseAndMergeNestedHeaders(originalHeaders: any) {

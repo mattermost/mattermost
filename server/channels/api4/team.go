@@ -144,24 +144,30 @@ func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	team, err := c.App.GetTeam(c.Params.TeamId)
+	getTeamImpl(c, w, r, c.Params.TeamId, false)
+}
+
+func getTeamImpl(c *Context, w http.ResponseWriter, r *http.Request, teamId string, skipPermissions bool) {
+	team, err := c.App.GetTeam(teamId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	isPublicTeam := team.AllowOpenInvite && team.Type == model.TeamOpen
-	hasPermissionViewTeam := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam)
+	if !skipPermissions {
+		isPublicTeam := team.AllowOpenInvite && team.Type == model.TeamOpen
+		hasPermissionViewTeam := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam)
 
-	if !isPublicTeam && !hasPermissionViewTeam {
-		c.SetPermissionError(model.PermissionViewTeam)
-		return
-	}
+		if !isPublicTeam && !hasPermissionViewTeam {
+			c.SetPermissionError(model.PermissionViewTeam)
+			return
+		}
 
-	if isPublicTeam && !hasPermissionViewTeam && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionListPublicTeams) {
-		// Fail with PermissionViewTeam, not PermissionListPublicTeams.
-		c.SetPermissionError(model.PermissionViewTeam)
-		return
+		if isPublicTeam && !hasPermissionViewTeam && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionListPublicTeams) {
+			// Fail with PermissionViewTeam, not PermissionListPublicTeams.
+			c.SetPermissionError(model.PermissionViewTeam)
+			return
+		}
 	}
 
 	c.App.SanitizeTeam(*c.AppContext.Session(), team)

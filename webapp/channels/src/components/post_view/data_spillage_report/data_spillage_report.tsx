@@ -131,9 +131,17 @@ export function DataSpillageReport({post, isRHS}: Props) {
             post_preview: {
                 getPost: loadFlaggedPost,
                 fetchDeletedPost: true,
+                getChannel: getFlaggedPostChannel(reportedPostId),
+                getTeam: getFlaggedPostTeam(reportedPostId),
             },
             reporting_comment: {
                 placeholder: formatMessage({id: 'data_spillage_report_post.reporting_comment.placeholder', defaultMessage: 'No comment'}),
+            },
+            team: {
+                getTeam: getFlaggedPostTeam(reportedPostId),
+            },
+            channel: {
+                getChannel: getFlaggedPostChannel(reportedPostId),
             },
         };
 
@@ -198,8 +206,8 @@ export function DataSpillageReport({post, isRHS}: Props) {
     );
 }
 
-async function loadFlaggedPost(postId: string) {
-    return Client4.getFlaggedPost(postId);
+async function loadFlaggedPost(flaggedPostId: string) {
+    return Client4.getFlaggedPost(flaggedPostId);
 }
 
 function getSearchContentReviewersFunction(teamId: string) {
@@ -208,8 +216,20 @@ function getSearchContentReviewersFunction(teamId: string) {
     };
 }
 
-function saveReviewerSelection(postId: string) {
+function saveReviewerSelection(flaggedPostId: string) {
     return (userId: string) => {
-        return Client4.setContentFlaggingReviewer(postId, userId);
+        return Client4.setContentFlaggingReviewer(flaggedPostId, userId);
+    };
+}
+
+function getFlaggedPostChannel(flaggedPostId: string) {
+    return () => {
+        return Client4.getFlaggedPostChannel(flaggedPostId);
+    };
+}
+
+function getFlaggedPostTeam(flaggedPostId: string) {
+    return () => {
+        return Client4.getFlaggedPostTeam(flaggedPostId);
     };
 }

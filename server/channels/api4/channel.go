@@ -623,21 +623,27 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	channel, err := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+	getChannelImpl(c, w, r, false, c.Params.ChannelId)
+}
+
+func getChannelImpl(c *Context, w http.ResponseWriter, r *http.Request, skipPermissions bool, channelId string) {
+	channel, err := c.App.GetChannel(c.AppContext, channelId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if channel.Type == model.ChannelTypeOpen {
-		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel) && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel) {
-			c.SetPermissionError(model.PermissionReadPublicChannel)
-			return
-		}
-	} else {
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel) {
-			c.SetPermissionError(model.PermissionReadChannel)
-			return
+	if !skipPermissions {
+		if channel.Type == model.ChannelTypeOpen {
+			if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel) && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel) {
+				c.SetPermissionError(model.PermissionReadPublicChannel)
+				return
+			}
+		} else {
+			if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel) {
+				c.SetPermissionError(model.PermissionReadChannel)
+				return
+			}
 		}
 	}
 
