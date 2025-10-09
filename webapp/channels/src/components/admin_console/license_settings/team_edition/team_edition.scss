@@ -52,18 +52,18 @@
 .TeamEditionLeftPanel {
     &__Header {
         display: flex;
-        justify-content: space-between;
         align-items: center;
+        justify-content: space-between;
         gap: 8px;
     }
 
     &__Title {
         display: flex;
         align-items: center;
-        font-size: 18px;
         color: var(--center-channel-color);
-        font-weight: 600;
         font-family: 'Metropolis', sans-serif;
+        font-size: 18px;
+        font-weight: 600;
         gap: 8px;
     }
 
