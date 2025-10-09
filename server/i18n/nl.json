@@ -10810,5 +10810,9 @@
   {
     "id": "app.submit_interactive_dialog.invalid_response",
     "translation": "Er is een ongeldige reactie gevonden bij het indienen van een interactief dialoogvenster."
+  },
+  {
+    "id": "api.channel.patch_update_channel.restricted_dm.app_error",
+    "translation": "Kan een kanaal met beperkte directe berichten niet bijwerken."
   }
 ]
