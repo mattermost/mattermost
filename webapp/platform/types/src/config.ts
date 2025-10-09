@@ -741,7 +741,7 @@ export type LocalizationSettings = {
 
 export type AutoTranslationSettings = {
     Enable: boolean;
-    Provider: 'libretranslate';
+    Provider: '' | 'libretranslate';
     LibreTranslate: {
         URL: string;
         APIKey: string;
