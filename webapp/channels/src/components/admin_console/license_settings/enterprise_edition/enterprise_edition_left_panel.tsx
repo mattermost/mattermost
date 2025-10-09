@@ -102,11 +102,11 @@ const EnterpriseEditionLeftPanel = ({
                 data-testid='EnterpriseEditionLeftPanel'
             >
                 <div className='EnterpriseEditionLeftPanel__Header'>
-                <div>
-                    <div className='EnterpriseEditionLeftPanel__Title'>
-                        {`Mattermost ${getSkuDisplayName(unsanitizedLicense.SkuShortName, unsanitizedLicense.IsGovSku === 'true')}`}
+                    <div>
+                        <div className='EnterpriseEditionLeftPanel__Title'>
+                            {`Mattermost ${getSkuDisplayName(unsanitizedLicense.SkuShortName, unsanitizedLicense.IsGovSku === 'true')}`}
+                        </div>
                     </div>
-                </div>
                     {viewPlansButton}
                 </div>
                 <div className='EnterpriseEditionLeftPanel__Subtitle'>

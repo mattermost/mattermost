@@ -6,10 +6,9 @@ import React from 'react';
 import './team_edition.scss';
 export interface TeamEditionProps {
     openEELicenseModal: () => void;
-    currentPlan: JSX.Element;
 }
 
-const TeamEdition: React.FC<TeamEditionProps> = ({openEELicenseModal, currentPlan}: TeamEditionProps) => {
+const TeamEdition: React.FC<TeamEditionProps> = ({openEELicenseModal}: TeamEditionProps) => {
     const title = 'Team Edition';
     return (
         <div className='TeamEditionLeftPanel'>
