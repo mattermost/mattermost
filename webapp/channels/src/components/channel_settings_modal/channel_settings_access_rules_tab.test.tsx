@@ -39,7 +39,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         getChannelMembers: jest.fn(),
         createJob: jest.fn(),
         createAccessControlSyncJob: jest.fn(),
-        updateAccessControlPolicyActive: jest.fn(),
+        updateAccessControlPoliciesActive: jest.fn(),
         validateExpressionAgainstRequester: jest.fn(),
     };
 

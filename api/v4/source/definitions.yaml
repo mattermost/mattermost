@@ -4295,7 +4295,23 @@ components:
           description: text is the actual text that renders in the channel banner. Markdown is supported.
         background_color:
           type: string
-          description: background_color is the HEX color code for the banner's backgroubd
+          description: background_color is the HEX color code for the banner's background
+    AccessControlPolicyActiveUpdateRequest:
+      type: object
+      properties:
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/AccessControlPolicyActiveUpdate"
+    AccessControlPolicyActiveUpdate:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The ID of the policy.
+        active:
+          type: boolean
+          description: The active status of the policy.
 externalDocs:
   description: Find out more about Mattermost
   url: 'https://about.mattermost.com'

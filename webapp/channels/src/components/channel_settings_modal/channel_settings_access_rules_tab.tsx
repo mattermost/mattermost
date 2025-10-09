@@ -375,7 +375,7 @@ function ChannelSettingsAccessRulesTab({
 
             // Step 2: Update the active status separately (like System Console does)
             try {
-                await actions.updateAccessControlPolicyActive(channel.id, autoSyncMembers);
+                await actions.updateAccessControlPoliciesActive([{id: channel.id, active: autoSyncMembers}]);
             } catch (activeError) {
                 // eslint-disable-next-line no-console
                 console.error('Failed to update policy active status:', activeError);

@@ -85,3 +85,8 @@ export interface AccessControlled {
      */
     access_control_enforced?: boolean;
 }
+
+export type AccessControlPolicyActiveUpdate = {
+    id: string;
+    active: boolean;
+}

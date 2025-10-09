@@ -865,3 +865,126 @@ func TestSearchChannelsForAccessControlPolicy(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 }
+
+func TestSetActiveStatus(t *testing.T) {
+	th := Setup(t).InitBasic()
+	t.Cleanup(func() {
+		th.TearDown()
+	})
+
+	samplePolicy := &model.AccessControlPolicy{
+		ID:       th.BasicChannel.Id,
+		Type:     model.AccessControlPolicyTypeChannel,
+		Version:  model.AccessControlPolicyVersionV0_2,
+		Revision: 1,
+		Rules: []model.AccessControlPolicyRule{
+			{
+				Expression: "user.attributes.team == 'engineering'",
+				Actions:    []string{"*"},
+			},
+		},
+	}
+	var err error
+	samplePolicy, err = th.App.Srv().Store().AccessControlPolicy().Save(th.Context, samplePolicy)
+	require.NoError(t, err)
+
+	// Sample update request
+	updateReq := model.AccessControlPolicyActiveUpdateRequest{
+		Entries: []model.AccessControlPolicyActiveUpdate{
+			{ID: samplePolicy.ID, Active: true},
+		},
+	}
+
+	t.Run("SetActiveStatus without license", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.SetAccessControlPolicyActive(context.Background(), updateReq)
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+	})
+
+	t.Run("SetActiveStatus with regular user", func(t *testing.T) {
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "SetLicense should return true")
+
+		// Remove permission from regular user
+		_, resp, err := th.Client.SetAccessControlPolicyActive(context.Background(), updateReq)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "SetLicense should return true")
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+
+		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().Channels().AccessControl = mockAccessControlService
+
+		policies, resp, err := client.SetAccessControlPolicyActive(context.Background(), updateReq)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, policies, "expected policies in response")
+		require.Len(t, policies, 1, "expected one policy in response")
+		require.Equal(t, samplePolicy.ID, policies[0].ID, "expected policy ID to match")
+		require.True(t, policies[0].Active, "expected policy to be active")
+	}, "SetActiveStatus with system admin")
+
+	t.Run("SetActiveStatus with channel admin for their channel", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
+		})
+
+		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		require.True(t, ok, "SetLicense should return true")
+
+		// Add permission to channel admin role
+		th.AddPermissionToRole(model.PermissionManageChannelAccessRules.Id, model.ChannelAdminRoleId)
+		// Create private channel and make user channel admin
+		privateChannel := th.CreatePrivateChannel()
+		channelAdmin := th.CreateUser()
+		th.LinkUserToTeam(channelAdmin, th.BasicTeam)
+		th.AddUserToChannel(channelAdmin, privateChannel)
+		th.MakeUserChannelAdmin(channelAdmin, privateChannel)
+
+		channelPolicy := &model.AccessControlPolicy{
+			ID:       privateChannel.Id,
+			Type:     model.AccessControlPolicyTypeChannel,
+			Version:  model.AccessControlPolicyVersionV0_2,
+			Revision: 1,
+			Rules: []model.AccessControlPolicyRule{
+				{
+					Expression: "user.attributes.team == 'engineering'",
+					Actions:    []string{"*"},
+				},
+			},
+		}
+		var err error
+		channelPolicy, err = th.App.Srv().Store().AccessControlPolicy().Save(th.Context, channelPolicy)
+		require.NoError(t, err)
+
+		channelAdminClient := th.CreateClient()
+		_, _, err = channelAdminClient.Login(context.Background(), channelAdmin.Email, channelAdmin.Password)
+		require.NoError(t, err)
+
+		// Update request for the channel admin's channel
+		channelUpdateReq := model.AccessControlPolicyActiveUpdateRequest{
+			Entries: []model.AccessControlPolicyActiveUpdate{
+				{ID: privateChannel.Id, Active: true},
+			},
+		}
+
+		mockAccessControlService := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().Channels().AccessControl = mockAccessControlService
+
+		// Channel admin should be able to set active status for their channel
+		policies, resp, err := channelAdminClient.SetAccessControlPolicyActive(context.Background(), channelUpdateReq)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, policies, "expected policies in response")
+		require.Len(t, policies, 1, "expected one policy in response")
+		require.Equal(t, channelPolicy.ID, policies[0].ID, "expected policy ID to match")
+		require.True(t, policies[0].Active, "expected policy to be active")
+	})
+}
