@@ -74,7 +74,7 @@ func TestGetPostChannel(t *testing.T) {
 		})
 
 		post := th.CreatePost()
-		channel, resp, err := client.GetPostChannel(context.Background(), post.Id)
+		channel, resp, err := client.GetFlaggedPostPostChannel(context.Background(), post.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 		require.Nil(t, channel)
@@ -90,7 +90,7 @@ func TestGetPostChannel(t *testing.T) {
 		})
 
 		post := th.CreatePost()
-		channel, resp, err := client.GetPostChannel(context.Background(), post.Id)
+		channel, resp, err := client.GetFlaggedPostPostChannel(context.Background(), post.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 		require.Nil(t, channel)
@@ -105,7 +105,7 @@ func TestGetPostChannel(t *testing.T) {
 			config.ContentFlaggingSettings.SetDefaults()
 		})
 
-		channel, resp, err := client.GetPostChannel(context.Background(), model.NewId())
+		channel, resp, err := client.GetFlaggedPostPostChannel(context.Background(), model.NewId())
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotFound, resp.StatusCode)
 		require.Nil(t, channel)
@@ -133,7 +133,7 @@ func TestGetPostChannel(t *testing.T) {
 		require.Nil(t, appErr)
 
 		post := th.CreatePost()
-		channel, resp, err := client.GetPostChannel(context.Background(), post.Id)
+		channel, resp, err := client.GetFlaggedPostPostChannel(context.Background(), post.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotFound, resp.StatusCode)
 		require.Nil(t, channel)
@@ -177,7 +177,7 @@ func TestGetPostChannel(t *testing.T) {
 		require.Equal(t, http.StatusOK, flagResp.StatusCode)
 
 		// Now try to get channel as non-reviewer
-		channel, resp, err := client.GetPostChannel(context.Background(), post.Id)
+		channel, resp, err := client.GetFlaggedPostPostChannel(context.Background(), post.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
 		require.Nil(t, channel)
@@ -216,7 +216,7 @@ func TestGetPostChannel(t *testing.T) {
 		require.Equal(t, http.StatusOK, flagResp.StatusCode)
 
 		// Now get the channel
-		channel, resp, err := client.GetPostChannel(context.Background(), post.Id)
+		channel, resp, err := client.GetFlaggedPostPostChannel(context.Background(), post.Id)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.NotNil(t, channel)
@@ -262,7 +262,7 @@ func TestGetPostChannel(t *testing.T) {
 		require.Equal(t, http.StatusOK, flagResp.StatusCode)
 
 		// Now get the channel
-		channel, resp, err := client.GetPostChannel(context.Background(), post.Id)
+		channel, resp, err := client.GetFlaggedPostPostChannel(context.Background(), post.Id)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.NotNil(t, channel)
@@ -291,7 +291,7 @@ func TestGetPostTeam(t *testing.T) {
 		})
 
 		post := th.CreatePost()
-		team, resp, err := client.GetPostTeam(context.Background(), post.Id)
+		team, resp, err := client.GetFlaggedPostPostTeam(context.Background(), post.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 		require.Nil(t, team)
@@ -307,7 +307,7 @@ func TestGetPostTeam(t *testing.T) {
 		})
 
 		post := th.CreatePost()
-		team, resp, err := client.GetPostTeam(context.Background(), post.Id)
+		team, resp, err := client.GetFlaggedPostPostTeam(context.Background(), post.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
 		require.Nil(t, team)
@@ -322,7 +322,7 @@ func TestGetPostTeam(t *testing.T) {
 			config.ContentFlaggingSettings.SetDefaults()
 		})
 
-		team, resp, err := client.GetPostTeam(context.Background(), model.NewId())
+		team, resp, err := client.GetFlaggedPostPostTeam(context.Background(), model.NewId())
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotFound, resp.StatusCode)
 		require.Nil(t, team)
@@ -350,7 +350,7 @@ func TestGetPostTeam(t *testing.T) {
 		require.Nil(t, appErr)
 
 		post := th.CreatePost()
-		team, resp, err := client.GetPostTeam(context.Background(), post.Id)
+		team, resp, err := client.GetFlaggedPostPostTeam(context.Background(), post.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotFound, resp.StatusCode)
 		require.Nil(t, team)
@@ -394,7 +394,7 @@ func TestGetPostTeam(t *testing.T) {
 		require.Equal(t, http.StatusOK, flagResp.StatusCode)
 
 		// Now try to get team as non-reviewer
-		team, resp, err := client.GetPostTeam(context.Background(), post.Id)
+		team, resp, err := client.GetFlaggedPostPostTeam(context.Background(), post.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
 		require.Nil(t, team)
@@ -433,7 +433,7 @@ func TestGetPostTeam(t *testing.T) {
 		require.Equal(t, http.StatusOK, flagResp.StatusCode)
 
 		// Now get the team
-		team, resp, err := client.GetPostTeam(context.Background(), post.Id)
+		team, resp, err := client.GetFlaggedPostPostTeam(context.Background(), post.Id)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.NotNil(t, team)
@@ -479,7 +479,7 @@ func TestGetPostTeam(t *testing.T) {
 		require.Equal(t, http.StatusOK, flagResp.StatusCode)
 
 		// Now get the team
-		team, resp, err := client.GetPostTeam(context.Background(), post.Id)
+		team, resp, err := client.GetFlaggedPostPostTeam(context.Background(), post.Id)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.NotNil(t, team)
