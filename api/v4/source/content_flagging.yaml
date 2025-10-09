@@ -30,9 +30,9 @@
           description: Feature is disabled either via config or an Enterprise Advanced license is not available.
   /api/v4/content_flagging/post/{post_id}/channel:
     get:
-      summary: Get channel information for a flagged post
+      summary: Get channel for a flagged post
       description: |
-        Returns the channel information for a specific flagged post. This endpoint is only accessible by content reviewers who are reviewers of the team to which the post belongs.
+        Returns the channel for a specific flagged post. This endpoint is only accessible by content reviewers who are reviewers of the team to which the post belongs.
         An enterprise advanced license is required.
       tags:
         - Content Flagging
@@ -60,9 +60,9 @@
           description: Feature is disabled either via config or an Enterprise Advanced license is not available.
   /api/v4/content_flagging/post/{post_id}/team:
     get:
-      summary: Get team information for a flagged post
+      summary: Get team for a flagged post
       description: |
-        Returns the team information for a specific flagged post. This endpoint is only accessible by content reviewers who are reviewers of the team to which the post belongs.
+        Returns the team for a specific flagged post. This endpoint is only accessible by content reviewers who are reviewers of the team to which the post belongs.
         An enterprise advanced license is required.
       tags:
         - Content Flagging
