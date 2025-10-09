@@ -46,24 +46,24 @@ func (a *App) ContentFlaggingEnabledForTeam(teamId string) (bool, *model.AppErro
 		}
 
 		return false, nil
-	} else {
-		teamSettings, exist := (reviewerIDs.TeamReviewersSetting)[teamId]
-		if !exist {
-			return false, nil
-		}
+	}
 
-		enabledForTeam := teamSettings.Enabled != nil && *teamSettings.Enabled
-		if !enabledForTeam {
-			return false, nil
-		}
-
-		hasTeamReviewers := len(teamSettings.ReviewerIds) > 0
-		if hasTeamReviewers || hasAdditionalReviewers {
-			return true, nil
-		}
-
+	teamSettings, exist := (reviewerIDs.TeamReviewersSetting)[teamId]
+	if !exist {
 		return false, nil
 	}
+
+	enabledForTeam := teamSettings.Enabled != nil && *teamSettings.Enabled
+	if !enabledForTeam {
+		return false, nil
+	}
+
+	hasTeamReviewers := len(teamSettings.ReviewerIds) > 0
+	if hasTeamReviewers || hasAdditionalReviewers {
+		return true, nil
+	}
+
+	return false, nil
 }
 
 func (a *App) FlagPost(rctx request.CTX, post *model.Post, teamId, reportingUserId string, flagData model.FlagContentRequest) *model.AppError {
