@@ -158,7 +158,7 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                             id='commercial_support_modal.description'
                             defaultMessage={'If you\'re experiencing issues, <supportLink>submit a support ticket</supportLink>. To help with troubleshooting, it\'s recommended to download the Support Packet below that includes more details about your Mattermost environment.'}
                             values={{
-                                supportLink: (chunks: string) => (
+                                supportLink: (chunks) => (
                                     <ExternalLink
                                         href={supportLink}
                                         location='commercialSupportModal'
@@ -176,8 +176,8 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                                         id='commercial_support_modal.warning.banner'
                                         defaultMessage='Before downloading the Support Packet, set <strong>Output Logs to File</strong> to <strong>true</strong> and set <strong>File Log Level</strong> to <strong>DEBUG</strong> <debugLink>here</debugLink>.'
                                         values={{
-                                            strong: (chunks: string) => <strong>{chunks}</strong>,
-                                            debugLink: (chunks: string) => <Link to='/admin_console/environment/logging'>{chunks}</Link>,
+                                            strong: (chunks) => <strong>{chunks}</strong>,
+                                            debugLink: (chunks) => <Link to='/admin_console/environment/logging'>{chunks}</Link>,
                                         }}
                                     />
                                 }

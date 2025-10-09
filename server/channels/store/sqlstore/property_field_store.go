@@ -176,6 +176,10 @@ func (s *SqlPropertyFieldStore) SearchPropertyFields(opts model.PropertyFieldSea
 		builder = builder.Where(sq.Eq{"TargetID": opts.TargetIDs})
 	}
 
+	if opts.SinceUpdateAt > 0 {
+		builder = builder.Where(sq.Gt{"UpdateAt": opts.SinceUpdateAt})
+	}
+
 	fields := []*model.PropertyField{}
 	if err := s.GetReplica().SelectBuilder(&fields, builder); err != nil {
 		return nil, errors.Wrap(err, "property_field_search_query")

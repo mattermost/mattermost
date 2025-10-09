@@ -30,7 +30,7 @@ export function MenuItemLink({
 
     const blocked = useSelector((state: GlobalState) => pathname.startsWith('/admin_console') && getNavigationBlocked(state));
 
-    const handleClick: MenuItemProps['onClick'] = useCallback((e) => {
+    const handleClick = useCallback((e: React.MouseEvent<HTMLLIElement> | React.KeyboardEvent<HTMLLIElement>) => {
         onClick?.(e);
 
         if (blocked) {
