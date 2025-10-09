@@ -14,6 +14,13 @@ export function usePropertyCardViewChannelLoader(channelId?: string, getChannel?
     const channelFromStore = useChannel(channelId || '');
 
     useEffect(() => {
+        if (channel && channel.id !== channelId) {
+            setChannel(undefined);
+            channelLoaded.current = false;
+        }
+    }, [channel, channelId]);
+
+    useEffect(() => {
         const useChannelFromStore = Boolean(!getChannel && channelFromStore);
         if (useChannelFromStore) {
             setChannel(channelFromStore!);

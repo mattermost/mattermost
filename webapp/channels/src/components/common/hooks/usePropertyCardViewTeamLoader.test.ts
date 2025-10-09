@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import * as ReactRedux from 'react-redux';
-
 import {renderHookWithContext, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
@@ -63,8 +61,9 @@ describe('usePropertyCardViewTeamLoader', () => {
             });
         });
 
-        test('should prefer store team over getTeam when both available', () => {
-            const getTeamMock = jest.fn().mockResolvedValue(team2);
+        test('should prefer getTeam over store when both available', async () => {
+            const mockedTeam1 = TestHelper.getTeamMock({id: 'team1', display_name: 'Mocked Team 1'});
+            const getTeamMock = jest.fn().mockResolvedValue(mockedTeam1);
 
             const {result} = renderHookWithContext(
                 () => usePropertyCardViewTeamLoader('team1', getTeamMock),
@@ -79,8 +78,10 @@ describe('usePropertyCardViewTeamLoader', () => {
                 },
             );
 
-            expect(result.current).toBe(team1);
-            expect(getTeamMock).not.toHaveBeenCalled();
+            await waitFor(() => {
+                expect(result.current).toBe(mockedTeam1);
+            });
+            expect(getTeamMock).toHaveBeenCalledTimes(1);
         });
 
         test('should handle getTeam errors gracefully', async () => {

@@ -14,8 +14,15 @@ export function usePropertyCardViewPostLoader(postId: string, getPost?: (postId:
     const postFromStore = usePost(postId);
 
     useEffect(() => {
+        if (post && post.id !== postId) {
+            setPost(undefined);
+            loadedPost.current = false;
+        }
+    }, [post, postId]);
+
+    useEffect(() => {
         const usePostFromStore = Boolean(!getPost && postFromStore);
-        const allowDeletedPost = postFromStore?.delete_at !== 0 && !fetchDeletedPost;
+        const allowDeletedPost = postFromStore?.delete_at === 0 ? true : !fetchDeletedPost;
         if (usePostFromStore && allowDeletedPost) {
             setPost(postFromStore);
             loadedPost.current = true;

@@ -14,6 +14,13 @@ export function usePropertyCardViewTeamLoader(teamId?: string, getTeam?: (teamId
     const teamFromStore = useTeam(teamId || '');
 
     useEffect(() => {
+        if (team && team.id !== teamId) {
+            setTeam(undefined);
+            loadedTeam.current = false;
+        }
+    }, [team, teamId]);
+
+    useEffect(() => {
         const useTeamFromStore = Boolean(!getTeam && teamFromStore);
         if (useTeamFromStore) {
             setTeam(teamFromStore);

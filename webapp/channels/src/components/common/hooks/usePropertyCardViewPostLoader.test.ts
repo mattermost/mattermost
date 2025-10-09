@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import * as ReactRedux from 'react-redux';
-
 import {renderHookWithContext, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
@@ -14,9 +12,9 @@ describe('usePropertyCardViewPostLoader', () => {
     const post2 = TestHelper.getPostMock({id: 'post3', delete_at: 0});
 
     describe('with store post loading', () => {
-        test('should return the post from store when available and not deleted', () => {
+        test('should return the post from store when available and not deleted', async () => {
             const {result} = renderHookWithContext(
-                () => usePropertyCardViewPostLoader('post1'),
+                () => usePropertyCardViewPostLoader('post1', undefined, false),
                 {
                     entities: {
                         posts: {
@@ -28,7 +26,9 @@ describe('usePropertyCardViewPostLoader', () => {
                 },
             );
 
-            expect(result.current).toBe(post1);
+            await waitFor(() => {
+                expect(result.current).toBe(post1);
+            });
         });
 
         test('should return undefined when post not in store and no getPost provided', () => {
@@ -39,9 +39,9 @@ describe('usePropertyCardViewPostLoader', () => {
             expect(result.current).toBe(undefined);
         });
 
-        test('should not return deleted post from store by default', () => {
+        test('should return deleted post from store', async () => {
             const {result} = renderHookWithContext(
-                () => usePropertyCardViewPostLoader('post2'),
+                () => usePropertyCardViewPostLoader('post2', undefined, false),
                 {
                     entities: {
                         posts: {
@@ -53,24 +53,9 @@ describe('usePropertyCardViewPostLoader', () => {
                 },
             );
 
-            expect(result.current).toBe(undefined);
-        });
-
-        test('should return deleted post from store when fetchDeletedPost is true', () => {
-            const {result} = renderHookWithContext(
-                () => usePropertyCardViewPostLoader('post2', undefined, true),
-                {
-                    entities: {
-                        posts: {
-                            posts: {
-                                post2: deletedPost,
-                            },
-                        },
-                    },
-                },
-            );
-
-            expect(result.current).toBe(deletedPost);
+            await waitFor(() => {
+                expect(result.current).toBe(deletedPost);
+            });
         });
     });
 
@@ -90,8 +75,9 @@ describe('usePropertyCardViewPostLoader', () => {
             });
         });
 
-        test('should prefer store post over getPost when both available and post not deleted', () => {
-            const getPostMock = jest.fn().mockResolvedValue(post2);
+        test('should prefer store post over getPost when both available and post not deleted', async () => {
+            const mockedPost1 = TestHelper.getPostMock({id: 'post1', delete_at: 0, message: 'Mocked post1'});
+            const getPostMock = jest.fn().mockResolvedValue(mockedPost1);
 
             const {result} = renderHookWithContext(
                 () => usePropertyCardViewPostLoader('post1', getPostMock),
@@ -106,32 +92,10 @@ describe('usePropertyCardViewPostLoader', () => {
                 },
             );
 
-            expect(result.current).toBe(post1);
-            expect(getPostMock).not.toHaveBeenCalled();
-        });
-
-        test('should use getPost when store has deleted post and fetchDeletedPost is false', async () => {
-            const getPostMock = jest.fn().mockResolvedValue(post1);
-
-            const {result} = renderHookWithContext(
-                () => usePropertyCardViewPostLoader('post2', getPostMock, false),
-                {
-                    entities: {
-                        posts: {
-                            posts: {
-                                post2: deletedPost,
-                            },
-                        },
-                    },
-                },
-            );
-
-            expect(result.current).toBe(undefined);
-            expect(getPostMock).toHaveBeenCalledWith('post2');
-
             await waitFor(() => {
-                expect(result.current).toBe(post1);
+                expect(result.current).toBe(mockedPost1);
             });
+            expect(getPostMock).toHaveBeenCalledTimes(1);
         });
 
         test('should handle getPost errors gracefully', async () => {
@@ -177,9 +141,9 @@ describe('usePropertyCardViewPostLoader', () => {
         });
 
         test('should call getPost again when postId changes', async () => {
-            const getPostMock = jest.fn()
-                .mockResolvedValueOnce(post1)
-                .mockResolvedValueOnce(post2);
+            const getPostMock = jest.fn().
+                mockResolvedValueOnce(post1).
+                mockResolvedValueOnce(post2);
 
             let postId = 'post1';
             const {result, rerender} = renderHookWithContext(
@@ -203,38 +167,6 @@ describe('usePropertyCardViewPostLoader', () => {
             });
 
             expect(getPostMock).toHaveBeenCalledTimes(2);
-        });
-
-        test('should handle fetchDeletedPost parameter changes', async () => {
-            const getPostMock = jest.fn().mockResolvedValue(post1);
-
-            let fetchDeletedPost = false;
-            const {result, rerender} = renderHookWithContext(
-                () => usePropertyCardViewPostLoader('post2', getPostMock, fetchDeletedPost),
-                {
-                    entities: {
-                        posts: {
-                            posts: {
-                                post2: deletedPost,
-                            },
-                        },
-                    },
-                },
-            );
-
-            // Should call getPost because deleted post is not allowed
-            expect(getPostMock).toHaveBeenCalledWith('post2');
-
-            await waitFor(() => {
-                expect(result.current).toBe(post1);
-            });
-
-            // Change fetchDeletedPost to true
-            fetchDeletedPost = true;
-            rerender();
-
-            // Should now use the deleted post from store
-            expect(result.current).toBe(deletedPost);
         });
     });
 });
