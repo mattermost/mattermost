@@ -35,7 +35,7 @@ function NewRepliesBanner({
         actions.updateThreadToastStatus(hasNewReplies);
     }, [hasNewReplies]);
 
-    const handleShortcut = useCallback((e) => {
+    const handleShortcut = useCallback((e: KeyboardEvent) => {
         if (isKeyPressed(e, Constants.KeyCodes.ESCAPE)) {
             if (hasNewReplies) {
                 onDismiss();

@@ -10710,10 +10710,6 @@
     "translation": "あなたのライセンスはコンテントフラグをサポートしていません。"
   },
   {
-    "id": "api.not_implemented",
-    "translation": "この機能は実装されていません。"
-  },
-  {
     "id": "app.access_control.insufficient_permissions",
     "translation": "あなたにはこのアクセス制御ポリシーを管理する権限がありません。"
   },

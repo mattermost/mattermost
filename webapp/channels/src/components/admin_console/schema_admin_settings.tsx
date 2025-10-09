@@ -968,9 +968,9 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
         if (setting.showTitle) {
             return (
                 <Setting
-                    label={setting.label}
+                    label={label}
                     inputId={setting.key}
-                    helpText={setting.help_text}
+                    helpText={helpText}
                 >
                     {componentInstance}
                 </Setting>
