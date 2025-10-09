@@ -1786,6 +1786,10 @@
     "translation": "You do not have permission to view this resource."
   },
   {
+    "id": "api.content_flagging.error.user_not_reviewer",
+    "translation": "The user is not a content reviewer."
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "Sorry, we could not find the page."
   },
