@@ -35,24 +35,35 @@ func (a *App) ContentFlaggingEnabledForTeam(teamId string) (bool, *model.AppErro
 	}
 
 	reviewerSettings := a.Config().ContentFlaggingSettings.ReviewerSettings
-	hasCommonReviewers := *reviewerSettings.CommonReviewers && len(reviewerIDs.CommonReviewerIds) > 0
-	if hasCommonReviewers {
-		return true, nil
-	}
-
-	teamSettings, exist := (reviewerIDs.TeamReviewersSetting)[teamId]
-	if !exist || (teamSettings.Enabled != nil && !*teamSettings.Enabled) {
-		return false, nil
-	}
-
-	if len(teamSettings.ReviewerIds) > 0 {
-		return true, nil
-	}
+	commonReviewersEnabled := reviewerSettings.CommonReviewers != nil && *reviewerSettings.CommonReviewers
 
 	hasAdditionalReviewers := (reviewerSettings.TeamAdminsAsReviewers != nil && *reviewerSettings.TeamAdminsAsReviewers) ||
 		(reviewerSettings.SystemAdminsAsReviewers != nil && *reviewerSettings.SystemAdminsAsReviewers)
 
-	return hasAdditionalReviewers, nil
+	if commonReviewersEnabled {
+		if len(reviewerIDs.CommonReviewerIds) > 0 || hasAdditionalReviewers {
+			return true, nil
+		}
+
+		return false, nil
+	} else {
+		teamSettings, exist := (reviewerIDs.TeamReviewersSetting)[teamId]
+		if !exist {
+			return false, nil
+		}
+
+		enabledForTeam := teamSettings.Enabled != nil && *teamSettings.Enabled
+		if !enabledForTeam {
+			return false, nil
+		}
+
+		hasTeamReviewers := len(teamSettings.ReviewerIds) > 0
+		if hasTeamReviewers || hasAdditionalReviewers {
+			return true, nil
+		}
+
+		return false, nil
+	}
 }
 
 func (a *App) FlagPost(rctx request.CTX, post *model.Post, teamId, reportingUserId string, flagData model.FlagContentRequest) *model.AppError {

@@ -109,6 +109,18 @@ func TestContentFlaggingEnabledForTeam(t *testing.T) {
 		require.Nil(t, appErr)
 		require.True(t, status)
 	})
+
+	t.Run("should return true for default state", func(t *testing.T) {
+		config := model.ContentFlaggingSettingsRequest{}
+		config.SetDefaults()
+
+		appErr := th.App.SaveContentFlaggingConfig(config)
+		require.Nil(t, appErr)
+
+		status, appErr := th.App.ContentFlaggingEnabledForTeam("team1")
+		require.Nil(t, appErr)
+		require.True(t, status, "expected team post reporting feature to be enabled for common reviewers")
+	})
 }
 
 func TestAssignFlaggedPostReviewer(t *testing.T) {
