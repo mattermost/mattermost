@@ -381,7 +381,7 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 	// to be done when we send the post over the websocket in handlePostEvents
 	// PS: we don't want to include PostPriority from the db to avoid the replica lag,
 	// so we just return the one that was passed with post
-	rpost = a.PreparePostForClient(rctx, rpost, true, false, false)
+	rpost = a.PreparePostForClient(rctx, rpost, &model.PreparePostForClientOpts{IsEditPost: true})
 
 	a.applyPostWillBeConsumedHook(&rpost)
 
@@ -584,7 +584,7 @@ func (a *App) SendEphemeralPost(rctx request.CTX, userID string, post *model.Pos
 
 	post.GenerateActionIds()
 	message := model.NewWebSocketEvent(model.WebsocketEventEphemeralMessage, "", post.ChannelId, userID, nil, "")
-	post = a.PreparePostForClientWithEmbedsAndImages(rctx, post, true, false, true)
+	post = a.PreparePostForClientWithEmbedsAndImages(rctx, post, &model.PreparePostForClientOpts{IsNewPost: true, IncludePriority: true})
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
 
 	sanitizedPost, appErr := a.SanitizePostMetadataForUser(rctx, post, userID)
@@ -618,7 +618,7 @@ func (a *App) UpdateEphemeralPost(rctx request.CTX, userID string, post *model.P
 
 	post.GenerateActionIds()
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", post.ChannelId, userID, nil, "")
-	post = a.PreparePostForClientWithEmbedsAndImages(rctx, post, true, false, true)
+	post = a.PreparePostForClientWithEmbedsAndImages(rctx, post, &model.PreparePostForClientOpts{IsNewPost: true, IncludePriority: true})
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
 
 	sanitizedPost, appErr := a.SanitizePostMetadataForUser(rctx, post, userID)
@@ -788,7 +788,7 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 		}, plugin.MessageHasBeenUpdatedID)
 	})
 
-	rpost = a.PreparePostForClientWithEmbedsAndImages(rctx, rpost, false, true, true)
+	rpost = a.PreparePostForClientWithEmbedsAndImages(rctx, rpost, &model.PreparePostForClientOpts{IsEditPost: true, IncludePriority: true})
 
 	// Ensure IsFollowing is nil since this updated post will be broadcast to all users
 	// and we don't want to have to populate it for every single user and broadcast to each
@@ -2230,7 +2230,7 @@ func (a *App) SetPostReminder(rctx request.CTX, postID, userID string, targetTim
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventEphemeralMessage, "", ephemeralPost.ChannelId, userID, nil, "")
-	ephemeralPost = a.PreparePostForClientWithEmbedsAndImages(rctx, ephemeralPost, true, false, true)
+	ephemeralPost = a.PreparePostForClientWithEmbedsAndImages(rctx, ephemeralPost, &model.PreparePostForClientOpts{IsNewPost: true, IncludePriority: true})
 	ephemeralPost = model.AddPostActionCookies(ephemeralPost, a.PostActionCookieSecret())
 
 	postJSON, jsonErr := ephemeralPost.ToJSON()
