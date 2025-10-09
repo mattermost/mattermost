@@ -3,7 +3,7 @@
 
 import * as ReactRedux from 'react-redux';
 
-import {renderHookWithContext} from 'tests/react_testing_utils';
+import {renderHookWithContext, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import {usePropertyCardViewTeamLoader} from './usePropertyCardViewTeamLoader';
@@ -51,16 +51,16 @@ describe('usePropertyCardViewTeamLoader', () => {
         test('should use getTeam when provided and team not in store', async () => {
             const getTeamMock = jest.fn().mockResolvedValue(team1);
 
-            const {result, waitForNextUpdate} = renderHookWithContext(
+            const {result} = renderHookWithContext(
                 () => usePropertyCardViewTeamLoader('team1', getTeamMock),
             );
 
             expect(result.current).toBe(undefined);
             expect(getTeamMock).toHaveBeenCalledWith('team1');
 
-            await waitForNextUpdate();
-
-            expect(result.current).toBe(team1);
+            await waitFor(() => {
+                expect(result.current).toBe(team1);
+            });
         });
 
         test('should prefer store team over getTeam when both available', () => {
@@ -87,35 +87,35 @@ describe('usePropertyCardViewTeamLoader', () => {
             const getTeamMock = jest.fn().mockRejectedValue(new Error('Network error'));
             const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
-            const {result, waitForNextUpdate} = renderHookWithContext(
+            const {result} = renderHookWithContext(
                 () => usePropertyCardViewTeamLoader('team1', getTeamMock),
             );
 
             expect(result.current).toBe(undefined);
 
-            await waitForNextUpdate();
+            await waitFor(() => {
+                expect(consoleSpy).toHaveBeenCalledWith(
+                    'Error occurred while fetching team for post preview property renderer',
+                    expect.any(Error),
+                );
+            });
 
             expect(result.current).toBe(undefined);
-            expect(consoleSpy).toHaveBeenCalledWith(
-                'Error occurred while fetching team for post preview property renderer',
-                expect.any(Error),
-            );
-
             consoleSpy.mockRestore();
         });
 
         test('should only call getTeam once per teamId', async () => {
             const getTeamMock = jest.fn().mockResolvedValue(team1);
 
-            const {result, rerender, waitForNextUpdate} = renderHookWithContext(
+            const {result, rerender} = renderHookWithContext(
                 () => usePropertyCardViewTeamLoader('team1', getTeamMock),
             );
 
             expect(getTeamMock).toHaveBeenCalledTimes(1);
 
-            await waitForNextUpdate();
-
-            expect(result.current).toBe(team1);
+            await waitFor(() => {
+                expect(result.current).toBe(team1);
+            });
 
             // Rerender multiple times
             for (let i = 0; i < 5; i++) {
@@ -131,15 +131,15 @@ describe('usePropertyCardViewTeamLoader', () => {
                 .mockResolvedValueOnce(team2);
 
             let teamId = 'team1';
-            const {result, rerender, waitForNextUpdate} = renderHookWithContext(
+            const {result, rerender} = renderHookWithContext(
                 () => usePropertyCardViewTeamLoader(teamId, getTeamMock),
             );
 
             expect(getTeamMock).toHaveBeenCalledWith('team1');
 
-            await waitForNextUpdate();
-
-            expect(result.current).toBe(team1);
+            await waitFor(() => {
+                expect(result.current).toBe(team1);
+            });
 
             // Change teamId
             teamId = 'team2';
@@ -147,9 +147,10 @@ describe('usePropertyCardViewTeamLoader', () => {
 
             expect(getTeamMock).toHaveBeenCalledWith('team2');
 
-            await waitForNextUpdate();
+            await waitFor(() => {
+                expect(result.current).toBe(team2);
+            });
 
-            expect(result.current).toBe(team2);
             expect(getTeamMock).toHaveBeenCalledTimes(2);
         });
 

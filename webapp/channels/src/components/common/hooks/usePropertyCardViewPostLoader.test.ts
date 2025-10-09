@@ -3,7 +3,7 @@
 
 import * as ReactRedux from 'react-redux';
 
-import {renderHookWithContext} from 'tests/react_testing_utils';
+import {renderHookWithContext, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import {usePropertyCardViewPostLoader} from './usePropertyCardViewPostLoader';
@@ -78,16 +78,16 @@ describe('usePropertyCardViewPostLoader', () => {
         test('should use getPost when provided and post not in store', async () => {
             const getPostMock = jest.fn().mockResolvedValue(post1);
 
-            const {result, waitForNextUpdate} = renderHookWithContext(
+            const {result} = renderHookWithContext(
                 () => usePropertyCardViewPostLoader('post1', getPostMock),
             );
 
             expect(result.current).toBe(undefined);
             expect(getPostMock).toHaveBeenCalledWith('post1');
 
-            await waitForNextUpdate();
-
-            expect(result.current).toBe(post1);
+            await waitFor(() => {
+                expect(result.current).toBe(post1);
+            });
         });
 
         test('should prefer store post over getPost when both available and post not deleted', () => {
@@ -113,7 +113,7 @@ describe('usePropertyCardViewPostLoader', () => {
         test('should use getPost when store has deleted post and fetchDeletedPost is false', async () => {
             const getPostMock = jest.fn().mockResolvedValue(post1);
 
-            const {result, waitForNextUpdate} = renderHookWithContext(
+            const {result} = renderHookWithContext(
                 () => usePropertyCardViewPostLoader('post2', getPostMock, false),
                 {
                     entities: {
@@ -129,44 +129,44 @@ describe('usePropertyCardViewPostLoader', () => {
             expect(result.current).toBe(undefined);
             expect(getPostMock).toHaveBeenCalledWith('post2');
 
-            await waitForNextUpdate();
-
-            expect(result.current).toBe(post1);
+            await waitFor(() => {
+                expect(result.current).toBe(post1);
+            });
         });
 
         test('should handle getPost errors gracefully', async () => {
             const getPostMock = jest.fn().mockRejectedValue(new Error('Network error'));
             const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
-            const {result, waitForNextUpdate} = renderHookWithContext(
+            const {result} = renderHookWithContext(
                 () => usePropertyCardViewPostLoader('post1', getPostMock),
             );
 
             expect(result.current).toBe(undefined);
 
-            await waitForNextUpdate();
+            await waitFor(() => {
+                expect(consoleSpy).toHaveBeenCalledWith(
+                    'Error occurred while fetching post for post preview property renderer',
+                    expect.any(Error),
+                );
+            });
 
             expect(result.current).toBe(undefined);
-            expect(consoleSpy).toHaveBeenCalledWith(
-                'Error occurred while fetching post for post preview property renderer',
-                expect.any(Error),
-            );
-
             consoleSpy.mockRestore();
         });
 
         test('should only call getPost once per postId', async () => {
             const getPostMock = jest.fn().mockResolvedValue(post1);
 
-            const {result, rerender, waitForNextUpdate} = renderHookWithContext(
+            const {result, rerender} = renderHookWithContext(
                 () => usePropertyCardViewPostLoader('post1', getPostMock),
             );
 
             expect(getPostMock).toHaveBeenCalledTimes(1);
 
-            await waitForNextUpdate();
-
-            expect(result.current).toBe(post1);
+            await waitFor(() => {
+                expect(result.current).toBe(post1);
+            });
 
             // Rerender multiple times
             for (let i = 0; i < 5; i++) {
@@ -182,15 +182,15 @@ describe('usePropertyCardViewPostLoader', () => {
                 .mockResolvedValueOnce(post2);
 
             let postId = 'post1';
-            const {result, rerender, waitForNextUpdate} = renderHookWithContext(
+            const {result, rerender} = renderHookWithContext(
                 () => usePropertyCardViewPostLoader(postId, getPostMock),
             );
 
             expect(getPostMock).toHaveBeenCalledWith('post1');
 
-            await waitForNextUpdate();
-
-            expect(result.current).toBe(post1);
+            await waitFor(() => {
+                expect(result.current).toBe(post1);
+            });
 
             // Change postId
             postId = 'post3';
@@ -198,9 +198,10 @@ describe('usePropertyCardViewPostLoader', () => {
 
             expect(getPostMock).toHaveBeenCalledWith('post3');
 
-            await waitForNextUpdate();
+            await waitFor(() => {
+                expect(result.current).toBe(post2);
+            });
 
-            expect(result.current).toBe(post2);
             expect(getPostMock).toHaveBeenCalledTimes(2);
         });
 
@@ -208,7 +209,7 @@ describe('usePropertyCardViewPostLoader', () => {
             const getPostMock = jest.fn().mockResolvedValue(post1);
 
             let fetchDeletedPost = false;
-            const {result, rerender, waitForNextUpdate} = renderHookWithContext(
+            const {result, rerender} = renderHookWithContext(
                 () => usePropertyCardViewPostLoader('post2', getPostMock, fetchDeletedPost),
                 {
                     entities: {
@@ -224,9 +225,9 @@ describe('usePropertyCardViewPostLoader', () => {
             // Should call getPost because deleted post is not allowed
             expect(getPostMock).toHaveBeenCalledWith('post2');
 
-            await waitForNextUpdate();
-
-            expect(result.current).toBe(post1);
+            await waitFor(() => {
+                expect(result.current).toBe(post1);
+            });
 
             // Change fetchDeletedPost to true
             fetchDeletedPost = true;

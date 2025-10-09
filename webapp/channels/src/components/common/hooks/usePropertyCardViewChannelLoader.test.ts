@@ -3,7 +3,7 @@
 
 import * as ReactRedux from 'react-redux';
 
-import {renderHookWithContext} from 'tests/react_testing_utils';
+import {renderHookWithContext, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import {usePropertyCardViewChannelLoader} from './usePropertyCardViewChannelLoader';
@@ -51,16 +51,16 @@ describe('usePropertyCardViewChannelLoader', () => {
         test('should use getChannel when provided and channel not in store', async () => {
             const getChannelMock = jest.fn().mockResolvedValue(channel1);
 
-            const {result, waitForNextUpdate} = renderHookWithContext(
+            const {result} = renderHookWithContext(
                 () => usePropertyCardViewChannelLoader('channel1', getChannelMock),
             );
 
             expect(result.current).toBe(undefined);
             expect(getChannelMock).toHaveBeenCalledWith('channel1');
 
-            await waitForNextUpdate();
-
-            expect(result.current).toBe(channel1);
+            await waitFor(() => {
+                expect(result.current).toBe(channel1);
+            });
         });
 
         test('should prefer store channel over getChannel when both available', () => {
@@ -87,35 +87,35 @@ describe('usePropertyCardViewChannelLoader', () => {
             const getChannelMock = jest.fn().mockRejectedValue(new Error('Network error'));
             const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
-            const {result, waitForNextUpdate} = renderHookWithContext(
+            const {result} = renderHookWithContext(
                 () => usePropertyCardViewChannelLoader('channel1', getChannelMock),
             );
 
             expect(result.current).toBe(undefined);
 
-            await waitForNextUpdate();
+            await waitFor(() => {
+                expect(consoleSpy).toHaveBeenCalledWith(
+                    'Error occurred while fetching channel for post preview property renderer',
+                    expect.any(Error),
+                );
+            });
 
             expect(result.current).toBe(undefined);
-            expect(consoleSpy).toHaveBeenCalledWith(
-                'Error occurred while fetching channel for post preview property renderer',
-                expect.any(Error),
-            );
-
             consoleSpy.mockRestore();
         });
 
         test('should only call getChannel once per channelId', async () => {
             const getChannelMock = jest.fn().mockResolvedValue(channel1);
 
-            const {result, rerender, waitForNextUpdate} = renderHookWithContext(
+            const {result, rerender} = renderHookWithContext(
                 () => usePropertyCardViewChannelLoader('channel1', getChannelMock),
             );
 
             expect(getChannelMock).toHaveBeenCalledTimes(1);
 
-            await waitForNextUpdate();
-
-            expect(result.current).toBe(channel1);
+            await waitFor(() => {
+                expect(result.current).toBe(channel1);
+            });
 
             // Rerender multiple times
             for (let i = 0; i < 5; i++) {
@@ -131,15 +131,15 @@ describe('usePropertyCardViewChannelLoader', () => {
                 .mockResolvedValueOnce(channel2);
 
             let channelId = 'channel1';
-            const {result, rerender, waitForNextUpdate} = renderHookWithContext(
+            const {result, rerender} = renderHookWithContext(
                 () => usePropertyCardViewChannelLoader(channelId, getChannelMock),
             );
 
             expect(getChannelMock).toHaveBeenCalledWith('channel1');
 
-            await waitForNextUpdate();
-
-            expect(result.current).toBe(channel1);
+            await waitFor(() => {
+                expect(result.current).toBe(channel1);
+            });
 
             // Change channelId
             channelId = 'channel2';
@@ -147,9 +147,10 @@ describe('usePropertyCardViewChannelLoader', () => {
 
             expect(getChannelMock).toHaveBeenCalledWith('channel2');
 
-            await waitForNextUpdate();
+            await waitFor(() => {
+                expect(result.current).toBe(channel2);
+            });
 
-            expect(result.current).toBe(channel2);
             expect(getChannelMock).toHaveBeenCalledTimes(2);
         });
 
