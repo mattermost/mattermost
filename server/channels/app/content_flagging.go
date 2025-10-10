@@ -149,7 +149,7 @@ func (a *App) FlagPost(rctx request.CTX, post *model.Post, teamId, reportingUser
 
 	_, err = a.Srv().propertyService.CreatePropertyValues(propertyValues)
 	if err != nil {
-		return model.NewAppError("FlagPostForContentReview", "app.content_flagging.create_property_values.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("FlagPost", "app.content_flagging.create_property_values.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
 	}
 
 	contentReviewBot, appErr := a.getContentReviewBot(rctx)
@@ -160,7 +160,7 @@ func (a *App) FlagPost(rctx request.CTX, post *model.Post, teamId, reportingUser
 	if *a.Config().ContentFlaggingSettings.AdditionalSettings.HideFlaggedContent {
 		_, appErr = a.DeletePost(rctx, post.Id, contentReviewBot.UserId)
 		if appErr != nil {
-			return model.NewAppError("FlagPostForContentReview", "app.content_flagging.delete_post.app_error", nil, appErr.Error(), http.StatusInternalServerError).Wrap(appErr)
+			return model.NewAppError("FlagPost", "app.content_flagging.delete_post.app_error", nil, appErr.Error(), http.StatusInternalServerError).Wrap(appErr)
 		}
 	}
 
@@ -431,7 +431,7 @@ func (a *App) getAllUsersInTeamForRoles(teamId string, systemRoles, teamRoles []
 
 	additionalReviewers, err := utils.Pager(fetchFunc, options.PerPage)
 	if err != nil {
-		return nil, model.NewAppError("getReviewersForTeam", "app.content_flagging.get_users_in_team.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("getAllUsersInTeamForRoles", "app.content_flagging.get_users_in_team.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
 	}
 
 	return additionalReviewers, nil
@@ -515,7 +515,7 @@ func (a *App) PermanentDeleteFlaggedPost(rctx request.CTX, actionRequest *model.
 
 	statusValue := strings.Trim(string(status.Value), `"`)
 	if statusValue != model.ContentFlaggingStatusPending && statusValue != model.ContentFlaggingStatusAssigned {
-		return model.NewAppError("removeFlaggedPost", "api.content_flagging.error.post_not_in_progress", nil, "", http.StatusBadRequest)
+		return model.NewAppError("PermanentlyRemoveFlaggedPost", "api.content_flagging.error.post_not_in_progress", nil, "", http.StatusBadRequest)
 	}
 
 	editHistories, appErr := a.GetEditHistoryForPost(flaggedPost.Id)
@@ -635,7 +635,7 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 
 	statusValue := strings.Trim(string(status.Value), `"`)
 	if statusValue != model.ContentFlaggingStatusPending && statusValue != model.ContentFlaggingStatusAssigned {
-		return model.NewAppError("removeFlaggedPost", "api.content_flagging.error.post_not_in_progress", nil, "", http.StatusBadRequest)
+		return model.NewAppError("KeepFlaggedPost", "api.content_flagging.error.post_not_in_progress", nil, "", http.StatusBadRequest)
 	}
 
 	if flaggedPost.DeleteAt > 0 {
@@ -697,13 +697,13 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 
 	_, err = a.Srv().propertyService.CreatePropertyValues(propertyValues)
 	if err != nil {
-		return model.NewAppError("PermanentlyRemoveFlaggedPost", "app.content_flagging.create_property_values.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("KeepFlaggedPost", "app.content_flagging.create_property_values.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
 	}
 
 	status.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRetained))
 	_, err = a.Srv().propertyService.UpdatePropertyValue(groupId, status)
 	if err != nil {
-		return model.NewAppError("PermanentlyRemoveFlaggedPost", "app.content_flagging.keep_post.status_update.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
+		return model.NewAppError("KeepFlaggedPost", "app.content_flagging.keep_post.status_update.app_error", nil, err.Error(), http.StatusInternalServerError).Wrap(err)
 	}
 
 	a.Srv().Go(func() {
@@ -806,7 +806,7 @@ func (a *App) clearContentFlaggingConfigCache() {
 func (a *App) GetContentFlaggingConfigReviewerIDs() (*model.ReviewerIDsSettings, *model.AppError) {
 	reviewerSettings, err := a.Srv().Store().ContentFlagging().GetReviewerSettings()
 	if err != nil {
-		return nil, model.NewAppError("GetContentFlaggingConfig", "app.content_flagging.get_reviewer_settings.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("GetContentFlaggingConfigReviewerIDs", "app.content_flagging.get_reviewer_settings.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return reviewerSettings, nil
@@ -986,7 +986,7 @@ func (a *App) postDeletePostReviewerMessage(rctx request.CTX, flaggedPostId, act
 }
 
 func (a *App) postDeletePostAuthorMessage(rctx request.CTX, flaggedPost *model.Post) *model.AppError {
-	template := "Your post having ID `%s` in the channel `%s` which was flagged for review as been permanently removed by a reviewer."
+	template := "Your post having ID `%s` in the channel `%s` which was flagged for review has been permanently removed by a reviewer."
 	return a.postMessageToAuthor(rctx, flaggedPost, template)
 }
 
@@ -1010,7 +1010,7 @@ func (a *App) postKeepPostReviewerMessage(rctx request.CTX, flaggedPostId, actor
 }
 
 func (a *App) postKeepPostAuthorMessage(rctx request.CTX, flaggedPost *model.Post) *model.AppError {
-	template := "Your post having ID `%s` in the channel `%s` which was flagged for review as been restored by a reviewer."
+	template := "Your post having ID `%s` in the channel `%s` which was flagged for review has been restored by a reviewer."
 	return a.postMessageToAuthor(rctx, flaggedPost, template)
 }
 
@@ -1059,7 +1059,7 @@ func (a *App) postMessageToReporter(rctx request.CTX, contentFlaggingGroupId str
 
 	reporterUserIdField, ok := mappedFields[contentFlaggingPropertyNameReportingUserID]
 	if !ok {
-		return model.NewAppError("postDeletePostReporterMessage", "app.content_flagging.missing_reporting_user_id_field.app_error", nil, "", http.StatusInternalServerError)
+		return model.NewAppError("postMessageToReporter", "app.content_flagging.missing_reporting_user_id_field.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	propertyValues, appErr := a.GetPostContentFlaggingPropertyValues(flaggedPost.Id)
@@ -1076,7 +1076,7 @@ func (a *App) postMessageToReporter(rctx request.CTX, contentFlaggingGroupId str
 	}
 
 	if reporterPropertyValue == nil {
-		return model.NewAppError("postDeletePostReporterMessage", "app.content_flagging.missing_reporting_user_id_property_value.app_error", nil, "", http.StatusInternalServerError)
+		return model.NewAppError("postMessageToReporter", "app.content_flagging.missing_reporting_user_id_property_value.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	reporterUserId := strings.Trim(string(reporterPropertyValue.Value), `"`)
@@ -1120,7 +1120,7 @@ func (a *App) postReviewerMessage(rctx request.CTX, message, contentFlaggingGrou
 
 	flaggedPostIdField, ok := mappedFields[contentFlaggingPropertyNameFlaggedPostId]
 	if !ok {
-		return model.NewAppError("postAssignReviewerMessage", "app.content_flagging.missing_flagged_post_id_field.app_error", nil, "", http.StatusInternalServerError)
+		return model.NewAppError("postReviewerMessage", "app.content_flagging.missing_flagged_post_id_field.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	postIds, appErr := a.getReviewerPostsForFlaggedPost(contentFlaggingGroupId, flaggedPostId, flaggedPostIdField.ID)
@@ -1205,36 +1205,34 @@ func (a *App) sendFlagPostNotification(rctx request.CTX, flaggedPost *model.Post
 		return nil
 	}
 
-	if slices.Contains(flagPostNotifications, model.TargetAuthor) {
-		channel, appErr := a.GetChannel(nil, flaggedPost.ChannelId)
-		if appErr != nil {
-			return appErr
-		}
-
-		message := fmt.Sprintf("Your post having ID `%s` in the channel `%s` has been flagged for review.", flaggedPost.Id, channel.DisplayName)
-		contentReviewBot, appErr := a.getContentReviewBot(rctx)
-		if appErr != nil {
-			return appErr
-		}
-
-		dmChannel, appErr := a.GetOrCreateDirectChannel(rctx, flaggedPost.UserId, contentReviewBot.UserId)
-		if appErr != nil {
-			return appErr
-		}
-
-		post := &model.Post{
-			Message:   message,
-			UserId:    contentReviewBot.UserId,
-			ChannelId: dmChannel.Id,
-		}
-
-		_, appErr = a.CreatePost(rctx, post, dmChannel, model.CreatePostFlags{})
-		if appErr != nil {
-			return appErr
-		}
+	if !slices.Contains(flagPostNotifications, model.TargetAuthor) {
+		return nil
 	}
 
-	return nil
+	channel, appErr := a.GetChannel(nil, flaggedPost.ChannelId)
+	if appErr != nil {
+		return appErr
+	}
+
+	message := fmt.Sprintf("Your post having ID `%s` in the channel `%s` has been flagged for review.", flaggedPost.Id, channel.DisplayName)
+	contentReviewBot, appErr := a.getContentReviewBot(rctx)
+	if appErr != nil {
+		return appErr
+	}
+
+	dmChannel, appErr := a.GetOrCreateDirectChannel(rctx, flaggedPost.UserId, contentReviewBot.UserId)
+	if appErr != nil {
+		return appErr
+	}
+
+	post := &model.Post{
+		Message:   message,
+		UserId:    contentReviewBot.UserId,
+		ChannelId: dmChannel.Id,
+	}
+
+	_, appErr = a.CreatePost(rctx, post, dmChannel, model.CreatePostFlags{})
+	return appErr
 }
 
 func (a *App) sendFlaggedPostRemovalNotification(rctx request.CTX, flaggedPost *model.Post, actorUserId, comment, contentFlaggingGroupId string) {

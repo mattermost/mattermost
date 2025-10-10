@@ -1988,7 +1988,7 @@ func TestSendFlaggedPostRemovalNotification(t *testing.T) {
 		require.Nil(t, appErr)
 
 		var authorNotificationPost *model.Post
-		expectedAuthorMessage := fmt.Sprintf("Your post having ID `%s` in the channel `%s` which was flagged for review as been permanently removed by a reviewer.", post.Id, th.BasicChannel.DisplayName)
+		expectedAuthorMessage := fmt.Sprintf("Your post having ID `%s` in the channel `%s` which was flagged for review has been permanently removed by a reviewer.", post.Id, th.BasicChannel.DisplayName)
 		for _, p := range authorPosts.Posts {
 			if p.Message == expectedAuthorMessage {
 				authorNotificationPost = p
@@ -2077,7 +2077,7 @@ func TestSendFlaggedPostRemovalNotification(t *testing.T) {
 		require.Nil(t, appErr)
 
 		var authorNotificationPost *model.Post
-		expectedAuthorMessage := fmt.Sprintf("Your post having ID `%s` in the channel `%s` which was flagged for review as been permanently removed by a reviewer.", post.Id, th.BasicChannel.DisplayName)
+		expectedAuthorMessage := fmt.Sprintf("Your post having ID `%s` in the channel `%s` which was flagged for review has been permanently removed by a reviewer.", post.Id, th.BasicChannel.DisplayName)
 		for _, p := range authorPosts.Posts {
 			if p.Message == expectedAuthorMessage {
 				authorNotificationPost = p
@@ -2208,7 +2208,7 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 		require.Nil(t, appErr)
 
 		var authorNotificationPost *model.Post
-		expectedAuthorMessage := fmt.Sprintf("Your post having ID `%s` in the channel `%s` which was flagged for review as been restored by a reviewer.", post.Id, th.BasicChannel.DisplayName)
+		expectedAuthorMessage := fmt.Sprintf("Your post having ID `%s` in the channel `%s` which was flagged for review has been restored by a reviewer.", post.Id, th.BasicChannel.DisplayName)
 		for _, p := range authorPosts.Posts {
 			if p.Message == expectedAuthorMessage {
 				authorNotificationPost = p
@@ -2318,7 +2318,7 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 		require.Nil(t, appErr)
 
 		var authorNotificationPost *model.Post
-		expectedAuthorMessage := fmt.Sprintf("Your post having ID `%s` in the channel `%s` which was flagged for review as been restored by a reviewer.", post.Id, th.BasicChannel.DisplayName)
+		expectedAuthorMessage := fmt.Sprintf("Your post having ID `%s` in the channel `%s` which was flagged for review has been restored by a reviewer.", post.Id, th.BasicChannel.DisplayName)
 		for _, p := range authorPosts.Posts {
 			if p.Message == expectedAuthorMessage {
 				authorNotificationPost = p
