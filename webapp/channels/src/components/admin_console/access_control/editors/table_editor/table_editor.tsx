@@ -422,6 +422,7 @@ function TableEditor({
             {showTestResults && (
                 <TestResultsModal
                     onExited={() => setShowTestResults(false)}
+                    isStacked={true}
                     actions={{
                         openModal: () => {},
                         searchUsers: (term: string, after: string, limit: number) => {
