@@ -416,7 +416,7 @@ type ServiceSettings struct {
 	EnableAPIPostDeletion                             *bool
 	EnableDesktopLandingPage                          *bool
 	ExperimentalEnableHardenedMode                    *bool `access:"experimental_features"`
-	StrictCSRFEnforcement                             *bool `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	ExperimentalStrictCSRFEnforcement                 *bool `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	EnableEmailInvitations                            *bool `access:"authentication_signup"`
 	DisableBotsWhenOwnerIsDeactivated                 *bool `access:"integrations_bot_accounts"`
 	EnableBotAccountCreation                          *bool `access:"integrations_bot_accounts"`
@@ -849,8 +849,8 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.ExperimentalEnableHardenedMode = NewPointer(false)
 	}
 
-	if s.StrictCSRFEnforcement == nil {
-		s.StrictCSRFEnforcement = NewPointer(true)
+	if s.ExperimentalStrictCSRFEnforcement == nil {
+		s.ExperimentalStrictCSRFEnforcement = NewPointer(false)
 	}
 
 	if s.DisableBotsWhenOwnerIsDeactivated == nil {
