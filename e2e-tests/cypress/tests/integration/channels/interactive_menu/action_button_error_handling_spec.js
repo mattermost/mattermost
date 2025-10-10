@@ -98,9 +98,8 @@ describe('Interactive Menu - Action Button Error Handling', () => {
         // # Hover over the action button
         cy.findByText('Button with Tooltip').should('be.visible').trigger('mouseover');
 
-        // * Verify that tooltip is displayed with correct text
-        cy.findByText('Button with Tooltip')
-            .should('have.attr', 'title', 'This is a helpful tooltip');
+        // * Verify that tooltip is displayed with correct text using WithTooltip component
+        cy.get('.tooltipContainer').should('be.visible').and('contain.text', 'This is a helpful tooltip');
     });
 });
 
