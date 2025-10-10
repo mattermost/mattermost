@@ -10814,5 +10814,113 @@
   {
     "id": "api.channel.patch_update_channel.restricted_dm.app_error",
     "translation": "Kan een kanaal met beperkte directe berichten niet bijwerken."
+  },
+  {
+    "id": "api.command.execute_command.restricted_dm.error",
+    "translation": "Kan geen bericht plaatsen in beperkt DM"
+  },
+  {
+    "id": "api.content_flagging.error.comment_required",
+    "translation": "Voeg een opmerking toe waarin je uitlegt waarom je dit bericht markeert."
+  },
+  {
+    "id": "api.content_flagging.error.comment_too_long",
+    "translation": "De reden voor het markeren van een bericht kan niet langer zijn dan {{.MaxLength}} tekens."
+  },
+  {
+    "id": "api.content_flagging.error.not_available_on_team",
+    "translation": "De markeerfunctie voor inhoud is niet ingeschakeld in dit team."
+  },
+  {
+    "id": "api.content_flagging.error.post_not_in_progress",
+    "translation": "Het gemarkeerde bericht moet de status 'in behandeling' of 'toegewezen' hebben om bewaard of verwijderd te worden."
+  },
+  {
+    "id": "api.content_flagging.error.reason_invalid",
+    "translation": "Onbekende reden opgegeven voor markeren van bericht."
+  },
+  {
+    "id": "api.content_flagging.error.reason_required",
+    "translation": "Selecteer een reden om dit bericht te markeren."
+  },
+  {
+    "id": "api.content_flagging.error.reviewer_only",
+    "translation": "Je hebt geen toestemming om deze bron te bekijken."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
+    "translation": "Kan concept niet opslaan in beperkt directe berichten kanaal"
+  },
+  {
+    "id": "api.file.upload_file.get_channel.app_error",
+    "translation": "Kan bestand niet uploaden naar beperkte DM"
+  },
+  {
+    "id": "api.file.upload_file.restricted_dm.error",
+    "translation": "Kan bestand niet uploaden naar beperkte DM"
+  },
+  {
+    "id": "api.post.create_post.can_not_post_in_restricted_dm.error",
+    "translation": "Kan niet posten naar beperkt kanaal met directe berichten."
+  },
+  {
+    "id": "api.post.delete_post.can_not_delete_from_restricted_dm.error",
+    "translation": "Kan geen bericht verwijderen in een beperkt kanaal met directe berichten."
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "Kan bericht in een beperkt kanaal met directe berichten niet bijwerken."
+  },
+  {
+    "id": "api.post.update_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "Kan bericht in beperkt kanaal met directe berichten niet bijwerken."
+  },
+  {
+    "id": "api.reaction.delete.restricted_dm.error",
+    "translation": "Kan niet reageren in beperkt DM"
+  },
+  {
+    "id": "api.reaction.save.restricted_dm.error",
+    "translation": "Kan niet reageren in beperkt DM"
+  },
+  {
+    "id": "app.channel.get_common_teams.app_error",
+    "translation": "Fout bij het ophalen van gemeenschappelijke teams voor kanaal"
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.in_progress",
+    "translation": "Kan dit bericht niet markeren omdat het al gemarkeerd is."
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.removed",
+    "translation": "Kan dit bericht niet markeren, het is verwijderd in een eerder verzoek voor markering."
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.retained",
+    "translation": "Kan dit bericht niet markeren omdat het is bewaard in een eerder verzoek om markering."
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.unknown",
+    "translation": "Kan dit bericht niet markeren omdat het een onbekende status heeft."
+  },
+  {
+    "id": "app.content_flagging.create_property_values.app_error",
+    "translation": "Kan de waarden van eigenschappen voor de gemarkeerde post niet opslaan."
+  },
+  {
+    "id": "app.content_flagging.delete_post.app_error",
+    "translation": "De gemarkeerde post kan niet worden verwijderd."
+  },
+  {
+    "id": "app.content_flagging.flag_post.marshal_comment.app_error",
+    "translation": "Mislukt om commentaar van markerende gebruiker te verzamelen"
+  },
+  {
+    "id": "app.content_flagging.flag_post.marshal_reason.app_error",
+    "translation": "Faalde om de reden van de vlaggende gebruiker te verzamelen"
+  },
+  {
+    "id": "app.content_flagging.flag_post_confirmation.message",
+    "translation": "Het bericht van @{{.username}} is gemarkeerd voor beoordeling. Je ontvangt bericht zodra het is beoordeeld door een inhoudsbeoordeelaar. "
   }
 ]
