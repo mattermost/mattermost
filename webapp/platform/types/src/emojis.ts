@@ -23,6 +23,7 @@ export type CustomEmoji = {
     update_at: number;
     delete_at: number;
     creator_id: string;
+    description: string;
 };
 
 export type SystemEmoji = {
@@ -35,6 +36,7 @@ export type SystemEmoji = {
     skins?: string[];
     skin_variations?: Record<string, SystemEmojiVariation>;
     unified: string;
+    description?: string;
 };
 
 export type SystemEmojiVariation = {

@@ -389,22 +389,28 @@
 
 .emoji-list__name {
     width: 30%;
-    padding: 20px 0 20px 15px;
+    padding: 15px 0 15px 15px;
 }
 
 .emoji-list__image {
-    width: 15%;
+    width: 10%;
     padding: 15px 0;
 }
 
+.emoji-list__description {
+    width: 30%;
+    padding: 15px 15px 15px 0;
+}
 .emoji-list__creator {
-    width: 40%;
+    width: 15%;
     padding: 15px 0;
 }
 
 .emoji-list__actions {
     width: 15%;
-    padding: 20px 15px 20px 0;
+    display: flex;
+    gap: 8px;
+    padding: 15px 0;
 }
 
 .add-emoji__upload {

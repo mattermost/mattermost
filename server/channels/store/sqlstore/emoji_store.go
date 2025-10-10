@@ -25,7 +25,7 @@ type SqlEmojiStore struct {
 
 func newSqlEmojiStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.EmojiStore {
 	emojiSelectQuery := sqlStore.getQueryBuilder().
-		Select("Id", "CreateAt", "UpdateAt", "DeleteAt", "CreatorId", "Name").
+		Select("Id", "CreateAt", "UpdateAt", "DeleteAt", "CreatorId", "Name", "Description").
 		From("Emoji").
 		Where(sq.Eq{"DeleteAt": 0})
 
@@ -43,10 +43,25 @@ func (es SqlEmojiStore) Save(emoji *model.Emoji) (*model.Emoji, error) {
 	}
 
 	if _, err := es.GetMaster().NamedExec(`INSERT INTO Emoji
-		(Id, CreateAt, UpdateAt, DeleteAt, CreatorId, Name)
+		(Id, CreateAt, UpdateAt, DeleteAt, CreatorId, Name, Description)
 		VALUES
-		(:Id, :CreateAt, :UpdateAt, :DeleteAt, :CreatorId, :Name)`, emoji); err != nil {
+		(:Id, :CreateAt, :UpdateAt, :DeleteAt, :CreatorId, :Name, :Description)`, emoji); err != nil {
 		return nil, errors.Wrap(err, "error saving emoji")
+	}
+
+	return emoji, nil
+}
+
+func (es SqlEmojiStore) Update(emoji *model.Emoji) (*model.Emoji, error) {
+	emoji.UpdateAt = model.GetMillis()
+	if err := emoji.IsValid(); err != nil {
+		return nil, err
+	}
+
+	if _, err := es.GetMaster().NamedExec(`UPDATE Emoji
+		SET UpdateAt = :UpdateAt, Description = :Description
+		WHERE Id = :Id AND DeleteAt = 0`, emoji); err != nil {
+		return nil, errors.Wrap(err, "error updating emoji")
 	}
 
 	return emoji, nil

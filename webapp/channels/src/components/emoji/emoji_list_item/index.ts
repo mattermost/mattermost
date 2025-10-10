@@ -19,13 +19,14 @@ import type {Props} from './emoji_list_item';
 function mapStateToProps(state: GlobalState, ownProps: Props) {
     const emoji = state.entities.emojis.customEmoji[ownProps.emojiId!];
     const creator = getUser(state, emoji.creator_id);
+    const currentTeam = getCurrentTeam(state);
 
     return {
         emoji,
         creatorDisplayName: getDisplayNameByUser(state, creator),
         creatorUsername: creator ? creator.username : '',
         currentUserId: getCurrentUserId(state),
-        currentTeam: getCurrentTeam(state),
+        teamName: currentTeam?.name || '',
     };
 }
 

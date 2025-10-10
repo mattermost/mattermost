@@ -8,6 +8,8 @@ import type {Emoji} from '@mattermost/types/emojis';
 
 import {getEmojiImageUrl, isSystemEmoji} from 'mattermost-redux/utils/emoji_utils';
 
+import WithTooltip from 'components/with_tooltip';
+
 import imgTrans from 'images/img_trans.gif';
 
 interface Props {
@@ -28,9 +30,11 @@ function EmojiPickerPreview({emoji}: Props) {
 
     let aliases;
     let previewImage;
+    let description = '';
 
     if (isSystemEmoji(emoji)) {
         aliases = emoji.short_names;
+        description = emoji.name || '';
         previewImage = (
             <span className='sprite-preview'>
                 <img
@@ -43,6 +47,7 @@ function EmojiPickerPreview({emoji}: Props) {
         );
     } else {
         aliases = [emoji.name];
+        description = ('description' in emoji && emoji.description) ? emoji.description : '';
         previewImage = (
             <img
                 id='emojiPickerSpritePreview'
@@ -65,6 +70,15 @@ function EmojiPickerPreview({emoji}: Props) {
                 >
                     {':' + aliases.join(': :') + ':'}
                 </span>
+                {description && (
+                    <WithTooltip
+                        title={description}
+                    >
+                        <span className='emoji-picker__preview-description'>
+                            {description}
+                        </span>
+                    </WithTooltip>
+                )}
             </div>
         </div>
     );

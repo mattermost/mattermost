@@ -3,10 +3,15 @@
 
 import React from 'react';
 import {useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import type {Reaction as ReactionType} from '@mattermost/types/reactions';
 
-import WithTooltip from 'components/with_tooltip';
+import {getEmojiMap} from 'selectors/emojis';
+
+import EmojiTooltip from 'components/emoji_tooltip';
+
+import type {GlobalState} from 'types/store';
 
 type Props = {
     canAddReactions: boolean;
@@ -32,6 +37,20 @@ const ReactionTooltip: React.FC<Props> = (props: Props) => {
     } = props;
 
     const intl = useIntl();
+    const emojiMap = useSelector((state: GlobalState) => getEmojiMap(state));
+
+    // Get emoji description
+    let emojiDescription = '';
+    const emoji = emojiMap.get(emojiName);
+    if (emoji) {
+        // For custom emojis, use the description field
+        if ('description' in emoji && emoji.description) {
+            emojiDescription = emoji.description;
+        } else if ('name' in emoji) {
+            // For system emojis, use the name field (unicode description)
+            emojiDescription = emoji.name;
+        }
+    }
 
     const otherUsersCount = reactions.length - users.length;
 
@@ -129,15 +148,15 @@ const ReactionTooltip: React.FC<Props> = (props: Props) => {
     }
 
     return (
-        <WithTooltip
+        <EmojiTooltip
+            emojiName={emojiName}
+            emojiDescription={emojiDescription}
             title={tooltipTitle}
             hint={tooltipHint}
-            emoji={emojiName}
-            isEmojiLarge={true}
             onOpen={onShow}
         >
             {children}
-        </WithTooltip>
+        </EmojiTooltip>
     );
 };
 

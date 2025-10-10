@@ -219,6 +219,11 @@ const BackstageController = (props: Props) => {
                     />
                     <BackstageRoute
                         extraProps={extraProps}
+                        path={`${props.match.url}/edit/:emojiId`}
+                        component={AddEmoji}
+                    />
+                    <BackstageRoute
+                        extraProps={extraProps}
                         path={`${props.match.url}/bots/add`}
                         component={AddBot}
                     />

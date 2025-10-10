@@ -7,7 +7,6 @@ import {defineMessage, FormattedMessage} from 'react-intl';
 
 import type {CustomEmoji} from '@mattermost/types/emojis';
 
-import {deleteCustomEmoji} from 'mattermost-redux/actions/emojis';
 import {Emoji} from 'mattermost-redux/constants';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
@@ -174,7 +173,7 @@ export default class EmojiList extends React.PureComponent<Props, State> {
                     key='loading'
                     className='backstage-list__item backstage-list__empty'
                 >
-                    <td colSpan={4}>
+                    <td colSpan={5}>
                         <LoadingScreen key='loading'/>
                     </td>
                 </tr>,
@@ -188,7 +187,7 @@ export default class EmojiList extends React.PureComponent<Props, State> {
                     key='empty'
                     className='backstage-list__item backstage-list__empty'
                 >
-                    <td colSpan={4}>
+                    <td colSpan={5}>
                         <FormattedMessage
                             id='emoji_list.empty'
                             defaultMessage='No custom emoji found'
@@ -203,7 +202,6 @@ export default class EmojiList extends React.PureComponent<Props, State> {
                         key={'emoji_search_item' + emojiId}
                         emojiId={emojiId}
                         onDelete={this.deleteFromSearch}
-                        actions={{deleteCustomEmoji}}
                     />,
                 );
             });
@@ -217,7 +215,6 @@ export default class EmojiList extends React.PureComponent<Props, State> {
                     <EmojiListItem
                         key={'emoji_list_item' + emojiId}
                         emojiId={emojiId}
-                        actions={{deleteCustomEmoji}}
                     />,
                 );
             });
@@ -304,6 +301,12 @@ export default class EmojiList extends React.PureComponent<Props, State> {
                                     <FormattedMessage
                                         id='emoji_list.image'
                                         defaultMessage='Image'
+                                    />
+                                </th>
+                                <th className='emoji-list__description'>
+                                    <FormattedMessage
+                                        id='emoji_list.description'
+                                        defaultMessage='Description'
                                     />
                                 </th>
                                 <th className='emoji-list__creator'>
