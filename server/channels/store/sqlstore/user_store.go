@@ -27,6 +27,7 @@ import (
 
 const (
 	MaxGroupChannelsForProfiles = 50
+	ContentReviewerSearchLimit  = 50
 )
 
 var (
@@ -1581,7 +1582,9 @@ func (us SqlUserStore) SearchCommonContentFlaggingReviewers(term string) ([]*mod
 		Columns(getBotInfoColumns()...).
 		From("ContentFlaggingCommonReviewers").
 		LeftJoin("Users ON Users.Id = ContentFlaggingCommonReviewers.UserId").
-		LeftJoin("Bots b ON (b.UserId = Users.Id)")
+		LeftJoin("Bots b ON (b.UserId = Users.Id)").
+		OrderBy("Users.Username ASC").
+		Limit(ContentReviewerSearchLimit)
 
 	searchOptions := &model.UserSearchOptions{
 		AllowEmails:    false,
@@ -1600,7 +1603,9 @@ func (us SqlUserStore) SearchTeamContentFlaggingReviewers(teamId, term string) (
 		From("ContentFlaggingTeamReviewers").
 		LeftJoin("Users ON Users.Id = ContentFlaggingTeamReviewers.UserId").
 		LeftJoin("Bots b ON (b.UserId = Users.Id)").
-		Where("ContentFlaggingTeamReviewers.TeamId = ?", teamId)
+		Where("ContentFlaggingTeamReviewers.TeamId = ?", teamId).
+		OrderBy("Users.Username ASC").
+		Limit(ContentReviewerSearchLimit)
 
 	searchOptions := &model.UserSearchOptions{
 		AllowEmails:    false,

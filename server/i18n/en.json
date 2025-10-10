@@ -1758,10 +1758,6 @@
     "translation": "Content flagging feature is disabled."
   },
   {
-    "id": "api.content_flagging.error.empty_search_term",
-    "translation": "No search term in query param `term` provided."
-  },
-  {
     "id": "api.content_flagging.error.license",
     "translation": "Your license does not support content flagging."
   },
