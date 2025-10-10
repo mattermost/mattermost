@@ -1572,9 +1572,6 @@ func TestGetReviewerPostsForFlaggedPost(t *testing.T) {
 		post, appErr := setupFlaggedPost(th)
 		require.Nil(t, appErr)
 
-		// Wait for async reviewer post creation to complete
-		//time.Sleep(2 * time.Second)
-
 		groupId, appErr := th.App.ContentFlaggingGroupId()
 		require.Nil(t, appErr)
 
@@ -1690,9 +1687,6 @@ func TestPostReviewerMessage(t *testing.T) {
 		appErr = th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id)
 		require.Nil(t, appErr)
 
-		// Wait for async message posting to complete
-		//time.Sleep(2 * time.Second)
-
 		// Verify message was posted to the reviewer thread
 		contentReviewBot, appErr := th.App.getContentReviewBot(th.Context)
 		require.Nil(t, appErr)
@@ -1750,9 +1744,6 @@ func TestPostReviewerMessage(t *testing.T) {
 		appErr = th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id)
 		require.Nil(t, appErr)
 
-		// Wait for async message posting to complete
-		//time.Sleep(2 * time.Second)
-
 		// Verify message was posted to both reviewer threads
 		contentReviewBot, appErr := th.App.getContentReviewBot(th.Context)
 		require.Nil(t, appErr)
@@ -1808,17 +1799,11 @@ func TestPostReviewerMessage(t *testing.T) {
 		testMessage := "Test message for non-flagged post"
 		appErr = th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id)
 		require.Nil(t, appErr)
-
-		// Should not error, but no messages should be posted since no reviewer posts exist
-		// This is a graceful handling case
 	})
 
 	t.Run("should handle message with special characters", func(t *testing.T) {
 		post, appErr := setupFlaggedPost(th)
 		require.Nil(t, appErr)
-
-		// Wait for async reviewer post creation to complete
-		//time.Sleep(2 * time.Second)
 
 		groupId, appErr := th.App.ContentFlaggingGroupId()
 		require.Nil(t, appErr)
@@ -1826,9 +1811,6 @@ func TestPostReviewerMessage(t *testing.T) {
 		testMessage := "Test message with special chars: @user #channel ~team & <script>alert('xss')</script>"
 		appErr = th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id)
 		require.Nil(t, appErr)
-
-		// Wait for async message posting to complete
-		//time.Sleep(2 * time.Second)
 
 		// Verify message was posted correctly with special characters preserved
 		contentReviewBot, appErr := th.App.getContentReviewBot(th.Context)
@@ -1888,9 +1870,6 @@ func testNotificationScenario(t *testing.T, th *TestHelper, config notificationT
 
 	// Send notification
 	config.notificationFunc(th, post, th.SystemAdminUser.Id, config.comment, groupId)
-
-	// Wait for async notification processing
-	//time.Sleep(2 * time.Second)
 
 	contentReviewBot, appErr := th.App.getContentReviewBot(th.Context)
 	require.Nil(t, appErr)
@@ -2090,11 +2069,5 @@ func TestSendKeepFlaggedPostNotification(t *testing.T) {
 
 		comment := "Test comment"
 		th.App.sendKeepFlaggedPostNotification(th.Context, post, th.SystemAdminUser.Id, comment, groupId)
-
-		// Wait for potential async processing
-		time.Sleep(1 * time.Second)
-
-		// Should not error and should handle gracefully
-		// No specific verification needed as function should return early
 	})
 }

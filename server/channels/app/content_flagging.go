@@ -974,11 +974,6 @@ func (a *App) postDeletePostReviewerMessage(rctx request.CTX, flaggedPostId, act
 	return a.postReviewerMessage(rctx, message, contentFlaggingGroupId, flaggedPostId)
 }
 
-func (a *App) postDeletePostAuthorMessage(rctx request.CTX, flaggedPost *model.Post) *model.AppError {
-	template := "Your post having ID `%s` in the channel `%s` which was flagged for review has been permanently removed by a reviewer."
-	return a.postMessageToAuthor(rctx, flaggedPost, template)
-}
-
 func (a *App) postKeepPostReviewerMessage(rctx request.CTX, flaggedPostId, actorUserId, comment, contentFlaggingGroupId string) *model.AppError {
 	actorUser, appErr := a.GetUser(actorUserId)
 	if appErr != nil {
@@ -991,11 +986,6 @@ func (a *App) postKeepPostReviewerMessage(rctx request.CTX, flaggedPostId, actor
 	}
 
 	return a.postReviewerMessage(rctx, message, contentFlaggingGroupId, flaggedPostId)
-}
-
-func (a *App) postKeepPostAuthorMessage(rctx request.CTX, flaggedPost *model.Post) *model.AppError {
-	template := "Your post having ID `%s` in the channel `%s` which was flagged for review has been restored by a reviewer."
-	return a.postMessageToAuthor(rctx, flaggedPost, template)
 }
 
 func (a *App) getReporterUserId(flaggedPostId, contentFlaggingGroupId string) (string, *model.AppError) {
@@ -1205,14 +1195,15 @@ func (a *App) sendFlaggedPostRemovalNotification(rctx request.CTX, flaggedPost *
 		return
 	}
 
-	if slices.Contains(deletePostNotifications, model.TargetReporter) {
+	if slices.Contains(deletePostNotifications, model.TargetReviewers) {
 		if appErr := a.postDeletePostReviewerMessage(rctx, flaggedPost.Id, actorUserId, comment, contentFlaggingGroupId); appErr != nil {
 			rctx.Logger().Error("Failed to post delete post reviewer message after permanently removing flagged post", mlog.Err(appErr), mlog.String("post_id", flaggedPost.Id))
 		}
 	}
 
 	if slices.Contains(deletePostNotifications, model.TargetAuthor) {
-		if appErr := a.postDeletePostAuthorMessage(rctx, flaggedPost); appErr != nil {
+		template := "Your post having ID `%s` in the channel `%s` which was flagged for review has been permanently removed by a reviewer."
+		if appErr := a.postMessageToAuthor(rctx, flaggedPost, template); appErr != nil {
 			rctx.Logger().Error("Failed to post delete post author message after permanently removing flagged post", mlog.Err(appErr), mlog.String("post_id", flaggedPost.Id))
 		}
 	}
@@ -1239,7 +1230,8 @@ func (a *App) sendKeepFlaggedPostNotification(rctx request.CTX, flaggedPost *mod
 	}
 
 	if slices.Contains(keepPostNotifications, model.TargetAuthor) {
-		if appErr := a.postKeepPostAuthorMessage(rctx, flaggedPost); appErr != nil {
+		template := "Your post having ID `%s` in the channel `%s` which was flagged for review has been restored by a reviewer."
+		if appErr := a.postMessageToAuthor(rctx, flaggedPost, template); appErr != nil {
 			rctx.Logger().Error("Failed to post retain post author message after restoring flagged post", mlog.Err(appErr), mlog.String("post_id", flaggedPost.Id))
 		}
 	}
