@@ -748,7 +748,7 @@ func TestCheckCSRFToken(t *testing.T) {
 			},
 		}
 
-		checked, passed := h.checkCSRFToken(c, r, token, tokenLocation, session)
+		checked, passed := h.checkCSRFToken(c, r, tokenLocation, session)
 
 		assert.True(t, checked)
 		assert.False(t, passed)
