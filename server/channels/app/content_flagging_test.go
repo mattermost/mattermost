@@ -1859,13 +1859,13 @@ func TestPostReviewerMessage(t *testing.T) {
 
 // notificationTestConfig holds configuration for notification tests
 type notificationTestConfig struct {
-	event                model.ContentFlaggingEvent
-	targets              []model.NotificationTarget
-	comment              string
-	notificationFunc     func(th *TestHelper, post *model.Post, reviewerId string, comment string, groupId string)
-	expectedAuthorMsg    func(postId, channelName string) string
-	expectedReporterMsg  func(postId, channelName string) string
-	expectedReviewerMsg  func(username, comment string) string
+	event               model.ContentFlaggingEvent
+	targets             []model.NotificationTarget
+	comment             string
+	notificationFunc    func(th *TestHelper, post *model.Post, reviewerId string, comment string, groupId string)
+	expectedAuthorMsg   func(postId, channelName string) string
+	expectedReporterMsg func(postId, channelName string) string
+	expectedReviewerMsg func(username, comment string) string
 }
 
 // testNotificationScenario runs a notification test scenario with the given configuration
@@ -2027,31 +2027,6 @@ func TestSendFlaggedPostRemovalNotification(t *testing.T) {
 			"reporter": false,
 			"reviewer": false,
 		})
-	})
-
-	t.Run("should not send notifications when none configured", func(t *testing.T) {
-		post, appErr := setupFlaggedPost(th)
-		require.Nil(t, appErr)
-
-		// Configure no notifications
-		notificationConfig := getBaseConfig(th)
-		notificationConfig.NotificationSettings = &model.ContentFlaggingNotificationSettings{
-			EventTargetMapping: map[model.ContentFlaggingEvent][]model.NotificationTarget{},
-		}
-		appErr = th.App.SaveContentFlaggingConfig(notificationConfig)
-		require.Nil(t, appErr)
-
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
-
-		comment := "Test comment"
-		th.App.sendFlaggedPostRemovalNotification(th.Context, post, th.SystemAdminUser.Id, comment, groupId)
-
-		// Wait for potential async processing
-		time.Sleep(1 * time.Second)
-
-		// Should not error and should handle gracefully
-		// No specific verification needed as function should return early
 	})
 }
 

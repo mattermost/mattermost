@@ -979,11 +979,6 @@ func (a *App) postDeletePostAuthorMessage(rctx request.CTX, flaggedPost *model.P
 	return a.postMessageToAuthor(rctx, flaggedPost, template)
 }
 
-func (a *App) postDeletePostReporterMessage(rctx request.CTX, contentFlaggingGroupId string, flaggedPost *model.Post) *model.AppError {
-	template := "The post having ID `%s` in the channel `%s` which you flagged for review has been permanently removed by a reviewer."
-	return a.postMessageToReporter(rctx, contentFlaggingGroupId, flaggedPost, template)
-}
-
 func (a *App) postKeepPostReviewerMessage(rctx request.CTX, flaggedPostId, actorUserId, comment, contentFlaggingGroupId string) *model.AppError {
 	actorUser, appErr := a.GetUser(actorUserId)
 	if appErr != nil {
@@ -1003,57 +998,20 @@ func (a *App) postKeepPostAuthorMessage(rctx request.CTX, flaggedPost *model.Pos
 	return a.postMessageToAuthor(rctx, flaggedPost, template)
 }
 
-func (a *App) postKeepMessageToReporter(rctx request.CTX, contentFlaggingGroupId string, flaggedPost *model.Post) *model.AppError {
-	template := "The post having ID `%s` in the channel `%s` which you flagged for review has been restored by a reviewer."
-	return a.postMessageToReporter(rctx, contentFlaggingGroupId, flaggedPost, template)
-}
-
-func (a *App) postMessageToAuthor(rctx request.CTX, flaggedPost *model.Post, messageTemplate string) *model.AppError {
-	channel, appErr := a.GetChannel(nil, flaggedPost.ChannelId)
-	if appErr != nil {
-		return appErr
-	}
-
-	message := fmt.Sprintf(messageTemplate, flaggedPost.Id, channel.DisplayName)
-
-	contentReviewBot, appErr := a.getContentReviewBot(rctx)
-	if appErr != nil {
-		return appErr
-	}
-
-	dmChannel, appErr := a.GetOrCreateDirectChannel(rctx, flaggedPost.UserId, contentReviewBot.UserId)
-	if appErr != nil {
-		return appErr
-	}
-
-	post := &model.Post{
-		Message:   message,
-		UserId:    contentReviewBot.UserId,
-		ChannelId: dmChannel.Id,
-	}
-
-	_, appErr = a.CreatePost(rctx, post, dmChannel, model.CreatePostFlags{})
-	if appErr != nil {
-		return appErr
-	}
-
-	return nil
-}
-
-func (a *App) postMessageToReporter(rctx request.CTX, contentFlaggingGroupId string, flaggedPost *model.Post, messageTemplate string) *model.AppError {
+func (a *App) getReporterUserId(flaggedPostId, contentFlaggingGroupId string) (string, *model.AppError) {
 	mappedFields, appErr := a.GetContentFlaggingMappedFields(contentFlaggingGroupId)
 	if appErr != nil {
-		return appErr
+		return "", appErr
 	}
 
 	reporterUserIdField, ok := mappedFields[contentFlaggingPropertyNameReportingUserID]
 	if !ok {
-		return model.NewAppError("postMessageToReporter", "app.content_flagging.missing_reporting_user_id_field.app_error", nil, "", http.StatusInternalServerError)
+		return "", model.NewAppError("getReporterUserId", "app.content_flagging.missing_reporting_user_id_field.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	propertyValues, appErr := a.GetPostContentFlaggingPropertyValues(flaggedPost.Id)
+	propertyValues, appErr := a.GetPostContentFlaggingPropertyValues(flaggedPostId)
 	if appErr != nil {
-		return appErr
+		return "", appErr
 	}
 
 	var reporterPropertyValue *model.PropertyValue
@@ -1065,12 +1023,15 @@ func (a *App) postMessageToReporter(rctx request.CTX, contentFlaggingGroupId str
 	}
 
 	if reporterPropertyValue == nil {
-		return model.NewAppError("postMessageToReporter", "app.content_flagging.missing_reporting_user_id_property_value.app_error", nil, "", http.StatusInternalServerError)
+		return "", model.NewAppError("getReporterUserId", "app.content_flagging.missing_reporting_user_id_property_value.app_error", nil, "", http.StatusInternalServerError)
 	}
 
 	reporterUserId := strings.Trim(string(reporterPropertyValue.Value), `"`)
+	return reporterUserId, nil
+}
 
-	channel, appErr := a.GetChannel(nil, flaggedPost.ChannelId)
+func (a *App) postContentReviewBotMessage(rctx request.CTX, flaggedPost *model.Post, messageTemplate string, userId string) *model.AppError {
+	channel, appErr := a.GetChannel(rctx, flaggedPost.ChannelId)
 	if appErr != nil {
 		return appErr
 	}
@@ -1082,7 +1043,7 @@ func (a *App) postMessageToReporter(rctx request.CTX, contentFlaggingGroupId str
 		return appErr
 	}
 
-	dmChannel, appErr := a.GetOrCreateDirectChannel(rctx, reporterUserId, contentReviewBot.UserId)
+	dmChannel, appErr := a.GetOrCreateDirectChannel(rctx, userId, contentReviewBot.UserId)
 	if appErr != nil {
 		return appErr
 	}
@@ -1099,6 +1060,19 @@ func (a *App) postMessageToReporter(rctx request.CTX, contentFlaggingGroupId str
 	}
 
 	return nil
+}
+
+func (a *App) postMessageToAuthor(rctx request.CTX, flaggedPost *model.Post, messageTemplate string) *model.AppError {
+	return a.postContentReviewBotMessage(rctx, flaggedPost, messageTemplate, flaggedPost.UserId)
+}
+
+func (a *App) postMessageToReporter(rctx request.CTX, contentFlaggingGroupId string, flaggedPost *model.Post, messageTemplate string) *model.AppError {
+	userId, appErr := a.getReporterUserId(flaggedPost.Id, contentFlaggingGroupId)
+	if appErr != nil {
+		return appErr
+	}
+
+	return a.postContentReviewBotMessage(rctx, flaggedPost, messageTemplate, userId)
 }
 
 func (a *App) postReviewerMessage(rctx request.CTX, message, contentFlaggingGroupId, flaggedPostId string) *model.AppError {
@@ -1198,7 +1172,7 @@ func (a *App) sendFlagPostNotification(rctx request.CTX, flaggedPost *model.Post
 		return nil
 	}
 
-	channel, appErr := a.GetChannel(nil, flaggedPost.ChannelId)
+	channel, appErr := a.GetChannel(rctx, flaggedPost.ChannelId)
 	if appErr != nil {
 		return appErr
 	}
@@ -1244,7 +1218,8 @@ func (a *App) sendFlaggedPostRemovalNotification(rctx request.CTX, flaggedPost *
 	}
 
 	if slices.Contains(deletePostNotifications, model.TargetReporter) {
-		if appErr := a.postDeletePostReporterMessage(rctx, contentFlaggingGroupId, flaggedPost); appErr != nil {
+		template := "The post having ID `%s` in the channel `%s` which you flagged for review has been permanently removed by a reviewer."
+		if appErr := a.postMessageToReporter(rctx, contentFlaggingGroupId, flaggedPost, template); appErr != nil {
 			rctx.Logger().Error("Failed to post delete post reporter message after permanently removing flagged post", mlog.Err(appErr), mlog.String("post_id", flaggedPost.Id))
 		}
 	}
@@ -1270,7 +1245,8 @@ func (a *App) sendKeepFlaggedPostNotification(rctx request.CTX, flaggedPost *mod
 	}
 
 	if slices.Contains(keepPostNotifications, model.TargetReporter) {
-		if appErr := a.postKeepMessageToReporter(rctx, contentFlaggingGroupId, flaggedPost); appErr != nil {
+		template := "The post having ID `%s` in the channel `%s` which you flagged for review has been restored by a reviewer."
+		if appErr := a.postMessageToReporter(rctx, contentFlaggingGroupId, flaggedPost, template); appErr != nil {
 			rctx.Logger().Error("Failed to post retain post reporter message after restoring flagged post", mlog.Err(appErr), mlog.String("post_id", flaggedPost.Id))
 		}
 	}
