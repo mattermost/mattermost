@@ -2917,34 +2917,6 @@ func TestGetDirectOrGroupMessageMembersCommonTeams(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Equal(t, 0, len(commonTeams))
 	})
-
-	t.Run("Privacy mode enabled, should redact email address", func(t *testing.T) {
-		currentPrivacySetting := *th.App.Config().PrivacySettings.ShowEmailAddress
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.PrivacySettings.ShowEmailAddress = model.NewPointer(true)
-		})
-
-		commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeams(th.Context, gmChannel.Id)
-		require.Nil(t, appErr)
-		require.Equal(t, 2, len(commonTeams))
-		for _, team := range commonTeams {
-			require.NotEmpty(t, team.Email)
-		}
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.PrivacySettings.ShowEmailAddress = model.NewPointer(false)
-		})
-		defer th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.PrivacySettings.ShowEmailAddress = currentPrivacySetting
-		})
-
-		commonTeams, appErr = th.App.GetDirectOrGroupMessageMembersCommonTeams(th.Context, gmChannel.Id)
-		require.Nil(t, appErr)
-		require.Equal(t, 2, len(commonTeams))
-		for _, team := range commonTeams {
-			require.Empty(t, team.Email)
-		}
-	})
 }
 
 func TestConvertGroupMessageToChannel(t *testing.T) {

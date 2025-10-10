@@ -3713,12 +3713,6 @@ func (a *App) GetDirectOrGroupMessageMembersCommonTeams(rctx request.CTX, channe
 		teams, appErr = a.GetTeams(commonTeamIDs)
 	}
 
-	if !model.SafeDereference(a.Config().PrivacySettings.ShowEmailAddress) {
-		for _, team := range teams {
-			team.Email = ""
-		}
-	}
-
 	return teams, appErr
 }
 
