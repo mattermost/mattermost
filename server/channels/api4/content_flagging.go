@@ -31,7 +31,7 @@ func (api *API) InitContentFlagging() {
 	api.BaseRoutes.ContentFlagging.Handle("/config", api.APISessionRequired(saveContentFlaggingSettings)).Methods(http.MethodPut)
 	api.BaseRoutes.ContentFlagging.Handle("/config", api.APISessionRequired(getContentFlaggingSettings)).Methods(http.MethodGet)
 	api.BaseRoutes.ContentFlagging.Handle("/team/{team_id:[A-Za-z0-9]+}/reviewers/search", api.APISessionRequired(searchReviewers)).Methods(http.MethodGet)
-	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/assign/{user_id:[A-Za-z0-9]+}", api.APISessionRequired(assignFlaggedPostReviewer)).Methods(http.MethodPost)
+	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/assign/{content_reviewer_id:[A-Za-z0-9]+}", api.APISessionRequired(assignFlaggedPostReviewer)).Methods(http.MethodPost)
 	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/channel", api.APISessionRequired(getPostChannel)).Methods(http.MethodGet)
 	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/team", api.APISessionRequired(getPostTeam)).Methods(http.MethodGet)
 }
@@ -556,10 +556,6 @@ func searchReviewers(c *Context, w http.ResponseWriter, r *http.Request) {
 	teamId := c.Params.TeamId
 	userId := c.AppContext.Session().UserId
 	searchTerm := strings.TrimSpace(r.URL.Query().Get("term"))
-	if searchTerm == "" {
-		c.Err = model.NewAppError("searchReviewers", "api.content_flagging.error.empty_search_term", nil, "", http.StatusBadRequest)
-		return
-	}
 
 	isReviewer, appErr := c.App.IsUserTeamContentReviewer(userId, teamId)
 	if appErr != nil {
@@ -595,7 +591,7 @@ func assignFlaggedPostReviewer(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	c.RequireUserId()
+	c.RequireContentReviewerId()
 	if c.Err != nil {
 		return
 	}
@@ -625,7 +621,7 @@ func assignFlaggedPostReviewer(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	reviewerId := c.Params.UserId
+	reviewerId := c.Params.ContentReviewerId
 	isReviewer, appErr = c.App.IsUserTeamContentReviewer(reviewerId, channel.TeamId)
 	if appErr != nil {
 		c.Err = appErr
