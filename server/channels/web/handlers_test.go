@@ -587,12 +587,15 @@ func TestHandlerServeInvalidToken(t *testing.T) {
 
 func TestHandlerServeCSRFFailureClearsAuthCookie(t *testing.T) {
 	testCases := []struct {
-		Description                   string
-		SiteURL                       string
-		ExpectedSetCookieHeaderRegexp string
+		Description                       string
+		SiteURL                           string
+		ExpectedSetCookieHeaderRegexp     string
+		ExperimentalStrictCSRFEnforcement bool
 	}{
-		{"no subpath", "http://localhost:8065", "^MMAUTHTOKEN=; Path=/"},
-		{"subpath", "http://localhost:8065/subpath", "^MMAUTHTOKEN=; Path=/subpath"},
+		{"no subpath", "http://localhost:8065", "^MMAUTHTOKEN=; Path=/", false},
+		{"subpath", "http://localhost:8065/subpath", "^MMAUTHTOKEN=; Path=/subpath", false},
+		{"no subpath", "http://localhost:8065", "^MMAUTHTOKEN=; Path=/", true},
+		{"subpath", "http://localhost:8065/subpath", "^MMAUTHTOKEN=; Path=/subpath", true},
 	}
 
 	for _, tc := range testCases {
@@ -601,6 +604,7 @@ func TestHandlerServeCSRFFailureClearsAuthCookie(t *testing.T) {
 
 			th.App.UpdateConfig(func(cfg *model.Config) {
 				*cfg.ServiceSettings.SiteURL = tc.SiteURL
+				*cfg.ServiceSettings.ExperimentalStrictCSRFEnforcement = tc.ExperimentalStrictCSRFEnforcement
 			})
 
 			session := &model.Session{
@@ -635,10 +639,14 @@ func TestHandlerServeCSRFFailureClearsAuthCookie(t *testing.T) {
 			request.Header.Add(model.HeaderRequestedWith, model.HeaderRequestedWithXML)
 			response := httptest.NewRecorder()
 			handler.ServeHTTP(response, request)
-			require.Equal(t, http.StatusUnauthorized, response.Code)
 
-			cookies := response.Header().Get("Set-Cookie")
-			assert.Regexp(t, tc.ExpectedSetCookieHeaderRegexp, cookies)
+			if tc.ExperimentalStrictCSRFEnforcement {
+				require.Equal(t, http.StatusUnauthorized, response.Code)
+				cookies := response.Header().Get("Set-Cookie")
+				assert.Regexp(t, tc.ExpectedSetCookieHeaderRegexp, cookies)
+			} else {
+				require.Equal(t, http.StatusOK, response.Code)
+			}
 		})
 	}
 }
