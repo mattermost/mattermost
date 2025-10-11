@@ -515,5 +515,21 @@
   {
     "id": "api.admin.saml.failure_get_metadata_from_idp.app_error",
     "translation": "Kunne ikke hente metadata fra URL-adressen til Identity Provider."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "Feil ved ugyldiggjøring av cache"
+  },
+  {
+    "id": "api.channel.patch_update_channel.restricted_dm.app_error",
+    "translation": "Kan ikke oppdatere en begrenset direktemeldingskanal."
+  },
+  {
+    "id": "api.channel.post_channel_privacy_message.error",
+    "translation": "Kunne ikke legge ut melding om personvernoppdatering for kanalen."
+  },
+  {
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
+    "translation": "Kunne ikke legge ut melding om oppdatering av visningsnavn"
   }
 ]
