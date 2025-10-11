@@ -68,7 +68,7 @@ export default function LibreTranslateSettings(props: SystemConsoleCustomSetting
                         id='admin.site.localization.autoTranslationProviderLibreTranslateAPIKeyDescription'
                         defaultMessage='If your LibreTranslate server requires an API key, enter it here. Otherwise, leave this field blank. View <link>LibreTranslate docs</link> for API Key management.'
                         values={{
-                            link: (msg: string) => (
+                            link: (msg: React.ReactNode) => (
                                 <ExternalLink
                                     location='admin_console'
                                     href='https://docs.libretranslate.com/guides/manage_api_keys/'
