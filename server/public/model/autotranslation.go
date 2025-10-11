@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"maps"
 )
 
 // TranslationType indicates the type of translated content
@@ -70,9 +71,7 @@ func (t *Translation) Clone() *Translation {
 	var meta map[string]any
 	if t.Meta != nil {
 		meta = make(map[string]any, len(t.Meta))
-		for k, v := range t.Meta {
-			meta[k] = v
-		}
+		maps.Copy(meta, t.Meta)
 	}
 	var objectJSON json.RawMessage
 	if t.ObjectJSON != nil {
