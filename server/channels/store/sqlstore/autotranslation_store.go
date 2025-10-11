@@ -18,17 +18,30 @@ type SqlAutoTranslationStore struct {
 	*SqlStore
 }
 
+type TranslationMeta json.RawMessage
+
 type Translation struct {
-	ObjectType        string         `db:"object_type"`
-	ObjectID          string         `db:"object_id"`
-	DstLang           string         `db:"dst_lang"`
-	ProviderID        string         `db:"provider_id"`
-	NormHash          string         `db:"norm_hash"`
-	Text              string         `db:"text"`
-	Confidence        *float64       `db:"confidence"`
-	Meta              map[string]any `db:"meta"`
-	UpdateAt          int64          `db:"updateat"`
-	ContentSearchText *string        `db:"content_search_text"`
+	ObjectType        string          `db:"object_type"`
+	ObjectID          string          `db:"object_id"`
+	DstLang           string          `db:"dst_lang"`
+	ProviderID        string          `db:"provider_id"`
+	NormHash          string          `db:"norm_hash"`
+	Text              string          `db:"text"`
+	Confidence        *float64        `db:"confidence"`
+	Meta              TranslationMeta `db:"meta"`
+	UpdateAt          int64           `db:"updateat"`
+	ContentSearchText *string         `db:"content_search_text"`
+}
+
+func (m *TranslationMeta) ToMap() (map[string]any, error) {
+	if m == nil {
+		return nil, nil
+	}
+	var result map[string]any
+	if err := json.Unmarshal(*m, &result); err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func newSqlAutoTranslationStore(sqlStore *SqlStore) store.AutoTranslationStore {
@@ -256,46 +269,64 @@ func (s *SqlAutoTranslationStore) Get(objectType, objectID, dstLang string) (*mo
 			"store.sql_autotranslation.get.app_error", nil, err.Error(), 500)
 	}
 
+	meta, err := translation.Meta.ToMap()
 	var translationTypeStr string
-	if v, ok := translation.Meta["type"]; ok {
+	if err != nil {
+		return nil, model.NewAppError("SqlAutoTranslationStore.Get",
+			"store.sql_autotranslation.meta_json.app_error", nil, err.Error(), 500)
+	}
+
+	if v, ok := meta["type"]; ok {
 		if s, ok := v.(string); ok {
 			translationTypeStr = s
 		}
 	}
+
 	result := &model.Translation{
 		ObjectID:   translation.ObjectID,
 		ObjectType: translation.ObjectType,
 		Lang:       translation.DstLang,
 		Type:       model.TranslationType(translationTypeStr),
-		Text:       translation.Text,
 		Confidence: translation.Confidence,
 		State:      model.TranslationStateReady,
 		NormHash:   &translation.NormHash,
+	}
+
+	if result.Type == model.TranslationTypeObject {
+		result.ObjectJSON = json.RawMessage(translation.Text)
+	} else {
+		result.Text = translation.Text
 	}
 
 	return result, nil
 }
 
 func (s *SqlAutoTranslationStore) Save(translation *model.Translation) *model.AppError {
-	now := model.GetMillis()
-
-	var metaJSON []byte
-	var err error
-	if translation.Meta != nil {
-		metaJSON, err = json.Marshal(translation.Meta)
-		if err != nil {
-			return model.NewAppError("SqlAutoTranslationStore.Save",
-				"store.sql_autotranslation.save.meta_marshal_error", nil, err.Error(), 500)
-		}
+	if !translation.IsValid() {
+		return model.NewAppError("SqlAutoTranslationStore.Save",
+			"store.sql_autotranslation.save.invalid_translation", nil, "translation="+translation.ToJSON(), 400)
 	}
 
+	now := model.GetMillis()
+
+	var err error
 	contentSearchText := translation.Text
 	if translation.Type == model.TranslationTypeObject && len(translation.ObjectJSON) > 0 {
 		contentSearchText = string(translation.ObjectJSON)
 	}
 
-	objectType := string(translation.Type)
+	objectType := translation.ObjectType
 	objectID := translation.ObjectID
+	metaMap := map[string]any{
+		"type": string(translation.Type),
+	}
+
+	metaBytes, err := json.Marshal(metaMap)
+	if err != nil {
+		return model.NewAppError("SqlAutoTranslationStore.Save",
+			"store.sql_autotranslation.save.meta_json.app_error", nil, err.Error(), 500)
+	}
+
 	dstLang := translation.Lang
 	providerID := translation.Provider
 	normHash := ""
@@ -308,7 +339,7 @@ func (s *SqlAutoTranslationStore) Save(translation *model.Translation) *model.Ap
 	query := s.getQueryBuilder().
 		Insert("translations").
 		Columns("object_type", "object_id", "dst_lang", "provider_id", "norm_hash", "text", "confidence", "meta", "updateat", "content_search_text").
-		Values(objectType, objectID, dstLang, providerID, normHash, text, confidence, metaJSON, now, contentSearchText).
+		Values(objectType, objectID, dstLang, providerID, normHash, text, confidence, json.RawMessage(metaBytes), now, contentSearchText).
 		Suffix(`ON CONFLICT (object_type, object_id, dst_lang)
 				DO UPDATE SET
 					provider_id = EXCLUDED.provider_id,
@@ -317,7 +348,8 @@ func (s *SqlAutoTranslationStore) Save(translation *model.Translation) *model.Ap
 					confidence = EXCLUDED.confidence,
 					meta = EXCLUDED.meta,
 					updateat = EXCLUDED.updateat,
-					content_search_text = EXCLUDED.content_search_text`)
+					content_search_text = EXCLUDED.content_search_text
+					WHERE translations.norm_hash IS DISTINCT FROM EXCLUDED.norm_hash`)
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -350,13 +382,13 @@ func (s *SqlAutoTranslationStore) Search(dstLang, searchTerm string, limit int) 
 	}
 
 	type searchResult struct {
-		ObjectType string         `db:"object_type"`
-		ObjectID   string         `db:"object_id"`
-		DstLang    string         `db:"dst_lang"`
-		Text       string         `db:"text"`
-		Confidence *float64       `db:"confidence"`
-		Score      float64        `db:"score"`
-		Meta       map[string]any `db:"meta"`
+		ObjectType string          `db:"object_type"`
+		ObjectID   string          `db:"object_id"`
+		DstLang    string          `db:"dst_lang"`
+		Text       string          `db:"text"`
+		Confidence *float64        `db:"confidence"`
+		Score      float64         `db:"score"`
+		Meta       TranslationMeta `db:"meta"`
 	}
 
 	var results []searchResult
@@ -390,11 +422,17 @@ func (s *SqlAutoTranslationStore) Search(dstLang, searchTerm string, limit int) 
 
 	translations := make([]*model.Translation, len(results))
 	for i, result := range results {
+		meta, err := result.Meta.ToMap()
+		if err != nil {
+			return nil, model.NewAppError("SqlAutoTranslationStore.Search",
+				"store.sql_autotranslation.meta_json.app_error", nil, err.Error(), 500)
+		}
+
 		translations[i] = &model.Translation{
 			ObjectID:   result.ObjectID,
 			ObjectType: result.ObjectType,
 			Lang:       result.DstLang,
-			Type:       model.TranslationType(result.Meta["type"].(string)),
+			Type:       model.TranslationType(meta["type"].(string)),
 			Text:       result.Text,
 			Confidence: result.Confidence,
 			State:      model.TranslationStateReady,

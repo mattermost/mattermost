@@ -10801,6 +10801,10 @@
     "translation": "Member not found."
   },
   {
+    "id": "store.sql_autotranslation.meta_json.app_error",
+    "translation": "Failed to parse translation metadata JSON."
+  },
+  {
     "id": "store.sql_autotranslation.query_build_error",
     "translation": "Failed to build query."
   },
@@ -10809,8 +10813,12 @@
     "translation": "Unable to save translation."
   },
   {
-    "id": "store.sql_autotranslation.save.meta_marshal_error",
-    "translation": "Failed to marshal translation metadata."
+    "id": "store.sql_autotranslation.save.invalid_translation",
+    "translation": "Translation validation failed. The translation object is invalid."
+  },
+  {
+    "id": "store.sql_autotranslation.save.meta_json.app_error",
+    "translation": "Failed to serialize translation metadata to JSON."
   },
   {
     "id": "store.sql_autotranslation.search.app_error",

@@ -5,6 +5,7 @@ package model
 
 import (
 	"encoding/json"
+	"io"
 )
 
 // TranslationType indicates the type of translated content
@@ -37,4 +38,80 @@ type Translation struct {
 	State      TranslationState `json:"state"`
 	Meta       map[string]any   `json:"meta,omitempty"`
 	NormHash   *string          `json:"norm_hash,omitempty"`
+}
+
+func (t *Translation) ToJSON() string {
+	b, _ := json.Marshal(t)
+	return string(b)
+}
+
+func (t *Translation) FromJSON(data io.Reader) (*Translation, error) {
+	err := json.NewDecoder(data).Decode(&t)
+	if err != nil {
+		return nil, err
+	}
+	return t, nil
+}
+
+func (t *Translation) Clone() *Translation {
+	if t == nil {
+		return nil
+	}
+	var confidence *float64
+	if t.Confidence != nil {
+		val := *t.Confidence
+		confidence = &val
+	}
+	var normHash *string
+	if t.NormHash != nil {
+		val := *t.NormHash
+		normHash = &val
+	}
+	var meta map[string]any
+	if t.Meta != nil {
+		meta = make(map[string]any, len(t.Meta))
+		for k, v := range t.Meta {
+			meta[k] = v
+		}
+	}
+	var objectJSON json.RawMessage
+	if t.ObjectJSON != nil {
+		objectJSON = make([]byte, len(t.ObjectJSON))
+		copy(objectJSON, t.ObjectJSON)
+	}
+	return &Translation{
+		ObjectID:   t.ObjectID,
+		ObjectType: t.ObjectType,
+		Lang:       t.Lang,
+		Provider:   t.Provider,
+		Type:       t.Type,
+		Text:       t.Text,
+		ObjectJSON: objectJSON,
+		Confidence: confidence,
+		State:      t.State,
+		Meta:       meta,
+		NormHash:   normHash,
+	}
+}
+
+func (t *Translation) IsValid() bool {
+	if t == nil {
+		return false
+	}
+	if t.Provider == "" || t.ObjectID == "" || !IsValidId(t.ObjectID) || t.ObjectType == "" || t.Lang == "" || t.Type == "" || t.State != TranslationStateReady {
+		return false
+	}
+	if t.Type != TranslationTypeString && t.Type != TranslationTypeObject {
+		return false
+	}
+	if t.Type == TranslationTypeString && t.Text == "" {
+		return false
+	}
+	if t.Type == TranslationTypeObject && len(t.ObjectJSON) == 0 {
+		return false
+	}
+	if t.NormHash != nil && *t.NormHash == "" {
+		return false
+	}
+	return true
 }
