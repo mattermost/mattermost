@@ -159,3 +159,7 @@ func (a *App) PropertyService() *properties.PropertyService {
 func (a *App) UpdateExpiredDNDStatuses() ([]*model.Status, error) {
 	return a.Srv().Store().Status().UpdateExpiredDNDStatuses()
 }
+
+func (a *App) AutoTranslation() einterfaces.AutoTranslationInterface {
+	return a.ch.AutoTranslation
+}

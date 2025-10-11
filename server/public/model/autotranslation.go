@@ -4,6 +4,7 @@
 package model
 
 import (
+	"context"
 	"encoding/json"
 	"maps"
 )
@@ -95,4 +96,52 @@ func (t *Translation) IsValid() bool {
 		return false
 	}
 	return true
+}
+
+// Context keys for auto-translation path tracking
+type AutoTranslationContextKey string
+
+const (
+	ContextKeyAutoTranslationPath AutoTranslationContextKey = "autotranslation_path"
+)
+
+// AutoTranslationPath represents the code path that initiated a translation.
+// This enables observability (metrics) and path-specific behavior (timeouts).
+type AutoTranslationPath string
+
+// Auto-translation path values for metrics and behavior control.
+// Paths follow pattern: <operation> for object operations, <channel> for delivery paths.
+const (
+	AutoTranslationPathCreate            AutoTranslationPath = "create"             // Object creation (e.g., create post)
+	AutoTranslationPathEdit              AutoTranslationPath = "edit"               // Object edit (e.g., edit post)
+	AutoTranslationPathFetch             AutoTranslationPath = "fetch"              // API fetch (on-demand for older objects)
+	AutoTranslationPathWebSocket         AutoTranslationPath = "websocket"          // WebSocket event augmentation
+	AutoTranslationPathPushNotification  AutoTranslationPath = "push_notification"  // Push notification
+	AutoTranslationPathEmailNotification AutoTranslationPath = "email_notification" // Email notification
+	AutoTranslationPathUnknown           AutoTranslationPath = "unknown"            // Fallback
+)
+
+// WithAutoTranslationPath adds translation path to context for metrics and behavior control.
+// This enables both observability (metrics tracking) and path-specific behavior
+// (e.g., different timeouts for websocket vs notification paths).
+//
+// Usage in server (API layer):
+//
+//	ctx = model.WithAutoTranslationPath(ctx, model.AutoTranslationPathCreate)
+//	translation, err := a.AutoTranslation().Translate(ctx, ...)
+func WithAutoTranslationPath(ctx context.Context, path AutoTranslationPath) context.Context {
+	return context.WithValue(ctx, ContextKeyAutoTranslationPath, path)
+}
+
+// GetAutoTranslationPath extracts translation path from context.
+// Returns AutoTranslationPathUnknown if no path is set.
+//
+// Usage in enterprise:
+//
+//	path := model.GetAutoTranslationPath(ctx)
+func GetAutoTranslationPath(ctx context.Context) AutoTranslationPath {
+	if path, ok := ctx.Value(ContextKeyAutoTranslationPath).(AutoTranslationPath); ok {
+		return path
+	}
+	return AutoTranslationPathUnknown
 }
