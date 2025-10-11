@@ -68,6 +68,8 @@ export function DataSpillageReport({post, isRHS}: Props) {
 
     const [reportedPost, setReportedPost] = useState<Post>();
     const channel = useChannel(reportedPost?.channel_id || '');
+    
+    console.log({channel});
 
     useEffect(() => {
         const work = async () => {
@@ -131,17 +133,17 @@ export function DataSpillageReport({post, isRHS}: Props) {
             post_preview: {
                 getPost: loadFlaggedPost,
                 fetchDeletedPost: true,
-                getChannel: getFlaggedPostChannel(reportedPostId),
-                getTeam: getFlaggedPostTeam(reportedPostId),
+                getChannel: getChannel(),
+                getTeam: getTeam(),
             },
             reporting_comment: {
                 placeholder: formatMessage({id: 'data_spillage_report_post.reporting_comment.placeholder', defaultMessage: 'No comment'}),
             },
             team: {
-                getTeam: getFlaggedPostTeam(reportedPostId),
+                getTeam: getTeam(),
             },
             channel: {
-                getChannel: getFlaggedPostChannel(reportedPostId),
+                getChannel: getChannel(),
             },
         };
 
@@ -222,14 +224,14 @@ function saveReviewerSelection(flaggedPostId: string) {
     };
 }
 
-function getFlaggedPostChannel(flaggedPostId: string) {
-    return () => {
-        return Client4.getFlaggedPostChannel(flaggedPostId);
+function getChannel() {
+    return (channelId: string) => {
+        return Client4.getChannel(channelId, true);
     };
 }
 
-function getFlaggedPostTeam(flaggedPostId: string) {
-    return () => {
-        return Client4.getFlaggedPostTeam(flaggedPostId);
+function getTeam() {
+    return (teamId: string) => {
+        return Client4.getTeam(teamId, true);
     };
 }

@@ -32,8 +32,8 @@ func (api *API) InitContentFlagging() {
 	api.BaseRoutes.ContentFlagging.Handle("/config", api.APISessionRequired(getContentFlaggingSettings)).Methods(http.MethodGet)
 	api.BaseRoutes.ContentFlagging.Handle("/team/{team_id:[A-Za-z0-9]+}/reviewers/search", api.APISessionRequired(searchReviewers)).Methods(http.MethodGet)
 	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/assign/{content_reviewer_id:[A-Za-z0-9]+}", api.APISessionRequired(assignFlaggedPostReviewer)).Methods(http.MethodPost)
-	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/channel", api.APISessionRequired(getPostChannel)).Methods(http.MethodGet)
-	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/team", api.APISessionRequired(getPostTeam)).Methods(http.MethodGet)
+	//api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/channel", api.APISessionRequired(getPostChannel)).Methods(http.MethodGet)
+	//api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/team", api.APISessionRequired(getPostTeam)).Methods(http.MethodGet)
 }
 
 func requireContentFlaggingAvailable(c *Context) {
@@ -56,21 +56,8 @@ func requireContentFlaggingEnabled(c *Context) {
 	}
 }
 
-func requireTeamContentReviewer(c *Context, postId string) (channelId, teamId string) {
-	post, appErr := c.App.GetSinglePost(c.AppContext, postId, true)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	userId := c.AppContext.Session().UserId
-	isReviewer, appErr := c.App.IsUserTeamContentReviewer(userId, channel.TeamId)
+func requireTeamContentReviewer(c *Context, userId, teamId string) {
+	isReviewer, appErr := c.App.IsUserTeamContentReviewer(userId, teamId)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -80,10 +67,6 @@ func requireTeamContentReviewer(c *Context, postId string) (channelId, teamId st
 		c.Err = model.NewAppError("requireTeamContentReviewer", "api.content_flagging.error.user_not_reviewer", nil, "", http.StatusForbidden)
 		return
 	}
-
-	channelId = channel.Id
-	teamId = channel.TeamId
-	return
 }
 
 func getFlaggingConfiguration(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -648,58 +631,58 @@ func assignFlaggedPostReviewer(c *Context, w http.ResponseWriter, r *http.Reques
 	writeOKResponse(w)
 }
 
-func getPostChannel(c *Context, w http.ResponseWriter, r *http.Request) {
-	requireContentFlaggingEnabled(c)
-	if c.Err != nil {
-		return
-	}
-
-	c.RequirePostId()
-	if c.Err != nil {
-		return
-	}
-
-	postId := c.Params.PostId
-
-	// This validates that the post is flagged
-	_, appErr := c.App.GetPostContentFlaggingStatusValue(postId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	channelId, _ := requireTeamContentReviewer(c, postId)
-	if c.Err != nil {
-		return
-	}
-
-	getChannelImpl(c, w, r, true, channelId)
-}
-
-func getPostTeam(c *Context, w http.ResponseWriter, r *http.Request) {
-	requireContentFlaggingEnabled(c)
-	if c.Err != nil {
-		return
-	}
-
-	c.RequirePostId()
-	if c.Err != nil {
-		return
-	}
-
-	postId := c.Params.PostId
-
-	// This validates that the post is flagged
-	_, appErr := c.App.GetPostContentFlaggingStatusValue(postId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	_, teamId := requireTeamContentReviewer(c, postId)
-	if c.Err != nil {
-		return
-	}
-
-	getTeamImpl(c, w, r, teamId, true)
-}
+//func getPostChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+//	requireContentFlaggingEnabled(c)
+//	if c.Err != nil {
+//		return
+//	}
+//
+//	c.RequirePostId()
+//	if c.Err != nil {
+//		return
+//	}
+//
+//	postId := c.Params.PostId
+//
+//	// This validates that the post is flagged
+//	_, appErr := c.App.GetPostContentFlaggingStatusValue(postId)
+//	if appErr != nil {
+//		c.Err = appErr
+//		return
+//	}
+//
+//	channelId, _ := requireTeamContentReviewer(c, postId)
+//	if c.Err != nil {
+//		return
+//	}
+//
+//	getChannelImpl(c, w, r, true, channelId)
+//}
+//
+//func getPostTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+//	requireContentFlaggingEnabled(c)
+//	if c.Err != nil {
+//		return
+//	}
+//
+//	c.RequirePostId()
+//	if c.Err != nil {
+//		return
+//	}
+//
+//	postId := c.Params.PostId
+//
+//	// This validates that the post is flagged
+//	_, appErr := c.App.GetPostContentFlaggingStatusValue(postId)
+//	if appErr != nil {
+//		c.Err = appErr
+//		return
+//	}
+//
+//	_, teamId := requireTeamContentReviewer(c, postId)
+//	if c.Err != nil {
+//		return
+//	}
+//
+//	getTeamImpl(c, w, r, teamId, true)
+//}

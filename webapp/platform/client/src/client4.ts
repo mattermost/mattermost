@@ -1321,9 +1321,10 @@ export default class Client4 {
         );
     }
 
-    getTeam = (teamId: string) => {
+    getTeam = (teamId: string, asContentReviewer = false) => {
+        const queryParams = asContentReviewer ? buildQueryString({as_content_reviewer: true}) : '';
         return this.doFetch<Team>(
-            this.getTeamRoute(teamId),
+            `${this.getTeamRoute(teamId)}${queryParams}`,
             {method: 'get'},
         );
     };
@@ -1706,9 +1707,10 @@ export default class Client4 {
         );
     };
 
-    getChannel = (channelId: string) => {
+    getChannel = (channelId: string, asContentReviewer = false) => {
+        const queryParams = asContentReviewer ? buildQueryString({as_content_reviewer: true}) : '';
         return this.doFetch<ServerChannel>(
-            `${this.getChannelRoute(channelId)}`,
+            `${this.getChannelRoute(channelId)}${queryParams}`,
             {method: 'get'},
         );
     };
@@ -4719,19 +4721,19 @@ export default class Client4 {
         );
     };
 
-    getFlaggedPostChannel = (flaggedPostId: string) => {
-        return this.doFetch<Channel>(
-            `${this.getContentFlaggingRoute()}/post/${flaggedPostId}/channel`,
-            {method: 'get'},
-        );
-    };
-
-    getFlaggedPostTeam = (flaggedPostId: string) => {
-        return this.doFetch<Team>(
-            `${this.getContentFlaggingRoute()}/post/${flaggedPostId}/team`,
-            {method: 'get'},
-        );
-    };
+    // getFlaggedPostChannel = (flaggedPostId: string) => {
+    //     return this.doFetch<Channel>(
+    //         `${this.getContentFlaggingRoute()}/post/${flaggedPostId}/channel`,
+    //         {method: 'get'},
+    //     );
+    // };
+    //
+    // getFlaggedPostTeam = (flaggedPostId: string) => {
+    //     return this.doFetch<Team>(
+    //         `${this.getContentFlaggingRoute()}/post/${flaggedPostId}/team`,
+    //         {method: 'get'},
+    //     );
+    // };
 }
 
 export function parseAndMergeNestedHeaders(originalHeaders: any) {

@@ -144,17 +144,24 @@ func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	getTeamImpl(c, w, r, c.Params.TeamId, false)
-}
-
-func getTeamImpl(c *Context, w http.ResponseWriter, r *http.Request, teamId string, skipPermissions bool) {
-	team, err := c.App.GetTeam(teamId)
+	team, err := c.App.GetTeam(c.Params.TeamId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if !skipPermissions {
+	isContentReviewer := false
+	asContentReviewer, _ := strconv.ParseBool(r.URL.Query().Get("as_content_reviewer"))
+	if asContentReviewer {
+		requireTeamContentReviewer(c, c.AppContext.Session().UserId, team.Id)
+		if c.Err != nil {
+			return
+		}
+
+		isContentReviewer = true
+	}
+
+	if !isContentReviewer {
 		isPublicTeam := team.AllowOpenInvite && team.Type == model.TeamOpen
 		hasPermissionViewTeam := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam)
 
