@@ -254,10 +254,10 @@ func (s *SqlAutoTranslationStore) Get(objectType, objectID, dstLang string) (*mo
 		From("translations").
 		Where(sq.Eq{"object_type": objectType, "object_id": objectID, "dst_lang": dstLang})
 
-	queryString, args, err := query.ToSql()
-	if err != nil {
+	queryString, args, qErr := query.ToSql()
+	if qErr != nil {
 		return nil, model.NewAppError("SqlAutoTranslationStore.Get",
-			"store.sql_autotranslation.query_build_error", nil, err.Error(), 500)
+			"store.sql_autotranslation.query_build_error", nil, qErr.Error(), 500)
 	}
 
 	var translation Translation
