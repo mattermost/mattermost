@@ -39,7 +39,7 @@ func newSqlAutoTranslationStore(sqlStore *SqlStore) store.AutoTranslationStore {
 
 func (s *SqlAutoTranslationStore) IsChannelEnabled(channelID string) (bool, *model.AppError) {
 	query := s.getQueryBuilder().
-		Select("COALESCE((props->'autotranslation'->>'enabled')::boolean, false)").
+		Select("COALESCE((props->'autotranslation')::boolean, false)").
 		From("channels").
 		Where(sq.Eq{"id": channelID})
 
@@ -67,14 +67,12 @@ func (s *SqlAutoTranslationStore) IsChannelEnabled(channelID string) (bool, *mod
 }
 
 func (s *SqlAutoTranslationStore) SetChannelEnabled(channelID string, enabled bool) *model.AppError {
-	enabledJSON := "false"
-	if enabled {
-		enabledJSON = "true"
-	}
-
 	query := s.getQueryBuilder().
 		Update("channels").
-		Set("props", sq.Expr("jsonb_set(COALESCE(props, '{}'::jsonb), '{autotranslation,enabled}', ?::jsonb)", enabledJSON)).
+		Set("props", sq.Expr(
+			"jsonb_set(COALESCE(props, '{}'::jsonb), '{autotranslation}', (?::jsonb), true)",
+			fmt.Sprintf("%v", enabled),
+		)).
 		Where(sq.Eq{"id": channelID})
 
 	queryString, args, err := query.ToSql()
@@ -105,11 +103,11 @@ func (s *SqlAutoTranslationStore) SetChannelEnabled(channelID string, enabled bo
 
 func (s *SqlAutoTranslationStore) IsUserEnabled(userID, channelID string) (bool, *model.AppError) {
 	query := s.getQueryBuilder().
-		Select("COALESCE((cm.props->'autotranslation'->>'enabled')::boolean, false)").
+		Select("COALESCE((cm.props->'autotranslation')::boolean, false)").
 		From("channelmembers cm").
 		Join("channels c ON cm.channelid = c.id").
 		Where(sq.Eq{"cm.userid": userID, "cm.channelid": channelID}).
-		Where("COALESCE((c.props->'autotranslation'->>'enabled')::boolean, false) = true")
+		Where("COALESCE((c.props->'autotranslation')::boolean, false) = true")
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -135,14 +133,12 @@ func (s *SqlAutoTranslationStore) IsUserEnabled(userID, channelID string) (bool,
 }
 
 func (s *SqlAutoTranslationStore) SetUserEnabled(userID, channelID string, enabled bool) *model.AppError {
-	enabledJSON := "false"
-	if enabled {
-		enabledJSON = "true"
-	}
-
 	query := s.getQueryBuilder().
 		Update("channelmembers").
-		Set("props", sq.Expr("jsonb_set(COALESCE(props, '{}'::jsonb), '{autotranslation,enabled}', ?::jsonb)", enabledJSON)).
+		Set("props", sq.Expr(
+			"jsonb_set(COALESCE(props, '{}'::jsonb), '{autotranslation}', (?::jsonb), true)",
+			fmt.Sprintf("%v", enabled),
+		)).
 		Where(sq.Eq{"userid": userID, "channelid": channelID})
 
 	queryString, args, err := query.ToSql()
@@ -179,8 +175,8 @@ func (s *SqlAutoTranslationStore) GetUserLanguage(userID, channelID string) (str
 		Join("channelmembers cm ON u.id = cm.userid").
 		Join("channels c ON cm.channelid = c.id").
 		Where(sq.Eq{"u.id": userID, "c.id": channelID}).
-		Where("COALESCE((c.props->'autotranslation'->>'enabled')::boolean, false) = true").
-		Where("COALESCE((cm.props->'autotranslation'->>'enabled')::boolean, false) = true")
+		Where("COALESCE((c.props->'autotranslation')::boolean, false) = true").
+		Where("COALESCE((cm.props->'autotranslation')::boolean, false) = true")
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -207,8 +203,8 @@ func (s *SqlAutoTranslationStore) GetActiveDestinationLanguages(channelID, exclu
 		Join("channels c ON c.id = cm.channelid").
 		Join("users u ON u.id = cm.userid").
 		Where(sq.Eq{"cm.channelid": channelID}).
-		Where("COALESCE((c.props->'autotranslation'->>'enabled')::boolean, false) = true").
-		Where("COALESCE((cm.props->'autotranslation'->>'enabled')::boolean, false) = true")
+		Where("COALESCE((c.props->'autotranslation')::boolean, false) = true").
+		Where("COALESCE((cm.props->'autotranslation')::boolean, false) = true")
 
 	// Filter to specific user IDs if provided (e.g., users with active WebSocket connections)
 	// When filterUserIDs is non-nil and non-empty, squirrel converts it to an IN clause
