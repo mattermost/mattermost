@@ -4767,12 +4767,20 @@
         "translation": "Unable to create initial sidebar categories for user."
     },
     {
+        "id": "app.channel.get.app_error",
+        "translation": "Could not get channel."
+    },
+    {
+        "id": "app.channel.get_channels_by_user.app_error",
+        "translation": "Unable to get channels for the given user."
+    },
+    {
         "id": "app.channel.delete.app_error",
         "translation": "Unable to delete the channel."
     },
     {
-        "id": "app.channel.get.app_error",
-        "translation": "Could not get channel."
+        "id": "app.user.deactivated.dm_archive_failed",
+        "translation": "Failed to archive direct message channels during user deactivation."
     },
     {
         "id": "app.channel.get.existing.app_error",
