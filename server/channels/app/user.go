@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -1035,6 +1036,44 @@ func (a *App) userDeactivated(rctx request.CTX, userID string) *model.AppError {
 
 	if nErr := a.Srv().Store().OAuth().RemoveAuthDataByUserId(userID); nErr != nil {
 		rctx.Logger().Warn("unable to remove auth data by user id", mlog.Err(nErr))
+	}
+
+	if appErr := a.softDeleteUserDMChannels(rctx, userID); appErr != nil {
+		return model.NewAppError("userDeactivated", "app.user.deactivated.dm_archive_failed", nil, "", http.StatusInternalServerError).Wrap(appErr)
+	}
+
+	return nil
+}
+
+func (a *App) softDeleteUserDMChannels(rctx request.CTX, userID string) *model.AppError {
+	fromID := ""
+	const pageSize = 200
+
+	for {
+		channels, err := a.Srv().Store().Channel().GetChannelsByUser(userID, false /* includeDeleted */, 0, pageSize, fromID)
+		if err != nil {
+			var nf *store.ErrNotFound
+			if errors.As(err, &nf) || errors.Is(err, sql.ErrNoRows) {
+				return nil
+			}
+			return model.NewAppError("softDeleteUserDMChannels", "app.channel.get_channels_by_user.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		for _, channel := range channels {
+			fromID = channel.Id
+
+			if channel.Type != model.ChannelTypeDirect {
+				continue
+			}
+
+			if err := a.DeleteChannel(rctx, channel, userID); err != nil {
+				return model.NewAppError("softDeleteUserDMChannels", "app.channel.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+		}
+
+		if len(channels) < pageSize {
+			break
+		}
 	}
 
 	return nil
