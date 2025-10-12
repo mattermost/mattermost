@@ -48,6 +48,14 @@
     "translation": "September"
   },
   {
+    "id": "api.access_control.feature_disabled",
+    "translation": ""
+  },
+  {
+    "id": "api.access_control.license_required",
+    "translation": ""
+  },
+  {
     "id": "api.access_control_policy.get_channels.limit.app_error",
     "translation": "Get channels limit is not valid."
   },
@@ -4585,6 +4593,22 @@
   {
     "id": "api4.plugin.reattachPlugin.invalid_request",
     "translation": "Failed to parse request"
+  },
+  {
+    "id": "app.access_control.count_posts.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.access_control.get_channel.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.access_control.get_policy.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.access_control.get_policy_history.app_error",
+    "translation": ""
   },
   {
     "id": "app.access_control.insufficient_permissions",

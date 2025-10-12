@@ -4628,7 +4628,6 @@ export default class Client4 {
         );
     };
 
-
     getTeamContentFlaggingStatus = (teamId: string) => {
         return this.doFetch<{enabled: boolean}>(
             `${this.getContentFlaggingRoute()}/team/${teamId}/status`,

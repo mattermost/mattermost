@@ -436,7 +436,7 @@ func testAccessControlPolicyStoreGetPolicyHistory(t *testing.T, rctx request.CTX
 			Rules: []model.AccessControlPolicyRule{
 				{Expression: "user.department == 'engineering'", Actions: []string{"*"}},
 			},
-			Props: make(map[string]interface{}),
+			Props: make(map[string]any),
 		}
 
 		// Save new policy (first time)
@@ -466,7 +466,7 @@ func testAccessControlPolicyStoreGetPolicyHistory(t *testing.T, rctx request.CTX
 			Rules: []model.AccessControlPolicyRule{
 				{Expression: "user.department == 'engineering'", Actions: []string{"*"}},
 			},
-			Props: make(map[string]interface{}),
+			Props: make(map[string]any),
 		}
 
 		// Save initial policy
@@ -522,7 +522,7 @@ func testAccessControlPolicyStoreGetPolicyHistory(t *testing.T, rctx request.CTX
 			Rules: []model.AccessControlPolicyRule{
 				{Expression: "user.department == 'engineering'", Actions: []string{"*"}},
 			},
-			Props: make(map[string]interface{}),
+			Props: make(map[string]any),
 		}
 
 		// Create multiple revisions to test limit
