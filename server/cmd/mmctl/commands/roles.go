@@ -15,7 +15,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var RolesCmd = &cobra.Command{
@@ -69,36 +68,21 @@ func init() {
 }
 
 func rolesListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	var errs *multierror.Error
-
-	roles, resp, err := c.GetAllRoles(context.TODO())
+	roles, _, err := c.GetAllRoles(context.TODO())
 	if err != nil {
-		errs = multierror.Append(errs, fmt.Errorf("failed to get roles: %w", err))
+		return fmt.Errorf("failed to get roles: %w", err)
 	}
-
-	jsonOut := viper.GetBool("json")
 
 	if len(roles) == 0 {
-		if resp != nil && (resp.StatusCode == 401 || resp.StatusCode == 403) {
-			printer.PrintError("You don't have permissions to list roles")
-		} else {
-			printer.Print("No roles found.")
-		}
-		return errs.ErrorOrNil()
+		printer.Print("No roles found.")
+		return nil
 	}
 
-	if jsonOut {
-		for _, role := range roles {
-			printer.Print(role)
-		}
-	} else {
-		printer.Print("Available roles:")
-		for _, role := range roles {
-			printer.Print(fmt.Sprintf("- %s", role.Name))
-		}
+	for _, role := range roles {
+		printer.PrintT("{{.Name}}", role)
 	}
 
-	return errs.ErrorOrNil()
+	return nil
 }
 
 func rolesSystemAdminCmdF(c client.Client, _ *cobra.Command, args []string) error {

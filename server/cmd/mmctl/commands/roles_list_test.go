@@ -6,6 +6,7 @@ package commands
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -70,17 +71,16 @@ func (s *MmctlUnitTestSuite) TestRolesListPermissionError() {
 	s.Run("Test permission denied message for getting roles", func() {
 		printer.Clean()
 
+		forbiddenErr := fmt.Errorf("forbidden")
 		s.client.
 			EXPECT().
 			GetAllRoles(context.TODO()).
-			Return(nil, &model.Response{StatusCode: http.StatusForbidden}, nil).
+			Return(nil, &model.Response{StatusCode: http.StatusForbidden}, forbiddenErr).
 			Times(1)
 
 		err := rolesListCmdF(s.client, nil, nil)
 
-		s.Require().NoError(err)
-		errLines := printer.GetErrorLines()
-		s.Require().NotEmpty(errLines)
-		s.Require().Contains(errLines[0], "You don't have permissions to list roles")
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "failed to get roles")
 	})
 }
