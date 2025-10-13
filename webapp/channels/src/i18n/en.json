@@ -340,6 +340,7 @@
   "admin.access_control.table_editor.selector.filter_or_create": "Search or create value...",
   "admin.access_control.table_editor.selector.select_attribute": "Select attribute",
   "admin.access_control.table_editor.test_access_rule": "Test access rule",
+  "admin.access_control.table_editor.user_excluded_tooltip": "You cannot test access rules that would exclude you from the channel",
   "admin.access_control.table_editor.value.placeholder": "Add value...",
   "admin.access_control.table_editor.value.select_value": "Select value",
   "admin.access_control.table_editor.values": "Values",
