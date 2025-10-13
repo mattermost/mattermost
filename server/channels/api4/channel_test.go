@@ -1700,7 +1700,6 @@ func TestGetChannel(t *testing.T) {
 		require.NoError(t, err)
 
 		privateChannel := th.CreateChannelWithClient(contentReviewClient, model.ChannelTypePrivate)
-		th.AddUserToChannel(th.BasicUser, privateChannel)
 		post := th.CreatePostWithClient(contentReviewClient, privateChannel)
 
 		response, err := contentReviewClient.FlagPostForContentReview(context.Background(), post.Id, &model.FlagContentRequest{

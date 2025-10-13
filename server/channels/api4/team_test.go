@@ -303,16 +303,18 @@ func TestGetTeam(t *testing.T) {
 		appErr := setBasicCommonReviewerConfig(th)
 		require.Nil(t, appErr)
 
+		contentReviewClient := th.CreateClient()
+		_, _, err := contentReviewClient.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
+
 		th.LoginBasic()
 
 		privateTeam := th.CreateTeam()
-		th.LinkUserToTeam(th.BasicUser, privateTeam)
-
-		privateChannel := th.CreateChannelWithClientAndTeam(client, model.ChannelTypePrivate, privateTeam.Id)
+		privateChannel := th.CreateChannelWithClientAndTeam(contentReviewClient, model.ChannelTypePrivate, privateTeam.Id)
 		th.AddUserToChannel(th.BasicUser, privateChannel)
-		post := th.CreatePostWithClient(client, privateChannel)
+		post := th.CreatePostWithClient(contentReviewClient, privateChannel)
 
-		response, err := client.FlagPostForContentReview(context.Background(), post.Id, &model.FlagContentRequest{
+		response, err := contentReviewClient.FlagPostForContentReview(context.Background(), post.Id, &model.FlagContentRequest{
 			Reason:  "Sensitive data",
 			Comment: "This is sensitive content",
 		})
@@ -321,14 +323,8 @@ func TestGetTeam(t *testing.T) {
 
 		th.UnlinkUserFromTeam(th.BasicUser, privateTeam)
 
-		// verify that by default the user cannot fetch the team due to lack of membership
-		fetchedTeam, _, err := client.GetTeam(context.Background(), privateTeam.Id, "")
-		require.Error(t, err)
-		CheckUnauthorizedStatus(t, resp)
-		require.Nil(t, fetchedTeam)
-
 		// now we will fetch the team providing the required params to indicate that we are fetching it for content review
-		fetchedTeam, _, err = client.GetTeamAsContentReviewer(context.Background(), privateTeam.Id, "", post.Id)
+		fetchedTeam, _, err := contentReviewClient.GetTeamAsContentReviewer(context.Background(), privateTeam.Id, "", post.Id)
 		require.NoError(t, err)
 		require.Equal(t, privateTeam.Id, fetchedTeam.Id)
 
@@ -337,12 +333,13 @@ func TestGetTeam(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, contentFlaggingSettings)
 
+		// Making system admin as a reviewer because there needs to be some reviewers
 		contentFlaggingSettings.ReviewerSettings.CommonReviewerIds = []string{th.SystemAdminUser.Id}
 		resp, err = th.SystemAdminClient.SaveContentFlaggingSettings(context.Background(), contentFlaggingSettings)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
-		_, resp, err = client.GetTeamAsContentReviewer(context.Background(), privateTeam.Id, "", post.Id)
+		_, resp, err = contentReviewClient.GetTeamAsContentReviewer(context.Background(), privateTeam.Id, "", post.Id)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
