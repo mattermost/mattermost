@@ -158,6 +158,29 @@ func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		flaggedPostId := r.URL.Query().Get("flagged_post_id")
+		requireFlaggedPost(c, flaggedPostId)
+		if c.Err != nil {
+			return
+		}
+
+		post, appErr := c.App.GetSinglePost(c.AppContext, flaggedPostId, true)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+
+		channel, err := c.App.GetChannel(c.AppContext, post.ChannelId)
+		if err != nil {
+			c.Err = err
+			return
+		}
+
+		if channel.TeamId != team.Id {
+			c.Err = model.NewAppError("getTeam", "api.team.get_team.flagged_post_mismatch.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+
 		isContentReviewer = true
 	}
 

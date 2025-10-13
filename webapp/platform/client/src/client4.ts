@@ -1321,8 +1321,17 @@ export default class Client4 {
         );
     }
 
-    getTeam = (teamId: string, asContentReviewer = false) => {
-        const queryParams = asContentReviewer ? buildQueryString({as_content_reviewer: true}) : '';
+    getTeam = (teamId: string, asContentReviewer = false, flaggedPostId?: string) => {
+        const queryParamsArgs: Record<string, any> = {};
+        if (asContentReviewer) {
+            queryParamsArgs.as_content_reviewer = true;
+        }
+
+        if (flaggedPostId) {
+            queryParamsArgs.flagged_post_id = flaggedPostId;
+        }
+
+        const queryParams = buildQueryString(queryParamsArgs);
         return this.doFetch<Team>(
             `${this.getTeamRoute(teamId)}${queryParams}`,
             {method: 'get'},
@@ -1707,8 +1716,17 @@ export default class Client4 {
         );
     };
 
-    getChannel = (channelId: string, asContentReviewer = false) => {
-        const queryParams = asContentReviewer ? buildQueryString({as_content_reviewer: true}) : '';
+    getChannel = (channelId: string, asContentReviewer = false, flaggedPostId?: string) => {
+        const queryParamsArgs: Record<string, any> = {};
+        if (asContentReviewer) {
+            queryParamsArgs.as_content_reviewer = true;
+        }
+
+        if (flaggedPostId) {
+            queryParamsArgs.flagged_post_id = flaggedPostId;
+        }
+
+        const queryParams = buildQueryString(queryParamsArgs);
         return this.doFetch<ServerChannel>(
             `${this.getChannelRoute(channelId)}${queryParams}`,
             {method: 'get'},
@@ -4720,20 +4738,6 @@ export default class Client4 {
             {method: 'get'},
         );
     };
-
-    // getFlaggedPostChannel = (flaggedPostId: string) => {
-    //     return this.doFetch<Channel>(
-    //         `${this.getContentFlaggingRoute()}/post/${flaggedPostId}/channel`,
-    //         {method: 'get'},
-    //     );
-    // };
-    //
-    // getFlaggedPostTeam = (flaggedPostId: string) => {
-    //     return this.doFetch<Team>(
-    //         `${this.getContentFlaggingRoute()}/post/${flaggedPostId}/team`,
-    //         {method: 'get'},
-    //     );
-    // };
 }
 
 export function parseAndMergeNestedHeaders(originalHeaders: any) {

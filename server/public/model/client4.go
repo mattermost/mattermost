@@ -3554,26 +3554,6 @@ func (c *Client4) SearchContentFlaggingReviewers(ctx context.Context, teamID, te
 	return DecodeJSONFromResponse[[]*User](r)
 }
 
-func (c *Client4) GetFlaggedPostPostChannel(ctx context.Context, postId string) (*Channel, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.contentFlaggingRoute()+"/post/"+postId+"/channel", "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-
-	defer closeBody(r)
-	return DecodeJSONFromResponse[*Channel](r)
-}
-
-func (c *Client4) GetFlaggedPostPostTeam(ctx context.Context, postId string) (*Team, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.contentFlaggingRoute()+"/post/"+postId+"/team", "")
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-
-	defer closeBody(r)
-	return DecodeJSONFromResponse[*Team](r)
-}
-
 // SearchFiles returns any posts with matching terms string.
 func (c *Client4) SearchFiles(ctx context.Context, teamId string, terms string, isOrSearch bool) (*FileInfoList, *Response, error) {
 	params := SearchParameter{

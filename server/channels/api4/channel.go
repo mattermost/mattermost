@@ -637,42 +637,27 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		flaggedPostId := r.URL.Query().Get("flagged_post_id")
+		requireFlaggedPost(c, flaggedPostId)
+		if c.Err != nil {
+			return
+		}
+
+		post, appErr := c.App.GetSinglePost(c.AppContext, flaggedPostId, true)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+
+		if post.ChannelId != channel.Id {
+			c.Err = model.NewAppError("getChannel", "api.channel.get_channel.flagged_post_mismatch.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+
 		isContentReviewer = true
 	}
 
 	if !isContentReviewer {
-		if channel.Type == model.ChannelTypeOpen {
-			if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel) && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel) {
-				c.SetPermissionError(model.PermissionReadPublicChannel)
-				return
-			}
-		} else {
-			if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel) {
-				c.SetPermissionError(model.PermissionReadChannel)
-				return
-			}
-		}
-	}
-
-	err = c.App.FillInChannelProps(c.AppContext, channel)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	if err := json.NewEncoder(w).Encode(channel); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
-	}
-}
-
-func getChannelImpl(c *Context, w http.ResponseWriter, r *http.Request, skipPermissions bool, channelId string) {
-	channel, err := c.App.GetChannel(c.AppContext, channelId)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	if !skipPermissions {
 		if channel.Type == model.ChannelTypeOpen {
 			if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel) && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel) {
 				c.SetPermissionError(model.PermissionReadPublicChannel)

@@ -12,7 +12,10 @@ import type {NameMappedPropertyFields, PropertyValue} from '@mattermost/types/pr
 import {Client4} from 'mattermost-redux/client';
 
 import AtMention from 'components/at_mention';
-import {useChannel} from 'components/common/hooks/useChannel';
+import {
+    useChannel,
+    useChannelAsReviewer,
+} from "components/common/hooks/useChannel";
 import {useContentFlaggingFields, usePostContentFlaggingValues} from 'components/common/hooks/useContentFlaggingFields';
 import {useUser} from 'components/common/hooks/useUser';
 import DataSpillageAction from 'components/post_view/data_spillage_report/data_spillage_actions/data_spillage_actions';
@@ -67,9 +70,7 @@ export function DataSpillageReport({post, isRHS}: Props) {
     const naturalPropertyValues = usePostContentFlaggingValues(reportedPostId);
 
     const [reportedPost, setReportedPost] = useState<Post>();
-    const channel = useChannel(reportedPost?.channel_id || '');
-    
-    console.log({channel});
+    const channel = useChannel(reportedPost?.channel_id || '', true);
 
     useEffect(() => {
         const work = async () => {
@@ -133,17 +134,17 @@ export function DataSpillageReport({post, isRHS}: Props) {
             post_preview: {
                 getPost: loadFlaggedPost,
                 fetchDeletedPost: true,
-                getChannel: getChannel(),
-                getTeam: getTeam(),
+                getChannel: getChannel(reportedPostId),
+                getTeam: getTeam(reportedPostId),
             },
             reporting_comment: {
                 placeholder: formatMessage({id: 'data_spillage_report_post.reporting_comment.placeholder', defaultMessage: 'No comment'}),
             },
             team: {
-                getTeam: getTeam(),
+                getTeam: getTeam(reportedPostId),
             },
             channel: {
-                getChannel: getChannel(),
+                getChannel: getChannel(reportedPostId),
             },
         };
 
@@ -224,14 +225,14 @@ function saveReviewerSelection(flaggedPostId: string) {
     };
 }
 
-function getChannel() {
+function getChannel(flaggedPostId: string) {
     return (channelId: string) => {
-        return Client4.getChannel(channelId, true);
+        return Client4.getChannel(channelId, true, flaggedPostId);
     };
 }
 
-function getTeam() {
+function getTeam(flaggedPostId: string) {
     return (teamId: string) => {
-        return Client4.getTeam(teamId, true);
+        return Client4.getTeam(teamId, true, flaggedPostId);
     };
 }

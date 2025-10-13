@@ -11,12 +11,12 @@ import type {GlobalState} from 'types/store';
 export type UseDataOptions<Entity, Identifier = string, State = GlobalState> = {
     name: string;
 
-    fetch: (identifier: Identifier) => Action | ThunkAction<unknown, State, unknown, Action>;
+    fetch: (identifier: Identifier, ...fetchArgs: unknown[]) => Action | ThunkAction<unknown, State, unknown, Action>;
     selector: (state: State, identifier: Identifier) => Entity | undefined;
 }
 
 export function makeUseEntity<Entity, Identifier = string, State = GlobalState>(options: UseDataOptions<Entity, Identifier, State>) {
-    function useEntity(identifier: Identifier): Entity | undefined {
+    function useEntity(identifier: Identifier, ...fetchArgs: unknown[]): Entity | undefined {
         const dispatch = useDispatch();
 
         const entity = useSelector((state: State) => {
@@ -26,9 +26,9 @@ export function makeUseEntity<Entity, Identifier = string, State = GlobalState>(
         const entityLoaded = Boolean(entity);
         useEffect(() => {
             if (!entityLoaded && identifier) {
-                dispatch(options.fetch(identifier));
+                dispatch(options.fetch(identifier, ...fetchArgs));
             }
-        }, [dispatch, entityLoaded, identifier]);
+        }, [dispatch, entityLoaded, fetchArgs, identifier]);
 
         return entity;
     }
