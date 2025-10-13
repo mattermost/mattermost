@@ -10954,5 +10954,49 @@
   {
     "id": "app.content_flagging.no_status_property.app_error",
     "translation": "Kan gemarkeerd bericht niet ophalen omdat het bericht niet gemarkeerd is."
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.app_error",
+    "translation": "Overschrijven van bericht met verwijderd bericht mislukt bij definitief verwijderen van gemarkeerd bericht."
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.marshal_comment.app_error",
+    "translation": "Fout bij het verwerken van de commentaar van de beoordeelaar"
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.update_property_value.app_error",
+    "translation": "Faalde in het bijwerken van de status van gemarkeerde berichten bij het permanent verwijderen van gemarkeerde berichten."
+  },
+  {
+    "id": "app.content_flagging.restore_file_info.app_error",
+    "translation": "Fout bij het herstellen van de bestandsinfo voor het gemarkeerde bericht."
+  },
+  {
+    "id": "app.content_flagging.search_property_fields.app_error",
+    "translation": "Fout bij het zoeken naar Content Flagging eigenschapsvelden."
+  },
+  {
+    "id": "app.content_flagging.search_property_values.app_error",
+    "translation": "Fout bij het ophalen van de waarden van de inhoudsmarkeringseigenschappen uit de database."
+  },
+  {
+    "id": "app.content_flagging.search_status_property.app_error",
+    "translation": "Fout bij het zoeken van de Property Values voor de gemelde post."
+  },
+  {
+    "id": "app.post_priority.delete_for_post.app_error",
+    "translation": "Fout bij het permanent verwijderen van de prioriteitsgegevens uit de database voor het bericht."
+  },
+  {
+    "id": "app.save_scheduled_post.restricted_dm.error",
+    "translation": "Kan bericht niet plannen in een beperkte DM"
+  },
+  {
+    "id": "app.system.content_review_bot.bot_displayname",
+    "translation": "Inhoud beoordelen"
+  },
+  {
+    "id": "app.upload.create.cannot_upload_to_restricted_dm.error",
+    "translation": "Kan geen bestand uploaden naar een beperkt direct bericht."
   }
 ]
