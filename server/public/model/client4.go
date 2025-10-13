@@ -3514,6 +3514,24 @@ func (c *Client4) GetTeamPostFlaggingFeatureStatus(ctx context.Context, teamId s
 	return DecodeJSONFromResponse[map[string]bool](r)
 }
 
+func (c *Client4) SaveContentFlaggingSettings(ctx context.Context, config *ContentFlaggingSettingsRequest) (*Response, error) {
+	r, err := c.DoAPIPutJSON(ctx, c.contentFlaggingRoute()+"/config", config)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) GetContentFlaggingSettings(ctx context.Context) (*ContentFlaggingSettingsRequest, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.contentFlaggingRoute()+"/config", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*ContentFlaggingSettingsRequest](r)
+}
+
 // SearchFiles returns any posts with matching terms string.
 func (c *Client4) SearchFiles(ctx context.Context, teamId string, terms string, isOrSearch bool) (*FileInfoList, *Response, error) {
 	params := SearchParameter{
