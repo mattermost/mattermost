@@ -10884,5 +10884,93 @@
   {
     "id": "app.content_flagging.flag_post.marshal_reason.app_error",
     "translation": "フラグを立てたユーザーの理由を変換できませんでした"
+  },
+  {
+    "id": "app.content_flagging.flag_post_confirmation.message",
+    "translation": "@{{.username}}からのメッセージにレビューフラグが立てられました。コンテンツレビュワーによるレビューが完了次第、通知されます。 "
+  },
+  {
+    "id": "app.content_flagging.get_group.error",
+    "translation": "Content Flaggingボットを取得できませんでした。"
+  },
+  {
+    "id": "app.content_flagging.get_status_property.app_error",
+    "translation": "Statusプロパティフィールドを取得できませんでした。"
+  },
+  {
+    "id": "app.content_flagging.get_users_in_team.app_error",
+    "translation": "チーム内のレビュワーを検索できませんでした。"
+  },
+  {
+    "id": "app.content_flagging.keep_flag_post.marshal_comment.app_error",
+    "translation": "レビュワーのコメントを変換できませんでした"
+  },
+  {
+    "id": "app.content_flagging.keep_post.status_update.app_error",
+    "translation": "フラグの立てられた投稿の削除解除時に投稿のステータスを更新できませんでした "
+  },
+  {
+    "id": "app.content_flagging.keep_post.undelete.app_error",
+    "translation": "フラグの立てられた投稿の削除を解除しようとした際にデータベース内の投稿を更新できませんでした。"
+  },
+  {
+    "id": "app.content_flagging.marshal_property_values.app_error",
+    "translation": "WebSocketイベント内で送信するContent Flaggingプロパティ値を変換できませんでした。"
+  },
+  {
+    "id": "app.content_flagging.no_status_property.app_error",
+    "translation": "投稿がフラグ立てされていないためフラグ立てした投稿を取得できませんでした。"
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.app_error",
+    "translation": "フラグ立てした投稿を完全に削除する際、検閲済みの投稿で元の投稿を上書きできませんでした。"
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.marshal_comment.app_error",
+    "translation": "レビュワーコメントを変換できませんでした"
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.update_property_value.app_error",
+    "translation": "フラグ立てした投稿を完全に削除する際、投稿のステータスを更新できませんでした。"
+  },
+  {
+    "id": "app.content_flagging.restore_file_info.app_error",
+    "translation": "フラグ立てした投稿のファイル情報を復元できませんでした。"
+  },
+  {
+    "id": "app.content_flagging.search_property_fields.app_error",
+    "translation": "Content Flaggingプロパティフィールドを検索できませんでした。"
+  },
+  {
+    "id": "app.content_flagging.search_property_values.app_error",
+    "translation": "データベースから投稿のContent Flaggingプロパティ値を取得できませんでした。"
+  },
+  {
+    "id": "app.content_flagging.search_status_property.app_error",
+    "translation": "フラグ立てした投稿のプロパティ値を検索できませんでした。"
+  },
+  {
+    "id": "app.job.get_existing_jobs.error",
+    "translation": "既存のジョブを取得できませんでした。"
+  },
+  {
+    "id": "app.post_priority.delete_for_post.app_error",
+    "translation": "投稿に対するデータベースから投稿の優先度に関するデータを完全に削除できませんでした。"
+  },
+  {
+    "id": "app.save_scheduled_post.restricted_dm.error",
+    "translation": "制限されたDM内でスケジュール済み投稿はできません"
+  },
+  {
+    "id": "app.submit_interactive_dialog.invalid_response",
+    "translation": "インタラクティブダイアログの送信で不正なレスポンスが検出されました。"
+  },
+  {
+    "id": "app.system.content_review_bot.bot_displayname",
+    "translation": "コンテンツレビュー"
+  },
+  {
+    "id": "app.upload.create.cannot_upload_to_restricted_dm.error",
+    "translation": "制限されたダイレクトメッセージにファイルをアップロードできません。"
   }
 ]
