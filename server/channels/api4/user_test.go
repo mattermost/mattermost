@@ -6447,6 +6447,51 @@ func TestVerifyUserEmailWithoutToken(t *testing.T) {
 	}, "Should verify a new user")
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		// Enable MFA for this test
+		th.App.Srv().SetLicense(model.NewTestLicense("mfa"))
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = true })
+
+		email := th.GenerateTestEmail()
+		user := model.User{Email: email, Nickname: "Test User", Password: "password123", Username: GenerateTestUsername(), Roles: model.SystemUserRoleId}
+		ruser, _, _ := th.Client.CreateUser(context.Background(), &user)
+
+		// Set some NotifyProps to ensure we have data to verify is preserved
+		ruser.NotifyProps = map[string]string{
+			"email":   "true",
+			"push":    "mention",
+			"desktop": "mention",
+			"channel": "true",
+		}
+		_, appErr := th.App.UpdateUser(th.Context, ruser, false)
+		require.Nil(t, appErr)
+
+		// Set up MFA secret for the user
+		secret, appErr := th.App.GenerateMfaSecret(ruser.Id)
+		require.Nil(t, appErr)
+		err := th.Server.Store().User().UpdateMfaSecret(ruser.Id, secret.Secret)
+		require.NoError(t, err)
+
+		// Verify the user has a password hash and MFA secret in the database
+		dbUser, appErr := th.App.GetUser(ruser.Id)
+		require.Nil(t, appErr)
+		require.NotEmpty(t, dbUser.Password, "User should have a password hash in database")
+		require.NotEmpty(t, dbUser.MfaSecret, "User should have MFA secret in database")
+
+		// Call the API endpoint
+		vuser, _, err := client.VerifyUserEmailWithoutToken(context.Background(), ruser.Id)
+		require.NoError(t, err)
+		require.Equal(t, ruser.Id, vuser.Id)
+
+		// Verify sensitive fields are sanitized in the response
+		require.Empty(t, vuser.Password, "Password hash should be sanitized from response")
+		require.Empty(t, vuser.MfaSecret, "MFA secret should be sanitized from response")
+
+		// Verify admin-level fields like NotifyProps are preserved for system admin
+		require.NotEmpty(t, vuser.NotifyProps, "NotifyProps should be preserved for system admin")
+		require.Equal(t, "true", vuser.NotifyProps["email"], "NotifyProps data should be preserved for system admin")
+	}, "Should sanitize password hash and MFA secret from response")
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		vuser, _, err := client.VerifyUserEmailWithoutToken(context.Background(), "randomId")
 		require.Error(t, err)
 		CheckErrorID(t, err, "api.context.invalid_url_param.app_error")
