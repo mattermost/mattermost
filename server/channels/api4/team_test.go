@@ -318,7 +318,7 @@ func TestGetTeam(t *testing.T) {
 		// verify that by default the user cannot fetch the team due to lack of membership
 		fetchedTeam, _, err := client.GetTeam(context.Background(), privateTeam.Id, "")
 		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
+		CheckUnauthorizedStatus(t, resp)
 		require.Nil(t, fetchedTeam)
 
 		// now we will fetch the team providing the required params to indicate that we are fetching it for content review
