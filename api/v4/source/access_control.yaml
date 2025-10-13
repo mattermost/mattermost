@@ -569,3 +569,44 @@
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
+  "/api/v4/access_control_policies/{policy_id}/activity":
+    get:
+      tags:
+        - access control
+      summary: Get channel activity warning status
+      description: |
+        Checks if there has been channel activity since the last access rule change
+        that would require showing a warning to administrators.
+        ##### Permissions
+        Must have the `manage_system` permission or be a channel admin for the specific channel.
+      operationId: GetChannelActivityWarning
+      parameters:
+        - name: policy_id
+          in: path
+          description: The ID of the channel access control policy.
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Activity warning status retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  should_show_warning:
+                    type: boolean
+                    description: Whether to show the activity warning to administrators
+                required:
+                  - should_show_warning
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"

@@ -631,3 +631,49 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 
 	return policies, total, nil
 }
+
+func (s *SqlAccessControlPolicyStore) GetPolicyHistory(rctx request.CTX, id string, limit int) ([]*model.AccessControlPolicy, error) {
+	// Input validation
+	if id == "" {
+		return nil, errors.New("policy ID cannot be empty")
+	}
+	if !model.IsValidId(id) {
+		return nil, errors.New("invalid policy ID format")
+	}
+
+	// Enforce limit bounds
+	if limit <= 0 {
+		limit = MaxPerPage // default limit
+	} else if limit > MaxPerPage {
+		limit = MaxPerPage // cap at maximum
+	}
+
+	query := s.getQueryBuilder().
+		Select(accessControlPolicyHistorySliceColumns()...).
+		From("AccessControlPolicyHistory").
+		Where(sq.Eq{"ID": id}).
+		OrderBy("Revision DESC").
+		Limit(uint64(limit))
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to build query for policy history with id=%s", id)
+	}
+
+	var storePolicies []*storeAccessControlPolicy
+	err = s.GetReplica().Select(&storePolicies, sql, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get policy history with id=%s", id)
+	}
+
+	policies := make([]*model.AccessControlPolicy, len(storePolicies))
+	for i, storePolicy := range storePolicies {
+		policy, err := storePolicy.toModel()
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to parse policy history with id=%s revision=%d", id, storePolicy.Revision)
+		}
+		policies[i] = policy
+	}
+
+	return policies, nil
+}
