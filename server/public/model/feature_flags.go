@@ -84,7 +84,7 @@ type FeatureFlags struct {
 
 	// Enable the SHIFT+ESC combo to mark _all_ chats, messages, and channels as read
 	EnableShiftEscapeToMarkAllRead bool
-  
+
 	// FEATURE_FLAG_REMOVAL: AutoTranslation - Remove this when MVP is to be released
 	// Enable auto-translation feature for messages in channels
 	AutoTranslation bool
