@@ -12,10 +12,7 @@ import type {NameMappedPropertyFields, PropertyValue} from '@mattermost/types/pr
 import {Client4} from 'mattermost-redux/client';
 
 import AtMention from 'components/at_mention';
-import {
-    useChannel,
-    useChannelAsReviewer,
-} from "components/common/hooks/useChannel";
+import {useChannel} from 'components/common/hooks/useChannel';
 import {useContentFlaggingFields, usePostContentFlaggingValues} from 'components/common/hooks/useContentFlaggingFields';
 import {useUser} from 'components/common/hooks/useUser';
 import DataSpillageAction from 'components/post_view/data_spillage_report/data_spillage_actions/data_spillage_actions';

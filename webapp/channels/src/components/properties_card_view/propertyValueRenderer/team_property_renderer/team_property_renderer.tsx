@@ -24,8 +24,6 @@ export default function TeamPropertyRenderer({value, metadata}: Props) {
     const teamId = value.value as string;
     const team = usePropertyCardViewTeamLoader(teamId, metadata?.getTeam);
 
-    console.log({teamId, team});
-
     return (
         <div
             className='TeamPropertyRenderer'

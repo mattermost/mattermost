@@ -400,6 +400,10 @@
     "translation": "Unable to delete direct or group message channels"
   },
   {
+    "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
+    "translation": "Channel ID does not match the channel ID of the flagged post."
+  },
+  {
     "id": "api.channel.get_channel_moderations.license.error",
     "translation": "Your license does not support channel moderation"
   },
@@ -3269,6 +3273,10 @@
   {
     "id": "api.team.get_invite_info.not_open_team",
     "translation": "Invite is invalid because this is not an open team."
+  },
+  {
+    "id": "api.team.get_team.flagged_post_mismatch.app_error",
+    "translation": "Team ID does not match the flagged post's team ID."
   },
   {
     "id": "api.team.get_team_icon.filesettings_no_driver.app_error",
