@@ -1746,6 +1746,10 @@
     "translation": "Failed to update server translations."
   },
   {
+    "id": "api.content_flagging.error.assignee_not_reviewer",
+    "translation": "Only a content reviewer can be assigned as a reviewer."
+  },
+  {
     "id": "api.content_flagging.error.comment_required",
     "translation": "Please add a comment explaining why you’re flagging this message."
   },
