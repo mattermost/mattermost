@@ -2711,7 +2711,6 @@
   "reaction.clickToRemove": "(제거하려면 클릭)",
   "reaction.container.ariaLabel": "더보기",
   "reaction.othersReacted": "{otherUsers, number}명의 {otherUsers, plural, one {user} other {users}}",
-  "reaction.reactWidth.ariaLabel": "react with",
   "reaction.reacted": "{users} 사용자들이 {emoji}로 {reactionVerb}",
   "reaction.reactionVerb.user": "반응했습니다",
   "reaction.reactionVerb.users": "반응했습니다",
