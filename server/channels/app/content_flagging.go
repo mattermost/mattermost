@@ -1236,7 +1236,7 @@ func (a *App) sendKeepFlaggedPostNotification(rctx request.CTX, flaggedPost *mod
 
 	var createdPosts []*model.Post
 
-	if slices.Contains(keepPostNotifications, model.TargetReporter) {
+	if slices.Contains(keepPostNotifications, model.TargetReviewers) {
 		posts, appErr := a.postKeepPostReviewerMessage(rctx, flaggedPost.Id, actorUserId, comment, contentFlaggingGroupId)
 		if appErr != nil {
 			rctx.Logger().Error("Failed to post retain post reviewer message after restoring flagged post", mlog.Err(appErr), mlog.String("post_id", flaggedPost.Id))
