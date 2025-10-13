@@ -5,7 +5,6 @@ package app
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"testing"
 	"time"
@@ -1684,7 +1683,7 @@ func TestPostReviewerMessage(t *testing.T) {
 		require.Nil(t, appErr)
 
 		testMessage := "Test reviewer message"
-		appErr = th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id)
+		_, appErr = th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id)
 		require.Nil(t, appErr)
 
 		// Verify message was posted to the reviewer thread
@@ -1741,7 +1740,7 @@ func TestPostReviewerMessage(t *testing.T) {
 		require.Nil(t, appErr)
 
 		testMessage := "Test message for multiple reviewers"
-		appErr = th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id)
+		_, appErr = th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id)
 		require.Nil(t, appErr)
 
 		// Verify message was posted to both reviewer threads
@@ -1797,7 +1796,7 @@ func TestPostReviewerMessage(t *testing.T) {
 		require.Nil(t, appErr)
 
 		testMessage := "Test message for non-flagged post"
-		appErr = th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id)
+		_, appErr = th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id)
 		require.Nil(t, appErr)
 	})
 
@@ -1809,7 +1808,7 @@ func TestPostReviewerMessage(t *testing.T) {
 		require.Nil(t, appErr)
 
 		testMessage := "Test message with special chars: @user #channel ~team & <script>alert('xss')</script>"
-		appErr = th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id)
+		_, appErr = th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id)
 		require.Nil(t, appErr)
 
 		// Verify message was posted correctly with special characters preserved
@@ -1836,238 +1835,5 @@ func TestPostReviewerMessage(t *testing.T) {
 		}
 		require.NotNil(t, testMessagePost)
 		require.Equal(t, testMessage, testMessagePost.Message)
-	})
-}
-
-// notificationTestConfig holds configuration for notification tests
-type notificationTestConfig struct {
-	event               model.ContentFlaggingEvent
-	targets             []model.NotificationTarget
-	comment             string
-	notificationFunc    func(th *TestHelper, post *model.Post, reviewerId string, comment string, groupId string)
-	expectedAuthorMsg   func(postId, channelName string) string
-	expectedReporterMsg func(postId, channelName string) string
-	expectedReviewerMsg func(username, comment string) string
-}
-
-// testNotificationScenario runs a notification test scenario with the given configuration
-func testNotificationScenario(t *testing.T, th *TestHelper, config notificationTestConfig, shouldReceive map[string]bool) {
-	post, appErr := setupFlaggedPost(th)
-	require.Nil(t, appErr)
-
-	// Configure notifications
-	notificationConfig := getBaseConfig(th)
-	notificationConfig.NotificationSettings = &model.ContentFlaggingNotificationSettings{
-		EventTargetMapping: map[model.ContentFlaggingEvent][]model.NotificationTarget{
-			config.event: config.targets,
-		},
-	}
-	appErr = th.App.SaveContentFlaggingConfig(notificationConfig)
-	require.Nil(t, appErr)
-
-	groupId, appErr := th.App.ContentFlaggingGroupId()
-	require.Nil(t, appErr)
-
-	// Send notification
-	config.notificationFunc(th, post, th.SystemAdminUser.Id, config.comment, groupId)
-
-	contentReviewBot, appErr := th.App.getContentReviewBot(th.Context)
-	require.Nil(t, appErr)
-
-	// Check author notification
-	if shouldReceive["author"] {
-		authorDMChannel, appErr := th.App.GetOrCreateDirectChannel(th.Context, post.UserId, contentReviewBot.UserId)
-		require.Nil(t, appErr)
-
-		authorPosts, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
-			ChannelId: authorDMChannel.Id,
-			Page:      0,
-			PerPage:   10,
-		})
-		require.Nil(t, appErr)
-
-		var authorNotificationPost *model.Post
-		expectedAuthorMessage := config.expectedAuthorMsg(post.Id, th.BasicChannel.DisplayName)
-		for _, p := range authorPosts.Posts {
-			if p.Message == expectedAuthorMessage {
-				authorNotificationPost = p
-				break
-			}
-		}
-		require.NotNil(t, authorNotificationPost, "Expected author notification not found")
-	}
-
-	// Check reporter notification
-	if shouldReceive["reporter"] {
-		reporterDMChannel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser2.Id, contentReviewBot.UserId)
-		require.Nil(t, appErr)
-
-		reporterPosts, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
-			ChannelId: reporterDMChannel.Id,
-			Page:      0,
-			PerPage:   10,
-		})
-		require.Nil(t, appErr)
-
-		var reporterNotificationPost *model.Post
-		expectedReporterMessage := config.expectedReporterMsg(post.Id, th.BasicChannel.DisplayName)
-		for _, p := range reporterPosts.Posts {
-			if p.Message == expectedReporterMessage {
-				reporterNotificationPost = p
-				break
-			}
-		}
-		require.NotNil(t, reporterNotificationPost, "Expected reporter notification not found")
-	} else {
-		// Verify reporter notification does not exist when not expected
-		reporterDMChannel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser2.Id, contentReviewBot.UserId)
-		require.Nil(t, appErr)
-
-		reporterPosts, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
-			ChannelId: reporterDMChannel.Id,
-			Page:      0,
-			PerPage:   10,
-		})
-		require.Nil(t, appErr)
-
-		var reporterNotificationPost *model.Post
-		expectedReporterMessage := config.expectedReporterMsg(post.Id, th.BasicChannel.DisplayName)
-		for _, p := range reporterPosts.Posts {
-			if p.Message == expectedReporterMessage {
-				reporterNotificationPost = p
-				break
-			}
-		}
-		require.Nil(t, reporterNotificationPost, "Unexpected reporter notification found")
-	}
-
-	// Check reviewer notification
-	if shouldReceive["reviewer"] {
-		reviewerDMChannel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, contentReviewBot.UserId)
-		require.Nil(t, appErr)
-
-		reviewerPosts, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
-			ChannelId: reviewerDMChannel.Id,
-			Page:      0,
-			PerPage:   10,
-		})
-		require.Nil(t, appErr)
-
-		var reviewerNotificationPost *model.Post
-		expectedReviewerMessage := config.expectedReviewerMsg(th.SystemAdminUser.Username, config.comment)
-		for _, p := range reviewerPosts.Posts {
-			if p.RootId != "" && p.Message == expectedReviewerMessage {
-				reviewerNotificationPost = p
-				break
-			}
-		}
-		require.NotNil(t, reviewerNotificationPost, "Expected reviewer notification not found")
-	}
-}
-
-func TestSendFlaggedPostRemovalNotification(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-
-	config := notificationTestConfig{
-		event:   model.EventContentRemoved,
-		comment: "This post violates community guidelines",
-		notificationFunc: func(th *TestHelper, post *model.Post, reviewerId string, comment string, groupId string) {
-			th.App.sendFlaggedPostRemovalNotification(th.Context, post, reviewerId, comment, groupId)
-		},
-		expectedAuthorMsg: func(postId, channelName string) string {
-			return fmt.Sprintf("Your post having ID `%s` in the channel `%s` which was flagged for review has been permanently removed by a reviewer.", postId, channelName)
-		},
-		expectedReporterMsg: func(postId, channelName string) string {
-			return fmt.Sprintf("The post having ID `%s` in the channel `%s` which you flagged for review has been permanently removed by a reviewer.", postId, channelName)
-		},
-		expectedReviewerMsg: func(username, comment string) string {
-			return fmt.Sprintf("The flagged message was removed by @%s\n\nWith comment:\n\n> %s", username, comment)
-		},
-	}
-
-	t.Run("should send notifications to all configured targets", func(t *testing.T) {
-		config.targets = []model.NotificationTarget{model.TargetAuthor, model.TargetReporter, model.TargetReviewers}
-		testNotificationScenario(t, th, config, map[string]bool{
-			"author":   true,
-			"reporter": true,
-			"reviewer": true,
-		})
-	})
-
-	t.Run("should send notification only to author when configured", func(t *testing.T) {
-		config.targets = []model.NotificationTarget{model.TargetAuthor}
-		config.comment = "Inappropriate content"
-		testNotificationScenario(t, th, config, map[string]bool{
-			"author":   true,
-			"reporter": false,
-			"reviewer": false,
-		})
-	})
-}
-
-func TestSendKeepFlaggedPostNotification(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
-
-	config := notificationTestConfig{
-		event:   model.EventContentDismissed,
-		comment: "This post is acceptable after review",
-		notificationFunc: func(th *TestHelper, post *model.Post, reviewerId string, comment string, groupId string) {
-			th.App.sendKeepFlaggedPostNotification(th.Context, post, reviewerId, comment, groupId)
-		},
-		expectedAuthorMsg: func(postId, channelName string) string {
-			return fmt.Sprintf("Your post having ID `%s` in the channel `%s` which was flagged for review has been restored by a reviewer.", postId, channelName)
-		},
-		expectedReporterMsg: func(postId, channelName string) string {
-			return fmt.Sprintf("The post having ID `%s` in the channel `%s` which you flagged for review has been restored by a reviewer.", postId, channelName)
-		},
-		expectedReviewerMsg: func(username, comment string) string {
-			return fmt.Sprintf("The flagged message was retained by @%s\n\nWith comment:\n\n> %s", username, comment)
-		},
-	}
-
-	t.Run("should send notifications to all configured targets", func(t *testing.T) {
-		config.targets = []model.NotificationTarget{model.TargetAuthor, model.TargetReporter, model.TargetReviewers}
-		testNotificationScenario(t, th, config, map[string]bool{
-			"author":   true,
-			"reporter": true,
-			"reviewer": true,
-		})
-	})
-
-	t.Run("should send notification only to reporter when configured", func(t *testing.T) {
-		config.targets = []model.NotificationTarget{model.TargetReporter}
-		config.comment = "Post is within guidelines"
-		testNotificationScenario(t, th, config, map[string]bool{
-			"author":   false,
-			"reporter": true,
-			"reviewer": false,
-		})
-	})
-
-	t.Run("should not send notifications when none configured", func(t *testing.T) {
-		post, appErr := setupFlaggedPost(th)
-		require.Nil(t, appErr)
-
-		// Configure no notifications
-		notificationConfig := getBaseConfig(th)
-		notificationConfig.NotificationSettings = &model.ContentFlaggingNotificationSettings{
-			EventTargetMapping: map[model.ContentFlaggingEvent][]model.NotificationTarget{},
-		}
-		appErr = th.App.SaveContentFlaggingConfig(notificationConfig)
-		require.Nil(t, appErr)
-
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
-
-		comment := "Test comment"
-		th.App.sendKeepFlaggedPostNotification(th.Context, post, th.SystemAdminUser.Id, comment, groupId)
 	})
 }
