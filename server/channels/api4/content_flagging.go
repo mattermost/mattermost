@@ -27,11 +27,20 @@ func (api *API) InitContentFlagging() {
 	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}", api.APISessionRequired(getFlaggedPost)).Methods(http.MethodGet)
 	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/remove", api.APISessionRequired(removeFlaggedPost)).Methods(http.MethodPut)
 	api.BaseRoutes.ContentFlagging.Handle("/post/{post_id:[A-Za-z0-9]+}/keep", api.APISessionRequired(keepFlaggedPost)).Methods(http.MethodPut)
+	api.BaseRoutes.ContentFlagging.Handle("/config", api.APISessionRequired(saveContentFlaggingSettings)).Methods(http.MethodPut)
+	api.BaseRoutes.ContentFlagging.Handle("/config", api.APISessionRequired(getContentFlaggingSettings)).Methods(http.MethodGet)
+}
+
+func requireContentFlaggingAvailable(c *Context) {
+	if !model.MinimumEnterpriseAdvancedLicense(c.App.License()) {
+		c.Err = model.NewAppError("requireContentFlaggingEnabled", "api.content_flagging.error.license", nil, "", http.StatusNotImplemented)
+		return
+	}
 }
 
 func requireContentFlaggingEnabled(c *Context) {
-	if !model.MinimumEnterpriseAdvancedLicense(c.App.License()) {
-		c.Err = model.NewAppError("requireContentFlaggingEnabled", "api.content_flagging.error.license", nil, "", http.StatusNotImplemented)
+	requireContentFlaggingAvailable(c)
+	if c.Err != nil {
 		return
 	}
 
@@ -48,7 +57,7 @@ func getFlaggingConfiguration(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// A team ID is expected to be specified bny a content reviewer.
+	// A team ID is expected to be specified by a content reviewer.
 	// When specified, we verify that the user is a content reviewer of the team.
 	// If the user is indeed a content reviewer, we return the configuration along with some extra fields
 	// that only a reviewer should be aware of.
@@ -73,14 +82,9 @@ func getFlaggingConfiguration(c *Context, w http.ResponseWriter, r *http.Request
 
 	config := getFlaggingConfig(c.App.Config().ContentFlaggingSettings, asReviewer)
 
-	responseBytes, err := json.Marshal(config)
-	if err != nil {
-		c.Err = model.NewAppError("getFlaggingConfiguration", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
-
-	if _, err := w.Write(responseBytes); err != nil {
+	if err := json.NewEncoder(w).Encode(config); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+		c.Err = model.NewAppError("getFlaggingConfiguration", "api.encoding_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 }
 
@@ -101,20 +105,19 @@ func getTeamPostFlaggingFeatureStatus(c *Context, w http.ResponseWriter, r *http
 		return
 	}
 
-	enabled := app.ContentFlaggingEnabledForTeam(c.App.Config(), teamID)
+	enabled, appErr := c.App.ContentFlaggingEnabledForTeam(teamID)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
 
 	payload := map[string]bool{
 		"enabled": enabled,
 	}
 
-	responseBytes, err := json.Marshal(payload)
-	if err != nil {
-		c.Err = model.NewAppError("getTeamPostFlaggingFeatureStatus", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
-
-	if _, err := w.Write(responseBytes); err != nil {
+	if err := json.NewEncoder(w).Encode(payload); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+		c.Err = model.NewAppError("getTeamPostFlaggingFeatureStatus", "api.encoding_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 }
 
@@ -155,7 +158,12 @@ func flagPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	enabled := app.ContentFlaggingEnabledForTeam(c.App.Config(), channel.TeamId)
+	enabled, appErr := c.App.ContentFlaggingEnabledForTeam(channel.TeamId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
 	if !enabled {
 		c.Err = model.NewAppError("flagPost", "api.content_flagging.error.not_available_on_team", nil, "", http.StatusBadRequest)
 		return
@@ -207,14 +215,9 @@ func getContentFlaggingFields(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	responseBytes, err := json.Marshal(mappedFields)
-	if err != nil {
-		c.Err = model.NewAppError("getContentFlaggingFields", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
-
-	if _, err := w.Write(responseBytes); err != nil {
+	if err := json.NewEncoder(w).Encode(mappedFields); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+		c.Err = model.NewAppError("getContentFlaggingFields", "api.encoding_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 }
 
@@ -262,14 +265,9 @@ func getPostPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responseBytes, err := json.Marshal(propertyValues)
-	if err != nil {
-		c.Err = model.NewAppError("getPostPropertyValues", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
-
-	if _, err := w.Write(responseBytes); err != nil {
+	if err := json.NewEncoder(w).Encode(propertyValues); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+		c.Err = model.NewAppError("getPostPropertyValues", "api.encoding_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 }
 
@@ -434,4 +432,77 @@ func keepRemoveFlaggedPostChecks(c *Context, r *http.Request) (*model.FlagConten
 	}
 
 	return &actionRequest, userId, post
+}
+
+func saveContentFlaggingSettings(c *Context, w http.ResponseWriter, r *http.Request) {
+	requireContentFlaggingAvailable(c)
+	if c.Err != nil {
+		return
+	}
+
+	var config model.ContentFlaggingSettingsRequest
+	if err := json.NewDecoder(r.Body).Decode(&config); err != nil {
+		c.SetInvalidParamWithErr("config", err)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateContentFlaggingConfig, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	config.SetDefaults()
+	if appErr := config.IsValid(); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	appErr := c.App.SaveContentFlaggingConfig(config)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
+	writeOKResponse(w)
+}
+
+func getContentFlaggingSettings(c *Context, w http.ResponseWriter, r *http.Request) {
+	requireContentFlaggingAvailable(c)
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	reviewerIDs, appErr := c.App.GetContentFlaggingConfigReviewerIDs()
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	config := c.App.Config().ContentFlaggingSettings
+
+	fullConfig := model.ContentFlaggingSettingsRequest{
+		ReviewerSettings: &model.ReviewSettingsRequest{
+			ReviewerSettings:    *config.ReviewerSettings,
+			ReviewerIDsSettings: *reviewerIDs,
+		},
+		ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
+			EnableContentFlagging: config.EnableContentFlagging,
+			NotificationSettings:  config.NotificationSettings,
+			AdditionalSettings:    config.AdditionalSettings,
+		},
+	}
+
+	if err := json.NewEncoder(w).Encode(fullConfig); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+		c.Err = model.NewAppError("getContentFlaggingSettings", "api.encoding_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
 }
