@@ -10922,5 +10922,37 @@
   {
     "id": "app.content_flagging.flag_post_confirmation.message",
     "translation": "Het bericht van @{{.username}} is gemarkeerd voor beoordeling. Je ontvangt bericht zodra het is beoordeeld door een inhoudsbeoordeelaar. "
+  },
+  {
+    "id": "app.content_flagging.get_group.error",
+    "translation": "Fout bij het ophalen van de Content Flagging bot."
+  },
+  {
+    "id": "app.content_flagging.get_status_property.app_error",
+    "translation": "Fout bij het ophalen van het Statusveld."
+  },
+  {
+    "id": "app.content_flagging.get_users_in_team.app_error",
+    "translation": "Fout bij het zoeken van beoordeelaars in het team."
+  },
+  {
+    "id": "app.content_flagging.keep_flag_post.marshal_comment.app_error",
+    "translation": "Fout bij het verkeken van de commentaar van de beoordeelaar"
+  },
+  {
+    "id": "app.content_flagging.keep_post.status_update.app_error",
+    "translation": "Fout bij het bijwerken van de status van gemarkeerde bericht bij het verwijderen van gemarkeerd bericht "
+  },
+  {
+    "id": "app.content_flagging.keep_post.undelete.app_error",
+    "translation": "Fout bij het bericht in de database bij te werken toen werd geprobeerd het gemarkeerde bericht te verwijderen."
+  },
+  {
+    "id": "app.content_flagging.marshal_property_values.app_error",
+    "translation": "Fout bij  de waarden van de eigenschap Content Flagging te verzenden in de WebSocket-gebeurtenis."
+  },
+  {
+    "id": "app.content_flagging.no_status_property.app_error",
+    "translation": "Kan gemarkeerd bericht niet ophalen omdat het bericht niet gemarkeerd is."
   }
 ]
