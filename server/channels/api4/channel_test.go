@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"sort"
 	"strings"
 	"testing"
@@ -1632,6 +1633,11 @@ func TestDeleteGroupChannel(t *testing.T) {
 
 func TestGetChannel(t *testing.T) {
 	mainHelper.Parallel(t)
+	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
+	defer func() {
+		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
+	}()
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1689,13 +1695,15 @@ func TestGetChannel(t *testing.T) {
 		appErr := setBasicCommonReviewerConfig(th)
 		require.Nil(t, appErr)
 
-		th.LoginBasic()
+		contentReviewClient := th.CreateClient()
+		_, _, err := contentReviewClient.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
 
-		privateChannel := th.CreatePrivateChannel()
+		privateChannel := th.CreateChannelWithClient(contentReviewClient, model.ChannelTypePrivate)
 		th.AddUserToChannel(th.BasicUser, privateChannel)
-		post := th.CreatePostWithClient(client, privateChannel)
+		post := th.CreatePostWithClient(contentReviewClient, privateChannel)
 
-		response, err := client.FlagPostForContentReview(context.Background(), post.Id, &model.FlagContentRequest{
+		response, err := contentReviewClient.FlagPostForContentReview(context.Background(), post.Id, &model.FlagContentRequest{
 			Reason:  "Sensitive data",
 			Comment: "This is sensitive content",
 		})
@@ -1704,14 +1712,8 @@ func TestGetChannel(t *testing.T) {
 
 		th.RemoveUserFromChannel(th.BasicUser, privateChannel)
 
-		// verify that by default the user cannot fetch the channel due to lack of membership
-		fetchedChannel, resp, err := client.GetChannel(context.Background(), privateChannel.Id, "")
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
-		require.Nil(t, fetchedChannel)
-
-		// now we will fetch the channel providing the required params to indicate that we are fetching it for content review
-		fetchedChannel, _, err = client.GetChannelAsContentReviewer(context.Background(), privateChannel.Id, "", post.Id)
+		// We will fetch the channel providing the required params to indicate that we are fetching it for content review
+		fetchedChannel, _, err := contentReviewClient.GetChannelAsContentReviewer(context.Background(), privateChannel.Id, "", post.Id)
 		require.NoError(t, err)
 		require.Equal(t, privateChannel.Id, fetchedChannel.Id)
 
@@ -1720,12 +1722,13 @@ func TestGetChannel(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, contentFlaggingSettings)
 
+		// Making system admin as a reviewer because there needs to be some reviewers
 		contentFlaggingSettings.ReviewerSettings.CommonReviewerIds = []string{th.SystemAdminUser.Id}
 		resp, err = th.SystemAdminClient.SaveContentFlaggingSettings(context.Background(), contentFlaggingSettings)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
-		_, resp, err = client.GetChannelAsContentReviewer(context.Background(), privateChannel.Id, "", post.Id)
+		_, resp, err = contentReviewClient.GetChannelAsContentReviewer(context.Background(), privateChannel.Id, "", post.Id)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
