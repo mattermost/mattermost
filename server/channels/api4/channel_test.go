@@ -1683,6 +1683,52 @@ func TestGetChannel(t *testing.T) {
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
+
+	t.Run("Content reviewer should be able to get channel without membership with flagged post", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		th.LoginBasic()
+
+		privateChannel := th.CreatePrivateChannel()
+		th.AddUserToChannel(th.BasicUser, privateChannel)
+		post := th.CreatePostWithClient(client, privateChannel)
+
+		response, err := client.FlagPostForContentReview(context.Background(), post.Id, &model.FlagContentRequest{
+			Reason:  "Sensitive data",
+			Comment: "This is sensitive content",
+		})
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, response.StatusCode)
+
+		th.RemoveUserFromChannel(th.BasicUser, privateChannel)
+
+		// verify that by default the user cannot fetch the channel due to lack of membership
+		fetchedChannel, resp, err := client.GetChannel(context.Background(), privateChannel.Id, "")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		require.Nil(t, fetchedChannel)
+
+		// now we will fetch the channel providing the required params to indicate that we are fetching it for content review
+		fetchedChannel, _, err = client.GetChannelAsContentReviewer(context.Background(), privateChannel.Id, "", post.Id)
+		require.NoError(t, err)
+		require.Equal(t, privateChannel.Id, fetchedChannel.Id)
+
+		// This also doesn't work if user is not a content reviewer
+		contentFlaggingSettings, _, err := th.SystemAdminClient.GetContentFlaggingSettings(context.Background())
+		require.NoError(t, err)
+		require.NotNil(t, contentFlaggingSettings)
+
+		contentFlaggingSettings.ReviewerSettings.CommonReviewerIds = []string{th.SystemAdminUser.Id}
+		resp, err = th.SystemAdminClient.SaveContentFlaggingSettings(context.Background(), contentFlaggingSettings)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		_, resp, err = client.GetChannelAsContentReviewer(context.Background(), privateChannel.Id, "", post.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
 }
 
 func TestGetDeletedChannelsForTeam(t *testing.T) {

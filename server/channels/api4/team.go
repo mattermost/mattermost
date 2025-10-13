@@ -153,6 +153,11 @@ func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	isContentReviewer := false
 	asContentReviewer, _ := strconv.ParseBool(r.URL.Query().Get("as_content_reviewer"))
 	if asContentReviewer {
+		requireContentFlaggingEnabled(c)
+		if c.Err != nil {
+			return
+		}
+
 		requireTeamContentReviewer(c, c.AppContext.Session().UserId, team.Id)
 		if c.Err != nil {
 			return
