@@ -1743,7 +1743,7 @@
   },
   {
     "id": "api.content_flagging.error.assignee_not_reviewer",
-    "translation": "Only aa content reviewer can be assigned as a reviewer."
+    "translation": "Only a content reviewer can be assigned as a reviewer."
   },
   {
     "id": "api.content_flagging.error.comment_required",

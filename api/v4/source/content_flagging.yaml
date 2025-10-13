@@ -341,7 +341,7 @@
           description: Internal server error.
         '501':
           description: Feature is disabled either via config or an Enterprise Advanced license is not available.
-  /api/v4/content_flagging/post/{post_id}/assign/{reviewer_id}:
+  /api/v4/content_flagging/post/{post_id}/assign/{content_reviewer_id}:
     post:
       summary: Assign a content reviewer to a flagged post
       description: |
@@ -357,7 +357,7 @@
             type: string
           description: The ID of the post to assign a content reviewer to
         - in: path
-          name: reviewer_id
+          name: content_reviewer_id
           required: true
           schema:
             type: string

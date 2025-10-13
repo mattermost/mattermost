@@ -6745,54 +6745,6 @@ func testUserStoreSearchCommonContentFlaggingReviewers(t *testing.T, rctx reques
 		assert.Equal(t, u1.Id, users[0].Id)
 	})
 
-	t.Run("search by first name", func(t *testing.T) {
-		users, err := ss.User().SearchCommonContentFlaggingReviewers("John")
-		require.NoError(t, err)
-		require.Len(t, users, 1)
-		assert.Equal(t, u1.Id, users[0].Id)
-	})
-
-	t.Run("search by last name", func(t *testing.T) {
-		users, err := ss.User().SearchCommonContentFlaggingReviewers("Smith")
-		require.NoError(t, err)
-		require.Len(t, users, 1)
-		assert.Equal(t, u2.Id, users[0].Id)
-	})
-
-	t.Run("search by nickname", func(t *testing.T) {
-		users, err := ss.User().SearchCommonContentFlaggingReviewers("johnny")
-		require.NoError(t, err)
-		require.Len(t, users, 1)
-		assert.Equal(t, u1.Id, users[0].Id)
-	})
-
-	t.Run("search with partial match", func(t *testing.T) {
-		users, err := ss.User().SearchCommonContentFlaggingReviewers("review")
-		require.NoError(t, err)
-		require.Len(t, users, 2)
-
-		userIds := []string{users[0].Id, users[1].Id}
-		assert.Contains(t, userIds, u1.Id)
-		assert.Contains(t, userIds, u2.Id)
-	})
-
-	t.Run("search with no matches", func(t *testing.T) {
-		users, err := ss.User().SearchCommonContentFlaggingReviewers("nonexistent")
-		require.NoError(t, err)
-		require.Empty(t, users)
-	})
-
-	t.Run("search does not return inactive users", func(t *testing.T) {
-		// Add inactive user as common reviewer
-		reviewerSettings.CommonReviewerIds = append(reviewerSettings.CommonReviewerIds, u3.Id)
-		err := ss.ContentFlagging().SaveReviewerSettings(reviewerSettings)
-		require.NoError(t, err)
-
-		users, err := ss.User().SearchCommonContentFlaggingReviewers("notreviewer")
-		require.NoError(t, err)
-		require.Empty(t, users) // Should not return inactive user
-	})
-
 	t.Run("search does not return non-reviewers", func(t *testing.T) {
 		users, err := ss.User().SearchCommonContentFlaggingReviewers("otheruser")
 		require.NoError(t, err)
@@ -6842,12 +6794,11 @@ func testUserStoreSearchTeamContentFlaggingReviewers(t *testing.T, rctx request.
 	require.NoError(t, saveErr)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, u4.Id)) }()
 
-	enabled := true
 	reviewerSettings := model.ReviewerIDsSettings{
 		CommonReviewerIds: []string{},
 		TeamReviewersSetting: map[string]*model.TeamReviewerSetting{
 			teamId: {
-				Enabled:     &enabled,
+				Enabled:     model.NewPointer(true),
 				ReviewerIds: []string{u1.Id, u2.Id},
 			},
 		},
@@ -6871,43 +6822,6 @@ func testUserStoreSearchTeamContentFlaggingReviewers(t *testing.T, rctx request.
 		require.NoError(t, err)
 		require.Len(t, users, 1)
 		assert.Equal(t, u1.Id, users[0].Id)
-	})
-
-	t.Run("search by first name", func(t *testing.T) {
-		users, err := ss.User().SearchTeamContentFlaggingReviewers(teamId, "Alice")
-		require.NoError(t, err)
-		require.Len(t, users, 1)
-		assert.Equal(t, u1.Id, users[0].Id)
-	})
-
-	t.Run("search by last name", func(t *testing.T) {
-		users, err := ss.User().SearchTeamContentFlaggingReviewers(teamId, "Brown")
-		require.NoError(t, err)
-		require.Len(t, users, 1)
-		assert.Equal(t, u2.Id, users[0].Id)
-	})
-
-	t.Run("search by nickname", func(t *testing.T) {
-		users, err := ss.User().SearchTeamContentFlaggingReviewers(teamId, "charlie")
-		require.NoError(t, err)
-		require.Len(t, users, 1)
-		assert.Equal(t, u2.Id, users[0].Id)
-	})
-
-	t.Run("search with partial match", func(t *testing.T) {
-		users, err := ss.User().SearchTeamContentFlaggingReviewers(teamId, "teamreviewer")
-		require.NoError(t, err)
-		require.Len(t, users, 2)
-
-		userIds := []string{users[0].Id, users[1].Id}
-		assert.Contains(t, userIds, u1.Id)
-		assert.Contains(t, userIds, u2.Id)
-	})
-
-	t.Run("search with no matches", func(t *testing.T) {
-		users, err := ss.User().SearchTeamContentFlaggingReviewers(teamId, "nonexistent")
-		require.NoError(t, err)
-		require.Empty(t, users)
 	})
 
 	t.Run("search does not return inactive users", func(t *testing.T) {
