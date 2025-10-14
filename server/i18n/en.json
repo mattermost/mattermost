@@ -5211,10 +5211,6 @@
     "translation": "Unable to save property values for the flagged post."
   },
   {
-    "id": "app.content_flagging.delete_post.app_error",
-    "translation": "Unable to soft-delete the flagged post."
-  },
-  {
     "id": "app.content_flagging.flag_post.marshal_comment.app_error",
     "translation": "Failed to marshal flagging user's comment"
   },
