@@ -10,4 +10,6 @@ import (
 	_ "github.com/mattermost/mattermost/server/v8/enterprise/metrics"
 	// Needed to ensure the init() method in the EE gets run
 	_ "github.com/mattermost/mattermost/server/v8/enterprise/elasticsearch"
+	// Needed to ensure the init() method in the EE gets run
+	_ "github.com/mattermost/mattermost/server/v8/enterprise/push_proxy"
 )

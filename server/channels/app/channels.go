@@ -134,6 +134,12 @@ func NewChannels(s *Server) (*Channels, error) {
 			}
 		})
 	}
+
+	if pushProxyInterface != nil {
+		app := New(ServerConnector(ch))
+		s.PushProxy = pushProxyInterface(app)
+	}
+
 	if accessControlServiceInterface != nil {
 		app := New(ServerConnector(ch))
 		ch.AccessControl = accessControlServiceInterface(app)
