@@ -2085,6 +2085,10 @@
     "translation": "Unable to seek to file start."
   },
   {
+    "id": "api.encoding_error",
+    "translation": "Encountered an error encoding JSON for the API response"
+  },
+  {
     "id": "api.error_get_first_admin_complete_setup",
     "translation": "Error trying to retrieve first admin complete setup from the store."
   },
@@ -5207,6 +5211,10 @@
     "translation": "Failed to get Content Flagging bot."
   },
   {
+    "id": "app.content_flagging.get_reviewer_settings.app_error",
+    "translation": "Failed to fetch content reviewer settings from the database"
+  },
+  {
     "id": "app.content_flagging.get_status_property.app_error",
     "translation": "Failed to get Status property field."
   },
@@ -5249,6 +5257,10 @@
   {
     "id": "app.content_flagging.restore_file_info.app_error",
     "translation": "Failed to restore file info for the flagged post."
+  },
+  {
+    "id": "app.content_flagging.save_reviewer_settings.app_error",
+    "translation": "Failed to save content reviewer settings to the database."
   },
   {
     "id": "app.content_flagging.search_property_fields.app_error",
