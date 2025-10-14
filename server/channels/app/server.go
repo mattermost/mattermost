@@ -834,8 +834,6 @@ func (s *Server) Start() error {
 
 	s.checkPushNotificationServerURL()
 
-	s.ensurePushProxyAuthToken()
-
 	if err = s.platform.ReloadConfig(); err != nil {
 		mlog.Error("Failed to reload config on server start", mlog.Err(err))
 	}
@@ -1805,26 +1803,6 @@ func doRunScheduledPostJob(a *App) {
 		fn := func() { a.ProcessScheduledPosts(rctx) }
 		a.ch.scheduledPostTask = model.CreateRecurringTaskFromNextIntervalTime("Process Scheduled Posts", fn, jobInterval)
 	})
-}
-
-func (s *Server) ensurePushProxyAuthToken() {
-	// Check if push proxy interface is available (enterprise only)
-	if s.PushProxy == nil {
-		return
-	}
-
-	app := New(ServerConnector(s.Channels()))
-
-	// All servers can attempt token generation on startup as it's safe for race conditions
-	token := s.PushProxy.GetAuthToken()
-	if token == "" {
-		mlog.Debug("Auth token not found, attempting to generate on startup")
-		if err := s.PushProxy.GenerateAuthToken(); err != nil {
-			mlog.Warn("Failed to generate auth token on startup", mlog.Err(err))
-		}
-	} else {
-		mlog.Debug("Push proxy auth token already exists")
-	}
 }
 
 func (a *App) GetAppliedSchemaMigrations() ([]model.AppliedMigration, *model.AppError) {
