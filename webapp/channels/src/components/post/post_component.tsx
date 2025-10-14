@@ -480,7 +480,7 @@ function PostComponent(props: Props) {
     const channelDisplayName = getChannelName();
     const showReactions = props.location !== Locations.SEARCH || props.isPinnedPosts || props.isFlaggedPosts;
 
-    const getTestId = () => {
+    const getId = () => {
         let idPrefix: string;
         switch (props.location) {
         case 'CENTER':
@@ -500,6 +500,21 @@ function PostComponent(props: Props) {
 
         return idPrefix + `_${post.id}`;
     };
+    const id = getId();
+
+    const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+        if (isKeyPressed(e, Constants.KeyCodes.ENTER)) {
+            // ENTER to focus comment button if available
+            const isTargetSelf = (e.target as HTMLElement | null)?.id === id;
+            const commentId = `CENTER_commentIcon_${props.post.id}`;
+            const commentButton = document.getElementById(commentId);
+            if (commentButton && isTargetSelf) {
+                e.stopPropagation();
+                e.preventDefault();
+                commentButton.focus();
+            }
+        }
+    }, [props.post.id, id]);
 
     let priority;
     if (post.metadata?.priority && props.isPostPriorityEnabled && post.state !== Posts.POST_DELETED) {
@@ -519,13 +534,14 @@ function PostComponent(props: Props) {
         <>
             <PostAriaLabelDiv
                 ref={postRef}
-                id={getTestId()}
+                id={id}
                 data-testid={postAriaLabelDivTestId}
                 post={post}
                 className={getClassName()}
                 onClick={handlePostClick}
                 onMouseOver={handleMouseOver}
                 onMouseLeave={handleMouseLeave}
+                onKeyDown={handleKeyDown}
             >
                 {(Boolean(isSearchResultItem) || (props.location !== Locations.CENTER && props.isFlagged)) &&
                     <div
