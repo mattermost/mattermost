@@ -10,6 +10,7 @@ import type {
     PropertyField,
     PropertyValue,
 } from '@mattermost/types/properties';
+import type {UserProfile} from '@mattermost/types/users';
 
 import PropertyValueRenderer from './propertyValueRenderer/propertyValueRenderer';
 
@@ -20,11 +21,16 @@ export type PostPreviewFieldMetadata = {
     fetchDeletedPost?: boolean;
 };
 
+export type UserPropertyMetadata = {
+    searchUsers?: (term: string) => Promise<UserProfile[]>;
+    setUser?: (userId: string) => void;
+}
+
 export type TextFieldMetadata = {
     placeholder?: string;
 };
 
-export type FieldMetadata = PostPreviewFieldMetadata | TextFieldMetadata;
+export type FieldMetadata = PostPreviewFieldMetadata | TextFieldMetadata | UserPropertyMetadata;
 
 export type PropertiesCardViewMetadata = {
     [key: string]: FieldMetadata;
@@ -52,7 +58,7 @@ const fieldNameMessages = defineMessages({
         id: 'property_card.field.post_id.label',
         defaultMessage: 'Post ID',
     },
-    reviewer: {
+    reviewer_user_id: {
         id: 'property_card.field.reviewer_user_id.label',
         defaultMessage: 'Reviewer',
     },
@@ -135,7 +141,9 @@ export default function PropertiesCardView({title, propertyFields, fieldOrder, s
                 const field = propertyFields[fieldName];
                 const value = field ? valuesByFieldId.get(field.id) : undefined;
 
-                return field && value ? {field, value} : null;
+                const allowEmptyValue = field?.attrs?.editable;
+
+                return field && (value || allowEmptyValue) ? {field, value} : null;
             }).
             filter((row): row is OrderedRow => row !== null);
     }, [fieldOrder, mode, propertyFields, propertyValues, shortModeFieldOrder]);

@@ -41,7 +41,7 @@ type MultiSelectProps = {
 }
 
 type SingleSelectProps = {
-    singleSelectOnChange?: (selectedUserIds: string) => void;
+    singleSelectOnChange?: (selectedUserId: string) => void;
     singleSelectInitialValue?: string;
 }
 
@@ -52,9 +52,10 @@ type Props = MultiSelectProps & SingleSelectProps & {
     hasError?: boolean;
     placeholder?: React.ReactNode;
     showDropdownIndicator?: boolean;
+    searchFunc?: (term: string) => Promise<UserProfile[]>;
 };
 
-export function UserSelector({id, isMulti, className, multiSelectOnChange, multiSelectInitialValue, singleSelectOnChange, singleSelectInitialValue, hasError, placeholder, showDropdownIndicator}: Props) {
+export function UserSelector({id, isMulti, className, multiSelectOnChange, multiSelectInitialValue, singleSelectOnChange, singleSelectInitialValue, hasError, placeholder, showDropdownIndicator, searchFunc}: Props) {
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
     const initialDataLoaded = useRef<boolean>(false);
@@ -89,7 +90,7 @@ export function UserSelector({id, isMulti, className, multiSelectOnChange, multi
     const noUsersMessage = useCallback(() => formatMessage({id: 'admin.userMultiSelector.noUsers', defaultMessage: 'No users found'}), [formatMessage]);
     const defaultPlaceholder = formatMessage({id: 'admin.userMultiSelector.placeholder', defaultMessage: 'Start typing to search for users...'});
 
-    const searchUsers = useMemo(() => debounce(async (searchTerm: string, callback) => {
+    const generalSearchUsers = useMemo(() => debounce(async (searchTerm: string, callback) => {
         try {
             const response = await dispatch(searchProfiles(searchTerm, {page: 0}));
             if (response && response.data && response.data.length > 0) {
@@ -111,6 +112,32 @@ export function UserSelector({id, isMulti, className, multiSelectOnChange, multi
             callback([]);
         }
     }, 200), [dispatch]);
+
+    const customSearchFunc = useMemo(() => debounce(async (searchTerm: string, callback) => {
+        if (!searchFunc) {
+            return null;
+        }
+
+        try {
+            const response = await searchFunc(searchTerm);
+            const users = response.
+                map((user) => ({
+                    value: user.id,
+                    label: user.username,
+                    raw: user,
+                }));
+
+            callback(users);
+            return null;
+        } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error(error);
+            callback([]);
+            return null;
+        }
+    }, 200), [searchFunc]);
+
+    const searchUsers = searchFunc ? customSearchFunc : generalSearchUsers;
 
     const multiSelectHandleOnChange = useCallback((value: MultiValue<AutocompleteOptionType<UserProfile>>) => {
         const selectedUserIds = value.map((option) => option.value);
