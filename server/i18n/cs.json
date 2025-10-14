@@ -10878,5 +10878,9 @@
   {
     "id": "app.channel.get_common_teams.app_error",
     "translation": "Chyba při získávání společných týmů pro kanál"
+  },
+  {
+    "id": "api.encoding_error",
+    "translation": "Došlo k chybě při zpracování JSON pro odpověď API"
   }
 ]
