@@ -227,7 +227,6 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 
 	t.Run("should fail when trying to assign reviewer to non-flagged post", func(t *testing.T) {
 		require.Nil(t, setBaseConfig(th))
-
 		post := th.CreatePost(th.BasicChannel)
 
 		appErr := th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicChannel.TeamId, th.BasicUser.Id, th.SystemAdminUser.Id)
@@ -344,7 +343,6 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 
 	t.Run("should handle assignment with invalid post ID", func(t *testing.T) {
 		require.Nil(t, setBaseConfig(th))
-
 		appErr := th.App.AssignFlaggedPostReviewer(th.Context, "invalid_post_id", th.BasicChannel.TeamId, th.BasicUser.Id, th.SystemAdminUser.Id)
 		require.NotNil(t, appErr)
 		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
@@ -1619,7 +1617,6 @@ func TestGetReviewerPostsForFlaggedPost(t *testing.T) {
 
 	t.Run("should return empty list when no reviewer posts exist", func(t *testing.T) {
 		require.Nil(t, setBaseConfig(th))
-
 		post := th.CreatePost(th.BasicChannel)
 
 		groupId, appErr := th.App.ContentFlaggingGroupId()
@@ -1681,7 +1678,6 @@ func TestGetReviewerPostsForFlaggedPost(t *testing.T) {
 
 	t.Run("should handle invalid flagged post ID", func(t *testing.T) {
 		require.Nil(t, setBaseConfig(th))
-
 		groupId, appErr := th.App.ContentFlaggingGroupId()
 		require.Nil(t, appErr)
 
@@ -1822,7 +1818,6 @@ func TestPostReviewerMessage(t *testing.T) {
 
 	t.Run("should handle case when no reviewer posts exist", func(t *testing.T) {
 		require.Nil(t, setBaseConfig(th))
-
 		post := th.CreatePost(th.BasicChannel)
 
 		groupId, appErr := th.App.ContentFlaggingGroupId()

@@ -1101,7 +1101,6 @@ func (a *App) postReviewerMessage(rctx request.CTX, message, contentFlaggingGrou
 			rctx.Logger().Error("Failed to create assign reviewer post in one of the channels", mlog.Err(appErr), mlog.String("channel_id", channel.Id), mlog.String("post_id", postId))
 			continue
 		}
-
 		createdPosts = append(createdPosts, createdPost)
 	}
 
