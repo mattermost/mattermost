@@ -10802,5 +10802,85 @@
   {
     "id": "app.submit_interactive_dialog.invalid_response",
     "translation": "Napotkano nieprawidłową odpowiedź z interaktywnego przesyłania okna dialogowego."
+  },
+  {
+    "id": "api.channel.patch_update_channel.restricted_dm.app_error",
+    "translation": "Nie można zaktualizować zastrzeżonego kanału wiadomości bezpośrednich."
+  },
+  {
+    "id": "api.command.execute_command.restricted_dm.error",
+    "translation": "Nie możesz pisać w ograniczonym DM"
+  },
+  {
+    "id": "api.content_flagging.error.comment_required",
+    "translation": "Dodaj komentarz wyjaśniający, dlaczego oznaczasz tę wiadomość flagą."
+  },
+  {
+    "id": "api.content_flagging.error.comment_too_long",
+    "translation": "Powód oflagowania wiadomości nie może być dłuższy niż {{.MaxLength}} znaków."
+  },
+  {
+    "id": "api.content_flagging.error.not_available_on_team",
+    "translation": "Funkcja flagowania treści nie jest włączona w tym zespole."
+  },
+  {
+    "id": "api.content_flagging.error.post_not_in_progress",
+    "translation": "Oflagowany post musi mieć status oczekujący lub przypisany, aby mógł zostać zachowany lub usunięty."
+  },
+  {
+    "id": "api.content_flagging.error.reason_invalid",
+    "translation": "Podano nieznany powód oflagowania wiadomości."
+  },
+  {
+    "id": "api.content_flagging.error.reason_required",
+    "translation": "Wybierz powód oflagowania tej wiadomości."
+  },
+  {
+    "id": "api.content_flagging.error.reviewer_only",
+    "translation": "Nie masz uprawnień do wyświetlania tego zasobu."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
+    "translation": "Nie możesz zapisać wersji roboczej do zastrzeżonego kanału wiadomości bezpośrednich"
+  },
+  {
+    "id": "api.file.upload_file.get_channel.app_error",
+    "translation": "Nie można przesłać pliku do zastrzeżonego DM"
+  },
+  {
+    "id": "api.file.upload_file.restricted_dm.error",
+    "translation": "Nie można przesłać pliku do zastrzeżonego DM"
+  },
+  {
+    "id": "api.post.create_post.can_not_post_in_restricted_dm.error",
+    "translation": "Nie możesz publikować w zastrzeżonym kanale wiadomości bezpośrednich."
+  },
+  {
+    "id": "api.post.delete_post.can_not_delete_from_restricted_dm.error",
+    "translation": "Nie możesz usunąć postu w kanale wiadomości bezpośrednich z ograniczeniami."
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "Nie można zaktualizować postu w kanale wiadomości bezpośrednich z ograniczeniami."
+  },
+  {
+    "id": "api.post.update_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "Nie można zaktualizować postu w kanale wiadomości bezpośrednich z ograniczeniami."
+  },
+  {
+    "id": "api.reaction.delete.restricted_dm.error",
+    "translation": "Nie możesz reagować w ograniczonym DM"
+  },
+  {
+    "id": "api.reaction.save.restricted_dm.error",
+    "translation": "Nie możesz reagować w ograniczonym DM"
+  },
+  {
+    "id": "app.channel.get_common_teams.app_error",
+    "translation": "Błąd pobierania wspólnych zespołów dla Kanału"
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.in_progress",
+    "translation": "Nie możesz oflagować tego postu, ponieważ jest już oflagowany."
   }
 ]

@@ -494,7 +494,7 @@ func (h *Handler) checkCSRFToken(c *Context, r *http.Request, tokenLocation app.
 				mlog.String("user_id", session.UserId),
 			}
 
-			if *c.App.Config().ServiceSettings.StrictCSRFEnforcement {
+			if *c.App.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement {
 				c.Logger.Warn(csrfErrorMessage, fields...)
 			} else {
 				c.Logger.Debug(csrfErrorMessage, fields...)
