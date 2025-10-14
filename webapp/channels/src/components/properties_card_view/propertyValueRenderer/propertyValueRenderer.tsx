@@ -12,6 +12,7 @@ import type {
     FieldMetadata,
     PostPreviewFieldMetadata,
     TextFieldMetadata,
+    UserPropertyMetadata,
 } from 'components/properties_card_view/properties_card_view';
 
 import ChannelPropertyRenderer from './channel_property_renderer/channel_property_renderer';
@@ -45,6 +46,7 @@ export default function PropertyValueRenderer({field, value, metadata}: Props) {
             <UserPropertyRenderer
                 field={field}
                 value={value}
+                metadata={metadata as UserPropertyMetadata}
             />
         );
     case 'select':
