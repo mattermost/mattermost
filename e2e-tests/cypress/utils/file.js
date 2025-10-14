@@ -9,7 +9,8 @@ const chalk = require('chalk');
 const intersection = require('lodash.intersection');
 const without = require('lodash.without');
 const shell = require('shelljs');
-const argv = require('yargs').
+const {hideBin} = require('yargs/helpers');
+const argv = require('yargs/yargs')(hideBin(process.argv)).
     default('includeFile', '').
     default('excludeFile', '').
     argv;
