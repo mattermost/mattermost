@@ -10882,5 +10882,9 @@
   {
     "id": "app.content_flagging.can_flag_post.in_progress",
     "translation": "Nie możesz oflagować tego postu, ponieważ jest już oflagowany."
+  },
+  {
+    "id": "api.encoding_error",
+    "translation": "Napotkano błąd kodowania JSON dla odpowiedzi API"
   }
 ]
