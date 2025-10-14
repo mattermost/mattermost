@@ -73,11 +73,6 @@ func rolesListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to get roles: %w", err)
 	}
 
-	if len(roles) == 0 {
-		printer.Print("No roles found.")
-		return nil
-	}
-
 	for _, role := range roles {
 		printer.PrintT("{{.Name}}", role)
 	}
