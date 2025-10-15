@@ -174,7 +174,7 @@ describe('components/logged_in/LoggedIn', () => {
 
         shallow(<LoggedIn {...props}>{children}</LoggedIn>);
 
-        expect(BrowserStore.signalLogin).toBeCalledTimes(1);
+        expect(BrowserStore.signalLogin).toHaveBeenCalledTimes(1);
     });
 
     it('should set state to unfocused if it starts in the background', () => {
@@ -190,7 +190,7 @@ describe('components/logged_in/LoggedIn', () => {
         };
 
         shallow(<LoggedIn {...props}>{children}</LoggedIn>);
-        expect(obj.emitBrowserFocus).toBeCalledTimes(1);
+        expect(obj.emitBrowserFocus).toHaveBeenCalledTimes(1);
     });
 
     it('should not make viewChannel call on unload', () => {

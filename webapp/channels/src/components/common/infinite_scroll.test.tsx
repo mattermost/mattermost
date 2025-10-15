@@ -46,7 +46,7 @@ describe('/components/common/InfiniteScroll', () => {
 
         instance.componentDidMount();
         expect(node.current!.addEventListener).toHaveBeenCalledTimes(1);
-        expect(node.current!.removeEventListener).not.toBeCalled();
+        expect(node.current!.removeEventListener).not.toHaveBeenCalled();
 
         instance.componentWillUnmount();
 

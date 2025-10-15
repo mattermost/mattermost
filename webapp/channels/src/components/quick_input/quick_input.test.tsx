@@ -95,6 +95,6 @@ describe('components/QuickInput', () => {
         );
 
         expect(screen.queryByTestId('input-clear')).not.toBeInTheDocument();
-        expect(focusFn).toBeCalled();
+        expect(focusFn).toHaveBeenCalled();
     });
 });

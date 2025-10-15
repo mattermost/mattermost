@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/billing_subscription/CloudTrialBanner should match snapshot when is cloud and is free trial (the trial end is passed) 1`] = `
 <ContextProvider

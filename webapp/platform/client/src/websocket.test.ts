@@ -186,8 +186,8 @@ describe('websocketclient', () => {
         jest.advanceTimersByTime(80);
 
         client.close();
-        expect(initializeSpy).toBeCalledTimes(1);
-        expect(openSpy).toBeCalledTimes(1);
+        expect(initializeSpy).toHaveBeenCalledTimes(1);
+        expect(openSpy).toHaveBeenCalledTimes(1);
 
         jest.useRealTimers();
     });
@@ -219,14 +219,14 @@ describe('websocketclient', () => {
         jest.advanceTimersByTime(10);
 
         client.initialize('mock.url');
-        expect(initializeSpy).toBeCalledTimes(2);
-        expect(openSpy).toBeCalledTimes(1);
+        expect(initializeSpy).toHaveBeenCalledTimes(2);
+        expect(openSpy).toHaveBeenCalledTimes(1);
 
         jest.advanceTimersByTime(80);
 
         client.close();
-        expect(initializeSpy).toBeCalledTimes(3);
-        expect(openSpy).toBeCalledTimes(2);
+        expect(initializeSpy).toHaveBeenCalledTimes(3);
+        expect(openSpy).toHaveBeenCalledTimes(2);
 
         jest.useRealTimers();
     });
@@ -262,8 +262,8 @@ describe('websocketclient', () => {
         jest.advanceTimersByTime(80);
 
         client.close();
-        expect(initializeSpy).toBeCalledTimes(2);
-        expect(openSpy).toBeCalledTimes(2);
+        expect(initializeSpy).toHaveBeenCalledTimes(2);
+        expect(openSpy).toHaveBeenCalledTimes(2);
 
         jest.useRealTimers();
     });
@@ -317,8 +317,8 @@ describe('websocketclient', () => {
 
         client.close();
 
-        expect(openSpy).toBeCalledTimes(1);
-        expect(closeSpy).toBeCalledTimes(1);
+        expect(openSpy).toHaveBeenCalledTimes(1);
+        expect(closeSpy).toHaveBeenCalledTimes(1);
         expect(numPings).toBeGreaterThan(10);
         expect(numPongs).toBeGreaterThan(10);
 
@@ -389,8 +389,8 @@ describe('websocketclient', () => {
 
         client.close();
 
-        expect(mockWebSocket.open).toBeCalledTimes(3);
-        expect(mockWebSocket.close).toBeCalledTimes(3);
+        expect(mockWebSocket.open).toHaveBeenCalledTimes(3);
+        expect(mockWebSocket.close).toHaveBeenCalledTimes(3);
         expect(numPings).toBe(6);
         expect(numPongs).toBe(3);
 
@@ -614,8 +614,8 @@ describe('websocketclient', () => {
         jest.advanceTimersByTime(10);
 
         expect(mockWebSocket.readyState).toBe(WebSocket.OPEN);
-        expect(openSpy).toBeCalledTimes(1);
-        expect(closeSpy).toBeCalledTimes(0);
+        expect(openSpy).toHaveBeenCalledTimes(1);
+        expect(closeSpy).toHaveBeenCalledTimes(0);
         expect(numPings).toBe(1);
 
         // Simulate network going offline
@@ -625,8 +625,8 @@ describe('websocketclient', () => {
 
         client.close();
 
-        expect(openSpy).toBeCalledTimes(1);
-        expect(closeSpy).toBeCalledTimes(1);
+        expect(openSpy).toHaveBeenCalledTimes(1);
+        expect(closeSpy).toHaveBeenCalledTimes(1);
         expect(numPings).toBe(2);
 
         jest.useRealTimers();

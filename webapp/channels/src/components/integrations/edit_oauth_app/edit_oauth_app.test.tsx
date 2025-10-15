@@ -116,8 +116,8 @@ describe('components/integrations/EditOAuthApp', () => {
         instance.submitOAuthApp = jest.fn();
         instance.editOAuthApp(oauthApp);
 
-        expect(instance.handleConfirmModal).not.toBeCalled();
-        expect(instance.submitOAuthApp).toBeCalled();
+        expect(instance.handleConfirmModal).not.toHaveBeenCalled();
+        expect(instance.submitOAuthApp).toHaveBeenCalled();
     });
 
     test('should have match when submitOAuthApp is called on success', async () => {

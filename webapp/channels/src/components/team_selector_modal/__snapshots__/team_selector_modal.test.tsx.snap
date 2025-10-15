@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/TeamSelectorModal should hide group constrained teams when excludeGroupConstrained is true 1`] = `
 <ContextConsumer>

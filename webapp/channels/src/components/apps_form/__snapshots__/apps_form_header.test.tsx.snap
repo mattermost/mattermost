@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/apps_form/AppsFormHeader should not fail on empty value 1`] = `
 <Connect(Markdown)

@@ -34,7 +34,7 @@ describe('components/ChannelHeaderMobile/UnmuteChannelButton', () => {
         const wrapper = shallow(<UnmuteChannelButton {...props}/>);
         wrapper.simulate('click');
 
-        expect(props.actions.updateChannelNotifyProps).toBeCalledWith(
+        expect(props.actions.updateChannelNotifyProps).toHaveBeenCalledWith(
             props.user.id,
             props.channel.id,
             {mark_unread: NotificationLevels.ALL},

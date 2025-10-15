@@ -272,8 +272,8 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
 
         fireEvent.click(screen.getByRole('button'));
 
-        expect(savePreferences).toBeCalledTimes(1);
-        expect(savePreferences).toBeCalledWith(store.entities.users.profiles.current_user.id, [{
+        expect(savePreferences).toHaveBeenCalledTimes(1);
+        expect(savePreferences).toHaveBeenCalledWith(store.entities.users.profiles.current_user.id, [{
             category: Preferences.OVERAGE_USERS_BANNER,
             name: `error_overage_seats_${licenseId.substring(0, 8)}`,
             user_id: store.entities.users.profiles.current_user.id,
@@ -402,8 +402,8 @@ describe('components/invitation_modal/overage_users_banner_notice', () => {
 
         fireEvent.click(screen.getByRole('button'));
 
-        expect(savePreferences).toBeCalledTimes(1);
-        expect(savePreferences).toBeCalledWith(store.entities.users.profiles.current_user.id, [{
+        expect(savePreferences).toHaveBeenCalledTimes(1);
+        expect(savePreferences).toHaveBeenCalledWith(store.entities.users.profiles.current_user.id, [{
             category: Preferences.OVERAGE_USERS_BANNER,
             name: `error_overage_seats_${licenseId.substring(0, 8)}`,
             user_id: store.entities.users.profiles.current_user.id,

@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/channel_settings_modal/ChannelSettingsAccessRulesTab should match snapshot 1`] = `
 <div>

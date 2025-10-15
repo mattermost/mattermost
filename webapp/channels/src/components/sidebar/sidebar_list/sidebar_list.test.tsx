@@ -212,7 +212,7 @@ describe('SidebarList', () => {
         } as any);
 
         instance.scrollToChannel(unreadChannel.id);
-        expect(instance.scrollToPosition).toBeCalledWith(8); // includes margin and category header height
+        expect(instance.scrollToPosition).toHaveBeenCalledWith(8); // includes margin and category header height
     });
 
     test('should set the dragging state based on type', () => {

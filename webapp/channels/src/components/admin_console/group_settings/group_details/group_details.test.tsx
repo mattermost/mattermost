@@ -101,10 +101,10 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
                 actions={actions}
             />,
         );
-        expect(actions.getGroupSyncables).toBeCalledWith('xxxxxxxxxxxxxxxxxxxxxxxxxx', 'team');
-        expect(actions.getGroupSyncables).toBeCalledWith('xxxxxxxxxxxxxxxxxxxxxxxxxx', 'channel');
-        expect(actions.getGroupSyncables).toBeCalledTimes(2);
-        expect(actions.getGroup).toBeCalledWith('xxxxxxxxxxxxxxxxxxxxxxxxxx');
+        expect(actions.getGroupSyncables).toHaveBeenCalledWith('xxxxxxxxxxxxxxxxxxxxxxxxxx', 'team');
+        expect(actions.getGroupSyncables).toHaveBeenCalledWith('xxxxxxxxxxxxxxxxxxxxxxxxxx', 'channel');
+        expect(actions.getGroupSyncables).toHaveBeenCalledTimes(2);
+        expect(actions.getGroup).toHaveBeenCalledWith('xxxxxxxxxxxxxxxxxxxxxxxxxx');
     });
 
     test('should set state for each channel when addChannels is called', async () => {

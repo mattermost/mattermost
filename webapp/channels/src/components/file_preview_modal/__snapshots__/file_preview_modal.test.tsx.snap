@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/FilePreviewModal should fall back to default preview if plugin does not need to override preview component 1`] = `
 <Modal

@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/team_channel_settings/group/UsersToRemoveGroups should match snapshot with 0 groups 1`] = `
 <div
