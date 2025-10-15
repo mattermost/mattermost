@@ -170,7 +170,7 @@ const defaultServerConfig: AdminConfig = {
         EnableAPIPostDeletion: false,
         EnableDesktopLandingPage: true,
         ExperimentalEnableHardenedMode: false,
-        StrictCSRFEnforcement: true,
+        ExperimentalStrictCSRFEnforcement: false,
         EnableEmailInvitations: false,
         DisableBotsWhenOwnerIsDeactivated: true,
         EnableBotAccountCreation: false,
@@ -754,7 +754,6 @@ const defaultServerConfig: AdminConfig = {
         AttributeBasedAccessControl: true,
         ContentFlagging: false,
         InteractiveDialogAppsForm: true,
-        ChannelAdminManageABACRules: false,
     },
     ImportSettings: {
         Directory: './import',

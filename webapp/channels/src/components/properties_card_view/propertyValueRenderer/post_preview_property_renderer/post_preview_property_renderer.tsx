@@ -7,21 +7,25 @@ import {useIntl} from 'react-intl';
 import type {PostPreviewMetadata} from '@mattermost/types/posts';
 import type {PropertyValue} from '@mattermost/types/properties';
 
-import {useTeam} from 'components/common/hooks/use_team';
-import {useChannel} from 'components/common/hooks/useChannel';
-import {usePost} from 'components/common/hooks/usePost';
+import {usePropertyCardViewChannelLoader} from 'components/common/hooks/usePropertyCardViewChannelLoader';
+import {usePropertyCardViewPostLoader} from 'components/common/hooks/usePropertyCardViewPostLoader';
+import {usePropertyCardViewTeamLoader} from 'components/common/hooks/usePropertyCardViewTeamLoader';
 import PostMessagePreview from 'components/post_view/post_message_preview';
+import type {PostPreviewFieldMetadata} from 'components/properties_card_view/properties_card_view';
 
 const noop = () => {};
 
 type Props = {
     value: PropertyValue<unknown>;
+    metadata?: PostPreviewFieldMetadata;
 }
 
-export default function PostPreviewPropertyRenderer({value}: Props) {
-    const post = usePost(value.value as string);
-    const channel = useChannel(post?.channel_id || '');
-    const team = useTeam(channel?.team_id || '');
+export default function PostPreviewPropertyRenderer({value, metadata}: Props) {
+    const postId = value.value as string;
+
+    const post = usePropertyCardViewPostLoader(postId, metadata?.getPost, true);
+    const channel = usePropertyCardViewChannelLoader(post?.channel_id, metadata?.getChannel);
+    const team = usePropertyCardViewTeamLoader(channel?.team_id, metadata?.getTeam);
 
     const {formatMessage} = useIntl();
 
@@ -56,6 +60,7 @@ export default function PostPreviewPropertyRenderer({value}: Props) {
                 handleFileDropdownOpened={noop}
                 preventClickAction={true}
                 previewFooterMessage={postPreviewFooterMessage}
+                usePostAsSource={true}
             />
         </div>
     );

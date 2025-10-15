@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {lazy, type ComponentType} from 'react';
+import React, {lazy} from 'react';
 
 import type {PluggableComponentType, PluggableProps} from 'plugins/pluggable/pluggable';
 
 import type {PluginsState, ProductSubComponentNames} from 'types/store/plugins';
 
 export function makeAsyncComponent<ComponentProps>(displayName: string, LazyComponent: React.ComponentType<ComponentProps>, fallback: React.ReactNode = null) {
-    const Component: ComponentType<ComponentProps> = (props) => (
+    const Component = (props: ComponentProps & React.JSX.IntrinsicAttributes) => (
         <React.Suspense fallback={fallback}>
             <LazyComponent {...props}/>
         </React.Suspense>

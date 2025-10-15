@@ -86,7 +86,7 @@ export default class ConvertChannelModal extends React.PureComponent<Props, Stat
                             defaultMessage='When you convert <b>{display_name}</b> to a private channel, history and membership are preserved. Publicly shared files remain accessible to anyone with the link. Membership in a private channel is by invitation only.'
                             values={{
                                 display_name: channelDisplayName,
-                                b: (chunks: string) => <b>{chunks}</b>,
+                                b: (chunks) => <b>{chunks}</b>,
                             }}
                         />
                     </p>
@@ -96,7 +96,7 @@ export default class ConvertChannelModal extends React.PureComponent<Props, Stat
                             defaultMessage='Are you sure you want to convert <b>{display_name}</b> to a private channel?'
                             values={{
                                 display_name: channelDisplayName,
-                                b: (chunks: string) => <b>{chunks}</b>,
+                                b: (chunks) => <b>{chunks}</b>,
                             }}
                         />
                     </p>

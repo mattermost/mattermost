@@ -9,27 +9,7 @@ exports[`components/channel_view Should match snapshot if channel is archived 1`
     id="centerChannelFileDropOverlay"
     overlayType="center"
   />
-  <ChannelHeader
-    channelId="channelId"
-    channelIsArchived={true}
-    deactivatedChannel={false}
-    enableOnboardingFlow={true}
-    enableWebSocketEventScope={false}
-    goToLastViewedChannel={[MockFunction]}
-    history={Object {}}
-    isChannelBookmarksEnabled={false}
-    isCloud={false}
-    isFirstAdmin={false}
-    location={Object {}}
-    match={
-      Object {
-        "params": Object {},
-        "url": "/team/channel/channelId",
-      }
-    }
-    missingChannelRole={false}
-    teamUrl="/team"
-  />
+  <ChannelHeader />
   <ChannelBanner
     channelId="channelId"
   />
@@ -76,27 +56,7 @@ exports[`components/channel_view Should match snapshot if channel is deactivated
     id="centerChannelFileDropOverlay"
     overlayType="center"
   />
-  <ChannelHeader
-    channelId="channelId"
-    channelIsArchived={false}
-    deactivatedChannel={true}
-    enableOnboardingFlow={true}
-    enableWebSocketEventScope={false}
-    goToLastViewedChannel={[MockFunction]}
-    history={Object {}}
-    isChannelBookmarksEnabled={false}
-    isCloud={false}
-    isFirstAdmin={false}
-    location={Object {}}
-    match={
-      Object {
-        "params": Object {},
-        "url": "/team/channel/channelId",
-      }
-    }
-    missingChannelRole={false}
-    teamUrl="/team"
-  />
+  <ChannelHeader />
   <ChannelBanner
     channelId="channelId"
   />
@@ -142,27 +102,7 @@ exports[`components/channel_view Should match snapshot with base props 1`] = `
     id="centerChannelFileDropOverlay"
     overlayType="center"
   />
-  <ChannelHeader
-    channelId="channelId"
-    channelIsArchived={false}
-    deactivatedChannel={false}
-    enableOnboardingFlow={true}
-    enableWebSocketEventScope={false}
-    goToLastViewedChannel={[MockFunction]}
-    history={Object {}}
-    isChannelBookmarksEnabled={false}
-    isCloud={false}
-    isFirstAdmin={false}
-    location={Object {}}
-    match={
-      Object {
-        "params": Object {},
-        "url": "/team/channel/channelId",
-      }
-    }
-    missingChannelRole={false}
-    teamUrl="/team"
-  />
+  <ChannelHeader />
   <ChannelBanner
     channelId="channelId"
   />

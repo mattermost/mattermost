@@ -129,7 +129,7 @@ const ThreadList = ({
         };
     }, [handleKeyDown]);
 
-    const handleLoadMoreItems = useCallback(async (startIndex) => {
+    const handleLoadMoreItems = useCallback(async (startIndex: number) => {
         setLoading(true);
         let before = data[startIndex - 1];
 

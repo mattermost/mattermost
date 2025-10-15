@@ -10752,10 +10752,6 @@
     "translation": "Att dölja arkiverade kanaler stöds inte längre. Gör dessa kanaler privata och ta bort medlemmar istället."
   },
   {
-    "id": "api.not_implemented",
-    "translation": "Denna funktion är inte implementerad."
-  },
-  {
     "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
     "translation": "Det går inte att uppdatera värdet i ett administratörshanterat attributfält för anpassad profil"
   },

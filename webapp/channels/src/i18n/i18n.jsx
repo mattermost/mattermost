@@ -37,7 +37,7 @@ export const languages = {
     },
     fr: {
         value: 'fr',
-        name: 'Français (Beta)',
+        name: 'Français (Alpha)',
         order: 4,
         url: langFiles.fr,
     },

@@ -22,14 +22,37 @@ jobs:
           pattern: "*-test-logs"
           path: reports
       
+      - name: report/validate-and-prepare-data
+        id: validate
+        run: |
+          # Create validated data file
+          > /tmp/validated-tests.json
+          
+          find "reports" -type f -name "test-name" | while read -r test_file; do
+            folder=$(basename "$(dirname "$test_file")")
+            test_name_raw=$(cat "$test_file" | tr -d '\n\r')
+            
+            # Validate test name: allow alphanumeric, spaces, hyphens, underscores, parentheses, and dots
+            if [[ "$test_name_raw" =~ ^[a-zA-Z0-9\ \(\)_.-]+$ ]] && [[ ${#test_name_raw} -le 100 ]]; then
+              # Use jq to safely escape the test name as JSON
+              test_name_escaped=$(echo -n "$test_name_raw" | jq -R .)
+              echo "{\"artifact\": \"$folder\", \"name\": $test_name_escaped}" >> /tmp/validated-tests.json
+            else
+              echo "Warning: Skipping invalid test name in $test_file: '$test_name_raw'" >&2
+            fi
+          done
+          
+          # Verify we have at least some valid tests
+          if [[ ! -s /tmp/validated-tests.json ]]; then
+            echo "Error: No valid test names found" >&2
+            exit 1
+          fi
+
       - name: report/generate-report-matrix
         id: report
         run: |
-          find "reports" -type f -name "test-name" | while read -r test_file; do
-            folder=$(basename "$(dirname "$test_file")")
-            test_name=$(cat "$test_file")
-            echo "{\"artifact\": \"$folder\", \"name\": \"$test_name\"}"
-          done | jq -s '{ "test": . }' | tee /tmp/report-matrix
+          # Convert validated JSON objects to matrix format
+          jq -s '{ "test": . }' /tmp/validated-tests.json | tee /tmp/report-matrix
           echo REPORT_MATRIX=$(cat /tmp/report-matrix | jq --compact-output --monochrome-output) >> ${GITHUB_OUTPUT}
       
   publish-report:
@@ -54,7 +77,21 @@ jobs:
       - name: report/fetch-pr-number
         if: github.event.workflow_run.name == 'Server CI PR'
         id: incoming-pr
-        run: echo "NUMBER=$(cat ${{ matrix.test.artifact }}/pr-number)" >> ${GITHUB_OUTPUT}
+        env:
+          ARTIFACT: "${{ matrix.test.artifact }}"
+        run: |
+          if [[ -f "$ARTIFACT/pr-number" ]]; then
+            pr_number=$(cat "$ARTIFACT/pr-number" | tr -d '\n\r' | grep -E '^[0-9]+$')
+            if [[ -n "$pr_number" ]] && [[ ${#pr_number} -le 10 ]]; then
+              echo "NUMBER=$pr_number" >> ${GITHUB_OUTPUT}
+            else
+              echo "Invalid PR number format" >&2
+              exit 1
+            fi
+          else
+            echo "PR number file not found" >&2
+            exit 1
+          fi
       - name: Publish test report
         id: report
         uses: mikepenz/action-junit-report@cf701569b05ccdd861a76b8607a66d76f6fd4857 # v5.5.1
