@@ -283,3 +283,5 @@ channels/db/migrations/postgres/000141_add_remoteid_channelid_to_post_acknowledg
 channels/db/migrations/postgres/000141_add_remoteid_channelid_to_post_acknowledgements.up.sql
 channels/db/migrations/postgres/100001_add_voipdeviceid_column.down.sql
 channels/db/migrations/postgres/100001_add_voipdeviceid_column.up.sql
+channels/db/migrations/postgres/100002_add_pg_bigm_extension.down.sql
+channels/db/migrations/postgres/100002_add_pg_bigm_extension.up.sql
