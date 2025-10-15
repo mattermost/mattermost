@@ -6,14 +6,12 @@ import React from 'react';
 
 import type {ContentFlaggingAdditionalSettings} from '@mattermost/types/config';
 
-import type {SystemConsoleCustomSettingsComponentProps} from 'components/admin_console/schema_admin_settings';
-
 import {renderWithContext} from 'tests/react_testing_utils';
 
 import ContentFlaggingAdditionalSettingsSection from './additional_settings';
 
 describe('ContentFlaggingAdditionalSettingsSection', () => {
-    const defaultProps: SystemConsoleCustomSettingsComponentProps = {
+    const defaultProps = {
         id: 'ContentFlaggingAdditionalSettings',
         onChange: jest.fn(),
         value: {
@@ -22,7 +20,7 @@ describe('ContentFlaggingAdditionalSettingsSection', () => {
             ReviewerCommentRequired: true,
             HideFlaggedContent: false,
         } as ContentFlaggingAdditionalSettings,
-    } as unknown as SystemConsoleCustomSettingsComponentProps;
+    };
 
     beforeEach(() => {
         jest.clearAllMocks();

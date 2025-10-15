@@ -3,7 +3,7 @@
 
 import semver from 'semver';
 
-import type {DesktopAPI, PopoutViewProps} from '@mattermost/desktop-api';
+import type {DesktopAPI, PopoutViewProps, Theme} from '@mattermost/desktop-api';
 
 import {isDesktopApp} from 'utils/user_agent';
 
@@ -152,6 +152,10 @@ export class DesktopAppAPI {
         return Boolean(window.desktopAPI?.canUsePopoutOption?.(optionName));
     };
 
+    getDarkMode = () => {
+        return window.desktopAPI?.getDarkMode?.() ?? Promise.resolve(false);
+    };
+
     /**
      * Listeners
      */
@@ -216,6 +220,10 @@ export class DesktopAppAPI {
         return window.desktopAPI?.onPopoutClosed?.(listener);
     };
 
+    onDarkModeChanged = (listener: (darkMode: boolean) => void) => {
+        return window.desktopAPI?.onDarkModeChanged?.(listener);
+    };
+
     /**
      * One-ways
      */
@@ -274,6 +282,7 @@ export class DesktopAppAPI {
     signalLogin = () => window.desktopAPI?.onLogin?.();
     signalLogout = () => window.desktopAPI?.onLogout?.();
     reactAppInitialized = () => window.desktopAPI?.reactAppInitialized?.();
+    updateTheme = (theme: Theme) => window.desktopAPI?.updateTheme?.(theme);
 
     sendToParentWindow = (channel: string, ...args: unknown[]) => window.desktopAPI?.sendToParent?.(channel, ...args);
     sendToPopoutWindow = (id: string, channel: string, ...args: unknown[]) => window.desktopAPI?.sendToPopout?.(id, channel, ...args);
