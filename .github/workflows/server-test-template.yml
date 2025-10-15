@@ -55,6 +55,12 @@ jobs:
           cat ../tests/test-data.ldif | docker compose --ansi never exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
           docker compose --ansi never exec -T minio sh -c 'mkdir -p /data/mattermost-test';
           docker compose --ansi never ps
+      - name: Enable pg_bigm extension in databases
+        run: |
+          sleep 5
+          cd server/build
+          docker compose exec -T postgres psql -U postgres -d mattermost_test -c "CREATE EXTENSION IF NOT EXISTS pg_bigm;"
+          docker compose exec -T postgres psql -U postgres -d mattermost_node_test -c "CREATE EXTENSION IF NOT EXISTS pg_bigm;"
       - name: Run Tests
         env:
           BUILD_IMAGE: mattermostdevelopment/mattermost-build-server:${{ steps.go.outputs.GO_VERSION }}

@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: "postgres:13"
+    image: "pgbigm/pgbigm:13-3.0"
     restart: always
     networks:
       - mm-test
