@@ -589,8 +589,8 @@ function PostComponent(props: Props) {
                                     />
                                 }
                                 {priority}
-                                {Boolean(post.props && post.props.ai_generated_by && post.props.ai_generated_by_username) && 
-                                    typeof post.props.ai_generated_by === 'string' && 
+                                {Boolean(post.props && post.props.ai_generated_by && post.props.ai_generated_by_username) &&
+                                    typeof post.props.ai_generated_by === 'string' &&
                                     typeof post.props.ai_generated_by_username === 'string' && (
                                     <AiGeneratedIndicator
                                         userId={post.props.ai_generated_by}
