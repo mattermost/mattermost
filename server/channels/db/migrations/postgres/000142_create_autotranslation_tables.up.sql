@@ -13,12 +13,9 @@ CREATE TABLE IF NOT EXISTS translations (
     confidence          real                     ,  -- provider confidence 0..1 (nullable)
     meta                jsonb                    ,  -- provider metadata (nullable)
     updateat            bigint         NOT NULL,    -- epoch millis
+    content_search_text text                    ,  -- helper column for normalized search
     PRIMARY KEY (object_type, object_id, dst_lang)
 );
-
--- Add content_search_text helper column for normalized search
-ALTER TABLE translations
-    ADD COLUMN IF NOT EXISTS content_search_text text;
 
 -- Indexes for recency and lookup performance
 CREATE INDEX IF NOT EXISTS idx_translations_updateat 
@@ -40,29 +37,27 @@ CREATE INDEX IF NOT EXISTS idx_translations_trgm
 ALTER TABLE channels 
     ADD COLUMN IF NOT EXISTS props jsonb NOT NULL DEFAULT '{}'::jsonb;
 
--- Type guard for autotranslate.enabled when present
+-- Type guard for autotranslation (direct boolean value)
 ALTER TABLE channels
     ADD CONSTRAINT chk_channels_autotranslation_bool
     CHECK (
         NOT (props ? 'autotranslation')
-        OR NOT (props->'autotranslation' ? 'enabled')
-        OR jsonb_typeof(props->'autotranslation'->'enabled') = 'boolean'
+        OR jsonb_typeof(props->'autotranslation') = 'boolean'
     );
 
 -- Add preferences JSON bag to channelmembers table
 ALTER TABLE channelmembers 
     ADD COLUMN IF NOT EXISTS props jsonb NOT NULL DEFAULT '{}'::jsonb;
 
--- Type guard for autotranslate.enabled when present
+-- Type guard for autotranslation (direct boolean value)
 ALTER TABLE channelmembers
     ADD CONSTRAINT chk_channelmembers_autotranslation_bool
     CHECK (
         NOT (props ? 'autotranslation')
-        OR NOT (props->'autotranslation' ? 'enabled')
-        OR jsonb_typeof(props->'autotranslation'->'enabled') = 'boolean'
+        OR jsonb_typeof(props->'autotranslation') = 'boolean'
     );
 
 -- Hot path index: Members opted in for a channel (missing = false)
 CREATE INDEX IF NOT EXISTS idx_channelmembers_autotranslation_enabled
     ON channelmembers (channelid)
-    WHERE COALESCE((props->'autotranslation'->>'enabled')::boolean, false) = true;
+    WHERE COALESCE((props->>'autotranslation')::boolean, false) = true;
