@@ -1,6 +1,8 @@
 services:
   postgres:
-    image: "pgbigm/pgbigm:13-3.0"
+    build:
+      context: ./docker
+      dockerfile: Dockerfile.postgres-pg_bigm
     restart: always
     networks:
       - mm-test

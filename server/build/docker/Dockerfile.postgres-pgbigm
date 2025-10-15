@@ -1,0 +1,19 @@
+# Base on the official postgres:13 image
+FROM postgres:13
+
+# Install build dependencies, build pg_bigm, and then clean up
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        build-essential \
+        postgresql-server-dev-13 \
+        git \
+        ca-certificates && \
+    git clone https://github.com/pgbigm/pg_bigm.git /usr/src/pg_bigm && \
+    cd /usr/src/pg_bigm && \
+    make && make install && \
+    apt-get purge -y --auto-remove \
+        build-essential \
+        postgresql-server-dev-13 \
+        git && \
+    rm -rf /var/lib/apt/lists/* && \
+    rm -rf /usr/src/pg_bigm
