@@ -883,7 +883,7 @@ func TestAssignContentFlaggingReviewer(t *testing.T) {
 		// Try to assign non-reviewer user
 		resp, err := client.AssignContentFlaggingReviewer(context.Background(), post.Id, nonReviewerUser.Id)
 		require.Error(t, err)
-		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
 	})
 
 	t.Run("Should successfully assign reviewer when all conditions are met", func(t *testing.T) {
