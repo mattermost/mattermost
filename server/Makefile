@@ -292,6 +292,8 @@ else
 
 	docker compose down -v
 	docker compose rm -v
+
+	docker volume rm mattermost-server_postgres-14-data || true
 endif
 
 plugin-checker:
