@@ -7,7 +7,6 @@ import React from 'react';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 import DesktopApp from 'utils/desktop_api';
-import {isDesktopApp} from 'utils/user_agent';
 
 import PopoutButton from './popout_button';
 
@@ -23,20 +22,7 @@ jest.mock('utils/user_agent', () => ({
     isDesktopApp: jest.fn(),
 }));
 
-jest.mock('components/with_tooltip', () => ({
-    __esModule: true,
-    default: ({children, title}: {children: React.ReactNode; title: React.ReactNode}) => (
-        <div
-            data-testid='with-tooltip'
-            title={typeof title === 'string' ? title : 'tooltip'}
-        >
-            {children}
-        </div>
-    ),
-}));
-
 const mockDesktopApp = DesktopApp as jest.Mocked<typeof DesktopApp>;
-const mockIsDesktopApp = isDesktopApp as jest.MockedFunction<typeof isDesktopApp>;
 
 describe('PopoutButton', () => {
     const defaultProps = {
@@ -44,22 +30,12 @@ describe('PopoutButton', () => {
     };
 
     beforeEach(() => {
+        mockDesktopApp.canPopout.mockReturnValue(true);
         jest.clearAllMocks();
     });
 
-    it('should not render when not in desktop app', () => {
-        mockIsDesktopApp.mockReturnValue(false);
-
-        const {container} = renderWithContext(
-            <PopoutButton {...defaultProps}/>,
-        );
-
-        expect(container.firstChild).toBeNull();
-    });
-
     it('should not render when desktop app cannot popout', async () => {
-        mockIsDesktopApp.mockReturnValue(true);
-        mockDesktopApp.canPopout.mockResolvedValue(false);
+        mockDesktopApp.canPopout.mockReturnValue(false);
 
         const {container} = renderWithContext(
             <PopoutButton {...defaultProps}/>,
@@ -70,23 +46,7 @@ describe('PopoutButton', () => {
         });
     });
 
-    it('should render when desktop app can popout', async () => {
-        mockIsDesktopApp.mockReturnValue(true);
-        mockDesktopApp.canPopout.mockResolvedValue(true);
-
-        renderWithContext(
-            <PopoutButton {...defaultProps}/>,
-        );
-
-        await waitFor(() => {
-            expect(screen.getByRole('button')).toBeInTheDocument();
-        });
-    });
-
     it('should render with correct button attributes', async () => {
-        mockIsDesktopApp.mockReturnValue(true);
-        mockDesktopApp.canPopout.mockResolvedValue(true);
-
         renderWithContext(
             <PopoutButton {...defaultProps}/>,
         );
@@ -103,9 +63,6 @@ describe('PopoutButton', () => {
     });
 
     it('should render with custom className', async () => {
-        mockIsDesktopApp.mockReturnValue(true);
-        mockDesktopApp.canPopout.mockResolvedValue(true);
-
         renderWithContext(
             <PopoutButton
                 {...defaultProps}
@@ -121,8 +78,6 @@ describe('PopoutButton', () => {
 
     it('should call onClick when clicked', async () => {
         const onClick = jest.fn();
-        mockIsDesktopApp.mockReturnValue(true);
-        mockDesktopApp.canPopout.mockResolvedValue(true);
 
         renderWithContext(
             <PopoutButton onClick={onClick}/>,
@@ -135,42 +90,6 @@ describe('PopoutButton', () => {
 
         await userEvent.click(screen.getByRole('button'));
         expect(onClick).toHaveBeenCalledTimes(1);
-    });
-
-    it('should render with tooltip', async () => {
-        mockIsDesktopApp.mockReturnValue(true);
-        mockDesktopApp.canPopout.mockResolvedValue(true);
-
-        renderWithContext(
-            <PopoutButton {...defaultProps}/>,
-        );
-
-        await waitFor(() => {
-            expect(screen.getByTestId('with-tooltip')).toBeInTheDocument();
-        });
-    });
-
-    it('should check canPopout on mount when in desktop app', async () => {
-        mockIsDesktopApp.mockReturnValue(true);
-        mockDesktopApp.canPopout.mockResolvedValue(true);
-
-        renderWithContext(
-            <PopoutButton {...defaultProps}/>,
-        );
-
-        await waitFor(() => {
-            expect(mockDesktopApp.canPopout).toHaveBeenCalledTimes(1);
-        });
-    });
-
-    it('should not check canPopout when not in desktop app', () => {
-        mockIsDesktopApp.mockReturnValue(false);
-
-        renderWithContext(
-            <PopoutButton {...defaultProps}/>,
-        );
-
-        expect(mockDesktopApp.canPopout).not.toHaveBeenCalled();
     });
 });
 

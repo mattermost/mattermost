@@ -38,7 +38,7 @@ describe('PopoutController', () => {
 
     it('should render modal controller', () => {
         renderWithContext(
-            <MemoryRouter initialEntries={['/_popout/thread/test-team/post-123']}>
+            <MemoryRouter initialEntries={['/_popout/thread/test-team/post0000000000000000000123']}>
                 <PopoutController/>
             </MemoryRouter>,
         );
@@ -48,7 +48,7 @@ describe('PopoutController', () => {
 
     it('should add popout classes to document body on mount', () => {
         renderWithContext(
-            <MemoryRouter initialEntries={['/_popout/thread/test-team/post-123']}>
+            <MemoryRouter initialEntries={['/_popout/thread/test-team/post0000000000000000000123']}>
                 <PopoutController/>
             </MemoryRouter>,
         );
@@ -59,7 +59,7 @@ describe('PopoutController', () => {
 
     it('should dispatch getProfiles action on mount', () => {
         renderWithContext(
-            <MemoryRouter initialEntries={['/_popout/thread/test-team/post-123']}>
+            <MemoryRouter initialEntries={['/_popout/thread/test-team/post0000000000000000000123']}>
                 <PopoutController/>
             </MemoryRouter>,
         );
@@ -69,7 +69,7 @@ describe('PopoutController', () => {
 
     it('should render thread popout for thread route', () => {
         renderWithContext(
-            <MemoryRouter initialEntries={['/_popout/thread/test-team/post-123']}>
+            <MemoryRouter initialEntries={['/_popout/thread/test-team/post0000000000000000000123']}>
                 <PopoutController/>
             </MemoryRouter>,
         );
@@ -79,7 +79,7 @@ describe('PopoutController', () => {
 
     it('should maintain body classes on re-render', () => {
         const {rerender} = renderWithContext(
-            <MemoryRouter initialEntries={['/_popout/thread/test-team/post-123']}>
+            <MemoryRouter initialEntries={['/_popout/thread/test-team/post0000000000000000000123']}>
                 <PopoutController/>
             </MemoryRouter>,
         );
@@ -89,7 +89,7 @@ describe('PopoutController', () => {
 
         // Re-render with different route
         rerender(
-            <MemoryRouter initialEntries={['/_popout/thread/other-team/post-456']}>
+            <MemoryRouter initialEntries={['/_popout/thread/other-team/post0000000000000000000456']}>
                 <PopoutController/>
             </MemoryRouter>,
         );

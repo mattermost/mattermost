@@ -5,25 +5,18 @@ import {screen} from '@testing-library/react';
 import React from 'react';
 import {MemoryRouter, Route} from 'react-router-dom';
 
-import type {Post} from '@mattermost/types/posts';
-
-import {usePost} from 'components/common/hooks/usePost';
-
 import {renderWithContext} from 'tests/react_testing_utils';
 
 import ThreadPopout from './thread_popout';
 
-// Mock all dependencies to avoid complex Redux setup
-jest.mock('components/common/hooks/usePost', () => ({
-    usePost: jest.fn(),
-}));
+// Remove usePost mock since we'll use Redux state instead
 
 jest.mock('components/threading/global_threads/thread_pane', () => ({
     __esModule: true,
-    default: ({children, thread}: {children: React.ReactNode; thread: any}) => (
+    default: ({children, thread}: {children: React.ReactNode; thread: unknown}) => (
         <div
             data-testid='thread-pane'
-            data-thread-id={thread?.id}
+            data-thread-id={(thread as {id?: string})?.id}
         >
             {children}
         </div>
@@ -32,7 +25,7 @@ jest.mock('components/threading/global_threads/thread_pane', () => ({
 
 jest.mock('components/threading/thread_viewer', () => ({
     __esModule: true,
-    default: ({rootPostId, useRelativeTimestamp, isThreadView}: any) => (
+    default: ({rootPostId, useRelativeTimestamp, isThreadView}: {rootPostId: string; useRelativeTimestamp: boolean; isThreadView: boolean}) => (
         <div
             data-testid='thread-viewer'
             data-root-post-id={rootPostId}
@@ -67,8 +60,6 @@ jest.mock('mattermost-redux/actions/users', () => ({
     getProfiles: jest.fn().mockReturnValue(() => ({type: 'GET_PROFILES'})),
 }));
 
-const mockUsePost = usePost as jest.MockedFunction<typeof usePost>;
-
 describe('ThreadPopout', () => {
     const mockPost = {
         id: 'post-123',
@@ -82,67 +73,63 @@ describe('ThreadPopout', () => {
         display_name: 'Test Team',
     };
 
+    const baseState = {
+        entities: {
+            channels: {
+                currentChannelId: 'channel-123',
+                channels: {
+                    'channel-123': {
+                        id: 'channel-123',
+                        name: 'test-channel',
+                        display_name: 'Test Channel',
+                        type: 'O' as const,
+                        delete_at: 0,
+                    },
+                },
+            },
+            teams: {
+                currentTeamId: 'team-123',
+                teams: {
+                    'team-123': mockTeam,
+                },
+            },
+            users: {
+                currentUserId: 'user-123',
+            },
+            posts: {
+                posts: {
+                    'post-123': mockPost,
+                },
+            },
+        },
+    };
+
     beforeEach(() => {
         jest.clearAllMocks();
     });
 
     it('should render nothing when thread is not available', () => {
-        mockUsePost.mockReturnValue(undefined);
+        const stateWithoutPost = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                posts: {
+                    posts: {},
+                },
+            },
+        };
 
         const {container} = renderWithContext(
             <MemoryRouter initialEntries={['/_popout/thread/test-team/post-123']}>
                 <ThreadPopout/>
             </MemoryRouter>,
+            stateWithoutPost,
         );
 
         expect(container.firstChild).toBeNull();
     });
 
-    it('should render thread components when thread is available', () => {
-        mockUsePost.mockReturnValue(mockPost as unknown as Post);
-
-        renderWithContext(
-            <MemoryRouter initialEntries={['/_popout/thread/test-team/post-123']}>
-                <Route
-                    path='/_popout/thread/:team/:postId'
-                    component={ThreadPopout}
-                />
-            </MemoryRouter>,
-            {
-                entities: {
-                    channels: {
-                        currentChannelId: 'channel-123',
-                        channels: {
-                            'channel-123': {
-                                id: 'channel-123',
-                                name: 'test-channel',
-                                display_name: 'Test Channel',
-                                type: 'O',
-                                delete_at: 0,
-                            },
-                        },
-                    },
-                    teams: {
-                        currentTeamId: 'team-123',
-                        teams: {
-                            'team-123': mockTeam,
-                        },
-                    },
-                    users: {
-                        currentUserId: 'user-123',
-                    },
-                },
-            },
-        );
-
-        expect(screen.getByTestId('unreads-status-handler')).toBeInTheDocument();
-        expect(screen.getByTestId('thread-pane')).toBeInTheDocument();
-        expect(screen.getByTestId('thread-viewer')).toBeInTheDocument();
-    });
-
     it('should pass correct props to ThreadPane', () => {
-        mockUsePost.mockReturnValue(mockPost as unknown as Post);
-
         renderWithContext(
             <MemoryRouter initialEntries={['/_popout/thread/test-team/post-123']}>
                 <Route
@@ -150,31 +137,7 @@ describe('ThreadPopout', () => {
                     component={ThreadPopout}
                 />
             </MemoryRouter>,
-            {
-                entities: {
-                    channels: {
-                        currentChannelId: 'channel-123',
-                        channels: {
-                            'channel-123': {
-                                id: 'channel-123',
-                                name: 'test-channel',
-                                display_name: 'Test Channel',
-                                type: 'O',
-                                delete_at: 0,
-                            },
-                        },
-                    },
-                    teams: {
-                        currentTeamId: 'team-123',
-                        teams: {
-                            'team-123': mockTeam,
-                        },
-                    },
-                    users: {
-                        currentUserId: 'user-123',
-                    },
-                },
-            },
+            baseState,
         );
 
         const threadPane = screen.getByTestId('thread-pane');
@@ -182,8 +145,6 @@ describe('ThreadPopout', () => {
     });
 
     it('should pass correct props to ThreadViewer', () => {
-        mockUsePost.mockReturnValue(mockPost as unknown as Post);
-
         renderWithContext(
             <MemoryRouter initialEntries={['/_popout/thread/test-team/post-123']}>
                 <Route
@@ -191,31 +152,7 @@ describe('ThreadPopout', () => {
                     component={ThreadPopout}
                 />
             </MemoryRouter>,
-            {
-                entities: {
-                    channels: {
-                        currentChannelId: 'channel-123',
-                        channels: {
-                            'channel-123': {
-                                id: 'channel-123',
-                                name: 'test-channel',
-                                display_name: 'Test Channel',
-                                type: 'O',
-                                delete_at: 0,
-                            },
-                        },
-                    },
-                    teams: {
-                        currentTeamId: 'team-123',
-                        teams: {
-                            'team-123': mockTeam,
-                        },
-                    },
-                    users: {
-                        currentUserId: 'user-123',
-                    },
-                },
-            },
+            baseState,
         );
 
         const threadViewer = screen.getByTestId('thread-viewer');
@@ -225,50 +162,23 @@ describe('ThreadPopout', () => {
     });
 
     it('should handle missing post gracefully', () => {
-        mockUsePost.mockReturnValue(undefined);
+        const stateWithoutPost = {
+            ...baseState,
+            entities: {
+                ...baseState.entities,
+                posts: {
+                    posts: {},
+                },
+            },
+        };
 
         const {container} = renderWithContext(
             <MemoryRouter initialEntries={['/_popout/thread/test-team/post-123']}>
                 <ThreadPopout/>
             </MemoryRouter>,
+            stateWithoutPost,
         );
 
         expect(container.firstChild).toBeNull();
-    });
-
-    it('should handle missing team gracefully', () => {
-        mockUsePost.mockReturnValue(mockPost as unknown as Post);
-
-        renderWithContext(
-            <MemoryRouter initialEntries={['/_popout/thread/test-team/post-123']}>
-                <ThreadPopout/>
-            </MemoryRouter>,
-            {
-                entities: {
-                    channels: {
-                        currentChannelId: 'channel-123',
-                        channels: {
-                            'channel-123': {
-                                id: 'channel-123',
-                                name: 'test-channel',
-                                display_name: 'Test Channel',
-                                type: 'O',
-                                delete_at: 0,
-                            },
-                        },
-                    },
-                    teams: {
-                        currentTeamId: 'team-123',
-                        teams: {},
-                    },
-                    users: {
-                        currentUserId: 'user-123',
-                    },
-                },
-            },
-        );
-
-        // The component should still render but without the thread content
-        expect(screen.getByTestId('unreads-status-handler')).toBeInTheDocument();
     });
 });

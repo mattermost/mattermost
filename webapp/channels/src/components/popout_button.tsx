@@ -2,13 +2,12 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback, useEffect, useState} from 'react';
+import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import WithTooltip from 'components/with_tooltip';
 
 import DesktopApp from 'utils/desktop_api';
-import {isDesktopApp} from 'utils/user_agent';
 
 type Props = {
     onClick: React.MouseEventHandler<HTMLButtonElement>;
@@ -20,20 +19,8 @@ export default function PopoutButton({
     className,
 }: Props) {
     const intl = useIntl();
-    const [canPopout, setCanPopout] = useState(false);
 
-    const checkIfCanPopout = useCallback(async () => {
-        const canPopout = await DesktopApp.canPopout();
-        setCanPopout(canPopout);
-    }, []);
-
-    useEffect(() => {
-        if (isDesktopApp()) {
-            checkIfCanPopout();
-        }
-    }, []);
-
-    if (!canPopout) {
+    if (!DesktopApp.canPopout()) {
         return null;
     }
 

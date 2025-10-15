@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useCallback, useEffect, useState} from 'react';
+import React, {memo, useCallback} from 'react';
 import type {ReactNode} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
@@ -24,7 +24,6 @@ import {useReadout} from 'hooks/useReadout';
 import DesktopApp from 'utils/desktop_api';
 import {popoutThread} from 'utils/popouts/popout_windows';
 import {getSiteURL} from 'utils/url';
-import {isDesktopApp} from 'utils/user_agent';
 import {copyToClipboard} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -90,19 +89,9 @@ function ThreadMenu({
 
     // TODO: This should be in a reusable component but since this menu hasn't been
     // migrated to the new menu component yet, we'll leave it here for now.
-    const [canPopout, setCanPopout] = useState(false);
-    const checkIfCanPopout = useCallback(async () => {
-        const canPopout = await DesktopApp.canPopout();
-        setCanPopout(canPopout);
-    }, []);
     const popout = useCallback(() => {
         popoutThread(intl, threadId, team);
     }, [threadId, team, intl]);
-    useEffect(() => {
-        if (isDesktopApp()) {
-            checkIfCanPopout();
-        }
-    }, []);
 
     return (
         <MenuWrapper
@@ -116,7 +105,7 @@ function ThreadMenu({
                 })}
                 openLeft={true}
             >
-                {canPopout && (
+                {DesktopApp.canPopout() && (
                     <Menu.ItemAction
                         buttonClass='PopoutMenuItem'
                         text={formatMessage({

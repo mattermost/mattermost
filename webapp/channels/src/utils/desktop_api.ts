@@ -18,6 +18,7 @@ export class DesktopAppAPI {
     private version?: string | null;
     private prereleaseVersion?: string;
     private dev?: boolean;
+    private isAbleToPopout?: boolean;
 
     /**
      * @deprecated
@@ -44,6 +45,9 @@ export class DesktopAppAPI {
         window.desktopAPI?.isDev?.().then((isDev) => {
             this.dev = isDev;
         });
+        window.desktopAPI?.canPopout?.().then((canPopout) => {
+            this.isAbleToPopout = canPopout;
+        });
 
         // Legacy code - to be removed
         this.postMessageListeners = new Map();
@@ -56,7 +60,7 @@ export class DesktopAppAPI {
     setupDesktopPopout = async (path: string, desktopProps?: PopoutViewProps) => {
         const popoutId = await this.openPopout(path, desktopProps ?? {});
         if (!popoutId) {
-            return {};
+            throw new Error('Failed to open popout: Desktop App returned an invalid popout ID');
         }
         return {
             send: (channel: string, ...args: unknown[]) => {
@@ -99,6 +103,10 @@ export class DesktopAppAPI {
         return this.dev;
     };
 
+    canPopout = () => {
+        return this.isAbleToPopout;
+    };
+
     private getDesktopAppInfo = () => {
         if (window.desktopAPI?.getAppInfo) {
             return window.desktopAPI.getAppInfo();
@@ -134,10 +142,6 @@ export class DesktopAppAPI {
             canGoBack: enableBack,
             canGoForward: enableForward,
         };
-    };
-
-    canPopout = async () => {
-        return Boolean(await window.desktopAPI?.canPopout?.());
     };
 
     private openPopout = (path: string, props: PopoutViewProps) => {
