@@ -54,6 +54,7 @@ export default function PopoutButton({
             >
                 <i
                     className='icon icon-dock-window'
+                    aria-hidden='true'
                 />
             </button>
         </WithTooltip>
