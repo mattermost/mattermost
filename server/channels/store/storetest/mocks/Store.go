@@ -269,6 +269,26 @@ func (_m *Store) Compliance() store.ComplianceStore {
 	return r0
 }
 
+// ContentFlagging provides a mock function with no fields
+func (_m *Store) ContentFlagging() store.ContentFlaggingStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for ContentFlagging")
+	}
+
+	var r0 store.ContentFlaggingStore
+	if rf, ok := ret.Get(0).(func() store.ContentFlaggingStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.ContentFlaggingStore)
+		}
+	}
+
+	return r0
+}
+
 // Context provides a mock function with no fields
 func (_m *Store) Context() context.Context {
 	ret := _m.Called()

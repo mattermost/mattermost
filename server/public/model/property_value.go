@@ -14,6 +14,9 @@ import (
 const (
 	PropertyValueTargetIDMaxRunes   = 255
 	PropertyValueTargetTypeMaxRunes = 255
+
+	PropertyValueTargetTypePost = "post"
+	PropertyValueTargetTypeUser = "user"
 )
 
 type PropertyValue struct {
@@ -112,4 +115,5 @@ type PropertyValueSearchOpts struct {
 	IncludeDeleted bool
 	Cursor         PropertyValueSearchCursor
 	PerPage        int
+	Value          json.RawMessage
 }

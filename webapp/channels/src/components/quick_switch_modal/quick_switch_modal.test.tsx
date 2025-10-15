@@ -9,7 +9,7 @@ import QuickSwitchModal from 'components/quick_switch_modal/quick_switch_modal';
 import ChannelNavigator from 'components/sidebar/channel_navigator/channel_navigator';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
-import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 
 describe('components/QuickSwitchModal', () => {
@@ -168,10 +168,9 @@ describe('components/QuickSwitchModal', () => {
                 </IntlProvider>,
             );
 
-            await act(async () => {
-                userEvent.click(await screen.getByTestId('SidebarChannelNavigatorButton'));
-                userEvent.keyboard('{escape}');
-            });
+            await userEvent.click(await screen.getByTestId('SidebarChannelNavigatorButton'));
+            await userEvent.keyboard('{escape}');
+
             expect(screen.getByTestId('SidebarChannelNavigatorButton')).toHaveFocus();
         });
     });

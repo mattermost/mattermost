@@ -1,361 +1,54 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch} from 'react-redux';
 
+import {ContentFlaggingStatus} from '@mattermost/types/content_flagging';
 import type {Post} from '@mattermost/types/posts';
-import type {
-    PropertyField,
-    PropertyValue,
-} from '@mattermost/types/properties';
+import type {NameMappedPropertyFields, PropertyValue} from '@mattermost/types/properties';
 
-import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
-import {getUser} from 'mattermost-redux/selectors/entities/users';
+import {Client4} from 'mattermost-redux/client';
 
 import AtMention from 'components/at_mention';
 import {useChannel} from 'components/common/hooks/useChannel';
-import {usePost} from 'components/common/hooks/usePost';
+import {useContentFlaggingFields, usePostContentFlaggingValues} from 'components/common/hooks/useContentFlaggingFields';
+import {useUser} from 'components/common/hooks/useUser';
 import DataSpillageAction from 'components/post_view/data_spillage_report/data_spillage_actions/data_spillage_actions';
+import type {PropertiesCardViewMetadata} from 'components/properties_card_view/properties_card_view';
 import PropertiesCardView from 'components/properties_card_view/properties_card_view';
 
 import {DataSpillagePropertyNames} from 'utils/constants';
 
-import type {GlobalState} from 'types/store';
-
 import './data_spillage_report.scss';
+import DataSpillageFooter from './data_spillage_footer/data_spillage_footer';
+import {getSyntheticPropertyFields, getSyntheticPropertyValues} from './synthetic_data';
 
-// TODO: this function will be replaced with actual data fetched from API in a later PR
-function getDummyPropertyFields(): PropertyField[] {
-    return [
-        {
-            id: 'status_field_id',
-            group_id: 'content_flagging_group_id',
-            name: DataSpillagePropertyNames.Status,
-            type: 'select',
-            target_type: 'post',
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-            attrs: {
-                editable: false,
-                options: [
-                    {
-                        id: 'option_pending_review',
-                        name: 'Pending review',
-                        color: 'light_gray',
-                    },
-                    {
-                        id: 'option_reviewer_assigned',
-                        name: 'Reviewer assigned',
-                        color: 'light_blue',
-                    },
-                    {
-                        id: 'option_dismissed',
-                        name: 'Flag dismissed',
-                        color: 'dark_blue',
-                    },
-                    {
-                        id: 'option_removed',
-                        name: 'Removed',
-                        color: 'dark_red',
-                    },
-                ],
-            },
-        },
-        {
-            id: 'reporting_user_id_field_id',
-            group_id: 'content_flagging_group_id',
-            name: DataSpillagePropertyNames.FlaggedBy,
-            type: 'user',
-            target_type: 'post',
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-        },
-        {
-            id: 'reason_field_id',
-            group_id: 'content_flagging_group_id',
-            name: DataSpillagePropertyNames.Reason,
-            type: 'select',
-            target_type: 'post',
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-        },
-        {
-            id: 'comment_field_id',
-            group_id: 'content_flagging_group_id',
-            name: DataSpillagePropertyNames.Comment,
-            type: 'text',
-            target_type: 'post',
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-        },
-        {
-            id: 'reporting_time_field_id',
-            group_id: 'content_flagging_group_id',
-            name: DataSpillagePropertyNames.ReportingTime,
-            type: 'text',
-            attrs: {subType: 'timestamp'},
-            target_type: 'post',
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-        },
-        {
-            id: 'reviewer_user_id_field_id',
-            group_id: 'content_flagging_group_id',
-            name: DataSpillagePropertyNames.ReviewingUser,
-            type: 'user',
-            target_type: 'post',
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-            attrs: {
-                editable: true,
-            },
-        },
-        {
-            id: 'actor_user_field_id',
-            group_id: 'content_flagging_group_id',
-            name: DataSpillagePropertyNames.ActionBy,
-            type: 'user',
-            target_type: 'post',
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-        },
-        {
-            id: 'actor_comment_field_id',
-            group_id: 'content_flagging_group_id',
-            name: DataSpillagePropertyNames.ActionComment,
-            type: 'text',
-            target_type: 'post',
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-        },
-        {
-            id: 'action_time_field_id',
-            group_id: 'content_flagging_group_id',
-            name: DataSpillagePropertyNames.ActionTime,
-            type: 'text',
-            target_type: 'post',
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-        },
-        {
-            id: 'post_preview_field_id',
-            group_id: 'content_flagging_group_id',
-            name: DataSpillagePropertyNames.Message,
-            type: 'text',
-            attrs: {subType: 'post'},
-            target_type: 'post',
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-        },
-        {
-            id: 'channel_field_id',
-            group_id: 'content_flagging_group_id',
-            name: DataSpillagePropertyNames.PostedIn,
-            type: 'text',
-            attrs: {subType: 'channel'},
-            target_type: 'post',
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-        },
-        {
-            id: 'team_field_id',
-            group_id: 'content_flagging_group_id',
-            name: DataSpillagePropertyNames.Team,
-            type: 'text',
-            attrs: {subType: 'team'},
-            target_type: 'post',
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-        },
-        {
-            id: 'post_author_field_id',
-            group_id: 'content_flagging_group_id',
-            name: DataSpillagePropertyNames.PostedBy,
-            type: 'user',
-            target_type: 'post',
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-        },
-        {
-            id: 'post_creation_time_field_id',
-            group_id: 'content_flagging_group_id',
-            name: DataSpillagePropertyNames.PostedAt,
-            type: 'text',
-            attrs: {subType: 'timestamp'},
-            target_type: 'post',
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-        },
-    ];
-}
-
-// TODO: this function will be replaced with actual data fetched from API in a later PR
-function getDummyPropertyValues(postId: string, channelId: string, teamId: string, authorId: string, postCreateAt: number): Array<PropertyValue<unknown>> {
-    return [
-        {
-            id: 'status_value_id',
-            field_id: 'status_field_id',
-            target_id: 'reported_post_id',
-            target_type: 'post',
-            group_id: 'content_flagging_group_id',
-            value: 'Flag dismissed',
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-        },
-        {
-            id: 'reporting_user_value_id',
-            field_id: 'reporting_user_id_field_id',
-            target_id: 'reported_post_id',
-            target_type: 'post',
-            group_id: 'content_flagging_group_id',
-            value: 'ewgposajm3fwpjbqu1t6scncia',
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-        },
-        {
-            id: 'reason_value_id',
-            field_id: 'reason_field_id',
-            target_id: 'reported_post_id',
-            target_type: 'post',
-            group_id: 'content_flagging_group_id',
-            value: 'Inappropriate content',
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-        },
-        {
-            id: 'comment_value_id',
-            field_id: 'comment_field_id',
-            target_id: 'reported_post_id',
-            target_type: 'post',
-            group_id: 'content_flagging_group_id',
-            value: 'Please review this post for potential violations.',
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-        },
-        {
-            id: 'reporting_time_value_id',
-            field_id: 'reporting_time_field_id',
-            target_id: 'reported_post_id',
-            target_type: 'post',
-            group_id: 'content_flagging_group_id',
-            value: new Date(2025, 0, 1, 0, 1, 0, 0).getTime(),
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-        },
-        {
-            id: 'post_preview_value_id',
-            field_id: 'post_preview_field_id',
-            target_id: 'reported_post_id',
-            target_type: 'post',
-            group_id: 'content_flagging_group_id',
-            value: postId,
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-        },
-        {
-            id: 'channel_value_id',
-            field_id: 'channel_field_id',
-            target_id: 'reported_post_id',
-            target_type: 'post',
-            group_id: 'content_flagging_group_id',
-            value: channelId,
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-        },
-        {
-            id: 'team_value_id',
-            field_id: 'team_field_id',
-            target_id: 'reported_post_id',
-            target_type: 'post',
-            group_id: 'content_flagging_group_id',
-            value: teamId,
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-        },
-        {
-            id: 'post_author_value_id',
-            field_id: 'post_author_field_id',
-            target_id: 'reported_post_id',
-            target_type: 'post',
-            group_id: 'content_flagging_group_id',
-            value: authorId,
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-        },
-        {
-            id: 'post_creation_time_value_id',
-            field_id: 'post_creation_time_field_id',
-            target_id: 'reported_post_id',
-            target_type: 'post',
-            group_id: 'content_flagging_group_id',
-            value: postCreateAt,
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-        },
-
-        // No reviewer assigned yet
-        {
-            id: 'reviewer_user_value_id',
-            field_id: 'reviewer_user_id_field_id',
-            target_id: 'reported_post_id',
-            target_type: 'post',
-            group_id: 'content_flagging_group_id',
-            value: '',
-            create_at: 0,
-            update_at: 0,
-            delete_at: 0,
-        },
-    ];
-}
-
-const fieldOrder = [
-    'status_field_id',
-    'reason_field_id',
-    'post_preview_field_id',
-    'reporting_user_id_field_id',
-    'comment_field_id',
-    'reporting_time_field_id',
-    'reviewer_user_id_field_id',
-    'actor_user_field_id',
-    'actor_comment_field_id',
-    'action_time_field_id',
-    'channel_field_id',
-    'team_field_id',
-    'post_author_field_id',
-    'post_creation_time_field_id',
+// The order of fields to be displayed in the report, from top to bottom.
+const orderedFieldName = [
+    'status',
+    'reporting_reason',
+    'actor_user_id',
+    'actor_comment',
+    'action_time',
+    'post_preview',
+    'post_id',
+    'reviewer_user_id',
+    'reporting_user_id',
+    'reporting_time',
+    'reporting_comment',
+    'channel',
+    'team',
+    'post_author',
+    'post_creation_time',
 ];
 
 const shortModeFieldOrder = [
-    'status_field_id',
-    'reason_field_id',
-    'post_preview_field_id',
-    'reviewer_user_id_field_id',
+    'status',
+    'reporting_reason',
+    'post_preview',
+    'reviewer_user_id',
 ];
 
 type Props = {
@@ -363,37 +56,66 @@ type Props = {
     isRHS?: boolean;
 };
 
-export default function DataSpillageReport({post, isRHS}: Props) {
-    const dispatch = useDispatch();
+export function DataSpillageReport({post, isRHS}: Props) {
     const {formatMessage} = useIntl();
-
-    const [propertyFields, setPropertyFields] = useState<PropertyField[]>([]);
-    const [propertyValues, setPropertyValues] = useState<Array<PropertyValue<unknown>>>([]);
+    const loaded = useRef(false);
+    const dispatch = useDispatch();
 
     const reportedPostId = post.props.reported_post_id as string;
-    const reportedPost = usePost(reportedPostId);
-    const channel = useChannel(reportedPost?.channel_id || '');
 
-    const reportingUserFieldId = propertyFields.find((field) => field.name === DataSpillagePropertyNames.FlaggedBy);
+    const naturalPropertyFields = useContentFlaggingFields('fetch');
+    const naturalPropertyValues = usePostContentFlaggingValues(reportedPostId);
+
+    const [reportedPost, setReportedPost] = useState<Post>();
+    const channel = useChannel(reportedPost?.channel_id || '', true);
+
+    useEffect(() => {
+        const work = async () => {
+            if (!loaded.current && !reportedPost) {
+                // We need to obtain the post directly from action bypassing the selectors
+                // because the post might be soft-deleted and the post reducers do not store deleted posts
+                // in the store.
+                const post = await loadFlaggedPost(reportedPostId);
+                if (post) {
+                    setReportedPost(post);
+                    loaded.current = true;
+                }
+            }
+        };
+
+        work();
+    }, [dispatch, reportedPost, reportedPostId]);
+
+    const propertyFields = useMemo((): NameMappedPropertyFields => {
+        if (!naturalPropertyFields || !Object.keys(naturalPropertyFields).length) {
+            return {};
+        }
+
+        const syntheticFields = getSyntheticPropertyFields(naturalPropertyFields.status.group_id);
+        return {...naturalPropertyFields, ...syntheticFields};
+    }, [naturalPropertyFields]);
+
+    const propertyValues = useMemo((): Array<PropertyValue<unknown>> => {
+        if (!naturalPropertyValues || !naturalPropertyValues.length) {
+            return [];
+        }
+
+        const syntheticValues = getSyntheticPropertyValues(
+            naturalPropertyValues[0].group_id,
+            reportedPostId,
+            reportedPost?.channel_id || '',
+            channel?.team_id || '',
+            reportedPost?.user_id || '',
+            reportedPost?.create_at || 0,
+        );
+        return [...naturalPropertyValues, ...syntheticValues];
+    }, [channel?.team_id, naturalPropertyValues, reportedPost?.channel_id, reportedPost?.create_at, reportedPost?.user_id, reportedPostId]);
+
+    const reportingUserFieldId = propertyFields[DataSpillagePropertyNames.FlaggedBy];
     const reportingUserIdValue = propertyValues.find((value) => value.field_id === reportingUserFieldId?.id);
-    const reportingUser = useSelector((state: GlobalState) => getUser(state, reportingUserIdValue ? reportingUserIdValue.value as string : ''));
 
-    useEffect(() => {
-        if (!reportingUser && reportingUserIdValue && reportedPost) {
-            dispatch(getMissingProfilesByIds([
-                reportingUserIdValue.value as string,
-                reportedPost.user_id,
-            ]));
-        }
-    }, [dispatch, reportedPost, reportingUser, reportingUserIdValue]);
-
-    useEffect(() => {
-        if (reportedPost && channel) {
-            // TODO: this function will be replaced with actual data fetched from API in a later PR
-            setPropertyFields(getDummyPropertyFields());
-            setPropertyValues(getDummyPropertyValues(reportedPostId, reportedPost.channel_id, channel.team_id, reportedPost.user_id, post.create_at));
-        }
-    }, [reportedPost, reportedPostId, channel, post.create_at]);
+    const reportingUserId = reportingUserIdValue ? reportingUserIdValue.value as string : '';
+    const reportingUser = useUser(reportingUserId);
 
     const title = formatMessage({
         id: 'data_spillage_report_post.title',
@@ -403,6 +125,65 @@ export default function DataSpillageReport({post, isRHS}: Props) {
     });
 
     const mode = isRHS ? 'full' : 'short';
+
+    const metadata = useMemo<PropertiesCardViewMetadata>(() => {
+        const fieldMetadata = {
+            post_preview: {
+                getPost: loadFlaggedPost,
+                fetchDeletedPost: true,
+                getChannel: getChannel(reportedPostId),
+                getTeam: getTeam(reportedPostId),
+            },
+            reporting_comment: {
+                placeholder: formatMessage({id: 'data_spillage_report_post.reporting_comment.placeholder', defaultMessage: 'No comment'}),
+            },
+            team: {
+                getTeam: getTeam(reportedPostId),
+            },
+            channel: {
+                getChannel: getChannel(reportedPostId),
+            },
+        };
+
+        if (channel) {
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
+            fieldMetadata.reviewer_user_id = {
+                searchUsers: getSearchContentReviewersFunction(channel.team_id),
+                setUser: saveReviewerSelection(reportedPostId),
+            };
+        }
+
+        return fieldMetadata;
+    }, [channel, formatMessage, reportedPostId]);
+
+    const footer = useMemo(() => {
+        if (isRHS) {
+            return null;
+        }
+
+        return (<DataSpillageFooter post={post}/>);
+    }, [isRHS, post]);
+
+    const actionRow = useMemo(() => {
+        if (!reportedPost || !reportingUser) {
+            return null;
+        }
+
+        let showActionRow;
+        if (!propertyFields || !propertyValues) {
+            showActionRow = true;
+        } else {
+            const status = propertyValues.find((value) => value.field_id === propertyFields.status.id)?.value as string | undefined;
+            showActionRow = reportedPost && reportingUser && status && (status === ContentFlaggingStatus.Pending || status === ContentFlaggingStatus.Assigned);
+        }
+
+        return showActionRow ? (
+            <DataSpillageAction
+                flaggedPost={reportedPost}
+                reportingUser={reportingUser}
+            />) : null;
+    }, [propertyFields, propertyValues, reportedPost, reportingUser]);
 
     return (
         <div
@@ -414,11 +195,41 @@ export default function DataSpillageReport({post, isRHS}: Props) {
                 title={title}
                 propertyFields={propertyFields}
                 propertyValues={propertyValues}
-                fieldOrder={fieldOrder}
+                fieldOrder={orderedFieldName}
                 shortModeFieldOrder={shortModeFieldOrder}
-                actionsRow={<DataSpillageAction/>}
+                actionsRow={actionRow}
                 mode={mode}
+                metadata={metadata}
+                footer={footer}
             />
         </div>
     );
+}
+
+async function loadFlaggedPost(flaggedPostId: string) {
+    return Client4.getFlaggedPost(flaggedPostId);
+}
+
+function getSearchContentReviewersFunction(teamId: string) {
+    return (term: string) => {
+        return Client4.searchContentFlaggingReviewers(term, teamId);
+    };
+}
+
+function saveReviewerSelection(flaggedPostId: string) {
+    return (userId: string) => {
+        return Client4.setContentFlaggingReviewer(flaggedPostId, userId);
+    };
+}
+
+function getChannel(flaggedPostId: string) {
+    return (channelId: string) => {
+        return Client4.getChannel(channelId, true, flaggedPostId);
+    };
+}
+
+function getTeam(flaggedPostId: string) {
+    return (teamId: string) => {
+        return Client4.getTeam(teamId, true, flaggedPostId);
+    };
 }
