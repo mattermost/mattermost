@@ -2063,24 +2063,20 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		}
 	}
 
-	// Preserve URLs by identifying URL patterns before processing special characters
+	// Preserve URLs by replacing them with safe placeholders before processing special characters
 	urlPattern := regexp.MustCompile(`https?://[^\s]+`)
 	urlPlaceholders := make(map[string]string)
-	placeholderCounter := 0
 
-	// Replace URLs with placeholders before processing special characters
 	processTerms := func(input string) string {
-		matches := urlPattern.FindAllString(input, -1)
-		for _, match := range matches {
-			placeholder := fmt.Sprintf("__URL_PLACEHOLDER_%d__", placeholderCounter)
-			urlPlaceholders[placeholder] = match
-			placeholderCounter++
-			input = strings.Replace(input, match, placeholder, 1)
-		}
-		return input
+		counter := 0
+		return urlPattern.ReplaceAllStringFunc(input, func(url string) string {
+			placeholder := fmt.Sprintf("URLPLACEHOLDER%d", counter)
+			urlPlaceholders[placeholder] = url
+			counter++
+			return placeholder
+		})
 	}
 
-	// Restore URLs from placeholders
 	restoreTerms := func(input string) string {
 		for placeholder, url := range urlPlaceholders {
 			input = strings.Replace(input, placeholder, url, -1)
@@ -2092,26 +2088,12 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	terms = processTerms(terms)
 	excludedTerms = processTerms(excludedTerms)
 
-for _, c := range s.specialSearchChars() {
-			if !params.IsHashtag {
-				// Only replace special characters that are not part of URL placeholders
-				oldTerms := terms
-				terms = strings.Replace(terms, c, " ", -1)
-				// If the replacement affected a URL placeholder, revert it
-				for placeholder := range urlPlaceholders {
-					if !strings.Contains(oldTerms, placeholder) && strings.Contains(terms, strings.Replace(placeholder, c, " ", -1)) {
-						terms = strings.Replace(terms, strings.Replace(placeholder, c, " ", -1), placeholder, -1)
-					}
-				}
-			}
-			excludedTerms = strings.Replace(excludedTerms, c, " ", -1)
-			// Apply similar logic for excludedTerms if needed
-			for placeholder := range urlPlaceholders {
-				if strings.Contains(excludedTerms, strings.Replace(placeholder, c, " ", -1)) {
-					excludedTerms = strings.Replace(excludedTerms, strings.Replace(placeholder, c, " ", -1), placeholder, -1)
-				}
-			}
-		} 
+	for _, c := range s.specialSearchChars() {
+		if !params.IsHashtag {
+			terms = strings.Replace(terms, c, " ", -1)
+		}
+		excludedTerms = strings.Replace(excludedTerms, c, " ", -1)
+	}
 
 	// Restore URLs after special character processing
 	terms = restoreTerms(terms)
