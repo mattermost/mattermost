@@ -8,9 +8,10 @@ RUN apt-get update && \
         postgresql-server-dev-13 \
         git \
         ca-certificates && \
-    git clone https://github.com/pgbigm/pg_bigm.git /usr/src/pg_bigm && \
+    git clone --depth 1 --branch REL_3_0 https://github.com/pgbigm/pg_bigm.git /usr/src/pg_bigm && \
     cd /usr/src/pg_bigm && \
-    make && make install && \
+    make USE_PGXS=1 && \
+    make USE_PGXS=1 install && \
     apt-get purge -y --auto-remove \
         build-essential \
         postgresql-server-dev-13 \
