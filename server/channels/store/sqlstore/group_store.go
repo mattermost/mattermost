@@ -1789,19 +1789,31 @@ func (s *SqlGroupStore) CountChannelMembersMinusGroupMembers(channelID string, g
 
 func (s *SqlGroupStore) AdminRoleGroupsForSyncableMember(userID, syncableID string, syncableType model.GroupSyncableType) ([]string, error) {
 	var groupIds []string
+	var joinTable string
+	var syncableIdCol string
+
+	switch syncableType {
+	case model.GroupSyncableTypeChannel:
+		joinTable = "GroupChannels"
+		syncableIdCol = "ChannelId"
+	case model.GroupSyncableTypeTeam:
+		joinTable = "GroupTeams"
+		syncableIdCol = "TeamId"
+	default:
+		return nil, errors.New("invalid syncable type")
+	}
 
 	query := s.getQueryBuilder().
 		Select("GroupMembers.GroupId").
 		From("GroupMembers").
-		InnerJoin(fmt.Sprintf("Group%[1]ss ON Group%[1]ss.GroupId = GroupMembers.GroupId", syncableType)).
-		Where(
-			fmt.Sprintf(`GroupMembers.UserId = ?
-			AND GroupMembers.DeleteAt = 0
-			AND %[1]sId = ?
-			AND Group%[1]ss.DeleteAt = 0
-			AND Group%[1]ss.SchemeAdmin = TRUE`, syncableType),
-			userID, syncableID,
-		)
+		InnerJoin(joinTable + " AS joinGroup ON joinGroup.GroupId = GroupMembers.GroupId").
+		Where(sq.Eq{
+			"GroupMembers.UserId":        userID,
+			"GroupMembers.DeleteAt":      0,
+			"joinGroup." + syncableIdCol: syncableID,
+			"joinGroup.DeleteAt":         0,
+			"joinGroup.SchemeAdmin":      true,
+		})
 
 	if err := s.GetReplica().SelectBuilder(&groupIds, query); err != nil {
 		return nil, errors.Wrap(err, "failed to find Group ids")
