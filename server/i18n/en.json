@@ -400,6 +400,10 @@
     "translation": "Unable to delete direct or group message channels"
   },
   {
+    "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
+    "translation": "Channel ID does not match the channel ID of the flagged post."
+  },
+  {
     "id": "api.channel.get_channel_moderations.license.error",
     "translation": "Your license does not support channel moderation"
   },
@@ -1742,10 +1746,6 @@
     "translation": "Failed to update server translations."
   },
   {
-    "id": "api.content_flagging.error.assignee_not_reviewer",
-    "translation": "Only a content reviewer can be assigned as a reviewer."
-  },
-  {
     "id": "api.content_flagging.error.comment_required",
     "translation": "Please add a comment explaining why you’re flagging this message."
   },
@@ -1778,8 +1778,8 @@
     "translation": "Please select a reason for flagging this message."
   },
   {
-    "id": "api.content_flagging.error.reviewer_only",
-    "translation": "You do not have permission to view this resource."
+    "id": "api.content_flagging.error.user_not_reviewer",
+    "translation": "The user is not a content reviewer."
   },
   {
     "id": "api.context.404.app_error",
@@ -3265,6 +3265,10 @@
   {
     "id": "api.team.get_invite_info.not_open_team",
     "translation": "Invite is invalid because this is not an open team."
+  },
+  {
+    "id": "api.team.get_team.flagged_post_mismatch.app_error",
+    "translation": "Team ID does not match the flagged post's team ID."
   },
   {
     "id": "api.team.get_team_icon.filesettings_no_driver.app_error",
