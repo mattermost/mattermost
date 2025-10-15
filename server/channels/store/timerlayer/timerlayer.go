@@ -22,6 +22,7 @@ type TimerLayer struct {
 	AccessControlPolicyStore        store.AccessControlPolicyStore
 	AttributesStore                 store.AttributesStore
 	AuditStore                      store.AuditStore
+	AutoTranslationStore            store.AutoTranslationStore
 	BotStore                        store.BotStore
 	ChannelStore                    store.ChannelStore
 	ChannelBookmarkStore            store.ChannelBookmarkStore
@@ -82,6 +83,10 @@ func (s *TimerLayer) Attributes() store.AttributesStore {
 
 func (s *TimerLayer) Audit() store.AuditStore {
 	return s.AuditStore
+}
+
+func (s *TimerLayer) AutoTranslation() store.AutoTranslationStore {
+	return s.AutoTranslationStore
 }
 
 func (s *TimerLayer) Bot() store.BotStore {
@@ -288,6 +293,11 @@ type TimerLayerAttributesStore struct {
 
 type TimerLayerAuditStore struct {
 	store.AuditStore
+	Root *TimerLayer
+}
+
+type TimerLayerAutoTranslationStore struct {
+	store.AutoTranslationStore
 	Root *TimerLayer
 }
 
@@ -721,6 +731,150 @@ func (s *TimerLayerAuditStore) Save(audit *model.Audit) error {
 		s.Root.Metrics.ObserveStoreMethodDuration("AuditStore.Save", success, elapsed)
 	}
 	return err
+}
+
+func (s *TimerLayerAutoTranslationStore) Get(objectType string, objectID string, dstLang string) (*model.Translation, *model.AppError) {
+	start := time.Now()
+
+	result, resultVar1 := s.AutoTranslationStore.Get(objectType, objectID, dstLang)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.Get", success, elapsed)
+	}
+	return result, resultVar1
+}
+
+func (s *TimerLayerAutoTranslationStore) GetActiveDestinationLanguages(channelID string, excludeUserID string, filterUserIDs *[]string) ([]string, *model.AppError) {
+	start := time.Now()
+
+	result, resultVar1 := s.AutoTranslationStore.GetActiveDestinationLanguages(channelID, excludeUserID, filterUserIDs)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.GetActiveDestinationLanguages", success, elapsed)
+	}
+	return result, resultVar1
+}
+
+func (s *TimerLayerAutoTranslationStore) GetUserLanguage(userID string, channelID string) (string, *model.AppError) {
+	start := time.Now()
+
+	result, resultVar1 := s.AutoTranslationStore.GetUserLanguage(userID, channelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.GetUserLanguage", success, elapsed)
+	}
+	return result, resultVar1
+}
+
+func (s *TimerLayerAutoTranslationStore) IsChannelEnabled(channelID string) (bool, *model.AppError) {
+	start := time.Now()
+
+	result, resultVar1 := s.AutoTranslationStore.IsChannelEnabled(channelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.IsChannelEnabled", success, elapsed)
+	}
+	return result, resultVar1
+}
+
+func (s *TimerLayerAutoTranslationStore) IsUserEnabled(userID string, channelID string) (bool, *model.AppError) {
+	start := time.Now()
+
+	result, resultVar1 := s.AutoTranslationStore.IsUserEnabled(userID, channelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.IsUserEnabled", success, elapsed)
+	}
+	return result, resultVar1
+}
+
+func (s *TimerLayerAutoTranslationStore) Save(translation *model.Translation) *model.AppError {
+	start := time.Now()
+
+	result := s.AutoTranslationStore.Save(translation)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.Save", success, elapsed)
+	}
+	return result
+}
+
+func (s *TimerLayerAutoTranslationStore) Search(dstLang string, searchTerm string, limit int) ([]*model.Translation, *model.AppError) {
+	start := time.Now()
+
+	result, resultVar1 := s.AutoTranslationStore.Search(dstLang, searchTerm, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.Search", success, elapsed)
+	}
+	return result, resultVar1
+}
+
+func (s *TimerLayerAutoTranslationStore) SetChannelEnabled(channelID string, enabled bool) *model.AppError {
+	start := time.Now()
+
+	result := s.AutoTranslationStore.SetChannelEnabled(channelID, enabled)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.SetChannelEnabled", success, elapsed)
+	}
+	return result
+}
+
+func (s *TimerLayerAutoTranslationStore) SetUserEnabled(userID string, channelID string, enabled bool) *model.AppError {
+	start := time.Now()
+
+	result := s.AutoTranslationStore.SetUserEnabled(userID, channelID, enabled)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.SetUserEnabled", success, elapsed)
+	}
+	return result
 }
 
 func (s *TimerLayerBotStore) Get(userID string, includeDeleted bool) (*model.Bot, error) {
@@ -13337,6 +13491,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.AccessControlPolicyStore = &TimerLayerAccessControlPolicyStore{AccessControlPolicyStore: childStore.AccessControlPolicy(), Root: &newStore}
 	newStore.AttributesStore = &TimerLayerAttributesStore{AttributesStore: childStore.Attributes(), Root: &newStore}
 	newStore.AuditStore = &TimerLayerAuditStore{AuditStore: childStore.Audit(), Root: &newStore}
+	newStore.AutoTranslationStore = &TimerLayerAutoTranslationStore{AutoTranslationStore: childStore.AutoTranslation(), Root: &newStore}
 	newStore.BotStore = &TimerLayerBotStore{BotStore: childStore.Bot(), Root: &newStore}
 	newStore.ChannelStore = &TimerLayerChannelStore{ChannelStore: childStore.Channel(), Root: &newStore}
 	newStore.ChannelBookmarkStore = &TimerLayerChannelBookmarkStore{ChannelBookmarkStore: childStore.ChannelBookmark(), Root: &newStore}
