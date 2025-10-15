@@ -3,23 +3,19 @@
 
 import React, {useMemo, memo} from 'react';
 import {useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
 
-import {getUser} from 'mattermost-redux/selectors/entities/users';
+import {CreationOutlineIcon} from '@mattermost/compass-icons/components';
 
-import AiIcon from 'components/widgets/icons/ai_icon';
 import WithTooltip from 'components/with_tooltip';
-
-import type {GlobalState} from 'types/store';
 
 type Props = {
     userId: string;
+    username: string;
     postAuthorId: string;
 };
 
-function AiGeneratedIndicator({userId, postAuthorId}: Props) {
+function AiGeneratedIndicator({userId, username, postAuthorId}: Props) {
     const intl = useIntl();
-    const user = useSelector((state: GlobalState) => getUser(state, userId));
 
     const tooltipText = useMemo(() => {
         const isSameAsAuthor = userId === postAuthorId;
@@ -31,11 +27,6 @@ function AiGeneratedIndicator({userId, postAuthorId}: Props) {
             });
         }
 
-        const username = user?.username || intl.formatMessage({
-            id: 'post_info.ai_generated.unknown_user',
-            defaultMessage: 'Unknown User',
-        });
-
         return intl.formatMessage(
             {
                 id: 'post_info.ai_generated.by_user',
@@ -43,7 +34,7 @@ function AiGeneratedIndicator({userId, postAuthorId}: Props) {
             },
             {username},
         );
-    }, [userId, postAuthorId, user?.username, intl]);
+    }, [userId, postAuthorId, username, intl]);
 
     return (
         <WithTooltip title={tooltipText}>
@@ -51,7 +42,7 @@ function AiGeneratedIndicator({userId, postAuthorId}: Props) {
                 className='ai-generated-indicator'
                 aria-label={tooltipText}
             >
-                <AiIcon/>
+                <CreationOutlineIcon/>
             </span>
         </WithTooltip>
     );

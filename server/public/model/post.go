@@ -84,6 +84,7 @@ const (
 	PostPropsChannelMentions          = "channel_mentions"
 	PostPropsUnsafeLinks              = "unsafe_links"
 	PostPropsAIGeneratedByUserID      = "ai_generated_by"
+	PostPropsAIGeneratedByUsername    = "ai_generated_by_username"
 
 	PostPriorityUrgent = "urgent"
 )
@@ -789,6 +790,12 @@ func (o *Post) propsIsValid() error {
 			multiErr = multierror.Append(multiErr, fmt.Errorf("ai_generated_by prop must be a string"))
 		} else if !IsValidId(aiGenUserID) {
 			multiErr = multierror.Append(multiErr, fmt.Errorf("ai_generated_by prop must be a valid user ID"))
+		}
+	}
+
+	if props[PostPropsAIGeneratedByUsername] != nil {
+		if _, ok := props[PostPropsAIGeneratedByUsername].(string); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("ai_generated_by_username prop must be a string"))
 		}
 	}
 
