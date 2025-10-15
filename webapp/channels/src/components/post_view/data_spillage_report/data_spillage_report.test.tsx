@@ -21,6 +21,9 @@ jest.mock('components/common/hooks/useChannel');
 jest.mock('components/common/hooks/usePost');
 jest.mock('mattermost-redux/actions/posts');
 jest.mock('components/common/hooks/useContentFlaggingFields');
+jest.mock('components/common/hooks/usePropertyCardViewChannelLoader');
+jest.mock('components/common/hooks/usePropertyCardViewTeamLoader');
+jest.mock('components/common/hooks/usePropertyCardViewPostLoader');
 
 const mockedUseUser = require('components/common/hooks/useUser').useUser as jest.MockedFunction<any>;
 const mockUseChannel = require('components/common/hooks/useChannel').useChannel as jest.MockedFunction<any>;
@@ -29,6 +32,9 @@ const mockedUsePost = require('components/common/hooks/usePost').usePost as jest
 const mockGetPost = require('mattermost-redux/actions/posts').getPost as jest.MockedFunction<any>;
 const useContentFlaggingFields = require('components/common/hooks/useContentFlaggingFields').useContentFlaggingFields as jest.MockedFunction<any>;
 const usePostContentFlaggingValues = require('components/common/hooks/useContentFlaggingFields').usePostContentFlaggingValues as jest.MockedFunction<any>;
+const usePropertyCardViewChannelLoader = require('components/common/hooks/usePropertyCardViewChannelLoader').usePropertyCardViewChannelLoader as jest.MockedFunction<any>;
+const usePropertyCardViewTeamLoader = require('components/common/hooks/usePropertyCardViewTeamLoader').usePropertyCardViewTeamLoader as jest.MockedFunction<any>;
+const usePropertyCardViewPostLoader = require('components/common/hooks/usePropertyCardViewPostLoader').usePropertyCardViewPostLoader as jest.MockedFunction<any>;
 
 describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
     const reportingUser = TestHelper.getUserMock({
@@ -326,6 +332,9 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
 
         useContentFlaggingFields.mockReturnValue(contentFlaggingFields);
         usePostContentFlaggingValues.mockReturnValue(postContentFlaggingValues);
+        usePropertyCardViewChannelLoader.mockReturnValue(reportedPostChannel);
+        usePropertyCardViewTeamLoader.mockReturnValue(reportedPostTeam);
+        usePropertyCardViewPostLoader.mockReturnValue(reportedPost);
 
         Client4.getFlaggedPost = jest.fn().mockResolvedValue(reportedPost);
     });
