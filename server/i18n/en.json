@@ -5207,10 +5207,6 @@
     "translation": "Unable to save property values for the flagged post."
   },
   {
-    "id": "app.content_flagging.delete_post.app_error",
-    "translation": "Unable to soft-delete the flagged post."
-  },
-  {
     "id": "app.content_flagging.flag_post.marshal_comment.app_error",
     "translation": "Failed to marshal flagging user's comment"
   },
@@ -5257,6 +5253,14 @@
   {
     "id": "app.content_flagging.missing_flagged_post_id_field.app_error",
     "translation": "Unable to find Flagged Post ID property field."
+  },
+  {
+    "id": "app.content_flagging.missing_reporting_user_id_field.app_error",
+    "translation": "Unable to find reporting user field."
+  },
+  {
+    "id": "app.content_flagging.missing_reporting_user_id_property_value.app_error",
+    "translation": "Unable to find value for reporting user field."
   },
   {
     "id": "app.content_flagging.no_status_property.app_error",
