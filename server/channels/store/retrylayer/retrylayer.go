@@ -5068,6 +5068,27 @@ func (s *RetryLayerFileInfoStore) RefreshFileStats() error {
 
 }
 
+func (s *RetryLayerFileInfoStore) RestoreForPostAndReplies(postId string, deletedBy string) error {
+
+	tries := 0
+	for {
+		err := s.FileInfoStore.RestoreForPostAndReplies(postId, deletedBy)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerFileInfoStore) RestoreForPostByIds(rctx request.CTX, postId string, fileIDs []string) error {
 
 	tries := 0
@@ -8520,6 +8541,27 @@ func (s *RetryLayerPostStore) RefreshPostStats() error {
 	tries := 0
 	for {
 		err := s.PostStore.RefreshPostStats()
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPostStore) Restore(postId string, deletedBy string) error {
+
+	tries := 0
+	for {
+		err := s.PostStore.Restore(postId, deletedBy)
 		if err == nil {
 			return nil
 		}

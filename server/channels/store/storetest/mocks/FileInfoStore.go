@@ -523,6 +523,24 @@ func (_m *FileInfoStore) RefreshFileStats() error {
 	return r0
 }
 
+// RestoreForPostAndReplies provides a mock function with given fields: postId, deletedBy
+func (_m *FileInfoStore) RestoreForPostAndReplies(postId string, deletedBy string) error {
+	ret := _m.Called(postId, deletedBy)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RestoreForPostAndReplies")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(postId, deletedBy)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // RestoreForPostByIds provides a mock function with given fields: rctx, postId, fileIDs
 func (_m *FileInfoStore) RestoreForPostByIds(rctx request.CTX, postId string, fileIDs []string) error {
 	ret := _m.Called(rctx, postId, fileIDs)

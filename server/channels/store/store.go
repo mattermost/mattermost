@@ -421,6 +421,7 @@ type PostStore interface {
 	GetNthRecentPostTime(n int64) (int64, error)
 	// RefreshPostStats refreshes the various materialized views for admin console post stats.
 	RefreshPostStats() error
+	Restore(postId, deletedBy string) error
 }
 
 type UserStore interface {
@@ -760,6 +761,7 @@ type FileInfoStore interface {
 	GetUptoNSizeFileTime(n int64) (int64, error)
 	// RefreshFileStats recomputes the fileinfo materialized views.
 	RefreshFileStats() error
+	RestoreForPostAndReplies(postId, deletedBy string) error
 }
 
 type UploadSessionStore interface {

@@ -639,16 +639,20 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 	}
 
 	if flaggedPost.DeleteAt > 0 {
-		flaggedPost.DeleteAt = 0
-		flaggedPost.UpdateAt = model.GetMillis()
-		flaggedPost.PreCommit()
-		_, err := a.Srv().Store().Post().Overwrite(rctx, flaggedPost)
-		if err != nil {
+		contentReviewBot, botErr := a.getContentReviewBot(rctx)
+		if botErr != nil {
+			return botErr
+		}
+
+		// Restore the post and its replies if any.
+		// This only restores the posts which were deleted by the content review bot.
+		if err := a.Srv().Store().Post().Restore(flaggedPost.Id, contentReviewBot.UserId); err != nil {
 			return model.NewAppError("KeepFlaggedPost", "app.content_flagging.keep_post.undelete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
-		err = a.Srv().Store().FileInfo().RestoreForPostByIds(rctx, flaggedPost.Id, flaggedPost.FileIds)
-		if err != nil {
+		// Restore the files belonging to the post and its replies, if any.
+		// This only restores the files which were deleted by the content review bot.
+		if err := a.Srv().Store().FileInfo().RestoreForPostAndReplies(flaggedPost.Id, contentReviewBot.UserId); err != nil {
 			return model.NewAppError("KeepFlaggedPost", "app.content_flagging.restore_file_info.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}

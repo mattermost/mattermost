@@ -963,11 +963,16 @@ func (s *SqlPostStore) Delete(rctx request.CTX, postID string, time int64, delet
 		return errors.Wrapf(err, "failed to delete Post with id=%s", postID)
 	}
 
+	// The condition DeleteAt = 0 prevents overriding the props for already deleted posts.
+	// This is especially the case when deleting a root posts. When a thread has multiple replies and some are deleted,
+	// we don't want to override the props of the already deleted replies.
+	// This is because the props contain information about who deleted the post and when it was deleted.
+	// Without the DeleteAt = 0 condition, the props of already deleted posts would be overridden with the new deleteByID and time.
 	_, err = transaction.Exec(`UPDATE Posts
 			SET DeleteAt = $1,
 				UpdateAt = $1,
 				Props = jsonb_set(Props, $2, $3)
-			WHERE Id = $4 OR RootId = $4`, time, jsonKeyPath(model.PostPropsDeleteBy), jsonStringVal(deleteByID), postID)
+			WHERE (Id = $4 OR RootId = $4) AND DeleteAt = 0`, time, jsonKeyPath(model.PostPropsDeleteBy), jsonStringVal(deleteByID), postID)
 
 	if err != nil {
 		return errors.Wrap(err, "failed to update Posts")
@@ -3284,6 +3289,24 @@ func (s *SqlPostStore) RefreshPostStats() error {
 		if _, err := s.GetMaster().Exec("REFRESH MATERIALIZED VIEW bot_posts_by_team_day"); err != nil {
 			return errors.Wrap(err, "error refreshing materialized view bot_posts_by_team_day")
 		}
+	}
+
+	return nil
+}
+
+func (s *SqlPostStore) Restore(postId, deletedBy string) error {
+	now := model.GetMillis()
+
+	query := s.getQueryBuilder().
+		Update("Posts").
+		Set("DeleteAt", 0).
+		Set("UpdateAt", now).
+		Where(sq.Or{sq.Eq{"Id": postId}, sq.Eq{"RootId": postId}}).
+		Where(sq.NotEq{"DeleteAt": 0}).
+		Where(sq.Expr("Props->>'deleteBy' = ?", deletedBy))
+
+	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
+		return errors.Wrapf(err, "SqlPostStore.Restore: failed to restore post %s", postId)
 	}
 
 	return nil

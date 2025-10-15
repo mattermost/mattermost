@@ -4128,6 +4128,22 @@ func (s *TimerLayerFileInfoStore) RefreshFileStats() error {
 	return err
 }
 
+func (s *TimerLayerFileInfoStore) RestoreForPostAndReplies(postId string, deletedBy string) error {
+	start := time.Now()
+
+	err := s.FileInfoStore.RestoreForPostAndReplies(postId, deletedBy)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("FileInfoStore.RestoreForPostAndReplies", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerFileInfoStore) RestoreForPostByIds(rctx request.CTX, postId string, fileIDs []string) error {
 	start := time.Now()
 
@@ -6810,6 +6826,22 @@ func (s *TimerLayerPostStore) RefreshPostStats() error {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.RefreshPostStats", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerPostStore) Restore(postId string, deletedBy string) error {
+	start := time.Now()
+
+	err := s.PostStore.Restore(postId, deletedBy)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.Restore", success, elapsed)
 	}
 	return err
 }
