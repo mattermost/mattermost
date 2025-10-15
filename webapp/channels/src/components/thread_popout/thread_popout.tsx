@@ -35,24 +35,26 @@ export default function ThreadPopout() {
         return getThreadOrSynthetic(state, post);
     });
 
+    const channelId = post?.channel_id;
     useEffect(() => {
-        if (post?.channel_id) {
-            dispatch(selectChannel(post.channel_id));
+        if (channelId) {
+            dispatch(selectChannel(channelId));
         }
-    }, [post, dispatch]);
+    }, [dispatch, channelId]);
+
+    const teamId = team?.id;
+    useEffect(() => {
+        if (teamId) {
+            dispatch(fetchChannelsAndMembers(teamId));
+            dispatch(selectTeam(teamId));
+        }
+    }, [dispatch, teamId]);
 
     useEffect(() => {
-        if (team) {
-            dispatch(fetchChannelsAndMembers(team.id));
-            dispatch(selectTeam(team.id));
+        if (teamId) {
+            dispatch(getThread(currentUserId, teamId, postId));
         }
-    }, [team, dispatch]);
-
-    useEffect(() => {
-        if (team) {
-            dispatch(getThread(currentUserId, team.id, postId));
-        }
-    }, [postId, dispatch, currentUserId, team]);
+    }, [postId, dispatch, currentUserId, teamId]);
 
     if (!thread) {
         return null;
