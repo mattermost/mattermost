@@ -42,8 +42,6 @@ describe('popout_windows', () => {
     describe('popoutThread', () => {
         it('should call popout with correct path and props', async () => {
             mockIsDesktopApp.mockReturnValue(true);
-            mockDesktopApp.setupDesktopPopout.mockResolvedValue({});
-
             await popoutThread(mockIntl, 'thread-123', 'test-team');
 
             expect(mockDesktopApp.setupDesktopPopout).toHaveBeenCalledWith(

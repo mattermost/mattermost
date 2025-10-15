@@ -4,6 +4,7 @@
 import {screen} from '@testing-library/react';
 import React from 'react';
 import {MemoryRouter} from 'react-router-dom';
+import type {RouteComponentProps} from 'react-router-dom';
 
 import {getProfiles} from 'mattermost-redux/actions/users';
 
@@ -28,6 +29,33 @@ jest.mock('components/thread_popout', () => ({
 
 const mockGetProfiles = getProfiles as jest.MockedFunction<typeof getProfiles>;
 
+// Base mock route props with meaningful route data
+const baseRouteProps: RouteComponentProps = {
+    history: {
+        push: jest.fn(),
+        replace: jest.fn(),
+        go: jest.fn(),
+        goBack: jest.fn(),
+        goForward: jest.fn(),
+        block: jest.fn(),
+        listen: jest.fn(),
+        createHref: jest.fn(),
+    } as any,
+    location: {
+        pathname: '/_popout/thread/test-team/post0000000000000000000123',
+        search: '',
+        hash: '',
+        state: null,
+        key: 'test-key',
+    },
+    match: {
+        params: {team: 'test-team', postId: 'post0000000000000000000123'},
+        isExact: true,
+        path: '/_popout/thread/:team/:postId',
+        url: '/_popout/thread/test-team/post0000000000000000000123',
+    },
+};
+
 describe('PopoutController', () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -38,9 +66,7 @@ describe('PopoutController', () => {
 
     it('should render modal controller', () => {
         renderWithContext(
-            <MemoryRouter initialEntries={['/_popout/thread/test-team/post0000000000000000000123']}>
-                <PopoutController/>
-            </MemoryRouter>,
+            <PopoutController {...baseRouteProps}/>,
         );
 
         expect(screen.getByTestId('modal-controller')).toBeInTheDocument();
@@ -48,9 +74,7 @@ describe('PopoutController', () => {
 
     it('should add popout classes to document body on mount', () => {
         renderWithContext(
-            <MemoryRouter initialEntries={['/_popout/thread/test-team/post0000000000000000000123']}>
-                <PopoutController/>
-            </MemoryRouter>,
+            <PopoutController {...baseRouteProps}/>,
         );
 
         expect(document.body.classList.contains('app__body')).toBe(true);
@@ -59,9 +83,7 @@ describe('PopoutController', () => {
 
     it('should dispatch getProfiles action on mount', () => {
         renderWithContext(
-            <MemoryRouter initialEntries={['/_popout/thread/test-team/post0000000000000000000123']}>
-                <PopoutController/>
-            </MemoryRouter>,
+            <PopoutController {...baseRouteProps}/>,
         );
 
         expect(mockGetProfiles).toHaveBeenCalledTimes(1);
@@ -70,7 +92,7 @@ describe('PopoutController', () => {
     it('should render thread popout for thread route', () => {
         renderWithContext(
             <MemoryRouter initialEntries={['/_popout/thread/test-team/post0000000000000000000123']}>
-                <PopoutController/>
+                <PopoutController {...baseRouteProps}/>
             </MemoryRouter>,
         );
 
@@ -79,19 +101,27 @@ describe('PopoutController', () => {
 
     it('should maintain body classes on re-render', () => {
         const {rerender} = renderWithContext(
-            <MemoryRouter initialEntries={['/_popout/thread/test-team/post0000000000000000000123']}>
-                <PopoutController/>
-            </MemoryRouter>,
+            <PopoutController {...baseRouteProps}/>,
         );
 
         expect(document.body.classList.contains('app__body')).toBe(true);
         expect(document.body.classList.contains('popout')).toBe(true);
 
-        // Re-render with different route
+        // Re-render with different route params
+        const differentRouteProps = {
+            ...baseRouteProps,
+            location: {
+                ...baseRouteProps.location,
+                pathname: '/_popout/thread/different-team/different-post',
+            },
+            match: {
+                ...baseRouteProps.match,
+                params: {team: 'different-team', postId: 'different-post'},
+                url: '/_popout/thread/different-team/different-post',
+            },
+        };
         rerender(
-            <MemoryRouter initialEntries={['/_popout/thread/other-team/post0000000000000000000456']}>
-                <PopoutController/>
-            </MemoryRouter>,
+            <PopoutController {...differentRouteProps}/>,
         );
 
         // Classes should still be there

@@ -4,6 +4,7 @@
 import React, {useEffect} from 'react';
 import {useDispatch} from 'react-redux';
 import {Route, Switch} from 'react-router-dom';
+import type {RouteComponentProps} from 'react-router-dom';
 
 import {getProfiles} from 'mattermost-redux/actions/users';
 
@@ -14,7 +15,7 @@ import {TEAM_NAME_PATH_PATTERN, ID_PATH_PATTERN} from 'utils/path';
 
 import './popout_controller.scss';
 
-export default function PopoutController() {
+const PopoutController: React.FC<RouteComponentProps> = () => {
     const dispatch = useDispatch();
     useEffect(() => {
         document.body.classList.add('app__body', 'popout');
@@ -32,4 +33,6 @@ export default function PopoutController() {
             </Switch>
         </>
     );
-}
+};
+
+export default PopoutController;
