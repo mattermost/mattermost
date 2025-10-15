@@ -1627,16 +1627,6 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="panel-card"
           >
             <TeamEdition
-              currentPlan={
-                <div
-                  className="current-plan-legend"
-                >
-                  <i
-                    className="icon-check-circle"
-                  />
-                  Current Plan
-                </div>
-              }
               openEELicenseModal={[Function]}
             />
           </div>
