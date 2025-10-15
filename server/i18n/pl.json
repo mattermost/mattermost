@@ -10886,5 +10886,85 @@
   {
     "id": "api.encoding_error",
     "translation": "Napotkano błąd kodowania JSON dla odpowiedzi API"
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.removed",
+    "translation": "Nie możesz oflagować tego postu, ponieważ został on usunięty w wyniku wcześniejszej prośby o oflagowanie."
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.retained",
+    "translation": "Nie możesz oflagować tego postu, ponieważ został on zachowany w poprzednim żądaniu oflagowania."
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.unknown",
+    "translation": "Nie możesz oflagować tego postu, ponieważ ma on nieznany status."
+  },
+  {
+    "id": "app.content_flagging.create_property_values.app_error",
+    "translation": "Nie udało się zapisać wartości właściwości dla oflagowanego posta."
+  },
+  {
+    "id": "app.content_flagging.delete_post.app_error",
+    "translation": "Nie możesz usunąć oflagowanego posta."
+  },
+  {
+    "id": "app.content_flagging.flag_post.marshal_comment.app_error",
+    "translation": "Nie udało się pobrać komentarza użytkownika flagującego"
+  },
+  {
+    "id": "app.content_flagging.flag_post.marshal_reason.app_error",
+    "translation": "Nie udało się pobrać powodu użytkownika flagującego"
+  },
+  {
+    "id": "app.content_flagging.flag_post_confirmation.message",
+    "translation": "Wiadomość od @{{.username}} została oznaczona do sprawdzenia. Otrzymasz powiadomienie, gdy zostanie ona sprawdzona przez weryfikatora treści. "
+  },
+  {
+    "id": "app.content_flagging.get_group.error",
+    "translation": "Nie udało się pobrać bota Content Flagging."
+  },
+  {
+    "id": "app.content_flagging.get_reviewer_settings.app_error",
+    "translation": "Nie udało się pobrać ustawień recenzenta treści z bazy danych"
+  },
+  {
+    "id": "app.content_flagging.get_status_property.app_error",
+    "translation": "Nie udało się uzyskać pola właściwości Status."
+  },
+  {
+    "id": "app.content_flagging.get_users_in_team.app_error",
+    "translation": "Nie udało się szukać recenzentów w zespole."
+  },
+  {
+    "id": "app.content_flagging.keep_flag_post.marshal_comment.app_error",
+    "translation": "Nie udało się zebrać komentarza recenzenta"
+  },
+  {
+    "id": "app.content_flagging.keep_post.status_update.app_error",
+    "translation": "Nie udało się zaktualizować statusu oflagowanego postu podczas usuwania oflagowanego postu "
+  },
+  {
+    "id": "app.content_flagging.keep_post.undelete.app_error",
+    "translation": "Nie udało się zaktualizować postu w bazie danych podczas próby usunięcia oflagowanego postu."
+  },
+  {
+    "id": "app.content_flagging.marshal_property_values.app_error",
+    "translation": "Nie udało się pobrać wartości właściwości Content Flagging do wysłania w zdarzeniu WebSocket."
+  },
+  {
+    "id": "app.content_flagging.no_status_property.app_error",
+    "translation": "Nie można pobrać oflagowanego posta, ponieważ nie jest on oflagowany."
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.app_error",
+    "translation": "Nie udało się nadpisać postu z usuniętym postem podczas trwałego usuwania oflagowanego postu."
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.marshal_comment.app_error",
+    "translation": "Nie udało się zebrać komentarza recenzenta"
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.update_property_value.app_error",
+    "translation": "Nie udało się zaktualizować statusu oflagowanego postu podczas trwałego usunięcia oflagowanego postu."
   }
 ]
