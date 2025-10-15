@@ -19,7 +19,7 @@ import DropdownInput from 'components/dropdown_input';
 import Input from 'components/widgets/inputs/input/input';
 import CheckboxSettingItem from 'components/widgets/modals/components/checkbox_setting_item';
 
-import IconButton from '../icon_button';
+import IconButton from '../design_system/icon_button';
 
 import './component_library.scss';
 
