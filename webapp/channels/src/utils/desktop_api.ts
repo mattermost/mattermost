@@ -3,7 +3,7 @@
 
 import semver from 'semver';
 
-import type {DesktopAPI} from '@mattermost/desktop-api';
+import type {DesktopAPI, Theme} from '@mattermost/desktop-api';
 
 import {isDesktopApp} from 'utils/user_agent';
 
@@ -110,6 +110,10 @@ export class DesktopAppAPI {
         };
     };
 
+    getDarkMode = () => {
+        return window.desktopAPI?.getDarkMode?.() ?? Promise.resolve(false);
+    };
+
     /**
      * Listeners
      */
@@ -160,6 +164,10 @@ export class DesktopAppAPI {
 
     onReceiveMetrics = (listener: (metricsMap: Map<string, {cpu?: number; memory?: number}>) => void) => {
         return window.desktopAPI?.onSendMetrics?.(listener);
+    };
+
+    onDarkModeChanged = (listener: (darkMode: boolean) => void) => {
+        return window.desktopAPI?.onDarkModeChanged?.(listener);
     };
 
     /**
@@ -220,6 +228,7 @@ export class DesktopAppAPI {
     signalLogin = () => window.desktopAPI?.onLogin?.();
     signalLogout = () => window.desktopAPI?.onLogout?.();
     reactAppInitialized = () => window.desktopAPI?.reactAppInitialized?.();
+    updateTheme = (theme: Theme) => window.desktopAPI?.updateTheme?.(theme);
 
     /*********************************************************************
      * Helper functions for legacy code

@@ -28,7 +28,7 @@ const (
 	remainingSchemaMigrationsKey                   = "RemainingSchemaMigrations"
 	postPriorityConfigDefaultTrueMigrationKey      = "PostPriorityConfigDefaultTrueMigrationComplete"
 	contentFlaggingSetupDoneKey                    = "content_flagging_setup_done"
-	contentFlaggingMigrationVersion                = "v2"
+	contentFlaggingMigrationVersion                = "v3"
 
 	contentFlaggingPropertyNameFlaggedPostId    = "flagged_post_id"
 	contentFlaggingPropertyNameStatus           = "status"
@@ -677,6 +677,7 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 			GroupID: group.ID,
 			Name:    contentFlaggingPropertyNameReviewerUserID,
 			Type:    model.PropertyFieldTypeUser,
+			Attrs:   map[string]any{"editable": true},
 		},
 		contentFlaggingPropertyNameActorUserID: {
 			GroupID: group.ID,
@@ -702,6 +703,7 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 		if _, exists := existingPropertiesMap[name]; exists {
 			property := existingPropertiesMap[name]
 			property.Type = expectedProperty.Type
+			property.Attrs = expectedProperty.Attrs
 			propertiesToUpdate = append(propertiesToUpdate, property)
 		} else {
 			propertiesToCreate = append(propertiesToCreate, expectedProperty)
