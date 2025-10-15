@@ -67,7 +67,7 @@ export function DataSpillageReport({post, isRHS}: Props) {
     const naturalPropertyValues = usePostContentFlaggingValues(reportedPostId);
 
     const [reportedPost, setReportedPost] = useState<Post>();
-    const channel = useChannel(reportedPost?.channel_id || '');
+    const channel = useChannel(reportedPost?.channel_id || '', true);
 
     useEffect(() => {
         const work = async () => {
@@ -131,9 +131,17 @@ export function DataSpillageReport({post, isRHS}: Props) {
             post_preview: {
                 getPost: loadFlaggedPost,
                 fetchDeletedPost: true,
+                getChannel: getChannel(reportedPostId),
+                getTeam: getTeam(reportedPostId),
             },
             reporting_comment: {
                 placeholder: formatMessage({id: 'data_spillage_report_post.reporting_comment.placeholder', defaultMessage: 'No comment'}),
+            },
+            team: {
+                getTeam: getTeam(reportedPostId),
+            },
+            channel: {
+                getChannel: getChannel(reportedPostId),
             },
         };
 
@@ -198,8 +206,8 @@ export function DataSpillageReport({post, isRHS}: Props) {
     );
 }
 
-async function loadFlaggedPost(postId: string) {
-    return Client4.getFlaggedPost(postId);
+async function loadFlaggedPost(flaggedPostId: string) {
+    return Client4.getFlaggedPost(flaggedPostId);
 }
 
 function getSearchContentReviewersFunction(teamId: string) {
@@ -208,8 +216,20 @@ function getSearchContentReviewersFunction(teamId: string) {
     };
 }
 
-function saveReviewerSelection(postId: string) {
+function saveReviewerSelection(flaggedPostId: string) {
     return (userId: string) => {
-        return Client4.setContentFlaggingReviewer(postId, userId);
+        return Client4.setContentFlaggingReviewer(flaggedPostId, userId);
+    };
+}
+
+function getChannel(flaggedPostId: string) {
+    return (channelId: string) => {
+        return Client4.getChannel(channelId, true, flaggedPostId);
+    };
+}
+
+function getTeam(flaggedPostId: string) {
+    return (teamId: string) => {
+        return Client4.getTeam(teamId, true, flaggedPostId);
     };
 }
