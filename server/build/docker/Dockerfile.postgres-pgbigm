@@ -7,7 +7,8 @@ RUN apt-get update && \
         build-essential \
         postgresql-server-dev-13 \
         git \
-        ca-certificates && \
+        ca-certificates \
+        libicu-dev && \
     git clone https://github.com/pgbigm/pg_bigm.git /usr/src/pg_bigm && \
     cd /usr/src/pg_bigm && \
     make USE_PGXS=1 && \
@@ -15,6 +16,7 @@ RUN apt-get update && \
     apt-get purge -y --auto-remove \
         build-essential \
         postgresql-server-dev-13 \
-        git && \
+        git \
+        libicu-dev && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /usr/src/pg_bigm
