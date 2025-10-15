@@ -2,7 +2,7 @@ services:
   postgres:
     build:
       context: ./docker
-      dockerfile: Dockerfile.postgres-pg_bigm
+      dockerfile: Dockerfile.postgres-pgbigm
     restart: always
     networks:
       - mm-test
