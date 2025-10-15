@@ -5,6 +5,7 @@ package app
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"testing"
 	"time"
@@ -12,6 +13,46 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/require"
 )
+
+func getBaseConfig(th *TestHelper) model.ContentFlaggingSettingsRequest {
+	config := model.ContentFlaggingSettingsRequest{}
+	config.SetDefaults()
+	config.ReviewerSettings.CommonReviewers = model.NewPointer(true)
+	config.ReviewerSettings.CommonReviewerIds = []string{th.BasicUser.Id}
+	config.ReviewerSettings.ReviewerSettings.TeamAdminsAsReviewers = model.NewPointer(false)
+	config.ReviewerSettings.ReviewerSettings.SystemAdminsAsReviewers = model.NewPointer(false)
+	config.AdditionalSettings.ReporterCommentRequired = model.NewPointer(false)
+	config.AdditionalSettings.HideFlaggedContent = model.NewPointer(false)
+	config.AdditionalSettings.Reasons = &[]string{"spam", "harassment", "inappropriate"}
+	return config
+}
+
+func setBaseConfig(th *TestHelper) *model.AppError {
+	appErr := th.App.SaveContentFlaggingConfig(getBaseConfig(th))
+	if appErr != nil {
+		return appErr
+	}
+
+	return nil
+}
+
+func setupFlaggedPost(th *TestHelper) (*model.Post, *model.AppError) {
+	post := th.CreatePost(th.BasicChannel)
+
+	flagData := model.FlagContentRequest{
+		Reason:  "spam",
+		Comment: "This is spam content",
+	}
+
+	appErr := th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	time.Sleep(2 * time.Second)
+
+	return post, nil
+}
 
 func TestContentFlaggingEnabledForTeam(t *testing.T) {
 	mainHelper.Parallel(t)
@@ -117,38 +158,13 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 
-	getBaseConfig := func() model.ContentFlaggingSettingsRequest {
-		config := model.ContentFlaggingSettingsRequest{}
-		config.SetDefaults()
-		config.ReviewerSettings.CommonReviewers = model.NewPointer(true)
-		config.ReviewerSettings.CommonReviewerIds = []string{th.BasicUser.Id}
-		config.AdditionalSettings.ReporterCommentRequired = model.NewPointer(false)
-		config.AdditionalSettings.HideFlaggedContent = model.NewPointer(false)
-		config.AdditionalSettings.Reasons = &[]string{"spam", "harassment", "inappropriate"}
-		return config
-	}
-
-	setupFlaggedPost := func() *model.Post {
-		appErr := th.App.SaveContentFlaggingConfig(getBaseConfig())
-		require.Nil(t, appErr)
-
-		post := th.CreatePost(th.BasicChannel)
-
-		flagData := model.FlagContentRequest{
-			Reason:  "spam",
-			Comment: "This is spam content",
-		}
-
-		appErr = th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
-		require.Nil(t, appErr)
-
-		return post
-	}
-
 	t.Run("should successfully assign reviewer to pending flagged post", func(t *testing.T) {
-		post := setupFlaggedPost()
+		require.Nil(t, setBaseConfig(th))
 
-		appErr := th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicChannel.TeamId, th.BasicUser.Id, th.SystemAdminUser.Id)
+		post, appErr := setupFlaggedPost(th)
+		require.Nil(t, appErr)
+
+		appErr = th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicChannel.TeamId, th.BasicUser.Id, th.SystemAdminUser.Id)
 		require.Nil(t, appErr)
 
 		// Verify status was updated to assigned
@@ -174,10 +190,13 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 	})
 
 	t.Run("should successfully reassign reviewer to already assigned flagged post", func(t *testing.T) {
-		post := setupFlaggedPost()
+		require.Nil(t, setBaseConfig(th))
+
+		post, appErr := setupFlaggedPost(th)
+		require.Nil(t, appErr)
 
 		// First assignment
-		appErr := th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicChannel.TeamId, th.BasicUser.Id, th.SystemAdminUser.Id)
+		appErr = th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicChannel.TeamId, th.BasicUser.Id, th.SystemAdminUser.Id)
 		require.Nil(t, appErr)
 
 		// Second assignment (reassignment)
@@ -207,6 +226,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 	})
 
 	t.Run("should fail when trying to assign reviewer to non-flagged post", func(t *testing.T) {
+		require.Nil(t, setBaseConfig(th))
 		post := th.CreatePost(th.BasicChannel)
 
 		appErr := th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicChannel.TeamId, th.BasicUser.Id, th.SystemAdminUser.Id)
@@ -215,13 +235,16 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 	})
 
 	t.Run("should fail when trying to assign reviewer to retained post", func(t *testing.T) {
-		post := setupFlaggedPost()
+		require.Nil(t, setBaseConfig(th))
+
+		post, appErr := setupFlaggedPost(th)
+		require.Nil(t, appErr)
 
 		// First retain the post
 		actionRequest := &model.FlagContentActionRequest{
 			Comment: "Keeping this post",
 		}
-		appErr := th.App.KeepFlaggedPost(th.Context, actionRequest, th.BasicUser.Id, post)
+		appErr = th.App.KeepFlaggedPost(th.Context, actionRequest, th.BasicUser.Id, post)
 		require.Nil(t, appErr)
 
 		// Try to assign reviewer to retained post
@@ -232,13 +255,16 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 	})
 
 	t.Run("should fail when trying to assign reviewer to removed post", func(t *testing.T) {
-		post := setupFlaggedPost()
+		require.Nil(t, setBaseConfig(th))
+
+		post, appErr := setupFlaggedPost(th)
+		require.Nil(t, appErr)
 
 		// First remove the post
 		actionRequest := &model.FlagContentActionRequest{
 			Comment: "Removing this post",
 		}
-		appErr := th.App.PermanentDeleteFlaggedPost(th.Context, actionRequest, th.BasicUser.Id, post)
+		appErr = th.App.PermanentDeleteFlaggedPost(th.Context, actionRequest, th.BasicUser.Id, post)
 		require.Nil(t, appErr)
 
 		// Try to assign reviewer to removed post
@@ -249,10 +275,13 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 	})
 
 	t.Run("should handle assignment with same reviewer ID", func(t *testing.T) {
-		post := setupFlaggedPost()
+		require.Nil(t, setBaseConfig(th))
+
+		post, appErr := setupFlaggedPost(th)
+		require.Nil(t, appErr)
 
 		// Assign reviewer
-		appErr := th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicChannel.TeamId, th.BasicUser.Id, th.SystemAdminUser.Id)
+		appErr = th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicChannel.TeamId, th.BasicUser.Id, th.SystemAdminUser.Id)
 		require.Nil(t, appErr)
 
 		// Assign same reviewer again
@@ -282,9 +311,12 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 	})
 
 	t.Run("should handle assignment with empty reviewer ID", func(t *testing.T) {
-		post := setupFlaggedPost()
+		require.Nil(t, setBaseConfig(th))
 
-		appErr := th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicChannel.TeamId, "", th.SystemAdminUser.Id)
+		post, appErr := setupFlaggedPost(th)
+		require.Nil(t, appErr)
+
+		appErr = th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicChannel.TeamId, "", th.SystemAdminUser.Id)
 		require.Nil(t, appErr)
 
 		// Verify status was updated to assigned
@@ -310,6 +342,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 	})
 
 	t.Run("should handle assignment with invalid post ID", func(t *testing.T) {
+		require.Nil(t, setBaseConfig(th))
 		appErr := th.App.AssignFlaggedPostReviewer(th.Context, "invalid_post_id", th.BasicChannel.TeamId, th.BasicUser.Id, th.SystemAdminUser.Id)
 		require.NotNil(t, appErr)
 		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
@@ -1087,12 +1120,10 @@ func TestFlagPost(t *testing.T) {
 	})
 
 	t.Run("should fail when comment is required but not provided", func(t *testing.T) {
-		appErr := th.App.SaveContentFlaggingConfig(getBaseConfig())
+		config := getBaseConfig()
+		config.AdditionalSettings.ReporterCommentRequired = model.NewPointer(true)
+		appErr := th.App.SaveContentFlaggingConfig(config)
 		require.Nil(t, appErr)
-
-		th.UpdateConfig(func(conf *model.Config) {
-			conf.ContentFlaggingSettings.AdditionalSettings.ReporterCommentRequired = model.NewPointer(true)
-		})
 
 		post := th.CreatePost(th.BasicChannel)
 
@@ -1103,11 +1134,6 @@ func TestFlagPost(t *testing.T) {
 
 		appErr = th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
 		require.NotNil(t, appErr)
-
-		// Reset config
-		th.UpdateConfig(func(conf *model.Config) {
-			conf.ContentFlaggingSettings.AdditionalSettings.ReporterCommentRequired = model.NewPointer(false)
-		})
 	})
 
 	t.Run("should fail when trying to flag already flagged post", func(t *testing.T) {
@@ -1132,12 +1158,10 @@ func TestFlagPost(t *testing.T) {
 	})
 
 	t.Run("should hide flagged content when configured", func(t *testing.T) {
-		appErr := th.App.SaveContentFlaggingConfig(getBaseConfig())
+		config := getBaseConfig()
+		config.AdditionalSettings.HideFlaggedContent = model.NewPointer(true)
+		appErr := th.App.SaveContentFlaggingConfig(config)
 		require.Nil(t, appErr)
-
-		th.UpdateConfig(func(conf *model.Config) {
-			conf.ContentFlaggingSettings.AdditionalSettings.HideFlaggedContent = model.NewPointer(true)
-		})
 
 		post := th.CreatePost(th.BasicChannel)
 
@@ -1153,11 +1177,6 @@ func TestFlagPost(t *testing.T) {
 		deletedPost, appErr := th.App.GetSinglePost(th.Context, post.Id, false)
 		require.NotNil(t, appErr)
 		require.Nil(t, deletedPost)
-
-		// Reset config
-		th.UpdateConfig(func(conf *model.Config) {
-			conf.ContentFlaggingSettings.AdditionalSettings.HideFlaggedContent = model.NewPointer(false)
-		})
 	})
 
 	t.Run("should create content review post for reviewers", func(t *testing.T) {
@@ -1569,39 +1588,11 @@ func TestGetReviewerPostsForFlaggedPost(t *testing.T) {
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 
-	getBaseConfig := func() model.ContentFlaggingSettingsRequest {
-		config := model.ContentFlaggingSettingsRequest{}
-		config.SetDefaults()
-		config.ReviewerSettings.CommonReviewers = model.NewPointer(true)
-		config.ReviewerSettings.CommonReviewerIds = []string{th.BasicUser.Id}
-		config.AdditionalSettings.ReporterCommentRequired = model.NewPointer(false)
-		config.AdditionalSettings.HideFlaggedContent = model.NewPointer(false)
-		config.AdditionalSettings.Reasons = &[]string{"spam", "harassment", "inappropriate"}
-		return config
-	}
-
-	setupFlaggedPost := func() *model.Post {
-		appErr := th.App.SaveContentFlaggingConfig(getBaseConfig())
-		require.Nil(t, appErr)
-
-		post := th.CreatePost(th.BasicChannel)
-
-		flagData := model.FlagContentRequest{
-			Reason:  "spam",
-			Comment: "This is spam content",
-		}
-
-		appErr = th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
-		require.Nil(t, appErr)
-
-		return post
-	}
-
 	t.Run("should return reviewer posts for flagged post", func(t *testing.T) {
-		post := setupFlaggedPost()
+		require.Nil(t, setBaseConfig(th))
 
-		// Wait for async reviewer post creation to complete
-		time.Sleep(2 * time.Second)
+		post, appErr := setupFlaggedPost(th)
+		require.Nil(t, appErr)
 
 		groupId, appErr := th.App.ContentFlaggingGroupId()
 		require.Nil(t, appErr)
@@ -1625,6 +1616,7 @@ func TestGetReviewerPostsForFlaggedPost(t *testing.T) {
 	})
 
 	t.Run("should return empty list when no reviewer posts exist", func(t *testing.T) {
+		require.Nil(t, setBaseConfig(th))
 		post := th.CreatePost(th.BasicChannel)
 
 		groupId, appErr := th.App.ContentFlaggingGroupId()
@@ -1643,7 +1635,7 @@ func TestGetReviewerPostsForFlaggedPost(t *testing.T) {
 
 	t.Run("should handle multiple reviewer posts for same flagged post", func(t *testing.T) {
 		// Create a config with multiple reviewers
-		config := getBaseConfig()
+		config := getBaseConfig(th)
 		config.ReviewerSettings.CommonReviewerIds = []string{th.BasicUser.Id, th.BasicUser2.Id}
 		appErr := th.App.SaveContentFlaggingConfig(config)
 		require.Nil(t, appErr)
@@ -1685,6 +1677,7 @@ func TestGetReviewerPostsForFlaggedPost(t *testing.T) {
 	})
 
 	t.Run("should handle invalid flagged post ID", func(t *testing.T) {
+		require.Nil(t, setBaseConfig(th))
 		groupId, appErr := th.App.ContentFlaggingGroupId()
 		require.Nil(t, appErr)
 
@@ -1707,49 +1700,18 @@ func TestPostReviewerMessage(t *testing.T) {
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 
-	getBaseConfig := func() model.ContentFlaggingSettingsRequest {
-		config := model.ContentFlaggingSettingsRequest{}
-		config.SetDefaults()
-		config.ReviewerSettings.CommonReviewers = model.NewPointer(true)
-		config.ReviewerSettings.CommonReviewerIds = []string{th.BasicUser.Id}
-		config.AdditionalSettings.ReporterCommentRequired = model.NewPointer(false)
-		config.AdditionalSettings.HideFlaggedContent = model.NewPointer(false)
-		config.AdditionalSettings.Reasons = &[]string{"spam", "harassment", "inappropriate"}
-		return config
-	}
-
-	setupFlaggedPost := func() *model.Post {
-		appErr := th.App.SaveContentFlaggingConfig(getBaseConfig())
-		require.Nil(t, appErr)
-
-		post := th.CreatePost(th.BasicChannel)
-
-		flagData := model.FlagContentRequest{
-			Reason:  "spam",
-			Comment: "This is spam content",
-		}
-
-		appErr = th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
-		require.Nil(t, appErr)
-
-		return post
-	}
-
 	t.Run("should post reviewer message to thread", func(t *testing.T) {
-		post := setupFlaggedPost()
+		require.Nil(t, setBaseConfig(th))
 
-		// Wait for async reviewer post creation to complete
-		time.Sleep(2 * time.Second)
+		post, appErr := setupFlaggedPost(th)
+		require.Nil(t, appErr)
 
 		groupId, appErr := th.App.ContentFlaggingGroupId()
 		require.Nil(t, appErr)
 
 		testMessage := "Test reviewer message"
-		appErr = th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id)
+		_, appErr = th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id)
 		require.Nil(t, appErr)
-
-		// Wait for async message posting to complete
-		time.Sleep(2 * time.Second)
 
 		// Verify message was posted to the reviewer thread
 		contentReviewBot, appErr := th.App.getContentReviewBot(th.Context)
@@ -1783,7 +1745,7 @@ func TestPostReviewerMessage(t *testing.T) {
 
 	t.Run("should handle multiple reviewer channels", func(t *testing.T) {
 		// Create a config with multiple reviewers
-		config := getBaseConfig()
+		config := getBaseConfig(th)
 		config.ReviewerSettings.CommonReviewerIds = []string{th.BasicUser.Id, th.BasicUser2.Id}
 		appErr := th.App.SaveContentFlaggingConfig(config)
 		require.Nil(t, appErr)
@@ -1805,11 +1767,8 @@ func TestPostReviewerMessage(t *testing.T) {
 		require.Nil(t, appErr)
 
 		testMessage := "Test message for multiple reviewers"
-		appErr = th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id)
+		_, appErr = th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id)
 		require.Nil(t, appErr)
-
-		// Wait for async message posting to complete
-		time.Sleep(2 * time.Second)
 
 		// Verify message was posted to both reviewer threads
 		contentReviewBot, appErr := th.App.getContentReviewBot(th.Context)
@@ -1858,34 +1817,29 @@ func TestPostReviewerMessage(t *testing.T) {
 	})
 
 	t.Run("should handle case when no reviewer posts exist", func(t *testing.T) {
+		require.Nil(t, setBaseConfig(th))
 		post := th.CreatePost(th.BasicChannel)
 
 		groupId, appErr := th.App.ContentFlaggingGroupId()
 		require.Nil(t, appErr)
 
 		testMessage := "Test message for non-flagged post"
-		appErr = th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id)
+		_, appErr = th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id)
 		require.Nil(t, appErr)
-
-		// Should not error, but no messages should be posted since no reviewer posts exist
-		// This is a graceful handling case
 	})
 
 	t.Run("should handle message with special characters", func(t *testing.T) {
-		post := setupFlaggedPost()
+		require.Nil(t, setBaseConfig(th))
 
-		// Wait for async reviewer post creation to complete
-		time.Sleep(2 * time.Second)
+		post, appErr := setupFlaggedPost(th)
+		require.Nil(t, appErr)
 
 		groupId, appErr := th.App.ContentFlaggingGroupId()
 		require.Nil(t, appErr)
 
 		testMessage := "Test message with special chars: @user #channel ~team & <script>alert('xss')</script>"
-		appErr = th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id)
+		_, appErr = th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id)
 		require.Nil(t, appErr)
-
-		// Wait for async message posting to complete
-		time.Sleep(2 * time.Second)
 
 		// Verify message was posted correctly with special characters preserved
 		contentReviewBot, appErr := th.App.getContentReviewBot(th.Context)
@@ -1911,5 +1865,320 @@ func TestPostReviewerMessage(t *testing.T) {
 		}
 		require.NotNil(t, testMessagePost)
 		require.Equal(t, testMessage, testMessagePost.Message)
+	})
+}
+
+// Helper function to setup notification config for testing
+func setupNotificationConfig(th *TestHelper, eventTargetMapping map[model.ContentFlaggingEvent][]model.NotificationTarget) *model.AppError {
+	config := getBaseConfig(th)
+	config.NotificationSettings = &model.ContentFlaggingNotificationSettings{
+		EventTargetMapping: eventTargetMapping,
+	}
+	return th.App.SaveContentFlaggingConfig(config)
+}
+
+// Helper function to verify post message content and properties
+func verifyNotificationPost(t *testing.T, post *model.Post, expectedMessage string, expectedUserId string, expectedChannelId string) {
+	require.NotNil(t, post)
+	require.Equal(t, expectedMessage, post.Message)
+	require.Equal(t, expectedUserId, post.UserId)
+	require.Equal(t, expectedChannelId, post.ChannelId)
+	require.True(t, post.CreateAt > 0)
+	require.True(t, post.UpdateAt > 0)
+}
+
+func TestSendFlaggedPostRemovalNotification(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+	t.Run("should send notifications to all configured targets", func(t *testing.T) {
+		// Setup notification config for all targets
+		appErr := setupNotificationConfig(th, map[model.ContentFlaggingEvent][]model.NotificationTarget{
+			model.EventContentRemoved: {model.TargetReviewers, model.TargetAuthor, model.TargetReporter},
+		})
+		require.Nil(t, appErr)
+
+		post, appErr := setupFlaggedPost(th)
+		require.Nil(t, appErr)
+
+		groupId, appErr := th.App.ContentFlaggingGroupId()
+		require.Nil(t, appErr)
+
+		actorComment := "This post violates community guidelines"
+		createdPosts := th.App.sendFlaggedPostRemovalNotification(th.Context, post, th.SystemAdminUser.Id, actorComment, groupId)
+
+		// Should create 3 posts: reviewer message, author message, reporter message
+		require.Len(t, createdPosts, 3)
+
+		contentReviewBot, appErr := th.App.getContentReviewBot(th.Context)
+		require.Nil(t, appErr)
+
+		// Verify reviewer message
+		reviewerMessage := fmt.Sprintf("The flagged message was removed by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, actorComment)
+		var reviewerPost *model.Post
+		for _, p := range createdPosts {
+			if p.Message == reviewerMessage {
+				reviewerPost = p
+				break
+			}
+		}
+		require.NotNil(t, reviewerPost)
+		verifyNotificationPost(t, reviewerPost, reviewerMessage, contentReviewBot.UserId, reviewerPost.ChannelId)
+		require.NotEmpty(t, reviewerPost.RootId) // Should be a thread reply to the flag review post
+
+		// Verify author message
+		authorMessage := fmt.Sprintf("Your post having ID `%s` in the channel `%s` which was flagged for review has been permanently removed by a reviewer.", post.Id, th.BasicChannel.DisplayName)
+		var authorPost *model.Post
+		for _, p := range createdPosts {
+			if p.Message == authorMessage {
+				authorPost = p
+				break
+			}
+		}
+		require.NotNil(t, authorPost)
+		verifyNotificationPost(t, authorPost, authorMessage, contentReviewBot.UserId, authorPost.ChannelId)
+
+		// Verify reporter message
+		reporterMessage := fmt.Sprintf("The post having ID `%s` in the channel `%s` which you flagged for review has been permanently removed by a reviewer.", post.Id, th.BasicChannel.DisplayName)
+		var reporterPost *model.Post
+		for _, p := range createdPosts {
+			if p.Message == reporterMessage {
+				reporterPost = p
+				break
+			}
+		}
+		require.NotNil(t, reporterPost)
+		verifyNotificationPost(t, reporterPost, reporterMessage, contentReviewBot.UserId, reporterPost.ChannelId)
+	})
+
+	t.Run("should send notifications only to configured targets", func(t *testing.T) {
+		// Setup notification config for only author
+		appErr := setupNotificationConfig(th, map[model.ContentFlaggingEvent][]model.NotificationTarget{
+			model.EventContentRemoved: {model.TargetReviewers},
+		})
+		require.Nil(t, appErr)
+
+		post, appErr := setupFlaggedPost(th)
+		require.Nil(t, appErr)
+
+		// Setup notification config for only author
+		appErr = setupNotificationConfig(th, map[model.ContentFlaggingEvent][]model.NotificationTarget{
+			model.EventContentRemoved: {model.TargetReviewers},
+		})
+		require.Nil(t, appErr)
+
+		groupId, appErr := th.App.ContentFlaggingGroupId()
+		require.Nil(t, appErr)
+
+		createdPosts := th.App.sendFlaggedPostRemovalNotification(th.Context, post, th.SystemAdminUser.Id, "Test comment", groupId)
+
+		// Should create only 1 post for author
+		require.Len(t, createdPosts, 1)
+
+		contentReviewBot, appErr := th.App.getContentReviewBot(th.Context)
+		require.Nil(t, appErr)
+
+		expectedMessage := fmt.Sprintf("The flagged message was removed by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, "Test comment")
+		verifyNotificationPost(t, createdPosts[0], expectedMessage, contentReviewBot.UserId, createdPosts[0].ChannelId)
+	})
+
+	t.Run("should handle empty comment", func(t *testing.T) {
+		appErr := setupNotificationConfig(th, map[model.ContentFlaggingEvent][]model.NotificationTarget{
+			model.EventContentRemoved: {model.TargetReviewers},
+		})
+		require.Nil(t, appErr)
+
+		post, appErr := setupFlaggedPost(th)
+		require.Nil(t, appErr)
+
+		groupId, appErr := th.App.ContentFlaggingGroupId()
+		require.Nil(t, appErr)
+
+		createdPosts := th.App.sendFlaggedPostRemovalNotification(th.Context, post, th.SystemAdminUser.Id, "", groupId)
+
+		require.Len(t, createdPosts, 1)
+
+		expectedMessage := fmt.Sprintf("The flagged message was removed by @%s", th.SystemAdminUser.Username)
+		verifyNotificationPost(t, createdPosts[0], expectedMessage, createdPosts[0].UserId, createdPosts[0].ChannelId)
+	})
+
+	t.Run("should handle special characters in comment", func(t *testing.T) {
+		appErr := setupNotificationConfig(th, map[model.ContentFlaggingEvent][]model.NotificationTarget{
+			model.EventContentRemoved: {model.TargetReviewers},
+		})
+		require.Nil(t, appErr)
+
+		post, appErr := setupFlaggedPost(th)
+		require.Nil(t, appErr)
+
+		groupId, appErr := th.App.ContentFlaggingGroupId()
+		require.Nil(t, appErr)
+
+		specialComment := "Comment with @mentions #channels ~teams & <script>alert('xss')</script>"
+		createdPosts := th.App.sendFlaggedPostRemovalNotification(th.Context, post, th.SystemAdminUser.Id, specialComment, groupId)
+
+		require.Len(t, createdPosts, 1)
+
+		expectedMessage := fmt.Sprintf("The flagged message was removed by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, specialComment)
+		verifyNotificationPost(t, createdPosts[0], expectedMessage, createdPosts[0].UserId, createdPosts[0].ChannelId)
+	})
+}
+
+func TestSendKeepFlaggedPostNotification(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+	t.Run("should send notifications to all configured targets", func(t *testing.T) {
+		// Setup notification config for all targets
+		appErr := setupNotificationConfig(th, map[model.ContentFlaggingEvent][]model.NotificationTarget{
+			model.EventContentDismissed: {model.TargetReviewers, model.TargetAuthor, model.TargetReporter},
+		})
+		require.Nil(t, appErr)
+
+		post, appErr := setupFlaggedPost(th)
+		require.Nil(t, appErr)
+
+		groupId, appErr := th.App.ContentFlaggingGroupId()
+		require.Nil(t, appErr)
+
+		actorComment := "This post is acceptable after review"
+		createdPosts := th.App.sendKeepFlaggedPostNotification(th.Context, post, th.SystemAdminUser.Id, actorComment, groupId)
+
+		// Should create 3 posts: reviewer message, author message, reporter message
+		require.Len(t, createdPosts, 3)
+
+		contentReviewBot, appErr := th.App.getContentReviewBot(th.Context)
+		require.Nil(t, appErr)
+
+		// Verify reviewer message
+		reviewerMessage := fmt.Sprintf("The flagged message was retained by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, actorComment)
+		var reviewerPost *model.Post
+		for _, p := range createdPosts {
+			if p.Message == reviewerMessage {
+				reviewerPost = p
+				break
+			}
+		}
+		require.NotNil(t, reviewerPost)
+		verifyNotificationPost(t, reviewerPost, reviewerMessage, contentReviewBot.UserId, reviewerPost.ChannelId)
+		require.NotEmpty(t, reviewerPost.RootId) // Should be a thread reply
+
+		// Verify author message
+		authorMessage := fmt.Sprintf("Your post having ID `%s` in the channel `%s` which was flagged for review has been restored by a reviewer.", post.Id, th.BasicChannel.DisplayName)
+		var authorPost *model.Post
+		for _, p := range createdPosts {
+			if p.Message == authorMessage {
+				authorPost = p
+				break
+			}
+		}
+		require.NotNil(t, authorPost)
+		verifyNotificationPost(t, authorPost, authorMessage, contentReviewBot.UserId, authorPost.ChannelId)
+
+		// Verify reporter message
+		reporterMessage := fmt.Sprintf("The post having ID `%s` in the channel `%s` which you flagged for review has been restored by a reviewer.", post.Id, th.BasicChannel.DisplayName)
+		var reporterPost *model.Post
+		for _, p := range createdPosts {
+			if p.Message == reporterMessage {
+				reporterPost = p
+				break
+			}
+		}
+		require.NotNil(t, reporterPost)
+		verifyNotificationPost(t, reporterPost, reporterMessage, contentReviewBot.UserId, reporterPost.ChannelId)
+	})
+
+	t.Run("should send notifications only to configured targets", func(t *testing.T) {
+		// Setup notification config for only reporter
+		appErr := setupNotificationConfig(th, map[model.ContentFlaggingEvent][]model.NotificationTarget{
+			model.EventContentDismissed: {model.TargetReviewers},
+		})
+		require.Nil(t, appErr)
+
+		post, appErr := setupFlaggedPost(th)
+		require.Nil(t, appErr)
+
+		groupId, appErr := th.App.ContentFlaggingGroupId()
+		require.Nil(t, appErr)
+
+		comment := "Test comment"
+		createdPosts := th.App.sendKeepFlaggedPostNotification(th.Context, post, th.SystemAdminUser.Id, comment, groupId)
+
+		// Should create only 1 post for reporter
+		require.Len(t, createdPosts, 1)
+
+		contentReviewBot, appErr := th.App.getContentReviewBot(th.Context)
+		require.Nil(t, appErr)
+
+		expectedMessage := fmt.Sprintf("The flagged message was retained by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, comment)
+		verifyNotificationPost(t, createdPosts[0], expectedMessage, contentReviewBot.UserId, createdPosts[0].ChannelId)
+	})
+
+	t.Run("should handle empty comment", func(t *testing.T) {
+		appErr := setupNotificationConfig(th, map[model.ContentFlaggingEvent][]model.NotificationTarget{
+			model.EventContentDismissed: {model.TargetReviewers},
+		})
+		require.Nil(t, appErr)
+
+		post, appErr := setupFlaggedPost(th)
+		require.Nil(t, appErr)
+
+		groupId, appErr := th.App.ContentFlaggingGroupId()
+		require.Nil(t, appErr)
+
+		createdPosts := th.App.sendKeepFlaggedPostNotification(th.Context, post, th.SystemAdminUser.Id, "", groupId)
+
+		require.Len(t, createdPosts, 1)
+
+		expectedMessage := fmt.Sprintf("The flagged message was retained by @%s", th.SystemAdminUser.Username)
+		verifyNotificationPost(t, createdPosts[0], expectedMessage, createdPosts[0].UserId, createdPosts[0].ChannelId)
+	})
+
+	t.Run("should handle special characters in comment", func(t *testing.T) {
+		appErr := setupNotificationConfig(th, map[model.ContentFlaggingEvent][]model.NotificationTarget{
+			model.EventContentDismissed: {model.TargetReviewers},
+		})
+		require.Nil(t, appErr)
+
+		post, appErr := setupFlaggedPost(th)
+		require.Nil(t, appErr)
+
+		groupId, appErr := th.App.ContentFlaggingGroupId()
+		require.Nil(t, appErr)
+
+		specialComment := "Comment with @mentions #channels ~teams & <script>alert('xss')</script>"
+		createdPosts := th.App.sendKeepFlaggedPostNotification(th.Context, post, th.SystemAdminUser.Id, specialComment, groupId)
+
+		require.Len(t, createdPosts, 1)
+
+		expectedMessage := fmt.Sprintf("The flagged message was retained by @%s\n\nWith comment:\n\n> %s", th.SystemAdminUser.Username, specialComment)
+		verifyNotificationPost(t, createdPosts[0], expectedMessage, createdPosts[0].UserId, createdPosts[0].ChannelId)
+	})
+
+	t.Run("should handle different actor users", func(t *testing.T) {
+		appErr := setupNotificationConfig(th, map[model.ContentFlaggingEvent][]model.NotificationTarget{
+			model.EventContentDismissed: {model.TargetReviewers},
+		})
+		require.Nil(t, appErr)
+
+		post, appErr := setupFlaggedPost(th)
+		require.Nil(t, appErr)
+
+		groupId, appErr := th.App.ContentFlaggingGroupId()
+		require.Nil(t, appErr)
+
+		// Use BasicUser as actor instead of SystemAdminUser
+		createdPosts := th.App.sendKeepFlaggedPostNotification(th.Context, post, th.BasicUser.Id, "Reviewed by different user", groupId)
+
+		require.Len(t, createdPosts, 1)
+
+		expectedMessage := fmt.Sprintf("The flagged message was retained by @%s\n\nWith comment:\n\n> %s", th.BasicUser.Username, "Reviewed by different user")
+		verifyNotificationPost(t, createdPosts[0], expectedMessage, createdPosts[0].UserId, createdPosts[0].ChannelId)
 	})
 }
