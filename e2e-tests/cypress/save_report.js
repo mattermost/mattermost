@@ -30,10 +30,11 @@
  *      - SERVER_TYPE=[type]; used for the 'Test Server' field in the webhook. Any string representing the server type is valid, common values are "onprem" and "cloud"
  */
 
-const {merge} = require('mochawesome-merge');
-const generator = require('mochawesome-report-generator');
+import {merge} from 'mochawesome-merge';
+import generator from 'mochawesome-report-generator';
+import dotenv from 'dotenv';
 
-const {
+import {
     generateDiagnosticReport,
     generateShortSummary,
     generateTestReport,
@@ -41,12 +42,12 @@ const {
     sendReport,
     readJsonFromFile,
     writeJsonToFile,
-} = require('./utils/report');
-const {saveArtifacts} = require('./utils/artifacts');
-const {MOCHAWESOME_REPORT_DIR, RESULTS_DIR} = require('./utils/constants');
-const {createTestCycle, createTestExecutions} = require('./utils/test_cases');
+} from './utils/report.js';
+import {saveArtifacts} from './utils/artifacts.js';
+import {MOCHAWESOME_REPORT_DIR, RESULTS_DIR} from './utils/constants.js';
+import {createTestCycle, createTestExecutions} from './utils/test_cases.js';
 
-require('dotenv').config();
+dotenv.config({quiet: true});
 
 const saveReport = async () => {
     const {

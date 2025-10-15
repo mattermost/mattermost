@@ -3,13 +3,14 @@
 
 /* eslint-disable no-console */
 
-const axios = require('axios');
-const fse = require('fs-extra');
-const dayjs = require('dayjs');
-const duration = require('dayjs/plugin/duration');
-dayjs.extend(duration);
+import axios from 'axios';
+import fse from 'fs-extra';
+import dayjs from 'dayjs';
+import duration from 'dayjs/plugin/duration.js';
 
-const {MOCHAWESOME_REPORT_DIR, AD_CYCLE_FILE} = require('./constants');
+import {MOCHAWESOME_REPORT_DIR, AD_CYCLE_FILE} from './constants.js';
+
+dayjs.extend(duration);
 
 const MAX_FAILED_TITLES = 5;
 
@@ -69,7 +70,7 @@ function generateStatsFieldValue(stats, failedFullTitles) {
     return statsFieldValue;
 }
 
-function generateShortSummary(report) {
+export function generateShortSummary(report) {
     const {results, stats} = report;
     const tests = getAllTests(results);
 
@@ -92,7 +93,7 @@ function generateShortSummary(report) {
     };
 }
 
-function removeOldGeneratedReports() {
+export function removeOldGeneratedReports() {
     [
         'all.json',
         'summary.json',
@@ -100,13 +101,13 @@ function removeOldGeneratedReports() {
     ].forEach((file) => fse.removeSync(`${MOCHAWESOME_REPORT_DIR}/${file}`));
 }
 
-function writeJsonToFile(jsonObject, filename, dir) {
+export function writeJsonToFile(jsonObject, filename, dir) {
     fse.writeJson(`${dir}/${filename}`, jsonObject).
         then(() => console.log('Successfully written:', filename)).
         catch((err) => console.error(err));
 }
 
-function readJsonFromFile(file) {
+export function readJsonFromFile(file) {
     try {
         return fse.readJsonSync(file);
     } catch (err) {
@@ -121,7 +122,7 @@ const result = [
     {status: 'Failed', priority: 'high', cutOff: 0, color: '#F44336'},
 ];
 
-function generateTestReport(summary, isUploadedToS3, reportLink, environment, testCycleKey) {
+export function generateTestReport(summary, isUploadedToS3, reportLink, environment, testCycleKey) {
     const {
         FULL_REPORT,
         TEST_CYCLE_LINK_PREFIX,
@@ -300,7 +301,7 @@ function generateTitle() {
     return title;
 }
 
-function generateDiagnosticReport(summary, serverInfo) {
+export function generateDiagnosticReport(summary, serverInfo) {
     const {BRANCH, BUILD_ID} = process.env;
 
     return {
@@ -320,7 +321,7 @@ function generateDiagnosticReport(summary, serverInfo) {
     };
 }
 
-async function sendReport(name, url, data) {
+export async function sendReport(name, url, data) {
     const requestOptions = {method: 'POST', url, data};
 
     try {
@@ -336,13 +337,4 @@ async function sendReport(name, url, data) {
     }
 }
 
-module.exports = {
-    generateDiagnosticReport,
-    generateShortSummary,
-    generateTestReport,
-    getAllTests,
-    removeOldGeneratedReports,
-    sendReport,
-    readJsonFromFile,
-    writeJsonToFile,
-};
+export {getAllTests};
