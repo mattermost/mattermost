@@ -55,7 +55,7 @@ import Constants, {
     ModalIdentifiers,
     AdvancedTextEditorTextboxIds,
 } from 'utils/constants';
-import {canUploadFiles as canUploadFilesAccordingToConfig} from 'utils/file_utils';
+import {canUploadFiles as canUploadFilesAccordingtoConfig} from 'utils/file_utils';
 import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import {applyMarkdown as applyMarkdownUtil} from 'utils/markdown/apply_markdown';
 import {isErrorInvalidSlashCommand} from 'utils/post_utils';
@@ -167,7 +167,7 @@ const AdvancedTextEditor = ({
     const draftFromStore = useSelector((state: GlobalState) => getDraftSelector(state, channelId, rootId, storageKey));
     const badConnection = useSelector((state: GlobalState) => connectionErrorCount(state) > 1);
     const maxPostSize = useSelector((state: GlobalState) => parseInt(getConfig(state).MaxPostSize || '', 10) || Constants.DEFAULT_CHARACTER_LIMIT);
-    const canUploadFiles = useSelector((state: GlobalState) => canUploadFilesAccordingToConfig(getConfig(state)));
+    const canUploadFiles = useSelector((state: GlobalState) => canUploadFilesAccordingtoConfig(getConfig(state)));
     const fullWidthTextBox = useSelector((state: GlobalState) => get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN);
     const isFormattingBarHidden = useSelector((state: GlobalState) => {
         const preferenceName = getFormattingBarPreferenceName();
@@ -221,6 +221,15 @@ const AdvancedTextEditor = ({
     const [isMessageLong, setIsMessageLong] = useState(false);
     const [renderScrollbar, setRenderScrollbar] = useState(false);
     const [keepEditorInFocus, setKeepEditorInFocus] = useState(false);
+
+    // Add windowWidth state
+    const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+    useEffect(() => {
+        const handleResize = () => setWindowWidth(window.innerWidth);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     const readOnlyChannel = !canPost;
     const hasDraftMessage = Boolean(draft.message);
@@ -624,12 +633,26 @@ const AdvancedTextEditor = ({
     if (placeholder) {
         createMessage = placeholder;
     } else if (!rootId && !isDisabled) {
+        let displayName = channelDisplayName;
+        if (isFormattingBarHidden) {
+            let sliceLength = 4;
+            if (windowWidth > 1024) {
+                sliceLength = channelDisplayName.length;
+            } else if (windowWidth > 640) {
+                sliceLength = 24;
+            } else if (windowWidth > 424) {
+                sliceLength = 14;
+            } else if (windowWidth > 350) {
+                sliceLength = 6;
+            }
+            displayName = channelDisplayName.length > sliceLength ? channelDisplayName.slice(0, sliceLength) + '...' : channelDisplayName;
+        }
         createMessage = formatMessage(
             {
                 id: 'create_post.write',
-                defaultMessage: 'Write to {channelDisplayName}',
+                defaultMessage: 'Write to {displayName}',
             },
-            {channelDisplayName},
+            {displayName},
         );
     } else if (readOnlyChannel) {
         createMessage = formatMessage(
