@@ -5736,6 +5736,7 @@ func testRestore(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	botId := model.NewId()
 	statusFieldId := model.NewId()
+	groupId := model.NewId()
 
 	setupFlaggedPost := func(rootId string) *model.Post {
 		post := &model.Post{}
@@ -5755,10 +5756,11 @@ func testRestore(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 
 		statusPropertyValue := &model.PropertyValue{
-			ID:       model.NewId(),
-			TargetID: post.Id,
-			FieldID:  statusFieldId,
-			Value:    fmt.Appendf([]byte{}, "%s", model.ContentFlaggingStatusPending),
+			TargetID:   post.Id,
+			FieldID:    statusFieldId,
+			Value:      fmt.Appendf([]byte{}, "\"%s\"", model.ContentFlaggingStatusPending),
+			TargetType: model.PropertyValueTargetTypePost,
+			GroupID:    groupId,
 		}
 		_, err = ss.PropertyValue().Create(statusPropertyValue)
 		require.NoError(t, err)
