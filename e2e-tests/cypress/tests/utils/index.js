@@ -3,7 +3,7 @@
 
 
 
-import {v4 as uuidv4} from 'uuid';
+import {randomUUID} from 'crypto';
 
 import messageMenusData from '../fixtures/hooks/message_menus.json';
 import messageMenusWithDatasourceData from '../fixtures/hooks/message_menus_with_datasource.json';
@@ -20,7 +20,7 @@ export * from './plugins';
 export function getRandomId(length = 7) {
     const MAX_SUBSTRING_INDEX = 27;
 
-    return uuidv4().replace(/-/g, '').substring(MAX_SUBSTRING_INDEX - length, MAX_SUBSTRING_INDEX);
+    return randomUUID().replace(/-/g, '').substring(MAX_SUBSTRING_INDEX - length, MAX_SUBSTRING_INDEX);
 }
 
 export function getRandomLetter(length) {
