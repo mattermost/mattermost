@@ -62,6 +62,27 @@
                 font-size: 16px;
             }
         }
+
+        .policy-remove-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            border: none;
+            margin-left: 8px;
+            background: none;
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+            cursor: pointer;
+            transform: translateY(-2px);
+
+            &:hover {
+                color: var(--error-text);
+            }
+
+            i {
+                font-size: 16px;
+            }
+        }
     }
 }
 

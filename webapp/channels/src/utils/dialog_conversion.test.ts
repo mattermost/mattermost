@@ -182,6 +182,7 @@ describe('dialog_conversion', () => {
         it('should map select fields with data_source correctly', () => {
             expect(getFieldType({type: DialogElementTypes.SELECT, data_source: 'users'} as DialogElement)).toBe('user');
             expect(getFieldType({type: DialogElementTypes.SELECT, data_source: 'channels'} as DialogElement)).toBe('channel');
+            expect(getFieldType({type: DialogElementTypes.SELECT, data_source: 'dynamic'} as DialogElement)).toBe('dynamic_select');
         });
 
         it('should return null for unknown types', () => {
@@ -194,6 +195,112 @@ describe('dialog_conversion', () => {
             expect(getDefaultValue({default: null} as unknown as DialogElement)).toBeNull();
             expect(getDefaultValue({default: undefined} as unknown as DialogElement)).toBeNull();
             expect(getDefaultValue({} as unknown as DialogElement)).toBeNull();
+        });
+
+        it('should handle multiselect defaults with comma-separated values', () => {
+            const element = {
+                type: 'select',
+                multiselect: true,
+                default: 'option1,option2',
+                options: [
+                    {text: 'Option 1', value: 'option1'},
+                    {text: 'Option 2', value: 'option2'},
+                    {text: 'Option 3', value: 'option3'},
+                ],
+            } as DialogElement;
+
+            const result = getDefaultValue(element);
+            expect(result).toEqual([
+                {label: 'Option 1', value: 'option1'},
+                {label: 'Option 2', value: 'option2'},
+            ]);
+        });
+
+        it('should handle multiselect defaults with spaced comma-separated values', () => {
+            const element = {
+                type: 'select',
+                multiselect: true,
+                default: 'option1, option2, option3',
+                options: [
+                    {text: 'Option 1', value: 'option1'},
+                    {text: 'Option 2', value: 'option2'},
+                    {text: 'Option 3', value: 'option3'},
+                ],
+            } as DialogElement;
+
+            const result = getDefaultValue(element);
+            expect(result).toEqual([
+                {label: 'Option 1', value: 'option1'},
+                {label: 'Option 2', value: 'option2'},
+                {label: 'Option 3', value: 'option3'},
+            ]);
+        });
+
+        it('should handle multiselect defaults with array input', () => {
+            const element = {
+                type: 'select',
+                multiselect: true,
+                default: ['option1', 'option3'],
+                options: [
+                    {text: 'Option 1', value: 'option1'},
+                    {text: 'Option 2', value: 'option2'},
+                    {text: 'Option 3', value: 'option3'},
+                ],
+            } as unknown as DialogElement;
+
+            const result = getDefaultValue(element);
+            expect(result).toEqual([
+                {label: 'Option 1', value: 'option1'},
+                {label: 'Option 3', value: 'option3'},
+            ]);
+        });
+
+        it('should handle multiselect defaults with invalid options gracefully', () => {
+            const element = {
+                type: 'select',
+                multiselect: true,
+                default: 'option1,invalid_option,option2',
+                options: [
+                    {text: 'Option 1', value: 'option1'},
+                    {text: 'Option 2', value: 'option2'},
+                ],
+            } as DialogElement;
+
+            const result = getDefaultValue(element);
+            expect(result).toEqual([
+                {label: 'Option 1', value: 'option1'},
+                {label: 'Option 2', value: 'option2'},
+            ]);
+        });
+
+        it('should return null for multiselect with no valid defaults', () => {
+            const element = {
+                type: 'select',
+                multiselect: true,
+                default: 'invalid1,invalid2',
+                options: [
+                    {text: 'Option 1', value: 'option1'},
+                    {text: 'Option 2', value: 'option2'},
+                ],
+            } as DialogElement;
+
+            const result = getDefaultValue(element);
+            expect(result).toBeNull();
+        });
+
+        it('should return null for multiselect with empty default', () => {
+            const element = {
+                type: 'select',
+                multiselect: true,
+                default: '',
+                options: [
+                    {text: 'Option 1', value: 'option1'},
+                    {text: 'Option 2', value: 'option2'},
+                ],
+            } as DialogElement;
+
+            const result = getDefaultValue(element);
+            expect(result).toBeNull();
         });
 
         it('should handle boolean defaults', () => {
@@ -256,6 +363,31 @@ describe('dialog_conversion', () => {
                 label: 'Option 1',
                 value: 'option1',
             });
+        });
+
+        it('should handle dynamic select defaults', () => {
+            const element = {
+                type: 'select',
+                data_source: 'dynamic',
+                default: 'preset_value',
+            } as DialogElement;
+
+            const result = getDefaultValue(element);
+            expect(result).toEqual({
+                label: 'preset_value',
+                value: 'preset_value',
+            });
+        });
+
+        it('should handle empty default for dynamic select', () => {
+            const element = {
+                type: 'select',
+                data_source: 'dynamic',
+                default: '',
+            } as DialogElement;
+
+            const result = getDefaultValue(element);
+            expect(result).toBeNull();
         });
     });
 
@@ -330,6 +462,8 @@ describe('dialog_conversion', () => {
                 'Test description',
                 undefined,
                 undefined,
+                'http://example.com',
+                '',
                 legacyOptions,
             );
 
@@ -351,6 +485,8 @@ describe('dialog_conversion', () => {
                 '<script>alert("xss")</script>Description',
                 undefined,
                 undefined,
+                'http://example.com',
+                '',
                 legacyOptions,
             );
 
@@ -364,6 +500,8 @@ describe('dialog_conversion', () => {
                 undefined,
                 undefined,
                 undefined,
+                'http://example.com',
+                '',
                 legacyOptions,
             );
 
@@ -379,6 +517,8 @@ describe('dialog_conversion', () => {
                 undefined,
                 undefined,
                 undefined,
+                'http://example.com',
+                '',
                 legacyOptions,
             );
 
@@ -409,6 +549,8 @@ describe('dialog_conversion', () => {
                 undefined,
                 undefined,
                 undefined,
+                'http://example.com',
+                '',
                 legacyOptions,
             );
 
@@ -440,6 +582,8 @@ describe('dialog_conversion', () => {
                 undefined,
                 undefined,
                 undefined,
+                'http://example.com',
+                '',
                 enhancedOptions,
             );
 
@@ -458,6 +602,8 @@ describe('dialog_conversion', () => {
                 undefined,
                 undefined,
                 undefined,
+                'http://example.com',
+                '',
                 enhancedOptions,
             );
 
@@ -515,6 +661,8 @@ describe('dialog_conversion', () => {
                 undefined,
                 undefined,
                 undefined,
+                'http://example.com',
+                '',
                 legacyOptions,
             );
 
@@ -526,6 +674,44 @@ describe('dialog_conversion', () => {
             expect(form.fields?.[2].type).toBe('bool');
             expect(form.fields?.[3].type).toBe('static_select');
             expect(form.fields?.[4].type).toBe('radio');
+        });
+
+        it('should convert multiselect field correctly', () => {
+            const elements: DialogElement[] = [
+                {
+                    name: 'multiselect_field',
+                    type: 'select',
+                    display_name: 'Multiselect Field',
+                    optional: false,
+                    multiselect: true,
+                    default: 'opt1,opt3',
+                    options: [
+                        {text: 'Option 1', value: 'opt1'},
+                        {text: 'Option 2', value: 'opt2'},
+                        {text: 'Option 3', value: 'opt3'},
+                    ],
+                } as DialogElement,
+            ];
+
+            const {form, errors} = convertDialogToAppForm(
+                elements,
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                'http://example.com',
+                '',
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(form.fields).toHaveLength(1);
+            expect(form.fields?.[0].type).toBe('static_select');
+            expect(form.fields?.[0].multiselect).toBe(true);
+            expect(form.fields?.[0].value).toEqual([
+                {label: 'Option 1', value: 'opt1'},
+                {label: 'Option 3', value: 'opt3'},
+            ]);
         });
 
         it('should handle unknown field types gracefully in legacy mode', () => {
@@ -550,6 +736,8 @@ describe('dialog_conversion', () => {
                 undefined,
                 undefined,
                 undefined,
+                'http://example.com',
+                '',
                 legacyOptions,
             );
 
@@ -560,6 +748,215 @@ describe('dialog_conversion', () => {
             expect(form.fields?.[0].type).toBe('text'); // Converted to text as fallback
             expect(form.fields?.[0].description).toBe('This field could not be converted properly');
             expect(form.fields?.[1].name).toBe('valid_field');
+        });
+
+        it('should convert dynamic select element with data_source_url', () => {
+            const elements: DialogElement[] = [
+                {
+                    name: 'dynamic_field',
+                    type: 'select',
+                    display_name: 'Dynamic Field',
+                    data_source: 'dynamic',
+                    data_source_url: '/plugins/myplugin/lookup',
+                    optional: false,
+                } as DialogElement,
+            ];
+
+            const {form, errors} = convertDialogToAppForm(
+                elements,
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                'http://example.com',
+                '',
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(form.fields).toHaveLength(1);
+            expect(form.fields?.[0].type).toBe('dynamic_select');
+            expect(form.fields?.[0].lookup?.path).toBe('/plugins/myplugin/lookup');
+        });
+
+        it('should convert dynamic select element without data_source_url', () => {
+            const elements: DialogElement[] = [
+                {
+                    name: 'dynamic_field',
+                    type: 'select',
+                    display_name: 'Dynamic Field',
+                    data_source: 'dynamic',
+                    optional: false,
+                } as DialogElement,
+            ];
+
+            const {form, errors} = convertDialogToAppForm(
+                elements,
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                'http://example.com',
+                '',
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(form.fields).toHaveLength(1);
+            expect(form.fields?.[0].type).toBe('dynamic_select');
+            expect(form.fields?.[0].lookup?.path).toBe('');
+        });
+
+        it('should handle refresh property for select fields', () => {
+            const elements: DialogElement[] = [
+                {
+                    name: 'refreshable_select',
+                    type: 'select',
+                    display_name: 'Refreshable Select',
+                    optional: false,
+                    refresh: true,
+                    options: [
+                        {text: 'Option A', value: 'optA'},
+                        {text: 'Option B', value: 'optB'},
+                    ],
+                } as DialogElement,
+                {
+                    name: 'normal_select',
+                    type: 'select',
+                    display_name: 'Normal Select',
+                    optional: false,
+                    options: [
+                        {text: 'Option X', value: 'optX'},
+                    ],
+                } as DialogElement,
+            ];
+
+            const {form, errors} = convertDialogToAppForm(
+                elements,
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                'http://example.com',
+                '',
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(form.fields).toHaveLength(2);
+
+            // Check that refresh property is copied
+            expect(form.fields?.[0].refresh).toBe(true);
+            expect(form.fields?.[1].refresh).toBeUndefined();
+        });
+
+        it('should set source property from sourceUrl parameter', () => {
+            const {form, errors} = convertDialogToAppForm(
+                [],
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                'http://example.com/source',
+                '',
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(form.source).toBeDefined();
+            expect(form.source?.path).toBe('http://example.com/source');
+            expect(form.source?.expand).toEqual({});
+        });
+
+        it('should not set source property when sourceUrl is empty and no refresh fields', () => {
+            const {form, errors} = convertDialogToAppForm(
+                [],
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                '', // Empty sourceUrl
+                '',
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(form.source).toBeUndefined();
+        });
+
+        it('should set default source when refresh fields exist but no sourceUrl', () => {
+            const elements: DialogElement[] = [
+                {
+                    name: 'refreshable_select',
+                    type: 'select',
+                    display_name: 'Refreshable Select',
+                    optional: false,
+                    refresh: true,
+                    options: [
+                        {text: 'Option A', value: 'optA'},
+                    ],
+                } as DialogElement,
+            ];
+
+            const {form, errors} = convertDialogToAppForm(
+                elements,
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                '', // Empty sourceUrl but has refresh fields
+                '',
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(form.source).toBeDefined();
+            expect(form.source?.path).toBe('/refresh'); // Default path
+            expect(form.fields?.[0].refresh).toBe(true);
+        });
+
+        it('should include state in submit and source AppCall objects', () => {
+            const elements: DialogElement[] = [
+                {
+                    name: 'test_field',
+                    type: 'text',
+                    display_name: 'Test Field',
+                    optional: false,
+                    refresh: true,
+                } as DialogElement,
+            ];
+
+            const {form, errors} = convertDialogToAppForm(
+                elements,
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                'http://example.com/source',
+                'step1_data', // State parameter
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(form.submit?.state).toBe('step1_data');
+            expect(form.source?.state).toBe('step1_data');
+        });
+
+        it('should not include undefined state in AppCall objects', () => {
+            const {form, errors} = convertDialogToAppForm(
+                [],
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                'http://example.com/source',
+                '', // Empty state
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(form.submit?.state).toBeUndefined();
+            expect(form.source?.state).toBeUndefined();
         });
     });
 
@@ -596,7 +993,7 @@ describe('dialog_conversion', () => {
 
         it('should handle select field values', () => {
             const values = {
-                select_field: {label: 'Option 1', value: 'opt1'},
+                select_field: 'opt1', // Primitive value (already processed by extractPrimitiveValues)
             } as unknown as AppFormValues;
 
             const elements: DialogElement[] = [
@@ -621,6 +1018,131 @@ describe('dialog_conversion', () => {
             expect(errors).toHaveLength(0);
             expect(submission).toEqual({
                 select_field: 'opt1',
+            });
+        });
+
+        it('should handle multiselect field values', () => {
+            const values = {
+                multiselect_field: ['opt1', 'opt3'], // Primitive values (already processed by extractPrimitiveValues)
+            } as unknown as AppFormValues;
+
+            const elements: DialogElement[] = [
+                {
+                    name: 'multiselect_field',
+                    type: 'select',
+                    display_name: 'Multiselect Field',
+                    optional: false,
+                    multiselect: true,
+                    options: [
+                        {text: 'Option 1', value: 'opt1'},
+                        {text: 'Option 2', value: 'opt2'},
+                        {text: 'Option 3', value: 'opt3'},
+                    ],
+                } as DialogElement,
+            ];
+
+            const {submission, errors} = convertAppFormValuesToDialogSubmission(
+                values,
+                elements,
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(submission).toEqual({
+                multiselect_field: ['opt1', 'opt3'],
+            });
+        });
+
+        it('should validate multiselect field options in enhanced mode', () => {
+            const values = {
+                multiselect_field: ['opt1', 'invalid'], // Primitive values (already processed by extractPrimitiveValues)
+            } as unknown as AppFormValues;
+
+            const elements: DialogElement[] = [
+                {
+                    name: 'multiselect_field',
+                    type: 'select',
+                    display_name: 'Multiselect Field',
+                    optional: false,
+                    multiselect: true,
+                    options: [
+                        {text: 'Option 1', value: 'opt1'},
+                        {text: 'Option 2', value: 'opt2'},
+                    ],
+                } as DialogElement,
+            ];
+
+            const {submission, errors} = convertAppFormValuesToDialogSubmission(
+                values,
+                elements,
+                enhancedOptions,
+            );
+
+            expect(errors).toHaveLength(1);
+            expect(errors[0].field).toBe('multiselect_field');
+            expect(errors[0].code).toBe(ValidationErrorCode.INVALID_FORMAT);
+            expect(errors[0].message).toContain('Selected value not found in options: invalid');
+            expect(submission).toEqual({
+                multiselect_field: ['opt1'],
+            });
+        });
+
+        it('should handle multiselect field without options validation', () => {
+            const values = {
+                multiselect_field: ['user1', 'user2'], // Primitive values (already processed by extractPrimitiveValues)
+            } as unknown as AppFormValues;
+
+            const elements: DialogElement[] = [
+                {
+                    name: 'multiselect_field',
+                    type: 'select',
+                    display_name: 'Multiselect Field',
+                    optional: false,
+                    multiselect: true,
+                    data_source: 'users',
+                } as DialogElement,
+            ];
+
+            const {submission, errors} = convertAppFormValuesToDialogSubmission(
+                values,
+                elements,
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(submission).toEqual({
+                multiselect_field: ['user1', 'user2'],
+            });
+        });
+
+        it('should handle empty multiselect values', () => {
+            const values = {
+                multiselect_field: [],
+            } as unknown as AppFormValues;
+
+            const elements: DialogElement[] = [
+                {
+                    name: 'multiselect_field',
+                    type: 'select',
+                    display_name: 'Multiselect Field',
+                    optional: true,
+                    multiselect: true,
+                    options: [
+                        {text: 'Option 1', value: 'opt1'},
+                        {text: 'Option 2', value: 'opt2'},
+                    ],
+                } as DialogElement,
+            ];
+
+            const {submission, errors} = convertAppFormValuesToDialogSubmission(
+                values,
+                elements,
+                legacyOptions,
+            );
+
+            expect(errors).toHaveLength(0);
+            expect(submission).toEqual({
+                multiselect_field: [],
             });
         });
 
@@ -771,7 +1293,7 @@ describe('dialog_conversion', () => {
 
         it('should validate select field options in enhanced mode', () => {
             const values = {
-                select_field: {label: 'Invalid Option', value: 'invalid'},
+                select_field: 'invalid', // Primitive value (already processed by extractPrimitiveValues)
             } as unknown as AppFormValues;
 
             const elements: DialogElement[] = [
@@ -867,6 +1389,238 @@ describe('dialog_conversion', () => {
             expect(errors).toHaveLength(0);
             expect(submission).toEqual({
                 select_field: 'direct_value',
+            });
+        });
+    });
+
+    describe('date and datetime field conversion', () => {
+        const legacyOptions = {enhanced: false};
+
+        describe('getFieldType', () => {
+            it('should return correct field types for date/datetime', () => {
+                expect(getFieldType({type: 'date'} as DialogElement)).toBe('date');
+                expect(getFieldType({type: 'datetime'} as DialogElement)).toBe('datetime');
+            });
+        });
+
+        describe('getDefaultValue', () => {
+            it('should handle date default values', () => {
+                const element = {
+                    type: 'date',
+                    default: '2025-01-15',
+                } as DialogElement;
+                expect(getDefaultValue(element)).toBe('2025-01-15');
+            });
+
+            it('should handle datetime default values', () => {
+                const element = {
+                    type: 'datetime',
+                    default: '2025-01-15T14:30:00Z',
+                } as DialogElement;
+                expect(getDefaultValue(element)).toBe('2025-01-15T14:30:00Z');
+            });
+
+            it('should handle null default values', () => {
+                const element = {
+                    display_name: 'Test Date',
+                    name: 'test_date',
+                    type: 'date',
+                    subtype: '',
+                    placeholder: '',
+                    help_text: '',
+                    optional: true,
+                    min_length: 0,
+                    max_length: 0,
+                    data_source: '',
+                    options: [],
+                    default: '',
+                } as DialogElement;
+                expect(getDefaultValue(element)).toBe('');
+            });
+        });
+
+        describe('convertDialogToAppForm with date/datetime fields', () => {
+            it('should convert date field with min_date and max_date', () => {
+                const elements: DialogElement[] = [
+                    {
+                        name: 'event_date',
+                        type: 'date',
+                        display_name: 'Event Date',
+                        min_date: '2025-01-01',
+                        max_date: '2025-12-31',
+                        optional: false,
+                    } as DialogElement,
+                ];
+
+                const {form} = convertDialogToAppForm(
+                    elements,
+                    'Test Form',
+                    undefined,
+                    undefined,
+                    undefined,
+                    '',
+                    '',
+                    legacyOptions,
+                );
+
+                expect(form.fields).toHaveLength(1);
+                expect(form.fields?.[0]).toMatchObject({
+                    name: 'event_date',
+                    type: 'date',
+                    label: 'Event Date',
+                    min_date: '2025-01-01',
+                    max_date: '2025-12-31',
+                    is_required: true,
+                });
+            });
+
+            it('should convert datetime field with time_interval', () => {
+                const elements: DialogElement[] = [
+                    {
+                        name: 'meeting_time',
+                        type: 'datetime',
+                        display_name: 'Meeting Time',
+                        time_interval: 30,
+                        optional: true,
+                    } as DialogElement,
+                ];
+
+                const {form} = convertDialogToAppForm(
+                    elements,
+                    'Test Form',
+                    undefined,
+                    undefined,
+                    undefined,
+                    '',
+                    '',
+                    legacyOptions,
+                );
+
+                expect(form.fields).toHaveLength(1);
+                expect(form.fields?.[0]).toMatchObject({
+                    name: 'meeting_time',
+                    type: 'datetime',
+                    label: 'Meeting Time',
+                    time_interval: 30,
+                    is_required: false,
+                });
+            });
+
+            it('should convert datetime field with all date properties', () => {
+                const elements: DialogElement[] = [
+                    {
+                        name: 'full_datetime',
+                        type: 'datetime',
+                        display_name: 'Full DateTime',
+                        min_date: 'today',
+                        max_date: '+30d',
+                        time_interval: 15,
+                        optional: false,
+                    } as DialogElement,
+                ];
+
+                const {form} = convertDialogToAppForm(
+                    elements,
+                    'Test Form',
+                    undefined,
+                    undefined,
+                    undefined,
+                    '',
+                    '',
+                    legacyOptions,
+                );
+
+                expect(form.fields).toHaveLength(1);
+                expect(form.fields?.[0]).toMatchObject({
+                    name: 'full_datetime',
+                    type: 'datetime',
+                    label: 'Full DateTime',
+                    min_date: 'today',
+                    max_date: '+30d',
+                    time_interval: 15,
+                    is_required: true,
+                });
+            });
+
+            it('should not add datetime-specific properties to date fields', () => {
+                const elements: DialogElement[] = [
+                    {
+                        name: 'simple_date',
+                        type: 'date',
+                        display_name: 'Simple Date',
+                        time_interval: 30, // Should be ignored for date fields
+                        optional: false,
+                    } as DialogElement,
+                ];
+
+                const {form} = convertDialogToAppForm(
+                    elements,
+                    'Test Form',
+                    undefined,
+                    undefined,
+                    undefined,
+                    '',
+                    '',
+                    legacyOptions,
+                );
+
+                expect(form.fields?.[0]).not.toHaveProperty('time_interval');
+                expect(form.fields?.[0]).not.toHaveProperty('min_date');
+                expect(form.fields?.[0]).not.toHaveProperty('max_date');
+            });
+        });
+
+        describe('convertAppFormValuesToDialogSubmission with date/datetime fields', () => {
+            it('should convert date field values', () => {
+                const values = {
+                    event_date: '2025-01-15',
+                } as unknown as AppFormValues;
+
+                const elements: DialogElement[] = [
+                    {
+                        name: 'event_date',
+                        type: 'date',
+                        display_name: 'Event Date',
+                        optional: false,
+                    } as DialogElement,
+                ];
+
+                const {submission, errors} = convertAppFormValuesToDialogSubmission(
+                    values,
+                    elements,
+                    legacyOptions,
+                );
+
+                expect(errors).toHaveLength(0);
+                expect(submission).toEqual({
+                    event_date: '2025-01-15',
+                });
+            });
+
+            it('should convert datetime field values', () => {
+                const values = {
+                    meeting_time: '2025-01-15T14:30:00Z',
+                } as unknown as AppFormValues;
+
+                const elements: DialogElement[] = [
+                    {
+                        name: 'meeting_time',
+                        type: 'datetime',
+                        display_name: 'Meeting Time',
+                        optional: false,
+                    } as DialogElement,
+                ];
+
+                const {submission, errors} = convertAppFormValuesToDialogSubmission(
+                    values,
+                    elements,
+                    legacyOptions,
+                );
+
+                expect(errors).toHaveLength(0);
+                expect(submission).toEqual({
+                    meeting_time: '2025-01-15T14:30:00Z',
+                });
             });
         });
     });

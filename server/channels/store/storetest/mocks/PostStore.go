@@ -5,12 +5,9 @@
 package mocks
 
 import (
-	context "context"
-
 	model "github.com/mattermost/mattermost/server/public/model"
-	mock "github.com/stretchr/testify/mock"
-
 	request "github.com/mattermost/mattermost/server/public/shared/request"
+	mock "github.com/stretchr/testify/mock"
 
 	store "github.com/mattermost/mattermost/server/v8/channels/store"
 )
@@ -159,9 +156,27 @@ func (_m *PostStore) Delete(rctx request.CTX, postID string, timestamp int64, de
 	return r0
 }
 
-// Get provides a mock function with given fields: ctx, id, opts, userID, sanitizeOptions
-func (_m *PostStore) Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error) {
-	ret := _m.Called(ctx, id, opts, userID, sanitizeOptions)
+// DeleteAllPostRemindersForPost provides a mock function with given fields: postId
+func (_m *PostStore) DeleteAllPostRemindersForPost(postId string) error {
+	ret := _m.Called(postId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteAllPostRemindersForPost")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(postId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// Get provides a mock function with given fields: rctx, id, opts, userID, sanitizeOptions
+func (_m *PostStore) Get(rctx request.CTX, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error) {
+	ret := _m.Called(rctx, id, opts, userID, sanitizeOptions)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Get")
@@ -169,19 +184,19 @@ func (_m *PostStore) Get(ctx context.Context, id string, opts model.GetPostsOpti
 
 	var r0 *model.PostList
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, model.GetPostsOptions, string, map[string]bool) (*model.PostList, error)); ok {
-		return rf(ctx, id, opts, userID, sanitizeOptions)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, model.GetPostsOptions, string, map[string]bool) (*model.PostList, error)); ok {
+		return rf(rctx, id, opts, userID, sanitizeOptions)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, model.GetPostsOptions, string, map[string]bool) *model.PostList); ok {
-		r0 = rf(ctx, id, opts, userID, sanitizeOptions)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, model.GetPostsOptions, string, map[string]bool) *model.PostList); ok {
+		r0 = rf(rctx, id, opts, userID, sanitizeOptions)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PostList)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, model.GetPostsOptions, string, map[string]bool) error); ok {
-		r1 = rf(ctx, id, opts, userID, sanitizeOptions)
+	if rf, ok := ret.Get(1).(func(request.CTX, string, model.GetPostsOptions, string, map[string]bool) error); ok {
+		r1 = rf(rctx, id, opts, userID, sanitizeOptions)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -637,9 +652,9 @@ func (_m *PostStore) GetPostReminders(now int64) ([]*model.PostReminder, error) 
 	return r0, r1
 }
 
-// GetPosts provides a mock function with given fields: options, allowFromCache, sanitizeOptions
-func (_m *PostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
-	ret := _m.Called(options, allowFromCache, sanitizeOptions)
+// GetPosts provides a mock function with given fields: rctx, options, allowFromCache, sanitizeOptions
+func (_m *PostStore) GetPosts(rctx request.CTX, options model.GetPostsOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
+	ret := _m.Called(rctx, options, allowFromCache, sanitizeOptions)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetPosts")
@@ -647,19 +662,19 @@ func (_m *PostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool
 
 	var r0 *model.PostList
 	var r1 error
-	if rf, ok := ret.Get(0).(func(model.GetPostsOptions, bool, map[string]bool) (*model.PostList, error)); ok {
-		return rf(options, allowFromCache, sanitizeOptions)
+	if rf, ok := ret.Get(0).(func(request.CTX, model.GetPostsOptions, bool, map[string]bool) (*model.PostList, error)); ok {
+		return rf(rctx, options, allowFromCache, sanitizeOptions)
 	}
-	if rf, ok := ret.Get(0).(func(model.GetPostsOptions, bool, map[string]bool) *model.PostList); ok {
-		r0 = rf(options, allowFromCache, sanitizeOptions)
+	if rf, ok := ret.Get(0).(func(request.CTX, model.GetPostsOptions, bool, map[string]bool) *model.PostList); ok {
+		r0 = rf(rctx, options, allowFromCache, sanitizeOptions)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PostList)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(model.GetPostsOptions, bool, map[string]bool) error); ok {
-		r1 = rf(options, allowFromCache, sanitizeOptions)
+	if rf, ok := ret.Get(1).(func(request.CTX, model.GetPostsOptions, bool, map[string]bool) error); ok {
+		r1 = rf(rctx, options, allowFromCache, sanitizeOptions)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -667,9 +682,9 @@ func (_m *PostStore) GetPosts(options model.GetPostsOptions, allowFromCache bool
 	return r0, r1
 }
 
-// GetPostsAfter provides a mock function with given fields: options, sanitizeOptions
-func (_m *PostStore) GetPostsAfter(options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
-	ret := _m.Called(options, sanitizeOptions)
+// GetPostsAfter provides a mock function with given fields: rctx, options, sanitizeOptions
+func (_m *PostStore) GetPostsAfter(rctx request.CTX, options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
+	ret := _m.Called(rctx, options, sanitizeOptions)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetPostsAfter")
@@ -677,19 +692,19 @@ func (_m *PostStore) GetPostsAfter(options model.GetPostsOptions, sanitizeOption
 
 	var r0 *model.PostList
 	var r1 error
-	if rf, ok := ret.Get(0).(func(model.GetPostsOptions, map[string]bool) (*model.PostList, error)); ok {
-		return rf(options, sanitizeOptions)
+	if rf, ok := ret.Get(0).(func(request.CTX, model.GetPostsOptions, map[string]bool) (*model.PostList, error)); ok {
+		return rf(rctx, options, sanitizeOptions)
 	}
-	if rf, ok := ret.Get(0).(func(model.GetPostsOptions, map[string]bool) *model.PostList); ok {
-		r0 = rf(options, sanitizeOptions)
+	if rf, ok := ret.Get(0).(func(request.CTX, model.GetPostsOptions, map[string]bool) *model.PostList); ok {
+		r0 = rf(rctx, options, sanitizeOptions)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PostList)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(model.GetPostsOptions, map[string]bool) error); ok {
-		r1 = rf(options, sanitizeOptions)
+	if rf, ok := ret.Get(1).(func(request.CTX, model.GetPostsOptions, map[string]bool) error); ok {
+		r1 = rf(rctx, options, sanitizeOptions)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -727,9 +742,9 @@ func (_m *PostStore) GetPostsBatchForIndexing(startTime int64, startPostID strin
 	return r0, r1
 }
 
-// GetPostsBefore provides a mock function with given fields: options, sanitizeOptions
-func (_m *PostStore) GetPostsBefore(options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
-	ret := _m.Called(options, sanitizeOptions)
+// GetPostsBefore provides a mock function with given fields: rctx, options, sanitizeOptions
+func (_m *PostStore) GetPostsBefore(rctx request.CTX, options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
+	ret := _m.Called(rctx, options, sanitizeOptions)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetPostsBefore")
@@ -737,19 +752,19 @@ func (_m *PostStore) GetPostsBefore(options model.GetPostsOptions, sanitizeOptio
 
 	var r0 *model.PostList
 	var r1 error
-	if rf, ok := ret.Get(0).(func(model.GetPostsOptions, map[string]bool) (*model.PostList, error)); ok {
-		return rf(options, sanitizeOptions)
+	if rf, ok := ret.Get(0).(func(request.CTX, model.GetPostsOptions, map[string]bool) (*model.PostList, error)); ok {
+		return rf(rctx, options, sanitizeOptions)
 	}
-	if rf, ok := ret.Get(0).(func(model.GetPostsOptions, map[string]bool) *model.PostList); ok {
-		r0 = rf(options, sanitizeOptions)
+	if rf, ok := ret.Get(0).(func(request.CTX, model.GetPostsOptions, map[string]bool) *model.PostList); ok {
+		r0 = rf(rctx, options, sanitizeOptions)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PostList)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(model.GetPostsOptions, map[string]bool) error); ok {
-		r1 = rf(options, sanitizeOptions)
+	if rf, ok := ret.Get(1).(func(request.CTX, model.GetPostsOptions, map[string]bool) error); ok {
+		r1 = rf(rctx, options, sanitizeOptions)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -847,9 +862,9 @@ func (_m *PostStore) GetPostsCreatedAt(channelID string, timestamp int64) ([]*mo
 	return r0, r1
 }
 
-// GetPostsSince provides a mock function with given fields: options, allowFromCache, sanitizeOptions
-func (_m *PostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
-	ret := _m.Called(options, allowFromCache, sanitizeOptions)
+// GetPostsSince provides a mock function with given fields: rctx, options, allowFromCache, sanitizeOptions
+func (_m *PostStore) GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
+	ret := _m.Called(rctx, options, allowFromCache, sanitizeOptions)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetPostsSince")
@@ -857,19 +872,19 @@ func (_m *PostStore) GetPostsSince(options model.GetPostsSinceOptions, allowFrom
 
 	var r0 *model.PostList
 	var r1 error
-	if rf, ok := ret.Get(0).(func(model.GetPostsSinceOptions, bool, map[string]bool) (*model.PostList, error)); ok {
-		return rf(options, allowFromCache, sanitizeOptions)
+	if rf, ok := ret.Get(0).(func(request.CTX, model.GetPostsSinceOptions, bool, map[string]bool) (*model.PostList, error)); ok {
+		return rf(rctx, options, allowFromCache, sanitizeOptions)
 	}
-	if rf, ok := ret.Get(0).(func(model.GetPostsSinceOptions, bool, map[string]bool) *model.PostList); ok {
-		r0 = rf(options, allowFromCache, sanitizeOptions)
+	if rf, ok := ret.Get(0).(func(request.CTX, model.GetPostsSinceOptions, bool, map[string]bool) *model.PostList); ok {
+		r0 = rf(rctx, options, allowFromCache, sanitizeOptions)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PostList)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(model.GetPostsSinceOptions, bool, map[string]bool) error); ok {
-		r1 = rf(options, allowFromCache, sanitizeOptions)
+	if rf, ok := ret.Get(1).(func(request.CTX, model.GetPostsSinceOptions, bool, map[string]bool) error); ok {
+		r1 = rf(rctx, options, allowFromCache, sanitizeOptions)
 	} else {
 		r1 = ret.Error(1)
 	}

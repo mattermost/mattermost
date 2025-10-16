@@ -96,6 +96,7 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
             getAccessControlPolicy: jest.fn(),
             deleteAccessControlPolicy: jest.fn(),
             assignChannelToAccessControlPolicy: jest.fn(),
+            unassignChannelsFromAccessControlPolicy: jest.fn(),
             searchPolicies: jest.fn(),
         };
 
@@ -225,6 +226,7 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
             getAccessControlPolicy: jest.fn(),
             deleteAccessControlPolicy: jest.fn(),
             assignChannelToAccessControlPolicy: jest.fn(),
+            unassignChannelsFromAccessControlPolicy: jest.fn(),
             searchPolicies: jest.fn(),
         };
 
@@ -355,6 +357,7 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
             getAccessControlPolicy: jest.fn(),
             deleteAccessControlPolicy: jest.fn(),
             assignChannelToAccessControlPolicy: jest.fn(),
+            unassignChannelsFromAccessControlPolicy: jest.fn(),
             searchPolicies: jest.fn(),
         };
 

@@ -59,6 +59,7 @@ export default class SettingItemMin extends React.PureComponent<Props> {
         }
 
         e.preventDefault();
+        e.stopPropagation();
         this.props.updateSection(this.props.section);
     };
 
@@ -96,7 +97,7 @@ export default class SettingItemMin extends React.PureComponent<Props> {
                 onClick={this.handleClick}
             >
                 <div
-                    className='secion-min__header'
+                    className='section-min__header'
                 >
                     <h4
                         id={this.props.section + 'Title'}

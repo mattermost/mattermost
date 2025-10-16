@@ -918,10 +918,6 @@
     "translation": "shrug"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "尚未支援新格式的用戶端設定。請在查詢字串中指定 format=old。"
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "抱歉，找不到頁面。"
   },
@@ -2066,14 +2062,6 @@
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "禁止機器人登入。"
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "嘗試使用實驗性功能 ClientSideCert 登入，但未提供有效的憑證。"
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "嘗試使用實驗性功能 ClientSideCertEnable，但沒有有效的企業授權。"
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -7486,14 +7474,6 @@
   {
     "id": "api.user.login.remote_users.login.error",
     "translation": "登入失敗，因為遠端使用者不可登入。"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "無法取得封存頻道的使用者"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "無法取得封存頻道的訊息"
   },
   {
     "id": "app.channel.get_file_count.app_error",

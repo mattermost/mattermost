@@ -115,15 +115,12 @@ export type ClientConfig = {
     EnableUserTypingMessages: string;
     EnforceMultifactorAuthentication: string;
     ExperimentalChannelCategorySorting: string;
-    ExperimentalClientSideCertCheck: string;
-    ExperimentalClientSideCertEnable: string;
     ExperimentalEnableAuthenticationTransfer: string;
     ExperimentalEnableAutomaticReplies: string;
     ExperimentalEnableDefaultChannelLeaveJoinMessages: string;
     ExperimentalEnablePostMetadata: string;
     ExperimentalGroupUnreadChannels: string;
     ExperimentalPrimaryTeam: string;
-    ExperimentalViewArchivedChannels: string;
     FileLevel: string;
     FeatureFlagAppsEnabled: string;
     FeatureFlagCallsEnabled: string;
@@ -132,6 +129,7 @@ export type ClientConfig = {
     FeatureFlagWebSocketEventScope: string;
     FeatureFlagInteractiveDialogAppsForm: string;
     FeatureFlagContentFlagging: string;
+
     ForgotPasswordLink: string;
     GiphySdkKey: string;
     GoogleDeveloperKey: string;
@@ -228,6 +226,11 @@ export type ClientConfig = {
     ScheduledPosts: string;
     DeleteAccountLink: string;
     ContentFlaggingEnabled: 'true' | 'false';
+
+    // Access Control Settings
+    EnableAttributeBasedAccessControl: string;
+    EnableChannelScopeAccessControl: string;
+    EnableUserManagedAttributes: string;
 };
 
 export type License = {
@@ -382,7 +385,7 @@ export type ServiceSettings = {
     EnableAPITriggerAdminNotifications: boolean;
     EnableAPIUserDeletion: boolean;
     ExperimentalEnableHardenedMode: boolean;
-    StrictCSRFEnforcement: boolean;
+    ExperimentalStrictCSRFEnforcement: boolean;
     EnableEmailInvitations: boolean;
     DisableBotsWhenOwnerIsDeactivated: boolean;
     EnableBotAccountCreation: boolean;
@@ -436,7 +439,6 @@ export type TeamSettings = {
     MaxNotificationsPerChannel: number;
     EnableConfirmNotificationsToChannel: boolean;
     TeammateNameDisplay: string;
-    ExperimentalViewArchivedChannels: boolean;
     ExperimentalEnableAutomaticReplies: boolean;
     LockTeammateNameDisplay: boolean;
     ExperimentalPrimaryTeam: string;
@@ -481,7 +483,6 @@ export type LogSettings = {
     FileLocation: string;
     EnableWebhookDebugging: boolean;
     EnableDiagnostics: boolean;
-    VerboseDiagnostics: boolean;
     EnableSentry: boolean;
     AdvancedLoggingJSON: Record<string, any>;
     MaxFieldSize: number;
@@ -497,18 +498,6 @@ export type ExperimentalAuditSettings = {
     FileMaxQueueSize: number;
     AdvancedLoggingJSON: Record<string, any>;
     Certificate: string;
-};
-
-export type NotificationLogSettings = {
-    EnableConsole: boolean;
-    ConsoleLevel: string;
-    ConsoleJson: boolean;
-    EnableColor: boolean;
-    EnableFile: boolean;
-    FileLevel: string;
-    FileJson: boolean;
-    FileLocation: string;
-    AdvancedLoggingJSON: Record<string, any>;
 };
 
 export type PasswordSettings = {
@@ -824,8 +813,6 @@ export type MetricsSettings = {
 };
 
 export type ExperimentalSettings = {
-    ClientSideCertEnable: boolean;
-    ClientSideCertCheck: string;
     LinkMetadataTimeoutMilliseconds: number;
     RestrictSystemAdmin: boolean;
     EnableSharedChannels: boolean;
@@ -1027,7 +1014,6 @@ export type AdminConfig = {
     SqlSettings: SqlSettings;
     LogSettings: LogSettings;
     ExperimentalAuditSettings: ExperimentalAuditSettings;
-    NotificationLogSettings: NotificationLogSettings;
     PasswordSettings: PasswordSettings;
     FileSettings: FileSettings;
     EmailSettings: EmailSettings;

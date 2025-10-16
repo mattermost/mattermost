@@ -922,10 +922,6 @@
     "translation": "ophalen"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Nieuw formaat voor de client configuratie is nog niet ondersteund. Gebruik format=old in de query."
-  },
-  {
     "id": "api.context.404.app_error",
     "translation": "Sorry, we kunnen de pagina niet vinden."
   },
@@ -2073,14 +2069,6 @@
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "Het is verboden voor Bots om in te loggen."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Er is geprobeerd aan te melden met de experimentele functie ClientSideCert zonder een geldig certificaat te verstrekken."
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Er is geprobeerd om de experimentele functie te gebruiken ClientSideCert zonder een geldig Enterprise-licentie."
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -8150,14 +8138,6 @@
     "translation": "Het is niet gelukt om de aangepaste status bij te werken. Voeg een emoji of een aangepaste tekststatus of beide toe."
   },
   {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Kan geen berichten ophalen voor een gearchiveerd kanaal"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Kan geen berichten ophalen voor een gearchiveerd kanaal"
-  },
-  {
     "id": "api.post.posts_by_ids.invalid_body.request_error",
     "translation": "Het aantal ontvangen Post ID's heeft de maximumgrootte van {{.MaxLength}} overschreden"
   },
@@ -10204,10 +10184,6 @@
     "translation": "Het bijwerken van de sorteervolgorde van de kanaalbladwijzers is mislukt."
   },
   {
-    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
-    "translation": "Kan geen bladwijzers ophalen voor een gearchiveerd kanaal"
-  },
-  {
     "id": "app.file_info.get_count.app_error",
     "translation": "Het is niet gelukt om alle bestanden te tellen."
   },
@@ -10754,5 +10730,273 @@
   {
     "id": "api.content_flagging.error.license",
     "translation": "Je licentie ondersteunt het markeren van inhoud niet."
+  },
+  {
+    "id": "app.access_control.insufficient_permissions",
+    "translation": "Je hebt geen rechten om dit toegangscontrolebeleid te beheren."
+  },
+  {
+    "id": "app.pap.access_control.channel_group_constrained",
+    "translation": "Kanaal is groepsgebonden en kan geen toegangscontrolebeleid hebben."
+  },
+  {
+    "id": "app.pap.access_control.channel_not_private",
+    "translation": "Beleid voor toegangscontrole kan alleen worden toegepast op privékanalen."
+  },
+  {
+    "id": "app.pap.access_control.channel_shared",
+    "translation": "Op gedeelde kanalen kan geen toegangscontrolebeleid worden toegepast."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_channel_permissions",
+    "translation": "Je hebt geen toestemming om de toegangscontrole voor dit kanaal te beheren."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_permissions",
+    "translation": "Je hebt geen rechten om dit toegangscontrolebeleid te beheren."
+  },
+  {
+    "id": "model.access_policy.inherit.already_imported.app_error",
+    "translation": "Het bovenliggend beleid is al geïmporteerd."
+  },
+  {
+    "id": "model.config.is_valid.experimental_view_archived_channels.app_error",
+    "translation": "Het verbergen van gearchiveerde kanalen wordt niet langer ondersteund. Maak deze kanalen privé en verwijder in plaats daarvan leden."
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
+    "translation": "Kan waarde voor een door de beheerder beheerd aangepast profielattribuutveld niet bijwerken"
+  },
+  {
+    "id": "app.lookup_interactive_dialog.decode_json_error",
+    "translation": "Er is een fout opgetreden bij het decoderen van de JSON respons van het interactief dialoogvenster voor opzoeken."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.json_error",
+    "translation": "Er is een fout opgetreden bij het verwerken van het JSON antwoord van het interactief opzoeken van een dialoogvenster."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.read_body_error",
+    "translation": "Er is een fout opgetreden bij het lezen van de respons bij het opzoeken van het interactief dialoogvenster ."
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.bulk_processor_create_failed",
+    "translation": "Aanmaken van Elasticsearch-bulkprocessor is mislukt"
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.sync_bulk_processor_create_failed",
+    "translation": "Aanmaken van Elasticsearch-bulkprocessor is mislukt"
+  },
+  {
+    "id": "model.config.is_valid.client_side_cert_enable.app_error",
+    "translation": "Certificaat-gebaseerde authenticatie is verwijderd. Schakel ClientSideCertEnable uit om verder te gaan."
+  },
+  {
+    "id": "api.user.check_user_password.invalid_hash.app_error",
+    "translation": "Het formaat van het gehashte wachtwoord is ongeldig en kon niet worden verwerkt."
+  },
+  {
+    "id": "app.user.check_user_password.failed_migration",
+    "translation": "Het is niet gelukt om het wachtwoord van de gebruiker te migreren naar de nieuwste hashingmethode."
+  },
+  {
+    "id": "app.user.check_user_password.failed_update",
+    "translation": "Het is niet gelukt om het wachtwoord van de gebruiker bij te werken."
+  },
+  {
+    "id": "app.job.get_existing_jobs.error",
+    "translation": "Niet in staat om bestaande taken op te halen."
+  },
+  {
+    "id": "app.submit_interactive_dialog.invalid_response",
+    "translation": "Er is een ongeldige reactie gevonden bij het indienen van een interactief dialoogvenster."
+  },
+  {
+    "id": "api.channel.patch_update_channel.restricted_dm.app_error",
+    "translation": "Kan een kanaal met beperkte directe berichten niet bijwerken."
+  },
+  {
+    "id": "api.command.execute_command.restricted_dm.error",
+    "translation": "Kan geen bericht plaatsen in beperkt DM"
+  },
+  {
+    "id": "api.content_flagging.error.comment_required",
+    "translation": "Voeg een opmerking toe waarin je uitlegt waarom je dit bericht markeert."
+  },
+  {
+    "id": "api.content_flagging.error.comment_too_long",
+    "translation": "De reden voor het markeren van een bericht kan niet langer zijn dan {{.MaxLength}} tekens."
+  },
+  {
+    "id": "api.content_flagging.error.not_available_on_team",
+    "translation": "De markeerfunctie voor inhoud is niet ingeschakeld in dit team."
+  },
+  {
+    "id": "api.content_flagging.error.post_not_in_progress",
+    "translation": "Het gemarkeerde bericht moet de status 'in behandeling' of 'toegewezen' hebben om bewaard of verwijderd te worden."
+  },
+  {
+    "id": "api.content_flagging.error.reason_invalid",
+    "translation": "Onbekende reden opgegeven voor markeren van bericht."
+  },
+  {
+    "id": "api.content_flagging.error.reason_required",
+    "translation": "Selecteer een reden om dit bericht te markeren."
+  },
+  {
+    "id": "api.content_flagging.error.reviewer_only",
+    "translation": "Je hebt geen toestemming om deze bron te bekijken."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
+    "translation": "Kan concept niet opslaan in beperkt directe berichten kanaal"
+  },
+  {
+    "id": "api.file.upload_file.get_channel.app_error",
+    "translation": "Kan bestand niet uploaden naar beperkte DM"
+  },
+  {
+    "id": "api.file.upload_file.restricted_dm.error",
+    "translation": "Kan bestand niet uploaden naar beperkte DM"
+  },
+  {
+    "id": "api.post.create_post.can_not_post_in_restricted_dm.error",
+    "translation": "Kan niet posten naar beperkt kanaal met directe berichten."
+  },
+  {
+    "id": "api.post.delete_post.can_not_delete_from_restricted_dm.error",
+    "translation": "Kan geen bericht verwijderen in een beperkt kanaal met directe berichten."
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "Kan bericht in een beperkt kanaal met directe berichten niet bijwerken."
+  },
+  {
+    "id": "api.post.update_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "Kan bericht in beperkt kanaal met directe berichten niet bijwerken."
+  },
+  {
+    "id": "api.reaction.delete.restricted_dm.error",
+    "translation": "Kan niet reageren in beperkt DM"
+  },
+  {
+    "id": "api.reaction.save.restricted_dm.error",
+    "translation": "Kan niet reageren in beperkt DM"
+  },
+  {
+    "id": "app.channel.get_common_teams.app_error",
+    "translation": "Fout bij het ophalen van gemeenschappelijke teams voor kanaal"
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.in_progress",
+    "translation": "Kan dit bericht niet markeren omdat het al gemarkeerd is."
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.removed",
+    "translation": "Kan dit bericht niet markeren, het is verwijderd in een eerder verzoek voor markering."
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.retained",
+    "translation": "Kan dit bericht niet markeren omdat het is bewaard in een eerder verzoek om markering."
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.unknown",
+    "translation": "Kan dit bericht niet markeren omdat het een onbekende status heeft."
+  },
+  {
+    "id": "app.content_flagging.create_property_values.app_error",
+    "translation": "Kan de waarden van eigenschappen voor de gemarkeerde post niet opslaan."
+  },
+  {
+    "id": "app.content_flagging.delete_post.app_error",
+    "translation": "De gemarkeerde post kan niet worden verwijderd."
+  },
+  {
+    "id": "app.content_flagging.flag_post.marshal_comment.app_error",
+    "translation": "Mislukt om commentaar van markerende gebruiker te verzamelen"
+  },
+  {
+    "id": "app.content_flagging.flag_post.marshal_reason.app_error",
+    "translation": "Faalde om de reden van de vlaggende gebruiker te verzamelen"
+  },
+  {
+    "id": "app.content_flagging.flag_post_confirmation.message",
+    "translation": "Het bericht van @{{.username}} is gemarkeerd voor beoordeling. Je ontvangt bericht zodra het is beoordeeld door een inhoudsbeoordeelaar. "
+  },
+  {
+    "id": "app.content_flagging.get_group.error",
+    "translation": "Fout bij het ophalen van de Content Flagging bot."
+  },
+  {
+    "id": "app.content_flagging.get_status_property.app_error",
+    "translation": "Fout bij het ophalen van het Statusveld."
+  },
+  {
+    "id": "app.content_flagging.get_users_in_team.app_error",
+    "translation": "Fout bij het zoeken van beoordeelaars in het team."
+  },
+  {
+    "id": "app.content_flagging.keep_flag_post.marshal_comment.app_error",
+    "translation": "Fout bij het verkeken van de commentaar van de beoordeelaar"
+  },
+  {
+    "id": "app.content_flagging.keep_post.status_update.app_error",
+    "translation": "Fout bij het bijwerken van de status van gemarkeerde bericht bij het verwijderen van gemarkeerd bericht "
+  },
+  {
+    "id": "app.content_flagging.keep_post.undelete.app_error",
+    "translation": "Fout bij het bericht in de database bij te werken toen werd geprobeerd het gemarkeerde bericht te verwijderen."
+  },
+  {
+    "id": "app.content_flagging.marshal_property_values.app_error",
+    "translation": "Fout bij  de waarden van de eigenschap Content Flagging te verzenden in de WebSocket-gebeurtenis."
+  },
+  {
+    "id": "app.content_flagging.no_status_property.app_error",
+    "translation": "Kan gemarkeerd bericht niet ophalen omdat het bericht niet gemarkeerd is."
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.app_error",
+    "translation": "Overschrijven van bericht met verwijderd bericht mislukt bij definitief verwijderen van gemarkeerd bericht."
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.marshal_comment.app_error",
+    "translation": "Fout bij het verwerken van de commentaar van de beoordeelaar"
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.update_property_value.app_error",
+    "translation": "Faalde in het bijwerken van de status van gemarkeerde berichten bij het permanent verwijderen van gemarkeerde berichten."
+  },
+  {
+    "id": "app.content_flagging.restore_file_info.app_error",
+    "translation": "Fout bij het herstellen van de bestandsinfo voor het gemarkeerde bericht."
+  },
+  {
+    "id": "app.content_flagging.search_property_fields.app_error",
+    "translation": "Fout bij het zoeken naar Content Flagging eigenschapsvelden."
+  },
+  {
+    "id": "app.content_flagging.search_property_values.app_error",
+    "translation": "Fout bij het ophalen van de waarden van de inhoudsmarkeringseigenschappen uit de database."
+  },
+  {
+    "id": "app.content_flagging.search_status_property.app_error",
+    "translation": "Fout bij het zoeken van de Property Values voor de gemelde post."
+  },
+  {
+    "id": "app.post_priority.delete_for_post.app_error",
+    "translation": "Fout bij het permanent verwijderen van de prioriteitsgegevens uit de database voor het bericht."
+  },
+  {
+    "id": "app.save_scheduled_post.restricted_dm.error",
+    "translation": "Kan bericht niet plannen in een beperkte DM"
+  },
+  {
+    "id": "app.system.content_review_bot.bot_displayname",
+    "translation": "Inhoud beoordelen"
+  },
+  {
+    "id": "app.upload.create.cannot_upload_to_restricted_dm.error",
+    "translation": "Kan geen bestand uploaden naar een beperkt direct bericht."
   }
 ]

@@ -125,7 +125,6 @@ services:
       - "MM_CLUSTERSETTINGS_ENABLE=true"
       - "MM_CLUSTERSETTINGS_CLUSTERNAME=mm_dev_cluster"
       - "MM_LOGSETTINGS_FILELOCATION=./logs/leader"
-      - "MM_NOTIFICATIONLOGSETTINGSS_FILELOCATION=./logs/leader"
     networks:
       - mm-test
     depends_on:
@@ -163,7 +162,6 @@ services:
       - "MM_CLUSTERSETTINGS_ENABLE=true"
       - "MM_CLUSTERSETTINGS_CLUSTERNAME=mm_dev_cluster"
       - "MM_LOGSETTINGS_FILELOCATION=./logs/follower"
-      - "MM_NOTIFICATIONLOGSETTINGSS_FILELOCATION=./logs/follower"
     networks:
       - mm-test
     depends_on:
@@ -201,7 +199,6 @@ services:
       - "MM_CLUSTERSETTINGS_ENABLE=true"
       - "MM_CLUSTERSETTINGS_CLUSTERNAME=mm_dev_cluster"
       - "MM_LOGSETTINGS_FILELOCATION=./logs/follower2"
-      - "MM_NOTIFICATIONLOGSETTINGSS_FILELOCATION=./logs/follower2"
     networks:
       - mm-test
     depends_on:

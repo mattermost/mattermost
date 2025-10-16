@@ -13,7 +13,7 @@ import {getFileDownloadUrl, getFilePreviewUrl, getFileUrl} from 'mattermost-redu
 
 import ArchivedPreview from 'components/archived_preview';
 import AudioVideoPreview from 'components/audio_video_preview';
-import CodePreview from 'components/code_preview';
+import CodePreview, {hasSupportedLanguage} from 'components/code_preview';
 import FileInfoPreview from 'components/file_info_preview';
 import LoadingImagePreview from 'components/loading_image_preview';
 import type {Props as PDFPreviewComponentProps} from 'components/pdf_preview';
@@ -377,7 +377,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                             handleZoomReset={this.handleZoomReset}
                         />
                     );
-                } else if (CodePreview.supports(fileInfo)) {
+                } else if (hasSupportedLanguage(fileInfo)) {
                     dialogClassName += ' modal-code';
                     canCopyContent = true;
                     content = (

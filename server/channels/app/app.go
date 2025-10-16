@@ -37,8 +37,8 @@ func New(options ...AppOption) *App {
 	return app
 }
 
-func (a *App) TelemetryId() string {
-	return a.Srv().TelemetryId()
+func (a *App) ServerId() string {
+	return a.Srv().ServerId()
 }
 
 func (s *Server) TemplatesContainer() *templates.Container {
@@ -65,9 +65,6 @@ func (a *App) Srv() *Server {
 }
 func (a *App) Log() *mlog.Logger {
 	return a.ch.srv.Log()
-}
-func (a *App) NotificationsLog() *mlog.Logger {
-	return a.ch.srv.NotificationsLog()
 }
 
 func (a *App) AccountMigration() einterfaces.AccountMigrationInterface {
