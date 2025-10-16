@@ -1,6 +1,5 @@
 FROM postgres:13
 
-# Install build dependencies, build pg_bigm, and then clean up
 RUN apt-get update
 RUN apt-get install -y \
         build-essential \
