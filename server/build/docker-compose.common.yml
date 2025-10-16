@@ -4,7 +4,6 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile.postgres-pgbigm
-    container_name: postgres@13-pgbigm
     restart: always
     networks:
       - mm-test
