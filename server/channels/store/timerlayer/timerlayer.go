@@ -6830,10 +6830,10 @@ func (s *TimerLayerPostStore) RefreshPostStats() error {
 	return err
 }
 
-func (s *TimerLayerPostStore) Restore(postId string, deletedBy string) error {
+func (s *TimerLayerPostStore) Restore(post *model.Post, deletedBy string, statusFieldId string) error {
 	start := time.Now()
 
-	err := s.PostStore.Restore(postId, deletedBy)
+	err := s.PostStore.Restore(post, deletedBy, statusFieldId)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

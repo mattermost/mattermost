@@ -8557,11 +8557,11 @@ func (s *RetryLayerPostStore) RefreshPostStats() error {
 
 }
 
-func (s *RetryLayerPostStore) Restore(postId string, deletedBy string) error {
+func (s *RetryLayerPostStore) Restore(post *model.Post, deletedBy string, statusFieldId string) error {
 
 	tries := 0
 	for {
-		err := s.PostStore.Restore(postId, deletedBy)
+		err := s.PostStore.Restore(post, deletedBy, statusFieldId)
 		if err == nil {
 			return nil
 		}

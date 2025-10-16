@@ -3294,19 +3294,91 @@ func (s *SqlPostStore) RefreshPostStats() error {
 	return nil
 }
 
-func (s *SqlPostStore) Restore(postId, deletedBy string) error {
-	now := model.GetMillis()
+// Restore restores a flagged post along with all its replies and associated files.
+// When restoring replies, it does not restore posts that were intentionally deleted by a user, and
+// it only restores posts deleted by the specified deletedBy user ID, which in case of Content Flagging is
+// the Content Reviewer bot.
+func (s *SqlPostStore) Restore(post *model.Post, deletedBy, statusFieldId string) error {
+	transaction, err := s.GetMaster().Beginx()
+	if err != nil {
+		return errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
 
-	query := s.getQueryBuilder().
+	// First store the corresponding files
+	nonDeletedPostIdSubQuery := s.getSubQueryBuilder().
+		Select("p.Id as PostId").
+		From("Posts AS p").
+		LeftJoin("PropertyValues AS pv ON p.id = pv.TargetId AsND pv.FieldId = ?", statusFieldId).
+		Where(sq.Or{sq.Eq{"p.Id": post.Id}, sq.Eq{"p.RootId": post.Id}}).
+		Where(sq.Expr("p.Props->>'deleteBy' = ?", deletedBy)).
+		Where(sq.Or{
+			sq.Eq{"pv.Value": nil},
+			sq.And{
+				sq.NotEq{"pv.Value": fmt.Sprintf("\"%s\"", model.ContentFlaggingStatusPending)},
+				sq.NotEq{"pv.Value": fmt.Sprintf("\"%s\"", model.ContentFlaggingStatusAssigned)},
+			},
+		})
+
+	postIdSubQuery := nonDeletedPostIdSubQuery.
+		Where(sq.NotEq{"p.DeleteAt": 0})
+
+	// Restoring the files...
+	queryBuilder := s.getQueryBuilder().
+		Update("FileInfo").
+		Set("DeleteAt", 0).
+		Where(sq.Expr("FileInfo.PostId IN (?)", postIdSubQuery))
+
+	query, args, err := queryBuilder.ToSql()
+	if err != nil {
+		return errors.Wrap(err, "SqlPostStore.Restore: failed to build query to restore files")
+	}
+
+	if _, err = transaction.Exec(query, args...); err != nil {
+		return errors.Wrapf(err, "SqlPostStore.Restore: failed to restore files %s", post.Id)
+	}
+
+	// Restoring the posts...
+	queryBuilder = s.getQueryBuilder().
 		Update("Posts").
 		Set("DeleteAt", 0).
-		Set("UpdateAt", now).
-		Where(sq.Or{sq.Eq{"Id": postId}, sq.Eq{"RootId": postId}}).
-		Where(sq.NotEq{"DeleteAt": 0}).
-		Where(sq.Expr("Props->>'deleteBy' = ?", deletedBy))
+		Set("UpdateAt", model.GetMillis()).
+		Where(sq.Expr("Id IN (?)", postIdSubQuery))
 
-	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
-		return errors.Wrapf(err, "SqlPostStore.Restore: failed to restore post %s", postId)
+	query, args, err = queryBuilder.ToSql()
+	if err != nil {
+		return errors.Wrap(err, "SqlPostStore.Restore: failed to build query to restore posts")
+	}
+
+	if _, err = transaction.Exec(query, args...); err != nil {
+		return errors.Wrapf(err, "SqlPostStore.Restore: failed to restore posts %s", post.Id)
+	}
+
+	// Remove the deleteBy prop from the restored posts
+	queryBuilder = s.getQueryBuilder().
+		Update("Posts").
+		Set("Props", sq.Expr(fmt.Sprintf("props - '%s'", model.PostPropsDeleteBy))).
+		Where(sq.Expr("Id IN (?)", nonDeletedPostIdSubQuery))
+
+	query, args, err = queryBuilder.ToSql()
+	if err != nil {
+		return errors.Wrap(err, "SqlPostStore.Restore: failed to remove deleteBy from props")
+	}
+
+	if _, err = transaction.Exec(query, args...); err != nil {
+		return errors.Wrapf(err, "SqlPostStore.Restore: failed to remove deleteBy from props %s", post.Id)
+	}
+
+	// Update thread reply count if restoring a thread reply
+	if post.RootId != "" {
+		err = s.updateThreadsFromPosts(transaction, []*model.Post{post})
+		if err != nil {
+			return errors.Wrapf(err, "SqlPostStore.Restore: failed to update thread for post %s", post.Id)
+		}
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return errors.Wrap(err, "commit_transaction")
 	}
 
 	return nil
