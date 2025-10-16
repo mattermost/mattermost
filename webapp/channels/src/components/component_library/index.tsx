@@ -10,12 +10,14 @@ import DropdownInput from 'components/dropdown_input';
 import {applyTheme} from 'utils/utils';
 
 import ButtonComponentLibrary from './button.cl';
+import IconButtonComponentLibrary from './icon_button.cl';
 import SectionNoticeComponentLibrary from './section_notice.cl';
 
 import './component_library.scss';
 
 const componentMap = {
     Button: ButtonComponentLibrary,
+    'Icon Button': IconButtonComponentLibrary,
     'Section Notice': SectionNoticeComponentLibrary,
 };
 
