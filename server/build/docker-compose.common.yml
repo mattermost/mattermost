@@ -1,8 +1,6 @@
 services:
   postgres:
-    build:
-      context: ./docker
-      dockerfile: Dockerfile.postgres-pgbigm
+    image: "symdit/postgresql13-bigm"
     restart: always
     networks:
       - mm-test
