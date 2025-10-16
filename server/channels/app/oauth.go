@@ -1042,7 +1042,7 @@ func generateOAuthStateTokenExtra(email, action, cookie string) string {
 	return email + ":" + action + ":" + cookie
 }
 
-func (a *App) GetAuthorizationServerMetadata(c request.CTX) (*model.AuthorizationServerMetadata, *model.AppError) {
+func (a *App) GetAuthorizationServerMetadata(rctx request.CTX) (*model.AuthorizationServerMetadata, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableOAuthServiceProvider {
 		return nil, model.NewAppError("GetAuthorizationServerMetadata", "api.oauth.authorization_server_metadata.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -1067,7 +1067,7 @@ func (a *App) GetAuthorizationServerMetadata(c request.CTX) (*model.Authorizatio
 	return metadata, nil
 }
 
-func (a *App) RegisterOAuthClient(c request.CTX, req *model.ClientRegistrationRequest, userID string) (*model.OAuthApp, *model.AppError) {
+func (a *App) RegisterOAuthClient(rctx request.CTX, req *model.ClientRegistrationRequest, userID string) (*model.OAuthApp, *model.AppError) {
 	app := model.NewOAuthAppFromClientRegistration(req, userID)
 
 	return a.CreateOAuthApp(app)
