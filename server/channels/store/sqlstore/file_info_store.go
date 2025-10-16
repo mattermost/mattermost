@@ -824,22 +824,3 @@ func (fs SqlFileInfoStore) RefreshFileStats() error {
 
 	return nil
 }
-
-func (fs SqlFileInfoStore) RestoreForPostAndReplies(postId, deletedBy string) error {
-	postIdSubQuery := fs.getSubQueryBuilder().
-		Select("Id as PostId").
-		From("Posts").
-		Where(sq.Or{sq.Eq{"PostId": postId}, sq.Eq{"Posts.RootId": postId}}).
-		Where(sq.Expr("Posts.Props->>'deleteBy' = ?", deletedBy))
-
-	query := fs.getQueryBuilder().
-		Update("FileInfo").
-		Set("DeleteAt", 0).
-		Where(sq.Expr("PostId IN (?)", postIdSubQuery))
-
-	if _, err := fs.GetMaster().ExecBuilder(query); err != nil {
-		return errors.Wrap(err, "SqlFileInfoStore.RestoreForPostAndReplies: failed to undelete FileInfo from database")
-	}
-
-	return nil
-}

@@ -633,6 +633,11 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 		return appErr
 	}
 
+	statusValue := strings.Trim(string(status.Value), `"`)
+	if statusValue != model.ContentFlaggingStatusPending && statusValue != model.ContentFlaggingStatusAssigned {
+		return model.NewAppError("KeepFlaggedPost", "api.content_flagging.error.post_not_in_progress", nil, "", http.StatusBadRequest)
+	}
+
 	if flaggedPost.DeleteAt > 0 {
 		contentReviewBot, botErr := a.getContentReviewBot(rctx)
 		if botErr != nil {
@@ -645,20 +650,9 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 		}
 	}
 
-	statusValue := strings.Trim(string(status.Value), `"`)
-	if statusValue != model.ContentFlaggingStatusPending && statusValue != model.ContentFlaggingStatusAssigned {
-		return model.NewAppError("KeepFlaggedPost", "api.content_flagging.error.post_not_in_progress", nil, "", http.StatusBadRequest)
-	}
-
 	groupId, appErr := a.ContentFlaggingGroupId()
 	if appErr != nil {
 		return appErr
-	}
-
-	status.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRetained))
-	_, err := a.Srv().propertyService.UpdatePropertyValue(groupId, status)
-	if err != nil {
-		return model.NewAppError("KeepFlaggedPost", "app.content_flagging.keep_post.status_update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	mappedFields, appErr := a.GetContentFlaggingMappedFields(groupId)
@@ -715,6 +709,12 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 			rctx.Logger().Error("Failed to publish report change after permanently removing flagged flaggedPost", mlog.Err(err), mlog.String("post_id", flaggedPost.Id))
 		}
 	})
+
+	status.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRetained))
+	_, err = a.Srv().propertyService.UpdatePropertyValue(groupId, status)
+	if err != nil {
+		return model.NewAppError("KeepFlaggedPost", "app.content_flagging.keep_post.status_update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", flaggedPost.ChannelId, "", nil, "")
 	appErr = a.publishWebsocketEventForPost(rctx, flaggedPost, message)

@@ -5252,7 +5252,7 @@
   },
   {
     "id": "app.content_flagging.keep_post.undelete.app_error",
-    "translation": "Failed to update post in database when attempting to undelete the flagged post."
+    "translation": "Failed to update post in database when attempting to undelete the flagged post and associated data."
   },
   {
     "id": "app.content_flagging.marshal_property_values.app_error",

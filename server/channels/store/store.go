@@ -761,7 +761,6 @@ type FileInfoStore interface {
 	GetUptoNSizeFileTime(n int64) (int64, error)
 	// RefreshFileStats recomputes the fileinfo materialized views.
 	RefreshFileStats() error
-	RestoreForPostAndReplies(postId, deletedBy string) error
 }
 
 type UploadSessionStore interface {
