@@ -6,6 +6,7 @@ import ChannelsAppBar from './channels/app_bar';
 import ChannelsPostCreate from './channels/post_create';
 import ChannelsPost from './channels/post';
 import ChannelsCenterView from './channels/center_view';
+import ChannelIntro from './channels/channel_intro';
 import ChannelsSidebarLeft from './channels/sidebar_left';
 import ChannelsSidebarRight from './channels/sidebar_right';
 import ChannelSettingsModal from './channels/channel_settings/channel_settings_modal';
@@ -48,11 +49,13 @@ import ScheduledPost from './channels/scheduled_post';
 import SendMessageNowModal from './channels/send_message_now_modal';
 import DeleteScheduledPostModal from './channels/delete_scheduled_post_modal';
 import DraftPost from './channels/draft_post';
+import NotificationPreferencesModal from './channels/notification_preferences_modal';
 
 const components = {
     GlobalHeader,
     SearchBox,
     ChannelsCenterView,
+    ChannelIntro,
     ChannelsSidebarLeft,
     ChannelsSidebarRight,
     ChannelsAppBar,
@@ -66,6 +69,7 @@ const components = {
     DeletePostModal,
     DeleteScheduledPostModal,
     InvitePeopleModal,
+    NotificationPreferencesModal,
     SettingsModal,
     PostDotMenu,
     PostMenu,
@@ -104,6 +108,7 @@ export {
     GlobalHeader,
     SearchBox,
     ChannelsCenterView,
+    ChannelIntro,
     ChannelsSidebarLeft,
     ChannelsSidebarRight,
     ChannelsAppBar,
@@ -117,6 +122,7 @@ export {
     DeletePostModal,
     DeleteScheduledPostModal,
     InvitePeopleModal,
+    NotificationPreferencesModal,
     SettingsModal,
     PostDotMenu,
     PostMenu,
