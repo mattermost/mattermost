@@ -85,13 +85,11 @@ describe('Move Thread', () => {
             return cy.apiCreateGroupChannel([user1.id, user2.id, user3.id]);
         }).then(({channel}) => {
             gmChannel = channel;
-            console.log('this one');
 
             // # Create a private channel to Move Thread to
             return cy.apiCreateChannel(testTeam.id, 'private', 'Private');
         }).then(({channel}) => {
             privateChannel = channel;
-            console.log('no, this one');
 
             // # Create a second channel to Move Thread to
             return cy.apiCreateChannel(testTeam.id, 'movethread', 'Move Thread');

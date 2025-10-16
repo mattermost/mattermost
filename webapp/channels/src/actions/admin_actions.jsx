@@ -9,7 +9,6 @@ import * as UserActions from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
 
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
-import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {getOnNavigationConfirmed} from 'selectors/views/admin';
 import store from 'stores/redux_store';
 
@@ -537,7 +536,6 @@ export async function setSamlIdpCertificateFromMetadata(success, error, certData
 
 export function upgradeToE0() {
     return async () => {
-        trackEvent('api', 'upgrade_to_e0_requested');
         const data = await Client4.upgradeToEnterprise();
         return data;
     };
@@ -547,6 +545,17 @@ export function upgradeToE0Status() {
     return async () => {
         const data = await Client4.upgradeToEnterpriseStatus();
         return data;
+    };
+}
+
+export function isAllowedToUpgradeToEnterprise() {
+    return async () => {
+        try {
+            await Client4.isAllowedToUpgradeToEnterprise();
+            return {data: true};
+        } catch (error) {
+            return {error};
+        }
     };
 }
 
@@ -564,11 +573,9 @@ export function ping(getServerStatus, deviceId) {
     };
 }
 
-export function requestTrialLicense(requestLicenseBody, page) {
+export function requestTrialLicense(requestLicenseBody) {
     return async () => {
         try {
-            trackEvent('api', 'api_request_trial_license', {from_page: page});
-
             const response = await Client4.requestTrialLicense(requestLicenseBody);
             return {data: response};
         } catch (e) {

@@ -23,6 +23,7 @@ func TestPropertyFieldStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 	t.Run("UpdatePropertyField", func(t *testing.T) { testUpdatePropertyField(t, rctx, ss) })
 	t.Run("DeletePropertyField", func(t *testing.T) { testDeletePropertyField(t, rctx, ss) })
 	t.Run("SearchPropertyFields", func(t *testing.T) { testSearchPropertyFields(t, rctx, ss) })
+	t.Run("SearchPropertyFieldsSince", func(t *testing.T) { testSearchPropertyFieldsSince(t, rctx, ss) })
 	t.Run("CountForGroup", func(t *testing.T) { testCountForGroup(t, rctx, ss) })
 }
 
@@ -790,10 +791,12 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 		TargetType: "test_type",
 	}
 
+	targetID2 := model.NewId()
 	field4 := &model.PropertyField{
 		GroupID:    groupID,
 		Name:       "Field 4",
 		Type:       model.PropertyFieldTypeText,
+		TargetID:   targetID2,
 		TargetType: "test_type",
 	}
 
@@ -847,8 +850,8 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 		{
 			name: "filter by target_id",
 			opts: model.PropertyFieldSearchOpts{
-				TargetID: targetID,
-				PerPage:  10,
+				TargetIDs: []string{targetID},
+				PerPage:   10,
 			},
 			expectedIDs: []string{field1.ID, field2.ID},
 		},
@@ -874,6 +877,66 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 			},
 			expectedIDs: []string{field4.ID},
 		},
+		{
+			name: "filter by multiple target_ids",
+			opts: model.PropertyFieldSearchOpts{
+				TargetIDs: []string{targetID, targetID2},
+				PerPage:   10,
+			},
+			expectedIDs: []string{field1.ID, field2.ID},
+		},
+		{
+			name: "filter by multiple target_ids including deleted",
+			opts: model.PropertyFieldSearchOpts{
+				TargetIDs:      []string{targetID, targetID2},
+				IncludeDeleted: true,
+				PerPage:        10,
+			},
+			expectedIDs: []string{field1.ID, field2.ID, field4.ID},
+		},
+		{
+			name: "filter by multiple target_ids with group filter",
+			opts: model.PropertyFieldSearchOpts{
+				GroupID:   groupID,
+				TargetIDs: []string{targetID, targetID2},
+				PerPage:   10,
+			},
+			expectedIDs: []string{field1.ID, field2.ID},
+		},
+		{
+			name: "filter by SinceUpdateAt timestamp - no results before",
+			opts: model.PropertyFieldSearchOpts{
+				SinceUpdateAt: field3.UpdateAt, // After all existing fields
+				PerPage:       10,
+			},
+			expectedIDs: []string{},
+		},
+		{
+			name: "filter by SinceUpdateAt timestamp - get fields after specific time",
+			opts: model.PropertyFieldSearchOpts{
+				SinceUpdateAt: field1.UpdateAt, // After field1, should get field2 and field3
+				PerPage:       10,
+			},
+			expectedIDs: []string{field2.ID, field3.ID},
+		},
+		{
+			name: "filter by SinceUpdateAt timestamp with group filter",
+			opts: model.PropertyFieldSearchOpts{
+				GroupID:       groupID,
+				SinceUpdateAt: field1.UpdateAt, // After field1, should only get field2 from same group
+				PerPage:       10,
+			},
+			expectedIDs: []string{field2.ID},
+		},
+		{
+			name: "filter by SinceUpdateAt timestamp including deleted",
+			opts: model.PropertyFieldSearchOpts{
+				SinceUpdateAt:  field3.UpdateAt, // After field3, should get field4 (deleted)
+				IncludeDeleted: true,
+				PerPage:        10,
+			},
+			expectedIDs: []string{field4.ID},
+		},
 	}
 
 	for _, tc := range tests {
@@ -892,4 +955,109 @@ func testSearchPropertyFields(t *testing.T, _ request.CTX, ss store.Store) {
 			require.ElementsMatch(t, tc.expectedIDs, ids)
 		})
 	}
+}
+
+func testSearchPropertyFieldsSince(t *testing.T, _ request.CTX, ss store.Store) {
+	// Create fields with controlled timestamps for precise testing
+	groupID := model.NewId()
+
+	// Create field 1 (will remain unchanged)
+	field1, err := ss.PropertyField().Create(&model.PropertyField{
+		GroupID:    groupID,
+		Name:       "Field 1",
+		Type:       model.PropertyFieldTypeText,
+		TargetID:   model.NewId(),
+		TargetType: "test_type",
+	})
+	require.NoError(t, err)
+
+	time.Sleep(10 * time.Millisecond) // Ensure different timestamps
+
+	// Create field 2 (will be updated later)
+	field2, err := ss.PropertyField().Create(&model.PropertyField{
+		GroupID:    groupID,
+		Name:       "Field 2",
+		Type:       model.PropertyFieldTypeText,
+		TargetID:   model.NewId(),
+		TargetType: "test_type",
+	})
+	require.NoError(t, err)
+
+	time.Sleep(10 * time.Millisecond)
+
+	// Create field 3 (will remain unchanged)
+	field3, err := ss.PropertyField().Create(&model.PropertyField{
+		GroupID:    groupID,
+		Name:       "Field 3",
+		Type:       model.PropertyFieldTypeText,
+		TargetID:   model.NewId(),
+		TargetType: "test_type",
+	})
+	require.NoError(t, err)
+
+	// Update field2 to change its UpdateAt timestamp
+	time.Sleep(10 * time.Millisecond)
+	field2.Name = "Field 2 Updated"
+	updatedFields, err := ss.PropertyField().Update("", []*model.PropertyField{field2})
+	require.NoError(t, err)
+	require.Len(t, updatedFields, 1)
+	updatedField2 := updatedFields[0]
+
+	t.Run("SinceUpdateAt filters correctly by UpdateAt", func(t *testing.T) {
+		// Get fields updated after field1 (should get field2 and field3)
+		results, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+			GroupID:       groupID,
+			SinceUpdateAt: field1.UpdateAt,
+			PerPage:       10,
+		})
+		require.NoError(t, err)
+		require.Len(t, results, 2)
+
+		resultIDs := make([]string, len(results))
+		for i, result := range results {
+			resultIDs[i] = result.ID
+		}
+		require.ElementsMatch(t, []string{field2.ID, field3.ID}, resultIDs)
+	})
+
+	t.Run("SinceUpdateAt with boundary condition", func(t *testing.T) {
+		// Get fields updated after just before field3's timestamp
+		// Should get both field3 and field2 (which was updated last and now has the most recent UpdateAt), so expect 2 results
+		results, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+			GroupID:       groupID,
+			SinceUpdateAt: field3.UpdateAt - 1, // Slightly before field3's timestamp
+			PerPage:       10,
+		})
+		require.NoError(t, err)
+		require.Len(t, results, 2)
+
+		resultIDs := make([]string, len(results))
+		for i, result := range results {
+			resultIDs[i] = result.ID
+		}
+		// Should get both field2 (updated with new timestamp) and field3
+		require.ElementsMatch(t, []string{field2.ID, field3.ID}, resultIDs)
+	})
+
+	t.Run("SinceUpdateAt after all updates", func(t *testing.T) {
+		// Get fields updated after the most recent update
+		results, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+			GroupID:       groupID,
+			SinceUpdateAt: updatedField2.UpdateAt, // After the update
+			PerPage:       10,
+		})
+		require.NoError(t, err)
+		require.Len(t, results, 0) // Should be empty
+	})
+
+	t.Run("SinceUpdateAt with very recent timestamp", func(t *testing.T) {
+		// Get fields updated since current time
+		results, err := ss.PropertyField().SearchPropertyFields(model.PropertyFieldSearchOpts{
+			GroupID:       groupID,
+			SinceUpdateAt: model.GetMillis(),
+			PerPage:       10,
+		})
+		require.NoError(t, err)
+		require.Len(t, results, 0)
+	})
 }

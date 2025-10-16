@@ -152,8 +152,8 @@ func (a *App) GetOAuthAppsByCreator(userID string, page, perPage int) ([]*model.
 	return oauthApps, nil
 }
 
-func (a *App) GetOAuthImplicitRedirect(c request.CTX, userID string, authRequest *model.AuthorizeRequest) (string, *model.AppError) {
-	session, err := a.GetOAuthAccessTokenForImplicitFlow(c, userID, authRequest)
+func (a *App) GetOAuthImplicitRedirect(rctx request.CTX, userID string, authRequest *model.AuthorizeRequest) (string, *model.AppError) {
+	session, err := a.GetOAuthAccessTokenForImplicitFlow(rctx, userID, authRequest)
 	if err != nil {
 		return "", err
 	}
@@ -199,7 +199,7 @@ func (a *App) GetOAuthCodeRedirect(userID string, authRequest *model.AuthorizeRe
 	return uri.String(), nil
 }
 
-func (a *App) AllowOAuthAppAccessToUser(c request.CTX, userID string, authRequest *model.AuthorizeRequest) (string, *model.AppError) {
+func (a *App) AllowOAuthAppAccessToUser(rctx request.CTX, userID string, authRequest *model.AuthorizeRequest) (string, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableOAuthServiceProvider {
 		return "", model.NewAppError("AllowOAuthAppAccessToUser", "api.oauth.allow_oauth.turn_off.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -234,13 +234,13 @@ func (a *App) AllowOAuthAppAccessToUser(c request.CTX, userID string, authReques
 	case model.AuthCodeResponseType:
 		redirectURI, err = a.GetOAuthCodeRedirect(userID, authRequest)
 	case model.ImplicitResponseType:
-		redirectURI, err = a.GetOAuthImplicitRedirect(c, userID, authRequest)
+		redirectURI, err = a.GetOAuthImplicitRedirect(rctx, userID, authRequest)
 	default:
 		return authRequest.RedirectURI + "?error=unsupported_response_type&state=" + authRequest.State, nil
 	}
 
 	if err != nil {
-		c.Logger().Warn("error getting oauth redirect uri", mlog.Err(err))
+		rctx.Logger().Warn("error getting oauth redirect uri", mlog.Err(err))
 		return authRequest.RedirectURI + "?error=server_error&state=" + authRequest.State, nil
 	}
 
@@ -253,14 +253,14 @@ func (a *App) AllowOAuthAppAccessToUser(c request.CTX, userID string, authReques
 	}
 
 	if nErr := a.Srv().Store().Preference().Save(model.Preferences{authorizedApp}); nErr != nil {
-		c.Logger().Warn("error saving store preference", mlog.Err(nErr))
+		rctx.Logger().Warn("error saving store preference", mlog.Err(nErr))
 		return authRequest.RedirectURI + "?error=server_error&state=" + authRequest.State, nil
 	}
 
 	return redirectURI, nil
 }
 
-func (a *App) GetOAuthAccessTokenForImplicitFlow(c request.CTX, userID string, authRequest *model.AuthorizeRequest) (*model.Session, *model.AppError) {
+func (a *App) GetOAuthAccessTokenForImplicitFlow(rctx request.CTX, userID string, authRequest *model.AuthorizeRequest) (*model.Session, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableOAuthServiceProvider {
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -275,7 +275,7 @@ func (a *App) GetOAuthAccessTokenForImplicitFlow(c request.CTX, userID string, a
 		return nil, err
 	}
 
-	session, err := a.newSession(c, oauthApp, user)
+	session, err := a.newSession(rctx, oauthApp, user)
 	if err != nil {
 		return nil, err
 	}
@@ -293,7 +293,7 @@ func (a *App) GetOAuthAccessTokenForImplicitFlow(c request.CTX, userID string, a
 	return session, nil
 }
 
-func (a *App) GetOAuthAccessTokenForCodeFlow(c request.CTX, clientId, grantType, redirectURI, code, secret, refreshToken, codeVerifier string) (*model.AccessResponse, *model.AppError) {
+func (a *App) GetOAuthAccessTokenForCodeFlow(rctx request.CTX, clientId, grantType, redirectURI, code, secret, refreshToken, codeVerifier string) (*model.AccessResponse, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableOAuthServiceProvider {
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -308,10 +308,10 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(c request.CTX, clientId, grantType,
 	}
 
 	if grantType == model.AccessTokenGrantType {
-		return a.handleAuthorizationCodeGrant(c, oauthApp, redirectURI, code, codeVerifier, clientId)
+		return a.handleAuthorizationCodeGrant(rctx, oauthApp, redirectURI, code, codeVerifier, clientId)
 	}
 
-	return a.handleRefreshTokenGrant(c, oauthApp, refreshToken)
+	return a.handleRefreshTokenGrant(rctx, oauthApp, refreshToken)
 }
 
 func (a *App) validateOAuthClient(oauthApp *model.OAuthApp, grantType, secret, codeVerifier string) *model.AppError {
@@ -322,7 +322,7 @@ func (a *App) validatePKCE(oauthApp *model.OAuthApp, authData *model.AuthData, c
 	return authData.ValidatePKCEForClientType(oauthApp.IsPublicClient(), codeVerifier)
 }
 
-func (a *App) handleAuthorizationCodeGrant(c request.CTX, oauthApp *model.OAuthApp, redirectURI, code, codeVerifier, clientId string) (*model.AccessResponse, *model.AppError) {
+func (a *App) handleAuthorizationCodeGrant(rctx request.CTX, oauthApp *model.OAuthApp, redirectURI, code, codeVerifier, clientId string) (*model.AccessResponse, *model.AppError) {
 	authData, nErr := a.Srv().Store().OAuth().GetAuthData(code)
 	if nErr != nil {
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.expired_code.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
@@ -330,7 +330,7 @@ func (a *App) handleAuthorizationCodeGrant(c request.CTX, oauthApp *model.OAuthA
 
 	if authData.IsExpired() {
 		if nErr = a.Srv().Store().OAuth().RemoveAuthData(authData.Code); nErr != nil {
-			c.Logger().Warn("unable to remove auth data", mlog.Err(nErr))
+			rctx.Logger().Warn("unable to remove auth data", mlog.Err(nErr))
 		}
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.expired_code.app_error", nil, "", http.StatusForbidden)
 	}
@@ -354,14 +354,14 @@ func (a *App) handleAuthorizationCodeGrant(c request.CTX, oauthApp *model.OAuthA
 
 	defer func() {
 		if nErr = a.Srv().Store().OAuth().RemoveAuthData(authData.Code); nErr != nil {
-			c.Logger().Warn("unable to remove auth data", mlog.Err(nErr))
+			rctx.Logger().Warn("unable to remove auth data", mlog.Err(nErr))
 		}
 	}()
 
-	return a.generateAccessTokenResponse(c, oauthApp, user, clientId, redirectURI, authData.Scope)
+	return a.generateAccessTokenResponse(rctx, oauthApp, user, clientId, redirectURI, authData.Scope)
 }
 
-func (a *App) handleRefreshTokenGrant(c request.CTX, oauthApp *model.OAuthApp, refreshToken string) (*model.AccessResponse, *model.AppError) {
+func (a *App) handleRefreshTokenGrant(rctx request.CTX, oauthApp *model.OAuthApp, refreshToken string) (*model.AccessResponse, *model.AppError) {
 	// Validate that this client can use refresh token grant type
 	if err := oauthApp.ValidateForGrantType(model.RefreshTokenGrantType, oauthApp.ClientSecret, ""); err != nil {
 		return nil, err
@@ -377,25 +377,25 @@ func (a *App) handleRefreshTokenGrant(c request.CTX, oauthApp *model.OAuthApp, r
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_user.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
 	}
 
-	return a.newSessionUpdateToken(c, oauthApp, accessData, user)
+	return a.newSessionUpdateToken(rctx, oauthApp, accessData, user)
 }
 
-func (a *App) generateAccessTokenResponse(c request.CTX, oauthApp *model.OAuthApp, user *model.User, clientId, redirectURI, scope string) (*model.AccessResponse, *model.AppError) {
+func (a *App) generateAccessTokenResponse(rctx request.CTX, oauthApp *model.OAuthApp, user *model.User, clientId, redirectURI, scope string) (*model.AccessResponse, *model.AppError) {
 	accessData, nErr := a.Srv().Store().OAuth().GetPreviousAccessData(user.Id, clientId)
 	if nErr != nil {
 		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
 	}
 
 	if accessData != nil {
-		return a.handleExistingAccessData(c, oauthApp, accessData, user)
+		return a.handleExistingAccessData(rctx, oauthApp, accessData, user)
 	}
 
-	return a.createNewAccessData(c, oauthApp, user, clientId, redirectURI, scope)
+	return a.createNewAccessData(rctx, oauthApp, user, clientId, redirectURI, scope)
 }
 
-func (a *App) handleExistingAccessData(c request.CTX, oauthApp *model.OAuthApp, accessData *model.AccessData, user *model.User) (*model.AccessResponse, *model.AppError) {
+func (a *App) handleExistingAccessData(rctx request.CTX, oauthApp *model.OAuthApp, accessData *model.AccessData, user *model.User) (*model.AccessResponse, *model.AppError) {
 	if accessData.IsExpired() {
-		return a.newSessionUpdateToken(c, oauthApp, accessData, user)
+		return a.newSessionUpdateToken(rctx, oauthApp, accessData, user)
 	}
 
 	refreshToken := accessData.RefreshToken
@@ -411,8 +411,8 @@ func (a *App) handleExistingAccessData(c request.CTX, oauthApp *model.OAuthApp, 
 	}, nil
 }
 
-func (a *App) createNewAccessData(c request.CTX, oauthApp *model.OAuthApp, user *model.User, clientId, redirectURI, scope string) (*model.AccessResponse, *model.AppError) {
-	session, err := a.newSession(c, oauthApp, user)
+func (a *App) createNewAccessData(rctx request.CTX, oauthApp *model.OAuthApp, user *model.User, clientId, redirectURI, scope string) (*model.AccessResponse, *model.AppError) {
+	session, err := a.newSession(rctx, oauthApp, user)
 	if err != nil {
 		return nil, err
 	}
@@ -449,8 +449,8 @@ func (a *App) createNewAccessData(c request.CTX, oauthApp *model.OAuthApp, user 
 	}, nil
 }
 
-func (a *App) newSession(c request.CTX, app *model.OAuthApp, user *model.User) (*model.Session, *model.AppError) {
-	if err := a.limitNumberOfSessions(c, user.Id); err != nil {
+func (a *App) newSession(rctx request.CTX, app *model.OAuthApp, user *model.User) (*model.Session, *model.AppError) {
+	if err := a.limitNumberOfSessions(rctx, user.Id); err != nil {
 		return nil, model.NewAppError("newSession", "api.oauth.get_access_token.internal_session.app_error", nil,
 			"", http.StatusInternalServerError).Wrap(err)
 	}
@@ -465,25 +465,25 @@ func (a *App) newSession(c request.CTX, app *model.OAuthApp, user *model.User) (
 	session.AddProp(model.SessionPropOs, "OAuth2")
 	session.AddProp(model.SessionPropBrowser, "OAuth2")
 
-	session, err := a.Srv().Store().Session().Save(c, session)
+	session, err := a.Srv().Store().Session().Save(rctx, session)
 	if err != nil {
 		return nil, model.NewAppError("newSession", "api.oauth.get_access_token.internal_session.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if err := a.ch.srv.platform.AddSessionToCache(session); err != nil {
-		c.Logger().Warn("Failed to add session to cache", mlog.Err(err))
+		rctx.Logger().Warn("Failed to add session to cache", mlog.Err(err))
 	}
 
 	return session, nil
 }
 
-func (a *App) newSessionUpdateToken(c request.CTX, app *model.OAuthApp, accessData *model.AccessData, user *model.User) (*model.AccessResponse, *model.AppError) {
+func (a *App) newSessionUpdateToken(rctx request.CTX, app *model.OAuthApp, accessData *model.AccessData, user *model.User) (*model.AccessResponse, *model.AppError) {
 	// Remove the previous session
 	if err := a.Srv().Store().Session().Remove(accessData.Token); err != nil {
-		c.Logger().Warn("error removing access data token from session", mlog.Err(err))
+		rctx.Logger().Warn("error removing access data token from session", mlog.Err(err))
 	}
 
-	session, err := a.newSession(c, app, user)
+	session, err := a.newSession(rctx, app, user)
 	if err != nil {
 		return nil, err
 	}
@@ -510,7 +510,7 @@ func (a *App) newSessionUpdateToken(c request.CTX, app *model.OAuthApp, accessDa
 	return accessRsp, nil
 }
 
-func (a *App) GetOAuthLoginEndpoint(c request.CTX, w http.ResponseWriter, r *http.Request, service, action, redirectTo, loginHint string, isMobile bool, desktopToken string, inviteToken string, inviteId string) (string, *model.AppError) {
+func (a *App) GetOAuthLoginEndpoint(rctx request.CTX, w http.ResponseWriter, r *http.Request, service, action, redirectTo, loginHint string, isMobile bool, desktopToken string, inviteToken string, inviteId string) (string, *model.AppError) {
 	stateProps := map[string]string{}
 	stateProps["action"] = action
 
@@ -530,7 +530,7 @@ func (a *App) GetOAuthLoginEndpoint(c request.CTX, w http.ResponseWriter, r *htt
 
 	stateProps[model.UserAuthServiceIsMobile] = strconv.FormatBool(isMobile)
 
-	authURL, err := a.GetAuthorizationCode(c, w, r, service, stateProps, loginHint)
+	authURL, err := a.GetAuthorizationCode(rctx, w, r, service, stateProps, loginHint)
 	if err != nil {
 		return "", err
 	}
@@ -538,7 +538,7 @@ func (a *App) GetOAuthLoginEndpoint(c request.CTX, w http.ResponseWriter, r *htt
 	return authURL, nil
 }
 
-func (a *App) GetOAuthSignupEndpoint(c request.CTX, w http.ResponseWriter, r *http.Request, service, desktopToken string, inviteToken string, inviteId string) (string, *model.AppError) {
+func (a *App) GetOAuthSignupEndpoint(rctx request.CTX, w http.ResponseWriter, r *http.Request, service, desktopToken string, inviteToken string, inviteId string) (string, *model.AppError) {
 	stateProps := map[string]string{}
 	stateProps["action"] = model.OAuthActionSignup
 
@@ -552,7 +552,7 @@ func (a *App) GetOAuthSignupEndpoint(c request.CTX, w http.ResponseWriter, r *ht
 		stateProps["desktop_token"] = desktopToken
 	}
 
-	authURL, err := a.GetAuthorizationCode(c, w, r, service, stateProps, "")
+	authURL, err := a.GetAuthorizationCode(rctx, w, r, service, stateProps, "")
 	if err != nil {
 		return "", err
 	}
@@ -578,7 +578,7 @@ func (a *App) GetAuthorizedAppsForUser(userID string, page, perPage int) ([]*mod
 	return apps, nil
 }
 
-func (a *App) DeauthorizeOAuthAppForUser(c request.CTX, userID, appID string) *model.AppError {
+func (a *App) DeauthorizeOAuthAppForUser(rctx request.CTX, userID, appID string) *model.AppError {
 	if !*a.Config().ServiceSettings.EnableOAuthServiceProvider {
 		return model.NewAppError("DeauthorizeOAuthAppForUser", "api.oauth.allow_oauth.turn_off.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -590,7 +590,7 @@ func (a *App) DeauthorizeOAuthAppForUser(c request.CTX, userID, appID string) *m
 	}
 
 	for _, ad := range accessData {
-		if err := a.RevokeAccessToken(c, ad.Token); err != nil {
+		if err := a.RevokeAccessToken(rctx, ad.Token); err != nil {
 			return err
 		}
 
@@ -633,8 +633,8 @@ func (a *App) RegenerateOAuthAppSecret(app *model.OAuthApp) (*model.OAuthApp, *m
 	return app, nil
 }
 
-func (a *App) RevokeAccessToken(c request.CTX, token string) *model.AppError {
-	if err := a.ch.srv.platform.RevokeAccessToken(c, token); err != nil {
+func (a *App) RevokeAccessToken(rctx request.CTX, token string) *model.AppError {
+	if err := a.ch.srv.platform.RevokeAccessToken(rctx, token); err != nil {
 		switch {
 		case errors.Is(err, platform.GetTokenError):
 			return model.NewAppError("RevokeAccessToken", "api.oauth.revoke_access_token.get.app_error", nil, "", http.StatusBadRequest).Wrap(err)
@@ -648,7 +648,7 @@ func (a *App) RevokeAccessToken(c request.CTX, token string) *model.AppError {
 	return nil
 }
 
-func (a *App) CompleteOAuth(c request.CTX, service string, body io.ReadCloser, props map[string]string, tokenUser *model.User) (*model.User, *model.AppError) {
+func (a *App) CompleteOAuth(rctx request.CTX, service string, body io.ReadCloser, props map[string]string, tokenUser *model.User) (*model.User, *model.AppError) {
 	defer body.Close()
 
 	action := props["action"]
@@ -659,15 +659,15 @@ func (a *App) CompleteOAuth(c request.CTX, service string, body io.ReadCloser, p
 
 	switch action {
 	case model.OAuthActionSignup:
-		return a.CreateOAuthUser(c, service, body, inviteToken, inviteId, tokenUser)
+		return a.CreateOAuthUser(rctx, service, body, inviteToken, inviteId, tokenUser)
 	case model.OAuthActionLogin:
-		return a.LoginByOAuth(c, service, body, inviteToken, inviteId, tokenUser)
+		return a.LoginByOAuth(rctx, service, body, inviteToken, inviteId, tokenUser)
 	case model.OAuthActionEmailToSSO:
-		return a.CompleteSwitchWithOAuth(c, service, body, props["email"], tokenUser)
+		return a.CompleteSwitchWithOAuth(rctx, service, body, props["email"], tokenUser)
 	case model.OAuthActionSSOToEmail:
-		return a.LoginByOAuth(c, service, body, inviteToken, inviteId, tokenUser)
+		return a.LoginByOAuth(rctx, service, body, inviteToken, inviteId, tokenUser)
 	default:
-		return a.LoginByOAuth(c, service, body, inviteToken, inviteId, tokenUser)
+		return a.LoginByOAuth(rctx, service, body, inviteToken, inviteId, tokenUser)
 	}
 }
 
@@ -688,7 +688,7 @@ func (a *App) getSSOProvider(service string) (einterfaces.OAuthProvider, *model.
 	return provider, nil
 }
 
-func (a *App) LoginByOAuth(c request.CTX, service string, userData io.Reader, inviteToken string, inviteId string, tokenUser *model.User) (*model.User, *model.AppError) {
+func (a *App) LoginByOAuth(rctx request.CTX, service string, userData io.Reader, inviteToken string, inviteId string, tokenUser *model.User) (*model.User, *model.AppError) {
 	provider, e := a.getSSOProvider(service)
 	if e != nil {
 		return nil, e
@@ -700,7 +700,7 @@ func (a *App) LoginByOAuth(c request.CTX, service string, userData io.Reader, in
 			map[string]any{"Service": service}, "", http.StatusBadRequest)
 	}
 
-	authUser, err1 := provider.GetUserFromJSON(c, bytes.NewReader(buf.Bytes()), tokenUser)
+	authUser, err1 := provider.GetUserFromJSON(rctx, bytes.NewReader(buf.Bytes()), tokenUser)
 	if err1 != nil {
 		return nil, model.NewAppError("LoginByOAuth", "api.user.login_by_oauth.parse.app_error",
 			map[string]any{"Service": service}, "", http.StatusBadRequest).Wrap(err1)
@@ -714,7 +714,7 @@ func (a *App) LoginByOAuth(c request.CTX, service string, userData io.Reader, in
 	user, err := a.GetUserByAuth(model.NewPointer(*authUser.AuthData), service)
 	if err != nil {
 		if err.Id == MissingAuthAccountError {
-			user, err = a.CreateOAuthUser(c, service, bytes.NewReader(buf.Bytes()), inviteToken, inviteId, tokenUser)
+			user, err = a.CreateOAuthUser(rctx, service, bytes.NewReader(buf.Bytes()), inviteToken, inviteId, tokenUser)
 		} else {
 			return nil, err
 		}
@@ -726,12 +726,12 @@ func (a *App) LoginByOAuth(c request.CTX, service string, userData io.Reader, in
 			return nil, model.NewAppError("loginByOAuth", "api.user.login_by_oauth.bot_login_forbidden.app_error", nil, "", http.StatusForbidden)
 		}
 
-		if err = a.UpdateOAuthUserAttrs(c, bytes.NewReader(buf.Bytes()), user, provider, service, tokenUser); err != nil {
+		if err = a.UpdateOAuthUserAttrs(rctx, bytes.NewReader(buf.Bytes()), user, provider, service, tokenUser); err != nil {
 			return nil, err
 		}
 
-		if err = a.AddUserToTeamByInviteIfNeeded(c, user, inviteToken, inviteId); err != nil {
-			c.Logger().Warn("Failed to add user to team", mlog.Err(err))
+		if err = a.AddUserToTeamByInviteIfNeeded(rctx, user, inviteToken, inviteId); err != nil {
+			rctx.Logger().Warn("Failed to add user to team", mlog.Err(err))
 		}
 	}
 
@@ -742,7 +742,7 @@ func (a *App) LoginByOAuth(c request.CTX, service string, userData io.Reader, in
 	return user, nil
 }
 
-func (a *App) CompleteSwitchWithOAuth(c request.CTX, service string, userData io.Reader, email string, tokenUser *model.User) (*model.User, *model.AppError) {
+func (a *App) CompleteSwitchWithOAuth(rctx request.CTX, service string, userData io.Reader, email string, tokenUser *model.User) (*model.User, *model.AppError) {
 	provider, e := a.getSSOProvider(service)
 	if e != nil {
 		return nil, e
@@ -752,7 +752,7 @@ func (a *App) CompleteSwitchWithOAuth(c request.CTX, service string, userData io
 		return nil, model.NewAppError("CompleteSwitchWithOAuth", "api.user.complete_switch_with_oauth.blank_email.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	ssoUser, err1 := provider.GetUserFromJSON(c, userData, tokenUser)
+	ssoUser, err1 := provider.GetUserFromJSON(rctx, userData, tokenUser)
 	if err1 != nil {
 		return nil, model.NewAppError("CompleteSwitchWithOAuth", "api.user.complete_switch_with_oauth.parse.app_error",
 			map[string]any{"Service": service}, "", http.StatusBadRequest).Wrap(err1)
@@ -768,7 +768,7 @@ func (a *App) CompleteSwitchWithOAuth(c request.CTX, service string, userData io
 		return nil, model.NewAppError("CompleteSwitchWithOAuth", MissingAccountError, nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
-	if err := a.RevokeAllSessions(c, user.Id); err != nil {
+	if err := a.RevokeAllSessions(rctx, user.Id); err != nil {
 		return nil, err
 	}
 
@@ -784,7 +784,7 @@ func (a *App) CompleteSwitchWithOAuth(c request.CTX, service string, userData io
 
 	a.Srv().Go(func() {
 		if err := a.Srv().EmailService.SendSignInChangeEmail(user.Email, strings.Title(service)+" SSO", user.Locale, a.GetSiteURL()); err != nil {
-			c.Logger().Error("error sending signin change email", mlog.Err(err))
+			rctx.Logger().Error("error sending signin change email", mlog.Err(err))
 		}
 	})
 
@@ -820,13 +820,13 @@ func (a *App) GetOAuthStateToken(token string) (*model.Token, *model.AppError) {
 	return mToken, nil
 }
 
-func (a *App) GetAuthorizationCode(c request.CTX, w http.ResponseWriter, r *http.Request, service string, props map[string]string, loginHint string) (string, *model.AppError) {
+func (a *App) GetAuthorizationCode(rctx request.CTX, w http.ResponseWriter, r *http.Request, service string, props map[string]string, loginHint string) (string, *model.AppError) {
 	provider, e := a.getSSOProvider(service)
 	if e != nil {
 		return "", e
 	}
 
-	sso, e2 := provider.GetSSOSettings(c, a.Config(), service)
+	sso, e2 := provider.GetSSOSettings(rctx, a.Config(), service)
 	if e2 != nil {
 		return "", model.NewAppError("GetAuthorizationCode.GetSSOSettings", "api.user.get_authorization_code.endpoint.app_error", nil, "", http.StatusNotImplemented).Wrap(e2)
 	}
@@ -885,13 +885,13 @@ func (a *App) GetAuthorizationCode(c request.CTX, w http.ResponseWriter, r *http
 	return authURL, nil
 }
 
-func (a *App) AuthorizeOAuthUser(c request.CTX, w http.ResponseWriter, r *http.Request, service, code, state, redirectURI string) (io.ReadCloser, map[string]string, *model.User, *model.AppError) {
+func (a *App) AuthorizeOAuthUser(rctx request.CTX, w http.ResponseWriter, r *http.Request, service, code, state, redirectURI string) (io.ReadCloser, map[string]string, *model.User, *model.AppError) {
 	provider, e := a.getSSOProvider(service)
 	if e != nil {
 		return nil, nil, nil, e
 	}
 
-	sso, e2 := provider.GetSSOSettings(c, a.Config(), service)
+	sso, e2 := provider.GetSSOSettings(rctx, a.Config(), service)
 	if e2 != nil {
 		return nil, nil, nil, model.NewAppError("AuthorizeOAuthUser.GetSSOSettings", "api.user.get_authorization_code.endpoint.app_error", nil, "", http.StatusNotImplemented).Wrap(e2)
 	}
@@ -929,7 +929,7 @@ func (a *App) AuthorizeOAuthUser(c request.CTX, w http.ResponseWriter, r *http.R
 
 	appErr = a.DeleteToken(expectedToken)
 	if appErr != nil {
-		c.Logger().Warn("error deleting token", mlog.Err(appErr))
+		rctx.Logger().Warn("error deleting token", mlog.Err(appErr))
 	}
 
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
@@ -986,7 +986,7 @@ func (a *App) AuthorizeOAuthUser(c request.CTX, w http.ResponseWriter, r *http.R
 
 	var userFromToken *model.User
 	if ar.IdToken != "" {
-		userFromToken, err = provider.GetUserFromIdToken(c, ar.IdToken)
+		userFromToken, err = provider.GetUserFromIdToken(rctx, ar.IdToken)
 		if err != nil {
 			return nil, stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.token_failed.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -1011,7 +1011,7 @@ func (a *App) AuthorizeOAuthUser(c request.CTX, w http.ResponseWriter, r *http.R
 		bodyBytes, _ := io.ReadAll(resp.Body)
 		bodyString := string(bodyBytes)
 
-		c.Logger().Error("Error getting OAuth user", mlog.Int("response", resp.StatusCode), mlog.String("body_string", bodyString))
+		rctx.Logger().Error("Error getting OAuth user", mlog.Int("response", resp.StatusCode), mlog.String("body_string", bodyString))
 
 		if service == model.ServiceGitlab && resp.StatusCode == http.StatusForbidden && strings.Contains(bodyString, "Terms of Service") {
 			url, err := url.Parse(*sso.UserAPIEndpoint)
@@ -1029,7 +1029,7 @@ func (a *App) AuthorizeOAuthUser(c request.CTX, w http.ResponseWriter, r *http.R
 	return resp.Body, stateProps, userFromToken, nil
 }
 
-func (a *App) SwitchEmailToOAuth(c request.CTX, w http.ResponseWriter, r *http.Request, email, password, code, service string) (string, *model.AppError) {
+func (a *App) SwitchEmailToOAuth(rctx request.CTX, w http.ResponseWriter, r *http.Request, email, password, code, service string) (string, *model.AppError) {
 	if a.Srv().License() != nil && !*a.Config().ServiceSettings.ExperimentalEnableAuthenticationTransfer {
 		return "", model.NewAppError("emailToOAuth", "api.user.email_to_oauth.not_available.app_error", nil, "", http.StatusForbidden)
 	}
@@ -1039,7 +1039,7 @@ func (a *App) SwitchEmailToOAuth(c request.CTX, w http.ResponseWriter, r *http.R
 		return "", err
 	}
 
-	if err = a.CheckPasswordAndAllCriteria(c, user.Id, password, code); err != nil {
+	if err = a.CheckPasswordAndAllCriteria(rctx, user.Id, password, code); err != nil {
 		return "", err
 	}
 
@@ -1056,7 +1056,7 @@ func (a *App) SwitchEmailToOAuth(c request.CTX, w http.ResponseWriter, r *http.R
 		return a.GetSiteURL() + "/login/sso/saml?action=" + model.OAuthActionEmailToSSO + "&email_token=" + utils.URLEncode(samlToken.Token), nil
 	}
 
-	authURL, err := a.GetAuthorizationCode(c, w, r, service, stateProps, "")
+	authURL, err := a.GetAuthorizationCode(rctx, w, r, service, stateProps, "")
 	if err != nil {
 		return "", err
 	}
@@ -1064,7 +1064,7 @@ func (a *App) SwitchEmailToOAuth(c request.CTX, w http.ResponseWriter, r *http.R
 	return authURL, nil
 }
 
-func (a *App) SwitchOAuthToEmail(c request.CTX, email, password, requesterId string) (string, *model.AppError) {
+func (a *App) SwitchOAuthToEmail(rctx request.CTX, email, password, requesterId string) (string, *model.AppError) {
 	if a.Srv().License() != nil && !*a.Config().ServiceSettings.ExperimentalEnableAuthenticationTransfer {
 		return "", model.NewAppError("oauthToEmail", "api.user.oauth_to_email.not_available.app_error", nil, "", http.StatusForbidden)
 	}
@@ -1086,7 +1086,7 @@ func (a *App) SwitchOAuthToEmail(c request.CTX, email, password, requesterId str
 		return "", model.NewAppError("SwitchOAuthToEmail", "api.user.oauth_to_email.context.app_error", nil, "", http.StatusForbidden)
 	}
 
-	if err := a.UpdatePassword(c, user, password); err != nil {
+	if err := a.UpdatePassword(rctx, user, password); err != nil {
 		return "", err
 	}
 
@@ -1094,11 +1094,11 @@ func (a *App) SwitchOAuthToEmail(c request.CTX, email, password, requesterId str
 
 	a.Srv().Go(func() {
 		if err := a.Srv().EmailService.SendSignInChangeEmail(user.Email, T("api.templates.signin_change_email.body.method_email"), user.Locale, a.GetSiteURL()); err != nil {
-			c.Logger().Error("error sending signin change email", mlog.Err(err))
+			rctx.Logger().Error("error sending signin change email", mlog.Err(err))
 		}
 	})
 
-	if err := a.RevokeAllSessions(c, requesterId); err != nil {
+	if err := a.RevokeAllSessions(rctx, requesterId); err != nil {
 		return "", err
 	}
 
@@ -1109,7 +1109,7 @@ func generateOAuthStateTokenExtra(email, action, cookie string) string {
 	return email + ":" + action + ":" + cookie
 }
 
-func (a *App) GetAuthorizationServerMetadata(c request.CTX) (*model.AuthorizationServerMetadata, *model.AppError) {
+func (a *App) GetAuthorizationServerMetadata(rctx request.CTX) (*model.AuthorizationServerMetadata, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableOAuthServiceProvider {
 		return nil, model.NewAppError("GetAuthorizationServerMetadata", "api.oauth.authorization_server_metadata.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -1119,16 +1119,22 @@ func (a *App) GetAuthorizationServerMetadata(c request.CTX) (*model.Authorizatio
 		return nil, model.NewAppError("GetAuthorizationServerMetadata", "api.oauth.authorization_server_metadata.site_url_required.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	metadata := model.GetDefaultMetadata(siteURL)
+	metadata, err := model.GetDefaultMetadata(siteURL)
+	if err != nil {
+		return nil, model.NewAppError("GetAuthorizationServerMetadata", "api.oauth.authorization_server_metadata.invalid_url.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
 
 	if a.Config().ServiceSettings.EnableDynamicClientRegistration != nil && *a.Config().ServiceSettings.EnableDynamicClientRegistration {
-		metadata.RegistrationEndpoint = siteURL + model.OAuthAppsRegisterEndpoint
+		metadata.RegistrationEndpoint, err = url.JoinPath(siteURL, model.OAuthAppsRegisterEndpoint)
+		if err != nil {
+			return nil, model.NewAppError("GetAuthorizationServerMetadata", "api.oauth.authorization_server_metadata.invalid_url.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
 	}
 
 	return metadata, nil
 }
 
-func (a *App) RegisterOAuthClient(c request.CTX, req *model.ClientRegistrationRequest, userID string) (*model.OAuthApp, *model.AppError) {
+func (a *App) RegisterOAuthClient(rctx request.CTX, req *model.ClientRegistrationRequest, userID string) (*model.OAuthApp, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableOAuthServiceProvider {
 		return nil, model.NewAppError("RegisterOAuthClient", "api.oauth.register_oauth_app.turn_off.app_error", nil, "", http.StatusNotImplemented)
 	}

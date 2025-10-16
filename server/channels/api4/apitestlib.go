@@ -452,6 +452,13 @@ func (th *TestHelper) TearDown() {
 	}
 }
 
+func (th *TestHelper) RemoveLicense() {
+	err := th.App.Srv().RemoveLicense()
+	if err != nil {
+		th.TestLogger.Warn("TestHelper.RemoveLicense: failed to remove license", mlog.Err(err))
+	}
+}
+
 func closeBody(r *http.Response) {
 	if r.Body != nil {
 		_, _ = io.Copy(io.Discard, r.Body)
@@ -1332,7 +1339,7 @@ func (th *TestHelper) cleanupTestFile(info *model.FileInfo) error {
 }
 
 func (th *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Channel) {
-	if cm, err := th.App.Srv().Store().Channel().GetMember(context.Background(), channel.Id, user.Id); err == nil {
+	if cm, err := th.App.Srv().Store().Channel().GetMember(th.Context, channel.Id, user.Id); err == nil {
 		cm.SchemeAdmin = true
 		if _, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, cm); err != nil {
 			panic(err)
@@ -1375,7 +1382,7 @@ func (th *TestHelper) SaveDefaultRolePermissions() map[string][]string {
 		"channel_user",
 		"channel_admin",
 	} {
-		role, err1 := th.App.GetRoleByName(context.Background(), roleName)
+		role, err1 := th.App.GetRoleByName(th.Context, roleName)
 		if err1 != nil {
 			panic(err1)
 		}
@@ -1387,7 +1394,7 @@ func (th *TestHelper) SaveDefaultRolePermissions() map[string][]string {
 
 func (th *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
 	for roleName, permissions := range data {
-		role, err1 := th.App.GetRoleByName(context.Background(), roleName)
+		role, err1 := th.App.GetRoleByName(th.Context, roleName)
 		if err1 != nil {
 			panic(err1)
 		}
@@ -1406,7 +1413,7 @@ func (th *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
 }
 
 func (th *TestHelper) RemovePermissionFromRole(permission string, roleName string) {
-	role, err1 := th.App.GetRoleByName(context.Background(), roleName)
+	role, err1 := th.App.GetRoleByName(th.Context, roleName)
 	if err1 != nil {
 		panic(err1)
 	}
@@ -1431,7 +1438,7 @@ func (th *TestHelper) RemovePermissionFromRole(permission string, roleName strin
 }
 
 func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
-	role, err1 := th.App.GetRoleByName(context.Background(), roleName)
+	role, err1 := th.App.GetRoleByName(th.Context, roleName)
 	if err1 != nil {
 		panic(err1)
 	}

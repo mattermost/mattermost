@@ -68,7 +68,6 @@ describe('components/multiselect/multiselect', () => {
             return (
                 <p
                     key={option.id}
-                    ref={isSelected ? 'selected' : option.id}
                     onClick={() => onAdd(option)}
                     onMouseMove={() => onMouseMove(option)}
                 >

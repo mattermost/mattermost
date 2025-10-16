@@ -3,6 +3,8 @@
 
 package model
 
+import "net/url"
+
 type AuthorizationServerMetadata struct {
 	Issuer                            string   `json:"issuer"`
 	AuthorizationEndpoint             string   `json:"authorization_endpoint,omitempty"`
@@ -35,11 +37,19 @@ const (
 	OAuthMetadataEndpoint     = "/.well-known/oauth-authorization-server"
 )
 
-func GetDefaultMetadata(siteURL string) *AuthorizationServerMetadata {
+func GetDefaultMetadata(siteURL string) (*AuthorizationServerMetadata, error) {
+	authorizationEndpoint, err := url.JoinPath(siteURL, OAuthAuthorizeEndpoint)
+	if err != nil {
+		return nil, err
+	}
+	tokenEndpoint, err := url.JoinPath(siteURL, OAuthAccessTokenEndpoint)
+	if err != nil {
+		return nil, err
+	}
 	return &AuthorizationServerMetadata{
 		Issuer:                siteURL,
-		AuthorizationEndpoint: siteURL + OAuthAuthorizeEndpoint,
-		TokenEndpoint:         siteURL + OAuthAccessTokenEndpoint,
+		AuthorizationEndpoint: authorizationEndpoint,
+		TokenEndpoint:         tokenEndpoint,
 		ResponseTypesSupported: []string{
 			ResponseTypeCode,
 		},
@@ -56,5 +66,5 @@ func GetDefaultMetadata(siteURL string) *AuthorizationServerMetadata {
 		CodeChallengeMethodsSupported: []string{
 			PKCECodeChallengeMethodS256, // S256 method supported for optional PKCE
 		},
-	}
+	}, nil
 }

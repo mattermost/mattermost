@@ -393,7 +393,7 @@ func (s *MmctlUnitTestSuite) TestImportValidateCmdF() {
 
 		s.client.
 			EXPECT().
-			GetOldClientConfig(context.TODO(), "").
+			GetClientConfig(context.TODO(), "").
 			Return(map[string]string{
 				"MaxPostSize": fmt.Sprintf("%d", model.PostMessageMaxRunesV2*2),
 			}, &model.Response{}, nil).
@@ -454,7 +454,7 @@ func (s *MmctlUnitTestSuite) TestImportValidateCmdF() {
 
 		s.client.
 			EXPECT().
-			GetOldClientConfig(context.TODO(), "").
+			GetClientConfig(context.TODO(), "").
 			Return(map[string]string{
 				"MaxPostSize": fmt.Sprintf("%d", model.PostMessageMaxRunesV2*2),
 			}, &model.Response{}, nil).
@@ -513,7 +513,7 @@ func (s *MmctlUnitTestSuite) TestImportValidateCmdF() {
 
 		s.client.
 			EXPECT().
-			GetOldClientConfig(context.TODO(), "").
+			GetClientConfig(context.TODO(), "").
 			Return(map[string]string{
 				"MaxPostSize": fmt.Sprintf("%d", model.PostMessageMaxRunesV2*2),
 			}, &model.Response{}, nil).

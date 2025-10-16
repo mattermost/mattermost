@@ -3,17 +3,13 @@
 
 import React, {useState, useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
-
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {deleteChannel} from 'actions/views/channel';
 
 import ConfirmationModal from 'components/confirm_modal';
-
-import type {GlobalState} from 'types/store';
 
 type ChannelSettingsArchiveTabProps = {
     channel: Channel;
@@ -26,9 +22,6 @@ function ChannelSettingsArchiveTab({
 }: ChannelSettingsArchiveTabProps) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
-
-    // Redux selector
-    const canViewArchivedChannels = useSelector((state: GlobalState) => getConfig(state).ExperimentalViewArchivedChannels === 'true');
 
     const [showArchiveConfirmModal, setShowArchiveConfirmModal] = useState(false);
 
@@ -72,10 +65,7 @@ function ChannelSettingsArchiveTab({
                         <div>
                             <p>
                                 <FormattedMessage
-                                    id={canViewArchivedChannels ?
-                                        'deleteChannelModal.canViewArchivedChannelsWarning' :
-                                        'deleteChannelModal.cannotViewArchivedChannelsWarning'
-                                    }
+                                    id='deleteChannelModal.canViewArchivedChannelsWarning'
                                     defaultMessage="Archiving a channel removes it from the user interface, but doesn't permanently delete the channel. New messages can't be posted to archived channels."
                                 />
                             </p>
@@ -85,7 +75,7 @@ function ChannelSettingsArchiveTab({
                                     defaultMessage='Are you sure you wish to archive the <strong>{display_name}</strong> channel?'
                                     values={{
                                         display_name: channel.display_name,
-                                        strong: (chunks: string) => <strong>{chunks}</strong>,
+                                        strong: (chunks) => <strong>{chunks}</strong>,
                                     }}
                                 />
                             </p>

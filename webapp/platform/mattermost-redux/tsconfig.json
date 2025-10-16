@@ -18,6 +18,7 @@
         "rootDir": "../../channels/src/packages/mattermost-redux/src",
         "composite": true,
         "useUnknownInCatchVariables": false,
+        "skipLibCheck": true,
         "tsBuildInfoFile": "tsconfig.tsbuildinfo",
         "paths": {
             "mattermost-redux/*": ["../../channels/src/packages/mattermost-redux/src/*"]

@@ -831,9 +831,9 @@ func (_m *UserStore) GetKnownUsers(userID string) ([]string, error) {
 	return r0, r1
 }
 
-// GetMany provides a mock function with given fields: ctx, ids
-func (_m *UserStore) GetMany(ctx context.Context, ids []string) ([]*model.User, error) {
-	ret := _m.Called(ctx, ids)
+// GetMany provides a mock function with given fields: rctx, ids
+func (_m *UserStore) GetMany(rctx request.CTX, ids []string) ([]*model.User, error) {
+	ret := _m.Called(rctx, ids)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetMany")
@@ -841,19 +841,19 @@ func (_m *UserStore) GetMany(ctx context.Context, ids []string) ([]*model.User, 
 
 	var r0 []*model.User
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, []string) ([]*model.User, error)); ok {
-		return rf(ctx, ids)
+	if rf, ok := ret.Get(0).(func(request.CTX, []string) ([]*model.User, error)); ok {
+		return rf(rctx, ids)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, []string) []*model.User); ok {
-		r0 = rf(ctx, ids)
+	if rf, ok := ret.Get(0).(func(request.CTX, []string) []*model.User); ok {
+		r0 = rf(rctx, ids)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.User)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, []string) error); ok {
-		r1 = rf(ctx, ids)
+	if rf, ok := ret.Get(1).(func(request.CTX, []string) error); ok {
+		r1 = rf(rctx, ids)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -951,9 +951,9 @@ func (_m *UserStore) GetProfileByGroupChannelIdsForUser(userID string, channelId
 	return r0, r1
 }
 
-// GetProfileByIds provides a mock function with given fields: ctx, userIds, options, allowFromCache
-func (_m *UserStore) GetProfileByIds(ctx context.Context, userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) ([]*model.User, error) {
-	ret := _m.Called(ctx, userIds, options, allowFromCache)
+// GetProfileByIds provides a mock function with given fields: rctx, userIds, options, allowFromCache
+func (_m *UserStore) GetProfileByIds(rctx request.CTX, userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) ([]*model.User, error) {
+	ret := _m.Called(rctx, userIds, options, allowFromCache)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetProfileByIds")
@@ -961,19 +961,19 @@ func (_m *UserStore) GetProfileByIds(ctx context.Context, userIds []string, opti
 
 	var r0 []*model.User
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, []string, *store.UserGetByIdsOpts, bool) ([]*model.User, error)); ok {
-		return rf(ctx, userIds, options, allowFromCache)
+	if rf, ok := ret.Get(0).(func(request.CTX, []string, *store.UserGetByIdsOpts, bool) ([]*model.User, error)); ok {
+		return rf(rctx, userIds, options, allowFromCache)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, []string, *store.UserGetByIdsOpts, bool) []*model.User); ok {
-		r0 = rf(ctx, userIds, options, allowFromCache)
+	if rf, ok := ret.Get(0).(func(request.CTX, []string, *store.UserGetByIdsOpts, bool) []*model.User); ok {
+		r0 = rf(rctx, userIds, options, allowFromCache)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.User)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, []string, *store.UserGetByIdsOpts, bool) error); ok {
-		r1 = rf(ctx, userIds, options, allowFromCache)
+	if rf, ok := ret.Get(1).(func(request.CTX, []string, *store.UserGetByIdsOpts, bool) error); ok {
+		r1 = rf(rctx, userIds, options, allowFromCache)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1734,6 +1734,36 @@ func (_m *UserStore) Search(rctx request.CTX, teamID string, term string, option
 	return r0, r1
 }
 
+// SearchCommonContentFlaggingReviewers provides a mock function with given fields: term
+func (_m *UserStore) SearchCommonContentFlaggingReviewers(term string) ([]*model.User, error) {
+	ret := _m.Called(term)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SearchCommonContentFlaggingReviewers")
+	}
+
+	var r0 []*model.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) ([]*model.User, error)); ok {
+		return rf(term)
+	}
+	if rf, ok := ret.Get(0).(func(string) []*model.User); ok {
+		r0 = rf(term)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(term)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // SearchInChannel provides a mock function with given fields: channelID, term, options
 func (_m *UserStore) SearchInChannel(channelID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
 	ret := _m.Called(channelID, term, options)
@@ -1877,6 +1907,36 @@ func (_m *UserStore) SearchNotInTeam(notInTeamID string, term string, options *m
 
 	if rf, ok := ret.Get(1).(func(string, string, *model.UserSearchOptions) error); ok {
 		r1 = rf(notInTeamID, term, options)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// SearchTeamContentFlaggingReviewers provides a mock function with given fields: teamId, term
+func (_m *UserStore) SearchTeamContentFlaggingReviewers(teamId string, term string) ([]*model.User, error) {
+	ret := _m.Called(teamId, term)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SearchTeamContentFlaggingReviewers")
+	}
+
+	var r0 []*model.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string) ([]*model.User, error)); ok {
+		return rf(teamId, term)
+	}
+	if rf, ok := ret.Get(0).(func(string, string) []*model.User); ok {
+		r0 = rf(teamId, term)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(teamId, term)
 	} else {
 		r1 = ret.Error(1)
 	}

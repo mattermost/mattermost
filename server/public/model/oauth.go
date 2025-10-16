@@ -4,6 +4,7 @@
 package model
 
 import (
+	"crypto/subtle"
 	"fmt"
 	"net/http"
 	"slices"
@@ -192,7 +193,7 @@ func (a *OAuthApp) validatePublicClientGrant(grantType, clientSecret, codeVerifi
 // validateConfidentialClientGrant validates confidential client authentication
 func (a *OAuthApp) validateConfidentialClientGrant(grantType, clientSecret string) *AppError {
 	// Confidential clients must provide correct client secret
-	if a.ClientSecret != clientSecret {
+	if subtle.ConstantTimeCompare([]byte(a.ClientSecret), []byte(clientSecret)) == 0 {
 		return NewAppError("OAuthApp.validateConfidentialClientGrant", "model.oauth.validate_grant.credentials.app_error", nil, "app_id="+a.Id, http.StatusUnauthorized)
 	}
 

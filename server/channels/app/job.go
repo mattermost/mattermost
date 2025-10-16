@@ -8,12 +8,35 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func (a *App) GetJob(c request.CTX, id string) (*model.Job, *model.AppError) {
-	job, err := a.Srv().Store().Job().Get(c, id)
+// getChannelIDFromJobData extracts channel ID from access control sync job data.
+// Returns channel ID if the job is for a specific channel, empty string if it's a system-wide job.
+func (a *App) getChannelIDFromJobData(jobData model.StringMap) string {
+	policyID, ok := jobData["policy_id"]
+	if !ok || policyID == "" {
+		return ""
+	}
+
+	// In the access control system:
+	// - Channel policies have ID == channelID
+	// - Parent policies have their own system-wide ID
+	//
+	// For channel admin jobs: policy_id is channelID (since channel policy ID equals channel ID)
+	// For system admin jobs: policy_id could be either channel policy ID or parent policy ID
+	//
+	// We return the parent_id as channelID because:
+	// 1. If it's a channel policy ID, it equals the channel ID
+	// 2. If it's a parent policy ID, the permission check will fail safely
+	// 3. This maintains security: only users with permission to that specific ID can create the job
+	return policyID
+}
+
+func (a *App) GetJob(rctx request.CTX, id string) (*model.Job, *model.AppError) {
+	job, err := a.Srv().Store().Job().Get(rctx, id)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -27,44 +50,85 @@ func (a *App) GetJob(c request.CTX, id string) (*model.Job, *model.AppError) {
 	return job, nil
 }
 
-func (a *App) GetJobsByTypePage(c request.CTX, jobType string, page int, perPage int) ([]*model.Job, *model.AppError) {
-	jobs, err := a.Srv().Store().Job().GetAllByTypePage(c, jobType, page, perPage)
+func (a *App) GetJobsByTypePage(rctx request.CTX, jobType string, page int, perPage int) ([]*model.Job, *model.AppError) {
+	jobs, err := a.Srv().Store().Job().GetAllByTypePage(rctx, jobType, page, perPage)
 	if err != nil {
 		return nil, model.NewAppError("GetJobsByType", "app.job.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return jobs, nil
 }
 
-func (a *App) GetJobsByTypesPage(c request.CTX, jobType []string, page int, perPage int) ([]*model.Job, *model.AppError) {
-	jobs, err := a.Srv().Store().Job().GetAllByTypesPage(c, jobType, page, perPage)
+func (a *App) GetJobsByTypesPage(rctx request.CTX, jobType []string, page int, perPage int) ([]*model.Job, *model.AppError) {
+	jobs, err := a.Srv().Store().Job().GetAllByTypesPage(rctx, jobType, page, perPage)
 	if err != nil {
 		return nil, model.NewAppError("GetJobsByType", "app.job.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return jobs, nil
 }
 
-func (a *App) GetJobsByTypesAndStatuses(c request.CTX, jobTypes []string, status []string, page int, perPage int) ([]*model.Job, *model.AppError) {
-	jobs, err := a.Srv().Store().Job().GetAllByTypesAndStatusesPage(c, jobTypes, status, page*perPage, perPage)
+func (a *App) GetJobsByTypesAndStatuses(rctx request.CTX, jobTypes []string, status []string, page int, perPage int) ([]*model.Job, *model.AppError) {
+	jobs, err := a.Srv().Store().Job().GetAllByTypesAndStatusesPage(rctx, jobTypes, status, page*perPage, perPage)
 	if err != nil {
 		return nil, model.NewAppError("GetAllByTypesAndStatusesPage", "app.job.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return jobs, nil
 }
 
-func (a *App) CreateJob(c request.CTX, job *model.Job) (*model.Job, *model.AppError) {
-	return a.Srv().Jobs.CreateJob(c, job.Type, job.Data)
+func (a *App) CreateJob(rctx request.CTX, job *model.Job) (*model.Job, *model.AppError) {
+	switch job.Type {
+	case model.JobTypeAccessControlSync:
+		// Route ABAC jobs to specialized deduplication handler
+		return a.CreateAccessControlSyncJob(rctx, job.Data)
+	default:
+		return a.Srv().Jobs.CreateJob(rctx, job.Type, job.Data)
+	}
 }
 
-func (a *App) CancelJob(c request.CTX, jobId string) *model.AppError {
-	return a.Srv().Jobs.RequestCancellation(c, jobId)
+func (a *App) CreateAccessControlSyncJob(rctx request.CTX, jobData map[string]string) (*model.Job, *model.AppError) {
+	// Get the policy_id (channel ID) from job data to scope the deduplication
+	policyID, exists := jobData["policy_id"]
+
+	// If policy_id is provided, this is a channel-specific job that needs deduplication
+	if exists && policyID != "" {
+		// Find existing pending or in-progress jobs for this specific policy/channel
+		existingJobs, err := a.Srv().Store().Job().GetByTypeAndData(rctx, model.JobTypeAccessControlSync, map[string]string{
+			"policy_id": policyID,
+		}, true, model.JobStatusPending, model.JobStatusInProgress)
+		if err != nil {
+			return nil, model.NewAppError("CreateAccessControlSyncJob", "app.job.get_existing_jobs.error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+
+		// Cancel any existing active jobs for this policy (all returned jobs are already active)
+		for _, job := range existingJobs {
+			rctx.Logger().Info("Canceling existing access control sync job before creating new one",
+				mlog.String("job_id", job.Id),
+				mlog.String("policy_id", policyID),
+				mlog.String("status", job.Status))
+
+			// directly cancel jobs for deduplication
+			if err := a.Srv().Jobs.SetJobCanceled(job); err != nil {
+				rctx.Logger().Warn("Failed to cancel existing access control sync job",
+					mlog.String("job_id", job.Id),
+					mlog.String("policy_id", policyID),
+					mlog.Err(err))
+			}
+		}
+	}
+
+	// Create the new job
+	return a.Srv().Jobs.CreateJob(rctx, model.JobTypeAccessControlSync, jobData)
 }
 
-func (a *App) UpdateJobStatus(c request.CTX, job *model.Job, newStatus string) *model.AppError {
+func (a *App) CancelJob(rctx request.CTX, jobId string) *model.AppError {
+	return a.Srv().Jobs.RequestCancellation(rctx, jobId)
+}
+
+func (a *App) UpdateJobStatus(rctx request.CTX, job *model.Job, newStatus string) *model.AppError {
 	switch newStatus {
 	case model.JobStatusPending:
 		return a.Srv().Jobs.SetJobPending(job)
 	case model.JobStatusCancelRequested:
-		return a.Srv().Jobs.RequestCancellation(c, job.Id)
+		return a.Srv().Jobs.RequestCancellation(rctx, job.Id)
 	case model.JobStatusCanceled:
 		return a.Srv().Jobs.SetJobCanceled(job)
 	default:
@@ -98,7 +162,24 @@ func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.
 		model.JobTypeExtractContent:
 		return a.SessionHasPermissionTo(session, model.PermissionManageJobs), model.PermissionManageJobs
 	case model.JobTypeAccessControlSync:
-		return a.SessionHasPermissionTo(session, model.PermissionManageSystem), model.PermissionManageSystem
+		// Allow system admins OR channel admins to create access control sync jobs
+		hasSystemPermission := a.SessionHasPermissionTo(session, model.PermissionManageSystem)
+		if hasSystemPermission {
+			return true, model.PermissionManageSystem
+		}
+
+		// For channel admins, check if they have permission for the specific channel/policy
+		channelID := a.getChannelIDFromJobData(job.Data)
+		if channelID != "" {
+			// SECURE: Check specific channel permission
+			hasChannelPermission := a.HasPermissionToChannel(request.EmptyContext(a.Srv().Log()), session.UserId, channelID, model.PermissionManageChannelAccessRules)
+			if hasChannelPermission {
+				return true, model.PermissionManageChannelAccessRules
+			}
+		}
+
+		// Fallback: deny access if no specific channel permission and not system admin
+		return false, model.PermissionManageSystem
 	}
 
 	return false, nil

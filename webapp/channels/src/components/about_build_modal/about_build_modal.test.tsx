@@ -64,6 +64,7 @@ describe('components/AboutBuildModal', () => {
         license = {
             IsLicensed: 'true',
             Company: 'Mattermost Inc',
+            SkuShortName: 'entry',
         };
         socketStatus = {
             connected: true,
@@ -73,10 +74,10 @@ describe('components/AboutBuildModal', () => {
 
     test('should match snapshot for enterprise edition', () => {
         renderAboutBuildModal({config, license, socketStatus});
-        expect(screen.getByTestId('aboutModalVersion')).toHaveTextContent('Mattermost Version: 3.6.0');
-        expect(screen.getByTestId('aboutModalDBVersionString')).toHaveTextContent('Database Schema Version: 77');
-        expect(screen.getByTestId('aboutModalBuildNumber')).toHaveTextContent('Build Number: 123456');
-        expect(screen.getByText('Mattermost Enterprise Edition')).toBeInTheDocument();
+        expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Server Version: 3.6.0');
+        expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Database Schema Version: 77');
+        expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Build Number: 123456');
+        expect(screen.getByText('Mattermost Entry')).toBeInTheDocument();
         expect(screen.getByText('Modern communication from behind your firewall.')).toBeInTheDocument();
         expect(screen.getByRole('link', {name: 'mattermost.com'})).toHaveAttribute('href', 'https://mattermost.com/?utm_source=mattermost&utm_medium=in-product&utm_content=about_build_modal&uid=&sid=&edition=enterprise&server_version=3.6.0');
         expect(screen.getByText('EE Build Hash: 0123456789abcdef', {exact: false})).toBeInTheDocument();
@@ -95,9 +96,9 @@ describe('components/AboutBuildModal', () => {
         };
 
         renderAboutBuildModal({config: teamConfig, license: {}, socketStatus: {connected: false}});
-        expect(screen.getByTestId('aboutModalVersion')).toHaveTextContent('Mattermost Version: 3.6.0');
-        expect(screen.getByTestId('aboutModalDBVersionString')).toHaveTextContent('Database Schema Version: 77');
-        expect(screen.getByTestId('aboutModalBuildNumber')).toHaveTextContent('Build Number: 123456');
+        expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Server Version: 3.6.0');
+        expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Database Schema Version: 77');
+        expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Build Number: 123456');
         expect(screen.getByText('Mattermost Team Edition')).toBeInTheDocument();
         expect(screen.getByText('All your team communication in one place, instantly searchable and accessible anywhere.')).toBeInTheDocument();
         expect(screen.getByRole('link', {name: 'mattermost.com/community/'})).toHaveAttribute('href', 'https://mattermost.com/community/?utm_source=mattermost&utm_medium=in-product&utm_content=about_build_modal&uid=&sid=&edition=team&server_version=3.6.0');
@@ -145,9 +146,9 @@ describe('components/AboutBuildModal', () => {
 
         renderAboutBuildModal({config: sameBuildConfig, license: {}, socketStatus: {connected: true}});
 
-        expect(screen.getByTestId('aboutModalVersion')).toHaveTextContent('Mattermost Version: dev');
-        expect(screen.getByTestId('aboutModalDBVersionString')).toHaveTextContent('Database Schema Version: 77');
-        expect(screen.getByTestId('aboutModalBuildNumber')).toHaveTextContent('Build Number: n/a');
+        expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Server Version: dev');
+        expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Database Schema Version: 77');
+        expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Build Number: n/a');
         expect(screen.getByText('Mattermost Team Edition')).toBeInTheDocument();
         expect(screen.getByText('All your team communication in one place, instantly searchable and accessible anywhere.')).toBeInTheDocument();
         expect(screen.getByRole('link', {name: 'mattermost.com/community/'})).toHaveAttribute('href', 'https://mattermost.com/community/?utm_source=mattermost&utm_medium=in-product&utm_content=about_build_modal&uid=&sid=&edition=team&server_version=dev');
@@ -159,7 +160,7 @@ describe('components/AboutBuildModal', () => {
         expect(screen.getByRole('link', {name: 'mobile'})).toHaveAttribute('href', 'https://github.com/mattermost/mattermost-mobile/blob/master/NOTICE.txt');
     });
 
-    test('should call onExited callback when the modal is hidden', () => {
+    test('should call onExited callback when the modal is hidden', async () => {
         const onExited = jest.fn();
         const state = {
             entities: {
@@ -185,7 +186,7 @@ describe('components/AboutBuildModal', () => {
             state,
         );
 
-        userEvent.click(screen.getByText('Close'));
+        await userEvent.click(screen.getByText('Close'));
         expect(onExited).toHaveBeenCalledTimes(1);
     });
 
@@ -233,8 +234,8 @@ describe('components/AboutBuildModal', () => {
         });
 
         await waitFor(() => {
-            expect(screen.getByTestId('aboutModalLoadMetric')).toBeInTheDocument();
-            expect(screen.getByTestId('aboutModalLoadMetric')).toHaveTextContent('Load Metric: 75');
+            expect(screen.getByTestId('aboutModalVersionInfo')).toBeInTheDocument();
+            expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Load Metric: 75');
         });
     });
 
@@ -247,12 +248,12 @@ describe('components/AboutBuildModal', () => {
             expect(Client4.getLicenseLoadMetric).toHaveBeenCalled();
         });
 
-        expect(screen.queryByTestId('aboutModalLoadMetric')).not.toBeInTheDocument();
+        expect(screen.getByTestId('aboutModalVersionInfo')).not.toHaveTextContent('Load Metric:');
     });
 
     test('should handle API errors gracefully', async () => {
         // Temporarily suppress console.error for this test
-        jest.spyOn(console, 'error').mockImplementation(() => {});
+        console.error = jest.fn();
 
         // Mock the API call to throw an error
         jest.spyOn(Client4, 'getLicenseLoadMetric').mockRejectedValue(new Error('API error'));
@@ -266,7 +267,7 @@ describe('components/AboutBuildModal', () => {
 
         // The error should be logged but not cause the component to crash
         expect(console.error).toHaveBeenCalled();
-        expect(screen.queryByTestId('aboutModalLoadMetric')).not.toBeInTheDocument();
+        expect(screen.getByTestId('aboutModalVersionInfo')).not.toHaveTextContent('Load Metric:');
     });
 
     function renderAboutBuildModal(props = {}) {
