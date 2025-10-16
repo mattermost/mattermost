@@ -2074,53 +2074,39 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	if terms == "" && excludedTerms == "" {
 		// we've already confirmed that we have a channel or user to search for
 	} else {
-		// Parse text for wildcards
-		terms = wildCardRegex.ReplaceAllLiteralString(terms, ":* ")
-		excludedTerms = wildCardRegex.ReplaceAllLiteralString(excludedTerms, ":* ")
+		// pg_bigm を使用するように変更します。
+		// to_tsvector/to_tsquery の代わりに LIKE/NOT LIKE を使用してインデックス検索を有効にします。
 
-		simpleSearch := false
-		// Replace spaces with to_tsquery symbols
-		replaceSpaces := func(input string, excludedInput bool) string {
-			if input == "" {
-				return input
+		// 必須キーワードの処理
+		termWords := strings.Fields(terms)
+		if len(termWords) > 0 {
+			var searchClauses []string
+			var searchArgs []any
+			for _, word := range termWords {
+				// フレーズ検索（""で囲まれた部分）はそのまま使用
+				cleanWord := strings.Trim(word, `"`)
+				searchClauses = append(searchClauses, fmt.Sprintf("%s LIKE ?", searchType))
+				searchArgs = append(searchArgs, "%"+cleanWord+"%")
 			}
-
-			// Remove extra spaces
-			input = strings.Join(strings.Fields(input), " ")
-
-			// Replace spaces within quoted strings with '<->'
-			input = quotedStringsRegex.ReplaceAllStringFunc(input, func(match string) string {
-				// If the whole search term is a quoted string,
-				// we don't want to do stemming.
-				if input == match {
-					simpleSearch = true
-				}
-				return strings.Replace(match, " ", "<->", -1)
-			})
-
-			// Replace spaces outside of quoted substrings with '&' or '|'
-			replacer := "&"
-			if excludedInput || params.OrTerms {
-				replacer = "|"
+			logicalOperator := " AND "
+			if params.OrTerms {
+				logicalOperator = " OR "
 			}
-			input = strings.Replace(input, " ", replacer, -1)
-
-			return input
+			baseQuery = baseQuery.Where("("+strings.Join(searchClauses, logicalOperator)+")", searchArgs...)
 		}
 
-		tsQueryClause := replaceSpaces(terms, false)
-		excludedClause := replaceSpaces(excludedTerms, true)
-		if excludedClause != "" {
-			tsQueryClause += " &!(" + excludedClause + ")"
+		// 除外キーワードの処理
+		excludedWords := strings.Fields(excludedTerms)
+		if len(excludedWords) > 0 {
+			var excludedClauses []string
+			var excludedArgs []any
+			for _, word := range excludedWords {
+				cleanWord := strings.Trim(word, `"`)
+				excludedClauses = append(excludedClauses, fmt.Sprintf("%s NOT LIKE ?", searchType))
+				excludedArgs = append(excludedArgs, "%"+cleanWord+"%")
+			}
+			baseQuery = baseQuery.Where(strings.Join(excludedClauses, " AND "), excludedArgs...)
 		}
-
-		textSearchCfg := s.pgDefaultTextSearchConfig
-		if simpleSearch {
-			textSearchCfg = "simple"
-		}
-
-		searchClause := fmt.Sprintf("to_tsvector('%[1]s', %[2]s) @@  to_tsquery('%[1]s', ?)", textSearchCfg, searchType)
-		baseQuery = baseQuery.Where(searchClause, tsQueryClause)
 	}
 
 	inQuery := s.getSubQueryBuilder().Select("Id").
