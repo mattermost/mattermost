@@ -10,7 +10,7 @@
 // Stage: @prod
 // Group: @channels @enterprise @system_console
 
-import {v4 as uuidv4} from 'uuid';
+import {randomUUID} from 'crypto';
 const PAGE_SIZE = 10;
 
 describe('Search teams', () => {
@@ -30,7 +30,7 @@ describe('Search teams', () => {
     });
 
     it('returns results', () => {
-        const displayName = uuidv4();
+        const displayName = randomUUID();
 
         // # Create a new team.
         cy.apiCreateTeam('team-search', displayName);
@@ -43,7 +43,7 @@ describe('Search teams', () => {
     });
 
     it('results are paginated', () => {
-        const displayName = uuidv4();
+        const displayName = randomUUID();
 
         // # Create enough new teams with common name prefixes to get multiple pages of search results.
         Cypress._.times(PAGE_SIZE + 2, (i) => {
@@ -64,7 +64,7 @@ describe('Search teams', () => {
     });
 
     it('clears the results when "x" is clicked', () => {
-        const displayName = uuidv4();
+        const displayName = randomUUID();
 
         // # Create a new team.
         cy.apiCreateTeam('team-search', displayName);
@@ -86,7 +86,7 @@ describe('Search teams', () => {
     });
 
     it('clears the results when the search term is deleted with backspace', () => {
-        const displayName = uuidv4();
+        const displayName = randomUUID();
 
         // # Create a team.
         cy.apiCreateTeam('team-search', displayName);
