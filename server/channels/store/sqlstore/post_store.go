@@ -3305,15 +3305,19 @@ func (s *SqlPostStore) Restore(post *model.Post, deletedBy, statusFieldId string
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	// First store the corresponding files
+	// We want to work on posts which are -
+	// 1. the post itself or its replies,
+	// 2. deleted by the specified deletedBy user ID
+	// 3. which aren't themselves flagged and under reviewer (if they are replies)
 	nonDeletedPostIdSubQuery := s.getSubQueryBuilder().
 		Select("p.Id as PostId").
 		From("Posts AS p").
-		LeftJoin("PropertyValues AS pv ON p.id = pv.TargetId AsND pv.FieldId = ?", statusFieldId).
+		LeftJoin("PropertyValues AS pv ON p.id = pv.TargetId AND pv.FieldId = ?", statusFieldId).
 		Where(sq.Or{sq.Eq{"p.Id": post.Id}, sq.Eq{"p.RootId": post.Id}}).
 		Where(sq.Expr("p.Props->>'deleteBy' = ?", deletedBy)).
 		Where(sq.Or{
 			sq.Eq{"pv.Value": nil},
+			sq.Eq{"p.Id": post.Id},
 			sq.And{
 				sq.NotEq{"pv.Value": fmt.Sprintf("\"%s\"", model.ContentFlaggingStatusPending)},
 				sq.NotEq{"pv.Value": fmt.Sprintf("\"%s\"", model.ContentFlaggingStatusAssigned)},

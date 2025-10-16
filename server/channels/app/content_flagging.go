@@ -633,6 +633,18 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 		return appErr
 	}
 
+	if flaggedPost.DeleteAt > 0 {
+		contentReviewBot, botErr := a.getContentReviewBot(rctx)
+		if botErr != nil {
+			return botErr
+		}
+
+		// Restore the post, its replies, and all associated files
+		if err := a.Srv().Store().Post().Restore(flaggedPost, contentReviewBot.UserId, status.FieldID); err != nil {
+			return model.NewAppError("KeepFlaggedPost", "app.content_flagging.keep_post.undelete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
 	statusValue := strings.Trim(string(status.Value), `"`)
 	if statusValue != model.ContentFlaggingStatusPending && statusValue != model.ContentFlaggingStatusAssigned {
 		return model.NewAppError("KeepFlaggedPost", "api.content_flagging.error.post_not_in_progress", nil, "", http.StatusBadRequest)
@@ -647,18 +659,6 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 	_, err := a.Srv().propertyService.UpdatePropertyValue(groupId, status)
 	if err != nil {
 		return model.NewAppError("KeepFlaggedPost", "app.content_flagging.keep_post.status_update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if flaggedPost.DeleteAt > 0 {
-		contentReviewBot, botErr := a.getContentReviewBot(rctx)
-		if botErr != nil {
-			return botErr
-		}
-
-		// Restore the post, its replies, and all associated files
-		if err := a.Srv().Store().Post().Restore(flaggedPost, contentReviewBot.UserId, status.FieldID); err != nil {
-			return model.NewAppError("KeepFlaggedPost", "app.content_flagging.keep_post.undelete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
 	}
 
 	mappedFields, appErr := a.GetContentFlaggingMappedFields(groupId)

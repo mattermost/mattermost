@@ -67,6 +67,7 @@ func TestPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetPostReminderMetadata", func(t *testing.T) { testGetPostReminderMetadata(t, rctx, ss, s) })
 	t.Run("GetNthRecentPostTime", func(t *testing.T) { testGetNthRecentPostTime(t, rctx, ss) })
 	t.Run("GetEditHistoryForPost", func(t *testing.T) { testGetEditHistoryForPost(t, rctx, ss) })
+	t.Run("Restore", func(t *testing.T) { testRestore(t, rctx, ss) })
 }
 
 func testPostStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -5721,5 +5722,180 @@ func testGetPostsSinceForSyncExcludeMetadata(t *testing.T, rctx request.CTX, ss 
 		require.Equal(t, 1, postTypeCount[model.PostTypeHeaderChange], "should have 1 header change post")
 		require.Equal(t, 1, postTypeCount[model.PostTypeDisplaynameChange], "should have 1 display name change post")
 		require.Equal(t, 1, postTypeCount[model.PostTypePurposeChange], "should have 1 purpose change post")
+	})
+}
+
+func testRestore(t *testing.T, rctx request.CTX, ss store.Store) {
+	channel := &model.Channel{
+		DisplayName: "Test Channel",
+		Name:        "test_channel",
+		Type:        model.ChannelTypeOpen,
+	}
+	channel, err := ss.Channel().Save(rctx, channel, -1)
+	require.NoError(t, err)
+
+	botId := model.NewId()
+	statusFieldId := model.NewId()
+
+	setupFlaggedPost := func(rootId string) *model.Post {
+		post := &model.Post{}
+		post.ChannelId = channel.Id
+		post.UserId = model.NewId()
+		post.Message = NewTestID()
+
+		if rootId != "" {
+			post.RootId = rootId
+		}
+
+		var err error
+		post, err = ss.Post().Save(rctx, post)
+		require.NoError(t, err)
+
+		err = ss.Post().Delete(rctx, post.Id, model.GetMillis(), botId)
+		require.NoError(t, err)
+
+		statusPropertyValue := &model.PropertyValue{
+			ID:       model.NewId(),
+			TargetID: post.Id,
+			FieldID:  statusFieldId,
+			Value:    fmt.Appendf([]byte{}, "%s", model.ContentFlaggingStatusPending),
+		}
+		_, err = ss.PropertyValue().Create(statusPropertyValue)
+		require.NoError(t, err)
+
+		return post
+	}
+
+	t.Run("Should restore a single root post", func(t *testing.T) {
+		post := setupFlaggedPost("")
+
+		fetchedPost, err := ss.Post().GetSingle(rctx, post.Id, true)
+		require.NoError(t, err)
+		require.Greater(t, fetchedPost.DeleteAt, int64(0))
+
+		err = ss.Post().Restore(post, botId, statusFieldId)
+		require.NoError(t, err)
+
+		fetchedPost, err = ss.Post().GetSingle(rctx, post.Id, false)
+		require.NoError(t, err)
+		require.Equal(t, int64(0), fetchedPost.DeleteAt)
+	})
+
+	t.Run("Should restore a thread reply and update thread's reply count", func(t *testing.T) {
+		rootPost := &model.Post{}
+		rootPost.ChannelId = channel.Id
+		rootPost.UserId = model.NewId()
+		rootPost.Message = NewTestID()
+
+		var err error
+		rootPost, err = ss.Post().Save(rctx, rootPost)
+		require.NoError(t, err)
+
+		post := setupFlaggedPost(rootPost.Id)
+
+		err = ss.Post().Restore(post, botId, statusFieldId)
+		require.NoError(t, err)
+
+		fetchedPost, err := ss.Post().GetSingle(rctx, post.Id, false)
+		require.NoError(t, err)
+		require.Equal(t, int64(0), fetchedPost.DeleteAt)
+
+		thread, err := ss.Thread().Get(rootPost.Id)
+		require.NoError(t, err)
+		require.Equal(t, int64(1), thread.ReplyCount)
+	})
+
+	t.Run("Should only restore posts deleted by specified users, and all their files", func(t *testing.T) {
+		rootPost := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    model.NewId(),
+			Message:   NewTestID(),
+		}
+		var err error
+		rootPost, err = ss.Post().Save(rctx, rootPost)
+		require.NoError(t, err)
+
+		rootPostFile := &model.FileInfo{
+			Id:        model.NewId(),
+			CreatorId: model.NewId(),
+			PostId:    rootPost.Id,
+			Path:      "/foo/bar/baz",
+		}
+		rootPostFile, err = ss.FileInfo().Save(rctx, rootPostFile)
+		require.NoError(t, err)
+
+		reply1 := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    model.NewId(),
+			Message:   NewTestID(),
+			RootId:    rootPost.Id,
+		}
+		reply1, err = ss.Post().Save(rctx, reply1)
+		require.NoError(t, err)
+		err = ss.Post().Delete(rctx, reply1.Id, model.GetMillis(), model.NewId())
+		require.NoError(t, err)
+
+		reply2 := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    model.NewId(),
+			Message:   NewTestID(),
+			RootId:    rootPost.Id,
+		}
+		reply2, err = ss.Post().Save(rctx, reply2)
+		require.NoError(t, err)
+
+		reply2File := &model.FileInfo{
+			Id:        model.NewId(),
+			CreatorId: model.NewId(),
+			PostId:    reply2.Id,
+			Path:      "/foo/bar/baz",
+		}
+		reply2File, err = ss.FileInfo().Save(rctx, reply2File)
+		require.NoError(t, err)
+
+		err = ss.Post().Delete(rctx, rootPost.Id, model.GetMillis(), botId)
+		require.NoError(t, err)
+
+		// This should have deleted the root post and the reply and their files
+		fetchedPost, err := ss.Post().GetSingle(rctx, rootPost.Id, true)
+		require.NoError(t, err)
+		require.Greater(t, fetchedPost.DeleteAt, int64(0))
+
+		fetchedPost, err = ss.Post().GetSingle(rctx, reply2.Id, true)
+		require.NoError(t, err)
+		require.Greater(t, fetchedPost.DeleteAt, int64(0))
+
+		fetchedFileInfos, err := ss.FileInfo().GetByIds([]string{rootPostFile.Id}, true, false)
+		require.NoError(t, err)
+		require.Equal(t, 1, len(fetchedFileInfos))
+		require.Equal(t, fetchedFileInfos[0].DeleteAt, int64(0))
+
+		ss.Post().Restore(rootPost, botId, statusFieldId)
+		require.NoError(t, err)
+
+		// Now the root post and reply 2 should have been restored, but not reply 1
+		fetchedPost, err = ss.Post().GetSingle(rctx, rootPost.Id, false)
+		require.NoError(t, err)
+		require.Equal(t, int64(0), fetchedPost.DeleteAt)
+
+		fetchedPost, err = ss.Post().GetSingle(rctx, reply2.Id, false)
+		require.NoError(t, err)
+		require.Equal(t, int64(0), fetchedPost.DeleteAt)
+
+		fetchedPost, err = ss.Post().GetSingle(rctx, reply1.Id, true)
+		require.NoError(t, err)
+		require.Greater(t, fetchedPost.DeleteAt, int64(0))
+
+		fetchedFileInfo, err := ss.FileInfo().Get(rootPostFile.Id)
+		require.NoError(t, err)
+		require.Equal(t, int64(0), fetchedFileInfo.DeleteAt)
+
+		fetchedFileInfo, err = ss.FileInfo().Get(reply2File.Id)
+		require.NoError(t, err)
+		require.Equal(t, int64(0), fetchedFileInfo.DeleteAt)
+
+		thread, err := ss.Thread().Get(rootPost.Id)
+		require.NoError(t, err)
+		require.Equal(t, int64(1), thread.ReplyCount)
 	})
 }
