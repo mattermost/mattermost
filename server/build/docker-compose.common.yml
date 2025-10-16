@@ -7,13 +7,13 @@ services:
     networks:
       - mm-test
     environment:
-      POSTGRES_DB: mattermost_test
       POSTGRES_USER: mmuser
       POSTGRES_PASSWORD: mostest
-    command: postgres -c shared_preload_libraries=pg_bigm -c custom_variable_classes=pg_bigm
+      POSTGRES_DB: mattermost_test
+    command: postgres -c 'config_file=/etc/postgresql/postgresql.conf'
     volumes:
-     - "./docker/postgres_node_database.sql:/docker-entrypoint-initdb.d/postgres_node_database.sql"
      - "./docker/postgres.conf:/etc/postgresql/postgresql.conf"
+     - "./docker/postgres_node_database.sql:/docker-entrypoint-initdb.d/postgres_node_database.sql"
     healthcheck:
       test: [ "CMD", "pg_isready", "-h", "localhost" ]
       interval: 5s
