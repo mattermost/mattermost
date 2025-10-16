@@ -1,0 +1,19 @@
+# Override file to run nginx as a reverse proxy on a subpath
+# This file is used with the `make run-subpath` target
+services:
+  nginx-subpath:
+    image: nginx:alpine
+    container_name: mattermost-nginx-subpath
+    networks:
+      - mm-test
+    volumes:
+      - ./build/docker/nginx/subpath.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "8065:8065"
+    restart: on-failure
+
+networks:
+  mm-test:
+    external: true
+    name: mattermost-server_mm-test
+

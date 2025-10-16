@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server run-node run-haserver stop-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker update-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows package-prep package-linux package-osx package-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race test-mmctl-unit test-mmctl-e2e test-mmctl test-mmctl-coverage mmctl-build mmctl-docs new-migration migrations-extract test-public mocks-public
+.PHONY: build package run stop run-client run-server run-node run-haserver stop-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker update-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows package-prep package-linux package-osx package-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race test-mmctl-unit test-mmctl-e2e test-mmctl test-mmctl-coverage mmctl-build mmctl-docs new-migration migrations-extract test-public mocks-public run-subpath run-subpath-server stop-subpath restart-subpath
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
@@ -654,6 +654,32 @@ run-pgvector: ## Runs the server and webapp with pgvector PostgreSQL image.
 	@MM_USE_PGVECTOR=true $(MAKE) run
 
 run-fullmap: run-server run-client ## Legacy alias to run
+
+run-subpath-server: export MM_SERVICESETTINGS_SITEURL=http://localhost:8065/mattermost
+run-subpath-server: export MM_SERVICESETTINGS_LISTENADDRESS=:8066
+run-subpath-server: export BUILD_NUMBER=subpath-dev
+run-subpath-server: setup-go-work prepackaged-binaries validate-go-version start-docker client ## Starts the server for subpath setup.
+	@echo Running mattermost for development with subpath support
+	@echo Server will be available at http://localhost:8065/mattermost via nginx reverse proxy
+	@echo Note: Using BUILD_NUMBER=subpath-dev to enable asset subpath rewriting
+
+	mkdir -p $(BUILD_WEBAPP_DIR)/channels/dist/files
+	docker compose -f docker-compose.nginx.subpath.yml up -d
+	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS) -X "github.com/mattermost/mattermost/server/public/model.BuildNumber=subpath-dev"' -tags '$(BUILD_TAGS)' $(PLATFORM_FILES) $(RUN_IN_BACKGROUND)
+
+run-subpath: run-subpath-server ## Runs the server with nginx reverse proxy on subpath (serves static webapp files).
+	@echo
+	@echo "========================================"
+	@echo "Note: Subpath mode serves pre-built webapp files, not the live webpack dev server."
+	@echo "If you need to rebuild the webapp, run: cd $(BUILD_WEBAPP_DIR) && make build"
+	@echo "========================================"
+	@echo
+
+stop-subpath: ## Stops the nginx reverse proxy for subpath.
+	@echo Stopping nginx reverse proxy
+	docker compose -f docker-compose.nginx.subpath.yml down
+
+restart-subpath: | stop-subpath stop-server run-subpath ## Restarts the server and nginx proxy for subpath setup.
 
 stop-server: ## Stops the server.
 	@echo Stopping mattermost
