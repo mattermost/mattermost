@@ -97,6 +97,7 @@ type Store interface {
 	PropertyValue() PropertyValueStore
 	AccessControlPolicy() AccessControlPolicyStore
 	Attributes() AttributesStore
+	E2EE() E2EEStore
 	GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error)
 }
 
@@ -1138,6 +1139,22 @@ type AttributesStore interface {
 	GetSubject(rctx request.CTX, ID, groupID string) (*model.Subject, error)
 	SearchUsers(rctx request.CTX, opts model.SubjectSearchOptions) ([]*model.User, int64, error)
 	GetChannelMembersToRemove(rctx request.CTX, channelID string, opts model.SubjectSearchOptions) ([]*model.ChannelMember, error)
+}
+
+type E2EEStore interface {
+	UpsertDevice(rctx request.CTX, de *model.E2EEDevice) (*model.E2EEDevice, error)
+	GetDevicesByUser(rctx request.CTX, userId string, includeDeleted bool) ([]*model.E2EEDevice, error)
+
+	UpsertSignedPreKey(rctx request.CTX, spk *model.E2EESignedPreKey) error
+	GetLatestSignedPreKey(rctx request.CTX, userId string, deviceId int64) (*model.E2EESignedPreKey, error)
+
+	InsertOneTimePreKeys(rctx request.CTX, opks []model.E2EEOneTimePreKey) error
+	ConsumeOneTimePreKey(rctx request.CTX, userId string, deviceId int64) (*model.E2EEOneTimePreKey, error)
+
+	GetDeviceListSnapshot(rctx request.CTX, userId string) (*model.E2EEDeviceListSnapshot, error)
+	RecomputeDeviceListSnapshot(rctx request.CTX, userId string) error
+
+	GetDeviceListHashes(rctx request.CTX, userIds []string) (map[string]string, error)
 }
 
 // ChannelSearchOpts contains options for searching channels.

@@ -39,9 +39,26 @@ import {DelayedDataLoader} from 'mattermost-redux/utils/data_loader';
 import {isCombinedUserActivityPost} from 'mattermost-redux/utils/post_list';
 
 import {logError, LogErrorBarMode} from './errors';
+import { decryptPostMessage, decryptSenderKeyMessage, encryptPostMessage, ensureSenderKeyForChannel } from './e2ee';
+import * as MessageService from 'e2ee/service/MessageService';
 
 // receivedPost should be dispatched after a single post from the server. This typically happens when an existing post
 // is updated.
+
+function decryptMessageAndSave(posts: PostList): ActionFuncAsync {
+    return async(dispatch, getState) => {
+        for (const id of posts.order.toReversed()) {
+            const post = posts.posts[id];
+            if (post.props.type && post.props.type === 'senderkey_distribution') {
+                await dispatch(decryptSenderKeyMessage(post));
+            }
+            await dispatch(decryptPostMessage(post));
+            
+        }
+        return {data: true};
+    }
+}
+
 export function receivedPost(post: Post, crtEnabled?: boolean) {
     return {
         type: PostTypes.RECEIVED_POST,
@@ -154,9 +171,12 @@ export function getPost(postId: string): ActionFuncAsync<Post> {
     return async (dispatch, getState) => {
         let post;
         const crtEnabled = isCollapsedThreadsEnabled(getState());
-
+        const userId = getCurrentUserId(getState());
         try {
-            post = await Client4.getPost(postId);
+            post = await MessageService.getPostById(userId, postId);
+            if (!post) {
+                throw new Error(`Cannot find post: ${postId}`);
+            }
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch({type: PostTypes.GET_POSTS_FAILURE, error});
@@ -244,8 +264,23 @@ export function createPost(
 
         (async function createPostWrapper() {
             try {
+                const envelope = await dispatch(ensureSenderKeyForChannel(post.channel_id));
+                if (!envelope.data || envelope.error) {
+                    throw new Error('Failed to create sender key');
+                }
+                if (envelope.data.length > 0) {
+                    newPost.props = {...newPost.props, type: 'senderkey_distribution', envelope: envelope.data};
+                }
+                
+                const encryptedPost = await dispatch(encryptPostMessage(newPost));
+                if (!encryptedPost.data) {
+                    throw new Error('Failed to encrypt message');
+                }
+                newPost = encryptedPost.data;
                 const created = await Client4.createPost({...newPost, create_at: 0});
-
+                
+                created.message = post.message;
+                await MessageService.savePost(currentUserId, created)
                 actions = [
                     receivedPost(created, crtEnabled),
                     {
@@ -602,7 +637,6 @@ async function getPaginatedPostThread(rootId: string, options: FetchPaginatedThr
         next_post_id: '',
         first_inaccessible_post_time: 0,
     };
-
     const result = await Client4.getPaginatedPostThread(rootId, options);
 
     if (result.first_inaccessible_post_time) {
@@ -638,6 +672,7 @@ async function getPaginatedPostThread(rootId: string, options: FetchPaginatedThr
 export function getPostThread(rootId: string, fetchThreads = true, lastUpdateAt = 0): ActionFuncAsync<PostList> {
     return async (dispatch, getState) => {
         const state = getState();
+        const userId = getCurrentUserId(state);
         const collapsedThreadsEnabled = isCollapsedThreadsEnabled(state);
         const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
 
@@ -652,6 +687,8 @@ export function getPostThread(rootId: string, fetchThreads = true, lastUpdateAt 
         }
         try {
             posts = await getPaginatedPostThread(rootId, options);
+            await dispatch(decryptMessageAndSave(posts));
+            posts = await MessageService.getPaginatedPostThread(userId, rootId, options);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -690,8 +727,11 @@ export function getNewestPostThread(rootId: string): ActionFuncAsync {
         };
 
         let posts;
+        const userId = getCurrentUserId(getState());
         try {
             posts = await getPaginatedPostThread(rootId, options);
+            await dispatch(decryptMessageAndSave(posts));
+            posts = await MessageService.getPaginatedPostThread(userId, rootId, options);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch({type: PostTypes.GET_POST_THREAD_FAILURE, error});
@@ -711,10 +751,13 @@ export function getNewestPostThread(rootId: string): ActionFuncAsync {
 
 export function getPosts(channelId: string, page = 0, perPage = Posts.POST_CHUNK_SIZE, fetchThreads = true, collapsedThreadsExtended = false): ActionFuncAsync<PostList> {
     return async (dispatch, getState) => {
+        const userId = getCurrentUserId(getState());
         let posts;
         const collapsedThreadsEnabled = isCollapsedThreadsEnabled(getState());
         try {
             posts = await Client4.getPosts(channelId, page, perPage, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended);
+            await dispatch(decryptMessageAndSave(posts));
+            posts = await MessageService.getPosts(userId, channelId);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -742,10 +785,15 @@ export function getPostsUnread(channelId: string, fetchThreads = true, collapsed
         let recentPosts;
         try {
             posts = await Client4.getPostsUnread(channelId, userId, DEFAULT_LIMIT_BEFORE, DEFAULT_LIMIT_AFTER, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended);
-
+            console.log(posts);
+            await dispatch(decryptMessageAndSave(posts));
             if (posts.next_post_id && shouldLoadRecent) {
                 recentPosts = await Client4.getPosts(channelId, 0, Posts.POST_CHUNK_SIZE / 2, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended);
+                await dispatch(decryptMessageAndSave(recentPosts));
             }
+            const next_post_id = posts.next_post_id;
+            posts = await MessageService.getPosts(userId, channelId);
+            posts.next_post_id = next_post_id;
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -777,9 +825,12 @@ export function getPostsUnread(channelId: string, fetchThreads = true, collapsed
 export function getPostsSince(channelId: string, since: number, fetchThreads = true, collapsedThreadsExtended = false): ActionFuncAsync<PostList> {
     return async (dispatch, getState) => {
         let posts;
+        const userId = getCurrentUserId(getState());
         try {
             const collapsedThreadsEnabled = isCollapsedThreadsEnabled(getState());
             posts = await Client4.getPostsSince(channelId, since, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended);
+            await dispatch(decryptMessageAndSave(posts));
+            posts = await MessageService.getPostsSince(userId, channelId, since);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -799,9 +850,12 @@ export function getPostsSince(channelId: string, since: number, fetchThreads = t
 export function getPostsBefore(channelId: string, postId: string, page = 0, perPage = Posts.POST_CHUNK_SIZE, fetchThreads = true, collapsedThreadsExtended = false): ActionFuncAsync<PostList> {
     return async (dispatch, getState) => {
         let posts;
+        const userId = getCurrentUserId(getState());
         try {
             const collapsedThreadsEnabled = isCollapsedThreadsEnabled(getState());
             posts = await Client4.getPostsBefore(channelId, postId, page, perPage, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended);
+            await dispatch(decryptMessageAndSave(posts));
+            posts = await MessageService.getPostsBefore(userId, channelId, postId);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -820,10 +874,17 @@ export function getPostsBefore(channelId: string, postId: string, page = 0, perP
 
 export function getPostsAfter(channelId: string, postId: string, page = 0, perPage = Posts.POST_CHUNK_SIZE, fetchThreads = true, collapsedThreadsExtended = false): ActionFuncAsync<PostList> {
     return async (dispatch, getState) => {
+        console.log(postId);
         let posts;
         try {
+            const userId = getCurrentUserId(getState());
             const collapsedThreadsEnabled = isCollapsedThreadsEnabled(getState());
             posts = await Client4.getPostsAfter(channelId, postId, page, perPage, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended);
+            await dispatch(decryptMessageAndSave(posts));
+            const next_post_id = posts.next_post_id;
+            posts = await MessageService.getPostsAfter(userId, channelId, postId);
+            if (posts.next_post_id === '')
+                posts.next_post_id = next_post_id;
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -853,28 +914,22 @@ export function getPostsAround(channelId: string, postId: string, perPage = Post
                 Client4.getPostThread(postId, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended),
                 Client4.getPostsBefore(channelId, postId, 0, perPage, fetchThreads, collapsedThreadsEnabled, collapsedThreadsExtended),
             ]);
+            await dispatch(decryptMessageAndSave(after));
+            await dispatch(decryptMessageAndSave(thread));
+            await dispatch(decryptMessageAndSave(before));
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
             return {error};
         }
+        const userId = getCurrentUserId(getState());
 
+        const next_post_id = after.next_post_id;
+        const first_inaccessible_post_time = Math.max(before.first_inaccessible_post_time, after.first_inaccessible_post_time, thread.first_inaccessible_post_time) || 0
         // Dispatch a combined post list so that the order is correct for postsInChannel
-        const posts: PostList = {
-            posts: {
-                ...after.posts,
-                ...thread.posts,
-                ...before.posts,
-            },
-            order: [ // Remember that the order is newest posts first
-                ...after.order,
-                postId,
-                ...before.order,
-            ],
-            next_post_id: after.next_post_id,
-            prev_post_id: before.prev_post_id,
-            first_inaccessible_post_time: Math.max(before.first_inaccessible_post_time, after.first_inaccessible_post_time, thread.first_inaccessible_post_time) || 0,
-        };
+        const posts = await MessageService.getPostsAround(userId, channelId, postId);
+        if (posts.next_post_id === '') posts.next_post_id = next_post_id;
+        if (posts.first_inaccessible_post_time === 0) posts.first_inaccessible_post_time = first_inaccessible_post_time;
 
         dispatch(batchActions([
             receivedPosts(posts),

@@ -1,0 +1,19 @@
+CREATE TABLE IF NOT EXISTS E2EEOneTimePreKeys (
+	UserId     VARCHAR(26) NOT NULL,
+	DeviceId   BIGINT      NOT NULL,
+	KeyId      INTEGER     NOT NULL,
+	PublicKey  TEXT        NOT NULL,
+	CreateAt   BIGINT      NOT NULL DEFAULT 0,
+	ConsumedAt BIGINT,
+	DeleteAt   BIGINT      NOT NULL DEFAULT 0,
+
+	CONSTRAINT PKE2EEOPK PRIMARY KEY (UserId, DeviceId, KeyId),
+	CONSTRAINT FPE2EEOPKDevice
+	FOREIGN KEY (UserId, DeviceId)
+	REFERENCES E2EEDevices (UserId, DeviceId)
+	ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS IdxE2EEOPKAvailable
+	ON E2EEOneTimePreKeys (UserId, DeviceId)
+	WHERE ConsumedAt IS NULL;

@@ -1,0 +1,16 @@
+CREATE TABLE IF NOT EXISTS E2EESignedPreKeys (
+	UserId     VARCHAR(26) NOT NULL,
+	DeviceId   BIGINT      NOT NULL,
+	KeyId      INTEGER     NOT NULL,
+	PublicKey  TEXT        NOT NULL,
+	Signature  TEXT        NOT NULL,
+	CreateAt   BIGINT      NOT NULL DEFAULT 0,
+	RotateAt   BIGINT      NOT NULL DEFAULT 0,
+	DeleteAt   BIGINT      NOT NULL DEFAULT 0,
+
+	CONSTRAINT PKE2EESPK PRIMARY KEY (UserId, DeviceId, KeyId),
+	CONSTRAINT FKE2EESPKDevice
+	FOREIGN KEY (UserId, DeviceId)
+	REFERENCES E2EEDevices (UserId, DeviceId)
+	ON DELETE CASCADE
+);

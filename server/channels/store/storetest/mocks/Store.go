@@ -334,6 +334,26 @@ func (_m *Store) DropAllTables() {
 	_m.Called()
 }
 
+// E2EE provides a mock function with no fields
+func (_m *Store) E2EE() store.E2EEStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for E2EE")
+	}
+
+	var r0 store.E2EEStore
+	if rf, ok := ret.Get(0).(func() store.E2EEStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.E2EEStore)
+		}
+	}
+
+	return r0
+}
+
 // Emoji provides a mock function with no fields
 func (_m *Store) Emoji() store.EmojiStore {
 	ret := _m.Called()

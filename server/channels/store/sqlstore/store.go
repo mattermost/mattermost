@@ -111,6 +111,7 @@ type SqlStoreStores struct {
 	propertyValue              store.PropertyValueStore
 	accessControlPolicy        store.AccessControlPolicyStore
 	Attributes                 store.AttributesStore
+	e2ee                       store.E2EEStore
 }
 
 type SqlStore struct {
@@ -261,6 +262,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.propertyValue = newPropertyValueStore(store)
 	store.stores.accessControlPolicy = newSqlAccessControlPolicyStore(store, metrics)
 	store.stores.Attributes = newSqlAttributesStore(store, metrics)
+	store.stores.e2ee = newSqlE2EEStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -883,6 +885,8 @@ func (ss *SqlStore) AccessControlPolicy() store.AccessControlPolicyStore {
 func (ss *SqlStore) Attributes() store.AttributesStore {
 	return ss.stores.Attributes
 }
+
+func (ss *SqlStore) E2EE() store.E2EEStore { return ss.stores.e2ee }
 
 func (ss *SqlStore) DropAllTables() {
 	ss.masterX.Exec(`DO

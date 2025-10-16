@@ -32,6 +32,7 @@ type TimerLayer struct {
 	ComplianceStore                 store.ComplianceStore
 	DesktopTokensStore              store.DesktopTokensStore
 	DraftStore                      store.DraftStore
+	E2EEStore                       store.E2EEStore
 	EmojiStore                      store.EmojiStore
 	FileInfoStore                   store.FileInfoStore
 	GroupStore                      store.GroupStore
@@ -122,6 +123,10 @@ func (s *TimerLayer) DesktopTokens() store.DesktopTokensStore {
 
 func (s *TimerLayer) Draft() store.DraftStore {
 	return s.DraftStore
+}
+
+func (s *TimerLayer) E2EE() store.E2EEStore {
+	return s.E2EEStore
 }
 
 func (s *TimerLayer) Emoji() store.EmojiStore {
@@ -338,6 +343,11 @@ type TimerLayerDesktopTokensStore struct {
 
 type TimerLayerDraftStore struct {
 	store.DraftStore
+	Root *TimerLayer
+}
+
+type TimerLayerE2EEStore struct {
+	store.E2EEStore
 	Root *TimerLayer
 }
 
@@ -3639,6 +3649,134 @@ func (s *TimerLayerDraftStore) Upsert(d *model.Draft) (*model.Draft, error) {
 		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.Upsert", success, elapsed)
 	}
 	return result, err
+}
+
+func (s *TimerLayerE2EEStore) ConsumeOneTimePreKey(rctx request.CTX, userId string, deviceId int64) (*model.E2EEOneTimePreKey, error) {
+	start := time.Now()
+
+	result, err := s.E2EEStore.ConsumeOneTimePreKey(rctx, userId, deviceId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("E2EEStore.ConsumeOneTimePreKey", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerE2EEStore) GetDeviceListSnapshot(rctx request.CTX, userId string) (*model.E2EEDeviceListSnapshot, error) {
+	start := time.Now()
+
+	result, err := s.E2EEStore.GetDeviceListSnapshot(rctx, userId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("E2EEStore.GetDeviceListSnapshot", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerE2EEStore) GetDevicesByUser(rctx request.CTX, userId string, includeDeleted bool) ([]*model.E2EEDevice, error) {
+	start := time.Now()
+
+	result, err := s.E2EEStore.GetDevicesByUser(rctx, userId, includeDeleted)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("E2EEStore.GetDevicesByUser", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerE2EEStore) GetLatestSignedPreKey(rctx request.CTX, userId string, deviceId int64) (*model.E2EESignedPreKey, error) {
+	start := time.Now()
+
+	result, err := s.E2EEStore.GetLatestSignedPreKey(rctx, userId, deviceId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("E2EEStore.GetLatestSignedPreKey", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerE2EEStore) InsertOneTimePreKeys(rctx request.CTX, opks []model.E2EEOneTimePreKey) error {
+	start := time.Now()
+
+	err := s.E2EEStore.InsertOneTimePreKeys(rctx, opks)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("E2EEStore.InsertOneTimePreKeys", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerE2EEStore) RecomputeDeviceListSnapshot(rctx request.CTX, userId string) error {
+	start := time.Now()
+
+	err := s.E2EEStore.RecomputeDeviceListSnapshot(rctx, userId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("E2EEStore.RecomputeDeviceListSnapshot", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerE2EEStore) UpsertDevice(rctx request.CTX, de *model.E2EEDevice) (*model.E2EEDevice, error) {
+	start := time.Now()
+
+	result, err := s.E2EEStore.UpsertDevice(rctx, de)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("E2EEStore.UpsertDevice", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerE2EEStore) UpsertSignedPreKey(rctx request.CTX, spk *model.E2EESignedPreKey) error {
+	start := time.Now()
+
+	err := s.E2EEStore.UpsertSignedPreKey(rctx, spk)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("E2EEStore.UpsertSignedPreKey", success, elapsed)
+	}
+	return err
 }
 
 func (s *TimerLayerEmojiStore) Delete(emoji *model.Emoji, timestamp int64) error {
@@ -13299,6 +13437,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.ComplianceStore = &TimerLayerComplianceStore{ComplianceStore: childStore.Compliance(), Root: &newStore}
 	newStore.DesktopTokensStore = &TimerLayerDesktopTokensStore{DesktopTokensStore: childStore.DesktopTokens(), Root: &newStore}
 	newStore.DraftStore = &TimerLayerDraftStore{DraftStore: childStore.Draft(), Root: &newStore}
+	newStore.E2EEStore = &TimerLayerE2EEStore{E2EEStore: childStore.E2EE(), Root: &newStore}
 	newStore.EmojiStore = &TimerLayerEmojiStore{EmojiStore: childStore.Emoji(), Root: &newStore}
 	newStore.FileInfoStore = &TimerLayerFileInfoStore{FileInfoStore: childStore.FileInfo(), Root: &newStore}
 	newStore.GroupStore = &TimerLayerGroupStore{GroupStore: childStore.Group(), Root: &newStore}

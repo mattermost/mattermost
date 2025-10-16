@@ -279,3 +279,11 @@ channels/db/migrations/postgres/000140_add_lastmemberssyncat_to_sharedchannelrem
 channels/db/migrations/postgres/000140_add_lastmemberssyncat_to_sharedchannelremotes.up.sql
 channels/db/migrations/postgres/000141_add_remoteid_channelid_to_post_acknowledgements.down.sql
 channels/db/migrations/postgres/000141_add_remoteid_channelid_to_post_acknowledgements.up.sql
+channels/db/migrations/postgres/000142_create_e2ee_devices.down.sql
+channels/db/migrations/postgres/000142_create_e2ee_devices.up.sql
+channels/db/migrations/postgres/000143_create_e2ee_signed_prekeys.down.sql
+channels/db/migrations/postgres/000143_create_e2ee_signed_prekeys.up.sql
+channels/db/migrations/postgres/000144_create_e2ee_one_time_prekeys.down.sql
+channels/db/migrations/postgres/000144_create_e2ee_one_time_prekeys.up.sql
+channels/db/migrations/postgres/000145_create_e2ee_device_list_snapshots.down.sql
+channels/db/migrations/postgres/000145_create_e2ee_device_list_snapshots.up.sql

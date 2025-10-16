@@ -17,6 +17,7 @@ import {logError} from './errors';
 import {receivedFiles} from './files';
 import {forceLogoutIfNecessary} from './helpers';
 import {getMentionsAndStatusesForPosts, receivedPosts} from './posts';
+import * as SearchService from 'e2ee/service/SearchService';
 
 export const WEBAPP_SEARCH_PER_PAGE = 20;
 
@@ -67,17 +68,16 @@ export function getMissingChannelsFromFiles(files: Map<string, FileSearchResultI
 }
 
 export function searchPostsWithParams(teamId: string, params: SearchParameter): ActionFuncAsync<PostSearchResults> {
-    return async (dispatch, getState) => {
+    return async (dispatch, getState) => {  
         const isGettingMore = params.page > 0;
         dispatch({
             type: SearchTypes.SEARCH_POSTS_REQUEST,
             isGettingMore,
         });
         let posts;
-
+        const userId = getCurrentUserId(getState());
         try {
-            posts = await Client4.searchPostsWithParams(teamId, params);
-
+            posts = await SearchService.searchPostsWithParams(userId, params);
             const profilesAndStatuses = getMentionsAndStatusesForPosts(posts.posts, dispatch, getState);
             const missingChannels = dispatch(getMissingChannelsFromPosts(posts.posts));
             const arr = [profilesAndStatuses, missingChannels];

@@ -638,6 +638,18 @@ func (c *Client4) accessControlPolicyRoute(policyID string) string {
 	return fmt.Sprintf(c.accessControlPoliciesRoute()+"/%v", url.PathEscape(policyID))
 }
 
+func (c *Client4) e2eeRoute() string {
+	return "/e2ee"
+}
+
+func (c *Client4) e2eePreKeysRoute() string {
+	return c.e2eeRoute() + "/prekeys"
+}
+
+func (c *Client4) e2eeBundleRoute(recipientId string) string {
+	return c.userRoute(recipientId) + "/e2ee/bundle"
+}
+
 func (c *Client4) GetServerLimits(ctx context.Context) (*ServerLimits, *Response, error) {
 	r, err := c.DoAPIGet(ctx, c.limitsRoute()+"/users", "")
 	if err != nil {
@@ -9835,4 +9847,49 @@ func (c *Client4) SearchChannelsForAccessControlPolicy(ctx context.Context, poli
 	}
 
 	return &channels, BuildResponse(r), nil
+}
+
+func (c *Client4) RegisterE2EEDevice(ctx context.Context, req *E2EERegisterDeviceRequest) (*E2EERegisterDeviceResponse, *Response, error) {
+	r, err := c.DoAPIPost(ctx, c.e2eeRoute()+"/devices", string(ToJSON(req)))
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var resp E2EERegisterDeviceResponse
+	if err := json.NewDecoder(r.Body).Decode(&resp); err != nil {
+		return nil, nil, NewAppError("RegisterE2EEDevice", "api.unmarshall_error", nil, "", http.StatusInternalServerError)
+	}
+	return &resp, BuildResponse(r), nil
+}
+
+func (c *Client4) RotateE2EESignedPreKey(ctx context.Context, req *E2EERotateSPKRequest) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.e2eePreKeysRoute()+"/rotate_spk", string(ToJSON(req)))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) ReplenishE2EEOneTimePreKeys(ctx context.Context, req E2EEReplenishOPKsRequest) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, c.e2eePreKeysRoute()+"/replenish_opk", string(ToJSON(req)))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) GetE2EEPreKeyBundlesForUser(ctx context.Context, userId string) (*PreKeyBundleResponse, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.e2eeBundleRoute(userId), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var resp PreKeyBundleResponse
+	if err := json.NewDecoder(r.Body).Decode(&resp); err != nil {
+		return nil, nil, NewAppError("GetE2EEPreKeyBundleForUser", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &resp, BuildResponse(r), nil
 }

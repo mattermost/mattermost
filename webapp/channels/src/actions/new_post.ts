@@ -32,6 +32,7 @@ import WebSocketClient from 'client/web_websocket_client';
 import {ActionTypes} from 'utils/constants';
 
 import type {DispatchFunc, GetStateFunc, ActionFunc, ActionFuncAsync} from 'types/store';
+import { decryptPostMessage, decryptSenderKeyMessage } from 'mattermost-redux/actions/e2ee';
 
 export type NewPostMessageProps = {
     channel_type: ChannelType;
@@ -73,7 +74,22 @@ export function completePostReceive(post: Post, websocketMessageProps: NewPostMe
                 amount: 1,
             });
         }
-
+        console.log(post);
+        
+        if (post.props.type && post.props.type === 'senderkey_distribution') {
+            await dispatch(decryptSenderKeyMessage(post));
+        }
+        const decryptedPost = await dispatch(decryptPostMessage(post));
+        if (!decryptedPost.data || decryptedPost.error) {
+            post.message = "Cannot decrypt message";
+        }
+        // self decrypt.
+        if (decryptedPost.data?.message === post.message && post.type === '') {
+            return {data: true};
+        } 
+        
+        post.message = decryptedPost.data!.message;
+        
         const collapsedThreadsEnabled = isCollapsedThreadsEnabled(state);
         const isCRTReply = collapsedThreadsEnabled && post.root_id;
 

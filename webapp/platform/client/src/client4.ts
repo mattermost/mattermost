@@ -149,6 +149,14 @@ import type {
 } from '@mattermost/types/users';
 import type {DeepPartial, PartialExcept, RelationOneToOne} from '@mattermost/types/utilities';
 
+import type {
+    E2EEPreKeyBundleResponse,
+    E2EERegisterDeviceRequest,
+    E2EERegisterDeviceResponse,
+    E2EEReplenishOPKsRequest,
+    E2EERotateSPKRequest
+} from "@mattermost/types/e2ee";
+
 import {cleanUrlForLogging} from './errors';
 import {buildQueryString} from './helpers';
 import type {TelemetryHandler} from './telemetry';
@@ -542,6 +550,10 @@ export default class Client4 {
 
     getContentFlaggingRoute() {
         return `${this.getBaseRoute()}/content_flagging`;
+    }
+
+    getE2EERoute() {
+        return `${this.getBaseRoute()}/e2ee`;
     }
 
     getCSRFFromCookie() {
@@ -4621,6 +4633,40 @@ export default class Client4 {
             {method: 'get'},
         );
     };
+
+    registerE2EEDevice = (data: E2EERegisterDeviceRequest) => {
+        return this.doFetch<E2EERegisterDeviceResponse> (
+            `${this.getE2EERoute()}/devices`,
+            {method: 'post', body: JSON.stringify(data)}
+        )
+    }
+
+    rotateSignedPreKey = (data: E2EERotateSPKRequest) => {
+        return this.doFetch<StatusOK>(
+            `${this.getE2EERoute()}/prekeys/rotate_spk`,
+            {
+                method: 'post',
+                body: JSON.stringify(data)
+            }
+        );
+    }
+
+    replenishOneTimePreKeys = (data: E2EEReplenishOPKsRequest) => {
+        return this.doFetch<{saved: number}> (
+            `${this.getE2EERoute()}/prekeys/replenish_opks`,
+            {
+                method: 'post',
+                body: JSON.stringify(data),
+            }
+        );
+    }
+
+    getPreKeyBundle = (userId: string) => {
+        return this.doFetch<E2EEPreKeyBundleResponse>(
+            `${this.getUserRoute(userId)}/e2ee/bundle`,
+            {method: 'get'}
+        );
+    }
 }
 
 export function parseAndMergeNestedHeaders(originalHeaders: any) {

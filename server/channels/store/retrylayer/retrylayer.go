@@ -33,6 +33,7 @@ type RetryLayer struct {
 	ComplianceStore                 store.ComplianceStore
 	DesktopTokensStore              store.DesktopTokensStore
 	DraftStore                      store.DraftStore
+	E2EEStore                       store.E2EEStore
 	EmojiStore                      store.EmojiStore
 	FileInfoStore                   store.FileInfoStore
 	GroupStore                      store.GroupStore
@@ -123,6 +124,10 @@ func (s *RetryLayer) DesktopTokens() store.DesktopTokensStore {
 
 func (s *RetryLayer) Draft() store.DraftStore {
 	return s.DraftStore
+}
+
+func (s *RetryLayer) E2EE() store.E2EEStore {
+	return s.E2EEStore
 }
 
 func (s *RetryLayer) Emoji() store.EmojiStore {
@@ -339,6 +344,11 @@ type RetryLayerDesktopTokensStore struct {
 
 type RetryLayerDraftStore struct {
 	store.DraftStore
+	Root *RetryLayer
+}
+
+type RetryLayerE2EEStore struct {
+	store.E2EEStore
 	Root *RetryLayer
 }
 
@@ -4467,6 +4477,174 @@ func (s *RetryLayerDraftStore) Upsert(d *model.Draft) (*model.Draft, error) {
 		if tries >= 3 {
 			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
 			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerE2EEStore) ConsumeOneTimePreKey(rctx request.CTX, userId string, deviceId int64) (*model.E2EEOneTimePreKey, error) {
+
+	tries := 0
+	for {
+		result, err := s.E2EEStore.ConsumeOneTimePreKey(rctx, userId, deviceId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerE2EEStore) GetDeviceListSnapshot(rctx request.CTX, userId string) (*model.E2EEDeviceListSnapshot, error) {
+
+	tries := 0
+	for {
+		result, err := s.E2EEStore.GetDeviceListSnapshot(rctx, userId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerE2EEStore) GetDevicesByUser(rctx request.CTX, userId string, includeDeleted bool) ([]*model.E2EEDevice, error) {
+
+	tries := 0
+	for {
+		result, err := s.E2EEStore.GetDevicesByUser(rctx, userId, includeDeleted)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerE2EEStore) GetLatestSignedPreKey(rctx request.CTX, userId string, deviceId int64) (*model.E2EESignedPreKey, error) {
+
+	tries := 0
+	for {
+		result, err := s.E2EEStore.GetLatestSignedPreKey(rctx, userId, deviceId)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerE2EEStore) InsertOneTimePreKeys(rctx request.CTX, opks []model.E2EEOneTimePreKey) error {
+
+	tries := 0
+	for {
+		err := s.E2EEStore.InsertOneTimePreKeys(rctx, opks)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerE2EEStore) RecomputeDeviceListSnapshot(rctx request.CTX, userId string) error {
+
+	tries := 0
+	for {
+		err := s.E2EEStore.RecomputeDeviceListSnapshot(rctx, userId)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerE2EEStore) UpsertDevice(rctx request.CTX, de *model.E2EEDevice) (*model.E2EEDevice, error) {
+
+	tries := 0
+	for {
+		result, err := s.E2EEStore.UpsertDevice(rctx, de)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerE2EEStore) UpsertSignedPreKey(rctx request.CTX, spk *model.E2EESignedPreKey) error {
+
+	tries := 0
+	for {
+		err := s.E2EEStore.UpsertSignedPreKey(rctx, spk)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
 		}
 		timepkg.Sleep(100 * timepkg.Millisecond)
 	}
@@ -16863,6 +17041,7 @@ func New(childStore store.Store) *RetryLayer {
 	newStore.ComplianceStore = &RetryLayerComplianceStore{ComplianceStore: childStore.Compliance(), Root: &newStore}
 	newStore.DesktopTokensStore = &RetryLayerDesktopTokensStore{DesktopTokensStore: childStore.DesktopTokens(), Root: &newStore}
 	newStore.DraftStore = &RetryLayerDraftStore{DraftStore: childStore.Draft(), Root: &newStore}
+	newStore.E2EEStore = &RetryLayerE2EEStore{E2EEStore: childStore.E2EE(), Root: &newStore}
 	newStore.EmojiStore = &RetryLayerEmojiStore{EmojiStore: childStore.Emoji(), Root: &newStore}
 	newStore.FileInfoStore = &RetryLayerFileInfoStore{FileInfoStore: childStore.FileInfo(), Root: &newStore}
 	newStore.GroupStore = &RetryLayerGroupStore{GroupStore: childStore.Group(), Root: &newStore}

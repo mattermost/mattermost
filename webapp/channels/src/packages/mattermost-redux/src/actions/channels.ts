@@ -592,7 +592,7 @@ export function leaveChannel(channelId: string): ActionFuncAsync {
 export function joinChannel(userId: string, teamId: string, channelId: string, channelName?: string): ActionFuncAsync<{channel: Channel; member: ChannelMembership} | null> {
     return async (dispatch, getState) => {
         if (!channelId && !channelName) {
-            return {data: null};
+            return {data: null};    
         }
 
         let member: ChannelMembership | undefined | null;

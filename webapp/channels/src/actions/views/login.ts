@@ -11,6 +11,7 @@ import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {Client4} from 'mattermost-redux/client';
 
 import type {ActionFuncAsync} from 'types/store';
+import { registerDevice, replenishOPKs, rotateSPK } from 'mattermost-redux/actions/e2ee';
 
 export function login(loginId: string, password: string, mfaToken = ''): ActionFuncAsync {
     return async (dispatch) => {
@@ -33,6 +34,9 @@ export function login(loginId: string, password: string, mfaToken = ''): ActionF
             );
 
             dispatch(loadRolesIfNeeded(loggedInUserProfile.roles.split(' ')));
+            await dispatch(registerDevice());
+            await dispatch(rotateSPK());
+            await dispatch(replenishOPKs());
         } catch (error) {
             dispatch({
                 type: UserTypes.LOGIN_FAILURE,

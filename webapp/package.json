@@ -21,6 +21,10 @@
   },
   "dependencies": {
     "@mattermost/compass-icons": "0.1.49",
+    "@privacyresearch/libsignal-protocol-typescript": "0.0.16",
+    "dexie": "4.2.0",
+    "dexie-react-hooks": "4.2.0",
+    "minisearch": "7.2.0",
     "react-intl": "6.6.2",
     "typescript": "5.6.3"
   },

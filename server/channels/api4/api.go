@@ -162,6 +162,10 @@ type Routes struct {
 	AccessControlPolicy   *mux.Router // 'api/v4/access_control_policies/{policy_id:[A-Za-z0-9]+}'
 
 	ContentFlagging *mux.Router // 'api/v4/content_flagging'
+
+	E2EE        *mux.Router
+	E2EEPreKeys *mux.Router
+	E2EEBundle  *mux.Router
 }
 
 type API struct {
@@ -311,6 +315,10 @@ func Init(srv *app.Server) (*API, error) {
 
 	api.BaseRoutes.ContentFlagging = api.BaseRoutes.APIRoot.PathPrefix("/content_flagging").Subrouter()
 
+	api.BaseRoutes.E2EE = api.BaseRoutes.APIRoot.PathPrefix("/e2ee").Subrouter()
+	api.BaseRoutes.E2EEPreKeys = api.BaseRoutes.E2EE.PathPrefix("/prekeys").Subrouter()
+	api.BaseRoutes.E2EEBundle = api.BaseRoutes.User.PathPrefix("/e2ee/bundle").Subrouter()
+
 	api.InitUser()
 	api.InitBot()
 	api.InitTeam()
@@ -364,6 +372,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitAuditLogging()
 	api.InitAccessControlPolicy()
 	api.InitContentFlagging()
+	api.InitE2EE()
 
 	// If we allow testing then listen for manual testing URL hits
 	if *srv.Config().ServiceSettings.EnableTesting {
@@ -455,6 +464,10 @@ func InitLocal(srv *app.Server) *API {
 	api.BaseRoutes.AccessControlPolicies = api.BaseRoutes.APIRoot.PathPrefix("/access_control_policies").Subrouter()
 	api.BaseRoutes.AccessControlPolicy = api.BaseRoutes.APIRoot.PathPrefix("/access_control_policies/{policy_id:[A-Za-z0-9]+}").Subrouter()
 
+	api.BaseRoutes.E2EE = api.BaseRoutes.APIRoot.PathPrefix("/e2ee").Subrouter()
+	api.BaseRoutes.E2EEPreKeys = api.BaseRoutes.E2EE.PathPrefix("/prekeys").Subrouter()
+	api.BaseRoutes.E2EEBundle = api.BaseRoutes.User.PathPrefix("/e2ee/bundle").Subrouter()
+
 	api.InitUserLocal()
 	api.InitTeamLocal()
 	api.InitChannelLocal()
@@ -477,6 +490,7 @@ func InitLocal(srv *app.Server) *API {
 	api.InitSamlLocal()
 	api.InitCustomProfileAttributesLocal()
 	api.InitAccessControlPolicyLocal()
+	api.InitE2EE()
 
 	srv.LocalRouter.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 
