@@ -1,15 +1,15 @@
-# Base on the official postgres:13 image
 FROM postgres:13
 
 # Install build dependencies, build pg_bigm, and then clean up
-RUN apt-get update && \
-    apt-get install -y \
+RUN apt-get update
+RUN apt-get install -y \
         build-essential \
         postgresql-server-dev-13 \
         git \
         ca-certificates \
-        libicu-dev && \
-    git clone https://github.com/pgbigm/pg_bigm.git /usr/src/pg_bigm && \
+        libicu-dev
+
+RUN git clone https://github.com/pgbigm/pg_bigm.git /usr/src/pg_bigm && \
     cd /usr/src/pg_bigm && \
     make USE_PGXS=1 && \
     make USE_PGXS=1 install && \
