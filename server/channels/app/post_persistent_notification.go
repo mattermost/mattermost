@@ -228,15 +228,12 @@ func (a *App) persistentNotificationsAuxiliaryData(channelsMap map[string]*model
 		}
 
 		channelKeywords[c.Id] = make(MentionKeywords, len(profileMap))
-		validProfileMap := make(map[string]*model.User, len(profileMap))
 		for userID, user := range profileMap {
-			if user.IsBot {
-				continue
+			if !user.IsBot {
+				channelKeywords[c.Id].AddUserKeyword(userID, "@"+user.Username)
 			}
-			validProfileMap[userID] = user
-			channelKeywords[c.Id].AddUserKeyword(userID, "@"+user.Username)
 		}
-		channelProfileMap[c.Id] = validProfileMap
+		channelProfileMap[c.Id] = profileMap
 	}
 	return channelGroupMap, channelProfileMap, channelKeywords, channelNotifyProps, nil
 }
