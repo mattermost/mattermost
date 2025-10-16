@@ -8,6 +8,8 @@ export type ApplyMarkdownOptions = {
     selectionStart: number | null;
     selectionEnd: number | null;
     message: string;
+    url?: string;
+    text?: string;
 }
 
 type ApplyMarkdownReturnValue = {
@@ -24,11 +26,11 @@ type ApplySpecificMarkdownOptions = ApplyMarkdownReturnValue & {
 
 export type ApplyLinkMarkdownOptions = ApplySpecificMarkdownOptions & {
     url?: string;
-
+    text?: string;
 }
 
 export function applyMarkdown(options: ApplyMarkdownOptions): ApplyMarkdownReturnValue {
-    const {selectionEnd, selectionStart, message, markdownMode} = options;
+    const {selectionEnd, selectionStart, message, markdownMode, url, text} = options;
 
     if (selectionStart === null || selectionEnd === null) {
         /**
@@ -59,7 +61,7 @@ export function applyMarkdown(options: ApplyMarkdownOptions): ApplyMarkdownRetur
     case 'italic':
         return applyItalicMarkdown({selectionEnd, selectionStart, message});
     case 'link':
-        return applyLinkMarkdown({selectionEnd, selectionStart, message});
+        return applyLinkMarkdown({selectionEnd, selectionStart, message, url, text});
     case 'ol':
         return applyOlMarkdown({selectionEnd, selectionStart, message});
     case 'ul':
@@ -408,10 +410,10 @@ function applyBoldItalicMarkdown({selectionEnd, selectionStart, message, markdow
 
 export const DEFAULT_PLACEHOLDER_URL = 'url';
 
-export function applyLinkMarkdown({selectionEnd, selectionStart, message, url = DEFAULT_PLACEHOLDER_URL}: ApplyLinkMarkdownOptions) {
+export function applyLinkMarkdown({selectionEnd, selectionStart, message, url = DEFAULT_PLACEHOLDER_URL, text}: ApplyLinkMarkdownOptions) {
     // <prefix> <selection> <suffix>
     const prefix = message.slice(0, selectionStart);
-    const selection = message.slice(selectionStart, selectionEnd);
+    const selection = text;
     const suffix = message.slice(selectionEnd);
 
     const delimiterStart = '[';
@@ -424,8 +426,6 @@ export function applyLinkMarkdown({selectionEnd, selectionStart, message, url = 
     let newStart: number;
     let newEnd: number;
 
-    // When url is to be selected in [...](url), selection cursors need to shift by this much.
-    const urlShift = delimiterStart.length + 2; // ']'.length + ']('.length
     if (hasMarkdown) {
         // message already has the markdown; remove it
         newValue =
@@ -434,60 +434,15 @@ export function applyLinkMarkdown({selectionEnd, selectionStart, message, url = 
             suffix.slice(delimiterEnd.length);
         newStart = selectionStart - delimiterStart.length;
         newEnd = selectionEnd - delimiterStart.length;
-    } else if (message.length === 0) {
-        // no input; Add [|](url)
-        newValue = delimiterStart + delimiterEnd;
-        newStart = delimiterStart.length;
-        newEnd = delimiterStart.length;
-    } else if (selectionStart < selectionEnd) {
-        // there is something selected; put markdown around it and preserve selection
-        newValue = prefix + delimiterStart + selection + delimiterEnd + suffix;
-        newStart = selectionEnd + urlShift;
-        newEnd = newStart + url.length;
     } else {
-        // nothing is selected
-        const spaceBefore = prefix.charAt(prefix.length - 1) === ' ';
-        const spaceAfter = suffix.charAt(0) === ' ';
-        const cursorBeforeWord =
-            (selectionStart !== 0 && spaceBefore && !spaceAfter) || (selectionStart === 0 && !spaceAfter);
-        const cursorAfterWord =
-            (selectionEnd !== message.length && spaceAfter && !spaceBefore) ||
-            (selectionEnd === message.length && !spaceBefore);
+        // This is the logic for *adding* a link.
+        // It's now much simpler.
+        // Just replace the original selection with the new markdown.
+        newValue = prefix + delimiterStart + selection + delimiterEnd + suffix;
 
-        if (cursorBeforeWord) {
-            // cursor before a word
-            const word = message.slice(selectionStart, findWordEnd(message, selectionStart));
-
-            newValue = prefix + delimiterStart + word + delimiterEnd + suffix.slice(word.length);
-            newStart = selectionStart + word.length + urlShift;
-            newEnd = newStart + urlShift;
-        } else if (cursorAfterWord) {
-            // cursor after a word
-            const cursorAtEndOfLine = selectionStart === selectionEnd && selectionEnd === message.length;
-            if (cursorAtEndOfLine) {
-                // cursor at end of line
-                newValue = message + ' ' + delimiterStart + delimiterEnd;
-                newStart = selectionEnd + 1 + delimiterStart.length;
-                newEnd = newStart;
-            } else {
-                // cursor not at end of line
-                const word = message.slice(findWordStart(message, selectionStart), selectionStart);
-
-                newValue =
-                    prefix.slice(0, prefix.length - word.length) + delimiterStart + word + delimiterEnd + suffix;
-                newStart = selectionStart + urlShift;
-                newEnd = newStart + urlShift;
-            }
-        } else {
-            // cursor is in between a word
-            const wordStart = findWordStart(message, selectionStart);
-            const wordEnd = findWordEnd(message, selectionStart);
-            const word = message.slice(wordStart, wordEnd);
-
-            newValue = prefix.slice(0, wordStart) + delimiterStart + word + delimiterEnd + message.slice(wordEnd);
-            newStart = wordEnd + urlShift;
-            newEnd = newStart + urlShift;
-        }
+        // Set the cursor position to the end of the newly inserted link
+        newStart = selectionStart + (delimiterStart + selection + delimiterEnd).length;
+        newEnd = newStart;
     }
 
     return {
@@ -502,16 +457,6 @@ function applyCodeMarkdown({selectionEnd, selectionStart, message}: ApplySpecifi
         return applyMarkdownToSelection({selectionEnd, selectionStart, message, delimiterStart: '```\n', delimiterEnd: '\n```'});
     }
     return applyMarkdownToSelection({selectionEnd, selectionStart, message, delimiter: '`'});
-}
-
-function findWordEnd(text: string, start: number) {
-    const wordEnd = text.indexOf(' ', start);
-    return wordEnd === -1 ? text.length : wordEnd;
-}
-
-function findWordStart(text: string, start: number) {
-    const wordStart = text.lastIndexOf(' ', start - 1) + 1;
-    return wordStart === -1 ? 0 : wordStart;
 }
 
 function isSelectionMultiline(message: string, selectionStart: number, selectionEnd: number) {
