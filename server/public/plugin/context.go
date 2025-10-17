@@ -12,4 +12,10 @@ type Context struct {
 	IPAddress      string
 	AcceptLanguage string
 	UserAgent      string
+	// SourcePluginId is the ID of the plugin making a bridge call.
+	// Empty string indicates the call originated from core Mattermost server.
+	// This field is only populated for ExecuteBridgeCall hook invocations.
+	//
+	// Minimum server version: 11.1
+	SourcePluginId string
 }

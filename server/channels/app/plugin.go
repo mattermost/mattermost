@@ -1266,3 +1266,79 @@ func (ch *Channels) IsPluginActive(pluginName string) (bool, error) {
 
 	return pluginStatus.State == model.PluginStateRunning, nil
 }
+
+// CallPluginBridge executes a bridge call from one plugin to another, or from core to a plugin.
+// This enables bidirectional communication beyond the standard plugin API.
+//
+// Parameters:
+//   - rctx: Request context for logging and tracing
+//   - sourcePluginID: ID of the calling plugin (empty string if called from core)
+//   - targetPluginID: ID of the plugin to call
+//   - method: Name of the method to invoke on the target plugin
+//   - requestData: JSON-encoded request parameters
+//
+// Returns the JSON-encoded response from the target plugin, or an error.
+func (a *App) CallPluginBridge(rctx request.CTX, sourcePluginID, targetPluginID, method string, requestData []byte) ([]byte, error) {
+	pluginsEnvironment := a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
+		return nil, errors.New("plugins are not initialized")
+	}
+
+	// Verify target plugin exists and is active
+	if !pluginsEnvironment.IsActive(targetPluginID) {
+		return nil, errors.Errorf("target plugin is not active: %s", targetPluginID)
+	}
+
+	hooks, err := pluginsEnvironment.HooksForPlugin(targetPluginID)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get hooks for plugin: %s", targetPluginID)
+	}
+
+	// Create context with source plugin tracking
+	context := &plugin.Context{
+		RequestId:      model.NewId(),
+		SourcePluginId: sourcePluginID,
+		UserAgent:      "Mattermost-Plugin-Bridge/1.0",
+	}
+
+	// Log the bridge call for debugging and auditing
+	rctx.Logger().Debug("Plugin bridge call",
+		mlog.String("source_plugin_id", sourcePluginID),
+		mlog.String("target_plugin_id", targetPluginID),
+		mlog.String("method", method),
+		mlog.String("request_id", context.RequestId),
+	)
+
+	// Execute the bridge call via RPC
+	response, err := hooks.ExecuteBridgeCall(context, method, requestData)
+	if err != nil {
+		rctx.Logger().Error("Plugin bridge call failed",
+			mlog.String("source_plugin_id", sourcePluginID),
+			mlog.String("target_plugin_id", targetPluginID),
+			mlog.String("method", method),
+			mlog.Err(err),
+		)
+		return nil, errors.Wrapf(err, "bridge call to %s.%s failed", targetPluginID, method)
+	}
+
+	rctx.Logger().Debug("Plugin bridge call succeeded",
+		mlog.String("source_plugin_id", sourcePluginID),
+		mlog.String("target_plugin_id", targetPluginID),
+		mlog.String("method", method),
+	)
+
+	return response, nil
+}
+
+// CallPluginFromCore allows core Mattermost server code to make bridge calls to plugins.
+// This is the primary entry point for core features to invoke plugin functionality.
+//
+// Example usage:
+//
+//	request := map[string]interface{}{"prompt": "Summarize this", "text": content}
+//	reqJSON, _ := json.Marshal(request)
+//	response, err := app.CallPluginFromCore(rctx, "mattermost-ai", "GenerateCompletion", reqJSON)
+func (a *App) CallPluginFromCore(rctx request.CTX, targetPluginID, method string, requestData []byte) ([]byte, error) {
+	// Empty string for sourcePluginID indicates core server origin
+	return a.CallPluginBridge(rctx, "", targetPluginID, method, requestData)
+}

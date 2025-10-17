@@ -1603,3 +1603,8 @@ func (api *PluginAPI) DeletePropertyValuesForTarget(groupID, targetType, targetI
 func (api *PluginAPI) DeletePropertyValuesForField(groupID, fieldID string) error {
 	return api.app.PropertyService().DeletePropertyValuesForField(groupID, fieldID)
 }
+
+// CallPlugin makes a bridge call from this plugin to another plugin
+func (api *PluginAPI) CallPlugin(targetPluginID string, method string, request []byte) ([]byte, error) {
+	return api.app.CallPluginBridge(api.ctx, api.id, targetPluginID, method, request)
+}

@@ -1564,6 +1564,25 @@ type API interface {
 	// @tag Audit
 	// Minimum server version: 10.10
 	LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level)
+
+	// CallPlugin makes a bridge call to another plugin, allowing method execution
+	// with arbitrary JSON request/response payloads. The target plugin must implement
+	// the ExecuteBridgeCall hook to handle these calls.
+	//
+	// This enables plugins to expose functionality to other plugins or core server,
+	// creating a plugin-to-plugin communication mechanism beyond HTTP.
+	//
+	// Example: Boards plugin calling AI summarization in the Agents plugin:
+	//   request := map[string]interface{}{"prompt": "Summarize this board", "data": boardData}
+	//   reqJSON, _ := json.Marshal(request)
+	//   response, err := API.CallPlugin("mattermost-ai", "SummarizeContent", reqJSON)
+	//
+	// Security: The target plugin can identify the caller via Context.SourcePluginId
+	// and implement authorization logic based on the calling plugin.
+	//
+	// @tag Plugin
+	// Minimum server version: 11.1
+	CallPlugin(targetPluginID string, method string, request []byte) ([]byte, error)
 }
 
 var handshake = plugin.HandshakeConfig{

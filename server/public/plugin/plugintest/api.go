@@ -116,6 +116,36 @@ func (_m *API) AddUserToChannel(channelId string, userID string, asUserId string
 	return r0, r1
 }
 
+// CallPlugin provides a mock function with given fields: targetPluginID, method, request
+func (_m *API) CallPlugin(targetPluginID string, method string, request []byte) ([]byte, error) {
+	ret := _m.Called(targetPluginID, method, request)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CallPlugin")
+	}
+
+	var r0 []byte
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, []byte) ([]byte, error)); ok {
+		return rf(targetPluginID, method, request)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, []byte) []byte); ok {
+		r0 = rf(targetPluginID, method, request)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]byte)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, []byte) error); ok {
+		r1 = rf(targetPluginID, method, request)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // CopyFileInfos provides a mock function with given fields: userID, fileIds
 func (_m *API) CopyFileInfos(userID string, fileIds []string) ([]string, *model.AppError) {
 	ret := _m.Called(userID, fileIds)

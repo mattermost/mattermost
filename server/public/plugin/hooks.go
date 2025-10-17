@@ -64,6 +64,7 @@ const (
 	GenerateSupportDataID                     = 45
 	OnSAMLLoginID                             = 46
 	EmailNotificationWillBeSentID             = 47
+	ExecuteBridgeCallID                       = 48
 	TotalHooksID                              = iota
 )
 
@@ -418,4 +419,21 @@ type Hooks interface {
 	//
 	// Minimum server version: 10.7
 	OnSAMLLogin(c *Context, user *model.User, assertion *saml2.AssertionInfo) error
+
+	// ExecuteBridgeCall allows the server or other plugins to execute arbitrary function calls
+	// on plugins that opt-in to being bridge targets. This enables bidirectional communication
+	// where core server or plugins can invoke methods on other plugins.
+	//
+	// The method parameter specifies which function to call on the target plugin.
+	// The request parameter contains JSON-encoded parameters for the method.
+	// Returns JSON-encoded response data and an error if the call fails.
+	//
+	// Example use case: Core server or Boards plugin calling AI features in the Agents plugin.
+	//
+	// Security: Plugins should validate the source (via Context.SourcePluginId) and implement
+	// appropriate authorization checks for sensitive operations.
+	//
+	// @tag Plugin
+	// Minimum server version: 11.1
+	ExecuteBridgeCall(c *Context, method string, request []byte) ([]byte, error)
 }
