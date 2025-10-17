@@ -2074,10 +2074,6 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	if terms == "" && excludedTerms == "" {
 		// we've already confirmed that we have a channel or user to search for
 	} else {
-		// pg_bigm を使用するように変更します。
-		// to_tsvector/to_tsquery の代わりに LIKE/NOT LIKE を使用してインデックス検索を有効にします。
-
-		// 必須キーワードの処理
 		termWords := strings.Fields(terms)
 		if len(termWords) > 0 {
 			var searchClauses []string
@@ -2095,7 +2091,6 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			baseQuery = baseQuery.Where("("+strings.Join(searchClauses, logicalOperator)+")", searchArgs...)
 		}
 
-		// 除外キーワードの処理
 		excludedWords := strings.Fields(excludedTerms)
 		if len(excludedWords) > 0 {
 			var excludedClauses []string
