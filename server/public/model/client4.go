@@ -5096,7 +5096,7 @@ func (c *Client4) RegisterOAuthClient(ctx context.Context, request *ClientRegist
 	if err != nil {
 		return nil, nil, NewAppError("RegisterOAuthClient", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	r, err := c.doAPIRequestBytes(ctx, http.MethodPost, c.oAuthRegisterRoute(), buf, "")
+	r, err := c.DoAPIPostJSON(ctx, c.oAuthRegisterRoute(), buf)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -5129,7 +5129,7 @@ func (c *Client4) AuthorizeOAuthApp(ctx context.Context, authRequest *AuthorizeR
 		return "", nil, err
 	}
 	// The request doesn't go to the /api/v4 subpath, so we can't use the usual helper methods
-	r, err := c.doAPIRequestBytes(ctx, http.MethodPost, c.URL+"/oauth/authorize", buf, "")
+	r, err := c.DoAPIPostJSON(ctx, c.URL+"/oauth/authorize", buf)
 	if err != nil {
 		return "", BuildResponse(r), err
 	}
@@ -5150,7 +5150,7 @@ func (c *Client4) DeauthorizeOAuthApp(ctx context.Context, appId string) (*Respo
 		return nil, err
 	}
 	// The request doesn't go to the /api/v4 subpath, so we can't use the usual helper methods
-	r, err := c.doAPIRequestBytes(ctx, http.MethodPost, c.URL+"/oauth/deauthorize", buf, "")
+	r, err := c.DoAPIPostJSON(ctx, c.URL+"/oauth/deauthorize", buf)
 	if err != nil {
 		return BuildResponse(r), err
 	}
