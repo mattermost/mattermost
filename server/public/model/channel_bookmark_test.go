@@ -519,6 +519,87 @@ func TestChannelBookmarkIsValid(t *testing.T) {
 			},
 			false,
 		},
+		{
+			"valid command bookmark",
+			&ChannelBookmark{
+				Id:          NewId(),
+				OwnerId:     NewId(),
+				ChannelId:   NewId(),
+				DisplayName: "test command",
+				SortOrder:   0,
+				Command:     "/remind me in 1 hour",
+				Type:        ChannelBookmarkCommand,
+				CreateAt:    GetMillis(),
+				UpdateAt:    GetMillis(),
+				DeleteAt:    0,
+			},
+			true,
+		},
+		{
+			"command bookmark without command",
+			&ChannelBookmark{
+				Id:          NewId(),
+				OwnerId:     NewId(),
+				ChannelId:   NewId(),
+				DisplayName: "test command",
+				SortOrder:   0,
+				Command:     "",
+				Type:        ChannelBookmarkCommand,
+				CreateAt:    GetMillis(),
+				UpdateAt:    GetMillis(),
+				DeleteAt:    0,
+			},
+			false,
+		},
+		{
+			"command bookmark with invalid command (no slash)",
+			&ChannelBookmark{
+				Id:          NewId(),
+				OwnerId:     NewId(),
+				ChannelId:   NewId(),
+				DisplayName: "test command",
+				SortOrder:   0,
+				Command:     "remind me in 1 hour",
+				Type:        ChannelBookmarkCommand,
+				CreateAt:    GetMillis(),
+				UpdateAt:    GetMillis(),
+				DeleteAt:    0,
+			},
+			false,
+		},
+		{
+			"command bookmark with command too long",
+			&ChannelBookmark{
+				Id:          NewId(),
+				OwnerId:     NewId(),
+				ChannelId:   NewId(),
+				DisplayName: "test command",
+				SortOrder:   0,
+				Command:     "/" + strings.Repeat("x", 1024),
+				Type:        ChannelBookmarkCommand,
+				CreateAt:    GetMillis(),
+				UpdateAt:    GetMillis(),
+				DeleteAt:    0,
+			},
+			false,
+		},
+		{
+			"command bookmark with mixed fields (should fail)",
+			&ChannelBookmark{
+				Id:          NewId(),
+				OwnerId:     NewId(),
+				ChannelId:   NewId(),
+				DisplayName: "test command",
+				SortOrder:   0,
+				Command:     "/remind me in 1 hour",
+				LinkUrl:     "https://example.com",
+				Type:        ChannelBookmarkCommand,
+				CreateAt:    GetMillis(),
+				UpdateAt:    GetMillis(),
+				DeleteAt:    0,
+			},
+			false,
+		},
 	}
 
 	for _, testCase := range testCases {
@@ -650,23 +731,44 @@ func TestToBookmarkWithFileInfo(t *testing.T) {
 }
 
 func TestChannelBookmarkPatch(t *testing.T) {
-	p := &ChannelBookmarkPatch{
-		DisplayName: NewPointer(NewId()),
-		SortOrder:   NewPointer(int64(1)),
-		LinkUrl:     NewPointer(NewId()),
-	}
+	t.Run("link bookmark patch", func(t *testing.T) {
+		p := &ChannelBookmarkPatch{
+			DisplayName: NewPointer(NewId()),
+			SortOrder:   NewPointer(int64(1)),
+			LinkUrl:     NewPointer(NewId()),
+		}
 
-	b := ChannelBookmark{
-		Id:          NewId(),
-		DisplayName: NewId(),
-		Type:        ChannelBookmarkLink, // should not update
-		LinkUrl:     NewId(),
-	}
-	b.Patch(p)
+		b := ChannelBookmark{
+			Id:          NewId(),
+			DisplayName: NewId(),
+			Type:        ChannelBookmarkLink, // should not update
+			LinkUrl:     NewId(),
+		}
+		b.Patch(p)
 
-	require.Empty(t, b.FileId)
-	require.Equal(t, *p.DisplayName, b.DisplayName)
-	require.Equal(t, *p.SortOrder, b.SortOrder)
-	require.Equal(t, *p.LinkUrl, b.LinkUrl)
-	require.Equal(t, ChannelBookmarkLink, b.Type)
+		require.Empty(t, b.FileId)
+		require.Equal(t, *p.DisplayName, b.DisplayName)
+		require.Equal(t, *p.SortOrder, b.SortOrder)
+		require.Equal(t, *p.LinkUrl, b.LinkUrl)
+		require.Equal(t, ChannelBookmarkLink, b.Type)
+	})
+
+	t.Run("command bookmark patch", func(t *testing.T) {
+		p := &ChannelBookmarkPatch{
+			DisplayName: NewPointer("Updated Command"),
+			Command:     NewPointer("/updated command"),
+		}
+
+		b := ChannelBookmark{
+			Id:          NewId(),
+			DisplayName: "Original Command",
+			Type:        ChannelBookmarkCommand,
+			Command:     "/original command",
+		}
+		b.Patch(p)
+
+		require.Equal(t, *p.DisplayName, b.DisplayName)
+		require.Equal(t, *p.Command, b.Command)
+		require.Equal(t, ChannelBookmarkCommand, b.Type)
+	})
 }
