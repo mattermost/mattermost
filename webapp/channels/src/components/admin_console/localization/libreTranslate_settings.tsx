@@ -78,7 +78,7 @@ export default function LibreTranslateSettings(props: SystemConsoleCustomSetting
                             ),
                         }}
                     />}
-                type='text'
+                type='password'
                 value={libreTranslateSettings.APIKey}
                 setByEnv={false}
                 onChange={handleChange}
