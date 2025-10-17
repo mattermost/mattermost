@@ -754,6 +754,7 @@ const defaultServerConfig: AdminConfig = {
         AttributeBasedAccessControl: true,
         ContentFlagging: false,
         InteractiveDialogAppsForm: true,
+        AutoTranslation: false,
     },
     ImportSettings: {
         Directory: './import',
@@ -814,6 +815,19 @@ const defaultServerConfig: AdminConfig = {
             ReporterCommentRequired: true,
             ReviewerCommentRequired: true,
             HideFlaggedContent: true,
+        },
+    },
+    AutoTranslationSettings: {
+        Enable: false,
+        Provider: '',
+        LibreTranslate: {
+            URL: '',
+            APIKey: '',
+        },
+        TimeoutMs: {
+            NewPost: 800,
+            Fetch: 2000,
+            Notification: 300,
         },
     },
 };
