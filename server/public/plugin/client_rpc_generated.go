@@ -1242,6 +1242,7 @@ type Z_ExecuteBridgeCallArgs struct {
 	A *Context
 	B string
 	C []byte
+	D []byte
 }
 
 type Z_ExecuteBridgeCallReturns struct {
@@ -1249,8 +1250,8 @@ type Z_ExecuteBridgeCallReturns struct {
 	B error
 }
 
-func (g *hooksRPCClient) ExecuteBridgeCall(c *Context, method string, request []byte) ([]byte, error) {
-	_args := &Z_ExecuteBridgeCallArgs{c, method, request}
+func (g *hooksRPCClient) ExecuteBridgeCall(c *Context, method string, request []byte, responseSchema []byte) ([]byte, error) {
+	_args := &Z_ExecuteBridgeCallArgs{c, method, request, responseSchema}
 	_returns := &Z_ExecuteBridgeCallReturns{}
 	if g.implemented[ExecuteBridgeCallID] {
 		if err := g.client.Call("Plugin.ExecuteBridgeCall", _args, _returns); err != nil {
@@ -1262,9 +1263,9 @@ func (g *hooksRPCClient) ExecuteBridgeCall(c *Context, method string, request []
 
 func (s *hooksRPCServer) ExecuteBridgeCall(args *Z_ExecuteBridgeCallArgs, returns *Z_ExecuteBridgeCallReturns) error {
 	if hook, ok := s.impl.(interface {
-		ExecuteBridgeCall(c *Context, method string, request []byte) ([]byte, error)
+		ExecuteBridgeCall(c *Context, method string, request []byte, responseSchema []byte) ([]byte, error)
 	}); ok {
-		returns.A, returns.B = hook.ExecuteBridgeCall(args.A, args.B, args.C)
+		returns.A, returns.B = hook.ExecuteBridgeCall(args.A, args.B, args.C, args.D)
 		returns.B = encodableError(returns.B)
 	} else {
 		return encodableError(fmt.Errorf("Hook ExecuteBridgeCall called but not implemented."))
@@ -7953,6 +7954,7 @@ type Z_CallPluginArgs struct {
 	A string
 	B string
 	C []byte
+	D []byte
 }
 
 type Z_CallPluginReturns struct {
@@ -7960,8 +7962,8 @@ type Z_CallPluginReturns struct {
 	B error
 }
 
-func (g *apiRPCClient) CallPlugin(targetPluginID string, method string, request []byte) ([]byte, error) {
-	_args := &Z_CallPluginArgs{targetPluginID, method, request}
+func (g *apiRPCClient) CallPlugin(targetPluginID string, method string, request []byte, responseSchema []byte) ([]byte, error) {
+	_args := &Z_CallPluginArgs{targetPluginID, method, request, responseSchema}
 	_returns := &Z_CallPluginReturns{}
 	if err := g.client.Call("Plugin.CallPlugin", _args, _returns); err != nil {
 		log.Printf("RPC call to CallPlugin API failed: %s", err.Error())
@@ -7971,9 +7973,9 @@ func (g *apiRPCClient) CallPlugin(targetPluginID string, method string, request 
 
 func (s *apiRPCServer) CallPlugin(args *Z_CallPluginArgs, returns *Z_CallPluginReturns) error {
 	if hook, ok := s.impl.(interface {
-		CallPlugin(targetPluginID string, method string, request []byte) ([]byte, error)
+		CallPlugin(targetPluginID string, method string, request []byte, responseSchema []byte) ([]byte, error)
 	}); ok {
-		returns.A, returns.B = hook.CallPlugin(args.A, args.B, args.C)
+		returns.A, returns.B = hook.CallPlugin(args.A, args.B, args.C, args.D)
 		returns.B = encodableError(returns.B)
 	} else {
 		return encodableError(fmt.Errorf("API CallPlugin called but not implemented."))

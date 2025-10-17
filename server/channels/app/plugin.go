@@ -1276,9 +1276,10 @@ func (ch *Channels) IsPluginActive(pluginName string) (bool, error) {
 //   - targetPluginID: ID of the plugin to call
 //   - method: Name of the method to invoke on the target plugin
 //   - requestData: JSON-encoded request parameters
+//   - responseSchema: JSON schema or example structure defining expected response format (can be nil)
 //
 // Returns the JSON-encoded response from the target plugin, or an error.
-func (a *App) CallPluginBridge(rctx request.CTX, sourcePluginID, targetPluginID, method string, requestData []byte) ([]byte, error) {
+func (a *App) CallPluginBridge(rctx request.CTX, sourcePluginID, targetPluginID, method string, requestData []byte, responseSchema []byte) ([]byte, error) {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return nil, errors.New("plugins are not initialized")
@@ -1307,10 +1308,11 @@ func (a *App) CallPluginBridge(rctx request.CTX, sourcePluginID, targetPluginID,
 		mlog.String("target_plugin_id", targetPluginID),
 		mlog.String("method", method),
 		mlog.String("request_id", context.RequestId),
+		mlog.Bool("has_response_schema", responseSchema != nil),
 	)
 
 	// Execute the bridge call via RPC
-	response, err := hooks.ExecuteBridgeCall(context, method, requestData)
+	response, err := hooks.ExecuteBridgeCall(context, method, requestData, responseSchema)
 	if err != nil {
 		rctx.Logger().Error("Plugin bridge call failed",
 			mlog.String("source_plugin_id", sourcePluginID),
@@ -1337,8 +1339,9 @@ func (a *App) CallPluginBridge(rctx request.CTX, sourcePluginID, targetPluginID,
 //
 //	request := map[string]interface{}{"prompt": "Summarize this", "text": content}
 //	reqJSON, _ := json.Marshal(request)
-//	response, err := app.CallPluginFromCore(rctx, "mattermost-ai", "GenerateCompletion", reqJSON)
-func (a *App) CallPluginFromCore(rctx request.CTX, targetPluginID, method string, requestData []byte) ([]byte, error) {
+//	schema := []byte(`{"type": "object", "properties": {"summary": {"type": "string"}}}`)
+//	response, err := app.CallPluginFromCore(rctx, "mattermost-ai", "GenerateCompletion", reqJSON, schema)
+func (a *App) CallPluginFromCore(rctx request.CTX, targetPluginID, method string, requestData []byte, responseSchema []byte) ([]byte, error) {
 	// Empty string for sourcePluginID indicates core server origin
-	return a.CallPluginBridge(rctx, "", targetPluginID, method, requestData)
+	return a.CallPluginBridge(rctx, "", targetPluginID, method, requestData, responseSchema)
 }

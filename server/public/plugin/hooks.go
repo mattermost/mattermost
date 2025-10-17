@@ -426,14 +426,19 @@ type Hooks interface {
 	//
 	// The method parameter specifies which function to call on the target plugin.
 	// The request parameter contains JSON-encoded parameters for the method.
-	// Returns JSON-encoded response data and an error if the call fails.
+	// The responseSchema parameter contains a JSON schema or example structure that defines
+	// the expected response format. This is particularly useful for AI/LLM calls where you
+	// want to enforce structured outputs.
 	//
-	// Example use case: Core server or Boards plugin calling AI features in the Agents plugin.
+	// Returns JSON-encoded response data matching the provided schema, and an error if the call fails.
+	//
+	// Example use case: Core server or Boards plugin calling AI features in the Agents plugin
+	// with a specific response schema to ensure structured LLM outputs.
 	//
 	// Security: Plugins should validate the source (via Context.SourcePluginId) and implement
 	// appropriate authorization checks for sensitive operations.
 	//
 	// @tag Plugin
 	// Minimum server version: 11.1
-	ExecuteBridgeCall(c *Context, method string, request []byte) ([]byte, error)
+	ExecuteBridgeCall(c *Context, method string, request []byte, responseSchema []byte) ([]byte, error)
 }

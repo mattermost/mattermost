@@ -116,9 +116,9 @@ func (_m *API) AddUserToChannel(channelId string, userID string, asUserId string
 	return r0, r1
 }
 
-// CallPlugin provides a mock function with given fields: targetPluginID, method, request
-func (_m *API) CallPlugin(targetPluginID string, method string, request []byte) ([]byte, error) {
-	ret := _m.Called(targetPluginID, method, request)
+// CallPlugin provides a mock function with given fields: targetPluginID, method, request, responseSchema
+func (_m *API) CallPlugin(targetPluginID string, method string, request []byte, responseSchema []byte) ([]byte, error) {
+	ret := _m.Called(targetPluginID, method, request, responseSchema)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CallPlugin")
@@ -126,19 +126,19 @@ func (_m *API) CallPlugin(targetPluginID string, method string, request []byte) 
 
 	var r0 []byte
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, []byte) ([]byte, error)); ok {
-		return rf(targetPluginID, method, request)
+	if rf, ok := ret.Get(0).(func(string, string, []byte, []byte) ([]byte, error)); ok {
+		return rf(targetPluginID, method, request, responseSchema)
 	}
-	if rf, ok := ret.Get(0).(func(string, string, []byte) []byte); ok {
-		r0 = rf(targetPluginID, method, request)
+	if rf, ok := ret.Get(0).(func(string, string, []byte, []byte) []byte); ok {
+		r0 = rf(targetPluginID, method, request, responseSchema)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]byte)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string, []byte) error); ok {
-		r1 = rf(targetPluginID, method, request)
+	if rf, ok := ret.Get(1).(func(string, string, []byte, []byte) error); ok {
+		r1 = rf(targetPluginID, method, request, responseSchema)
 	} else {
 		r1 = ret.Error(1)
 	}

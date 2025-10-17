@@ -1572,17 +1572,22 @@ type API interface {
 	// This enables plugins to expose functionality to other plugins or core server,
 	// creating a plugin-to-plugin communication mechanism beyond HTTP.
 	//
-	// Example: Boards plugin calling AI summarization in the Agents plugin:
+	// The responseSchema parameter allows you to specify the expected response format,
+	// particularly useful for AI/LLM calls where you want structured outputs.
+	// Pass nil if you don't need to specify a schema.
+	//
+	// Example: Boards plugin calling AI with structured output:
 	//   request := map[string]interface{}{"prompt": "Summarize this board", "data": boardData}
 	//   reqJSON, _ := json.Marshal(request)
-	//   response, err := API.CallPlugin("mattermost-ai", "SummarizeContent", reqJSON)
+	//   schema := []byte(`{"type": "object", "properties": {"summary": {"type": "string"}}}`)
+	//   response, err := API.CallPlugin("mattermost-ai", "SummarizeContent", reqJSON, schema)
 	//
 	// Security: The target plugin can identify the caller via Context.SourcePluginId
 	// and implement authorization logic based on the calling plugin.
 	//
 	// @tag Plugin
 	// Minimum server version: 11.1
-	CallPlugin(targetPluginID string, method string, request []byte) ([]byte, error)
+	CallPlugin(targetPluginID string, method string, request []byte, responseSchema []byte) ([]byte, error)
 }
 
 var handshake = plugin.HandshakeConfig{

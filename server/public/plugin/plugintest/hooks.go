@@ -87,9 +87,9 @@ func (_m *Hooks) EmailNotificationWillBeSent(emailNotification *model.EmailNotif
 	return r0, r1
 }
 
-// ExecuteBridgeCall provides a mock function with given fields: c, method, request
-func (_m *Hooks) ExecuteBridgeCall(c *plugin.Context, method string, request []byte) ([]byte, error) {
-	ret := _m.Called(c, method, request)
+// ExecuteBridgeCall provides a mock function with given fields: c, method, request, responseSchema
+func (_m *Hooks) ExecuteBridgeCall(c *plugin.Context, method string, request []byte, responseSchema []byte) ([]byte, error) {
+	ret := _m.Called(c, method, request, responseSchema)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ExecuteBridgeCall")
@@ -97,19 +97,19 @@ func (_m *Hooks) ExecuteBridgeCall(c *plugin.Context, method string, request []b
 
 	var r0 []byte
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*plugin.Context, string, []byte) ([]byte, error)); ok {
-		return rf(c, method, request)
+	if rf, ok := ret.Get(0).(func(*plugin.Context, string, []byte, []byte) ([]byte, error)); ok {
+		return rf(c, method, request, responseSchema)
 	}
-	if rf, ok := ret.Get(0).(func(*plugin.Context, string, []byte) []byte); ok {
-		r0 = rf(c, method, request)
+	if rf, ok := ret.Get(0).(func(*plugin.Context, string, []byte, []byte) []byte); ok {
+		r0 = rf(c, method, request, responseSchema)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]byte)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*plugin.Context, string, []byte) error); ok {
-		r1 = rf(c, method, request)
+	if rf, ok := ret.Get(1).(func(*plugin.Context, string, []byte, []byte) error); ok {
+		r1 = rf(c, method, request, responseSchema)
 	} else {
 		r1 = ret.Error(1)
 	}
