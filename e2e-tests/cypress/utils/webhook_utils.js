@@ -527,7 +527,7 @@ function getDateTimeDialog(triggerId, webhookBaseUrl) {
     return getBasicDateTimeDialog(triggerId, webhookBaseUrl);
 }
 
-module.exports = {
+export {
     getFullDialog,
     getSimpleDialog,
     getUserAndChannelDialog,
