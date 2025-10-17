@@ -287,6 +287,11 @@ function ChannelTabs({
                     const isBookmarksTab = tab.id === 'bookmarks';
 
                     if (isBookmarksTab) {
+                        // Only show bookmarks tab if there are actual bookmarks
+                        if (bookmarks.length === 0) {
+                            return null;
+                        }
+
                         return (
                             <BookmarksTab
                                 key={tab.id}
@@ -324,13 +329,51 @@ function ChannelTabs({
             </div>
 
             <div className='channel-tabs-container__tab-actions'>
-                <button
-                    type='button'
-                    className='channel-tabs-container__action-button'
-                    title={formatMessage({id: 'channel_tabs.add_tab', defaultMessage: 'Add tab'})}
-                >
-                    <i className='icon icon-plus'/>
-                </button>
+                {/* Show bookmark creation options in add tab button when no bookmarks exist but user can add them */}
+                {bookmarks.length === 0 && Boolean(canAdd) ? (
+                    <Menu.Container
+                        menuButton={{
+                            id: 'add-tab-with-bookmarks',
+                            'aria-label': formatMessage({id: 'channel_tabs.add_tab_or_bookmark', defaultMessage: 'Add tab or bookmark'}),
+                            class: 'channel-tabs-container__action-button',
+                            children: <i className='icon icon-plus'/>,
+                        }}
+                        menu={{
+                            id: 'add-tab-with-bookmarks-menu',
+                        }}
+                    >
+                        <Menu.Item
+                            leadingElement={<LinkVariantIcon size={18}/>}
+                            labels={
+                                <FormattedMessage
+                                    id='channel_bookmarks.addLink'
+                                    defaultMessage='Add a link'
+                                />
+                            }
+                            onClick={handleCreateLink}
+                        />
+                        {canUploadFiles && (
+                            <Menu.Item
+                                leadingElement={<PaperclipIcon size={18}/>}
+                                labels={
+                                    <FormattedMessage
+                                        id='channel_bookmarks.attachFile'
+                                        defaultMessage='Attach a file'
+                                    />
+                                }
+                                onClick={handleCreateFile}
+                            />
+                        )}
+                    </Menu.Container>
+                ) : (
+                    <button
+                        type='button'
+                        className='channel-tabs-container__action-button'
+                        title={formatMessage({id: 'channel_tabs.add_tab', defaultMessage: 'Add tab'})}
+                    >
+                        <i className='icon icon-plus'/>
+                    </button>
+                )}
             </div>
         </div>
     );
