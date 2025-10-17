@@ -101,21 +101,15 @@ const EnterpriseEditionLeftPanel = ({
                 className='EnterpriseEditionLeftPanel'
                 data-testid='EnterpriseEditionLeftPanel'
             >
-                <div className='EnterpriseEditionLeftPanel__Grid'>
+                <div className='EnterpriseEditionLeftPanel__Header'>
                     <div>
-                        <div className='pre-title'>
-                            <FormattedMessage
-                                id='admin.license.enterpriseEdition'
-                                defaultMessage='Enterprise Edition'
-                            />
-                        </div>
-                        <div className='title'>
+                        <div className='EnterpriseEditionLeftPanel__Title'>
                             {`Mattermost ${getSkuDisplayName(unsanitizedLicense.SkuShortName, unsanitizedLicense.IsGovSku === 'true')}`}
                         </div>
                     </div>
                     {viewPlansButton}
                 </div>
-                <div className='subtitle'>
+                <div className='EnterpriseEditionLeftPanel__Subtitle'>
                     <FormattedMessage
                         id='admin.license.entryEdition.subtitle'
                         defaultMessage='Entry offers Enterprise Advanced capabilities {limitsLink} designed to support evaluation.'
@@ -191,15 +185,9 @@ const EnterpriseEditionLeftPanel = ({
             className='EnterpriseEditionLeftPanel'
             data-testid='EnterpriseEditionLeftPanel'
         >
-            <div className='EnterpriseEditionLeftPanel__Grid'>
+            <div className='EnterpriseEditionLeftPanel__Header'>
                 <div>
-                    <div className='pre-title'>
-                        <FormattedMessage
-                            id='admin.license.enterpriseEdition'
-                            defaultMessage='Enterprise Edition'
-                        />
-                    </div>
-                    <div className='title'>
+                    <div className='EnterpriseEditionLeftPanel__Title'>
                         {`Mattermost ${skuName}`}
                         {isTrialLicense && (
                             <Tag
@@ -216,16 +204,9 @@ const EnterpriseEditionLeftPanel = ({
                 </div>
                 {viewPlansButton}
             </div>
-            <div className='subtitle'>
-                <FormattedMessage
-                    id='admin.license.enterpriseEdition.subtitle'
-                    defaultMessage='This is an Enterprise Edition for the Mattermost {skuName} plan'
-                    values={{skuName}}
-                />
-            </div>
             <div className='licenseInformation'>
-                <div className='license-details-top'>
-                    <span className='title'>{'License details'}</span>
+                <div className='licenseInformation__Header'>
+                    <span className='licenseInformation__Title'>{'License details'}</span>
                     <button
                         className='btn btn-primary btn-sm add-seats-button '
                         onClick={openContactSales}

@@ -107,8 +107,40 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                         first_name: 'Test',
                         last_name: 'User',
                         email: 'test@example.com',
+                        roles: 'channel_user', // Not system_admin
                     },
                 },
+            },
+            roles: {
+                roles: {
+                    channel_user: {
+                        id: 'channel_user',
+                        name: 'channel_user',
+                        permissions: [],
+                    },
+                    channel_admin: {
+                        id: 'channel_admin',
+                        name: 'channel_admin',
+                        permissions: ['manage_channel_access_rules'],
+                    },
+                },
+                myRoles: {
+                    channel_id: new Set(['channel_admin']),
+                },
+            },
+            channels: {
+                myMembers: {
+                    channel_id: {
+                        channel_id: 'channel_id',
+                        user_id: 'current_user_id',
+                        roles: 'channel_admin',
+                        mention_count: 0,
+                        msg_count: 0,
+                    },
+                },
+            },
+            teams: {
+                currentTeamId: 'team_id',
             },
         },
         plugins: {
@@ -316,9 +348,29 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 onChange: expect.any(Function),
                 onValidate: expect.any(Function),
                 onParseError: expect.any(Function),
+                isSystemAdmin: expect.any(Boolean),
+                validateExpressionAgainstRequester: mockActions.validateExpressionAgainstRequester,
             }),
             expect.anything(),
         );
+    });
+
+    test('should pass user self-exclusion props to TableEditor', async () => {
+        renderWithContext(
+            <ChannelSettingsAccessRulesTab {...baseProps}/>,
+            initialState,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+        });
+
+        // Verify the new props for user self-exclusion are passed
+        const call = MockedTableEditor.mock.calls[0][0];
+        expect(call).toHaveProperty('isSystemAdmin');
+        expect(call).toHaveProperty('validateExpressionAgainstRequester');
+        expect(typeof call.isSystemAdmin).toBe('boolean');
+        expect(typeof call.validateExpressionAgainstRequester).toBe('function');
     });
 
     test('should call setAreThereUnsavedChanges when expression changes', async () => {
@@ -1324,6 +1376,9 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                                 id: 'current_user_id',
                                 username: 'current_user',
                                 email: 'current@test.com',
+                                roles: 'channel_user', // Add missing roles property
+                                first_name: 'Current',
+                                last_name: 'User',
                             },
                         },
                     },
