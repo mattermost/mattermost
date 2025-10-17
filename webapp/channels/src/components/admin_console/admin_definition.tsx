@@ -55,6 +55,7 @@ import BillingSubscriptions, {searchableStrings as billingSubscriptionSearchable
 import CompanyInfo, {searchableStrings as billingCompanyInfoSearchableStrings} from './billing/company_info';
 import CompanyInfoEdit from './billing/company_info_edit';
 import BrandImageSetting from './brand_image_setting/brand_image_setting';
+import BurnOnReadUserGroupSelector from './burn_on_read_user_group_selector';
 import ClientSideUserIdsSetting from './client_side_userids_setting';
 import ClusterSettings, {searchableStrings as clusterSearchableStrings} from './cluster_settings';
 import CustomEnableDisableGuestAccountsSetting from './custom_enable_disable_guest_accounts_setting';
@@ -3153,6 +3154,117 @@ const AdminDefinition: AdminDefinitionType = {
                             label: defineMessage({id: 'admin.customization.enableSVGsTitle', defaultMessage: 'Enable SVGs:'}),
                             help_text: defineMessage({id: 'admin.customization.enableSVGsDesc', defaultMessage: 'Enable previews for SVG file attachments and allow them to appear in messages. Enabling SVGs is not recommended in environments where not all users are trusted.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'ServiceSettings.EnableBurnOnRead',
+                            label: defineMessage({id: 'admin.posts.burnOnRead.enable.title', defaultMessage: 'Enable Burn-on-Read Messages'}),
+                            help_text: defineMessage({id: 'admin.posts.burnOnRead.enable.desc', defaultMessage: 'When enabled, users are allowed to send burn-on-read messages in channels, direct messages, and group messages. If disabled, the option to send a Burn-on-Read message will not be available.'}),
+                            help_text_markdown: false,
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                            isHidden: it.configIsFalse('FeatureFlags', 'BurnOnRead'),
+                        },
+                        {
+                            type: 'dropdown',
+                            key: 'ServiceSettings.BurnOnReadDurationMinutes',
+                            label: defineMessage({id: 'admin.posts.burnOnRead.duration.title', defaultMessage: 'Burn-on-Read Duration'}),
+                            help_text: defineMessage({id: 'admin.posts.burnOnRead.duration.desc', defaultMessage: 'Sets the countdown duration for Burn-on-Read messages once they are revealed. After a recipient clicks to reveal a BoR message, the message will delete itself for that user after the specified duration. This setting applies to all Burn-on-Read messages.'}),
+                            help_text_markdown: false,
+                            options: [
+                                {
+                                    value: '1',
+                                    display_name: defineMessage({id: 'admin.posts.burnOnRead.duration.1min', defaultMessage: '1 minute'}),
+                                },
+                                {
+                                    value: '5',
+                                    display_name: defineMessage({id: 'admin.posts.burnOnRead.duration.5min', defaultMessage: '5 minutes'}),
+                                },
+                                {
+                                    value: '10',
+                                    display_name: defineMessage({id: 'admin.posts.burnOnRead.duration.10min', defaultMessage: '10 minutes'}),
+                                },
+                                {
+                                    value: '30',
+                                    display_name: defineMessage({id: 'admin.posts.burnOnRead.duration.30min', defaultMessage: '30 minutes'}),
+                                },
+                                {
+                                    value: '60',
+                                    display_name: defineMessage({id: 'admin.posts.burnOnRead.duration.1hour', defaultMessage: '1 hour'}),
+                                },
+                                {
+                                    value: '480',
+                                    display_name: defineMessage({id: 'admin.posts.burnOnRead.duration.8hours', defaultMessage: '8 hours'}),
+                                },
+                            ],
+                            onConfigLoad: (value: any) => value ?? '10',
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                it.stateIsFalse('ServiceSettings.EnableBurnOnRead'),
+                            ),
+                            isHidden: it.configIsFalse('FeatureFlags', 'BurnOnRead'),
+                        },
+                        {
+                            type: 'radio',
+                            key: 'ServiceSettings.BurnOnReadAllowedUsers',
+                            label: defineMessage({id: 'admin.posts.burnOnRead.allowedUsers.title', defaultMessage: 'Users Allowed to Send Burn-on-Read Messages'}),
+                            options: [
+                                {
+                                    value: 'all',
+                                    display_name: defineMessage({id: 'admin.posts.burnOnRead.allowedUsers.all', defaultMessage: 'Allow for all users'}),
+                                },
+                                {
+                                    value: 'allow_selected',
+                                    display_name: defineMessage({id: 'admin.posts.burnOnRead.allowedUsers.allowSelected', defaultMessage: 'Allow selected users'}),
+                                },
+                                {
+                                    value: 'block_selected',
+                                    display_name: defineMessage({id: 'admin.posts.burnOnRead.allowedUsers.blockSelected', defaultMessage: 'Block selected users'}),
+                                },
+                            ],
+                            onConfigLoad: (value: any) => value ?? 'all',
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                it.stateIsFalse('ServiceSettings.EnableBurnOnRead'),
+                            ),
+                            isHidden: it.configIsFalse('FeatureFlags', 'BurnOnRead'),
+                        },
+                        {
+                            type: 'custom',
+                            key: 'ServiceSettings.BurnOnReadAllowedUsersList',
+                            label: defineMessage({id: 'admin.posts.burnOnRead.usersList.title', defaultMessage: 'Allow list'}),
+                            help_text: defineMessage({id: 'admin.posts.burnOnRead.usersList.desc', defaultMessage: 'Add users, groups or teams that will be allowed to send burn-on-read messages. Restricts which users can send Burn-on-Read messages. You may limit this feature to specific individuals, groups, or teams.'}),
+                            component: BurnOnReadUserGroupSelector,
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                it.stateIsFalse('ServiceSettings.EnableBurnOnRead'),
+                            ),
+
+                            // Hide when "Allow for all users" is selected, when BoR is disabled, or when not licensed for the feature
+                            isHidden: it.any(
+                                it.stateEqualsOrDefault('ServiceSettings.BurnOnReadAllowedUsers', 'all', 'all'),
+                                it.stateIsFalse('ServiceSettings.EnableBurnOnRead'),
+                                it.configIsFalse('FeatureFlags', 'BurnOnRead'),
+                            ),
+
+                            // Validate that at least one user/group is selected when "Selected users" or "Blocked users" is chosen
+                            validate: (value) => {
+                                // Check if value is empty
+                                const isEmpty = !value ||
+                                    (typeof value === 'string' && value.trim() === '') ||
+                                    (Array.isArray(value) && value.length === 0);
+
+                                if (isEmpty) {
+                                    return new ValidationResult(
+                                        false,
+                                        defineMessage({
+                                            id: 'admin.posts.burnOnRead.usersList.required',
+                                            defaultMessage: 'At least one user or group must be selected.',
+                                        }),
+                                    );
+                                }
+
+                                return new ValidationResult(true, '');
+                            },
                         },
                         {
                             type: 'bool',

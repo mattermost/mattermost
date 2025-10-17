@@ -82,6 +82,9 @@ type FeatureFlags struct {
 	// FEATURE_FLAG_REMOVAL: AutoTranslation - Remove this when MVP is to be released
 	// Enable auto-translation feature for messages in channels
 	AutoTranslation bool
+
+	// Enable burn-on-read messages that automatically delete after viewing
+	BurnOnRead bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -117,6 +120,8 @@ func (f *FeatureFlags) SetDefaults() {
 
 	// FEATURE_FLAG_REMOVAL: AutoTranslation - Remove this default when MVP is to be released
 	f.AutoTranslation = false
+
+	f.BurnOnRead = false
 }
 
 // ToMap returns the feature flags as a map[string]string

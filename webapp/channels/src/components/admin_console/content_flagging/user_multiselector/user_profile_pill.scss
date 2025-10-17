@@ -13,6 +13,30 @@
     padding-inline: 6px;
 }
 
+.GroupIcon {
+    display: flex;
+    width: 16px;
+    height: 16px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-color: rgba(var(--center-channel-color-rgb), 0.16);
+    color: var(--center-channel-color);
+    font-size: 10px;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.GroupLabel {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.GroupSource {
+    opacity: 0.64;
+}
+
 .Remove {
     cursor: pointer;
 
