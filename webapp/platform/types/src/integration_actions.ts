@@ -4,9 +4,9 @@
 import {isArrayOf} from './utilities';
 
 export type PostAction = {
-    id: string;
+    id?: string;
     type?: string;
-    name: string;
+    name?: string;
     disabled?: boolean;
     style?: string;
     data_source?: string;
@@ -20,19 +20,11 @@ export function isPostAction(v: unknown): v is PostAction {
         return false;
     }
 
-    if (!('id' in v)) {
+    if ('id' in v && typeof v.id !== 'string') {
         return false;
     }
 
-    if (typeof v.id !== 'string') {
-        return false;
-    }
-
-    if (!('name' in v)) {
-        return false;
-    }
-
-    if (typeof v.name !== 'string') {
+    if ('name' in v && typeof v.name !== 'string') {
         return false;
     }
 
