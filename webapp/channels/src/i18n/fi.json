@@ -1385,7 +1385,6 @@
   "reaction.clickToAdd": "(napsauta lisätäksesi)",
   "reaction.clickToRemove": "(napsauta poistaaksesi)",
   "reaction.container.ariaLabel": "reaktiot",
-  "reaction.removeReact.ariaLabel": "poista reaktio",
   "reaction.usersReacted": "{users} ja {lastUser}",
   "reaction.you": "Sinä",
   "removed_channel.channelName": "kanava",

@@ -8,7 +8,7 @@ import {Permissions} from 'mattermost-redux/constants';
 import ActionsMenu from 'components/actions_menu';
 import ModalController from 'components/modal_controller';
 
-import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 function ActionsMenuTestWrapper(props: Omit<React.ComponentProps<typeof ActionsMenu>, 'isMenuOpen' | 'handleDropdownOpened'>) {
@@ -72,7 +72,7 @@ describe('ActionsMenu', () => {
         expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 
         // Open the menu
-        screen.getByRole('button').click();
+        await userEvent.click(screen.getByRole('button'));
 
         // The dialog should open up
         await waitFor(() => {
@@ -82,17 +82,17 @@ describe('ActionsMenu', () => {
         });
 
         // The focus starts on the dialog itself, so pressing tab should move it to the button
-        userEvent.tab();
+        await userEvent.tab();
 
         expect(screen.queryByRole('button', {name: 'Visit the Marketplace'})).toHaveFocus();
 
         // The focus should be trapped, so hitting tab again shouldn't change the focus
-        userEvent.tab();
+        await userEvent.tab();
 
         expect(screen.queryByRole('button', {name: 'Visit the Marketplace'})).toHaveFocus();
 
         // Pressing enter should open the marketplace modal and close the menu
-        userEvent.keyboard('{Enter}');
+        await userEvent.keyboard('{Enter}');
 
         await waitFor(() => {
             expect(screen.queryByRole('dialog', {name: 'actions'})).not.toBeInTheDocument();
@@ -100,16 +100,14 @@ describe('ActionsMenu', () => {
         });
 
         // Pressing escape should close the marketplace modal
-        act(() => {
-            userEvent.keyboard('{Escape}');
-        });
+        await userEvent.type(screen.getByRole('dialog'), '{Escape}');
 
         await waitFor(() => {
             expect(screen.queryByRole('dialog', {name: 'App Marketplace'})).not.toBeInTheDocument();
         });
 
         // Reopen the menu
-        screen.getByRole('button').click();
+        await userEvent.click(screen.getByRole('button'));
 
         await waitFor(() => {
             expect(screen.queryByRole('dialog')).toBeVisible();
@@ -117,7 +115,7 @@ describe('ActionsMenu', () => {
         expect(screen.queryByRole('dialog')).toHaveAccessibleName('actions');
 
         // Pressing escape should close the dialog
-        userEvent.keyboard('{Escape}');
+        await userEvent.keyboard('{Escape}');
 
         await waitFor(() => {
             expect(screen.queryByRole('dialog', {name: 'actions'})).not.toBeInTheDocument();
