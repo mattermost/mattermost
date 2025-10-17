@@ -475,11 +475,9 @@ exports[`components/integrations/AddOutgoingOAuthConnection should match snapsho
                 </span>
               </FormattedMessage>
             </div>
-            <ConfirmModal
-              confirmButtonClass="btn btn-primary"
+            <Memo(ConfirmModal)
               confirmButtonText="Save anyway"
               message="This connection has not been validated, Do you want to save anyway?"
-              modalClass=""
               onCancel={[Function]}
               onConfirm={[Function]}
               onExited={[Function]}
@@ -558,7 +556,7 @@ exports[`components/integrations/AddOutgoingOAuthConnection should match snapsho
                   />
                 </Modal>
               </GenericModal>
-            </ConfirmModal>
+            </Memo(ConfirmModal)>
           </div>
         </AbstractOutgoingOAuthConnection>
       </AddOutgoingOAuthConnection>
