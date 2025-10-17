@@ -2760,7 +2760,7 @@
   "admin.site.localization.autoTranslationProviderLibreTranslateURLExample": "e.g.: \"https://libretranslate.yourdomain.com\"",
   "admin.site.localization.autoTranslationProviderLibreTranslateURLTitle": "LibreTranslate API Endpoint:",
   "admin.site.localization.autoTranslationProviderTitle": "Translation Service:",
-  "admin.site.localization.enableAutoTranslationDescriptio": "Configure auto-translation for channels and direct messages",
+  "admin.site.localization.enableAutoTranslationDescription": "Configure auto-translation for channels and direct messages",
   "admin.site.localization.enableAutoTranslationTitle": "Auto-translation",
   "admin.site.localization.languages.description": "Choose which languages should be the defaults",
   "admin.site.localization.languages.title": "Languages",

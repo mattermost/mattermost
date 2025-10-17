@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useMemo, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessages, FormattedMessage} from 'react-intl';
 
 import type {AutoTranslationSettings} from '@mattermost/types/config';
 
@@ -19,6 +19,20 @@ import LibreTranslateSettings from './libreTranslate_settings';
 
 import type {SystemConsoleCustomSettingsComponentProps} from '../schema_admin_settings';
 import './localization.scss';
+import type {SearchableStrings} from '../types';
+
+const messages = defineMessages({
+    enableAutoTranslationTitle: {
+        id: 'admin.site.localization.enableAutoTranslationTitle',
+        defaultMessage: 'Auto-translation',
+    },
+    enableAutoTranslationDescription: {
+        id: 'admin.site.localization.enableAutoTranslationDescription',
+        defaultMessage: 'Configure auto-translation for channels and direct messages',
+    },
+});
+
+export const searchableStrings: SearchableStrings = Object.values(messages);
 
 export default function AutoTranslation(props: SystemConsoleCustomSettingsComponentProps) {
     const [autoTranslationSettings, setAutoTranslationSettings] = useState<AutoTranslationSettings>(props.value as AutoTranslationSettings);
@@ -60,16 +74,10 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
                 <div className='autotranslation-section-header'>
                     <hgroup>
                         <h1 className='localization-section-title'>
-                            <FormattedMessage
-                                id='admin.site.localization.enableAutoTranslationTitle'
-                                defaultMessage='Auto-translation'
-                            />
+                            <FormattedMessage {...messages.enableAutoTranslationTitle}/>
                         </h1>
                         <h5 className='localization-section-description'>
-                            <FormattedMessage
-                                id='admin.site.localization.enableAutoTranslationDescriptio'
-                                defaultMessage='Configure auto-translation for channels and direct messages'
-                            />
+                            <FormattedMessage {...messages.enableAutoTranslationDescription}/>
                         </h5>
                     </hgroup>
                     <div className='autotranslation-section-toggle'>

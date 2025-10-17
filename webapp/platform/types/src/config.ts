@@ -746,6 +746,11 @@ export type AutoTranslationSettings = {
         URL: string;
         APIKey: string;
     };
+    TimeoutMs: {
+        NewPost: number;
+        Fetch: number;
+        Notification: number;
+    };
 };
 
 export type SamlSettings = {

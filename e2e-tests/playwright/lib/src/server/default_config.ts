@@ -754,7 +754,7 @@ const defaultServerConfig: AdminConfig = {
         AttributeBasedAccessControl: true,
         ContentFlagging: false,
         InteractiveDialogAppsForm: true,
-        AutoTranslations: false,
+        AutoTranslation: false,
     },
     ImportSettings: {
         Directory: './import',
@@ -823,6 +823,11 @@ const defaultServerConfig: AdminConfig = {
         LibreTranslate: {
             URL: '',
             APIKey: '',
+        },
+        TimeoutMs: {
+            NewPost: 800,
+            Fetch: 2000,
+            Notification: 300,
         },
     },
 };
