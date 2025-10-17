@@ -54,6 +54,18 @@ export function files(state: Record<string, FileInfo> = {}, action: MMReduxActio
         return state;
     }
 
+    case FileTypes.REMOVED_FILE: {
+        const nextState = {...state};
+        const {fileIds} = action.data;
+        if (fileIds) {
+            fileIds.forEach((id: string) => {
+                Reflect.deleteProperty(nextState, id);
+            });
+        }
+
+        return nextState;
+    }
+
     case ChannelBookmarkTypes.RECEIVED_BOOKMARKS: {
         const bookmarks: ChannelBookmark[] = action.data.bookmarks;
 

@@ -17,7 +17,6 @@ func TestUpAndDownMigrations(t *testing.T) {
 
 	testDrivers := []string{
 		model.DatabaseDriverPostgres,
-		model.DatabaseDriverMysql,
 	}
 
 	for _, driver := range testDrivers {
@@ -31,7 +30,7 @@ func TestUpAndDownMigrations(t *testing.T) {
 			require.NoError(t, err)
 			defer store.Close()
 
-			err = store.migrate(migrationsDirectionDown, false)
+			err = store.migrate(migrationsDirectionDown, false, true)
 			assert.NoError(t, err, "downing migrations should not error")
 		})
 	}

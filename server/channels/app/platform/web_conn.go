@@ -27,6 +27,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 )
 
 const (
@@ -61,20 +62,21 @@ type pluginWSPostedHook struct {
 }
 
 type WebConnConfig struct {
-	WebSocket     *websocket.Conn
-	Session       model.Session
-	TFunc         i18n.TranslateFunc
-	Locale        string
-	ConnectionID  string
-	Active        bool
-	ReuseCount    int
-	OriginClient  string
-	PostedAck     bool
-	RemoteAddress string
-	XForwardedFor string
+	WebSocket         *websocket.Conn
+	Session           model.Session
+	TFunc             i18n.TranslateFunc
+	Locale            string
+	ConnectionID      string
+	Active            bool
+	ReuseCount        int
+	OriginClient      string
+	PostedAck         bool
+	RemoteAddress     string
+	XForwardedFor     string
+	DisconnectErrCode string
 
 	// These aren't necessary to be exported to api layer.
-	sequence         int
+	sequence         int64
 	activeQueue      chan model.WebSocketMessage
 	deadQueue        []*model.WebSocketEvent
 	deadQueuePointer int
@@ -84,19 +86,22 @@ type WebConnConfig struct {
 // It contains all the necessary state to manage sending/receiving data to/from
 // a websocket.
 type WebConn struct {
-	sessionExpiresAt int64 // This should stay at the top for 64-bit alignment of 64-bit words accessed atomically
-	Platform         *PlatformService
-	Suite            SuiteIFace
-	HookRunner       HookRunner
-	WebSocket        *websocket.Conn
-	T                i18n.TranslateFunc
-	Locale           string
-	Sequence         int64
-	UserId           string
-	PostedAck        bool
+	sessionExpiresAt  int64 // This should stay at the top for 64-bit alignment of 64-bit words accessed atomically
+	Platform          *PlatformService
+	Suite             SuiteIFace
+	HookRunner        HookRunner
+	WebSocket         *websocket.Conn
+	T                 i18n.TranslateFunc
+	Locale            string
+	Sequence          int64
+	UserId            string
+	PostedAck         bool
+	DisconnectErrCode string
 
-	lastUserActivityAt int64
-	send               chan model.WebSocketMessage
+	allChannelMembers         map[string]string
+	lastAllChannelMembersTime int64
+	lastUserActivityAt        int64
+	send                      chan model.WebSocketMessage
 	// deadQueue behaves like a queue of a finite size
 	// which is used to store all messages that are sent via the websocket.
 	// It basically acts as the user-space socket buffer, and is used
@@ -161,9 +166,20 @@ func (ps *PlatformService) PopulateWebConnConfig(s *model.Session, cfg *WebConnC
 		return nil, fmt.Errorf("invalid connection id: %s", cfg.ConnectionID)
 	}
 
+	// Sequence_number must be sent with connection id.
+	// A client must be either non-compliant or fully compliant.
+	if seqVal == "" {
+		return nil, errors.New("sequence number not present in websocket request")
+	}
+
+	seqNum, err := strconv.ParseInt(seqVal, 10, 0)
+	if err != nil {
+		return nil, fmt.Errorf("invalid sequence number %s in query param: %w", seqVal, err)
+	}
+
 	// This does not handle reconnect requests across nodes in a cluster.
 	// It falls back to the non-reliable case in that scenario.
-	res := ps.CheckWebConn(s.UserId, cfg.ConnectionID)
+	res := ps.CheckWebConn(s.UserId, cfg.ConnectionID, seqNum)
 	if res == nil {
 		// If the connection is not present, then we assume either timeout,
 		// or server restart. In that case, we set a new one.
@@ -175,17 +191,7 @@ func (ps *PlatformService) PopulateWebConnConfig(s *model.Session, cfg *WebConnC
 		cfg.deadQueuePointer = res.DeadQueuePointer
 		cfg.Active = false
 		cfg.ReuseCount = res.ReuseCount
-		// Now we get the sequence number
-		if seqVal == "" {
-			// Sequence_number must be sent with connection id.
-			// A client must be either non-compliant or fully compliant.
-			return nil, errors.New("sequence number not present in websocket request")
-		}
-		var err error
-		cfg.sequence, err = strconv.Atoi(seqVal)
-		if err != nil || cfg.sequence < 0 {
-			return nil, fmt.Errorf("invalid sequence number %s in query param: %v", seqVal, err)
-		}
+		cfg.sequence = seqNum
 	}
 	return cfg, nil
 }
@@ -235,13 +241,14 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runn
 		send:               cfg.activeQueue,
 		deadQueue:          cfg.deadQueue,
 		deadQueuePointer:   cfg.deadQueuePointer,
-		Sequence:           int64(cfg.sequence),
+		Sequence:           cfg.sequence,
 		WebSocket:          cfg.WebSocket,
 		lastUserActivityAt: model.GetMillis(),
 		UserId:             cfg.Session.UserId,
 		T:                  cfg.TFunc,
 		Locale:             cfg.Locale,
 		PostedAck:          cfg.PostedAck,
+		DisconnectErrCode:  cfg.DisconnectErrCode,
 		reuseCount:         cfg.ReuseCount,
 		endWritePump:       make(chan struct{}),
 		pumpFinished:       make(chan struct{}),
@@ -446,7 +453,7 @@ func (wc *WebConn) readPump() {
 		if err := wc.WebSocket.SetReadDeadline(time.Now().Add(pongWaitTime)); err != nil {
 			return err
 		}
-		if wc.IsAuthenticated() {
+		if wc.IsBasicAuthenticated() {
 			userID := wc.UserId
 			wc.Platform.Go(func() {
 				wc.Platform.SetStatusAwayIfNeeded(userID, false)
@@ -519,7 +526,7 @@ func (wc *WebConn) writePump() {
 				return
 			}
 			if m := wc.Platform.metricsIFace; m != nil {
-				m.IncrementWebsocketReconnectEvent(reconnectFound)
+				m.IncrementWebsocketReconnectEventWithDisconnectErrCode(reconnectFound, wc.DisconnectErrCode)
 			}
 		} else if wc.hasMsgLoss() {
 			// If the seq number is not in dead queue, but it was supposed to be,
@@ -537,11 +544,11 @@ func (wc *WebConn) writePump() {
 				return
 			}
 			if m := wc.Platform.metricsIFace; m != nil {
-				m.IncrementWebsocketReconnectEvent(reconnectNotFound)
+				m.IncrementWebsocketReconnectEventWithDisconnectErrCode(reconnectNotFound, wc.DisconnectErrCode)
 			}
 		} else {
 			if m := wc.Platform.metricsIFace; m != nil {
-				m.IncrementWebsocketReconnectEvent(reconnectLossless)
+				m.IncrementWebsocketReconnectEventWithDisconnectErrCode(reconnectLossless, wc.DisconnectErrCode)
 			}
 		}
 	}
@@ -655,34 +662,48 @@ func (wc *WebConn) addToDeadQueue(msg *model.WebSocketEvent) {
 // hasMsgLoss indicates whether the next wanted sequence is right after
 // the latest element in the dead queue, which would mean there is no message loss.
 func (wc *WebConn) hasMsgLoss() bool {
+	return _hasMsgLoss(wc.deadQueue, wc.deadQueuePointer, wc.Sequence)
+}
+
+// isInDeadQueue checks whether a given sequence number is in the dead queue or not.
+// And if it is, it returns that index.
+func (wc *WebConn) isInDeadQueue(seq int64) (bool, int) {
+	return _isInDeadQueue(wc.deadQueue, seq)
+}
+
+// _hasMsgLoss is called from 2 places: wc.hasMsgLoss and ps.GetWSQueues.
+// It is done this way because it is difficult to call wc.hasMsgLoss from inside
+// ps.GetWSQueues
+func _hasMsgLoss(deadQueue []*model.WebSocketEvent, deadQueuePtr int, seq int64) bool {
 	var index int
 	// deadQueuePointer = 0 means either no msg written or the pointer
 	// has rolled over to its starting position.
-	if wc.deadQueuePointer == 0 {
-		// If last entry is nil, it means no msg is written.
-		if wc.deadQueue[deadQueueSize-1] == nil {
+	if deadQueuePtr == 0 {
+		// If first entry is nil, it means no msg is written.
+		if deadQueue[0] == nil {
 			return false
 		}
 		// If it's not nil, that means it has rolled over to start, and we
 		// check the last position.
 		index = deadQueueSize - 1
 	} else { // deadQueuePointer != 0 means it's somewhere in the middle.
-		index = wc.deadQueuePointer - 1
+		index = deadQueuePtr - 1
 	}
 
-	if wc.deadQueue[index].GetSequence() == wc.Sequence-1 {
+	if deadQueue[index].GetSequence() == seq-1 {
 		return false
 	}
 	return true
 }
 
-// isInDeadQueue checks whether a given sequence number is in the dead queue or not.
-// And if it is, it returns that index.
-func (wc *WebConn) isInDeadQueue(seq int64) (bool, int) {
+// _isInDeadQueue is called from 2 places: wc.isInDeadQueue and ps.GetWSQueues.
+// It is done this way because it is difficult to call wc.isInDeadQueue from inside
+// ps.GetWSQueues
+func _isInDeadQueue(deadQueue []*model.WebSocketEvent, seq int64) (bool, int) {
 	// Can be optimized to traverse backwards from deadQueuePointer
 	// Hopefully, traversing 128 elements is not too much overhead.
-	for i := 0; i < deadQueueSize; i++ {
-		elem := wc.deadQueue[i]
+	for i := range deadQueueSize {
+		elem := deadQueue[i]
 		if elem == nil {
 			return false, 0
 		}
@@ -695,7 +716,7 @@ func (wc *WebConn) isInDeadQueue(seq int64) (bool, int) {
 }
 
 func (wc *WebConn) clearDeadQueue() {
-	for i := 0; i < deadQueueSize; i++ {
+	for i := range deadQueueSize {
 		if wc.deadQueue[i] == nil {
 			break
 		}
@@ -743,12 +764,14 @@ func (wc *WebConn) drainDeadQueue(index int) error {
 
 // InvalidateCache resets all internal data of the WebConn.
 func (wc *WebConn) InvalidateCache() {
+	wc.allChannelMembers = nil
+	wc.lastAllChannelMembersTime = 0
 	wc.SetSession(nil)
 	wc.SetSessionExpiresAt(0)
 }
 
-// IsAuthenticated returns whether the given WebConn is authenticated or not.
-func (wc *WebConn) IsAuthenticated() bool {
+// IsBasicAuthenticated returns whether the given WebConn has a valid session.
+func (wc *WebConn) IsBasicAuthenticated() bool {
 	// Check the expiry to see if we need to check for a new session
 	if wc.GetSessionExpiresAt() < model.GetMillis() {
 		if wc.GetSessionToken() == "" {
@@ -774,6 +797,24 @@ func (wc *WebConn) IsAuthenticated() bool {
 	}
 
 	return true
+}
+
+// IsMFAAuthenticated returns whether the user has completed MFA when required.
+func (wc *WebConn) IsMFAAuthenticated() bool {
+	session := wc.GetSession()
+	c := request.EmptyContext(wc.Platform.logger).WithSession(session)
+
+	// Check if MFA is required and user has NOT completed MFA
+	if appErr := wc.Suite.MFARequired(c); appErr != nil {
+		return false
+	}
+
+	return true
+}
+
+// IsAuthenticated returns whether the given WebConn is fully authenticated (session + MFA).
+func (wc *WebConn) IsAuthenticated() bool {
+	return wc.IsBasicAuthenticated() && wc.IsMFAAuthenticated()
 }
 
 func (wc *WebConn) createHelloMessage() *model.WebSocketEvent {
@@ -833,7 +874,7 @@ func (wc *WebConn) ShouldSendEventToGuest(msg *model.WebSocketEvent) bool {
 
 // ShouldSendEvent returns whether the message should be sent or not.
 func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
-	// IMPORTANT: Do not send event if WebConn does not have a session
+	// IMPORTANT: Do not send event if WebConn does not have a session and completed MFA
 	if !wc.IsAuthenticated() {
 		return false
 	}
@@ -923,9 +964,36 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 			return false
 		}
 
-		// We don't need to do any further checks because this is already scoped
-		// to channel members from web_hub.
-		return true
+		if *wc.Platform.Config().ServiceSettings.EnableWebHubChannelIteration {
+			// We don't need to do any further checks because this is already scoped
+			// to channel members from web_hub.
+			return true
+		}
+
+		if model.GetMillis()-wc.lastAllChannelMembersTime > webConnMemberCacheTime {
+			wc.allChannelMembers = nil
+			wc.lastAllChannelMembersTime = 0
+		}
+
+		if wc.allChannelMembers == nil {
+			result, err := wc.Platform.Store.Channel().GetAllChannelMembersForUser(
+				sqlstore.RequestContextWithMaster(request.EmptyContext(wc.Platform.logger)),
+				wc.UserId,
+				false,
+				false,
+			)
+			if err != nil {
+				mlog.Error("webhub.shouldSendEvent.", mlog.Err(err))
+				return false
+			}
+			wc.allChannelMembers = result
+			wc.lastAllChannelMembersTime = model.GetMillis()
+		}
+
+		if _, ok := wc.allChannelMembers[chID]; ok {
+			return true
+		}
+		return false
 	}
 
 	// Only report events to users who are in the team for the event

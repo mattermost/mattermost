@@ -44,14 +44,6 @@
     "translation": "የአገልግሎት አቅራቢ ሜታዳታ በሚገነቡበት ጊዜ ስህተት ተከስቷል."
   },
   {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "ቻናሉን ማስተካከል አልተቻለም."
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "ቻናሉን ማስተካከል አልተቻለም."
-  },
-  {
     "id": "ent.elasticsearch.index_user.error",
     "translation": "ቻናሉን ማስተካከል አልተቻለም."
   },
@@ -76,47 +68,11 @@
     "translation": "ቻናሉን ማስተካከል አልተቻለም."
   },
   {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "ቻናሉን ማስተካከል አልተቻለም."
-  },
-  {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "ቻናሉን ማስተካከል አልተቻለም."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "ቻናሉን ማስተካከል አልተቻለም."
-  },
-  {
     "id": "ent.account_migration.get_saml_users_failed",
     "translation": "ቻናሉን ማስተካከል አልተቻለም."
   },
   {
     "id": "ent.account_migration.get_all_failed",
-    "translation": "ቻናሉን ማስተካከል አልተቻለም."
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "ቻናሉን ማስተካከል አልተቻለም."
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "ቻናሉን ማስተካከል አልተቻለም."
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "ቻናሉን ማስተካከል አልተቻለም."
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "ቻናሉን ማስተካከል አልተቻለም."
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "ቻናሉን ማስተካከል አልተቻለም."
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
     "translation": "ቻናሉን ማስተካከል አልተቻለም."
   },
   {

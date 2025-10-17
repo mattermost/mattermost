@@ -5,19 +5,17 @@ package commands
 
 import (
 	"context"
+	"io"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
-	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
 
@@ -162,7 +160,7 @@ func (s *MmctlUnitTestSuite) TestServerVersionCmd() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(printer.GetLines()[0], map[string]string{"version": expectedVersion})
+		s.Require().Equal(map[string]string{"version": expectedVersion}, printer.GetLines()[0])
 	})
 
 	s.Run("Request to the server fails", func() {
@@ -182,10 +180,34 @@ func (s *MmctlUnitTestSuite) TestServerVersionCmd() {
 }
 
 func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
-	s.Run("Print server status", func() {
+	s.Run("Print server status - all healthy", func() {
 		printer.Clean()
 
-		expectedStatus := map[string]string{"status": "OK"}
+		expectedStatus := map[string]any{
+			"status":           model.StatusOk,
+			"database_status":  model.StatusOk,
+			"filestore_status": model.StatusOk,
+		}
+		s.client.
+			EXPECT().
+			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+				FullStatus:    true,
+				RESTSemantics: true,
+			}).
+			Return(expectedStatus, &model.Response{}, nil).
+			Times(1)
+
+		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], expectedStatus)
+	})
+
+	s.Run("Status fields missing - should succeed", func() {
+		printer.Clean()
+
+		expectedStatus := map[string]any{"status": "OK"}
 		s.client.
 			EXPECT().
 			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
@@ -219,19 +241,125 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
 	})
-}
 
-func cleanupSupportPacket(t *testing.T) func() {
-	return func() {
-		entries, err := os.ReadDir(".")
-		require.NoError(t, err)
-		for _, e := range entries {
-			if strings.HasPrefix(e.Name(), "mattermost_support_packet_") && strings.HasSuffix(e.Name(), ".zip") {
-				err = os.Remove(e.Name())
-				assert.NoError(t, err)
-			}
+	s.Run("Missing database status is ignored", func() {
+		printer.Clean()
+
+		emptyDbStatus := map[string]any{
+			"status":           model.StatusOk,
+			"filestore_status": model.StatusOk,
 		}
-	}
+		s.client.
+			EXPECT().
+			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+				FullStatus:    true,
+				RESTSemantics: true,
+			}).
+			Return(emptyDbStatus, &model.Response{}, nil).
+			Times(1)
+
+		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+	})
+
+	s.Run("filestore database status is ignored", func() {
+		printer.Clean()
+
+		emptyDbStatus := map[string]any{
+			"status":          model.StatusOk,
+			"database_status": model.StatusOk,
+		}
+		s.client.
+			EXPECT().
+			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+				FullStatus:    true,
+				RESTSemantics: true,
+			}).
+			Return(emptyDbStatus, &model.Response{}, nil).
+			Times(1)
+
+		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+	})
+
+	s.Run("Unhealthy server status should return true", func() {
+		printer.Clean()
+
+		unhealthyStatus := map[string]any{
+			"status":           model.StatusUnhealthy,
+			"database_status":  model.StatusOk,
+			"filestore_status": model.StatusOk,
+		}
+		s.client.
+			EXPECT().
+			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+				FullStatus:    true,
+				RESTSemantics: true,
+			}).
+			Return(unhealthyStatus, &model.Response{}, nil).
+			Times(1)
+
+		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "server status is unhealthy")
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], unhealthyStatus)
+	})
+
+	s.Run("Unhealthy database status should return true", func() {
+		printer.Clean()
+
+		unhealthyStatus := map[string]any{
+			"status":           model.StatusOk,
+			"database_status":  model.StatusUnhealthy,
+			"filestore_status": model.StatusOk,
+		}
+		s.client.
+			EXPECT().
+			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+				FullStatus:    true,
+				RESTSemantics: true,
+			}).
+			Return(unhealthyStatus, &model.Response{}, nil).
+			Times(1)
+
+		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "database status is unhealthy")
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], unhealthyStatus)
+	})
+
+	s.Run("Unhealthy filestore status should return true", func() {
+		printer.Clean()
+
+		unhealthyStatus := map[string]any{
+			"status":           model.StatusOk,
+			"database_status":  model.StatusOk,
+			"filestore_status": model.StatusUnhealthy,
+		}
+		s.client.
+			EXPECT().
+			GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+				FullStatus:    true,
+				RESTSemantics: true,
+			}).
+			Return(unhealthyStatus, &model.Response{}, nil).
+			Times(1)
+
+		err := systemStatusCmdF(s.client, &cobra.Command{}, []string{})
+		s.Require().Error(err)
+		s.Require().Contains(err.Error(), "filestore status is unhealthy")
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], unhealthyStatus)
+	})
 }
 
 func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
@@ -241,57 +369,51 @@ func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
 	s.Run("Download Support Packet with default filename", func() {
 		printer.Clean()
 
-		s.T().Cleanup(cleanupSupportPacket(s.T()))
-
-		data := []byte("some bytes")
+		reader := io.NopCloser(strings.NewReader("some bytes"))
 		s.client.
 			EXPECT().
 			GenerateSupportPacket(context.TODO()).
-			Return(data, &model.Response{}, nil).
+			Return(reader, "mm_support_packet.zip", &model.Response{}, nil).
 			Times(1)
+
+		defer func() {
+			err := os.Remove("mm_support_packet.zip")
+			s.NoError(err)
+		}()
 
 		err := systemSupportPacketCmdF(s.client, SystemSupportPacketCmd, []string{})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 2)
 		s.Require().Equal(printer.GetLines()[0], "Downloading Support Packet")
-		s.Require().Contains(printer.GetLines()[1], "Downloaded Support Packet to ")
+		s.Require().Equal(printer.GetLines()[1], "Downloaded Support Packet to mm_support_packet.zip")
 
-		var found bool
-
-		entries, err := os.ReadDir(".")
-		s.Require().NoError(err)
-		for _, e := range entries {
-			if strings.HasPrefix(e.Name(), "mattermost_support_packet_") && strings.HasSuffix(e.Name(), ".zip") {
-				b, err := os.ReadFile(e.Name())
-				s.NoError(err)
-				s.Equal(b, data)
-
-				found = true
-			}
-		}
-
-		s.True(found)
+		b, err := os.ReadFile("mm_support_packet.zip")
+		s.NoError(err)
+		s.Equal(b, []byte("some bytes"))
 	})
 
 	s.Run("Download Support Packet with custom filename", func() {
 		printer.Clean()
 
-		data := []byte("some bytes")
+		reader := io.NopCloser(strings.NewReader("some bytes"))
 		s.client.
 			EXPECT().
 			GenerateSupportPacket(context.TODO()).
-			Return(data, &model.Response{}, nil).
+			Return(reader, "mm_support_packet.zip", &model.Response{}, nil).
 			Times(1)
 
-		err := SystemSupportPacketCmd.ParseFlags([]string{"-o", "foo.zip"})
+		systemSupportPacketCmd := &cobra.Command{}
+		systemSupportPacketCmd.Flags().StringP("output-file", "o", "", "Define the output file name")
+		err := systemSupportPacketCmd.ParseFlags([]string{"-o", "foo.zip"})
 		s.Require().NoError(err)
 
-		s.T().Cleanup(func() {
-			s.Require().NoError(os.Remove("foo.zip"))
-		})
+		defer func() {
+			err = os.Remove("foo.zip")
+			s.Require().NoError(err)
+		}()
 
-		err = systemSupportPacketCmdF(s.client, SystemSupportPacketCmd, []string{})
+		err = systemSupportPacketCmdF(s.client, systemSupportPacketCmd, []string{})
 		s.Require().NoError(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 2)
@@ -300,7 +422,7 @@ func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
 
 		b, err := os.ReadFile("foo.zip")
 		s.Require().NoError(err)
-		s.Equal(b, data)
+		s.Equal(string(b), "some bytes")
 	})
 
 	s.Run("Request to the server fails", func() {
@@ -309,7 +431,7 @@ func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
 		s.client.
 			EXPECT().
 			GenerateSupportPacket(context.TODO()).
-			Return(nil, &model.Response{}, errors.New("mock error")).
+			Return(nil, "", &model.Response{}, errors.New("mock error")).
 			Times(1)
 
 		err := systemSupportPacketCmdF(s.client, SystemSupportPacketCmd, []string{})

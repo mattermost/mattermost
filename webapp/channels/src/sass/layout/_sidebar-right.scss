@@ -27,6 +27,10 @@
             }
         }
 
+        @media screen and (max-width: 400px) {
+            min-width: unset;
+        }
+
         @media screen and (min-width: 901px) {
             min-width: 304px;
             max-width: 400px;
@@ -116,6 +120,10 @@
         }
     }
 
+    .PopoutButton + .sidebar--right__expand {
+        display: none;
+    }
+
     .sidebar--right__title {
         display: flex;
         height: auto;
@@ -125,9 +133,14 @@
         font-family: Metropolis, sans-serif;
         font-size: 1.6rem;
         font-weight: 600;
-        line-height: 1;
 
         @include mixins.clearfix;
+        h2 {
+            margin: 0;
+            font-family: inherit;
+            font-size: inherit;
+            font-weight: inherit;
+        }
     }
 
     .sidebar--right__title__channel {
@@ -266,6 +279,8 @@
     height: 48px;
     align-items: center;
     justify-content: center;
+    border: none;
+    background: transparent;
     cursor: pointer;
     text-align: center;
     transform: translateX(0);

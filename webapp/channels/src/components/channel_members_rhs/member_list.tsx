@@ -12,23 +12,24 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import Member from './member';
 
-interface ChannelMember {
+export interface ChannelMember {
     user: UserProfile;
     membership?: ChannelMembership;
     status?: string;
     displayName: string;
+    remoteDisplayName?: string;
 }
 
-enum ListItemType {
+export enum ListItemType {
     Member = 'member',
     FirstSeparator = 'first-separator',
     Separator = 'separator',
 }
 
-interface ListItem {
+export type ListItem = {
     type: ListItemType;
     data: ChannelMember | JSX.Element;
-}
+};
 export interface Props {
     channel: Channel;
     members: ListItem[];
@@ -37,6 +38,7 @@ export interface Props {
     isNextPageLoading: boolean;
     searchTerms: string;
     openDirectMessage: (user: UserProfile) => void;
+    fetchRemoteClusterInfo: (remoteId: string, forceRefresh?: boolean) => void;
     loadMore: () => void;
 }
 
@@ -48,6 +50,7 @@ const MemberList = ({
     searchTerms,
     editing,
     openDirectMessage,
+    fetchRemoteClusterInfo,
     loadMore,
 }: Props) => {
     const infiniteLoaderRef = useRef<InfiniteLoader | null>(null);
@@ -103,10 +106,10 @@ const MemberList = ({
                         <Member
                             channel={channel}
                             index={index}
-                            totalUsers={members.length}
+                            totalUsers={members.filter((l) => l.type === ListItemType.Member).length}
                             member={member}
                             editing={editing}
-                            actions={{openDirectMessage}}
+                            actions={{openDirectMessage, fetchRemoteClusterInfo}}
                         />
                     </div>
                 );
@@ -117,7 +120,7 @@ const MemberList = ({
                         key={index}
                         style={style}
                     >
-                        {members[index].data}
+                        {members[index].data as JSX.Element}
                     </div>
                 );
             default:

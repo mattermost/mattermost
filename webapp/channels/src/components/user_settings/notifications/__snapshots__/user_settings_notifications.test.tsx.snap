@@ -6,7 +6,9 @@ Object {
   "baseElement": <body>
     <div>
       <div
-        id="notificationSettings"
+        aria-labelledby="notificationsButton"
+        id="notificationsSettings"
+        role="tabpanel"
       >
         <div
           class="modal-header"
@@ -54,7 +56,7 @@ Object {
             >
               <a
                 class="btn btn-link"
-                href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=user_settings_notifications&uid=&sid="
+                href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=user_settings_notifications&uid=&sid=&edition=team&server_version="
                 location="user_settings_notifications"
                 rel="noopener noreferrer"
                 target="_blank"
@@ -85,7 +87,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -101,6 +103,7 @@ Object {
                 id="desktopAndMobileEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -121,7 +124,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -136,6 +139,7 @@ Object {
                 id="desktopNotificationSoundEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -156,7 +160,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -171,6 +175,7 @@ Object {
                 id="emailEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -191,7 +196,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -206,6 +211,7 @@ Object {
                 id="keywordsAndMentionsEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -226,7 +232,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -241,6 +247,7 @@ Object {
                 id="keywordsAndHighlightEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -310,7 +317,9 @@ Object {
   </body>,
   "container": <div>
     <div
-      id="notificationSettings"
+      aria-labelledby="notificationsButton"
+      id="notificationsSettings"
+      role="tabpanel"
     >
       <div
         class="modal-header"
@@ -358,7 +367,7 @@ Object {
           >
             <a
               class="btn btn-link"
-              href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=user_settings_notifications&uid=&sid="
+              href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=user_settings_notifications&uid=&sid=&edition=team&server_version="
               location="user_settings_notifications"
               rel="noopener noreferrer"
               target="_blank"
@@ -389,7 +398,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -405,6 +414,7 @@ Object {
               id="desktopAndMobileEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />
@@ -425,7 +435,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -440,6 +450,7 @@ Object {
               id="desktopNotificationSoundEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />
@@ -460,7 +471,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -475,6 +486,7 @@ Object {
               id="emailEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />
@@ -495,7 +507,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -510,6 +522,7 @@ Object {
               id="keywordsAndMentionsEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />
@@ -530,7 +543,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -545,6 +558,7 @@ Object {
               id="keywordsAndHighlightEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />
@@ -662,6 +676,13 @@ Object {
   "queryByTitle": [Function],
   "replaceStoreState": [Function],
   "rerender": [Function],
+  "store": Object {
+    "@@observable": [Function],
+    "dispatch": [Function],
+    "getState": [Function],
+    "replaceReducer": [Function],
+    "subscribe": [Function],
+  },
   "unmount": [Function],
   "updateStoreState": [Function],
 }
@@ -673,7 +694,9 @@ Object {
   "baseElement": <body>
     <div>
       <div
-        id="notificationSettings"
+        aria-labelledby="notificationsButton"
+        id="notificationsSettings"
+        role="tabpanel"
       >
         <div
           class="modal-header"
@@ -721,7 +744,7 @@ Object {
             >
               <a
                 class="btn btn-link"
-                href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=user_settings_notifications&uid=&sid="
+                href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=user_settings_notifications&uid=&sid=&edition=team&server_version="
                 location="user_settings_notifications"
                 rel="noopener noreferrer"
                 target="_blank"
@@ -752,7 +775,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -768,6 +791,7 @@ Object {
                 id="desktopAndMobileEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -788,7 +812,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -803,6 +827,7 @@ Object {
                 id="desktopNotificationSoundEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -823,7 +848,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -838,6 +863,7 @@ Object {
                 id="emailEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -858,7 +884,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -873,6 +899,7 @@ Object {
                 id="keywordsAndMentionsEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -896,7 +923,7 @@ Object {
             class="section-min isDisabled"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title isDisabled"
@@ -980,7 +1007,9 @@ Object {
   </body>,
   "container": <div>
     <div
-      id="notificationSettings"
+      aria-labelledby="notificationsButton"
+      id="notificationsSettings"
+      role="tabpanel"
     >
       <div
         class="modal-header"
@@ -1028,7 +1057,7 @@ Object {
           >
             <a
               class="btn btn-link"
-              href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=user_settings_notifications&uid=&sid="
+              href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=user_settings_notifications&uid=&sid=&edition=team&server_version="
               location="user_settings_notifications"
               rel="noopener noreferrer"
               target="_blank"
@@ -1059,7 +1088,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -1075,6 +1104,7 @@ Object {
               id="desktopAndMobileEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />
@@ -1095,7 +1125,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -1110,6 +1140,7 @@ Object {
               id="desktopNotificationSoundEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />
@@ -1130,7 +1161,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -1145,6 +1176,7 @@ Object {
               id="emailEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />
@@ -1165,7 +1197,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -1180,6 +1212,7 @@ Object {
               id="keywordsAndMentionsEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />
@@ -1203,7 +1236,7 @@ Object {
           class="section-min isDisabled"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title isDisabled"
@@ -1335,6 +1368,13 @@ Object {
   "queryByTitle": [Function],
   "replaceStoreState": [Function],
   "rerender": [Function],
+  "store": Object {
+    "@@observable": [Function],
+    "dispatch": [Function],
+    "getState": [Function],
+    "replaceReducer": [Function],
+    "subscribe": [Function],
+  },
   "unmount": [Function],
   "updateStoreState": [Function],
 }
@@ -1346,7 +1386,9 @@ Object {
   "baseElement": <body>
     <div>
       <div
-        id="notificationSettings"
+        aria-labelledby="notificationsButton"
+        id="notificationsSettings"
+        role="tabpanel"
       >
         <div
           class="modal-header"
@@ -1394,7 +1436,7 @@ Object {
             >
               <a
                 class="btn btn-link"
-                href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=user_settings_notifications&uid=&sid="
+                href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=user_settings_notifications&uid=&sid=&edition=team&server_version="
                 location="user_settings_notifications"
                 rel="noopener noreferrer"
                 target="_blank"
@@ -1425,7 +1467,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -1441,6 +1483,7 @@ Object {
                 id="desktopAndMobileEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -1461,7 +1504,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -1476,6 +1519,7 @@ Object {
                 id="desktopNotificationSoundEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -1496,7 +1540,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -1511,6 +1555,7 @@ Object {
                 id="emailEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -1531,7 +1576,7 @@ Object {
             class="section-min"
           >
             <div
-              class="secion-min__header"
+              class="section-min__header"
             >
               <h4
                 class="section-min__title"
@@ -1546,6 +1591,7 @@ Object {
                 id="keywordsAndMentionsEdit"
               >
                 <i
+                  aria-hidden="true"
                   class="icon-pencil-outline"
                   title="Edit Icon"
                 />
@@ -1615,7 +1661,9 @@ Object {
   </body>,
   "container": <div>
     <div
-      id="notificationSettings"
+      aria-labelledby="notificationsButton"
+      id="notificationsSettings"
+      role="tabpanel"
     >
       <div
         class="modal-header"
@@ -1663,7 +1711,7 @@ Object {
           >
             <a
               class="btn btn-link"
-              href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=user_settings_notifications&uid=&sid="
+              href="https://mattermost.com/pl/about-notifications?utm_source=mattermost&utm_medium=in-product&utm_content=user_settings_notifications&uid=&sid=&edition=team&server_version="
               location="user_settings_notifications"
               rel="noopener noreferrer"
               target="_blank"
@@ -1694,7 +1742,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -1710,6 +1758,7 @@ Object {
               id="desktopAndMobileEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />
@@ -1730,7 +1779,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -1745,6 +1794,7 @@ Object {
               id="desktopNotificationSoundEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />
@@ -1765,7 +1815,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -1780,6 +1830,7 @@ Object {
               id="emailEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />
@@ -1800,7 +1851,7 @@ Object {
           class="section-min"
         >
           <div
-            class="secion-min__header"
+            class="section-min__header"
           >
             <h4
               class="section-min__title"
@@ -1815,6 +1866,7 @@ Object {
               id="keywordsAndMentionsEdit"
             >
               <i
+                aria-hidden="true"
                 class="icon-pencil-outline"
                 title="Edit Icon"
               />
@@ -1932,6 +1984,13 @@ Object {
   "queryByTitle": [Function],
   "replaceStoreState": [Function],
   "rerender": [Function],
+  "store": Object {
+    "@@observable": [Function],
+    "dispatch": [Function],
+    "getState": [Function],
+    "replaceReducer": [Function],
+    "subscribe": [Function],
+  },
   "unmount": [Function],
   "updateStoreState": [Function],
 }

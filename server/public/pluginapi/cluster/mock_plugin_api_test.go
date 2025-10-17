@@ -129,14 +129,14 @@ func (pluginAPI *mockPluginAPI) KVSetWithOptions(key string, value []byte, optio
 	return true, nil
 }
 
-func (pluginAPI *mockPluginAPI) LogError(msg string, keyValuePairs ...interface{}) {
+func (pluginAPI *mockPluginAPI) LogError(msg string, keyValuePairs ...any) {
 	if pluginAPI.t == nil {
 		return
 	}
 
 	pluginAPI.t.Helper()
 
-	params := []interface{}{msg}
+	params := []any{msg}
 	params = append(params, keyValuePairs...)
 
 	pluginAPI.t.Log(params...)

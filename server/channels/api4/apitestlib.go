@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -41,6 +42,7 @@ type TestHelper struct {
 	App         *app.App
 	Server      *app.Server
 	ConfigStore *config.Store
+	Store       store.Store
 
 	Context              *request.Context
 	Client               *model.Client4
@@ -77,33 +79,40 @@ func SetMainHelper(mh *testlib.MainHelper) {
 	mainHelper = mh
 }
 
-func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, enterprise bool, includeCache bool,
-	updateConfig func(*model.Config), options []app.Option) *TestHelper {
+func setupTestHelper(tb testing.TB, dbStore store.Store, sqlSettings *model.SqlSettings, searchEngine *searchengine.Broker, enterprise bool, includeCache bool,
+	updateConfig func(*model.Config), options []app.Option,
+) *TestHelper {
 	tempWorkspace, err := os.MkdirTemp("", "apptest")
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err)
 
 	memoryStore, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{IgnoreEnvironmentOverrides: true})
-	if err != nil {
-		panic("failed to initialize memory store: " + err.Error())
-	}
+	require.NoError(tb, err, "failed to initialize memory store")
 
 	memoryConfig := &model.Config{
-		SqlSettings: *mainHelper.GetSQLSettings(),
+		SqlSettings: model.SafeDereference(sqlSettings),
 	}
 	memoryConfig.SetDefaults()
+	*memoryConfig.ServiceSettings.LicenseFileLocation = filepath.Join(tempWorkspace, "license.json")
+	*memoryConfig.FileSettings.Directory = filepath.Join(tempWorkspace, "data")
 	*memoryConfig.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
 	*memoryConfig.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
-	memoryConfig.ServiceSettings.EnableLocalMode = model.NewPointer(true)
+	*memoryConfig.FileSettings.Directory = filepath.Join(tempWorkspace, "data")
+	*memoryConfig.ServiceSettings.EnableLocalMode = true
 	*memoryConfig.ServiceSettings.LocalModeSocketLocation = filepath.Join(tempWorkspace, "mattermost_local.sock")
 	*memoryConfig.LogSettings.EnableSentry = false // disable error reporting during tests
-	*memoryConfig.LogSettings.ConsoleLevel = mlog.LvlStdLog.Name
+
+	// Check for environment variable override for console log level (useful for debugging tests)
+	consoleLevel := os.Getenv("MM_LOGSETTINGS_CONSOLELEVEL")
+	if consoleLevel == "" {
+		consoleLevel = mlog.LvlStdLog.Name
+	}
+	*memoryConfig.LogSettings.ConsoleLevel = consoleLevel
+	*memoryConfig.LogSettings.FileLocation = filepath.Join(tempWorkspace, "logs", "mattermost.log")
 	*memoryConfig.AnnouncementSettings.AdminNoticesEnabled = false
 	*memoryConfig.AnnouncementSettings.UserNoticesEnabled = false
 	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
 	// Enabling Redis with Postgres.
-	if *memoryConfig.SqlSettings.DriverName == model.DatabaseDriverPostgres {
+	if *memoryConfig.SqlSettings.DriverName == model.DatabaseDriverPostgres && !mainHelper.Options.RunParallel {
 		*memoryConfig.CacheSettings.CacheType = model.CacheTypeRedis
 		redisHost := "localhost"
 		if os.Getenv("IS_CI") == "true" {
@@ -112,17 +121,22 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		*memoryConfig.CacheSettings.RedisAddress = redisHost + ":6379"
 		*memoryConfig.CacheSettings.DisableClientCache = true
 		*memoryConfig.CacheSettings.RedisDB = 0
+		*memoryConfig.CacheSettings.RedisCachePrefix = model.NewId()
 		options = append(options, app.ForceEnableRedis())
 	}
 	if updateConfig != nil {
 		updateConfig(memoryConfig)
 	}
 	memoryStore.Set(memoryConfig)
+	for _, signaturePublicKeyFile := range memoryConfig.PluginSettings.SignaturePublicKeyFiles {
+		var signaturePublicKey []byte
+		signaturePublicKey, err = os.ReadFile(signaturePublicKeyFile)
+		require.NoError(tb, err, "failed to read signature public key file %s", signaturePublicKeyFile)
+		memoryStore.SetFile(signaturePublicKeyFile, signaturePublicKey)
+	}
 
 	configStore, err := config.NewStoreFromBacking(memoryStore, nil, false)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err)
 
 	options = append(options, app.ConfigStore(configStore))
 	if includeCache {
@@ -134,22 +148,20 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 
 	buffer := &mlog.Buffer{}
 
-	testLogger, _ := mlog.NewLogger()
-	logCfg, _ := config.MloggerConfigFromLoggerConfig(&memoryConfig.LogSettings, nil, config.GetLogFileLocation)
-	if errCfg := testLogger.ConfigureTargets(logCfg, nil); errCfg != nil {
-		panic("failed to configure test logger: " + errCfg.Error())
-	}
-	if errW := mlog.AddWriterTarget(testLogger, buffer, true, mlog.StdAll...); errW != nil {
-		panic("failed to add writer target to test logger: " + errW.Error())
-	}
+	testLogger, err := mlog.NewLogger()
+	require.NoError(tb, err)
+	logCfg, err := config.MloggerConfigFromLoggerConfig(&memoryConfig.LogSettings, nil, config.GetLogFileLocation)
+	require.NoError(tb, err)
+	err = testLogger.ConfigureTargets(logCfg, nil)
+	require.NoError(tb, err, "failed to configure test logger")
+	err = mlog.AddWriterTarget(testLogger, buffer, true, mlog.StdAll...)
+	require.NoError(tb, err, "failed to add writer target to test logger")
 	// lock logger config so server init cannot override it during testing.
 	testLogger.LockConfiguration()
 	options = append(options, app.SetLogger(testLogger))
 
 	s, err := app.NewServer(options...)
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err)
 
 	th := &TestHelper{
 		App:               app.New(app.ServerConnector(s.Channels())),
@@ -159,10 +171,7 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		IncludeCacheLayer: includeCache,
 		TestLogger:        testLogger,
 		LogBuffer:         buffer,
-	}
-
-	if s.Platform().SearchEngine != nil && s.Platform().SearchEngine.BleveEngine != nil && searchEngine != nil {
-		searchEngine.BleveEngine = s.Platform().SearchEngine.BleveEngine
+		Store:             dbStore,
 	}
 
 	if searchEngine != nil {
@@ -192,11 +201,19 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 
 		*cfg.ServiceSettings.ListenAddress = "localhost:0"
 	})
-	if err := th.Server.Start(); err != nil {
-		panic(err)
+
+	// Support updating feature flags without resorting to os.Setenv which
+	// isn't concurrently safe.
+	if updateConfig != nil {
+		configStore.SetReadOnlyFF(false)
+		th.App.UpdateConfig(updateConfig)
 	}
 
-	Init(th.App.Srv())
+	err = th.Server.Start()
+	require.NoError(tb, err)
+
+	_, err = Init(th.App.Srv())
+	require.NoError(tb, err)
 	web.New(th.App.Srv())
 	wsapi.Init(th.App.Srv())
 
@@ -205,7 +222,6 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	th.SystemManagerClient = th.CreateClient()
 
 	// Verify handling of the supported true/false values by randomizing on each run.
-	rand.Seed(time.Now().UTC().UnixNano())
 	trueValues := []string{"1", "t", "T", "TRUE", "true", "True"}
 	falseValues := []string{"0", "f", "F", "FALSE", "false", "False"}
 	trueString := trueValues[rand.Intn(len(trueValues))]
@@ -233,6 +249,27 @@ func getLicense(enterprise bool, cfg *model.Config) *model.License {
 	return nil
 }
 
+func setupStores(tb testing.TB) (store.Store, *model.SqlSettings, *searchengine.Broker) {
+	var dbStore store.Store
+	var dbSettings *model.SqlSettings
+	var searchEngine *searchengine.Broker
+	if mainHelper.Options.RunParallel {
+		dbStore, _, dbSettings, searchEngine = mainHelper.GetNewStores(tb)
+		tb.Cleanup(func() {
+			dbStore.Close()
+		})
+	} else {
+		dbStore = mainHelper.GetStore()
+		dbStore.DropAllTables()
+		dbStore.MarkSystemRanUnitTests()
+		mainHelper.PreloadMigrations()
+		searchEngine = mainHelper.GetSearchEngine()
+		dbSettings = mainHelper.Settings
+	}
+
+	return dbStore, dbSettings, searchEngine
+}
+
 func SetupEnterprise(tb testing.TB, options ...app.Option) *TestHelper {
 	if testing.Short() {
 		tb.SkipNow()
@@ -242,13 +279,15 @@ func SetupEnterprise(tb testing.TB, options ...app.Option) *TestHelper {
 		tb.SkipNow()
 	}
 
-	dbStore := mainHelper.GetStore()
-	dbStore.DropAllTables()
-	dbStore.MarkSystemRanUnitTests()
-	mainHelper.PreloadMigrations()
-	searchEngine := mainHelper.GetSearchEngine()
-	th := setupTestHelper(dbStore, searchEngine, true, true, nil, options)
-	th.InitLogin()
+	removeSpuriousErrors := func(config *model.Config) {
+		// If not set, you will receive an unactionable error in the console
+		*config.ServiceSettings.SiteURL = "http://localhost:8065"
+	}
+
+	dbStore, dbSettings, searchEngine := setupStores(tb)
+	th := setupTestHelper(tb, dbStore, dbSettings, searchEngine, true, true, removeSpuriousErrors, options)
+	th.InitLogin(tb)
+
 	return th
 }
 
@@ -261,13 +300,10 @@ func Setup(tb testing.TB) *TestHelper {
 		tb.SkipNow()
 	}
 
-	dbStore := mainHelper.GetStore()
-	dbStore.DropAllTables()
-	dbStore.MarkSystemRanUnitTests()
-	mainHelper.PreloadMigrations()
-	searchEngine := mainHelper.GetSearchEngine()
-	th := setupTestHelper(dbStore, searchEngine, false, true, nil, nil)
-	th.InitLogin()
+	dbStore, dbSettings, searchEngine := setupStores(tb)
+	th := setupTestHelper(tb, dbStore, dbSettings, searchEngine, false, true, nil, nil)
+	th.InitLogin(tb)
+
 	return th
 }
 
@@ -280,14 +316,11 @@ func SetupAndApplyConfigBeforeLogin(tb testing.TB, updateConfig func(cfg *model.
 		tb.SkipNow()
 	}
 
-	dbStore := mainHelper.GetStore()
-	dbStore.DropAllTables()
-	dbStore.MarkSystemRanUnitTests()
-	mainHelper.PreloadMigrations()
-	searchEngine := mainHelper.GetSearchEngine()
-	th := setupTestHelper(dbStore, searchEngine, false, true, nil, nil)
+	dbStore, dbSettings, searchEngine := setupStores(tb)
+	th := setupTestHelper(tb, dbStore, dbSettings, searchEngine, false, true, nil, nil)
 	th.App.UpdateConfig(updateConfig)
-	th.InitLogin()
+	th.InitLogin(tb)
+
 	return th
 }
 
@@ -300,18 +333,15 @@ func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelpe
 		tb.SkipNow()
 	}
 
-	dbStore := mainHelper.GetStore()
-	dbStore.DropAllTables()
-	dbStore.MarkSystemRanUnitTests()
-	mainHelper.PreloadMigrations()
-	searchEngine := mainHelper.GetSearchEngine()
-	th := setupTestHelper(dbStore, searchEngine, false, true, updateConfig, nil)
-	th.InitLogin()
+	dbStore, dbSettings, searchEngine := setupStores(tb)
+	th := setupTestHelper(tb, dbStore, dbSettings, searchEngine, false, true, updateConfig, nil)
+	th.InitLogin(tb)
+
 	return th
 }
 
 func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
-	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, false, false, updateConfig, nil)
+	th := setupTestHelper(tb, testlib.GetMockStoreForSetupFunctions(), nil, nil, false, false, updateConfig, nil)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -325,7 +355,7 @@ func SetupConfigWithStoreMock(tb testing.TB, updateConfig func(cfg *model.Config
 }
 
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
-	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, false, false, nil, nil)
+	th := setupTestHelper(tb, testlib.GetMockStoreForSetupFunctions(), nil, nil, false, false, nil, nil)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -339,7 +369,12 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 }
 
 func SetupEnterpriseWithStoreMock(tb testing.TB, options ...app.Option) *TestHelper {
-	th := setupTestHelper(testlib.GetMockStoreForSetupFunctions(), nil, true, false, nil, options)
+	removeSpuriousErrors := func(config *model.Config) {
+		// If not set, you will receive an unactionable error in the console
+		*config.ServiceSettings.SiteURL = "http://localhost:8065"
+	}
+
+	th := setupTestHelper(tb, testlib.GetMockStoreForSetupFunctions(), nil, nil, true, false, removeSpuriousErrors, options)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -361,13 +396,10 @@ func SetupWithServerOptions(tb testing.TB, options []app.Option) *TestHelper {
 		tb.SkipNow()
 	}
 
-	dbStore := mainHelper.GetStore()
-	dbStore.DropAllTables()
-	dbStore.MarkSystemRanUnitTests()
-	mainHelper.PreloadMigrations()
-	searchEngine := mainHelper.GetSearchEngine()
-	th := setupTestHelper(dbStore, searchEngine, false, true, nil, options)
-	th.InitLogin()
+	dbStore, dbSettings, searchEngine := setupStores(tb)
+	th := setupTestHelper(tb, dbStore, dbSettings, searchEngine, false, true, nil, options)
+	th.InitLogin(tb)
+
 	return th
 }
 
@@ -380,13 +412,10 @@ func SetupEnterpriseWithServerOptions(tb testing.TB, options []app.Option) *Test
 		tb.SkipNow()
 	}
 
-	dbStore := mainHelper.GetStore()
-	dbStore.DropAllTables()
-	dbStore.MarkSystemRanUnitTests()
-	mainHelper.PreloadMigrations()
-	searchEngine := mainHelper.GetSearchEngine()
-	th := setupTestHelper(dbStore, searchEngine, true, true, nil, options)
-	th.InitLogin()
+	dbStore, dbSettings, searchEngine := setupStores(tb)
+	th := setupTestHelper(tb, dbStore, dbSettings, searchEngine, true, true, nil, options)
+	th.InitLogin(tb)
+
 	return th
 }
 
@@ -411,7 +440,23 @@ func (th *TestHelper) TearDown() {
 		// Clean all the caches
 		th.App.Srv().InvalidateAllCaches()
 	}
+
 	th.ShutdownApp()
+
+	// Cleanup the workspace
+	if th.tempWorkspace != "" {
+		err := os.RemoveAll(th.tempWorkspace)
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
+func (th *TestHelper) RemoveLicense() {
+	err := th.App.Srv().RemoveLicense()
+	if err != nil {
+		th.TestLogger.Warn("TestHelper.RemoveLicense: failed to remove license", mlog.Err(err))
+	}
 }
 
 func closeBody(r *http.Response) {
@@ -421,43 +466,64 @@ func closeBody(r *http.Response) {
 	}
 }
 
-var initBasicOnce sync.Once
-var userCache struct {
-	SystemAdminUser   *model.User
-	SystemManagerUser *model.User
-	TeamAdminUser     *model.User
-	BasicUser         *model.User
-	BasicUser2        *model.User
-}
+var (
+	initBasicOnce sync.Once
+	userCache     struct {
+		SystemAdminUser   *model.User
+		SystemManagerUser *model.User
+		TeamAdminUser     *model.User
+		BasicUser         *model.User
+		BasicUser2        *model.User
+	}
+)
 
-func (th *TestHelper) InitLogin() *TestHelper {
-	th.waitForConnectivity()
+func (th *TestHelper) InitLogin(tb testing.TB) *TestHelper {
+	th.waitForConnectivity(tb)
 
 	// create users once and cache them because password hashing is slow
 	initBasicOnce.Do(func() {
+		var err *model.AppError
+
 		th.SystemAdminUser = th.CreateUser()
 		th.App.UpdateUserRoles(th.Context, th.SystemAdminUser.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
-		th.SystemAdminUser, _ = th.App.GetUser(th.SystemAdminUser.Id)
+		th.SystemAdminUser, err = th.App.GetUser(th.SystemAdminUser.Id)
+		if err != nil {
+			panic(err)
+		}
 		userCache.SystemAdminUser = th.SystemAdminUser.DeepCopy()
 
 		th.SystemManagerUser = th.CreateUser()
 		th.App.UpdateUserRoles(th.Context, th.SystemManagerUser.Id, model.SystemUserRoleId+" "+model.SystemManagerRoleId, false)
-		th.SystemManagerUser, _ = th.App.GetUser(th.SystemManagerUser.Id)
+		th.SystemManagerUser, err = th.App.GetUser(th.SystemManagerUser.Id)
+		if err != nil {
+			panic(err)
+		}
 		userCache.SystemManagerUser = th.SystemManagerUser.DeepCopy()
 
 		th.TeamAdminUser = th.CreateUser()
 		th.App.UpdateUserRoles(th.Context, th.TeamAdminUser.Id, model.SystemUserRoleId, false)
-		th.TeamAdminUser, _ = th.App.GetUser(th.TeamAdminUser.Id)
+		th.TeamAdminUser, err = th.App.GetUser(th.TeamAdminUser.Id)
+		if err != nil {
+			panic(err)
+		}
 		userCache.TeamAdminUser = th.TeamAdminUser.DeepCopy()
 
 		th.BasicUser = th.CreateUser()
-		th.BasicUser, _ = th.App.GetUser(th.BasicUser.Id)
+		th.BasicUser, err = th.App.GetUser(th.BasicUser.Id)
+		if err != nil {
+			panic(err)
+		}
+
 		userCache.BasicUser = th.BasicUser.DeepCopy()
 
 		th.BasicUser2 = th.CreateUser()
-		th.BasicUser2, _ = th.App.GetUser(th.BasicUser2.Id)
+		th.BasicUser2, err = th.App.GetUser(th.BasicUser2.Id)
+		if err != nil {
+			panic(err)
+		}
 		userCache.BasicUser2 = th.BasicUser2.DeepCopy()
 	})
+
 	// restore cached users
 	th.SystemAdminUser = userCache.SystemAdminUser.DeepCopy()
 	th.SystemManagerUser = userCache.SystemManagerUser.DeepCopy()
@@ -465,8 +531,7 @@ func (th *TestHelper) InitLogin() *TestHelper {
 	th.BasicUser = userCache.BasicUser.DeepCopy()
 	th.BasicUser2 = userCache.BasicUser2.DeepCopy()
 
-	users := []*model.User{th.SystemAdminUser, th.TeamAdminUser, th.BasicUser, th.BasicUser2, th.SystemManagerUser}
-	mainHelper.GetSQLStore().User().InsertUsers(users)
+	th.Store.User().InsertUsers([]*model.User{th.SystemAdminUser, th.TeamAdminUser, th.BasicUser, th.BasicUser2, th.SystemManagerUser})
 
 	// restore non hashed password for login
 	th.SystemAdminUser.Password = "Pa$$word11"
@@ -485,7 +550,9 @@ func (th *TestHelper) InitLogin() *TestHelper {
 		th.LoginTeamAdmin()
 		wg.Done()
 	}()
+
 	wg.Wait()
+
 	return th
 }
 
@@ -523,8 +590,8 @@ func (th *TestHelper) DeleteBots() *TestHelper {
 	return th
 }
 
-func (th *TestHelper) waitForConnectivity() {
-	for i := 0; i < 1000; i++ {
+func (th *TestHelper) waitForConnectivity(tb testing.TB) {
+	for range 1000 {
 		conn, err := net.Dial("tcp", fmt.Sprintf("localhost:%v", th.App.Srv().ListenAddr.Port))
 		if err == nil {
 			conn.Close()
@@ -532,7 +599,7 @@ func (th *TestHelper) waitForConnectivity() {
 		}
 		time.Sleep(time.Millisecond * 20)
 	}
-	panic("unable to connect")
+	tb.Fatal("unable to connect")
 }
 
 func (th *TestHelper) CreateClient() *model.Client4 {
@@ -555,16 +622,39 @@ func (th *TestHelper) CreateLocalClient(socketPath string) *model.Client4 {
 	}
 }
 
+func (th *TestHelper) createConnectedWebSocketClient(t *testing.T, client *model.Client4) *model.WebSocketClient {
+	t.Helper()
+	wsClient, err := th.CreateWebSocketClientWithClient(client)
+	require.NoError(t, err)
+	require.NotNil(t, wsClient, "webSocketClient should not be nil")
+	wsClient.Listen()
+	t.Cleanup(wsClient.Close)
+
+	// Ensure WS is connected. First event should be hello message.
+	select {
+	case ev := <-wsClient.EventChannel:
+		require.Equal(t, model.WebsocketEventHello, ev.EventType())
+	case <-time.After(5 * time.Second):
+		require.FailNow(t, "hello event was not received within the timeout period")
+	}
+
+	return wsClient
+}
+
+func (th *TestHelper) CreateConnectedWebSocketClient(t *testing.T) *model.WebSocketClient {
+	return th.createConnectedWebSocketClient(t, th.Client)
+}
+
+func (th *TestHelper) CreateConnectedWebSocketClientWithClient(t *testing.T, client *model.Client4) *model.WebSocketClient {
+	return th.createConnectedWebSocketClient(t, client)
+}
+
 func (th *TestHelper) CreateWebSocketClient() (*model.WebSocketClient, error) {
 	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port), th.Client.AuthToken)
 }
 
 func (th *TestHelper) CreateReliableWebSocketClient(connID string, seqNo int) (*model.WebSocketClient, error) {
 	return model.NewReliableWebSocketClientWithDialer(websocket.DefaultDialer, fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port), th.Client.AuthToken, connID, seqNo, true)
-}
-
-func (th *TestHelper) CreateWebSocketSystemAdminClient() (*model.WebSocketClient, error) {
-	return model.NewWebSocketClient4(fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port), th.SystemAdminClient.AuthToken)
 }
 
 func (th *TestHelper) CreateWebSocketClientWithClient(client *model.Client4) (*model.WebSocketClient, error) {
@@ -591,6 +681,17 @@ func (th *TestHelper) CreateBotWithClient(client *model.Client4) *model.Bot {
 
 func (th *TestHelper) CreateUser() *model.User {
 	return th.CreateUserWithClient(th.Client)
+}
+
+func (th *TestHelper) CreateGuestUser(tb testing.TB) *model.User {
+	tb.Helper()
+
+	guestUser := th.CreateUserWithClient(th.Client)
+
+	_, appErr := th.App.UpdateUserRoles(th.Context, guestUser.Id, model.SystemGuestRoleId, false)
+	require.Nil(tb, appErr)
+
+	return guestUser
 }
 
 func (th *TestHelper) CreateTeam() *model.Team {
@@ -657,7 +758,8 @@ func (th *TestHelper) CreateUserWithAuth(authService string) *model.User {
 // CreateGuestAndClient creates a guest user, adds them to the basic
 // team, basic channel and basic private channel, and generates an API
 // client ready to use
-func (th *TestHelper) CreateGuestAndClient() (*model.User, *model.Client4) {
+func (th *TestHelper) CreateGuestAndClient(tb testing.TB) (*model.User, *model.Client4) {
+	tb.Helper()
 	id := model.NewId()
 
 	// create a guest user and add it to the basic team and public/private channels
@@ -668,23 +770,17 @@ func (th *TestHelper) CreateGuestAndClient() (*model.User, *model.Client4) {
 		Password:      "Password1",
 		EmailVerified: true,
 	})
-	if cgErr != nil {
-		panic(cgErr)
-	}
+	require.Nil(tb, cgErr)
 
-	_, _, tErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, guest.Id, th.SystemAdminUser.Id)
-	if tErr != nil {
-		panic(tErr)
-	}
+	_, _, appErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, guest.Id, th.SystemAdminUser.Id)
+	require.Nil(tb, appErr)
 	th.AddUserToChannel(guest, th.BasicChannel)
 	th.AddUserToChannel(guest, th.BasicPrivateChannel)
 
 	// create a client and login the guest
 	guestClient := th.CreateClient()
-	_, _, lErr := guestClient.Login(context.Background(), guest.Username, "Password1")
-	if lErr != nil {
-		panic(lErr)
-	}
+	_, _, err := guestClient.Login(context.Background(), guest.Email, "Password1")
+	require.NoError(tb, err)
 
 	return guest, guestClient
 }
@@ -858,7 +954,6 @@ func (th *TestHelper) CreateMessagePostNoClient(channel *model.Channel, message 
 		Message:   message,
 		CreateAt:  createAtTime,
 	})
-
 	if err != nil {
 		panic(err)
 	}
@@ -1244,7 +1339,7 @@ func (th *TestHelper) cleanupTestFile(info *model.FileInfo) error {
 }
 
 func (th *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Channel) {
-	if cm, err := th.App.Srv().Store().Channel().GetMember(context.Background(), channel.Id, user.Id); err == nil {
+	if cm, err := th.App.Srv().Store().Channel().GetMember(th.Context, channel.Id, user.Id); err == nil {
 		cm.SchemeAdmin = true
 		if _, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, cm); err != nil {
 			panic(err)
@@ -1287,7 +1382,7 @@ func (th *TestHelper) SaveDefaultRolePermissions() map[string][]string {
 		"channel_user",
 		"channel_admin",
 	} {
-		role, err1 := th.App.GetRoleByName(context.Background(), roleName)
+		role, err1 := th.App.GetRoleByName(th.Context, roleName)
 		if err1 != nil {
 			panic(err1)
 		}
@@ -1299,7 +1394,7 @@ func (th *TestHelper) SaveDefaultRolePermissions() map[string][]string {
 
 func (th *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
 	for roleName, permissions := range data {
-		role, err1 := th.App.GetRoleByName(context.Background(), roleName)
+		role, err1 := th.App.GetRoleByName(th.Context, roleName)
 		if err1 != nil {
 			panic(err1)
 		}
@@ -1318,7 +1413,7 @@ func (th *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
 }
 
 func (th *TestHelper) RemovePermissionFromRole(permission string, roleName string) {
-	role, err1 := th.App.GetRoleByName(context.Background(), roleName)
+	role, err1 := th.App.GetRoleByName(th.Context, roleName)
 	if err1 != nil {
 		panic(err1)
 	}
@@ -1343,15 +1438,13 @@ func (th *TestHelper) RemovePermissionFromRole(permission string, roleName strin
 }
 
 func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
-	role, err1 := th.App.GetRoleByName(context.Background(), roleName)
+	role, err1 := th.App.GetRoleByName(th.Context, roleName)
 	if err1 != nil {
 		panic(err1)
 	}
 
-	for _, existingPermission := range role.Permissions {
-		if existingPermission == permission {
-			return
-		}
+	if slices.Contains(role.Permissions, permission) {
+		return
 	}
 
 	role.Permissions = append(role.Permissions, permission)
@@ -1380,4 +1473,8 @@ func (th *TestHelper) SetupScheme(scope string) *model.Scheme {
 		panic(err)
 	}
 	return scheme
+}
+
+func (th *TestHelper) Parallel(t *testing.T) {
+	mainHelper.Parallel(t)
 }

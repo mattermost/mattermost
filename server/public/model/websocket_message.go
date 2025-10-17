@@ -94,7 +94,26 @@ const (
 	WebsocketScheduledPostCreated                     WebsocketEventType = "scheduled_post_created"
 	WebsocketScheduledPostUpdated                     WebsocketEventType = "scheduled_post_updated"
 	WebsocketScheduledPostDeleted                     WebsocketEventType = "scheduled_post_deleted"
+	WebsocketEventCPAFieldCreated                     WebsocketEventType = "custom_profile_attributes_field_created"
+	WebsocketEventCPAFieldUpdated                     WebsocketEventType = "custom_profile_attributes_field_updated"
+	WebsocketEventCPAFieldDeleted                     WebsocketEventType = "custom_profile_attributes_field_deleted"
+	WebsocketEventCPAValuesUpdated                    WebsocketEventType = "custom_profile_attributes_values_updated"
+	WebsocketContentFlaggingReportValueUpdated        WebsocketEventType = "content_flagging_report_value_updated"
+
+	WebSocketMsgTypeResponse = "response"
+	WebSocketMsgTypeEvent    = "event"
 )
+
+type ActiveQueueItem struct {
+	Type string          `json:"type"` // websocket event or websocket response
+	Buf  json.RawMessage `json:"buf"`
+}
+
+type WSQueues struct {
+	ActiveQ    []ActiveQueueItem `json:"active_queue"` // websocketEvent|websocketResponse
+	DeadQ      []json.RawMessage `json:"dead_queue"`   // websocketEvent
+	ReuseCount int               `json:"reuse_count"`
+}
 
 type WebSocketMessage interface {
 	ToJSON() ([]byte, error)
@@ -135,9 +154,7 @@ func (wb *WebsocketBroadcast) copy() *WebsocketBroadcast {
 	var c WebsocketBroadcast
 	if wb.OmitUsers != nil {
 		c.OmitUsers = make(map[string]bool, len(wb.OmitUsers))
-		for k, v := range wb.OmitUsers {
-			c.OmitUsers[k] = v
-		}
+		maps.Copy(c.OmitUsers, wb.OmitUsers)
 	}
 	c.UserId = wb.UserId
 	c.ChannelId = wb.ChannelId

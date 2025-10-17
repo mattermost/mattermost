@@ -8,18 +8,25 @@ import {useIntl} from 'react-intl';
 
 import TeamSettings from 'components/team_settings';
 
+import {focusElement} from 'utils/a11y_utils';
+
 const SettingsSidebar = React.lazy(() => import('components/settings_sidebar'));
+
+const SHOW_PANEL_ERROR_STATE_TAB_SWITCH_TIMEOUT = 3000;
 
 type Props = {
     onExited: () => void;
     canInviteUsers: boolean;
+    focusOriginElement?: string;
 }
 
-const TeamSettingsModal = ({onExited, canInviteUsers}: Props) => {
+const TeamSettingsModal = ({onExited, canInviteUsers, focusOriginElement}: Props) => {
     const [activeTab, setActiveTab] = useState('info');
     const [show, setShow] = useState<boolean>(true);
     const [hasChanges, setHasChanges] = useState<boolean>(false);
     const [hasChangeTabError, setHasChangeTabError] = useState<boolean>(false);
+    const [hasBeenWarned, setHasBeenWarned] = useState<boolean>(false);
+    const [justSaved, setJustSaved] = useState<boolean>(false);
     const modalBodyRef = useRef<ModalBody>(null);
     const {formatMessage} = useIntl();
 
@@ -31,16 +38,34 @@ const TeamSettingsModal = ({onExited, canInviteUsers}: Props) => {
         setActiveTab(tab);
         setHasChanges(false);
         setHasChangeTabError(false);
+        setHasBeenWarned(false);
     }, [hasChanges]);
 
-    const handleHide = useCallback(() => setShow(false), []);
+    const handleHide = useCallback(() => {
+        // Prevent modal closing if there are unsaved changes (warn once, then allow)
+        // Don't warn if showing "Settings saved"
+        if (hasChanges && !hasBeenWarned && !justSaved) {
+            setHasBeenWarned(true);
+            setHasChangeTabError(true);
+            setTimeout(() => {
+                setHasChangeTabError(false);
+            }, SHOW_PANEL_ERROR_STATE_TAB_SWITCH_TIMEOUT);
+        } else {
+            setShow(false);
+        }
+    }, [hasChanges, hasBeenWarned, justSaved]);
 
     const handleClose = useCallback(() => {
+        if (focusOriginElement) {
+            focusElement(focusOriginElement, true);
+        }
         setActiveTab('info');
         setHasChanges(false);
         setHasChangeTabError(false);
+        setHasBeenWarned(false);
+        setJustSaved(false);
         onExited();
-    }, [onExited]);
+    }, [onExited, focusOriginElement]);
 
     const handleCollapse = useCallback(() => {
         const el = ReactDOM.findDOMNode(modalBodyRef.current) as HTMLDivElement;
@@ -69,7 +94,10 @@ const TeamSettingsModal = ({onExited, canInviteUsers}: Props) => {
                 id='teamSettingsModalLabel'
                 closeButton={true}
             >
-                <Modal.Title componentClass='h1'>
+                <Modal.Title
+                    componentClass='h2'
+                    className='modal-header__title'
+                >
                     {formatMessage({id: 'team_settings_modal.title', defaultMessage: 'Team Settings'})}
                 </Modal.Title>
             </Modal.Header>
@@ -91,6 +119,7 @@ const TeamSettingsModal = ({onExited, canInviteUsers}: Props) => {
                             setHasChanges={setHasChanges}
                             hasChangeTabError={hasChangeTabError}
                             setHasChangeTabError={setHasChangeTabError}
+                            setJustSaved={setJustSaved}
                             closeModal={handleHide}
                             collapseModal={handleCollapse}
                         />

@@ -62,7 +62,7 @@ const sectionsList: SystemSection[] = [
             {name: 'user_management_teams'},
             {name: 'user_management_channels'},
             {name: 'user_management_permissions'},
-            {name: 'user_management_system_roles', disabled: true},
+            {name: 'user_management_system_roles', hasDescription: true, disabled: true},
         ],
     },
     {
@@ -82,6 +82,7 @@ const sectionsList: SystemSection[] = [
             {name: 'environment_session_lengths'},
             {name: 'environment_performance_monitoring'},
             {name: 'environment_developer'},
+            {name: 'environment_mobile_security'},
         ],
     },
     {
@@ -145,7 +146,6 @@ const sectionsList: SystemSection[] = [
         subsections: [
             {name: 'experimental_features'},
             {name: 'experimental_feature_flags'},
-            {name: 'experimental_bleve'},
         ],
     },
 ];
@@ -212,7 +212,7 @@ export default class SystemRolePermissions extends React.PureComponent<Props, St
                             id='admin.permissions.roles.system_custom_group_admin.introduction'
                             defaultMessage='The built-in Custom Group Manager role can be used to delegate the administration of <a>Custom Groups</a> to users other than the System Admin.'
                             values={{
-                                a: (chunks: string) => (
+                                a: (chunks) => (
                                     <ExternalLink
                                         href='https://docs.mattermost.com/welcome/manage-custom-groups.html'
                                         location='adminConsoleSystemRoles'
@@ -234,7 +234,7 @@ export default class SystemRolePermissions extends React.PureComponent<Props, St
                             id='admin.permissions.roles.system_custom_group_admin.permissions_info'
                             defaultMessage='This role has permission to create, edit, and delete custom user groups by selecting <b>User groups</b> from the Products menu.'
                             values={{
-                                b: (chunks: string) => <b>{chunks}</b>,
+                                b: (chunks) => <b>{chunks}</b>,
                             }}
                         />
                     </p>

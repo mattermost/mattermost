@@ -6,29 +6,12 @@ exports[`components/channel_view Should match snapshot if channel is archived 1`
   id="app-content"
 >
   <FileUploadOverlay
+    id="centerChannelFileDropOverlay"
     overlayType="center"
   />
-  <ChannelHeader
+  <ChannelHeader />
+  <ChannelBanner
     channelId="channelId"
-    channelIsArchived={true}
-    deactivatedChannel={false}
-    enableOnboardingFlow={true}
-    enableWebSocketEventScope={false}
-    goToLastViewedChannel={[MockFunction]}
-    history={Object {}}
-    isChannelBookmarksEnabled={false}
-    isCloud={false}
-    isFirstAdmin={false}
-    location={Object {}}
-    match={
-      Object {
-        "params": Object {},
-        "url": "/team/channel/channelId",
-      }
-    }
-    missingChannelRole={false}
-    teamUrl="/team"
-    viewArchivedChannels={false}
   />
   <DeferredRenderWrapper
     channelId="channelId"
@@ -70,29 +53,12 @@ exports[`components/channel_view Should match snapshot if channel is deactivated
   id="app-content"
 >
   <FileUploadOverlay
+    id="centerChannelFileDropOverlay"
     overlayType="center"
   />
-  <ChannelHeader
+  <ChannelHeader />
+  <ChannelBanner
     channelId="channelId"
-    channelIsArchived={false}
-    deactivatedChannel={true}
-    enableOnboardingFlow={true}
-    enableWebSocketEventScope={false}
-    goToLastViewedChannel={[MockFunction]}
-    history={Object {}}
-    isChannelBookmarksEnabled={false}
-    isCloud={false}
-    isFirstAdmin={false}
-    location={Object {}}
-    match={
-      Object {
-        "params": Object {},
-        "url": "/team/channel/channelId",
-      }
-    }
-    missingChannelRole={false}
-    teamUrl="/team"
-    viewArchivedChannels={false}
   />
   <DeferredRenderWrapper
     channelId="channelId"
@@ -133,35 +99,18 @@ exports[`components/channel_view Should match snapshot with base props 1`] = `
   id="app-content"
 >
   <FileUploadOverlay
+    id="centerChannelFileDropOverlay"
     overlayType="center"
   />
-  <ChannelHeader
+  <ChannelHeader />
+  <ChannelBanner
     channelId="channelId"
-    channelIsArchived={false}
-    deactivatedChannel={false}
-    enableOnboardingFlow={true}
-    enableWebSocketEventScope={false}
-    goToLastViewedChannel={[MockFunction]}
-    history={Object {}}
-    isChannelBookmarksEnabled={false}
-    isCloud={false}
-    isFirstAdmin={false}
-    location={Object {}}
-    match={
-      Object {
-        "params": Object {},
-        "url": "/team/channel/channelId",
-      }
-    }
-    missingChannelRole={false}
-    teamUrl="/team"
-    viewArchivedChannels={false}
   />
   <DeferredRenderWrapper
     channelId="channelId"
   />
   <div
-    className="post-create__container"
+    className="post-create__container AdvancedTextEditor__ctr"
     data-testid="post-create"
     id="post-create"
   >

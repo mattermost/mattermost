@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React, {type ComponentType, type MouseEvent, type ReactNode} from 'react';
-import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {openModal} from 'actions/views/modals';
@@ -34,8 +33,6 @@ const ToggleModalButton = ({
     id,
     role,
 }: Props) => {
-    const intl = useIntl();
-
     const dispatch = useDispatch();
 
     const show = (e: MouseEvent<HTMLButtonElement>) => {
@@ -52,13 +49,6 @@ const ToggleModalButton = ({
         dispatch(openModal(modalData));
     };
 
-    const ariaLabelElement = ariaLabel ? intl.formatMessage({
-        id: 'accessibility.button.dialog',
-        defaultMessage: '{dialogName} dialog',
-    }, {
-        dialogName: ariaLabel,
-    }) : undefined;
-
     const badge = showUnread ? <span className={'unread-badge'}/> : null;
 
     // allow callers to provide an onClick which will be called before the modal is shown
@@ -70,7 +60,7 @@ const ToggleModalButton = ({
     return (
         <button
             className={'style--none ' + className}
-            aria-label={ariaLabelElement}
+            aria-label={ariaLabel}
             onClick={clickHandler}
             id={id}
             disabled={disabled}

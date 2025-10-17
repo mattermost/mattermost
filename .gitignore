@@ -40,9 +40,9 @@ e2e-tests/playwright/playwright-report
 e2e-tests/playwright/storage_state
 e2e-tests/playwright/test-results
 e2e-tests/playwright/results
-e2e-tests/playwright/tests/**/*-darwin.png
-e2e-tests/playwright/tests/**/*-window.png
-e2e-tests/playwright/tests/accessibility/**/*-snapshots
+e2e-tests/playwright/specs/**/*-darwin.png
+e2e-tests/playwright/specs/**/*-window.png
+e2e-tests/playwright/specs/accessibility/**/*-snapshots
 e2e-tests/playwright/.eslintcache
 
 # ignore temporary added configuration for pgloader
@@ -159,3 +159,7 @@ docker-compose.override.yaml
 .notice-work/
 .aider*
 .env
+
+**/CLAUDE.local.md
+CLAUDE.md
+.cursorrules

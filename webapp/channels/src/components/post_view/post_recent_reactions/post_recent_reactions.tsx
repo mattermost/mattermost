@@ -96,13 +96,13 @@ export default class PostRecentReactions extends React.PureComponent<Props, Stat
                     emoji={getEmojiName(emoji)}
                     isEmojiLarge={true}
                 >
-                    <div>
+                    <li>
                         <EmojiItem
                             emoji={emoji}
                             onItemClick={this.handleToggleEmoji}
                             order={n}
                         />
-                    </div>
+                    </li>
                 </WithTooltip>
             </ChannelPermissionGate>
         ),

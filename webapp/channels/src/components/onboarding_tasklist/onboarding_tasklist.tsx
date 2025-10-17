@@ -1,27 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useRef, useCallback, useEffect, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
+import React, {useCallback, useEffect, useState} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
+import {useLocation} from 'react-router-dom';
 import styled, {css} from 'styled-components';
 
 import {CloseIcon, PlaylistCheckIcon} from '@mattermost/compass-icons/components';
 
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
 import {getMyPreferences, savePreferences} from 'mattermost-redux/actions/preferences';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {
     getBool,
     getMyPreferences as getMyPreferencesSelector,
-    getTheme,
 } from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {trackEvent} from 'actions/telemetry_actions';
 import {getShowTaskListBool} from 'selectors/onboarding';
 
-import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 import {useFirstAdminUser, useIsCurrentUserSystemAdmin} from 'components/global_header/hooks';
 import {
     useTasksListWithStatus,
@@ -52,10 +51,12 @@ const TaskItems = styled.div`
     transform-origin: left bottom;
     max-height: ${document.documentElement.clientHeight}px;
     overflow-y: auto;
+    display: none;
 
     &.open {
         transform: scale(1);
         opacity: 1;
+        display: block;
     }
 
     h1 {
@@ -124,7 +125,13 @@ const Button = styled.button<{open: boolean}>(({open}) => {
 });
 
 const OnBoardingTaskList = (): JSX.Element | null => {
+    const {formatMessage} = useIntl();
+    const location = useLocation();
     const hasPreferences = useSelector((state: GlobalState) => Object.keys(getMyPreferencesSelector(state)).length !== 0);
+    const subscription = useSelector(getCloudSubscription);
+    const license = useSelector(getLicense);
+    const isCloud = license?.Cloud === 'true';
+    const isCloudPreview = subscription?.is_cloud_preview === true;
 
     useEffect(() => {
         dispatch(getPrevTrialLicense());
@@ -134,7 +141,7 @@ const OnBoardingTaskList = (): JSX.Element | null => {
     }, []);
 
     const open = useSelector(((state: GlobalState) => getBool(state, OnboardingTaskCategory, OnboardingTaskList.ONBOARDING_TASK_LIST_OPEN)));
-    const trigger = useRef<HTMLButtonElement>(null);
+    const [trigger, setTrigger] = useState<HTMLButtonElement | null>(null);
     const dispatch = useDispatch();
     const currentUserId = useSelector(getCurrentUserId);
     const handleTaskTrigger = useHandleOnBoardingTaskTrigger();
@@ -149,7 +156,6 @@ const OnBoardingTaskList = (): JSX.Element | null => {
         getShowTaskListBool,
         (a, b) => a[0] === b[0] && a[1] === b[1],
     );
-    const theme = useSelector(getTheme);
 
     const startTask = (taskName: string) => {
         toggleTaskList();
@@ -188,12 +194,6 @@ const OnBoardingTaskList = (): JSX.Element | null => {
         }
     }, []);
 
-    useEffect(() => {
-        if (firstTimeOnboarding && showTaskList && isEnableOnboardingFlow) {
-            trackEvent(OnboardingTaskCategory, OnboardingTaskList.ONBOARDING_TASK_LIST_SHOW);
-        }
-    }, [firstTimeOnboarding, showTaskList, isEnableOnboardingFlow]);
-
     // Done to show task done animation in closed state as well
     useEffect(() => {
         const newCCount = tasksList.filter((task) => task.status).length;
@@ -227,7 +227,6 @@ const OnBoardingTaskList = (): JSX.Element | null => {
             value: 'false',
         }];
         dispatch(savePreferences(currentUserId, preferences));
-        trackEvent(OnboardingTaskCategory, OnboardingTaskList.DECLINED_ONBOARDING_TASK_LIST);
     }, [currentUserId]);
 
     const toggleTaskList = useCallback(() => {
@@ -238,21 +237,21 @@ const OnBoardingTaskList = (): JSX.Element | null => {
             value: String(!open),
         }];
         dispatch(savePreferences(currentUserId, preferences));
-        trackEvent(OnboardingTaskCategory, open ? OnboardingTaskList.ONBOARDING_TASK_LIST_CLOSE : OnboardingTaskList.ONBOARDING_TASK_LIST_OPEN);
     }, [open, currentUserId]);
 
-    if (!hasPreferences || !showTaskList || !isEnableOnboardingFlow) {
+    if (!hasPreferences || !showTaskList || !isEnableOnboardingFlow || (isCloud && isCloudPreview) || location.pathname === '/preparing-workspace') {
         return null;
     }
 
     return (
-        <CompassThemeProvider theme={theme}>
+        <>
             <CompletedAnimation completed={showAnimation}/>
             <Button
                 onClick={toggleTaskList}
-                ref={trigger}
+                ref={(element) => setTrigger(element)}
                 open={open}
                 data-cy='onboarding-task-list-action-button'
+                aria-label={formatMessage({id: 'onboardingTask.checklist.start_onboarding_process', defaultMessage: 'Start the onboarding process.'})}
             >
                 {open ? <CloseIcon size={20}/> : <PlaylistCheckIcon size={20}/>}
                 {itemsLeft !== 0 && (<span>{itemsLeft}</span>)}
@@ -299,14 +298,14 @@ const OnBoardingTaskList = (): JSX.Element | null => {
                             >
                                 <FormattedMessage
                                     id='onboardingTask.checklist.dismiss_link'
-                                    defaultMessage='No thanks, I’ll figure it out myself'
+                                    defaultMessage="No thanks, I'll figure it out myself"
                                 />
                             </span>
                         </>
                     )}
                 </TaskItems>
             </TaskListPopover>
-        </CompassThemeProvider>
+        </>
     );
 };
 

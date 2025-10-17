@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render} from '@testing-library/react';
-import {renderHook} from '@testing-library/react-hooks';
+import {act, render, renderHook} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type {History} from 'history';
 import {createBrowserHistory} from 'history';
@@ -90,6 +89,7 @@ export const renderWithContext = (
 
             results.rerender(renderState.component);
         },
+        store: testStore,
     };
 };
 
@@ -115,12 +115,25 @@ export const renderHookWithContext = <TProps, TResult>(
     };
     replaceGlobalStore(() => renderState.store);
 
-    return renderHook(callback, {
+    const results = renderHook(callback, {
         wrapper: ({children}) => {
             // Every time this is called, these values should be updated from `renderState`
             return <Providers {...renderState}>{children}</Providers>;
         },
     });
+
+    return {
+        ...results,
+
+        /**
+         * Rerenders the component after replacing the entire store state with the provided one.
+         */
+        replaceStoreState: (newInitialState: DeepPartial<GlobalState>) => {
+            renderState.store = configureOrMockStore(newInitialState, renderState.options.useMockedStore, partialOptions?.pluginReducers);
+
+            results.rerender();
+        },
+    };
 };
 
 function configureOrMockStore<T>(initialState: DeepPartial<T>, useMockedStore: boolean, extraReducersKeys?: string[]) {
@@ -145,7 +158,7 @@ function replaceGlobalStore(getStore: () => any) {
     jest.spyOn(globalStore, 'dispatch').mockImplementation((...args) => getStore().dispatch(...args));
     jest.spyOn(globalStore, 'getState').mockImplementation(() => getStore().getState());
     jest.spyOn(globalStore, 'replaceReducer').mockImplementation((...args) => getStore().replaceReducer(...args));
-    jest.spyOn(globalStore, '@@observable').mockImplementation((...args) => getStore()['@@observable'](...args));
+    jest.spyOn(globalStore, '@@observable' as any).mockImplementation((...args: any[]) => getStore()['@@observable'](...args));
 
     // This may stop working if getStore starts to return new results
     jest.spyOn(globalStore, 'subscribe').mockImplementation((...args) => getStore().subscribe(...args));
@@ -176,3 +189,12 @@ const Providers = ({children, store, history, options}: RenderStateProps) => {
         </Provider>
     );
 };
+
+/**
+ * A helper to use when an Enzyme test needs to wait for async code to run in a component before generating a snapshot.
+ *
+ * This should only be used in those cases.
+ */
+export function waitForEnzymeSnapshot() {
+    return act(async () => {});
+}

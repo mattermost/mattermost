@@ -1,38 +1,38 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {
+    useFloating,
+    autoUpdate,
+    useClick,
+    useDismiss,
+    useInteractions,
+    useRole,
+    FloatingFocusManager,
+    FloatingPortal,
+    offset,
+} from '@floating-ui/react';
 import React, {useEffect, useState, useRef, useCallback} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import styled from 'styled-components';
 
 import {getCurrentChannelNameForSearchShortcut} from 'mattermost-redux/selectors/entities/channels';
+import {getIsCrossTeamSearchEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getCurrentTeamId, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 
-import {updateSearchTerms, showSearchResults, updateSearchType} from 'actions/views/rhs';
+import {updateSearchTerms, showSearchResults, updateSearchType, updateSearchTeam} from 'actions/views/rhs';
 import {getSearchButtons} from 'selectors/plugins';
-import {getSearchTerms, getSearchType} from 'selectors/rhs';
+import {getSearchTeam, getSearchTerms, getSearchType} from 'selectors/rhs';
 
-import Popover from 'components/widgets/popover';
-
-import Constants from 'utils/constants';
+import a11yController from 'utils/a11y_controller_instance';
+import {focusElement} from 'utils/a11y_utils';
+import {RootHtmlPortalId, Constants} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import {isServerVersionGreaterThanOrEqualTo} from 'utils/server_version';
 import {isDesktopApp, getDesktopVersion, isMacApp} from 'utils/user_agent';
 
 import SearchBox from './search_box';
-
-const PopoverStyled = styled(Popover)`
-    min-width: 600px;
-    left: -90px;
-    top: -12px;
-    border-radius: 12px;
-    max-height: 90vh;
-    overflow-y: auto;
-
-    .popover-content {
-        padding: 0px;
-    }
-`;
 
 const SearchTypeBadge = styled.div`
     display: flex;
@@ -92,16 +92,58 @@ const NewSearchContainer = styled.div`
     }
 `;
 
+const NewSearchTerms = styled.span`
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    margin-right: 32px;
+    white-space: nowrap;
+`;
+
+const SearchBoxContainer = styled.div`
+    min-width: 600px;
+    border-radius: 12px;
+    max-height: 90vh;
+    overflow-y: auto;
+    background: var(--center-channel-bg);
+    box-shadow: 0 0 0 1px rgba(var(--center-channel-color-rgb), 0.16), 0 4px 6px rgba(0, 0, 0, 0.12);
+    z-index: 1050;
+`;
+
 const NewSearch = (): JSX.Element => {
+    const intl = useIntl();
     const currentChannelName = useSelector(getCurrentChannelNameForSearchShortcut);
     const searchTerms = useSelector(getSearchTerms) || '';
     const searchType = useSelector(getSearchType) || '';
+    const searchTeam = useSelector(getSearchTeam);
     const pluginSearch = useSelector(getSearchButtons);
+    const currentTeamId = useSelector(getCurrentTeamId);
+    const crossTeamSearchEnabled = useSelector(getIsCrossTeamSearchEnabled);
+    const myTeams = useSelector(getMyTeams);
 
     const dispatch = useDispatch();
     const [focused, setFocused] = useState<boolean>(false);
     const [currentChannel, setCurrentChannel] = useState('');
     const searchBoxRef = useRef<HTMLDivElement | null>(null);
+
+    const {refs, floatingStyles, context: floatingContext} = useFloating<HTMLDivElement>({
+        open: focused,
+        onOpenChange: setFocused,
+        whileElementsMounted: autoUpdate,
+        placement: 'bottom',
+        middleware: [offset({mainAxis: -28})],
+    });
+    const searchButtonRef = refs.reference as React.RefObject<HTMLDivElement>;
+
+    const clickInteractions = useClick(floatingContext);
+    const dismissInteraction = useDismiss(floatingContext);
+    const role = useRole(floatingContext);
+
+    const {getReferenceProps, getFloatingProps} = useInteractions([
+        clickInteractions,
+        dismissInteraction,
+        role,
+    ]);
 
     useEffect(() => {
         const isDesktop = isDesktopApp() && isServerVersionGreaterThanOrEqualTo(getDesktopVersion(), '4.7.0');
@@ -145,6 +187,11 @@ const NewSearch = (): JSX.Element => {
         const handleClick = (e: MouseEvent) => {
             if (searchBoxRef.current) {
                 if (e.target !== searchBoxRef.current && !searchBoxRef.current.contains(e.target as Node)) {
+                    // allow click on team selector menu
+                    if (isTargetTeamSelectorMenu(e)) {
+                        return;
+                    }
+
                     setFocused(false);
                     setCurrentChannel('');
                 }
@@ -160,10 +207,15 @@ const NewSearch = (): JSX.Element => {
     const closeSearchBox = useCallback(() => {
         setFocused(false);
         setCurrentChannel('');
-    }, []);
+
+        focusElement(searchButtonRef, true, true);
+    }, [searchButtonRef, setFocused, setCurrentChannel]);
 
     const openSearchBox = useCallback(() => {
         setFocused(true);
+        if (searchButtonRef.current) {
+            a11yController.storeOriginElement(searchButtonRef.current);
+        }
     }, []);
 
     const openSearchBoxOnKeyPress = useCallback(
@@ -185,9 +237,10 @@ const NewSearch = (): JSX.Element => {
     );
 
     const runSearch = useCallback(
-        (searchType: string, searchTerms: string) => {
+        (searchType: string, searchTeam: string, searchTerms: string) => {
             dispatch(updateSearchType(searchType));
             dispatch(updateSearchTerms(searchTerms));
+            dispatch(updateSearchTeam(searchTeam));
 
             if (searchType === '' || searchType === 'messages' || searchType === 'files') {
                 dispatch(showSearchResults(false));
@@ -200,9 +253,7 @@ const NewSearch = (): JSX.Element => {
             }
             setFocused(false);
             setCurrentChannel('');
-        },
-        [pluginSearch],
-    );
+        }, [pluginSearch, currentTeamId]);
 
     const onClose = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
@@ -213,72 +264,100 @@ const NewSearch = (): JSX.Element => {
     const clearSearchType = useCallback(() => dispatch(updateSearchType('')), []);
 
     return (
-        <NewSearchContainer
-            tabIndex={0}
-            onKeyDown={openSearchBoxOnKeyPress}
-            onClick={openSearchBox}
-            id='searchFormContainer'
-            role='button'
-            className='a11y__region'
-        >
-            <i className='icon icon-magnify'/>
-            {(searchType === 'messages' || searchType === 'files') && (
-                <SearchTypeBadge>
-                    {searchType === 'messages' && (
-                        <FormattedMessage
-                            id='search_bar.search_types.messages'
-                            defaultMessage='MESSAGES'
+        <>
+            <NewSearchContainer
+                tabIndex={0}
+                id='searchFormContainer'
+                role='button'
+                className='a11y__region'
+                ref={refs.setReference}
+                {...getReferenceProps({
+                    onKeyDown: openSearchBoxOnKeyPress,
+                    onClick: openSearchBox,
+                })}
+            >
+                <i className='icon icon-magnify'/>
+                {(searchType === 'messages' || searchType === 'files') && (
+                    <SearchTypeBadge data-testid='searchTypeBadge'>
+                        {searchType === 'messages' && (
+                            <FormattedMessage
+                                id='search_bar.search_types.messages'
+                                defaultMessage='MESSAGES'
+                            />
+                        )}
+                        {searchType === 'files' && (
+                            <FormattedMessage
+                                id='search_bar.search_types.files'
+                                defaultMessage='FILES'
+                            />
+                        )}
+                        <i
+                            className='icon icon-close icon-12'
+                            onClick={clearSearchType}
                         />
-                    )}
-                    {searchType === 'files' && (
-                        <FormattedMessage
-                            id='search_bar.search_types.files'
-                            defaultMessage='FILES'
-                        />
-                    )}
-                    <i
-                        className='icon icon-close icon-12'
-                        onClick={clearSearchType}
-                    />
-                </SearchTypeBadge>
-            )}
-            {searchTerms && <span tabIndex={0}>{searchTerms}</span>}
-            {searchTerms && (
-                <CloseIcon
-                    data-testid='input-clear'
-                    role='button'
-                    onClick={onClose}
-                >
-                    <span
-                        className='input-clear-x'
-                        aria-hidden='true'
+                    </SearchTypeBadge>
+                )}
+                {searchTerms && <NewSearchTerms tabIndex={0}>{searchTerms}</NewSearchTerms>}
+                {searchTerms && (
+                    <CloseIcon
+                        data-testid='input-clear'
+                        role='button'
+                        onClick={onClose}
                     >
-                        <i className='icon icon-close-circle'/>
-                    </span>
-                </CloseIcon>
-            )}
-            {!searchTerms && (
-                <FormattedMessage
-                    id='search_bar.search'
-                    defaultMessage='Search'
-                />
-            )}
-            {focused && (
-                <PopoverStyled
-                    id='searchPopover'
-                    placement='bottom'
-                >
-                    <SearchBox
-                        ref={searchBoxRef}
-                        onClose={closeSearchBox}
-                        onSearch={runSearch}
-                        initialSearchTerms={currentChannel ? `in:${currentChannel} ` : searchTerms}
-                        initialSearchType={searchType}
+                        <span
+                            className='input-clear-x'
+                            aria-hidden='true'
+                        >
+                            <i className='icon icon-close-circle'/>
+                        </span>
+                    </CloseIcon>
+                )}
+                {!searchTerms && (
+                    <FormattedMessage
+                        id='search_bar.search'
+                        defaultMessage='Search'
                     />
-                </PopoverStyled>
+                )}
+            </NewSearchContainer>
+
+            {focused && (
+                <FloatingPortal id={RootHtmlPortalId}>
+                    <FloatingFocusManager context={floatingContext}>
+                        <SearchBoxContainer
+                            ref={refs.setFloating}
+                            style={floatingStyles}
+                            {...getFloatingProps()}
+                            aria-label={intl.formatMessage({
+                                id: 'search_bar.search_box',
+                                defaultMessage: 'Search box',
+                            })}
+                        >
+                            <SearchBox
+                                ref={searchBoxRef}
+                                onClose={closeSearchBox}
+                                onSearch={runSearch}
+                                initialSearchTerms={currentChannel ? `in:${currentChannel} ` : searchTerms}
+                                initialSearchType={searchType}
+                                initialSearchTeam={searchTeam}
+                                crossTeamSearchEnabled={crossTeamSearchEnabled}
+                                myTeams={myTeams}
+                            />
+                        </SearchBoxContainer>
+                    </FloatingFocusManager>
+                </FloatingPortal>
             )}
-        </NewSearchContainer>
+        </>
     );
 };
+
+// The team selector dropdown is in fact a small modal rendered outside the search box
+// this allows to keep the searchbox open when the user interacts with the team selector
+function isTargetTeamSelectorMenu(event: MouseEvent) {
+    if (!document.getElementsByClassName('MuiModal-root')[0]) {
+        return false;
+    }
+
+    return document.getElementsByClassName('MuiModal-root')[0].contains(event.target as Node);
+}
 
 export default NewSearch;

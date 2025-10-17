@@ -12,6 +12,7 @@
 import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
+
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 import {isMac} from '../../../utils';
 import {ChainableT} from '../../../types';
@@ -88,7 +89,7 @@ describe('Collapsed Reply Threads', () => {
             cy.uiClickSidebarItem('threads');
 
             // * There should be a thread there
-            cy.get('article.ThreadItem').should('have.have.lengthOf', 1);
+            cy.get('div.ThreadItem').should('have.have.lengthOf', 1);
         });
     });
 
@@ -129,7 +130,7 @@ describe('Collapsed Reply Threads', () => {
             cy.uiClickSidebarItem('threads');
 
             // * There should be 2 threads now
-            cy.get('article.ThreadItem').should('have.have.lengthOf', 2);
+            cy.get('div.ThreadItem').should('have.have.lengthOf', 2);
         });
     });
 

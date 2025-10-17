@@ -34,7 +34,7 @@ const ProfilePopoverFullName = ({
             data-testid={`popover-fullname-${username}`}
             className='user-profile-popover__heading'
         >
-            <h5 title={fullname}>{fullname}</h5>
+            <p title={fullname}>{fullname}</p>
             {sharedIcon}
         </div>
     );

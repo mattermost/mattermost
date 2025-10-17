@@ -4,11 +4,14 @@
 package filestore
 
 import (
+	"archive/zip"
 	"bytes"
 	"context"
 	"crypto/tls"
+	"fmt"
 	"io"
 	"io/fs"
+	"mime"
 	"net/http"
 	"net/url"
 	"os"
@@ -61,27 +64,17 @@ const (
 )
 
 var (
-	imageExtensions = map[string]bool{".jpg": true, ".jpeg": true, ".gif": true, ".bmp": true, ".png": true, ".tiff": true, "tif": true}
-	imageMimeTypes  = map[string]string{".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".bmp": "image/bmp", ".png": "image/png", ".tiff": "image/tiff", ".tif": "image/tif"}
-)
-
-var (
 	// Ensure that the ReaderAt interface is implemented.
 	_ io.ReaderAt                  = (*s3WithCancel)(nil)
 	_ FileBackendWithLinkGenerator = (*S3FileBackend)(nil)
 )
 
-func isFileExtImage(ext string) bool {
-	ext = strings.ToLower(ext)
-	return imageExtensions[ext]
-}
-
-func getImageMimeType(ext string) string {
-	ext = strings.ToLower(ext)
-	if imageMimeTypes[ext] == "" {
-		return "image"
+func getContentType(ext string) string {
+	mimeType := mime.TypeByExtension(strings.ToLower(ext))
+	if mimeType == "" {
+		mimeType = "application/octet-stream"
 	}
-	return imageMimeTypes[ext]
+	return mimeType
 }
 
 func (s *S3FileBackendAuthError) Error() string {
@@ -195,6 +188,13 @@ func (b *S3FileBackend) s3New(isCloud bool) (*s3.Client, error) {
 		s3Clnt.TraceOn(&s3Trace{})
 	}
 
+	if tr, ok := opts.Transport.(*http.Transport); ok {
+		if tr.TLSClientConfig == nil {
+			tr.TLSClientConfig = &tls.Config{}
+		}
+		tr.TLSClientConfig.MinVersion = tls.VersionTLS12
+	}
+
 	return s3Clnt, nil
 }
 
@@ -215,7 +215,7 @@ func (b *S3FileBackend) TestConnection() error {
 		if obj.Err != nil {
 			typedErr := s3.ToErrorResponse(obj.Err)
 			if typedErr.Code != bucketNotFound && typedErr.Code != invalidBucket {
-				return &S3FileBackendAuthError{DetailedError: "unable to list objects in the S3 bucket"}
+				return &S3FileBackendAuthError{DetailedError: fmt.Sprintf("unable to list objects in the S3 bucket: %v", typedErr)}
 			}
 			exists = false
 		}
@@ -224,7 +224,7 @@ func (b *S3FileBackend) TestConnection() error {
 		if err != nil {
 			typedErr := s3.ToErrorResponse(err)
 			if typedErr.Code != bucketNotFound && typedErr.Code != invalidBucket {
-				return &S3FileBackendAuthError{DetailedError: "unable to check if the S3 bucket exists"}
+				return &S3FileBackendAuthError{DetailedError: fmt.Sprintf("unable to check if the S3 bucket exists: %v", typedErr)}
 			}
 		}
 	}
@@ -500,11 +500,8 @@ func (b *S3FileBackend) WriteFile(fr io.Reader, path string) (int64, error) {
 func (b *S3FileBackend) WriteFileContext(ctx context.Context, fr io.Reader, path string) (int64, error) {
 	var contentType string
 	path = filepath.Join(b.pathPrefix, path)
-	if ext := filepath.Ext(path); isFileExtImage(ext) {
-		contentType = getImageMimeType(ext)
-	} else {
-		contentType = "binary/octet-stream"
-	}
+	ext := filepath.Ext(path)
+	contentType = getContentType(ext)
 
 	options := s3PutOptions(b.encrypt, contentType, b.uploadPartSize, b.storageClass)
 
@@ -543,12 +540,7 @@ func (b *S3FileBackend) AppendFile(fr io.Reader, path string) (int64, error) {
 		return 0, errors.Wrapf(err2, "unable to find the file %s to append the data", path)
 	}
 
-	var contentType string
-	if ext := filepath.Ext(fp); isFileExtImage(ext) {
-		contentType = getImageMimeType(ext)
-	} else {
-		contentType = "binary/octet-stream"
-	}
+	contentType := getContentType(filepath.Ext(fp))
 
 	options := s3PutOptions(b.encrypt, contentType, b.uploadPartSize, b.storageClass)
 	sse := options.ServerSideEncryption
@@ -608,26 +600,6 @@ func (b *S3FileBackend) RemoveFile(path string) error {
 	}
 
 	return nil
-}
-
-func getPathsFromObjectInfos(in <-chan s3.ObjectInfo) <-chan s3.ObjectInfo {
-	out := make(chan s3.ObjectInfo, 1)
-
-	go func() {
-		defer close(out)
-
-		for {
-			info, done := <-in
-
-			if !done {
-				break
-			}
-
-			out <- info
-		}
-	}()
-
-	return out
 }
 
 func (b *S3FileBackend) listDirectory(path string, recursion bool) ([]string, error) {
@@ -690,15 +662,117 @@ func (b *S3FileBackend) RemoveDirectory(path string) error {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
 	defer cancel()
-	list := b.client.ListObjects(ctx, b.bucket, opts)
 
-	ctx2, cancel2 := context.WithTimeout(context.Background(), b.timeout)
-	defer cancel2()
-	objectsCh := b.client.RemoveObjects(ctx2, b.bucket, getPathsFromObjectInfos(list), s3.RemoveObjectsOptions{})
-	for err := range objectsCh {
-		if err.Err != nil {
-			return errors.Wrapf(err.Err, "unable to remove the directory %s", path)
+	// List all objects in the directory
+	for object := range b.client.ListObjects(ctx, b.bucket, opts) {
+		if object.Err != nil {
+			return errors.Wrapf(object.Err, "unable to list the directory %s", path)
 		}
+
+		// Remove each object individually to avoid MD5 usage
+		ctx2, cancel2 := context.WithTimeout(context.Background(), b.timeout)
+		defer cancel2()
+		err := b.client.RemoveObject(ctx2, b.bucket, object.Key, s3.RemoveObjectOptions{})
+		if err != nil {
+			return errors.Wrapf(err, "unable to remove object %s from directory %s", object.Key, path)
+		}
+	}
+
+	return nil
+}
+
+// ZipReader will create a zip of path. If path is a single file, it will zip the single file.
+// If deflate is true, the contents will be compressed. It will stream the zip to io.ReadCloser.
+func (b *S3FileBackend) ZipReader(path string, deflate bool) (io.ReadCloser, error) {
+	deflateMethod := zip.Store
+	if deflate {
+		deflateMethod = zip.Deflate
+	}
+
+	path, err := b.prefixedPath(path)
+	if err != nil {
+		return nil, err
+	}
+
+	pr, pw := io.Pipe()
+
+	go func() {
+		defer pw.Close()
+
+		zipWriter := zip.NewWriter(pw)
+		defer zipWriter.Close()
+
+		ctx, cancel := context.WithTimeout(context.Background(), b.timeout)
+		defer cancel()
+
+		// Is path a single file?
+		object, err := b.client.StatObject(ctx, b.bucket, path, s3.StatObjectOptions{})
+		if err == nil {
+			// We want the zipped file to be at the root of the zip. E.g., given a path of
+			// "path/to/file.sh" we want the zip to have one file: "file.sh", not "path/to/file.sh".
+			stripPath := filepath.Dir(path)
+			if stripPath != "" {
+				stripPath += "/"
+			}
+			if err = b._copyObjectToZipWriter(zipWriter, object, stripPath, deflateMethod); err != nil {
+				pw.CloseWithError(err)
+			}
+			return
+		}
+
+		// Is path a directory?
+		path = path + "/"
+		opts := s3.ListObjectsOptions{
+			Prefix:    path,
+			Recursive: true,
+		}
+		ctx2, cancel2 := context.WithTimeout(context.Background(), b.timeout)
+		defer cancel2()
+
+		for object := range b.client.ListObjects(ctx2, b.bucket, opts) {
+			if object.Err != nil {
+				pw.CloseWithError(errors.Wrapf(object.Err, "unable to list the directory %s", path))
+				return
+			}
+
+			if err = b._copyObjectToZipWriter(zipWriter, object, path, deflateMethod); err != nil {
+				pw.CloseWithError(err)
+				return
+			}
+		}
+	}()
+
+	return pr, nil
+}
+
+func (b *S3FileBackend) _copyObjectToZipWriter(zipWriter *zip.Writer, object s3.ObjectInfo, stripPath string, deflateMethod uint16) error {
+	// We strip the path prefix that gets applied,
+	// so that it remains transparent to the application.
+	object.Key = strings.TrimPrefix(object.Key, b.pathPrefix)
+
+	// We strip the path prefix + path so the zip file is relative to the root of the requested path
+	relPath := strings.TrimPrefix(object.Key, stripPath)
+	header := &zip.FileHeader{
+		Name:     relPath,
+		Method:   deflateMethod,
+		Modified: object.LastModified,
+	}
+	header.SetMode(0644) // rw-r--r-- permissions
+
+	writer, err := zipWriter.CreateHeader(header)
+	if err != nil {
+		return errors.Wrapf(err, "unable to create zip entry for %s", object.Key)
+	}
+
+	reader, err := b.Reader(object.Key)
+	if err != nil {
+		return errors.Wrapf(err, "unable to create reader for %s", object.Key)
+	}
+	defer reader.Close()
+
+	_, err = io.Copy(writer, reader)
+	if err != nil {
+		return errors.Wrapf(err, "unable to copy content for %s", object.Key)
 	}
 
 	return nil

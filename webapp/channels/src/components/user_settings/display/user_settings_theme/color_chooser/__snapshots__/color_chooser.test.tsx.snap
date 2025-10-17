@@ -4,6 +4,7 @@ exports[`components/user_settings/display/ColorChooser should match, init 1`] = 
 <Fragment>
   <label
     className="custom-label"
+    htmlFor="choose-color-inputColorValue"
   >
     Choose color
   </label>

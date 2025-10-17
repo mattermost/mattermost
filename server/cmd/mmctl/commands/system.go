@@ -6,8 +6,8 @@ package commands
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
-	"time"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
@@ -81,7 +81,7 @@ func init() {
 	SystemSetBusyCmd.Flags().UintP("seconds", "s", 3600, "Number of seconds until server is automatically marked as not busy.")
 	_ = SystemSetBusyCmd.MarkFlagRequired("seconds")
 
-	SystemSupportPacketCmd.Flags().StringP("output-file", "o", "", "Output file name (default \"mattermost_support_packet_YYYY-MM-DD-HH-MM.zip\")")
+	SystemSupportPacketCmd.Flags().StringP("output-file", "o", "", "Define the output file name")
 
 	SystemCmd.AddCommand(
 		SystemGetBusyCmd,
@@ -169,6 +169,17 @@ Ios Minimum Version: {{.IosMinVersion}}
 Database Status: {{.database_status}}
 Filestore Status: {{.filestore_status}}`, status)
 
+	// Check health status and return non-zero exit code if any component is unhealthy
+	if status["status"] != model.StatusOk {
+		return fmt.Errorf("server status is unhealthy: %s", status["status"])
+	}
+	if dbStatus, ok := status["database_status"]; ok && dbStatus != model.StatusOk {
+		return fmt.Errorf("database status is unhealthy: %s", dbStatus)
+	}
+	if filestoreStatus, ok := status["filestore_status"]; ok && filestoreStatus != model.StatusOk {
+		return fmt.Errorf("filestore status is unhealthy: %s", filestoreStatus)
+	}
+
 	return nil
 }
 
@@ -180,15 +191,15 @@ func systemSupportPacketCmdF(c client.Client, cmd *cobra.Command, _ []string) er
 		return err
 	}
 
-	if filename == "" {
-		filename = fmt.Sprintf("mattermost_support_packet_%s.zip", time.Now().Format("2006-01-02-03-04"))
-	}
-
 	printer.Print("Downloading Support Packet")
 
-	data, _, err := c.GenerateSupportPacket(context.TODO())
+	data, rFilename, _, err := c.GenerateSupportPacket(context.TODO())
 	if err != nil {
 		return fmt.Errorf("unable to fetch Support Packet: %w", err)
+	}
+
+	if filename == "" {
+		filename = rFilename
 	}
 
 	file, err := os.Create(filename)
@@ -196,7 +207,7 @@ func systemSupportPacketCmdF(c client.Client, cmd *cobra.Command, _ []string) er
 		return fmt.Errorf("failed to create zip file: %w", err)
 	}
 
-	_, err = file.Write(data)
+	_, err = io.Copy(file, data)
 	if err != nil {
 		return fmt.Errorf("failed to write to zip file: %w", err)
 	}

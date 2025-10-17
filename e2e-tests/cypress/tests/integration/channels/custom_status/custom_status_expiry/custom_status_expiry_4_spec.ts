@@ -38,15 +38,15 @@ describe('MM-T4066 Setting manual status clear time more than 7 days away', () =
     const months = dateToBeSelected.get('month') - today.get('month');
     it('MM-T4066_1 should open status dropdown', () => {
         // # Click on the sidebar header to open status dropdown
-        cy.get('.MenuWrapper .status-wrapper').click();
+        cy.uiGetSetStatusButton().click();
 
         // * Check if the status dropdown opens
-        cy.get('#statusDropdownMenu').should('exist');
+        cy.get('#userAccountMenu').should('exist');
     });
 
     it('MM-T4066_2 Custom status modal opens with 5 default statuses listed', () => {
         // # Open custom status modal
-        cy.get('#statusDropdownMenu li#status-menu-custom-status').click();
+        cy.get('.userAccountMenu_setCustomStatusMenuItem').click();
         cy.get('#custom_status_modal').should('exist');
 
         // * Check if all the default suggestions exist
@@ -112,7 +112,7 @@ describe('MM-T4066 Setting manual status clear time more than 7 days away', () =
         cy.get('.date-picker__popper').find(`.rdp-month button[aria-label="${dateToBeSelected.format('Do MMMM (dddd)')}"]`).click();
 
         // * Check that the date input should have the correct value
-        cy.get('input#customStatus__calendar-input').should('have.value', dateToBeSelected.format('YYYY-MM-DD'));
+        cy.get('#custom_status_modal [role="button"][aria-label*="Date"]').should('contain.text', dateToBeSelected.format('MMM DD'));
     });
 
     it('MM-T4066_7 should set custom status when click on Set Status', () => {

@@ -16,6 +16,7 @@ const mockedUser = TestHelper.getUserMock();
 
 describe('components/MoreDirectChannels', () => {
     const baseProps: ComponentProps<typeof MoreDirectChannels> = {
+        focusOriginElement: 'anyId',
         currentUserId: 'current_user_id',
         currentTeamId: 'team_id',
         currentTeamName: 'team_name',
@@ -72,6 +73,7 @@ describe('components/MoreDirectChannels', () => {
                     process.nextTick(() => resolve());
                 });
             }),
+            canUserDirectMessage: jest.fn().mockResolvedValue({data: {can_dm: true}}),
         },
     };
 

@@ -15,6 +15,7 @@ describe('components/new_search/SearchHint', () => {
         onSelectFilter: jest.fn(),
         searchType: 'messages',
         searchTerms: '',
+        searchTeam: 'teamId',
         hasSelectedOption: false,
         isDate: false,
     };
@@ -56,6 +57,13 @@ describe('components/new_search/SearchHint', () => {
         renderWithContext(<SearchHint {...props}/>);
         expect(screen.getByText('From:')).toBeInTheDocument();
         expect(screen.getByText('Ext:')).toBeInTheDocument();
+    });
+
+    test('should not have From: and In: where the searchTeam is set to all teams (\'\')', () => {
+        const props = {...baseProps, searchTeam: '', searchTerms: 'test '};
+        renderWithContext(<SearchHint {...props}/>);
+        expect(screen.queryByText('From:')).not.toBeInTheDocument();
+        expect(screen.queryByText('In:')).not.toBeInTheDocument();
     });
 
     test('should be empty on search if is date', () => {

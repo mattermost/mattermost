@@ -34,17 +34,14 @@ export function verifyPostsCSVFile(targetFolder, type, match) {
 }
 
 export function verifyActianceXMLFile(targetFolder, type, match) {
-    cy.shellFind(targetFolder, /actiance_export.xml/).
-        then((files) => {
-            cy.readFile(files[files.length - 1]).
-                should('exist').
-                and(type, match);
-        });
+    cy.readFile(`${targetFolder}/actiance_export.xml`).
+        should('exist').
+        and(type, match);
 }
 
 export function verifyExportedMessagesCount(expectedNumber) {
     // * Verifying number of exported messages
-    cy.get('@firstRow').find('td:eq(5)').should('have.text', `${expectedNumber} messages exported.`);
+    cy.get('@firstRow').find('td:eq(4)').should('have.text', `${expectedNumber} messages exported.`);
 }
 
 export function editLastPost(message) {
@@ -55,7 +52,8 @@ export function editLastPost(message) {
         cy.get('#edit_textbox').should('be.visible');
 
         // # Update the post message and type ENTER
-        cy.get('#edit_textbox').invoke('val', '').type(message).type('{enter}').wait(TIMEOUTS.HALF_SEC);
+        cy.get('#edit_textbox').invoke('val', '').type(message);
+        cy.get('#create_post').findByText('Save').should('be.visible').click();
 
         // * Edit modal should not be visible
         cy.get('#edit_textbox').should('not.exist');
@@ -164,7 +162,7 @@ export function runDataRetentionAndVerifyPostDeleted(testTeam, testChannel, post
     // # Waiting for Data Retention process to finish
     cy.get('.job-table__table').find('tbody > tr').eq(0).as('firstRow');
     cy.get('@firstRow').within(() => {
-        cy.get('td:eq(1)', {timeout: TIMEOUTS.FOUR_MIN}).should('have.text', 'Success');
+        cy.get('td:eq(0)', {timeout: TIMEOUTS.FOUR_MIN}).should('have.text', 'Success');
     });
 
     // * Verifying if post has been deleted

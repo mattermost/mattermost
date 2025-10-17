@@ -63,7 +63,7 @@ function UserAvatar({
     return (
         <ProfilePopover<HTMLButtonElement>
             triggerComponentAs='button'
-            triggerComponentClass='style--none rounded-button'
+            triggerComponentClass='style--none btn-round'
             userId={userId}
             src={profilePictureURL}
         >
@@ -72,6 +72,7 @@ function UserAvatar({
             >
                 <Avatar
                     url={imageURLForUser(userId, user?.last_picture_update)}
+                    username={user?.username}
                     tabIndex={-1}
                     {...props}
                 />

@@ -10,7 +10,9 @@ import styled from 'styled-components';
 
 import {DotsHorizontalIcon} from '@mattermost/compass-icons/components';
 
-import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
+import WithTooltip from 'components/with_tooltip';
+
+import type {ApplyMarkdownOptions, MarkdownMode} from 'utils/markdown/apply_markdown';
 
 import FormattingIcon, {IconContainer} from './formatting_icon';
 import {useFormattingBarControls} from './hooks';
@@ -176,7 +178,7 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
      * function signature as if we would define it directly in the props of
      * the FormattingIcon component. This should improve render-performance
      */
-    const makeFormattingHandler = useCallback((mode) => () => {
+    const makeFormattingHandler = useCallback((mode: MarkdownMode) => () => {
         // if the formatting is disabled just return without doing anything
         if (disableControls) {
             return;
@@ -242,20 +244,28 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
 
             {hasHiddenControls && (
                 <>
-                    <IconContainer
-                        id={'HiddenControlsButton' + location}
-                        ref={setReference}
-                        className={classNames({active: showHiddenControls})}
-                        aria-label={HiddenControlsButtonAriaLabel}
-                        type='button'
-                        {...getClickReferenceProps()}
-                        {...getDismissReferenceProps()}
+                    <WithTooltip
+                        title={formatMessage({
+                            id: 'shortcuts.msgs.formatting_bar.more_formatting_options',
+                            defaultMessage: 'More formatting options',
+                        })}
+                        disabled={showHiddenControls}
                     >
-                        <DotsHorizontalIcon
-                            color={'currentColor'}
-                            size={18}
-                        />
-                    </IconContainer>
+                        <IconContainer
+                            id={'HiddenControlsButton' + location}
+                            ref={setReference}
+                            className={classNames({active: showHiddenControls})}
+                            aria-label={HiddenControlsButtonAriaLabel}
+                            type='button'
+                            {...getClickReferenceProps()}
+                            {...getDismissReferenceProps()}
+                        >
+                            <DotsHorizontalIcon
+                                color={'currentColor'}
+                                size={18}
+                            />
+                        </IconContainer>
+                    </WithTooltip>
                 </>
             )}
 
@@ -263,6 +273,7 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
                 timeout={250}
                 classNames='scale'
                 in={showHiddenControls}
+                unmountOnExit={true}
             >
                 <HiddenControlsContainer
                     ref={setFloating}

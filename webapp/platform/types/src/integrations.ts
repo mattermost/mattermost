@@ -69,6 +69,10 @@ export type CommandArgs = {
     root_id?: string;
 }
 
+export type DialogArgs = {
+    channel_id: string;
+}
+
 export type CommandResponse = {
     response_type: string;
     text: string;
@@ -134,9 +138,12 @@ export type IntegrationsState = {
     appsBotIDs: string[];
     systemCommands: IDMappedObjects<Command>;
     commands: IDMappedObjects<Command>;
+    dialogArguments?: DialogArgs;
+    dialogTriggerId: string;
     dialog?: {
         url: string;
         dialog: Dialog;
+        trigger_id: string;
     };
 };
 
@@ -149,6 +156,7 @@ type Dialog = {
     submit_label?: string;
     notify_on_cancel?: boolean;
     state?: string;
+    source_url?: string;
 };
 
 export type DialogSubmission = {
@@ -159,9 +167,10 @@ export type DialogSubmission = {
     channel_id: string;
     team_id: string;
     submission: {
-        [x: string]: string;
+        [x: string]: string | string[];
     };
     cancelled: boolean;
+    type?: string;
 };
 
 export type DialogElement = {
@@ -176,13 +185,21 @@ export type DialogElement = {
     min_length: number;
     max_length: number;
     data_source: string;
+    data_source_url?: string;
+    multiselect?: boolean;
     options: Array<{
         text: string;
         value: any;
     }>;
+    refresh?: boolean;
+    min_date?: string;
+    max_date?: string;
+    time_interval?: number;
 };
 
 export type SubmitDialogResponse = {
     error?: string;
     errors?: Record<string, string>;
+    type?: string;
+    form?: Dialog;
 };

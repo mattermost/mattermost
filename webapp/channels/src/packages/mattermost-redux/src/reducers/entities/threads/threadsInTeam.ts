@@ -247,6 +247,7 @@ export const threadsInTeamReducer = (state: ThreadsState['threadsInTeam'] = {}, 
     switch (action.type) {
     case ThreadTypes.RECEIVED_THREAD:
         return handleReceivedThread(state, action, extra);
+    case PostTypes.POST_DELETED:
     case PostTypes.POST_REMOVED:
         return handlePostRemoved(state, action);
     case ThreadTypes.RECEIVED_THREADS:
@@ -292,6 +293,7 @@ export const unreadThreadsInTeamReducer = (state: ThreadsState['unreadThreadsInT
                 threads: action.data.threads.filter((thread: UserThreadWithPost) => thread.unread_replies > 0 || thread.unread_mentions > 0),
             },
         });
+    case PostTypes.POST_DELETED:
     case PostTypes.POST_REMOVED:
         return handlePostRemoved(state, action);
     case ThreadTypes.RECEIVED_UNREAD_THREADS:

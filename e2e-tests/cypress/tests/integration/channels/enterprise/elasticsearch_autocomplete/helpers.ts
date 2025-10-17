@@ -3,6 +3,7 @@
 
 import {Channel} from '@mattermost/types/channels';
 import {ChainableT} from 'tests/types';
+
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
 import {getAdminAccount} from '../../../../support/env';
 import {SimpleUser} from '../../autocomplete/helpers';
@@ -31,7 +32,7 @@ export function searchForChannel(name: string) {
     cy.typeCmdOrCtrl().type('k').wait(TIMEOUTS.ONE_SEC);
 
     // # Clear out and type in the name
-    cy.findByRole('textbox', {name: 'quick switch input'}).
+    cy.findByRole('combobox', {name: 'quick switch input'}).
         should('be.visible').
         as('input').
         clear().

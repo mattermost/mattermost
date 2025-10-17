@@ -17,10 +17,20 @@ import (
 
 type SqlTokenStore struct {
 	*SqlStore
+
+	tokenSelectQuery sq.SelectBuilder
 }
 
 func newSqlTokenStore(sqlStore *SqlStore) store.TokenStore {
-	return &SqlTokenStore{sqlStore}
+	s := SqlTokenStore{
+		SqlStore: sqlStore,
+	}
+
+	s.tokenSelectQuery = s.getQueryBuilder().
+		Select("Token", "CreateAt", "Type", "Extra").
+		From("Tokens")
+
+	return &s
 }
 
 func (s SqlTokenStore) Save(token *model.Token) error {
@@ -51,12 +61,33 @@ func (s SqlTokenStore) Delete(token string) error {
 func (s SqlTokenStore) GetByToken(tokenString string) (*model.Token, error) {
 	var token model.Token
 
-	if err := s.GetReplica().Get(&token, "SELECT * FROM Tokens WHERE Token = ?", tokenString); err != nil {
+	query, args, err := s.tokenSelectQuery.
+		Where(sq.Eq{"Token": tokenString}).
+		ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "could not build sql query to get token store")
+	}
+
+	if err := s.GetReplica().Get(&token, query, args...); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Token", fmt.Sprintf("Token=%s", tokenString))
 		}
-
 		return nil, errors.Wrapf(err, "failed to get Token with value %s", tokenString)
+	}
+
+	return &token, nil
+}
+
+func (s SqlTokenStore) ConsumeOnce(tokenStr string) (*model.Token, error) {
+	var token model.Token
+
+	query := `DELETE FROM Tokens WHERE Token = ? RETURNING *`
+
+	if err := s.GetMaster().Get(&token, query, tokenStr); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("Token", tokenStr)
+		}
+		return nil, errors.Wrapf(err, "failed to consume token")
 	}
 
 	return &token, nil
@@ -70,9 +101,7 @@ func (s SqlTokenStore) Cleanup(expiryTime int64) {
 
 func (s SqlTokenStore) GetAllTokensByType(tokenType string) ([]*model.Token, error) {
 	tokens := []*model.Token{}
-	query, args, err := s.getQueryBuilder().
-		Select("*").
-		From("Tokens").
+	query, args, err := s.tokenSelectQuery.
 		Where(sq.Eq{"Type": tokenType}).
 		ToSql()
 	if err != nil {

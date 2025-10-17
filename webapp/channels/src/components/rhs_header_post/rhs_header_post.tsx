@@ -5,10 +5,12 @@ import React from 'react';
 import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
 
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
+import PopoutButton from 'components/popout_button';
 import FollowButton from 'components/threading/common/follow_button';
 import CRTThreadsPaneTutorialTip
     from 'components/tours/crt_tour/crt_threads_pane_tutorial_tip';
@@ -16,6 +18,7 @@ import WithTooltip from 'components/with_tooltip';
 
 import {getHistory} from 'utils/browser_history';
 import {RHSStates} from 'utils/constants';
+import {popoutThread} from 'utils/popouts/popout_windows';
 
 import type {RhsState} from 'types/store/rhs';
 
@@ -28,7 +31,7 @@ type Props = WrappedComponentProps & {
     channel: Channel;
     isCollapsedThreadsEnabled: boolean;
     isFollowingThread?: boolean;
-    currentTeamId: string;
+    currentTeam?: Team;
     showThreadsTutorialTip: boolean;
     currentUserId: string;
     setRhsExpanded: (b: boolean) => void;
@@ -69,8 +72,18 @@ class RhsHeaderPost extends React.PureComponent<Props> {
     };
 
     handleFollowChange = () => {
-        const {currentTeamId, currentUserId, rootPostId, isFollowingThread} = this.props;
-        this.props.setThreadFollow(currentUserId, currentTeamId, rootPostId, !isFollowingThread);
+        const {currentTeam, currentUserId, rootPostId, isFollowingThread} = this.props;
+        if (!currentTeam) {
+            return;
+        }
+        this.props.setThreadFollow(currentUserId, currentTeam.id, rootPostId, !isFollowingThread);
+    };
+
+    popout = () => {
+        if (!this.props.currentTeam) {
+            return;
+        }
+        popoutThread(this.props.intl, this.props.rootPostId, this.props.currentTeam.name);
     };
 
     render() {
@@ -162,9 +175,15 @@ class RhsHeaderPost extends React.PureComponent<Props> {
             );
         }
 
+        const collapseIconLabel = formatMessage({id: 'rhs_header.collapseSidebarTooltip.icon', defaultMessage: 'Collapse Sidebar Icon'});
+        const expandIconLabel = formatMessage({id: 'rhs_header.expandSidebarTooltip.icon', defaultMessage: 'Expand Sidebar Icon'});
+
         return (
             <div className='sidebar--right__header'>
-                <span className='sidebar--right__title'>
+                <span
+                    className='sidebar--right__title'
+                    id='rhsPanelTitle'
+                >
                     {back}
                     <FormattedMessage
                         id='rhs_header.details'
@@ -187,23 +206,21 @@ class RhsHeaderPost extends React.PureComponent<Props> {
                             onClick={this.handleFollowChange}
                         />
                     ) : null}
-
+                    <PopoutButton onClick={this.popout}/>
                     <WithTooltip
                         title={rhsHeaderTooltipContent}
                     >
                         <button
                             type='button'
                             className='sidebar--right__expand btn btn-icon btn-sm'
-                            aria-label='Expand'
+                            aria-label={this.props.isExpanded ? collapseIconLabel : expandIconLabel}
                             onClick={this.props.toggleRhsExpanded}
                         >
                             <i
                                 className='icon icon-arrow-expand'
-                                aria-label={formatMessage({id: 'rhs_header.expandSidebarTooltip.icon', defaultMessage: 'Expand Sidebar Icon'})}
                             />
                             <i
                                 className='icon icon-arrow-collapse'
-                                aria-label={formatMessage({id: 'rhs_header.collapseSidebarTooltip.icon', defaultMessage: 'Collapse Sidebar Icon'})}
                             />
                         </button>
                     </WithTooltip>

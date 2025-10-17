@@ -144,7 +144,7 @@ describe('Channel members RHS', () => {
             cy.uiCloseRHS();
 
             for (let i = 0; i < 20; i++) {
-                // eslint-disable-next-line no-loop-func
+
                 cy.apiCreateUser().then(({user: newUser}) => {
                     cy.apiAddUserToTeam(testTeam.id, newUser.id).then(() => {
                         cy.apiAddUserToChannel(channel.id, newUser.id);
@@ -205,15 +205,12 @@ describe('Channel members RHS', () => {
             // # Go to test channel
             cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
 
-            cy.uiOpenChannelMenu('Manage Members');
+            cy.uiOpenChannelMenu('Members');
 
             // * RHS Container should be open in edit mode
             cy.get('#rhsContainer').then((rhsContainer) => {
                 cy.wrap(rhsContainer).findByText('Members').should('be.visible');
                 cy.wrap(rhsContainer).findByText(testChannel.display_name).should('be.visible');
-
-                // Done button should be visible
-                cy.wrap(rhsContainer).findByText('Done').should('be.visible');
             });
         });
 
@@ -246,7 +243,7 @@ describe('Channel members RHS', () => {
 
             // the user line is going to be removed and re-added in another category,
             // cypress struggle to realize this so we have to wait a few ms
-            // eslint-disable-next-line cypress/no-unnecessary-waiting
+
             cy.wait(500);
 
             // * Can see the user with his new admin role, and change it back
@@ -267,7 +264,7 @@ describe('Channel members RHS', () => {
             // # Go to test channel
             cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
 
-            cy.uiOpenChannelMenu('View Members');
+            cy.uiOpenChannelMenu('Members');
 
             // * RHS Container should be open in edit mode
             ensureChannelMembersRHSExists(testChannel);
@@ -294,7 +291,7 @@ describe('Channel members RHS', () => {
         cy.apiCreateChannel(testTeam.id, 'big-search-test-channel', 'Big Search Test Channel', 'O').then(({channel}) => {
             // # create 100 random users
             for (let i = 0; i < 100; i++) {
-                // eslint-disable-next-line no-loop-func
+
                 cy.apiCreateUser().then(({user: newUser}) => {
                     cy.apiAddUserToTeam(testTeam.id, newUser.id).then(() => {
                         cy.apiAddUserToChannel(channel.id, newUser.id);

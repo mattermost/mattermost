@@ -66,6 +66,7 @@ exports[`components/FilePreviewModal should fall back to default preview if plug
             fileInfo={
               Object {
                 "archived": false,
+                "channel_id": "channel_id",
                 "clientId": "client_id",
                 "create_at": 1,
                 "delete_at": 1,
@@ -124,7 +125,6 @@ exports[`components/FilePreviewModal should fall back to default preview if plug
           onClick={[Function]}
         >
           <LoadingImagePreview
-            containerClass="view-image__loading"
             loading={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="Loading"
@@ -206,6 +206,7 @@ exports[`components/FilePreviewModal should match snapshot 1`] = `
             fileInfo={
               Object {
                 "archived": false,
+                "channel_id": "channel_id",
                 "clientId": "client_id",
                 "create_at": 1,
                 "delete_at": 1,
@@ -264,7 +265,6 @@ exports[`components/FilePreviewModal should match snapshot 1`] = `
           onClick={[Function]}
         >
           <LoadingImagePreview
-            containerClass="view-image__loading"
             loading={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="Loading"
@@ -346,6 +346,7 @@ exports[`components/FilePreviewModal should match snapshot for external file 1`]
             fileInfo={
               Object {
                 "archived": false,
+                "channel_id": "channel_id",
                 "clientId": "client_id",
                 "create_at": 1,
                 "delete_at": 1,
@@ -404,7 +405,6 @@ exports[`components/FilePreviewModal should match snapshot for external file 1`]
           onClick={[Function]}
         >
           <LoadingImagePreview
-            containerClass="view-image__loading"
             loading={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="Loading"
@@ -486,6 +486,7 @@ exports[`components/FilePreviewModal should match snapshot when plugin overrides
             fileInfo={
               Object {
                 "archived": false,
+                "channel_id": "channel_id",
                 "clientId": "client_id",
                 "create_at": 1,
                 "delete_at": 1,
@@ -547,6 +548,7 @@ exports[`components/FilePreviewModal should match snapshot when plugin overrides
             fileInfo={
               Object {
                 "archived": false,
+                "channel_id": "channel_id",
                 "clientId": "client_id",
                 "create_at": 1,
                 "delete_at": 1,
@@ -664,6 +666,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded 1`] = `
             fileInfo={
               Object {
                 "archived": false,
+                "channel_id": "channel_id",
                 "clientId": "client_id",
                 "create_at": 1,
                 "delete_at": 1,
@@ -726,6 +729,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded 1`] = `
             fileInfo={
               Object {
                 "archived": false,
+                "channel_id": "channel_id",
                 "clientId": "client_id",
                 "create_at": 1,
                 "delete_at": 1,
@@ -815,6 +819,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded and showing f
             fileInfo={
               Object {
                 "archived": false,
+                "channel_id": "channel_id",
                 "clientId": "client_id",
                 "create_at": 1,
                 "delete_at": 1,
@@ -877,6 +882,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded and showing f
             fileInfo={
               Object {
                 "archived": false,
+                "channel_id": "channel_id",
                 "clientId": "client_id",
                 "create_at": 1,
                 "delete_at": 1,
@@ -966,6 +972,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded with .js file
             fileInfo={
               Object {
                 "archived": false,
+                "channel_id": "channel_id",
                 "clientId": "client_id",
                 "create_at": 1,
                 "delete_at": 1,
@@ -1023,11 +1030,12 @@ exports[`components/FilePreviewModal should match snapshot, loaded with .js file
           className="file-preview-modal__content"
           onClick={[Function]}
         >
-          <CodePreview
+          <Memo(CodePreview)
             className="file-preview-modal__code-preview"
             fileInfo={
               Object {
                 "archived": false,
+                "channel_id": "channel_id",
                 "clientId": "client_id",
                 "create_at": 1,
                 "delete_at": 1,
@@ -1119,6 +1127,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded with .m4a fil
             fileInfo={
               Object {
                 "archived": false,
+                "channel_id": "channel_id",
                 "clientId": "client_id",
                 "create_at": 1,
                 "delete_at": 1,
@@ -1180,6 +1189,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded with .m4a fil
             fileInfo={
               Object {
                 "archived": false,
+                "channel_id": "channel_id",
                 "clientId": "client_id",
                 "create_at": 1,
                 "delete_at": 1,
@@ -1270,6 +1280,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded with .mov fil
             fileInfo={
               Object {
                 "archived": false,
+                "channel_id": "channel_id",
                 "clientId": "client_id",
                 "create_at": 1,
                 "delete_at": 1,
@@ -1331,6 +1342,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded with .mov fil
             fileInfo={
               Object {
                 "archived": false,
+                "channel_id": "channel_id",
                 "clientId": "client_id",
                 "create_at": 1,
                 "delete_at": 1,
@@ -1421,6 +1433,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded with footer 1
             fileInfo={
               Object {
                 "archived": false,
+                "channel_id": "channel_id",
                 "clientId": "client_id",
                 "create_at": 1,
                 "delete_at": 1,
@@ -1483,6 +1496,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded with footer 1
             fileInfo={
               Object {
                 "archived": false,
+                "channel_id": "channel_id",
                 "clientId": "client_id",
                 "create_at": 1,
                 "delete_at": 1,
@@ -1572,6 +1586,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded with image 1`
             fileInfo={
               Object {
                 "archived": false,
+                "channel_id": "channel_id",
                 "clientId": "client_id",
                 "create_at": 1,
                 "delete_at": 1,
@@ -1634,6 +1649,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded with image 1`
             fileInfo={
               Object {
                 "archived": false,
+                "channel_id": "channel_id",
                 "clientId": "client_id",
                 "create_at": 1,
                 "delete_at": 1,
@@ -1723,6 +1739,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded with other fi
             fileInfo={
               Object {
                 "archived": false,
+                "channel_id": "channel_id",
                 "clientId": "client_id",
                 "create_at": 1,
                 "delete_at": 1,
@@ -1784,6 +1801,7 @@ exports[`components/FilePreviewModal should match snapshot, loaded with other fi
             fileInfo={
               Object {
                 "archived": false,
+                "channel_id": "channel_id",
                 "clientId": "client_id",
                 "create_at": 1,
                 "delete_at": 1,

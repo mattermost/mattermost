@@ -16,18 +16,22 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func (a *App) getSharedChannelsService() (SharedChannelServiceIFace, error) {
+func (a *App) getSharedChannelsService(ensureIsActive bool) (SharedChannelServiceIFace, error) {
 	scService := a.Srv().GetSharedChannelSyncService()
-	if scService == nil || !scService.Active() {
+	if scService == nil {
 		return nil, model.NewAppError("getSharedChannelsService", "api.command_share.service_disabled",
 			nil, "", http.StatusBadRequest)
+	}
+	if ensureIsActive && !scService.Active() {
+		return nil, model.NewAppError("getSharedChannelsService", "api.command_share.service_inactive",
+			nil, "", http.StatusInternalServerError)
 	}
 	return scService, nil
 }
 
-func (a *App) checkChannelNotShared(c request.CTX, channelId string) error {
+func (a *App) checkChannelNotShared(rctx request.CTX, channelId string) error {
 	// check that channel exists.
-	if _, appErr := a.GetChannel(c, channelId); appErr != nil {
+	if _, appErr := a.GetChannel(rctx, channelId); appErr != nil {
 		return fmt.Errorf("cannot find channel: %w", appErr)
 	}
 
@@ -51,7 +55,7 @@ func (a *App) checkChannelIsShared(channelId string) error {
 }
 
 func (a *App) CheckCanInviteToSharedChannel(channelId string) error {
-	scService, err := a.getSharedChannelsService()
+	scService, err := a.getSharedChannelsService(false)
 	if err != nil {
 		return err
 	}
@@ -60,8 +64,8 @@ func (a *App) CheckCanInviteToSharedChannel(channelId string) error {
 
 // SharedChannels
 
-func (a *App) ShareChannel(c request.CTX, sc *model.SharedChannel) (*model.SharedChannel, error) {
-	scService, err := a.getSharedChannelsService()
+func (a *App) ShareChannel(rctx request.CTX, sc *model.SharedChannel) (*model.SharedChannel, error) {
+	scService, err := a.getSharedChannelsService(false)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +93,7 @@ func (a *App) GetSharedChannelsCount(opts model.SharedChannelFilterOpts) (int64,
 }
 
 func (a *App) UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
-	scService, err := a.getSharedChannelsService()
+	scService, err := a.getSharedChannelsService(false)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +101,7 @@ func (a *App) UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel
 }
 
 func (a *App) UnshareChannel(channelID string) (bool, error) {
-	scService, err := a.getSharedChannelsService()
+	scService, err := a.getSharedChannelsService(false)
 	if err != nil {
 		return false, err
 	}
@@ -107,7 +111,7 @@ func (a *App) UnshareChannel(channelID string) (bool, error) {
 // SharedChannelRemotes
 
 func (a *App) InviteRemoteToChannel(channelID, remoteID, userID string, shareIfNotShared bool) error {
-	ssService, err := a.getSharedChannelsService()
+	ssService, err := a.getSharedChannelsService(false)
 	if err != nil {
 		return err
 	}
@@ -115,7 +119,7 @@ func (a *App) InviteRemoteToChannel(channelID, remoteID, userID string, shareIfN
 }
 
 func (a *App) UninviteRemoteFromChannel(channelID, remoteID string) error {
-	ssService, err := a.getSharedChannelsService()
+	ssService, err := a.getSharedChannelsService(false)
 	if err != nil {
 		return err
 	}

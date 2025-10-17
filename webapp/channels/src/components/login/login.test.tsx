@@ -16,6 +16,7 @@ import Constants, {WindowSizes} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
+jest.unmock('react-intl');
 jest.unmock('react-router-dom');
 
 describe('components/login/Login', () => {
@@ -144,7 +145,7 @@ describe('components/login/Login', () => {
 
         expect(await screen.findByText('Your session has expired. Please log in again.')).toBeVisible();
 
-        screen.getByLabelText('Close').click();
+        await userEvent.click(screen.getByLabelText('Close'));
 
         expect(screen.queryByText('Your session has expired. Please log in again.')).not.toBeInTheDocument();
     });
@@ -214,7 +215,7 @@ describe('components/login/Login', () => {
 
         expect(await screen.findByText('Sign-in method changed successfully')).toBeVisible();
 
-        screen.getByLabelText('Close').click();
+        await userEvent.click(screen.getByLabelText('Close'));
 
         expect(screen.queryByText('Sign-in method changed successfully')).not.toBeInTheDocument();
     });
@@ -240,12 +241,12 @@ describe('components/login/Login', () => {
         expect(await screen.findByText('Your session has expired. Please log in again.')).toBeVisible();
 
         const emailInput = screen.getByLabelText('Email');
-        userEvent.type(emailInput, 'user1');
+        await userEvent.type(emailInput, 'user1');
 
         const passwordInput = screen.getByLabelText('Password');
-        userEvent.type(passwordInput, 'passw');
+        await userEvent.type(passwordInput, 'passw');
 
-        screen.getByRole('button', {name: 'Log in'}).click();
+        await userEvent.click(screen.getByRole('button', {name: 'Log in'}));
 
         expect(screen.queryByText('Your session has expired. Please log in again.')).not.toBeInTheDocument();
     });
@@ -275,6 +276,35 @@ describe('components/login/Login', () => {
             color: 'rgb(0, 255, 0)',
             borderColor: '#00ff00',
         });
+    });
+
+    it('should focus username field when there is an error', async () => {
+        const state = mergeObjects(baseState, {
+            entities: {
+                general: {
+                    config: {
+                        EnableSignInWithEmail: 'true',
+                    },
+                },
+            },
+        });
+
+        renderWithContext(
+            <Login/>,
+            state,
+            {
+                intlMessages: {
+                    'login.noEmail': 'Please enter your email',
+                },
+            },
+        );
+
+        // Try to submit without entering username
+        await userEvent.click(screen.getByRole('button', {name: 'Log in'}));
+
+        // Verify username field is focused
+        const usernameInput = screen.getByLabelText('Email');
+        expect(usernameInput).toHaveFocus();
     });
 
     it('should handle openid text and color props', () => {

@@ -14,8 +14,6 @@ import type {PreferenceType} from '@mattermost/types/preferences';
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 import {localizeMessage} from 'mattermost-redux/utils/i18n_utils';
 
-import {trackEvent} from 'actions/telemetry_actions';
-
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
@@ -108,6 +106,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
 
     handleA11yKeyDown = (e: KeyboardEvent<HTMLButtonElement>['nativeEvent']) => {
         if (isKeyPressed(e, Constants.KeyCodes.ENTER)) {
+            e.preventDefault();
             this.handleCollapse();
         }
     };
@@ -131,12 +130,6 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
     handleCollapse = () => {
         const {category} = this.props;
 
-        if (category.collapsed) {
-            trackEvent('ui', 'ui_sidebar_expand_category');
-        } else {
-            trackEvent('ui', 'ui_sidebar_collapse_category');
-        }
-
         this.props.actions.setCategoryCollapsed(category.id, !category.collapsed);
     };
 
@@ -150,7 +143,6 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
         event.preventDefault();
 
         this.props.handleOpenMoreDirectChannelsModal(event.nativeEvent);
-        trackEvent('ui', 'ui_sidebar_create_direct_message');
     };
 
     isDropDisabled = () => {
@@ -188,7 +180,6 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                                 draggable='false'
                                 className={'SidebarChannel noFloat newChannelSpacer'}
                                 {...provided.draggableProps}
-                                role='listitem'
                                 tabIndex={-1}
                             />
                         );
@@ -253,7 +244,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
 
         let categoryMenu: JSX.Element;
         let newLabel: JSX.Element;
-        let directMessagesModalButton: JSX.Element;
+        const directMessagesModalButton: JSX.Element | null = null;
         let isCollapsible = true;
         if (isNewCategory) {
             newLabel = (
@@ -288,6 +279,7 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                         }
                     >
                         <button
+                            id='newDirectMessageButton'
                             className='SidebarChannelGroupHeader_addButton'
                             onClick={this.handleOpenDirectMessagesModal}
                             aria-label={addHelpLabel}
@@ -323,7 +315,6 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                         inviteMembersButton = (
                             <InviteMembersButton
                                 className='followingSibling'
-                                isAdmin={this.props.isAdmin}
                             />
                         );
                     }
@@ -379,7 +370,6 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                                                 className={classNames('SidebarChannelGroup_content')}
                                             >
                                                 <ul
-                                                    role='list'
                                                     className='NavGroupContent'
                                                 >
                                                     {this.renderNewDropBox(droppableSnapshot.isDraggingOver)}

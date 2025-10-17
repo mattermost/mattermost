@@ -13,6 +13,7 @@
 import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
+
 import {getRandomId} from '../../../utils';
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 
@@ -22,11 +23,12 @@ describe('Channel Bookmarks', () => {
 
     let testTeam: Team;
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
     let user1: UserProfile;
     let admin: UserProfile;
     let publicChannel: Channel;
     let privateChannel: Channel;
+    let channelToArchive: Channel;
 
     const BOOKMARK_LIMIT = 50;
 
@@ -44,6 +46,11 @@ describe('Channel Bookmarks', () => {
                 cy.apiCreateChannel(testTeam.id, 'private-channel', 'private channel', 'P').then((result) => {
                     privateChannel = result.channel;
                     cy.apiAddUserToChannel(privateChannel.id, user1.id);
+                });
+
+                cy.apiCreateChannel(testTeam.id, 'public-channel-archive', 'public channel archive', 'O').then((result) => {
+                    channelToArchive = result.channel;
+                    cy.apiAddUserToChannel(channelToArchive.id, user1.id);
                 });
 
                 cy.visit(`/${testTeam.name}/channels/${publicChannel.name}`);
@@ -295,6 +302,17 @@ describe('Channel Bookmarks', () => {
 
             // * Verify admin can create in private channel
             verifyCanCreate();
+        });
+
+        it('cannot add bookmark: archived channel', () => {
+            // # private channel
+            cy.visit(`/${testTeam.name}/channels/${channelToArchive.name}`);
+            createLinkBookmark({fromChannelMenu: true});
+
+            cy.apiDeleteChannel(channelToArchive.id);
+
+            // * Verify cannot create in archived channel
+            verifyCannotCreate();
         });
 
         it('cannot add bookmark: private channel, non-admin', () => {

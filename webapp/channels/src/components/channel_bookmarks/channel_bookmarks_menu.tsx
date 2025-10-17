@@ -82,7 +82,6 @@ function BookmarksMenu({
                     id: 'channelBookmarksPlusMenuDropdown',
                 }}
                 menuButtonTooltip={addBookmarkTooltipText ? {
-                    id: 'channelBookmarksPlusMenuButtonTooltip',
                     text: addBookmarkTooltipText,
                 } : undefined}
             >

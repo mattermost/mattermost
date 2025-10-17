@@ -2,7 +2,9 @@
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, channel display mode section 1`] = `
 <div
+  aria-labelledby="displayButton"
   id="displaySettings"
+  role="tabpanel"
 >
   <SettingMobileHeader
     closeModal={[MockFunction]}
@@ -208,10 +210,8 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         active={true}
         areAllSectionsInactive={false}
         max={
-          <SettingItemMax
-            containerStyle=""
+          <Memo(SettingItemMax)
             extraInfo={null}
-            infoPosition="bottom"
             inputs={
               Array [
                 <fieldset>
@@ -270,7 +270,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
               ]
             }
             saving={false}
-            section=""
             submit={[Function]}
             title={
               <Memo(MemoizedFormattedMessage)
@@ -304,6 +303,48 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Quick reactions on messages"
             id="user.settings.display.oneClickReactionsOnPostsTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            adminMode={false}
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
           />
         }
         updateSection={[Function]}
@@ -355,7 +396,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, clickToReply section 1`] = `
 <div
+  aria-labelledby="displayButton"
   id="displaySettings"
+  role="tabpanel"
 >
   <SettingMobileHeader
     closeModal={[MockFunction]}
@@ -543,10 +586,8 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         active={true}
         areAllSectionsInactive={false}
         max={
-          <SettingItemMax
-            containerStyle=""
+          <Memo(SettingItemMax)
             extraInfo={null}
-            infoPosition="bottom"
             inputs={
               Array [
                 <fieldset>
@@ -605,7 +646,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
               ]
             }
             saving={false}
-            section=""
             submit={[Function]}
             title={
               <Memo(MemoizedFormattedMessage)
@@ -669,6 +709,48 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            adminMode={false}
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
@@ -708,7 +790,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, clock section 1`] = `
 <div
+  aria-labelledby="displayButton"
   id="displaySettings"
+  role="tabpanel"
 >
   <SettingMobileHeader
     closeModal={[MockFunction]}
@@ -758,10 +842,8 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         active={true}
         areAllSectionsInactive={false}
         max={
-          <SettingItemMax
-            containerStyle=""
+          <Memo(SettingItemMax)
             extraInfo={null}
-            infoPosition="bottom"
             inputs={
               Array [
                 <fieldset>
@@ -820,7 +902,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
               ]
             }
             saving={false}
-            section=""
             submit={[Function]}
             title={
               <Memo(MemoizedFormattedMessage)
@@ -1022,6 +1103,48 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            adminMode={false}
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
@@ -1061,7 +1184,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, collapse section 1`] = `
 <div
+  aria-labelledby="displayButton"
   id="displaySettings"
+  role="tabpanel"
 >
   <SettingMobileHeader
     closeModal={[MockFunction]}
@@ -1213,10 +1338,8 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         active={true}
         areAllSectionsInactive={false}
         max={
-          <SettingItemMax
-            containerStyle=""
+          <Memo(SettingItemMax)
             extraInfo={null}
-            infoPosition="bottom"
             inputs={
               Array [
                 <fieldset>
@@ -1275,7 +1398,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
               ]
             }
             saving={false}
-            section=""
             submit={[Function]}
             title={
               <Memo(MemoizedFormattedMessage)
@@ -1375,6 +1497,48 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            adminMode={false}
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
@@ -1414,7 +1578,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, languages section 1`] = `
 <div
+  aria-labelledby="displayButton"
   id="displaySettings"
+  role="tabpanel"
 >
   <SettingMobileHeader
     closeModal={[MockFunction]}
@@ -1653,6 +1819,48 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
     </div>
     <div>
       <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            adminMode={false}
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
         active={true}
         areAllSectionsInactive={false}
         describe="English (US)"
@@ -1694,7 +1902,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, link preview section with EnableLinkPreviews is false 1`] = `
 <div
+  aria-labelledby="displayButton"
   id="displaySettings"
+  role="tabpanel"
 >
   <SettingMobileHeader
     closeModal={[MockFunction]}
@@ -1917,6 +2127,48 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            adminMode={false}
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
@@ -1956,7 +2208,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, link preview section with EnableLinkPreviews is true 1`] = `
 <div
+  aria-labelledby="displayButton"
   id="displaySettings"
+  role="tabpanel"
 >
   <SettingMobileHeader
     closeModal={[MockFunction]}
@@ -2090,10 +2344,8 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         active={true}
         areAllSectionsInactive={false}
         max={
-          <SettingItemMax
-            containerStyle=""
+          <Memo(SettingItemMax)
             extraInfo={null}
-            infoPosition="bottom"
             inputs={
               Array [
                 <fieldset>
@@ -2152,7 +2404,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
               ]
             }
             saving={false}
-            section=""
             submit={[Function]}
             title={
               <Memo(MemoizedFormattedMessage)
@@ -2270,6 +2521,48 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            adminMode={false}
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
@@ -2309,7 +2602,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, message display section 1`] = `
 <div
+  aria-labelledby="displayButton"
   id="displaySettings"
+  role="tabpanel"
 >
   <SettingMobileHeader
     closeModal={[MockFunction]}
@@ -2479,10 +2774,8 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
         active={true}
         areAllSectionsInactive={false}
         max={
-          <SettingItemMax
-            containerStyle=""
+          <Memo(SettingItemMax)
             extraInfo={null}
-            infoPosition="bottom"
             inputs={
               Array [
                 <fieldset>
@@ -2559,7 +2852,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
               ]
             }
             saving={false}
-            section=""
             submit={[Function]}
             title={
               <Memo(MemoizedFormattedMessage)
@@ -2641,6 +2933,48 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            adminMode={false}
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
@@ -2680,7 +3014,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, no active section 1`] = `
 <div
+  aria-labelledby="displayButton"
   id="displaySettings"
+  role="tabpanel"
 >
   <SettingMobileHeader
     closeModal={[MockFunction]}
@@ -2909,6 +3245,48 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Quick reactions on messages"
             id="user.settings.display.oneClickReactionsOnPostsTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={true}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            adminMode={false}
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
           />
         }
         updateSection={[Function]}
@@ -2960,7 +3338,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, teammate name display section 1`] = `
 <div
+  aria-labelledby="displayButton"
   id="displaySettings"
+  role="tabpanel"
 >
   <SettingMobileHeader
     closeModal={[MockFunction]}
@@ -3189,6 +3569,48 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Quick reactions on messages"
             id="user.settings.display.oneClickReactionsOnPostsTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            adminMode={false}
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
           />
         }
         updateSection={[Function]}
@@ -3240,7 +3662,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, theme section with EnableThemeSelection is false 1`] = `
 <div
+  aria-labelledby="displayButton"
   id="displaySettings"
+  role="tabpanel"
 >
   <SettingMobileHeader
     closeModal={[MockFunction]}
@@ -3481,6 +3905,48 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            adminMode={false}
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
@@ -3520,7 +3986,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, theme section with EnableThemeSelection is true 1`] = `
 <div
+  aria-labelledby="displayButton"
   id="displaySettings"
+  role="tabpanel"
 >
   <SettingMobileHeader
     closeModal={[MockFunction]}
@@ -3773,6 +4241,48 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            adminMode={false}
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
@@ -3812,7 +4322,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, timezone section 1`] = `
 <div
+  aria-labelledby="displayButton"
   id="displaySettings"
+  role="tabpanel"
 >
   <SettingMobileHeader
     closeModal={[MockFunction]}
@@ -4053,6 +4565,48 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <Memo(SettingItem)
         active={false}
         areAllSectionsInactive={false}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            adminMode={false}
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={false}
         describe="English (US)"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
@@ -4092,7 +4646,9 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 
 exports[`components/user_settings/display/UserSettingsDisplay should not show last active section 1`] = `
 <div
+  aria-labelledby="displayButton"
   id="displaySettings"
+  role="tabpanel"
 >
   <SettingMobileHeader
     closeModal={[MockFunction]}
@@ -4297,6 +4853,48 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Quick reactions on messages"
             id="user.settings.display.oneClickReactionsOnPostsTitle"
+          />
+        }
+        updateSection={[Function]}
+      />
+      <div
+        className="divider-dark"
+      />
+    </div>
+    <div>
+      <Memo(SettingItem)
+        active={false}
+        areAllSectionsInactive={true}
+        describe={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Off"
+            id="user.settings.advance.off"
+          />
+        }
+        max={
+          <Memo(Connect(RenderEmoticonsAsEmoji))
+            adminMode={false}
+            renderEmoticonsAsEmoji=""
+            updateSection={[Function]}
+            user={
+              Object {
+                "id": "user_id",
+                "locale": "en",
+                "timezone": Object {
+                  "automaticTimezone": "America/New_York",
+                  "manualTimezone": "",
+                  "useAutomaticTimezone": "true",
+                },
+                "username": "username",
+              }
+            }
+          />
+        }
+        section="renderEmoticonsAsEmoji"
+        title={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Render emoticons as emojis"
+            id="user.settings.display.renderEmoticonsAsEmojiTitle"
           />
         }
         updateSection={[Function]}

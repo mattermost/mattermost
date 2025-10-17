@@ -13,8 +13,8 @@
 import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
-import {checkboxesTitleToIdMap} from './constants';
 
+import {checkboxesTitleToIdMap} from './constants';
 import {
     disablePermission,
     enablePermission,
@@ -169,14 +169,14 @@ describe('MM-23102 - Channel Moderation - Channel Mentions', () => {
 
         // * Type at all and enter that no confirmation dialogue shows up
         cy.postMessage('@all ');
-        cy.get('#confirmModalLabel').should('not.exist');
+        cy.get('#genericModalLabel').should('not.exist');
 
         // * Type at channel and enter that no confirmation dialogue shows up
         cy.postMessage('@channel ');
-        cy.get('#confirmModalLabel').should('not.exist');
+        cy.get('#genericModalLabel').should('not.exist');
 
         // * Type at here and enter that no confirmation dialogue shows up
         cy.postMessage('@here ');
-        cy.get('#confirmModalLabel').should('not.exist');
+        cy.get('#genericModalLabel').should('not.exist');
     });
 });

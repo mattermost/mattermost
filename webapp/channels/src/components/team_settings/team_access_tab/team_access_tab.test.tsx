@@ -3,11 +3,10 @@
 
 import React from 'react';
 import type {ComponentProps} from 'react';
-import {act} from 'react-dom/test-utils';
 
 import {Permissions} from 'mattermost-redux/constants';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import AccessTab from './team_access_tab';
@@ -33,6 +32,7 @@ describe('components/TeamSettings', () => {
         hasChangeTabError: false,
         setHasChanges: jest.fn(),
         setHasChangeTabError: jest.fn(),
+        setJustSaved: jest.fn(),
         collapseModal: jest.fn(),
     };
 
@@ -100,7 +100,7 @@ describe('components/TeamSettings', () => {
     test('should call patchTeam on handleAllowedDomainsSubmit', async () => {
         const props = {...defaultProps, team: TestHelper.getTeamMock({allowed_domains: 'test.com'})};
         renderWithContext(<AccessTab {...props}/>);
-        const allowedDomainsInput = screen.getAllByRole('textbox')[0];
+        const allowedDomainsInput = screen.getAllByRole('combobox')[0];
         const newDomain = 'best.com';
         await act(async () => {
             await allowedDomainsInput.focus();
@@ -110,14 +110,39 @@ describe('components/TeamSettings', () => {
         const newDomainText = screen.getByText(newDomain);
         expect(newDomainText).toBeInTheDocument();
 
-        const saveButton = screen.getByTestId('mm-save-changes-panel__save-btn');
-        await act(async () => {
-            userEvent.click(saveButton);
-        });
+        const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
+        await userEvent.click(saveButton);
         expect(baseActions.patchTeam).toHaveBeenCalledTimes(1);
         expect(baseActions.patchTeam).toHaveBeenCalledWith({
             allowed_domains: 'test.com, best.com',
             id: defaultProps.team?.id,
         });
+    });
+
+    test('MM-62891 should toggle the right checkboxes when their labels are clicked on', async () => {
+        renderWithContext(<AccessTab {...defaultProps}/>);
+
+        expect(screen.getByRole('checkbox', {name: 'Allow only users with a specific email domain to join this team'})).not.toBeChecked();
+        expect(screen.getByRole('checkbox', {name: 'Allow any user with an account on this server to join this team'})).not.toBeChecked();
+
+        await userEvent.click(screen.getByText('Allow only users with a specific email domain to join this team'));
+
+        expect(screen.getByRole('checkbox', {name: 'Allow only users with a specific email domain to join this team'})).toBeChecked();
+        expect(screen.getByRole('checkbox', {name: 'Allow any user with an account on this server to join this team'})).not.toBeChecked();
+
+        await userEvent.click(screen.getByText('Allow only users with a specific email domain to join this team'));
+
+        expect(screen.getByRole('checkbox', {name: 'Allow only users with a specific email domain to join this team'})).not.toBeChecked();
+        expect(screen.getByRole('checkbox', {name: 'Allow any user with an account on this server to join this team'})).not.toBeChecked();
+
+        await userEvent.click(screen.getByText('Allow any user with an account on this server to join this team'));
+
+        expect(screen.getByRole('checkbox', {name: 'Allow only users with a specific email domain to join this team'})).not.toBeChecked();
+        expect(screen.getByRole('checkbox', {name: 'Allow any user with an account on this server to join this team'})).toBeChecked();
+
+        await userEvent.click(screen.getByText('Allow any user with an account on this server to join this team'));
+
+        expect(screen.getByRole('checkbox', {name: 'Allow only users with a specific email domain to join this team'})).not.toBeChecked();
+        expect(screen.getByRole('checkbox', {name: 'Allow any user with an account on this server to join this team'})).not.toBeChecked();
     });
 });

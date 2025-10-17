@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -24,6 +25,7 @@ type TestHelper struct {
 	Context request.CTX
 	Service *PlatformService
 	Suite   SuiteIFace
+	Store   store.Store
 
 	BasicTeam    *model.Team
 	BasicUser    *model.User
@@ -34,18 +36,19 @@ type TestHelper struct {
 	SystemAdminUser *model.User
 }
 
-var initBasicOnce sync.Once
-var userCache struct {
-	SystemAdminUser *model.User
-	BasicUser       *model.User
-	BasicUser2      *model.User
-}
+var (
+	initBasicOnce sync.Once
+	userCache     struct {
+		SystemAdminUser *model.User
+		BasicUser       *model.User
+		BasicUser2      *model.User
+	}
+)
 
-type mockSuite struct {
-}
+type mockSuite struct{}
 
 func (ms *mockSuite) SetStatusLastActivityAt(userID string, activityAt int64) {}
-func (ms *mockSuite) SetStatusOffline(userID string, manual bool)             {}
+func (ms *mockSuite) SetStatusOffline(userID string, manual bool, force bool) {}
 func (ms *mockSuite) IsUserAway(lastActivityAt int64) bool                    { return false }
 func (ms *mockSuite) SetStatusOnline(userID string, manual bool)              {}
 func (ms *mockSuite) UpdateLastActivityAtIfNeeded(session model.Session)      {}
@@ -54,23 +57,45 @@ func (ms *mockSuite) GetSession(token string) (*model.Session, *model.AppError) 
 	return &model.Session{}, nil
 }
 func (ms *mockSuite) RolesGrantPermission(roleNames []string, permissionId string) bool { return true }
-func (ms *mockSuite) UserCanSeeOtherUser(c request.CTX, userID string, otherUserId string) (bool, *model.AppError) {
+func (ms *mockSuite) UserCanSeeOtherUser(rctx request.CTX, userID string, otherUserId string) (bool, *model.AppError) {
 	return true, nil
 }
-func (ms *mockSuite) HasPermissionToReadChannel(c request.CTX, userID string, channel *model.Channel) bool {
+
+func (ms *mockSuite) HasPermissionToReadChannel(rctx request.CTX, userID string, channel *model.Channel) bool {
 	return true
+}
+
+func (ms *mockSuite) MFARequired(rctx request.CTX) *model.AppError {
+	return nil
+}
+
+func setupDBStore(tb testing.TB) (store.Store, *model.SqlSettings) {
+	var dbStore store.Store
+	var dbSettings *model.SqlSettings
+	if mainHelper.Options.RunParallel {
+		dbStore, _, dbSettings, _ = mainHelper.GetNewStores(tb)
+		tb.Cleanup(func() {
+			dbStore.Close()
+		})
+	} else {
+		dbStore = mainHelper.GetStore()
+		dbStore.DropAllTables()
+		dbStore.MarkSystemRanUnitTests()
+		dbSettings = mainHelper.Settings
+		mainHelper.PreloadMigrations()
+	}
+
+	return dbStore, dbSettings
 }
 
 func Setup(tb testing.TB, options ...Option) *TestHelper {
 	if testing.Short() {
 		tb.SkipNow()
 	}
-	dbStore := mainHelper.GetStore()
-	dbStore.DropAllTables()
-	dbStore.MarkSystemRanUnitTests()
-	mainHelper.PreloadMigrations()
 
-	return setupTestHelper(dbStore, false, true, tb, options...)
+	dbStore, dbSettings := setupDBStore(tb)
+
+	return setupTestHelper(dbStore, dbSettings, false, true, tb, options...)
 }
 
 func (th *TestHelper) InitBasic() *TestHelper {
@@ -91,7 +116,7 @@ func (th *TestHelper) InitBasic() *TestHelper {
 	th.BasicUser2 = userCache.BasicUser2.DeepCopy()
 
 	users := []*model.User{th.SystemAdminUser, th.BasicUser, th.BasicUser2}
-	mainHelper.GetSQLStore().User().InsertUsers(users)
+	th.Store.User().InsertUsers(users)
 
 	th.BasicTeam = th.CreateTeam()
 
@@ -105,7 +130,7 @@ func (th *TestHelper) InitBasic() *TestHelper {
 func SetupWithStoreMock(tb testing.TB, options ...Option) *TestHelper {
 	mockStore := testlib.GetMockStoreForSetupFunctions()
 	options = append(options, StoreOverride(mockStore))
-	th := setupTestHelper(mockStore, false, false, tb, options...)
+	th := setupTestHelper(mockStore, &model.SqlSettings{}, false, false, tb, options...)
 	return th
 }
 
@@ -113,18 +138,16 @@ func SetupWithCluster(tb testing.TB, cluster einterfaces.ClusterInterface) *Test
 	if testing.Short() {
 		tb.SkipNow()
 	}
-	dbStore := mainHelper.GetStore()
-	dbStore.DropAllTables()
-	dbStore.MarkSystemRanUnitTests()
-	mainHelper.PreloadMigrations()
 
-	th := setupTestHelper(dbStore, true, true, tb)
+	dbStore, dbSettings := setupDBStore(tb)
+
+	th := setupTestHelper(dbStore, dbSettings, true, true, tb)
 	th.Service.clusterIFace = cluster
 
 	return th
 }
 
-func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool, tb testing.TB, options ...Option) *TestHelper {
+func setupTestHelper(dbStore store.Store, dbSettings *model.SqlSettings, enterprise bool, includeCacheLayer bool, tb testing.TB, options ...Option) *TestHelper {
 	tempWorkspace, err := os.MkdirTemp("", "apptest")
 	if err != nil {
 		panic(err)
@@ -133,7 +156,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	configStore := config.NewTestMemoryStore()
 
 	memoryConfig := configStore.Get()
-	memoryConfig.SqlSettings = *mainHelper.GetSQLSettings()
+	memoryConfig.SqlSettings = *dbSettings
 	*memoryConfig.PluginSettings.Directory = filepath.Join(tempWorkspace, "plugins")
 	*memoryConfig.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
 	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
@@ -143,7 +166,8 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	*memoryConfig.MetricsSettings.Enable = true
 	*memoryConfig.ServiceSettings.ListenAddress = "localhost:0"
 	*memoryConfig.MetricsSettings.ListenAddress = "localhost:0"
-	configStore.Set(memoryConfig)
+	_, _, err = configStore.Set(memoryConfig)
+	require.NoError(tb, err)
 
 	options = append(options, ConfigStore(configStore))
 
@@ -152,13 +176,14 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 			Store: dbStore,
 		}, options...)
 	if err != nil {
-		panic(err)
+		require.NoError(tb, err)
 	}
 
 	th := &TestHelper{
 		Context: request.TestContext(tb),
 		Service: ps,
 		Suite:   &mockSuite{},
+		Store:   dbStore,
 	}
 
 	if _, ok := dbStore.(*mocks.Store); ok {

@@ -39,23 +39,20 @@ describe('Link tooltips', () => {
         cy.apiInitSetup({loginAfter: true}).then(({team, channel}) => {
             cy.visit(`/${team.name}/channels/${channel.name}`);
         });
-        cy.postMessage('www.test.com');
     });
 
     it('MM-T3422 fade in and out with an animation', () => {
-        cy.get('a[href*="www.test.com"] span').as('link');
-        cy.contains('This is a custom tooltip from the Demo Plugin').parents('.tooltip-container').as('tooltip-container');
+        const url = 'www.test.com';
+        cy.postMessage(url);
+        cy.uiWaitUntilMessagePostedIncludes(url);
 
-        // # Mouse over the link
-        cy.get('@link').trigger('mouseover');
+        // # Hover over the plugin link
+        cy.findByText(url).should('exist').focus();
 
         // * Check tooltip has appeared
-        cy.get('@tooltip-container').should('have.class', 'visible');
+        cy.findByText('This is a custom tooltip from the Demo Plugin').should('be.visible');
 
-        // # Mouse out the link
-        cy.get('@link').trigger('mouseout');
-
-        // * Check tooltip has disappeared
-        cy.get('@tooltip-container').should('not.have.class', 'visible');
+        // # Close the tooltip
+        cy.get('body').type('{esc}');
     });
 });

@@ -14,7 +14,6 @@ import {getChannelByName, getUnreadChannelIds, getChannel} from 'mattermost-redu
 import {getCurrentTeamUrl, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {loadNewDMIfNeeded, loadNewGMIfNeeded, loadProfilesForSidebar} from 'actions/user_actions';
 
 import {getHistory} from 'utils/browser_history';
@@ -34,7 +33,6 @@ export function openDirectChannelToUserId(userId: UserProfile['id']): ActionFunc
             return dispatch(ChannelActions.createDirectChannel(currentUserId, userId));
         }
 
-        trackEvent('api', 'api_channels_join_direct');
         const now = Date.now();
         const prefDirect = {
             category: Preferences.CATEGORY_DIRECT_CHANNEL_SHOW,
@@ -140,6 +138,22 @@ export function autocompleteChannelsForSearch(term: string, success?: (channels:
         const state = getState();
         const teamId = getCurrentTeamId(state);
 
+        if (!teamId) {
+            return {data: false};
+        }
+
+        const {data, error: err} = await dispatch(ChannelActions.autocompleteChannelsForSearch(teamId, term));
+        if (data && success) {
+            success(data);
+        } else if (err && error) {
+            error({id: err.server_error_id, ...err});
+        }
+        return {data: true};
+    };
+}
+
+export function autocompleteChannelsForSearchInTeam(term: string, teamId: string, success?: (channels: Channel[]) => void, error?: (err: ServerError) => void): ActionFuncAsync {
+    return async (dispatch) => {
         if (!teamId) {
             return {data: false};
         }

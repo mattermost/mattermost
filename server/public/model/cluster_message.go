@@ -36,6 +36,7 @@ const (
 	ClusterEventInvalidateCacheForLastPostTime              ClusterEvent = "inv_last_post_time"
 	ClusterEventInvalidateCacheForPostsUsage                ClusterEvent = "inv_posts_usage"
 	ClusterEventInvalidateCacheForTeams                     ClusterEvent = "inv_teams"
+	ClusterEventInvalidateCacheForContentFlagging           ClusterEvent = "inv_content_flagging"
 	ClusterEventClearSessionCacheForAllUsers                ClusterEvent = "inv_all_user_sessions"
 	ClusterEventInstallPlugin                               ClusterEvent = "install_plugin"
 	ClusterEventRemovePlugin                                ClusterEvent = "remove_plugin"
@@ -58,6 +59,8 @@ const (
 	ClusterGossipEventResponseSaveConfig            = "gossip_response_save_config"
 	ClusterGossipEventRequestWebConnCount           = "gossip_request_webconn_count"
 	ClusterGossipEventResponseWebConnCount          = "gossip_response_webconn_count"
+	ClusterGossipEventRequestWSQueues               = "gossip_request_ws_queues"
+	ClusterGossipEventResponseWSQueues              = "gossip_response_ws_queues"
 
 	// SendTypes for ClusterMessage.
 	ClusterSendBestEffort = "best_effort"

@@ -4,7 +4,6 @@
 import classNames from 'classnames';
 import throttle from 'lodash/throttle';
 import React, {useState, useEffect, useRef, useCallback} from 'react';
-import type {FocusEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {useLocation, useHistory, Route} from 'react-router-dom';
@@ -23,15 +22,12 @@ import {isEmail} from 'mattermost-redux/utils/helpers';
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {removeGlobalItem, setGlobalItem} from 'actions/storage';
 import {addUserToTeamFromInvite} from 'actions/team_actions';
-import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {loginById} from 'actions/views/login';
 import {getGlobalItem} from 'selectors/storage';
 
 import AlertBanner from 'components/alert_banner';
 import type {ModeType, AlertBannerProps} from 'components/alert_banner';
 import useCWSAvailabilityCheck, {CSWAvailabilityCheckTypes} from 'components/common/hooks/useCWSAvailabilityCheck';
-import LaptopAlertSVG from 'components/common/svg_images_components/laptop_alert_svg';
-import ManWithLaptopSVG from 'components/common/svg_images_components/man_with_laptop_svg';
 import DesktopAuthToken from 'components/desktop_auth_token';
 import ExternalLink from 'components/external_link';
 import ExternalLoginButton from 'components/external_login_button/external_login_button';
@@ -55,7 +51,7 @@ import PasswordInput from 'components/widgets/inputs/password_input/password_inp
 import {Constants, HostedCustomerLinks, ItemStatus, ValidationErrors} from 'utils/constants';
 import {isValidPassword} from 'utils/password';
 import {isDesktopApp} from 'utils/user_agent';
-import {isValidUsername, getRoleFromTrackFlow, getMediumFromTrackFlow} from 'utils/utils';
+import {isValidUsername} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -79,7 +75,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const inviteId = params.get('id') ?? '';
     const data = params.get('d');
     const parsedData: Record<string, string> = data ? JSON.parse(data) : {};
-    const {email: parsedEmail, name: parsedTeamName, reminder_interval: reminderInterval} = parsedData;
+    const {email: parsedEmail, name: parsedTeamName} = parsedData;
 
     const config = useSelector(getConfig);
     const {
@@ -144,6 +140,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const [alertBanner, setAlertBanner] = useState<AlertBannerProps | null>(null);
     const [isMobileView, setIsMobileView] = useState(false);
     const [subscribeToSecurityNewsletter, setSubscribeToSecurityNewsletter] = useState(false);
+    const [submitClicked, setSubmitClicked] = useState(false);
 
     const cwsAvailability = useCWSAvailabilityCheck();
 
@@ -248,12 +245,8 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     };
 
     const handleHeaderBackButtonOnClick = useCallback(() => {
-        if (!noAccounts) {
-            trackEvent('signup_email', 'click_back');
-        }
-
         history.goBack();
-    }, [noAccounts, history]);
+    }, [history]);
 
     const handleInvalidInvite = ({
         // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -326,7 +319,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
 
     useEffect(() => {
         dispatch(removeGlobalItem('team'));
-        trackEvent('signup', 'signup_user_01_welcome', {...getRoleFromTrackFlow(), ...getMediumFromTrackFlow()});
 
         onWindowResize();
 
@@ -356,10 +348,14 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     }, []);
 
     useEffect(() => {
-        if (SiteName) {
-            document.title = SiteName;
-        }
-    }, [SiteName]);
+        document.title = formatMessage(
+            {
+                id: 'signup.title',
+                defaultMessage: 'Create Account | {siteName}',
+            },
+            {siteName: SiteName || 'Mattermost'},
+        );
+    }, [formatMessage, SiteName]);
 
     useEffect(() => {
         if (onCustomizeHeader) {
@@ -370,18 +366,25 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         }
     }, [onCustomizeHeader, handleHeaderBackButtonOnClick, isMobileView, getAlternateLink, search]);
 
+    useEffect(() => {
+        if (submitClicked) {
+            if (emailError && emailInput.current) {
+                emailInput.current.focus();
+            } else if (nameError && nameInput.current) {
+                nameInput.current.focus();
+            } else if (passwordError && passwordInput.current) {
+                passwordInput.current.focus();
+            }
+            setSubmitClicked(false);
+        }
+    }, [emailError, nameError, passwordError, submitClicked]);
+
     if (loading) {
         return (<LoadingScreen/>);
     }
 
     const handleBrandImageError = () => {
         setBrandImageError(true);
-    };
-
-    const onEnterKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === Constants.KeyCodes.ENTER[0] && canSubmit) {
-            handleSubmit(e);
-        }
     };
 
     const getCardTitle = () => {
@@ -446,12 +449,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     };
 
     const handleSignupSuccess = async (user: UserProfile, data: UserProfile) => {
-        trackEvent('signup', 'signup_user_02_complete', getRoleFromTrackFlow());
-
-        if (reminderInterval) {
-            trackEvent('signup', `signup_from_reminder_${reminderInterval}`, {user: user.id});
-        }
-
         const redirectTo = (new URLSearchParams(search)).get('redirect_to');
 
         const {error} = await dispatch(loginById(data.id, user.password));
@@ -502,25 +499,16 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         }
     };
 
-    function sendSignUpTelemetryEvents(telemetryId: string, props?: any) {
-        trackEvent('signup', telemetryId, props);
-    }
-
-    type TelemetryErrorList = {errors: Array<{field: string; rule: string}>; success: boolean};
-
     const isUserValid = () => {
         let isValid = true;
 
         const providedEmail = emailInput.current?.value.trim();
-        const telemetryEvents: TelemetryErrorList = {errors: [], success: true};
 
         if (!providedEmail) {
             setEmailError(formatMessage({id: 'signup_user_completed.required', defaultMessage: 'This field is required'}));
-            telemetryEvents.errors.push({field: 'email', rule: 'not_provided'});
             isValid = false;
         } else if (!isEmail(providedEmail)) {
             setEmailError(formatMessage({id: 'signup_user_completed.validEmail', defaultMessage: 'Please enter a valid email address'}));
-            telemetryEvents.errors.push({field: 'email', rule: 'invalid_email'});
             isValid = false;
         }
 
@@ -545,30 +533,21 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                         },
                     );
                 }
-                telemetryEvents.errors.push({field: 'username', rule: usernameError.id.toLowerCase()});
                 setNameError(nameError);
                 isValid = false;
             }
         } else {
             setNameError(formatMessage({id: 'signup_user_completed.required', defaultMessage: 'This field is required'}));
-            telemetryEvents.errors.push({field: 'username', rule: 'not_provided'});
             isValid = false;
         }
 
         const providedPassword = passwordInput.current?.value ?? '';
-        const {error, telemetryErrorIds} = isValidPassword(providedPassword, passwordConfig, intl);
+        const {error} = isValidPassword(providedPassword, passwordConfig, intl);
 
         if (error) {
             setPasswordError(error as string);
-            telemetryEvents.errors = [...telemetryEvents.errors, ...telemetryErrorIds];
             isValid = false;
         }
-
-        if (telemetryEvents.errors.length) {
-            telemetryEvents.success = false;
-        }
-
-        sendSignUpTelemetryEvents('validate_user', telemetryEvents);
 
         return isValid;
     };
@@ -579,8 +558,8 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
 
     const handleSubmit = async (e: React.MouseEvent | React.KeyboardEvent) => {
         e.preventDefault();
-        sendSignUpTelemetryEvents('click_create_account', getRoleFromTrackFlow());
         setIsWaiting(true);
+        setSubmitClicked(true);
 
         if (isUserValid()) {
             setNameError('');
@@ -606,6 +585,12 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                     onDismiss: dismissAlert,
                 });
                 setIsWaiting(false);
+
+                // Special case for accessibility to show the error message when the username is already taken
+                if (error.server_error_id === 'app.user.save.username_exists.app_error') {
+                    setNameError(error.message);
+                    setSubmitClicked(true);
+                }
                 return;
             }
 
@@ -682,14 +667,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         );
     };
 
-    const handleOnBlur = (e: FocusEvent<HTMLInputElement | HTMLTextAreaElement>, inputId: string) => {
-        const text = e.target.value;
-        if (!text) {
-            return;
-        }
-        sendSignUpTelemetryEvents(`typed_input_${inputId}`);
-    };
-
     const getContent = () => {
         if (!enableSignUpWithEmail && !enableExternalSignup) {
             return (
@@ -712,7 +689,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                 <ColumnLayout
                     title={titleColumn}
                     message={formatMessage({id: 'signup_user_completed.invalid_invite.message', defaultMessage: 'Please speak with your Administrator to receive an invitation.'})}
-                    SVGElement={<LaptopAlertSVG/>}
                     extraContent={(
                         <div className='signup-body-content-button-container'>
                             <button
@@ -782,23 +758,16 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                         </h1>
                     )}
                     {getMessageSubtitle()}
-                    {!enableCustomBrand && (
-                        <div className='signup-body-message-svg'>
-                            <ManWithLaptopSVG/>
-                        </div>
-                    )}
                 </div>
                 <div className='signup-body-action'>
                     {!isMobileView && getAlternateLink()}
                     <div className={classNames('signup-body-card', {'custom-branding': enableCustomBrand, 'with-error': hasError})}>
                         <div
                             className='signup-body-card-content'
-                            onKeyDown={onEnterKeyDown}
-                            tabIndex={0}
                         >
-                            <p className='signup-body-card-title'>
+                            <h2 className='signup-body-card-title'>
                                 {getCardTitle()}
-                            </p>
+                            </h2>
                             {enableCustomBrand && getMessageSubtitle()}
                             {alertBanner && (
                                 <AlertBanner
@@ -809,8 +778,9 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                 />
                             )}
                             {enableSignUpWithEmail && (
-                                <div className='signup-body-card-form'>
+                                <form className='signup-body-card-form'>
                                     <Input
+                                        data-testid='signup-body-card-form-email-input'
                                         ref={emailInput}
                                         name='email'
                                         className='signup-body-card-form-email-input'
@@ -825,9 +795,9 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                         disabled={isWaiting || Boolean(parsedEmail)}
                                         autoFocus={true}
                                         customMessage={emailCustomLabelForInput}
-                                        onBlur={(e) => handleOnBlur(e, 'email')}
                                     />
                                     <Input
+                                        data-testid='signup-body-card-form-name-input'
                                         ref={nameInput}
                                         name='name'
                                         className='signup-body-card-form-name-input'
@@ -847,9 +817,9 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                                 value: formatMessage({id: 'signup_user_completed.userHelp', defaultMessage: 'You can use lowercase letters, numbers, periods, dashes, and underscores.'}),
                                             }
                                         }
-                                        onBlur={(e) => handleOnBlur(e, 'username')}
                                     />
                                     <PasswordInput
+                                        data-testid='signup-body-card-form-password-input'
                                         ref={passwordInput}
                                         className='signup-body-card-form-password-input'
                                         value={password}
@@ -859,7 +829,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                         createMode={true}
                                         info={passwordInfo as string}
                                         error={passwordError}
-                                        onBlur={(e) => handleOnBlur(e, 'password')}
                                     />
                                     {getNewsletterCheck()}
                                     <SaveButton
@@ -870,7 +839,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                         defaultMessage={formatMessage({id: 'signup_user_completed.create', defaultMessage: 'Create account'})}
                                         savingMessage={formatMessage({id: 'signup_user_completed.saving', defaultMessage: 'Creating account…'})}
                                     />
-                                </div>
+                                </form>
                             )}
                             {enableSignUpWithEmail && enableExternalSignup && (
                                 <div className='signup-body-card-form-divider'>
@@ -897,7 +866,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                         defaultMessage='By proceeding to create your account and use {siteName}, you agree to our <termsOfUseLink>Terms of Use</termsOfUseLink> and <privacyPolicyLink>Privacy Policy</privacyPolicyLink>.  If you do not agree, you cannot use {siteName}.'
                                         values={{
                                             siteName: SiteName,
-                                            termsOfUseLink: (chunks: string) => (
+                                            termsOfUseLink: (chunks) => (
                                                 <ExternalLink
                                                     href={TermsOfServiceLink as string}
                                                     location='signup-terms-of-use'
@@ -905,7 +874,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                                     {chunks}
                                                 </ExternalLink>
                                             ),
-                                            privacyPolicyLink: (chunks: string) => (
+                                            privacyPolicyLink: (chunks) => (
                                                 <ExternalLink
                                                     href={PrivacyPolicyLink as string}
                                                     location='signup-privacy-policy'

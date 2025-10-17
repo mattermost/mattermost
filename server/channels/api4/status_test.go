@@ -15,6 +15,7 @@ import (
 )
 
 func TestGetUserStatus(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -54,6 +55,7 @@ func TestGetUserStatus(t *testing.T) {
 	})
 
 	t.Run("dnd status timed restore after time interval", func(t *testing.T) {
+		t.Skip("https://mattermost.atlassian.net/browse/MM-63533")
 		task := model.CreateRecurringTaskFromNextIntervalTime("Unset DND Statuses From Test", th.App.UpdateDNDStatusOfUsers, 1*time.Second)
 		defer task.Cancel()
 		th.App.SetStatusOnline(th.BasicUser.Id, true)
@@ -71,14 +73,14 @@ func TestGetUserStatus(t *testing.T) {
 	})
 
 	t.Run("back to offline status", func(t *testing.T) {
-		th.App.SetStatusOffline(th.BasicUser.Id, true)
+		th.App.SetStatusOffline(th.BasicUser.Id, true, false)
 		userStatus, _, err := client.GetUserStatus(context.Background(), th.BasicUser.Id, "")
 		require.NoError(t, err)
 		assert.Equal(t, "offline", userStatus.Status)
 	})
 
 	t.Run("get other user status", func(t *testing.T) {
-		//Get user2 status logged as user1
+		// Get user2 status logged as user1
 		userStatus, _, err := client.GetUserStatus(context.Background(), th.BasicUser2.Id, "")
 		require.NoError(t, err)
 		assert.Equal(t, "offline", userStatus.Status)
@@ -101,6 +103,7 @@ func TestGetUserStatus(t *testing.T) {
 }
 
 func TestGetUsersStatusesByIds(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -184,6 +187,7 @@ func TestGetUsersStatusesByIds(t *testing.T) {
 }
 
 func TestUpdateUserStatus(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -248,6 +252,7 @@ func TestUpdateUserStatus(t *testing.T) {
 }
 
 func TestUpdateUserCustomStatus(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -350,6 +355,7 @@ func TestUpdateUserCustomStatus(t *testing.T) {
 }
 
 func TestRemoveUserCustomStatus(t *testing.T) {
+	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client

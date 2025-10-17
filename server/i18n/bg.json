@@ -204,10 +204,6 @@
     "translation": "Бота не съществува."
   },
   {
-    "id": "searchengine.bleve.disabled.error",
-    "translation": "Грешка при прочистване на Bleve индекси: двигателят е забранен"
-  },
-  {
     "id": "plugin_api.send_mail.missing_to",
     "translation": "Липсващ адрес в 'До'."
   },
@@ -900,18 +896,6 @@
     "translation": "Невъзможно е да се активира пакетирането по ел.поща, когато е активирано клъстеризирането."
   },
   {
-    "id": "model.config.is_valid.bleve_search.filename.app_error",
-    "translation": "Настройката Bleve IndexingDir трябва да бъде зададена, когато Bleve EnableIndexing е зададен на true"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_searching.app_error",
-    "translation": "Настройката Bleve EnableIndexing трябва да бъде зададена на true, когато Bleve EnableSearching е зададено на true"
-  },
-  {
-    "id": "model.config.is_valid.bleve_search.enable_autocomplete.app_error",
-    "translation": "Настройката Bleve EnableIndexing трябва да бъде зададена на true, когато Bleve EnableAutocomplete е зададен на true"
-  },
-  {
     "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
     "translation": "Невалидно RemoteImageProxyURL за atmos/camo. Трябва да е настроен на вашия споделен ключ."
   },
@@ -1308,38 +1292,6 @@
     "translation": "Неуспешно избиране на данни за износ на съобщения."
   },
   {
-    "id": "ent.message_export.global_relay_export.get_attachment_error",
-    "translation": "Неуспешно получаване на файлова информация за публикация."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
-    "translation": "Временният файл за износа не може да се отвори."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
-    "translation": "Неуспешно получаване на ел.поща от временния файл."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Не може да се получи информацията за временния файл за износ."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.to_address.app_error",
-    "translation": "Неуспешно задаване на адреса за ел.поща."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
-    "translation": "Информацията за ел.поща не може да се прочете."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "Не мога да напиша съобщението за ел.поща."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "Неуспешно задаване на съобщението за ел.поща."
-  },
-  {
     "id": "model.user.is_valid.auth_data.app_error",
     "translation": "Невалидни данни за удостоверяване."
   },
@@ -1696,38 +1648,6 @@
     "translation": "Невалидна стойност за create_at при качване на лиценз."
   },
   {
-    "id": "ent.message_export.global_relay_export.deliver.from_address.app_error",
-    "translation": "Не може да се зададе ел.поща от адреса."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.close.app_error",
-    "translation": "Не може да се достави ел.поща до Global Relay."
-  },
-  {
-    "id": "ent.message_export.global_relay.generate_email.app_error",
-    "translation": "Неуспешно генериране данни за eml файлове."
-  },
-  {
-    "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
-    "translation": "Неуспешно създаване eml файла."
-  },
-  {
-    "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "Неуспешно затваряне на Zip файла."
-  },
-  {
-    "id": "ent.message_export.global_relay.attach_file.app_error",
-    "translation": "Не може да се добави прикачен файл към Global Relay износа."
-  },
-  {
-    "id": "ent.message_export.csv_export.get_attachment_error",
-    "translation": "Неуспешно получаване на файлова информация за публикация."
-  },
-  {
-    "id": "ent.message_export.actiance_export.get_attachment_error",
-    "translation": "Неуспешно получаване на файлова информация за публикация."
-  },
-  {
     "id": "ent.ldap_id_migrate.app_error",
     "translation": "не може да мигрира."
   },
@@ -1860,10 +1780,6 @@
     "translation": "Лицензът ви не поддържа ID заредени изскачащи известия."
   },
   {
-    "id": "ent.get_users_in_channel_during",
-    "translation": "Неуспешно извличане на потребителите в канал през определен период от време."
-  },
-  {
     "id": "ent.elasticsearch.test_config.reenter_password",
     "translation": "URL адресът или потребителското име на Elasticsearch са променени. Моля, въведете отново паролата Elasticsearch, за да проверите връзката."
   },
@@ -1926,10 +1842,6 @@
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
     "translation": "Неуспешно опресняване на индексите Elasticsearch"
-  },
-  {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Неуспешно изтриване индекса на Elasticsearch"
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
@@ -2044,76 +1956,8 @@
     "translation": "Износа на съответствие не бе успешно за задачата '{{.JobName}}' в '{{.FilePath}}'"
   },
   {
-    "id": "ent.compliance.run_export.template_watcher.appError",
-    "translation": "Шаблоните за износ не могат да се заредят. Моля, опитайте отново."
-  },
-  {
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Функционалността на съответствието е деактивирана от текущия лиценз. Моля, свържете се със системния си администратор относно актуализацията на корпоративния ви лиценз."
-  },
-  {
-    "id": "ent.compliance.global_relay.write_file.appError",
-    "translation": "Неуспешно записване на global relay файла."
-  },
-  {
-    "id": "ent.compliance.global_relay.rewind_temporary_file.appError",
-    "translation": "Временния файл за износ на Global Relay не може да се прочете отново."
-  },
-  {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "Временният файл за износ не може да се отвори."
-  },
-  {
-    "id": "ent.compliance.global_relay.attachments_removed.appError",
-    "translation": "Каченият файл бе премахнат от износа на Global Relay, защото беше твърде голям за изпращане."
-  },
-  {
-    "id": "ent.compliance.csv.zip.creation.appError",
-    "translation": "Не може да се създаде ZIP файл за износ."
-  },
-  {
-    "id": "ent.compliance.csv.write_file.appError",
-    "translation": "Неуспешно записване на csv файла."
-  },
-  {
-    "id": "ent.compliance.csv.warning.appError",
-    "translation": "Невъзможно е да се създаде файлът с предупреждение."
-  },
-  {
-    "id": "ent.compliance.csv.post.export.appError",
-    "translation": "Не може да се експортира публикация."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.zipfile.appError",
-    "translation": "Не може да се създаде zip файла"
-  },
-  {
-    "id": "ent.compliance.csv.metadata.json.marshalling.appError",
-    "translation": "Невъзможно е да се преобразуват метаданните в json."
-  },
-  {
-    "id": "ent.compliance.csv.metadata.export.appError",
-    "translation": "Не може да се добави файл с метаданни към zip файла."
-  },
-  {
-    "id": "ent.compliance.csv.header.export.appError",
-    "translation": "Не може да се добави заглавка към CSV износа."
-  },
-  {
-    "id": "ent.compliance.csv.file.creation.appError",
-    "translation": "Не може да се създаде временен CSV файл за износ."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.export.appError",
-    "translation": "Не може да се добави прикачен файл към CSV износа."
-  },
-  {
-    "id": "ent.compliance.csv.attachment.copy.appError",
-    "translation": "Прикачването не може да се копира в zip файла."
-  },
-  {
-    "id": "ent.compliance.bad_export_type.appError",
-    "translation": "Неизвестен изходен формат {{.ExportType}}"
   },
   {
     "id": "ent.cluster.timeout.error",
@@ -2134,14 +1978,6 @@
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
     "translation": " прикачи файл."
-  },
-  {
-    "id": "ent.actiance.export.write_file.appError",
-    "translation": "Неуспешно записване на износния файл."
-  },
-  {
-    "id": "ent.actiance.export.marshalToXml.appError",
-    "translation": "Невъзможно конвертиране на експорта в XML."
   },
   {
     "id": "ent.account_migration.get_saml_users_failed",
@@ -2166,130 +2002,6 @@
   {
     "id": "brand.save_brand_image.decode.app_error",
     "translation": "Данните от изображението не могат да бъдат декодирани."
-  },
-  {
-    "id": "bleveengine.stop_user_index.error",
-    "translation": "Индексът на потребители не бе затворен."
-  },
-  {
-    "id": "bleveengine.stop_post_index.error",
-    "translation": "Индексът на публикации не бе затворен."
-  },
-  {
-    "id": "bleveengine.stop_channel_index.error",
-    "translation": "Индексът на канала не бе затворен."
-  },
-  {
-    "id": "bleveengine.search_users_in_team.error",
-    "translation": "Потребителското търсене не завърши."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "Потребителското търсене не завърши."
-  },
-  {
-    "id": "bleveengine.search_users_in_channel.nuchan.error",
-    "translation": "Потребителското търсене не завърши."
-  },
-  {
-    "id": "bleveengine.search_posts.error",
-    "translation": "Търсенето на публикация не бе завършено."
-  },
-  {
-    "id": "bleveengine.search_channels.error",
-    "translation": "Търсенето на канала не бе завършено."
-  },
-  {
-    "id": "bleveengine.purge_user_index.error",
-    "translation": "Неуспешно прочистване на потребителски индекси."
-  },
-  {
-    "id": "bleveengine.purge_post_index.error",
-    "translation": "Неуспешно изчистване на индексите за пост."
-  },
-  {
-    "id": "bleveengine.purge_channel_index.error",
-    "translation": "Неуспешно прочистване на индексите на каналите."
-  },
-  {
-    "id": "bleveengine.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "Опит за индексиране на нова партида, когато всички елементи са завършени."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_start_time.error",
-    "translation": "Работника по индексиране на Bleve не успя да анализира началното време."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.parse_end_time.error",
-    "translation": "Работника по индексиране на Bleve не успя да анализира крайния час."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
-    "translation": "Най-стария обект (потребител, канал или публикация) не може да бъде извлечен от базата данни."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.engine_inactive",
-    "translation": "Неуспешно изпълнение на задачата за Bleve index: модула е неактивен."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
-    "translation": "Пакетното индексиране на потребители не бе успешно."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
-    "translation": "Пакетното индексиране на публикации не бе успешно."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
-    "translation": "Неуспешно пакетно индексиране на канал."
-  },
-  {
-    "id": "bleveengine.index_user.error",
-    "translation": "Неуспешно индексиране на потребителя."
-  },
-  {
-    "id": "bleveengine.index_post.error",
-    "translation": "Индексирането на публикацията не бе успешно."
-  },
-  {
-    "id": "bleveengine.index_channel.error",
-    "translation": "Индексирането на канала не бе успешно."
-  },
-  {
-    "id": "bleveengine.delete_user_posts.error",
-    "translation": "Изтриването на потребителските публикации не бе успешно"
-  },
-  {
-    "id": "bleveengine.delete_user.error",
-    "translation": "Изтриването на потребителя не бе успешно."
-  },
-  {
-    "id": "bleveengine.delete_post.error",
-    "translation": "Изтриването на публикацията не бе успешно."
-  },
-  {
-    "id": "bleveengine.delete_channel_posts.error",
-    "translation": "Изтриването на публикациите на канала не бе успешно"
-  },
-  {
-    "id": "bleveengine.delete_channel.error",
-    "translation": "Изтриването на канала не бе успешно."
-  },
-  {
-    "id": "bleveengine.create_user_index.error",
-    "translation": "Грешка при създаването индекса на bleve потребители."
-  },
-  {
-    "id": "bleveengine.create_post_index.error",
-    "translation": "Грешка при създаването индекса на bleve публикации."
-  },
-  {
-    "id": "bleveengine.create_channel_index.error",
-    "translation": "Грешка при създаването на индекса на bleve канали."
-  },
-  {
-    "id": "bleveengine.already_started.error",
-    "translation": "Bleve вече е стартиран."
   },
   {
     "id": "app.webhooks.update_outgoing.app_error",
@@ -2652,10 +2364,6 @@
     "translation": "Не можаха да се получат публикациите за канала."
   },
   {
-    "id": "app.post.get_posts_batch_for_indexing.get.app_error",
-    "translation": "Не можаха да се получат публикациите за пакетно индексиране."
-  },
-  {
     "id": "app.post.get_posts_around.get.app_error",
     "translation": "Не може да се получат публикациите за канала."
   },
@@ -2846,10 +2554,6 @@
   {
     "id": "app.plugin.get_cluster_plugin_statuses.app_error",
     "translation": "Не могат да се получат статусите на приставки от клъстера."
-  },
-  {
-    "id": "app.plugin.flag_managed.app_error",
-    "translation": "Не може да се зададе приставка, като управлявана от файловото хранилище."
   },
   {
     "id": "app.plugin.filesystem.app_error",
@@ -4530,10 +4234,6 @@
     "translation": "Невъзможно получаването на канали по ID."
   },
   {
-    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Не можа да се получи пакета с канали за индексиране."
-  },
-  {
     "id": "app.channel.get_channels.not_found.app_error",
     "translation": "Не бяха открити канали."
   },
@@ -4968,14 +4668,6 @@
   {
     "id": "api.user.login.guest_accounts.disabled.error",
     "translation": "Профилите за гости са забранени"
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Опит за използване на експерименталната функция ClientSideCertEnable без валиден корпоративен лиценз."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Опитахте да влезете с помощта на експерименталната функция ClientSideCert, без да предоставите валиден сертификат."
   },
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
@@ -5539,10 +5231,6 @@
   {
     "id": "api.config.get_config.restricted_merge.app_error",
     "translation": "Неуспешно обединяване на зададената конфигурация."
-  },
-  {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "Новия формат за клиентската конфигурация все още не се поддържа. Моля, посочете format = old в низа на заявката."
   },
   {
     "id": "api.command_shrug.name",
@@ -7096,10 +6784,6 @@
     "translation": "%v напусна канала."
   },
   {
-    "id": "api.channel.leave.last_member.app_error",
-    "translation": "Вие сте единствения останал участник, опитайте да изтриете частния канал, вместо да го напускате."
-  },
-  {
     "id": "api.channel.leave.direct.app_error",
     "translation": "Не може да се напусне канал за директни съобщения."
   },
@@ -7424,42 +7108,6 @@
     "translation": "Неуспешно създаване на Elasticsearch шаблон за файлове"
   },
   {
-    "id": "bleveengine.stop_file_index.error",
-    "translation": "Неуспешно затваряне на файловия индекс."
-  },
-  {
-    "id": "bleveengine.search_files.error",
-    "translation": "Търсенето на файлове не успя да приключи."
-  },
-  {
-    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
-    "translation": "Неуспешно пакетно индексиране на файлове."
-  },
-  {
-    "id": "bleveengine.index_file.error",
-    "translation": "Неуспешно индексиране на файл."
-  },
-  {
-    "id": "bleveengine.delete_user_files.error",
-    "translation": "Неуспешно изтриване файлове на потребители."
-  },
-  {
-    "id": "bleveengine.delete_post_files.error",
-    "translation": "Неуспешно изтриване файлове на публикации."
-  },
-  {
-    "id": "bleveengine.delete_files_batch.error",
-    "translation": "Неуспешно изтриване на файлове."
-  },
-  {
-    "id": "bleveengine.delete_file.error",
-    "translation": "Неуспешно изтриване на файла."
-  },
-  {
-    "id": "bleveengine.create_file_index.error",
-    "translation": "Грешка при създаването на файла с bleve индекса."
-  },
-  {
     "id": "api.job.unable_to_download_job.incorrect_job_type",
     "translation": "Заданието, което се опитвате да изтеглите, в момента не се поддържа"
   },
@@ -7520,10 +7168,6 @@
     "translation": "Параметрите Преди и След за getThreadsForUser се изключват взаимно"
   },
   {
-    "id": "api.unable_to_read_file_from_backend",
-    "translation": "Грешка при четене на файл от сървъра"
-  },
-  {
     "id": "api.unable_to_create_zip_file",
     "translation": "Грешка при създаването на zip файл."
   },
@@ -7538,10 +7182,6 @@
   {
     "id": "model.config.is_valid.export.directory.app_error",
     "translation": "Стойността за Директория не може да е празна."
-  },
-  {
-    "id": "ent.message_export.global_relay_export.deliver.unable_to_connect_smtp_server.app_error",
-    "translation": "Неуспешно свързване с smtp сървър"
   },
   {
     "id": "app.export.zip_create.error",
@@ -7614,14 +7254,6 @@
   {
     "id": "api.command_custom_status.app_error",
     "translation": "Грешка при задаване на състоянието."
-  },
-  {
-    "id": "bleveengine.purge_file_index.error",
-    "translation": "Неуспешно изчистване на файлови индекси."
-  },
-  {
-    "id": "app.post.get_files_batch_for_indexing.get.app_error",
-    "translation": "Не можа да се получи пакета с файлове за индексиране."
   },
   {
     "id": "ent.elasticsearch.post.get_files_batch_for_indexing.error",

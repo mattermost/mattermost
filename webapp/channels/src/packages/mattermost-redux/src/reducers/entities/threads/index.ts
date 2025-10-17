@@ -26,6 +26,7 @@ export const threadsReducer = (state: ThreadsState['threads'] = {}, action: MMRe
             }, {}),
         };
     }
+    case PostTypes.POST_DELETED:
     case PostTypes.POST_REMOVED: {
         const post = action.data;
 
@@ -170,13 +171,8 @@ function reducer(state: ThreadsState = initialState, action: MMReduxAction): Thr
     };
 
     // acting as a 'middleware'
-    if (
-        action.type === ChannelTypes.LEAVE_CHANNEL ||
-        action.type === ChannelTypes.RECEIVED_CHANNEL_DELETED
-    ) {
-        if (!action.data.viewArchivedChannels) {
-            extra.threadsToDelete = getThreadsOfChannel(state.threads, action.data.id);
-        }
+    if (action.type === ChannelTypes.LEAVE_CHANNEL) {
+        extra.threadsToDelete = getThreadsOfChannel(state.threads, action.data.id);
     }
 
     const nextState = {

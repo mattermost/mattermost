@@ -18,6 +18,30 @@
     }
 }
 
+.form-group {
+    max-width: 100%;
+
+    .control-label {
+        overflow: hidden;
+        padding-right: 5px;
+        text-overflow: ellipsis;
+    }
+
+    .setting-list & {
+        .control-label {
+            white-space: nowrap;
+        }
+    }
+
+    &.form-group--small {
+        margin-bottom: 10px;
+    }
+
+    &.pos-rel {
+        position: relative;
+    }
+}
+
 .form-control {
     ::placeholder {
         color: inherit;
@@ -89,14 +113,6 @@
     margin: 10px 0 0;
     color: variables.$dark-gray;
     font-size: 0.95em;
-}
-
-.form-group {
-    max-width: 100%;
-
-    &.form-group--small {
-        margin-bottom: 10px;
-    }
 }
 
 .has-error {

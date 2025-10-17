@@ -170,6 +170,11 @@ export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedC
                     );
                 }
             }
+            if (job.data.progress_message) {
+                message.push(
+                    <div>{job.data.progress_message}</div>,
+                );
+            }
             return message;
         }
         return null;
@@ -325,7 +330,7 @@ export class MessageExportSettings extends OLDAdminSettings<BaseProps & WrappedC
                     <FormattedMessage
                         {...messages.exportFormat_description_details}
                         values={{
-                            a: (chunks: string) => (
+                            a: (chunks) => (
                                 <Link to='/admin_console/environment/file_storage'>
                                     {chunks}
                                 </Link>

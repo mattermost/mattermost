@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/httpservice"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/timezones"
+	"github.com/mattermost/mattermost/server/v8/channels/app/properties"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/services/imageproxy"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
@@ -36,8 +37,8 @@ func New(options ...AppOption) *App {
 	return app
 }
 
-func (a *App) TelemetryId() string {
-	return a.Srv().TelemetryId()
+func (a *App) ServerId() string {
+	return a.Srv().ServerId()
 }
 
 func (s *Server) TemplatesContainer() *templates.Container {
@@ -65,9 +66,6 @@ func (a *App) Srv() *Server {
 func (a *App) Log() *mlog.Logger {
 	return a.ch.srv.Log()
 }
-func (a *App) NotificationsLog() *mlog.Logger {
-	return a.ch.srv.NotificationsLog()
-}
 
 func (a *App) AccountMigration() einterfaces.AccountMigrationInterface {
 	return a.ch.AccountMigration
@@ -86,6 +84,9 @@ func (a *App) SearchEngine() *searchengine.Broker {
 }
 func (a *App) Ldap() einterfaces.LdapInterface {
 	return a.ch.Ldap
+}
+func (a *App) LdapDiagnostic() einterfaces.LdapDiagnosticInterface {
+	return a.ch.srv.platform.LdapDiagnostic()
 }
 func (a *App) MessageExport() einterfaces.MessageExportInterface {
 	return a.ch.MessageExport
@@ -149,6 +150,10 @@ func (a *App) SetChannels(ch *Channels) {
 
 func (a *App) SetServer(srv *Server) {
 	a.ch.srv = srv
+}
+
+func (a *App) PropertyService() *properties.PropertyService {
+	return a.Srv().propertyService
 }
 
 func (a *App) UpdateExpiredDNDStatuses() ([]*model.Status, error) {

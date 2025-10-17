@@ -13,7 +13,7 @@ import {makeGetGlobalItem, makeGetGlobalItemWithDefault} from 'selectors/storage
 
 import type {SidebarSize} from 'components/resizable_sidebar/constants';
 
-import {PostTypes, StoragePrefixes} from 'utils/constants';
+import {PostTypes, RHSStates, StoragePrefixes} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -109,6 +109,17 @@ export const getSelectedPost = createSelector(
     },
 );
 
+export const getCurrentSearchForSearchTeam: (state: GlobalState) => Record<string, any> = createSelector(
+    'getCurrentSearchForSearchTeam',
+    (state: GlobalState) => state.entities.search.current,
+    getSearchTeam,
+    (state: GlobalState) => getRhsState(state) === RHSStates.MENTION,
+    (current, teamId, isMentionSearch) => {
+        const team = isMentionSearch ? 'ALL_TEAMS' : teamId || 'ALL_TEAMS';
+        return current[team];
+    },
+);
+
 export function getRhsState(state: GlobalState): RhsState {
     return state.views.rhs.rhsState;
 }
@@ -124,7 +135,7 @@ export function getSearchTerms(state: GlobalState): string {
     return state.views.rhs.searchTerms;
 }
 
-// getSearchTeam returns the team ID that the search is currently scoped to, or the current team if no team was specified.
+// getSearchTeam returns the team ID that the search is currently scoped to, or current team if no team was specified.
 export function getSearchTeam(state: GlobalState): string {
     return state.views.rhs.searchTeam ?? getCurrentTeamId(state);
 }

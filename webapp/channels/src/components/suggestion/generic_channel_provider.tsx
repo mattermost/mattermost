@@ -15,14 +15,17 @@ import type {SuggestionProps} from './suggestion';
 
 type ChannelSearchFunc = (term: string, success: (channels: Channel[]) => void, error?: (err: ServerError) => void) => (ActionResult | Promise<ActionResult | ActionResult[]>);
 
-const GenericChannelSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<Channel>>((props, ref) => {
+const GenericChannelSuggestion = React.forwardRef<HTMLLIElement, SuggestionProps<Channel>>((props, ref) => {
     const {item} = props;
 
     const channelName = item.display_name;
     const purpose = item.purpose;
 
     const icon = (
-        <span className='suggestion-list__icon suggestion-list__icon--large'>
+        <span
+            className='suggestion-list__icon suggestion-list__icon--large'
+            aria-hidden={true}
+        >
             <i className='icon icon--standard icon--no-spacing icon-globe'/>
         </span>
     );

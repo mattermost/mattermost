@@ -17,6 +17,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // https://github.com/mattermost/mattermost-plugin-starter-template/issues/115
@@ -36,10 +37,11 @@ func TestClient4TrimTrailingSlash(t *testing.T) {
 func TestClient4CreatePost(t *testing.T) {
 	post := &model.Post{
 		Props: map[string]any{
-			"attachments": []*model.SlackAttachment{
+			model.PostPropsAttachments: []*model.SlackAttachment{
 				{
 					Actions: []*model.PostAction{
 						{
+							Type: model.PostActionTypeButton,
 							Integration: &model.PostActionIntegration{
 								Context: map[string]any{
 									"foo": "bar",
@@ -63,6 +65,7 @@ func TestClient4CreatePost(t *testing.T) {
 			{
 				Actions: []*model.PostAction{
 					{
+						Type: model.PostActionTypeButton,
 						Integration: &model.PostActionIntegration{
 							Context: map[string]any{
 								"foo": "bar",
@@ -154,6 +157,206 @@ func TestClient4RequestCancellation(t *testing.T) {
 	})
 }
 
+func TestClient4LookupInteractiveDialog(t *testing.T) {
+	expectedResponse := model.LookupDialogResponse{
+		Items: []model.DialogSelectOption{
+			{Text: "Option 1", Value: "value1"},
+			{Text: "Option 2", Value: "value2"},
+			{Text: "Option 3", Value: "value3"},
+		},
+	}
+
+	t.Run("should successfully perform lookup request", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Verify request method and endpoint
+			assert.Equal(t, "POST", r.Method)
+			assert.Equal(t, "/api/v4/actions/dialogs/lookup", r.URL.Path)
+
+			// Decode and verify request body
+			var submission model.SubmitDialogRequest
+			err := json.NewDecoder(r.Body).Decode(&submission)
+			assert.NoError(t, err)
+			assert.Equal(t, "test_callback", submission.CallbackId)
+			assert.Equal(t, "https://example.com/lookup", submission.URL)
+			assert.Equal(t, "test_state", submission.State)
+
+			// Send response
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			err = json.NewEncoder(w).Encode(expectedResponse)
+			assert.NoError(t, err)
+		}))
+		defer server.Close()
+
+		client := model.NewAPIv4Client(server.URL)
+		submission := &model.SubmitDialogRequest{
+			CallbackId: "test_callback",
+			URL:        "https://example.com/lookup",
+			State:      "test_state",
+			UserId:     "test_user_id",
+			ChannelId:  "test_channel_id",
+			TeamId:     "test_team_id",
+			Submission: map[string]any{
+				"selected_field": "dynamic_field",
+				"query":          "search_term",
+			},
+		}
+
+		response, resp, err := client.LookupInteractiveDialog(context.Background(), *submission)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+		assert.Equal(t, expectedResponse, *response)
+		assert.Len(t, response.Items, 3)
+		assert.Equal(t, "Option 1", response.Items[0].Text)
+		assert.Equal(t, "value1", response.Items[0].Value)
+	})
+
+	t.Run("should handle empty response", func(t *testing.T) {
+		emptyResponse := model.LookupDialogResponse{Items: []model.DialogSelectOption{}}
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			err := json.NewEncoder(w).Encode(emptyResponse)
+			assert.NoError(t, err)
+		}))
+		defer server.Close()
+
+		client := model.NewAPIv4Client(server.URL)
+		submission := &model.SubmitDialogRequest{
+			CallbackId: "test_callback",
+			URL:        "https://example.com/lookup",
+		}
+
+		response, resp, err := client.LookupInteractiveDialog(context.Background(), *submission)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+		assert.Equal(t, emptyResponse, *response)
+		assert.Empty(t, response.Items)
+	})
+
+	t.Run("should handle server error response", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			errorResponse := model.AppError{
+				Id:      "api.dialog.lookup.bad_request",
+				Message: "Invalid request parameters",
+			}
+			err := json.NewEncoder(w).Encode(errorResponse)
+			assert.NoError(t, err)
+		}))
+		defer server.Close()
+
+		client := model.NewAPIv4Client(server.URL)
+		submission := &model.SubmitDialogRequest{
+			CallbackId: "invalid_callback",
+			URL:        "invalid_url",
+		}
+
+		response, resp, err := client.LookupInteractiveDialog(context.Background(), *submission)
+		assert.Error(t, err)
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		assert.Nil(t, response)
+
+		// Verify error is an AppError
+		appError, ok := err.(*model.AppError)
+		assert.True(t, ok)
+		assert.Equal(t, "api.dialog.lookup.bad_request", appError.Id)
+	})
+
+	t.Run("should handle network connectivity issues", func(t *testing.T) {
+		// Use an invalid URL to simulate network failure
+		client := model.NewAPIv4Client("http://invalid-server-url:9999")
+		submission := &model.SubmitDialogRequest{
+			CallbackId: "test_callback",
+			URL:        "https://example.com/lookup",
+		}
+
+		response, resp, err := client.LookupInteractiveDialog(context.Background(), *submission)
+		assert.Error(t, err)
+		assert.Nil(t, resp)
+		assert.Nil(t, response)
+	})
+
+	t.Run("should handle request cancellation", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Simulate slow response
+			time.Sleep(200 * time.Millisecond)
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer server.Close()
+
+		client := model.NewAPIv4Client(server.URL)
+		submission := &model.SubmitDialogRequest{
+			CallbackId: "test_callback",
+			URL:        "https://example.com/lookup",
+		}
+
+		ctx, cancel := context.WithCancel(context.Background())
+
+		// Cancel the request immediately
+		cancel()
+
+		response, resp, err := client.LookupInteractiveDialog(ctx, *submission)
+		assert.Error(t, err)
+		assert.ErrorIs(t, err, context.Canceled)
+		assert.Nil(t, resp)
+		assert.Nil(t, response)
+	})
+
+	t.Run("should handle invalid JSON response", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			// Send invalid JSON
+			_, err := w.Write([]byte(`{"items": [invalid json}`))
+			assert.NoError(t, err)
+		}))
+		defer server.Close()
+
+		client := model.NewAPIv4Client(server.URL)
+		submission := &model.SubmitDialogRequest{
+			CallbackId: "test_callback",
+			URL:        "https://example.com/lookup",
+		}
+
+		response, resp, err := client.LookupInteractiveDialog(context.Background(), *submission)
+		assert.Error(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+		assert.Nil(t, response)
+	})
+
+	t.Run("should properly set authorization header when token is provided", func(t *testing.T) {
+		expectedToken := model.NewId()
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			authHeader := r.Header.Get(model.HeaderAuth)
+			expectedAuthHeader := model.HeaderBearer + " " + expectedToken
+			assert.Equal(t, expectedAuthHeader, authHeader)
+
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			err := json.NewEncoder(w).Encode(expectedResponse)
+			assert.NoError(t, err)
+		}))
+		defer server.Close()
+
+		client := model.NewAPIv4Client(server.URL)
+		client.SetToken(expectedToken)
+
+		submission := &model.SubmitDialogRequest{
+			CallbackId: "test_callback",
+			URL:        "https://example.com/lookup",
+		}
+
+		response, resp, err := client.LookupInteractiveDialog(context.Background(), *submission)
+		assert.NoError(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+		assert.Equal(t, expectedResponse, *response)
+	})
+}
+
 func ExampleClient4_GetUsers() {
 	client := model.NewAPIv4Client("http://localhost:8065")
 	client.SetToken(os.Getenv("MM_TOKEN"))
@@ -177,4 +380,44 @@ func ExampleClient4_GetUsers() {
 
 		page++
 	}
+}
+
+func TestBuildResponse(t *testing.T) {
+	t.Run("handles nil http.Response", func(t *testing.T) {
+		response := model.BuildResponse(nil)
+		assert.Nil(t, response)
+	})
+	t.Run("builds response from http.Response", func(t *testing.T) {
+		httpResp := &http.Response{
+			StatusCode: http.StatusOK,
+			Header:     make(http.Header),
+		}
+		httpResp.Header.Set(model.HeaderRequestId, "test-request-id")
+		httpResp.Header.Set(model.HeaderEtagServer, "test-etag")
+		httpResp.Header.Set(model.HeaderVersionId, "test-version")
+
+		response := model.BuildResponse(httpResp)
+		require.NotNil(t, response)
+
+		assert.Equal(t, http.StatusOK, response.StatusCode)
+		assert.Equal(t, "test-request-id", response.RequestId)
+		assert.Equal(t, "test-etag", response.Etag)
+		assert.Equal(t, "test-version", response.ServerVersion)
+		assert.Equal(t, httpResp.Header, response.Header)
+	})
+	t.Run("handles response with empty headers", func(t *testing.T) {
+		httpResp := &http.Response{
+			StatusCode: http.StatusNoContent,
+			Header:     http.Header{},
+		}
+
+		response := model.BuildResponse(httpResp)
+		require.NotNil(t, response)
+
+		assert.Equal(t, http.StatusNoContent, response.StatusCode)
+		assert.Empty(t, response.RequestId)
+		assert.Empty(t, response.Etag)
+		assert.Empty(t, response.ServerVersion)
+		assert.Equal(t, httpResp.Header, response.Header)
+	})
 }

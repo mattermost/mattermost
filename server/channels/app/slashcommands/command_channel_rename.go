@@ -38,8 +38,8 @@ func (*RenameProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Comma
 	}
 }
 
-func (*RenameProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
-	channel, err := a.GetChannel(c, args.ChannelId)
+func (*RenameProvider) DoCommand(a *app.App, rctx request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
+	channel, err := a.GetChannel(rctx, args.ChannelId)
 	if err != nil {
 		return &model.CommandResponse{
 			Text:         args.T("api.command_channel_rename.channel.app_error"),
@@ -49,14 +49,14 @@ func (*RenameProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandA
 
 	switch channel.Type {
 	case model.ChannelTypeOpen:
-		if !a.HasPermissionToChannel(c, args.UserId, args.ChannelId, model.PermissionManagePublicChannelProperties) {
+		if !a.HasPermissionToChannel(rctx, args.UserId, args.ChannelId, model.PermissionManagePublicChannelProperties) {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_channel_rename.permission.app_error"),
 				ResponseType: model.CommandResponseTypeEphemeral,
 			}
 		}
 	case model.ChannelTypePrivate:
-		if !a.HasPermissionToChannel(c, args.UserId, args.ChannelId, model.PermissionManagePrivateChannelProperties) {
+		if !a.HasPermissionToChannel(rctx, args.UserId, args.ChannelId, model.PermissionManagePrivateChannelProperties) {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_channel_rename.permission.app_error"),
 				ResponseType: model.CommandResponseTypeEphemeral,
@@ -92,7 +92,7 @@ func (*RenameProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandA
 	}
 	*patch.DisplayName = message
 
-	_, err = a.PatchChannel(c, channel, patch, args.UserId)
+	_, err = a.PatchChannel(rctx, channel, patch, args.UserId)
 	if err != nil {
 		return &model.CommandResponse{
 			Text:         args.T("api.command_channel_rename.update_channel.app_error"),

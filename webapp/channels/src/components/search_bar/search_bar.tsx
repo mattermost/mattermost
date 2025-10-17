@@ -43,14 +43,14 @@ type Props = {
     children?: React.ReactNode;
 }
 
-const defaultProps: Partial<Props> = {
-    isSideBarRight: false,
-    getFocus: (): void => {},
-    children: null,
-};
-
 const SearchBar: React.FunctionComponent<Props> = (props: Props): JSX.Element => {
-    const {isFocused, keepFocused, searchTerms, suggestionProviders} = props;
+    const {
+        isFocused,
+        keepFocused,
+        searchTerms,
+        suggestionProviders,
+        children = null,
+    } = props;
 
     const searchRef = useRef<SuggestionBoxComponent>();
     const intl = useIntl();
@@ -171,17 +171,14 @@ const SearchBar: React.FunctionComponent<Props> = (props: Props): JSX.Element =>
                     providers={suggestionProviders}
                     type='search'
                     delayInputUpdate={true}
-                    renderDividers={['all']}
                     clearable={true}
                     onClear={props.handleClear}
                 />
                 {props.isSearchingTerm && <LoadingSpinner/>}
-                {props.children}
+                {children}
             </form>
         </div>
     );
 };
-
-SearchBar.defaultProps = defaultProps;
 
 export default SearchBar;

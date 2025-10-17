@@ -175,8 +175,8 @@ function errorsByTeamId(state: ScheduledPostsState['errorsByTeamId'] = {}, actio
 function byChannelOrThreadId(state: ScheduledPostsState['byChannelOrThreadId'] = {}, action: MMReduxAction) {
     switch (action.type) {
     case ScheduledPostTypes.SCHEDULED_POSTS_RECEIVED: {
-        const {scheduledPostsByTeamId} = action.data;
-        const newState = {...state};
+        const {scheduledPostsByTeamId, prune} = action.data;
+        const newState = prune ? {} : {...state};
 
         Object.keys(scheduledPostsByTeamId).forEach((teamId: string) => {
             if (Object.hasOwn(scheduledPostsByTeamId, teamId)) {

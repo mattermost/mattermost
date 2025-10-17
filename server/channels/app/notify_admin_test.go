@@ -15,6 +15,7 @@ import (
 )
 
 func Test_SendNotifyAdminPosts(t *testing.T) {
+	mainHelper.Parallel(t)
 	t.Run("no error sending non trial upgrade post when no notifications are available", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -65,7 +66,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		// message sending is async, wait time for it
 		var channel *model.Channel
 		var err error
-		var timeout = 5 * time.Second
+		timeout := 5 * time.Second
 		begin := time.Now()
 		for {
 			if time.Since(begin) > timeout {
@@ -79,7 +80,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		}
 		require.NoError(t, err, "Expected message to have been sent within %d seconds", timeout)
 
-		postList, err := th.App.Srv().Store().Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
+		postList, err := th.App.Srv().Store().Post().GetPosts(th.Context, model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
 		require.NoError(t, err)
 
 		post := postList.Posts[postList.Order[0]]
@@ -112,7 +113,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		// message sending is async, wait time for it
 		var channel *model.Channel
 		var err error
-		var timeout = 5 * time.Second
+		timeout := 5 * time.Second
 		begin := time.Now()
 		for {
 			if time.Since(begin) > timeout {
@@ -126,7 +127,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		}
 		require.NoError(t, err, "Expected message to have been sent within %d seconds", timeout)
 
-		postList, err := th.App.Srv().Store().Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
+		postList, err := th.App.Srv().Store().Post().GetPosts(th.Context, model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
 		require.NoError(t, err)
 
 		post := postList.Posts[postList.Order[0]]
@@ -233,7 +234,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		// message sending is async, wait time for it
 		var channel *model.Channel
 		var err error
-		var timeout = 5 * time.Second
+		timeout := 5 * time.Second
 		begin := time.Now()
 		for {
 			if time.Since(begin) > timeout {
@@ -247,7 +248,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		}
 		require.NoError(t, err, "Expected message to have been sent within %d seconds", timeout)
 
-		postList, err := th.App.Srv().Store().Post().GetPosts(model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
+		postList, err := th.App.Srv().Store().Post().GetPosts(th.Context, model.GetPostsOptions{ChannelId: channel.Id, Page: 0, PerPage: 1}, false, map[string]bool{})
 		require.NoError(t, err)
 
 		post := postList.Posts[postList.Order[0]]
