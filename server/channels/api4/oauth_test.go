@@ -786,3 +786,39 @@ func TestRegisterOAuthClient_DisabledFeatures(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 }
+
+func TestRegisterOAuthClient_PublicClient_Success(t *testing.T) {
+	// Test successful public client DCR registration
+	mainHelper.Parallel(t)
+	th := Setup(t)
+	defer th.TearDown()
+	client := th.Client
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
+		cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(true)
+	})
+
+	// DCR request for public client
+	request := &model.ClientRegistrationRequest{
+		RedirectURIs:            []string{"https://example.com/callback"},
+		TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
+		ClientName:              model.NewPointer("Test Public Client"),
+		ClientURI:               model.NewPointer("https://example.com"),
+	}
+
+	// Register public client
+	response, resp, err := client.RegisterOAuthClient(context.Background(), request)
+	require.NoError(t, err)
+	CheckCreatedStatus(t, resp)
+	require.NotNil(t, response)
+
+	// Verify response properties for public client
+	assert.NotEmpty(t, response.ClientID)
+	assert.Nil(t, response.ClientSecret) // No client secret for public clients
+	assert.Equal(t, request.RedirectURIs, response.RedirectURIs)
+	assert.Equal(t, model.ClientAuthMethodNone, response.TokenEndpointAuthMethod)
+	assert.Equal(t, *request.ClientName, *response.ClientName)
+	assert.Equal(t, *request.ClientURI, *response.ClientURI)
+	assert.Equal(t, "user", response.Scope)
+}
