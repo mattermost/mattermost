@@ -38,7 +38,7 @@ function SecureConnectionDeleteModal({
             id={'admin.secure_connections.confirm.delete.text'}
             defaultMessage={'Are you sure you want to delete the secure connection <strong>{displayName}</strong>?'}
             values={{
-                strong: (chunk: string) => <strong>{chunk}</strong>,
+                strong: (chunk) => <strong>{chunk}</strong>,
                 displayName,
             }}
         />

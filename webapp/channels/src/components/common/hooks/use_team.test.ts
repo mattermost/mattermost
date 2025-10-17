@@ -6,7 +6,7 @@ import * as ReactRedux from 'react-redux';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {renderHookWithContext} from 'tests/react_testing_utils';
+import {renderHookWithContext, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import {useTeam} from './use_team';
@@ -162,7 +162,7 @@ describe('useTeam', () => {
                 once().
                 reply(200, team1);
 
-            const {result, waitForNextUpdate} = renderHookWithContext(
+            const {result} = renderHookWithContext(
                 () => useTeam('team1'),
             );
 
@@ -171,10 +171,10 @@ describe('useTeam', () => {
             expect(teamMock.isDone()).toBe(false);
 
             // Wait for the response with team1
-            await waitForNextUpdate();
-
-            expect(teamMock.isDone()).toBe(true);
-            expect(result.current).toEqual(team1);
+            await waitFor(() => {
+                expect(teamMock.isDone()).toBe(true);
+                expect(result.current).toEqual(team1);
+            });
         });
 
         test("should only attempt to fetch each team once when they aren't loaded", async () => {
@@ -188,7 +188,7 @@ describe('useTeam', () => {
                 reply(200, team2);
 
             let teamId = 'team1';
-            const {result, rerender, waitForNextUpdate} = renderHookWithContext(
+            const {result, rerender} = renderHookWithContext(
                 () => useTeam(teamId),
             );
 
@@ -198,11 +198,11 @@ describe('useTeam', () => {
             expect(team2Mock.isDone()).toBe(false);
 
             // Wait for the response with team1
-            await waitForNextUpdate();
-
-            expect(team1Mock.isDone()).toBe(true);
-            expect(team2Mock.isDone()).toBe(false);
-            expect(result.current).toEqual(team1);
+            await waitFor(() => {
+                expect(team1Mock.isDone()).toBe(true);
+                expect(team2Mock.isDone()).toBe(false);
+                expect(result.current).toEqual(team1);
+            });
 
             // Switch to team2
             teamId = 'team2';
@@ -211,11 +211,11 @@ describe('useTeam', () => {
             expect(result.current).toEqual(undefined);
 
             // Wait for the response with team2
-            await waitForNextUpdate();
-
-            expect(team1Mock.isDone()).toBe(true);
-            expect(team2Mock.isDone()).toBe(true);
-            expect(result.current).toEqual(team2);
+            await waitFor(() => {
+                expect(team1Mock.isDone()).toBe(true);
+                expect(team2Mock.isDone()).toBe(true);
+                expect(result.current).toEqual(team2);
+            });
 
             // Switch back to team1 which has already been loaded
             teamId = 'team1';

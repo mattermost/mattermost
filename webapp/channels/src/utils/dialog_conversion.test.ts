@@ -1392,4 +1392,236 @@ describe('dialog_conversion', () => {
             });
         });
     });
+
+    describe('date and datetime field conversion', () => {
+        const legacyOptions = {enhanced: false};
+
+        describe('getFieldType', () => {
+            it('should return correct field types for date/datetime', () => {
+                expect(getFieldType({type: 'date'} as DialogElement)).toBe('date');
+                expect(getFieldType({type: 'datetime'} as DialogElement)).toBe('datetime');
+            });
+        });
+
+        describe('getDefaultValue', () => {
+            it('should handle date default values', () => {
+                const element = {
+                    type: 'date',
+                    default: '2025-01-15',
+                } as DialogElement;
+                expect(getDefaultValue(element)).toBe('2025-01-15');
+            });
+
+            it('should handle datetime default values', () => {
+                const element = {
+                    type: 'datetime',
+                    default: '2025-01-15T14:30:00Z',
+                } as DialogElement;
+                expect(getDefaultValue(element)).toBe('2025-01-15T14:30:00Z');
+            });
+
+            it('should handle null default values', () => {
+                const element = {
+                    display_name: 'Test Date',
+                    name: 'test_date',
+                    type: 'date',
+                    subtype: '',
+                    placeholder: '',
+                    help_text: '',
+                    optional: true,
+                    min_length: 0,
+                    max_length: 0,
+                    data_source: '',
+                    options: [],
+                    default: '',
+                } as DialogElement;
+                expect(getDefaultValue(element)).toBe('');
+            });
+        });
+
+        describe('convertDialogToAppForm with date/datetime fields', () => {
+            it('should convert date field with min_date and max_date', () => {
+                const elements: DialogElement[] = [
+                    {
+                        name: 'event_date',
+                        type: 'date',
+                        display_name: 'Event Date',
+                        min_date: '2025-01-01',
+                        max_date: '2025-12-31',
+                        optional: false,
+                    } as DialogElement,
+                ];
+
+                const {form} = convertDialogToAppForm(
+                    elements,
+                    'Test Form',
+                    undefined,
+                    undefined,
+                    undefined,
+                    '',
+                    '',
+                    legacyOptions,
+                );
+
+                expect(form.fields).toHaveLength(1);
+                expect(form.fields?.[0]).toMatchObject({
+                    name: 'event_date',
+                    type: 'date',
+                    label: 'Event Date',
+                    min_date: '2025-01-01',
+                    max_date: '2025-12-31',
+                    is_required: true,
+                });
+            });
+
+            it('should convert datetime field with time_interval', () => {
+                const elements: DialogElement[] = [
+                    {
+                        name: 'meeting_time',
+                        type: 'datetime',
+                        display_name: 'Meeting Time',
+                        time_interval: 30,
+                        optional: true,
+                    } as DialogElement,
+                ];
+
+                const {form} = convertDialogToAppForm(
+                    elements,
+                    'Test Form',
+                    undefined,
+                    undefined,
+                    undefined,
+                    '',
+                    '',
+                    legacyOptions,
+                );
+
+                expect(form.fields).toHaveLength(1);
+                expect(form.fields?.[0]).toMatchObject({
+                    name: 'meeting_time',
+                    type: 'datetime',
+                    label: 'Meeting Time',
+                    time_interval: 30,
+                    is_required: false,
+                });
+            });
+
+            it('should convert datetime field with all date properties', () => {
+                const elements: DialogElement[] = [
+                    {
+                        name: 'full_datetime',
+                        type: 'datetime',
+                        display_name: 'Full DateTime',
+                        min_date: 'today',
+                        max_date: '+30d',
+                        time_interval: 15,
+                        optional: false,
+                    } as DialogElement,
+                ];
+
+                const {form} = convertDialogToAppForm(
+                    elements,
+                    'Test Form',
+                    undefined,
+                    undefined,
+                    undefined,
+                    '',
+                    '',
+                    legacyOptions,
+                );
+
+                expect(form.fields).toHaveLength(1);
+                expect(form.fields?.[0]).toMatchObject({
+                    name: 'full_datetime',
+                    type: 'datetime',
+                    label: 'Full DateTime',
+                    min_date: 'today',
+                    max_date: '+30d',
+                    time_interval: 15,
+                    is_required: true,
+                });
+            });
+
+            it('should not add datetime-specific properties to date fields', () => {
+                const elements: DialogElement[] = [
+                    {
+                        name: 'simple_date',
+                        type: 'date',
+                        display_name: 'Simple Date',
+                        time_interval: 30, // Should be ignored for date fields
+                        optional: false,
+                    } as DialogElement,
+                ];
+
+                const {form} = convertDialogToAppForm(
+                    elements,
+                    'Test Form',
+                    undefined,
+                    undefined,
+                    undefined,
+                    '',
+                    '',
+                    legacyOptions,
+                );
+
+                expect(form.fields?.[0]).not.toHaveProperty('time_interval');
+                expect(form.fields?.[0]).not.toHaveProperty('min_date');
+                expect(form.fields?.[0]).not.toHaveProperty('max_date');
+            });
+        });
+
+        describe('convertAppFormValuesToDialogSubmission with date/datetime fields', () => {
+            it('should convert date field values', () => {
+                const values = {
+                    event_date: '2025-01-15',
+                } as unknown as AppFormValues;
+
+                const elements: DialogElement[] = [
+                    {
+                        name: 'event_date',
+                        type: 'date',
+                        display_name: 'Event Date',
+                        optional: false,
+                    } as DialogElement,
+                ];
+
+                const {submission, errors} = convertAppFormValuesToDialogSubmission(
+                    values,
+                    elements,
+                    legacyOptions,
+                );
+
+                expect(errors).toHaveLength(0);
+                expect(submission).toEqual({
+                    event_date: '2025-01-15',
+                });
+            });
+
+            it('should convert datetime field values', () => {
+                const values = {
+                    meeting_time: '2025-01-15T14:30:00Z',
+                } as unknown as AppFormValues;
+
+                const elements: DialogElement[] = [
+                    {
+                        name: 'meeting_time',
+                        type: 'datetime',
+                        display_name: 'Meeting Time',
+                        optional: false,
+                    } as DialogElement,
+                ];
+
+                const {submission, errors} = convertAppFormValuesToDialogSubmission(
+                    values,
+                    elements,
+                    legacyOptions,
+                );
+
+                expect(errors).toHaveLength(0);
+                expect(submission).toEqual({
+                    meeting_time: '2025-01-15T14:30:00Z',
+                });
+            });
+        });
+    });
 });

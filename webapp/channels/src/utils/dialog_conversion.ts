@@ -6,6 +6,7 @@ import type {DialogElement} from '@mattermost/types/integrations';
 
 import {AppFieldTypes} from 'mattermost-redux/constants/apps';
 
+import {stringToMoment} from 'utils/date_utils';
 import {escapeHtml} from 'utils/text_formatting';
 
 // Dialog element types (from legacy Interactive Dialog spec)
@@ -15,6 +16,8 @@ export const DialogElementTypes = {
     SELECT: 'select',
     BOOL: 'bool',
     RADIO: 'radio',
+    DATE: 'date',
+    DATETIME: 'datetime',
 } as const;
 
 // Dialog element length limits (server-side validation constraints)
@@ -232,6 +235,10 @@ export function getFieldType(element: DialogElement): string | null {
         return AppFieldTypes.BOOL;
     case DialogElementTypes.RADIO:
         return AppFieldTypes.RADIO;
+    case DialogElementTypes.DATE:
+        return AppFieldTypes.DATE;
+    case DialogElementTypes.DATETIME:
+        return AppFieldTypes.DATETIME;
     default:
         return null; // Skip unknown field types
     }
@@ -299,6 +306,28 @@ export function getDefaultValue(element: DialogElement): AppFormValue {
     case DialogElementTypes.TEXTAREA: {
         const defaultValue = element.default ?? null;
         return defaultValue === null ? null : String(defaultValue);
+    }
+
+    case DialogElementTypes.DATE:
+    case DialogElementTypes.DATETIME: {
+        // Date and datetime values should be passed through as strings (ISO format)
+        const defaultValue = element.default;
+        if (defaultValue === null || defaultValue === undefined) {
+            return null;
+        }
+
+        // Validate the default value is a valid date/datetime string
+        const stringValue = String(defaultValue);
+
+        // If empty string, return it as-is
+        if (stringValue === '') {
+            return stringValue;
+        }
+
+        const testMoment = stringToMoment(stringValue);
+
+        // If invalid, return null instead of passing invalid data
+        return testMoment?.isValid() ? stringValue : null;
     }
 
     default:
@@ -406,6 +435,19 @@ export function convertElement(element: DialogElement, options: ConversionOption
         // Copy refresh property for dynamic field updates
         if (element.refresh !== undefined) {
             appField.refresh = element.refresh;
+        }
+    }
+
+    // Add date/datetime specific properties (new features that should pass through)
+    if (element.type === DialogElementTypes.DATE || element.type === DialogElementTypes.DATETIME) {
+        if (element.min_date !== undefined) {
+            appField.min_date = String(element.min_date);
+        }
+        if (element.max_date !== undefined) {
+            appField.max_date = String(element.max_date);
+        }
+        if (element.time_interval !== undefined && element.type === DialogElementTypes.DATETIME) {
+            appField.time_interval = Number(element.time_interval);
         }
     }
 
@@ -700,6 +742,11 @@ export function convertAppFormValuesToDialogSubmission(
             }
             break;
 
+        case DialogElementTypes.DATE:
+        case DialogElementTypes.DATETIME:
+            // Date and datetime values should be passed through as strings (ISO format)
+            submission[element.name] = String(value);
+            break;
         default:
             submission[element.name] = String(value);
         }

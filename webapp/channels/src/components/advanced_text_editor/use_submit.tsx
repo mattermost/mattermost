@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type React from 'react';
-import {useCallback, useRef, useState} from 'react';
+import {useCallback, useMemo, useRef, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {ServerError} from '@mattermost/types/errors';
@@ -12,7 +12,7 @@ import {FileTypes} from 'mattermost-redux/action_types';
 import {getChannelTimezones} from 'mattermost-redux/actions/channels';
 import {Permissions} from 'mattermost-redux/constants';
 import {getChannel, getAllChannelStats} from 'mattermost-redux/selectors/entities/channels';
-import {getFilesIdsForPost} from 'mattermost-redux/selectors/entities/files';
+import {makeGetFileIdsForPost} from 'mattermost-redux/selectors/entities/files';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
@@ -79,6 +79,7 @@ const useSubmit = (
 
     const dispatch = useDispatch();
 
+    const getFilesIdsForPost = useMemo(makeGetFileIdsForPost, []);
     const postFileIds = useSelector((state: GlobalState) => getFilesIdsForPost(state, postId || ''));
 
     const isDraftSubmitting = useRef(false);

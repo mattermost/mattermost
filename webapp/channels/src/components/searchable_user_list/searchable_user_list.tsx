@@ -23,7 +23,7 @@ type Props = {
     nextPage: () => void;
     previousPage: () => void;
     search: (term: string) => void;
-    actions?: React.ReactNode[];
+    actions?: Array<React.ComponentType<any>>;
     noBuiltInFilters?: boolean;
     actionProps?: {
         mfaEnabled: boolean;
