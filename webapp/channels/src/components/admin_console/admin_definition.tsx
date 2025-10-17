@@ -69,6 +69,7 @@ import DatabaseSettings, {searchableStrings as databaseSearchableStrings} from '
 import ElasticSearchSettings, {searchableStrings as elasticSearchSearchableStrings} from './elasticsearch_settings';
 import {
     AnnouncementBannerFeatureDiscovery,
+    BurnOnReadFeatureDiscovery,
     ComplianceExportFeatureDiscovery,
     CustomTermsOfServiceFeatureDiscovery,
     DataRetentionFeatureDiscovery,
@@ -3250,6 +3251,27 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                     ],
                 },
+            },
+            burn_on_read_discovery: {
+                url: 'site_config/burn_on_read_messages',
+                title: defineMessage({id: 'admin.sidebar.burnOnReadMessages', defaultMessage: 'Burn-on-read Messages'}),
+                isHidden: it.any(
+                    it.licensedForSku(LicenseSkus.Enterprise),
+                    it.licensedForSku(LicenseSkus.Professional),
+                ),
+                schema: {
+                    id: 'BurnOnReadDiscovery',
+                    name: defineMessage({id: 'admin.burn_on_read_discovery.title', defaultMessage: 'Burn-on-read Messages'}),
+                    settings: [
+                        {
+                            type: 'custom',
+                            component: BurnOnReadFeatureDiscovery,
+                            key: 'BurnOnReadFeatureDiscovery',
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
+                        },
+                    ],
+                },
+                restrictedIndicator: getRestrictedIndicator(true),
             },
             content_flagging: {
                 url: 'site_config/content_flagging',

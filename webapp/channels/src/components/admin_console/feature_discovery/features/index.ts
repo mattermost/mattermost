@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import AnnouncementBannerFeatureDiscovery from './announcement_banner';
+import BurnOnReadFeatureDiscovery from './burn_on_read';
 import ComplianceExportFeatureDiscovery from './compliance_export';
 import CustomTermsOfServiceFeatureDiscovery from './custom_terms_of_service';
 import DataRetentionFeatureDiscovery from './data_retention';
@@ -22,6 +23,7 @@ export {
     OpenIDCustomFeatureDiscovery,
     GitLabFeatureDiscovery,
     AnnouncementBannerFeatureDiscovery,
+    BurnOnReadFeatureDiscovery,
     ComplianceExportFeatureDiscovery,
     CustomTermsOfServiceFeatureDiscovery,
     DataRetentionFeatureDiscovery,
