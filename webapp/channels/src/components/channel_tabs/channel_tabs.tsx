@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useMemo, useEffect, useRef} from 'react';
+import React, {useCallback, useMemo, useEffect, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {LinkVariantIcon, PaperclipIcon} from '@mattermost/compass-icons/components';
+import {LinkVariantIcon, PaperclipIcon, FileMultipleOutlineIcon} from '@mattermost/compass-icons/components';
 import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
 
 import {getChannelBookmarks} from 'mattermost-redux/selectors/entities/channel_bookmarks';
@@ -191,10 +191,29 @@ function ChannelTabs({
         return Object.values(bookmarksObj).sort((a, b) => a.sort_order - b.sort_order);
     }, [bookmarksObj]);
 
-    // Fetch bookmarks when component mounts
+    // TODO: Replace with proper channel-level wiki settings from database
+    // LIMITATION: Currently using localStorage - only persists locally per user/device
+    // Production should use channel-level settings visible to all channel members
+    const [hasWikiPages, setHasWikiPages] = useState(() => {
+        // Initialize from localStorage if available
+        if (typeof window !== 'undefined' && channelId) {
+            const stored = localStorage.getItem(`channel_wiki_${channelId}`);
+            return stored === 'true';
+        }
+        return false;
+    });
+
+    // Fetch bookmarks and wiki state when component mounts or channel changes
     useEffect(() => {
         if (channelId) {
             dispatch(fetchChannelBookmarks(channelId));
+            
+            // TODO: Fetch wiki pages for this channel when wiki API is implemented
+            // For now, load wiki state from localStorage for the current channel
+            if (typeof window !== 'undefined') {
+                const stored = localStorage.getItem(`channel_wiki_${channelId}`);
+                setHasWikiPages(stored === 'true');
+            }
         }
     }, [channelId, dispatch]);
 
@@ -233,6 +252,27 @@ function ChannelTabs({
         }
     };
 
+    const handleCreateWiki = useCallback(() => {
+        // TODO: Implement actual wiki creation functionality
+        // For now, simulate creating a wiki page by showing the wiki tab
+        setHasWikiPages(true);
+        
+        // Persist wiki state to localStorage
+        // TODO: Replace with proper API call to enable wiki for this channel
+        // This should be a channel-level setting visible to all members
+        if (typeof window !== 'undefined' && channelId) {
+            localStorage.setItem(`channel_wiki_${channelId}`, 'true');
+            
+            // In production, this should be:
+            // dispatch(enableChannelWiki(channelId));
+        }
+        
+        // Switch to the wiki tab after creating it
+        onTabChange('wiki');
+        
+        console.log('Wiki page created (placeholder implementation)');
+    }, [onTabChange, channelId]);
+
     const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
         let delta = 0;
         if (Keyboard.isKeyPressed(e, Constants.KeyCodes.RIGHT)) {
@@ -245,8 +285,12 @@ function ChannelTabs({
             return;
         }
 
-        // Only navigate among actual tabs (exclude bookmarks which is a menu button)
-        const navigableTabs = tabs.filter((tab) => tab.id !== 'bookmarks');
+        // Only navigate among actual tabs (exclude hidden/special tabs)
+        const navigableTabs = tabs.filter((tab) => {
+            if (tab.id === 'bookmarks') return false; // Bookmarks is a menu button, not navigable
+            if (tab.id === 'wiki' && !hasWikiPages) return false; // Wiki tab hidden when no pages
+            return true;
+        });
         const currentIndex = navigableTabs.findIndex((tab) => tab.id === activeTab);
         let newIndex = currentIndex + delta;
 
@@ -285,6 +329,7 @@ function ChannelTabs({
                 {tabs.map((tab) => {
                     const isActive = activeTab === tab.id;
                     const isBookmarksTab = tab.id === 'bookmarks';
+                    const isWikiTab = tab.id === 'wiki';
 
                     if (isBookmarksTab) {
                         // Only show bookmarks tab if there are actual bookmarks
@@ -305,6 +350,13 @@ function ChannelTabs({
                                 handleCreateFile={handleCreateFile}
                             />
                         );
+                    }
+
+                    if (isWikiTab) {
+                        // Only show wiki tab if there are actual wiki pages
+                        if (!hasWikiPages) {
+                            return null;
+                        }
                     }
 
                     return (
@@ -329,40 +381,62 @@ function ChannelTabs({
             </div>
 
             <div className='channel-tabs-container__tab-actions'>
-                {/* Show bookmark creation options in add tab button when no bookmarks exist but user can add them */}
-                {bookmarks.length === 0 && Boolean(canAdd) ? (
+                {/* Show content creation options when wiki can be created OR bookmarks can be added */}
+                {(!hasWikiPages || Boolean(canAdd)) ? (
                     <Menu.Container
                         menuButton={{
-                            id: 'add-tab-with-bookmarks',
-                            'aria-label': formatMessage({id: 'channel_tabs.add_tab_or_bookmark', defaultMessage: 'Add tab or bookmark'}),
+                            id: 'add-tab-content',
+                            'aria-label': formatMessage({id: 'channel_tabs.add_tab_content', defaultMessage: 'Add content'}),
                             class: 'channel-tabs-container__action-button',
                             children: <i className='icon icon-plus'/>,
                         }}
                         menu={{
-                            id: 'add-tab-with-bookmarks-menu',
+                            id: 'add-tab-content-menu',
                         }}
                     >
-                        <Menu.Item
-                            leadingElement={<LinkVariantIcon size={18}/>}
-                            labels={
-                                <FormattedMessage
-                                    id='channel_bookmarks.addLink'
-                                    defaultMessage='Add a link'
+                        {/* Show wiki creation option if no wiki exists yet */}
+                        {!hasWikiPages && (
+                            <>
+                                <Menu.Item
+                                    leadingElement={<FileMultipleOutlineIcon size={18}/>}
+                                    labels={
+                                        <FormattedMessage
+                                            id='channel_tabs.addWiki'
+                                            defaultMessage='Add a wiki'
+                                        />
+                                    }
+                                    onClick={handleCreateWiki}
                                 />
-                            }
-                            onClick={handleCreateLink}
-                        />
-                        {canUploadFiles && (
-                            <Menu.Item
-                                leadingElement={<PaperclipIcon size={18}/>}
-                                labels={
-                                    <FormattedMessage
-                                        id='channel_bookmarks.attachFile'
-                                        defaultMessage='Attach a file'
+                                {Boolean(canAdd) && <Menu.Separator/>}
+                            </>
+                        )}
+                        
+                        {/* Show bookmark creation options if user has permission */}
+                        {Boolean(canAdd) && (
+                            <>
+                                <Menu.Item
+                                    leadingElement={<LinkVariantIcon size={18}/>}
+                                    labels={
+                                        <FormattedMessage
+                                            id='channel_bookmarks.addLink'
+                                            defaultMessage='Add a link'
+                                        />
+                                    }
+                                    onClick={handleCreateLink}
+                                />
+                                {canUploadFiles && (
+                                    <Menu.Item
+                                        leadingElement={<PaperclipIcon size={18}/>}
+                                        labels={
+                                            <FormattedMessage
+                                                id='channel_bookmarks.attachFile'
+                                                defaultMessage='Attach a file'
+                                            />
+                                        }
+                                        onClick={handleCreateFile}
                                     />
-                                }
-                                onClick={handleCreateFile}
-                            />
+                                )}
+                            </>
                         )}
                     </Menu.Container>
                 ) : (

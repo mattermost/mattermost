@@ -35,10 +35,11 @@
 
     &__placeholder {
         display: flex;
+        flex-grow: 1;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 32px;
+        padding: 32px 32px 64px 32px;
         text-align: center;
         color: rgba(var(--center-channel-color-rgb), 0.64);
 
