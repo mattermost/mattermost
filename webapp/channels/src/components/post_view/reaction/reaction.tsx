@@ -2,11 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {injectIntl} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
 
 import type {Post} from '@mattermost/types/posts';
 import type {Reaction as ReactionType} from '@mattermost/types/reactions';
-
-import * as Utils from 'utils/utils';
 
 import ReactionTooltip from './reaction_tooltip';
 
@@ -17,17 +17,12 @@ type State = {
     reactedClass: 'Reaction--reacted' | 'Reaction--reacting' | 'Reaction--unreacted' | 'Reaction--unreacting';
 };
 
-type Props = {
+type Props = WrappedComponentProps & {
 
     /*
      * The post to render the reaction for
      */
     post: Post;
-
-    /*
-     * The user id of the logged in user
-     */
-    currentUserId: string;
 
     /*
      * The name of the emoji for the reaction
@@ -81,9 +76,13 @@ type Props = {
          */
         removeReaction: (postId: string, emojiName: string) => void;
     };
+
+    // Names of users for tooltip-like aria label, computed via selector
+    users?: string[];
+
 }
 
-export default class Reaction extends React.PureComponent<Props, State> {
+export class Reaction extends React.PureComponent<Props, State> {
     private reactionButtonRef = React.createRef<HTMLButtonElement>();
     private reactionCountRef = React.createRef<HTMLSpanElement>();
     private animating = false;
@@ -186,6 +185,8 @@ export default class Reaction extends React.PureComponent<Props, State> {
             emojiName,
             reactionCount,
             reactions,
+            users = [],
+            intl,
         } = this.props;
         const {displayNumber} = this.state;
         const reactedNumber = currentUserReacted ? reactionCount : reactionCount + 1;
@@ -196,15 +197,110 @@ export default class Reaction extends React.PureComponent<Props, State> {
         const readOnlyClass = (canAddReactions && canRemoveReactions) ? '' : 'Reaction--read-only';
 
         const emojiNameWithSpaces = this.props.emojiName.replace(/_/g, ' ');
-        let ariaLabelEmoji = `${Utils.localizeMessage({id: 'reaction.reactWidth.ariaLabel', defaultMessage: 'react with'})} ${emojiNameWithSpaces}`;
-        if (currentUserReacted && canRemoveReactions) {
-            ariaLabelEmoji = `${Utils.localizeMessage({id: 'reaction.removeReact.ariaLabel', defaultMessage: 'remove reaction'})} ${emojiNameWithSpaces}`;
+        let ariaLabelEmoji = `${emojiNameWithSpaces}`;
+
+        // If intl/users are available, append the same sentence shown in the tooltip
+        if (intl) {
+            const otherUsersCount = reactions.length - users.length;
+
+            let names: string | undefined;
+            if (otherUsersCount > 0) {
+                if (users.length > 0) {
+                    names = intl.formatMessage(
+                        {
+                            id: 'reaction.usersAndOthersReacted',
+                            defaultMessage: '{users} and {otherUsers, number} other {otherUsers, plural, one {user} other {users}}',
+                        },
+                        {
+                            users: users.join(', '),
+                            otherUsers: otherUsersCount,
+                        },
+                    );
+                } else {
+                    names = intl.formatMessage(
+                        {
+                            id: 'reaction.othersReacted',
+                            defaultMessage: '{otherUsers, number} {otherUsers, plural, one {user} other {users}}',
+                        },
+                        {
+                            otherUsers: otherUsersCount,
+                        },
+                    );
+                }
+            } else if (users.length > 1) {
+                names = intl.formatMessage(
+                    {
+                        id: 'reaction.usersReacted',
+                        defaultMessage: '{users} and {lastUser}',
+                    },
+                    {
+                        users: users.slice(0, -1).join(', '),
+                        lastUser: users[users.length - 1],
+                    },
+                );
+            } else {
+                names = users[0];
+            }
+
+            let reactionVerb: string;
+            if (users.length + otherUsersCount > 1) {
+                if (currentUserReacted) {
+                    reactionVerb = intl.formatMessage({
+                        id: 'reaction.reactionVerb.youAndUsers',
+                        defaultMessage: 'reacted',
+                    });
+                } else {
+                    reactionVerb = intl.formatMessage({
+                        id: 'reaction.reactionVerb.users',
+                        defaultMessage: 'reacted',
+                    });
+                }
+            } else if (currentUserReacted) {
+                reactionVerb = intl.formatMessage({
+                    id: 'reaction.reactionVerb.you',
+                    defaultMessage: 'reacted',
+                });
+            } else {
+                reactionVerb = intl.formatMessage({
+                    id: 'reaction.reactionVerb.user',
+                    defaultMessage: 'reacted',
+                });
+            }
+
+            const tooltipTitle = intl.formatMessage(
+                {
+                    id: 'reaction.reacted',
+                    defaultMessage: '{users} {reactionVerb} with {emoji}',
+                },
+                {
+                    users: names,
+                    reactionVerb,
+                    emoji: ':' + emojiName + ':',
+                },
+            );
+
+            let tooltipHint: string | undefined;
+            if (currentUserReacted && canRemoveReactions) {
+                tooltipHint = intl.formatMessage({
+                    id: 'reaction.a11y.clickToRemove',
+                    defaultMessage: 'Click to remove.',
+                });
+            } else if (!currentUserReacted && canAddReactions) {
+                tooltipHint = intl.formatMessage({
+                    id: 'reaction.a11y.clickToAdd',
+                    defaultMessage: 'Click to add.',
+                });
+            }
+
+            ariaLabelEmoji = tooltipHint ? `${tooltipTitle}. ${tooltipHint}` : tooltipTitle;
         }
 
         const emojiIcon = (
             <img
                 className='Reaction__emoji emoticon'
                 src={this.props.emojiImageUrl}
+                alt=''
+                aria-hidden={true}
             />
         );
 
@@ -247,3 +343,5 @@ export default class Reaction extends React.PureComponent<Props, State> {
         );
     }
 }
+
+export default injectIntl(Reaction);
