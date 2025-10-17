@@ -639,17 +639,14 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 	}
 
 	if flaggedPost.DeleteAt > 0 {
-		flaggedPost.DeleteAt = 0
-		flaggedPost.UpdateAt = model.GetMillis()
-		flaggedPost.PreCommit()
-		_, err := a.Srv().Store().Post().Overwrite(rctx, flaggedPost)
-		if err != nil {
-			return model.NewAppError("KeepFlaggedPost", "app.content_flagging.keep_post.undelete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		contentReviewBot, botErr := a.getContentReviewBot(rctx)
+		if botErr != nil {
+			return botErr
 		}
 
-		err = a.Srv().Store().FileInfo().RestoreForPostByIds(rctx, flaggedPost.Id, flaggedPost.FileIds)
-		if err != nil {
-			return model.NewAppError("KeepFlaggedPost", "app.content_flagging.restore_file_info.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		// Restore the post, its replies, and all associated files
+		if err := a.Srv().Store().Post().Restore(flaggedPost, contentReviewBot.UserId, status.FieldID); err != nil {
+			return model.NewAppError("KeepFlaggedPost", "app.content_flagging.keep_post.undelete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
@@ -700,12 +697,6 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 		return model.NewAppError("KeepFlaggedPost", "app.content_flagging.create_property_values.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	status.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRetained))
-	_, err = a.Srv().propertyService.UpdatePropertyValue(groupId, status)
-	if err != nil {
-		return model.NewAppError("KeepFlaggedPost", "app.content_flagging.keep_post.status_update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
 	a.Srv().Go(func() {
 		channel, getChannelErr := a.GetChannel(rctx, flaggedPost.ChannelId)
 		if getChannelErr != nil {
@@ -718,6 +709,12 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 			rctx.Logger().Error("Failed to publish report change after permanently removing flagged flaggedPost", mlog.Err(err), mlog.String("post_id", flaggedPost.Id))
 		}
 	})
+
+	status.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRetained))
+	_, err = a.Srv().propertyService.UpdatePropertyValue(groupId, status)
+	if err != nil {
+		return model.NewAppError("KeepFlaggedPost", "app.content_flagging.keep_post.status_update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", flaggedPost.ChannelId, "", nil, "")
 	appErr = a.publishWebsocketEventForPost(rctx, flaggedPost, message)
