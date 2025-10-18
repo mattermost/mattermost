@@ -64,10 +64,14 @@ type Response struct {
 	Header        http.Header
 }
 
+type HTTPRequestDoer interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
 type Client4 struct {
-	URL        string       // The location of the server, for example  "http://localhost:8065"
-	APIURL     string       // The api location of the server, for example "http://localhost:8065/api/v4"
-	HTTPClient *http.Client // The http client
+	URL        string          // The location of the server, for example  "http://localhost:8065"
+	APIURL     string          // The api location of the server, for example "http://localhost:8065/api/v4"
+	HTTPClient HTTPRequestDoer // The http doer interface
 	AuthToken  string
 	AuthType   string
 	HTTPHeader map[string]string // Headers to be copied over for each request
