@@ -555,5 +555,21 @@
   {
     "id": "api.bot.teams_channels.add_message_mobile",
     "translation": "Legg meg til i teamene og kanalene du vil at jeg skal samhandle i. Bruk nettleseren eller Mattermost Desktop-appen for å gjøre dette."
+  },
+  {
+    "id": "api.command.invite_people.sent",
+    "translation": "E-postinvitasjon(er) sendt"
+  },
+  {
+    "id": "api.command.team_mismatch.app_error",
+    "translation": "Kan ikke oppdatere kommandoer på tvers av team."
+  },
+  {
+    "id": "api.command_channel_header.message.app_error",
+    "translation": "Teksten må oppgis med kommandoen /header."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.app_error",
+    "translation": "Feil ved oppdatering av kanalens overskrift."
   }
 ]
