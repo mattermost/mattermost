@@ -356,6 +356,7 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
                                             accept={Constants.ACCEPT_EMOJI_IMAGE}
                                             multiple={false}
                                             onChange={this.updateImage}
+                                            disabled={this.state.saving}
                                         />
                                     </div>
                                     {filename}
