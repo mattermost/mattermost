@@ -27,7 +27,7 @@
         }
 
         .FollowButton,
-        h3 .Button {
+        h3 .ThreadButton {
             height: 24px;
             padding: 4px 8px;
             font-size: 12px;
@@ -50,7 +50,7 @@
                 vertical-align: top;
             }
 
-            .Button {
+            .ThreadButton {
                 color: rgba(var(--center-channel-color-rgb), 0.75);
                 font-weight: 400;
             }

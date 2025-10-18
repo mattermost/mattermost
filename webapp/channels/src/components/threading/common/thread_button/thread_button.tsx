@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import React, {memo} from 'react';
 import type {ButtonHTMLAttributes, ReactNode} from 'react';
 
-import './button.scss';
+import './thread_button.scss';
 
 type Props = {
     prepend?: ReactNode;
@@ -18,7 +18,7 @@ type Props = {
 
 type Attrs = Exclude<ButtonHTMLAttributes<HTMLButtonElement>, Props>
 
-const Button = React.forwardRef<HTMLButtonElement, Props & Attrs>((
+const ThreadButton = React.forwardRef<HTMLButtonElement, Props & Attrs>((
     {
         prepend,
         append,
@@ -35,25 +35,25 @@ const Button = React.forwardRef<HTMLButtonElement, Props & Attrs>((
         <button
             ref={ref}
             {...attrs}
-            className={classNames('Button Button___transparent', {'is-active': isActive, allowTextOverflow}, attrs.className)}
+            className={classNames('ThreadButton ThreadButton___transparent', {'is-active': isActive, allowTextOverflow}, attrs.className)}
         >
             {prepend && (
-                <span className='Button_prepended'>
+                <span className='ThreadButton_prepended'>
                     {prepend}
                 </span>
             )}
-            <span className={classNames('Button_label', {margin_top: marginTop})}>
+            <span className={classNames('ThreadButton_label', {margin_top: marginTop})}>
                 {children}
                 {hasDot && <span className='dot'/>}
             </span>
             {append && (
-                <span className='Button_appended'>
+                <span className='ThreadButton_appended'>
                     {append}
                 </span>
             )}
         </button>
     );
 });
-Button.displayName = 'Button';
+ThreadButton.displayName = 'ThreadButton';
 
-export default memo(Button);
+export default memo(ThreadButton);

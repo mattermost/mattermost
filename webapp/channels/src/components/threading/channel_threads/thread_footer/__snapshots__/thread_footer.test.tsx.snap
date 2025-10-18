@@ -15,24 +15,24 @@ exports[`components/threading/channel_threads/thread_footer should match snapsho
       isFollowing={true}
       onClick={[Function]}
     >
-      <Button
+      <ThreadButton
         className="separated FollowButton"
         disabled={false}
         isActive={true}
         onClick={[Function]}
       >
         <button
-          className="Button Button___transparent is-active separated FollowButton"
+          className="ThreadButton ThreadButton___transparent is-active separated FollowButton"
           disabled={false}
           onClick={[Function]}
         >
           <span
-            className="Button_label"
+            className="ThreadButton_label"
           >
             Following
           </span>
         </button>
-      </Button>
+      </ThreadButton>
     </Memo(FollowButton)>
   </div>
 </Memo(ThreadFooter)>
@@ -320,7 +320,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
         </WithTooltip>
       </div>
     </Memo(Avatars)>
-    <Button
+    <ThreadButton
       className="ReplyButton separated"
       onClick={[Function]}
       prepend={
@@ -334,11 +334,11 @@ exports[`components/threading/channel_threads/thread_footer should report total 
       }
     >
       <button
-        className="Button Button___transparent ReplyButton separated"
+        className="ThreadButton ThreadButton___transparent ReplyButton separated"
         onClick={[Function]}
       >
         <span
-          className="Button_prepended"
+          className="ThreadButton_prepended"
         >
           <span
             className="icon"
@@ -349,7 +349,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
           </span>
         </span>
         <span
-          className="Button_label"
+          className="ThreadButton_label"
         >
           <FormattedMessage
             defaultMessage="{totalReplies, plural, =0 {Reply} =1 {# reply} other {# replies}}"
@@ -366,30 +366,30 @@ exports[`components/threading/channel_threads/thread_footer should report total 
           </FormattedMessage>
         </span>
       </button>
-    </Button>
+    </ThreadButton>
     <Memo(FollowButton)
       className="separated"
       isFollowing={true}
       onClick={[Function]}
     >
-      <Button
+      <ThreadButton
         className="separated FollowButton"
         disabled={false}
         isActive={true}
         onClick={[Function]}
       >
         <button
-          className="Button Button___transparent is-active separated FollowButton"
+          className="ThreadButton ThreadButton___transparent is-active separated FollowButton"
           disabled={false}
           onClick={[Function]}
         >
           <span
-            className="Button_label"
+            className="ThreadButton_label"
           >
             Following
           </span>
         </button>
-      </Button>
+      </ThreadButton>
     </Memo(FollowButton)>
     <Connect(injectIntl(Timestamp))
       day="numeric"
@@ -834,7 +834,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
         </WithTooltip>
       </div>
     </Memo(Avatars)>
-    <Button
+    <ThreadButton
       className="ReplyButton separated"
       onClick={[Function]}
       prepend={
@@ -848,11 +848,11 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
       }
     >
       <button
-        className="Button Button___transparent ReplyButton separated"
+        className="ThreadButton ThreadButton___transparent ReplyButton separated"
         onClick={[Function]}
       >
         <span
-          className="Button_prepended"
+          className="ThreadButton_prepended"
         >
           <span
             className="icon"
@@ -863,7 +863,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
           </span>
         </span>
         <span
-          className="Button_label"
+          className="ThreadButton_label"
         >
           <FormattedMessage
             defaultMessage="{totalReplies, plural, =0 {Reply} =1 {# reply} other {# replies}}"
@@ -880,30 +880,30 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
           </FormattedMessage>
         </span>
       </button>
-    </Button>
+    </ThreadButton>
     <Memo(FollowButton)
       className="separated"
       isFollowing={true}
       onClick={[Function]}
     >
-      <Button
+      <ThreadButton
         className="separated FollowButton"
         disabled={false}
         isActive={true}
         onClick={[Function]}
       >
         <button
-          className="Button Button___transparent is-active separated FollowButton"
+          className="ThreadButton ThreadButton___transparent is-active separated FollowButton"
           disabled={false}
           onClick={[Function]}
         >
           <span
-            className="Button_label"
+            className="ThreadButton_label"
           >
             Following
           </span>
         </button>
-      </Button>
+      </ThreadButton>
     </Memo(FollowButton)>
     <Connect(injectIntl(Timestamp))
       day="numeric"

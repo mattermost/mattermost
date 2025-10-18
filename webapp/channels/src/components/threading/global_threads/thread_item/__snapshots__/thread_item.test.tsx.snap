@@ -60,15 +60,15 @@ exports[`components/threading/global_threads/thread_item should report total num
             />
           }
         >
-          <Memo(Button)
+          <Memo(ThreadButton)
             aria-label="Actions"
-            className="Button___icon"
+            className="ThreadButton___icon"
             marginTop={true}
           >
             <DotsVerticalIcon
               size={18}
             />
-          </Memo(Button)>
+          </Memo(ThreadButton)>
         </WithTooltip>
       </MockThreadMenu>
     </div>
@@ -214,15 +214,15 @@ exports[`components/threading/global_threads/thread_item should report unread me
             />
           }
         >
-          <Memo(Button)
+          <Memo(ThreadButton)
             aria-label="Actions"
-            className="Button___icon"
+            className="ThreadButton___icon"
             marginTop={true}
           >
             <DotsVerticalIcon
               size={18}
             />
-          </Memo(Button)>
+          </Memo(ThreadButton)>
         </WithTooltip>
       </MockThreadMenu>
     </div>
@@ -366,15 +366,15 @@ exports[`components/threading/global_threads/thread_item should report unread me
             />
           }
         >
-          <Memo(Button)
+          <Memo(ThreadButton)
             aria-label="Actions"
-            className="Button___icon"
+            className="ThreadButton___icon"
             marginTop={true}
           >
             <DotsVerticalIcon
               size={18}
             />
-          </Memo(Button)>
+          </Memo(ThreadButton)>
         </WithTooltip>
       </MockThreadMenu>
     </div>
