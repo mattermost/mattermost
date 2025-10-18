@@ -15,7 +15,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/mattermost/mattermost-plugin-ai/llm"
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -1602,4 +1604,38 @@ func (api *PluginAPI) DeletePropertyValuesForTarget(groupID, targetType, targetI
 
 func (api *PluginAPI) DeletePropertyValuesForField(groupID, fieldID string) error {
 	return api.app.PropertyService().DeletePropertyValuesForField(groupID, fieldID)
+}
+
+// LLM Section
+
+func (api *PluginAPI) Agent(agent string, request plugin.CompletionRequest) (*llm.TextStreamResult, error) {
+	result, err := api.app.AgentRequest(api.ctx, agent, request)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (api *PluginAPI) AgentNoStream(agent string, request plugin.CompletionRequest) (string, error) {
+	result, err := api.app.AgentRequestNoStream(api.ctx, agent, request)
+	if err != nil {
+		return "", err
+	}
+	return result, nil
+}
+
+func (api *PluginAPI) LLMService(service string, request plugin.CompletionRequest) (*llm.TextStreamResult, error) {
+	result, err := api.app.LLMServiceRequest(api.ctx, service, request)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (api *PluginAPI) LLMServiceNoStream(service string, request plugin.CompletionRequest) (string, error) {
+	result, err := api.app.LLMServiceRequestNoStream(api.ctx, service, request)
+	if err != nil {
+		return "", err
+	}
+	return result, nil
 }

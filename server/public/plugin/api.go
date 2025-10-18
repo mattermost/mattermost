@@ -9,6 +9,7 @@ import (
 
 	plugin "github.com/hashicorp/go-plugin"
 
+	"github.com/mattermost/mattermost-plugin-ai/llm"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
@@ -1564,6 +1565,34 @@ type API interface {
 	// @tag Audit
 	// Minimum server version: 10.10
 	LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level)
+
+	// Agent makes a streaming request to an LLM agent via the mattermost-ai plugin.
+	// The agent parameter specifies which agent to use, and request contains the completion request.
+	//
+	// @tag LLM
+	// Minimum server version: 11.3
+	Agent(agent string, request CompletionRequest) (*llm.TextStreamResult, error)
+
+	// AgentNoStream makes a non-streaming request to an LLM agent via the mattermost-ai plugin.
+	// The agent parameter specifies which agent to use, and request contains the completion request.
+	//
+	// @tag LLM
+	// Minimum server version: 11.3
+	AgentNoStream(agent string, request CompletionRequest) (string, error)
+
+	// LLMService makes a streaming request to an LLM service via the mattermost-ai plugin.
+	// The service parameter specifies which service to use, and request contains the completion request.
+	//
+	// @tag LLM
+	// Minimum server version: 11.3
+	LLMService(service string, request CompletionRequest) (*llm.TextStreamResult, error)
+
+	// LLMServiceNoStream makes a non-streaming request to an LLM service via the mattermost-ai plugin.
+	// The service parameter specifies which service to use, and request contains the completion request.
+	//
+	// @tag LLM
+	// Minimum server version: 11.3
+	LLMServiceNoStream(service string, request CompletionRequest) (string, error)
 }
 
 var handshake = plugin.HandshakeConfig{

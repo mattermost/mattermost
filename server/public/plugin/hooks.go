@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	saml2 "github.com/mattermost/gosaml2"
+	"github.com/mattermost/mattermost-plugin-ai/llm"
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
@@ -64,6 +65,10 @@ const (
 	GenerateSupportDataID                     = 45
 	OnSAMLLoginID                             = 46
 	EmailNotificationWillBeSentID             = 47
+	AgentRequestID                            = 48
+	AgentRequestNoStreamID                    = 49
+	LLMServiceRequestID                       = 50
+	LLMServiceRequestNoStreamID               = 51
 	TotalHooksID                              = iota
 )
 
@@ -418,4 +423,24 @@ type Hooks interface {
 	//
 	// Minimum server version: 10.7
 	OnSAMLLogin(c *Context, user *model.User, assertion *saml2.AssertionInfo) error
+
+	// AgentRequest is invoked when a plugin wants to make a request to an LLM agent
+	//
+	// Minimum server version: 11.3
+	AgentRequest(c *Context, agent string, request CompletionRequest) (*llm.TextStreamResult, error)
+
+	// AgentRequestNoStream is invoked when a plugin wants to make a request to an LLM agent without streaming
+	//
+	// Minimum server version: 11.3
+	AgentRequestNoStream(c *Context, agent string, request CompletionRequest) (string, error)
+
+	// LLMServiceRequest is invoked when a plugin wants to make a request to an LLM service
+	//
+	// Minimum server version: 11.3
+	LLMServiceRequest(c *Context, service string, request CompletionRequest) (*llm.TextStreamResult, error)
+
+	// LLMServiceRequestNoStream is invoked when a plugin wants to make a request to an LLM service without streaming
+	//
+	// Minimum server version: 11.3
+	LLMServiceRequestNoStream(c *Context, service string, request CompletionRequest) (string, error)
 }

@@ -21,6 +21,7 @@ type Client struct {
 	Frontend      FrontendService
 	Group         GroupService
 	KV            KVService
+	LLM           LLMService
 	Log           LogService
 	Mail          MailService
 	Plugin        PluginService
@@ -52,6 +53,7 @@ func NewClient(api plugin.API, driver plugin.Driver) *Client {
 		Frontend:      FrontendService{api: api},
 		Group:         GroupService{api: api},
 		KV:            KVService{api: api},
+		LLM:           LLMService{api: api},
 		Log:           LogService{api: api},
 		Mail:          MailService{api: api},
 		Plugin:        PluginService{api: api},

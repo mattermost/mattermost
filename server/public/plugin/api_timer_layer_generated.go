@@ -11,6 +11,7 @@ import (
 	"net/http"
 	timePkg "time"
 
+	"github.com/mattermost/mattermost-plugin-ai/llm"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
@@ -1670,4 +1671,32 @@ func (api *apiTimerLayer) LogAuditRecWithLevel(rec *model.AuditRecord, level mlo
 	startTime := timePkg.Now()
 	api.apiImpl.LogAuditRecWithLevel(rec, level)
 	api.recordTime(startTime, "LogAuditRecWithLevel", true)
+}
+
+func (api *apiTimerLayer) Agent(agent string, request CompletionRequest) (*llm.TextStreamResult, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.Agent(agent, request)
+	api.recordTime(startTime, "Agent", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) AgentNoStream(agent string, request CompletionRequest) (string, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.AgentNoStream(agent, request)
+	api.recordTime(startTime, "AgentNoStream", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) LLMService(service string, request CompletionRequest) (*llm.TextStreamResult, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.LLMService(service, request)
+	api.recordTime(startTime, "LLMService", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) LLMServiceNoStream(service string, request CompletionRequest) (string, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.LLMServiceNoStream(service, request)
+	api.recordTime(startTime, "LLMServiceNoStream", _returnsB == nil)
+	return _returnsA, _returnsB
 }

@@ -11,6 +11,7 @@ import (
 	"log"
 
 	saml2 "github.com/mattermost/gosaml2"
+	"github.com/mattermost/mattermost-plugin-ai/llm"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
@@ -1230,6 +1231,158 @@ func (s *hooksRPCServer) OnSAMLLogin(args *Z_OnSAMLLoginArgs, returns *Z_OnSAMLL
 		returns.A = encodableError(returns.A)
 	} else {
 		return encodableError(fmt.Errorf("Hook OnSAMLLogin called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["AgentRequest"] = AgentRequestID
+}
+
+type Z_AgentRequestArgs struct {
+	A *Context
+	B string
+	C CompletionRequest
+}
+
+type Z_AgentRequestReturns struct {
+	A *llm.TextStreamResult
+	B error
+}
+
+func (g *hooksRPCClient) AgentRequest(c *Context, agent string, request CompletionRequest) (*llm.TextStreamResult, error) {
+	_args := &Z_AgentRequestArgs{c, agent, request}
+	_returns := &Z_AgentRequestReturns{}
+	if g.implemented[AgentRequestID] {
+		if err := g.client.Call("Plugin.AgentRequest", _args, _returns); err != nil {
+			g.log.Error("RPC call AgentRequest to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *hooksRPCServer) AgentRequest(args *Z_AgentRequestArgs, returns *Z_AgentRequestReturns) error {
+	if hook, ok := s.impl.(interface {
+		AgentRequest(c *Context, agent string, request CompletionRequest) (*llm.TextStreamResult, error)
+	}); ok {
+		returns.A, returns.B = hook.AgentRequest(args.A, args.B, args.C)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook AgentRequest called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["AgentRequestNoStream"] = AgentRequestNoStreamID
+}
+
+type Z_AgentRequestNoStreamArgs struct {
+	A *Context
+	B string
+	C CompletionRequest
+}
+
+type Z_AgentRequestNoStreamReturns struct {
+	A string
+	B error
+}
+
+func (g *hooksRPCClient) AgentRequestNoStream(c *Context, agent string, request CompletionRequest) (string, error) {
+	_args := &Z_AgentRequestNoStreamArgs{c, agent, request}
+	_returns := &Z_AgentRequestNoStreamReturns{}
+	if g.implemented[AgentRequestNoStreamID] {
+		if err := g.client.Call("Plugin.AgentRequestNoStream", _args, _returns); err != nil {
+			g.log.Error("RPC call AgentRequestNoStream to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *hooksRPCServer) AgentRequestNoStream(args *Z_AgentRequestNoStreamArgs, returns *Z_AgentRequestNoStreamReturns) error {
+	if hook, ok := s.impl.(interface {
+		AgentRequestNoStream(c *Context, agent string, request CompletionRequest) (string, error)
+	}); ok {
+		returns.A, returns.B = hook.AgentRequestNoStream(args.A, args.B, args.C)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook AgentRequestNoStream called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["LLMServiceRequest"] = LLMServiceRequestID
+}
+
+type Z_LLMServiceRequestArgs struct {
+	A *Context
+	B string
+	C CompletionRequest
+}
+
+type Z_LLMServiceRequestReturns struct {
+	A *llm.TextStreamResult
+	B error
+}
+
+func (g *hooksRPCClient) LLMServiceRequest(c *Context, service string, request CompletionRequest) (*llm.TextStreamResult, error) {
+	_args := &Z_LLMServiceRequestArgs{c, service, request}
+	_returns := &Z_LLMServiceRequestReturns{}
+	if g.implemented[LLMServiceRequestID] {
+		if err := g.client.Call("Plugin.LLMServiceRequest", _args, _returns); err != nil {
+			g.log.Error("RPC call LLMServiceRequest to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *hooksRPCServer) LLMServiceRequest(args *Z_LLMServiceRequestArgs, returns *Z_LLMServiceRequestReturns) error {
+	if hook, ok := s.impl.(interface {
+		LLMServiceRequest(c *Context, service string, request CompletionRequest) (*llm.TextStreamResult, error)
+	}); ok {
+		returns.A, returns.B = hook.LLMServiceRequest(args.A, args.B, args.C)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook LLMServiceRequest called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["LLMServiceRequestNoStream"] = LLMServiceRequestNoStreamID
+}
+
+type Z_LLMServiceRequestNoStreamArgs struct {
+	A *Context
+	B string
+	C CompletionRequest
+}
+
+type Z_LLMServiceRequestNoStreamReturns struct {
+	A string
+	B error
+}
+
+func (g *hooksRPCClient) LLMServiceRequestNoStream(c *Context, service string, request CompletionRequest) (string, error) {
+	_args := &Z_LLMServiceRequestNoStreamArgs{c, service, request}
+	_returns := &Z_LLMServiceRequestNoStreamReturns{}
+	if g.implemented[LLMServiceRequestNoStreamID] {
+		if err := g.client.Call("Plugin.LLMServiceRequestNoStream", _args, _returns); err != nil {
+			g.log.Error("RPC call LLMServiceRequestNoStream to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *hooksRPCServer) LLMServiceRequestNoStream(args *Z_LLMServiceRequestNoStreamArgs, returns *Z_LLMServiceRequestNoStreamReturns) error {
+	if hook, ok := s.impl.(interface {
+		LLMServiceRequestNoStream(c *Context, service string, request CompletionRequest) (string, error)
+	}); ok {
+		returns.A, returns.B = hook.LLMServiceRequestNoStream(args.A, args.B, args.C)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook LLMServiceRequestNoStream called but not implemented."))
 	}
 	return nil
 }
@@ -7907,6 +8060,130 @@ func (s *apiRPCServer) DeletePropertyValuesForField(args *Z_DeletePropertyValues
 		returns.A = encodableError(returns.A)
 	} else {
 		return encodableError(fmt.Errorf("API DeletePropertyValuesForField called but not implemented."))
+	}
+	return nil
+}
+
+type Z_AgentArgs struct {
+	A string
+	B CompletionRequest
+}
+
+type Z_AgentReturns struct {
+	A *llm.TextStreamResult
+	B error
+}
+
+func (g *apiRPCClient) Agent(agent string, request CompletionRequest) (*llm.TextStreamResult, error) {
+	_args := &Z_AgentArgs{agent, request}
+	_returns := &Z_AgentReturns{}
+	if err := g.client.Call("Plugin.Agent", _args, _returns); err != nil {
+		log.Printf("RPC call to Agent API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) Agent(args *Z_AgentArgs, returns *Z_AgentReturns) error {
+	if hook, ok := s.impl.(interface {
+		Agent(agent string, request CompletionRequest) (*llm.TextStreamResult, error)
+	}); ok {
+		returns.A, returns.B = hook.Agent(args.A, args.B)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API Agent called but not implemented."))
+	}
+	return nil
+}
+
+type Z_AgentNoStreamArgs struct {
+	A string
+	B CompletionRequest
+}
+
+type Z_AgentNoStreamReturns struct {
+	A string
+	B error
+}
+
+func (g *apiRPCClient) AgentNoStream(agent string, request CompletionRequest) (string, error) {
+	_args := &Z_AgentNoStreamArgs{agent, request}
+	_returns := &Z_AgentNoStreamReturns{}
+	if err := g.client.Call("Plugin.AgentNoStream", _args, _returns); err != nil {
+		log.Printf("RPC call to AgentNoStream API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) AgentNoStream(args *Z_AgentNoStreamArgs, returns *Z_AgentNoStreamReturns) error {
+	if hook, ok := s.impl.(interface {
+		AgentNoStream(agent string, request CompletionRequest) (string, error)
+	}); ok {
+		returns.A, returns.B = hook.AgentNoStream(args.A, args.B)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API AgentNoStream called but not implemented."))
+	}
+	return nil
+}
+
+type Z_LLMServiceArgs struct {
+	A string
+	B CompletionRequest
+}
+
+type Z_LLMServiceReturns struct {
+	A *llm.TextStreamResult
+	B error
+}
+
+func (g *apiRPCClient) LLMService(service string, request CompletionRequest) (*llm.TextStreamResult, error) {
+	_args := &Z_LLMServiceArgs{service, request}
+	_returns := &Z_LLMServiceReturns{}
+	if err := g.client.Call("Plugin.LLMService", _args, _returns); err != nil {
+		log.Printf("RPC call to LLMService API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) LLMService(args *Z_LLMServiceArgs, returns *Z_LLMServiceReturns) error {
+	if hook, ok := s.impl.(interface {
+		LLMService(service string, request CompletionRequest) (*llm.TextStreamResult, error)
+	}); ok {
+		returns.A, returns.B = hook.LLMService(args.A, args.B)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API LLMService called but not implemented."))
+	}
+	return nil
+}
+
+type Z_LLMServiceNoStreamArgs struct {
+	A string
+	B CompletionRequest
+}
+
+type Z_LLMServiceNoStreamReturns struct {
+	A string
+	B error
+}
+
+func (g *apiRPCClient) LLMServiceNoStream(service string, request CompletionRequest) (string, error) {
+	_args := &Z_LLMServiceNoStreamArgs{service, request}
+	_returns := &Z_LLMServiceNoStreamReturns{}
+	if err := g.client.Call("Plugin.LLMServiceNoStream", _args, _returns); err != nil {
+		log.Printf("RPC call to LLMServiceNoStream API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) LLMServiceNoStream(args *Z_LLMServiceNoStreamArgs, returns *Z_LLMServiceNoStreamReturns) error {
+	if hook, ok := s.impl.(interface {
+		LLMServiceNoStream(service string, request CompletionRequest) (string, error)
+	}); ok {
+		returns.A, returns.B = hook.LLMServiceNoStream(args.A, args.B)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("API LLMServiceNoStream called but not implemented."))
 	}
 	return nil
 }
