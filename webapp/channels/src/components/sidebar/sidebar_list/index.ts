@@ -5,11 +5,18 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
+import type {PreferenceType} from '@mattermost/types/preferences';
+
 import {moveCategory} from 'mattermost-redux/actions/channel_categories';
+import {readMultipleChannels} from 'mattermost-redux/actions/channels';
+import {savePreferences} from 'mattermost-redux/actions/preferences';
+import {Preferences} from 'mattermost-redux/constants';
 import {getCurrentChannelId, getUnreadChannelIds} from 'mattermost-redux/selectors/entities/channels';
-import {shouldShowUnreadsCategory, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {shouldShowUnreadsCategory, isCollapsedThreadsEnabled, get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getThreadCountsInCurrentTeam} from 'mattermost-redux/selectors/entities/threads';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {switchToChannelById} from 'actions/views/channel';
 import {
@@ -34,6 +41,8 @@ import SidebarList from './sidebar_list';
 function mapStateToProps(state: GlobalState) {
     const currentTeam = getCurrentTeam(state);
     const collapsedThreads = isCollapsedThreadsEnabled(state);
+    const getmarkAllAsReadWithoutConfirm = (state: GlobalState) =>
+        getPreference(state, Preferences.CATEGORY_SHORTCUT_ACTIONS, Preferences.MARK_ALL_READ_WITHOUT_CONFIRM, 'false');
 
     let hasUnreadThreads = false;
     if (collapsedThreads) {
@@ -42,6 +51,7 @@ function mapStateToProps(state: GlobalState) {
 
     return {
         currentTeam,
+        currentUserId: getCurrentUserId(state),
         currentChannelId: getCurrentChannelId(state),
         categories: getCategoriesForCurrentTeam(state),
         isUnreadFilterEnabled: isUnreadFilterEnabled(state),
@@ -53,12 +63,24 @@ function mapStateToProps(state: GlobalState) {
         showUnreadsCategory: shouldShowUnreadsCategory(state),
         collapsedThreads,
         hasUnreadThreads,
+        markAllAsReadWithoutConfirm: getmarkAllAsReadWithoutConfirm(state) === 'true',
+        markAllAsReadShortcutEnabled: getFeatureFlagValue(state, 'EnableShiftEscapeToMarkAllRead') === 'true',
         currentStaticPageId: getCurrentStaticPageId(state),
         staticPages: getVisibleStaticPages(state),
     };
 }
 
 function mapDispatchToProps(dispatch: Dispatch) {
+    const setMarkAllAsReadWithoutConfirm = (userId: string, value: boolean) => {
+        const preference: PreferenceType = {
+            category: Preferences.CATEGORY_SHORTCUT_ACTIONS,
+            name: Preferences.MARK_ALL_READ_WITHOUT_CONFIRM,
+            user_id: userId,
+            value: String(value),
+        };
+        return savePreferences(userId, [preference]);
+    };
+
     return {
         actions: bindActionCreators({
             close,
@@ -69,6 +91,8 @@ function mapDispatchToProps(dispatch: Dispatch) {
             stopDragging,
             clearChannelSelection,
             switchToLhsStaticPage,
+            readMultipleChannels,
+            setMarkAllAsReadWithoutConfirm,
         }, dispatch),
     };
 }
