@@ -161,9 +161,6 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 	// Mattermost-Plugin-ID can only be set by inter-plugin requests
 	r.Header.Del("Mattermost-Plugin-ID")
 
-	// Clean Authorization header. The Mattermost-User-Id header is used to indicate authenticated requests.
-	r.Header.Del(model.HeaderAuth)
-
 	// Clean Mattermost-User-Id header. The server sets this header for authenticated requests
 	r.Header.Del("Mattermost-User-Id")
 
@@ -203,6 +200,9 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 		handler(context, w, r)
 		return
 	}
+
+	// Clean Authorization header if using token auth. The Mattermost-User-Id header is used to indicate authenticated requests.
+	r.Header.Del(model.HeaderAuth)
 
 	session, appErr := app.GetSession(token)
 	if appErr != nil {
