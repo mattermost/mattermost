@@ -51,24 +51,40 @@ export default class ColorInput extends React.PureComponent<Props, State> {
 
         if (isOpened !== prevIsOpened) {
             if (isOpened) {
-                document.addEventListener('click', this.checkClick, {capture: true});
+                // Add a slight delay before adding the click handler to prevent immediate closing
+                setTimeout(() => {
+                    document.addEventListener('click', this.checkClick, {capture: true});
+                }, 10);
             } else {
-                document.removeEventListener('click', this.checkClick);
+                document.removeEventListener('click', this.checkClick, {capture: true});
             }
         }
     }
 
     private checkClick = (e: MouseEvent): void => {
+        // Don't close if clicking on the color icon itself (that's handled by togglePicker)
+        const colorIcon = document.getElementById(`${this.props.id}-squareColorIcon`);
+        if (colorIcon && colorIcon.contains(e.target as Element)) {
+            return;
+        }
+        
+        // Close if clicking outside the picker
         if (!this.colorPicker.current || !this.colorPicker.current.contains(e.target as Element)) {
             this.setState({isOpened: false});
         }
     };
 
-    private togglePicker = () => {
-        if (!this.state.isOpened && this.colorInput.current) {
+    private togglePicker = (e: React.MouseEvent) => {
+        e.stopPropagation(); // Prevent the event from propagating to document
+        
+        const shouldOpen = !this.state.isOpened;
+        
+        // Focus the input if we're opening the picker
+        if (shouldOpen && this.colorInput.current) {
             this.colorInput.current.focus();
         }
-        this.setState({isOpened: !this.state.isOpened});
+        
+        this.setState({isOpened: shouldOpen});
     };
 
     public handleColorChange = (newColorData: ColorResult) => {
@@ -155,6 +171,9 @@ export default class ColorInput extends React.PureComponent<Props, State> {
                         id={`${id}-squareColorIcon`}
                         className='input-group-addon color-pad'
                         onClick={this.togglePicker}
+                        role="button"
+                        aria-haspopup="true"
+                        aria-expanded={isOpened ? 'true' : 'false'}
                     >
                         <i
                             id={`${id}-squareColorIconValue`}
