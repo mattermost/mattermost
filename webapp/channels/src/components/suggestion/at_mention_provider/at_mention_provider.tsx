@@ -25,7 +25,7 @@ import Provider from '../provider';
 import type {Loading, ProviderResultsGroup} from '../suggestion_results';
 
 const profilesInChannelOptions = {active: true};
-const regexForAtMention = /(?:^|\W)@([\p{L}\d\-_. ]*)$/iu;
+const regexForAtMention = /(?:^|\W)[@＠]([\p{L}\d\-_. ]*)$/iu;
 
 type UserProfileWithLastViewAt = UserProfile & {last_viewed_at?: number};
 
@@ -63,6 +63,7 @@ export default class AtMentionProvider extends Provider {
     public data: any;
     public lastCompletedWord: string;
     public lastPrefixWithNoResults: string;
+    private matchedAtSymbol: string = '@';
     public getProfilesInChannel: (state: GlobalState, channelId: string, filters?: Filters | undefined) => UserProfile[];
     public addLastViewAtToProfiles: (state: GlobalState, profiles: UserProfile[]) => UserProfileWithLastViewAt[];
 
@@ -366,7 +367,7 @@ export default class AtMentionProvider extends Provider {
         }
 
         resultCallback({
-            matchedPretext: `@${this.latestPrefix}`,
+            matchedPretext: `${this.matchedAtSymbol}${this.latestPrefix}`,
             groups,
         });
     }
@@ -375,6 +376,11 @@ export default class AtMentionProvider extends Provider {
         const captured = regexForAtMention.exec(pretext.toLowerCase());
         if (!captured) {
             return false;
+        }
+
+        const atMatch = pretext.match(/[@＠]/);
+        if (atMatch) {
+            this.matchedAtSymbol = atMatch[0];
         }
 
         if (this.lastCompletedWord && captured[0].trim().startsWith(this.lastCompletedWord.trim())) {
@@ -422,9 +428,16 @@ export default class AtMentionProvider extends Provider {
         return true;
     }
 
-    handleCompleteWord(term: string) {
-        this.lastCompletedWord = term;
-        this.lastPrefixWithNoResults = '';
+    handleCompleteWord(term: string, matchedPretext: string) {
+    const atMatch = matchedPretext.match(/[@＠]/);
+    if (atMatch) {
+        this.matchedAtSymbol = atMatch[0];
+    }
+    
+    this.lastCompletedWord = term;
+    this.lastPrefixWithNoResults = '';
+    
+    return matchedPretext.replace(/＠/g, '@');
     }
 
     createFromProfile(profile: UserProfile | UserProfileWithLastViewAt): CreatedProfile {
