@@ -1,0 +1,44 @@
+name: Save Go Cache
+description: Saves Go module and build cache
+inputs:
+  prefix:
+    description: 'Cache key prefix'
+    required: true
+  working-directory:
+    description: 'Working directory containing go.mod'
+    required: false
+    default: '.'
+runs:
+  using: composite
+  steps:
+    - name: Sanitize cache prefix
+      id: sanitize
+      shell: bash
+      run: |
+        SAFE_PREFIX=$(echo "${{ inputs.prefix }}" | tr ' /' '-' | tr -cd '[:alnum:]-')
+        echo "PREFIX=${SAFE_PREFIX}" >> "${GITHUB_OUTPUT}"
+    - name: Resolve Go cache paths
+      id: go-paths
+      shell: bash
+      run: |
+        echo "GOMODCACHE=$(go env GOMODCACHE)" >> "${GITHUB_OUTPUT}"
+        echo "GOCACHE=$(go env GOCACHE)" >> "${GITHUB_OUTPUT}"
+    - name: Trim Go Cache
+      shell: bash
+      run: |
+        # Prune the cache of files not touched in the past 5 days.
+        find "${{ steps.go-paths.outputs.GOCACHE }}" -type f -mmin +90 -delete
+    - name: Set Go cache date
+      shell: bash
+      run: |
+        # Generate a cache key for the current date, effectively updating caches daily.
+        echo "GO_CACHE_DATE=$(date +%Y-%m-%d)" >> $GITHUB_ENV
+    - name: Save Go cache
+      uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+      with:
+        # Caches both the downloaded modules and the compiled build cache.
+        path: |
+          ${{ steps.go-paths.outputs.GOMODCACHE }}
+          ${{ steps.go-paths.outputs.GOCACHE }}
+        # Save to eg $prefix-v1-Linux-go-$hash-YYYY-MM-DD to keep the cache fresh
+        key: "${{ steps.sanitize.outputs.PREFIX }}-v1-${{ runner.os }}-go-${{ hashFiles(format('{0}/go.mod', inputs.working-directory)) }}-${{ env.GO_CACHE_DATE }}"
