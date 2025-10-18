@@ -599,6 +599,30 @@
         }
     }
 
+    .post__status {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        margin-left: 8px;
+        font-size: 12px;
+
+        &:first-child {
+            margin-left: 0;
+        }
+
+        &--failed {
+            color: var(--error-text);
+        }
+    }
+
+    .post__body-main {
+        display: block;
+
+        &--dimmed {
+            opacity: 0.65;
+        }
+    }
+
     .browser--ie & {
         .post__header {
             .col__reply {
@@ -1430,14 +1454,29 @@
             position: absolute;
             z-index: 100;
             top: 0;
-            right: 0;
-            padding: 5px 7px;
-            background: functions.alpha-color(variables.$black, 0.7);
-            color: variables.$white;
+            right: 12px;
             font-size: 0.9em;
+            display: inline-flex;
+            align-items: center;
+            column-gap: 8px;
+            white-space: nowrap;
 
-            a {
-                color: variables.$white;
+            &__error-message {
+                padding: 2px 4px;
+                background: functions.alpha-color(variables.$white, 0.8);
+            }
+
+            &__action-buttons {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                margin-left: 4px;
+                padding: 5px 7px;
+                background: functions.alpha-color(variables.$black, 0.7);
+
+                a {
+                    color: variables.$white;
+                }
             }
         }
     }

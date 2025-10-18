@@ -20,6 +20,10 @@ describe('components/post_view/FailedPostOptions', () => {
     test('should match default component state', () => {
         renderWithContext(<FailedPostOptions {...baseProps}/>);
 
+        const statusText = screen.getByText('Message failed to send');
+        expect(statusText).toBeInTheDocument();
+        expect(statusText.closest('.post__status--failed')).not.toBeNull();
+
         const retryLink = screen.getByText('Retry');
         const cancelLink = screen.getByText('Cancel');
 
