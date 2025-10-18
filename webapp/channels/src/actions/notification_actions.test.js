@@ -545,6 +545,79 @@ describe('notification_actions', () => {
                 });
             });
         });
+        describe('BodyMentionResolve', () => {
+            function setNameFormat(value) {
+                const prefs = baseState.entities.preferences.myPreferences;
+                const existing = prefs['display_settings--name_format'];
+                if (existing) {
+                    existing.value = value;
+                } else {
+                    prefs['display_settings--name_format'] = {
+                        category: 'display_settings',
+                        name: 'name_format',
+                        value,
+                    };
+                }
+            }
+            function prepareProfiles() {
+                baseState.entities.users.profiles.user_id = {
+                    ...baseState.entities.users.profiles.user_id,
+                    id: 'user_id',
+                    username: 'john',
+                    first_name: 'John',
+                    last_name: 'Doe',
+                    nickname: 'Johnny',
+                };
+                baseState.entities.users.profiles.mentioned_user_id = {
+                    id: 'mentioned_user_id',
+                    username: 'alice',
+                    first_name: 'Alice',
+                    last_name: 'Liddell',
+                    nickname: 'AliceNick',
+                    notify_props: {},
+                };
+            }
+            async function dispatchWith(message, nameFormat) {
+                setNameFormat(nameFormat);
+                prepareProfiles();
+                const localPost = {
+                    ...post,
+                    id: 'post_teammate_display_test',
+                    user_id: 'user_id',
+                    message,
+                };
+                const store = testConfigureStore(baseState);
+                await store.dispatch(sendDesktopNotification(localPost, msgProps));
+                if (!spy.mock.calls.length) {
+                    throw new Error('Notification was not sent (spy not called). message=' + message + ' format=' + nameFormat);
+                }
+                return spy.mock.calls[spy.mock.calls.length - 1][0].body;
+            }
+            test('should keep raw @username when name_format is username', async () => {
+                const body = await dispatchWith('@alice Hello', 'username');
+                expect(body).toBe('@john: @alice Hello');
+            });
+            test('should use nickname when name_format is nickname_full_name', async () => {
+                const body = await dispatchWith('@alice Hello', 'nickname_full_name');
+                expect(body).toBe('@Johnny: @AliceNick Hello');
+            });
+            test('should use first and last names when name_format is full_name', async () => {
+                const body = await dispatchWith('@alice Hello', 'full_name');
+                expect(body).toBe('@John Doe: @Alice Liddell Hello');
+            });
+            test('should leave unknown user mention unchanged', async () => {
+                const body = await dispatchWith('@ghost Ping', 'full_name');
+                expect(body).toBe('@John Doe: @ghost Ping');
+            });
+            test('should not change special mentions while replacing user mention', async () => {
+                const body = await dispatchWith('@alice @channel @here @all done', 'nickname_full_name');
+                expect(body).toBe('@Johnny: @AliceNick @channel @here @all done');
+            });
+            test('should strip markdown after replacing mentions', async () => {
+                const body = await dispatchWith('**Hi** @alice', 'full_name');
+                expect(body).toBe('@John Doe: Hi @Alice Liddell');
+            });
+        });
     });
 });
 
