@@ -1,0 +1,21 @@
+<h1 class="markdown__heading">Markdown Tables</h1><p>Verify that all tables render as described. First row is boldface.</p>
+<h3 class="markdown__heading">Normal Tables</h3><p>These tables use different raw text as inputs, but all three should render as the same table. </p>
+<h4 class="markdown__heading">Table 1</h4><p>Raw text:</p>
+<div class="post-code post-code--wrap"><div class="hljs"><code>First Header  | Second Header
+------------- | -------------
+Content Cell  | Content Cell
+Content Cell  | Content Cell</code></div></div><p>Renders as:</p>
+<div class="table-responsive"><table class="markdown__table"><thead><tr><th>First Header</th><th>Second Header</th></tr></thead><tbody><tr><td>Content Cell</td><td>Content Cell</td></tr><tr><td>Content Cell</td><td>Content Cell</td></tr></tbody></table></div><h4 class="markdown__heading">Table 2</h4><p>Raw Text:</p>
+<div class="post-code post-code--wrap"><div class="hljs"><code>| First Header  | Second Header |
+| ------------- | ------------- |
+| Content Cell  | Content Cell  |
+| Content Cell  | Content Cell  |</code></div></div><p>Renders as:</p>
+<div class="table-responsive"><table class="markdown__table"><thead><tr><th>First Header</th><th>Second Header</th></tr></thead><tbody><tr><td>Content Cell</td><td>Content Cell</td></tr><tr><td>Content Cell</td><td>Content Cell</td></tr></tbody></table></div><h4 class="markdown__heading">Table 3</h4><p>Raw Text:</p>
+<div class="post-code post-code--wrap"><div class="hljs"><code>| First Header | Second Header           |
+| ------------- | ----------- |
+| Content Cell     | Content Cell|
+| Content Cell        | Content Cell    |</code></div></div><p>Renders as:</p>
+<div class="table-responsive"><table class="markdown__table"><thead><tr><th>First Header</th><th>Second Header</th></tr></thead><tbody><tr><td>Content Cell</td><td>Content Cell</td></tr><tr><td>Content Cell</td><td>Content Cell</td></tr></tbody></table></div><h3 class="markdown__heading">Tables Containing Markdown</h3><p>This table should contain A1: Strikethrough, A2: Bold, B1: Italics, B2: Dolphin emoticon.</p>
+<div class="table-responsive"><table class="markdown__table"><thead><tr><th>Column\Row</th><th>1</th><th>2</th></tr></thead><tbody><tr><td>A</td><td><del>Strikethrough</del></td><td><strong>Bold</strong></td></tr><tr><td>B</td><td><em>italics</em></td><td><span data-emoticon="dolphin"><span alt=":dolphin:" class="emoticon" title=":dolphin:" style="background-image: url(&quot;http://localhost:8065/static/emoji/1f42c.png&quot;);">:dolphin:</span></span></td></tr></tbody></table></div><h3 class="markdown__heading">Table with Left, Center, and Right Aligned Columns</h3><p>The left column should be left aligned, the center column centered and the right column should be right aligned. </p>
+<div class="table-responsive"><table class="markdown__table"><thead><tr><th style="text-align: left;">Left-Aligned</th><th style="text-align: center;">Center Aligned</th><th style="text-align: right;">Right Aligned</th></tr></thead><tbody><tr><td style="text-align: left;">1</td><td style="text-align: center;">this text</td><td style="text-align: right;">$100</td></tr><tr><td style="text-align: left;">2</td><td style="text-align: center;">is</td><td style="text-align: right;">$10</td></tr><tr><td style="text-align: left;">3</td><td style="text-align: center;">centered</td><td style="text-align: right;">$1</td></tr></tbody></table></div><h3 class="markdown__heading">Table with Escaped Pipes</h3><p>First row cells: single backslash, "asdf". Second row cells: "ab" , "a|d"</p>
+<div class="table-responsive"><table class="markdown__table"><thead><tr><th>\</th><th>asdf</th></tr></thead><tbody><tr><td>ab</td><td>a|d</td></tr></tbody></table></div>
