@@ -366,10 +366,7 @@ export default class PostList extends React.PureComponent<Props, State> {
         }
 
         return (
-            <div
-                className='post-list-holder-by-time'
-                key={'postlist-' + this.props.channelId}
-            >
+            <div className='post-list-holder-by-time'>
                 <div className='post-list__table'>
                     <div
                         id='virtualizedPostListContent'
