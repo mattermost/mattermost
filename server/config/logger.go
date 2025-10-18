@@ -70,7 +70,7 @@ func MloggerConfigFromAuditConfig(auditSettings model.ExperimentalAuditSettings,
 
 	// add the simple audit config
 	if *auditSettings.FileEnabled {
-		targetCfg, err = makeSimpleFileTarget(*auditSettings.FileName, "error", true)
+		targetCfg, err = makeFileTargetFromAudit(&auditSettings, "error", true)
 		if err != nil {
 			return nil, err
 		}
@@ -212,3 +212,53 @@ func makeFileOptions(filename string) (json.RawMessage, error) {
 
 	return json.RawMessage(b), nil
 }
+
+// makeAuditFileOptions builds file options for AUDIT logs using ExperimentalAuditSettings.
+// Falls back to the regular logging defaults when fields are unset.
+func makeAuditFileOptions(a *model.ExperimentalAuditSettings) (json.RawMessage, error) {
+	filename := ""
+	maxSize := LogRotateSizeMB
+	maxAge := LogRotateMaxAge
+	maxBackups := LogRotateMaxBackups
+	compress := LogCompress
+
+	if a != nil {
+		if a.FileName != nil {
+			filename = *a.FileName
+		}
+		if a.FileMaxSizeMB != nil {
+			maxSize = *a.FileMaxSizeMB
+		}
+		if a.FileMaxAgeDays != nil {
+			maxAge = *a.FileMaxAgeDays
+		}
+		if a.FileMaxBackups != nil {
+			maxBackups = *a.FileMaxBackups
+		}
+		if a.FileCompress != nil {
+			compress = *a.FileCompress
+		}
+	}
+
+	opts := struct {
+		Filename    string `json:"filename"`
+		Max_size    int    `json:"max_size"`
+		Max_age     int    `json:"max_age"`
+		Max_backups int    `json:"max_backups"`
+		Compress    bool   `json:"compress"`
+	}{
+		Filename:    filename,
+		Max_size:    maxSize,
+		Max_age:     maxAge,
+		Max_backups: maxBackups,
+		Compress:    compress,
+	}
+
+	b, err := json.Marshal(opts)
+	if err != nil {
+		return nil, err
+	}
+	return json.RawMessage(b), nil
+}
+
+// makeAuditFileTarget creates a file target for AUDIT logs using audit-specific options.
