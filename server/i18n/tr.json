@@ -10986,5 +10986,41 @@
   {
     "id": "app.upload.create.cannot_upload_to_restricted_dm.error",
     "translation": "Kısıtlanmış bir doğrudan iletiye dosya yüklenemez."
+  },
+  {
+    "id": "api.encoding_error",
+    "translation": "API yanıtının JSON kodlamasında bir sorunla karşılaşıldı"
+  },
+  {
+    "id": "app.content_flagging.get_reviewer_settings.app_error",
+    "translation": "İçerik değerlendirici ayarları veri tabanından alınamadı"
+  },
+  {
+    "id": "app.content_flagging.save_reviewer_settings.app_error",
+    "translation": "İçerik değerlendirici ayarları veri tabanına kaydedilemedi."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.libretranslate.url.app_error",
+    "translation": "LibreTranslate adresi geçerli bir adres olmalı ve http:// ya da https:// ile başlamalıdır."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.provider.app_error",
+    "translation": "Otomatik çeviri hizmeti sağlayıcı geçersiz. Boş olmamalı."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.provider.unsupported.app_error",
+    "translation": "Otomatik çeviri hizmeti sağlayıcı desteklenmiyor."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.fetch.app_error",
+    "translation": "Otomatik çeviri ayarları için alma zaman aşımı değeri geçersiz. Pozitif bir sayı olmalıdır."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.new_post.app_error",
+    "translation": "Otomatik çeviri ayarları için yeni gönderi zaman aşımı değeri geçersiz. Pozitif bir sayı olmalıdır."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
+    "translation": "Otomatik çeviri ayarları için bildirim zaman aşımı değeri geçersiz. Pozitif bir sayı olmalıdır."
   }
 ]
