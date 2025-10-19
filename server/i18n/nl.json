@@ -11018,5 +11018,21 @@
   {
     "id": "model.config.is_valid.autotranslation.provider.app_error",
     "translation": "Ongeldige autotranslation provider, mag niet leeg zijn."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.provider.unsupported.app_error",
+    "translation": "Niet-ondersteunde provider voor automatische vertalingen."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.fetch.app_error",
+    "translation": "Ongeldige fetch timeout voor instellingen voor automatische vertalingen. Moet een positief getal zijn."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.new_post.app_error",
+    "translation": "Ongeldige time-out voor nieuwe berichten bij instellingen voor automatische vertalingen. Moet een positief getal zijn."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
+    "translation": "Ongeldige melding timeout voor automatische vertalingen. Moet een positief getal zijn. Moet een positief getal zijn."
   }
 ]
