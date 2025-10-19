@@ -83,7 +83,7 @@ import {
     getRedirectChannelNameForTeam,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getGroup} from 'mattermost-redux/selectors/entities/groups';
 import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
@@ -128,6 +128,7 @@ import WebSocketClient from 'client/web_websocket_client';
 import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
 import {getHistory} from 'utils/browser_history';
 import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
+import {isEnterpriseLicense} from 'utils/license_utils';
 import {getSiteURL} from 'utils/url';
 
 import {temporarilySetPageLoadContext} from './telemetry_actions';
@@ -288,7 +289,10 @@ export function reconnect() {
     });
 
     // Refresh custom profile attributes on reconnect
-    dispatch(getCustomProfileAttributeFields());
+    const license = getLicense(state);
+    if (isEnterpriseLicense(license) && getFeatureFlagValue(state, 'CustomProfileAttributes') === 'true') {
+        dispatch(getCustomProfileAttributeFields());
+    }
 
     if (state.websocket.lastDisconnectAt) {
         dispatch(checkForModifiedUsers());
