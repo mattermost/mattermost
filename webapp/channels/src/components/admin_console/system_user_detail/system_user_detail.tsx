@@ -182,7 +182,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             // Fetch user data and CPA values in parallel
             const [userResult, cpaResult] = await Promise.all([
                 this.props.getUser(userId) as ActionResult<UserProfile, ServerError>,
-                this.props.getCustomProfileAttributeValues(userId),
+                this.props.customProfileAttributeEnabled ? this.props.getCustomProfileAttributeValues(userId) : {},
             ]);
 
             if (userResult.data) {
@@ -219,7 +219,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         }
 
         // Fetch CPA field definitions if not already available
-        if (this.props.customProfileAttributeFields.length === 0) {
+        if (this.props.customProfileAttributeEnabled && this.props.customProfileAttributeFields.length === 0) {
             this.props.getCustomProfileAttributeFields();
         }
     }
@@ -248,7 +248,12 @@ export class SystemUserDetail extends PureComponent<Props, State> {
     };
 
     private hasCpaChanges = (state: State = this.state): boolean => {
-        const {customProfileAttributeFields} = this.props;
+        const {customProfileAttributeEnabled, customProfileAttributeFields} = this.props;
+
+        if (!customProfileAttributeEnabled) {
+            return false;
+        }
+
         for (const field of customProfileAttributeFields) {
             const currentValue = state.customProfileAttributeValues[field.id];
             const originalValue = state.originalCpaValues[field.id];
