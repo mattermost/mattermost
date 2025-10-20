@@ -8,15 +8,15 @@
     background-color: var(--center-channel-bg);
     gap: 40px;
 
-    .InlineSectionFeatureDiscovery__image {
+    &__image {
         flex-shrink: 0;
     }
 
-    .InlineSectionFeatureDiscovery__content {
+    &__content {
         flex: 1;
     }
 
-    .InlineSectionFeatureDiscovery__badge {
+    &__badge {
         margin-bottom: 16px;
 
         .LicenseSkuBadge {
@@ -24,7 +24,7 @@
         }
     }
 
-    .InlineSectionFeatureDiscovery__title {
+    &__title {
         margin: 0 0 8px;
         color: var(--center-channel-color);
         font-size: 18px;
@@ -32,14 +32,14 @@
         line-height: 24px;
     }
 
-    .InlineSectionFeatureDiscovery__description {
+    &__description {
         margin: 0 0 24px;
         color: rgba(var(--center-channel-color-rgb), 0.72);
         font-size: 14px;
         line-height: 20px;
     }
 
-    .InlineSectionFeatureDiscovery__actions {
+    &__actions {
         display: flex;
         align-items: center;
         gap: 16px;
