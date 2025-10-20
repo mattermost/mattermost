@@ -10832,10 +10832,6 @@
     "translation": "Bitte wähle einen Grund für die Markierung dieser Nachricht aus."
   },
   {
-    "id": "api.content_flagging.error.reviewer_only",
-    "translation": "Du hast keine Erlaubnis, diese Ressource zu sehen."
-  },
-  {
     "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
     "translation": "Entwurf kann nicht in einem beschränkten Kanal für Direktnachrichten gespeichert werden"
   },
@@ -10898,10 +10894,6 @@
   {
     "id": "app.content_flagging.create_property_values.app_error",
     "translation": "Die Eigenschaftswerte für den markierten Beitrag können nicht gespeichert werden."
-  },
-  {
-    "id": "app.content_flagging.delete_post.app_error",
-    "translation": "Der markierte Beitrag kann nicht gelöscht werden."
   },
   {
     "id": "app.content_flagging.flag_post.marshal_comment.app_error",

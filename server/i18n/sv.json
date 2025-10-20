@@ -10812,10 +10812,6 @@
     "translation": "Välj en anledning till att flagga detta meddelande."
   },
   {
-    "id": "api.content_flagging.error.reviewer_only",
-    "translation": "Du har inte behörighet att visa den här resursen."
-  },
-  {
     "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
     "translation": "Det går inte att spara utkast i en begränsad kanal för direktmeddelanden"
   }
