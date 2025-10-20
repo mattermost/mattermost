@@ -2074,31 +2074,61 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	if terms == "" && excludedTerms == "" {
 		// we've already confirmed that we have a channel or user to search for
 	} else {
-		termWords := strings.Fields(terms)
-		if len(termWords) > 0 {
-			var searchClauses []string
-			var searchArgs []any
-			for _, word := range termWords {
-				// フレーズ検索（""で囲まれた部分）はそのまま使用
-				cleanWord := strings.Trim(word, `"`)
+		//  ワイルドカードをLIKE句の検索用に変換
+		terms = wildCardRegex.ReplaceAllLiteralString(terms, "%")
+		excludedTerms = wildCardRegex.ReplaceAllLiteralString(excludedTerms, "%")
+
+		var searchClauses []string
+		var searchArgs []any
+
+		phrases := quotedStringsRegex.FindAllString(terms, -1)
+		terms = quotedStringsRegex.ReplaceAllString(terms, " ")
+		// フレーズ一致検索
+		for _, phrase := range phrases {
+			cleanPhrase := strings.Trim(phrase, `"`)
+			if cleanPhrase != "" {
 				searchClauses = append(searchClauses, fmt.Sprintf("%s LIKE ?", searchType))
-				searchArgs = append(searchArgs, "%"+cleanWord+"%")
+				searchArgs = append(searchArgs, "%"+cleanPhrase+"%")
 			}
-			logicalOperator := " AND "
-			if params.OrTerms {
-				logicalOperator = " OR "
-			}
-			baseQuery = baseQuery.Where("("+strings.Join(searchClauses, logicalOperator)+")", searchArgs...)
 		}
 
+		termWords := strings.Fields(terms)
+		if len(termWords) > 0 {
+			for _, word := range termWords {
+				//ワイルドカードのうち前方検索のみ対応
+				if strings.HasSuffix(word, "%") {
+					searchClauses = append(searchClauses, fmt.Sprintf("%s LIKE ?", searchType))
+					searchArgs = append(searchArgs, word)
+				} else {
+					searchClauses = append(searchClauses, fmt.Sprintf("%s LIKE ?", searchType))
+					searchArgs = append(searchArgs, "%"+word+"%")
+				}
+			}
+		}
+
+		logicalOperator := " AND "
+		if params.OrTerms {
+			logicalOperator = " OR "
+		}
+
+		baseQuery = baseQuery.Where("("+strings.Join(searchClauses, logicalOperator)+")", searchArgs...)
+		
 		excludedWords := strings.Fields(excludedTerms)
 		if len(excludedWords) > 0 {
 			var excludedClauses []string
 			var excludedArgs []any
 			for _, word := range excludedWords {
-				cleanWord := strings.Trim(word, `"`)
-				excludedClauses = append(excludedClauses, fmt.Sprintf("%s NOT LIKE ?", searchType))
-				excludedArgs = append(excludedArgs, "%"+cleanWord+"%")
+				cleanWord := strings.TrimPrefix(strings.Trim(word, `"`), "-")
+				if cleanWord == "" {
+					continue
+				}
+				if strings.HasSuffix(cleanWord, "%") {
+					excludedClauses = append(excludedClauses, fmt.Sprintf("%s NOT LIKE ?", searchType))
+					excludedArgs = append(excludedArgs, cleanWord)
+				} else {
+					excludedClauses = append(excludedClauses, fmt.Sprintf("%s NOT LIKE ?", searchType))
+					excludedArgs = append(excludedArgs, "%"+cleanWord+"%")
+				}
 			}
 			baseQuery = baseQuery.Where(strings.Join(excludedClauses, " AND "), excludedArgs...)
 		}
