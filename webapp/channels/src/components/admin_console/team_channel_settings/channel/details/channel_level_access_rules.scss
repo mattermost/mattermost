@@ -1,0 +1,159 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.channel-level-access-rules {
+    .channel-access-rules__editor {
+        padding: 16px;
+
+        .table-editor__actions-row {
+            padding: 12px;
+        }
+    }
+
+    .channel-access-rules__error {
+        display: flex;
+        align-items: center;
+        padding: 12px;
+        border: 1px solid var(--error-text);
+        border-radius: 4px;
+        margin-top: 8px;
+        background-color: var(--error-text-color);
+        color: var(--error-text);
+        font-size: 14px;
+        gap: 8px;
+
+        i {
+            flex-shrink: 0;
+            font-size: 16px;
+        }
+    }
+
+    .channel-access-rules__auto-sync {
+        margin-top: 16px;
+    }
+
+    .channel-access-rules__auto-sync-divider {
+        height: 1px;
+        margin-bottom: 16px;
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+    }
+
+    .channel-access-rules__auto-sync-content {
+        padding: 16px;
+    }
+
+    .channel-access-rules__auto-sync-label {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 8px;
+        cursor: pointer;
+        gap: 8px;
+
+        &:hover {
+            .channel-access-rules__auto-sync-text {
+                color: var(--link-color);
+            }
+        }
+    }
+
+    .channel-access-rules__auto-sync-checkbox {
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    .channel-access-rules__auto-sync-text {
+        color: var(--center-channel-color);
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 20px;
+        transition: color 0.15s ease-in-out;
+    }
+
+    .channel-access-rules__auto-sync-help {
+        margin-left: 24px;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 12px;
+        line-height: 16px;
+    }
+
+    .channel-access-rules__test-section {
+        padding-top: 16px;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        margin-top: 16px;
+
+        .btn {
+            height: auto;
+            padding: 8px 16px;
+            font-size: 14px;
+            line-height: 20px;
+        }
+    }
+
+    // Override AdminPanelWithButton styles for better spacing
+    .admin-panel__content {
+        padding-bottom: 0;
+    }
+
+    // Ensure proper TableEditor integration
+    .table-editor {
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        background-color: var(--center-channel-bg);
+
+        .table-editor__header {
+            padding: 16px;
+            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+            background-color: rgba(var(--center-channel-color-rgb), 0.04);
+        }
+
+        .table-editor__body {
+            padding: 16px;
+        }
+    }
+
+    // Responsive adjustments
+    @media screen and (max-width: 768px) {
+        .channel-access-rules__auto-sync-help {
+            margin-top: 8px;
+            margin-left: 0;
+        }
+
+        .channel-access-rules__test-section {
+            .btn {
+                width: 100%;
+            }
+        }
+    }
+}
+
+// Modal styling for better consistency
+.channel-access-rules-confirm-modal {
+    .modal-body {
+        padding: 24px;
+    }
+
+    .user-list {
+        max-height: 200px;
+        padding: 12px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        margin: 16px 0;
+        background-color: rgba(var(--center-channel-color-rgb), 0.04);
+        overflow-y: auto;
+
+        .user-item {
+            display: flex;
+            align-items: center;
+            padding: 4px 0;
+            color: var(--center-channel-color);
+            font-size: 14px;
+            gap: 8px;
+
+            &:not(:last-child) {
+                padding-bottom: 8px;
+                border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+                margin-bottom: 8px;
+            }
+        }
+    }
+}
