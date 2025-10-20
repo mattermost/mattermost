@@ -51,9 +51,9 @@ describe('Selectors.ChannelBanner', () => {
                         channel1: {
                             id: channelId,
                             team_id: teamId,
-                            type: 'D', // Direct message channel
+                            type: General.OPEN_CHANNEL,
                             banner_info: {
-                                enabled: true,
+                                enabled: false,
                                 text: 'Text',
                                 background_color: '#000000',
                             },
