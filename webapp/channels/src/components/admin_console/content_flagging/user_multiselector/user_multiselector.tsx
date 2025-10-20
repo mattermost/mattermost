@@ -94,22 +94,22 @@ export function UserSelector({id, isMulti, className, multiSelectOnChange, multi
     useEffect(() => {
         const fetchInitialData = async () => {
             const param = isMulti ? multiSelectInitialValue : [singleSelectInitialValue || ''];
-            
+
             if (!param || param.length === 0 || !param[0]) {
                 return;
             }
-            
+
             // Create a string key from the current value to track what we've loaded
             const valueKey = param.join(',');
-            
+
             // Skip if we already loaded this exact set of values
             if (lastLoadedValue.current === valueKey) {
                 return;
             }
-            
+
             // Fetch user profiles
             await dispatch(getMissingProfilesByIds(param));
-            
+
             // Fetch groups if enabled
             // Note: We try to fetch all IDs as groups, but silently ignore errors since some might be user IDs
             if (isGroupsEnabled) {
@@ -122,7 +122,7 @@ export function UserSelector({id, isMulti, className, multiSelectOnChange, multi
                 );
                 await Promise.allSettled(groupFetchPromises);
             }
-            
+
             // Mark this set of values as loaded
             lastLoadedValue.current = valueKey;
             initialDataLoaded.current = true;
@@ -140,23 +140,23 @@ export function UserSelector({id, isMulti, className, multiSelectOnChange, multi
     const selectInitialValue = useMemo(() => {
         const result: Array<AutocompleteOptionType<UserProfile | Group>> = [];
         const addedIds = new Set<string>();
-        
+
         if (!initialValue) {
             return result;
         }
-        
+
         // Build a map of user IDs for quick lookup
         const userMap = new Map<string, UserProfile>();
         initialUsers.filter(Boolean).forEach((user: UserProfile) => {
             userMap.set(user.id, user);
         });
-        
+
         // Iterate through initialValue once and add each ID as either user or group
         initialValue.forEach((id) => {
             if (addedIds.has(id)) {
                 return; // Skip duplicates
             }
-            
+
             // Try to add as user first
             const user = userMap.get(id);
             if (user) {
@@ -168,7 +168,7 @@ export function UserSelector({id, isMulti, className, multiSelectOnChange, multi
                 addedIds.add(id);
                 return;
             }
-            
+
             // If not a user and groups are enabled, try to add as group
             if (isGroupsEnabled) {
                 const group = allGroups[id];
@@ -182,7 +182,7 @@ export function UserSelector({id, isMulti, className, multiSelectOnChange, multi
                 }
             }
         });
-        
+
         return result;
     }, [initialUsers, allGroups, initialValue, isGroupsEnabled]);
 

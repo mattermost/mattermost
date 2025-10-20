@@ -186,10 +186,13 @@ export type AdminDefinitionConfigSchemaSection = {
     key: string;
     title?: string;
     subtitle?: string;
+    description?: string | MessageDescriptor;
+    license_sku?: string;
     settings: AdminDefinitionSetting[];
     header?: string | MessageDescriptor;
     footer?: string | MessageDescriptor;
     component?: Component;
+    componentProps?: any;
     isHidden?: Check;
 }
 

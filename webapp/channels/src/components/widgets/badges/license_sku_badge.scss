@@ -1,0 +1,18 @@
+.LicenseSkuBadge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 4px;
+    margin-left: 8px;
+    background-color: rgba(var(--online-indicator-rgb), 0.12);
+    color: var(--online-indicator);
+    font-size: 12px;
+    font-weight: 600;
+    gap: 4px;
+    line-height: 16px;
+    vertical-align: middle;
+
+    .icon {
+        font-size: 14px;
+    }
+}
