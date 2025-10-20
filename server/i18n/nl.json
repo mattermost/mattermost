@@ -10844,10 +10844,6 @@
     "translation": "Selecteer een reden om dit bericht te markeren."
   },
   {
-    "id": "api.content_flagging.error.reviewer_only",
-    "translation": "Je hebt geen toestemming om deze bron te bekijken."
-  },
-  {
     "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
     "translation": "Kan concept niet opslaan in beperkt directe berichten kanaal"
   },
@@ -10906,10 +10902,6 @@
   {
     "id": "app.content_flagging.create_property_values.app_error",
     "translation": "Kan de waarden van eigenschappen voor de gemarkeerde post niet opslaan."
-  },
-  {
-    "id": "app.content_flagging.delete_post.app_error",
-    "translation": "De gemarkeerde post kan niet worden verwijderd."
   },
   {
     "id": "app.content_flagging.flag_post.marshal_comment.app_error",
