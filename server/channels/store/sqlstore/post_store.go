@@ -3148,7 +3148,6 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 				thread.LastReplyAt = post.CreateAt
 			}
 		}
-
 		if _, err := transaction.NamedExec(`UPDATE Threads
 			SET ChannelId = :ChannelId,
 				ReplyCount = :ReplyCount,
