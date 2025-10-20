@@ -23,6 +23,7 @@ import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {getCurrentChannelStats, getCurrentChannelId, getMyChannelMember, getRedirectChannelNameForTeam, getChannelsNameMapInTeam, getAllDirectChannels, getChannelMessageCount} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getBool, getIsOnboardingFlowEnabled, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {isScheduledPostsEnabled} from 'mattermost-redux/selectors/entities/scheduled_posts';
 import {getCurrentTeamId, getMyTeams, getTeam, getMyTeamMember, getTeamMemberships, getActiveTeamsList} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser, getCurrentUserId, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
 import {calculateUnreadCount} from 'mattermost-redux/utils/channel_utils';
@@ -385,7 +386,9 @@ export async function redirectUserToDefaultTeam(searchParams?: URLSearchParams) 
     if (team && team.delete_at === 0) {
         const channel = await getTeamRedirectChannelIfIsAccesible(user, team);
         if (channel) {
-            dispatch(fetchTeamScheduledPosts(team.id, true));
+            if (isScheduledPostsEnabled(state)) {
+                dispatch(fetchTeamScheduledPosts(team.id, true));
+            }
             dispatch(selectChannel(channel.id));
             historyPushWithQueryParams(`/${team.name}/channels/${channel.name}`, searchParams);
             return;
