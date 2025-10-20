@@ -10,7 +10,7 @@ import type {UserPropertyField} from '@mattermost/types/properties';
 
 import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentUser, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUser, getCurrentUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
 import ConfirmModal from 'components/confirm_modal';
@@ -48,6 +48,9 @@ function ChannelSettingsAccessRulesTab({
     const activityWarningDismissed = useSelector((state: GlobalState) =>
         getBool(state, Preferences.CATEGORY_ABAC_ACTIVITY_WARNING, channel.id, false),
     );
+
+    // Check if current user is system admin (system admins should never be restricted)
+    const isSystemAdmin = useSelector(isCurrentUserSystemAdmin);
 
     // State for the access control expression and user attributes
     const [expression, setExpression] = useState('');
@@ -645,6 +648,8 @@ function ChannelSettingsAccessRulesTab({
                         channelId={channel.id}
                         actions={actions}
                         enableUserManagedAttributes={accessControlSettings?.EnableUserManagedAttributes || false}
+                        isSystemAdmin={isSystemAdmin}
+                        validateExpressionAgainstRequester={actions.validateExpressionAgainstRequester}
                     />
                 </div>
             )}

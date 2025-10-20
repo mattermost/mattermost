@@ -17,11 +17,17 @@ import {
 } from 'components/admin_console/system_properties/controls';
 
 import {UserSelector} from '../../content_flagging/user_multiselector/user_multiselector';
-import type {SystemConsoleCustomSettingsComponentProps} from '../../schema_admin_settings';
+import type {SystemConsoleCustomSettingChangeHandler} from '../../schema_admin_settings';
 
 import './content_reviewers.scss';
 
-export default function ContentFlaggingContentReviewers(props: SystemConsoleCustomSettingsComponentProps) {
+type Props = {
+    id: string;
+    onChange: SystemConsoleCustomSettingChangeHandler;
+    value: ContentFlaggingReviewerSetting;
+}
+
+export default function ContentFlaggingContentReviewers(props: Props) {
     const [reviewerSetting, setReviewerSetting] = useState<ContentFlaggingReviewerSetting>(props.value as ContentFlaggingReviewerSetting);
 
     const handleSameReviewersForAllTeamsChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {

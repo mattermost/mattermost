@@ -53,7 +53,7 @@ import type {
     AllowedIPRanges,
     AllowedIPRange,
     FetchIPResponse,
-    LdapSettings,
+    LdapSettings, ContentFlaggingSettings,
 } from '@mattermost/types/config';
 import type {ContentFlaggingConfig} from '@mattermost/types/content_flagging';
 import type {
@@ -1321,9 +1321,19 @@ export default class Client4 {
         );
     }
 
-    getTeam = (teamId: string) => {
+    getTeam = (teamId: string, asContentReviewer = false, flaggedPostId?: string) => {
+        const queryParamsArgs: Record<string, any> = {};
+        if (asContentReviewer) {
+            queryParamsArgs.as_content_reviewer = true;
+        }
+
+        if (flaggedPostId) {
+            queryParamsArgs.flagged_post_id = flaggedPostId;
+        }
+
+        const queryParams = buildQueryString(queryParamsArgs);
         return this.doFetch<Team>(
-            this.getTeamRoute(teamId),
+            `${this.getTeamRoute(teamId)}${queryParams}`,
             {method: 'get'},
         );
     };
@@ -1706,9 +1716,19 @@ export default class Client4 {
         );
     };
 
-    getChannel = (channelId: string) => {
+    getChannel = (channelId: string, asContentReviewer = false, flaggedPostId?: string) => {
+        const queryParamsArgs: Record<string, any> = {};
+        if (asContentReviewer) {
+            queryParamsArgs.as_content_reviewer = true;
+        }
+
+        if (flaggedPostId) {
+            queryParamsArgs.flagged_post_id = flaggedPostId;
+        }
+
+        const queryParams = buildQueryString(queryParamsArgs);
         return this.doFetch<ServerChannel>(
-            `${this.getChannelRoute(channelId)}`,
+            `${this.getChannelRoute(channelId)}${queryParams}`,
             {method: 'get'},
         );
     };
@@ -2168,6 +2188,13 @@ export default class Client4 {
     updateCustomProfileAttributeValues = (attributeValues: Record<string, string | string[]>) => {
         return this.doFetch<Record<string, string | string[]>>(
             `${this.getCustomProfileAttributeValuesRoute()}`,
+            {method: 'PATCH', body: JSON.stringify(attributeValues)},
+        );
+    };
+
+    updateUserCustomProfileAttributesValues = (userID: string, attributeValues: Record<string, string | string[]>) => {
+        return this.doFetch<Record<string, string | string[]>>(
+            `${this.getUserRoute(userID)}/custom_profile_attributes`,
             {method: 'PATCH', body: JSON.stringify(attributeValues)},
         );
     };
@@ -4689,6 +4716,34 @@ export default class Client4 {
     getFlaggedPost = (postId: string) => {
         return this.doFetch<Post>(
             `${this.getContentFlaggingRoute()}/post/${postId}`,
+            {method: 'get'},
+        );
+    };
+
+    searchContentFlaggingReviewers = (term: string, teamId: string) => {
+        return this.doFetch<UserProfile[]>(
+            `${this.getContentFlaggingRoute()}/team/${teamId}/reviewers/search${buildQueryString({term})}`,
+            {method: 'get'},
+        );
+    };
+
+    setContentFlaggingReviewer = (postId: string, reviewerId: string) => {
+        return this.doFetch(
+            `${this.getContentFlaggingRoute()}/post/${postId}/assign/${reviewerId}`,
+            {method: 'post'},
+        );
+    };
+
+    saveContentFlaggingConfig = (config: ContentFlaggingSettings) => {
+        return this.doFetch(
+            `${this.getContentFlaggingRoute()}/config`,
+            {method: 'put', body: JSON.stringify(config)},
+        );
+    };
+
+    getAdminContentFlaggingConfig = () => {
+        return this.doFetch<ContentFlaggingSettings>(
+            `${this.getContentFlaggingRoute()}/config`,
             {method: 'get'},
         );
     };
