@@ -10836,10 +10836,6 @@
     "translation": "Wybierz powód oflagowania tej wiadomości."
   },
   {
-    "id": "api.content_flagging.error.reviewer_only",
-    "translation": "Nie masz uprawnień do wyświetlania tego zasobu."
-  },
-  {
     "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
     "translation": "Nie możesz zapisać wersji roboczej do zastrzeżonego kanału wiadomości bezpośrednich"
   },
@@ -10902,10 +10898,6 @@
   {
     "id": "app.content_flagging.create_property_values.app_error",
     "translation": "Nie udało się zapisać wartości właściwości dla oflagowanego posta."
-  },
-  {
-    "id": "app.content_flagging.delete_post.app_error",
-    "translation": "Nie możesz usunąć oflagowanego posta."
   },
   {
     "id": "app.content_flagging.flag_post.marshal_comment.app_error",

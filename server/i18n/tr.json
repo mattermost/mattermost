@@ -10832,10 +10832,6 @@
     "translation": "Lütfen bu iletinin işaretlenme nedenini seçin."
   },
   {
-    "id": "api.content_flagging.error.reviewer_only",
-    "translation": "Bu kaynağı görüntüleme izniniz yok."
-  },
-  {
     "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
     "translation": "Kısıtlanmış doğrudan ileti kanalına taslak kaydedilemez"
   },
@@ -10894,10 +10890,6 @@
   {
     "id": "app.content_flagging.create_property_values.app_error",
     "translation": "İşaretlenmiş iletinin özellik değerleri kaydedilemiyor."
-  },
-  {
-    "id": "app.content_flagging.delete_post.app_error",
-    "translation": "İşaretlenmiş ileti yumuşak silinemiyor."
   },
   {
     "id": "app.content_flagging.flag_post.marshal_comment.app_error",
