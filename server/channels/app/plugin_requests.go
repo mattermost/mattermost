@@ -79,7 +79,11 @@ func (a *App) ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, so
 		UserAgent: r.UserAgent(),
 	}
 
-	r.Header.Set("Mattermost-Plugin-ID", sourcePluginId)
+	// Only set Mattermost-Plugin-ID if sourcePluginId is not empty
+	// Otherwise, preserve the header that was already set (e.g., "com.mattermost.server" for core calls)
+	if sourcePluginId != "" {
+		r.Header.Set("Mattermost-Plugin-ID", sourcePluginId)
+	}
 
 	hooks.ServeHTTP(context, w, r)
 }
