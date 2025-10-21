@@ -1275,7 +1275,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		otherUser := th.CreateUser()
 		th.LinkUserToTeam(otherUser, th.BasicTeam)
 		restrictedChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
-		th.RemoveUserFromChannel(th.BasicUser, restrictedChannel)
+		_ = th.RemoveUserFromChannel(th.BasicUser, restrictedChannel)
 		th.AddUserToChannel(otherUser, restrictedChannel)
 
 		// Token includes all three channels
@@ -2783,8 +2783,8 @@ func TestAuthenticateUserForEasyLogin(t *testing.T) {
 		assert.NotEqual(t, user1.Username, user2.Username, "Usernames should be unique")
 
 		// Cleanup
-		th.App.PermanentDeleteUser(th.Context, user1)
-		th.App.PermanentDeleteUser(th.Context, user2)
+		require.Nil(t, th.App.PermanentDeleteUser(th.Context, user1))
+		require.Nil(t, th.App.PermanentDeleteUser(th.Context, user2))
 	})
 
 	t.Run("invalid team id in token returns error", func(t *testing.T) {
@@ -2811,7 +2811,7 @@ func TestAuthenticateUserForEasyLogin(t *testing.T) {
 		createdUser, getUserErr := th.App.GetUserByEmail(email)
 		if getUserErr == nil {
 			// Cleanup if user was created
-			th.App.PermanentDeleteUser(th.Context, createdUser)
+			require.Nil(t, th.App.PermanentDeleteUser(th.Context, createdUser))
 		}
 	})
 
@@ -2851,6 +2851,6 @@ func TestAuthenticateUserForEasyLogin(t *testing.T) {
 		assert.True(t, channelIds[privateChannel.Id], "User should be in private channel")
 
 		// Cleanup
-		th.App.PermanentDeleteUser(th.Context, user)
+		require.Nil(t, th.App.PermanentDeleteUser(th.Context, user))
 	})
 }

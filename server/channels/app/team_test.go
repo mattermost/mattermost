@@ -556,7 +556,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		otherUser := th.CreateUser()
 		th.LinkUserToTeam(otherUser, th.BasicTeam)
 		otherPrivateChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
-		th.RemoveUserFromChannel(th.BasicUser, otherPrivateChannel)
+		_ = th.RemoveUserFromChannel(th.BasicUser, otherPrivateChannel)
 		th.AddUserToChannel(otherUser, otherPrivateChannel)
 
 		// Token includes both channels, but sender only has access to one

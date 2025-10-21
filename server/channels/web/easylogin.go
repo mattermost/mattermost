@@ -34,8 +34,8 @@ func loginWithEasyToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check user authentication criteria
-	if err := c.App.CheckUserAllAuthenticationCriteria(c.AppContext, user, ""); err != nil {
-		utils.RenderWebAppError(c.App.Config(), w, r, err, c.App.AsymmetricSigningKey())
+	if authErr := c.App.CheckUserAllAuthenticationCriteria(c.AppContext, user, ""); authErr != nil {
+		utils.RenderWebAppError(c.App.Config(), w, r, authErr, c.App.AsymmetricSigningKey())
 		return
 	}
 
