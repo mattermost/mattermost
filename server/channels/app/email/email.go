@@ -565,7 +565,12 @@ func (es *Service) SendGuestInviteEmails(
 				continue
 			}
 
-			data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s&sbr=%s&easy_login=%t", siteURL, url.QueryEscape(tokenData), url.QueryEscape(token.Token), es.GetTrackFlowStartedByRole(isFirstAdmin, isSystemAdmin), isEasyLogin)
+			if isEasyLogin {
+				// Easy login uses SSO-style authentication - clicking the link logs them in directly
+				data.Props["ButtonURL"] = fmt.Sprintf("%s/login/sso/easy?t=%s", siteURL, url.QueryEscape(token.Token))
+			} else {
+				data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s&sbr=%s", siteURL, url.QueryEscape(tokenData), url.QueryEscape(token.Token), es.GetTrackFlowStartedByRole(isFirstAdmin, isSystemAdmin))
+			}
 
 			if !*es.config().EmailSettings.SendEmailNotifications {
 				mlog.Info("sending invitation ", mlog.String("to", invite), mlog.String("link", data.Props["ButtonURL"].(string)))
