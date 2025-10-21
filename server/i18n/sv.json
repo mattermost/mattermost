@@ -10778,5 +10778,41 @@
   {
     "id": "model.config.is_valid.client_side_cert_enable.app_error",
     "translation": "Certifikat-baserad autentisering har tagits bort. Inaktivera ClientSideCertEnable för att fortsätta."
+  },
+  {
+    "id": "api.channel.patch_update_channel.restricted_dm.app_error",
+    "translation": "Det går inte att uppdatera en begränsad kanal för direktmeddelanden."
+  },
+  {
+    "id": "api.command.execute_command.restricted_dm.error",
+    "translation": "Det går inte att posta i en begränsad direkmeddelandekanal"
+  },
+  {
+    "id": "api.content_flagging.error.comment_required",
+    "translation": "Lägg till en kommentar som förklarar varför du flaggar det här meddelandet."
+  },
+  {
+    "id": "api.content_flagging.error.comment_too_long",
+    "translation": "Meddelande om anledning till flaggning får inte vara längre än {{.MaxLength}} tecken."
+  },
+  {
+    "id": "api.content_flagging.error.not_available_on_team",
+    "translation": "Funktionen för flaggning av innehåll är inte aktiverad i det här teamet."
+  },
+  {
+    "id": "api.content_flagging.error.post_not_in_progress",
+    "translation": "Det flaggade inlägget måste ha status som väntande eller tilldelat för att behållas eller tas bort."
+  },
+  {
+    "id": "api.content_flagging.error.reason_invalid",
+    "translation": "Okänd orsak angiven för flaggning av meddelande."
+  },
+  {
+    "id": "api.content_flagging.error.reason_required",
+    "translation": "Välj en anledning till att flagga detta meddelande."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
+    "translation": "Det går inte att spara utkast i en begränsad kanal för direktmeddelanden"
   }
 ]
