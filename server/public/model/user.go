@@ -68,6 +68,8 @@ const (
 	UserRolesMaxLength    = 256
 
 	DesktopTokenTTL = time.Minute * 3
+
+	UserAuthServiceEasyLogin = "easy_login"
 )
 
 //msgp:tuple User
@@ -872,6 +874,10 @@ func (u *User) IsGuest() bool {
 	return IsInRole(u.Roles, SystemGuestRoleId)
 }
 
+func (u *User) IsEasyLoginEnabled() bool {
+	return u.AuthService == UserAuthServiceEasyLogin
+}
+
 func (u *User) IsSystemAdmin() bool {
 	return IsInRole(u.Roles, SystemAdminRoleId)
 }
@@ -1108,4 +1114,8 @@ type UserPostStats struct {
 	LastPostDate *int64 `json:"last_post_date,omitempty"`
 	DaysActive   *int   `json:"days_active,omitempty"`
 	TotalPosts   *int   `json:"total_posts,omitempty"`
+}
+
+type LoginTypeResponse struct {
+	AuthService string `json:"auth_service"`
 }
