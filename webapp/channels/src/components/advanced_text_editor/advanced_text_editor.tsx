@@ -66,7 +66,6 @@ import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 import {isPostDraftEmpty} from 'types/store/draft';
 
-import AIRewriteButton from './ai_rewrite_button';
 import DoNotDisturbWarning from './do_not_disturb_warning';
 import EditPostFooter from './edit_post_footer';
 import Footer from './footer';
@@ -77,7 +76,6 @@ import SendButton from './send_button';
 import ShowFormat from './show_formatting';
 import TexteditorActions from './texteditor_actions';
 import ToggleFormattingBar from './toggle_formatting_bar';
-import useAIRewrite from './use_ai_rewrite';
 import useEditorEmojiPicker from './use_editor_emoji_picker';
 import useKeyHandler from './use_key_handler';
 import useOrientationHandler from './use_orientation_handler';
@@ -311,20 +309,6 @@ const AdvancedTextEditor = ({
     useOrientationHandler(textboxRef, rootId);
     const pluginItems = usePluginItems(draft, textboxRef, handleDraftChange, channelId);
     const focusTextbox = useTextboxFocus(textboxRef, channelId, isRHS, canPost);
-
-    const handleAIRewriteComplete = useCallback((rewrittenMessage: string) => {
-        handleDraftChange({
-            ...draft,
-            message: rewrittenMessage,
-        });
-        focusTextbox();
-    }, [draft, handleDraftChange, focusTextbox]);
-
-    const {handleRewrite: handleAIRewrite, isRewriting: isAIRewriting} = useAIRewrite(
-        draft.message,
-        handleAIRewriteComplete,
-    );
-
     const [attachmentPreview, fileUploadJSX] = useUploadFiles(
         draft,
         rootId,
@@ -846,13 +830,6 @@ const AdvancedTextEditor = ({
                                 />
                                 <Separator/>
                                 {fileUploadJSX}
-                                {draft.message && !isInEditMode && (
-                                    <AIRewriteButton
-                                        onClick={handleAIRewrite}
-                                        disabled={!draft.message.trim() || showPreview}
-                                        isLoading={isAIRewriting}
-                                    />
-                                )}
                                 {emojiPicker}
                                 {sendButton}
                             </TexteditorActions>
