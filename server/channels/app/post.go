@@ -1749,7 +1749,7 @@ func (a *App) SearchPostsForUser(c request.CTX, terms string, userID string, tea
 		return model.MakePostSearchResults(model.NewPostList(), nil), nil
 	}
 
-	postSearchResults, err := a.Srv().Store().Post().SearchPostsForUser(c, finalParamsList, userID, teamID, page, perPage)
+	postSearchResults, err := a.Srv().Store().Post().LikeSearchPostsForUser(c, finalParamsList, userID, teamID, page, perPage)
 	if err != nil {
 		var appErr *model.AppError
 		switch {

@@ -1007,6 +1007,36 @@ func (_m *PostStore) InvalidateLastPostTimeCache(channelID string) {
 	_m.Called(channelID)
 }
 
+// LikeSearchPostsForUser provides a mock function with given fields: rctx, paramsList, userID, teamID, page, perPage
+func (_m *PostStore) LikeSearchPostsForUser(rctx request.CTX, paramsList []*model.SearchParams, userID string, teamID string, page int, perPage int) (*model.PostSearchResults, error) {
+	ret := _m.Called(rctx, paramsList, userID, teamID, page, perPage)
+
+	if len(ret) == 0 {
+		panic("no return value specified for LikeSearchPostsForUser")
+	}
+
+	var r0 *model.PostSearchResults
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, []*model.SearchParams, string, string, int, int) (*model.PostSearchResults, error)); ok {
+		return rf(rctx, paramsList, userID, teamID, page, perPage)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, []*model.SearchParams, string, string, int, int) *model.PostSearchResults); ok {
+		r0 = rf(rctx, paramsList, userID, teamID, page, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PostSearchResults)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, []*model.SearchParams, string, string, int, int) error); ok {
+		r1 = rf(rctx, paramsList, userID, teamID, page, perPage)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Overwrite provides a mock function with given fields: rctx, post
 func (_m *PostStore) Overwrite(rctx request.CTX, post *model.Post) (*model.Post, error) {
 	ret := _m.Called(rctx, post)
