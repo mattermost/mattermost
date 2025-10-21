@@ -33,14 +33,16 @@ import (
 )
 
 const (
-	TokenTypePasswordRecovery  = "password_recovery"
-	TokenTypeVerifyEmail       = "verify_email"
-	TokenTypeTeamInvitation    = "team_invitation"
-	TokenTypeGuestInvitation   = "guest_invitation"
-	TokenTypeCWSAccess         = "cws_access_token"
-	PasswordRecoverExpiryTime  = 1000 * 60 * 60 * 24 // 24 hours
-	InvitationExpiryTime       = 1000 * 60 * 60 * 48 // 48 hours
-	ImageProfilePixelDimension = 128
+	TokenTypePasswordRecovery    = "password_recovery"
+	TokenTypeVerifyEmail         = "verify_email"
+	TokenTypeTeamInvitation      = "team_invitation"
+	TokenTypeGuestInvitation     = "guest_invitation"
+	TokenTypeCWSAccess           = "cws_access_token"
+	TokenTypeEasyLoginInvitation = "easy_login_invitation"
+	TokenTypeEasyLogin           = "easy_login"
+	PasswordRecoverExpiryTime    = 1000 * 60 * 60 * 24 // 24 hours
+	InvitationExpiryTime         = 1000 * 60 * 60 * 48 // 48 hours
+	ImageProfilePixelDimension   = 128
 )
 
 func (a *App) CreateUserWithToken(rctx request.CTX, user *model.User, token *model.Token) (*model.User, *model.AppError) {

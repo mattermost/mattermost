@@ -496,6 +496,7 @@ func (es *Service) SendGuestInviteEmails(
 	errorWhenNotSent bool,
 	isSystemAdmin bool,
 	isFirstAdmin bool,
+	isEasyLogin bool,
 ) error {
 	if es.perHourEmailRateLimiter == nil {
 		return NoRateLimiterError
@@ -537,8 +538,13 @@ func (es *Service) SendGuestInviteEmails(
 				channelIDs = append(channelIDs, channel.Id)
 			}
 
+			tokenType := TokenTypeGuestInvitation
+			if isEasyLogin {
+				tokenType = TokenTypeEasyLoginInvitation
+			}
+
 			token := model.NewToken(
-				TokenTypeGuestInvitation,
+				tokenType,
 				model.MapToJSON(map[string]string{
 					"teamId":   team.Id,
 					"channels": strings.Join(channelIDs, " "),
@@ -559,7 +565,7 @@ func (es *Service) SendGuestInviteEmails(
 				continue
 			}
 
-			data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s&sbr=%s", siteURL, url.QueryEscape(tokenData), url.QueryEscape(token.Token), es.GetTrackFlowStartedByRole(isFirstAdmin, isSystemAdmin))
+			data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s&sbr=%s&easy_login=%t", siteURL, url.QueryEscape(tokenData), url.QueryEscape(token.Token), es.GetTrackFlowStartedByRole(isFirstAdmin, isSystemAdmin), isEasyLogin)
 
 			if !*es.config().EmailSettings.SendEmailNotifications {
 				mlog.Info("sending invitation ", mlog.String("to", invite), mlog.String("link", data.Props["ButtonURL"].(string)))
