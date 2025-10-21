@@ -21,8 +21,8 @@ import {popoutThread} from 'utils/popouts/popout_windows';
 
 import type {GlobalState} from 'types/store';
 
-import ThreadButton from '../../common/thread_button';
 import FollowButton from '../../common/follow_button';
+import ThreadButton from '../../common/thread_button';
 import {useThreadRouting} from '../../hooks';
 import ThreadMenu from '../thread_menu';
 
