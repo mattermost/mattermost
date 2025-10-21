@@ -7910,36 +7910,3 @@ func (s *apiRPCServer) DeletePropertyValuesForField(args *Z_DeletePropertyValues
 	}
 	return nil
 }
-
-type Z_CallPluginArgs struct {
-	A string
-	B string
-	C []byte
-	D []byte
-}
-
-type Z_CallPluginReturns struct {
-	A []byte
-	B error
-}
-
-func (g *apiRPCClient) CallPlugin(targetPluginID string, endpoint string, request []byte, responseSchema []byte) ([]byte, error) {
-	_args := &Z_CallPluginArgs{targetPluginID, endpoint, request, responseSchema}
-	_returns := &Z_CallPluginReturns{}
-	if err := g.client.Call("Plugin.CallPlugin", _args, _returns); err != nil {
-		log.Printf("RPC call to CallPlugin API failed: %s", err.Error())
-	}
-	return _returns.A, _returns.B
-}
-
-func (s *apiRPCServer) CallPlugin(args *Z_CallPluginArgs, returns *Z_CallPluginReturns) error {
-	if hook, ok := s.impl.(interface {
-		CallPlugin(targetPluginID string, endpoint string, request []byte, responseSchema []byte) ([]byte, error)
-	}); ok {
-		returns.A, returns.B = hook.CallPlugin(args.A, args.B, args.C, args.D)
-		returns.B = encodableError(returns.B)
-	} else {
-		return encodableError(fmt.Errorf("API CallPlugin called but not implemented."))
-	}
-	return nil
-}
