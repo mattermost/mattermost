@@ -61,7 +61,7 @@
   },
   "scripts": {
     "build": "tsc --build --verbose",
-    "postbuild": "cp ../../channels/src/packages/mattermost-redux/src/selectors/create_selector/index.d.ts lib/selectors/create_selector/index.d.ts",
+    "postbuild": "sh postbuild.sh",
     "clean": "rm -rf lib node_modules *.tsbuildinfo"
   }
 }
