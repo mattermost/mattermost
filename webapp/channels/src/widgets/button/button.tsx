@@ -86,9 +86,12 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps & ButtonHTMLProps>(
             className,
         ), [size, emphasis, destructive, loading, fullWidth, width, inverted, className]);
 
+        // Separate style from other HTML props to avoid override
+        const {style, ...restHtmlProps} = htmlProps;
+
         const buttonStyle = useMemo(() => {
-            return width ? {width, ...htmlProps.style} : htmlProps.style;
-        }, [width, htmlProps.style]);
+            return width ? {width, ...style} : style;
+        }, [width, style]);
 
         const spinnerClasses = useMemo(() => classNames(
             'Button__spinner',
@@ -117,7 +120,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps & ButtonHTMLProps>(
                 disabled={isDisabled}
                 style={buttonStyle}
                 aria-busy={loading}
-                {...htmlProps}
+                {...restHtmlProps}
             >
                 {loading && (
                     <span
@@ -156,4 +159,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps & ButtonHTMLProps>(
 
 Button.displayName = 'Button';
 
-export default memo(Button);
+const MemoButton = memo(Button);
+MemoButton.displayName = 'Button';
+
+export default MemoButton;
