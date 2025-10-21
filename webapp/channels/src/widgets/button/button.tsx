@@ -116,11 +116,19 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps & ButtonHTMLProps>(
                 className={buttonClasses}
                 disabled={isDisabled}
                 style={buttonStyle}
+                aria-busy={loading}
                 {...htmlProps}
             >
                 {loading && (
-                    <span className='Button__loading'>
-                        <i className={spinnerClasses}/>
+                    <span
+                        className='Button__loading'
+                        role='status'
+                        aria-label='Loading'
+                    >
+                        <span
+                            className={spinnerClasses}
+                            aria-hidden='true'
+                        />
                     </span>
                 )}
 
