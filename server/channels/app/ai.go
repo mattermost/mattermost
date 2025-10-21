@@ -118,21 +118,21 @@ func getRewritePromptForAction(action model.AIRewriteAction, message string) (st
 	switch action {
 	case model.AIRewriteActionSuccinct:
 		return fmt.Sprintf("Rewrite the following message to be more concise and succinct while preserving the core meaning and intent. Return your response as JSON with a 'rewritten_text' field containing the rewritten message:\n\n%s", message),
-			"You are an expert at concise communication. Your task is to rewrite messages to be shorter and more direct while maintaining the essential meaning. Remove redundant words, simplify complex phrases, and get straight to the point. Keep the tone and formality level similar to the original. You MUST respond with valid JSON only, no additional text."
+			"You are an expert at concise communication. Your task is to rewrite messages to be shorter and more direct while maintaining the essential meaning. Remove redundant words, simplify complex phrases, and get straight to the point. Keep the tone and formality level similar to the original. Your response must be compacted valid JSON only, with no additional text, formatting, nor code blocks."
 
 	case model.AIRewriteActionProfessional:
 		return fmt.Sprintf("Rewrite the following message to be more professional and polished while maintaining the original intent. Return your response as JSON with a 'rewritten_text' field containing the rewritten message:\n\n%s", message),
-			"You are a professional communication expert. Your task is to rewrite messages to be more professional, polished, and appropriate for business communication. Use professional language, proper grammar, and maintain a respectful tone. Avoid casual language, slang, or overly informal expressions. You MUST respond with valid JSON only, no additional text."
+			"You are a professional communication expert. Your task is to rewrite messages to be more professional, polished, and appropriate for business communication. Use professional language, proper grammar, and maintain a respectful tone. Avoid casual language, slang, or overly informal expressions. Your response must be compacted valid JSON only, with no additional text, formatting, nor code blocks."
 
 	case model.AIRewriteActionMarkdown:
 		return fmt.Sprintf("Format the following message using Markdown to improve its readability and structure. Use appropriate Markdown features like headers, lists, bold, italic, code blocks, etc. Return your response as JSON with a 'rewritten_text' field containing the formatted message:\n\n%s", message),
-			"You are a Markdown formatting expert. Your task is to take plain text messages and format them nicely using Markdown syntax. Use headers (##) for sections, bullet points or numbered lists for items, **bold** for emphasis, *italic* for subtle emphasis, `code` for technical terms, and ```code blocks``` for longer code snippets. Make the message well-structured and easy to read. You MUST respond with valid JSON only, no additional text."
+			"You are a Markdown formatting expert. Your task is to take plain text messages and format them nicely using Markdown syntax, including headers (##), bullet points, numbered lists, bold, italic, inline code, and code blocks. Make the message well-structured and easy to read. Your response must be compacted valid JSON only, with no additional text, formatting, nor code blocks."
 
 	case model.AIRewriteActionLonger:
 		return fmt.Sprintf("Expand and elaborate on the following message to make it more detailed and comprehensive. Add relevant context, examples, and explanations. Return your response as JSON with a 'rewritten_text' field containing the expanded message:\n\n%s", message),
-			"You are an expert at elaborative communication. Your task is to expand brief messages into more detailed, comprehensive versions. Add relevant context, provide examples where appropriate, and explain concepts more thoroughly. Maintain the original intent while making the message more informative and complete. You MUST respond with valid JSON only, no additional text."
+			"You are an expert at elaborative communication. Your task is to expand brief messages into more detailed, comprehensive versions by adding relevant context, examples, and thorough explanations. Maintain the original intent while increasing informativeness and completeness. Your response must be compacted valid JSON only, with no additional text, formatting, nor code blocks."
 
 	default:
-		return message, "You are a helpful assistant. You MUST respond with valid JSON only, no additional text."
+		return message, "You are a helpful assistant. Your response must be compacted valid JSON only, with no additional text, formatting, nor code blocks."
 	}
 }
