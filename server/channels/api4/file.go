@@ -32,6 +32,20 @@ const (
 
 const maxMultipartFormDataBytes = 10 * 1024 // 10Kb
 
+// sendFileDownloadRejectedEvent sends a websocket event to notify the user that their file download was rejected
+func sendFileDownloadRejectedEvent(app *app.App, info *model.FileInfo, userID string, rejectionReason string) {
+	if userID == "" {
+		// Don't send event for public files (no user context)
+		return
+	}
+
+	message := model.NewWebSocketEvent(model.WebsocketEventFileDownloadRejected, "", "", userID, nil, "")
+	message.Add("file_id", info.Id)
+	message.Add("file_name", info.Name)
+	message.Add("rejection_reason", rejectionReason)
+	app.Publish(message)
+}
+
 // runFileWillBeDownloadedHook executes the FileWillBeDownloaded hook with a timeout
 // Returns empty string to allow download, or a rejection reason to block it.
 // If the hook times out, the download is blocked for security reasons.
@@ -69,14 +83,21 @@ func runFileWillBeDownloadedHook(app *app.App, pluginContext *plugin.Context, in
 	select {
 	case <-done:
 		// Hook completed normally
+		if rejectionReason != "" {
+			// Send websocket event to notify user of rejection
+			sendFileDownloadRejectedEvent(app, info, userID, rejectionReason)
+		}
 		return rejectionReason
 	case <-ctx.Done():
 		// Hook timed out - reject download for security
+		timeoutMessage := translateFunc("api.file.get_file.plugin_hook_timeout")
 		app.Log().Warn("FileWillBeDownloaded hook timed out, blocking download",
 			mlog.String("file_id", info.Id),
 			mlog.String("user_id", userID),
 			mlog.Int("timeout_seconds", timeoutSeconds))
-		return translateFunc("api.file.get_file.plugin_hook_timeout")
+		// Send websocket event to notify user of timeout
+		sendFileDownloadRejectedEvent(app, info, userID, timeoutMessage)
+		return timeoutMessage
 	}
 }
 
@@ -599,7 +620,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if rejectionReason != "" {
 		c.Err = model.NewAppError("getFile", "api.file.get_file.rejected_by_plugin",
-			map[string]any{"Reason": rejectionReason}, "", http.StatusForbidden)
+			map[string]any{"Reason": rejectionReason}, "", http.StatusLocked)
 		return
 	}
 
@@ -658,7 +679,7 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if rejectionReason != "" {
 		c.Err = model.NewAppError("getFileThumbnail", "api.file.get_file_thumbnail.rejected_by_plugin",
-			map[string]any{"Reason": rejectionReason}, "", http.StatusForbidden)
+			map[string]any{"Reason": rejectionReason}, "", http.StatusLocked)
 		return
 	}
 
@@ -774,7 +795,7 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if rejectionReason != "" {
 		c.Err = model.NewAppError("getFilePreview", "api.file.get_file_preview.rejected_by_plugin",
-			map[string]any{"Reason": rejectionReason}, "", http.StatusForbidden)
+			map[string]any{"Reason": rejectionReason}, "", http.StatusLocked)
 		return
 	}
 
@@ -873,7 +894,7 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if rejectionReason != "" {
 		c.Err = model.NewAppError("getPublicFile", "api.file.get_public_file.rejected_by_plugin",
-			map[string]any{"Reason": rejectionReason}, "", http.StatusForbidden)
+			map[string]any{"Reason": rejectionReason}, "", http.StatusLocked)
 		utils.RenderWebAppError(c.App.Config(), w, r, c.Err, c.App.AsymmetricSigningKey())
 		return
 	}
