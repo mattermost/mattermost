@@ -10,7 +10,7 @@ import {IconContainer} from 'components/advanced_text_editor/formatting_bar/form
 import type {SearchFilterType} from 'components/search/types';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import WithTooltip from 'components/with_tooltip';
+import WithTooltip from 'widgets/with_tooltip';
 
 import './files_filter_menu.scss';
 

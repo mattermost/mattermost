@@ -7,7 +7,7 @@ import styled from 'styled-components';
 
 import type {Channel} from '@mattermost/types/channels';
 
-import WithTooltip from 'components/with_tooltip';
+import WithTooltip from 'widgets/with_tooltip';
 
 interface Props {
     channel: Channel;

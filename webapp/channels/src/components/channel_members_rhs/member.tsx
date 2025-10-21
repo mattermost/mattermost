@@ -17,7 +17,7 @@ import ProfilePicture from 'components/profile_picture';
 import ProfilePopover from 'components/profile_popover';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
 import GuestTag from 'components/widgets/tag/guest_tag';
-import WithTooltip from 'components/with_tooltip';
+import WithTooltip from 'widgets/with_tooltip';
 
 import type {ChannelMember as ChannelMemberType} from './member_list';
 

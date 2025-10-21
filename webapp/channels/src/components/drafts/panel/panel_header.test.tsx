@@ -4,7 +4,7 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import WithTooltip from 'components/with_tooltip';
+import WithTooltip from 'widgets/with_tooltip';
 
 import PanelHeader from './panel_header';
 

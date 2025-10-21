@@ -8,7 +8,7 @@ import type {MessageDescriptor} from 'react-intl';
 
 import FeatureRestrictedModal from 'components/feature_restricted_modal/feature_restricted_modal';
 import ToggleModalButton from 'components/toggle_modal_button';
-import WithTooltip from 'components/with_tooltip';
+import WithTooltip from 'widgets/with_tooltip';
 
 import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
 import {LicenseSkus, ModalIdentifiers} from 'utils/constants';

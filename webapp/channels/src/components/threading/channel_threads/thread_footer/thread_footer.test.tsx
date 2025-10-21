@@ -9,7 +9,7 @@ import type {UserThread} from '@mattermost/types/threads';
 
 import Timestamp from 'components/timestamp';
 import Avatars from 'components/widgets/users/avatars';
-import WithTooltip from 'components/with_tooltip';
+import WithTooltip from 'widgets/with_tooltip';
 
 import {fakeDate} from 'tests/helpers/date';
 import {mockStore} from 'tests/test_store';

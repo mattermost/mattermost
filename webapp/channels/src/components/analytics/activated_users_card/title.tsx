@@ -7,7 +7,7 @@ import {defineMessage, defineMessages, useIntl} from 'react-intl';
 import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
 
 import ExternalLink from 'components/external_link';
-import WithTooltip from 'components/with_tooltip';
+import WithTooltip from 'widgets/with_tooltip';
 
 export const messages = defineMessages({
     totalUsers: {id: 'analytics.team.totalUsers', defaultMessage: 'Total Activated Users'},

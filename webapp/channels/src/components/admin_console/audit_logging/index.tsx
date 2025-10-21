@@ -9,7 +9,7 @@ import {useIntl} from 'react-intl';
 import {removeAuditCertificate, uploadAuditCertificate} from 'actions/admin_actions';
 
 import useGetCloudInstallationStatus from 'components/common/hooks/useGetCloudInstallationStatus';
-import WithTooltip from 'components/with_tooltip';
+import WithTooltip from 'widgets/with_tooltip';
 
 import FileUploadSetting from '../file_upload_setting';
 import RemoveFileSetting from '../remove_file_setting';

@@ -7,7 +7,7 @@ import {useIntl, FormattedMessage, FormattedNumber, defineMessages} from 'react-
 import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
 
 import Input from 'components/widgets/inputs/input/input';
-import WithTooltip from 'components/with_tooltip';
+import WithTooltip from 'widgets/with_tooltip';
 
 import {ItemStatus} from 'utils/constants';
 

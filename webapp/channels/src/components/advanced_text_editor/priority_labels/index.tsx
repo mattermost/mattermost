@@ -9,7 +9,7 @@ import type {PostPriorityMetadata} from '@mattermost/types/posts';
 
 import {HasNoMentions, HasSpecialMentions} from 'components/post_priority/error_messages';
 import PriorityLabel from 'components/post_priority/post_priority_label';
-import WithTooltip from 'components/with_tooltip';
+import WithTooltip from 'widgets/with_tooltip';
 
 import './priority_labels.scss';
 

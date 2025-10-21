@@ -13,7 +13,7 @@ import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 import AlertBanner from 'components/alert_banner';
 import AtMention from 'components/at_mention';
 import type {Value} from 'components/multiselect/multiselect';
-import WithTooltip from 'components/with_tooltip';
+import WithTooltip from 'widgets/with_tooltip';
 
 type UserProfileValue = Value & UserProfile;
 

@@ -10,7 +10,7 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 import FormError from 'components/form_error';
 import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
-import WithTooltip from 'components/with_tooltip';
+import WithTooltip from 'widgets/with_tooltip';
 
 export type BaseProps = {
     config?: DeepPartial<AdminConfig>;

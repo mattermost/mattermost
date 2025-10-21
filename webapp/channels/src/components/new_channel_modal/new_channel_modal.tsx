@@ -25,7 +25,7 @@ import {closeModal} from 'actions/views/modals';
 import ChannelNameFormField from 'components/channel_name_form_field/channel_name_form_field';
 import Input from 'components/widgets/inputs/input/input';
 import PublicPrivateSelector from 'components/widgets/public-private-selector/public-private-selector';
-import WithTooltip from 'components/with_tooltip';
+import WithTooltip from 'widgets/with_tooltip';
 
 import Pluggable from 'plugins/pluggable';
 import Constants, {ModalIdentifiers} from 'utils/constants';

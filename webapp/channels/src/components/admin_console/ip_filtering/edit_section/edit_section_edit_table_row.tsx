@@ -10,7 +10,7 @@ import {
 } from '@mattermost/compass-icons/components';
 import type {AllowedIPRange} from '@mattermost/types/config';
 
-import WithTooltip from 'components/with_tooltip';
+import WithTooltip from 'widgets/with_tooltip';
 
 type EditTableRowProps = {
     allowedIPRange: AllowedIPRange;

@@ -12,7 +12,7 @@ import {getCurrentTeam, getTeamMember} from 'mattermost-redux/selectors/entities
 
 import AddUserToChannelModal from 'components/add_user_to_channel_modal';
 import ToggleModalButton from 'components/toggle_modal_button';
-import WithTooltip from 'components/with_tooltip';
+import WithTooltip from 'widgets/with_tooltip';
 
 import {ModalIdentifiers} from 'utils/constants';
 

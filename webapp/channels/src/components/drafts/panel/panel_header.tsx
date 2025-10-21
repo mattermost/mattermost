@@ -9,7 +9,7 @@ import {SyncIcon} from '@mattermost/compass-icons/components';
 
 import Timestamp, {RelativeRanges} from 'components/timestamp';
 import Tag from 'components/widgets/tag/tag';
-import WithTooltip from 'components/with_tooltip';
+import WithTooltip from 'widgets/with_tooltip';
 
 import './panel_header.scss';
 import {isToday} from 'utils/datetime';

@@ -9,7 +9,7 @@ import {FormattedMessage} from 'react-intl';
 import CloseIcon from 'components/widgets/icons/close_icon';
 import UnreadAboveIcon from 'components/widgets/icons/unread_above_icon';
 import UnreadBelowIcon from 'components/widgets/icons/unread_below_icon';
-import WithTooltip from 'components/with_tooltip';
+import WithTooltip from 'widgets/with_tooltip';
 
 import Constants from 'utils/constants';
 

@@ -8,7 +8,7 @@ import {useDispatch} from 'react-redux';
 import {openModal} from 'actions/views/modals';
 
 import UserSettingsModal from 'components/user_settings/modal';
-import WithTooltip from 'components/with_tooltip';
+import WithTooltip from 'widgets/with_tooltip';
 
 import {ModalIdentifiers} from 'utils/constants';
 

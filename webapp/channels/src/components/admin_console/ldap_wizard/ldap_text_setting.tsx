@@ -10,7 +10,7 @@ import type {AdminConfig} from '@mattermost/types/config';
 
 import TextSetting from 'components/admin_console/text_setting';
 import FormError, {TYPE_BACKSTAGE} from 'components/form_error';
-import WithTooltip from 'components/with_tooltip';
+import WithTooltip from 'widgets/with_tooltip';
 
 import Constants from 'utils/constants';
 

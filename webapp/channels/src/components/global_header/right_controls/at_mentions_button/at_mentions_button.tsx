@@ -10,7 +10,7 @@ import {getRhsState} from 'selectors/rhs';
 
 import IconButton from 'components/global_header/header_icon_button';
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import WithTooltip from 'components/with_tooltip';
+import WithTooltip from 'widgets/with_tooltip';
 
 import {RHSStates} from 'utils/constants';
 

@@ -8,7 +8,7 @@ import {Link} from 'react-router-dom';
 import * as GlobalActions from 'actions/global_actions';
 
 import Timestamp from 'components/timestamp';
-import WithTooltip from 'components/with_tooltip';
+import WithTooltip from 'widgets/with_tooltip';
 
 import {Locations} from 'utils/constants';
 import {isMobile} from 'utils/user_agent';

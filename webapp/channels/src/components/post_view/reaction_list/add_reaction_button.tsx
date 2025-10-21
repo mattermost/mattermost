@@ -13,7 +13,7 @@ import {Permissions} from 'mattermost-redux/constants';
 import useEmojiPicker from 'components/emoji_picker/use_emoji_picker';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 import AddReactionIcon from 'components/widgets/icons/add_reaction_icon';
-import WithTooltip from 'components/with_tooltip';
+import WithTooltip from 'widgets/with_tooltip';
 
 type Props = {
     post: Post;

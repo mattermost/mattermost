@@ -8,7 +8,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import type {EmojiCategory} from '@mattermost/types/emojis';
 
 import type {Category, CategoryOrEmojiRow} from 'components/emoji_picker/types';
-import WithTooltip from 'components/with_tooltip';
+import WithTooltip from 'widgets/with_tooltip';
 
 export interface Props {
     category: Category;
