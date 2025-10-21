@@ -2187,6 +2187,11 @@ func getLoginType(c *Context, w http.ResponseWriter, r *http.Request) {
 	loginId := props["login_id"]
 	deviceId := props["device_id"]
 
+	if loginId == "" {
+		c.SetInvalidParam("login_id")
+		return
+	}
+
 	auditRec := c.MakeAuditRecord(model.AuditEventLogin, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "login_id", loginId)
@@ -2196,8 +2201,12 @@ func getLoginType(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	user, err := c.App.GetUserForLogin(c.AppContext, id, loginId)
 	if err != nil {
-		c.LogAuditWithUserId(id, "failure - login_id="+loginId)
-		c.Err = err
+		c.Logger.Debug("Could not get user for login", mlog.Err(err))
+		if err := json.NewEncoder(w).Encode(model.LoginTypeResponse{
+			AuthService: "",
+		}); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
 		return
 	}
 
