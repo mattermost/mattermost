@@ -1322,7 +1322,7 @@ func (a *App) CallPluginBridge(rctx request.CTX, sourcePluginID, targetPluginID,
 	// Execute the bridge call via internal plugin HTTP
 	// ServeInternalPluginRequest will set authentication headers (Mattermost-User-Id, Mattermost-Plugin-ID, etc.)
 	responseWriter := &PluginResponseWriter{}
-	a.ServeInternalPluginRequest(rctx, responseWriter, httpReq, sourcePluginID, targetPluginID, responseSchema)
+	a.ServeInternalPluginRequest(userID, responseWriter, httpReq, sourcePluginID, targetPluginID)
 	httpResp := responseWriter.GenerateResponse()
 
 	// Check response status

@@ -7,52 +7,20 @@ import (
 	"encoding/json"
 	"fmt"
 
+	agentclient "github.com/mattermost/mattermost-plugin-ai/public/client"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-// CallAIPlugin is a convenience wrapper for calling the Agents plugin via RESTful HTTP endpoints
-// It handles plugin availability checks and provides a cleaner API
-func (a *App) CallAIPlugin(rctx request.CTX, endpoint string, req model.AIRequest) ([]byte, *model.AppError) {
-	// Check if AI plugin is available
-	pluginEnv := a.GetPluginsEnvironment()
-	if pluginEnv == nil {
-		return nil, model.NewAppError("CallAIPlugin", "app.ai.plugins_not_initialized", nil, "", 500)
-	}
+const (
+	// defaultAIAgent is the default agent to use for AI operations
+	defaultAIAgent = "matty"
+)
 
-	// Marshal request data
-	requestJSON, err := json.Marshal(req.Data)
-	if err != nil {
-		return nil, model.NewAppError("CallAIPlugin", "app.ai.marshal_request_failed", nil, err.Error(), 500)
-	}
-
-	// Call the plugin via bridge
-	rctx.Logger().Debug("Calling AI plugin",
-		mlog.String("endpoint", endpoint),
-		mlog.Int("request_size", len(requestJSON)),
-		mlog.Bool("has_schema", req.ResponseSchema != nil),
-	)
-
-	responseJSON, err := a.CallPluginFromCore(rctx, model.AIPluginID, endpoint, requestJSON, req.ResponseSchema)
-	if err != nil {
-		rctx.Logger().Error("AI plugin call failed",
-			mlog.Err(err),
-			mlog.String("endpoint", endpoint),
-		)
-		// Check if it's already an AppError
-		if appErr, ok := err.(*model.AppError); ok {
-			return nil, appErr
-		}
-		return nil, model.NewAppError("CallAIPlugin", "app.ai.plugin_call_failed", nil, err.Error(), 500)
-	}
-
-	rctx.Logger().Debug("AI plugin call succeeded",
-		mlog.String("endpoint", endpoint),
-		mlog.Int("response_size", len(responseJSON)),
-	)
-
-	return responseJSON, nil
+// getAIClient returns an AI client for making requests to the AI plugin
+func (a *App) getAIClient(userID string) *agentclient.Client {
+	return agentclient.NewClientFromApp(a, userID)
 }
 
 // RewriteMessage rewrites a message using AI based on the specified action
@@ -74,56 +42,58 @@ func (a *App) RewriteMessage(rctx request.CTX, userID string, message string, ac
 	}
 
 	// Get prompts for the action
-	prompt, systemPrompt := getRewritePromptForAction(action, message)
+	userPrompt, systemPrompt := getRewritePromptForAction(action, message)
 
-	// Prepare AI request
-	aiRequest := map[string]any{
-		"prompt": prompt,
-		"context": map[string]any{
-			"system_prompt": systemPrompt,
-			"user_id":       userID,
-			"action":        action,
-		},
-		"max_tokens": 2000,
+	// Create AI client
+	sessionUserID := ""
+	if session := rctx.Session(); session != nil {
+		sessionUserID = session.UserId
 	}
+	client := a.getAIClient(sessionUserID)
 
-	// Define expected response schema for structured output
-	responseSchema := []byte(`{
-		"type": "object",
-		"properties": {
-			"rewritten_text": {
-				"type": "string",
-				"description": "The rewritten message text"
+	// Prepare completion request in the format expected by the client
+	completionRequest := agentclient.CompletionRequest{
+		Posts: []agentclient.Post{
+			{
+				Role:    "system",
+				Message: systemPrompt,
 			},
-			"changes_made": {
-				"type": "array",
-				"items": {"type": "string"},
-				"description": "Brief list of key changes made",
-				"maxItems": 5
-			}
+			{
+				Role:    "user",
+				Message: userPrompt,
+			},
 		},
-		"required": ["rewritten_text"]
-	}`)
-
-	// Call the AI plugin
-	responseJSON, appErr := a.CallAIPlugin(rctx, model.AIEndpointCompletion, model.AIRequest{
-		Data:           aiRequest,
-		ResponseSchema: responseSchema,
-	})
-	if appErr != nil {
-		return nil, appErr
 	}
 
-	// Parse the AI response
+	// Call the AI plugin using the client
+	rctx.Logger().Debug("Calling AI agent for message rewrite",
+		mlog.String("action", string(action)),
+		mlog.String("agent", defaultAIAgent),
+		mlog.String("user_id", userID),
+		mlog.Int("message_length", len(message)),
+	)
+
+	completion, err := client.AgentCompletion(defaultAIAgent, completionRequest)
+	if err != nil {
+		rctx.Logger().Error("AI agent call failed",
+			mlog.Err(err),
+			mlog.String("action", string(action)),
+			mlog.String("agent", defaultAIAgent),
+		)
+		return nil, model.NewAppError("RewriteMessage", "app.ai.rewrite.agent_call_failed", nil, err.Error(), 500)
+	}
+
+	// Parse the JSON response from the completion
+	// The prompts instruct the AI to return JSON with "rewritten_text" field
 	var aiResponse struct {
 		RewrittenText string   `json:"rewritten_text"`
 		ChangesMade   []string `json:"changes_made"`
 	}
 
-	if err := json.Unmarshal(responseJSON, &aiResponse); err != nil {
+	if err := json.Unmarshal([]byte(completion), &aiResponse); err != nil {
 		rctx.Logger().Error("Failed to parse AI response",
 			mlog.Err(err),
-			mlog.String("response", string(responseJSON)),
+			mlog.String("response", completion),
 		)
 		return nil, model.NewAppError("RewriteMessage", "app.ai.rewrite.parse_response_failed", nil, err.Error(), 500)
 	}
@@ -135,6 +105,7 @@ func (a *App) RewriteMessage(rctx request.CTX, userID string, message string, ac
 	// Log success
 	rctx.Logger().Debug("AI rewrite successful",
 		mlog.String("action", string(action)),
+		mlog.String("agent", defaultAIAgent),
 		mlog.Int("original_length", len(message)),
 		mlog.Int("rewritten_length", len(aiResponse.RewrittenText)),
 		mlog.String("user_id", userID),
