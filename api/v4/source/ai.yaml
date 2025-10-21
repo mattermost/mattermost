@@ -1,0 +1,49 @@
+  /api/v4/ai/rewrite:
+    post:
+      tags:
+        - ai
+      summary: Rewrite a message using AI
+      description: >
+        Rewrite a message using AI-powered text transformation based on the specified action.
+
+        ##### Permissions
+
+        Must be authenticated.
+      operationId: RewriteMessage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+                - action
+              properties:
+                message:
+                  type: string
+                  description: The message text to be rewritten
+                action:
+                  type: string
+                  description: The type of rewrite action to perform (e.g., "improve", "simplify", "professional", etc.)
+        description: Message rewrite request
+        required: true
+      responses:
+        "200":
+          description: Message rewrite successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rewritten_message:
+                    type: string
+                    description: The AI-rewritten message
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+
