@@ -161,56 +161,9 @@ func (os *OpensearchInterfaceImpl) Start() *model.AppError {
 			os.client)
 	}
 
-	// Set up posts index template.
-	templateBuf, err := json.Marshal(common.GetPostTemplate(os.Platform.Config()))
-	if err != nil {
-		return model.NewAppError("Opensearch.start", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	_, err = os.client.IndexTemplate.Create(ctx, opensearchapi.IndexTemplateCreateReq{
-		IndexTemplate: *os.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBasePosts,
-		Body:          bytes.NewReader(templateBuf),
-	})
-	if err != nil {
-		return model.NewAppError("Opensearch.start", "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	// Set up channels index template.
-	templateBuf, err = json.Marshal(common.GetChannelTemplate(os.Platform.Config()))
-	if err != nil {
-		return model.NewAppError("Opensearch.start", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	_, err = os.client.IndexTemplate.Create(ctx, opensearchapi.IndexTemplateCreateReq{
-		IndexTemplate: *os.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseChannels,
-		Body:          bytes.NewReader(templateBuf),
-	})
-	if err != nil {
-		return model.NewAppError("Opensearch.start", "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	// Set up users index template.
-	templateBuf, err = json.Marshal(common.GetUserTemplate(os.Platform.Config()))
-	if err != nil {
-		return model.NewAppError("Opensearch.start", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	_, err = os.client.IndexTemplate.Create(ctx, opensearchapi.IndexTemplateCreateReq{
-		IndexTemplate: *os.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseUsers,
-		Body:          bytes.NewReader(templateBuf),
-	})
-	if err != nil {
-		return model.NewAppError("Opensearch.start", "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	// Set up files index template.
-	templateBuf, err = json.Marshal(common.GetFileInfoTemplate(os.Platform.Config()))
-	if err != nil {
-		return model.NewAppError("Opensearch.start", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	_, err = os.client.IndexTemplate.Create(ctx, opensearchapi.IndexTemplateCreateReq{
-		IndexTemplate: *os.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseFiles,
-		Body:          bytes.NewReader(templateBuf),
-	})
-	if err != nil {
-		return model.NewAppError("Opensearch.start", "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
+	appErr = os.setupTemplates()
+	if appErr != nil {
+		mlog.Error("Failed to initialize opensearch templates, allowing degraded startup", mlog.Err(appErr))
 	}
 
 	if atomic.LoadInt32(&os.channelIndexVerified) == 0 {
@@ -218,6 +171,64 @@ func (os *OpensearchInterfaceImpl) Start() *model.AppError {
 	}
 
 	atomic.StoreInt32(&os.ready, 1)
+
+	return nil
+}
+
+func (os *OpensearchInterfaceImpl) setupTemplates() *model.AppError {
+	ctx := context.Background()
+
+	// Set up posts index template.
+	templateBuf, err := json.Marshal(common.GetPostTemplate(os.Platform.Config()))
+	if err != nil {
+		return model.NewAppError("Opensearch.setupTemplates", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	_, err = os.client.IndexTemplate.Create(ctx, opensearchapi.IndexTemplateCreateReq{
+		IndexTemplate: *os.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBasePosts,
+		Body:          bytes.NewReader(templateBuf),
+	})
+	if err != nil {
+		return model.NewAppError("Opensearch.setupTemplates", "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Set up channels index template.
+	templateBuf, err = json.Marshal(common.GetChannelTemplate(os.Platform.Config()))
+	if err != nil {
+		return model.NewAppError("Opensearch.setupTemplates", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	_, err = os.client.IndexTemplate.Create(ctx, opensearchapi.IndexTemplateCreateReq{
+		IndexTemplate: *os.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseChannels,
+		Body:          bytes.NewReader(templateBuf),
+	})
+	if err != nil {
+		return model.NewAppError("Opensearch.setupTemplates", "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Set up users index template.
+	templateBuf, err = json.Marshal(common.GetUserTemplate(os.Platform.Config()))
+	if err != nil {
+		return model.NewAppError("Opensearch.setupTemplates", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	_, err = os.client.IndexTemplate.Create(ctx, opensearchapi.IndexTemplateCreateReq{
+		IndexTemplate: *os.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseUsers,
+		Body:          bytes.NewReader(templateBuf),
+	})
+	if err != nil {
+		return model.NewAppError("Opensearch.setupTemplates", "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Set up files index template.
+	templateBuf, err = json.Marshal(common.GetFileInfoTemplate(os.Platform.Config()))
+	if err != nil {
+		return model.NewAppError("Opensearch.setupTemplates", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	_, err = os.client.IndexTemplate.Create(ctx, opensearchapi.IndexTemplateCreateReq{
+		IndexTemplate: *os.Platform.Config().ElasticsearchSettings.IndexPrefix + common.IndexBaseFiles,
+		Body:          bytes.NewReader(templateBuf),
+	})
+	if err != nil {
+		return model.NewAppError("Opensearch.setupTemplates", "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed", map[string]any{"Backend": model.ElasticsearchSettingsOSBackend}, "", http.StatusInternalServerError).Wrap(err)
+	}
 
 	return nil
 }
