@@ -69,6 +69,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/login/desktop_token", api.RateLimitedHandler(api.APIHandler(loginWithDesktopToken), model.RateLimitSettings{PerSec: model.NewPointer(2), MaxBurst: model.NewPointer(1)})).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/switch", api.APIHandler(switchAccountType)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/cws", api.APIHandlerTrustRequester(loginCWS)).Methods(http.MethodPost)
+	api.BaseRoutes.Users.Handle("/login/type", api.APIHandler(getLoginType)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/logout", api.APIHandler(logout)).Methods(http.MethodPost)
 
 	api.BaseRoutes.UserByUsername.Handle("", api.APISessionRequired(getUserByUsername)).Methods(http.MethodGet)
@@ -2178,6 +2179,56 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, redirectURL, http.StatusFound)
+}
+
+func getLoginType(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJSON(r.Body)
+	id := props["id"]
+	loginId := props["login_id"]
+	deviceId := props["device_id"]
+
+	if loginId == "" {
+		c.SetInvalidParam("login_id")
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventLogin, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "login_id", loginId)
+	model.AddEventParameterToAuditRec(auditRec, "device_id", deviceId)
+
+	c.LogAuditWithUserId(id, "attempt - login_id="+loginId)
+
+	user, err := c.App.GetUserForLogin(c.AppContext, id, loginId)
+	if err != nil {
+		c.Logger.Debug("Could not get user for login", mlog.Err(err))
+		if err := json.NewEncoder(w).Encode(model.LoginTypeResponse{
+			AuthService: "",
+		}); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
+		return
+	}
+
+	c.LogAuditWithUserId(user.Id, "found user for login_id="+loginId)
+	auditRec.AddEventResultState(user)
+
+	auditRec.Success()
+	authService := user.AuthService
+	if !user.IsEasyLoginEnabled() {
+		// for this version we decided to only return easy_login if it's enabled for the user
+		// for other types of auth service we return empty string
+		authService = ""
+	} else {
+		c.Logger.Info("Easy login is enabled for user, returning easy_login auth service")
+		// send the magic link for easy login users
+	}
+
+	if err := json.NewEncoder(w).Encode(model.LoginTypeResponse{
+		AuthService: authService,
+	}); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func logout(c *Context, w http.ResponseWriter, r *http.Request) {
