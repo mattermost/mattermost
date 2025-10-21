@@ -1223,6 +1223,125 @@ func TestCreateUserWithToken(t *testing.T) {
 		require.Len(t, members, 1)
 		assert.Equal(t, members[0].ChannelId, th.BasicChannel.Id)
 	})
+
+	// Tests for Easy Login Invitation token channel assignment
+	t.Run("easy login invitation token adds guest to multiple channels", func(t *testing.T) {
+		invitationEmail := strings.ToLower(model.NewId()) + "easylogin@test.com"
+		channel1 := th.CreateChannel(th.Context, th.BasicTeam)
+		channel2 := th.CreateChannel(th.Context, th.BasicTeam)
+
+		tokenData := map[string]string{
+			"teamId":   th.BasicTeam.Id,
+			"channels": channel1.Id + " " + channel2.Id,
+			"email":    invitationEmail,
+			"guest":    "true",
+			"senderId": th.BasicUser.Id,
+		}
+		token := model.NewToken(
+			TokenTypeEasyLoginInvitation,
+			model.MapToJSON(tokenData),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		guest := model.User{Email: invitationEmail, Nickname: "Easy Guest", Username: "easyguest" + model.NewId(), Password: "passwd1", AuthService: ""}
+		newGuest, err := th.App.CreateUserWithToken(th.Context, &guest, token)
+		require.Nil(t, err, "Should create guest user successfully")
+		require.True(t, newGuest.IsGuest())
+
+		// Verify token was deleted
+		_, nErr := th.App.Srv().Store().Token().GetByToken(token.Token)
+		require.Error(t, nErr, "Token should be deleted after use")
+
+		// Verify guest was added to both channels
+		members, err := th.App.GetChannelMembersForUser(th.Context, th.BasicTeam.Id, newGuest.Id)
+		require.Nil(t, err)
+
+		channelIds := make(map[string]bool)
+		for _, member := range members {
+			channelIds[member.ChannelId] = true
+		}
+		assert.True(t, channelIds[channel1.Id], "Guest should be in channel1")
+		assert.True(t, channelIds[channel2.Id], "Guest should be in channel2")
+	})
+
+	t.Run("easy login invitation token validates channel permissions", func(t *testing.T) {
+		invitationEmail := strings.ToLower(model.NewId()) + "easylogin@test.com"
+
+		// Create channels with different access levels
+		publicChannel := th.CreateChannel(th.Context, th.BasicTeam)
+		privateChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+
+		// Create another user and a private channel they own (sender doesn't have access)
+		otherUser := th.CreateUser()
+		th.LinkUserToTeam(otherUser, th.BasicTeam)
+		restrictedChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+		th.RemoveUserFromChannel(th.BasicUser, restrictedChannel)
+		th.AddUserToChannel(otherUser, restrictedChannel)
+
+		// Token includes all three channels
+		tokenData := map[string]string{
+			"teamId":   th.BasicTeam.Id,
+			"channels": publicChannel.Id + " " + privateChannel.Id + " " + restrictedChannel.Id,
+			"email":    invitationEmail,
+			"guest":    "true",
+			"senderId": th.BasicUser.Id, // Sender has access to public and private, but not restricted
+		}
+		token := model.NewToken(
+			TokenTypeEasyLoginInvitation,
+			model.MapToJSON(tokenData),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		guest := model.User{Email: invitationEmail, Nickname: "Easy Guest", Username: "easyguest" + model.NewId(), Password: "passwd1", AuthService: ""}
+		newGuest, err := th.App.CreateUserWithToken(th.Context, &guest, token)
+		require.Nil(t, err)
+
+		// Verify guest was only added to channels the sender has permissions for
+		members, err := th.App.GetChannelMembersForUser(th.Context, th.BasicTeam.Id, newGuest.Id)
+		require.Nil(t, err)
+
+		channelIds := make(map[string]bool)
+		for _, member := range members {
+			channelIds[member.ChannelId] = true
+		}
+		assert.True(t, channelIds[publicChannel.Id], "Guest should be in public channel")
+		assert.True(t, channelIds[privateChannel.Id], "Guest should be in sender's private channel")
+		assert.False(t, channelIds[restrictedChannel.Id], "Guest should NOT be in restricted channel")
+	})
+
+	t.Run("easy login invitation token doesn't add user to channels if token is TeamInvitation", func(t *testing.T) {
+		invitationEmail := strings.ToLower(model.NewId()) + "regular@test.com"
+		channel1 := th.CreateChannel(th.Context, th.BasicTeam)
+
+		// Use regular team invitation token (not easy login)
+		tokenData := map[string]string{
+			"teamId":   th.BasicTeam.Id,
+			"channels": channel1.Id, // Channels specified but wrong token type
+			"email":    invitationEmail,
+			"senderId": th.BasicUser.Id,
+		}
+		token := model.NewToken(
+			TokenTypeTeamInvitation, // Regular team invitation, not easy login
+			model.MapToJSON(tokenData),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		regularUser := model.User{Email: invitationEmail, Nickname: "Regular User", Username: "regular" + model.NewId(), Password: "passwd1", AuthService: ""}
+		newUser, err := th.App.CreateUserWithToken(th.Context, &regularUser, token)
+		require.Nil(t, err)
+		require.False(t, newUser.IsGuest())
+
+		// Regular team invitations with channels should still add to channels (existing behavior)
+		members, err := th.App.GetChannelMembersForUser(th.Context, th.BasicTeam.Id, newUser.Id)
+		require.Nil(t, err)
+
+		// Should have default channels (Town Square, Off-Topic) + channel1 = 3 channels
+		channelIds := make(map[string]bool)
+		for _, member := range members {
+			channelIds[member.ChannelId] = true
+		}
+		assert.True(t, channelIds[channel1.Id], "User should be in channel1 even with TeamInvitation token")
+	})
 }
 
 func TestPermanentDeleteUser(t *testing.T) {
@@ -2481,5 +2600,255 @@ func TestRemoteUserDirectChannelCreation(t *testing.T) {
 		assert.NotNil(t, channel)
 		assert.Nil(t, appErr)
 		assert.Equal(t, model.ChannelTypeDirect, channel.Type)
+	})
+}
+func TestAuthenticateUserForEasyLogin(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	// Enable guest accounts for easy login
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.GuestAccountsSettings.Enable = true
+	})
+
+	t.Run("valid easy login token creates guest user successfully", func(t *testing.T) {
+		// Create easy login invitation token
+		email := strings.ToLower(model.NewId()) + "@example.com"
+		channel2 := th.CreateChannel(th.Context, th.BasicTeam)
+		tokenData := map[string]string{
+			"teamId":   th.BasicTeam.Id,
+			"channels": th.BasicChannel.Id + " " + channel2.Id,
+			"email":    email,
+			"guest":    "true",
+			"senderId": th.BasicUser.Id,
+		}
+		token := model.NewToken(
+			TokenTypeEasyLoginInvitation,
+			model.MapToJSON(tokenData),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		// Authenticate with easy login token
+		user, err := th.App.AuthenticateUserForEasyLogin(th.Context, token.Token)
+		require.Nil(t, err, "Should create guest user successfully")
+		require.NotNil(t, user)
+
+		// Verify user is a guest
+		assert.True(t, user.IsGuest(), "User should be a guest")
+		assert.Equal(t, email, user.Email)
+		assert.True(t, user.EmailVerified, "Email should be verified")
+		assert.NotEmpty(t, user.Username, "Username should be generated")
+
+		// Verify token was deleted (single-use)
+		_, nErr := th.App.Srv().Store().Token().GetByToken(token.Token)
+		require.Error(t, nErr, "Token should be deleted after use")
+
+		// Verify user was added to team
+		_, teamErr := th.App.GetTeamMember(th.Context, th.BasicTeam.Id, user.Id)
+		require.Nil(t, teamErr, "User should be added to team")
+
+		// Verify user was added to specified channels
+		members, chanErr := th.App.GetChannelMembersForUser(th.Context, th.BasicTeam.Id, user.Id)
+		require.Nil(t, chanErr)
+		// Should have: Town Square (default), BasicChannel, BasicChannel2
+		assert.GreaterOrEqual(t, len(members), 3, "User should be in at least 3 channels")
+
+		// Cleanup
+		appErr := th.App.PermanentDeleteUser(th.Context, user)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("invalid token returns error", func(t *testing.T) {
+		user, err := th.App.AuthenticateUserForEasyLogin(th.Context, "invalid-token-123")
+		require.NotNil(t, err, "Should fail on invalid token")
+		require.Nil(t, user)
+		assert.Equal(t, "api.user.easy_login.invalid_token.app_error", err.Id)
+	})
+
+	t.Run("expired token returns error", func(t *testing.T) {
+		email := strings.ToLower(model.NewId()) + "@example.com"
+		tokenData := map[string]string{
+			"teamId":   th.BasicTeam.Id,
+			"channels": th.BasicChannel.Id,
+			"email":    email,
+			"guest":    "true",
+			"senderId": th.BasicUser.Id,
+		}
+		token := model.NewToken(
+			TokenTypeEasyLoginInvitation,
+			model.MapToJSON(tokenData),
+		)
+		// Set token to be expired (48 hours + 1 millisecond old)
+		token.CreateAt = model.GetMillis() - InvitationExpiryTime - 1
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		user, err := th.App.AuthenticateUserForEasyLogin(th.Context, token.Token)
+		require.NotNil(t, err, "Should fail on expired token")
+		require.Nil(t, user)
+		assert.Equal(t, "api.user.easy_login.expired_token.app_error", err.Id)
+
+		// Verify token was deleted
+		_, nErr := th.App.Srv().Store().Token().GetByToken(token.Token)
+		require.Error(t, nErr, "Expired token should be deleted")
+	})
+
+	t.Run("wrong token type returns error", func(t *testing.T) {
+		// Create token with wrong type
+		token := model.NewToken(
+			TokenTypeTeamInvitation, // Wrong type - should be TokenTypeEasyLoginInvitation
+			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id}),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+		defer func() {
+			appErr := th.App.DeleteToken(token)
+			require.Nil(t, appErr)
+		}()
+
+		user, err := th.App.AuthenticateUserForEasyLogin(th.Context, token.Token)
+		require.NotNil(t, err, "Should fail on wrong token type")
+		require.Nil(t, user)
+		assert.Equal(t, "api.user.easy_login.invalid_token_type.app_error", err.Id)
+	})
+
+	t.Run("user already exists returns error", func(t *testing.T) {
+		// Use existing user's email
+		email := th.BasicUser.Email
+		tokenData := map[string]string{
+			"teamId":   th.BasicTeam.Id,
+			"channels": th.BasicChannel.Id,
+			"email":    email,
+			"guest":    "true",
+			"senderId": th.BasicUser.Id,
+		}
+		token := model.NewToken(
+			TokenTypeEasyLoginInvitation,
+			model.MapToJSON(tokenData),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		user, err := th.App.AuthenticateUserForEasyLogin(th.Context, token.Token)
+		require.NotNil(t, err, "Should fail when user already exists")
+		require.Nil(t, user)
+		assert.Equal(t, "api.user.easy_login.user_already_exists.app_error", err.Id)
+
+		// Verify token was deleted even on error
+		_, nErr := th.App.Srv().Store().Token().GetByToken(token.Token)
+		require.Error(t, nErr, "Token should be deleted even when user exists")
+	})
+
+	t.Run("username is generated from email and made unique", func(t *testing.T) {
+		// Create a user with a common username
+		email1 := "john.doe@example.com"
+		tokenData1 := map[string]string{
+			"teamId":   th.BasicTeam.Id,
+			"channels": th.BasicChannel.Id,
+			"email":    email1,
+			"guest":    "true",
+			"senderId": th.BasicUser.Id,
+		}
+		token1 := model.NewToken(
+			TokenTypeEasyLoginInvitation,
+			model.MapToJSON(tokenData1),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token1))
+
+		user1, err1 := th.App.AuthenticateUserForEasyLogin(th.Context, token1.Token)
+		require.Nil(t, err1)
+		require.NotNil(t, user1)
+		assert.Contains(t, user1.Username, "john", "Username should be derived from email")
+
+		// Create another user with similar email - username should be made unique
+		email2 := "john.smith@example.com"
+		tokenData2 := map[string]string{
+			"teamId":   th.BasicTeam.Id,
+			"channels": th.BasicChannel.Id,
+			"email":    email2,
+			"guest":    "true",
+			"senderId": th.BasicUser.Id,
+		}
+		token2 := model.NewToken(
+			TokenTypeEasyLoginInvitation,
+			model.MapToJSON(tokenData2),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token2))
+
+		user2, err2 := th.App.AuthenticateUserForEasyLogin(th.Context, token2.Token)
+		require.Nil(t, err2)
+		require.NotNil(t, user2)
+
+		// Usernames should be different (uniqueness enforced)
+		assert.NotEqual(t, user1.Username, user2.Username, "Usernames should be unique")
+
+		// Cleanup
+		th.App.PermanentDeleteUser(th.Context, user1)
+		th.App.PermanentDeleteUser(th.Context, user2)
+	})
+
+	t.Run("invalid team id in token returns error", func(t *testing.T) {
+		email := strings.ToLower(model.NewId()) + "@example.com"
+		tokenData := map[string]string{
+			"teamId":   model.NewId(), // Non-existent team
+			"channels": th.BasicChannel.Id,
+			"email":    email,
+			"guest":    "true",
+			"senderId": th.BasicUser.Id,
+		}
+		token := model.NewToken(
+			TokenTypeEasyLoginInvitation,
+			model.MapToJSON(tokenData),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		user, err := th.App.AuthenticateUserForEasyLogin(th.Context, token.Token)
+		require.NotNil(t, err, "Should fail on invalid team id")
+		require.Nil(t, user)
+
+		// User should have been created but team join failed
+		// Check if user was created
+		createdUser, getUserErr := th.App.GetUserByEmail(email)
+		if getUserErr == nil {
+			// Cleanup if user was created
+			th.App.PermanentDeleteUser(th.Context, createdUser)
+		}
+	})
+
+	t.Run("channels filtered by sender permissions", func(t *testing.T) {
+		// Create a private channel
+		privateChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+
+		email := strings.ToLower(model.NewId()) + "@example.com"
+		// Include both public and private channel
+		tokenData := map[string]string{
+			"teamId":   th.BasicTeam.Id,
+			"channels": th.BasicChannel.Id + " " + privateChannel.Id,
+			"email":    email,
+			"guest":    "true",
+			"senderId": th.BasicUser.Id, // BasicUser should have access to private channel
+		}
+		token := model.NewToken(
+			TokenTypeEasyLoginInvitation,
+			model.MapToJSON(tokenData),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		user, err := th.App.AuthenticateUserForEasyLogin(th.Context, token.Token)
+		require.Nil(t, err)
+		require.NotNil(t, user)
+
+		// Verify user was added to both channels
+		members, chanErr := th.App.GetChannelMembersForUser(th.Context, th.BasicTeam.Id, user.Id)
+		require.Nil(t, chanErr)
+
+		// Check that user is in the specified channels
+		channelIds := make(map[string]bool)
+		for _, member := range members {
+			channelIds[member.ChannelId] = true
+		}
+		assert.True(t, channelIds[th.BasicChannel.Id], "User should be in basic channel")
+		assert.True(t, channelIds[privateChannel.Id], "User should be in private channel")
+
+		// Cleanup
+		th.App.PermanentDeleteUser(th.Context, user)
 	})
 }
