@@ -2180,6 +2180,54 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		s.Require().Equal(&mockUser1, printer.GetLines()[0])
 		s.Require().Equal(&mockUser2, printer.GetLines()[1])
 	})
+
+	s.Run("Listing users for given role", func() {
+		printer.Clean()
+
+		email := "example@example.com"
+		mockUser := model.User{Username: "ExampleUser", Email: email, Roles: "system_user system_admin"}
+
+		selectedRole := "system_user"
+
+		cmd := ResetListUsersCmd(s.T())
+		s.Require().NoError(cmd.Flags().Set("page", "0"))
+		s.Require().NoError(cmd.Flags().Set("per-page", "1"))
+		s.Require().NoError(cmd.Flags().Set("role", selectedRole))
+
+		s.client.
+			EXPECT().
+			GetUsersWithCustomQueryParameters(context.TODO(), 0, 1, "role="+selectedRole, "").
+			Return([]*model.User{&mockUser}, &model.Response{}, nil).
+			Times(1)
+
+		err := listUsersCmdF(s.client, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(&mockUser, printer.GetLines()[0])
+	})
+
+	s.Run("Listing users with their roles", func() {
+		printer.Clean()
+
+		email := "example@example.com"
+		mockUser := model.User{Username: "ExampleUser", Email: email, Roles: "system_user system_admin"}
+
+		cmd := ResetListUsersCmd(s.T())
+		s.Require().NoError(cmd.Flags().Set("page", "0"))
+		s.Require().NoError(cmd.Flags().Set("per-page", "1"))
+		s.Require().NoError(cmd.Flags().Set("show-roles", "true"))
+
+		s.client.
+			EXPECT().
+			GetUsersWithCustomQueryParameters(context.TODO(), 0, 1, "", "").
+			Return([]*model.User{&mockUser}, &model.Response{}, nil).
+			Times(1)
+
+		err := listUsersCmdF(s.client, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(&mockUser, printer.GetLines()[0])
+	})
 }
 
 func (s *MmctlUnitTestSuite) TestUserDeactivateCmd() {
