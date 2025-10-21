@@ -1069,7 +1069,7 @@
   "admin.experimental.collapsedThreads.always_on": "Immer An",
   "admin.experimental.collapsedThreads.default_off": "Aktiviert (Standard Aus)",
   "admin.experimental.collapsedThreads.default_on": "Aktiviert (Standard An)",
-  "admin.experimental.collapsedThreads.desc": "Wenn **Aktiviert (Standard Aus)**, können Benutzer Unterhaltungen in den Einstellungen aktivieren. Wenn **Aktiviert (Standard An)**, sind Unterhaltungen für Benutzer standardmäßig aktiviert und können in den Einstellungen deaktiviert werden. Wenn **Immer an**, müssen Benutzer Unterhaltungen nutzen und können sie nicht deaktivieren.",
+  "admin.experimental.collapsedThreads.desc": "Wenn Aktiviert (Standard Aus), können Benutzer Unterhaltungen in den Einstellungen aktivieren. Wenn Aktiviert (Standard An), sind Unterhaltungen für Benutzer standardmäßig aktiviert und können in den Einstellungen deaktiviert werden. Wenn Immer an, müssen Benutzer Unterhaltungen nutzen und können sie nicht deaktivieren.",
   "admin.experimental.collapsedThreads.off": "Deaktiviert",
   "admin.experimental.collapsedThreads.title": "Unterhaltungen",
   "admin.experimental.defaultTheme.desc": "Standardmotiv einstellen, das für neuen Benutzer im System verwendet wird.",
