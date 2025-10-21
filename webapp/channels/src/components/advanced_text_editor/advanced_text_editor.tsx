@@ -76,6 +76,7 @@ import SendButton from './send_button';
 import ShowFormat from './show_formatting';
 import TexteditorActions from './texteditor_actions';
 import ToggleFormattingBar from './toggle_formatting_bar';
+import useAIRewrite from './use_ai_rewrite';
 import useEditorEmojiPicker from './use_editor_emoji_picker';
 import useKeyHandler from './use_key_handler';
 import useOrientationHandler from './use_orientation_handler';
@@ -177,6 +178,7 @@ const AdvancedTextEditor = ({
     const teammateDisplayName = useSelector((state: GlobalState) => (teammateId ? getDisplayName(state, teammateId) : ''));
     const showDndWarning = useSelector((state: GlobalState) => (teammateId ? getStatusForUserId(state, teammateId) === UserStatuses.DND : false));
     const selectedPostFocussedAt = useSelector((state: GlobalState) => getSelectedPostFocussedAt(state));
+    const aiRewriteEnabled = useSelector((state: GlobalState) => Boolean(state.plugins.plugins['mattermost-ai']?.props?.bridge_supported));
 
     const canPost = useSelector((state: GlobalState) => {
         const channel = getChannel(state, channelId);
@@ -227,7 +229,6 @@ const AdvancedTextEditor = ({
     const showFormattingBar = !isFormattingBarHidden && !readOnlyChannel;
     const enableSharedChannelsDMs = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'EnableSharedChannelsDMs') === 'true');
     const isDMOrGMRemote = isChannelShared && (channelType === Constants.DM_CHANNEL || channelType === Constants.GM_CHANNEL);
-    const isDisabled = Boolean(readOnlyChannel || (!enableSharedChannelsDMs && isDMOrGMRemote));
 
     const handleShowPreview = useCallback(() => {
         setShowPreview((prev) => !prev);
@@ -309,6 +310,12 @@ const AdvancedTextEditor = ({
     useOrientationHandler(textboxRef, rootId);
     const pluginItems = usePluginItems(draft, textboxRef, handleDraftChange, channelId);
     const focusTextbox = useTextboxFocus(textboxRef, channelId, isRHS, canPost);
+    const {
+        additionalControl: aiRewriteAdditionalControl,
+        isProcessing: aiRewriteIsProcessing,
+    } = useAIRewrite(draft, handleDraftChange, focusTextbox, showPreview);
+    const isDisabled = Boolean(readOnlyChannel || (!enableSharedChannelsDMs && isDMOrGMRemote) || aiRewriteIsProcessing);
+
     const [attachmentPreview, fileUploadJSX] = useUploadFiles(
         draft,
         rootId,
@@ -678,8 +685,9 @@ const AdvancedTextEditor = ({
 
     const additionalControls = useMemo(() => [
         !isInEditMode && priorityAdditionalControl,
+        aiRewriteEnabled && aiRewriteAdditionalControl,
         ...(pluginItems || []),
-    ].filter(Boolean), [pluginItems, priorityAdditionalControl, isInEditMode]);
+    ].filter(Boolean), [pluginItems, priorityAdditionalControl, aiRewriteAdditionalControl, isInEditMode]);
 
     const formattingBar = (
         <AutoHeightSwitcher

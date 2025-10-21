@@ -30,6 +30,7 @@ func rewriteMessage(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.AppContext.Session().UserId,
 		req.Message,
 		req.Action,
+		req.CustomPrompt,
 	)
 	if appErr != nil {
 		c.Err = appErr

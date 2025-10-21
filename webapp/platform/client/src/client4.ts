@@ -4304,6 +4304,13 @@ export default class Client4 {
         );
     };
 
+    getAIRewrittenMessage = (message: string, action?: string, customPrompt?: string) => {
+        return this.doFetch<string>(
+            `${this.getBaseRoute()}/ai/rewrite`,
+            {method: 'post', body: JSON.stringify({message, action, customPrompt})},
+        );
+    };
+
     // Client Helpers
 
     protected doFetch = async <ClientDataResponse>(url: string, options: Options): Promise<ClientDataResponse> => {

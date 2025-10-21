@@ -15,23 +15,20 @@ const (
 type AIRewriteAction string
 
 const (
-	AIRewriteActionSuccinct     AIRewriteAction = "more_succinct"
-	AIRewriteActionProfessional AIRewriteAction = "more_professional"
-	AIRewriteActionMarkdown     AIRewriteAction = "format_markdown"
-	AIRewriteActionLonger       AIRewriteAction = "make_longer"
+	AIRewriteActionCustom         AIRewriteAction = "custom"
+	AIRewriteActionShorten        AIRewriteAction = "shorten"
+	AIRewriteActionElaborate      AIRewriteAction = "elaborate"
+	AIRewriteActionImproveWriting AIRewriteAction = "improve_writing"
+	AIRewriteActionFixSpelling    AIRewriteAction = "fix_spelling"
+	AIRewriteActionSimplify       AIRewriteAction = "simplify"
+	AIRewriteActionSummarize      AIRewriteAction = "summarize"
 )
 
 // AIRewriteRequest represents a request to rewrite a message
 type AIRewriteRequest struct {
-	Message string          `json:"message"`
-	Action  AIRewriteAction `json:"action"`
-}
-
-// AIRewriteResponse represents the response from a rewrite operation
-type AIRewriteResponse struct {
-	RewrittenMessage string          `json:"rewritten_message"`
-	OriginalMessage  string          `json:"original_message"`
-	Action           AIRewriteAction `json:"action"`
+	Message      string          `json:"message"`
+	Action       AIRewriteAction `json:"action"`
+	CustomPrompt string          `json:"custom_prompt,omitempty"`
 }
 
 // AIRequest represents a request to call the AI plugin

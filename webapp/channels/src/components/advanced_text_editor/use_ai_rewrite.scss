@@ -1,0 +1,16 @@
+.ai-rewrite-menu-header {
+    padding: 4px 12px 0 12px;
+    margin-bottom: -4px;
+
+    .Input_wrapper {
+        padding-left: 8px;
+    }
+
+    .Input_legend {
+        display: none;
+    }
+
+    .Input_container .Input_wrapper > :not(:first-child) {
+        margin-left: 10px;
+    }
+}

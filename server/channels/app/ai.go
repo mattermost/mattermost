@@ -56,25 +56,33 @@ func (a *App) CallAIPlugin(rctx request.CTX, endpoint string, req model.AIReques
 }
 
 // RewriteMessage rewrites a message using AI based on the specified action
-func (a *App) RewriteMessage(rctx request.CTX, userID string, message string, action model.AIRewriteAction) (*model.AIRewriteResponse, *model.AppError) {
+func (a *App) RewriteMessage(
+	rctx request.CTX,
+	userID string,
+	message string,
+	action model.AIRewriteAction,
+	customPrompt string,
+) (string, *model.AppError) {
 	// Validate inputs
 	if message == "" {
-		return nil, model.NewAppError("RewriteMessage", "app.ai.rewrite.invalid_message", nil, "message cannot be empty", 400)
+		return "", model.NewAppError("RewriteMessage", "app.ai.rewrite.invalid_message", nil, "message cannot be empty", 400)
 	}
 
 	// Validate action
 	validActions := map[model.AIRewriteAction]bool{
-		model.AIRewriteActionSuccinct:     true,
-		model.AIRewriteActionProfessional: true,
-		model.AIRewriteActionMarkdown:     true,
-		model.AIRewriteActionLonger:       true,
+		model.AIRewriteActionShorten:        true,
+		model.AIRewriteActionElaborate:      true,
+		model.AIRewriteActionImproveWriting: true,
+		model.AIRewriteActionFixSpelling:    true,
+		model.AIRewriteActionSimplify:       true,
+		model.AIRewriteActionSummarize:      true,
 	}
 	if !validActions[action] {
-		return nil, model.NewAppError("RewriteMessage", "app.ai.rewrite.invalid_action", nil, fmt.Sprintf("invalid action: %s", action), 400)
+		return "", model.NewAppError("RewriteMessage", "app.ai.rewrite.invalid_action", nil, fmt.Sprintf("invalid action: %s", action), 400)
 	}
 
 	// Get prompts for the action
-	prompt, systemPrompt := getRewritePromptForAction(action, message)
+	prompt, systemPrompt := getRewritePromptForAction(action, message, customPrompt)
 
 	// Prepare AI request
 	aiRequest := map[string]any{
@@ -111,7 +119,7 @@ func (a *App) RewriteMessage(rctx request.CTX, userID string, message string, ac
 		ResponseSchema: responseSchema,
 	})
 	if appErr != nil {
-		return nil, appErr
+		return "", appErr
 	}
 
 	// Parse the AI response
@@ -125,11 +133,11 @@ func (a *App) RewriteMessage(rctx request.CTX, userID string, message string, ac
 			mlog.Err(err),
 			mlog.String("response", string(responseJSON)),
 		)
-		return nil, model.NewAppError("RewriteMessage", "app.ai.rewrite.parse_response_failed", nil, err.Error(), 500)
+		return "", model.NewAppError("RewriteMessage", "app.ai.rewrite.parse_response_failed", nil, err.Error(), 500)
 	}
 
 	if aiResponse.RewrittenText == "" {
-		return nil, model.NewAppError("RewriteMessage", "app.ai.rewrite.empty_response", nil, "", 500)
+		return "", model.NewAppError("RewriteMessage", "app.ai.rewrite.empty_response", nil, "", 500)
 	}
 
 	// Log success
@@ -139,37 +147,41 @@ func (a *App) RewriteMessage(rctx request.CTX, userID string, message string, ac
 		mlog.Int("rewritten_length", len(aiResponse.RewrittenText)),
 		mlog.String("user_id", userID),
 	)
-
-	// Prepare response
-	response := &model.AIRewriteResponse{
-		RewrittenMessage: aiResponse.RewrittenText,
-		OriginalMessage:  message,
-		Action:           action,
-	}
-
-	return response, nil
+	return aiResponse.RewrittenText, nil
 }
 
 // getRewritePromptForAction returns the appropriate prompt and system prompt for the given rewrite action
-func getRewritePromptForAction(action model.AIRewriteAction, message string) (string, string) {
+func getRewritePromptForAction(action model.AIRewriteAction, message string, customPrompt string) (string, string) {
 	switch action {
-	case model.AIRewriteActionSuccinct:
+	case model.AIRewriteActionCustom:
+		return fmt.Sprintf("Rewrite the following message according to the custom instructions: %s\n\nMessage to rewrite:\n%s", customPrompt, message),
+			"You are a helpful assistant that follows custom instructions precisely. Your task is to rewrite the given message according to the specific custom instructions provided. Maintain the original intent while applying the requested changes. You MUST response with just the rewritten message, no additional text."
+
+	case model.AIRewriteActionShorten:
 		return fmt.Sprintf("Rewrite the following message to be more concise and succinct while preserving the core meaning and intent. Return your response as JSON with a 'rewritten_text' field containing the rewritten message:\n\n%s", message),
-			"You are an expert at concise communication. Your task is to rewrite messages to be shorter and more direct while maintaining the essential meaning. Remove redundant words, simplify complex phrases, and get straight to the point. Keep the tone and formality level similar to the original. You MUST respond with valid JSON only, no additional text."
+			"You are an expert at concise communication. Your task is to rewrite messages to be shorter and more direct while maintaining the essential meaning. Remove redundant words, simplify complex phrases, and get straight to the point. Keep the tone and formality level similar to the original. You MUST response with just the rewritten message, no additional text."
 
-	case model.AIRewriteActionProfessional:
-		return fmt.Sprintf("Rewrite the following message to be more professional and polished while maintaining the original intent. Return your response as JSON with a 'rewritten_text' field containing the rewritten message:\n\n%s", message),
-			"You are a professional communication expert. Your task is to rewrite messages to be more professional, polished, and appropriate for business communication. Use professional language, proper grammar, and maintain a respectful tone. Avoid casual language, slang, or overly informal expressions. You MUST respond with valid JSON only, no additional text."
-
-	case model.AIRewriteActionMarkdown:
-		return fmt.Sprintf("Format the following message using Markdown to improve its readability and structure. Use appropriate Markdown features like headers, lists, bold, italic, code blocks, etc. Return your response as JSON with a 'rewritten_text' field containing the formatted message:\n\n%s", message),
-			"You are a Markdown formatting expert. Your task is to take plain text messages and format them nicely using Markdown syntax. Use headers (##) for sections, bullet points or numbered lists for items, **bold** for emphasis, *italic* for subtle emphasis, `code` for technical terms, and ```code blocks``` for longer code snippets. Make the message well-structured and easy to read. You MUST respond with valid JSON only, no additional text."
-
-	case model.AIRewriteActionLonger:
+	case model.AIRewriteActionElaborate:
 		return fmt.Sprintf("Expand and elaborate on the following message to make it more detailed and comprehensive. Add relevant context, examples, and explanations. Return your response as JSON with a 'rewritten_text' field containing the expanded message:\n\n%s", message),
-			"You are an expert at elaborative communication. Your task is to expand brief messages into more detailed, comprehensive versions. Add relevant context, provide examples where appropriate, and explain concepts more thoroughly. Maintain the original intent while making the message more informative and complete. You MUST respond with valid JSON only, no additional text."
+			"You are an expert at elaborative communication. Your task is to expand brief messages into more detailed, comprehensive versions. Add relevant context, provide examples where appropriate, and explain concepts more thoroughly. Maintain the original intent while making the message more informative and complete. You MUST response with just the rewritten message, no additional text."
+
+	case model.AIRewriteActionImproveWriting:
+		return fmt.Sprintf("Rewrite the following message to improve its writing quality, clarity, and professionalism while maintaining the original intent. Return your response as JSON with a 'rewritten_text' field containing the improved message:\n\n%s", message),
+			"You are a professional writing expert. Your task is to improve the writing quality, clarity, and professionalism of messages. Fix grammar issues, improve sentence structure, enhance clarity, and make the writing more engaging and professional. Maintain the original tone and intent. You MUST response with just the rewritten message, no additional text."
+
+	case model.AIRewriteActionFixSpelling:
+		return fmt.Sprintf("Fix spelling and grammar errors in the following message while preserving the original meaning and tone. Return your response as JSON with a 'rewritten_text' field containing the corrected message:\n\n%s", message),
+			"You are a spelling and grammar expert. Your task is to identify and correct spelling mistakes, grammatical errors, and typos in the given message. Preserve the original meaning, tone, and style while ensuring the text is error-free. You MUST response with just the rewritten message, no additional text."
+
+	case model.AIRewriteActionSimplify:
+		return fmt.Sprintf("Simplify the following message to make it easier to understand while preserving the core meaning. Use simpler words and clearer sentence structure. Return your response as JSON with a 'rewritten_text' field containing the simplified message:\n\n%s", message),
+			"You are an expert at simplifying complex communication. Your task is to rewrite messages using simpler language, clearer sentence structure, and more accessible vocabulary. Make the content easier to understand for a broader audience while maintaining the original meaning and intent. You MUST response with just the rewritten message, no additional text."
+
+	case model.AIRewriteActionSummarize:
+		return fmt.Sprintf("Create a concise summary of the following message, capturing the key points and main ideas. Return your response as JSON with a 'rewritten_text' field containing the summary:\n\n%s", message),
+			"You are an expert at creating concise summaries. Your task is to extract the key points, main ideas, and essential information from the given message and present them in a clear, concise summary. Focus on the most important content while maintaining accuracy. You MUST response with just the rewritten message, no additional text."
 
 	default:
-		return message, "You are a helpful assistant. You MUST respond with valid JSON only, no additional text."
+		return message, "You are a helpful assistant. You MUST response with just the rewritten message, no additional text."
 	}
 }
