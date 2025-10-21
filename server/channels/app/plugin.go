@@ -1294,7 +1294,7 @@ func (a *App) CallPluginBridge(rctx request.CTX, sourcePluginID, targetPluginID,
 	// Construct the HTTP request
 	// PluginHTTP expects path format: /<targetPluginID>/<endpoint>
 	requestURL := fmt.Sprintf("/%s%s", targetPluginID, endpoint)
-	
+
 	httpReq, err := http.NewRequest(http.MethodPost, requestURL, bytes.NewReader(requestData))
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create HTTP request")
@@ -1304,12 +1304,12 @@ func (a *App) CallPluginBridge(rctx request.CTX, sourcePluginID, targetPluginID,
 	httpReq.Header.Set("Content-Type", "application/json")
 	httpReq.Header.Set("X-Mattermost-Request-Id", model.NewId())
 	httpReq.Header.Set("User-Agent", "Mattermost-Plugin-Bridge/1.0")
-	
+
 	// Set source plugin ID header
 	if sourcePluginID != "" {
 		httpReq.Header.Set("X-Mattermost-Source-Plugin-Id", sourcePluginID)
 	}
-	
+
 	// Set response schema header if provided
 	if responseSchema != nil {
 		// Base64 encode the schema to safely pass it in header
@@ -1335,7 +1335,7 @@ func (a *App) CallPluginBridge(rctx request.CTX, sourcePluginID, targetPluginID,
 	if httpResp.StatusCode < 200 || httpResp.StatusCode >= 300 {
 		body, _ := io.ReadAll(httpResp.Body)
 		httpResp.Body.Close()
-		
+
 		rctx.Logger().Error("Plugin bridge call failed",
 			mlog.String("source_plugin_id", sourcePluginID),
 			mlog.String("target_plugin_id", targetPluginID),
