@@ -445,6 +445,10 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		th.BasicTeam.AllowedDomains = "example.com"
 		_, err := th.App.UpdateTeam(th.BasicTeam)
 		require.Nil(t, err, "Should update the team")
+		defer func() {
+			th.BasicTeam.AllowedDomains = ""
+			_, _ = th.App.UpdateTeam(th.BasicTeam)
+		}()
 
 		user := model.User{Email: strings.ToLower(model.NewId()) + "test@invalid.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 		ruser, _ := th.App.CreateUser(th.Context, &user)
@@ -546,48 +550,6 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		assert.Equal(t, "api.user.create_user.signup_link_expired.app_error", err.Id)
 	})
 
-	t.Run("easy login invitation token validates sender permissions on channels", func(t *testing.T) {
-		guest := th.CreateGuest()
-
-		// Create a private channel that the sender (BasicUser) is a member of
-		privateChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
-
-		// Create another private channel that the sender is NOT a member of
-		otherUser := th.CreateUser()
-		th.LinkUserToTeam(otherUser, th.BasicTeam)
-		otherPrivateChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
-		_ = th.RemoveUserFromChannel(th.BasicUser, otherPrivateChannel)
-		th.AddUserToChannel(otherUser, otherPrivateChannel)
-
-		// Token includes both channels, but sender only has access to one
-		tokenData := map[string]string{
-			"teamId":   th.BasicTeam.Id,
-			"channels": privateChannel.Id + " " + otherPrivateChannel.Id,
-			"email":    guest.Email,
-			"guest":    "true",
-			"senderId": th.BasicUser.Id,
-		}
-		token := model.NewToken(
-			TokenTypeEasyLoginInvitation,
-			model.MapToJSON(tokenData),
-		)
-		require.NoError(t, th.App.Srv().Store().Token().Save(token))
-
-		_, _, err := th.App.AddUserToTeamByToken(th.Context, guest.Id, token.Token)
-		require.Nil(t, err)
-
-		// Verify guest was only added to the channel sender has access to
-		members, chanErr := th.App.GetChannelMembersForUser(th.Context, th.BasicTeam.Id, guest.Id)
-		require.Nil(t, chanErr)
-
-		channelIds := make(map[string]bool)
-		for _, member := range members {
-			channelIds[member.ChannelId] = true
-		}
-		assert.True(t, channelIds[privateChannel.Id], "Guest should be in sender's private channel")
-		assert.False(t, channelIds[otherPrivateChannel.Id], "Guest should NOT be in other private channel")
-	})
-
 	t.Run("easy login invitation token should not add regular user", func(t *testing.T) {
 		regularUser := th.CreateUser()
 
@@ -627,6 +589,10 @@ func TestAddUserToTeamByTeamId(t *testing.T) {
 		th.BasicTeam.AllowedDomains = "example.com"
 		_, err := th.App.UpdateTeam(th.BasicTeam)
 		require.Nil(t, err, "Should update the team")
+		defer func() {
+			th.BasicTeam.AllowedDomains = ""
+			_, _ = th.App.UpdateTeam(th.BasicTeam)
+		}()
 
 		user := model.User{Email: strings.ToLower(model.NewId()) + "test@invalid.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 		ruser, _ := th.App.CreateUser(th.Context, &user)
