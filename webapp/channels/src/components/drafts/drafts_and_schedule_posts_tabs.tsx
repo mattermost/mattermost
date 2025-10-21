@@ -17,10 +17,9 @@ import {type Draft} from 'selectors/drafts';
 
 import DraftList from 'components/drafts/draft_list';
 import ScheduledPostList from 'components/drafts/scheduled_post_list';
-import Tab from 'components/tabs/tab';
-import Tabs from 'components/tabs/tabs';
 
 import {DRAFT_URL_SUFFIX, SCHEDULED_POST_URL_SUFFIX} from 'utils/constants';
+import {Tab, Tabs} from 'widgets/tabs';
 
 import type {GlobalState} from 'types/store';
 

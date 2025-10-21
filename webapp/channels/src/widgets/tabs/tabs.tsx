@@ -6,7 +6,7 @@ import React from 'react';
 import {Tabs as ReactBootstrapTabs} from 'react-bootstrap';
 import type {SelectCallback} from 'react-bootstrap';
 
-import './style.scss';
+import './tabs.scss';
 
 type Props = {
     children?: React.ReactNode;
