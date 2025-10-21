@@ -17,7 +17,7 @@ const (
 	AIPluginID = "mattermost-ai"
 
 	// AI Plugin Endpoints
-	AIEndpointCompletion = "/api/v1/completion"
+	AIEndpointCompletion = "/inter-plugin/v1/completion"
 )
 
 // AIRewriteAction represents the type of rewrite operation to perform

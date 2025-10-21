@@ -1292,8 +1292,8 @@ func (a *App) CallPluginBridge(rctx request.CTX, sourcePluginID, targetPluginID,
 	}
 
 	// Construct the HTTP request
-	// PluginHTTP expects path format: /<targetPluginID>/<endpoint>
-	requestURL := fmt.Sprintf("/%s%s", targetPluginID, endpoint)
+	// Use the endpoint directly - ServeInterPluginRequest handles routing to the correct plugin
+	requestURL := endpoint
 
 	httpReq, err := http.NewRequest(http.MethodPost, requestURL, bytes.NewReader(requestData))
 	if err != nil {
@@ -1305,9 +1305,18 @@ func (a *App) CallPluginBridge(rctx request.CTX, sourcePluginID, targetPluginID,
 	httpReq.Header.Set("X-Mattermost-Request-Id", model.NewId())
 	httpReq.Header.Set("User-Agent", "Mattermost-Plugin-Bridge/1.0")
 
-	// Set source plugin ID header
+	// Set user ID header if available from session
+	if session := rctx.Session(); session != nil && session.UserId != "" {
+		httpReq.Header.Set("Mattermost-User-Id", session.UserId)
+	}
+
+	// Set plugin ID header (source plugin making the call)
+	// Use a special ID for core server calls to distinguish them from unauthorized calls
 	if sourcePluginID != "" {
-		httpReq.Header.Set("X-Mattermost-Source-Plugin-Id", sourcePluginID)
+		httpReq.Header.Set("Mattermost-Plugin-ID", sourcePluginID)
+	} else {
+		// Core server call - use special identifier
+		httpReq.Header.Set("Mattermost-Plugin-ID", "com.mattermost.server")
 	}
 
 	// Set response schema header if provided
@@ -1318,10 +1327,17 @@ func (a *App) CallPluginBridge(rctx request.CTX, sourcePluginID, targetPluginID,
 	}
 
 	// Log the bridge call for debugging and auditing
+	userID := ""
+	if session := rctx.Session(); session != nil {
+		userID = session.UserId
+	}
 	rctx.Logger().Debug("Plugin bridge call",
 		mlog.String("source_plugin_id", sourcePluginID),
 		mlog.String("target_plugin_id", targetPluginID),
 		mlog.String("endpoint", endpoint),
+		mlog.String("user_id", userID),
+		mlog.String("mattermost_user_id_header", httpReq.Header.Get("Mattermost-User-Id")),
+		mlog.String("mattermost_plugin_id_header", httpReq.Header.Get("Mattermost-Plugin-ID")),
 		mlog.String("request_id", httpReq.Header.Get("X-Mattermost-Request-Id")),
 		mlog.Bool("has_response_schema", responseSchema != nil),
 	)
@@ -1343,7 +1359,7 @@ func (a *App) CallPluginBridge(rctx request.CTX, sourcePluginID, targetPluginID,
 			mlog.Int("status_code", httpResp.StatusCode),
 			mlog.String("response_body", string(body)),
 		)
-		return nil, errors.Errorf("bridge call to %s%s failed with status %d: %s", targetPluginID, endpoint, httpResp.StatusCode, string(body))
+		return nil, errors.Errorf("bridge call to %s at %s failed with status %d: %s", targetPluginID, endpoint, httpResp.StatusCode, string(body))
 	}
 
 	// Read response body
