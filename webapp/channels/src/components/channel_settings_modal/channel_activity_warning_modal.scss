@@ -14,18 +14,18 @@
 
 // Style the activity warning checkbox specifically
 .ConfirmModal .activity-warning-checkbox label {
-    font-size: 12px !important;
-    color: var(--center-channel-color) !important;
-    font-weight: 600 !important;
-    line-height: 16px !important;
-    margin-bottom: 0 !important;
     display: flex !important;
     align-items: flex-start !important;
+    margin-bottom: 0 !important;
+    color: var(--center-channel-color) !important;
+    font-size: 12px !important;
+    font-weight: 600 !important;
     gap: 8px !important;
+    line-height: 16px !important;
 }
 
 .ConfirmModal .activity-warning-checkbox input[type="checkbox"] {
+    flex-shrink: 0 !important;
     margin-top: 2px !important;
     margin-right: 0 !important;
-    flex-shrink: 0 !important;
 }
