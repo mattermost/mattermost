@@ -1,13 +1,13 @@
 ---
 name: E2E Smoketests
-on:
-  # For PRs, this workflow gets triggered from the Argo Events platform.
-  # Check the following repo for details: https://github.com/mattermost/delivery-platform
-  workflow_dispatch:
-    inputs:
-      commit_sha:
-        type: string
-        required: true
+# on:
+#   # For PRs, this workflow gets triggered from the Argo Events platform.
+#   # Check the following repo for details: https://github.com/mattermost/delivery-platform
+#   workflow_dispatch:
+#     inputs:
+#       commit_sha:
+#         type: string
+#         required: true
 
 jobs:
   generate-test-variables:
