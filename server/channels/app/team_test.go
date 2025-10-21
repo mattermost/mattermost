@@ -1755,6 +1755,7 @@ func TestInviteGuestsToChannelsGracefully(t *testing.T) {
 			true,
 			false,
 			false,
+			false,
 		).Once().Return(nil)
 		emailServiceMock.On("Stop").Once().Return()
 		th.App.Srv().EmailService = &emailServiceMock
@@ -1780,6 +1781,7 @@ func TestInviteGuestsToChannelsGracefully(t *testing.T) {
 			"",
 			"",
 			true,
+			false,
 			false,
 			false,
 		).Once().Return(email.SendMailError)
