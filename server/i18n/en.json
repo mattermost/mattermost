@@ -11071,5 +11071,53 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Couldn't find the user {{.user}}"
+  },
+  {
+    "id": "push_proxy.generate.bad_status.app_error",
+    "translation": "Failed to get auth token from push proxy server."
+  },
+  {
+    "id": "push_proxy.generate.create_request.app_error",
+    "translation": "Failed to create HTTP request for push proxy auth."
+  },
+  {
+    "id": "push_proxy.generate.decode_key.app_error",
+    "translation": "Failed to decode encryption key for push proxy auth."
+  },
+  {
+    "id": "push_proxy.generate.empty_token.app_error",
+    "translation": "Push proxy returned empty auth token."
+  },
+  {
+    "id": "push_proxy.generate.encrypt.app_error",
+    "translation": "Failed to encrypt payload for push proxy auth."
+  },
+  {
+    "id": "push_proxy.generate.http_request.app_error",
+    "translation": "Failed to send HTTP request to push proxy auth endpoint."
+  },
+  {
+    "id": "push_proxy.generate.marshal.app_error",
+    "translation": "Failed to marshal payload for push proxy auth."
+  },
+  {
+    "id": "push_proxy.generate.marshal_request.app_error",
+    "translation": "Failed to marshal request body for push proxy auth."
+  },
+  {
+    "id": "push_proxy.generate.no_key.app_error",
+    "translation": "No encryption key available for push proxy auth."
+  },
+  {
+    "id": "push_proxy.generate.parse_response.app_error",
+    "translation": "Failed to parse response from push proxy auth endpoint."
+  },
+  {
+    "id": "push_proxy.generate.save_system.app_error",
+    "translation": "Failed to save auth token to system table."
+  },
+  {
+    "id": "push_proxy.worker.interface_nil.app_error",
+    "translation": "Push proxy interface is nil."
   }
 ]
