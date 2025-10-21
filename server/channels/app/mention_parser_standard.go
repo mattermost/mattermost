@@ -36,7 +36,13 @@ func (p *StandardMentionParser) ProcessText(text string) {
 		return !(c == ':' || c == '.' || c == '-' || c == '_' || c == '@' || c == '＠' || unicode.IsLetter(c) || unicode.IsNumber(c))
 	}) {
 		// skip word with format ':word:' with an assumption that it is an emoji format only
-		if word[0] == ':' && word[len(word)-1] == ':' {
+		// Check if word is empty
+		if len(word) == 0 {
+			continue
+		}
+
+		// skip word with format ':word:' with an assumption that it is an emoji format only
+		if len(word) >= 2 && word[0] == ':' && word[len(word)-1] == ':' {
 			continue
 		}
 
@@ -111,15 +117,18 @@ func (p *StandardMentionParser) Results() *MentionResults {
 func (p *StandardMentionParser) checkForMention(word string) bool {
 	var mentionType MentionType
 
-	wordLower := strings.ToLower(word)
+	// Normalize full-width @ to half-width @ for matching
+	normalizedWord := strings.ReplaceAll(word, "＠", "@")
+	wordLower := strings.ToLower(normalizedWord)
+
 	switch wordLower {
-	case "@here", "＠here":
+	case "@here":
 		p.results.HereMentioned = true
 		mentionType = ChannelMention
-	case "@channel", "＠channel":
+	case "@channel":
 		p.results.ChannelMentioned = true
 		mentionType = ChannelMention
-	case "@all", "＠all":
+	case "@all":
 		p.results.AllMentioned = true
 		mentionType = ChannelMention
 	default:
@@ -132,7 +141,7 @@ func (p *StandardMentionParser) checkForMention(word string) bool {
 	}
 
 	// Case-sensitive check for first name
-	if ids, match := p.keywords[word]; match {
+	if ids, match := p.keywords[normalizedWord]; match {
 		p.addMentions(ids, mentionType)
 		return true
 	}
