@@ -13,11 +13,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-const (
-	// defaultAIAgent is the default agent to use for AI operations
-	defaultAIAgent = "matty"
-)
-
 // getAIClient returns an AI client for making requests to the AI plugin
 func (a *App) getAIClient(userID string) *agentclient.Client {
 	return agentclient.NewClientFromApp(a, userID)
@@ -68,17 +63,15 @@ func (a *App) RewriteMessage(rctx request.CTX, userID string, message string, ac
 	// Call the AI plugin using the client
 	rctx.Logger().Debug("Calling AI agent for message rewrite",
 		mlog.String("action", string(action)),
-		mlog.String("agent", defaultAIAgent),
 		mlog.String("user_id", userID),
 		mlog.Int("message_length", len(message)),
 	)
 
-	completion, err := client.AgentCompletion(defaultAIAgent, completionRequest)
+	completion, err := client.AgentCompletion("", completionRequest)
 	if err != nil {
 		rctx.Logger().Error("AI agent call failed",
 			mlog.Err(err),
 			mlog.String("action", string(action)),
-			mlog.String("agent", defaultAIAgent),
 		)
 		return nil, model.NewAppError("RewriteMessage", "app.ai.rewrite.agent_call_failed", nil, err.Error(), 500)
 	}
@@ -105,7 +98,6 @@ func (a *App) RewriteMessage(rctx request.CTX, userID string, message string, ac
 	// Log success
 	rctx.Logger().Debug("AI rewrite successful",
 		mlog.String("action", string(action)),
-		mlog.String("agent", defaultAIAgent),
 		mlog.Int("original_length", len(message)),
 		mlog.Int("rewritten_length", len(aiResponse.RewrittenText)),
 		mlog.String("user_id", userID),
