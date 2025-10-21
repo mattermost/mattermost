@@ -77,9 +77,9 @@ func (a *App) RewriteMessage(rctx request.CTX, userID string, message string, ac
 	prompt, systemPrompt := getRewritePromptForAction(action, message)
 
 	// Prepare AI request
-	aiRequest := map[string]interface{}{
+	aiRequest := map[string]any{
 		"prompt": prompt,
-		"context": map[string]interface{}{
+		"context": map[string]any{
 			"system_prompt": systemPrompt,
 			"user_id":       userID,
 			"action":        action,

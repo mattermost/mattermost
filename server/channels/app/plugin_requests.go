@@ -92,7 +92,7 @@ func (a *App) ServeInternalPluginRequest(rctx request.CTX, w http.ResponseWriter
 
 	// Set authentication headers - these are trusted because this function is only called internally
 	// and not exposed to external HTTP routes
-	
+
 	// Set user ID header if available from session
 	if session := rctx.Session(); session != nil && session.UserId != "" {
 		r.Header.Set("Mattermost-User-Id", session.UserId)
