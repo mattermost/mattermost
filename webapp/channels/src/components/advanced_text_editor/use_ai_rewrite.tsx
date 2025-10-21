@@ -5,7 +5,6 @@ import {useCallback, useState} from 'react';
 import {useDispatch} from 'react-redux';
 
 import {logError} from 'mattermost-redux/actions/errors';
-
 import {Client4} from 'mattermost-redux/client';
 
 import type {AIRewriteAction} from './ai_rewrite_button';
