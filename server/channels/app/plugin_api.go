@@ -1603,8 +1603,3 @@ func (api *PluginAPI) DeletePropertyValuesForTarget(groupID, targetType, targetI
 func (api *PluginAPI) DeletePropertyValuesForField(groupID, fieldID string) error {
 	return api.app.PropertyService().DeletePropertyValuesForField(groupID, fieldID)
 }
-
-// CallPlugin makes a RESTful bridge call from this plugin to another plugin via HTTP
-func (api *PluginAPI) CallPlugin(targetPluginID string, endpoint string, request []byte, responseSchema []byte) ([]byte, error) {
-	return api.app.CallPluginBridge(api.ctx, api.id, targetPluginID, endpoint, request, responseSchema)
-}
