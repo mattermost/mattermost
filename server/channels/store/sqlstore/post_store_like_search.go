@@ -73,7 +73,7 @@ func (s *SqlPostStore) likesearch(teamId string, userId string, params *model.Se
 		phrases := quotedStringsRegex.FindAllString(terms, -1)
 		terms = quotedStringsRegex.ReplaceAllString(terms, " ")
 
-		//フレーズ検索に対応 
+		//フレーズ検索に対応
 		for _, phrase := range phrases {
 			cleanPhrase := strings.Trim(phrase, `"`)
 			if cleanPhrase != "" {
@@ -102,7 +102,7 @@ func (s *SqlPostStore) likesearch(teamId string, userId string, params *model.Se
 		}
 
 		baseQuery = baseQuery.Where("("+strings.Join(searchClauses, logicalOperator)+")", searchArgs...)
-		
+
 		excludedWords := strings.Fields(excludedTerms)
 		if len(excludedWords) > 0 {
 			var excludedClauses []string
