@@ -124,6 +124,16 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         show={false}
         toPublic={true}
       />
+      <ChannelAccessRulesConfirmModal
+        autoSyncEnabled={false}
+        channelName="name"
+        isStacked={true}
+        onConfirm={[Function]}
+        onHide={[Function]}
+        show={false}
+        usersToAdd={Array []}
+        usersToRemove={Array []}
+      />
       <ChannelModes
         abacSupported={true}
         groupsSupported={true}
@@ -308,6 +318,16 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         removeAmount={0}
         show={false}
         toPublic={true}
+      />
+      <ChannelAccessRulesConfirmModal
+        autoSyncEnabled={false}
+        channelName="name"
+        isStacked={true}
+        onConfirm={[Function]}
+        onHide={[Function]}
+        show={false}
+        usersToAdd={Array []}
+        usersToRemove={Array []}
       />
       <ChannelModes
         abacSupported={true}
@@ -513,6 +533,16 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         show={false}
         toPublic={true}
       />
+      <ChannelAccessRulesConfirmModal
+        autoSyncEnabled={false}
+        channelName="name"
+        isStacked={true}
+        onConfirm={[Function]}
+        onHide={[Function]}
+        show={false}
+        usersToAdd={Array []}
+        usersToRemove={Array []}
+      />
       <ChannelModes
         abacSupported={true}
         groupsSupported={false}
@@ -649,6 +679,16 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         removeAmount={0}
         show={false}
         toPublic={true}
+      />
+      <ChannelAccessRulesConfirmModal
+        autoSyncEnabled={false}
+        channelName="name"
+        isStacked={true}
+        onConfirm={[Function]}
+        onHide={[Function]}
+        show={false}
+        usersToAdd={Array []}
+        usersToRemove={Array []}
       />
       <ChannelModes
         abacSupported={true}
@@ -806,6 +846,16 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         show={false}
         toPublic={true}
       />
+      <ChannelAccessRulesConfirmModal
+        autoSyncEnabled={false}
+        channelName="name"
+        isStacked={true}
+        onConfirm={[Function]}
+        onHide={[Function]}
+        show={false}
+        usersToAdd={Array []}
+        usersToRemove={Array []}
+      />
       <ChannelModes
         abacSupported={false}
         groupsSupported={false}
@@ -942,6 +992,16 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         removeAmount={0}
         show={false}
         toPublic={true}
+      />
+      <ChannelAccessRulesConfirmModal
+        autoSyncEnabled={false}
+        channelName="name"
+        isStacked={true}
+        onConfirm={[Function]}
+        onHide={[Function]}
+        show={false}
+        usersToAdd={Array []}
+        usersToRemove={Array []}
       />
       <ChannelModes
         abacSupported={false}
