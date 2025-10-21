@@ -1,0 +1,203 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+package app
+
+import (
+	"encoding/json"
+	"fmt"
+
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+)
+
+const (
+	// AI Plugin ID
+	AIPluginID = "mattermost-ai"
+
+	// AI Plugin Methods
+	AIMethodGenerateCompletion = "GenerateCompletion"
+)
+
+// AIRewriteAction represents the type of rewrite operation to perform
+type AIRewriteAction string
+
+const (
+	AIRewriteActionSuccinct     AIRewriteAction = "more_succinct"
+	AIRewriteActionProfessional AIRewriteAction = "more_professional"
+	AIRewriteActionMarkdown     AIRewriteAction = "format_markdown"
+	AIRewriteActionLonger       AIRewriteAction = "make_longer"
+)
+
+// AIRewriteRequest represents a request to rewrite a message
+type AIRewriteRequest struct {
+	Message string          `json:"message"`
+	Action  AIRewriteAction `json:"action"`
+}
+
+// AIRewriteResponse represents the response from a rewrite operation
+type AIRewriteResponse struct {
+	RewrittenMessage string          `json:"rewritten_message"`
+	OriginalMessage  string          `json:"original_message"`
+	Action           AIRewriteAction `json:"action"`
+}
+
+// CallAIPlugin is a convenience wrapper for calling the Agents plugin
+// It handles plugin availability checks and provides a cleaner API
+func (a *App) CallAIPlugin(rctx request.CTX, method string, requestData map[string]interface{}, responseSchema []byte) ([]byte, *model.AppError) {
+	// Check if AI plugin is available
+	pluginEnv := a.GetPluginsEnvironment()
+	if pluginEnv == nil {
+		return nil, model.NewAppError("CallAIPlugin", "app.ai.plugins_not_initialized", nil, "", 500)
+	}
+
+	// Marshal request data
+	requestJSON, err := json.Marshal(requestData)
+	if err != nil {
+		return nil, model.NewAppError("CallAIPlugin", "app.ai.marshal_request_failed", nil, err.Error(), 500)
+	}
+
+	// Call the plugin via bridge
+	rctx.Logger().Debug("Calling AI plugin",
+		mlog.String("method", method),
+		mlog.Int("request_size", len(requestJSON)),
+		mlog.Bool("has_schema", responseSchema != nil),
+	)
+
+	responseJSON, err := a.CallPluginFromCore(rctx, AIPluginID, method, requestJSON, responseSchema)
+	if err != nil {
+		rctx.Logger().Error("AI plugin call failed",
+			mlog.Err(err),
+			mlog.String("method", method),
+		)
+		// Check if it's already an AppError
+		if appErr, ok := err.(*model.AppError); ok {
+			return nil, appErr
+		}
+		return nil, model.NewAppError("CallAIPlugin", "app.ai.plugin_call_failed", nil, err.Error(), 500)
+	}
+
+	rctx.Logger().Debug("AI plugin call succeeded",
+		mlog.String("method", method),
+		mlog.Int("response_size", len(responseJSON)),
+	)
+
+	return responseJSON, nil
+}
+
+// RewriteMessage rewrites a message using AI based on the specified action
+func (a *App) RewriteMessage(rctx request.CTX, userID string, message string, action AIRewriteAction) (*AIRewriteResponse, *model.AppError) {
+	// Validate inputs
+	if message == "" {
+		return nil, model.NewAppError("RewriteMessage", "app.ai.rewrite.invalid_message", nil, "message cannot be empty", 400)
+	}
+
+	// Validate action
+	validActions := map[AIRewriteAction]bool{
+		AIRewriteActionSuccinct:     true,
+		AIRewriteActionProfessional: true,
+		AIRewriteActionMarkdown:     true,
+		AIRewriteActionLonger:       true,
+	}
+	if !validActions[action] {
+		return nil, model.NewAppError("RewriteMessage", "app.ai.rewrite.invalid_action", nil, fmt.Sprintf("invalid action: %s", action), 400)
+	}
+
+	// Get prompts for the action
+	prompt, systemPrompt := getRewritePromptForAction(action, message)
+
+	// Prepare AI request
+	aiRequest := map[string]interface{}{
+		"prompt": prompt,
+		"context": map[string]interface{}{
+			"system_prompt": systemPrompt,
+			"user_id":       userID,
+			"action":        action,
+		},
+		"max_tokens": 2000,
+	}
+
+	// Define expected response schema for structured output
+	responseSchema := []byte(`{
+		"type": "object",
+		"properties": {
+			"rewritten_text": {
+				"type": "string",
+				"description": "The rewritten message text"
+			},
+			"changes_made": {
+				"type": "array",
+				"items": {"type": "string"},
+				"description": "Brief list of key changes made",
+				"maxItems": 5
+			}
+		},
+		"required": ["rewritten_text"]
+	}`)
+
+	// Call the AI plugin
+	responseJSON, appErr := a.CallAIPlugin(rctx, AIMethodGenerateCompletion, aiRequest, responseSchema)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	// Parse the AI response
+	var aiResponse struct {
+		RewrittenText string   `json:"rewritten_text"`
+		ChangesMade   []string `json:"changes_made"`
+	}
+
+	if err := json.Unmarshal(responseJSON, &aiResponse); err != nil {
+		rctx.Logger().Error("Failed to parse AI response",
+			mlog.Err(err),
+			mlog.String("response", string(responseJSON)),
+		)
+		return nil, model.NewAppError("RewriteMessage", "app.ai.rewrite.parse_response_failed", nil, err.Error(), 500)
+	}
+
+	if aiResponse.RewrittenText == "" {
+		return nil, model.NewAppError("RewriteMessage", "app.ai.rewrite.empty_response", nil, "", 500)
+	}
+
+	// Log success
+	rctx.Logger().Debug("AI rewrite successful",
+		mlog.String("action", string(action)),
+		mlog.Int("original_length", len(message)),
+		mlog.Int("rewritten_length", len(aiResponse.RewrittenText)),
+		mlog.String("user_id", userID),
+	)
+
+	// Prepare response
+	response := &AIRewriteResponse{
+		RewrittenMessage: aiResponse.RewrittenText,
+		OriginalMessage:  message,
+		Action:           action,
+	}
+
+	return response, nil
+}
+
+// getRewritePromptForAction returns the appropriate prompt and system prompt for the given rewrite action
+func getRewritePromptForAction(action AIRewriteAction, message string) (string, string) {
+	switch action {
+	case AIRewriteActionSuccinct:
+		return fmt.Sprintf("Rewrite the following message to be more concise and succinct while preserving the core meaning and intent. Return your response as JSON with a 'rewritten_text' field containing the rewritten message:\n\n%s", message),
+			"You are an expert at concise communication. Your task is to rewrite messages to be shorter and more direct while maintaining the essential meaning. Remove redundant words, simplify complex phrases, and get straight to the point. Keep the tone and formality level similar to the original. You MUST respond with valid JSON only, no additional text."
+
+	case AIRewriteActionProfessional:
+		return fmt.Sprintf("Rewrite the following message to be more professional and polished while maintaining the original intent. Return your response as JSON with a 'rewritten_text' field containing the rewritten message:\n\n%s", message),
+			"You are a professional communication expert. Your task is to rewrite messages to be more professional, polished, and appropriate for business communication. Use professional language, proper grammar, and maintain a respectful tone. Avoid casual language, slang, or overly informal expressions. You MUST respond with valid JSON only, no additional text."
+
+	case AIRewriteActionMarkdown:
+		return fmt.Sprintf("Format the following message using Markdown to improve its readability and structure. Use appropriate Markdown features like headers, lists, bold, italic, code blocks, etc. Return your response as JSON with a 'rewritten_text' field containing the formatted message:\n\n%s", message),
+			"You are a Markdown formatting expert. Your task is to take plain text messages and format them nicely using Markdown syntax. Use headers (##) for sections, bullet points or numbered lists for items, **bold** for emphasis, *italic* for subtle emphasis, `code` for technical terms, and ```code blocks``` for longer code snippets. Make the message well-structured and easy to read. You MUST respond with valid JSON only, no additional text."
+
+	case AIRewriteActionLonger:
+		return fmt.Sprintf("Expand and elaborate on the following message to make it more detailed and comprehensive. Add relevant context, examples, and explanations. Return your response as JSON with a 'rewritten_text' field containing the expanded message:\n\n%s", message),
+			"You are an expert at elaborative communication. Your task is to expand brief messages into more detailed, comprehensive versions. Add relevant context, provide examples where appropriate, and explain concepts more thoroughly. Maintain the original intent while making the message more informative and complete. You MUST respond with valid JSON only, no additional text."
+
+	default:
+		return message, "You are a helpful assistant. You MUST respond with valid JSON only, no additional text."
+	}
+}
