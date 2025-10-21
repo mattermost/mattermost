@@ -5,7 +5,7 @@ package app
 
 import (
 	"bytes"
-	"encoding/base64"
+	"fmt"
 	"io"
 	"net/http"
 	"path"
@@ -60,7 +60,7 @@ func (ch *Channels) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 //   - sourcePluginID: ID of calling plugin (empty string if from core)
 //   - targetPluginID: ID of target plugin to call
 //   - responseSchema: Optional JSON schema for expected response (will be base64-encoded in header)
-func (a *App) ServeInternalPluginRequest(rctx request.CTX, w http.ResponseWriter, r *http.Request, sourcePluginID, targetPluginID string, responseSchema []byte) {
+func (a *App) ServeInternalPluginRequest(userID string, w http.ResponseWriter, r *http.Request, sourcePluginID, targetPluginID string) {
 	pluginsEnvironment := a.ch.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		appErr := model.NewAppError("ServeInternalPluginRequest", "app.plugin.disabled.app_error", nil, "Plugin environment not found.", http.StatusNotImplemented)
@@ -94,9 +94,7 @@ func (a *App) ServeInternalPluginRequest(rctx request.CTX, w http.ResponseWriter
 	// and not exposed to external HTTP routes
 
 	// Set user ID header if available from session
-	if session := rctx.Session(); session != nil && session.UserId != "" {
-		r.Header.Set("Mattermost-User-Id", session.UserId)
-	}
+	r.Header.Set("Mattermost-User-Id", userID)
 
 	// Set plugin ID header to identify the caller
 	// Use a special ID for core server calls to distinguish them from plugin-to-plugin calls
@@ -107,12 +105,8 @@ func (a *App) ServeInternalPluginRequest(rctx request.CTX, w http.ResponseWriter
 		r.Header.Set("Mattermost-Plugin-ID", "com.mattermost.server")
 	}
 
-	// Set response schema header if provided (for AI/LLM structured outputs)
-	if responseSchema != nil {
-		// Base64 encode the schema to safely pass it in header
-		encodedSchema := base64.StdEncoding.EncodeToString(responseSchema)
-		r.Header.Set("X-Mattermost-Response-Schema", encodedSchema)
-	}
+	fmt.Println("Serving internal plugin request from", sourcePluginID, "to", targetPluginID)
+	fmt.Println("Request URL:", r.URL.String())
 
 	hooks.ServeHTTP(context, w, r)
 }
