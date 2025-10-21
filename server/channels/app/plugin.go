@@ -1292,7 +1292,7 @@ func (a *App) CallPluginBridge(rctx request.CTX, sourcePluginID, targetPluginID,
 	}
 
 	// Construct the HTTP request
-	// Use the endpoint directly - ServeInterPluginRequest handles routing to the correct plugin
+	// Use the endpoint directly - ServeInternalPluginRequest handles routing to the correct plugin
 	requestURL := endpoint
 
 	httpReq, err := http.NewRequest(http.MethodPost, requestURL, bytes.NewReader(requestData))
@@ -1300,31 +1300,10 @@ func (a *App) CallPluginBridge(rctx request.CTX, sourcePluginID, targetPluginID,
 		return nil, errors.Wrap(err, "failed to create HTTP request")
 	}
 
-	// Set headers
+	// Set basic headers (authentication headers are set by ServeInternalPluginRequest)
 	httpReq.Header.Set("Content-Type", "application/json")
 	httpReq.Header.Set("X-Mattermost-Request-Id", model.NewId())
 	httpReq.Header.Set("User-Agent", "Mattermost-Plugin-Bridge/1.0")
-
-	// Set user ID header if available from session
-	if session := rctx.Session(); session != nil && session.UserId != "" {
-		httpReq.Header.Set("Mattermost-User-Id", session.UserId)
-	}
-
-	// Set plugin ID header (source plugin making the call)
-	// Use a special ID for core server calls to distinguish them from unauthorized calls
-	if sourcePluginID != "" {
-		httpReq.Header.Set("Mattermost-Plugin-ID", sourcePluginID)
-	} else {
-		// Core server call - use special identifier
-		httpReq.Header.Set("Mattermost-Plugin-ID", "com.mattermost.server")
-	}
-
-	// Set response schema header if provided
-	if responseSchema != nil {
-		// Base64 encode the schema to safely pass it in header
-		encodedSchema := base64.StdEncoding.EncodeToString(responseSchema)
-		httpReq.Header.Set("X-Mattermost-Response-Schema", encodedSchema)
-	}
 
 	// Log the bridge call for debugging and auditing
 	userID := ""
@@ -1336,15 +1315,14 @@ func (a *App) CallPluginBridge(rctx request.CTX, sourcePluginID, targetPluginID,
 		mlog.String("target_plugin_id", targetPluginID),
 		mlog.String("endpoint", endpoint),
 		mlog.String("user_id", userID),
-		mlog.String("mattermost_user_id_header", httpReq.Header.Get("Mattermost-User-Id")),
-		mlog.String("mattermost_plugin_id_header", httpReq.Header.Get("Mattermost-Plugin-ID")),
 		mlog.String("request_id", httpReq.Header.Get("X-Mattermost-Request-Id")),
 		mlog.Bool("has_response_schema", responseSchema != nil),
 	)
 
-	// Execute the bridge call via inter-plugin HTTP
+	// Execute the bridge call via internal plugin HTTP
+	// ServeInternalPluginRequest will set authentication headers (Mattermost-User-Id, Mattermost-Plugin-ID, etc.)
 	responseWriter := &PluginResponseWriter{}
-	a.ServeInterPluginRequest(responseWriter, httpReq, sourcePluginID, targetPluginID)
+	a.ServeInternalPluginRequest(rctx, responseWriter, httpReq, sourcePluginID, targetPluginID, responseSchema)
 	httpResp := responseWriter.GenerateResponse()
 
 	// Check response status

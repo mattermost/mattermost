@@ -69,7 +69,8 @@ func (p *Plugin) ExecuteBridgeCall(c *plugin.Context, method string, request []b
 ```go
 func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
     // Extract bridge call metadata from headers
-    sourcePluginID := r.Header.Get("X-Mattermost-Source-Plugin-Id")
+    pluginID := r.Header.Get("Mattermost-Plugin-ID")  // "com.mattermost.server" for core, plugin ID for plugins
+    userID := r.Header.Get("Mattermost-User-Id")
     requestID := r.Header.Get("X-Mattermost-Request-Id")
     responseSchemaEncoded := r.Header.Get("X-Mattermost-Response-Schema")
     
@@ -83,10 +84,11 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
     }
     
     // Log incoming bridge call
-    if sourcePluginID != "" || requestID != "" {
+    if pluginID != "" || requestID != "" {
         p.API.LogInfo("Bridge call received",
             "endpoint", r.URL.Path,
-            "source", sourcePluginID,
+            "caller", pluginID,
+            "user", userID,
             "request_id", requestID,
             "has_schema", responseSchema != nil,
         )
@@ -95,11 +97,11 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
     // Route to appropriate REST endpoint
     switch r.URL.Path {
     case "/api/v1/completion":
-        p.handleCompletionEndpoint(w, r, sourcePluginID, responseSchema)
+        p.handleCompletionEndpoint(w, r, pluginID, userID, responseSchema)
         return
     
     case "/api/v1/summarize":
-        p.handleSummarizeEndpoint(w, r, sourcePluginID, responseSchema)
+        p.handleSummarizeEndpoint(w, r, pluginID, userID, responseSchema)
         return
     
     // ... other endpoints for plugin's normal HTTP handlers
@@ -161,7 +163,7 @@ func (p *Plugin) handleGenerateCompletion(c *plugin.Context, request []byte, res
 
 **After (HTTP-based endpoint handler):**
 ```go
-func (p *Plugin) handleCompletionEndpoint(w http.ResponseWriter, r *http.Request, sourcePluginID string, responseSchema []byte) {
+func (p *Plugin) handleCompletionEndpoint(w http.ResponseWriter, r *http.Request, pluginID, userID string, responseSchema []byte) {
     // Read request body
     body, err := io.ReadAll(r.Body)
     if err != nil {
@@ -181,7 +183,7 @@ func (p *Plugin) handleCompletionEndpoint(w http.ResponseWriter, r *http.Request
     }
 
     // Authorization check (using endpoint path instead of method name)
-    if !p.isAuthorized(sourcePluginID, "/api/v1/completion") {
+    if !p.isAuthorized(pluginID, userID, "/api/v1/completion") {
         http.Error(w, "unauthorized", http.StatusForbidden)
         return
     }
@@ -218,7 +220,7 @@ func (p *Plugin) handleCompletionEndpoint(w http.ResponseWriter, r *http.Request
 - Write response using `http.ResponseWriter` instead of returning `[]byte`
 - Use HTTP status codes for errors (`http.Error()`, `http.StatusBadRequest`, etc.)
 - Set appropriate HTTP headers (`Content-Type: application/json`)
-- Use `sourcePluginID` parameter instead of `c.SourcePluginId`
+- Use `pluginID` and `userID` parameters from headers instead of Context fields
 
 ---
 
@@ -245,9 +247,9 @@ func (p *Plugin) isAuthorized(sourcePluginId, method string) bool {
 
 **After:**
 ```go
-func (p *Plugin) isAuthorized(sourcePluginID, endpoint string) bool {
-    // Empty source = core server (always allowed)
-    if sourcePluginID == "" {
+func (p *Plugin) isAuthorized(pluginID, userID, endpoint string) bool {
+    // Core server calls with valid user
+    if pluginID == "com.mattermost.server" && userID != "" {
         return true
     }
 
@@ -527,7 +529,8 @@ type Plugin struct {
 // ServeHTTP handles HTTP requests including bridge calls
 func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
     // Extract bridge metadata from headers
-    sourcePluginID := r.Header.Get("X-Mattermost-Source-Plugin-Id")
+    pluginID := r.Header.Get("Mattermost-Plugin-ID")  // "com.mattermost.server" for core, plugin ID for plugins
+    userID := r.Header.Get("Mattermost-User-Id")
     responseSchemaEncoded := r.Header.Get("X-Mattermost-Response-Schema")
     
     // Decode response schema
@@ -538,21 +541,21 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
     }
     
     // Log bridge calls
-    if sourcePluginID != "" {
-        p.API.LogInfo("Bridge call", "endpoint", r.URL.Path, "source", sourcePluginID)
+    if pluginID != "" {
+        p.API.LogInfo("Bridge call", "endpoint", r.URL.Path, "caller", pluginID, "user", userID)
     }
     
     // Route to endpoints
     switch r.URL.Path {
     case "/api/v1/completion":
-        p.handleCompletionEndpoint(w, r, sourcePluginID, responseSchema)
+        p.handleCompletionEndpoint(w, r, pluginID, userID, responseSchema)
         return
     default:
         http.Error(w, "not found", http.StatusNotFound)
     }
 }
 
-func (p *Plugin) handleCompletionEndpoint(w http.ResponseWriter, r *http.Request, sourcePluginID string, responseSchema []byte) {
+func (p *Plugin) handleCompletionEndpoint(w http.ResponseWriter, r *http.Request, pluginID, userID string, responseSchema []byte) {
     // Read request body
     body, err := io.ReadAll(r.Body)
     if err != nil {
@@ -571,7 +574,7 @@ func (p *Plugin) handleCompletionEndpoint(w http.ResponseWriter, r *http.Request
     }
     
     // Authorization
-    if !p.isAuthorized(sourcePluginID, "/api/v1/completion") {
+    if !p.isAuthorized(pluginID, userID, "/api/v1/completion") {
         http.Error(w, "unauthorized", http.StatusForbidden)
         return
     }
@@ -592,8 +595,13 @@ func (p *Plugin) handleCompletionEndpoint(w http.ResponseWriter, r *http.Request
     w.Write(responseJSON)
 }
 
-func (p *Plugin) isAuthorized(sourcePluginID, endpoint string) bool {
-    return sourcePluginID == "" || sourcePluginID == "com.mattermost.boards"
+func (p *Plugin) isAuthorized(pluginID, userID, endpoint string) bool {
+    // Allow core server calls with valid user
+    if pluginID == "com.mattermost.server" && userID != "" {
+        return true
+    }
+    // Allow specific plugins
+    return pluginID == "com.mattermost.boards" || pluginID == "com.mattermost.playbooks"
 }
 ```
 

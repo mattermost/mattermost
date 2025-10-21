@@ -68,37 +68,46 @@ func (api *PluginAPI) CallPlugin(targetPluginID string, endpoint string, request
 **Purpose**: Core orchestration logic that:
 1. Validates the target plugin exists and is active
 2. Constructs an HTTP POST request to the target plugin endpoint
-3. Sets custom headers for source tracking and response schema
-4. Routes the request via `ServeInterPluginRequest`
-5. Handles HTTP response and errors
-6. Logs the call for debugging and auditing
+3. Routes the request via `ServeInternalPluginRequest`
+4. Handles HTTP response and errors
+5. Logs the call for debugging and auditing
 
 ```go
 func (a *App) CallPluginBridge(rctx request.CTX, sourcePluginID, targetPluginID, endpoint string, requestData []byte, responseSchema []byte) ([]byte, error)
 func (a *App) CallPluginFromCore(rctx request.CTX, targetPluginID, endpoint string, requestData []byte, responseSchema []byte) ([]byte, error)
 ```
 
-**HTTP Headers Used:**
+---
+
+#### 4. `channels/app/plugin_requests.go`
+**Changes:**
+- Added `ServeInternalPluginRequest` method for handling internal plugin calls (plugin-to-plugin and core-to-plugin)
+- Kept `ServeInterPluginRequest` for backward compatibility (deprecated)
+
+**Purpose**: HTTP transport layer that sets authentication headers and routes internal requests to plugins.
+
+This function is **not exposed** to external HTTP routes - it's only called by internal server code, ensuring headers cannot be spoofed.
+
+**HTTP Headers Set by ServeInternalPluginRequest:**
 - `Content-Type: application/json` - Request body format
 - `X-Mattermost-Request-Id` - Unique request ID for tracing
 - `Mattermost-User-Id` - User ID if available from session (for user-initiated calls)
 - `Mattermost-Plugin-ID` - ID of calling plugin, or `"com.mattermost.server"` if from core
-- `X-Mattermost-Source-Plugin-Id` - ID of calling plugin (empty string if from core)
 - `X-Mattermost-Response-Schema` - Base64-encoded JSON schema (optional)
 - `User-Agent: Mattermost-Plugin-Bridge/1.0` - Identifies bridge calls
 
 ---
 
-#### 4. `channels/app/ai.go`
+#### 5. `channels/app/ai.go`
 **Changes:**
 - Updated `CallAIPlugin` to use REST endpoints instead of method names
-- Changed constant from `AIMethodGenerateCompletion` to `AIEndpointCompletion = "/api/v1/completion"`
+- Changed constant to `AIEndpointCompletion = "/inter-plugin/v1/completion"`
 
 **Purpose**: Example implementation showing how to call AI plugin via HTTP endpoints.
 
 ---
 
-#### 5. `channels/app/plugin_test.go`
+#### 6. `channels/app/plugin_test.go`
 **Changes:**
 - Added `TestPluginBridge` test suite with 4 test cases
 - Updated tests to use REST endpoints instead of method names
@@ -1217,7 +1226,7 @@ Look for log messages:
 Deploy Mattermost server with Plugin Bridge support (this implementation).
 
 ### Phase 2: Update Agents Plugin
-Update the Agents plugin to implement `ExecuteBridgeCall` hook.
+Update the Agents plugin to implement HTTP endpoints in `ServeHTTP` hook.
 
 ### Phase 3: Core Feature Integration
 Core features can begin using `CallPluginFromCore` to leverage AI.
@@ -1252,12 +1261,28 @@ Update other plugins (Boards, Playbooks) to use `API.CallPlugin`.
 ### Defense in Depth
 
 1. **Plugin Activation Check**: Only active plugins can be called
-2. **Source Tracking**: `X-Mattermost-Source-Plugin-Id` header identifies caller
-3. **Authorization Layer**: Target plugins implement access control per-endpoint
-4. **Input Validation**: Plugins validate all HTTP request inputs
-5. **Audit Logging**: All calls logged for security monitoring
-6. **Error Isolation**: Plugin errors don't crash server
-7. **HTTP Status Codes**: Standard error communication via status codes
+2. **Internal-Only Routing**: `ServeInternalPluginRequest` is NOT exposed as an HTTP route - only callable by internal server code
+3. **Header Security**: Authentication headers (`Mattermost-User-Id`, `Mattermost-Plugin-ID`) are set by trusted server code, not from external requests
+4. **External Request Protection**: `servePluginRequest` (for external HTTP) strips dangerous headers before processing
+5. **Source Tracking**: `Mattermost-Plugin-ID` header identifies caller (`"com.mattermost.server"` for core, plugin ID for plugins)
+6. **Authorization Layer**: Target plugins implement access control per-endpoint
+7. **Input Validation**: Plugins validate all HTTP request inputs
+8. **Audit Logging**: All calls logged for security monitoring
+9. **Error Isolation**: Plugin errors don't crash server
+10. **HTTP Status Codes**: Standard error communication via status codes
+
+### Header Security Guarantees
+
+**External HTTP Requests** (`/plugins/{id}/...` routes):
+- Go through `servePluginRequest` which **strips** `Mattermost-Plugin-ID` and `Mattermost-User-Id` headers
+- Server validates user authentication and sets `Mattermost-User-Id` based on valid session
+- **Attackers cannot spoof plugin or user identity**
+
+**Internal Bridge Calls** (`CallPluginBridge`, `API.PluginHTTP`):
+- Go through `ServeInternalPluginRequest` which is **not an HTTP route**
+- Headers are set by **trusted server code** with validated plugin IDs and user sessions
+- `Mattermost-Plugin-ID` is always set to actual source plugin ID (or `"com.mattermost.server"` for core)
+- **Plugins cannot spoof their identity** - server enforces real plugin ID
 
 ### Best Practices
 
