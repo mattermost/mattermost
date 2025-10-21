@@ -1,0 +1,235 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/widgets/icon_button/IconButton snapshots should match snapshot in disabled state 1`] = `
+<button
+  aria-label="Test button"
+  aria-pressed="false"
+  class="IconButton IconButton--md IconButton--destructive"
+  disabled=""
+  type="button"
+>
+  <span
+    class="IconButton__content"
+  >
+    <span
+      class="IconButton__icon IconButton__icon--md"
+    >
+      <span
+        data-testid="test-icon"
+      >
+        🔥
+      </span>
+    </span>
+  </span>
+</button>
+`;
+
+exports[`components/widgets/icon_button/IconButton snapshots should match snapshot with all size variants: IconButton size lg 1`] = `
+<button
+  aria-label="Test button"
+  aria-pressed="false"
+  class="IconButton IconButton--lg"
+  type="button"
+>
+  <span
+    class="IconButton__content"
+  >
+    <span
+      class="IconButton__icon IconButton__icon--lg"
+    >
+      <span
+        data-testid="test-icon"
+      >
+        🔥
+      </span>
+    </span>
+  </span>
+</button>
+`;
+
+exports[`components/widgets/icon_button/IconButton snapshots should match snapshot with all size variants: IconButton size md 1`] = `
+<button
+  aria-label="Test button"
+  aria-pressed="false"
+  class="IconButton IconButton--md"
+  type="button"
+>
+  <span
+    class="IconButton__content"
+  >
+    <span
+      class="IconButton__icon IconButton__icon--md"
+    >
+      <span
+        data-testid="test-icon"
+      >
+        🔥
+      </span>
+    </span>
+  </span>
+</button>
+`;
+
+exports[`components/widgets/icon_button/IconButton snapshots should match snapshot with all size variants: IconButton size sm 1`] = `
+<button
+  aria-label="Test button"
+  aria-pressed="false"
+  class="IconButton IconButton--sm"
+  type="button"
+>
+  <span
+    class="IconButton__content"
+  >
+    <span
+      class="IconButton__icon IconButton__icon--sm"
+    >
+      <span
+        data-testid="test-icon"
+      >
+        🔥
+      </span>
+    </span>
+  </span>
+</button>
+`;
+
+exports[`components/widgets/icon_button/IconButton snapshots should match snapshot with all size variants: IconButton size xs 1`] = `
+<button
+  aria-label="Test button"
+  aria-pressed="false"
+  class="IconButton IconButton--xs"
+  type="button"
+>
+  <span
+    class="IconButton__content"
+  >
+    <span
+      class="IconButton__icon IconButton__icon--xs"
+    >
+      <span
+        data-testid="test-icon"
+      >
+        🔥
+      </span>
+    </span>
+  </span>
+</button>
+`;
+
+exports[`components/widgets/icon_button/IconButton snapshots should match snapshot with count feature 1`] = `
+<button
+  aria-label="Test button"
+  aria-pressed="false"
+  class="IconButton IconButton--md IconButton--with-count"
+  type="button"
+>
+  <span
+    class="IconButton__content"
+  >
+    <span
+      class="IconButton__icon IconButton__icon--md"
+    >
+      <span
+        data-testid="test-icon"
+      >
+        🔥
+      </span>
+    </span>
+    <span
+      class="IconButton__count IconButton__count--md"
+    >
+      99
+    </span>
+  </span>
+</button>
+`;
+
+exports[`components/widgets/icon_button/IconButton snapshots should match snapshot with default props 1`] = `
+<button
+  aria-label="Test button"
+  aria-pressed="false"
+  class="IconButton IconButton--md"
+  type="button"
+>
+  <span
+    class="IconButton__content"
+  >
+    <span
+      class="IconButton__icon IconButton__icon--md"
+    >
+      <span
+        data-testid="test-icon"
+      >
+        🔥
+      </span>
+    </span>
+  </span>
+</button>
+`;
+
+exports[`components/widgets/icon_button/IconButton snapshots should match snapshot with loading state 1`] = `
+<button
+  aria-label="Test button"
+  aria-pressed="false"
+  class="IconButton IconButton--md IconButton--loading"
+  disabled=""
+  type="button"
+>
+  <span
+    class="IconButton__content"
+  >
+    <span
+      class="IconButton__spinner IconButton__spinner--md"
+    />
+  </span>
+</button>
+`;
+
+exports[`components/widgets/icon_button/IconButton snapshots should match snapshot with unread indicator 1`] = `
+<button
+  aria-label="Test button"
+  aria-pressed="false"
+  class="IconButton IconButton--md IconButton--with-unread"
+  type="button"
+>
+  <span
+    class="IconButton__content"
+  >
+    <span
+      class="IconButton__icon IconButton__icon--md"
+    >
+      <span
+        data-testid="test-icon"
+      >
+        🔥
+      </span>
+      <span
+        class="IconButton__unread-indicator IconButton__unread-indicator--md"
+      />
+    </span>
+  </span>
+</button>
+`;
+
+exports[`components/widgets/icon_button/IconButton snapshots should match snapshot with visual states 1`] = `
+<button
+  aria-label="Test button"
+  aria-pressed="true"
+  class="IconButton IconButton--md IconButton--toggled IconButton--destructive IconButton--inverted IconButton--rounded"
+  type="button"
+>
+  <span
+    class="IconButton__content"
+  >
+    <span
+      class="IconButton__icon IconButton__icon--md"
+    >
+      <span
+        data-testid="test-icon"
+      >
+        🔥
+      </span>
+    </span>
+  </span>
+</button>
+`;
