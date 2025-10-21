@@ -7,8 +7,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
 
 func (api *API) InitAI() {
@@ -18,7 +18,7 @@ func (api *API) InitAI() {
 // rewriteMessage handles AI-powered message rewriting requests
 func rewriteMessage(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Parse request
-	var req app.AIRewriteRequest
+	var req model.AIRewriteRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		c.SetInvalidParamWithErr("request_body", err)
 		return

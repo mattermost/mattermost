@@ -12,40 +12,9 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-const (
-	// AI Plugin ID
-	AIPluginID = "mattermost-ai"
-
-	// AI Plugin Endpoints
-	AIEndpointCompletion = "/inter-plugin/v1/completion"
-)
-
-// AIRewriteAction represents the type of rewrite operation to perform
-type AIRewriteAction string
-
-const (
-	AIRewriteActionSuccinct     AIRewriteAction = "more_succinct"
-	AIRewriteActionProfessional AIRewriteAction = "more_professional"
-	AIRewriteActionMarkdown     AIRewriteAction = "format_markdown"
-	AIRewriteActionLonger       AIRewriteAction = "make_longer"
-)
-
-// AIRewriteRequest represents a request to rewrite a message
-type AIRewriteRequest struct {
-	Message string          `json:"message"`
-	Action  AIRewriteAction `json:"action"`
-}
-
-// AIRewriteResponse represents the response from a rewrite operation
-type AIRewriteResponse struct {
-	RewrittenMessage string          `json:"rewritten_message"`
-	OriginalMessage  string          `json:"original_message"`
-	Action           AIRewriteAction `json:"action"`
-}
-
 // CallAIPlugin is a convenience wrapper for calling the Agents plugin via RESTful HTTP endpoints
 // It handles plugin availability checks and provides a cleaner API
-func (a *App) CallAIPlugin(rctx request.CTX, endpoint string, requestData map[string]interface{}, responseSchema []byte) ([]byte, *model.AppError) {
+func (a *App) CallAIPlugin(rctx request.CTX, endpoint string, req model.AIRequest) ([]byte, *model.AppError) {
 	// Check if AI plugin is available
 	pluginEnv := a.GetPluginsEnvironment()
 	if pluginEnv == nil {
@@ -53,7 +22,7 @@ func (a *App) CallAIPlugin(rctx request.CTX, endpoint string, requestData map[st
 	}
 
 	// Marshal request data
-	requestJSON, err := json.Marshal(requestData)
+	requestJSON, err := json.Marshal(req.Data)
 	if err != nil {
 		return nil, model.NewAppError("CallAIPlugin", "app.ai.marshal_request_failed", nil, err.Error(), 500)
 	}
@@ -62,10 +31,10 @@ func (a *App) CallAIPlugin(rctx request.CTX, endpoint string, requestData map[st
 	rctx.Logger().Debug("Calling AI plugin",
 		mlog.String("endpoint", endpoint),
 		mlog.Int("request_size", len(requestJSON)),
-		mlog.Bool("has_schema", responseSchema != nil),
+		mlog.Bool("has_schema", req.ResponseSchema != nil),
 	)
 
-	responseJSON, err := a.CallPluginFromCore(rctx, AIPluginID, endpoint, requestJSON, responseSchema)
+	responseJSON, err := a.CallPluginFromCore(rctx, model.AIPluginID, endpoint, requestJSON, req.ResponseSchema)
 	if err != nil {
 		rctx.Logger().Error("AI plugin call failed",
 			mlog.Err(err),
@@ -87,18 +56,18 @@ func (a *App) CallAIPlugin(rctx request.CTX, endpoint string, requestData map[st
 }
 
 // RewriteMessage rewrites a message using AI based on the specified action
-func (a *App) RewriteMessage(rctx request.CTX, userID string, message string, action AIRewriteAction) (*AIRewriteResponse, *model.AppError) {
+func (a *App) RewriteMessage(rctx request.CTX, userID string, message string, action model.AIRewriteAction) (*model.AIRewriteResponse, *model.AppError) {
 	// Validate inputs
 	if message == "" {
 		return nil, model.NewAppError("RewriteMessage", "app.ai.rewrite.invalid_message", nil, "message cannot be empty", 400)
 	}
 
 	// Validate action
-	validActions := map[AIRewriteAction]bool{
-		AIRewriteActionSuccinct:     true,
-		AIRewriteActionProfessional: true,
-		AIRewriteActionMarkdown:     true,
-		AIRewriteActionLonger:       true,
+	validActions := map[model.AIRewriteAction]bool{
+		model.AIRewriteActionSuccinct:     true,
+		model.AIRewriteActionProfessional: true,
+		model.AIRewriteActionMarkdown:     true,
+		model.AIRewriteActionLonger:       true,
 	}
 	if !validActions[action] {
 		return nil, model.NewAppError("RewriteMessage", "app.ai.rewrite.invalid_action", nil, fmt.Sprintf("invalid action: %s", action), 400)
@@ -137,7 +106,10 @@ func (a *App) RewriteMessage(rctx request.CTX, userID string, message string, ac
 	}`)
 
 	// Call the AI plugin
-	responseJSON, appErr := a.CallAIPlugin(rctx, AIEndpointCompletion, aiRequest, responseSchema)
+	responseJSON, appErr := a.CallAIPlugin(rctx, model.AIEndpointCompletion, model.AIRequest{
+		Data:           aiRequest,
+		ResponseSchema: responseSchema,
+	})
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -169,7 +141,7 @@ func (a *App) RewriteMessage(rctx request.CTX, userID string, message string, ac
 	)
 
 	// Prepare response
-	response := &AIRewriteResponse{
+	response := &model.AIRewriteResponse{
 		RewrittenMessage: aiResponse.RewrittenText,
 		OriginalMessage:  message,
 		Action:           action,
@@ -179,21 +151,21 @@ func (a *App) RewriteMessage(rctx request.CTX, userID string, message string, ac
 }
 
 // getRewritePromptForAction returns the appropriate prompt and system prompt for the given rewrite action
-func getRewritePromptForAction(action AIRewriteAction, message string) (string, string) {
+func getRewritePromptForAction(action model.AIRewriteAction, message string) (string, string) {
 	switch action {
-	case AIRewriteActionSuccinct:
+	case model.AIRewriteActionSuccinct:
 		return fmt.Sprintf("Rewrite the following message to be more concise and succinct while preserving the core meaning and intent. Return your response as JSON with a 'rewritten_text' field containing the rewritten message:\n\n%s", message),
 			"You are an expert at concise communication. Your task is to rewrite messages to be shorter and more direct while maintaining the essential meaning. Remove redundant words, simplify complex phrases, and get straight to the point. Keep the tone and formality level similar to the original. You MUST respond with valid JSON only, no additional text."
 
-	case AIRewriteActionProfessional:
+	case model.AIRewriteActionProfessional:
 		return fmt.Sprintf("Rewrite the following message to be more professional and polished while maintaining the original intent. Return your response as JSON with a 'rewritten_text' field containing the rewritten message:\n\n%s", message),
 			"You are a professional communication expert. Your task is to rewrite messages to be more professional, polished, and appropriate for business communication. Use professional language, proper grammar, and maintain a respectful tone. Avoid casual language, slang, or overly informal expressions. You MUST respond with valid JSON only, no additional text."
 
-	case AIRewriteActionMarkdown:
+	case model.AIRewriteActionMarkdown:
 		return fmt.Sprintf("Format the following message using Markdown to improve its readability and structure. Use appropriate Markdown features like headers, lists, bold, italic, code blocks, etc. Return your response as JSON with a 'rewritten_text' field containing the formatted message:\n\n%s", message),
 			"You are a Markdown formatting expert. Your task is to take plain text messages and format them nicely using Markdown syntax. Use headers (##) for sections, bullet points or numbered lists for items, **bold** for emphasis, *italic* for subtle emphasis, `code` for technical terms, and ```code blocks``` for longer code snippets. Make the message well-structured and easy to read. You MUST respond with valid JSON only, no additional text."
 
-	case AIRewriteActionLonger:
+	case model.AIRewriteActionLonger:
 		return fmt.Sprintf("Expand and elaborate on the following message to make it more detailed and comprehensive. Add relevant context, examples, and explanations. Return your response as JSON with a 'rewritten_text' field containing the expanded message:\n\n%s", message),
 			"You are an expert at elaborative communication. Your task is to expand brief messages into more detailed, comprehensive versions. Add relevant context, provide examples where appropriate, and explain concepts more thoroughly. Maintain the original intent while making the message more informative and complete. You MUST respond with valid JSON only, no additional text."
 
