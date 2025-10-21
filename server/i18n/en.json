@@ -3331,6 +3331,10 @@
     "translation": "Guest accounts are disabled"
   },
   {
+    "id": "api.team.invite_guests_to_channels.easy_login_disabled.error",
+    "translation": "Easy login is not enabled"
+  },
+  {
     "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
     "translation": "Invalid or missing request body."
   },

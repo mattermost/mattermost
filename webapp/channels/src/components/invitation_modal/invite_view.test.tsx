@@ -58,6 +58,9 @@ const defaultProps: Props = deepFreeze({
     usersEmails: [],
     usersEmailsSearch: '',
     townSquareDisplayName: '',
+    canInviteGuestsWithEasyLogin: false,
+    useEasyLogin: false,
+    toggleEasyLogin: jest.fn(),
 });
 
 let props = defaultProps;
@@ -160,5 +163,77 @@ describe('InviteView', () => {
             </Provider>,
         );
         expect(wrapper.find(InviteAs).length).toBe(0);
+    });
+
+    it('shows easy login checkbox when inviting guests and easy login is enabled', async () => {
+        props = {
+            ...defaultProps,
+            inviteType: InviteType.GUEST,
+            canInviteGuestsWithEasyLogin: true,
+        };
+
+        const wrapper = mountWithIntl(
+            <Provider store={store}>
+                <InviteView {...props}/>
+            </Provider>,
+        );
+
+        const checkbox = wrapper.find('[data-testid="InviteView__easyLoginCheckbox"]');
+        expect(checkbox.length).toBe(1);
+    });
+
+    it('hides easy login checkbox when inviting members', async () => {
+        props = {
+            ...defaultProps,
+            inviteType: InviteType.MEMBER,
+            canInviteGuestsWithEasyLogin: true,
+        };
+
+        const wrapper = mountWithIntl(
+            <Provider store={store}>
+                <InviteView {...props}/>
+            </Provider>,
+        );
+
+        const checkbox = wrapper.find('[data-testid="InviteView__easyLoginCheckbox"]');
+        expect(checkbox.length).toBe(0);
+    });
+
+    it('hides easy login checkbox when easy login is not enabled', async () => {
+        props = {
+            ...defaultProps,
+            inviteType: InviteType.GUEST,
+            canInviteGuestsWithEasyLogin: false,
+        };
+
+        const wrapper = mountWithIntl(
+            <Provider store={store}>
+                <InviteView {...props}/>
+            </Provider>,
+        );
+
+        const checkbox = wrapper.find('[data-testid="InviteView__easyLoginCheckbox"]');
+        expect(checkbox.length).toBe(0);
+    });
+
+    it('calls toggleEasyLogin when checkbox is clicked', async () => {
+        const toggleEasyLogin = jest.fn();
+        props = {
+            ...defaultProps,
+            inviteType: InviteType.GUEST,
+            canInviteGuestsWithEasyLogin: true,
+            toggleEasyLogin,
+        };
+
+        const wrapper = mountWithIntl(
+            <Provider store={store}>
+                <InviteView {...props}/>
+            </Provider>,
+        );
+
+        const checkbox = wrapper.find('[data-testid="InviteView__easyLoginCheckbox"]');
+        checkbox.simulate('change');
+
+        expect(toggleEasyLogin).toHaveBeenCalledTimes(1);
     });
 });

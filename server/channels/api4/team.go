@@ -1581,6 +1581,12 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	easyLogin := r.URL.Query().Get("easy_login") == "true"
+	if easyLogin && !*c.App.Config().GuestAccountsSettings.EnableEasyLogin {
+		c.Err = model.NewAppError("Api4.InviteGuestsToChannels", "api.team.invite_guests_to_channels.easy_login_disabled.error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
