@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, fireEvent, waitFor} from '@testing-library/react';
+import {screen} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import {renderWithContext} from 'tests/react_testing_utils';
@@ -13,115 +14,111 @@ describe('ChannelActivityWarningModal', () => {
         isOpen: true,
         onClose: jest.fn(),
         onConfirm: jest.fn(),
-        onDontShowAgain: jest.fn(),
-        channelName: 'Test Channel',
+        channelName: 'test-channel',
     };
 
-    afterEach(() => {
+    beforeEach(() => {
         jest.clearAllMocks();
     });
 
-    it('should render modal when open', () => {
+    test('should render modal when isOpen is true', () => {
         renderWithContext(<ChannelActivityWarningModal {...defaultProps}/>);
 
-        expect(screen.getByText('Channel Activity Warning')).toBeInTheDocument(); // Header title
-        expect(screen.getByText(/There has been activity in "Test Channel"/)).toBeInTheDocument();
-        expect(screen.getByText('Continue with Changes')).toBeInTheDocument();
-        expect(screen.getByText('Cancel')).toBeInTheDocument();
+        expect(screen.getByText('Exposing channel history')).toBeInTheDocument();
+        expect(screen.getByText(/Everyone who gains access to this channel/)).toBeInTheDocument();
+        expect(screen.getByText(/I acknowledge this change will expose/)).toBeInTheDocument();
     });
 
-    it('should not render modal when closed', () => {
-        renderWithContext(
-            <ChannelActivityWarningModal
-                {...defaultProps}
-                isOpen={false}
-            />,
-        );
+    test('should not render modal when isOpen is false', () => {
+        renderWithContext(<ChannelActivityWarningModal
+            {...defaultProps}
+            isOpen={false}/>);
 
-        expect(screen.queryByText('Channel Activity Warning')).not.toBeInTheDocument();
+        expect(screen.queryByText('Exposing channel history')).not.toBeInTheDocument();
     });
 
-    it('should display warning message with channel name', () => {
+    test('should have disabled Save button initially', () => {
         renderWithContext(<ChannelActivityWarningModal {...defaultProps}/>);
 
-        expect(screen.getByText(/There has been activity in "Test Channel" since the last access rule change/)).toBeInTheDocument();
-        expect(screen.getByText(/Modifying access rules now might allow new users to see previous chat history/)).toBeInTheDocument();
+        const saveButton = screen.getByRole('button', {name: /save and apply/i});
+        expect(saveButton).toBeDisabled();
     });
 
-    it('should display warning header with icon and title', () => {
+    test('should enable Save button when checkbox is checked', async () => {
+        const user = userEvent.setup();
         renderWithContext(<ChannelActivityWarningModal {...defaultProps}/>);
 
-        expect(screen.getByText('Channel Activity Warning')).toBeInTheDocument();
-        expect(document.querySelector('.warning-icon')).toBeInTheDocument();
-    });
-
-    it('should call onClose when cancel button is clicked', () => {
-        renderWithContext(<ChannelActivityWarningModal {...defaultProps}/>);
-
-        fireEvent.click(screen.getByText('Cancel'));
-
-        expect(defaultProps.onClose).toHaveBeenCalledTimes(1);
-    });
-
-    it('should call onConfirm when continue button is clicked without checkbox', () => {
-        renderWithContext(<ChannelActivityWarningModal {...defaultProps}/>);
-
-        fireEvent.click(screen.getByText('Continue with Changes'));
-
-        expect(defaultProps.onConfirm).toHaveBeenCalledTimes(1);
-        expect(defaultProps.onDontShowAgain).not.toHaveBeenCalled();
-    });
-
-    it('should call onDontShowAgain and onConfirm when continue with checkbox checked', async () => {
-        renderWithContext(<ChannelActivityWarningModal {...defaultProps}/>);
-
-        // Check the "Don't show again" checkbox
         const checkbox = screen.getByRole('checkbox');
-        fireEvent.click(checkbox);
+        const saveButton = screen.getByRole('button', {name: /save and apply/i});
 
-        // Click continue
-        fireEvent.click(screen.getByText('Continue with Changes'));
+        expect(saveButton).toBeDisabled();
 
-        // Wait for async functions to complete
-        await waitFor(() => {
-            expect(defaultProps.onDontShowAgain).toHaveBeenCalledTimes(1);
-        });
-        expect(defaultProps.onConfirm).toHaveBeenCalledTimes(1);
+        await user.click(checkbox);
+
+        expect(saveButton).toBeEnabled();
     });
 
-    it('should toggle checkbox state when clicked', () => {
-        renderWithContext(<ChannelActivityWarningModal {...defaultProps}/>);
+    test('should call onConfirm when Save button is clicked with checkbox checked', async () => {
+        const user = userEvent.setup();
+        const mockOnConfirm = jest.fn();
+        renderWithContext(<ChannelActivityWarningModal
+            {...defaultProps}
+            onConfirm={mockOnConfirm}
+        />);
 
-        const checkbox = screen.getByRole('checkbox') as HTMLInputElement;
-        expect(checkbox.checked).toBe(false);
+        const checkbox = screen.getByRole('checkbox');
+        const saveButton = screen.getByRole('button', {name: /save and apply/i});
 
-        fireEvent.click(checkbox);
-        expect(checkbox.checked).toBe(true);
+        await user.click(checkbox);
+        await user.click(saveButton);
 
-        fireEvent.click(checkbox);
-        expect(checkbox.checked).toBe(false);
+        expect(mockOnConfirm).toHaveBeenCalledTimes(1);
     });
 
-    it('should display dont show again checkbox', () => {
-        renderWithContext(<ChannelActivityWarningModal {...defaultProps}/>);
+    test('should call onClose when Cancel button is clicked', async () => {
+        const user = userEvent.setup();
+        const mockOnClose = jest.fn();
+        renderWithContext(<ChannelActivityWarningModal
+            {...defaultProps}
+            onClose={mockOnClose}
+        />);
 
-        const checkbox = screen.getByLabelText(/Don't show this warning again/);
-        expect(checkbox).toBeInTheDocument();
+        const cancelButton = screen.getByRole('button', {name: /cancel/i});
+        await user.click(cancelButton);
+
+        expect(mockOnClose).toHaveBeenCalledTimes(1);
+    });
+
+    test('should reset checkbox when modal opens', () => {
+        const {rerender} = renderWithContext(<ChannelActivityWarningModal
+            {...defaultProps}
+            isOpen={false}
+        />);
+
+        // Open modal
+        rerender(<ChannelActivityWarningModal
+            {...defaultProps}
+            isOpen={true}
+        />);
+
+        const checkbox = screen.getByRole('checkbox');
         expect(checkbox).not.toBeChecked();
     });
 
-    it('should have correct button labels and functionality', () => {
-        renderWithContext(<ChannelActivityWarningModal {...defaultProps}/>);
+    test('should not call onConfirm when Save button is clicked without checkbox checked', async () => {
+        const user = userEvent.setup();
+        const mockOnConfirm = jest.fn();
+        renderWithContext(<ChannelActivityWarningModal
+            {...defaultProps}
+            onConfirm={mockOnConfirm}
+        />);
 
-        expect(screen.getByText('Continue with Changes')).toBeInTheDocument();
-        expect(screen.getByText('Cancel')).toBeInTheDocument();
-    });
+        // Try to click disabled button (should not work)
+        const saveButton = screen.getByRole('button', {name: /save and apply/i});
+        expect(saveButton).toBeDisabled();
 
-    it('should have correct modal structure and accessibility', () => {
-        renderWithContext(<ChannelActivityWarningModal {...defaultProps}/>);
-
-        expect(document.querySelector('.channel-activity-warning-modal')).toBeInTheDocument();
-        expect(document.querySelector('.warning-description')).toBeInTheDocument();
-        expect(document.querySelector('.dont-show-again-container')).toBeInTheDocument();
+        // Attempt to click (should not trigger onConfirm)
+        await user.click(saveButton);
+        expect(mockOnConfirm).not.toHaveBeenCalled();
     });
 });

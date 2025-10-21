@@ -1,103 +1,110 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useCallback} from 'react';
+import React, {useState, useCallback, useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {GenericModal} from '@mattermost/components';
+import ConfirmModal from 'components/confirm_modal';
 
 import './channel_activity_warning_modal.scss';
 
-interface Props {
-    isOpen: boolean;
-    onClose: () => void;
-    onConfirm: () => void;
-    onDontShowAgain: () => Promise<void>;
-    channelName: string;
-}
+type Props = {
 
+    /** Whether the modal is open/visible */
+    isOpen: boolean;
+
+    /** Callback when modal is closed/cancelled */
+    onClose: () => void;
+
+    /** Callback when user confirms the action */
+    onConfirm: () => void;
+
+    /** Name of the channel for display purposes */
+    channelName: string;
+};
+
+/**
+ * Modal that warns users about exposing channel history when modifying access rules.
+ * Requires user acknowledgment before allowing the action to proceed.
+ */
 const ChannelActivityWarningModal: React.FC<Props> = ({
     isOpen,
     onClose,
     onConfirm,
-    onDontShowAgain,
-    channelName,
 }) => {
-    const [dontShowAgain, setDontShowAgain] = useState(false);
+    const [acknowledgeRisk, setAcknowledgeRisk] = useState(false);
 
-    const handleConfirm = useCallback(async () => {
-        if (dontShowAgain) {
-            // Wait for preference to be saved before continuing
-            await onDontShowAgain();
+    const handleConfirm = useCallback((checked: boolean) => {
+        // Only proceed if user has acknowledged the risk
+        if (!checked) {
+            return;
         }
-        onConfirm();
-    }, [dontShowAgain, onConfirm, onDontShowAgain]);
+
+        try {
+            onConfirm();
+        } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error('Error confirming activity warning:', error);
+        }
+    }, [onConfirm]);
+
+    const handleCancel = useCallback(() => {
+        setAcknowledgeRisk(false); // Reset checkbox when modal is closed
+        onClose();
+    }, [onClose]);
+
+    const handleCheckboxChange = useCallback((checked: boolean) => {
+        setAcknowledgeRisk(checked);
+    }, []);
+
+    // Reset checkbox when modal opens
+    useEffect(() => {
+        if (isOpen) {
+            setAcknowledgeRisk(false);
+        }
+    }, [isOpen]);
 
     return (
-        <GenericModal
-            className='channel-activity-warning-modal'
+        <ConfirmModal
+            id='activityWarningModal'
             show={isOpen}
-            onHide={onClose}
-            modalHeaderText={(
-                <>
-                    <span>
-                        <i className='icon icon-alert-outline warning-icon'/>
-                    </span>
-                    <FormattedMessage
-                        id='channel_settings.activity_warning.title'
-                        defaultMessage='Channel Activity Warning'
-                    />
-                </>
-            )
+            title={
+                <FormattedMessage
+                    id='channel_settings.activity_warning.exposing_history_title'
+                    defaultMessage='Exposing channel history'
+                />
             }
-            handleCancel={onClose}
-            handleConfirm={handleConfirm}
+            message={
+                <div className='channel-activity-warning-content'>
+                    <div className='warning-description'>
+                        <FormattedMessage
+                            id='channel_settings.activity_warning.exposing_history_description'
+                            defaultMessage='Everyone who gains access to this channel can view the entire message history, including messages that were sent under stricter access rules.'
+                        />
+                    </div>
+                </div>
+            }
+            showCheckbox={true}
+            checkboxClass='checkbox text-left mb-0 activity-warning-checkbox'
+            checkboxText={
+                <FormattedMessage
+                    id='channel_settings.activity_warning.acknowledge_expose_history'
+                    defaultMessage='I acknowledge this change will expose all historical channel messages to more users'
+                />
+            }
             confirmButtonText={
                 <FormattedMessage
-                    id='channel_settings.activity_warning.continue'
-                    defaultMessage='Continue with Changes'
+                    id='channel_settings.activity_warning.save_and_apply'
+                    defaultMessage='Save and apply'
                 />
             }
-            cancelButtonText={
-                <FormattedMessage
-                    id='channel_settings.activity_warning.cancel'
-                    defaultMessage='Cancel'
-                />
-            }
-            autoCloseOnConfirmButton={false}
-            autoCloseOnCancelButton={false}
-            compassDesign={true}
+            confirmButtonClass='btn btn-danger'
+            confirmDisabled={!acknowledgeRisk}
+            onConfirm={handleConfirm}
+            onCancel={handleCancel}
+            onCheckboxChange={handleCheckboxChange}
             isStacked={true}
-        >
-            <div className='channel-activity-warning-content'>
-                <div className='warning-description'>
-                    <FormattedMessage
-                        id='channel_settings.activity_warning.description'
-                        defaultMessage='There has been activity in "{channelName}" since the last access rule change. Modifying access rules now might allow new users to see previous chat history.'
-                        values={{channelName}}
-                    />
-                </div>
-
-                <div className='dont-show-again-container'>
-                    <input
-                        type='checkbox'
-                        id='dontShowAgainCheckbox'
-                        className='dont-show-again-checkbox'
-                        checked={dontShowAgain}
-                        onChange={(e) => setDontShowAgain(e.target.checked)}
-                    />
-                    <label
-                        htmlFor='dontShowAgainCheckbox'
-                        className='dont-show-again-label'
-                    >
-                        <FormattedMessage
-                            id='channel_settings.activity_warning.dont_show_again'
-                            defaultMessage="Don't show this warning again"
-                        />
-                    </label>
-                </div>
-            </div>
-        </GenericModal>
+        />
     );
 };
 

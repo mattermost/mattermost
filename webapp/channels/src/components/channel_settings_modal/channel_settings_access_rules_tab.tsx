@@ -9,7 +9,6 @@ import type {Channel} from '@mattermost/types/channels';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
 import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';
-import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser, getCurrentUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
@@ -19,7 +18,6 @@ import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/m
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
 import {useChannelSystemPolicies} from 'hooks/useChannelSystemPolicies';
-import {Preferences} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -45,9 +43,6 @@ function ChannelSettingsAccessRulesTab({
     const accessControlSettings = useSelector((state: GlobalState) => getAccessControlSettings(state));
     const currentUser = useSelector(getCurrentUser);
     const currentUserId = useSelector(getCurrentUserId);
-    const activityWarningDismissed = useSelector((state: GlobalState) =>
-        getBool(state, Preferences.CATEGORY_ABAC_ACTIVITY_WARNING, channel.id, false),
-    );
 
     // Check if current user is system admin (system admins should never be restricted)
     const isSystemAdmin = useSelector(isCurrentUserSystemAdmin);
@@ -72,6 +67,7 @@ function ChannelSettingsAccessRulesTab({
 
     // Activity warning modal state
     const [showActivityWarningModal, setShowActivityWarningModal] = useState(false);
+    const [shouldShowActivityWarning, setShouldShowActivityWarning] = useState(false);
 
     // Confirmation modal state
     const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -465,18 +461,13 @@ function ChannelSettingsAccessRulesTab({
             const changes = await calculateMembershipChanges(expression);
 
             // Check for activity warning ONLY when adding users (risk of leaking chat history)
-            // Only show warning if: user hasn't dismissed + there are users being added + there's channel activity
-            if (channel.id && !activityWarningDismissed && changes.toAdd.length > 0) {
+            // Only check if: there are users being added + there's channel activity
+            let shouldShowWarning = false;
+            if (channel.id && changes.toAdd.length > 0) {
                 try {
                     // Check for channel activity before adding users
                     const warningResult = await actions.getChannelActivityWarning(channel.id);
-                    if (warningResult.data?.should_show_warning) {
-                        // Show activity warning modal
-                        setUsersToAdd(changes.toAdd);
-                        setUsersToRemove(changes.toRemove);
-                        setShowActivityWarningModal(true);
-                        return 'confirmation_required';
-                    }
+                    shouldShowWarning = warningResult.data?.should_show_warning || false;
                 } catch (error) {
                     // If warning check fails, continue with save (don't block users)
                     // eslint-disable-next-line no-console
@@ -484,10 +475,11 @@ function ChannelSettingsAccessRulesTab({
                 }
             }
 
-            // If there are changes, show confirmation modal (but not if we're showing activity warning)
+            // If there are changes, show confirmation modal FIRST
             if (changes.toAdd.length > 0 || changes.toRemove.length > 0) {
                 setUsersToAdd(changes.toAdd);
                 setUsersToRemove(changes.toRemove);
+                setShouldShowActivityWarning(shouldShowWarning);
                 setShowConfirmModal(true);
                 return 'confirmation_required';
             }
@@ -505,7 +497,7 @@ function ChannelSettingsAccessRulesTab({
             }));
             return 'error';
         }
-    }, [expression, autoSyncMembers, formatMessage, validateSelfExclusion, calculateMembershipChanges, performSave, isEmptyRulesState, channel.id, activityWarningDismissed, actions]);
+    }, [expression, autoSyncMembers, formatMessage, validateSelfExclusion, calculateMembershipChanges, performSave, isEmptyRulesState, channel.id, actions]);
 
     // Prevent duplicate saves with immediate response
     const saveInProgressRef = useRef(false);
@@ -517,6 +509,16 @@ function ChannelSettingsAccessRulesTab({
             return;
         }
 
+        // Close confirmation modal first
+        setShowConfirmModal(false);
+
+        // If activity warning should be shown, show it instead of saving directly
+        if (shouldShowActivityWarning) {
+            setShowActivityWarningModal(true);
+            return;
+        }
+
+        // No activity warning needed, proceed with save
         saveInProgressRef.current = true;
 
         try {
@@ -529,7 +531,7 @@ function ChannelSettingsAccessRulesTab({
         } finally {
             saveInProgressRef.current = false;
         }
-    }, [performSave]);
+    }, [shouldShowActivityWarning, performSave]);
 
     // Handle save changes panel actions - immediate response, no debounce
     const handleSaveChanges = useCallback(async () => {
@@ -571,28 +573,23 @@ function ChannelSettingsAccessRulesTab({
     }, []);
 
     // Handle activity warning modal actions
-    const handleActivityWarningContinue = useCallback(() => {
+    const handleActivityWarningContinue = useCallback(async () => {
         setShowActivityWarningModal(false);
 
-        // Show confirmation modal with users to add/remove (same as normal flow)
-        setShowConfirmModal(true);
-    }, []);
+        // Proceed with save after activity warning acknowledgment
+        saveInProgressRef.current = true;
 
-    const handleActivityWarningDontShowAgain = useCallback(async () => {
-        if (currentUserId) {
-            try {
-                await actions.savePreferences(currentUserId, [{
-                    user_id: currentUserId,
-                    category: Preferences.CATEGORY_ABAC_ACTIVITY_WARNING,
-                    name: channel.id,
-                    value: 'true',
-                }]);
-            } catch (error) {
-                // eslint-disable-next-line no-console
-                console.warn('Failed to save activity warning preference:', error);
+        try {
+            const success = await performSave();
+            if (success) {
+                setSaveChangesPanelState('saved');
+            } else {
+                setSaveChangesPanelState('error');
             }
+        } finally {
+            saveInProgressRef.current = false;
         }
-    }, [currentUserId, actions, channel.id]);
+    }, [performSave]);
 
     const handleActivityWarningClose = useCallback(() => {
         setShowActivityWarningModal(false);
@@ -823,6 +820,7 @@ function ChannelSettingsAccessRulesTab({
                 isProcessing={isProcessingSave}
                 autoSyncEnabled={autoSyncMembers}
                 isStacked={true}
+                willShowActivityWarning={shouldShowActivityWarning}
             />
 
             {/* Activity warning modal */}
@@ -830,7 +828,6 @@ function ChannelSettingsAccessRulesTab({
                 isOpen={showActivityWarningModal}
                 onClose={handleActivityWarningClose}
                 onConfirm={handleActivityWarningContinue}
-                onDontShowAgain={handleActivityWarningDontShowAgain}
                 channelName={channel.display_name}
             />
         </div>
