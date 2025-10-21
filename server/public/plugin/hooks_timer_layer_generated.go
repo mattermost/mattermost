@@ -12,7 +12,6 @@ import (
 	timePkg "time"
 
 	saml2 "github.com/mattermost/gosaml2"
-	"github.com/mattermost/mattermost-plugin-ai/llm"
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
@@ -306,32 +305,4 @@ func (hooks *hooksTimerLayer) OnSAMLLogin(c *Context, user *model.User, assertio
 	_returnsA := hooks.hooksImpl.OnSAMLLogin(c, user, assertion)
 	hooks.recordTime(startTime, "OnSAMLLogin", _returnsA == nil)
 	return _returnsA
-}
-
-func (hooks *hooksTimerLayer) AgentRequest(c *Context, agent string, request CompletionRequest) (*llm.TextStreamResult, error) {
-	startTime := timePkg.Now()
-	_returnsA, _returnsB := hooks.hooksImpl.AgentRequest(c, agent, request)
-	hooks.recordTime(startTime, "AgentRequest", _returnsB == nil)
-	return _returnsA, _returnsB
-}
-
-func (hooks *hooksTimerLayer) AgentRequestNoStream(c *Context, agent string, request CompletionRequest) (string, error) {
-	startTime := timePkg.Now()
-	_returnsA, _returnsB := hooks.hooksImpl.AgentRequestNoStream(c, agent, request)
-	hooks.recordTime(startTime, "AgentRequestNoStream", _returnsB == nil)
-	return _returnsA, _returnsB
-}
-
-func (hooks *hooksTimerLayer) LLMServiceRequest(c *Context, service string, request CompletionRequest) (*llm.TextStreamResult, error) {
-	startTime := timePkg.Now()
-	_returnsA, _returnsB := hooks.hooksImpl.LLMServiceRequest(c, service, request)
-	hooks.recordTime(startTime, "LLMServiceRequest", _returnsB == nil)
-	return _returnsA, _returnsB
-}
-
-func (hooks *hooksTimerLayer) LLMServiceRequestNoStream(c *Context, service string, request CompletionRequest) (string, error) {
-	startTime := timePkg.Now()
-	_returnsA, _returnsB := hooks.hooksImpl.LLMServiceRequestNoStream(c, service, request)
-	hooks.recordTime(startTime, "LLMServiceRequestNoStream", _returnsB == nil)
-	return _returnsA, _returnsB
 }
