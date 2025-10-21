@@ -158,10 +158,13 @@ func (a *App) AuthenticateUserForEasyLogin(rctx request.CTX, tokenString string)
 	// Check if user already exists - easy login tokens are for new guest creation only
 	existingUser, getUserErr := a.GetUserByEmail(email)
 	if getUserErr == nil && existingUser != nil {
+		// Log the specific reason internally for debugging
+		rctx.Logger().Warn("Easy login token attempted for existing user", mlog.String("email", email))
 		if appErr := a.DeleteToken(token); appErr != nil {
 			rctx.Logger().Warn("Error while deleting token for existing user", mlog.Err(appErr))
 		}
-		return nil, model.NewAppError("AuthenticateUserForEasyLogin", "api.user.easy_login.user_already_exists.app_error", nil, "", http.StatusBadRequest)
+		// Return generic error to prevent user enumeration - don't reveal that user exists
+		return nil, model.NewAppError("AuthenticateUserForEasyLogin", "api.user.easy_login.invalid_token.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	// Generate username from email

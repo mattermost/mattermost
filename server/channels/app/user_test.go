@@ -2651,8 +2651,9 @@ func TestAuthenticateUserForEasyLogin(t *testing.T) {
 		// Verify user was added to specified channels
 		members, chanErr := th.App.GetChannelMembersForUser(th.Context, th.BasicTeam.Id, user.Id)
 		require.Nil(t, chanErr)
-		// Should have: Town Square (default), BasicChannel, BasicChannel2
-		assert.GreaterOrEqual(t, len(members), 3, "User should be in at least 3 channels")
+		// Guests are only added to the channels specified in the token (BasicChannel and channel2)
+		// They do not automatically get added to Town Square like regular users
+		assert.GreaterOrEqual(t, len(members), 2, "User should be in at least 2 channels")
 
 		// Cleanup
 		appErr := th.App.PermanentDeleteUser(th.Context, user)
@@ -2711,7 +2712,7 @@ func TestAuthenticateUserForEasyLogin(t *testing.T) {
 		assert.Equal(t, "api.user.easy_login.invalid_token_type.app_error", err.Id)
 	})
 
-	t.Run("user already exists returns error", func(t *testing.T) {
+	t.Run("user already exists returns generic error", func(t *testing.T) {
 		// Use existing user's email
 		email := th.BasicUser.Email
 		tokenData := map[string]string{
@@ -2730,7 +2731,8 @@ func TestAuthenticateUserForEasyLogin(t *testing.T) {
 		user, err := th.App.AuthenticateUserForEasyLogin(th.Context, token.Token)
 		require.NotNil(t, err, "Should fail when user already exists")
 		require.Nil(t, user)
-		assert.Equal(t, "api.user.easy_login.user_already_exists.app_error", err.Id)
+		// Returns generic error to prevent user enumeration
+		assert.Equal(t, "api.user.easy_login.invalid_token.app_error", err.Id)
 
 		// Verify token was deleted even on error
 		_, nErr := th.App.Srv().Store().Token().GetByToken(token.Token)
