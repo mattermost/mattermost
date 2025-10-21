@@ -1565,29 +1565,29 @@ type API interface {
 	// Minimum server version: 10.10
 	LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level)
 
-	// CallPlugin makes a bridge call to another plugin, allowing method execution
-	// with arbitrary JSON request/response payloads. The target plugin must implement
-	// the ExecuteBridgeCall hook to handle these calls.
+	// CallPlugin makes a RESTful bridge call to another plugin via HTTP.
+	// This enables plugins to expose RESTful APIs that can be called by other plugins
+	// or core server code.
 	//
-	// This enables plugins to expose functionality to other plugins or core server,
-	// creating a plugin-to-plugin communication mechanism beyond HTTP.
+	// The target plugin handles the request via its ServeHTTP hook at the specified endpoint.
+	// The endpoint should be a path like "/api/v1/generate" or "/completion".
 	//
-	// The responseSchema parameter allows you to specify the expected response format,
-	// particularly useful for AI/LLM calls where you want structured outputs.
+	// The responseSchema parameter can be passed via the X-Mattermost-Response-Schema header,
+	// which is particularly useful for AI/LLM calls where you want structured outputs.
 	// Pass nil if you don't need to specify a schema.
 	//
 	// Example: Boards plugin calling AI with structured output:
 	//   request := map[string]interface{}{"prompt": "Summarize this board", "data": boardData}
 	//   reqJSON, _ := json.Marshal(request)
 	//   schema := []byte(`{"type": "object", "properties": {"summary": {"type": "string"}}}`)
-	//   response, err := API.CallPlugin("mattermost-ai", "SummarizeContent", reqJSON, schema)
+	//   response, err := API.CallPlugin("mattermost-ai", "/api/v1/completion", reqJSON, schema)
 	//
-	// Security: The target plugin can identify the caller via Context.SourcePluginId
-	// and implement authorization logic based on the calling plugin.
+	// Security: The target plugin can identify the caller via the X-Mattermost-Source-Plugin-Id
+	// header and implement authorization logic based on the calling plugin.
 	//
 	// @tag Plugin
 	// Minimum server version: 11.1
-	CallPlugin(targetPluginID string, method string, request []byte, responseSchema []byte) ([]byte, error)
+	CallPlugin(targetPluginID string, endpoint string, request []byte, responseSchema []byte) ([]byte, error)
 }
 
 var handshake = plugin.HandshakeConfig{

@@ -16,8 +16,8 @@ const (
 	// AI Plugin ID
 	AIPluginID = "mattermost-ai"
 
-	// AI Plugin Methods
-	AIMethodGenerateCompletion = "GenerateCompletion"
+	// AI Plugin Endpoints
+	AIEndpointCompletion = "/api/v1/completion"
 )
 
 // AIRewriteAction represents the type of rewrite operation to perform
@@ -43,9 +43,9 @@ type AIRewriteResponse struct {
 	Action           AIRewriteAction `json:"action"`
 }
 
-// CallAIPlugin is a convenience wrapper for calling the Agents plugin
+// CallAIPlugin is a convenience wrapper for calling the Agents plugin via RESTful HTTP endpoints
 // It handles plugin availability checks and provides a cleaner API
-func (a *App) CallAIPlugin(rctx request.CTX, method string, requestData map[string]interface{}, responseSchema []byte) ([]byte, *model.AppError) {
+func (a *App) CallAIPlugin(rctx request.CTX, endpoint string, requestData map[string]interface{}, responseSchema []byte) ([]byte, *model.AppError) {
 	// Check if AI plugin is available
 	pluginEnv := a.GetPluginsEnvironment()
 	if pluginEnv == nil {
@@ -60,16 +60,16 @@ func (a *App) CallAIPlugin(rctx request.CTX, method string, requestData map[stri
 
 	// Call the plugin via bridge
 	rctx.Logger().Debug("Calling AI plugin",
-		mlog.String("method", method),
+		mlog.String("endpoint", endpoint),
 		mlog.Int("request_size", len(requestJSON)),
 		mlog.Bool("has_schema", responseSchema != nil),
 	)
 
-	responseJSON, err := a.CallPluginFromCore(rctx, AIPluginID, method, requestJSON, responseSchema)
+	responseJSON, err := a.CallPluginFromCore(rctx, AIPluginID, endpoint, requestJSON, responseSchema)
 	if err != nil {
 		rctx.Logger().Error("AI plugin call failed",
 			mlog.Err(err),
-			mlog.String("method", method),
+			mlog.String("endpoint", endpoint),
 		)
 		// Check if it's already an AppError
 		if appErr, ok := err.(*model.AppError); ok {
@@ -79,7 +79,7 @@ func (a *App) CallAIPlugin(rctx request.CTX, method string, requestData map[stri
 	}
 
 	rctx.Logger().Debug("AI plugin call succeeded",
-		mlog.String("method", method),
+		mlog.String("endpoint", endpoint),
 		mlog.Int("response_size", len(responseJSON)),
 	)
 
@@ -137,7 +137,7 @@ func (a *App) RewriteMessage(rctx request.CTX, userID string, message string, ac
 	}`)
 
 	// Call the AI plugin
-	responseJSON, appErr := a.CallAIPlugin(rctx, AIMethodGenerateCompletion, aiRequest, responseSchema)
+	responseJSON, appErr := a.CallAIPlugin(rctx, AIEndpointCompletion, aiRequest, responseSchema)
 	if appErr != nil {
 		return nil, appErr
 	}

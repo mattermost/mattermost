@@ -306,10 +306,3 @@ func (hooks *hooksTimerLayer) OnSAMLLogin(c *Context, user *model.User, assertio
 	hooks.recordTime(startTime, "OnSAMLLogin", _returnsA == nil)
 	return _returnsA
 }
-
-func (hooks *hooksTimerLayer) ExecuteBridgeCall(c *Context, method string, request []byte, responseSchema []byte) ([]byte, error) {
-	startTime := timePkg.Now()
-	_returnsA, _returnsB := hooks.hooksImpl.ExecuteBridgeCall(c, method, request, responseSchema)
-	hooks.recordTime(startTime, "ExecuteBridgeCall", _returnsB == nil)
-	return _returnsA, _returnsB
-}

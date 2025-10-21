@@ -1319,7 +1319,7 @@ func TestPluginBridge(t *testing.T) {
 
 		request := []byte(`{"test": "data"}`)
 		schema := []byte(`{"type": "object"}`)
-		_, err := th.App.CallPluginBridge(th.Context, "source-plugin", "target-plugin", "TestMethod", request, schema)
+		_, err := th.App.CallPluginBridge(th.Context, "source-plugin", "target-plugin", "/api/v1/test", request, schema)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "plugins are not initialized")
 	})
@@ -1336,7 +1336,7 @@ func TestPluginBridge(t *testing.T) {
 
 		request := []byte(`{"test": "data"}`)
 		schema := []byte(`{"type": "object", "properties": {"result": {"type": "string"}}}`)
-		_, err := th.App.CallPluginBridge(th.Context, "source-plugin", "nonexistent-plugin", "TestMethod", request, schema)
+		_, err := th.App.CallPluginBridge(th.Context, "source-plugin", "nonexistent-plugin", "/api/v1/test", request, schema)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "not active")
 	})
@@ -1355,7 +1355,7 @@ func TestPluginBridge(t *testing.T) {
 
 		request := []byte(`{"test": "data"}`)
 		schema := []byte(`{"summary": "string", "confidence": "number"}`)
-		_, err := th.App.CallPluginFromCore(th.Context, "nonexistent-plugin", "TestMethod", request, schema)
+		_, err := th.App.CallPluginFromCore(th.Context, "nonexistent-plugin", "/api/v1/test", request, schema)
 		require.Error(t, err)
 		// Should fail because plugin doesn't exist, but this verifies the method signature
 		require.Contains(t, err.Error(), "not active")
@@ -1372,33 +1372,12 @@ func TestPluginBridge(t *testing.T) {
 		defer th.App.ch.ShutDownPlugins()
 
 		request := []byte(`{"test": "data"}`)
-		_, err := th.App.CallPluginBridge(th.Context, "source-plugin", "nonexistent-plugin", "TestMethod", request, nil)
+		_, err := th.App.CallPluginBridge(th.Context, "source-plugin", "nonexistent-plugin", "/api/v1/test", request, nil)
 		require.Error(t, err)
 		// Should fail because plugin doesn't exist, but verifies nil schema is accepted
 		require.Contains(t, err.Error(), "not active")
 	})
 }
 
-func TestPluginBridgeContext(t *testing.T) {
-	t.Run("Bridge context includes SourcePluginId", func(t *testing.T) {
-		ctx := &plugin.Context{
-			RequestId:      model.NewId(),
-			SourcePluginId: "test-plugin-id",
-			UserAgent:      "Mattermost-Plugin-Bridge/1.0",
-		}
-
-		require.NotEmpty(t, ctx.RequestId)
-		require.Equal(t, "test-plugin-id", ctx.SourcePluginId)
-		require.Equal(t, "Mattermost-Plugin-Bridge/1.0", ctx.UserAgent)
-	})
-
-	t.Run("Bridge context from core has empty SourcePluginId", func(t *testing.T) {
-		ctx := &plugin.Context{
-			RequestId:      model.NewId(),
-			SourcePluginId: "",
-		}
-
-		require.NotEmpty(t, ctx.RequestId)
-		require.Empty(t, ctx.SourcePluginId)
-	})
-}
+// TestPluginBridgeContext is no longer needed since we're using HTTP headers
+// for source tracking instead of RPC Context fields

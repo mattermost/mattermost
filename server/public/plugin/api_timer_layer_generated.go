@@ -1672,9 +1672,9 @@ func (api *apiTimerLayer) LogAuditRecWithLevel(rec *model.AuditRecord, level mlo
 	api.recordTime(startTime, "LogAuditRecWithLevel", true)
 }
 
-func (api *apiTimerLayer) CallPlugin(targetPluginID string, method string, request []byte, responseSchema []byte) ([]byte, error) {
+func (api *apiTimerLayer) CallPlugin(targetPluginID string, endpoint string, request []byte, responseSchema []byte) ([]byte, error) {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := api.apiImpl.CallPlugin(targetPluginID, method, request, responseSchema)
+	_returnsA, _returnsB := api.apiImpl.CallPlugin(targetPluginID, endpoint, request, responseSchema)
 	api.recordTime(startTime, "CallPlugin", _returnsB == nil)
 	return _returnsA, _returnsB
 }
