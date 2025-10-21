@@ -15,10 +15,10 @@ import LHSNearingLimitsModal from 'components/cloud_usage_modal/lhs_nearing_limi
 import useGetHighestThresholdCloudLimit from 'components/common/hooks/useGetHighestThresholdCloudLimit';
 import useGetLimits from 'components/common/hooks/useGetLimits';
 import useGetUsage from 'components/common/hooks/useGetUsage';
-import UsagePercentBar from 'components/common/usage_percent_bar';
 
 import {ModalIdentifiers} from 'utils/constants';
 import {limitThresholds} from 'utils/limits';
+import ProgressBar from 'widgets/progress_bar';
 
 import useWords from './useWords';
 
@@ -73,7 +73,7 @@ const MenuItemCloudLimit = ({id}: Props) => {
             </div>
             <div className={descriptionClass}>{words.description}</div>
             <div className='MenuItemCloudLimit__usage'>
-                <UsagePercentBar
+                <ProgressBar
                     percent={Math.floor((highestLimit.usage / highestLimit.limit) * 100)}
                 />
                 <span className='MenuItemCloudLimit__usage-label'>{words.status}</span>
