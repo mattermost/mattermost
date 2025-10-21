@@ -151,10 +151,10 @@ func (os *OpensearchInterfaceImpl) Start() *model.AppError {
 		time.Duration(*esSettings.RequestTimeoutSeconds)*time.Second,
 		os.Platform.Log())
 
-	appErr = os.setupTemplates()
-	if appErr != nil {
-		mlog.Error("Failed to initialize opensearch templates, allowing degraded startup", mlog.Err(appErr))
-	}
+	// appErr = os.setupTemplates()
+	// if appErr != nil {
+	// 	mlog.Error("Failed to initialize opensearch templates, allowing degraded startup", mlog.Err(appErr))
+	// }
 
 	atomic.StoreInt32(&os.ready, 1)
 
