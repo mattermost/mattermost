@@ -3263,6 +3263,14 @@
     "translation": "Your license does not support guest accounts"
   },
   {
+    "id": "api.team.easy_login.invalid_body.app_error",
+    "translation": "Unable to parse the request body."
+  },
+  {
+    "id": "api.team.easy_login.no_email.app_error",
+    "translation": "Email is required."
+  },
+  {
     "id": "api.team.get_all_teams.insufficient_permissions",
     "translation": "You don't have the appropriate permissions to list all teams"
   },
@@ -3587,6 +3595,18 @@
     "translation": "[{{ .SiteName }}] Your account at {{ .ServerURL }} has been deactivated"
   },
   {
+    "id": "api.templates.easy_login_body.subtitle",
+    "translation": "Click the button below to sign in to your account"
+  },
+  {
+    "id": "api.templates.easy_login_body.title",
+    "translation": "Sign in to Mattermost"
+  },
+  {
+    "id": "api.templates.easy_login_subject",
+    "translation": "Sign in to {{ .SiteName }}"
+  },
+  {
     "id": "api.templates.email_change_body.info",
     "translation": "Your email address for {{.TeamDisplayName}} has been changed to {{.NewEmail}}."
   },
@@ -3645,18 +3665,6 @@
   {
     "id": "api.templates.email_warning",
     "translation": "If you did not make this change, please contact the system administrator."
-  },
-  {
-    "id": "api.templates.easy_login_subject",
-    "translation": "Sign in to {{ .SiteName }}"
-  },
-  {
-    "id": "api.templates.easy_login_body.title",
-    "translation": "Sign in to Mattermost"
-  },
-  {
-    "id": "api.templates.easy_login_body.subtitle",
-    "translation": "Click the button below to sign in to your account"
   },
   {
     "id": "api.templates.invite_body.button",
