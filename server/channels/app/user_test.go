@@ -29,6 +29,16 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 )
 
+// saveTeamState returns a function that restores the team's AllowedDomains field
+// Call the returned function in a defer to ensure cleanup
+func saveTeamState(th *TestHelper) func() {
+	originalAllowedDomains := th.BasicTeam.AllowedDomains
+	return func() {
+		th.BasicTeam.AllowedDomains = originalAllowedDomains
+		th.App.UpdateTeam(th.BasicTeam)
+	}
+}
+
 func TestCreateOAuthUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
@@ -1021,6 +1031,9 @@ func TestCreateUserWithInviteId(t *testing.T) {
 	})
 
 	t.Run("invalid domain", func(t *testing.T) {
+		restoreTeam := saveTeamState(th)
+		defer restoreTeam()
+
 		th.BasicTeam.AllowedDomains = "mattermost.com"
 		_, nErr := th.App.Srv().Store().Team().Update(th.BasicTeam)
 		require.NoError(t, nErr)
@@ -1188,6 +1201,9 @@ func TestCreateUserWithToken(t *testing.T) {
 	})
 
 	t.Run("create guest having team and system email domain restrictions", func(t *testing.T) {
+		restoreTeam := saveTeamState(th)
+		defer restoreTeam()
+
 		th.BasicTeam.AllowedDomains = "restricted-team.com"
 		_, err := th.App.UpdateTeam(th.BasicTeam)
 		require.Nil(t, err, "Should update the team")
