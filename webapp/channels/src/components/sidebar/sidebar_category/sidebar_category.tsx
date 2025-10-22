@@ -17,10 +17,10 @@ import {localizeMessage} from 'mattermost-redux/utils/i18n_utils';
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import WithTooltip from 'widgets/with_tooltip';
 
 import Constants, {A11yCustomEventTypes, DraggingStateTypes, DraggingStates} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
+import WithTooltip from 'components/with_tooltip';
 
 import type {DraggingState} from 'types/store';
 

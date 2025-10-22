@@ -14,11 +14,11 @@ import PopoutButton from 'components/popout_button';
 import FollowButton from 'components/threading/common/follow_button';
 import CRTThreadsPaneTutorialTip
     from 'components/tours/crt_tour/crt_threads_pane_tutorial_tip';
-import WithTooltip from 'widgets/with_tooltip';
 
 import {getHistory} from 'utils/browser_history';
 import {RHSStates} from 'utils/constants';
 import {popoutThread} from 'utils/popouts/popout_windows';
+import WithTooltip from 'components/with_tooltip';
 
 import type {RhsState} from 'types/store/rhs';
 

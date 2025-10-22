@@ -7,7 +7,7 @@ import React, {useCallback, useEffect, useRef} from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import WithTooltip from 'widgets/with_tooltip';
+import WithTooltip from 'components/with_tooltip';
 
 export type Props = {
 

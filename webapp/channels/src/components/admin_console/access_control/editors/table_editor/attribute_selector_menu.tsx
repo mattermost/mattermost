@@ -21,7 +21,8 @@ import type IconProps from '@mattermost/compass-icons/components/props';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
 import * as Menu from 'components/menu';
-import WithTooltip from 'widgets/with_tooltip';
+
+import WithTooltip from 'components/with_tooltip';
 
 import './selector_menus.scss';
 

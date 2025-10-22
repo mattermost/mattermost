@@ -9,7 +9,8 @@ import styled, {css} from 'styled-components';
 import type {RemoteCluster} from '@mattermost/types/remote_clusters';
 
 import Timestamp, {RelativeRanges} from 'components/timestamp';
-import WithTooltip from 'widgets/with_tooltip';
+
+import WithTooltip from 'components/with_tooltip';
 
 import {isConfirmed, isConnected} from './utils';
 

@@ -23,7 +23,8 @@ import FollowButton from 'components/threading/common/follow_button';
 import {THREADING_TIME} from 'components/threading/common/options';
 import Timestamp from 'components/timestamp';
 import Avatars from 'components/widgets/users/avatars';
-import WithTooltip from 'widgets/with_tooltip';
+
+import WithTooltip from 'components/with_tooltip';
 
 import type {GlobalState} from 'types/store';
 

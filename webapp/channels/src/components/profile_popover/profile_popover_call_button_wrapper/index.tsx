@@ -18,9 +18,9 @@ import {
 } from 'selectors/calls';
 
 import ProfilePopoverCallButton from 'components/profile_popover/profile_popover_calls_button';
-import WithTooltip from 'widgets/with_tooltip';
 
 import {getDirectChannelName} from 'utils/utils';
+import WithTooltip from 'components/with_tooltip';
 
 import type {GlobalState} from 'types/store';
 

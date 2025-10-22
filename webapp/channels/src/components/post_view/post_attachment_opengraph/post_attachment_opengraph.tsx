@@ -16,11 +16,11 @@ import type {
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
 import ExternalImage from 'components/external_image';
 import ExternalLink from 'components/external_link';
-import WithTooltip from 'widgets/with_tooltip';
 
 import {PostTypes} from 'utils/constants';
 import {isSystemMessage} from 'utils/post_utils';
 import {makeUrlSafe} from 'utils/url';
+import WithTooltip from 'components/with_tooltip';
 
 import {getNearestPoint} from './get_nearest_point';
 

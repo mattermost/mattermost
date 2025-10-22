@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import WithTooltip from 'widgets/with_tooltip';
+import WithTooltip from 'components/with_tooltip';
 
 type Props = {
     type: 'channel' | 'thread';

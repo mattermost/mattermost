@@ -13,9 +13,9 @@ import type {UserProfile} from '@mattermost/types/users';
 import {getUser, makeDisplayNameGetter, makeGetProfilesByIdsAndUsernames} from 'mattermost-redux/selectors/entities/users';
 
 import type {Value} from 'components/multiselect/multiselect';
-import WithTooltip from 'widgets/with_tooltip';
 
 import Constants from 'utils/constants';
+import WithTooltip from 'components/with_tooltip';
 
 type UserProfileValue = Value & UserProfile;
 type GroupValue = Value & Group;

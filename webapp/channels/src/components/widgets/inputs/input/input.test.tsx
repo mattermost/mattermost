@@ -10,7 +10,7 @@ import {renderWithContext} from 'tests/react_testing_utils';
 import Input from './input';
 
 // Mock the WithTooltip component to avoid ref issues
-jest.mock('widgets/with_tooltip', () => ({
+jest.mock('components/with_tooltip', () => ({
     __esModule: true,
     default: ({children}: {children: React.ReactNode}) => children,
 }));

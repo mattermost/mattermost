@@ -15,9 +15,9 @@ import {getPost, makeGetPostsForThread} from 'mattermost-redux/selectors/entitie
 
 import PopoutButton from 'components/popout_button';
 import Header from 'components/widgets/header';
-import WithTooltip from 'widgets/with_tooltip';
 
 import {popoutThread} from 'utils/popouts/popout_windows';
+import WithTooltip from 'components/with_tooltip';
 
 import type {GlobalState} from 'types/store';
 

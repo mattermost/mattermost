@@ -8,10 +8,9 @@ import {useIntl} from 'react-intl';
 
 import {CloseCircleIcon} from '@mattermost/compass-icons/components';
 
-import WithTooltip from 'widgets/with_tooltip';
-
 import {ItemStatus} from 'utils/constants';
 import {formatAsString} from 'utils/i18n';
+import WithTooltip from 'components/with_tooltip';
 
 import './input.scss';
 

@@ -7,9 +7,9 @@ import {useIntl} from 'react-intl';
 import type {Team} from '@mattermost/types/teams';
 
 import TeamInfoIcon from 'components/widgets/icons/team_info_icon';
-import WithTooltip from 'widgets/with_tooltip';
 
 import * as Utils from 'utils/utils';
+import WithTooltip from 'components/with_tooltip';
 
 interface Props {
     team: Team;

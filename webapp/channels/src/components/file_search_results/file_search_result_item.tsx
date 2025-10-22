@@ -12,12 +12,12 @@ import Timestamp, {RelativeRanges} from 'components/timestamp';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import Tag from 'components/widgets/tag/tag';
-import WithTooltip from 'widgets/with_tooltip';
 
 import {getHistory} from 'utils/browser_history';
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
 import {fileSizeToString, copyToClipboard, localizeMessage} from 'utils/utils';
+import WithTooltip from 'components/with_tooltip';
 
 import type {PropsFromRedux, OwnProps} from './index';
 

@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import WithTooltip from 'widgets/with_tooltip';
+import WithTooltip from 'components/with_tooltip';
 
 type Props = {
     title: React.ReactNode;

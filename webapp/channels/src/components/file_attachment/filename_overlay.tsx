@@ -10,10 +10,10 @@ import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
 
 import ExternalLink from 'components/external_link';
 import AttachmentIcon from 'components/widgets/icons/attachment_icon';
-import WithTooltip from 'widgets/with_tooltip';
 
 import {trimFilename} from 'utils/file_utils';
 import {localizeMessage} from 'utils/utils';
+import WithTooltip from 'components/with_tooltip';
 
 type Props = {
 

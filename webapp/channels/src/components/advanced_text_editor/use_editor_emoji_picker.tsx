@@ -16,10 +16,10 @@ import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import useEmojiPicker, {useEmojiPickerOffset} from 'components/emoji_picker/use_emoji_picker';
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import WithTooltip from 'widgets/with_tooltip';
 
 import {horizontallyWithin} from 'utils/floating';
 import {splitMessageBasedOnCaretPosition} from 'utils/post_utils';
+import WithTooltip from 'components/with_tooltip';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';

@@ -18,13 +18,13 @@ import BackstageHeader from 'components/backstage/components/backstage_header';
 import ExternalLink from 'components/external_link';
 import FormError from 'components/form_error';
 import SpinnerButton from 'components/spinner_button';
-import WithTooltip from 'widgets/with_tooltip';
 
 import BotDefaultIcon from 'images/bot_default_icon.png';
 import {getHistory} from 'utils/browser_history';
 import {AcceptedProfileImageTypes, Constants, DeveloperLinks, ValidationErrors} from 'utils/constants';
 import * as FileUtils from 'utils/file_utils';
 import * as Utils from 'utils/utils';
+import WithTooltip from 'components/with_tooltip';
 
 const roleOptionSystemAdmin = 'System Admin';
 const roleOptionMember = 'Member';

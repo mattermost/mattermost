@@ -9,10 +9,9 @@ import {useSelector, useDispatch} from 'react-redux';
 import {favoriteChannel, unfavoriteChannel} from 'mattermost-redux/actions/channels';
 import {getCurrentChannel, isCurrentChannelFavorite} from 'mattermost-redux/selectors/entities/channels';
 
-import WithTooltip from 'widgets/with_tooltip';
-
 import type {A11yFocusEventDetail} from 'utils/constants';
 import {A11yCustomEventTypes} from 'utils/constants';
+import WithTooltip from 'components/with_tooltip';
 
 const ChannelHeaderTitleFavorite = () => {
     const intl = useIntl();

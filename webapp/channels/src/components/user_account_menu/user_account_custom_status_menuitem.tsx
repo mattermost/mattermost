@@ -18,7 +18,8 @@ import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import CustomStatusText from 'components/custom_status/custom_status_text';
 import ExpiryTime from 'components/custom_status/expiry_time';
 import * as Menu from 'components/menu';
-import WithTooltip from 'widgets/with_tooltip';
+
+import WithTooltip from 'components/with_tooltip';
 
 interface Props {
     timezone?: string;

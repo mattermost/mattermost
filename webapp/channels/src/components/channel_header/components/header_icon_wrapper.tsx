@@ -4,10 +4,10 @@
 import React from 'react';
 
 import NewChannelWithBoardTourTip from 'components/app_bar/new_channel_with_board_tour_tip';
-import WithTooltip from 'widgets/with_tooltip';
-import type {ShortcutDefinition} from 'widgets/with_tooltip/tooltip_shortcut';
 
 import {suitePluginIds} from 'utils/constants';
+import WithTooltip from 'components/with_tooltip';
+import type {ShortcutDefinition} from 'components/with_tooltip/tooltip_shortcut';
 
 type Props = {
 

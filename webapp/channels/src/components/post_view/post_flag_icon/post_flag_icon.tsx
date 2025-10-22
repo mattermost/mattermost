@@ -7,9 +7,9 @@ import {FormattedMessage, useIntl} from 'react-intl';
 
 import FlagIcon from 'components/widgets/icons/flag_icon';
 import FlagIconFilled from 'components/widgets/icons/flag_icon_filled';
-import WithTooltip from 'widgets/with_tooltip';
 
 import {Locations, A11yCustomEventTypes} from 'utils/constants';
+import WithTooltip from 'components/with_tooltip';
 
 export type Actions = {
     flagPost: (postId: string) => void;

@@ -7,7 +7,7 @@ import {FormattedMessage} from 'react-intl';
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
-import WithTooltip from 'widgets/with_tooltip';
+import WithTooltip from 'components/with_tooltip';
 
 type ProfileWithGroups = Partial<UserProfile & {
     groups: Array<Partial<Group>>;

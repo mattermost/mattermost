@@ -59,30 +59,36 @@ const baseStyles = {
     }),
 } satisfies StylesConfig<OptionType, false>;
 
-const IndicatorsContainer = <T extends OptionType>(props: IndicatorsContainerProps<T, false>) => (
-    <div className='DropdownInput__indicatorsContainer'>
-        <components.IndicatorsContainer {...props}>
-            <i className='icon icon-chevron-down'/>
-        </components.IndicatorsContainer>
-    </div>
-);
+function IndicatorsContainer<T extends OptionType>(props: IndicatorsContainerProps<T, false>) {
+    return (
+        <div className='DropdownInput__indicatorsContainer'>
+            <components.IndicatorsContainer {...props}>
+                <i className='icon icon-chevron-down'/>
+            </components.IndicatorsContainer>
+        </div>
+    );
+}
 
-const Control = <T extends OptionType>(props: ControlProps<T, false>) => (
-    <div className='DropdownInput__controlContainer'>
-        <components.Control {...props}/>
-    </div>
-);
+function Control<T extends OptionType>(props: ControlProps<T, false>) {
+    return (
+        <div className='DropdownInput__controlContainer'>
+            <components.Control {...props}/>
+        </div>
+    );
+}
 
-const Option = <T extends OptionType>(props: OptionProps<T, false, GroupBase<T>>) => (
-    <div
-        className={classNames('DropdownInput__option', {
-            selected: props.isSelected,
-            focused: props.isFocused,
-        })}
-    >
-        <components.Option {...props}/>
-    </div>
-);
+function Option<T extends OptionType>(props: OptionProps<T, false, GroupBase<T>>) {
+    return (
+        <div
+            className={classNames('DropdownInput__option', {
+                selected: props.isSelected,
+                focused: props.isFocused,
+            })}
+        >
+            <components.Option {...props}/>
+        </div>
+    );
+}
 
 const DropdownInputHybrid = <T extends OptionType = OptionType>(props: Props<T>) => {
     const {

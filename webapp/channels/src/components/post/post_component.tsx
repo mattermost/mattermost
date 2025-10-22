@@ -35,7 +35,6 @@ import ThreadFooter from 'components/threading/channel_threads/thread_footer';
 import type {Props as TimestampProps} from 'components/timestamp/timestamp';
 import ArchiveIcon from 'components/widgets/icons/archive_icon';
 import InfoSmallIcon from 'components/widgets/icons/info_small_icon';
-import WithTooltip from 'widgets/with_tooltip';
 
 import {getHistory} from 'utils/browser_history';
 import Constants, {A11yCustomEventTypes, AppEvents, Locations} from 'utils/constants';
@@ -43,6 +42,7 @@ import type {A11yFocusEventDetail} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 import * as PostUtils from 'utils/post_utils';
 import {makeIsEligibleForClick} from 'utils/utils';
+import WithTooltip from 'components/with_tooltip';
 
 import type {PostActionComponent, PostPluginComponent} from 'types/store/plugins';
 

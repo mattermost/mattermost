@@ -18,9 +18,9 @@ import {getDrafts} from 'actions/views/drafts';
 import {makeGetDraftsCount} from 'selectors/drafts';
 
 import ChannelMentionBadge from 'components/sidebar/sidebar_channel/channel_mention_badge';
-import WithTooltip from 'widgets/with_tooltip';
 
 import {SCHEDULED_POST_URL_SUFFIX} from 'utils/constants';
+import WithTooltip from 'components/with_tooltip';
 
 import type {GlobalState} from 'types/store';
 

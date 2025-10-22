@@ -9,9 +9,9 @@ import {closeRightHandSide, showFlaggedPosts} from 'actions/views/rhs';
 import {getRhsState} from 'selectors/rhs';
 
 import IconButton from 'components/global_header/header_icon_button';
-import WithTooltip from 'widgets/with_tooltip';
 
 import {RHSStates} from 'utils/constants';
+import WithTooltip from 'components/with_tooltip';
 
 import type {GlobalState} from 'types/store';
 

@@ -22,10 +22,10 @@ import PostMessageContainer from 'components/post_view/post_message_view';
 import Timestamp, {RelativeRanges} from 'components/timestamp';
 import UserProfileComponent from 'components/user_profile';
 import Avatar from 'components/widgets/users/avatar';
-import WithTooltip from 'widgets/with_tooltip';
 
 import {ModalIdentifiers, StoragePrefixes} from 'utils/constants';
 import {imageURLForUser} from 'utils/utils';
+import WithTooltip from 'components/with_tooltip';
 
 import RestorePostModal from '../restore_post_modal';
 

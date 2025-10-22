@@ -10,9 +10,9 @@ import {getChannelBanner} from 'mattermost-redux/selectors/entities/channels';
 import {getContrastingSimpleColor} from 'mattermost-redux/utils/theme_utils';
 
 import Markdown from 'components/markdown';
-import WithTooltip from 'widgets/with_tooltip';
 
 import type {TextFormattingOptions} from 'utils/text_formatting';
+import WithTooltip from 'components/with_tooltip';
 
 import type {GlobalState} from 'types/store';
 

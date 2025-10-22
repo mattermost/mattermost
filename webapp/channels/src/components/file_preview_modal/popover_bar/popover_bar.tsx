@@ -5,9 +5,8 @@ import debounce from 'lodash/debounce';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import WithTooltip from 'widgets/with_tooltip';
-
 import {ZoomSettings} from 'utils/constants';
+import WithTooltip from 'components/with_tooltip';
 
 export interface Props {
     scale?: number;

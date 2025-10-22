@@ -5,9 +5,9 @@ import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import WithTooltip from 'widgets/with_tooltip';
 
 import {RHSStates} from 'utils/constants';
+import WithTooltip from 'components/with_tooltip';
 
 import type {PropsFromRedux} from './index';
 

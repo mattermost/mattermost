@@ -22,7 +22,6 @@ import {
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import WithTooltip from 'widgets/with_tooltip';
 
 import Constants from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
@@ -41,6 +40,7 @@ import {
     localizeMessage,
     isTextDroppableEvent,
 } from 'utils/utils';
+import WithTooltip from 'components/with_tooltip';
 
 import type {FilesWillUploadHook, FileUploadMethodAction} from 'types/store/plugins';
 

@@ -8,7 +8,8 @@ import {useIntl} from 'react-intl';
 import {EyeOutlineIcon} from '@mattermost/compass-icons/components';
 
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import WithTooltip from 'widgets/with_tooltip';
+
+import WithTooltip from 'components/with_tooltip';
 
 import {IconContainer} from '../formatting_bar/formatting_icon';
 

@@ -10,10 +10,9 @@ import {CSSTransition} from 'react-transition-group';
 import {CloseIcon} from '@mattermost/compass-icons/components';
 import type {SystemEmoji} from '@mattermost/types/emojis';
 
-import WithTooltip from 'widgets/with_tooltip';
-
 import imgTrans from 'images/img_trans.gif';
 import * as Emoji from 'utils/emoji';
+import WithTooltip from 'components/with_tooltip';
 
 interface SkinTone {
     emoji: SystemEmoji;

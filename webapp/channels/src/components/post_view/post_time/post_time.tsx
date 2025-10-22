@@ -8,10 +8,10 @@ import {Link} from 'react-router-dom';
 import * as GlobalActions from 'actions/global_actions';
 
 import Timestamp from 'components/timestamp';
-import WithTooltip from 'widgets/with_tooltip';
 
 import {Locations} from 'utils/constants';
 import {isMobile} from 'utils/user_agent';
+import WithTooltip from 'components/with_tooltip';
 
 const getTimeFormat: ComponentProps<typeof Timestamp>['useTime'] = (_, {hour, minute, second}) => ({hour, minute, second});
 const getDateFormat: ComponentProps<typeof Timestamp>['useDate'] = {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'};

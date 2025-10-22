@@ -12,10 +12,10 @@ import {getFilePublicLink as selectFilePublicLink} from 'mattermost-redux/select
 
 import CopyButton from 'components/copy_button';
 import ExternalLink from 'components/external_link';
-import WithTooltip from 'widgets/with_tooltip';
 
 import {FileTypes} from 'utils/constants';
 import {copyToClipboard, getFileType} from 'utils/utils';
+import WithTooltip from 'components/with_tooltip';
 
 import type {GlobalState} from 'types/store';
 

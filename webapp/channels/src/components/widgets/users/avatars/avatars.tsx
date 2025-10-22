@@ -15,9 +15,9 @@ import {getUser as selectUser, makeDisplayNameGetter} from 'mattermost-redux/sel
 
 import ProfilePopover from 'components/profile_popover';
 import Avatar from 'components/widgets/users/avatar';
-import WithTooltip from 'widgets/with_tooltip';
 
 import {imageURLForUser} from 'utils/utils';
+import WithTooltip from 'components/with_tooltip';
 
 import type {GlobalState} from 'types/store';
 

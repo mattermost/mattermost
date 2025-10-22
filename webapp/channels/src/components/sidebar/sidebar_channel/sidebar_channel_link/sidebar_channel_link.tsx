@@ -13,13 +13,13 @@ import {mark} from 'actions/telemetry_actions';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
 import {ChannelsAndDirectMessagesTour} from 'components/tours/onboarding_tour';
-import WithTooltip from 'widgets/with_tooltip';
 
 import Pluggable from 'plugins/pluggable';
 import Constants, {RHSStates} from 'utils/constants';
 import {wrapEmojis} from 'utils/emoji_utils';
 import {cmdOrCtrlPressed} from 'utils/keyboard';
 import {Mark} from 'utils/performance_telemetry';
+import WithTooltip from 'components/with_tooltip';
 
 import type {RhsState} from 'types/store/rhs';
 

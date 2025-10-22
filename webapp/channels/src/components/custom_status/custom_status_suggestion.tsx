@@ -9,9 +9,9 @@ import type {UserCustomStatus} from '@mattermost/types/users';
 import {CustomStatusDuration} from '@mattermost/types/users';
 
 import RenderEmoji from 'components/emoji/render_emoji';
-import WithTooltip from 'widgets/with_tooltip';
 
 import {durationValues} from 'utils/constants';
+import WithTooltip from 'components/with_tooltip';
 
 import CustomStatusText from './custom_status_text';
 

@@ -5,7 +5,8 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import Markdown from 'components/markdown';
-import WithTooltip from 'widgets/with_tooltip';
+
+import WithTooltip from 'components/with_tooltip';
 
 import './shared.scss';
 

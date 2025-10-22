@@ -18,10 +18,9 @@ import {startUsersBatchExport} from 'actions/views/admin';
 import {openModal} from 'actions/views/modals';
 import {getAdminConsoleUserManagementTableProperties} from 'selectors/views/admin';
 
-import WithTooltip from 'widgets/with_tooltip';
-
 import {ModalIdentifiers} from 'utils/constants';
 import {isMinimumProfessionalLicense} from 'utils/license_utils';
+import WithTooltip from 'components/with_tooltip';
 
 import {ExportErrorModal} from './export_error_modal';
 import {ExportUserDataModal} from './export_user_data_modal';

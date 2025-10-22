@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage, type MessageDescriptor} from 'react-intl';
 
-import WithTooltip from 'widgets/with_tooltip';
+import WithTooltip from 'components/with_tooltip';
 
 import type {GeneralSettingProps} from './ldap_wizard';
 

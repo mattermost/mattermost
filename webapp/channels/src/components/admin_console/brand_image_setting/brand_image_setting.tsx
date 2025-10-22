@@ -10,9 +10,9 @@ import {uploadBrandImage, deleteBrandImage} from 'actions/admin_actions.jsx';
 
 import SettingSet from 'components/admin_console/setting_set';
 import FormError from 'components/form_error';
-import WithTooltip from 'widgets/with_tooltip';
 
 import {Constants} from 'utils/constants';
+import WithTooltip from 'components/with_tooltip';
 
 const HTTP_STATUS_OK = 200;
 

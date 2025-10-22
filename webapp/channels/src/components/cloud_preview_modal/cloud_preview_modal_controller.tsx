@@ -13,9 +13,9 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {makeAsyncComponent} from 'components/async_load';
-import WithTooltip from 'widgets/with_tooltip';
 
 import {useGetCloudPreviewModalContent} from 'hooks/useGetCloudPreviewModalContent';
+import WithTooltip from 'components/with_tooltip';
 
 import type {GlobalState} from 'types/store';
 

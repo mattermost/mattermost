@@ -10,9 +10,8 @@ import styled from 'styled-components';
 
 import {DotsHorizontalIcon} from '@mattermost/compass-icons/components';
 
-import WithTooltip from 'widgets/with_tooltip';
-
 import type {ApplyMarkdownOptions, MarkdownMode} from 'utils/markdown/apply_markdown';
+import WithTooltip from 'components/with_tooltip';
 
 import FormattingIcon, {IconContainer} from './formatting_icon';
 import {useFormattingBarControls} from './hooks';

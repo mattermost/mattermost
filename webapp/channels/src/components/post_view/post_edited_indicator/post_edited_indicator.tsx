@@ -9,10 +9,9 @@ import {PencilOutlineIcon} from '@mattermost/compass-icons/components';
 
 import {getDateForTimezone} from 'mattermost-redux/utils/timezone_utils';
 
-import WithTooltip from 'widgets/with_tooltip';
-
 import Constants from 'utils/constants';
 import {isSameDay, isWithinLastWeek, isYesterday} from 'utils/datetime';
+import WithTooltip from 'components/with_tooltip';
 
 import type {Props} from './index';
 

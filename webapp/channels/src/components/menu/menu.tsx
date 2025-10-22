@@ -25,10 +25,10 @@ import {openModal, closeModal} from 'actions/views/modals';
 import {getIsMobileView} from 'selectors/views/browser';
 
 import CompassDesignProvider from 'components/compass_design_provider';
-import WithTooltip from 'widgets/with_tooltip';
 
 import Constants, {A11yClassNames} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
+import WithTooltip from 'components/with_tooltip';
 
 import {MenuContext, useMenuContextValue} from './menu_context';
 

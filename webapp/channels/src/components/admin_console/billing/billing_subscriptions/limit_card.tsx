@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import ProgressBar from 'widgets/progress_bar';
+import ProgressBar from 'design-system/components/progress_bar';
 
 import './limit_card.scss';
 

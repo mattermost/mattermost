@@ -13,9 +13,8 @@ import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {handleBindingClick, openAppsModal, postEphemeralCallResponseForContext} from 'actions/apps';
 
-import WithTooltip from 'widgets/with_tooltip';
-
 import {createCallContext} from 'utils/apps';
+import WithTooltip from 'components/with_tooltip';
 
 import type {DoAppCallResult} from 'types/apps';
 

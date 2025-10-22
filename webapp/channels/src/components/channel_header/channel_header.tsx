@@ -10,7 +10,6 @@ import type {WrappedComponentProps} from 'react-intl';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import CustomStatusText from 'components/custom_status/custom_status_text';
 import Timestamp from 'components/timestamp';
-import WithTooltip from 'widgets/with_tooltip';
 
 import CallButton from 'plugins/call_button';
 import ChannelHeaderPlug from 'plugins/channel_header_plug';
@@ -20,6 +19,7 @@ import {
     RHSStates,
 } from 'utils/constants';
 import {isEmptyObject} from 'utils/utils';
+import WithTooltip from 'components/with_tooltip';
 
 import ChannelHeaderText from './channel_header_text';
 import ChannelHeaderTitle from './channel_header_title';

@@ -11,9 +11,9 @@ import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
-import WithTooltip from 'widgets/with_tooltip';
 
 import {CloudProducts} from 'utils/constants';
+import WithTooltip from 'components/with_tooltip';
 
 const PlanUpgradeButton = (): JSX.Element | null => {
     const dispatch = useDispatch();

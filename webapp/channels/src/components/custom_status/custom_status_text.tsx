@@ -6,7 +6,7 @@ import {useSelector} from 'react-redux';
 
 import {isCustomStatusEnabled} from 'selectors/views/custom_status';
 
-import WithTooltip from 'widgets/with_tooltip';
+import WithTooltip from 'components/with_tooltip';
 
 import type {GlobalState} from 'types/store';
 
