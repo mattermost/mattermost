@@ -2,3 +2,5 @@
 // See LICENSE.txt for license information.
 
 export {TestFooBar} from './components/patterns/TestFooBar';
+
+export {Toggle} from './components/primitives/toggle';

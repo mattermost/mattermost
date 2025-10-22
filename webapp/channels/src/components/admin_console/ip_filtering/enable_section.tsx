@@ -4,8 +4,9 @@
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {Toggle} from '@mattermost/design-system';
+
 import ExternalLink from 'components/external_link';
-import Toggle from 'components/toggle';
 
 type Props = {
     filterToggle: boolean;
