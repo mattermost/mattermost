@@ -2220,7 +2220,6 @@ func getLoginType(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.App.Channels().License() != nil &&
 		*c.App.Channels().License().Features.GuestAccounts &&
 		*c.App.Config().GuestAccountsSettings.EnableEasyLogin {
-
 		eErr := c.App.Srv().EmailService.SendGuestEasyLoginEmailSelfService(user.Email, c.App.GetSiteURL())
 		if eErr != nil {
 			// Log but don't fail or end the request
