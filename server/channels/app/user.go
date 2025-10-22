@@ -42,6 +42,7 @@ const (
 	TokenTypeEasyLogin           = "easy_login"
 	PasswordRecoverExpiryTime    = 1000 * 60 * 60 * 24 // 24 hours
 	InvitationExpiryTime         = 1000 * 60 * 60 * 48 // 48 hours
+	EasyLoginExpiryTime          = 1000 * 60 * 5       // 5 minutes
 	ImageProfilePixelDimension   = 128
 )
 
@@ -144,10 +145,11 @@ func (a *App) AuthenticateUserForEasyLogin(rctx request.CTX, tokenString string)
 		return nil, model.NewAppError("AuthenticateUserForEasyLogin", "api.user.easy_login.invalid_token_type.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if model.GetMillis()-token.CreateAt >= InvitationExpiryTime {
-		if appErr := a.DeleteToken(token); appErr != nil {
-			rctx.Logger().Warn("Error while deleting expired easy login token", mlog.Err(appErr))
-		}
+	var expiryTime int64 = InvitationExpiryTime
+	if token.Type == TokenTypeEasyLogin {
+		expiryTime = EasyLoginExpiryTime
+	}
+	if model.GetMillis()-token.CreateAt >= expiryTime {
 		return nil, model.NewAppError("AuthenticateUserForEasyLogin", "api.user.easy_login.expired_token.app_error", nil, "", http.StatusBadRequest)
 	}
 

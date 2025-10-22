@@ -2002,19 +2002,35 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	mfaToken := props["token"]
 	deviceId := props["device_id"]
 	ldapOnly := props["ldap_only"] == "true"
+	easyLoginToken := props["easy_login_token"]
 
 	auditRec := c.MakeAuditRecord(model.AuditEventLogin, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterToAuditRec(auditRec, "login_id", loginId)
 	model.AddEventParameterToAuditRec(auditRec, "device_id", deviceId)
 
-	c.LogAuditWithUserId(id, "attempt - login_id="+loginId)
+	var user *model.User
+	var err *model.AppError
 
-	user, err := c.App.AuthenticateUserForLogin(c.AppContext, id, loginId, password, mfaToken, "", ldapOnly)
-	if err != nil {
-		c.LogAuditWithUserId(id, "failure - login_id="+loginId)
-		c.Err = err
-		return
+	if easyLoginToken != "" {
+		auditRec.AddMeta("login_method", "easy_login")
+		c.LogAudit("attempt - easy_login")
+
+		user, err = c.App.AuthenticateUserForEasyLogin(c.AppContext, easyLoginToken)
+		if err != nil {
+			c.LogAudit("failure - easy_login")
+			c.Err = err
+			return
+		}
+	} else {
+		model.AddEventParameterToAuditRec(auditRec, "login_id", loginId)
+		c.LogAuditWithUserId(id, "attempt - login_id="+loginId)
+
+		user, err = c.App.AuthenticateUserForLogin(c.AppContext, id, loginId, password, mfaToken, "", ldapOnly)
+		if err != nil {
+			c.LogAuditWithUserId(id, "failure - login_id="+loginId)
+			c.Err = err
+			return
+		}
 	}
 	auditRec.AddEventResultState(user)
 
