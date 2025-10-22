@@ -69,6 +69,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/login/desktop_token", api.RateLimitedHandler(api.APIHandler(loginWithDesktopToken), model.RateLimitSettings{PerSec: model.NewPointer(2), MaxBurst: model.NewPointer(1)})).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/switch", api.APIHandler(switchAccountType)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/login/cws", api.APIHandlerTrustRequester(loginCWS)).Methods(http.MethodPost)
+	api.BaseRoutes.Users.Handle("/login/type", api.APIHandler(getLoginType)).Methods(http.MethodPost)
 	api.BaseRoutes.Users.Handle("/logout", api.APIHandler(logout)).Methods(http.MethodPost)
 
 	api.BaseRoutes.UserByUsername.Handle("", api.APISessionRequired(getUserByUsername)).Methods(http.MethodGet)
@@ -2178,6 +2179,70 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Redirect(w, r, redirectURL, http.StatusFound)
+}
+
+func getLoginType(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.MapFromJSON(r.Body)
+	id := props["id"]
+	loginId := props["login_id"]
+	deviceId := props["device_id"]
+
+	if loginId == "" {
+		c.SetInvalidParam("login_id")
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventLogin, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "login_id", loginId)
+	model.AddEventParameterToAuditRec(auditRec, "device_id", deviceId)
+
+	c.LogAuditWithUserId(id, "attempt - login_id="+loginId)
+
+	user, err := c.App.GetUserForLogin(c.AppContext, id, loginId)
+	if err != nil {
+		c.Logger.Debug("Could not get user for login", mlog.Err(err))
+		if err := json.NewEncoder(w).Encode(model.LoginTypeResponse{
+			AuthService: "",
+		}); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
+		return
+	}
+
+	c.LogAuditWithUserId(user.Id, "found user for login_id="+loginId)
+	auditRec.AddEventResultState(user)
+
+	auditRec.Success()
+
+	if user.IsGuest() &&
+		user.IsEasyLoginEnabled() &&
+		c.App.Channels().License() != nil &&
+		*c.App.Channels().License().Features.GuestAccounts &&
+		*c.App.Config().GuestAccountsSettings.EnableEasyLogin {
+		eErr := c.App.Srv().EmailService.SendGuestEasyLoginEmailSelfService(user.Email, c.App.GetSiteURL())
+		if eErr != nil {
+			// Log but don't fail or end the request
+			c.Logger.Warn("Failed to send easy login email",
+				mlog.Err(eErr),
+				mlog.String("user_id", user.Id))
+			return
+		}
+		c.Logger.Debug("Easy login email sent successfully", mlog.String("user_id", user.Id))
+
+		if jErr := json.NewEncoder(w).Encode(model.LoginTypeResponse{
+			AuthService: "easy_login",
+		}); jErr != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(model.LoginTypeResponse{
+		AuthService: "",
+	}); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }
 
 func logout(c *Context, w http.ResponseWriter, r *http.Request) {

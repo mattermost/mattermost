@@ -3587,6 +3587,18 @@
     "translation": "[{{ .SiteName }}] Your account at {{ .ServerURL }} has been deactivated"
   },
   {
+    "id": "api.templates.easy_login_body.subtitle",
+    "translation": "Click the button below to sign in to your account"
+  },
+  {
+    "id": "api.templates.easy_login_body.title",
+    "translation": "Sign in to Mattermost"
+  },
+  {
+    "id": "api.templates.easy_login_subject",
+    "translation": "Sign in to {{ .SiteName }}"
+  },
+  {
     "id": "api.templates.email_change_body.info",
     "translation": "Your email address for {{.TeamDisplayName}} has been changed to {{.NewEmail}}."
   },
@@ -4197,6 +4209,26 @@
   {
     "id": "api.user.demote_user_to_guest.already_guest.app_error",
     "translation": "Unable to convert the user to guest because is already a guest."
+  },
+  {
+    "id": "api.user.easy_login.expired_token.app_error",
+    "translation": "This invitation link has expired."
+  },
+  {
+    "id": "api.user.easy_login.invalid_token.app_error",
+    "translation": "Invalid invitation link."
+  },
+  {
+    "id": "api.user.easy_login.invalid_token_type.app_error",
+    "translation": "Invalid invitation link type."
+  },
+  {
+    "id": "api.user.easy_login.missing_token.app_error",
+    "translation": "Missing invitation token."
+  },
+  {
+    "id": "api.user.easy_login.username_generation_failed.app_error",
+    "translation": "Could not generate a unique username. Please contact your system administrator."
   },
   {
     "id": "api.user.email_to_ldap.not_available.app_error",
