@@ -13,6 +13,11 @@
     .Input_container .Input_wrapper > :not(:first-child) {
         margin-left: 10px;
     }
+
+    button {
+        margin-top: 4px;
+        margin-bottom: 12px;
+    }
 }
 
 .textarea-wrapper {
@@ -43,8 +48,12 @@
         rgba(var(--center-channel-bg-rgb), 0.32) 100%
     );
     background-size: 300% 100%;
-    animation: ai-rewrite-gradient 2.5s linear infinite;
+    animation: ai-rewrite-gradient 3.5s linear infinite;
     pointer-events: none;
     z-index: 999;
     border-radius: 4px;
+}
+
+#ai-rewrite-button {
+    pointer-events: auto;
 }

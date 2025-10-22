@@ -656,7 +656,7 @@ const AdvancedTextEditor = ({
         createMessage = formatMessage({id: 'create_comment.addComment', defaultMessage: 'Reply to this thread...'});
     }
 
-    const messageValue = isDisabled ? '' : draft.message_source || draft.message;
+    const messageValue = isDisabled && !aiRewriteIsProcessing ? '' : draft.message_source || draft.message;
 
     const wasNotifiedOfLogIn = LocalStorageStore.getWasNotifiedOfLogIn();
 
@@ -803,7 +803,7 @@ const AdvancedTextEditor = ({
                             channelId={channelId}
                             id={textboxId}
                             ref={textboxRef!}
-                            disabled={isDisabled}
+                            disabled={isDisabled && !aiRewriteIsProcessing}
                             characterLimit={maxPostSize}
                             preview={showPreview}
                             badConnection={badConnection}

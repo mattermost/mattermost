@@ -26,11 +26,6 @@ func (a *App) RewriteMessage(
 	action model.AIRewriteAction,
 	customPrompt string,
 ) (string, *model.AppError) {
-	// Validate inputs
-	if message == "" {
-		return "", model.NewAppError("RewriteMessage", "app.ai.rewrite.invalid_message", nil, "message cannot be empty", 400)
-	}
-
 	// Validate action
 	validActions := map[model.AIRewriteAction]bool{
 		model.AIRewriteActionShorten:        true,
@@ -116,10 +111,16 @@ func (a *App) RewriteMessage(
 
 // getRewritePromptForAction returns the appropriate prompt and system prompt for the given rewrite action
 func getRewritePromptForAction(action model.AIRewriteAction, message string, customPrompt string) (string, string) {
+
+	if message == "" {
+		return fmt.Sprintf("Create a new message according to the custom instructions: %s", customPrompt),
+			"You are a helpful assistant that follows custom instructions precisely. Your task is to rewrite the given message according to the specific custom instructions provided. Maintain the original intent while applying the requested changes. You MUST response with just the rewritten message, no additional text. Return your response as JSON with a 'rewritten_text' field containing the message. Do not escape the 'rewritten_text' field in your response. The output should not be in markdown format, just plain JSON."
+	}
+
 	switch action {
 	case model.AIRewriteActionCustom:
 		return fmt.Sprintf("Rewrite the following message according to the custom instructions: %s\n\nMessage to rewrite:\n%s", customPrompt, message),
-			"You are a helpful assistant that follows custom instructions precisely. Your task is to rewrite the given message according to the specific custom instructions provided. Maintain the original intent while applying the requested changes. You MUST response with just the rewritten message, no additional text. Do not escape the 'rewritten_text' field in your response. The output should not be in markdown format, just plain JSON."
+			"You are a helpful assistant that follows custom instructions precisely. Your task is to rewrite the given message according to the specific custom instructions provided. Maintain the original intent while applying the requested changes. You MUST response with just the rewritten message, no additional text. Return your response as JSON with a 'rewritten_text' field containing the rewritten message. Do not escape the 'rewritten_text' field in your response. The output should not be in markdown format, just plain JSON."
 
 	case model.AIRewriteActionShorten:
 		return fmt.Sprintf("Rewrite the following message to be more concise and succinct while preserving the core meaning and intent. Return your response as JSON with a 'rewritten_text' field containing the rewritten message:\n\n%s", message),

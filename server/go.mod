@@ -213,3 +213,4 @@ require (
 // jaytaylor/html2text does not have a go.mod file which makes it bump to the latest
 // version always. Tablewriter has made breaking changes to its latest release.
 replace github.com/olekukonko/tablewriter => github.com/olekukonko/tablewriter v0.0.5
+replace github.com/mattermost/mattermost-plugin-ai => ../../mattermost-plugin-agents
