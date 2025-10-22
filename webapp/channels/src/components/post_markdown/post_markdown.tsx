@@ -1,18 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import memoize from 'memoize-one';
-import React from 'react';
+import React, {useEffect, useMemo} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
 
 import {Posts} from 'mattermost-redux/constants';
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 
 import Markdown from 'components/markdown';
 import {DataSpillageReport} from 'components/post_view/data_spillage_report/data_spillage_report';
 
 import {PostTypes} from 'utils/constants';
-import {isChannelNamesMap, type TextFormattingOptions} from 'utils/text_formatting';
+import {extractChannelMentionsFromPost, type TextFormattingOptions} from 'utils/text_formatting';
+
+import type {GlobalState} from 'types/store';
 
 import {renderReminderSystemBotMessage, renderSystemMessage, renderWranglerSystemMessage} from './system_message_helpers';
 
@@ -53,106 +56,204 @@ export type OwnProps = {
 
 type Props = PropsFromRedux & OwnProps;
 
-export default class PostMarkdown extends React.PureComponent<Props> {
-    static defaultProps = {
-        pluginHooks: [],
-        options: {},
-        showPostEditedIndicator: true,
-    };
+const PostMarkdown: React.FC<Props> = (props) => {
+    const {
+        message: initialMessage,
+        post,
+        channel,
+        currentTeam,
+        pluginHooks = [],
+        options = {},
+        showPostEditedIndicator = true,
+        imageProps,
+        mentionKeys,
+        highlightKeys,
+        hasPluginTooltips,
+        hideGuestTags,
+        isUserCanManageMembers,
+        isMilitaryTime,
+        timezone,
+        isEnterpriseOrCloudOrSKUStarterFree,
+        isEnterpriseReady,
+        renderEmoticonsAsEmoji: propsRenderEmoticonsAsEmoji,
+        isRHS,
+    } = props;
 
-    getOptions = memoize(
-        (options?: TextFormattingOptions, disableGroupHighlight?: boolean, mentionHighlight?: boolean, editedAt?: number, renderEmoticonsAsEmoji?: boolean) => {
-            return {
-                ...options,
-                disableGroupHighlight,
-                mentionHighlight,
-                editedAt,
-                renderEmoticonsAsEmoji,
-            };
-        });
+    const dispatch = useDispatch();
 
-    render() {
-        let message = this.props.message;
+    // Get all channels from redux store
+    const allChannels = useSelector((state: GlobalState) => state.entities.channels.channels);
+    const postChannelTeamId = useSelector((state: GlobalState) => {
+        if (!post) {
+            return null;
+        }
+        const postChannel = getChannel(state, post.channel_id);
+        return postChannel?.team_id || null;
+    });
 
-        if (this.props.post) {
-            const renderedSystemMessage = this.props.channel ? renderSystemMessage(this.props.post,
-                this.props.currentTeam?.name ?? '',
-                this.props.channel,
-                this.props.hideGuestTags,
-                this.props.isUserCanManageMembers,
-                this.props.isMilitaryTime,
-                this.props.timezone) : null;
-            if (renderedSystemMessage) {
-                return <div>{renderedSystemMessage}</div>;
-            }
+    // Extract channel mentions from post and determine which ones are missing
+    const {mentionsToFetch} = useMemo(() => {
+        if (!post) {
+            return {mentionsToFetch: []};
         }
 
-        if (this.props.post && this.props.post.type === Posts.POST_TYPES.REMINDER) {
-            if (!this.props.currentTeam) {
-                return null;
-            }
-            const renderedSystemBotMessage = renderReminderSystemBotMessage(this.props.post, this.props.currentTeam);
-            return <div>{renderedSystemBotMessage}</div>;
-        }
+        // Extract all mentions from post content (message + attachments)
+        const allMentions = extractChannelMentionsFromPost(post);
 
-        if (this.props.post && this.props.post.type === Posts.POST_TYPES.WRANGLER) {
-            const renderedWranglerMessage = renderWranglerSystemMessage(this.props.post);
-            return <div>{renderedWranglerMessage}</div>;
-        }
-
-        if (this.props.post && this.props.post.type === PostTypes.CUSTOM_DATA_SPILLAGE_REPORT) {
-            return (
-                <div>
-                    <DataSpillageReport
-                        post={this.props.post}
-                        isRHS={this.props.isRHS}
-                    />
-                </div>
+        // Filter to find mentions not in redux store
+        const missing = allMentions.filter((channelName) => {
+            // Check if channel exists in redux store by name
+            const channelExists = Object.values(allChannels).some(
+                (ch) => ch.name.toLowerCase() === channelName && ch.team_id === postChannelTeamId,
             );
+
+            return !channelExists;
+        });
+
+        return {mentionsToFetch: missing};
+    }, [post, allChannels, postChannelTeamId]);
+
+    // Get teams for building channel names map
+    const allTeams = useSelector((state: GlobalState) => state.entities.teams.teams);
+    const postTeam = useSelector((state: GlobalState) => {
+        if (!postChannelTeamId) {
+            return null;
+        }
+        return state.entities.teams.teams[postChannelTeamId] || null;
+    });
+
+    // Fetch missing channels
+    useEffect(() => {
+        if (mentionsToFetch.length === 0 || !postTeam) {
+            return;
         }
 
-        // Proxy images if we have an image proxy and the server hasn't already rewritten the this.props.post's image URLs.
-        const proxyImages = !this.props.post || !this.props.post.message_source || this.props.post.message === this.props.post.message_source;
-        const channelNamesMap = isChannelNamesMap(this.props.post?.props?.channel_mentions) ? this.props.post?.props?.channel_mentions : undefined;
+        // Import dynamically to avoid circular dependencies
+        import('mattermost-redux/actions/channels').then(({getChannelByNameAndTeamName}) => {
+            // Dispatch fetch for each missing channel
+            mentionsToFetch.forEach((channelName) => {
+                dispatch(getChannelByNameAndTeamName(postTeam.name, channelName, true) as any).catch((error: any) => {
+                    // Silently fail - channel might not exist or be private
+                    console.warn(`Failed to fetch channel ${channelName}:`, error);
+                });
+            });
+        });
+    }, [mentionsToFetch, postTeam, dispatch]);
 
-        this.props.pluginHooks?.forEach((o) => {
-            if (o && o.hook && this.props.post) {
-                message = o.hook(this.props.post, message);
+    // Build enhanced channel names map with data from redux store
+    const channelNamesMap = useMemo(() => {
+        if (!post) {
+            return undefined;
+        }
+
+        // Start with enhanced map
+        const enhanced: {[key: string]: {display_name: string; team_name?: string}} = {};
+
+        // Add channels from redux store that we found
+        const allMentions = extractChannelMentionsFromPost(post);
+        allMentions.forEach((channelName) => {
+            if (enhanced[channelName]) {
+                return; // Already have it
+            }
+
+            // Find channel in redux store
+            const matchingChannel = Object.values(allChannels).find(
+                (ch) => ch.name.toLowerCase() === channelName && ch.team_id === postChannelTeamId,
+            );
+
+            if (matchingChannel) {
+                const channelTeam = allTeams[matchingChannel.team_id];
+                enhanced[channelName] = {
+                    display_name: matchingChannel.display_name,
+                    team_name: channelTeam?.name,
+                };
             }
         });
 
-        let mentionHighlight = this.props.options?.mentionHighlight;
-        if (this.props.post && this.props.post.props) {
-            mentionHighlight = !this.props.post.props.mentionHighlightDisabled;
+        return Object.keys(enhanced).length > 0 ? enhanced : undefined;
+    }, [post, allChannels, postChannelTeamId, allTeams]);
+
+    // Apply plugin hooks
+    let message = initialMessage;
+    pluginHooks?.forEach((o) => {
+        if (o && o.hook && post) {
+            message = o.hook(post, message);
         }
+    });
 
-        const options = this.getOptions(
-            this.props.options,
-            this.props.post?.props?.disable_group_highlight === true,
-            mentionHighlight,
-            this.props.post?.edit_at,
-            this.props?.renderEmoticonsAsEmoji,
-        );
-
-        let highlightKeys;
-        if (!this.props.isEnterpriseOrCloudOrSKUStarterFree && this.props.isEnterpriseReady) {
-            highlightKeys = this.props.highlightKeys;
+    // Handle system messages
+    if (post) {
+        const renderedSystemMessage = channel ? renderSystemMessage(
+            post,
+            currentTeam?.name ?? '',
+            channel,
+            hideGuestTags,
+            isUserCanManageMembers,
+            isMilitaryTime,
+            timezone,
+        ) : null;
+        if (renderedSystemMessage) {
+            return <div>{renderedSystemMessage}</div>;
         }
+    }
 
+    if (post && post.type === Posts.POST_TYPES.REMINDER) {
+        if (!currentTeam) {
+            return null;
+        }
+        const renderedSystemBotMessage = renderReminderSystemBotMessage(post, currentTeam);
+        return <div>{renderedSystemBotMessage}</div>;
+    }
+
+    if (post && post.type === Posts.POST_TYPES.WRANGLER) {
+        const renderedWranglerMessage = renderWranglerSystemMessage(post);
+        return <div>{renderedWranglerMessage}</div>;
+    }
+
+    if (post && post.type === PostTypes.CUSTOM_DATA_SPILLAGE_REPORT) {
         return (
-            <Markdown
-                imageProps={this.props.imageProps}
-                message={message}
-                proxyImages={proxyImages}
-                mentionKeys={this.props.mentionKeys}
-                highlightKeys={highlightKeys}
-                options={options}
-                channelNamesMap={channelNamesMap}
-                hasPluginTooltips={this.props.hasPluginTooltips}
-                imagesMetadata={this.props.post?.metadata?.images}
-                postId={this.props.post?.id}
-                editedAt={this.props.showPostEditedIndicator ? this.props.post?.edit_at : undefined}
-            />
+            <div>
+                <DataSpillageReport
+                    post={post}
+                    isRHS={isRHS}
+                />
+            </div>
         );
     }
-}
+
+    // Proxy images if we have an image proxy and the server hasn't already rewritten the post's image URLs
+    const proxyImages = !post || !post.message_source || post.message === post.message_source;
+
+    let mentionHighlight = options?.mentionHighlight;
+    if (post && post.props) {
+        mentionHighlight = !post.props.mentionHighlightDisabled;
+    }
+
+    const markdownOptions = useMemo(() => ({
+        ...options,
+        disableGroupHighlight: post?.props?.disable_group_highlight === true,
+        mentionHighlight,
+        editedAt: post?.edit_at,
+        renderEmoticonsAsEmoji: propsRenderEmoticonsAsEmoji,
+    }), [options, post?.props?.disable_group_highlight, mentionHighlight, post?.edit_at, propsRenderEmoticonsAsEmoji]);
+
+    const effectiveHighlightKeys = !isEnterpriseOrCloudOrSKUStarterFree && isEnterpriseReady ? highlightKeys : undefined;
+
+    return (
+        <Markdown
+            imageProps={imageProps}
+            message={message}
+            proxyImages={proxyImages}
+            mentionKeys={mentionKeys}
+            highlightKeys={effectiveHighlightKeys}
+            options={markdownOptions}
+            channelNamesMap={channelNamesMap}
+            hasPluginTooltips={hasPluginTooltips}
+            imagesMetadata={post?.metadata?.images}
+            postId={post?.id}
+            editedAt={showPostEditedIndicator ? post?.edit_at : undefined}
+        />
+    );
+};
+
+export default PostMarkdown;
