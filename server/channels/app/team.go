@@ -1706,65 +1706,6 @@ func (a *App) RequestGuestEasyLoginEmail(rctx request.CTX, emailAddress string) 
 	return nil
 }
 
-func (a *App) SendGuestEasyLoginEmail(rctx request.CTX, emailAddress string, senderId string, message string) *model.AppError {
-	if !*a.Config().ServiceSettings.EnableEmailInvitations {
-		return model.NewAppError("SendGuestEasyLoginEmail", "api.team.invite_members.disabled.app_error", nil, "", http.StatusNotImplemented)
-	}
-
-	if !*a.Config().GuestAccountsSettings.Enable {
-		return model.NewAppError("SendGuestEasyLoginEmail", "api.team.invite_guests_to_channels.disabled.error", nil, "", http.StatusNotImplemented)
-	}
-
-	if !*a.Config().GuestAccountsSettings.EnableEasyLogin {
-		return model.NewAppError("SendGuestEasyLoginEmail", "api.team.invite_guests_to_channels.easy_login_disabled.error", nil, "", http.StatusForbidden)
-	}
-
-	// Validate that the recipient exists and is a guest user
-	// Do NOT return errors to prevent user enumeration
-	recipientUser, getUserErr := a.GetUserByEmail(emailAddress)
-	if getUserErr != nil {
-		// User doesn't exist - log internally but return success to prevent enumeration
-		rctx.Logger().Debug("Easy login email requested for non-existent user",
-			mlog.String("email", emailAddress),
-			mlog.String("sender_id", senderId))
-		return nil
-	}
-
-	if !recipientUser.IsGuest() {
-		// User exists but is not a guest - log internally but return success to prevent enumeration
-		rctx.Logger().Debug("Easy login email requested for non-guest user",
-			mlog.String("email", emailAddress),
-			mlog.String("user_id", recipientUser.Id),
-			mlog.String("sender_id", senderId))
-		return nil
-	}
-
-	user, appErr := a.GetUser(senderId)
-	if appErr != nil {
-		return appErr
-	}
-
-	nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
-	senderProfileImage, _, err := a.GetProfileImage(user)
-	if err != nil {
-		rctx.Logger().Warn("Unable to get the sender user profile image.", mlog.String("user_id", user.Id), mlog.Err(err))
-	}
-
-	eErr := a.Srv().EmailService.SendGuestEasyLoginEmail(user.GetDisplayName(nameFormat), user.Id, senderProfileImage, emailAddress, a.GetSiteURL(), message, false, user.IsSystemAdmin(), a.UserIsFirstAdmin(rctx, user))
-	if eErr != nil {
-		switch {
-		case errors.Is(eErr, email.NoRateLimiterError):
-			return model.NewAppError("SendGuestEasyLoginEmail", "app.email.no_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s", user.Id), http.StatusInternalServerError)
-		case errors.Is(eErr, email.SetupRateLimiterError):
-			return model.NewAppError("SendGuestEasyLoginEmail", "app.email.setup_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, error=%v", user.Id, eErr), http.StatusInternalServerError)
-		default:
-			return model.NewAppError("SendGuestEasyLoginEmail", "app.email.rate_limit_exceeded.app_error", nil, fmt.Sprintf("user_id=%s, error=%v", user.Id, eErr), http.StatusRequestEntityTooLarge)
-		}
-	}
-
-	return nil
-}
-
 func (a *App) FindTeamByName(name string) bool {
 	if _, err := a.Srv().Store().Team().GetByName(name); err != nil {
 		return false

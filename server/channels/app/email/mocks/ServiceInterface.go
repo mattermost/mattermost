@@ -254,24 +254,6 @@ func (_m *ServiceInterface) SendEmailChangeVerifyEmail(newUserEmail string, loca
 	return r0
 }
 
-// SendGuestEasyLoginEmail provides a mock function with given fields: senderName, senderUserId, senderProfileImage, invite, siteURL, message, errorWhenNotSent, isSystemAdmin, isFirstAdmin
-func (_m *ServiceInterface) SendGuestEasyLoginEmail(senderName string, senderUserId string, senderProfileImage []byte, invite string, siteURL string, message string, errorWhenNotSent bool, isSystemAdmin bool, isFirstAdmin bool) error {
-	ret := _m.Called(senderName, senderUserId, senderProfileImage, invite, siteURL, message, errorWhenNotSent, isSystemAdmin, isFirstAdmin)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SendGuestEasyLoginEmail")
-	}
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, []byte, string, string, string, bool, bool, bool) error); ok {
-		r0 = rf(senderName, senderUserId, senderProfileImage, invite, siteURL, message, errorWhenNotSent, isSystemAdmin, isFirstAdmin)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // SendGuestEasyLoginEmailSelfService provides a mock function with given fields: invite, siteURL
 func (_m *ServiceInterface) SendGuestEasyLoginEmailSelfService(invite string, siteURL string) error {
 	ret := _m.Called(invite, siteURL)
