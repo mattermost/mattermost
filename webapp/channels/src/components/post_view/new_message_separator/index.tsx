@@ -6,9 +6,11 @@ import {FormattedMessage} from 'react-intl';
 
 import * as PostList from 'mattermost-redux/utils/post_list';
 
-import NotificationSeparator from 'components/widgets/separator/notification-separator';
+import PostSeparator from 'components/widgets/post_separator';
 
 import type {NewMessagesSeparatorActionComponent} from 'types/store/plugins';
+
+import './index.scss';
 
 type Props = {
     separatorId: string;
@@ -49,13 +51,16 @@ const NewMessageSeparator = ({
             ref={wrapperRef}
             className='new-separator'
         >
-            <NotificationSeparator>
+            <PostSeparator
+                rootClassName='NotificationSeparator'
+                rootTestId='NotificationSeparator'
+            >
                 <FormattedMessage
                     id='posts_view.newMsg'
                     defaultMessage='New Messages'
                 />
                 {pluginItems}
-            </NotificationSeparator>
+            </PostSeparator>
         </div>
     );
 };
