@@ -10802,5 +10802,81 @@
   {
     "id": "app.submit_interactive_dialog.invalid_response",
     "translation": "Obdržena neplatná odpověď při odeslání interaktivního dialogu."
+  },
+  {
+    "id": "api.channel.patch_update_channel.restricted_dm.app_error",
+    "translation": "Nelze změnit chráněný kanál přímých zpráv."
+  },
+  {
+    "id": "api.command.execute_command.restricted_dm.error",
+    "translation": "Nelze psát do chráněných přímých zpráv"
+  },
+  {
+    "id": "api.content_flagging.error.comment_required",
+    "translation": "Přidejte prosím komentář vysvětlující, proč označujete tuto zprávu."
+  },
+  {
+    "id": "api.content_flagging.error.comment_too_long",
+    "translation": "Důvod označení zprávy nesmí být delší než {{.MaxLength}} znaků."
+  },
+  {
+    "id": "api.content_flagging.error.not_available_on_team",
+    "translation": "Funkce označování obsahu není v tomto týmu povolena."
+  },
+  {
+    "id": "api.content_flagging.error.post_not_in_progress",
+    "translation": "Označený příspěvek musí být ve stavu „čeká“ nebo „přiřazen“, aby mohl být ponechán nebo odstraněn."
+  },
+  {
+    "id": "api.content_flagging.error.reason_invalid",
+    "translation": "Byl uveden neznámý důvod pro označení zprávy."
+  },
+  {
+    "id": "api.content_flagging.error.reason_required",
+    "translation": "Vyberte prosím důvod pro označení této zprávy."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
+    "translation": "Nelze uložit koncept do chráněného kanálu přímých zpráv"
+  },
+  {
+    "id": "api.file.upload_file.get_channel.app_error",
+    "translation": "Nelze nahrát soubor do chráněného kanálu přímé zprávy"
+  },
+  {
+    "id": "api.file.upload_file.restricted_dm.error",
+    "translation": "Nelze nahrát soubor do kanálu přímých zpráv"
+  },
+  {
+    "id": "api.post.create_post.can_not_post_in_restricted_dm.error",
+    "translation": "Nelze odeslat zprávu do chráněného kanálu přímých zpráv."
+  },
+  {
+    "id": "api.post.delete_post.can_not_delete_from_restricted_dm.error",
+    "translation": "Nelze smazat zprávu v chráněném kanálu přímých zpráv."
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "Nelze upravit zprávu v chráněném kanálu přímých zpráv."
+  },
+  {
+    "id": "api.post.update_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "Nelze upravit zprávu v chráněném kanálu přímých zpráv."
+  },
+  {
+    "id": "api.reaction.delete.restricted_dm.error",
+    "translation": "Nelze reagovat na chráněnou přímou zprávu"
+  },
+  {
+    "id": "api.reaction.save.restricted_dm.error",
+    "translation": "Nelze reagovat v chráněných přímých zprávách"
+  },
+  {
+    "id": "app.channel.get_common_teams.app_error",
+    "translation": "Chyba při získávání společných týmů pro kanál"
+  },
+  {
+    "id": "api.encoding_error",
+    "translation": "Došlo k chybě při zpracování JSON pro odpověď API"
   }
 ]
