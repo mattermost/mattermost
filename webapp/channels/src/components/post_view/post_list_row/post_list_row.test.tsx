@@ -13,7 +13,7 @@ import Post from 'components/post';
 import ChannelIntroMessage from 'components/post_view/channel_intro_message/';
 import CombinedUserActivityPost from 'components/post_view/combined_user_activity_post';
 import DateSeparator from 'components/post_view/date_separator';
-import NewMessageSeparator from 'components/post_view/new_message_separator/new_message_separator';
+import NewMessageSeparator from 'components/post_view/new_message_separator';
 
 import {PostListRowListIds} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
