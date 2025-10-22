@@ -5511,12 +5511,20 @@
     "translation": "Unable to delete drafts for user."
   },
   {
+    "id": "app.email.generic_error.app_error",
+    "translation": "An error occurred while sending the email."
+  },
+  {
     "id": "app.email.no_rate_limiter.app_error",
     "translation": "Rate limiter is not set up."
   },
   {
     "id": "app.email.rate_limit_exceeded.app_error",
     "translation": "Invite emails rate limit exceeded. Timer will be reset after {{.ResetAfter}} seconds. Please retry after {{.RetryAfter}} seconds."
+  },
+  {
+    "id": "app.email.save_token.app_error",
+    "translation": "Unable to save authentication token."
   },
   {
     "id": "app.email.setup_rate_limiter.app_error",
