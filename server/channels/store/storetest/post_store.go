@@ -6,6 +6,7 @@ package storetest
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"slices"
 	"sort"
 	"strings"
@@ -5995,9 +5996,7 @@ func testGetPostsForReporting(t *testing.T, rctx request.CTX, ss store.Store, s 
 			result, err := ss.Post().GetPostsForReporting(rctx, options, cursor)
 			require.NoError(t, err)
 
-			for id, post := range result.Posts {
-				allPosts[id] = post
-			}
+			maps.Copy(allPosts, result.Posts)
 
 			if result.NextCursor == nil {
 				break
