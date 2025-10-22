@@ -711,9 +711,9 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const checkUserLoginType = async (loginId: string) => {
         setIsWaiting(true);
         const result = await dispatch(getUserLoginType(loginId));
+        setIsWaiting(false);
 
         if (result.error) {
-            setIsWaiting(false);
             setAlertBanner({
                 mode: 'danger',
                 title: result.error.message || 'Failed to check login type',
@@ -722,8 +722,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             return;
         }
 
-        setIsWaiting(false);
-
         if (result.data === '') {
             setRequiresPassword(true);
 
@@ -731,7 +729,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 passwordInput.current?.focus();
             }, 100);
         } else {
-            setIsWaiting(false);
             setShowPasswordlessSuccess(true);
         }
     };
