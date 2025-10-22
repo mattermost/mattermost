@@ -49,7 +49,6 @@ const MobileViewWatcher = makeAsyncComponent('MobileViewWatcher', lazy(() => imp
 const WindowSizeObserver = makeAsyncComponent('WindowSizeObserver', lazy(() => import('components/window_size_observer/WindowSizeObserver')));
 const ErrorPage = makeAsyncComponent('ErrorPage', lazy(() => import('components/error_page')));
 const Login = makeAsyncComponent('LoginController', lazy(() => import('components/login/login')));
-const EasyLogin = makeAsyncComponent('EasyLogin', lazy(() => import('components/login/easy_login')));
 const AccessProblem = makeAsyncComponent('AccessProblem', lazy(() => import('components/access_problem')));
 const PasswordResetSendLink = makeAsyncComponent('PasswordResedSendLink', lazy(() => import('components/password_reset_send_link')));
 const PasswordResetForm = makeAsyncComponent('PasswordResetForm', lazy(() => import('components/password_reset_form')));
@@ -324,10 +323,6 @@ export default class Root extends React.PureComponent<Props, State> {
                     <Route
                         path={'/error'}
                         component={ErrorPage}
-                    />
-                    <HFRoute
-                        path={'/easy_login'}
-                        component={EasyLogin}
                     />
                     <HFRoute
                         path={'/login'}
