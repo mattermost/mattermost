@@ -69,7 +69,6 @@ func (api *API) InitTeam() {
 	api.BaseRoutes.Team.Handle("/import", api.APISessionRequired(importTeam)).Methods(http.MethodPost)
 	api.BaseRoutes.Team.Handle("/invite/email", api.APISessionRequired(inviteUsersToTeam)).Methods(http.MethodPost)
 	api.BaseRoutes.Team.Handle("/invite-guests/email", api.APISessionRequired(inviteGuestsToChannels)).Methods(http.MethodPost)
-	api.BaseRoutes.Teams.Handle("/easy-login/request", api.APIHandler(requestGuestEasyLogin)).Methods(http.MethodPost)
 	api.BaseRoutes.Teams.Handle("/invites/email", api.APISessionRequired(invalidateAllEmailInvites)).Methods(http.MethodDelete)
 	api.BaseRoutes.Teams.Handle("/invite/{invite_id:[A-Za-z0-9]+}", api.APIHandler(getInviteInfo)).Methods(http.MethodGet)
 
@@ -1670,62 +1669,6 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 		}
 		ReturnStatusOK(w)
 	}
-	auditRec.Success()
-}
-
-func requestGuestEasyLogin(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.App.Channels().License() == nil {
-		c.Err = model.NewAppError("Api4.RequestGuestEasyLogin", "api.team.invite_guests_to_channels.license.error", nil, "", http.StatusNotImplemented)
-		return
-	}
-
-	if !*c.App.Config().GuestAccountsSettings.Enable {
-		c.Err = model.NewAppError("Api4.RequestGuestEasyLogin", "api.team.invite_guests_to_channels.disabled.error", nil, "", http.StatusNotImplemented)
-		return
-	}
-
-	if !*c.App.Config().GuestAccountsSettings.EnableEasyLogin {
-		c.Err = model.NewAppError("Api4.RequestGuestEasyLogin", "api.team.invite_guests_to_channels.easy_login_disabled.error", nil, "", http.StatusForbidden)
-		return
-	}
-
-	guestEnabled := c.App.Channels().License() != nil && *c.App.Channels().License().Features.GuestAccounts
-	if !guestEnabled {
-		c.Err = model.NewAppError("Api4.RequestGuestEasyLogin", "api.team.invite_guests_to_channels.disabled.error", nil, "", http.StatusForbidden)
-		return
-	}
-
-	auditRec := c.MakeAuditRecord("RequestGuestEasyLogin", model.AuditStatusFail)
-	defer c.LogAuditRec(auditRec)
-
-	// Simple request body with just email
-	var requestBody struct {
-		Email string `json:"email"`
-	}
-
-	if err := json.NewDecoder(r.Body).Decode(&requestBody); err != nil {
-		c.Err = model.NewAppError("Api4.RequestGuestEasyLogin", "api.team.easy_login.invalid_body.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		return
-	}
-
-	if requestBody.Email == "" {
-		c.Err = model.NewAppError("Api4.RequestGuestEasyLogin", "api.team.easy_login.no_email.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	// Normalize email to lowercase
-	requestBody.Email = strings.ToLower(requestBody.Email)
-
-	auditRec.AddMeta("email", requestBody.Email)
-
-	// Self-service request - no sender user ID or message
-	appErr := c.App.RequestGuestEasyLoginEmail(c.AppContext, requestBody.Email)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	ReturnStatusOK(w)
 	auditRec.Success()
 }
 

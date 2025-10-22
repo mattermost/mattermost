@@ -2214,18 +2214,32 @@ func getLoginType(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddEventResultState(user)
 
 	auditRec.Success()
-	authService := user.AuthService
-	if !user.IsEasyLoginEnabled() {
-		// for this version we decided to only return easy_login if it's enabled for the user
-		// for other types of auth service we return empty string
-		authService = ""
-	} else {
-		c.Logger.Info("Easy login is enabled for user, returning easy_login auth service")
-		// send the magic link for easy login users
+
+	if user.IsGuest() &&
+		user.IsEasyLoginEnabled() &&
+		c.App.Channels().License() != nil &&
+		*c.App.Channels().License().Features.GuestAccounts &&
+		*c.App.Config().GuestAccountsSettings.EnableEasyLogin {
+
+		eErr := c.App.Srv().EmailService.SendGuestEasyLoginEmailSelfService(user.Email, c.App.GetSiteURL())
+		if eErr != nil {
+			// Log but don't fail or end the request
+			c.Logger.Warn("Failed to send easy login email",
+				mlog.Err(eErr),
+				mlog.String("user_id", user.Id))
+		} else if jErr := json.NewEncoder(w).Encode(model.LoginTypeResponse{
+			AuthService: "easy_login",
+		}); jErr != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+			return
+		} else {
+			c.Logger.Info("Easy login email sent successfully", mlog.String("user_id", user.Id))
+			return
+		}
 	}
 
 	if err := json.NewEncoder(w).Encode(model.LoginTypeResponse{
-		AuthService: authService,
+		AuthService: "",
 	}); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}

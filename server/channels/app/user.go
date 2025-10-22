@@ -211,6 +211,7 @@ func (a *App) AuthenticateUserForEasyLogin(rctx request.CTX, tokenString string)
 		EmailVerified: true,
 		Username:      username,
 		Password:      model.NewId(), // Random password - user won't use it
+		AuthService:   model.UserAuthServiceEasyLogin,
 	}
 
 	guestUser, createErr := a.CreateGuest(rctx, user)
