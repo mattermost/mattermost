@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import UsagePercentBar from 'components/common/usage_percent_bar';
+import ProgressBar from 'design-system/components/primitives/progress_bar';
 
 import './limit_card.scss';
 
@@ -38,7 +38,7 @@ const LimitCard = (props: Props) => {
             {(props.percent > 100) && <i className='icon icon-alert-outline'/>}
             {props.status}
         </div>
-        <UsagePercentBar
+        <ProgressBar
             percent={props.percent}
             barWidth={barWidth}
         />

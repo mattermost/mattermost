@@ -10,5 +10,5 @@ export function TestFooBar() {
         <span className='TestFooBar'>
             {'Foo bar baz'}
         </span>
-    )
+    );
 }
