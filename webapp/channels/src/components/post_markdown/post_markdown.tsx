@@ -132,9 +132,8 @@ const PostMarkdown: React.FC<Props> = (props) => {
         import('mattermost-redux/actions/channels').then(({getChannelByNameAndTeamName}) => {
             // Dispatch fetch for each missing channel
             mentionsToFetch.forEach((channelName) => {
-                dispatch(getChannelByNameAndTeamName(postTeam.name, channelName, true) as any).catch((error: any) => {
+                dispatch(getChannelByNameAndTeamName(postTeam.name, channelName, true) as any).catch(() => {
                     // Silently fail - channel might not exist or be private
-                    console.warn(`Failed to fetch channel ${channelName}:`, error);
                 });
             });
         });
@@ -172,6 +171,20 @@ const PostMarkdown: React.FC<Props> = (props) => {
 
         return Object.keys(enhanced).length > 0 ? enhanced : undefined;
     }, [post, allChannels, postChannelTeamId, allTeams]);
+
+    // Compute markdown options (must be before early returns due to React hooks rules)
+    let mentionHighlight = options?.mentionHighlight;
+    if (post && post.props) {
+        mentionHighlight = !post.props.mentionHighlightDisabled;
+    }
+
+    const markdownOptions = useMemo(() => ({
+        ...options,
+        disableGroupHighlight: post?.props?.disable_group_highlight === true,
+        mentionHighlight,
+        editedAt: post?.edit_at,
+        renderEmoticonsAsEmoji: propsRenderEmoticonsAsEmoji,
+    }), [options, post?.props?.disable_group_highlight, mentionHighlight, post?.edit_at, propsRenderEmoticonsAsEmoji]);
 
     // Apply plugin hooks
     let message = initialMessage;
@@ -223,19 +236,6 @@ const PostMarkdown: React.FC<Props> = (props) => {
 
     // Proxy images if we have an image proxy and the server hasn't already rewritten the post's image URLs
     const proxyImages = !post || !post.message_source || post.message === post.message_source;
-
-    let mentionHighlight = options?.mentionHighlight;
-    if (post && post.props) {
-        mentionHighlight = !post.props.mentionHighlightDisabled;
-    }
-
-    const markdownOptions = useMemo(() => ({
-        ...options,
-        disableGroupHighlight: post?.props?.disable_group_highlight === true,
-        mentionHighlight,
-        editedAt: post?.edit_at,
-        renderEmoticonsAsEmoji: propsRenderEmoticonsAsEmoji,
-    }), [options, post?.props?.disable_group_highlight, mentionHighlight, post?.edit_at, propsRenderEmoticonsAsEmoji]);
 
     const effectiveHighlightKeys = !isEnterpriseOrCloudOrSKUStarterFree && isEnterpriseReady ? highlightKeys : undefined;
 
