@@ -158,9 +158,9 @@
       summary: Starts a job to export the users to a report file.
       description: >
         Starts a job to export the users to a report file.
-        
+
         ##### Permissions
-        
+
         Requires `sysconsole_read_user_management_users`.
       operationId: StartBatchUsersExport
       parameters:
@@ -179,6 +179,189 @@
                 type: array
                 items:
                   $ref: "#/components/schemas/UserReport"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /api/v4/reports/posts:
+    post:
+      tags:
+        - reports
+      summary: Get posts for reporting and compliance purposes using cursor-based pagination
+      description: >
+        Get posts from a specific channel for reporting, compliance, and auditing purposes.
+        This endpoint uses cursor-based pagination to efficiently retrieve large datasets.
+
+        The cursor is based on a compound key of time (create_at or update_at) and post ID,
+        ensuring consistent pagination even when new posts are added during iteration.
+
+        ##### Permissions
+
+        Requires `manage_system` permission (system admin only).
+
+        ##### Features
+
+        - Cursor-based pagination for efficient large dataset retrieval
+        - Support for both create_at and update_at time fields
+        - Ascending or descending sort order
+        - Time range filtering with optional end_time
+        - Include/exclude deleted posts
+        - Exclude channel metadata system posts (header changes, etc.)
+        - Optional metadata enrichment (file counts, reaction counts, etc.)
+      operationId: GetPostsForReporting
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - channel_id
+                - cursor_time
+              properties:
+                channel_id:
+                  type: string
+                  description: The ID of the channel to retrieve posts from
+                cursor_time:
+                  type: integer
+                  format: int64
+                  description: >
+                    The timestamp (in milliseconds) to start pagination from.
+                    For the first request, use 0 for ascending order or a future timestamp for descending.
+                    For subsequent requests, use the cursor_time from the previous response's next_cursor.
+                cursor_id:
+                  type: string
+                  description: >
+                    The post ID for tie-breaking when multiple posts have the same timestamp.
+                    Leave empty for the first request. For subsequent requests, use the cursor_id
+                    from the previous response's next_cursor.
+                  default: ""
+                end_time:
+                  type: integer
+                  format: int64
+                  description: >
+                    Optional upper bound timestamp (in milliseconds). Only posts with timestamps
+                    less than or equal to this value will be returned. Useful for limiting
+                    the time range of the query.
+                time_field:
+                  type: string
+                  enum: [create_at, update_at]
+                  default: create_at
+                  description: >
+                    Which timestamp field to use for sorting and filtering.
+                    Use "create_at" to retrieve posts by creation time, or "update_at" to
+                    retrieve posts by last modification time.
+                sort_direction:
+                  type: string
+                  enum: [asc, desc]
+                  default: asc
+                  description: >
+                    Sort direction for pagination. Use "asc" to retrieve posts from oldest
+                    to newest, or "desc" to retrieve from newest to oldest.
+                per_page:
+                  type: integer
+                  minimum: 1
+                  maximum: 1000
+                  default: 100
+                  description: Number of posts to return per page. Maximum 1000.
+                include_deleted:
+                  type: boolean
+                  default: false
+                  description: >
+                    If true, include posts that have been deleted (DeleteAt > 0).
+                    By default, only non-deleted posts are returned.
+                exclude_channel_metadata_system_posts:
+                  type: boolean
+                  default: false
+                  description: >
+                    If true, exclude system posts related to channel metadata changes
+                    (header changes, display name changes, purpose changes). Useful for
+                    compliance exports that only need user-generated content.
+                include_metadata:
+                  type: boolean
+                  default: false
+                  description: >
+                    If true, enrich posts with additional metadata (file counts, reaction counts,
+                    emoji information, priority, acknowledgements). This adds processing overhead
+                    but provides more complete post information.
+            examples:
+              first_page_ascending:
+                summary: First page, ascending order
+                value:
+                  channel_id: "4xp9fdt77pncbef59f4k1qe83o"
+                  cursor_time: 0
+                  cursor_id: ""
+                  per_page: 100
+              subsequent_page:
+                summary: Subsequent page using cursor
+                value:
+                  channel_id: "4xp9fdt77pncbef59f4k1qe83o"
+                  cursor_time: 1635724800000
+                  cursor_id: "9f8k4qe83o4xp9fdt77pncbef5"
+                  per_page: 100
+              time_range_query:
+                summary: Query with time range
+                value:
+                  channel_id: "4xp9fdt77pncbef59f4k1qe83o"
+                  cursor_time: 1635638400000
+                  cursor_id: ""
+                  end_time: 1635724800000
+                  per_page: 100
+              descending_order:
+                summary: Descending order from recent
+                value:
+                  channel_id: "4xp9fdt77pncbef59f4k1qe83o"
+                  cursor_time: 9999999999999
+                  cursor_id: ""
+                  sort_direction: "desc"
+                  per_page: 100
+      responses:
+        "200":
+          description: Posts retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  posts:
+                    type: object
+                    additionalProperties:
+                      $ref: "#/components/schemas/Post"
+                    description: Map of post IDs to post objects
+                  next_cursor:
+                    type: object
+                    nullable: true
+                    description: >
+                      Cursor for retrieving the next page. If null, there are no more pages.
+                      Pass these values as cursor_time and cursor_id in the next request.
+                    properties:
+                      cursor_time:
+                        type: integer
+                        format: int64
+                        description: Timestamp of the last post in this page
+                      cursor_id:
+                        type: string
+                        description: ID of the last post in this page
+              examples:
+                with_more_pages:
+                  summary: Response with more pages available
+                  value:
+                    posts:
+                      "post_id_1": { "id": "post_id_1", "message": "First post", "create_at": 1635638400000 }
+                      "post_id_2": { "id": "post_id_2", "message": "Second post", "create_at": 1635638500000 }
+                    next_cursor:
+                      cursor_time: 1635638500000
+                      cursor_id: "post_id_2"
+                last_page:
+                  summary: Last page (no more results)
+                  value:
+                    posts:
+                      "post_id_99": { "id": "post_id_99", "message": "Last post", "create_at": 1635724800000 }
+                    next_cursor: null
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":

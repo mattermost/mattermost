@@ -61,6 +61,9 @@ const (
 	PostMessageMaxRunesV1 = 4000
 	PostMessageMaxBytesV2 = 65535                     // Maximum size of a TEXT column in MySQL
 	PostMessageMaxRunesV2 = PostMessageMaxBytesV2 / 4 // Assume a worst-case representation
+
+	// Reporting API limits
+	MaxReportingPerPage = 1000 // Maximum number of posts that can be requested per page in reporting endpoints
 	PostPropsMaxRunes     = 800000
 	PostPropsMaxUserRunes = PostPropsMaxRunes - 40000 // Leave some room for system / pre-save modifications
 
@@ -1122,4 +1125,28 @@ type PreparePostForClientOpts struct {
 	IncludePriority bool
 	RetainContent   bool
 	IncludeDeleted  bool
+}
+
+// ReportPostOptions contains options for querying posts for reporting/compliance purposes
+type ReportPostOptions struct {
+	ChannelId                           string `json:"channel_id"`
+	EndTime                             int64  `json:"end_time,omitempty"`                      // Unix timestamp in milliseconds (optional upper bound)
+	TimeField                           string `json:"time_field,omitempty"`                    // "create_at" or "update_at" (default: "create_at")
+	SortDirection                       string `json:"sort_direction,omitempty"`                // "asc" or "desc" (default: "asc")
+	PerPage                             int    `json:"per_page,omitempty"`                      // Number of posts per page (default: 100, max: MaxReportingPerPage)
+	IncludeDeleted                      bool   `json:"include_deleted,omitempty"`               // Include deleted posts
+	ExcludeChannelMetadataSystemPosts   bool   `json:"exclude_channel_metadata_system_posts,omitempty"` // Exclude system posts for channel metadata changes
+	IncludeMetadata                     bool   `json:"include_metadata,omitempty"`              // Include file info, reactions, etc.
+}
+
+// ReportPostOptionsCursor contains cursor information for pagination
+type ReportPostOptionsCursor struct {
+	CursorTime int64  `json:"cursor_time"` // Timestamp of last post from previous page
+	CursorId   string `json:"cursor_id"`   // ID of last post from previous page (for tie-breaking)
+}
+
+// ReportPostListResponse contains the response for cursor-based post reporting queries
+type ReportPostListResponse struct {
+	Posts      map[string]*Post         `json:"posts"`
+	NextCursor *ReportPostOptionsCursor `json:"next_cursor,omitempty"` // nil if no more pages
 }
