@@ -70,22 +70,30 @@ export function loginById(id: string, password: string): ActionFuncAsync {
     };
 }
 
-export function getUserLoginType(loginId: string): ActionFuncAsync<'passwordless' | 'password'> {
+export function getUserLoginType(loginId: string): ActionFuncAsync<'easy_login' | ''> {
     return async (dispatch) => {
+        // try {
+        //     // NOTE: Replace with actual API call when backend is ready
+        //     // const response = await Client4.getUserLoginType(loginId);
+        //     // return {data: response.login_type};
+
+        //     // Mock response - check if user requires password
+        //     await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate network delay
+
+        //     // For now, check if username is 'rahimrahman' - these users need password
+        //     if (loginId.toLowerCase() === 'rahimrahman') {
+        //         return {data: 'password'};
+        //     }
+
+        //     return {data: 'passwordless'};
+        // } catch (error) {
+        //     dispatch(logError(error as ServerError));
+        //     return {error};
+        // }
+
         try {
-            // NOTE: Replace with actual API call when backend is ready
-            // const response = await Client4.getUserLoginType(loginId);
-            // return {data: response.login_type};
-
-            // Mock response - check if user requires password
-            await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate network delay
-
-            // For now, check if username is 'rahimrahman' - these users need password
-            if (loginId.toLowerCase() === 'rahimrahman') {
-                return {data: 'password'};
-            }
-
-            return {data: 'passwordless'};
+            const response = await Client4.getUserLoginType(loginId);
+            return {data: response.auth_service };
         } catch (error) {
             dispatch(logError(error as ServerError));
             return {error};

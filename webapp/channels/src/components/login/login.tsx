@@ -724,7 +724,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
 
         setIsWaiting(false);
 
-        if (result.data === 'password') {
+        if (result.data === '') {
             // User requires password - silently show password field
             setRequiresPassword(true);
 
@@ -734,11 +734,11 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             }, 100);
         } else {
             // User is passwordless - proceed with passwordless login
-            submitPasswordless(loginId);
+            submitEasyLogin(loginId);
         }
     };
 
-    const submitPasswordless = async (loginId: string) => {
+    const submitEasyLogin = async (loginId: string) => {
         setIsWaiting(true);
         const {error} = await dispatch(loginPasswordless(loginId));
 
