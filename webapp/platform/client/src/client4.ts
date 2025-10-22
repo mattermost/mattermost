@@ -829,6 +829,17 @@ export default class Client4 {
         );
     };
 
+    loginPasswordless = (token: string) => {
+        const body = {
+            token,
+        };
+
+        return this.doFetch<UserProfile>(
+            `${this.getUsersRoute()}/login/sso/easy`,
+            {method: 'post', body: JSON.stringify(body)},
+        );
+    };
+
     logout = async () => {
         const {response} = await this.doFetchWithResponse(
             `${this.getUsersRoute()}/logout`,
