@@ -19,7 +19,7 @@ import Avatar from 'components/widgets/users/avatar';
 import {DeveloperLinks} from 'utils/constants';
 
 import {isSuccess} from 'types/actions';
-import RadioInput from "widgets/radio_setting/radio_input";
+import RadioInput from "webapp/platform/design-system/src/components/primitive/radio_setting/radio_input";
 
 export type Props = {
     user?: UserProfile;

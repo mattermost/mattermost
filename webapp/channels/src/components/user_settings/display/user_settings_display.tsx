@@ -23,7 +23,7 @@ import type {Language} from 'i18n/i18n';
 import Constants from 'utils/constants';
 import {getBrowserTimezone} from 'utils/timezone';
 import {a11yFocus} from 'utils/utils';
-import RadioInput from 'widgets/radio_setting/radio_input';
+import RadioInput from 'webapp/platform/design-system/src/components/primitive/radio_setting/radio_input';
 
 import ManageLanguages from './manage_languages';
 import ManageTimezones from './manage_timezones';

@@ -6,7 +6,7 @@ import React from 'react';
 
 import type {BaseSettingItemProps} from './base_setting_item';
 import BaseSettingItem from './base_setting_item';
-import RadioInput from "widgets/radio_setting/radio_input";
+import RadioInput from "webapp/platform/design-system/src/components/primitive/radio_setting/radio_input";
 
 export type FieldsetRadio = {
     options: Array<{

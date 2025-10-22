@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import React, {type ReactNode} from 'react';
 
-import './radio_input.scss';
+import 'src/components/primitive/radio_setting/radio_input.scss';
 
 type Props = {
     id: string;

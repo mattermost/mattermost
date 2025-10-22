@@ -34,7 +34,7 @@ import SettingDesktopHeader from '../headers/setting_desktop_header';
 import SettingMobileHeader from '../headers/setting_mobile_header';
 
 import type {PropsFromRedux} from './index';
-import RadioInput from "widgets/radio_setting/radio_input";
+import RadioInput from "webapp/platform/design-system/src/components/primitive/radio_setting/radio_input";
 
 const WHITE_SPACE_REGEX = /\s+/g;
 const COMMA_REGEX = /,/g;

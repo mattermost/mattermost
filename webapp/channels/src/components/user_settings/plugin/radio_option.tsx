@@ -5,7 +5,7 @@ import React, {useCallback} from 'react';
 
 import Markdown from 'components/markdown';
 
-import RadioInput from 'widgets/radio_setting/radio_input';
+import RadioInput from 'webapp/platform/design-system/src/components/primitive/radio_setting/radio_input';
 
 import type {PluginConfigurationRadioSettingOption} from 'types/plugins/user_settings';
 

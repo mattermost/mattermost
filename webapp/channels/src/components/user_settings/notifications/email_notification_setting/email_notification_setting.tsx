@@ -16,7 +16,7 @@ import type SettingItemMinComponent from 'components/setting_item_min';
 
 import {Preferences, NotificationLevels} from 'utils/constants';
 import {a11yFocus} from 'utils/utils';
-import RadioInput from "widgets/radio_setting/radio_input";
+import RadioInput from "webapp/platform/design-system/src/components/primitive/radio_setting/radio_input";
 
 const SECONDS_PER_MINUTE = 60;
 

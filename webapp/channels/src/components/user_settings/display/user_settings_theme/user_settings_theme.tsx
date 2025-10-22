@@ -19,7 +19,7 @@ import type {ModalData} from 'types/actions';
 
 import CustomThemeChooser from './custom_theme_chooser/custom_theme_chooser';
 import PremadeThemeChooser from './premade_theme_chooser';
-import RadioInput from "widgets/radio_setting/radio_input";
+import RadioInput from "webapp/platform/design-system/src/components/primitive/radio_setting/radio_input";
 
 type Props = {
     currentTeamId: string;

@@ -16,7 +16,7 @@ import BackstageHeader from 'components/backstage/components/backstage_header';
 import FormError from 'components/form_error';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import SpinnerButton from 'components/spinner_button';
-import RadioInput from "widgets/radio_setting/radio_input";
+import RadioInput from "webapp/platform/design-system/src/components/primitive/radio_setting/radio_input";
 
 type Props = {
 

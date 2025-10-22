@@ -11,7 +11,7 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {Constants} from 'utils/constants';
-import RadioInput from "widgets/radio_setting/radio_input";
+import RadioInput from "webapp/platform/design-system/src/components/primitive/radio_setting/radio_input";
 
 const INT32_MAX = 2147483647;
 

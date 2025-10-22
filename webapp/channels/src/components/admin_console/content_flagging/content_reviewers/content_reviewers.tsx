@@ -15,7 +15,7 @@ import {
     SectionHeader,
 } from 'components/admin_console/system_properties/controls';
 
-import RadioInput from 'widgets/radio_setting/radio_input';
+import RadioInput from 'webapp/platform/design-system/src/components/primitive/radio_setting/radio_input';
 
 import {UserSelector} from '../../content_flagging/user_multiselector/user_multiselector';
 import type {SystemConsoleCustomSettingChangeHandler} from '../../schema_admin_settings';

@@ -10,7 +10,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import {Preferences} from 'mattermost-redux/constants';
 
 import SettingItemMax from 'components/setting_item_max';
-import RadioInput from "widgets/radio_setting/radio_input";
+import RadioInput from "webapp/platform/design-system/src/components/primitive/radio_setting/radio_input";
 
 export type Actions = {
     savePreferences: (userId: string, preferences: PreferenceType[]) => void;

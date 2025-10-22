@@ -15,7 +15,7 @@ import type SettingItemMinComponent from 'components/setting_item_min';
 
 import {AdvancedSections} from 'utils/constants';
 import {a11yFocus} from 'utils/utils';
-import RadioInput from 'widgets/radio_setting/radio_input';
+import RadioInput from 'webapp/platform/design-system/src/components/primitive/radio_setting/radio_input';
 
 export type OwnProps = {
     adminMode?: boolean;

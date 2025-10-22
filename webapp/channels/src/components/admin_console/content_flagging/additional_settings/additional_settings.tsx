@@ -5,13 +5,12 @@ import React, {type ChangeEvent, useCallback, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import type {OnChangeValue} from 'react-select';
 import CreatableReactSelect from 'react-select/creatable';
+import RadioInput from 'webapp/platform/design-system/src/components/primitive/radio_setting/radio_input';
 
 import type {ContentFlaggingAdditionalSettings} from '@mattermost/types/config';
 
 import type {SystemConsoleCustomSettingChangeHandler} from 'components/admin_console/schema_admin_settings';
 import {CreatableReactSelectInput} from 'components/user_settings/notifications/user_settings_notifications';
-
-import RadioInput from 'widgets/radio_setting/radio_input';
 
 import {ReasonOption} from './reason_option';
 

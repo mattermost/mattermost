@@ -17,7 +17,7 @@ import {Client4} from 'mattermost-redux/client';
 import ExternalLink from 'components/external_link';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
-import RadioInput from 'widgets/radio_setting/radio_input';
+import RadioInput from 'webapp/platform/design-system/src/components/primitive/radio_setting/radio_input';
 
 import LogList from './log_list';
 import PlainLogList from './plain_log_list';

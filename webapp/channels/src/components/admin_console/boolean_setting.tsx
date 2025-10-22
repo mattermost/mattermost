@@ -6,7 +6,7 @@ import {FormattedMessage} from 'react-intl';
 import styled from 'styled-components';
 
 import * as Utils from 'utils/utils';
-import RadioInput from 'widgets/radio_setting/radio_input';
+import RadioInput from 'webapp/platform/design-system/src/components/primitive/radio_setting/radio_input';
 
 import SettingSet from './setting_set';
 
