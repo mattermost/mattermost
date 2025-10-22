@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-.passwordless-success {
+.easy-login-card {
     margin-top: 8px;
     text-align: center;
 
@@ -26,7 +26,7 @@
         line-height: 20px;
     }
 
-    .passwordless-success-expiry {
+    .easy-login-card-expiry {
         margin-top: 2px;
         color: rgba(var(--center-channel-color-rgb), 0.56);
         font-size: 12px;

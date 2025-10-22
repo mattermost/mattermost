@@ -4,13 +4,13 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
-import './login_passwordless.scss';
+import './easy_login_card.scss';
 
-const LoginPasswordless = () => {
+const EasyLoginCard = () => {
     const {formatMessage} = useIntl();
 
     return (
-        <div className='passwordless-success'>
+        <div className='easy-login-card'>
             <svg
                 width='200'
                 height='200'
@@ -73,7 +73,7 @@ const LoginPasswordless = () => {
                     defaultMessage: 'Please check your email for the link to login.',
                 })}
             </p>
-            <p className='passwordless-success-expiry'>
+            <p className='easy-login-card-expiry'>
                 {formatMessage({
                     id: 'easy_login.success.expiry',
                     defaultMessage: 'Your link will expire in 5 minutes.',
@@ -83,5 +83,5 @@ const LoginPasswordless = () => {
     );
 };
 
-export default LoginPasswordless;
+export default EasyLoginCard;
 

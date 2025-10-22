@@ -57,8 +57,8 @@ import {setCSRFFromCookie} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
+import EasyLoginCard from './easy_login_card';
 import LoginMfa from './login_mfa';
-import LoginPasswordless from './login_passwordless';
 
 import './login.scss';
 
@@ -940,7 +940,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                             className='login-body-card-content'
                         >
                             {easyLoginSuccessful ? (
-                                <LoginPasswordless/>
+                                <EasyLoginCard/>
                             ) : (
                                 <>
                                     <p className='login-body-card-title'>
