@@ -13,7 +13,7 @@ const TestIcon = ({testId = 'test-icon'}: {testId?: string}) => (
     <span data-testid={testId}>🔥</span>
 );
 
-describe('components/primitives/Button', () => {
+describe('components/primitives/button', () => {
     const baseProps: ButtonProps = {
         children: 'Test Button',
     };
