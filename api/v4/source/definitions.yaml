@@ -4429,6 +4429,49 @@ components:
       required:
         - Enabled
         - ReviewerIds
+    ProfileGenerateRequest:
+      type: object
+      properties:
+        post_limit:
+          type: integer
+          description: Maximum number of posts to analyze for profile generation
+          default: 1000
+          example: 1000
+        time_range_months:
+          type: integer
+          description: Number of months to look back for posts
+          default: 6
+          example: 6
+    AIGeneratedProfile:
+      type: object
+      properties:
+        user_id:
+          type: string
+          description: The ID of the user this profile belongs to
+          example: "8xj3k4r7n7y8zqcmxdp3gj8zyw"
+        writing_style_report:
+          type: string
+          description: Detailed analysis of the user's writing style, comprehensive enough for an LLM to mimic their communication patterns. Includes tone, formality, vocabulary, phrasing patterns, sentence structure, and technical terminology usage.
+        topics:
+          type: array
+          items:
+            type: string
+          description: Work-related topics the user is interested in or involved with
+        generated_at:
+          type: integer
+          format: int64
+          description: Timestamp when the profile was generated (milliseconds since epoch)
+          example: 1640995200000
+      required:
+        - user_id
+        - writing_style_report
+        - topics
+        - generated_at
+      example:
+        user_id: "8xj3k4r7n7y8zqcmxdp3gj8zyw"
+        writing_style_report: "The user communicates in a direct, professional manner with a preference for technical precision. They favor concise explanations while maintaining clarity, often using industry-standard terminology. Their tone is collaborative and solution-oriented, with a tendency to provide concrete examples. Sentence structure is typically straightforward with occasional use of technical jargon appropriate for backend development contexts."
+        topics: ["Backend Development", "Kubernetes", "API Design", "Go Programming"]
+        generated_at: 1640995200000
 externalDocs:
   description: Find out more about Mattermost
   url: 'https://about.mattermost.com'

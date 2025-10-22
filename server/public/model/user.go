@@ -1109,3 +1109,33 @@ type UserPostStats struct {
 	DaysActive   *int   `json:"days_active,omitempty"`
 	TotalPosts   *int   `json:"total_posts,omitempty"`
 }
+
+// AIGeneratedProfile contains AI-generated analysis of a user's profile
+// based on their writing style and topics of interest.
+// This is stored as JSON in User.Props.
+type AIGeneratedProfile struct {
+	// WritingStyleReport contains a detailed analysis of the user's writing style for LLM mimicry
+	WritingStyleReport string `json:"writing_style_report"`
+	// Topics contains work-related topics the user is interested in or involved with
+	Topics      []string `json:"topics"`
+	GeneratedAt int64    `json:"generated_at"` // milliseconds since epoch
+}
+
+// ToJSON serializes the AIGeneratedProfile to a JSON string.
+func (p *AIGeneratedProfile) ToJSON() (string, error) {
+	data, err := json.Marshal(p)
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
+}
+
+// AIGeneratedProfileFromJSON deserializes a JSON string into an AIGeneratedProfile.
+func AIGeneratedProfileFromJSON(data string) (*AIGeneratedProfile, error) {
+	var profile AIGeneratedProfile
+	err := json.Unmarshal([]byte(data), &profile)
+	if err != nil {
+		return nil, err
+	}
+	return &profile, nil
+}

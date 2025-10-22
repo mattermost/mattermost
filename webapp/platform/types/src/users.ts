@@ -154,3 +154,9 @@ export type GetFilteredUsersStatsOpts = {
 export type AuthChangeResponse = {
     follow_link: string;
 };
+
+export type AIGeneratedProfile = {
+    writing_style_report: string;
+    topics: string[];
+    generated_at: number;
+};

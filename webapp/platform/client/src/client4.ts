@@ -151,6 +151,7 @@ import type {
     UserStatus,
     GetFilteredUsersStatsOpts,
     UserCustomStatus,
+    AIGeneratedProfile,
 } from '@mattermost/types/users';
 import type {DeepPartial, PartialExcept, RelationOneToOne} from '@mattermost/types/utilities';
 
@@ -955,6 +956,20 @@ export default class Client4 {
     getUser = (userId: string) => {
         return this.doFetch<UserProfile>(
             `${this.getUserRoute(userId)}`,
+            {method: 'get'},
+        );
+    };
+
+    generateUserProfile = (userId: string, options?: {postLimit?: number; timeRangeMonths?: number}) => {
+        return this.doFetch<AIGeneratedProfile>(
+            `${this.getUserRoute(userId)}/profile/generate`,
+            {method: 'post', body: options ? JSON.stringify(options) : undefined},
+        );
+    };
+
+    getUserProfile = (userId: string) => {
+        return this.doFetch<AIGeneratedProfile>(
+            `${this.getUserRoute(userId)}/profile`,
             {method: 'get'},
         );
     };

@@ -6591,6 +6591,22 @@ func (s *TimerLayerPostStore) GetPostsCreatedAt(channelID string, timestamp int6
 	return result, err
 }
 
+func (s *TimerLayerPostStore) GetPostsForProfileGeneration(userID string, afterTimestamp int64, limit int) ([]*model.Post, error) {
+	start := time.Now()
+
+	result, err := s.PostStore.GetPostsForProfileGeneration(userID, afterTimestamp, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.GetPostsForProfileGeneration", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerPostStore) GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	start := time.Now()
 

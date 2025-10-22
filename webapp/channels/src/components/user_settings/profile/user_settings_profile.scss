@@ -1,0 +1,153 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.profile-empty-state {
+    display: flex;
+    padding: 24px;
+    margin: 24px 0;
+    justify-content: center;
+
+    &__content {
+        text-align: center;
+        max-width: 600px;
+    }
+
+    &__text {
+        margin-bottom: 16px;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+
+    .btn {
+        min-width: 150px;
+    }
+}
+
+.profile-loading {
+    display: flex;
+    padding: 24px;
+    margin: 24px 0;
+    justify-content: center;
+}
+
+.profile-timestamp {
+    font-size: 12px;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    margin-bottom: 16px;
+}
+
+.profile-section {
+    margin-bottom: 24px;
+    padding: 16px;
+    background: rgba(var(--center-channel-color-rgb), 0.04);
+    border-radius: 4px;
+
+    &__title {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 12px;
+        color: var(--center-channel-color);
+    }
+
+    &__subtitle {
+        font-size: 14px;
+        font-weight: 600;
+        margin-top: 12px;
+        margin-bottom: 8px;
+        color: rgba(var(--center-channel-color-rgb), 0.88);
+    }
+
+    &__summary {
+        margin-bottom: 12px;
+        line-height: 1.5;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+
+    &__content {
+        margin-bottom: 12px;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+
+        p {
+            margin-bottom: 8px;
+            line-height: 1.5;
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+        }
+    }
+}
+
+.writing-style-report {
+    line-height: 1.6;
+    padding: 12px;
+    background: rgba(var(--center-channel-color-rgb), 0.02);
+    border-radius: 4px;
+    border-left: 3px solid rgba(var(--button-bg-rgb), 0.4);
+    margin-bottom: 0 !important;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.profile-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.profile-badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    display: inline-block;
+
+    &.badge-primary {
+        background-color: rgba(var(--button-bg-rgb), 0.12);
+        color: var(--button-bg);
+    }
+
+    &.badge-info {
+        background-color: rgba(28, 88, 217, 0.12);
+        color: rgb(28, 88, 217);
+    }
+
+    &.badge-success {
+        background-color: rgba(51, 176, 87, 0.12);
+        color: rgb(51, 176, 87);
+    }
+}
+
+.profile-actions {
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+
+    .btn {
+        min-width: 150px;
+    }
+}
+
+.alert {
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    &.alert-danger {
+        background-color: rgba(210, 75, 78, 0.12);
+        color: rgb(210, 75, 78);
+        border: 1px solid rgba(210, 75, 78, 0.24);
+    }
+
+    &.alert-success {
+        background-color: rgba(51, 176, 87, 0.12);
+        color: rgb(51, 176, 87);
+        border: 1px solid rgba(51, 176, 87, 0.24);
+    }
+
+    i.icon {
+        font-size: 18px;
+    }
+}

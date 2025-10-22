@@ -18,6 +18,7 @@ import (
 
 	"golang.org/x/sync/errgroup"
 
+	agentclient "github.com/mattermost/mattermost-plugin-ai/public/client"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
@@ -3027,4 +3028,193 @@ func (a *App) ResetPasswordFailedAttempts(rctx request.CTX, user *model.User) *m
 	}
 
 	return nil
+}
+
+// GenerateUserProfile generates an AI-powered profile for a user based on their posts
+func (a *App) GenerateUserProfile(c request.CTX, userID string, postLimit int, timeRangeMonths int) (*model.AIGeneratedProfile, *model.AppError) {
+	// Set defaults if not specified
+	if postLimit <= 0 {
+		postLimit = 1000
+	}
+	if timeRangeMonths <= 0 {
+		timeRangeMonths = 6
+	}
+
+	// Fetch user to verify exists
+	user, err := a.GetUser(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Calculate time threshold: now - (timeRangeMonths * 30 days)
+	now := model.GetMillis()
+	timeThreshold := now - (int64(timeRangeMonths) * 30 * 24 * 60 * 60 * 1000)
+
+	c.Logger().Debug("Fetching user posts for AI profile generation",
+		mlog.String("user_id", userID),
+		mlog.Int("post_limit", postLimit),
+		mlog.Int("time_range_months", timeRangeMonths),
+	)
+
+	// Fetch posts using optimized store method
+	posts, storeErr := a.Srv().Store().Post().GetPostsForProfileGeneration(userID, timeThreshold, postLimit)
+	if storeErr != nil {
+		c.Logger().Error("Failed to fetch user posts",
+			mlog.Err(storeErr),
+			mlog.String("user_id", userID),
+		)
+		return nil, model.NewAppError("GenerateUserProfile", "app.user.generate_profile.fetch_posts_failed", nil, storeErr.Error(), http.StatusInternalServerError)
+	}
+
+	if len(posts) == 0 {
+		return nil, model.NewAppError("GenerateUserProfile", "app.user.generate_profile.no_posts", nil, "user has no posts in the specified time range", http.StatusBadRequest)
+	}
+
+	c.Logger().Debug("Found user posts for profile generation",
+		mlog.String("user_id", userID),
+		mlog.Int("post_count", len(posts)),
+	)
+
+	// Prepare posts for AI analysis
+	// Extract message content and format into a string
+	var postsContent strings.Builder
+	const maxContentSize = 50000 // 50k characters limit to avoid token limits
+	postCount := 0
+
+	for _, post := range posts {
+		if post.Message == "" {
+			continue
+		}
+
+		// Check if adding this post would exceed the limit
+		if postsContent.Len()+len(post.Message)+2 > maxContentSize {
+			break
+		}
+
+		postsContent.WriteString(post.Message)
+		postsContent.WriteString("\n\n")
+		postCount++
+	}
+
+	if postsContent.Len() == 0 {
+		return nil, model.NewAppError("GenerateUserProfile", "app.user.generate_profile.no_content", nil, "user posts have no content", http.StatusBadRequest)
+	}
+
+	c.Logger().Debug("Prepared posts content for AI analysis",
+		mlog.String("user_id", userID),
+		mlog.Int("posts_included", postCount),
+		mlog.Int("content_length", postsContent.Len()),
+	)
+
+	// Build AI prompt
+	systemPrompt := `You are an AI assistant that analyzes a user's writing style and work-related interests based on their messages.
+
+Your task:
+1. Analyze the writing style and create a DETAILED paragraph that captures their communication patterns comprehensively. This report will be used by another LLM to mimic their writing style, so include:
+   - Tone and formality level
+   - Vocabulary preferences and common phrases
+   - Sentence structure and length patterns
+   - Technical terminology usage
+   - How they explain concepts, give feedback, and communicate
+   - Formatting preferences (lists, emphasis, structure)
+   - Any unique characteristics or quirks
+
+2. Identify work-related topics they are interested in or involved with. Return as a simple array of topic names.
+
+Return ONLY valid JSON in this exact format (no additional text) do not include any explanations outside the JSON or any formatting code blocks:
+{
+  "writing_style_report": "detailed paragraph here...",
+  "topics": ["Topic 1", "Topic 2", "Topic 3"]
+}`
+
+	userPrompt := fmt.Sprintf("Analyze the following user posts and generate a profile:\n\n%s", postsContent.String())
+
+	// Create AI client
+	sessionUserID := ""
+	if session := c.Session(); session != nil {
+		sessionUserID = session.UserId
+	}
+	client := a.getAIClient(sessionUserID)
+
+	// Prepare completion request
+	completionRequest := agentclient.CompletionRequest{
+		Posts: []agentclient.Post{
+			{
+				Role:    "system",
+				Message: systemPrompt,
+			},
+			{
+				Role:    "user",
+				Message: userPrompt,
+			},
+		},
+	}
+
+	// Call the AI plugin
+	c.Logger().Debug("Calling AI agent for profile generation",
+		mlog.String("user_id", userID),
+	)
+
+	completion, aiErr := client.AgentCompletion("", completionRequest)
+	if aiErr != nil {
+		c.Logger().Error("AI agent call failed",
+			mlog.Err(aiErr),
+			mlog.String("user_id", userID),
+		)
+		return nil, model.NewAppError("GenerateUserProfile", "app.user.generate_profile.ai_call_failed", nil, aiErr.Error(), http.StatusInternalServerError)
+	}
+
+	// Parse JSON response into AIGeneratedProfile
+	var aiResponse struct {
+		WritingStyleReport string   `json:"writing_style_report"`
+		Topics             []string `json:"topics"`
+	}
+
+	if parseErr := json.Unmarshal([]byte(completion), &aiResponse); parseErr != nil {
+		c.Logger().Error("Failed to parse AI response",
+			mlog.Err(parseErr),
+			mlog.String("response", completion),
+		)
+		return nil, model.NewAppError("GenerateUserProfile", "app.user.generate_profile.parse_failed", nil, parseErr.Error(), http.StatusInternalServerError)
+	}
+
+	// Validate response
+	if aiResponse.WritingStyleReport == "" {
+		return nil, model.NewAppError("GenerateUserProfile", "app.user.generate_profile.invalid_response", nil, "writing_style_report is required", http.StatusInternalServerError)
+	}
+	if len(aiResponse.Topics) == 0 {
+		return nil, model.NewAppError("GenerateUserProfile", "app.user.generate_profile.invalid_response", nil, "topics array is required", http.StatusInternalServerError)
+	}
+
+	// Create profile with generated timestamp
+	profile := &model.AIGeneratedProfile{
+		WritingStyleReport: aiResponse.WritingStyleReport,
+		Topics:             aiResponse.Topics,
+		GeneratedAt:        model.GetMillis(),
+	}
+
+	// Store profile in user props
+	profileJSON, jsonErr := profile.ToJSON()
+	if jsonErr != nil {
+		return nil, model.NewAppError("GenerateUserProfile", "app.user.generate_profile.json_failed", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+
+	user.Props[model.UserPropsKeyAIGeneratedProfile] = profileJSON
+
+	// Update user to save the profile
+	_, updateErr := a.UpdateUser(c, user, false)
+	if updateErr != nil {
+		c.Logger().Error("Failed to update user with generated profile",
+			mlog.Err(updateErr),
+			mlog.String("user_id", userID),
+		)
+		return nil, updateErr
+	}
+
+	c.Logger().Info("Successfully generated AI profile for user",
+		mlog.String("user_id", userID),
+		mlog.Int("posts_analyzed", postCount),
+	)
+
+	return profile, nil
 }
