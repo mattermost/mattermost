@@ -8,7 +8,6 @@ import type {ButtonHTMLAttributes, ReactNode} from 'react';
 // Re-enable when WithTooltip is available in platform design system
 // import WithTooltip from 'components/with_tooltip';
 
-
 import './icon_button.scss';
 
 export type IconButtonSize = 'xs' | 'sm' | 'md' | 'lg';
@@ -99,6 +98,7 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         }, [icon, size]);
 
         return (
+
             // Re-enable WithTooltip when available in platform design system
             // <WithTooltip title={title}>
             <button
@@ -141,7 +141,8 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
                     )}
                 </span>
             </button>
-            // </WithTooltip>
+
+        // </WithTooltip>
         );
     },
 );
