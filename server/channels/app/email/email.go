@@ -656,15 +656,15 @@ func (es *Service) SendGuestEasyLoginEmailSelfService(
 	)
 
 	if saveErr := es.store.Token().Save(token); saveErr != nil {
-		mlog.Error("Failed to send easy login email successfully ", mlog.Err(saveErr))
-		return nil
+		mlog.Error("Failed to save easy login token", mlog.Err(saveErr))
+		return fmt.Errorf("%w: %v", SaveTokenError, saveErr)
 	}
 
 	// Easy login uses SSO-style authentication - clicking the link logs them in directly
 	data.Props["ButtonURL"] = fmt.Sprintf("%s/login/sso/easy?t=%s", siteURL, url.QueryEscape(token.Token))
 
 	if !*es.config().EmailSettings.SendEmailNotifications {
-		mlog.Info("sending easy login link ", mlog.String("to", invite), mlog.String("link", data.Props["ButtonURL"].(string)))
+		mlog.Info("sending easy login link", mlog.String("to", invite))
 	}
 
 	body, err := es.templatesContainer.RenderToString("invite_body", data)

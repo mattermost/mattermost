@@ -1698,8 +1698,12 @@ func (a *App) RequestGuestEasyLoginEmail(rctx request.CTX, emailAddress string) 
 			return model.NewAppError("RequestGuestEasyLoginEmail", "app.email.no_rate_limiter.app_error", nil, "", http.StatusInternalServerError)
 		case errors.Is(eErr, email.SetupRateLimiterError):
 			return model.NewAppError("RequestGuestEasyLoginEmail", "app.email.setup_rate_limiter.app_error", nil, "", http.StatusInternalServerError)
-		default:
+		case errors.Is(eErr, email.SaveTokenError):
+			return model.NewAppError("RequestGuestEasyLoginEmail", "app.email.save_token.app_error", nil, "", http.StatusInternalServerError)
+		case errors.Is(eErr, email.RateLimitExceededError):
 			return model.NewAppError("RequestGuestEasyLoginEmail", "app.email.rate_limit_exceeded.app_error", nil, "", http.StatusRequestEntityTooLarge)
+		default:
+			return model.NewAppError("RequestGuestEasyLoginEmail", "app.email.generic_error.app_error", nil, "", http.StatusInternalServerError)
 		}
 	}
 
