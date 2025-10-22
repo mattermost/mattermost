@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-
 import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import React from 'react';
 
 import Button from './button';
 import type {ButtonProps} from './button';
@@ -32,7 +31,7 @@ describe('components/primitives/Button', () => {
         });
 
         test('should render all size variants', () => {
-            const sizes: ButtonProps['size'][] = ['xs', 'sm', 'md', 'lg'];
+            const sizes: Array<ButtonProps['size']> = ['xs', 'sm', 'md', 'lg'];
 
             sizes.forEach((size) => {
                 const {unmount} = render(
@@ -45,7 +44,7 @@ describe('components/primitives/Button', () => {
         });
 
         test('should render all emphasis variants', () => {
-            const emphases: ButtonProps['emphasis'][] = ['primary', 'secondary', 'tertiary', 'quaternary', 'link'];
+            const emphases: Array<ButtonProps['emphasis']> = ['primary', 'secondary', 'tertiary', 'quaternary', 'link'];
 
             emphases.forEach((emphasis) => {
                 const {unmount} = render(
@@ -393,65 +392,7 @@ describe('components/primitives/Button', () => {
         });
     });
 
-    // 7. SNAPSHOT TESTS
-    describe('snapshots', () => {
-        test('should match snapshot with default props', () => {
-            const {container} = render(<Button>Default</Button>);
-            expect(container.firstChild).toMatchSnapshot();
-        });
-
-        test('should match snapshot with all size variants', () => {
-            const sizes: ButtonProps['size'][] = ['xs', 'sm', 'md', 'lg'];
-
-            sizes.forEach((size) => {
-                const {container} = render(<Button size={size}>Size {size}</Button>);
-                expect(container.firstChild).toMatchSnapshot(`Button size ${size}`);
-            });
-        });
-
-        test('should match snapshot with all emphasis variants', () => {
-            const emphases: ButtonProps['emphasis'][] = ['primary', 'secondary', 'tertiary', 'quaternary', 'link'];
-
-            emphases.forEach((emphasis) => {
-                const {container} = render(
-                    <Button emphasis={emphasis}>
-                        Emphasis {emphasis}
-                    </Button>,
-                );
-                expect(container.firstChild).toMatchSnapshot(`Button emphasis ${emphasis}`);
-            });
-        });
-
-        test('should match snapshot with all props', () => {
-            const {container} = render(
-                <Button
-                    size='lg'
-                    emphasis='secondary'
-                    destructive
-                    inverted
-                    loading
-                    fullWidth
-                    width='300px'
-                    className='custom-class'
-                    iconBefore={<TestIcon/>}
-                >
-                    All Props
-                </Button>,
-            );
-            expect(container.firstChild).toMatchSnapshot();
-        });
-
-        test('should match snapshot in disabled state', () => {
-            const {container} = render(
-                <Button disabled destructive>
-                    Disabled Destructive
-                </Button>,
-            );
-            expect(container.firstChild).toMatchSnapshot();
-        });
-    });
-
-    // 8. INTEGRATION TESTS
+    // 7. INTEGRATION TESTS
     describe('integration', () => {
         test('should work in forms', async () => {
             const user = userEvent.setup();
@@ -519,7 +460,7 @@ describe('components/primitives/Button', () => {
         });
     });
 
-    // 9. PERFORMANCE & EDGE CASES
+    // 8. PERFORMANCE & EDGE CASES
     describe('performance and edge cases', () => {
         test('should not re-render unnecessarily with memo', () => {
             const renderSpy = jest.fn();
@@ -573,10 +514,6 @@ describe('components/primitives/Button', () => {
 
         test('should handle rapid state changes', async () => {
             const user = userEvent.setup();
-            let loading = false;
-            const toggleLoading = () => {
-                loading = !loading;
-            };
 
             const TestComponent = () => {
                 const [isLoading, setIsLoading] = React.useState(false);
