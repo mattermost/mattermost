@@ -23,7 +23,7 @@ import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {addUserToTeamFromInvite} from 'actions/team_actions';
-import {login, loginPasswordless, getUserLoginType} from 'actions/views/login';
+import {login, getUserLoginType} from 'actions/views/login';
 import LocalStorageStore from 'stores/local_storage_store';
 
 import AlertBanner from 'components/alert_banner';
@@ -127,7 +127,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const [isMobileView, setIsMobileView] = useState(false);
     const [showPasswordlessSuccess, setShowPasswordlessSuccess] = useState(false);
     const [requiresPassword, setRequiresPassword] = useState(false);
-
 
     const enableCustomBrand = EnableCustomBrand === 'true';
     const enableEasyLogin = EnableEasyLogin === 'true'; // Hardcoded for now
