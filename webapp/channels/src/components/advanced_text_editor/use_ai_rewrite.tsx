@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
 
 import {
@@ -35,7 +35,7 @@ const useAIRewrite = (
     const [isProcessing, setIsProcessing] = useState(false);
     const [isMenuOpen, setIsMenuOpenState] = useState(false);
     const [prompt, setPrompt] = useState('');
-    const [originalMessage, setOriginalMessage] = useState('');
+    const [textareaWrapper, setTextareaWrapper] = useState<Element | null>(null);
 
     const setIsMenuOpen = useCallback((open: boolean) => {
         setIsMenuOpenState(open);
@@ -43,6 +43,29 @@ const useAIRewrite = (
             setPrompt('');
         }
     }, [setIsMenuOpenState]);
+
+    // Find the textarea wrapper element for positioning the overlay
+    useEffect(() => {
+        // Try multiple selectors to find the textarea container
+        const wrapper = document.querySelector('.textarea-wrapper') ||
+                       document.querySelector('.custom-textarea') ||
+                       document.querySelector('textarea')?.parentElement;
+        setTextareaWrapper(wrapper || null);
+
+        // If not found immediately, try again after a short delay
+        if (!wrapper) {
+            const timeout = setTimeout(() => {
+                const retryWrapper = document.querySelector('.textarea-wrapper') ||
+                                   document.querySelector('.custom-textarea') ||
+                                   document.querySelector('textarea')?.parentElement;
+                setTextareaWrapper(retryWrapper || null);
+            }, 100);
+
+            return () => clearTimeout(timeout);
+        }
+
+        return undefined;
+    }, []);
 
     const handleAIRewrite = useCallback(async (action?: string, prompt?: string) => {
         if (!draft.message.trim()) {
@@ -52,8 +75,6 @@ const useAIRewrite = (
         setIsProcessing(true);
         try {
             const response = await Client4.getAIRewrittenMessage(draft.message, action, prompt);
-
-            setOriginalMessage(draft.message);
 
             const updatedDraft = {
                 ...draft,
@@ -80,6 +101,27 @@ const useAIRewrite = (
             setIsMenuOpen(false);
         }
     }, [handleAIRewrite, prompt, setIsMenuOpen]);
+
+    // Automatically render overlay when processing
+    useEffect(() => {
+        if (!isProcessing || !textareaWrapper) {
+            return undefined;
+        }
+
+        // Create the overlay element
+        const overlay = document.createElement('div');
+        overlay.className = 'ai-rewrite-overlay';
+
+        // Add to textarea wrapper
+        textareaWrapper.appendChild(overlay);
+
+        // Cleanup function to remove overlay
+        return () => {
+            if (textareaWrapper.contains(overlay)) {
+                textareaWrapper.removeChild(overlay);
+            }
+        };
+    }, [isProcessing, textareaWrapper]);
 
     const additionalControl = useMemo(() => {
         const isDisabled = shouldShowPreview || !draft.message.trim() || isProcessing;
