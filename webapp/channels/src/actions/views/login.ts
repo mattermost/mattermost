@@ -72,25 +72,6 @@ export function loginById(id: string, password: string): ActionFuncAsync {
 
 export function getUserLoginType(loginId: string): ActionFuncAsync<'easy_login' | ''> {
     return async (dispatch) => {
-        // try {
-        //     // NOTE: Replace with actual API call when backend is ready
-        //     // const response = await Client4.getUserLoginType(loginId);
-        //     // return {data: response.login_type};
-
-        //     // Mock response - check if user requires password
-        //     await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate network delay
-
-        //     // For now, check if username is 'rahimrahman' - these users need password
-        //     if (loginId.toLowerCase() === 'rahimrahman') {
-        //         return {data: ''};
-        //     }
-
-        //     return {data: 'easy_login'};
-        // } catch (error) {
-        //     dispatch(logError(error as ServerError));
-        //     return {error};
-        // }
-
         try {
             const response = await Client4.getUserLoginType(loginId);
             return {data: response.auth_service ?? ''};
@@ -98,40 +79,5 @@ export function getUserLoginType(loginId: string): ActionFuncAsync<'easy_login' 
             dispatch(logError(error as ServerError));
             return {error};
         }
-    };
-}
-
-export function loginPasswordless(token: string): ActionFuncAsync {
-    // mock
-    // return async (dispatch) => {
-    //     dispatch({type: UserTypes.LOGIN_REQUEST, data: null});
-
-    //     try {
-    //         // NOTE: Replace with actual API call when backend is ready
-    //         // await Client4.loginPasswordless(token);
-
-    //         // Mock response - check if user requires password
-    //         await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate network delay
-
-    //         // For now, check if username is 'rahimrahman' - these users need password
-    //         if (token.toLowerCase() === '1234') {
-    //             return {
-    //                 error: {
-    //                     message: 'Password required',
-    //                     server_error_id: 'api.user.login.password_required',
-    //                 },
-    //             };
-    //         }
-
-    //         return {data: true};
-    //     } catch (error) {
-    //         dispatch({type: UserTypes.LOGIN_FAILURE, error});
-    //         dispatch(logError(error as ServerError));
-    //         return {error};
-    //     }
-    // };
-
-    return async (dispatch) => {
-        return performLogin(dispatch, () => Client4.loginPasswordless(token));
     };
 }

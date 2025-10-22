@@ -725,10 +725,8 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         setIsWaiting(false);
 
         if (result.data === '') {
-            // User requires password - silently show password field
             setRequiresPassword(true);
 
-            // Focus on password field after it appears
             setTimeout(() => {
                 passwordInput.current?.focus();
             }, 100);
@@ -736,36 +734,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             setIsWaiting(false);
             setShowPasswordlessSuccess(true);
         }
-    };
-
-    const submitEasyLogin = async (loginId: string) => {
-        setIsWaiting(true);
-        const {error} = await dispatch(loginPasswordless(loginId));
-
-        if (error) {
-            setIsWaiting(false);
-
-            // Check if user requires password - silently show password field
-            if (error.server_error_id === 'api.user.login.password_required') {
-                setRequiresPassword(true);
-
-                // Focus on password field after it appears
-                setTimeout(() => {
-                    passwordInput.current?.focus();
-                }, 100);
-                return;
-            }
-
-            setAlertBanner({
-                mode: 'danger',
-                title: error.message || 'Failed to send login link',
-            });
-            setHasError(true);
-            return;
-        }
-
-        setIsWaiting(false);
-        setShowPasswordlessSuccess(true);
     };
 
     const postSubmit = async () => {
