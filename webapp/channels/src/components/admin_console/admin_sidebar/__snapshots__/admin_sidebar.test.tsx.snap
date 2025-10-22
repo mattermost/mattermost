@@ -23,7 +23,7 @@ exports[`components/AdminSidebar Plugins should filter plugins 1`] = `
       value="autolink"
     />
   </div>
-  <Scrollbars>
+  <Scrollbar>
     <div
       className="nav-pills__container"
     >
@@ -60,7 +60,7 @@ exports[`components/AdminSidebar Plugins should filter plugins 1`] = `
         </ul>
       </SearchKeywordMarking>
     </div>
-  </Scrollbars>
+  </Scrollbar>
 </div>
 `;
 
@@ -87,7 +87,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
       value=""
     />
   </div>
-  <Scrollbars>
+  <Scrollbar>
     <div
       className="nav-pills__container"
     >
@@ -135,7 +135,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
         </ul>
       </SearchKeywordMarking>
     </div>
-  </Scrollbars>
+  </Scrollbar>
 </div>
 `;
 
@@ -162,7 +162,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
       value=""
     />
   </div>
-  <Scrollbars>
+  <Scrollbar>
     <div
       className="nav-pills__container"
     >
@@ -1109,7 +1109,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
         </ul>
       </SearchKeywordMarking>
     </div>
-  </Scrollbars>
+  </Scrollbar>
 </div>
 `;
 
@@ -1136,7 +1136,7 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
       value=""
     />
   </div>
-  <Scrollbars>
+  <Scrollbar>
     <div
       className="nav-pills__container"
     >
@@ -2196,7 +2196,7 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
         </ul>
       </SearchKeywordMarking>
     </div>
-  </Scrollbars>
+  </Scrollbar>
 </div>
 `;
 
@@ -2223,7 +2223,7 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
       value=""
     />
   </div>
-  <Scrollbars>
+  <Scrollbar>
     <div
       className="nav-pills__container"
     >
@@ -3270,7 +3270,7 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
         </ul>
       </SearchKeywordMarking>
     </div>
-  </Scrollbars>
+  </Scrollbar>
 </div>
 `;
 
@@ -3297,7 +3297,7 @@ exports[`components/AdminSidebar should match snapshot with license with profess
       value=""
     />
   </div>
-  <Scrollbars>
+  <Scrollbar>
     <div
       className="nav-pills__container"
     >
@@ -4255,7 +4255,7 @@ exports[`components/AdminSidebar should match snapshot with license with profess
         </ul>
       </SearchKeywordMarking>
     </div>
-  </Scrollbars>
+  </Scrollbar>
 </div>
 `;
 
@@ -4282,7 +4282,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
       value=""
     />
   </div>
-  <Scrollbars>
+  <Scrollbar>
     <div
       className="nav-pills__container"
     >
@@ -5229,7 +5229,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
         </ul>
       </SearchKeywordMarking>
     </div>
-  </Scrollbars>
+  </Scrollbar>
 </div>
 `;
 
@@ -5256,7 +5256,7 @@ exports[`components/AdminSidebar should match snapshot, no access 1`] = `
       value=""
     />
   </div>
-  <Scrollbars>
+  <Scrollbar>
     <div
       className="nav-pills__container"
     >
@@ -5268,7 +5268,7 @@ exports[`components/AdminSidebar should match snapshot, no access 1`] = `
         />
       </SearchKeywordMarking>
     </div>
-  </Scrollbars>
+  </Scrollbar>
 </div>
 `;
 
@@ -5295,7 +5295,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
       value=""
     />
   </div>
-  <Scrollbars>
+  <Scrollbar>
     <div
       className="nav-pills__container"
     >
@@ -6242,7 +6242,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
         </ul>
       </SearchKeywordMarking>
     </div>
-  </Scrollbars>
+  </Scrollbar>
 </div>
 `;
 
@@ -6269,7 +6269,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
       value=""
     />
   </div>
-  <Scrollbars>
+  <Scrollbar>
     <div
       className="nav-pills__container"
     >
@@ -7216,7 +7216,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
         </ul>
       </SearchKeywordMarking>
     </div>
-  </Scrollbars>
+  </Scrollbar>
 </div>
 `;
 
@@ -7243,7 +7243,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
       value=""
     />
   </div>
-  <Scrollbars>
+  <Scrollbar>
     <div
       className="nav-pills__container"
     >
@@ -8091,7 +8091,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
         </ul>
       </SearchKeywordMarking>
     </div>
-  </Scrollbars>
+  </Scrollbar>
 </div>
 `;
 
@@ -8118,7 +8118,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
       value=""
     />
   </div>
-  <Scrollbars>
+  <Scrollbar>
     <div
       className="nav-pills__container"
     >
@@ -9076,6 +9076,6 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
         </ul>
       </SearchKeywordMarking>
     </div>
-  </Scrollbars>
+  </Scrollbar>
 </div>
 `;

@@ -13,10 +13,10 @@ import AdminSidebarCategory from 'components/admin_console/admin_sidebar/admin_s
 import AdminSidebarSection from 'components/admin_console/admin_sidebar/admin_sidebar_section';
 import AdminSidebarHeader from 'components/admin_console/admin_sidebar_header';
 import SearchKeywordMarking from 'components/admin_console/search_keyword_marking';
-import Scrollbars from 'components/common/scrollbars';
 import QuickInput from 'components/quick_input';
 import SearchIcon from 'components/widgets/icons/search_icon';
 
+import Scrollbar from 'design_system/components/primitives/scrollbar';
 import {generateIndex} from 'utils/admin_console_index';
 import type {Index} from 'utils/admin_console_index';
 import {getHistory} from 'utils/browser_history';
@@ -287,7 +287,7 @@ class AdminSidebar extends React.PureComponent<Props, State> {
                         onClear={this.handleClearFilter}
                     />
                 </div>
-                <Scrollbars>
+                <Scrollbar>
                     <div className='nav-pills__container'>
                         <SearchKeywordMarking keyword={this.state.filter}>
                             <ul className={classNames('nav nav-pills nav-stacked', {'task-list-shown': showTaskList})}>
@@ -295,7 +295,7 @@ class AdminSidebar extends React.PureComponent<Props, State> {
                             </ul>
                         </SearchKeywordMarking>
                     </div>
-                </Scrollbars>
+                </Scrollbar>
             </div>
         );
     }

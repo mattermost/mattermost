@@ -17,9 +17,9 @@ import type {Team} from '@mattermost/types/teams';
 import {General} from 'mattermost-redux/constants';
 
 import {makeAsyncComponent} from 'components/async_load';
-import Scrollbars from 'components/common/scrollbars';
 import SidebarCategory from 'components/sidebar/sidebar_category';
 
+import Scrollbar from 'design_system/components/primitives/scrollbar';
 import {findNextUnreadChannelId} from 'utils/channel_utils';
 import {Constants, DraggingStates, DraggingStateTypes} from 'utils/constants';
 import {isKeyPressed, cmdOrCtrlPressed} from 'utils/keyboard';
@@ -520,12 +520,12 @@ export class SidebarList extends React.PureComponent<Props, State> {
                         extraClass='nav-pills__unread-indicator-bottom'
                         content={below}
                     />
-                    <Scrollbars
+                    <Scrollbar
                         ref={this.scrollbar}
                         onScroll={this.onScroll}
                     >
                         {channelList}
-                    </Scrollbars>
+                    </Scrollbar>
                 </div>
             </>
         );

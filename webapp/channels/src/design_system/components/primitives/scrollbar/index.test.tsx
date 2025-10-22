@@ -5,9 +5,9 @@ import React from 'react';
 
 import {fireEvent, render} from 'tests/react_testing_utils';
 
-import Scrollbars from './scrollbars';
+import Scrollbars from './index';
 
-describe('Scrollbars', () => {
+describe('Scrollbar', () => {
     test('should attach scroll handler to the correct element', () => {
         const onScroll = jest.fn();
 

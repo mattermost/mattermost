@@ -9,9 +9,10 @@ import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
-import Scrollbars from 'components/common/scrollbars';
 import QuickInput from 'components/quick_input';
 import UserList from 'components/user_list';
+
+import Scrollbar from 'design_system/components/primitives/scrollbar';
 
 const NEXT_BUTTON_TIMEOUT = 500;
 
@@ -301,7 +302,7 @@ class SearchableUserList extends React.PureComponent<Props, State> {
                     </div>
                 </div>
                 <div className='more-modal__list'>
-                    <Scrollbars ref={this.scrollbarsRef}>
+                    <Scrollbar ref={this.scrollbarsRef}>
                         <UserList
                             users={usersToDisplay}
                             extraInfo={this.props.extraInfo}
@@ -311,7 +312,7 @@ class SearchableUserList extends React.PureComponent<Props, State> {
                             rowComponentType={this.props.rowComponentType}
                             isDisabled={this.props.isDisabled}
                         />
-                    </Scrollbars>
+                    </Scrollbar>
                 </div>
                 <div className='filter-controls'>
                     {previousButton}

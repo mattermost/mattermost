@@ -9,10 +9,11 @@ import type {Post} from '@mattermost/types/posts';
 
 import {getPostEditHistory} from 'mattermost-redux/actions/posts';
 
-import Scrollbars from 'components/common/scrollbars';
 import AlertIcon from 'components/common/svg_images_components/alert_svg';
 import LoadingScreen from 'components/loading_screen';
 import SearchResultsHeader from 'components/search_results_header';
+
+import Scrollbar from 'design_system/components/primitives/scrollbar';
 
 import EditedPostItem from './edited_post_item';
 
@@ -119,7 +120,7 @@ const PostEditHistory = ({
             id='rhsContainer'
             className='sidebar-right__body sidebar-right__edit-post-history'
         >
-            <Scrollbars ref={scrollbars}>
+            <Scrollbar ref={scrollbars}>
                 <SearchResultsHeader>
                     <h2 id='rhsPanelTitle'>
                         {title}
@@ -127,7 +128,7 @@ const PostEditHistory = ({
                     <div className='sidebar--right__title__channel'>{channelDisplayName}</div>
                 </SearchResultsHeader>
                 {hasError ? errorContainer : postEditItems}
-            </Scrollbars>
+            </Scrollbar>
         </div>
     );
 };

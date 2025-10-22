@@ -13,11 +13,11 @@ import type {Team} from '@mattermost/types/teams';
 
 import Permissions from 'mattermost-redux/constants/permissions';
 
-import Scrollbars from 'components/common/scrollbars';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import TeamButton from 'components/team_sidebar/components/team_button';
 
 import WebSocketClient from 'client/web_websocket_client';
+import Scrollbar from 'design_system/components/primitives/scrollbar';
 import Pluggable from 'plugins/pluggable';
 import {Constants} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
@@ -290,7 +290,7 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
                 role='navigation'
                 aria-labelledby='teamSidebarWrapper'
             >
-                <Scrollbars>
+                <Scrollbar>
                     <div
                         className='team-wrapper'
                         id='teamSidebarWrapper'
@@ -317,7 +317,7 @@ export class TeamSidebar extends React.PureComponent<Props, State> {
                         </DragDropContext>
                         {joinableTeams}
                     </div>
-                </Scrollbars>
+                </Scrollbar>
                 {plugins}
             </div>
         );
