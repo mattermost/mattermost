@@ -4,9 +4,9 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import Accordion from 'components/common/accordion/accordion';
-
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+
+import Accordion from './accordion';
 
 describe('/components/common/Accordion', () => {
     const texts = ['First List Item', 'Second List Item', 'Third List Item'];
