@@ -733,8 +733,8 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 passwordInput.current?.focus();
             }, 100);
         } else {
-            // User is passwordless - proceed with passwordless login
-            submitEasyLogin(loginId);
+            setIsWaiting(false);
+            setShowPasswordlessSuccess(true);
         }
     };
 
