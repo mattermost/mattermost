@@ -73,6 +73,7 @@ const useAIRewrite = (
             return;
         }
 
+        setServerError(null);
         setIsProcessing(true);
         setOriginalMessage(draft.message);
         setLastPrompt(prompt || '');
