@@ -13,11 +13,11 @@ const TestIcon = ({testId = 'test-icon'}: {testId?: string}) => (
     <span data-testid={testId}>{'🔥'}</span>
 );
 
-// Mock WithTooltip to avoid ref issues
-jest.mock('components/with_tooltip', () => ({
-    __esModule: true,
-    default: ({children}: {children: React.ReactNode}) => children,
-}));
+// Re-enable WithTooltip mock when WithTooltip is available in platform design system
+// jest.mock('components/with_tooltip', () => ({
+//     __esModule: true,
+//     default: ({children}: {children: React.ReactNode}) => children,
+// }));
 
 describe('components/primitives/icon_button/IconButton', () => {
     const baseProps: IconButtonProps = {

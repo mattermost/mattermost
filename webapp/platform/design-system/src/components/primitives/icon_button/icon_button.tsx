@@ -5,7 +5,9 @@ import classNames from 'classnames';
 import React, {forwardRef, memo, useMemo} from 'react';
 import type {ButtonHTMLAttributes, ReactNode} from 'react';
 
-import WithTooltip from 'components/with_tooltip';
+// Re-enable when WithTooltip is available in platform design system
+// import WithTooltip from 'components/with_tooltip';
+
 
 import './icon_button.scss';
 
@@ -97,47 +99,49 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         }, [icon, size]);
 
         return (
-            <WithTooltip title={title}>
-                <button
-                    ref={ref}
-                    className={buttonClasses}
-                    disabled={isDisabled}
-                    aria-pressed={toggled}
-                    {...htmlProps}
-                >
-                    <span className='IconButton__content'>
-                        {loading ? (
-                            <span
-                                className={classNames(
-                                    'IconButton__spinner',
-                                    `IconButton__spinner--${size}`,
-                                    {
-                                        'IconButton__spinner--inverted': inverted,
-                                    },
-                                )}
-                            />
-                        ) : (
-                            <span className={`IconButton__icon IconButton__icon--${size}`}>
-                                {iconWithSize}
-                                {unread && (
-                                    <span
-                                        className={classNames(
-                                            'IconButton__unread-indicator',
-                                            `IconButton__unread-indicator--${size}`,
-                                        )}
-                                    />
-                                )}
-                            </span>
-                        )}
+            // Re-enable WithTooltip when available in platform design system
+            // <WithTooltip title={title}>
+            <button
+                ref={ref}
+                className={buttonClasses}
+                disabled={isDisabled}
+                aria-pressed={toggled}
+                title={title} // Temporary: using native title until WithTooltip is available
+                {...htmlProps}
+            >
+                <span className='IconButton__content'>
+                    {loading ? (
+                        <span
+                            className={classNames(
+                                'IconButton__spinner',
+                                `IconButton__spinner--${size}`,
+                                {
+                                    'IconButton__spinner--inverted': inverted,
+                                },
+                            )}
+                        />
+                    ) : (
+                        <span className={`IconButton__icon IconButton__icon--${size}`}>
+                            {iconWithSize}
+                            {unread && (
+                                <span
+                                    className={classNames(
+                                        'IconButton__unread-indicator',
+                                        `IconButton__unread-indicator--${size}`,
+                                    )}
+                                />
+                            )}
+                        </span>
+                    )}
 
-                        {showCount && !loading && (
-                            <span className={`IconButton__count IconButton__count--${size}`}>
-                                {count}
-                            </span>
-                        )}
-                    </span>
-                </button>
-            </WithTooltip>
+                    {showCount && !loading && (
+                        <span className={`IconButton__count IconButton__count--${size}`}>
+                            {count}
+                        </span>
+                    )}
+                </span>
+            </button>
+            // </WithTooltip>
         );
     },
 );
