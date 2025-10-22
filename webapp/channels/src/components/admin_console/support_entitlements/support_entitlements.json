@@ -1,0 +1,120 @@
+{
+  "plans": [
+    {
+      "name": "Free",
+      "features": {
+        "self_help_resources": true,
+        "community_support": true,
+        "online_ticket_creation": false,
+        "regional_business_day_coverage": false,
+        "12x5_business_hours_coverage": false,
+        "24x7_weekend_coverage": false,
+        "direct_access_senior_support_team": false,
+        "screen_sharing_collab_phone_calls": false,
+        "private_discussion_channel_with_technical_staff": false,
+        "additional_license_entitlements_non_production": false
+      },
+      "sla_response_times": {
+        "Priority 1_Urgent": null,
+        "Priority 2_High": null,
+        "Priority 3_Normal": null,
+        "Priority 4_Low": null
+      }
+    },
+    {
+      "name": "Professional",
+      "features": {
+        "self_help_resources": true,
+        "community_support": true,
+        "online_ticket_creation": true,
+        "regional_business_day_coverage": false,
+        "12x5_business_hours_coverage": true,
+        "24x7_weekend_coverage": false,
+        "direct_access_senior_support_team": false,
+        "screen_sharing_collab_phone_calls": false,
+        "private_discussion_channel_with_technical_staff": false,
+        "additional_license_entitlements_non_production": false
+      },
+      "sla_response_times": {
+        "Priority 1_Urgent": "4 Business Hours",
+        "Priority 2_High": "8 Business Hours",
+        "Priority 3_Normal": "1 Business Day",
+        "Priority 4_Low": "2 Business Days"
+      }
+    },
+    {
+      "name": "Enterprise",
+      "features": {
+        "self_help_resources": true,
+        "community_support": true,
+        "online_ticket_creation": true,
+        "regional_business_day_coverage": true,
+        "12x5_business_hours_coverage": true,
+        "24x7_weekend_coverage": true,
+        "direct_access_senior_support_team": false,
+        "screen_sharing_collab_phone_calls": false,
+        "private_discussion_channel_with_technical_staff": false,
+        "additional_license_entitlements_non_production": false
+      },
+      "sla_response_times": {
+        "Priority 1_Urgent": "2 Hours",
+        "Priority 2_High": "4 Hours",
+        "Priority 3_Normal": "8 Business Hours",
+        "Priority 4_Low": "1 Business Day"
+      },
+      "notes": "On-site support may be offered at Mattermost’s option subject to region."
+    },
+    {
+      "name": "Premier",
+      "features": {
+        "self_help_resources": true,
+        "community_support": true,
+        "online_ticket_creation": true,
+        "regional_business_day_coverage": true,
+        "12x5_business_hours_coverage": true,
+        "24x7_weekend_coverage": true,
+        "direct_access_senior_support_team": true,
+        "screen_sharing_collab_phone_calls": true,
+        "private_discussion_channel_with_technical_staff": true,
+        "additional_license_entitlements_non_production": true
+      },
+      "sla_response_times": {
+        "Priority 1_Urgent": "1 Hour",
+        "Priority 2_High": "2 Hours",
+        "Priority 3_Normal": "4 Business Hours",
+        "Priority 4_Low": "8 Business Hours"
+      },
+      "notes": "Weekend coverage is available for P1 and P2 escalations (Fri 5pm – Mon 9am US Pacific). On-site support may be offered at Mattermost’s option subject to region."
+    }
+  ],
+  "definitions": {
+    "SLA": "Mattermost’s commitment to the initial response time to a support ticket.",
+    "BusinessHours": "9am to 5pm local time as it relates to the requester’s location.",
+    "SupportedSelfHostedVersions": "Self-hosted server versions according to their respective release life-cycle."
+  },
+  "incident_level_definitions": {
+    "Priority 1_Urgent": "Critical business impact — production system down with no workaround.",
+    "Priority 2_High": "Major business impact — production system severely impacted, workaround may exist or few users blocked.",
+    "Priority 3_Normal": "Moderate business impact — partial loss of functionality in production, small number of users affected.",
+    "Priority 4_Low": "Minor business impact — non-production system, user question, or documentation/feature request."
+  },
+  "support_responsibilities": {
+    "includes": [
+      "Communication with IT administrators deploying and managing Mattermost",
+      "Assistance with specific technical issues during installation",
+      "Assistance with specific technical issues during upgrades",
+      "Assistance identifying and troubleshooting problems in systems",
+      "Identifying and creating appropriate bug reports"
+    ],
+    "excludes": [
+      "Support in languages other than English",
+      "Support for end users",
+      "Support for organizations without paid subscription",
+      "Development questions or requests",
+      "Integrations, installers, images, and plug-ins",
+      "Remote administration",
+      "Professional services including product training, system performance and tuning, deployment and capacity planning, overall installation and upgrade services",
+      "Support for server releases other than latest official release or previous major build release"
+    ]
+  }
+}

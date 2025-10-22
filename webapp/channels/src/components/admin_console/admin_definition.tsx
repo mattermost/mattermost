@@ -111,6 +111,8 @@ import SecureConnectionDetail from './secure_connections/secure_connection_detai
 import ServerLogs from './server_logs';
 import {searchableStrings as serverLogsSearchableStrings} from './server_logs/logs';
 import SessionLengthSettings, {searchableStrings as sessionLengthSearchableStrings} from './session_length_settings';
+import SupportEntitlements from './support_entitlements';
+import {searchableStrings as supportEntitlementsSearchableStrings} from './support_entitlements/support_entitlements';
 import SystemProperties, {searchableStrings as systemPropertiesSearchableStrings} from './system_properties';
 import SystemRoles from './system_roles';
 import SystemRole from './system_roles/system_role';
@@ -259,6 +261,17 @@ const AdminDefinition: AdminDefinitionType = {
                 schema: {
                     id: 'LicenseSettings',
                     component: LicenseSettings,
+                },
+            },
+            support_entitlements: {
+                url: 'about/support_entitlements',
+                title: defineMessage({id: 'admin.sidebar.support_entitlements', defaultMessage: 'Support Entitlements'}),
+                searchableStrings: supportEntitlementsSearchableStrings,
+                isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
+                schema: {
+                    id: 'SupportEntitlements',
+                    component: SupportEntitlements,
                 },
             },
         },

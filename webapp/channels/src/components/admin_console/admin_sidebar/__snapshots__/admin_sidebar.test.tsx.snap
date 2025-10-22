@@ -201,6 +201,17 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
                 />
               }
             />
+            <AdminSidebarSection
+              definitionKey="about.support_entitlements"
+              key="about.support_entitlements"
+              name="about/support_entitlements"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Support Entitlements"
+                  id="admin.sidebar.support_entitlements"
+                />
+              }
+            />
           </AdminSidebarCategory>
           <AdminSidebarCategory
             definitionKey="reporting"
@@ -1172,6 +1183,17 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Edition and License"
                   id="admin.sidebar.license"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="about.support_entitlements"
+              key="about.support_entitlements"
+              name="about/support_entitlements"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Support Entitlements"
+                  id="admin.sidebar.support_entitlements"
                 />
               }
             />
@@ -2262,6 +2284,17 @@ exports[`components/AdminSidebar should match snapshot with license with enterpr
                 />
               }
             />
+            <AdminSidebarSection
+              definitionKey="about.support_entitlements"
+              key="about.support_entitlements"
+              name="about/support_entitlements"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Support Entitlements"
+                  id="admin.sidebar.support_entitlements"
+                />
+              }
+            />
           </AdminSidebarCategory>
           <AdminSidebarCategory
             definitionKey="billing"
@@ -3336,6 +3369,17 @@ exports[`components/AdminSidebar should match snapshot with license with profess
                 />
               }
             />
+            <AdminSidebarSection
+              definitionKey="about.support_entitlements"
+              key="about.support_entitlements"
+              name="about/support_entitlements"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Support Entitlements"
+                  id="admin.sidebar.support_entitlements"
+                />
+              }
+            />
           </AdminSidebarCategory>
           <AdminSidebarCategory
             definitionKey="reporting"
@@ -4318,6 +4362,17 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Edition and License"
                   id="admin.sidebar.license"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="about.support_entitlements"
+              key="about.support_entitlements"
+              name="about/support_entitlements"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Support Entitlements"
+                  id="admin.sidebar.support_entitlements"
                 />
               }
             />
@@ -5334,6 +5389,17 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
                 />
               }
             />
+            <AdminSidebarSection
+              definitionKey="about.support_entitlements"
+              key="about.support_entitlements"
+              name="about/support_entitlements"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Support Entitlements"
+                  id="admin.sidebar.support_entitlements"
+                />
+              }
+            />
           </AdminSidebarCategory>
           <AdminSidebarCategory
             definitionKey="reporting"
@@ -6305,6 +6371,17 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Edition and License"
                   id="admin.sidebar.license"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="about.support_entitlements"
+              key="about.support_entitlements"
+              name="about/support_entitlements"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Support Entitlements"
+                  id="admin.sidebar.support_entitlements"
                 />
               }
             />
@@ -7282,6 +7359,17 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
                 />
               }
             />
+            <AdminSidebarSection
+              definitionKey="about.support_entitlements"
+              key="about.support_entitlements"
+              name="about/support_entitlements"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Support Entitlements"
+                  id="admin.sidebar.support_entitlements"
+                />
+              }
+            />
           </AdminSidebarCategory>
           <AdminSidebarCategory
             definitionKey="reporting"
@@ -8154,6 +8242,17 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Edition and License"
                   id="admin.sidebar.license"
+                />
+              }
+            />
+            <AdminSidebarSection
+              definitionKey="about.support_entitlements"
+              key="about.support_entitlements"
+              name="about/support_entitlements"
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Support Entitlements"
+                  id="admin.sidebar.support_entitlements"
                 />
               }
             />
