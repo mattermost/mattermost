@@ -23,20 +23,20 @@
     cursor: pointer;
     outline: none;
     transition: all 0.15s ease-out;
-    
+
     // Focus states matching Button component
     &:focus {
         box-shadow: 0 0 0 2px var(--sidebar-text-active-border);
     }
-    
+
     &:focus:not(:focus-visible) {
         box-shadow: none;
     }
-    
+
     &:focus-visible {
         box-shadow: 0 0 0 2px var(--sidebar-text-active-border);
     }
-    
+
     &:hover:not(:disabled) {
         background-color: rgba(var(--center-channel-color-rgb), 0.08);
         color: rgba(var(--center-channel-color-rgb), 0.75);
@@ -46,7 +46,7 @@
                 0 0 0 2px var(--center-channel-bg);
         }
     }
-    
+
     &:active:not(:disabled) {
         background-color: rgba(var(--link-color-rgb), 0.12);
         color: var(--link-color);
@@ -56,7 +56,7 @@
                 0 0 0 2px var(--center-channel-bg);
         }
     }
-    
+
     // Toggled state (primary button colors)
     &--toggled {
         background-color: var(--button-bg);
@@ -70,7 +70,7 @@
             background-color: var(--button-color);
             box-shadow: 0 0 0 2px var(--button-bg);
         }
-        
+
         &:hover:not(:disabled) {
             background-color: color-mix(in srgb, var(--button-bg) 88%, black 12%);
             color: var(--button-color);
@@ -80,7 +80,7 @@
                     0 0 0 2px var(--center-channel-bg);
             }
         }
-        
+
         &:active:not(:disabled) {
             background-color: color-mix(in srgb, var(--button-bg) 80%, black 20%);
 
@@ -90,7 +90,7 @@
             }
         }
     }
-    
+
     // Destructive variant - using error-text
     &--destructive {
         color: var(--error-text);
@@ -98,18 +98,18 @@
         .IconButton__count {
             color: var(--error-text);
         }
-        
+
         &:hover:not(:disabled) {
             background-color: rgba(var(--error-text-color-rgb), 0.08);
             color: var(--error-text);
         }
-        
+
         &:active:not(:disabled) {
             background-color: rgba(var(--error-text-color-rgb), 0.16);
             color: var(--error-text);
         }
     }
-    
+
     // Inverted style - using sidebar-text from Figma for dark backgrounds
     &--inverted {
         color: rgba(var(--sidebar-text-rgb), 0.64);
@@ -122,7 +122,7 @@
             background-color: var(--sidebar-text);
             box-shadow: 0 0 0 2px var(--sidebar-bg);
         }
-        
+
         &:hover:not(:disabled) {
             background-color: rgba(var(--sidebar-text-rgb), 0.08);
             color: rgba(var(--sidebar-text-rgb), 0.75);
@@ -132,7 +132,7 @@
                     0 0 0 2px var(--sidebar-bg);
             }
         }
-        
+
         &:active:not(:disabled) {
             background-color: rgba(var(--sidebar-text-rgb), 0.16);
             color: var(--sidebar-text);
@@ -146,7 +146,7 @@
                     0 0 0 2px var(--sidebar-bg);
             }
         }
-        
+
         // Inverted toggled state - uses sidebar text color
         &.IconButton--toggled {
             background-color: var(--sidebar-text);
@@ -160,7 +160,7 @@
                 background-color: var(--sidebar-bg);
                 box-shadow: 0 0 0 2px var(--sidebar-text);
             }
-            
+
             &:hover:not(:disabled) {
                 background-color: rgba(var(--sidebar-text-rgb), 0.88);
                 color: var(--sidebar-bg);
@@ -171,7 +171,7 @@
                         0 0 0 2px var(--sidebar-bg);
                 }
             }
-            
+
             &:active:not(:disabled) {
                 background-color: rgba(var(--sidebar-text-rgb), 0.80);
                 color: var(--sidebar-bg);
@@ -194,12 +194,12 @@
             .IconButton__count {
                 color: var(--error-text);
             }
-            
+
             &:hover:not(:disabled) {
                 background-color: rgba(var(--error-text-color-rgb), 0.08);
                 color: var(--error-text);
             }
-            
+
             &:active:not(:disabled) {
                 background-color: rgba(var(--error-text-color-rgb), 0.16);
                 color: var(--error-text);
@@ -210,76 +210,76 @@
             }
         }
     }
-    
+
     // Rounded variant
     &--rounded {
         border-radius: 50%;
     }
-    
+
     // Size variants with default and compact padding
     &--xs {
         padding: 6px;
-        
+
         &.IconButton--compact {
             padding: 4px;
         }
-        
+
         .IconButton__icon {
             width: 12px;
             height: 12px;
         }
     }
-    
+
     &--sm {
         padding: 8px;
-        
+
         &.IconButton--compact {
             padding: 6px;
         }
-        
+
         .IconButton__icon {
             width: 16px;
             height: 16px;
         }
     }
-    
+
     &--md {
         padding: 10px;
-        
+
         &.IconButton--compact {
             padding: 8px;
         }
-        
+
         .IconButton__icon {
             width: 20px;
             height: 20px;
         }
     }
-    
+
     &--lg {
         padding: 10px;
-        
+
         &.IconButton--compact {
             padding: 8px;
         }
-        
+
         .IconButton__icon {
             width: 28px;
             height: 28px;
         }
     }
-    
+
     // Disabled state
     &:disabled {
         background-color: transparent;
         color: rgba(var(--center-channel-color-rgb), 0.32);
         cursor: not-allowed;
-        
+
         &.IconButton--inverted {
             color: rgba(var(--button-color-rgb), 0.32);
         }
     }
-    
+
     // With count variant - adjust layout and padding
     &--with-count {
         padding-right: 12px;
@@ -288,31 +288,31 @@
         &.IconButton--rounded {
             border-radius: var(--radius-s);
         }
-        
+
         &.IconButton--xs {
             padding-right: 8px;
             padding-left: 6px;
         }
-        
+
         &.IconButton--sm {
             padding-right: 10px;
             padding-left: 6px;
         }
-        
+
         &.IconButton--lg {
             padding-right: 16px;
             padding-left: 10px;
         }
-        
+
         &.IconButton--compact {
             padding-right: 8px;
             padding-left: 6px;
-            
+
             &.IconButton--sm {
                 padding-right: 6px;
                 padding-left: 4px;
             }
-            
+
             &.IconButton--lg {
                 padding-right: 12px;
                 padding-left: 8px;
@@ -354,19 +354,19 @@
     font-weight: 600;
     line-height: 1;
     white-space: nowrap;
-    
+
     &--xs {
         font-size: 11px;
     }
-    
+
     &--sm {
         font-size: 12px;
     }
-    
+
     &--md {
         font-size: 14px;
     }
-    
+
     &--lg {
         font-size: 16px;
     }
@@ -381,27 +381,27 @@
     border-radius: 50%;
     background-color: var(--button-bg);
     box-shadow: 0 0 0 2px var(--center-channel-bg);
-    
+
     &--xs {
         top: -2px;
         width: 6px;
         height: 6px;
     }
-    
+
     &--sm {
         top: -2px;
         width: 6px;
         height: 6px;
     }
-    
+
     &--md {
         top: -3px;
     }
-    
+
     &--lg {
         top: -3px;
     }
-    
+
     // Destructive state uses error color
     .IconButton--destructive & {
         background-color: var(--error-text);
@@ -415,31 +415,31 @@
     animation: spin 750ms linear infinite;
     background: conic-gradient(rgba(var(--center-channel-color-rgb), 0), rgba(var(--center-channel-color-rgb), 0.48));
     line-height: 0;
-    
-    &--xs { 
-        width: 12px; 
+
+    &--xs {
+        width: 12px;
         height: 12px;
         mask-image: radial-gradient(farthest-side, transparent calc(100% - 1.5px), #fff calc(100% - 1px));
     }
-    
-    &--sm { 
-        width: 16px; 
+
+    &--sm {
+        width: 16px;
         height: 16px;
         mask-image: radial-gradient(farthest-side, transparent calc(100% - 1.5px), #fff calc(100% - 1px));
     }
-    
-    &--md { 
-        width: 20px; 
+
+    &--md {
+        width: 20px;
         height: 20px;
         mask-image: radial-gradient(farthest-side, transparent calc(100% - 2px), #fff calc(100% - 1.5px));
     }
-    
-    &--lg { 
-        width: 24px; 
+
+    &--lg {
+        width: 24px;
         height: 24px;
         mask-image: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #fff calc(100% - 2px));
     }
-    
+
     &--inverted {
         background: conic-gradient(rgba(var(--button-color-rgb), 0), rgba(var(--button-color-rgb), 0.48));
     }
