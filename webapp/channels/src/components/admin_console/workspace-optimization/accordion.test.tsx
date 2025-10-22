@@ -8,7 +8,7 @@ import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 
 import Accordion from './accordion';
 
-describe('/components/common/Accordion', () => {
+describe('/components/admin_console/workspace-optimization/accordion', () => {
     const texts = ['First List Item', 'Second List Item', 'Third List Item'];
     const baseProps = {
         onHeaderClick: jest.fn(),
