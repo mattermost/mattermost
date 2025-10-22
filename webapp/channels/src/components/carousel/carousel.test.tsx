@@ -4,10 +4,9 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import Carousel from 'components/common/carousel/carousel';
-
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 
+import Carousel from './carousel';
 import {BtnStyle} from './carousel_button';
 
 describe('/components/common/Carousel', () => {

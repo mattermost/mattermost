@@ -15,7 +15,7 @@ import {isModalOpen} from 'selectors/views/modals';
 
 import BlockableLink from 'components/admin_console/blockable_link';
 import SystemRolesSVG from 'components/admin_console/feature_discovery/features/images/system_roles_svg';
-import Carousel from 'components/common/carousel/carousel';
+import Carousel from 'components/carousel';
 import useOpenInvitePeopleModal from 'components/common/hooks/useOpenInvitePeopleModal';
 import GuestAccessSvg from 'components/common/svg_images_components/guest_access_svg';
 import MonitorImacLikeSVG from 'components/common/svg_images_components/monitor_imaclike_svg';

@@ -12,8 +12,7 @@ import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {closeModal} from 'actions/views/modals';
 
 import SystemRolesSVG from 'components/admin_console/feature_discovery/features/images/system_roles_svg';
-import Carousel from 'components/common/carousel/carousel';
-import {BtnStyle} from 'components/common/carousel/carousel_button';
+import Carousel, {BtnStyle} from 'components/carousel';
 import GuestAccessSvg from 'components/common/svg_images_components/guest_access_svg';
 import MonitorImacLikeSVG from 'components/common/svg_images_components/monitor_imaclike_svg';
 
