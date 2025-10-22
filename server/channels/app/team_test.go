@@ -1886,3 +1886,93 @@ func TestTeamSendEvents(t *testing.T) {
 		require.Equal(t, "", teamFromEvent.InviteId)
 	}
 }
+
+func TestSendGuestEasyLoginEmail(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	// Enable guest accounts and easy login
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.GuestAccountsSettings.Enable = true
+		*cfg.GuestAccountsSettings.EnableEasyLogin = true
+		*cfg.ServiceSettings.EnableEmailInvitations = true
+	})
+
+	// Create a guest user
+	guest := th.CreateGuest()
+
+	// Mock the email service to prevent actual email sending
+	mockEmailService := &emailmocks.ServiceInterface{}
+	mockEmailService.On("SendGuestEasyLoginEmail",
+		mock.Anything, // senderName
+		mock.Anything, // senderUserId
+		mock.Anything, // senderProfileImage
+		mock.Anything, // invite
+		mock.Anything, // siteURL
+		mock.Anything, // message
+		mock.Anything, // errorWhenNotSent
+		mock.Anything, // isSystemAdmin
+		mock.Anything, // isFirstAdmin
+	).Return(nil)
+	th.App.ch.srv.EmailService = mockEmailService
+
+	t.Run("successfully sends email to existing guest user", func(t *testing.T) {
+		err := th.App.SendGuestEasyLoginEmail(th.Context, guest.Email, th.BasicUser.Id, "Test message")
+		require.Nil(t, err)
+		mockEmailService.AssertCalled(t, "SendGuestEasyLoginEmail",
+			mock.Anything, th.BasicUser.Id, mock.Anything, guest.Email, mock.Anything, "Test message", false, false, false)
+	})
+
+	t.Run("silently succeeds for non-existent user (anti-enumeration)", func(t *testing.T) {
+		err := th.App.SendGuestEasyLoginEmail(th.Context, "nonexistent@example.com", th.BasicUser.Id, "Test message")
+		require.Nil(t, err, "Should return nil for non-existent user to prevent enumeration")
+		// Email service should NOT be called for non-existent user
+		mockEmailService.AssertNumberOfCalls(t, "SendGuestEasyLoginEmail", 1) // Still 1 from previous test
+	})
+
+	t.Run("silently succeeds for non-guest user (anti-enumeration)", func(t *testing.T) {
+		err := th.App.SendGuestEasyLoginEmail(th.Context, th.BasicUser.Email, th.BasicUser.Id, "Test message")
+		require.Nil(t, err, "Should return nil for non-guest user to prevent enumeration")
+		// Email service should NOT be called for non-guest user
+		mockEmailService.AssertNumberOfCalls(t, "SendGuestEasyLoginEmail", 1) // Still 1 from first test
+	})
+
+	t.Run("fails when email invitations disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableEmailInvitations = false
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableEmailInvitations = true
+		})
+
+		err := th.App.SendGuestEasyLoginEmail(th.Context, guest.Email, th.BasicUser.Id, "Test message")
+		require.NotNil(t, err)
+		require.Equal(t, "api.team.invite_members.disabled.app_error", err.Id)
+	})
+
+	t.Run("fails when guest accounts disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.GuestAccountsSettings.Enable = false
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.GuestAccountsSettings.Enable = true
+		})
+
+		err := th.App.SendGuestEasyLoginEmail(th.Context, guest.Email, th.BasicUser.Id, "Test message")
+		require.NotNil(t, err)
+		require.Equal(t, "api.team.invite_guests_to_channels.disabled.error", err.Id)
+	})
+
+	t.Run("fails when easy login disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.GuestAccountsSettings.EnableEasyLogin = false
+		})
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.GuestAccountsSettings.EnableEasyLogin = true
+		})
+
+		err := th.App.SendGuestEasyLoginEmail(th.Context, guest.Email, th.BasicUser.Id, "Test message")
+		require.NotNil(t, err)
+		require.Equal(t, "api.team.invite_guests_to_channels.easy_login_disabled.error", err.Id)
+	})
+}

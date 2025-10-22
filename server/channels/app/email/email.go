@@ -611,6 +611,176 @@ func (es *Service) SendGuestInviteEmails(
 	return nil
 }
 
+func (es *Service) SendGuestEasyLoginEmail(
+	senderName string,
+	senderUserId string,
+	senderProfileImage []byte,
+	invite string,
+	siteURL string,
+	message string,
+	errorWhenNotSent bool,
+	isSystemAdmin bool,
+	isFirstAdmin bool,
+) error {
+	if es.perHourEmailRateLimiter == nil {
+		return NoRateLimiterError
+	}
+	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimit(senderUserId, 1)
+	if err != nil {
+		return SetupRateLimiterError
+	}
+
+	if rateLimited {
+		mlog.Error("rate limit exceeded", mlog.Duration("RetryAfter", result.RetryAfter), mlog.Duration("ResetAfter", result.ResetAfter), mlog.String("user_id", senderUserId),
+			mlog.String("retry_after_secs", fmt.Sprintf("%f", result.RetryAfter.Seconds())), mlog.String("reset_after_secs", fmt.Sprintf("%f", result.ResetAfter.Seconds())))
+		return RateLimitExceededError
+	}
+
+	if invite == "" {
+		return nil
+	}
+
+	subject := i18n.T("api.templates.invite_guest_subject",
+		map[string]any{"SenderName": senderName,
+			"SiteName": es.config().TeamSettings.SiteName})
+
+	data := es.NewEmailTemplateData("")
+	data.Props["SiteURL"] = siteURL
+	data.Props["Title"] = i18n.T("api.templates.invite_body.title", map[string]any{"SenderName": senderName})
+	data.Props["SubTitle"] = i18n.T("api.templates.invite_body_guest.subTitle")
+	data.Props["Button"] = i18n.T("api.templates.invite_body.button")
+	data.Props["SenderName"] = senderName
+	if message != "" {
+		message = bluemonday.NewPolicy().Sanitize(message)
+	}
+	data.Props["Message"] = message
+	data.Props["InviteFooterTitle"] = i18n.T("api.templates.invite_body_footer.title")
+	data.Props["InviteFooterInfo"] = i18n.T("api.templates.invite_body_footer.info")
+	data.Props["InviteFooterLearnMore"] = i18n.T("api.templates.invite_body_footer.learn_more")
+
+	// Login-only token - no team or channel info needed
+	token := model.NewToken(
+		TokenTypeEasyLogin,
+		model.MapToJSON(map[string]string{
+			"email":    invite,
+			"senderId": senderUserId,
+		}),
+	)
+
+	if saveErr := es.store.Token().Save(token); saveErr != nil {
+		mlog.Error("Failed to send easy login email successfully ", mlog.Err(saveErr))
+		if errorWhenNotSent {
+			return SendMailError
+		}
+		return nil
+	}
+
+	// Easy login uses SSO-style authentication - clicking the link logs them in directly
+	data.Props["ButtonURL"] = fmt.Sprintf("%s/login/sso/easy?t=%s", siteURL, url.QueryEscape(token.Token))
+
+	if !*es.config().EmailSettings.SendEmailNotifications {
+		mlog.Info("sending easy login link ", mlog.String("to", invite), mlog.String("link", data.Props["ButtonURL"].(string)))
+	}
+
+	senderPhoto := ""
+	embeddedFiles := make(map[string]io.Reader)
+	if message != "" {
+		if senderProfileImage != nil {
+			senderPhoto = "user-avatar.png"
+			embeddedFiles = map[string]io.Reader{
+				senderPhoto: bytes.NewReader(senderProfileImage),
+			}
+		}
+	}
+
+	pData := postData{
+		SenderName:  senderName,
+		Message:     template.HTML(message),
+		SenderPhoto: senderPhoto,
+	}
+
+	data.Props["Posts"] = []postData{pData}
+
+	body, err := es.templatesContainer.RenderToString("invite_body", data)
+	if err != nil {
+		mlog.Error("Failed to send easy login email successfully", mlog.Err(err))
+	}
+
+	if nErr := es.SendMailWithEmbeddedFiles(invite, subject, body, embeddedFiles, "", "", "", "EasyLoginEmail"); nErr != nil {
+		mlog.Error("Failed to send easy login email successfully", mlog.Err(nErr))
+		if errorWhenNotSent {
+			return SendMailError
+		}
+	}
+
+	return nil
+}
+
+func (es *Service) SendGuestEasyLoginEmailSelfService(
+	invite string,
+	siteURL string,
+) error {
+	if es.perHourEmailRateLimiter == nil {
+		return NoRateLimiterError
+	}
+
+	// Rate limit by email address for self-service requests
+	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimit(invite, 1)
+	if err != nil {
+		return SetupRateLimiterError
+	}
+
+	if rateLimited {
+		mlog.Error("rate limit exceeded", mlog.Duration("RetryAfter", result.RetryAfter), mlog.Duration("ResetAfter", result.ResetAfter), mlog.String("email", invite),
+			mlog.String("retry_after_secs", fmt.Sprintf("%f", result.RetryAfter.Seconds())), mlog.String("reset_after_secs", fmt.Sprintf("%f", result.ResetAfter.Seconds())))
+		return RateLimitExceededError
+	}
+
+	if invite == "" {
+		return nil
+	}
+
+	subject := i18n.T("api.templates.easy_login_subject",
+		map[string]any{"SiteName": es.config().TeamSettings.SiteName})
+
+	data := es.NewEmailTemplateData("")
+	data.Props["SiteURL"] = siteURL
+	data.Props["Title"] = i18n.T("api.templates.easy_login_body.title")
+	data.Props["SubTitle"] = i18n.T("api.templates.easy_login_body.subtitle")
+	data.Props["Button"] = i18n.T("api.templates.invite_body.button")
+
+	// Login-only token - no team or channel info needed
+	token := model.NewToken(
+		TokenTypeEasyLogin,
+		model.MapToJSON(map[string]string{
+			"email": invite,
+		}),
+	)
+
+	if saveErr := es.store.Token().Save(token); saveErr != nil {
+		mlog.Error("Failed to send easy login email successfully ", mlog.Err(saveErr))
+		return nil
+	}
+
+	// Easy login uses SSO-style authentication - clicking the link logs them in directly
+	data.Props["ButtonURL"] = fmt.Sprintf("%s/login/sso/easy?t=%s", siteURL, url.QueryEscape(token.Token))
+
+	if !*es.config().EmailSettings.SendEmailNotifications {
+		mlog.Info("sending easy login link ", mlog.String("to", invite), mlog.String("link", data.Props["ButtonURL"].(string)))
+	}
+
+	body, err := es.templatesContainer.RenderToString("invite_body", data)
+	if err != nil {
+		mlog.Error("Failed to send easy login email successfully", mlog.Err(err))
+	}
+
+	if nErr := es.SendMailWithEmbeddedFiles(invite, subject, body, nil, "", "", "", "EasyLoginEmail"); nErr != nil {
+		mlog.Error("Failed to send easy login email successfully", mlog.Err(nErr))
+	}
+
+	return nil
+}
+
 func (es *Service) SendInviteEmailsToTeamAndChannels(
 	team *model.Team,
 	channels []*model.Channel,

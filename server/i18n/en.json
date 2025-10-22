@@ -3647,6 +3647,18 @@
     "translation": "If you did not make this change, please contact the system administrator."
   },
   {
+    "id": "api.templates.easy_login_subject",
+    "translation": "Sign in to {{ .SiteName }}"
+  },
+  {
+    "id": "api.templates.easy_login_body.title",
+    "translation": "Sign in to Mattermost"
+  },
+  {
+    "id": "api.templates.easy_login_body.subtitle",
+    "translation": "Click the button below to sign in to your account"
+  },
+  {
     "id": "api.templates.invite_body.button",
     "translation": "Join now"
   },
@@ -4213,6 +4225,10 @@
   {
     "id": "api.user.easy_login.missing_token.app_error",
     "translation": "Missing invitation token."
+  },
+  {
+    "id": "api.user.easy_login.username_generation_failed.app_error",
+    "translation": "Could not generate a unique username. Please contact your system administrator."
   },
   {
     "id": "api.user.email_to_ldap.not_available.app_error",
