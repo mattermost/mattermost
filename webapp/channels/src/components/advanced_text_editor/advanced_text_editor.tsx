@@ -313,7 +313,7 @@ const AdvancedTextEditor = ({
     const {
         additionalControl: aiRewriteAdditionalControl,
         isProcessing: aiRewriteIsProcessing,
-    } = useAIRewrite(draft, handleDraftChange, focusTextbox, showPreview);
+    } = useAIRewrite(draft, handleDraftChange, focusTextbox, setServerError);
     const isDisabled = Boolean(readOnlyChannel || (!enableSharedChannelsDMs && isDMOrGMRemote) || aiRewriteIsProcessing);
 
     const [attachmentPreview, fileUploadJSX] = useUploadFiles(

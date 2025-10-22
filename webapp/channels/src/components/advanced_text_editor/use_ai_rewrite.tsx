@@ -12,6 +12,7 @@ import {
     TextBoxOutlineIcon,
     CreationOutlineIcon,
 } from '@mattermost/compass-icons/components';
+import type {ServerError} from '@mattermost/types/errors';
 
 import {Client4} from 'mattermost-redux/client';
 
@@ -29,6 +30,9 @@ const useAIRewrite = (
     draft: PostDraft,
     handleDraftChange: ((draft: PostDraft, options: { instant?: boolean; show?: boolean }) => void),
     focusTextbox: (keepFocus?: boolean) => void,
+    setServerError: React.Dispatch<React.SetStateAction<(ServerError & {
+        submittedMessage?: string;
+    }) | null>>,
 ) => {
     const {formatMessage} = useIntl();
     const [isProcessing, setIsProcessing] = useState(false);
@@ -89,13 +93,11 @@ const useAIRewrite = (
                 };
 
                 handleDraftChange(updatedDraft, {instant: true});
-                //focusTextbox();
             }
         } catch (error) {
             // Only log error if this is still the current promise
             if (currentPromiseRef.current === promise) {
-                console.error('AI rewrite error', error);
-                // TODO: Show error in the footer when error handling is implemented
+                setServerError(error);
             }
         } finally {
             // Only update state if this is still the current promise
@@ -104,7 +106,7 @@ const useAIRewrite = (
                 currentPromiseRef.current = null;
             }
         }
-    }, [draft, handleDraftChange, focusTextbox, isProcessing]);
+    }, [draft, handleDraftChange, isProcessing, setServerError]);
 
     const cancelProcessing = useCallback(() => {
         setIsProcessing(false);
@@ -122,6 +124,10 @@ const useAIRewrite = (
             handleAIRewrite('custom', prompt);
         }
     }, [handleAIRewrite, prompt]);
+
+    const handleMenuAction = useCallback((action: string) => {
+        return () => handleAIRewrite(action);
+    }, [handleAIRewrite]);
 
     // Automatically render overlay when processing
     useEffect(() => {
@@ -162,7 +168,7 @@ const useAIRewrite = (
         setOriginalMessage('');
         setLastAction(null);
         setPrompt('');
-    }, [draft, handleDraftChange, focusTextbox]);
+    }, [draft, handleDraftChange, originalMessage, focusTextbox]);
 
     const regenerateMessage = useCallback(() => {
         handleDraftChange({
@@ -172,7 +178,7 @@ const useAIRewrite = (
         if (lastAction) {
             handleAIRewrite(lastAction, lastAction === 'custom' ? prompt : undefined);
         }
-    }, [handleAIRewrite, lastAction]);
+    }, [draft, handleAIRewrite, originalMessage, lastAction, prompt, handleDraftChange]);
 
     const additionalControl = useMemo(() => {
         const showMenuItem = !isProcessing && draft.message.trim();
@@ -297,7 +303,7 @@ const useAIRewrite = (
                             </span>
                         }
                         leadingElement={<ArrowCollapseIcon size={18}/>}
-                        onClick={() => handleAIRewrite('shorten')}
+                        onClick={handleMenuAction('shorten')}
                     />
                 }
                 {showMenuItem &&
@@ -314,7 +320,7 @@ const useAIRewrite = (
                             </span>
                         }
                         leadingElement={<ArrowExpandIcon size={18}/>}
-                        onClick={() => handleAIRewrite('elaborate')}
+                        onClick={handleMenuAction('elaborate')}
                     />
                 }
                 {showMenuItem &&
@@ -331,7 +337,7 @@ const useAIRewrite = (
                             </span>
                         }
                         leadingElement={<FormatLetterCaseIcon size={18}/>}
-                        onClick={() => handleAIRewrite('improve_writing')}
+                        onClick={handleMenuAction('improve_writing')}
                     />
                 }
                 {showMenuItem &&
@@ -348,7 +354,7 @@ const useAIRewrite = (
                             </span>
                         }
                         leadingElement={<FormatLetterCaseIcon size={18}/>}
-                        onClick={() => handleAIRewrite('fix_spelling')}
+                        onClick={handleMenuAction('fix_spelling')}
                     />
                 }
                 {showMenuItem &&
@@ -365,7 +371,7 @@ const useAIRewrite = (
                             </span>
                         }
                         leadingElement={<CreationOutlineIcon size={18}/>}
-                        onClick={() => handleAIRewrite('simplify')}
+                        onClick={handleMenuAction('simplify')}
                     />
                 }
                 {showMenuItem &&
@@ -382,7 +388,7 @@ const useAIRewrite = (
                             </span>
                         }
                         leadingElement={<TextBoxOutlineIcon size={18}/>}
-                        onClick={() => handleAIRewrite('summarize')}
+                        onClick={handleMenuAction('summarize')}
                     />
                 }
             </Menu.Container>
@@ -392,21 +398,21 @@ const useAIRewrite = (
         isProcessing,
         formatMessage,
         handleAIRewrite,
+        handleMenuAction,
         isMenuOpen,
         setIsMenuOpen,
         prompt,
         handleCustomPromptKeyDown,
         cancelProcessing,
+        lastAction,
+        originalMessage,
+        regenerateMessage,
+        undoMessage,
     ]);
-
-    const clearOriginalMessage = useCallback(() => {
-        setOriginalMessage('');
-    }, [setOriginalMessage]);
 
     return {
         additionalControl,
         isProcessing,
-        clearOriginalMessage,
     };
 };
 
