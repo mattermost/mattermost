@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {render, screen} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
-
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import IconButton from './icon_button';
 import type {IconButtonProps} from './icon_button';
@@ -29,7 +29,7 @@ describe('components/primitives/icon_button/IconButton', () => {
     // 1. RENDERING & PROPS TESTING
     describe('rendering', () => {
         test('should render with default props', () => {
-            renderWithContext(<IconButton {...baseProps}/>);
+            render(<IconButton {...baseProps}/>);
 
             const button = screen.getByRole('button', {name: 'Test button'});
             expect(button).toBeVisible();
@@ -42,7 +42,7 @@ describe('components/primitives/icon_button/IconButton', () => {
             const sizes: Array<IconButtonProps['size']> = ['xs', 'sm', 'md', 'lg'];
 
             sizes.forEach((size) => {
-                const {unmount} = renderWithContext(
+                const {unmount} = render(
                     <IconButton
                         {...baseProps}
                         size={size}
@@ -56,7 +56,7 @@ describe('components/primitives/icon_button/IconButton', () => {
         });
 
         test('should render all padding variants', () => {
-            const {rerender} = renderWithContext(
+            const {rerender} = render(
                 <IconButton
                     {...baseProps}
                     data-testid='padding-test'
@@ -77,14 +77,14 @@ describe('components/primitives/icon_button/IconButton', () => {
         });
 
         test('should render icon correctly', () => {
-            renderWithContext(<IconButton {...baseProps}/>);
+            render(<IconButton {...baseProps}/>);
 
             expect(screen.getByTestId('test-icon')).toBeInTheDocument();
             expect(screen.getByTestId('test-icon')).toBeVisible();
         });
 
         test('should apply custom className', () => {
-            renderWithContext(
+            render(
                 <IconButton
                     {...baseProps}
                     className='custom-class'
@@ -96,7 +96,7 @@ describe('components/primitives/icon_button/IconButton', () => {
         });
 
         test('should handle different button types', () => {
-            renderWithContext(
+            render(
                 <IconButton
                     {...baseProps}
                     type='submit'
@@ -111,7 +111,7 @@ describe('components/primitives/icon_button/IconButton', () => {
     // 2. ACCESSIBILITY TESTING
     describe('accessibility', () => {
         test('should have proper ARIA attributes', () => {
-            renderWithContext(<IconButton {...baseProps}/>);
+            render(<IconButton {...baseProps}/>);
 
             const button = screen.getByRole('button');
             expect(button).toHaveAttribute('aria-label', 'Test button');
@@ -119,7 +119,7 @@ describe('components/primitives/icon_button/IconButton', () => {
         });
 
         test('should set aria-pressed for toggled state', () => {
-            renderWithContext(
+            render(
                 <IconButton
                     {...baseProps}
                     toggled={true}
@@ -132,7 +132,7 @@ describe('components/primitives/icon_button/IconButton', () => {
 
         test('should be focusable and have proper focus management', async () => {
             const user = userEvent.setup();
-            renderWithContext(<IconButton {...baseProps}/>);
+            render(<IconButton {...baseProps}/>);
 
             const button = screen.getByRole('button');
             await user.tab();
@@ -141,7 +141,7 @@ describe('components/primitives/icon_button/IconButton', () => {
         });
 
         test('should not be focusable when disabled', () => {
-            renderWithContext(
+            render(
                 <IconButton
                     {...baseProps}
                     disabled={true}
@@ -153,7 +153,7 @@ describe('components/primitives/icon_button/IconButton', () => {
         });
 
         test('should maintain accessibility with loading state', () => {
-            renderWithContext(
+            render(
                 <IconButton
                     {...baseProps}
                     loading={true}
@@ -172,7 +172,7 @@ describe('components/primitives/icon_button/IconButton', () => {
             const user = userEvent.setup();
             const handleClick = jest.fn();
 
-            renderWithContext(
+            render(
                 <IconButton
                     {...baseProps}
                     onClick={handleClick}
@@ -187,7 +187,7 @@ describe('components/primitives/icon_button/IconButton', () => {
             const user = userEvent.setup();
             const handleClick = jest.fn();
 
-            renderWithContext(
+            render(
                 <IconButton
                     {...baseProps}
                     disabled={true}
@@ -203,7 +203,7 @@ describe('components/primitives/icon_button/IconButton', () => {
             const user = userEvent.setup();
             const handleClick = jest.fn();
 
-            renderWithContext(
+            render(
                 <IconButton
                     {...baseProps}
                     loading={true}
@@ -219,7 +219,7 @@ describe('components/primitives/icon_button/IconButton', () => {
             const user = userEvent.setup();
             const handleClick = jest.fn();
 
-            renderWithContext(
+            render(
                 <IconButton
                     {...baseProps}
                     onClick={handleClick}
@@ -237,7 +237,7 @@ describe('components/primitives/icon_button/IconButton', () => {
     // 4. STATE & CONDITIONAL RENDERING
     describe('states', () => {
         test('should render loading state correctly', () => {
-            renderWithContext(
+            render(
                 <IconButton
                     {...baseProps}
                     loading={true}
@@ -256,7 +256,7 @@ describe('components/primitives/icon_button/IconButton', () => {
         });
 
         test('should render toggled state correctly', () => {
-            renderWithContext(
+            render(
                 <IconButton
                     {...baseProps}
                     toggled={true}
@@ -269,7 +269,7 @@ describe('components/primitives/icon_button/IconButton', () => {
         });
 
         test('should render destructive state correctly', () => {
-            renderWithContext(
+            render(
                 <IconButton
                     {...baseProps}
                     destructive={true}
@@ -280,7 +280,7 @@ describe('components/primitives/icon_button/IconButton', () => {
         });
 
         test('should render inverted state correctly', () => {
-            renderWithContext(
+            render(
                 <IconButton
                     {...baseProps}
                     inverted={true}
@@ -291,7 +291,7 @@ describe('components/primitives/icon_button/IconButton', () => {
         });
 
         test('should render rounded state correctly', () => {
-            renderWithContext(
+            render(
                 <IconButton
                     {...baseProps}
                     rounded={true}
@@ -302,7 +302,7 @@ describe('components/primitives/icon_button/IconButton', () => {
         });
 
         test('should combine multiple state classes', () => {
-            renderWithContext(
+            render(
                 <IconButton
                     {...baseProps}
                     size='lg'
@@ -330,7 +330,7 @@ describe('components/primitives/icon_button/IconButton', () => {
     // 5. COUNT FEATURE
     describe('count feature', () => {
         test('should render count when enabled with count number', () => {
-            renderWithContext(
+            render(
                 <IconButton
                     {...baseProps}
                     showCount={true}
@@ -344,7 +344,7 @@ describe('components/primitives/icon_button/IconButton', () => {
         });
 
         test('should not render count when disabled', () => {
-            renderWithContext(
+            render(
                 <IconButton
                     {...baseProps}
                     count={5}
@@ -357,7 +357,7 @@ describe('components/primitives/icon_button/IconButton', () => {
         });
 
         test('should format count correctly', () => {
-            const {rerender} = renderWithContext(
+            const {rerender} = render(
                 <IconButton
                     {...baseProps}
                     showCount={true}
@@ -380,7 +380,7 @@ describe('components/primitives/icon_button/IconButton', () => {
         });
 
         test('should display large count numbers', () => {
-            renderWithContext(
+            render(
                 <IconButton
                     {...baseProps}
                     showCount={true}
@@ -393,7 +393,7 @@ describe('components/primitives/icon_button/IconButton', () => {
         });
 
         test('should handle zero count', () => {
-            renderWithContext(
+            render(
                 <IconButton
                     {...baseProps}
                     showCount={true}
@@ -407,7 +407,7 @@ describe('components/primitives/icon_button/IconButton', () => {
         });
 
         test('should hide count when loading', () => {
-            renderWithContext(
+            render(
                 <IconButton
                     {...baseProps}
                     showCount={true}
@@ -425,7 +425,7 @@ describe('components/primitives/icon_button/IconButton', () => {
     // 6. UNREAD INDICATOR
     describe('unread indicator', () => {
         test('should render unread indicator when enabled', () => {
-            renderWithContext(
+            render(
                 <IconButton
                     {...baseProps}
                     unread={true}
@@ -438,7 +438,7 @@ describe('components/primitives/icon_button/IconButton', () => {
         });
 
         test('should not render unread indicator when disabled', () => {
-            renderWithContext(<IconButton {...baseProps}/>);
+            render(<IconButton {...baseProps}/>);
 
             const button = screen.getByRole('button');
             expect(button).not.toHaveClass('IconButton--with-unread');
@@ -446,7 +446,7 @@ describe('components/primitives/icon_button/IconButton', () => {
         });
 
         test('should apply correct size classes to indicator', () => {
-            renderWithContext(
+            render(
                 <IconButton
                     {...baseProps}
                     size='lg'
@@ -464,7 +464,7 @@ describe('components/primitives/icon_button/IconButton', () => {
         test('should forward ref to button element', () => {
             const ref = React.createRef<HTMLButtonElement>();
 
-            renderWithContext(
+            render(
                 <IconButton
                     {...baseProps}
                     ref={ref}
@@ -478,7 +478,7 @@ describe('components/primitives/icon_button/IconButton', () => {
         test('should allow calling focus on ref', () => {
             const ref = React.createRef<HTMLButtonElement>();
 
-            renderWithContext(
+            render(
                 <IconButton
                     {...baseProps}
                     ref={ref}
@@ -493,7 +493,7 @@ describe('components/primitives/icon_button/IconButton', () => {
             const ref = React.createRef<HTMLButtonElement>();
             const handleClick = jest.fn();
 
-            renderWithContext(
+            render(
                 <IconButton
                     {...baseProps}
                     ref={ref}
@@ -517,7 +517,7 @@ describe('components/primitives/icon_button/IconButton', () => {
             const user = userEvent.setup();
             const handleSubmit = jest.fn((e) => e.preventDefault());
 
-            renderWithContext(
+            render(
                 <form onSubmit={handleSubmit}>
                     <IconButton
                         {...baseProps}
@@ -531,7 +531,7 @@ describe('components/primitives/icon_button/IconButton', () => {
         });
 
         test('should work with custom HTML attributes', () => {
-            renderWithContext(
+            render(
                 <IconButton
                     {...baseProps}
                     data-testid='custom-button'
@@ -551,7 +551,7 @@ describe('components/primitives/icon_button/IconButton', () => {
                 return <IconButton {...baseProps}/>;
             });
 
-            const {rerender} = renderWithContext(<TestIconButton/>);
+            const {rerender} = render(<TestIconButton/>);
             rerender(<TestIconButton/>);
 
             expect(renderSpy).toHaveBeenCalledTimes(1);
@@ -571,7 +571,7 @@ describe('components/primitives/icon_button/IconButton', () => {
                 );
             };
 
-            renderWithContext(<TestComponent/>);
+            render(<TestComponent/>);
 
             const button = screen.getByRole('button');
 
@@ -586,20 +586,20 @@ describe('components/primitives/icon_button/IconButton', () => {
         test('should handle edge cases gracefully', () => {
             // Test with null count
             expect(() => {
-                renderWithContext(
+                render(
                     <IconButton
                         {...baseProps}
                         showCount={true}
-                        count={null as any}
+                        count={null as unknown as number}
                     />,
                 );
             }).not.toThrow();
 
             // Test with undefined icon (should still render)
             expect(() => {
-                renderWithContext(
+                render(
                     <IconButton
-                        icon={undefined as any}
+                        icon={undefined as unknown as React.ReactNode}
                         aria-label='Test'
                         title='Test'
                     />,
