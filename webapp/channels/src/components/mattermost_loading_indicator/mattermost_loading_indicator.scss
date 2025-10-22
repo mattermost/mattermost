@@ -15,9 +15,9 @@
     --ease-in-out: var(--ease-in-out-cubic);
     --ease-in-out-compass-shrink: cubic-bezier(0.1, 0.25, 0.3, 1);
 
+    display: block;
     opacity: 1;
     transform: scale3d(1, 1, 1);
-    display: block;
 
     g,
     rect,
