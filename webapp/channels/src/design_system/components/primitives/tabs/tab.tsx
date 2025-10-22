@@ -13,7 +13,7 @@ type Props = {
     tabIndex?: number;
 }
 
-export default function Tab({children, title, unmountOnExit, tabClassName, eventKey, tabIndex = -1}: Props) {
+export function Tab({children, title, unmountOnExit, tabClassName, eventKey, tabIndex = -1}: Props) {
     return (
         <ReactBootstrapTab
             eventKey={eventKey}
