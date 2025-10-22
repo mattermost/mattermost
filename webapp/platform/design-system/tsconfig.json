@@ -1,0 +1,22 @@
+{
+    "compilerOptions": {
+        "target": "esnext",
+        "module": "esnext",
+        "moduleResolution": "node",
+        "jsx": "react",
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        "strict": true,
+        "skipLibCheck": true,
+        "strictNullChecks": true,
+        "types": ["node", "@testing-library/jest-dom"],
+        "isolatedModules": true,
+        "declaration": true,
+        "outDir": "dist",
+        "rootDir": "src",
+        "composite": true
+    },
+    "include": [
+        "./src/**/*"
+    ]
+}
