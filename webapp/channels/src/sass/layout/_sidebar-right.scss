@@ -120,6 +120,10 @@
         }
     }
 
+    .PopoutButton + .sidebar--right__expand {
+        display: none;
+    }
+
     .sidebar--right__title {
         display: flex;
         height: auto;
