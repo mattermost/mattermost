@@ -329,12 +329,12 @@ describe('components/widgets/icon_button/IconButton', () => {
 
     // 5. COUNT FEATURE
     describe('count feature', () => {
-        test('should render count when enabled with countText', () => {
+        test('should render count when enabled with count number', () => {
             renderWithContext(
                 <IconButton
                     {...baseProps}
-                    count={true}
-                    countText='5'
+                    showCount={true}
+                    count={5}
                 />,
             );
 
@@ -347,7 +347,7 @@ describe('components/widgets/icon_button/IconButton', () => {
             renderWithContext(
                 <IconButton
                     {...baseProps}
-                    countText='5'
+                    count={5}
                 />,
             );
 
@@ -356,12 +356,12 @@ describe('components/widgets/icon_button/IconButton', () => {
             expect(button).not.toHaveTextContent('5');
         });
 
-        test('should format countText correctly', () => {
+        test('should format count correctly', () => {
             const {rerender} = renderWithContext(
                 <IconButton
                     {...baseProps}
-                    count={true}
-                    countText={42}
+                    showCount={true}
+                    count={42}
                 />,
             );
 
@@ -371,67 +371,47 @@ describe('components/widgets/icon_button/IconButton', () => {
             rerender(
                 <IconButton
                     {...baseProps}
-                    count={true}
-                    countText='  hi  '
+                    showCount={true}
+                    count={99}
                 />,
             );
             const countElement2 = screen.getByRole('button').querySelector('.IconButton__count');
-            expect(countElement2).toHaveTextContent('hi');
+            expect(countElement2).toHaveTextContent('99');
         });
 
-        test('should truncate countText to 4 characters', () => {
-            const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
-
-            // Mock NODE_ENV for development warning
-            const originalDescriptor = Object.getOwnPropertyDescriptor(globalThis.process.env, 'NODE_ENV');
-            Object.defineProperty(globalThis.process.env, 'NODE_ENV', {
-                value: 'development',
-                configurable: true,
-            });
-
+        test('should display large count numbers', () => {
             renderWithContext(
                 <IconButton
                     {...baseProps}
-                    count={true}
-                    countText='12345'
+                    showCount={true}
+                    count={12345}
                 />,
             );
 
             const countElement = screen.getByRole('button').querySelector('.IconButton__count');
-            expect(countElement).toHaveTextContent('1234');
-            expect(consoleSpy).toHaveBeenCalledWith(
-                'IconButton: countText "12345" truncated to "1234"',
-            );
-
-            // Restore NODE_ENV
-            if (originalDescriptor) {
-                Object.defineProperty(globalThis.process.env, 'NODE_ENV', originalDescriptor);
-            } else {
-                delete globalThis.process.env.NODE_ENV;
-            }
-            consoleSpy.mockRestore();
+            expect(countElement).toHaveTextContent('12345');
         });
 
-        test('should handle empty countText', () => {
+        test('should handle zero count', () => {
             renderWithContext(
                 <IconButton
                     {...baseProps}
-                    count={true}
-                    countText=''
+                    showCount={true}
+                    count={0}
                 />,
             );
 
             const button = screen.getByRole('button');
             expect(button).toHaveClass('IconButton--with-count');
-            expect(button.querySelector('.IconButton__count')).toHaveTextContent('');
+            expect(button.querySelector('.IconButton__count')).toHaveTextContent('0');
         });
 
         test('should hide count when loading', () => {
             renderWithContext(
                 <IconButton
                     {...baseProps}
-                    count={true}
-                    countText='5'
+                    showCount={true}
+                    count={5}
                     loading={true}
                 />,
             );
@@ -604,13 +584,13 @@ describe('components/widgets/icon_button/IconButton', () => {
         });
 
         test('should handle edge cases gracefully', () => {
-            // Test with null countText
+            // Test with null count
             expect(() => {
                 renderWithContext(
                     <IconButton
                         {...baseProps}
-                        count={true}
-                        countText={null as any}
+                        showCount={true}
+                        count={null as any}
                     />,
                 );
             }).not.toThrow();
