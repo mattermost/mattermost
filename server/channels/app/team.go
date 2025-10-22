@@ -599,20 +599,12 @@ func (a *App) AddUserToTeamByTeamId(rctx request.CTX, teamID string, user *model
 	return nil
 }
 
-func (a *App) AddUserToTeamByToken(rctx request.CTX, userID string, tokenID string) (*model.Team, *model.TeamMember, *model.AppError) {
-	token, err := a.Srv().Store().Token().GetByToken(tokenID)
-	if err != nil {
-		return nil, nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-	}
-
+func (a *App) AddUserToTeamByToken(rctx request.CTX, userID string, token *model.Token) (*model.Team, *model.TeamMember, *model.AppError) {
 	if token.Type != TokenTypeTeamInvitation && token.Type != TokenTypeGuestInvitation && token.Type != TokenTypeEasyLoginInvitation {
 		return nil, nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if model.GetMillis()-token.CreateAt >= InvitationExpiryTime {
-		if err := a.DeleteToken(token); err != nil {
-			rctx.Logger().Warn("Error deleting expired team invitation token during team join", mlog.String("token_id", token.Token), mlog.String("token_type", token.Type), mlog.Err(err))
-		}
 		return nil, nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_expired.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -684,10 +676,6 @@ func (a *App) AddUserToTeamByToken(rctx request.CTX, userID string, tokenID stri
 				rctx.Logger().Warn("Error adding user to channel", mlog.Err(err))
 			}
 		}
-	}
-
-	if err := a.DeleteToken(token); err != nil {
-		rctx.Logger().Warn("Error while deleting token", mlog.Err(err))
 	}
 
 	return team, teamMember, nil
@@ -1079,9 +1067,14 @@ func (a *App) AddTeamMembers(rctx request.CTX, teamID string, userIDs []string, 
 }
 
 func (a *App) AddTeamMemberByToken(rctx request.CTX, userID, tokenID string) (*model.TeamMember, *model.AppError) {
-	_, teamMember, err := a.AddUserToTeamByToken(rctx, userID, tokenID)
+	token, err := a.Srv().Store().Token().ConsumeOnce(tokenID)
 	if err != nil {
-		return nil, err
+		return nil, model.NewAppError("AddTeamMemberByToken", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	_, teamMember, appErr := a.AddUserToTeamByToken(rctx, userID, token)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	return teamMember, nil

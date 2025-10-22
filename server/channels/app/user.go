@@ -42,6 +42,7 @@ const (
 	TokenTypeEasyLogin           = "easy_login"
 	PasswordRecoverExpiryTime    = 1000 * 60 * 60 * 24 // 24 hours
 	InvitationExpiryTime         = 1000 * 60 * 60 * 48 // 48 hours
+	EasyLoginExpiryTime          = 1000 * 60 * 5       // 5 minutes
 	ImageProfilePixelDimension   = 128
 )
 
@@ -55,9 +56,6 @@ func (a *App) CreateUserWithToken(rctx request.CTX, user *model.User, token *mod
 	}
 
 	if model.GetMillis()-token.CreateAt >= InvitationExpiryTime {
-		if appErr := a.DeleteToken(token); appErr != nil {
-			rctx.Logger().Warn("Error while deleting expired signup-invite token", mlog.Err(appErr))
-		}
 		return nil, model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_expired.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -123,10 +121,6 @@ func (a *App) CreateUserWithToken(rctx request.CTX, user *model.User, token *mod
 		}
 	}
 
-	if err := a.DeleteToken(token); err != nil {
-		rctx.Logger().Warn("Error while deleting token", mlog.Err(err))
-	}
-
 	return ruser, nil
 }
 
@@ -134,8 +128,7 @@ func (a *App) CreateUserWithToken(rctx request.CTX, user *model.User, token *mod
 // This function handles the passwordless "easy login" flow where clicking an email link logs the user in.
 // Follows the same pattern as SAML/OAuth SSO by creating the user then calling AddUserToTeamByToken.
 func (a *App) AuthenticateUserForEasyLogin(rctx request.CTX, tokenString string) (*model.User, *model.AppError) {
-	// Get and validate token type and expiry
-	token, err := a.Srv().Store().Token().GetByToken(tokenString)
+	token, err := a.Srv().Store().Token().ConsumeOnce(tokenString)
 	if err != nil {
 		return nil, model.NewAppError("AuthenticateUserForEasyLogin", "api.user.easy_login.invalid_token.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -144,10 +137,11 @@ func (a *App) AuthenticateUserForEasyLogin(rctx request.CTX, tokenString string)
 		return nil, model.NewAppError("AuthenticateUserForEasyLogin", "api.user.easy_login.invalid_token_type.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if model.GetMillis()-token.CreateAt >= InvitationExpiryTime {
-		if appErr := a.DeleteToken(token); appErr != nil {
-			rctx.Logger().Warn("Error while deleting expired easy login token", mlog.Err(appErr))
-		}
+	var expiryTime int64 = InvitationExpiryTime
+	if token.Type == TokenTypeEasyLogin {
+		expiryTime = EasyLoginExpiryTime
+	}
+	if model.GetMillis()-token.CreateAt >= expiryTime {
 		return nil, model.NewAppError("AuthenticateUserForEasyLogin", "api.user.easy_login.expired_token.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -161,15 +155,8 @@ func (a *App) AuthenticateUserForEasyLogin(rctx request.CTX, tokenString string)
 	// Handle login-only tokens (TokenTypeEasyLogin) - for existing users only
 	if token.Type == TokenTypeEasyLogin {
 		if getUserErr != nil || existingUser == nil {
-			if appErr := a.DeleteToken(token); appErr != nil {
-				rctx.Logger().Warn("Error while deleting token for non-existent user", mlog.Err(appErr))
-			}
 			// Return generic error to prevent user enumeration
 			return nil, model.NewAppError("AuthenticateUserForEasyLogin", "api.user.easy_login.invalid_token.app_error", nil, "", http.StatusBadRequest)
-		}
-		// Delete the single-use token and return the existing user
-		if appErr := a.DeleteToken(token); appErr != nil {
-			rctx.Logger().Warn("Error while deleting used login token", mlog.Err(appErr))
 		}
 		return existingUser, nil
 	}
@@ -178,9 +165,6 @@ func (a *App) AuthenticateUserForEasyLogin(rctx request.CTX, tokenString string)
 	if getUserErr == nil && existingUser != nil {
 		// Log the specific reason internally for debugging
 		rctx.Logger().Warn("Easy login invitation token attempted for existing user", mlog.String("email", email))
-		if appErr := a.DeleteToken(token); appErr != nil {
-			rctx.Logger().Warn("Error while deleting token for existing user", mlog.Err(appErr))
-		}
 		// Return generic error to prevent user enumeration - don't reveal that user exists
 		return nil, model.NewAppError("AuthenticateUserForEasyLogin", "api.user.easy_login.invalid_token.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -205,7 +189,6 @@ func (a *App) AuthenticateUserForEasyLogin(rctx request.CTX, tokenString string)
 		return nil, model.NewAppError("AuthenticateUserForEasyLogin", "api.user.easy_login.username_generation_failed.app_error", nil, "could not generate unique username after 10 attempts", http.StatusInternalServerError)
 	}
 
-	// Create guest user with auto-generated username
 	user := &model.User{
 		Email:         email,
 		EmailVerified: true,
@@ -219,9 +202,7 @@ func (a *App) AuthenticateUserForEasyLogin(rctx request.CTX, tokenString string)
 		return nil, createErr
 	}
 
-	// Add user to team and channels using the shared SSO pattern
-	// This handles team joining, channel assignment, and token deletion
-	if _, _, addErr := a.AddUserToTeamByToken(rctx, guestUser.Id, tokenString); addErr != nil {
+	if _, _, addErr := a.AddUserToTeamByToken(rctx, guestUser.Id, token); addErr != nil {
 		return nil, addErr
 	}
 
@@ -513,7 +494,12 @@ func (a *App) AddUserToTeamByInviteIfNeeded(rctx request.CTX, user *model.User, 
 	var err *model.AppError
 
 	if inviteToken != "" {
-		team, _, err = a.AddUserToTeamByToken(rctx, user.Id, inviteToken)
+		token, tokenErr := a.Srv().Store().Token().ConsumeOnce(inviteToken)
+		if tokenErr != nil {
+			rctx.Logger().Warn("Failed to consume invite token", mlog.Err(tokenErr))
+			return model.NewAppError("AddUserToTeamByInviteIfNeeded", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest).Wrap(tokenErr)
+		}
+		team, _, err = a.AddUserToTeamByToken(rctx, user.Id, token)
 		if err != nil {
 			rctx.Logger().Warn("Failed to add user to team using invite token", mlog.Err(err))
 			return err

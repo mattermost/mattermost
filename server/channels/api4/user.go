@@ -234,7 +234,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	var ruser *model.User
 	var err *model.AppError
 	if tokenId != "" {
-		token, appErr := c.App.GetTokenById(tokenId)
+		token, appErr := c.App.Srv().Store().Token().ConsumeOnce(tokenId)
 		if appErr != nil {
 			c.Err = appErr
 			return
