@@ -2226,15 +2226,16 @@ func getLoginType(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Logger.Warn("Failed to send easy login email",
 				mlog.Err(eErr),
 				mlog.String("user_id", user.Id))
-		} else if jErr := json.NewEncoder(w).Encode(model.LoginTypeResponse{
+			return
+		}
+		c.Logger.Debug("Easy login email sent successfully", mlog.String("user_id", user.Id))
+
+		if jErr := json.NewEncoder(w).Encode(model.LoginTypeResponse{
 			AuthService: "easy_login",
 		}); jErr != nil {
 			c.Logger.Warn("Error while writing response", mlog.Err(err))
-			return
-		} else {
-			c.Logger.Info("Easy login email sent successfully", mlog.String("user_id", user.Id))
-			return
 		}
+		return
 	}
 
 	if err := json.NewEncoder(w).Encode(model.LoginTypeResponse{
