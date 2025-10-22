@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {RootHtmlPortalId} from 'utils/constants';
 
 import PluginLinkTooltip from '.';
@@ -50,14 +50,12 @@ describe('PluginLinkTooltip', () => {
 
         expect(screen.queryByText('This is a link tooltip')).not.toBeInTheDocument();
 
-        userEvent.hover(screen.getByText('This is a link'));
+        await userEvent.hover(screen.getByText('This is a link'));
         await waitFor(() => {
             expect(screen.queryByText('This is a link tooltip')).toBeVisible();
         });
 
-        act(() => {
-            userEvent.unhover(screen.getByText('This is a link'));
-        });
+        await userEvent.unhover(screen.getByText('This is a link'));
         await waitFor(() => {
             expect(screen.queryByText('This is a link tooltip')).not.toBeInTheDocument();
         });
@@ -81,16 +79,14 @@ describe('PluginLinkTooltip', () => {
 
         screen.getByTestId('textarea').focus();
 
-        userEvent.hover(screen.getByText('This is a link'));
+        await userEvent.hover(screen.getByText('This is a link'));
         await waitFor(() => {
             expect(screen.queryByText('This is a link tooltip')).toBeVisible();
         });
 
         expect(screen.getByTestId('textarea')).toHaveFocus();
 
-        act(() => {
-            userEvent.unhover(screen.getByText('This is a link'));
-        });
+        await userEvent.unhover(screen.getByText('This is a link'));
         await waitFor(() => {
             expect(screen.queryByText('This is a link tooltip')).not.toBeInTheDocument();
         });
@@ -116,16 +112,14 @@ describe('PluginLinkTooltip', () => {
 
         screen.getByTestId('textarea').focus();
 
-        userEvent.hover(screen.getByText('This is a link'));
+        await userEvent.hover(screen.getByText('This is a link'));
         await waitFor(() => {
             expect(screen.queryByText('This is a link tooltip')).not.toBeInTheDocument();
         });
 
         expect(screen.getByTestId('textarea')).toHaveFocus();
 
-        act(() => {
-            userEvent.unhover(screen.getByText('This is a link'));
-        });
+        await userEvent.unhover(screen.getByText('This is a link'));
         await waitFor(() => {
             expect(screen.queryByText('This is a link tooltip')).not.toBeInTheDocument();
         });

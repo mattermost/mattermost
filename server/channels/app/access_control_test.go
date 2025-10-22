@@ -443,13 +443,18 @@ func TestUnassignPoliciesFromChannels(t *testing.T) {
 	})
 
 	t.Run("Error deleting policy from AccessControlService", func(t *testing.T) {
-		t.Skip("MM-64541")
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockAccessControl
 
-		expectedErr := model.NewAppError("DeletePolicy", "mock.delete.error", nil, "failed to delete from acs", http.StatusInternalServerError)
+		mockAccessControl.On("SearchPolicies", rctx, model.AccessControlPolicySearch{
+			Type:     model.AccessControlPolicyTypeChannel,
+			ParentID: parentPolicy.ID,
+			Limit:    1000,
+		}).Return([]*model.AccessControlPolicy{childPolicy1}, mock.Anything, nil).Once()
+		mockAccessControl.On("GetPolicy", rctx, ch1.Id).Return(childPolicy1, nil).Once()
+
+		expectedErr := model.NewAppError("DeletePolicy", "app.pap.unassign_access_control_policy_from_channels.app_error", nil, "failed to delete from acs", http.StatusInternalServerError)
 		mockAccessControl.On("DeletePolicy", rctx, ch1.Id).Return(expectedErr).Once()
-		mockAccessControl.On("DeletePolicy", rctx, ch2.Id).Return(nil).Maybe()
 
 		appErr := th.App.UnassignPoliciesFromChannels(rctx, parentPolicy.ID, []string{ch1.Id, ch2.Id})
 		require.NotNil(t, appErr)
@@ -458,13 +463,6 @@ func TestUnassignPoliciesFromChannels(t *testing.T) {
 
 		mockAccessControl.AssertCalled(t, "DeletePolicy", rctx, ch1.Id)
 		mockAccessControl.AssertNotCalled(t, "DeletePolicy", rctx, ch2.Id)
-
-		p1, storeErr := th.App.Srv().Store().AccessControlPolicy().Get(rctx, ch1.Id)
-		assert.NoError(t, storeErr)
-		assert.NotNil(t, p1)
-		p2, storeErr := th.App.Srv().Store().AccessControlPolicy().Get(rctx, ch2.Id)
-		assert.NoError(t, storeErr)
-		assert.NotNil(t, p2)
 	})
 
 	t.Run("Channel not actually a child policy", func(t *testing.T) {

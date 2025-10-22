@@ -8938,5 +8938,53 @@
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
     "translation": "No se pudo anular la invitación de remoto al canal"
+  },
+  {
+    "id": "api.access_control_policy.get_channels.limit.app_error",
+    "translation": "El obtener el límite de canales no es válido"
+  },
+  {
+    "id": "api.channel.add_user.to.channel.rejected",
+    "translation": "El usuario no tiene los atributos requeridos para unirse al canal."
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subject",
+    "translation": "CAmbios a los filtros IP de tu Workspace"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.title",
+    "translation": "Cambios de filtrado IP para tu workspace"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.contact_support",
+    "translation": "Contacta a soporte"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.log_in_to_customer_portal",
+    "translation": "Inicia sesión en el portal de cliente para restablecer el filtrado de IP"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.send_an_email_to",
+    "translation": "Envía un email a {{ .InitiatingUserEmail }}"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.title",
+    "translation": "¿Tienes problemas accediendo a tu workspace?"
+  },
+  {
+    "id": "api.templates.license_up_for_renewal_contact_sales",
+    "translation": "Contacta a ventas"
+  },
+  {
+    "id": "api.user.get_profile_image_path.app_error",
+    "translation": "Error al revisar is un usuarrio tiene una imagen de perfil personalizada."
+  },
+  {
+    "id": "api.user.get_users.validation.app_error",
+    "translation": "Error al obtener roles durante la validación."
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens.error",
+    "translation": "No fue posible onbtener tokes por tipo cuando se invalidaban los tokens de recuperación de contraseña"
   }
 ]

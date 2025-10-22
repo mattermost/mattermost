@@ -827,8 +827,10 @@ func (s *MmctlE2ETestSuite) TestUserConvertCmdF() {
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("bot", true, "")
 
-		_ = userConvertCmdF(c, cmd, []string{emailArg})
+		err := userConvertCmdF(c, cmd, []string{emailArg})
 		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.ErrorContains(err, "user something@something.com not found")
 	})
 
 	s.RunForSystemAdminAndLocal("Valid user to bot convert", func(c client.Client) {
@@ -857,10 +859,10 @@ func (s *MmctlE2ETestSuite) TestUserConvertCmdF() {
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("bot", true, "")
 
-		_ = userConvertCmdF(s.th.Client, cmd, []string{email})
+		err := userConvertCmdF(s.th.Client, cmd, []string{email})
 		s.Require().Len(printer.GetLines(), 0)
-		s.Require().Len(printer.GetErrorLines(), 1)
-		s.Equal("You do not have the appropriate permissions.", printer.GetErrorLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.ErrorContains(err, "You do not have the appropriate permissions")
 	})
 
 	s.RunForSystemAdminAndLocal("Valid bot to user convert", func(c client.Client) {

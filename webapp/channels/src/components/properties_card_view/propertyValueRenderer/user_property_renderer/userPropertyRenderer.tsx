@@ -10,6 +10,7 @@ import type {
 
 import {useUser} from 'components/common/hooks/useUser';
 import PreviewPostAvatar from 'components/post_view/post_message_preview/avatar/avatar';
+import type {UserPropertyMetadata} from 'components/properties_card_view/properties_card_view';
 import UserProfileComponent from 'components/user_profile';
 
 import {SelectableUserPropertyRenderer} from './selectable_user_property_renderer';
@@ -18,17 +19,20 @@ import './user_property_renderer.scss';
 
 type Props = {
     field: PropertyField;
-    value: PropertyValue<unknown>;
+    value?: PropertyValue<unknown>;
+    metadata?: UserPropertyMetadata;
 }
 
-export default function UserPropertyRenderer({field, value}: Props) {
-    const userId = value.value as string;
+export default function UserPropertyRenderer({field, value, metadata}: Props) {
+    const userId = value ? value.value as string : '';
     const user = useUser(userId);
 
     if (field.attrs?.editable) {
         return (
             <SelectableUserPropertyRenderer
                 field={field}
+                metadata={metadata}
+                initialValue={userId}
             />
         );
     }

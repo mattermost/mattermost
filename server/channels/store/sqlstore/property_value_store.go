@@ -179,6 +179,10 @@ func (s *SqlPropertyValueStore) SearchPropertyValues(opts model.PropertyValueSea
 		builder = builder.Where(sq.Gt{"UpdateAt": opts.SinceUpdateAt})
 	}
 
+	if opts.Value != nil {
+		builder = builder.Where(sq.Eq{"Value": string(opts.Value)})
+	}
+
 	var values []*model.PropertyValue
 	if err := s.GetReplica().SelectBuilder(&values, builder); err != nil {
 		return nil, errors.Wrap(err, "property_value_search_query")

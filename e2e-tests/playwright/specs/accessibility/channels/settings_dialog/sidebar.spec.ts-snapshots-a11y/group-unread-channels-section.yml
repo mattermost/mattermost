@@ -1,0 +1,9 @@
+- heading "Group unread channels separately" [level=4]
+- group "Group unread channels separately":
+  - radio "On"
+  - radio "Off" [checked]
+  - text: Off When enabled, all unread channels and direct messages will be grouped together in the sidebar.
+- separator
+- alert
+- button "Save"
+- button "Cancel"

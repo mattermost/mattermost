@@ -58,27 +58,34 @@
         display: flex;
     }
 
+    &__Header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    &__Title {
+        display: flex;
+        align-items: center;
+        color: var(--center-channel-color);
+        font-family: 'Metropolis', sans-serif;
+        font-size: 18px;
+        font-weight: 600;
+        gap: 8px;
+    }
+
+    &__Subtitle {
+        margin-top: 20px;
+        font-size: 14px;
+    }
+
     .pre-title {
         margin-bottom: 10px;
         color: rgba(63, 67, 80, 0.75) !important;
         font-size: 12px;
         font-weight: 600;
         line-height: 16px;
-    }
-
-    .title {
-        display: flex;
-        color: #3f4350;
-        font-family: Metropolis, sans-serif;
-        font-size: 18px;
-        font-weight: 700;
-        gap: 4px;
-        line-height: 24px;
-    }
-
-    .subtitle {
-        margin-top: 20px;
-        font-size: 14px;
     }
 
     .license-notices {
@@ -92,32 +99,37 @@
         padding: 24px;
         border: 1px solid rgba(63, 67, 80, 0.16);
         border-radius: 4px;
-        margin: 15px 0;
+        margin: 24px 0;
 
-        .license-details-top {
+        &__Header {
             display: flex;
+            align-items: center;
             justify-content: space-between;
             font-size: 14px;
             font-weight: 700;
+            gap: 8px;
             line-height: 24px;
+        }
 
-            span.title {
-                display: inline-block;
-                color: #3f4350;
-            }
+        &__Title {
+            display: inline-block;
+            color: #3f4350;
+            font-family: 'Metropolis', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
         }
 
         .licenseElements {
             .item-element {
                 margin: 15px 0;
-                font-family: Open Sans;
+                font-family: 'Open Sans', sans-serif;
                 font-size: 14px;
                 line-height: 20px;
 
                 span.legend {
                     display: inline-block;
                     min-width: 150px;
-                    color: rgba(var(--secondary-blue-rgb), 0.4);
+                    color: rgba(var(--secondary-blue-rgb), 0.75);
                     font-weight: 600;
 
                     &--warning-over-seats-purchased {

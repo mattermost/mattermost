@@ -8,7 +8,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import styled from 'styled-components';
 
 import {PlusIcon} from '@mattermost/compass-icons/components';
-import type {UserPropertyField} from '@mattermost/types/properties';
+import {supportsOptions, type UserPropertyField} from '@mattermost/types/properties';
 import {collectionToArray} from '@mattermost/types/utilities';
 
 import LoadingScreen from 'components/loading_screen';
@@ -158,7 +158,7 @@ export function UserPropertiesTable({
                                 deleted={toDelete}
                                 borderless={!warning}
                                 testid='property-field-input'
-                                autoFocus={isCreatePending(row.original)}
+                                autoFocus={isCreatePending(row.original) && !supportsOptions(row.original)}
                                 setValue={(value: string) => {
                                     updateField({...row.original, name: value.trim()});
                                 }}
@@ -210,6 +210,7 @@ export function UserPropertiesTable({
                         <UserPropertyValues
                             field={row.original}
                             updateField={updateField}
+                            autoFocus={isCreatePending(row.original) && supportsOptions(row.original)}
                         />
                     </>
                 ),

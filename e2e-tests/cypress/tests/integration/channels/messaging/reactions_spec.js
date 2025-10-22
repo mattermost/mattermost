@@ -34,7 +34,7 @@ describe('Messaging', () => {
             // * Thumbs-up reaction displays as reaction on post
             cy.get(`#${postId}_message`).within(() => {
                 cy.findByLabelText('reactions').should('be.visible');
-                cy.findByLabelText('remove reaction +1').should('be.visible');
+                cy.findByLabelText('You reacted with :+1:. Click to remove.').should('be.visible');
             });
 
             // # Close RHS
@@ -62,7 +62,7 @@ describe('Messaging', () => {
             // * Emoji reaction is added to the post
             cy.get(`#${postId}_message`).within(() => {
                 cy.findByLabelText('reactions').should('exist');
-                cy.findByLabelText('remove reaction upside down face').should('exist');
+            cy.findByLabelText('You reacted with :upside_down_face:. Click to remove.').should('exist');
             });
 
             // * Reaction appears in recently used section of emoji picker
@@ -102,8 +102,8 @@ describe('Messaging', () => {
                 // * Two reactions are added to the message in the expanded RHS
                 cy.get(`#rhsPost_${postId}`).within(() => {
                     cy.findByLabelText('reactions').should('be.visible');
-                    cy.findByLabelText('remove reaction smiley').should('be.visible');
-                    cy.findByLabelText('remove reaction upside down face').should('be.visible');
+            cy.findByLabelText('You reacted with :smiley:. Click to remove.').should('be.visible');
+            cy.findByLabelText('You reacted with :upside_down_face:. Click to remove.').should('be.visible');
                 });
 
                 // # Close RHS

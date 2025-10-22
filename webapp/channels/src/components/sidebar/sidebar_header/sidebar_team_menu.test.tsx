@@ -7,7 +7,7 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {Permissions} from 'mattermost-redux/constants';
 
-import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
@@ -114,7 +114,7 @@ describe('components/sidebar/sidebar_header/sidebar_team_menu', () => {
 
         const menuButton = screen.getByText(currentTeam.display_name);
         expect(menuButton).toBeInTheDocument();
-        menuButton.click();
+        await userEvent.click(menuButton);
 
         await waitFor(() => {
             expect(screen.getByText('Team settings')).toBeInTheDocument();
@@ -146,7 +146,7 @@ describe('components/sidebar/sidebar_header/sidebar_team_menu', () => {
             state,
         );
 
-        screen.getByText(currentTeam.display_name).click();
+        await userEvent.click(screen.getByText(currentTeam.display_name));
 
         await waitFor(() => {
             expect(screen.getByText('Leave team')).toBeInTheDocument();
@@ -174,7 +174,7 @@ describe('components/sidebar/sidebar_header/sidebar_team_menu', () => {
             state,
         );
 
-        screen.getByText(currentTeam.display_name).click();
+        await userEvent.click(screen.getByText(currentTeam.display_name));
 
         await waitFor(() => {
             expect(screen.queryByText('Leave team')).not.toBeInTheDocument();
@@ -214,7 +214,7 @@ describe('components/sidebar/sidebar_header/sidebar_team_menu', () => {
             state,
         );
 
-        screen.getByText(currentTeam.display_name).click();
+        await userEvent.click(screen.getByText(currentTeam.display_name));
 
         await waitFor(() => {
             expect(screen.getByText('Plugin Menu Item 1')).toBeInTheDocument();
@@ -249,7 +249,7 @@ describe('components/sidebar/sidebar_header/sidebar_team_menu', () => {
             state,
         );
 
-        screen.getByText(currentTeam.display_name).click();
+        await userEvent.click(screen.getByText(currentTeam.display_name));
 
         await waitFor(() => {
             expect(screen.queryByText('Invite people')).not.toBeInTheDocument();
@@ -283,7 +283,7 @@ describe('components/sidebar/sidebar_header/sidebar_team_menu', () => {
             stateWithCloudFree,
         );
 
-        screen.getByText(currentTeam.display_name).click();
+        await userEvent.click(screen.getByText(currentTeam.display_name));
 
         await waitFor(() => {
             expect(screen.getByText('Create a team')).toBeInTheDocument();

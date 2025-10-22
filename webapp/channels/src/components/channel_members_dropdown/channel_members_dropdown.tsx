@@ -19,6 +19,7 @@ import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import {Constants, ModalIdentifiers} from 'utils/constants';
 
 import type {ModalData} from 'types/actions';
+import type {MMAction} from 'types/store';
 
 const ROWS_FROM_BOTTOM_TO_OPEN_UP = 2;
 
@@ -39,7 +40,7 @@ export interface Props {
         updateChannelMemberSchemeRoles: (channelId: string, userId: string, isSchemeUser: boolean, isSchemeAdmin: boolean) => Promise<ActionResult>;
         removeChannelMember: (channelId: string, userId: string) => Promise<ActionResult>;
         getChannelMember: (channelId: string, userId: string) => void;
-        openModal: <P>(modalData: ModalData<P>) => void;
+        openModal: <P>(modalData: ModalData<P>) => MMAction;
     };
 }
 

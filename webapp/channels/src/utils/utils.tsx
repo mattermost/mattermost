@@ -56,6 +56,7 @@ import type {TextboxElement} from 'components/textbox';
 import {getHistory} from 'utils/browser_history';
 import Constants, {FileTypes, ValidationErrors, A11yCustomEventTypes, AdvancedTextEditorTextboxIds} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
+import DesktopApp from 'utils/desktop_api';
 import * as Keyboard from 'utils/keyboard';
 import * as UserAgent from 'utils/user_agent';
 
@@ -353,6 +354,8 @@ export function toRgbValues(hexStr: string): string {
 }
 
 export function applyTheme(theme: Theme) {
+    DesktopApp.updateTheme({...theme, isUsingSystemTheme: false});
+
     if (theme.centerChannelColor) {
         changeCss('.app__body .markdown__table tbody tr:nth-child(2n)', 'background:' + changeOpacity(theme.centerChannelColor, 0.07));
         changeCss('.app__body .channel-header__info .header-dropdown__icon', 'color:' + changeOpacity(theme.centerChannelColor, 0.75));
@@ -1286,7 +1289,7 @@ function isChannelOrPermalink(link: string) {
     return match;
 }
 
-export async function handleFormattedTextClick(e: React.MouseEvent, currentRelativeTeamUrl = '') {
+export async function handleFormattedTextClick(e: React.UIEvent, currentRelativeTeamUrl = '') {
     const hashtagAttribute = (e.target as any).getAttributeNode('data-hashtag');
     const linkAttribute = (e.target as any).getAttributeNode('data-link');
     const channelMentionAttribute = (e.target as any).getAttributeNode('data-channel-mention');
@@ -1298,7 +1301,7 @@ export async function handleFormattedTextClick(e: React.MouseEvent, currentRelat
     } else if (linkAttribute) {
         const MIDDLE_MOUSE_BUTTON = 1;
 
-        if (!(e.button === MIDDLE_MOUSE_BUTTON || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey)) {
+        if (!isMouseEvent(e) || !(e.button === MIDDLE_MOUSE_BUTTON || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey)) {
             e.preventDefault();
 
             const state = store.getState();
@@ -1383,6 +1386,10 @@ export async function handleFormattedTextClick(e: React.MouseEvent, currentRelat
         e.preventDefault();
         getHistory().push(currentRelativeTeamUrl + '/channels/' + channelMentionAttribute.value);
     }
+}
+
+function isMouseEvent(e: React.UIEvent): e is React.MouseEvent {
+    return 'button' in e;
 }
 
 export function isEmptyObject(object: any) {

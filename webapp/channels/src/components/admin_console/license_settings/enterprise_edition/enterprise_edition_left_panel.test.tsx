@@ -238,9 +238,11 @@ describe('components/admin_console/license_settings/enterprise_edition/enterpris
             testState,
         );
 
-        // Check for the title section
-        expect(screen.getByText('Enterprise Edition')).toBeInTheDocument();
+        // Check for the title section - should only show the plan name, not "Enterprise Edition"
         expect(screen.getByText('Mattermost Entry')).toBeInTheDocument();
+
+        // Verify that "Enterprise Edition" pre-title is no longer displayed
+        expect(screen.queryByText('Enterprise Edition')).not.toBeInTheDocument();
 
         // Check for the subtitle with limits link
         expect(screen.getByText(/Entry offers Enterprise Advanced capabilities/)).toBeInTheDocument();

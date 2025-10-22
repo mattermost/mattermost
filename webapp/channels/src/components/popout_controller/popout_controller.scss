@@ -1,0 +1,7 @@
+body.popout {
+    background-color: var(--center-channel-bg);
+
+    .PopoutButton, .PopoutMenuItem {
+        display: none;
+    }
+}

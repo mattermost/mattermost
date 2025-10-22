@@ -33,11 +33,11 @@ export function checkReactionFromPost(postId, emoji = 'smile') {
     if (postId) {
         cy.get(`#${postId}_message`).within(() => {
             cy.findByLabelText('reactions').should('exist');
-            cy.findByLabelText(`remove reaction ${emoji}`).should('exist');
+            cy.findByLabelText(`You reacted with :${emoji}:. Click to remove.`).should('exist');
         });
     } else {
         cy.findByLabelText('reactions').should('exist');
-        cy.findByLabelText(`remove reaction ${emoji}}`).should('exist');
+        cy.findByLabelText(`You reacted with :${emoji}:. Click to remove.`).should('exist');
     }
 }
 

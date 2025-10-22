@@ -51,7 +51,7 @@ export type Props<T extends Value> = {
         isSelected: boolean,
         add: (value: T) => void,
         select: (value: T) => void
-    ) => void;
+    ) => React.ReactNode;
     selectedItemRef?: React.RefObject<HTMLDivElement>;
     options: T[];
     perPage: number;

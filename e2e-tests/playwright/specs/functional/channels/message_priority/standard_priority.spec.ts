@@ -25,7 +25,7 @@ test(
 
         // * Verify priority dialog appears with standard option selected
         await channelsPage.messagePriority.verifyPriorityDialog();
-        await channelsPage.messagePriority.verifyStandardOptionSelected();
+        await channelsPage.messagePriority.verifyStandardPrioritySelected();
 
         // # Close priority menu
         await channelsPage.messagePriority.closePriorityMenu();

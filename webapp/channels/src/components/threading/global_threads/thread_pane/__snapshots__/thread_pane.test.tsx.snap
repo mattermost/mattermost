@@ -36,8 +36,10 @@ exports[`components/threading/global_threads/thread_pane should match snapshot 1
     right={
       <React.Fragment>
         <Memo(FollowButton)
-          disabled={false}
           isFollowing={true}
+          onClick={[Function]}
+        />
+        <PopoutButton
           onClick={[Function]}
         />
         <Memo(ThreadMenu)

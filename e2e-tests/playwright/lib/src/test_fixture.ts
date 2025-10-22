@@ -191,7 +191,7 @@ export class AxeBuilderExtended {
     readonly builder: (page: Page, options?: AxeBuilderOptions) => AxeBuilder;
 
     // See https://github.com/dequelabs/axe-core/blob/master/doc/API.md#axe-core-tags
-    readonly tags: string[] = ['wcag2a', 'wcag2aa'];
+    readonly tags: string[] = ['wcag2a', 'wcag2aa', 'wcag21aa'];
 
     constructor() {
         this.builder = (page: Page, options: AxeBuilderOptions = {}) => {

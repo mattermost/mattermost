@@ -1131,7 +1131,7 @@ func (a *App) UpdateActive(rctx request.CTX, user *model.User, active bool) (*mo
 		if appErr != nil {
 			rctx.Logger().Error("Error fetching user limits in UpdateActive", mlog.Err(appErr))
 		} else {
-			if userLimits.ActiveUserCount > userLimits.MaxUsersLimit {
+			if userLimits.MaxUsersLimit > 0 && userLimits.ActiveUserCount > userLimits.MaxUsersLimit {
 				// Use different warning messages based on whether server is licensed
 				if a.License() != nil {
 					rctx.Logger().Warn("ERROR_LICENSED_USERS_LIMIT_EXCEEDED: Activated user exceeds the maximum licensed users.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
@@ -1750,8 +1750,8 @@ func (a *App) GetTokenById(token string) (*model.Token, *model.AppError) {
 	return rtoken, nil
 }
 
-func (a *App) ConsumeTokenOnce(tokenStr string) (*model.Token, *model.AppError) {
-	token, err := a.Srv().Store().Token().ConsumeOnce(tokenStr)
+func (a *App) ConsumeTokenOnce(tokenType, tokenStr string) (*model.Token, *model.AppError) {
+	token, err := a.Srv().Store().Token().ConsumeOnce(tokenType, tokenStr)
 	if err != nil {
 		var status int
 		switch err.(type) {

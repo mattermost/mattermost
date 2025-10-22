@@ -43,13 +43,6 @@ interface NoResultsProps {
     subtitleValues?: Record<string, React.ReactNode>;
 }
 
-const defaultProps: Partial<Props> = {
-    isCard: false,
-    isOpened: false,
-    channelDisplayName: '',
-    children: null,
-};
-
 const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
     const scrollbars = useRef<HTMLDivElement>(null);
     const [searchType, setSearchType] = useState<string>(props.searchType);
@@ -127,7 +120,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
         results,
         fileResults,
         searchTerms,
-        isCard,
+        isCard = false,
         isSearchAtEnd,
         isSearchFilesAtEnd,
         isSearchingTerm,
@@ -138,7 +131,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
         isSearchingPinnedPost,
         isSideBarExpanded,
         isMentionSearch,
-        isOpened,
+        isOpened = false,
         updateSearchTerms,
         handleSearchHintSelection,
         searchFilterType,
@@ -417,8 +410,6 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
         </div>
     );
 };
-
-SearchResults.defaultProps = defaultProps;
 
 export const arePropsEqual = (props: Props, nextProps: Props): boolean => {
     // Shallow compare for all props except 'results' and 'fileResults'

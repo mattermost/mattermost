@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen, waitFor, act} from '@testing-library/react';
+import {screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
@@ -47,7 +47,7 @@ describe('components/FlagPostModal', () => {
         },
     };
 
-    it('should render modal with reasons and post preview', () => {
+    it('should render modal with reasons and post preview', async () => {
         renderWithContext(
             <FlagPostModal
                 postId={'post_id'}
@@ -56,7 +56,7 @@ describe('components/FlagPostModal', () => {
             baseState,
         );
 
-        userEvent.click(screen.getByText('Select a reason for flagging'));
+        await userEvent.click(screen.getByText('Select a reason for flagging'));
 
         expect(screen.getByText('Reason 1')).toBeVisible();
         expect(screen.getByText('Reason 2')).toBeVisible();
@@ -112,15 +112,11 @@ describe('components/FlagPostModal', () => {
 
         // Add a comment
         const commentTextbox = screen.getByPlaceholderText('Describe your concern...');
-        await act(async () => {
-            await userEvent.type(commentTextbox, 'This is inappropriate content');
-        });
+        await userEvent.type(commentTextbox, 'This is inappropriate content');
 
         // Click submit
         const submitButton = screen.getByText('Submit');
-        await act(async () => {
-            await userEvent.click(submitButton);
-        });
+        await userEvent.click(submitButton);
 
         // Verify API call was made
         await waitFor(() => {

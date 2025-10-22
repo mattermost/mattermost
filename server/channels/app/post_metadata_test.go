@@ -504,9 +504,9 @@ func TestPreparePostForClient(t *testing.T) {
 		}))
 
 		for _, tc := range []struct {
-			name          string
-			link          string
-			notImplmented bool
+			name           string
+			link           string
+			notImplemented bool
 		}{
 			{
 				name: "normal link",
@@ -520,8 +520,8 @@ func TestPreparePostForClient(t *testing.T) {
 				name: "markdown",
 				link: "[markdown](%s) link",
 				// This is because markdown links are not currently supported in the opengraph fetching code
-				// if you just implmented this, remove the `notImplmented` field
-				notImplmented: true,
+				// if you just implemented this, remove the `notImplemented` field
+				notImplemented: true,
 			},
 			{
 				name: "markdown image",
@@ -545,7 +545,7 @@ func TestPreparePostForClient(t *testing.T) {
 					assert.Len(t, clientPost.Metadata.Embeds, 0)
 					assert.Len(t, clientPost.Metadata.Images, 0)
 				})
-				if !tc.notImplmented {
+				if !tc.notImplemented {
 					t.Run("prop not set", func(t *testing.T) {
 						prepost := &model.Post{
 							UserId:    th.BasicUser.Id,

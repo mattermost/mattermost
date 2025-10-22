@@ -351,11 +351,11 @@ export function getChannelByNameAndTeamName(teamName: string, channelName: strin
     };
 }
 
-export function getChannel(channelId: string): ActionFuncAsync<Channel> {
+export function getChannel(channelId: string, asContentReviewer = false): ActionFuncAsync<Channel> {
     return async (dispatch, getState) => {
         let data;
         try {
-            data = await Client4.getChannel(channelId);
+            data = await Client4.getChannel(channelId, asContentReviewer);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch({type: ChannelTypes.CHANNELS_FAILURE, error});
@@ -1390,12 +1390,12 @@ export function getChannelMemberCountsByGroup(channelId: string) {
     });
 }
 
-export function fetchMissingChannels(channelIDs: string[]): ActionFuncAsync<Array<Channel['id']>> {
+export function fetchMissingChannels(channelIDs: string[], asContentReviewer = false): ActionFuncAsync<Array<Channel['id']>> {
     return async (dispatch, getState, {loaders}: any) => {
         if (!loaders.missingChannelLoader) {
             loaders.missingChannelLoader = new DelayedDataLoader<Channel['id']>({
                 fetchBatch: (channelIDs) => {
-                    return channelIDs.length ? dispatch(getChannel(channelIDs[0])) : Promise.resolve();
+                    return channelIDs.length ? dispatch(getChannel(channelIDs[0], asContentReviewer)) : Promise.resolve();
                 },
                 maxBatchSize: 1,
                 wait: 100,

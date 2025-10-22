@@ -4,8 +4,10 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import './shared.scss';
 import Markdown from 'components/markdown';
+import WithTooltip from 'components/with_tooltip';
+
+import './shared.scss';
 
 // CEL operator constants
 export enum CELOperator {
@@ -52,6 +54,7 @@ export const OPERATOR_CONFIG: Record<string, {type: OperatorType; celOp: CELOper
 interface TestButtonProps {
     onClick: () => void;
     disabled: boolean;
+    disabledTooltip?: string;
 }
 
 interface AddAttributeButtonProps {
@@ -64,8 +67,8 @@ interface HelpTextProps {
     onLearnMoreClick?: () => void;
 }
 
-export function TestButton({onClick, disabled}: TestButtonProps): JSX.Element {
-    return (
+export function TestButton({onClick, disabled, disabledTooltip}: TestButtonProps): JSX.Element {
+    const button = (
         <button
             className='btn btn-sm btn-tertiary'
             onClick={onClick}
@@ -78,6 +81,16 @@ export function TestButton({onClick, disabled}: TestButtonProps): JSX.Element {
             />
         </button>
     );
+
+    if (disabled && disabledTooltip) {
+        return (
+            <WithTooltip title={disabledTooltip}>
+                {button}
+            </WithTooltip>
+        );
+    }
+
+    return button;
 }
 
 export function AddAttributeButton({onClick, disabled}: AddAttributeButtonProps): JSX.Element {

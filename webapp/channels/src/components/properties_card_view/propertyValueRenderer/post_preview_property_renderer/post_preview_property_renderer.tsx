@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useRef, useState} from 'react';
+import React from 'react';
 import {useIntl} from 'react-intl';
 
-import type {Post, PostPreviewMetadata} from '@mattermost/types/posts';
+import type {PostPreviewMetadata} from '@mattermost/types/posts';
 import type {PropertyValue} from '@mattermost/types/properties';
 
-import {useTeam} from 'components/common/hooks/use_team';
-import {useChannel} from 'components/common/hooks/useChannel';
-import {usePost} from 'components/common/hooks/usePost';
+import {usePropertyCardViewChannelLoader} from 'components/common/hooks/usePropertyCardViewChannelLoader';
+import {usePropertyCardViewPostLoader} from 'components/common/hooks/usePropertyCardViewPostLoader';
+import {usePropertyCardViewTeamLoader} from 'components/common/hooks/usePropertyCardViewTeamLoader';
 import PostMessagePreview from 'components/post_view/post_message_preview';
 import type {PostPreviewFieldMetadata} from 'components/properties_card_view/properties_card_view';
 
@@ -23,44 +23,9 @@ type Props = {
 export default function PostPreviewPropertyRenderer({value, metadata}: Props) {
     const postId = value.value as string;
 
-    const [post, setPost] = useState<Post>();
-    const channel = useChannel(post?.channel_id || '');
-    const team = useTeam(channel?.team_id || '');
-
-    const loaded = useRef(false);
-
-    const postFromStore = usePost(postId);
-
-    useEffect(() => {
-        const usePostFromStore = Boolean(!metadata?.getPost && postFromStore);
-        const allowDeletedPost = postFromStore?.delete_at !== 0 && !metadata?.fetchDeletedPost;
-        if (usePostFromStore && allowDeletedPost) {
-            setPost(postFromStore);
-            loaded.current = true;
-            return;
-        }
-
-        const loadPost = async () => {
-            const canLoadPost = metadata?.getPost && !loaded.current && !post;
-            if (!canLoadPost) {
-                return;
-            }
-
-            try {
-                const fetchedPost = await metadata.getPost!(postId);
-                if (fetchedPost) {
-                    setPost(fetchedPost);
-                }
-            } catch (error) {
-                // eslint-disable-next-line no-console
-                console.log('Error occurred while fetching post for post preview property renderer', error);
-            } finally {
-                loaded.current = true;
-            }
-        };
-
-        loadPost();
-    }, [metadata, post, postFromStore, postId]);
+    const post = usePropertyCardViewPostLoader(postId, metadata?.getPost, true);
+    const channel = usePropertyCardViewChannelLoader(post?.channel_id, metadata?.getChannel);
+    const team = usePropertyCardViewTeamLoader(channel?.team_id, metadata?.getTeam);
 
     const {formatMessage} = useIntl();
 

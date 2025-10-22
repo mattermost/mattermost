@@ -10,7 +10,7 @@ import type {CreatableProps} from 'react-select/creatable';
 import CreatableSelect from 'react-select/creatable';
 
 import {SyncIcon} from '@mattermost/compass-icons/components';
-import type {PropertyFieldOption, UserPropertyField} from '@mattermost/types/properties';
+import {supportsOptions, type PropertyFieldOption, type UserPropertyField} from '@mattermost/types/properties';
 
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
@@ -22,6 +22,7 @@ import {useAttributeLinkModal} from './user_properties_dot_menu';
 type Props = {
     field: UserPropertyField;
     updateField: (field: UserPropertyField) => void;
+    autoFocus?: boolean;
 }
 
 type Option = {label: string; id: string; value: string};
@@ -30,6 +31,7 @@ type SelectProps = CreatableProps<Option, true, GroupBase<Option>>;
 const UserPropertyValues = ({
     field,
     updateField,
+    autoFocus,
 }: Props) => {
     const {formatMessage} = useIntl();
 
@@ -140,7 +142,7 @@ const UserPropertyValues = ({
         );
     }
 
-    if (field.type !== 'multiselect' && field.type !== 'select') {
+    if (!supportsOptions(field)) {
         return (
             <span className='user-property-field-values'>
                 {'-'}
@@ -167,6 +169,7 @@ const UserPropertyValues = ({
                 value={field.attrs.options?.map((option) => ({label: option.name, value: option.name, id: option.id}))}
                 menuPortalTarget={document.body}
                 styles={styles}
+                autoFocus={autoFocus}
             />
             {!isQueryValid && (
                 <FormattedMessage

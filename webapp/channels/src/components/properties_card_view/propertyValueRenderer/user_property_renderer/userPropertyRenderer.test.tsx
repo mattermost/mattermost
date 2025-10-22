@@ -109,7 +109,6 @@ describe('UserPropertyRenderer', () => {
             renderWithContext(
                 <UserPropertyRenderer
                     field={editableField}
-                    value={mockValue}
                 />,
                 baseState,
             );

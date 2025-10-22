@@ -237,9 +237,10 @@ func (s *MmctlUnitTestSuite) TestComplianceExportDownloadCmdF() {
 
 	s.Run("download job file successfully", func() {
 		printer.Clean()
-		defer func() {
-			_ = os.Remove("suggested-filename.zip")
-		}()
+		s.T().Cleanup(func() {
+			err := os.Remove("suggested-filename.zip")
+			s.NoError(err)
+		})
 
 		s.client.
 			EXPECT().
@@ -258,9 +259,10 @@ func (s *MmctlUnitTestSuite) TestComplianceExportDownloadCmdF() {
 
 	s.Run("download job file with explicit path", func() {
 		printer.Clean()
-		defer func() {
-			_ = os.Remove("custom-path.zip")
-		}()
+		s.T().Cleanup(func() {
+			err := os.Remove("custom-path.zip")
+			s.NoError(err)
+		})
 
 		s.client.
 			EXPECT().
@@ -296,6 +298,11 @@ func (s *MmctlUnitTestSuite) TestComplianceExportDownloadCmdF() {
 		s.EqualError(err, "failed to download compliance export after 5 retries: failed to download file")
 		s.Len(printer.GetLines(), 0)
 		s.Len(printer.GetErrorLines(), 0)
+
+		// Ensure output file does not exist
+		_, err = os.Stat(mockJob.Id + "BAR.zip")
+		s.Error(err)
+		s.True(os.IsNotExist(err))
 	})
 }
 

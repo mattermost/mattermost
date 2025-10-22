@@ -7,7 +7,7 @@ import {connect} from 'react-redux';
 import {setThreadFollow} from 'mattermost-redux/actions/threads';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getInt, isCollapsedThreadsEnabled, onboardingTourTipsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentTeamId, getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentTeam, getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId, getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
 
@@ -64,7 +64,7 @@ function makeMapStateToProps() {
             isExpanded: getIsRhsExpanded(state),
             isMobileView: getIsMobileView(state),
             relativeTeamUrl: getCurrentRelativeTeamUrl(state),
-            currentTeamId: getCurrentTeamId(state),
+            currentTeam: getCurrentTeam(state),
             currentUserId,
             isCollapsedThreadsEnabled: collapsedThreads,
             isFollowingThread,

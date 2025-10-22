@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+/* eslint-disable max-lines */
+
 import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
@@ -1005,11 +1007,23 @@ export function saveCustomProfileAttribute(userID: string, attributeID: string, 
     return async (dispatch) => {
         try {
             const values = {[attributeID]: attributeValue || ''};
-            const data = await Client4.updateCustomProfileAttributeValues(values);
+
+            const data = await Client4.updateUserCustomProfileAttributesValues(userID, values);
             return {data};
         } catch (error) {
-            dispatch(logError(error));
-            return {error};
+            // Extract user-friendly error message from server response
+            let errorMessage = 'Failed to update custom profile attribute';
+            if (error && typeof error === 'object' && 'message' in error && error.message) {
+                errorMessage = error.message;
+            }
+
+            const serverError = {
+                ...error,
+                message: errorMessage,
+            };
+
+            dispatch(logError(serverError));
+            return {error: serverError};
         }
     };
 }

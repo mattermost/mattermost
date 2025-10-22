@@ -256,3 +256,126 @@
           description: Internal server error.
         '501':
           description: Feature is disabled either via config or an Enterprise Advanced license is not available.
+  /api/v4/content_flagging/config:
+    get:
+      summary: Get the system content flagging configuration
+      description: |
+        Returns the system configuration for content flagging, including settings related to notifications, flagging configurations, etc..
+        Only system admins can access this endpoint.
+      tags:
+        - Content Flagging
+      responses:
+        '200':
+          description: Configuration retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContentFlaggingConfig"
+        '404':
+          description: Feature is disabled via the feature flag.
+        '500':
+          description: Internal server error.
+        '403':
+          description: User does not have permission to manage system configuration.
+    put:
+        summary: Update the system content flagging configuration
+        description: |
+            Updates the system configuration for content flagging, including settings related to notifications, flagging configurations, etc..
+            Only system admins can access this endpoint.
+        tags:
+            - Content Flagging
+        requestBody:
+          required: true
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ContentFlaggingConfig"
+        responses:
+            '200':
+              description: Configuration updated successfully
+            '400':
+              description: Bad request - Invalid input data or missing required fields.
+            '404':
+              description: Feature is disabled via the feature flag.
+            '500':
+              description: Internal server error.
+            '403':
+              description: User does not have permission to manage system configuration.
+  /api/v4/content_flagging/team/{team_id}/reviewers/search:
+    get:
+      summary: Search content reviewers in a team
+      description: |
+        Searches for content reviewers of a specific team based on a provided term. Only a content reviewer can access this endpoint.
+
+        An enterprise advanced license is required.
+      tags:
+        - Content Flagging
+      parameters:
+        - in: path
+          name: team_id
+          required: true
+          schema:
+            type: string
+          description: The ID of the team to search for content reviewers for
+        - in: query
+          name: term
+          required: true
+          schema:
+            type: string
+          description: The search term to filter content reviewers by
+      responses:
+        '200':
+          description: Content reviewers retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+                description: An array of user objects representing the content reviewers that match the search criteria
+        '403':
+          description: Forbidden - User does not have permission to access this team.
+        '404':
+          description: The specified team was not found or the feature is disabled via the feature flag.
+        '500':
+          description: Internal server error.
+        '501':
+          description: Feature is disabled either via config or an Enterprise Advanced license is not available.
+  /api/v4/content_flagging/post/{post_id}/assign/{content_reviewer_id}:
+    post:
+      summary: Assign a content reviewer to a flagged post
+      description: |
+        Assigns a content reviewer to a specific flagged post for review. The user must be a content reviewer of the team to which the post belongs to.
+        An enterprise advanced license is required.
+      tags:
+        - Content Flagging
+      parameters:
+        - in: path
+          name: post_id
+          required: true
+          schema:
+            type: string
+          description: The ID of the post to assign a content reviewer to
+        - in: path
+          name: content_reviewer_id
+          required: true
+          schema:
+            type: string
+          description: The ID of the user to be assigned as the content reviewer for the post
+      responses:
+        '200':
+          description: Content reviewer assigned successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        '400':
+          description: Bad request - Invalid input data or missing required fields.
+        '403':
+          description: Forbidden - User does not have permission to assign a reviewer to this post.
+        '404':
+          description: Post or user not found, or feature is disabled via the feature flag.
+        '500':
+          description: Internal server error.
+        '501':
+          description: Feature is disabled either via config or an Enterprise Advanced license is not available.

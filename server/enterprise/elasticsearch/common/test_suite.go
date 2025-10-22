@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/api4"
 	"github.com/mattermost/mattermost/server/v8/channels/store/searchtest"
@@ -1087,11 +1086,12 @@ func (c *CommonTestSuite) TestPurgeIndexes() {
 		c.True(found)
 
 		found, _, err = c.GetDocumentFn("test_"+IndexBaseUsers, user.Id)
-		if c.ESImpl.GetName() == model.ElasticsearchSettingsOSBackend {
-			c.False(found)
-		} else {
-			elasticErr := err.(*types.ElasticsearchError)
-			c.Equal(404, elasticErr.Status)
+		c.False(found)
+		// Elasticsearch and Opensearch behave differently when there are no
+		// documents to return: they may error out or not, but if the error is
+		// because no documents were found, it will always be a 404 error
+		if err != nil {
+			c.ErrorContains(err, "404")
 		}
 	})
 
@@ -1128,11 +1128,12 @@ func (c *CommonTestSuite) TestPurgeIndexes() {
 
 		// Validate the indexes are gone
 		found, _, err = c.GetDocumentFn(IndexBasePosts, post.Id)
-		if c.ESImpl.GetName() == model.ElasticsearchSettingsOSBackend {
-			c.False(found)
-		} else {
-			elasticErr := err.(*types.ElasticsearchError)
-			c.Equal(404, elasticErr.Status)
+		c.False(found)
+		// Elasticsearch and Opensearch behave differently when there are no
+		// documents to return: they may error out or not, but if the error is
+		// because no documents were found, it will always be a 404 error
+		if err != nil {
+			c.ErrorContains(err, "404")
 		}
 	})
 }
@@ -1157,11 +1158,12 @@ func (c *CommonTestSuite) TestPurgeIndexList() {
 		c.Nil(c.ESImpl.PurgeIndexList(c.TH.Context, []string{"channels"}))
 
 		found, _, err = c.GetDocumentFn(IndexBaseChannels, channel.Id)
-		if c.ESImpl.GetName() == model.ElasticsearchSettingsOSBackend {
-			c.False(found)
-		} else {
-			elasticErr := err.(*types.ElasticsearchError)
-			c.Equal(404, elasticErr.Status)
+		c.False(found)
+		// Elasticsearch and Opensearch behave differently when there are no
+		// documents to return: they may error out or not, but if the error is
+		// because no documents were found, it will always be a 404 error
+		if err != nil {
+			c.ErrorContains(err, "404")
 		}
 	})
 
@@ -1194,11 +1196,13 @@ func (c *CommonTestSuite) TestPurgeIndexList() {
 
 		// now it should be gone as we're no longer ignoring it
 		found, _, err = c.GetDocumentFn(IndexBaseChannels, channel.Id)
-		if c.ESImpl.GetName() == model.ElasticsearchSettingsOSBackend {
-			c.False(found)
-		} else {
-			elasticErr := err.(*types.ElasticsearchError)
-			c.Equal(404, elasticErr.Status)
+		c.False(found)
+		// Elasticsearch and Opensearch behave differently when there are no
+		// documents to return: they may error out or not, but if the error
+		// happened because no documents were found, it will always be a 404
+		// error.
+		if err != nil {
+			c.ErrorContains(err, "404")
 		}
 	})
 }

@@ -236,7 +236,7 @@ func (ch *Channels) servePluginRequest(w http.ResponseWriter, r *http.Request, h
 		return
 	}
 
-	if validateCSRFForPluginRequest(rctx, r, session, cookieAuth, *ch.cfgSvc.Config().ServiceSettings.StrictCSRFEnforcement) {
+	if validateCSRFForPluginRequest(rctx, r, session, cookieAuth, *ch.cfgSvc.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement) {
 		r.Header.Set("Mattermost-User-Id", session.UserId)
 		context.SessionId = session.Id
 	} else {
