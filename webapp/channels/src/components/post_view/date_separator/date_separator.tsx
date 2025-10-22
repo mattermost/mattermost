@@ -6,7 +6,8 @@ import React, {memo} from 'react';
 import type {FC} from 'react';
 
 import Timestamp, {RelativeRanges} from 'components/timestamp';
-import PostSeparator from 'components/widgets/post_separator';
+
+import PostSeparator from 'design_system/components/patterns/post_separator';
 
 const DATE_RANGES = [
     RelativeRanges.TODAY_TITLE_CASE,

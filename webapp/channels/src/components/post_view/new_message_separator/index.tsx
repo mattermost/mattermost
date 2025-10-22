@@ -6,7 +6,7 @@ import {FormattedMessage} from 'react-intl';
 
 import * as PostList from 'mattermost-redux/utils/post_list';
 
-import PostSeparator from 'components/widgets/post_separator';
+import PostSeparator from 'design_system/components/patterns/post_separator';
 
 import type {NewMessagesSeparatorActionComponent} from 'types/store/plugins';
 

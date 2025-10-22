@@ -12,8 +12,8 @@ import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getPost, getLimitedViews} from 'mattermost-redux/selectors/entities/posts';
 
 import AdvancedCreateComment from 'components/advanced_create_comment';
-import PostSeparator from 'components/widgets/post_separator';
 
+import PostSeparator from 'design_system/components/patterns/post_separator';
 import Constants from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
