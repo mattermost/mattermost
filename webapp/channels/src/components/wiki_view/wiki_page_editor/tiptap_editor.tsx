@@ -248,6 +248,58 @@ const TipTapEditor = ({
         }
     }, [editable, editor]);
 
+    // Pre-fetch users for mentions when editor mounts
+    useEffect(() => {
+        if (channelId && editable) {
+            const prefetchStartTime = new Date().toISOString();
+            console.log('[TipTapEditor] ===== PRE-FETCH STARTING =====', {
+                channelId,
+                editable,
+                prefetchStartTime,
+            });
+
+            const result = dispatch(autocompleteUsersInChannel('', channelId));
+
+            console.log('[TipTapEditor] Pre-fetch dispatch returned:', {
+                resultType: typeof result,
+                isPromise: result instanceof Promise,
+                result,
+            });
+
+            if (result instanceof Promise) {
+                result.then((res: any) => {
+                    console.log('[TipTapEditor] Pre-fetch Promise resolved:', {
+                        prefetchStartTime,
+                        resolvedAt: new Date().toISOString(),
+                        resolution: res,
+                    });
+                }).catch((err: any) => {
+                    console.error('[TipTapEditor] Pre-fetch Promise rejected:', {
+                        prefetchStartTime,
+                        rejectedAt: new Date().toISOString(),
+                        error: err,
+                    });
+                });
+            }
+
+            setTimeout(() => {
+                console.log('[TipTapEditor] 500ms after pre-fetch dispatch:', {
+                    prefetchStartTime,
+                    now: new Date().toISOString(),
+                    note: 'Check Redux DevTools to see if users are loaded',
+                });
+            }, 500);
+
+            setTimeout(() => {
+                console.log('[TipTapEditor] 2000ms after pre-fetch dispatch:', {
+                    prefetchStartTime,
+                    now: new Date().toISOString(),
+                    note: 'By this time, pre-fetch should definitely be complete',
+                });
+            }, 2000);
+        }
+    }, [channelId, editable, dispatch]);
+
     if (!editor) {
         return null;
     }

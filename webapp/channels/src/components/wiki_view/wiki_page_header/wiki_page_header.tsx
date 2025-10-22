@@ -14,8 +14,7 @@ type Props = {
     draftTitle?: string;
     onEdit: () => void;
     onPublish: () => void;
-    onToggleRhs: () => void;
-    onOpenComments: () => void;
+    onToggleComments: () => void;
 };
 
 const WikiPageHeader = ({
@@ -27,8 +26,7 @@ const WikiPageHeader = ({
     draftTitle,
     onEdit,
     onPublish,
-    onToggleRhs,
-    onOpenComments,
+    onToggleComments,
 }: Props) => {
     return (
         <div className='PagePane__header'>
@@ -44,22 +42,11 @@ const WikiPageHeader = ({
             <div className='PagePane__controls'>
                 <button
                     className='PagePane__icon-button'
-                    aria-label='Comments'
-                    title='Comments'
-                    onClick={onOpenComments}
+                    aria-label='Toggle comments'
+                    title='Toggle comments'
+                    onClick={onToggleComments}
                 >
                     <i className='icon-message-text-outline'/>
-                    <span className='badge'>{'8'}</span>
-                </button>
-                <button
-                    className='PagePane__icon-button'
-                    aria-label='Watchers'
-                    title='Watchers'
-                >
-                    <i className='icon-account-multiple-outline'/>
-                    <span className='avatar-group'>
-                        <span className='avatar-count'>{'+2'}</span>
-                    </span>
                 </button>
                 {isDraft ? (
                     <button
@@ -88,14 +75,6 @@ const WikiPageHeader = ({
                     title='More actions'
                 >
                     <i className='icon-dots-vertical'/>
-                </button>
-                <button
-                    className='PagePane__icon-button'
-                    onClick={onToggleRhs}
-                    aria-label='Toggle sidebar'
-                    title='Toggle sidebar'
-                >
-                    <i className='icon-dock-right'/>
                 </button>
             </div>
         </div>

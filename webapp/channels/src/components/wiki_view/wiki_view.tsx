@@ -96,6 +96,9 @@ const WikiView = () => {
     // Centralized draft state: true if editing a draft OR showing empty editor for new page
     const isDraft = Boolean(currentDraft) || (!pageId && !currentPage);
 
+    // Single source of truth for empty state (no drafts, no pages)
+    const isEmptyState = !currentDraft && !pageId && allDrafts.length === 0;
+
     const {handleEdit, handlePublish, handleTitleChange, handleContentChange} = useWikiPageActions(
         channelId,
         pageId,
@@ -107,21 +110,14 @@ const WikiView = () => {
         setEditingDraftId,
     );
 
-    const handleToggleRhs = () => {
+    const handleToggleComments = () => {
         if (isWikiRhsOpen) {
             dispatch(closeRightHandSide());
         } else {
             const id = pageId || wikiId || channelId;
             dispatch(openWikiRhs(id, wikiId || ''));
+            dispatch(setWikiRhsMode('comments'));
         }
-    };
-
-    const handleOpenComments = () => {
-        const id = pageId || wikiId || channelId;
-        if (!isWikiRhsOpen) {
-            dispatch(openWikiRhs(id, wikiId || ''));
-        }
-        dispatch(setWikiRhsMode('comments'));
     };
 
     const handlePageSelect = (selectedPageId: string) => {
@@ -194,19 +190,20 @@ const WikiView = () => {
                             />
                         )}
 
-                        <div className='PagePane'>
-                            <WikiPageHeader
-                                wikiId={wikiId || ''}
-                                pageId={currentDraft ? '' : (pageId || '')}
-                                channelId={actualChannelId}
-                                isDraft={isDraft}
-                                parentPageId={currentDraft?.props?.page_parent_id}
-                                draftTitle={currentDraft?.props?.title}
-                                onEdit={handleEdit}
-                                onPublish={handlePublish}
-                                onToggleRhs={handleToggleRhs}
-                                onOpenComments={handleOpenComments}
-                            />
+                        <div className={classNames('PagePane', {'PagePane--sidebarCollapsed': isPanesPanelCollapsed})}>
+                            {!isEmptyState && (
+                                <WikiPageHeader
+                                    wikiId={wikiId || ''}
+                                    pageId={currentDraft ? '' : (pageId || '')}
+                                    channelId={actualChannelId}
+                                    isDraft={isDraft}
+                                    parentPageId={currentDraft?.props?.page_parent_id}
+                                    draftTitle={currentDraft?.props?.title}
+                                    onEdit={handleEdit}
+                                    onPublish={handlePublish}
+                                    onToggleComments={handleToggleComments}
+                                />
+                            )}
                             <div className='PagePane__content'>
                                 {(() => {
                                     if (currentDraft) {
@@ -231,6 +228,17 @@ const WikiView = () => {
                                             />
                                         );
                                     }
+
+                                    if (isEmptyState) {
+                                        return (
+                                            <div className='PagePane__emptyState'>
+                                                <i className='icon-file-document-outline'/>
+                                                <h3>{'No Pages Yet'}</h3>
+                                                <p>{'Create your first page to get started'}</p>
+                                            </div>
+                                        );
+                                    }
+
                                     return (
                                         <WikiPageEditor
                                             title={''}

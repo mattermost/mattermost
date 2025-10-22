@@ -168,11 +168,27 @@
         }
 
         .mention {
-            color: var(--link-color);
+            color: var(--mention-highlight-link);
+            background-color: var(--mention-highlight-bg);
+            padding: 2px 4px;
+            border-radius: 3px;
             cursor: pointer;
+            font-weight: 600;
 
             &:hover {
                 text-decoration: underline;
+            }
+
+            // Override TipTap's default blue background for contenteditable="false" nodes
+            &[contenteditable="false"] {
+                background-color: var(--mention-highlight-bg) !important;
+                color: var(--mention-highlight-link) !important;
+            }
+
+            // When selected by TipTap
+            &.ProseMirror-selectednode {
+                background-color: var(--button-bg-08) !important;
+                outline: 2px solid var(--button-bg);
             }
         }
     }

@@ -122,10 +122,10 @@ func TestCreateWikiWithDefaultPage(t *testing.T) {
 		require.Len(t, drafts, 1, "Wiki should have exactly one default draft")
 
 		defaultDraft := drafts[0]
-		require.Equal(t, createdWiki.Id, defaultDraft.ChannelId, "Draft ChannelId should store wiki ID for page drafts")
+		require.Equal(t, th.BasicChannel.Id, defaultDraft.ChannelId, "Draft ChannelId should store the actual channel ID")
 		require.Empty(t, defaultDraft.Message, "Default draft should be empty")
 		require.Equal(t, "Untitled page", defaultDraft.Props["title"], "Default draft should have 'Untitled page' title")
-		require.Equal(t, th.BasicChannel.Id, defaultDraft.Props["channel_id"], "Draft props should store actual channel ID")
+		require.Equal(t, createdWiki.Id, defaultDraft.Props["wiki_id"], "Draft props should store wiki ID")
 	})
 }
 

@@ -62,6 +62,7 @@ class MentionSuggestionList extends React.Component<{
 }
 
 export function createMMentionSuggestion(props: MentionBridgeProps): Partial<SuggestionOptions<Item>> {
+    const creationTime = new Date().toISOString();
     console.log('[MentionBridge] Creating provider with props:', {
         currentUserId: props.currentUserId,
         channelId: props.channelId,
@@ -70,6 +71,7 @@ export function createMMentionSuggestion(props: MentionBridgeProps): Partial<Sug
         hasSearchAssociatedGroupsForReference: !!props.searchAssociatedGroupsForReference,
         autocompleteGroupsCount: props.autocompleteGroups?.length || 0,
         useChannelMentions: props.useChannelMentions,
+        creationTime,
     });
 
     const provider = new AtMentionProvider({
@@ -82,16 +84,50 @@ export function createMMentionSuggestion(props: MentionBridgeProps): Partial<Sug
         priorityProfiles: props.priorityProfiles,
     });
 
+    console.log('[MentionBridge] Provider created at:', creationTime);
+
+    let itemsCallCount = 0;
+
     return {
         items: async ({query}: {query: string}): Promise<Item[]> => {
-            console.log('[MentionBridge] Fetching mentions for query:', query);
+            itemsCallCount++;
+            const callNumber = itemsCallCount;
+            const callStartTime = new Date().toISOString();
+            const timeSinceCreation = Date.now() - new Date(creationTime).getTime();
+
+            console.log('[MentionBridge] items() called:', {
+                callNumber,
+                query,
+                queryLength: query.length,
+                pretext: `@${query}`,
+                callStartTime,
+                timeSinceCreation: `${timeSinceCreation}ms`,
+            });
+
             return new Promise((resolve) => {
+                let callbackCount = 0;
+                let pendingTimeout: NodeJS.Timeout | null = null;
+
                 provider.handlePretextChanged(`@${query}`, (results: any) => {
-                    console.log('[MentionBridge] Raw results:', {
+                    callbackCount++;
+                    const callbackTime = new Date().toISOString();
+                    const callbackDelay = Date.now() - new Date(callStartTime).getTime();
+
+                    console.log('[MentionBridge] Provider callback invoked:', {
+                        callNumber,
+                        callbackNumber: callbackCount,
+                        query,
+                        callbackTime,
+                        callbackDelay: `${callbackDelay}ms`,
                         hasResults: !!results,
                         hasGroups: !!results?.groups,
                         resultsKeys: results ? Object.keys(results) : [],
                         groupsLength: results?.groups?.length || 0,
+                        groupDetails: results?.groups?.map((g: any) => ({
+                            key: g.key,
+                            itemCount: g.items?.length || 0,
+                            firstItem: g.items?.[0]?.username,
+                        })),
                     });
 
                     if (!results || !results.groups) {
@@ -105,13 +141,51 @@ export function createMMentionSuggestion(props: MentionBridgeProps): Partial<Sug
                         console.log('[MentionBridge] Processing group:', {
                             key: group.key,
                             itemsCount: group.items?.length || 0,
+                            items: group.items?.map((i: any) => i.username).slice(0, 5),
                         });
                         return group.items || [];
                     });
 
-                    console.log('[MentionBridge] Final results:', {
+                    // Check if this looks like the "final" callback by checking for nonMembers group
+                    const hasNonMembers = results.groups.some((g: any) => g.key === 'nonMembers');
+                    const isFirstCallback = callbackCount === 1;
+
+                    console.log('[MentionBridge] Callback analysis:', {
+                        callNumber,
+                        callbackNumber: callbackCount,
+                        hasNonMembers,
+                        isFirstCallback,
+                        totalItems: allItems.length,
+                        decision: hasNonMembers || !isFirstCallback ? 'RESOLVE NOW (final)' : 'WAIT for second callback',
+                    });
+
+                    // Clear any pending timeout
+                    if (pendingTimeout) {
+                        clearTimeout(pendingTimeout);
+                        pendingTimeout = null;
+                    }
+
+                    // If this is the first callback and has no nonMembers, wait for second callback
+                    if (isFirstCallback && !hasNonMembers && allItems.length > 0) {
+                        console.log('[MentionBridge] First callback without nonMembers - waiting 150ms for final callback');
+                        pendingTimeout = setTimeout(() => {
+                            console.log('[MentionBridge] Timeout reached - resolving with current items:', {
+                                callNumber,
+                                totalItems: allItems.length,
+                            });
+                            resolve(allItems);
+                        }, 150);
+                        return;
+                    }
+
+                    // This is either the second callback or has nonMembers (final result)
+                    console.log('[MentionBridge] Resolving with results:', {
+                        callNumber,
+                        callbackNumber: callbackCount,
+                        query,
                         groupCount: results.groups.length,
                         totalItems: allItems.length,
+                        allUsernames: allItems.map((i) => i.username),
                     });
                     resolve(allItems);
                 });
@@ -121,15 +195,53 @@ export function createMMentionSuggestion(props: MentionBridgeProps): Partial<Sug
         render: () => {
             let component: ReactRenderer<typeof MentionSuggestionList> | null = null;
             let popup: HTMLElement | null = null;
+            let clickOutsideHandler: ((event: MouseEvent) => void) | null = null;
+            let currentItems: any[] = [];
+            let currentSelectedIndex = 0;
+            let commandFunction: ((attrs: any) => void) | null = null;
+
+            const scrollSelectedIntoView = (index: number) => {
+                setTimeout(() => {
+                    const item = currentItems[index];
+                    if (item && popup) {
+                        const selectedElement = document.getElementById(`tiptap-mention-${item.username}-${index}`);
+                        if (selectedElement) {
+                            selectedElement.scrollIntoView({block: 'nearest', behavior: 'smooth'});
+                        }
+                    }
+                }, 0);
+            };
+
+            const closePopup = () => {
+                if (component && component.destroy) {
+                    component.destroy();
+                }
+            };
 
             return {
                 onStart: (mentionProps: any) => {
-                    console.log('[MentionBridge] onStart called with items:', mentionProps.items?.length || 0);
+                    console.log('[MentionBridge] onStart called:', {
+                        itemsCount: mentionProps.items?.length || 0,
+                        usernames: mentionProps.items?.map((i: any) => i.username).slice(0, 10),
+                        timestamp: new Date().toISOString(),
+                    });
                     const {items, command, clientRect} = mentionProps;
+                    currentItems = items || [];
+                    currentSelectedIndex = 0;
+                    commandFunction = command;
 
                     popup = document.createElement('div');
                     popup.className = 'tiptap-mention-popup';
                     document.body.appendChild(popup);
+
+                    // Add click-outside handler to close the popup
+                    clickOutsideHandler = (event: MouseEvent) => {
+                        if (popup && !popup.contains(event.target as Node)) {
+                            console.log('[MentionBridge] Click outside detected - closing popup');
+                            closePopup();
+                        }
+                    };
+                    document.addEventListener('mousedown', clickOutsideHandler, true);
 
                     // Set initial position
                     if (clientRect) {
@@ -152,6 +264,7 @@ export function createMMentionSuggestion(props: MentionBridgeProps): Partial<Sug
                             console.log('[MentionBridge] Rendering component with:', {
                                 itemsCount: componentItems.length,
                                 selectedIdx,
+                                selectedItem: componentItems[selectedIdx]?.username,
                                 items: componentItems.map((i) => i.username),
                             });
                             ReactDOM.render(
@@ -165,8 +278,15 @@ export function createMMentionSuggestion(props: MentionBridgeProps): Partial<Sug
                                             selectedIndex={selectedIdx}
                                             selectItem={(index: number) => {
                                                 const item = componentItems[index];
-                                                console.log('[MentionBridge] Item selected:', item);
-                                                command({id: item.id || item.username, label: item.username});
+                                                console.log('[MentionBridge] Item clicked:', {
+                                                    item,
+                                                    id: item.id || item.username,
+                                                    label: item.username,
+                                                });
+                                                if (commandFunction) {
+                                                    commandFunction({id: item.id || item.username, label: item.username});
+                                                }
+                                                closePopup();
                                             }}
                                         />
                                     </IntlProvider>
@@ -181,6 +301,10 @@ export function createMMentionSuggestion(props: MentionBridgeProps): Partial<Sug
                             renderComponent(newProps.items || items, newProps.selectedIndex || 0);
                         },
                         destroy: () => {
+                            if (clickOutsideHandler) {
+                                document.removeEventListener('mousedown', clickOutsideHandler, true);
+                                clickOutsideHandler = null;
+                            }
                             if (popup && popup.parentNode) {
                                 ReactDOM.unmountComponentAtNode(popup);
                                 popup.parentNode.removeChild(popup);
@@ -194,6 +318,14 @@ export function createMMentionSuggestion(props: MentionBridgeProps): Partial<Sug
                 },
 
                 onUpdate: (mentionProps: any) => {
+                    // Track current items and selection
+                    if (mentionProps.items) {
+                        currentItems = mentionProps.items;
+                    }
+                    if (mentionProps.selectedIndex !== undefined) {
+                        currentSelectedIndex = mentionProps.selectedIndex;
+                    }
+
                     if (component && component.updateProps) {
                         component.updateProps(mentionProps);
                     }
@@ -208,19 +340,62 @@ export function createMMentionSuggestion(props: MentionBridgeProps): Partial<Sug
                 },
 
                 onKeyDown: (mentionProps: any) => {
-                    if (mentionProps.event.key === 'Escape') {
-                        if (component && component.destroy) {
-                            component.destroy();
-                        }
+                    const {event} = mentionProps;
+
+                    if (event.key === 'Escape') {
+                        closePopup();
                         return true;
                     }
+
+                    if (event.key === 'ArrowUp') {
+                        const newIndex = currentSelectedIndex > 0 ? currentSelectedIndex - 1 : currentItems.length - 1;
+                        currentSelectedIndex = newIndex;
+                        console.log('[MentionBridge] ArrowUp pressed:', {oldIndex: currentSelectedIndex, newIndex, itemsLength: currentItems.length});
+                        if (component && component.updateProps) {
+                            component.updateProps({...mentionProps, items: currentItems, selectedIndex: newIndex});
+                        }
+                        scrollSelectedIntoView(newIndex);
+                        return true;
+                    }
+
+                    if (event.key === 'ArrowDown') {
+                        const newIndex = currentSelectedIndex < currentItems.length - 1 ? currentSelectedIndex + 1 : 0;
+                        currentSelectedIndex = newIndex;
+                        console.log('[MentionBridge] ArrowDown pressed:', {oldIndex: currentSelectedIndex, newIndex, itemsLength: currentItems.length});
+                        if (component && component.updateProps) {
+                            component.updateProps({...mentionProps, items: currentItems, selectedIndex: newIndex});
+                        }
+                        scrollSelectedIntoView(newIndex);
+                        return true;
+                    }
+
+                    if (event.key === 'Enter' || event.key === 'Tab') {
+                        const item = currentItems[currentSelectedIndex];
+                        if (item && commandFunction) {
+                            const commandData = {id: item.id || item.username, label: item.username};
+                            console.log('[MentionBridge] Enter/Tab pressed:', {
+                                key: event.key,
+                                item,
+                                commandData,
+                                hasCommand: !!commandFunction,
+                            });
+                            commandFunction(commandData);
+                            closePopup();
+                            return true;
+                        }
+                        console.log('[MentionBridge] Enter/Tab pressed but no item or command:', {
+                            hasItem: !!item,
+                            hasCommand: !!commandFunction,
+                            currentSelectedIndex,
+                            itemsLength: currentItems.length,
+                        });
+                    }
+
                     return false;
                 },
 
                 onExit: () => {
-                    if (component && component.destroy) {
-                        component.destroy();
-                    }
+                    closePopup();
                 },
             };
         },

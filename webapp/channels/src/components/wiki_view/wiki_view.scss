@@ -261,6 +261,35 @@
                 }
             }
         }
+
+        &__emptyState {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 48px 24px;
+            text-align: center;
+            min-height: 400px;
+
+            i {
+                font-size: 64px;
+                color: rgba(var(--center-channel-color-rgb), 0.24);
+                margin-bottom: 24px;
+            }
+
+            h3 {
+                color: var(--center-channel-color);
+                font-size: 20px;
+                font-weight: 600;
+                margin: 0 0 8px 0;
+            }
+
+            p {
+                color: rgba(var(--center-channel-color-rgb), 0.56);
+                font-size: 14px;
+                margin: 0;
+            }
+        }
     }
 
     .no-page-selected {
@@ -468,4 +497,8 @@
             }
         }
     }
+}
+
+.PagePane--sidebarCollapsed .PagePane__header {
+    padding-left: 64px;
 }

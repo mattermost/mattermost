@@ -6,7 +6,9 @@ package app
 import (
 	"context"
 	"encoding/json"
+	"maps"
 	"net/http"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -1365,9 +1367,87 @@ func splitAtFinal(items []string) (preliminary []string, final string) {
 	return
 }
 
+// getExplicitMentionsFromPage handles mention extraction for pages with TipTap JSON content.
+// This is separate from regular post mention parsing which uses markdown.
+func getExplicitMentionsFromPage(post *model.Post, keywords MentionKeywords) *MentionResults {
+	results := &MentionResults{
+		Mentions:      make(map[string]MentionType),
+		GroupMentions: make(map[string]MentionType),
+	}
+
+	mentionedUserIDs, err := extractMentionsFromTipTapContent(post.Message)
+	if err != nil {
+		return results
+	}
+
+	for _, userID := range mentionedUserIDs {
+		targetMentionableID := mentionableUserID(userID)
+
+		keywordValues := slices.Collect(maps.Values(keywords))
+		if slices.ContainsFunc(keywordValues, func(mentionableIDs []MentionableID) bool {
+			return slices.Contains(mentionableIDs, targetMentionableID)
+		}) {
+			results.Mentions[userID] = KeywordMention
+		}
+	}
+
+	return results
+}
+
+// extractMentionsFromTipTapContent parses TipTap JSON and extracts user IDs from mention nodes.
+func extractMentionsFromTipTapContent(content string) ([]string, error) {
+	var doc struct {
+		Type    string            `json:"type"`
+		Content []json.RawMessage `json:"content"`
+	}
+
+	if err := json.Unmarshal([]byte(content), &doc); err != nil {
+		return nil, err
+	}
+
+	mentionIDs := make(map[string]bool)
+	extractMentionsFromNodes(doc.Content, mentionIDs)
+
+	result := make([]string, 0, len(mentionIDs))
+	for id := range mentionIDs {
+		result = append(result, id)
+	}
+
+	return result, nil
+}
+
+// extractMentionsFromNodes recursively walks TipTap JSON nodes to find mentions
+func extractMentionsFromNodes(nodes []json.RawMessage, mentionIDs map[string]bool) {
+	for _, nodeRaw := range nodes {
+		var node struct {
+			Type  string `json:"type"`
+			Attrs *struct {
+				ID string `json:"id"`
+			} `json:"attrs,omitempty"`
+			Content []json.RawMessage `json:"content,omitempty"`
+		}
+
+		if err := json.Unmarshal(nodeRaw, &node); err != nil {
+			continue
+		}
+
+		if node.Type == "mention" && node.Attrs != nil && node.Attrs.ID != "" {
+			mentionIDs[node.Attrs.ID] = true
+		}
+
+		if len(node.Content) > 0 {
+			extractMentionsFromNodes(node.Content, mentionIDs)
+		}
+	}
+}
+
 // Given a message and a map mapping mention keywords to the users who use them, returns a map of mentioned
 // users and a slice of potential mention users not in the channel and whether or not @here was mentioned.
 func getExplicitMentions(post *model.Post, keywords MentionKeywords) *MentionResults {
+	if post.Type == model.PostTypePage {
+		return getExplicitMentionsFromPage(post, keywords)
+	}
+
 	parser := makeStandardMentionParser(keywords)
 
 	buf := ""

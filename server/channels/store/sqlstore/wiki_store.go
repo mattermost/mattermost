@@ -71,18 +71,17 @@ func (s *SqlWikiStore) CreateWikiWithDefaultPage(wiki *model.Wiki, userId string
 	defaultDraft := &model.Draft{
 		CreateAt:  model.GetMillis(),
 		UpdateAt:  model.GetMillis(),
-		DeleteAt:  0, // Explicitly set to 0, not NULL
+		DeleteAt:  0,
 		UserId:    userId,
-		ChannelId: savedWiki.Id, // For page drafts, ChannelId stores the wiki ID
-		WikiId:    savedWiki.Id, // Set WikiId for page drafts
+		ChannelId: wiki.ChannelId,
+		WikiId:    savedWiki.Id,
 		RootId:    savedWiki.Id + ":" + draftId,
 		Message:   "",
 		Props: model.StringInterface{
-			"wiki_id":    savedWiki.Id,
-			"title":      "Untitled page",
-			"channel_id": wiki.ChannelId, // Store actual channel ID in props
+			"wiki_id": savedWiki.Id,
+			"title":   "Untitled page",
 		},
-		FileIds: []string{}, // Initialize empty array
+		FileIds: []string{},
 	}
 
 	builder := s.getQueryBuilder().
