@@ -408,7 +408,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 mode = 'danger';
                 const messageParam = searchParam.get('message');
                 title = messageParam || formatMessage({
-                    id: 'extra_login.error',
+                    id: 'easy_login.error',
                     defaultMessage: 'We were unable to log you in. Please enter your details and try again.',
                 });
                 break;

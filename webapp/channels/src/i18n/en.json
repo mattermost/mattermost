@@ -4258,7 +4258,6 @@
   "export_user_data_modal.export_data": "Export data",
   "export_user_data_modal.export_data.table_filters_note": "Note: The exported data will use the filters you have set in the users list. To export all data first remove the filters.",
   "export_user_data_modal.title": "Export user data",
-  "extra_login.error": "We were unable to log you in. Please enter your details and try again.",
   "feature_restricted_modal.agreement": "By selecting <highlight>Try free for {trialLength} days</highlight>, I agree to the <linkEvaluation>Mattermost Software Evaluation Agreement</linkEvaluation>, <linkPrivacy>Privacy Policy</linkPrivacy>, and receiving product emails.",
   "feature_restricted_modal.button.notify": "Notify admin",
   "feature_restricted_modal.button.plans": "View plans",
