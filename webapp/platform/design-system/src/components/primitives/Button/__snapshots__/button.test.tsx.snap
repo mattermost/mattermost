@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`components/widgets/button/Button snapshots should match snapshot in disabled state 1`] = `
+exports[`components/primitives/Button snapshots should match snapshot in disabled state 1`] = `
 <button
   aria-busy="false"
   class="Button Button--md Button--primary Button--destructive"
@@ -14,7 +14,7 @@ exports[`components/widgets/button/Button snapshots should match snapshot in dis
 </button>
 `;
 
-exports[`components/widgets/button/Button snapshots should match snapshot with all emphasis variants: Button emphasis link 1`] = `
+exports[`components/primitives/Button snapshots should match snapshot with all emphasis variants: Button emphasis link 1`] = `
 <button
   aria-busy="false"
   class="Button Button--md Button--link"
@@ -28,7 +28,7 @@ exports[`components/widgets/button/Button snapshots should match snapshot with a
 </button>
 `;
 
-exports[`components/widgets/button/Button snapshots should match snapshot with all emphasis variants: Button emphasis primary 1`] = `
+exports[`components/primitives/Button snapshots should match snapshot with all emphasis variants: Button emphasis primary 1`] = `
 <button
   aria-busy="false"
   class="Button Button--md Button--primary"
@@ -42,7 +42,7 @@ exports[`components/widgets/button/Button snapshots should match snapshot with a
 </button>
 `;
 
-exports[`components/widgets/button/Button snapshots should match snapshot with all emphasis variants: Button emphasis quaternary 1`] = `
+exports[`components/primitives/Button snapshots should match snapshot with all emphasis variants: Button emphasis quaternary 1`] = `
 <button
   aria-busy="false"
   class="Button Button--md Button--quaternary"
@@ -56,7 +56,7 @@ exports[`components/widgets/button/Button snapshots should match snapshot with a
 </button>
 `;
 
-exports[`components/widgets/button/Button snapshots should match snapshot with all emphasis variants: Button emphasis secondary 1`] = `
+exports[`components/primitives/Button snapshots should match snapshot with all emphasis variants: Button emphasis secondary 1`] = `
 <button
   aria-busy="false"
   class="Button Button--md Button--secondary"
@@ -70,7 +70,7 @@ exports[`components/widgets/button/Button snapshots should match snapshot with a
 </button>
 `;
 
-exports[`components/widgets/button/Button snapshots should match snapshot with all emphasis variants: Button emphasis tertiary 1`] = `
+exports[`components/primitives/Button snapshots should match snapshot with all emphasis variants: Button emphasis tertiary 1`] = `
 <button
   aria-busy="false"
   class="Button Button--md Button--tertiary"
@@ -84,7 +84,7 @@ exports[`components/widgets/button/Button snapshots should match snapshot with a
 </button>
 `;
 
-exports[`components/widgets/button/Button snapshots should match snapshot with all props 1`] = `
+exports[`components/primitives/Button snapshots should match snapshot with all props 1`] = `
 <button
   aria-busy="true"
   class="Button Button--lg Button--secondary Button--destructive Button--loading Button--full-width Button--fixed-width Button--inverted custom-class"
@@ -109,7 +109,7 @@ exports[`components/widgets/button/Button snapshots should match snapshot with a
 </button>
 `;
 
-exports[`components/widgets/button/Button snapshots should match snapshot with all size variants: Button size lg 1`] = `
+exports[`components/primitives/Button snapshots should match snapshot with all size variants: Button size lg 1`] = `
 <button
   aria-busy="false"
   class="Button Button--lg Button--primary"
@@ -123,7 +123,7 @@ exports[`components/widgets/button/Button snapshots should match snapshot with a
 </button>
 `;
 
-exports[`components/widgets/button/Button snapshots should match snapshot with all size variants: Button size md 1`] = `
+exports[`components/primitives/Button snapshots should match snapshot with all size variants: Button size md 1`] = `
 <button
   aria-busy="false"
   class="Button Button--md Button--primary"
@@ -137,7 +137,7 @@ exports[`components/widgets/button/Button snapshots should match snapshot with a
 </button>
 `;
 
-exports[`components/widgets/button/Button snapshots should match snapshot with all size variants: Button size sm 1`] = `
+exports[`components/primitives/Button snapshots should match snapshot with all size variants: Button size sm 1`] = `
 <button
   aria-busy="false"
   class="Button Button--sm Button--primary"
@@ -151,7 +151,7 @@ exports[`components/widgets/button/Button snapshots should match snapshot with a
 </button>
 `;
 
-exports[`components/widgets/button/Button snapshots should match snapshot with all size variants: Button size xs 1`] = `
+exports[`components/primitives/Button snapshots should match snapshot with all size variants: Button size xs 1`] = `
 <button
   aria-busy="false"
   class="Button Button--xs Button--primary"
@@ -165,7 +165,7 @@ exports[`components/widgets/button/Button snapshots should match snapshot with a
 </button>
 `;
 
-exports[`components/widgets/button/Button snapshots should match snapshot with default props 1`] = `
+exports[`components/primitives/Button snapshots should match snapshot with default props 1`] = `
 <button
   aria-busy="false"
   class="Button Button--md Button--primary"

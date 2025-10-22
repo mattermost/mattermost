@@ -3,7 +3,8 @@
 
 import React from 'react';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {render, screen} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import Button from './button';
 import type {ButtonProps} from './button';
@@ -13,7 +14,7 @@ const TestIcon = ({testId = 'test-icon'}: {testId?: string}) => (
     <span data-testid={testId}>🔥</span>
 );
 
-describe('components/widgets/button/Button', () => {
+describe('components/primitives/Button', () => {
     const baseProps: ButtonProps = {
         children: 'Test Button',
     };
@@ -21,7 +22,7 @@ describe('components/widgets/button/Button', () => {
     // 1. RENDERING & PROPS TESTING
     describe('rendering', () => {
         test('should render with default props', () => {
-            renderWithContext(<Button {...baseProps}/>);
+            render(<Button {...baseProps}/>);
 
             const button = screen.getByRole('button', {name: 'Test Button'});
             expect(button).toBeVisible();
@@ -34,7 +35,7 @@ describe('components/widgets/button/Button', () => {
             const sizes: ButtonProps['size'][] = ['xs', 'sm', 'md', 'lg'];
 
             sizes.forEach((size) => {
-                const {unmount} = renderWithContext(
+                const {unmount} = render(
                     <Button {...baseProps} size={size} data-testid={`button-${size}`}/>,
                 );
 
@@ -47,7 +48,7 @@ describe('components/widgets/button/Button', () => {
             const emphases: ButtonProps['emphasis'][] = ['primary', 'secondary', 'tertiary', 'quaternary', 'link'];
 
             emphases.forEach((emphasis) => {
-                const {unmount} = renderWithContext(
+                const {unmount} = render(
                     <Button {...baseProps} emphasis={emphasis} data-testid={`button-${emphasis}`}/>,
                 );
 
@@ -57,7 +58,7 @@ describe('components/widgets/button/Button', () => {
         });
 
         test('should render without children', () => {
-            renderWithContext(<Button data-testid='no-children'/>);
+            render(<Button data-testid='no-children'/>);
 
             const button = screen.getByTestId('no-children');
             expect(button).toBeInTheDocument();
@@ -65,7 +66,7 @@ describe('components/widgets/button/Button', () => {
         });
 
         test('should apply custom className', () => {
-            renderWithContext(<Button className='custom-class'>Custom</Button>);
+            render(<Button className='custom-class'>Custom</Button>);
 
             const button = screen.getByRole('button');
             expect(button).toHaveClass('Button', 'custom-class');
@@ -75,7 +76,7 @@ describe('components/widgets/button/Button', () => {
     // 2. ACCESSIBILITY TESTING
     describe('accessibility', () => {
         test('should have proper ARIA attributes when loading', () => {
-            renderWithContext(<Button loading>Loading Button</Button>);
+            render(<Button loading>Loading Button</Button>);
 
             const button = screen.getByRole('button');
             expect(button).toHaveAttribute('aria-busy', 'true');
@@ -89,7 +90,7 @@ describe('components/widgets/button/Button', () => {
 
         test('should be focusable and have proper focus management', async () => {
             const user = userEvent.setup();
-            renderWithContext(<Button>Focus Test</Button>);
+            render(<Button>Focus Test</Button>);
 
             const button = screen.getByRole('button');
             await user.tab();
@@ -98,7 +99,7 @@ describe('components/widgets/button/Button', () => {
         });
 
         test('should not be focusable when disabled', () => {
-            renderWithContext(<Button disabled>Disabled Button</Button>);
+            render(<Button disabled>Disabled Button</Button>);
 
             const button = screen.getByRole('button');
             expect(button).toBeDisabled();
@@ -106,14 +107,14 @@ describe('components/widgets/button/Button', () => {
         });
 
         test('should announce loading state to screen readers', () => {
-            renderWithContext(<Button loading>Save</Button>);
+            render(<Button loading>Save</Button>);
 
             expect(screen.getByRole('status')).toBeInTheDocument();
             expect(screen.getByLabelText('Loading')).toBeInTheDocument();
         });
 
         test('should maintain accessibility with all variants', () => {
-            renderWithContext(
+            render(
                 <Button
                     size='lg'
                     emphasis='secondary'
@@ -137,7 +138,7 @@ describe('components/widgets/button/Button', () => {
             const user = userEvent.setup();
             const handleClick = jest.fn();
 
-            renderWithContext(<Button onClick={handleClick}>Click Me</Button>);
+            render(<Button onClick={handleClick}>Click Me</Button>);
 
             await user.click(screen.getByRole('button'));
             expect(handleClick).toHaveBeenCalledTimes(1);
@@ -147,7 +148,7 @@ describe('components/widgets/button/Button', () => {
             const user = userEvent.setup();
             const handleClick = jest.fn();
 
-            renderWithContext(
+            render(
                 <Button disabled onClick={handleClick}>
                     Disabled
                 </Button>,
@@ -161,7 +162,7 @@ describe('components/widgets/button/Button', () => {
             const user = userEvent.setup();
             const handleClick = jest.fn();
 
-            renderWithContext(
+            render(
                 <Button loading onClick={handleClick}>
                     Loading
                 </Button>,
@@ -175,7 +176,7 @@ describe('components/widgets/button/Button', () => {
             const user = userEvent.setup();
             const handleClick = jest.fn();
 
-            renderWithContext(<Button onClick={handleClick}>Keyboard Test</Button>);
+            render(<Button onClick={handleClick}>Keyboard Test</Button>);
 
             const button = screen.getByRole('button');
             button.focus();
@@ -188,7 +189,7 @@ describe('components/widgets/button/Button', () => {
             const user = userEvent.setup();
             const handleClick = jest.fn();
 
-            renderWithContext(<Button onClick={handleClick}>Space Test</Button>);
+            render(<Button onClick={handleClick}>Space Test</Button>);
 
             const button = screen.getByRole('button');
             button.focus();
@@ -201,32 +202,32 @@ describe('components/widgets/button/Button', () => {
     // 4. STATE & CONDITIONAL RENDERING
     describe('states', () => {
         test('should render loading state correctly', () => {
-            renderWithContext(<Button loading>Loading Button</Button>);
+            render(<Button loading>Loading Button</Button>);
 
             expect(screen.getByRole('status')).toBeInTheDocument();
             expect(screen.getByRole('button')).toHaveClass('Button--loading');
         });
 
         test('should render destructive state correctly', () => {
-            renderWithContext(<Button destructive>Delete</Button>);
+            render(<Button destructive>Delete</Button>);
 
             expect(screen.getByRole('button')).toHaveClass('Button--destructive');
         });
 
         test('should render inverted state correctly', () => {
-            renderWithContext(<Button inverted>Inverted</Button>);
+            render(<Button inverted>Inverted</Button>);
 
             expect(screen.getByRole('button')).toHaveClass('Button--inverted');
         });
 
         test('should handle fullWidth prop', () => {
-            renderWithContext(<Button fullWidth>Full Width</Button>);
+            render(<Button fullWidth>Full Width</Button>);
 
             expect(screen.getByRole('button')).toHaveClass('Button--full-width');
         });
 
         test('should apply custom width styles', () => {
-            renderWithContext(<Button width='200px'>Custom Width</Button>);
+            render(<Button width='200px'>Custom Width</Button>);
 
             const button = screen.getByRole('button');
             expect(button).toHaveClass('Button--fixed-width');
@@ -234,7 +235,7 @@ describe('components/widgets/button/Button', () => {
         });
 
         test('should combine multiple state classes', () => {
-            renderWithContext(
+            render(
                 <Button
                     size='lg'
                     emphasis='secondary'
@@ -258,7 +259,7 @@ describe('components/widgets/button/Button', () => {
         });
 
         test('should handle disabled and loading states together', () => {
-            renderWithContext(
+            render(
                 <Button disabled loading>
                     Disabled Loading
                 </Button>,
@@ -274,7 +275,7 @@ describe('components/widgets/button/Button', () => {
     // 5. ICON HANDLING
     describe('icons', () => {
         test('should render icon before text', () => {
-            renderWithContext(
+            render(
                 <Button iconBefore={<TestIcon/>}>
                     With Icon Before
                 </Button>,
@@ -285,7 +286,7 @@ describe('components/widgets/button/Button', () => {
         });
 
         test('should render icon after text', () => {
-            renderWithContext(
+            render(
                 <Button iconAfter={<TestIcon/>}>
                     With Icon After
                 </Button>,
@@ -296,7 +297,7 @@ describe('components/widgets/button/Button', () => {
         });
 
         test('should render both icons before and after', () => {
-            renderWithContext(
+            render(
                 <Button
                     iconBefore={<TestIcon testId='icon-before'/>}
                     iconAfter={<TestIcon testId='icon-after'/>}
@@ -310,7 +311,7 @@ describe('components/widgets/button/Button', () => {
         });
 
         test('should hide icons when loading', () => {
-            renderWithContext(
+            render(
                 <Button
                     loading
                     iconBefore={<TestIcon testId='icon-before'/>}
@@ -326,7 +327,7 @@ describe('components/widgets/button/Button', () => {
         });
 
         test('should apply correct icon classes based on size', () => {
-            renderWithContext(
+            render(
                 <Button size='lg' iconBefore={<TestIcon/>}>
                     Large Icon
                 </Button>,
@@ -342,7 +343,7 @@ describe('components/widgets/button/Button', () => {
         test('should forward ref to button element', () => {
             const ref = React.createRef<HTMLButtonElement>();
 
-            renderWithContext(<Button ref={ref}>Ref Test</Button>);
+            render(<Button ref={ref}>Ref Test</Button>);
 
             expect(ref.current).toBeInstanceOf(HTMLButtonElement);
             expect(ref.current).toBe(screen.getByRole('button'));
@@ -351,7 +352,7 @@ describe('components/widgets/button/Button', () => {
         test('should allow calling focus on ref', () => {
             const ref = React.createRef<HTMLButtonElement>();
 
-            renderWithContext(<Button ref={ref}>Focus via Ref</Button>);
+            render(<Button ref={ref}>Focus via Ref</Button>);
 
             ref.current?.focus();
             expect(ref.current).toHaveFocus();
@@ -361,7 +362,7 @@ describe('components/widgets/button/Button', () => {
             const ref = React.createRef<HTMLButtonElement>();
             const handleClick = jest.fn();
 
-            renderWithContext(
+            render(
                 <Button ref={ref} onClick={handleClick}>
                     DOM Methods
                 </Button>,
@@ -379,7 +380,7 @@ describe('components/widgets/button/Button', () => {
         test('should maintain ref through re-renders', () => {
             const ref = React.createRef<HTMLButtonElement>();
 
-            const {rerender} = renderWithContext(
+            const {rerender} = render(
                 <Button ref={ref}>Version 1</Button>,
             );
 
@@ -395,7 +396,7 @@ describe('components/widgets/button/Button', () => {
     // 7. SNAPSHOT TESTS
     describe('snapshots', () => {
         test('should match snapshot with default props', () => {
-            const {container} = renderWithContext(<Button>Default</Button>);
+            const {container} = render(<Button>Default</Button>);
             expect(container.firstChild).toMatchSnapshot();
         });
 
@@ -403,7 +404,7 @@ describe('components/widgets/button/Button', () => {
             const sizes: ButtonProps['size'][] = ['xs', 'sm', 'md', 'lg'];
 
             sizes.forEach((size) => {
-                const {container} = renderWithContext(<Button size={size}>Size {size}</Button>);
+                const {container} = render(<Button size={size}>Size {size}</Button>);
                 expect(container.firstChild).toMatchSnapshot(`Button size ${size}`);
             });
         });
@@ -412,7 +413,7 @@ describe('components/widgets/button/Button', () => {
             const emphases: ButtonProps['emphasis'][] = ['primary', 'secondary', 'tertiary', 'quaternary', 'link'];
 
             emphases.forEach((emphasis) => {
-                const {container} = renderWithContext(
+                const {container} = render(
                     <Button emphasis={emphasis}>
                         Emphasis {emphasis}
                     </Button>,
@@ -422,7 +423,7 @@ describe('components/widgets/button/Button', () => {
         });
 
         test('should match snapshot with all props', () => {
-            const {container} = renderWithContext(
+            const {container} = render(
                 <Button
                     size='lg'
                     emphasis='secondary'
@@ -441,7 +442,7 @@ describe('components/widgets/button/Button', () => {
         });
 
         test('should match snapshot in disabled state', () => {
-            const {container} = renderWithContext(
+            const {container} = render(
                 <Button disabled destructive>
                     Disabled Destructive
                 </Button>,
@@ -456,7 +457,7 @@ describe('components/widgets/button/Button', () => {
             const user = userEvent.setup();
             const handleSubmit = jest.fn((e) => e.preventDefault());
 
-            renderWithContext(
+            render(
                 <form onSubmit={handleSubmit}>
                     <Button type='submit'>Submit Form</Button>
                 </form>,
@@ -467,7 +468,7 @@ describe('components/widgets/button/Button', () => {
         });
 
         test('should work with custom HTML attributes', () => {
-            renderWithContext(
+            render(
                 <Button
                     data-testid='custom-button'
                     aria-describedby='help-text'
@@ -483,7 +484,7 @@ describe('components/widgets/button/Button', () => {
         });
 
         test('should handle form validation attributes', () => {
-            renderWithContext(
+            render(
                 <Button
                     type='submit'
                     form='my-form'
@@ -500,7 +501,7 @@ describe('components/widgets/button/Button', () => {
         });
 
         test('should merge custom styles with width prop', () => {
-            renderWithContext(
+            render(
                 <Button
                     width='250px'
                     style={{backgroundColor: 'red', margin: '10px'}}
@@ -527,14 +528,14 @@ describe('components/widgets/button/Button', () => {
                 return <Button>Memo Test</Button>;
             });
 
-            const {rerender} = renderWithContext(<TestButton/>);
+            const {rerender} = render(<TestButton/>);
             rerender(<TestButton/>);
 
             expect(renderSpy).toHaveBeenCalledTimes(1);
         });
 
         test('should handle empty string children', () => {
-            renderWithContext(<Button>{''}</Button>);
+            render(<Button>{''}</Button>);
 
             const button = screen.getByRole('button');
             expect(button).toBeInTheDocument();
@@ -542,21 +543,21 @@ describe('components/widgets/button/Button', () => {
         });
 
         test('should handle null children gracefully', () => {
-            renderWithContext(<Button>{null}</Button>);
+            render(<Button>{null}</Button>);
 
             const button = screen.getByRole('button');
             expect(button).toBeInTheDocument();
         });
 
         test('should handle zero as children', () => {
-            renderWithContext(<Button>{0}</Button>);
+            render(<Button>{0}</Button>);
 
             const button = screen.getByRole('button');
             expect(button).toHaveTextContent('0');
         });
 
         test('should handle complex children structures', () => {
-            renderWithContext(
+            render(
                 <Button>
                     <span>Complex</span>
                     {' '}
@@ -591,7 +592,7 @@ describe('components/widgets/button/Button', () => {
                 );
             };
 
-            renderWithContext(<TestComponent/>);
+            render(<TestComponent/>);
 
             const button = screen.getByRole('button');
 
