@@ -38,6 +38,7 @@ const useAIRewrite = (
     const [isProcessing, setIsProcessing] = useState(false);
     const [originalMessage, setOriginalMessage] = useState('');
     const [lastAction, setLastAction] = useState<string | null>(null);
+    const [lastPrompt, setLastPrompt] = useState('');
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [prompt, setPrompt] = useState('');
     const [textareaWrapper, setTextareaWrapper] = useState<Element | null>(null);
@@ -74,6 +75,7 @@ const useAIRewrite = (
 
         setIsProcessing(true);
         setOriginalMessage(draft.message);
+        setLastPrompt(prompt || '');
         if (action) {
             setLastAction(action);
         }
@@ -102,6 +104,7 @@ const useAIRewrite = (
         } finally {
             // Only update state if this is still the current promise
             if (currentPromiseRef.current === promise) {
+                setPrompt('');
                 setIsProcessing(false);
                 currentPromiseRef.current = null;
             }
@@ -171,14 +174,15 @@ const useAIRewrite = (
     }, [draft, handleDraftChange, originalMessage, focusTextbox]);
 
     const regenerateMessage = useCallback(() => {
+        setPrompt(lastPrompt);
         handleDraftChange({
             ...draft,
             message: originalMessage,
         }, {instant: true});
         if (lastAction) {
-            handleAIRewrite(lastAction, lastAction === 'custom' ? prompt : undefined);
+            handleAIRewrite(lastAction, lastAction === 'custom' ? lastPrompt : undefined);
         }
-    }, [draft, handleAIRewrite, originalMessage, lastAction, prompt, handleDraftChange]);
+    }, [draft, handleAIRewrite, originalMessage, lastAction, lastPrompt, handleDraftChange]);
 
     const additionalControl = useMemo(() => {
         const showMenuItem = !isProcessing && draft.message.trim();
@@ -222,7 +226,7 @@ const useAIRewrite = (
                                 />
                             </button>
                             <button
-                                className='btn btn-tertiary btn-xs'
+                                className='btn btn-xs'
                                 type='button'
                                 onClick={regenerateMessage}
                             >
