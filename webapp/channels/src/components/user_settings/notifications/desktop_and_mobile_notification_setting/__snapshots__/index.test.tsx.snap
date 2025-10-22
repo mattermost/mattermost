@@ -33,8 +33,11 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
             <div
               class="radio"
             >
-              <label>
+              <label
+                class="RadioInput"
+              >
                 <input
+                  id="all"
                   type="radio"
                   value="all"
                 />
@@ -44,8 +47,11 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
             <div
               class="radio"
             >
-              <label>
+              <label
+                class="RadioInput"
+              >
                 <input
+                  id="mention"
                   type="radio"
                   value="mention"
                 />
@@ -55,8 +61,11 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
             <div
               class="radio"
             >
-              <label>
+              <label
+                class="RadioInput"
+              >
                 <input
+                  id="none"
                   type="radio"
                   value="none"
                 />
@@ -262,8 +271,11 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
             <div
               class="radio"
             >
-              <label>
+              <label
+                class="RadioInput"
+              >
                 <input
+                  id="all"
                   type="radio"
                   value="all"
                 />
@@ -273,8 +285,11 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
             <div
               class="radio"
             >
-              <label>
+              <label
+                class="RadioInput"
+              >
                 <input
+                  id="mention"
                   type="radio"
                   value="mention"
                 />
@@ -284,8 +299,11 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
             <div
               class="radio"
             >
-              <label>
+              <label
+                class="RadioInput"
+              >
                 <input
+                  id="none"
                   type="radio"
                   value="none"
                 />

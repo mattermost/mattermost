@@ -127,7 +127,7 @@ export default function ContentFlaggingContentReviewers(props: Props) {
                         <div className='setting-content'>
                             <RadioInput
                                 id='sameReviewersForAllTeams_true'
-                                data-testid='sameReviewersForAllTeams_true'
+                                dataTestId='sameReviewersForAllTeams_true'
                                 title={labelTrue}
                                 name='sameReviewersForAllTeams'
                                 value='true'
@@ -137,7 +137,7 @@ export default function ContentFlaggingContentReviewers(props: Props) {
 
                             <RadioInput
                                 id='sameReviewersForAllTeams_false'
-                                data-testid='sameReviewersForAllTeams_false'
+                                dataTestId='sameReviewersForAllTeams_false'
                                 title={labelFalse}
                                 name='sameReviewersForAllTeams'
                                 value='false'
