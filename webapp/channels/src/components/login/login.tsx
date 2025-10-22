@@ -125,7 +125,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const [alertBanner, setAlertBanner] = useState<AlertBannerProps | null>(null);
     const [hasError, setHasError] = useState(false);
     const [isMobileView, setIsMobileView] = useState(false);
-    const [showPasswordlessSuccess, setShowPasswordlessSuccess] = useState(false);
+    const [easyLoginSuccessful, setEasyLoginSuccessful] = useState(false);
     const [requiresPassword, setRequiresPassword] = useState(false);
 
     const enableCustomBrand = EnableCustomBrand === 'true';
@@ -722,14 +722,14 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             return;
         }
 
-        if (result.data === '') {
+        if (result.data === 'easy_login') {
+            setEasyLoginSuccessful(true);
+        } else {
             setRequiresPassword(true);
 
             setTimeout(() => {
                 passwordInput.current?.focus();
             }, 100);
-        } else {
-            setShowPasswordlessSuccess(true);
         }
     };
 
@@ -939,7 +939,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                         <div
                             className='login-body-card-content'
                         >
-                            {showPasswordlessSuccess ? (
+                            {easyLoginSuccessful ? (
                                 <LoginPasswordless/>
                             ) : (
                                 <>
