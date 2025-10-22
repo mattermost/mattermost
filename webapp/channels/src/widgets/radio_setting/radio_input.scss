@@ -1,0 +1,50 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.RadioInput {
+    display: flex;
+    width: fit-content;
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 0;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 400;
+    gap: 8px;
+    line-height: 20px;
+
+    input {
+        display: grid;
+        width: 1.6rem;
+        height: 1.6rem;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.24);
+        border-radius: 50%;
+        margin: 0;
+        -webkit-appearance: none;
+        appearance: none;
+        background-color: white;
+        color: rgba(var(--center-channel-color-rgb), 0.24);
+        cursor: pointer;
+        font: inherit;
+        place-content: center;
+
+        &:checked {
+            border-color: var(--button-bg);
+        }
+
+        &:checked::before {
+            transform: scale(1);
+        }
+
+        &::before {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--button-bg);
+            content: "";
+            transform: scale(0);
+            transform-origin: center center;
+            transition: 200ms transform ease-in-out;
+        }
+    }
+}

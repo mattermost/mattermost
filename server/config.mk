@@ -11,7 +11,7 @@
 # Must be space separated names.
 #
 # Example: postgres elasticsearch
-ENABLED_DOCKER_SERVICES ?= postgres inbucket redis
+ENABLED_DOCKER_SERVICES ?= postgres inbucket redis opensearch
 
 # Disable entirely the use of docker
 MM_NO_DOCKER ?= false

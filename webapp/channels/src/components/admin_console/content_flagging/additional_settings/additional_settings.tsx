@@ -8,9 +8,10 @@ import CreatableReactSelect from 'react-select/creatable';
 
 import type {ContentFlaggingAdditionalSettings} from '@mattermost/types/config';
 
-import {Label} from 'components/admin_console/boolean_setting';
 import type {SystemConsoleCustomSettingChangeHandler} from 'components/admin_console/schema_admin_settings';
 import {CreatableReactSelectInput} from 'components/user_settings/notifications/user_settings_notifications';
+
+import RadioInput from 'widgets/radio_setting/radio_input';
 
 import {ReasonOption} from './reason_option';
 
@@ -75,6 +76,20 @@ export default function ContentFlaggingAdditionalSettingsSection({id, onChange, 
         }));
     }, [additionalSettings.Reasons]);
 
+    const labelTrue = (
+        <FormattedMessage
+            id='admin.true'
+            defaultMessage='True'
+        />
+    );
+
+    const labelFalse = (
+        <FormattedMessage
+            id='admin.false'
+            defaultMessage='False'
+        />
+    );
+
     return (
         <AdminSection>
             <SectionHeader>
@@ -136,35 +151,25 @@ export default function ContentFlaggingAdditionalSettingsSection({id, onChange, 
                         </div>
 
                         <div className='setting-content'>
-                            <Label isDisabled={false}>
-                                <input
-                                    data-testid='requireReporterComment_true'
-                                    id='requireReporterComment_true'
-                                    type='radio'
-                                    value='true'
-                                    checked={additionalSettings.ReporterCommentRequired}
-                                    onChange={handleRequireReporterCommentChange}
-                                />
-                                <FormattedMessage
-                                    id='admin.true'
-                                    defaultMessage='True'
-                                />
-                            </Label>
+                            <RadioInput
+                                id='requireReporterComment_true'
+                                dataTestId='requireReporterComment_true'
+                                title={labelTrue}
+                                name='requireReporterComment'
+                                value='true'
+                                checked={additionalSettings.ReporterCommentRequired}
+                                handleChange={handleRequireReporterCommentChange}
+                            />
 
-                            <Label isDisabled={false}>
-                                <input
-                                    data-testid='requireReporterComment_false'
-                                    id='requireReporterComment_false'
-                                    type='radio'
-                                    value='false'
-                                    checked={!additionalSettings.ReporterCommentRequired}
-                                    onChange={handleRequireReporterCommentChange}
-                                />
-                                <FormattedMessage
-                                    id='admin.false'
-                                    defaultMessage='False'
-                                />
-                            </Label>
+                            <RadioInput
+                                id='requireReporterComment_false'
+                                dataTestId='requireReporterComment_false'
+                                title={labelFalse}
+                                name='requireReporterComment'
+                                value='false'
+                                checked={!additionalSettings.ReporterCommentRequired}
+                                handleChange={handleRequireReporterCommentChange}
+                            />
                         </div>
                     </div>
 
@@ -177,35 +182,25 @@ export default function ContentFlaggingAdditionalSettingsSection({id, onChange, 
                         </div>
 
                         <div className='setting-content'>
-                            <Label isDisabled={false}>
-                                <input
-                                    data-testid='requireReviewerComment_true'
-                                    id='requireReviewerComment_true'
-                                    type='radio'
-                                    value='true'
-                                    checked={additionalSettings.ReviewerCommentRequired}
-                                    onChange={handleRequireReviewerCommentChange}
-                                />
-                                <FormattedMessage
-                                    id='admin.true'
-                                    defaultMessage='True'
-                                />
-                            </Label>
+                            <RadioInput
+                                id='requireReviewerComment_true'
+                                dataTestId='requireReviewerComment_true'
+                                title={labelTrue}
+                                name='requireReviewerComment'
+                                value='true'
+                                checked={additionalSettings.ReviewerCommentRequired}
+                                handleChange={handleRequireReviewerCommentChange}
+                            />
 
-                            <Label isDisabled={false}>
-                                <input
-                                    data-testid='requireReviewerComment_false'
-                                    id='requireReviewerComment_false'
-                                    type='radio'
-                                    value='false'
-                                    checked={!additionalSettings.ReviewerCommentRequired}
-                                    onChange={handleRequireReviewerCommentChange}
-                                />
-                                <FormattedMessage
-                                    id='admin.false'
-                                    defaultMessage='False'
-                                />
-                            </Label>
+                            <RadioInput
+                                id='requireReviewerComment_false'
+                                dataTestId='requireReviewerComment_false'
+                                title={labelFalse}
+                                name='requireReviewerComment'
+                                value='false'
+                                checked={!additionalSettings.ReviewerCommentRequired}
+                                handleChange={handleRequireReviewerCommentChange}
+                            />
                         </div>
                     </div>
 
@@ -218,35 +213,25 @@ export default function ContentFlaggingAdditionalSettingsSection({id, onChange, 
                         </div>
 
                         <div className='setting-content'>
-                            <Label isDisabled={false}>
-                                <input
-                                    data-testid='hideFlaggedPosts_true'
-                                    id='hideFlaggedPosts_true'
-                                    type='radio'
-                                    value='true'
-                                    checked={additionalSettings.HideFlaggedContent}
-                                    onChange={handleHideFlaggedPosts}
-                                />
-                                <FormattedMessage
-                                    id='admin.true'
-                                    defaultMessage='True'
-                                />
-                            </Label>
+                            <RadioInput
+                                id='setHideFlaggedPosts_true'
+                                dataTestId='setHideFlaggedPosts_true'
+                                title={labelTrue}
+                                name='setHideFlaggedPosts'
+                                value='true'
+                                checked={additionalSettings.HideFlaggedContent}
+                                handleChange={handleHideFlaggedPosts}
+                            />
 
-                            <Label isDisabled={false}>
-                                <input
-                                    data-testid='setHideFlaggedPosts_false'
-                                    id='setHideFlaggedPosts_false'
-                                    type='radio'
-                                    value='false'
-                                    checked={!additionalSettings.HideFlaggedContent}
-                                    onChange={handleHideFlaggedPosts}
-                                />
-                                <FormattedMessage
-                                    id='admin.false'
-                                    defaultMessage='False'
-                                />
-                            </Label>
+                            <RadioInput
+                                id='setHideFlaggedPosts_false'
+                                dataTestId='setHideFlaggedPosts_false'
+                                title={labelFalse}
+                                name='setHideFlaggedPosts'
+                                value='false'
+                                checked={!additionalSettings.HideFlaggedContent}
+                                handleChange={handleHideFlaggedPosts}
+                            />
                         </div>
                     </div>
                 </div>

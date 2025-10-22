@@ -5,6 +5,7 @@ import React, {memo, useCallback} from 'react';
 import type {ChangeEventHandler} from 'react';
 
 import Setting from './setting';
+import RadioInput from "widgets/radio_setting/radio_input";
 
 type Props = {
     id: string;
@@ -43,21 +44,15 @@ const RadioSetting = ({
             {
                 options.map(({value: option, text}) => {
                     return (
-                        <div
-                            className='radio'
+                        <RadioInput
                             key={option}
-                        >
-                            <label>
-                                <input
-                                    type='radio'
-                                    value={option}
-                                    name={id}
-                                    checked={option === value}
-                                    onChange={handleChange}
-                                />
-                                {text}
-                            </label>
-                        </div>
+                            id={option}
+                            title={text}
+                            name={id}
+                            value={option}
+                            checked={option === value}
+                            handleChange={handleChange}
+                        />
                     );
                 })
             }

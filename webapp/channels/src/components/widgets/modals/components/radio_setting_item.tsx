@@ -6,6 +6,7 @@ import React from 'react';
 
 import type {BaseSettingItemProps} from './base_setting_item';
 import BaseSettingItem from './base_setting_item';
+import RadioInput from "widgets/radio_setting/radio_input";
 
 export type FieldsetRadio = {
     options: Array<{
@@ -35,21 +36,16 @@ function RadioSettingItem({
 }: Props): JSX.Element {
     const fields = inputFieldData.options.map((option) => {
         return (
-            <label
+            <RadioInput
                 key={option.key}
-                className='mm-modal-generic-section-item__label-radio'
-            >
-                <input
-                    id={option.key}
-                    data-testid={option.dataTestId}
-                    type='radio'
-                    name={option.name}
-                    checked={option.value === inputFieldValue}
-                    value={option.value}
-                    onChange={handleChange}
-                />
-                {option.title}
-            </label>
+                id={option.name}
+                dataTestId={option.dataTestId}
+                name={option.name}
+                value={option.value}
+                title={option.title}
+                checked={option.value === inputFieldValue}
+                handleChange={handleChange}
+            />
         );
     });
 
