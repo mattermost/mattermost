@@ -10814,10 +10814,6 @@
     "translation": "このメッセージにフラグを立てた理由を選択してください。"
   },
   {
-    "id": "api.content_flagging.error.reviewer_only",
-    "translation": "このリソースを閲覧する権限がありません。"
-  },
-  {
     "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
     "translation": "制限されたダイレクトメッセージチャンネルには下書きを保存できません"
   },
@@ -10872,10 +10868,6 @@
   {
     "id": "app.content_flagging.create_property_values.app_error",
     "translation": "フラグの立てられた投稿に対するプロパティ値を保存できません。"
-  },
-  {
-    "id": "app.content_flagging.delete_post.app_error",
-    "translation": "フラグの立てられた投稿をsoft-deleteできません。"
   },
   {
     "id": "app.content_flagging.flag_post.marshal_comment.app_error",

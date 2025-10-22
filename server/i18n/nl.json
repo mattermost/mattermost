@@ -10844,10 +10844,6 @@
     "translation": "Selecteer een reden om dit bericht te markeren."
   },
   {
-    "id": "api.content_flagging.error.reviewer_only",
-    "translation": "Je hebt geen toestemming om deze bron te bekijken."
-  },
-  {
     "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
     "translation": "Kan concept niet opslaan in beperkt directe berichten kanaal"
   },
@@ -10906,10 +10902,6 @@
   {
     "id": "app.content_flagging.create_property_values.app_error",
     "translation": "Kan de waarden van eigenschappen voor de gemarkeerde post niet opslaan."
-  },
-  {
-    "id": "app.content_flagging.delete_post.app_error",
-    "translation": "De gemarkeerde post kan niet worden verwijderd."
   },
   {
     "id": "app.content_flagging.flag_post.marshal_comment.app_error",
@@ -10998,5 +10990,41 @@
   {
     "id": "app.upload.create.cannot_upload_to_restricted_dm.error",
     "translation": "Kan geen bestand uploaden naar een beperkt direct bericht."
+  },
+  {
+    "id": "api.encoding_error",
+    "translation": "Er is een fout opgetreden bij het coderen van JSON voor het API-antwoord"
+  },
+  {
+    "id": "app.content_flagging.get_reviewer_settings.app_error",
+    "translation": "Fout bij het ophalen van instellingen voor inhoudsbeoordelaar uit de database"
+  },
+  {
+    "id": "app.content_flagging.save_reviewer_settings.app_error",
+    "translation": "Het is niet gelukt om de instellingen van de inhoudsbeoordelaar op te slaan in de database."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.libretranslate.url.app_error",
+    "translation": "De URL van LibreTranslate moet een geldige URL zijn en beginnen met http:// of https://."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.provider.app_error",
+    "translation": "Ongeldige autotranslation provider, mag niet leeg zijn."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.provider.unsupported.app_error",
+    "translation": "Niet-ondersteunde provider voor automatische vertalingen."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.fetch.app_error",
+    "translation": "Ongeldige fetch timeout voor instellingen voor automatische vertalingen. Moet een positief getal zijn."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.new_post.app_error",
+    "translation": "Ongeldige time-out voor nieuwe berichten bij instellingen voor automatische vertalingen. Moet een positief getal zijn."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
+    "translation": "Ongeldige melding timeout voor automatische vertalingen. Moet een positief getal zijn. Moet een positief getal zijn."
   }
 ]

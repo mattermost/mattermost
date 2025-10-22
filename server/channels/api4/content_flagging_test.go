@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -405,6 +406,38 @@ func TestGetFlaggedPost(t *testing.T) {
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.NotNil(t, flaggedPost)
 		require.Equal(t, post.Id, flaggedPost.Id)
+	})
+
+	t.Run("Should return flagged post's file info", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		data, err2 := testutils.ReadTestFile("test.png")
+		require.NoError(t, err2)
+
+		fileResponse, _, err := client.UploadFile(context.Background(), data, th.BasicChannel.Id, "test.png")
+		require.NoError(t, err)
+		require.Equal(t, 1, len(fileResponse.FileInfos))
+		fileInfo := fileResponse.FileInfos[0]
+
+		post := th.CreatePostInChannelWithFiles(th.BasicChannel, fileInfo)
+
+		// First flag the post
+		flagRequest := &model.FlagContentRequest{
+			Reason:  "Sensitive data",
+			Comment: "This is sensitive content",
+		}
+		resp, err := client.FlagPostForContentReview(context.Background(), post.Id, flagRequest)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		flaggedPost, resp, err := client.GetContentFlaggedPost(context.Background(), post.Id)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		require.Equal(t, 1, len(flaggedPost.Metadata.Files))
+		require.Equal(t, fileInfo.Id, flaggedPost.Metadata.Files[0].Id)
 	})
 }
 
