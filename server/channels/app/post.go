@@ -2247,7 +2247,7 @@ func (a *App) CheckPostReminders(rctx request.CTX) {
 	rctx = rctx.WithLogger(rctx.Logger().With(mlog.String("component", "post_reminders")))
 	systemBot, appErr := a.GetSystemBot(rctx)
 	if appErr != nil {
-		rctx.Logger().Error("Failed to get system bot", mlog.Err(appErr))
+		rctx.Logger().Warn("Failed to get system bot", mlog.Err(appErr))
 		return
 	}
 
