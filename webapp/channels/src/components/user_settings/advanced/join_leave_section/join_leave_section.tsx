@@ -15,6 +15,7 @@ import type SettingItemMinComponent from 'components/setting_item_min';
 
 import {AdvancedSections} from 'utils/constants';
 import {a11yFocus} from 'utils/utils';
+import RadioInput from 'widgets/radio_setting/radio_input';
 
 export type OwnProps = {
     adminMode?: boolean;
@@ -105,38 +106,34 @@ export default class JoinLeaveSection extends React.PureComponent<Props, State> 
                                 />
                             </legend>
                             <div className='radio'>
-                                <label>
-                                    <input
-                                        id='joinLeaveOn'
-                                        type='radio'
-                                        value={'true'}
-                                        name={AdvancedSections.JOIN_LEAVE}
-                                        checked={joinLeaveState === 'true'}
-                                        onChange={this.handleOnChange}
-                                    />
-                                    <FormattedMessage
-                                        id='user.settings.advance.on'
-                                        defaultMessage='On'
-                                    />
-                                </label>
-                                <br/>
+                                <RadioInput
+                                    id='joinLeaveOn'
+                                    title={
+                                        <FormattedMessage
+                                            id='user.settings.advance.on'
+                                            defaultMessage='On'
+                                        />
+                                    }
+                                    name={AdvancedSections.JOIN_LEAVE}
+                                    value='true'
+                                    checked={joinLeaveState === 'true'}
+                                    handleChange={this.handleOnChange}
+                                />
                             </div>
                             <div className='radio'>
-                                <label>
-                                    <input
-                                        id='joinLeaveOff'
-                                        type='radio'
-                                        value={'false'}
-                                        name={AdvancedSections.JOIN_LEAVE}
-                                        checked={joinLeaveState === 'false'}
-                                        onChange={this.handleOnChange}
-                                    />
-                                    <FormattedMessage
-                                        id='user.settings.advance.off'
-                                        defaultMessage='Off'
-                                    />
-                                </label>
-                                <br/>
+                                <RadioInput
+                                    id='joinLeaveOff'
+                                    title={
+                                        <FormattedMessage
+                                            id='user.settings.advance.off'
+                                            defaultMessage='Off'
+                                        />
+                                    }
+                                    name={AdvancedSections.JOIN_LEAVE}
+                                    value='false'
+                                    checked={joinLeaveState === 'false'}
+                                    handleChange={this.handleOnChange}
+                                />
                             </div>
                             <div className='mt-5'>
                                 <FormattedMessage

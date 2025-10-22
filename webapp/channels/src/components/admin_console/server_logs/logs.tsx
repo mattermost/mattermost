@@ -17,6 +17,8 @@ import {Client4} from 'mattermost-redux/client';
 import ExternalLink from 'components/external_link';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
+import RadioInput from 'widgets/radio_setting/radio_input';
+
 import LogList from './log_list';
 import PlainLogList from './plain_log_list';
 
@@ -196,28 +198,25 @@ export default class Logs extends React.PureComponent<Props, State> {
                         <FormattedMessage {...messages.logFormatTitle}/>
                     </span>
 
-                    <label>
-                        <input
-                            type='radio'
-                            id='admin.logs.LogFormat.json'
-                            name='log-format'
-                            value='json'
-                            checked={!this.state.isPlainLogs}
-                            onChange={this.onLogFormatToggle}
-                        />
-                        <FormattedMessage {...messages.logFormatJson}/>
-                    </label>
-                    <label>
-                        <input
-                            type='radio'
-                            id='admin.logs.LogFormat.plain'
-                            name='log-format'
-                            value='plain'
-                            checked={this.state.isPlainLogs}
-                            onChange={this.onLogFormatToggle}
-                        />
-                        <FormattedMessage {...messages.logFormatPlain}/>
-                    </label>
+                    <RadioInput
+                        id='admin.logs.LogFormat.json'
+                        data-testid='admin.logs.LogFormat.json'
+                        title={<FormattedMessage {...messages.logFormatJson}/>}
+                        name='log-format'
+                        value='json'
+                        checked={!this.state.isPlainLogs}
+                        handleChange={this.onLogFormatToggle}
+                    />
+
+                    <RadioInput
+                        id='admin.logs.LogFormat.plain'
+                        data-testid='admin.logs.LogFormat.plain'
+                        title={<FormattedMessage {...messages.logFormatPlain}/>}
+                        name='log-format'
+                        value='plain'
+                        checked={this.state.isPlainLogs}
+                        handleChange={this.onLogFormatToggle}
+                    />
                 </div>
             );
         }

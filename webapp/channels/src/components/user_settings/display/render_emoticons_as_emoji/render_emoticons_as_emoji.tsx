@@ -10,6 +10,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import {Preferences} from 'mattermost-redux/constants';
 
 import SettingItemMax from 'components/setting_item_max';
+import RadioInput from "widgets/radio_setting/radio_input";
 
 export type Actions = {
     savePreferences: (userId: string, preferences: PreferenceType[]) => void;
@@ -86,21 +87,19 @@ const RenderEmoticonsAsEmoji: React.FC<Props> = ({user, renderEmoticonsAsEmoji, 
                         className='radio'
                         key={option}
                     >
-                        <label>
-                            <input
-                                id={inputId}
-                                type='radio'
-                                name='renderEmoticonsAsEmoji'
-                                value={option}
-                                checked={value === option}
-                                onChange={handleChange}
-                            />
-                            <FormattedMessage
-                                id={messageId}
-                                defaultMessage={defaultMessage}
-                            />
-                        </label>
-                        <br/>
+                        <RadioInput
+                            id={inputId}
+                            name='renderEmoticonsAsEmoji'
+                            value={option}
+                            checked={value === option}
+                            handleChange={handleChange}
+                            title={
+                                <FormattedMessage
+                                    id={messageId}
+                                    defaultMessage={defaultMessage}
+                                />
+                            }
+                        />
                     </div>
                 );
             })}

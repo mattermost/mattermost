@@ -23,6 +23,7 @@ import type {Language} from 'i18n/i18n';
 import Constants from 'utils/constants';
 import {getBrowserTimezone} from 'utils/timezone';
 import {a11yFocus} from 'utils/utils';
+import RadioInput from 'widgets/radio_setting/radio_input';
 
 import ManageLanguages from './manage_languages';
 import ManageTimezones from './manage_timezones';
@@ -490,19 +491,14 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 };
 
                 thirdSection = (
-                    <div className='radio'>
-                        <label>
-                            <input
-                                id={name + 'C'}
-                                type='radio'
-                                name={name}
-                                checked={format[2]}
-                                onChange={(e) => this.handleOnChange(e, thirdDisplay)}
-                            />
-                            {thirdMessage}
-                        </label>
-                        <br/>
-                    </div>
+                    <RadioInput
+                        className='radio'
+                        id={name + 'C'}
+                        name={name}
+                        checked={format[2]}
+                        onChange={(e) => this.handleOnChange(e, thirdDisplay)}
+                        title={thirdMessage}
+                    />
                 );
             }
 
@@ -544,36 +540,35 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                     <legend className='form-legend hidden-label'>
                         {messageTitle}
                     </legend>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                id={name + 'A'}
-                                type='radio'
-                                name={name}
-                                checked={format[0]}
-                                onChange={(e) => this.handleOnChange(e, firstDisplay)}
-                            />
-                            {firstMessage}
-                            {moreColon}
-                            {firstMessageMore}
-                        </label>
-                        <br/>
-                    </div>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                id={name + 'B'}
-                                type='radio'
-                                name={name}
-                                checked={format[1]}
-                                onChange={(e) => this.handleOnChange(e, secondDisplay)}
-                            />
-                            {secondMessage}
-                            {moreColon}
-                            {secondMessageMore}
-                        </label>
-                        <br/>
-                    </div>
+                    <RadioInput
+                        className='radio'
+                        id={name + 'A'}
+                        name={name}
+                        checked={format[0]}
+                        onChange={(e) => this.handleOnChange(e, firstDisplay)}
+                        title={
+                            <>
+                                {firstMessage}
+                                {moreColon}
+                                {firstMessageMore}
+                            </>
+                        }
+                    />
+
+                    <RadioInput
+                        className='radio'
+                        id={name + 'B'}
+                        name={name}
+                        checked={format[1]}
+                        onChange={(e) => this.handleOnChange(e, secondDisplay)}
+                        title={
+                            <>
+                                {secondMessage}
+                                {moreColon}
+                                {secondMessageMore}
+                            </>
+                        }
+                    />
                     {thirdSection}
                     <div>
                         <br/>

@@ -20,6 +20,7 @@ import Constants, {NotificationLevels, UserSettingsNotificationSections} from 'u
 import {formatAsComponent} from 'utils/i18n';
 
 import type {Props as UserSettingsNotificationsProps} from '../user_settings_notifications';
+import RadioInput from "widgets/radio_setting/radio_input";
 
 export type Props = {
     active: boolean;
@@ -122,15 +123,13 @@ function DesktopAndMobileNotificationSettings({
                         key={optionOfSendNotifications.value}
                         className='radio'
                     >
-                        <label>
-                            <input
-                                type='radio'
-                                checked={desktopActivity === optionOfSendNotifications.value}
-                                value={optionOfSendNotifications.value}
-                                onChange={handleChangeForSendDesktopNotificationsRadio}
-                            />
-                            {formatAsComponent(optionOfSendNotifications.label)}
-                        </label>
+                        <RadioInput
+                            id={optionOfSendNotifications.value}
+                            checked={desktopActivity === optionOfSendNotifications.value}
+                            value={optionOfSendNotifications.value}
+                            handleChange={handleChangeForSendDesktopNotificationsRadio}
+                            title={formatAsComponent(optionOfSendNotifications.label)}
+                        />
                     </div>
                 ))}
             </fieldset>

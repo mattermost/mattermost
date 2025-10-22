@@ -34,6 +34,7 @@ import SettingDesktopHeader from '../headers/setting_desktop_header';
 import SettingMobileHeader from '../headers/setting_mobile_header';
 
 import type {PropsFromRedux} from './index';
+import RadioInput from "widgets/radio_setting/radio_input";
 
 const WHITE_SPACE_REGEX = /\s+/g;
 const COMMA_REGEX = /,/g;
@@ -833,53 +834,44 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                             defaultMessage='Reply notifications'
                         />
                     </legend>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                id='notificationCommentsAny'
-                                type='radio'
-                                name='commentsNotificationLevel'
-                                checked={commentsActive[0]}
-                                onChange={this.handleNotifyCommentsRadio.bind(this, 'any')}
-                            />
+                    <RadioInput
+                        id='notificationCommentsAny'
+                        name='commentsNotificationLevel'
+                        checked={commentsActive[0]}
+                        handleChange={this.handleNotifyCommentsRadio.bind(this, 'any')}
+                        title={
                             <FormattedMessage
                                 id='user.settings.notifications.commentsAny'
                                 defaultMessage='Trigger notifications on messages in reply threads that I start or participate in'
                             />
-                        </label>
-                        <br/>
-                    </div>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                id='notificationCommentsRoot'
-                                type='radio'
-                                name='commentsNotificationLevel'
-                                checked={commentsActive[1]}
-                                onChange={this.handleNotifyCommentsRadio.bind(this, 'root')}
-                            />
+                        }
+                    />
+
+                    <RadioInput
+                        id='notificationCommentsRoot'
+                        name='commentsNotificationLevel'
+                        checked={commentsActive[1]}
+                        handleChange={this.handleNotifyCommentsRadio.bind(this, 'root')}
+                        title={
                             <FormattedMessage
                                 id='user.settings.notifications.commentsRoot'
                                 defaultMessage='Trigger notifications on messages in threads that I start'
                             />
-                        </label>
-                        <br/>
-                    </div>
-                    <div className='radio'>
-                        <label>
-                            <input
-                                id='notificationCommentsNever'
-                                type='radio'
-                                name='commentsNotificationLevel'
-                                checked={commentsActive[2]}
-                                onChange={this.handleNotifyCommentsRadio.bind(this, 'never')}
-                            />
+                        }
+                    />
+
+                    <RadioInput
+                        id='notificationCommentsNever'
+                        name='commentsNotificationLevel'
+                        checked={commentsActive[2]}
+                        handleChange={this.handleNotifyCommentsRadio.bind(this, 'never')}
+                        title={
                             <FormattedMessage
                                 id='user.settings.notifications.commentsNever'
                                 defaultMessage="Do not trigger notifications on messages in reply threads unless I'm mentioned"
                             />
-                        </label>
-                    </div>
+                        }
+                    />
                 </fieldset>,
             );
 

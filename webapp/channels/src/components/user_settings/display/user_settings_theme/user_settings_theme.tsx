@@ -19,6 +19,7 @@ import type {ModalData} from 'types/actions';
 
 import CustomThemeChooser from './custom_theme_chooser/custom_theme_chooser';
 import PremadeThemeChooser from './premade_theme_chooser';
+import RadioInput from "widgets/radio_setting/radio_input";
 
 type Props = {
     currentTeamId: string;
@@ -186,38 +187,33 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
                 inputs.push(
                     <div
                         key='premadeCustom'
-                        className='user-settings__radio-group-inline'
+                        className='flex-vertical'
                     >
-                        <div className='radio radio-inline'>
-                            <label>
-                                <input
-                                    id='standardThemes'
-                                    type='radio'
-                                    name='theme'
-                                    checked={!displayCustom}
-                                    onChange={this.updateType.bind(this, 'premade')}
-                                />
+                        <RadioInput
+                            id='standardThemes'
+                            name='theme'
+                            checked={!displayCustom}
+                            handleChange={this.updateType.bind(this, 'premade')}
+                            title={
                                 <FormattedMessage
                                     id='user.settings.display.theme.premadeThemes'
                                     defaultMessage='Premade Themes'
                                 />
-                            </label>
-                        </div>
-                        <div className='radio radio-inline'>
-                            <label>
-                                <input
-                                    id='customThemes'
-                                    type='radio'
-                                    name='theme'
-                                    checked={displayCustom}
-                                    onChange={this.updateType.bind(this, 'custom')}
-                                />
+                            }
+                        />
+
+                        <RadioInput
+                            id='customThemes'
+                            name='theme'
+                            checked={displayCustom}
+                            handleChange={this.updateType.bind(this, 'custom')}
+                            title={
                                 <FormattedMessage
                                     id='user.settings.display.theme.customTheme'
                                     defaultMessage='Custom Theme'
                                 />
-                            </label>
-                        </div>
+                            }
+                        />
                     </div>,
                 );
 

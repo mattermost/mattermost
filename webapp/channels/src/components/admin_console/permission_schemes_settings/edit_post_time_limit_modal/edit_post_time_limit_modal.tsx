@@ -11,6 +11,7 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {Constants} from 'utils/constants';
+import RadioInput from "widgets/radio_setting/radio_input";
 
 const INT32_MAX = 2147483647;
 
@@ -94,36 +95,37 @@ export default function EditPostTimeLimitModal(props: Props) {
                 />
                 <div className='pt-3'>
                     <div className='pt-3'>
-                        <input
+                        <RadioInput
                             id='anytime'
-                            type='radio'
+                            dataTestId='allowPostEditing_always'
+                            title={
+                                <FormattedMessage
+                                    id='edit_post.time_limit_modal.option_label_anytime'
+                                    defaultMessage='Anytime'
+                                />
+                            }
                             name='limit'
                             value={Constants.ALLOW_EDIT_POST_ALWAYS}
                             checked={alwaysAllowPostEditing}
-                            onChange={handleOptionChange}
+                            handleChange={handleOptionChange}
                         />
-                        <label htmlFor='anytime'>
-                            <FormattedMessage
-                                id='edit_post.time_limit_modal.option_label_anytime'
-                                defaultMessage='Anytime'
-                            />
-                        </label>
                     </div>
                     <div className='pt-2'>
-                        <input
+                        <RadioInput
                             id='timelimit'
-                            type='radio'
+                            dataTestId='allowPostEditing_timelimit'
+                            title={
+                                <FormattedMessage
+                                    id='edit_post.time_limit_modal.option_label_time_limit.preinput'
+                                    defaultMessage='Can edit for'
+                                />
+                            }
                             name='limit'
                             value={Constants.ALLOW_EDIT_POST_TIME_LIMIT}
                             checked={!alwaysAllowPostEditing}
-                            onChange={handleOptionChange}
+                            handleChange={handleOptionChange}
                         />
-                        <label htmlFor='timelimit'>
-                            <FormattedMessage
-                                id='edit_post.time_limit_modal.option_label_time_limit.preinput'
-                                defaultMessage='Can edit for'
-                            />
-                        </label>
+
                         <input
                             type='number'
                             className='form-control inline'

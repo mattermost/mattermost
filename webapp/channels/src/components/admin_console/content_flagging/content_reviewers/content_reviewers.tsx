@@ -6,7 +6,6 @@ import {FormattedMessage} from 'react-intl';
 
 import type {ContentFlaggingReviewerSetting, TeamReviewerSetting} from '@mattermost/types/config';
 
-import {Label} from 'components/admin_console/boolean_setting';
 import CheckboxSetting from 'components/admin_console/checkbox_setting';
 import TeamReviewers
     from 'components/admin_console/content_flagging/content_reviewers/team_reviewers_section/team_reviewers_section';
@@ -15,6 +14,8 @@ import {
     SectionContent,
     SectionHeader,
 } from 'components/admin_console/system_properties/controls';
+
+import RadioInput from 'widgets/radio_setting/radio_input';
 
 import {UserSelector} from '../../content_flagging/user_multiselector/user_multiselector';
 import type {SystemConsoleCustomSettingChangeHandler} from '../../schema_admin_settings';
@@ -80,6 +81,20 @@ export default function ContentFlaggingContentReviewers(props: Props) {
         props.onChange(props.id, updatedSetting);
     }, [props, reviewerSetting]);
 
+    const labelTrue = (
+        <FormattedMessage
+            id='admin.true'
+            defaultMessage='True'
+        />
+    );
+
+    const labelFalse = (
+        <FormattedMessage
+            id='admin.false'
+            defaultMessage='False'
+        />
+    );
+
     return (
         <AdminSection>
             <SectionHeader>
@@ -111,35 +126,25 @@ export default function ContentFlaggingContentReviewers(props: Props) {
                         </div>
 
                         <div className='setting-content'>
-                            <Label isDisabled={false}>
-                                <input
-                                    data-testid='sameReviewersForAllTeams_true'
-                                    id='sameReviewersForAllTeams_true'
-                                    type='radio'
-                                    value='true'
-                                    checked={reviewerSetting.CommonReviewers}
-                                    onChange={handleSameReviewersForAllTeamsChange}
-                                />
-                                <FormattedMessage
-                                    id='admin.true'
-                                    defaultMessage='True'
-                                />
-                            </Label>
+                            <RadioInput
+                                id='sameReviewersForAllTeams_true'
+                                data-testid='sameReviewersForAllTeams_true'
+                                title={labelTrue}
+                                name='sameReviewersForAllTeams'
+                                value='true'
+                                checked={reviewerSetting.CommonReviewers}
+                                handleChange={handleSameReviewersForAllTeamsChange}
+                            />
 
-                            <Label isDisabled={false}>
-                                <input
-                                    data-testid='sameReviewersForAllTeams_false'
-                                    id='sameReviewersForAllTeams_false'
-                                    type='radio'
-                                    value='false'
-                                    checked={!reviewerSetting.CommonReviewers}
-                                    onChange={handleSameReviewersForAllTeamsChange}
-                                />
-                                <FormattedMessage
-                                    id='admin.false'
-                                    defaultMessage='False'
-                                />
-                            </Label>
+                            <RadioInput
+                                id='sameReviewersForAllTeams_false'
+                                data-testid='sameReviewersForAllTeams_false'
+                                title={labelFalse}
+                                name='sameReviewersForAllTeams'
+                                value='false'
+                                checked={!reviewerSetting.CommonReviewers}
+                                handleChange={handleSameReviewersForAllTeamsChange}
+                            />
                         </div>
                     </div>
 

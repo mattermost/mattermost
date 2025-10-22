@@ -6,6 +6,8 @@ import type {ReactNode} from 'react';
 
 import Tag from 'components/widgets/tag/tag';
 
+import RadioInput from 'widgets/radio_setting/radio_input';
+
 type RadioGroupProps = {
     id: string;
     values: Array<{ key: React.ReactNode | React.ReactNodeArray; value: string; testId?: string}>;
@@ -37,28 +39,33 @@ const RadioButtonGroup = ({
         if (testId) {
             moreProps['data-testid'] = testId;
         }
+
+        const title = (
+            <>
+                {key}
+                {(sideLegend && val === sideLegend?.matchVal) &&
+                    <span className='side-legend'>
+                        {sideLegend.text}
+                    </span>
+                }
+            </>
+        );
+
         options.push(
             <div
                 className='radio'
                 key={val}
             >
-                <label className={val === value ? 'selected' : ''}>
-                    <input
-                        type='radio'
-                        value={val}
-                        name={id}
-                        checked={val === value}
-                        onChange={handleChange}
-                        disabled={disabled}
-                        {...moreProps}
-                    />
-                    {key}
-                    {(sideLegend && val === sideLegend?.matchVal) &&
-                        <span className='side-legend'>
-                            {sideLegend.text}
-                        </span>
-                    }
-                </label>
+                <RadioInput
+                    id={id}
+                    className={val === value ? 'selected' : ''}
+                    value={val}
+                    name={id}
+                    title={title}
+                    checked={val === value}
+                    handleChange={handleChange}
+                    disabled={disabled}
+                />
                 {(badge && val === badge?.matchVal) &&
                     <Tag
                         className={`radio-badge ${badge.extraClass ?? ''}`}

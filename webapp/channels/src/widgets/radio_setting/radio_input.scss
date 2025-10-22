@@ -13,7 +13,8 @@
     gap: 8px;
     line-height: 20px;
 
-    input {
+    input[type="radio"] {
+        position: relative;
         display: grid;
         width: 1.6rem;
         height: 1.6rem;

@@ -19,6 +19,7 @@ import Avatar from 'components/widgets/users/avatar';
 import {DeveloperLinks} from 'utils/constants';
 
 import {isSuccess} from 'types/actions';
+import RadioInput from "widgets/radio_setting/radio_input";
 
 export type Props = {
     user?: UserProfile;
@@ -302,32 +303,37 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
                 <div>
                     <div className='manage-row--inner'>
                         <div className='radio-inline'>
-                            <label>
-                                <input
-                                    name='systemadmin'
-                                    type='radio'
-                                    checked={this.state.isSystemAdmin}
-                                    onChange={this.handleSystemAdminChange}
-                                />
-                                <FormattedMessage
-                                    id='admin.manage_roles.systemAdmin'
-                                    defaultMessage='System Admin'
-                                />
-                            </label>
+                            <RadioInput
+                                id='systemadmin'
+                                data-testid='manage_role_systemadmin'
+                                title={
+                                    <FormattedMessage
+                                        id='admin.manage_roles.systemAdmin'
+                                        defaultMessage='System Admin'
+                                    />
+                                }
+                                name='systemadmin'
+                                value='false'
+                                checked={this.state.isSystemAdmin}
+                                handleChange={this.handleSystemAdminChange}
+                            />
                         </div>
+
                         <div className='radio-inline'>
-                            <label>
-                                <input
-                                    name='systemmember'
-                                    type='radio'
-                                    checked={!this.state.isSystemAdmin}
-                                    onChange={this.handleSystemAdminChange}
-                                />
-                                <FormattedMessage
-                                    id='admin.manage_roles.systemMember'
-                                    defaultMessage='Member'
-                                />
-                            </label>
+                            <RadioInput
+                                id='systemmember'
+                                data-testid='manage_role_systemmember'
+                                title={
+                                    <FormattedMessage
+                                        id='admin.manage_roles.systemMember'
+                                        defaultMessage='Member'
+                                    />
+                                }
+                                name='systemmember'
+                                value='false'
+                                checked={!this.state.isSystemAdmin}
+                                handleChange={this.handleSystemAdminChange}
+                            />
                         </div>
                     </div>
                     {userAccessTokenContent}

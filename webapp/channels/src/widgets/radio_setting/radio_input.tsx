@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {type ReactNode} from 'react';
 
 import './radio_input.scss';
@@ -9,17 +10,18 @@ type Props = {
     id: string;
     dataTestId?: string;
     title: ReactNode;
-    name: string;
+    name?: string;
     value?: string;
     checked?: boolean;
     handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     disabled?: boolean;
+    className?: string;
 }
 
-export default function RadioInput({id, value, name, title, dataTestId, checked, handleChange, disabled}: Props) {
+export default function RadioInput({id, value, name, title, dataTestId, checked, handleChange, disabled, className}: Props) {
     return (
         <label
-            className='RadioInput'
+            className={classNames('RadioInput', {[className]: Boolean(className)})}
         >
             <input
                 id={id}

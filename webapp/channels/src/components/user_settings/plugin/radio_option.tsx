@@ -5,6 +5,8 @@ import React, {useCallback} from 'react';
 
 import Markdown from 'components/markdown';
 
+import RadioInput from 'widgets/radio_setting/radio_input';
+
 import type {PluginConfigurationRadioSettingOption} from 'types/plugins/user_settings';
 
 type Props = {
@@ -24,16 +26,14 @@ const RadioOption = ({
 }: Props) => {
     const onChange = useCallback(() => onSelected(option.value), [option.value]);
     return (
-        <div className={'radio'}>
-            <label >
-                <input
-                    type='radio'
-                    name={name}
-                    checked={selectedValue === option.value}
-                    onChange={onChange}
-                />
-                {option.text}
-            </label>
+        <>
+            <RadioInput
+                name={name}
+                checked={selectedValue === option.value}
+                handleChange={onChange}
+                id={`${name}_${option.value}`}
+                title={option.text}
+            />
             <br/>
             {option.helpText && (
                 <Markdown
@@ -41,7 +41,7 @@ const RadioOption = ({
                     options={markdownOptions}
                 />
             )}
-        </div>
+        </>
     );
 };
 
