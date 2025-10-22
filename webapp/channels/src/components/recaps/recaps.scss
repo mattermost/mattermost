@@ -1,0 +1,483 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.recaps-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: var(--center-channel-bg);
+
+    .recaps-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        background-color: var(--center-channel-bg);
+
+        .recaps-header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .recaps-title-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px;
+
+            .icon {
+                font-size: 16px;
+            }
+
+            .recaps-title {
+                margin: 0;
+                font-family: 'Metropolis', sans-serif;
+                font-size: 16px;
+                font-weight: 600;
+                line-height: 24px;
+                color: var(--center-channel-color);
+            }
+        }
+
+        .recaps-tabs {
+            display: flex;
+            align-items: center;
+            gap: 0;
+
+            .recaps-tab {
+                padding: 22px 6px;
+                font-size: 12px;
+                font-weight: 600;
+                line-height: 12px;
+                color: rgba(var(--center-channel-color-rgb), 0.64);
+                background: none;
+                border: none;
+                border-bottom: 2px solid transparent;
+                cursor: pointer;
+                transition: all 0.2s;
+
+                &:hover {
+                    color: var(--center-channel-color);
+                }
+
+                &.active {
+                    color: var(--button-bg);
+                    border-bottom-color: var(--button-bg);
+                }
+            }
+        }
+
+        .recap-add-button {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 16px;
+            // background-color: rgba(var(--button-bg-rgb), 0.08);
+            // color: var(--button-bg);
+            border: none;
+            border-radius: 4px;
+
+            .icon {
+                font-size: 12px;
+            }
+
+            &:hover {
+                background-color: rgba(var(--button-bg-rgb), 0.12);
+            }
+        }
+    }
+
+    .recaps-content {
+        flex: 1;
+        overflow-y: auto;
+        background-color: rgba(var(--center-channel-color-rgb), 0.04);
+        padding: 24px;
+    }
+
+    // Recaps List Styles
+    .recaps-list {
+        max-width: 966px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .recap-item {
+        background-color: var(--center-channel-bg);
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        border-radius: 4px;
+        overflow: hidden;
+        transition: all 0.2s;
+
+        &.expanded {
+            .recap-item-header {
+                border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+            }
+        }
+
+        &.recap-item-failed {
+            border-color: rgba(var(--error-text-rgb), 0.32);
+        }
+
+        .recap-item-header {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 24px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+
+            &:hover {
+                background-color: rgba(var(--center-channel-color-rgb), 0.04);
+            }
+
+            .recap-item-title-section {
+                flex: 1;
+                min-width: 0;
+
+                .recap-item-title {
+                    margin: 0 0 8px;
+                    font-family: 'Metropolis', sans-serif;
+                    font-size: 22px;
+                    font-weight: 600;
+                    line-height: 28px;
+                    color: var(--center-channel-color);
+                }
+
+                .recap-item-metadata {
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                    font-size: 12px;
+                    font-weight: 600;
+                    line-height: 16px;
+                    color: rgba(var(--center-channel-color-rgb), 0.64);
+
+                    .metadata-separator {
+                        margin: 0 4px;
+                    }
+
+                    .copilot-icon {
+                        width: 12px;
+                        height: 12px;
+                        margin: 0 4px;
+                    }
+
+                    .error-text {
+                        color: var(--error-text);
+                    }
+                }
+            }
+
+            .recap-item-actions {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                margin-left: 16px;
+
+                .recap-action-button {
+                    display: flex;
+                    align-items: center;
+                    gap: 4px;
+                    padding: 8px 12px;
+                    font-size: 12px;
+                    font-weight: 600;
+                    background-color: transparent;
+                    color: var(--button-bg);
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+
+                    &:hover {
+                        background-color: rgba(var(--button-bg-rgb), 0.08);
+                    }
+
+                    .icon {
+                        font-size: 12px;
+                    }
+                }
+
+                .recap-icon-button {
+                    padding: 6px;
+                    background: none;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+
+                    .icon {
+                        font-size: 16px;
+                        color: rgba(var(--center-channel-color-rgb), 0.56);
+                    }
+
+                    &:hover {
+                        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                    }
+
+                    &:disabled {
+                        cursor: not-allowed;
+                        opacity: 0.5;
+                    }
+
+                    // Trash icon should be red
+                    &:has(.icon-trash-can-outline) .icon {
+                        color: var(--dnd-indicator);
+                    }
+                }
+            }
+        }
+
+        .recap-item-content {
+            padding: 24px;
+
+            .recap-channels-list {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+        }
+    }
+
+    .recap-all-caught-up {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        padding: 8px;
+        margin-top: 12px;
+        font-family: 'Metropolis', sans-serif;
+        font-size: 20px;
+        font-weight: 600;
+        line-height: 28px;
+        color: var(--center-channel-color);
+
+        .icon {
+            font-size: 24px;
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+        }
+    }
+
+    .recaps-empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 80px 24px;
+        text-align: center;
+
+        .empty-state-icon {
+            margin-bottom: 12px;
+
+            .icon {
+                font-size: 48px;
+                color: rgba(var(--center-channel-color-rgb), 0.64);
+            }
+        }
+
+        .empty-state-title {
+            margin: 0 0 8px;
+            font-family: 'Metropolis', sans-serif;
+            font-size: 20px;
+            font-weight: 600;
+            line-height: 28px;
+            color: var(--center-channel-color);
+        }
+
+        .empty-state-description {
+            margin: 0;
+            font-size: 14px;
+            line-height: 20px;
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+        }
+    }
+
+
+    // Recap Channel Card Styles
+    .recap-channel-card {
+        background-color: var(--center-channel-bg);
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        border-radius: 4px;
+        padding: 16px;
+
+        .recap-channel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+
+            .recap-channel-name-tag {
+                padding: 2px 6px;
+                font-size: 12px;
+                font-weight: 600;
+                line-height: 16px;
+                color: var(--center-channel-color);
+                background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                border-radius: 4px;
+            }
+
+            .recap-channel-collapse-button {
+                padding: 6px;
+                background: none;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+
+                .icon {
+                    font-size: 16px;
+                    color: rgba(var(--center-channel-color-rgb), 0.56);
+                }
+
+                &:hover {
+                    background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                }
+            }
+        }
+
+        .recap-channel-content {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+
+            .recap-section {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+
+                .recap-section-title {
+                    margin: 0;
+                    font-size: 14px;
+                    font-weight: 600;
+                    line-height: 20px;
+                    color: var(--center-channel-color);
+                }
+
+                .recap-list {
+                    margin: 0;
+                    padding-left: 0;
+                    list-style: none;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 4px;
+
+                    .recap-list-item {
+                        display: flex;
+                        align-items: flex-start;
+                        gap: 8px;
+                        padding-left: 21px;
+                        position: relative;
+
+                        &::before {
+                            content: '•';
+                            position: absolute;
+                            left: 0;
+                            color: var(--center-channel-color);
+                        }
+
+                        .recap-item-text {
+                            flex: 1;
+                            font-size: 14px;
+                            line-height: 20px;
+                            color: var(--center-channel-color);
+
+                            // Style @mentions
+                            :global(.mention) {
+                                color: var(--button-bg);
+                                font-weight: 600;
+                            }
+                        }
+
+                        .recap-item-badge {
+                            flex-shrink: 0;
+                            padding: 0 4px;
+                            margin-top: 2px;
+                            font-size: 10px;
+                            font-weight: 600;
+                            line-height: 16px;
+                            letter-spacing: 0.1px;
+                            color: var(--button-bg);
+                            background-color: rgba(var(--button-bg-rgb), 0.08);
+                            border-radius: 4px;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Recap Processing Styles
+    .recap-processing {
+        max-width: 966px;
+        margin: 0 auto;
+
+        .recap-processing-card {
+            background-color: var(--center-channel-bg);
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+            border-radius: 4px;
+            padding: 24px;
+
+            .recap-processing-header {
+                margin-bottom: 24px;
+
+                .recap-processing-title {
+                    margin: 0 0 8px;
+                    font-family: 'Metropolis', sans-serif;
+                    font-size: 22px;
+                    font-weight: 600;
+                    line-height: 28px;
+                    color: var(--center-channel-color);
+                }
+
+                .recap-processing-subtitle {
+                    font-size: 12px;
+                    font-weight: 600;
+                    line-height: 16px;
+                    color: rgba(var(--center-channel-color-rgb), 0.64);
+                }
+            }
+
+            .recap-processing-content {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 40px 0;
+
+                .recap-processing-spinner {
+                    margin-bottom: 16px;
+
+                    .spinner-large {
+                        width: 48px;
+                        height: 48px;
+                        border: 4px solid rgba(var(--center-channel-color-rgb), 0.12);
+                        border-top-color: var(--button-bg);
+                        border-radius: 50%;
+                        animation: spin 1s linear infinite;
+                    }
+                }
+
+                .recap-processing-message {
+                    margin: 0;
+                    font-size: 14px;
+                    line-height: 20px;
+                    color: rgba(var(--center-channel-color-rgb), 0.64);
+                }
+            }
+        }
+    }
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+

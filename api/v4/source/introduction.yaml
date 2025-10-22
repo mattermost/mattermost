@@ -464,6 +464,8 @@ tags:
     description: Endpoints for managing audit log certificates and configuration.
   - name: ai
     description: Endpoints for AI-powered features and text transformations.
+  - name: recaps
+    description: Endpoints for creating and managing AI-powered channel recaps that summarize unread messages.
 servers:
   - url: "{your-mattermost-url}"
     variables:
