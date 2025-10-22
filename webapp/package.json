@@ -82,6 +82,7 @@
     "channels",
     "platform/client",
     "platform/components",
+    "platform/design-system",
     "platform/eslint-plugin",
     "platform/mattermost-redux",
     "platform/types"
