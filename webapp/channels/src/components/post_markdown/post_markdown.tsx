@@ -131,7 +131,7 @@ const PostMarkdown: React.FC<Props> = (props) => {
 
         // Dispatch fetch for each missing channel
         mentionsToFetch.forEach((channelName) => {
-            dispatch(getChannelByNameAndTeamName(postTeam.name, channelName, true) as any).catch((error) => {
+            dispatch(getChannelByNameAndTeamName(postTeam.name, channelName, true) as any).catch((error: Error) => {
                 // Channel might not exist or be private - this is expected, log for debugging
                 // eslint-disable-next-line no-console
                 console.debug(`Unable to fetch channel mention ${channelName}:`, error);
