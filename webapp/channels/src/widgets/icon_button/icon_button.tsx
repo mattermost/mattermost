@@ -19,7 +19,7 @@ const ICON_SIZE_MAP = {
     lg: 32,
 } as const;
 
-export interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'type'> {
+export interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
     /** Icon size and overall button dimensions */
     size?: IconButtonSize;
@@ -51,26 +51,8 @@ export interface IconButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonEle
     /** Compass Icon component to display */
     icon: ReactNode;
 
-    /** Accessible label for screen readers */
-    'aria-label': string;
-
-    /** Tooltip text (required for accessibility) */
-    title: string;
-
-    /** Click handler */
-    onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
-
-    /** Disabled state */
-    disabled?: boolean;
-
     /** Loading state - shows spinner and disables interaction */
     loading?: boolean;
-
-    /** Additional CSS classes */
-    className?: string;
-
-    /** Button type */
-    type?: 'button' | 'submit' | 'reset';
 }
 
 const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
@@ -88,9 +70,7 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         disabled = false,
         loading = false,
         className,
-        'aria-label': ariaLabel,
         title,
-        type = 'button',
         ...htmlProps
     }, ref) => {
         const isDisabled = disabled || loading;
@@ -141,10 +121,8 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
             <WithTooltip title={title}>
                 <button
                     ref={ref}
-                    type={type}
                     className={buttonClasses}
                     disabled={isDisabled}
-                    aria-label={ariaLabel}
                     aria-pressed={toggled}
                     {...htmlProps}
                 >
