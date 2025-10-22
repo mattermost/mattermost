@@ -1245,7 +1245,6 @@ func (a *App) GetPostsAfterPost(rctx request.CTX, options model.GetPostsOptions)
 	return postList, nil
 }
 
-
 func (a *App) GetPostsAroundPost(rctx request.CTX, before bool, options model.GetPostsOptions) (*model.PostList, *model.AppError) {
 	var postList *model.PostList
 	var err error

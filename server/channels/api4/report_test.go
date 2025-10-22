@@ -19,7 +19,7 @@ import (
 )
 
 // Helper function to make POST requests with JSON body
-func doPostJSON(t *testing.T, client *model.Client4, endpoint string, body interface{}) (*http.Response, []byte) {
+func doPostJSON(t *testing.T, client *model.Client4, endpoint string, body any) (*http.Response, []byte) {
 	jsonBytes, err := json.Marshal(body)
 	require.NoError(t, err)
 
@@ -192,7 +192,7 @@ func TestGetPostsForReporting(t *testing.T) {
 	// This is a common pattern in API tests (see post_test.go for similar usage)
 	baseTime := model.GetMillis()
 	var testPosts []*model.Post
-	for i := 0; i < 15; i++ {
+	for i := range 15 {
 		post := &model.Post{
 			ChannelId: th.BasicChannel.Id,
 			UserId:    th.BasicUser.Id,
@@ -208,7 +208,7 @@ func TestGetPostsForReporting(t *testing.T) {
 	t.Run("should return forbidden error when user lacks permission", func(t *testing.T) {
 		th.LoginBasic()
 
-		requestBody := map[string]interface{}{
+		requestBody := map[string]any{
 			"channel_id":  th.BasicChannel.Id,
 			"cursor_time": baseTime,
 			"cursor_id":   "",
@@ -222,7 +222,7 @@ func TestGetPostsForReporting(t *testing.T) {
 	t.Run("should return posts when system admin makes request", func(t *testing.T) {
 		th.LoginSystemAdmin()
 
-		requestBody := map[string]interface{}{
+		requestBody := map[string]any{
 			"channel_id":  th.BasicChannel.Id,
 			"cursor_time": baseTime,
 			"cursor_id":   "",
@@ -242,7 +242,7 @@ func TestGetPostsForReporting(t *testing.T) {
 	t.Run("should validate required channel_id parameter", func(t *testing.T) {
 		th.LoginSystemAdmin()
 
-		requestBody := map[string]interface{}{
+		requestBody := map[string]any{
 			"cursor_time": baseTime,
 			"cursor_id":   "",
 			"per_page":    10,
@@ -255,7 +255,7 @@ func TestGetPostsForReporting(t *testing.T) {
 	t.Run("should validate required cursor_time parameter", func(t *testing.T) {
 		th.LoginSystemAdmin()
 
-		requestBody := map[string]interface{}{
+		requestBody := map[string]any{
 			"channel_id": th.BasicChannel.Id,
 			"cursor_id":  "",
 			"per_page":   10,
@@ -269,7 +269,7 @@ func TestGetPostsForReporting(t *testing.T) {
 		th.LoginSystemAdmin()
 
 		// First page
-		requestBody1 := map[string]interface{}{
+		requestBody1 := map[string]any{
 			"channel_id":  th.BasicChannel.Id,
 			"cursor_time": baseTime,
 			"cursor_id":   "",
@@ -286,7 +286,7 @@ func TestGetPostsForReporting(t *testing.T) {
 		require.NotNil(t, result1.NextCursor, "should have next cursor for more pages")
 
 		// Second page using cursor from first page
-		requestBody2 := map[string]interface{}{
+		requestBody2 := map[string]any{
 			"channel_id":  th.BasicChannel.Id,
 			"cursor_time": result1.NextCursor.CursorTime,
 			"cursor_id":   result1.NextCursor.CursorId,
@@ -314,7 +314,7 @@ func TestGetPostsForReporting(t *testing.T) {
 		// Request only first 5 posts (0-4) by setting end_time just after post 4
 		endTime := baseTime + (4 * 1000) + 500 // Halfway to post 5
 
-		requestBody := map[string]interface{}{
+		requestBody := map[string]any{
 			"channel_id":  th.BasicChannel.Id,
 			"cursor_time": baseTime,
 			"cursor_id":   "",
@@ -342,7 +342,7 @@ func TestGetPostsForReporting(t *testing.T) {
 
 		// Start from future time and go backwards
 		futureTime := baseTime + (20 * 1000) // Well after all test posts
-		requestBody := map[string]interface{}{
+		requestBody := map[string]any{
 			"channel_id":     th.BasicChannel.Id,
 			"cursor_time":    futureTime,
 			"cursor_id":      "",
@@ -373,7 +373,7 @@ func TestGetPostsForReporting(t *testing.T) {
 	t.Run("should support update_at time field", func(t *testing.T) {
 		th.LoginSystemAdmin()
 
-		requestBody := map[string]interface{}{
+		requestBody := map[string]any{
 			"channel_id":  th.BasicChannel.Id,
 			"cursor_time": baseTime,
 			"cursor_id":   "",
@@ -399,7 +399,7 @@ func TestGetPostsForReporting(t *testing.T) {
 		require.NoError(t, err)
 
 		// Request without including deleted posts
-		requestBody1 := map[string]interface{}{
+		requestBody1 := map[string]any{
 			"channel_id":      th.BasicChannel.Id,
 			"cursor_time":     baseTime,
 			"cursor_id":       "",
@@ -419,7 +419,7 @@ func TestGetPostsForReporting(t *testing.T) {
 		require.False(t, hasDeleted, "should not include deleted post by default")
 
 		// Request with including deleted posts
-		requestBody2 := map[string]interface{}{
+		requestBody2 := map[string]any{
 			"channel_id":      th.BasicChannel.Id,
 			"cursor_time":     baseTime,
 			"cursor_id":       "",
@@ -457,12 +457,12 @@ func TestGetPostsForReporting(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Request with excluding metadata posts
-		requestBody := map[string]interface{}{
-			"channel_id": th.BasicChannel.Id,
-			"cursor_time": baseTime,
-			"cursor_id":   "",
+		requestBody := map[string]any{
+			"channel_id":                            th.BasicChannel.Id,
+			"cursor_time":                           baseTime,
+			"cursor_id":                             "",
 			"exclude_channel_metadata_system_posts": true,
-			"per_page": 100,
+			"per_page":                              100,
 		}
 
 		resp, body := doPostJSON(t, th.SystemAdminClient, "/api/v4/reports/posts", requestBody)
@@ -483,7 +483,7 @@ func TestGetPostsForReporting(t *testing.T) {
 	t.Run("should enforce max per_page limit", func(t *testing.T) {
 		th.LoginSystemAdmin()
 
-		requestBody := map[string]interface{}{
+		requestBody := map[string]any{
 			"channel_id":  th.BasicChannel.Id,
 			"cursor_time": baseTime,
 			"cursor_id":   "",
@@ -497,7 +497,7 @@ func TestGetPostsForReporting(t *testing.T) {
 	t.Run("should validate invalid channel_id", func(t *testing.T) {
 		th.LoginSystemAdmin()
 
-		requestBody := map[string]interface{}{
+		requestBody := map[string]any{
 			"channel_id":  "invalid_id",
 			"cursor_time": baseTime,
 			"cursor_id":   "",
