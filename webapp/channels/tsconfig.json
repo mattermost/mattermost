@@ -39,6 +39,7 @@
   "references": [
     {"path": "../platform/client"},
     {"path": "../platform/components"},
+    {"path": "../platform/design-system"},
     {"path": "../platform/types"}
   ]
 }
