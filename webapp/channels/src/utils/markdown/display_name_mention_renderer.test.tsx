@@ -72,17 +72,17 @@ describe('DisplayNameMentionRenderer', () => {
         {
             description: 'does not replace mentions in inline code',
             inputText: 'Check `@john.doe` variable',
-            outputText: 'Check <code>@john.doe</code> variable',
+            outputText: 'Check @john.doe variable',
         },
         {
             description: 'does not replace mentions in code blocks',
             inputText: 'Example:\n```\n@john.doe\n```',
-            outputText: '<p>Example:</p>\n<pre><code>@john.doe\n</code></pre>',
+            outputText: 'Example: @john.doe',
         },
         {
             description: 'replaces mention in text but not in code',
             inputText: 'Hey @john.doe, use `@john.doe` in code',
-            outputText: 'Hey @Johnny, use <code>@john.doe</code> in code',
+            outputText: 'Hey @Johnny, use @john.doe in code',
         },
         {
             description: 'preserves unknown user mentions',
@@ -90,14 +90,19 @@ describe('DisplayNameMentionRenderer', () => {
             outputText: 'Hey @unknown.user',
         },
         {
-            description: 'replaces mention in bold text',
+            description: 'replaces mention in bold text and strips markdown',
             inputText: '**@john.doe** is here',
-            outputText: '<strong>@Johnny</strong> is here',
+            outputText: '@Johnny is here',
         },
         {
-            description: 'replaces mention in italic text',
+            description: 'replaces mention in italic text and strips markdown',
             inputText: '*@john.doe* is here',
-            outputText: '<em>@Johnny</em> is here',
+            outputText: '@Johnny is here',
+        },
+        {
+            description: 'strips markdown after replacing mentions',
+            inputText: '**Hi** @john.doe',
+            outputText: 'Hi @Johnny',
         },
     ];
 
@@ -105,16 +110,7 @@ describe('DisplayNameMentionRenderer', () => {
         it(testCase.description, () => {
             const renderer = new DisplayNameMentionRenderer(mockState as any, 'nickname_full_name');
             const result = formatWithRenderer(testCase.inputText, renderer);
-            if (testCase.description.includes('code block')) {
-                expect(result).toContain('@john.doe');
-                expect(result).not.toContain('@Johnny');
-            } else if (testCase.description.includes('inline code')) {
-                expect(result).toContain('@john.doe');
-            } else if (testCase.description.includes('unknown')) {
-                expect(result).toContain('@unknown.user');
-            } else {
-                expect(result).toBeTruthy();
-            }
+            expect(result).toBe(testCase.outputText);
         });
     });
 
@@ -127,6 +123,6 @@ describe('DisplayNameMentionRenderer', () => {
     it('handles text without mentions', () => {
         const renderer = new DisplayNameMentionRenderer(mockState as any, 'nickname_full_name');
         const result = formatWithRenderer('Hello world', renderer);
-        expect(result).toContain('Hello world');
+        expect(result).toBe('Hello world');
     });
 });
