@@ -37,11 +37,9 @@ func loginWithEasyToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	redirectURL := html.EscapeString(r.URL.Query().Get("redirect_to"))
 	isMobile := r.URL.Query().Get("mobile") == "true"
 
-	// Authenticate user with easy login token
 	user, err := c.App.AuthenticateUserForEasyLogin(c.AppContext, tokenString)
 	if err != nil {
-		// Render user-friendly error page
-		utils.RenderWebAppError(c.App.Config(), w, r, err, c.App.AsymmetricSigningKey())
+		http.Redirect(w, r, c.GetSiteURLHeader()+"/login?extra=login_error&message="+html.EscapeString(err.Message), http.StatusFound)
 		return
 	}
 
