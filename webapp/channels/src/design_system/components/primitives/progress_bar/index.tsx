@@ -74,7 +74,7 @@ const BarForeground = styled.div<BarForegroundProps>`
     position: absolute;
 `;
 
-const UsagePercentBar = (props: Props) => {
+const ProgressBar = (props: Props) => {
     const thresholds = props.thresholds || defaultThresholds;
     const percent = Math.max(0, props.percent);
     const barWidth = props.barWidth || 155;
@@ -93,5 +93,5 @@ const UsagePercentBar = (props: Props) => {
     );
 };
 
-export default UsagePercentBar;
+export default ProgressBar;
 
