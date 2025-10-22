@@ -1121,3 +1121,61 @@ func TestHandlerServeHTTPRequestPayloadLimit(t *testing.T) {
 		assert.Equal(t, http.StatusRequestEntityTooLarge, response.Code)
 	})
 }
+
+func TestHandleContextErrorZeroStatusCode(t *testing.T) {
+	t.Run("should set StatusCode to 500 when AppError has zero StatusCode", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+
+		appErr := &model.AppError{
+			Message:       "Cannot add a permission that is restricted by the team or system permission scheme",
+			StatusCode:    0,
+			Id:            "test.error",
+			Where:         "TestFunction",
+			DetailedError: "test details",
+		}
+
+		c := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+			Logger:     th.App.Log(),
+			Err:        appErr,
+		}
+
+		request := httptest.NewRequest("POST", "/api/v4/test", nil)
+		response := httptest.NewRecorder()
+
+		h := Handler{
+			Srv: th.Server,
+		}
+
+		h.handleContextError(c, response, request)
+
+		assert.Equal(t, http.StatusInternalServerError, c.Err.StatusCode)
+		assert.Equal(t, http.StatusInternalServerError, response.Code)
+	})
+
+	t.Run("should not modify StatusCode when AppError has valid StatusCode", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+
+		appErr := model.NewAppError("TestFunction", "test.error", nil, "test details", http.StatusBadRequest)
+
+		c := &Context{
+			App:        th.App,
+			AppContext: th.Context,
+			Logger:     th.App.Log(),
+			Err:        appErr,
+		}
+
+		request := httptest.NewRequest("POST", "/api/v4/test", nil)
+		response := httptest.NewRecorder()
+
+		h := Handler{
+			Srv: th.Server,
+		}
+
+		h.handleContextError(c, response, request)
+
+		assert.Equal(t, http.StatusBadRequest, c.Err.StatusCode)
+		assert.Equal(t, http.StatusBadRequest, response.Code)
+	})
+}

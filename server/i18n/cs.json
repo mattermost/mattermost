@@ -10836,10 +10836,6 @@
     "translation": "Vyberte prosím důvod pro označení této zprávy."
   },
   {
-    "id": "api.content_flagging.error.reviewer_only",
-    "translation": "Nemáte oprávnění k zobrazení tohoto prostředku."
-  },
-  {
     "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
     "translation": "Nelze uložit koncept do chráněného kanálu přímých zpráv"
   },
@@ -10878,5 +10874,9 @@
   {
     "id": "app.channel.get_common_teams.app_error",
     "translation": "Chyba při získávání společných týmů pro kanál"
+  },
+  {
+    "id": "api.encoding_error",
+    "translation": "Došlo k chybě při zpracování JSON pro odpověď API"
   }
 ]
