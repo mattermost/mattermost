@@ -611,6 +611,74 @@ func (es *Service) SendGuestInviteEmails(
 	return nil
 }
 
+// SendGuestEasyLoginEmailSelfService sends a passwordless login link to an existing guest user
+// This is for self-service login requests (no sender, no team/channel context).
+// For admin-initiated easy login invitations with team/channel assignment, use SendGuestInviteEmails with isEasyLogin=true.
+func (es *Service) SendGuestEasyLoginEmailSelfService(
+	invite string,
+	siteURL string,
+) error {
+	if es.perHourEmailRateLimiter == nil {
+		return NoRateLimiterError
+	}
+
+	// Rate limit by email address for self-service requests
+	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimit(invite, 1)
+	if err != nil {
+		return SetupRateLimiterError
+	}
+
+	if rateLimited {
+		mlog.Error("rate limit exceeded", mlog.Duration("RetryAfter", result.RetryAfter), mlog.Duration("ResetAfter", result.ResetAfter), mlog.String("email", invite),
+			mlog.String("retry_after_secs", fmt.Sprintf("%f", result.RetryAfter.Seconds())), mlog.String("reset_after_secs", fmt.Sprintf("%f", result.ResetAfter.Seconds())))
+		return RateLimitExceededError
+	}
+
+	if invite == "" {
+		return nil
+	}
+
+	subject := i18n.T("api.templates.easy_login_subject",
+		map[string]any{"SiteName": es.config().TeamSettings.SiteName})
+
+	data := es.NewEmailTemplateData("")
+	data.Props["SiteURL"] = siteURL
+	data.Props["Title"] = i18n.T("api.templates.easy_login_body.title")
+	data.Props["SubTitle"] = i18n.T("api.templates.easy_login_body.subtitle")
+	data.Props["Button"] = i18n.T("api.templates.invite_body.button")
+
+	// Login-only token - no team or channel info needed
+	token := model.NewToken(
+		TokenTypeEasyLogin,
+		model.MapToJSON(map[string]string{
+			"email": invite,
+		}),
+	)
+
+	if saveErr := es.store.Token().Save(token); saveErr != nil {
+		mlog.Error("Failed to save easy login token", mlog.Err(saveErr))
+		return fmt.Errorf("%w: %v", SaveTokenError, saveErr)
+	}
+
+	// Easy login uses SSO-style authentication - clicking the link logs them in directly
+	data.Props["ButtonURL"] = fmt.Sprintf("%s/login/sso/easy?t=%s", siteURL, url.QueryEscape(token.Token))
+
+	if !*es.config().EmailSettings.SendEmailNotifications {
+		mlog.Info("sending easy login link", mlog.String("to", invite))
+	}
+
+	body, err := es.templatesContainer.RenderToString("invite_body", data)
+	if err != nil {
+		mlog.Error("Failed to send easy login email successfully", mlog.Err(err))
+	}
+
+	if nErr := es.SendMailWithEmbeddedFiles(invite, subject, body, nil, "", "", "", "EasyLoginEmail"); nErr != nil {
+		mlog.Error("Failed to send easy login email successfully", mlog.Err(nErr))
+	}
+
+	return nil
+}
+
 func (es *Service) SendInviteEmailsToTeamAndChannels(
 	team *model.Team,
 	channels []*model.Channel,

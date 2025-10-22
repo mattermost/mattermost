@@ -16,10 +16,22 @@ func (w *Web) InitEasyLogin() {
 }
 
 func loginWithEasyToken(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord(model.AuditEventLogin, model.AuditStatusFail)
+	auditRec.AddMeta("login_method", "easy_login")
+	defer c.LogAuditRec(auditRec)
+
 	tokenString := r.URL.Query().Get("t")
 	if tokenString == "" {
 		c.Err = model.NewAppError("loginWithEasyToken", "api.user.easy_login.missing_token.app_error", nil, "", http.StatusBadRequest)
 		return
+	}
+
+	// Rate limit by IP to prevent brute force attacks on tokens
+	if c.App.Srv().RateLimiter != nil {
+		rateLimitKey := c.App.Srv().RateLimiter.GenerateKey(r)
+		if c.App.Srv().RateLimiter.RateLimitWriter(rateLimitKey, w) {
+			return
+		}
 	}
 
 	redirectURL := html.EscapeString(r.URL.Query().Get("redirect_to"))
@@ -33,8 +45,12 @@ func loginWithEasyToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	auditRec.AddMeta("user_id", user.Id)
+	c.LogAuditWithUserId(user.Id, "attempt - easy_login")
+
 	// Check user authentication criteria
 	if authErr := c.App.CheckUserAllAuthenticationCriteria(c.AppContext, user, ""); authErr != nil {
+		c.LogAuditWithUserId(user.Id, "failure - easy_login")
 		utils.RenderWebAppError(c.App.Config(), w, r, authErr, c.App.AsymmetricSigningKey())
 		return
 	}
@@ -51,26 +67,16 @@ func loginWithEasyToken(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Determine redirect URL
 	if redirectURL == "" {
-		// Redirect to the first channel the guest has access to
-		// Get user's team memberships
-		teamMembers, teamErr := c.App.GetTeamMembersForUser(c.AppContext, user.Id, "", false)
-		if teamErr == nil && len(teamMembers) > 0 {
-			// Get channels for the user
-			channels, chanErr := c.App.GetChannelsForUser(c.AppContext, user.Id, false, 0, 100, "")
-			if chanErr == nil && len(channels) > 0 {
-				// Redirect to first channel in the first team
-				redirectURL = c.GetSiteURLHeader() + "/" + teamMembers[0].TeamId + "/channels/" + channels[0].Name
-			}
-		}
+		// No redirect specified - go to root and let webapp route to appropriate location
+		redirectURL = c.GetSiteURLHeader()
 	} else {
 		// Validate and make redirect URL fully qualified
 		redirectURL = fullyQualifiedRedirectURL(c.GetSiteURLHeader(), redirectURL, c.App.Config().NativeAppSettings.AppCustomURLSchemes)
 	}
 
-	// Default fallback
-	if redirectURL == "" {
-		redirectURL = c.GetSiteURLHeader()
-	}
+	// Mark login as successful in audit log
+	auditRec.Success()
+	c.LogAuditWithUserId(user.Id, "success - easy_login")
 
 	// Redirect to destination
 	if isMobile {
