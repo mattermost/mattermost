@@ -180,7 +180,7 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
         return this.state.canSave;
     };
 
-    doTestConfig = (success: () => void, error: (error: {message: string; detailed_message?: string}) => void): void => {
+    doTestConfig = (success: () => void, error: (error: {message: string; detailed_error?: string}) => void): void => {
         const config = JSON.parse(JSON.stringify(this.props.config));
         this.getConfigFromState(config);
 
@@ -193,12 +193,17 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
                 });
                 success();
             },
-            (err: {message: string; detailed_message?: string}) => {
+            (err: any) => {
                 this.setState({
                     configTested: false,
                     canSave: false,
                 });
-                error(err);
+                // Include full error payload as JSON in detailed_error
+                const fullPayload = JSON.stringify(err, null, 2);
+                error({
+                    message: err.message || 'Connection test failed',
+                    detailed_error: fullPayload,
+                });
             },
         );
     };
@@ -281,7 +286,7 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
                         />
                     }
                     value={this.state.backend}
-                    disabled={this.props.isDisabled || !this.state.enableIndexing}
+                    disabled={this.props.isDisabled}
                     onChange={this.handleSettingChanged}
                     setByEnv={this.isSetByEnv('ElasticsearchSettings.Backend')}
                 />
@@ -307,7 +312,7 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
                         />
                     }
                     value={this.state.connectionUrl}
-                    disabled={this.props.isDisabled || !this.state.enableIndexing}
+                    disabled={this.props.isDisabled}
                     onChange={this.handleSettingChanged}
                     setByEnv={this.isSetByEnv('ElasticsearchSettings.ConnectionURL')}
                 />
@@ -327,7 +332,7 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
                         />
                     }
                     value={this.state.ca}
-                    disabled={this.props.isDisabled || !this.state.enableIndexing}
+                    disabled={this.props.isDisabled}
                     onChange={this.handleSettingChanged}
                     setByEnv={this.isSetByEnv('ElasticsearchSettings.CA')}
                 />
@@ -347,7 +352,7 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
                         />
                     }
                     value={this.state.clientCert}
-                    disabled={this.props.isDisabled || !this.state.enableIndexing}
+                    disabled={this.props.isDisabled}
                     onChange={this.handleSettingChanged}
                     setByEnv={this.isSetByEnv('ElasticsearchSettings.ClientCert')}
                 />
@@ -367,7 +372,7 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
                         />
                     }
                     value={this.state.clientKey}
-                    disabled={this.props.isDisabled || !this.state.enableIndexing}
+                    disabled={this.props.isDisabled}
                     onChange={this.handleSettingChanged}
                     setByEnv={this.isSetByEnv('ElasticsearchSettings.ClientKey')}
                 />
@@ -376,7 +381,7 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
                     label={<FormattedMessage {...messages.skipTLSVerificationTitle}/>}
                     helpText={<FormattedMessage {...messages.skipTLSVerificationDescription}/>}
                     value={this.state.skipTLSVerification}
-                    disabled={this.props.isDisabled || !this.state.enableIndexing}
+                    disabled={this.props.isDisabled}
                     onChange={this.handleSettingChanged}
                     setByEnv={this.isSetByEnv('ElasticsearchSettings.SkipTLSVerification')}
                 />
@@ -386,7 +391,7 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
                     placeholder={defineMessage({id: 'admin.elasticsearch.usernameExample', defaultMessage: 'E.g.: "elastic"'})}
                     helpText={<FormattedMessage {...messages.usernameDescription}/>}
                     value={this.state.username}
-                    disabled={this.props.isDisabled || !this.state.enableIndexing}
+                    disabled={this.props.isDisabled}
                     onChange={this.handleSettingChanged}
                     setByEnv={this.isSetByEnv('ElasticsearchSettings.Username')}
                 />
@@ -396,7 +401,7 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
                     placeholder={defineMessage({id: 'admin.elasticsearch.password', defaultMessage: 'E.g.: "yourpassword"'})}
                     helpText={<FormattedMessage {...messages.passwordDescription}/>}
                     value={this.state.password}
-                    disabled={this.props.isDisabled || !this.state.enableIndexing}
+                    disabled={this.props.isDisabled}
                     onChange={this.handleSettingChanged}
                     setByEnv={this.isSetByEnv('ElasticsearchSettings.Password')}
                 />
@@ -405,7 +410,7 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
                     label={<FormattedMessage {...messages.sniffTitle}/>}
                     helpText={<FormattedMessage {...messages.sniffDescription}/>}
                     value={this.state.sniff}
-                    disabled={this.props.isDisabled || !this.state.enableIndexing}
+                    disabled={this.props.isDisabled}
                     onChange={this.handleSettingChanged}
                     setByEnv={this.isSetByEnv('ElasticsearchSettings.Sniff')}
                 />
@@ -418,7 +423,8 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
                         id: 'admin.elasticsearch.testConfigSuccess',
                         defaultMessage: 'Test successful. Configuration saved.',
                     })}
-                    disabled={!this.state.enableIndexing}
+                    disabled={this.props.isDisabled}
+                    includeDetailedError={true}
                 />
                 <SettingSet
                     label={<FormattedMessage {...messages.bulkIndexingTitle}/>}
@@ -493,7 +499,7 @@ export default class ElasticsearchSettings extends OLDAdminSettings<Props, State
                         />
                     }
                     value={this.state.ignoredPurgeIndexes}
-                    disabled={this.props.isDisabled || !this.state.enableIndexing}
+                    disabled={this.props.isDisabled}
                     onChange={this.handleSettingChanged}
                     setByEnv={this.isSetByEnv('ElasticsearchSettings.IgnoredPurgeIndexes')}
                 />
