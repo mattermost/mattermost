@@ -11026,5 +11026,33 @@
   {
     "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
     "translation": "Ongeldige melding timeout voor automatische vertalingen. Moet een positief getal zijn. Moet een positief getal zijn."
+  },
+  {
+    "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
+    "translation": "Kanaal ID komt niet overeen met het kanaal ID van het gemarkeerde bericht."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations_for_channel.restricted_permission.app_error",
+    "translation": "Kan geen rechten toevoegen die beperkt zijn door het machtigingsschema van het team of het systeem."
+  },
+  {
+    "id": "api.content_flagging.error.user_not_reviewer",
+    "translation": "De gebruiker is geen inhoudsbeoordelaar."
+  },
+  {
+    "id": "api.team.get_team.flagged_post_mismatch.app_error",
+    "translation": "TeamID komt niet overeen met de teamID van het gemarkeerde bericht."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.no_reviewer_field.app_error",
+    "translation": "Geen eigenschapveld ReviewerID gevonden."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.update_status_property_value.app_error",
+    "translation": "Fout bij het bijwerken van de waarde van de Status-eigenschap bij het instellen van reviewer."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.upsert_property_value.app_error",
+    "translation": "Fout bij het instellen van een beoordelaar voor een gemarkeerd bericht."
   }
 ]
