@@ -429,15 +429,15 @@ export default class AtMentionProvider extends Provider {
     }
 
     handleCompleteWord(term: string, matchedPretext: string) {
-    const atMatch = matchedPretext.match(/[@＠]/);
-    if (atMatch) {
-        this.matchedAtSymbol = atMatch[0];
-    }
-    
-    this.lastCompletedWord = term;
-    this.lastPrefixWithNoResults = '';
-    
-    return matchedPretext.replace(/＠/g, '@');
+        const atMatch = matchedPretext.match(/[@＠]/);
+        if (atMatch) {
+            this.matchedAtSymbol = atMatch[0];
+        }
+
+        this.lastCompletedWord = term;
+        this.lastPrefixWithNoResults = '';
+
+        return matchedPretext.replace(/＠/g, '@');
     }
 
     createFromProfile(profile: UserProfile | UserProfileWithLastViewAt): CreatedProfile {

@@ -1508,8 +1508,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
     it('should suggest for full-width "＠" with username prefix', async () => {
         const pretext = '＠us';
-        const matchedPretext = '＠us';
-        
+
         const params = {
             ...baseParams,
             autocompleteUsersInChannel: jest.fn().mockImplementation(() => new Promise((resolve) => {

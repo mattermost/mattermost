@@ -377,7 +377,7 @@ export default class SuggestionBox extends React.PureComponent {
 
         const normalizedPretext = pretext.replace(/＠/g, '@').toLowerCase();
         const normalizedMatchedPretext = matchedPretext.replace(/＠/g, '@').toLowerCase();
-        
+
         if (normalizedPretext.endsWith(normalizedMatchedPretext)) {
             prefix = pretext.substring(0, pretext.length - matchedPretext.length);
         } else {
