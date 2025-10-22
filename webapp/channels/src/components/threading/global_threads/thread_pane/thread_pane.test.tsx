@@ -9,8 +9,8 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {setThreadFollow} from 'mattermost-redux/actions/threads';
 
-import Button from 'components/threading/common/button';
 import FollowButton from 'components/threading/common/follow_button';
+import ThreadButton from 'components/threading/common/thread_button';
 import Header from 'components/widgets/header';
 
 import TestHelper from 'packages/mattermost-redux/test/test_helper';
@@ -136,7 +136,7 @@ describe('components/threading/global_threads/thread_pane', () => {
             <ThreadPane {...props}/>,
         );
 
-        wrapper.find(Header).shallow().find('h3').find(Button).simulate('click');
+        wrapper.find(Header).shallow().find('h3').find(ThreadButton).simulate('click');
         expect(mockRouting.goToInChannel).toHaveBeenCalledWith('1y8hpek81byspd4enyk9mp1ncw');
     });
 
@@ -145,7 +145,7 @@ describe('components/threading/global_threads/thread_pane', () => {
             <ThreadPane {...props}/>,
         );
 
-        wrapper.find(Header).shallow().find(Button).find('.back').simulate('click');
+        wrapper.find(Header).shallow().find(ThreadButton).find('.back').simulate('click');
         expect(mockRouting.select).toHaveBeenCalledWith();
     });
 });

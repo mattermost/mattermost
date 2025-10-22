@@ -17,7 +17,7 @@ import {TestHelper} from 'utils/test_helper';
 import ThreadList, {ThreadFilter} from './thread_list';
 import VirtualizedThreadList from './virtualized_thread_list';
 
-import Button from '../../common/button';
+import ThreadButton from '../../common/thread_button';
 
 jest.mock('mattermost-redux/actions/threads');
 jest.mock('actions/views/modals');
@@ -101,7 +101,7 @@ describe('components/threading/global_threads/thread_list', () => {
             <ThreadList {...props}/>,
         );
 
-        wrapper.find(Header).shallow().find(Button).first().shallow().simulate('click');
+        wrapper.find(Header).shallow().find(ThreadButton).first().shallow().simulate('click');
         expect(props.setFilter).toHaveBeenCalledWith('');
     });
 
@@ -110,7 +110,7 @@ describe('components/threading/global_threads/thread_list', () => {
             <ThreadList {...props}/>,
         );
 
-        wrapper.find(Header).shallow().find(Button).find({hasDot: true}).simulate('click');
+        wrapper.find(Header).shallow().find(ThreadButton).find({hasDot: true}).simulate('click');
         expect(props.setFilter).toHaveBeenCalledWith('unread');
     });
 
@@ -119,7 +119,7 @@ describe('components/threading/global_threads/thread_list', () => {
             <ThreadList {...props}/>,
         );
 
-        wrapper.find(Header).shallow().find(Button).find({id: 'threads-list__mark-all-as-read'}).simulate('click');
+        wrapper.find(Header).shallow().find(ThreadButton).find({id: 'threads-list__mark-all-as-read'}).simulate('click');
         expect(openModal).toHaveBeenCalledTimes(1);
     });
 
