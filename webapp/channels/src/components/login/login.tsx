@@ -81,6 +81,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const {
         EnableLdap,
         EnableSaml,
+        EnableEasyLogin,
         EnableSignInWithEmail,
         EnableSignInWithUsername,
         EnableSignUpWithEmail,
@@ -127,9 +128,9 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const [showPasswordlessSuccess, setShowPasswordlessSuccess] = useState(false);
     const [requiresPassword, setRequiresPassword] = useState(false);
 
-    const enableSignInWithoutPassword = true; // Hardcoded for now
 
     const enableCustomBrand = EnableCustomBrand === 'true';
+    const enableEasyLogin = EnableEasyLogin === 'true'; // Hardcoded for now
     const enableLdap = EnableLdap === 'true';
     const enableOpenServer = EnableOpenServer === 'true';
     const enableUserCreation = EnableUserCreation === 'true';
@@ -629,7 +630,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         }
 
         // Handle passwordless login - check user login type first
-        if (enableSignInWithoutPassword && !requiresPassword) {
+        if (enableEasyLogin && !requiresPassword) {
             checkUserLoginType(currentLoginId);
             return;
         }
@@ -981,7 +982,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                                                     autoFocus={true}
                                                     aria-describedby={alertBanner ? 'login-body-card-banner' : undefined}
                                                 />
-                                                {(!enableSignInWithoutPassword || requiresPassword) && (
+                                                {(!enableEasyLogin || requiresPassword) && (
                                                     <>
                                                         <PasswordInput
                                                             ref={passwordInput}
