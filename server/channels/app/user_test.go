@@ -35,7 +35,7 @@ func saveTeamState(th *TestHelper) func() {
 	originalAllowedDomains := th.BasicTeam.AllowedDomains
 	return func() {
 		th.BasicTeam.AllowedDomains = originalAllowedDomains
-		th.App.UpdateTeam(th.BasicTeam)
+		_, _ = th.App.UpdateTeam(th.BasicTeam)
 	}
 }
 
