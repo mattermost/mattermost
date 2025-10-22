@@ -499,6 +499,51 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+  /api/v4/teams/easy-login/request:
+    post:
+      tags:
+        - teams
+      summary: Request easy login email for guest user
+      description: |
+        Request a passwordless login email to be sent to an existing guest user.
+        This is a self-service endpoint that allows guest users to request login links
+        without requiring admin involvement.
+
+        ##### Permissions
+        No authentication required.
+
+        __Minimum server version__: 10.5
+      operationId: RequestGuestEasyLogin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  description: Email address of the guest user requesting login
+        description: Email request body
+        required: true
+      responses:
+        "200":
+          description: Request processed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "413":
+          $ref: "#/components/responses/TooLarge"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   "/api/v4/teams/name/{name}/exists":
     get:
       tags:
