@@ -103,6 +103,8 @@ const useAIRewrite = (
             // Only log error if this is still the current promise
             if (currentPromiseRef.current === promise) {
                 setServerError(error);
+                setOriginalMessage('');
+                setLastAction(null);
             }
         } finally {
             // Only update state if this is still the current promise

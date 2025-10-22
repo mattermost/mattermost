@@ -170,7 +170,7 @@ Expand and elaborate on the message below to make it more detailed and comprehen
 <guidelines>
 - Add relevant context, examples, and explanations
 - Aim for 2-3 times the original length (do not exceed this)
-- Use Markdown formatting (headers ##, lists, bold, italic, code blocks) to improve readability
+- For longer pieces of text, if necessary, use Markdown formatting within the message (headers ##, lists, bold, italic, code blocks) to improve readability
 - Maintain the original intent while increasing informativeness
 </guidelines>
 
@@ -189,7 +189,7 @@ Improve the writing quality, clarity, and professionalism of the message below w
 - Fix grammar issues and improve sentence structure
 - Enhance clarity and make writing more engaging
 - Use professional language with proper grammar
-- Use Markdown formatting (headers ##, lists, bold, italic, code blocks) where appropriate
+- For longer pieces of text, if necessary, use Markdown formatting within the message (headers ##, lists, bold, italic, code blocks) to improve readability
 - Do not significantly lengthen the message
 - Avoid casual language, slang, or overly informal expressions
 </guidelines>
@@ -242,7 +242,7 @@ Create a concise summary of the message below, capturing key points and main ide
 
 <guidelines>
 - Extract key points, main ideas, and essential information
-- Use Markdown formatting (headers ##, bullet points, bold, italic) to improve structure
+- For longer pieces of text, if necessary, use Markdown formatting within the message (headers ##, bullet points, bold, italic) to improve structure
 - Focus on the most important content
 - Maintain accuracy
 </guidelines>
