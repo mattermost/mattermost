@@ -6,6 +6,7 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
 
+import {getChannelByNameAndTeamName} from 'mattermost-redux/actions/channels';
 import {Posts} from 'mattermost-redux/constants';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 
@@ -128,13 +129,12 @@ const PostMarkdown: React.FC<Props> = (props) => {
             return;
         }
 
-        // Import dynamically to avoid circular dependencies
-        import('mattermost-redux/actions/channels').then(({getChannelByNameAndTeamName}) => {
-            // Dispatch fetch for each missing channel
-            mentionsToFetch.forEach((channelName) => {
-                dispatch(getChannelByNameAndTeamName(postTeam.name, channelName, true) as any).catch(() => {
-                    // Silently fail - channel might not exist or be private
-                });
+        // Dispatch fetch for each missing channel
+        mentionsToFetch.forEach((channelName) => {
+            dispatch(getChannelByNameAndTeamName(postTeam.name, channelName, true) as any).catch((error) => {
+                // Channel might not exist or be private - this is expected, log for debugging
+                // eslint-disable-next-line no-console
+                console.debug(`Unable to fetch channel mention ${channelName}:`, error);
             });
         });
     }, [mentionsToFetch, postTeam, dispatch]);
