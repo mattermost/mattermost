@@ -52,8 +52,8 @@ const NewMessageSeparator = ({
             className='new-separator'
         >
             <PostSeparator
-                rootClassName='NotificationSeparator'
-                rootTestId='NotificationSeparator'
+                className='NotificationSeparator'
+                testId='NotificationSeparator'
             >
                 <FormattedMessage
                     id='posts_view.newMsg'

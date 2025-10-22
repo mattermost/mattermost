@@ -71,7 +71,7 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
     if (channelIsArchived) {
         return (
             <div className='channel-archived-warning__container'>
-                <PostSeparator rootTestId='basicSeparator'/>
+                <PostSeparator testId='basicSeparator'/>
                 <div className='channel-archived-warning__content'>
                     <ArchiveOutlineIcon
                         size={20}

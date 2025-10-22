@@ -7,16 +7,16 @@ import React, {memo} from 'react';
 import './index.scss';
 
 type Props = {
-    rootClassName?: string;
-    rootTestId?: string;
+    className?: string;
+    testId?: string;
     children?: React.ReactNode;
 };
 
 const PostSeparator = (props: Props) => {
     return (
         <div
-            className={classnames('Separator', props.rootClassName)}
-            data-testid={props.rootTestId}
+            className={classnames('Separator', props.className)}
+            data-testid={props.testId}
         >
             <hr className='separator__hr'/>
             {props.children && (
