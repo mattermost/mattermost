@@ -20,7 +20,7 @@ type Props = {
 
 const DateSeparator: FC<Props> = ({date}) => {
     return (
-        <PostSeparator rootTestId='basicSeparator'>
+        <PostSeparator testId='basicSeparator'>
             <Timestamp
                 value={date}
                 useTime={false}

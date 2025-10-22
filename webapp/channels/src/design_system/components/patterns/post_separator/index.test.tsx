@@ -11,8 +11,8 @@ describe('components/widgets/post_separator', () => {
     test('should render separator', () => {
         renderWithContext(
             <PostSeparator
-                rootClassName='custom-class'
-                rootTestId='test-separator'
+                className='custom-class'
+                testId='test-separator'
             >
                 {'Test content'}
             </PostSeparator>,
