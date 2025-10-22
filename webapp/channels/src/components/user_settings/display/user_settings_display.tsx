@@ -9,6 +9,7 @@ import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessage} from 'react-intl';
 import type {Timezone} from 'timezones.json';
 
+import {RadioInput} from '@mattermost/design-system';
 import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
 import type {UserProfile, UserTimezone} from '@mattermost/types/users';
 
@@ -23,7 +24,6 @@ import type {Language} from 'i18n/i18n';
 import Constants from 'utils/constants';
 import {getBrowserTimezone} from 'utils/timezone';
 import {a11yFocus} from 'utils/utils';
-import RadioInput from 'webapp/platform/design-system/src/components/primitive/radio_setting/radio_input';
 
 import ManageLanguages from './manage_languages';
 import ManageTimezones from './manage_timezones';
@@ -496,7 +496,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                         id={name + 'C'}
                         name={name}
                         checked={format[2]}
-                        onChange={(e) => this.handleOnChange(e, thirdDisplay)}
+                        handleChange={(e) => this.handleOnChange(e, thirdDisplay)}
                         title={thirdMessage}
                     />
                 );
@@ -545,7 +545,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                         id={name + 'A'}
                         name={name}
                         checked={format[0]}
-                        onChange={(e) => this.handleOnChange(e, firstDisplay)}
+                        handleChange={(e) => this.handleOnChange(e, firstDisplay)}
                         title={
                             <>
                                 {firstMessage}
@@ -560,7 +560,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                         id={name + 'B'}
                         name={name}
                         checked={format[1]}
-                        onChange={(e) => this.handleOnChange(e, secondDisplay)}
+                        handleChange={(e) => this.handleOnChange(e, secondDisplay)}
                         title={
                             <>
                                 {secondMessage}

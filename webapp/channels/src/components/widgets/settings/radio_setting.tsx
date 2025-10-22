@@ -4,8 +4,9 @@
 import React, {memo, useCallback} from 'react';
 import type {ChangeEventHandler} from 'react';
 
+import {RadioInput} from '@mattermost/design-system';
+
 import Setting from './setting';
-import RadioInput from "webapp/platform/design-system/src/components/primitive/radio_setting/radio_input";
 
 type Props = {
     id: string;

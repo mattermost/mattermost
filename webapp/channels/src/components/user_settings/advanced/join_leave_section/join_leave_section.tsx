@@ -5,6 +5,7 @@ import React from 'react';
 import type {ReactNode, RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {RadioInput} from '@mattermost/design-system';
 import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
 
 import {Preferences} from 'mattermost-redux/constants';
@@ -15,7 +16,6 @@ import type SettingItemMinComponent from 'components/setting_item_min';
 
 import {AdvancedSections} from 'utils/constants';
 import {a11yFocus} from 'utils/utils';
-import RadioInput from 'webapp/platform/design-system/src/components/primitive/radio_setting/radio_input';
 
 export type OwnProps = {
     adminMode?: boolean;

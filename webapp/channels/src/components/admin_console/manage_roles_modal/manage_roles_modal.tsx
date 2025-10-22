@@ -5,6 +5,7 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import {RadioInput} from '@mattermost/design-system';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
@@ -19,7 +20,6 @@ import Avatar from 'components/widgets/users/avatar';
 import {DeveloperLinks} from 'utils/constants';
 
 import {isSuccess} from 'types/actions';
-import RadioInput from "webapp/platform/design-system/src/components/primitive/radio_setting/radio_input";
 
 export type Props = {
     user?: UserProfile;

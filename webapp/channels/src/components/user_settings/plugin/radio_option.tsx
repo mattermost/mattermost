@@ -3,9 +3,9 @@
 
 import React, {useCallback} from 'react';
 
-import Markdown from 'components/markdown';
+import {RadioInput} from '@mattermost/design-system';
 
-import RadioInput from 'webapp/platform/design-system/src/components/primitive/radio_setting/radio_input';
+import Markdown from 'components/markdown';
 
 import type {PluginConfigurationRadioSettingOption} from 'types/plugins/user_settings';
 

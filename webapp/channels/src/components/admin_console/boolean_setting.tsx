@@ -5,8 +5,9 @@ import React, {useCallback, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import styled from 'styled-components';
 
+import {RadioInput} from '@mattermost/design-system';
+
 import * as Utils from 'utils/utils';
-import RadioInput from 'webapp/platform/design-system/src/components/primitive/radio_setting/radio_input';
 
 import SettingSet from './setting_set';
 

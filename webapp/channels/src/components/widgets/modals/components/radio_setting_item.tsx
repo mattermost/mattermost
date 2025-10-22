@@ -4,9 +4,10 @@
 import type {ReactNode} from 'react';
 import React from 'react';
 
+import {RadioInput} from '@mattermost/design-system';
+
 import type {BaseSettingItemProps} from './base_setting_item';
 import BaseSettingItem from './base_setting_item';
-import RadioInput from "webapp/platform/design-system/src/components/primitive/radio_setting/radio_input";
 
 export type FieldsetRadio = {
     options: Array<{

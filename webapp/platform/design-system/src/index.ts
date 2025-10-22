@@ -2,3 +2,4 @@
 // See LICENSE.txt for license information.
 
 export {TestFooBar} from './components/patterns/TestFooBar';
+export {RadioInput} from './components/primitive/radio_setting';

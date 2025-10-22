@@ -4,13 +4,13 @@
 import React, {useCallback, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {RadioInput} from '@mattermost/design-system';
 import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Preferences} from 'mattermost-redux/constants';
 
 import SettingItemMax from 'components/setting_item_max';
-import RadioInput from "webapp/platform/design-system/src/components/primitive/radio_setting/radio_input";
 
 export type Actions = {
     savePreferences: (userId: string, preferences: PreferenceType[]) => void;

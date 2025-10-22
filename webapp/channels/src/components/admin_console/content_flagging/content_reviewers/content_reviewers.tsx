@@ -4,6 +4,7 @@
 import React, {useCallback, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {RadioInput} from '@mattermost/design-system';
 import type {ContentFlaggingReviewerSetting, TeamReviewerSetting} from '@mattermost/types/config';
 
 import CheckboxSetting from 'components/admin_console/checkbox_setting';
@@ -14,8 +15,6 @@ import {
     SectionContent,
     SectionHeader,
 } from 'components/admin_console/system_properties/controls';
-
-import RadioInput from 'webapp/platform/design-system/src/components/primitive/radio_setting/radio_input';
 
 import {UserSelector} from '../../content_flagging/user_multiselector/user_multiselector';
 import type {SystemConsoleCustomSettingChangeHandler} from '../../schema_admin_settings';

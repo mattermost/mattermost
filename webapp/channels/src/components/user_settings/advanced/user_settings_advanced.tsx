@@ -7,6 +7,7 @@ import React from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
+import {RadioInput} from '@mattermost/design-system';
 import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -19,7 +20,6 @@ import SettingItemMax from 'components/setting_item_max';
 import Constants, {AdvancedSections, Preferences} from 'utils/constants';
 import {isMac} from 'utils/user_agent';
 import {a11yFocus} from 'utils/utils';
-import RadioInput from 'webapp/platform/design-system/src/components/primitive/radio_setting/radio_input';
 
 import JoinLeaveSection from './join_leave_section';
 import PerformanceDebuggingSection from './performance_debugging_section';

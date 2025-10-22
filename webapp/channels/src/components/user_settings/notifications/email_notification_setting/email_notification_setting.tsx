@@ -4,6 +4,7 @@
 import React, {type RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {RadioInput} from '@mattermost/design-system';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {UserNotifyProps} from '@mattermost/types/users';
 
@@ -16,7 +17,6 @@ import type SettingItemMinComponent from 'components/setting_item_min';
 
 import {Preferences, NotificationLevels} from 'utils/constants';
 import {a11yFocus} from 'utils/utils';
-import RadioInput from "webapp/platform/design-system/src/components/primitive/radio_setting/radio_input";
 
 const SECONDS_PER_MINUTE = 60;
 
@@ -120,7 +120,7 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
         this.editButtonRef.current?.focus();
     }
 
-    handleChange = (enableEmail: boolean, newInterval: number) => {
+    handleChange = (e: React.ChangeEvent<HTMLInputElement>, enableEmail: string, newInterval: number) => {
         this.setState({
             enableEmail: enableEmail === 'true',
             newInterval,
@@ -304,7 +304,7 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
                         id='emailNotificationImmediately'
                         name='emailNotifications'
                         checked={newInterval === Preferences.INTERVAL_IMMEDIATE}
-                        handleChange={() => this.handleChange(true, Preferences.INTERVAL_IMMEDIATE)}
+                        handleChange={(e) => this.handleChange(e, 'true', Preferences.INTERVAL_IMMEDIATE)}
                         title={
                             <FormattedMessage
                                 id='user.settings.notifications.email.asSoonAsYouAreAwayForFiveMinutes'
@@ -316,7 +316,7 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
                         id='emailNotificationMinutes'
                         name='emailNotifications'
                         checked={newInterval === Preferences.INTERVAL_FIFTEEN_MINUTES}
-                        handleChange={() => this.handleChange(true, Preferences.INTERVAL_FIFTEEN_MINUTES)}
+                        handleChange={(e) => this.handleChange(e, 'true', Preferences.INTERVAL_FIFTEEN_MINUTES)}
                         title={
                             <FormattedMessage
                                 id='user.settings.notifications.email.everyXMinutes'
@@ -329,7 +329,7 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
                         id='emailNotificationHour'
                         name='emailNotifications'
                         checked={newInterval === Preferences.INTERVAL_HOUR}
-                        handleChange={() => this.handleChange(true, Preferences.INTERVAL_HOUR)}
+                        handleChange={(e) => this.handleChange(e, 'true', Preferences.INTERVAL_HOUR)}
                         title={
                             <FormattedMessage
                                 id='user.settings.notifications.email.everyHour'
@@ -341,7 +341,7 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
                         id='emailNotificationNever'
                         name='emailNotifications'
                         checked={newInterval === Preferences.INTERVAL_NEVER}
-                        handleChange={() => this.handleChange(false, Preferences.INTERVAL_NEVER)}
+                        handleChange={(e) => this.handleChange(e, 'false', Preferences.INTERVAL_NEVER)}
                         title={
                             <FormattedMessage
                                 id='user.settings.notifications.email.never'
@@ -374,7 +374,7 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
                         id='emailNotificationImmediately'
                         name='emailNotifications'
                         checked={newInterval === Preferences.INTERVAL_IMMEDIATE}
-                        handleChange={() => this.handleChange(true, Preferences.INTERVAL_IMMEDIATE)}
+                        handleChange={(e) => this.handleChange(e, 'true', Preferences.INTERVAL_IMMEDIATE)}
                         title={
                             <FormattedMessage
                                 id='user.settings.notifications.email.on'
@@ -387,7 +387,7 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
                         id='emailNotificationNever'
                         name='emailNotifications'
                         checked={newInterval === Preferences.INTERVAL_NEVER}
-                        handleChange={() => this.handleChange(false, Preferences.INTERVAL_NEVER)}
+                        handleChange={(e) => this.handleChange(e, 'false', Preferences.INTERVAL_NEVER)}
                         title={
                             <FormattedMessage
                                 id='user.settings.notifications.email.off'

@@ -5,8 +5,8 @@ import React, {type ChangeEvent, useCallback, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import type {OnChangeValue} from 'react-select';
 import CreatableReactSelect from 'react-select/creatable';
-import RadioInput from 'webapp/platform/design-system/src/components/primitive/radio_setting/radio_input';
 
+import {RadioInput} from '@mattermost/design-system';
 import type {ContentFlaggingAdditionalSettings} from '@mattermost/types/config';
 
 import type {SystemConsoleCustomSettingChangeHandler} from 'components/admin_console/schema_admin_settings';

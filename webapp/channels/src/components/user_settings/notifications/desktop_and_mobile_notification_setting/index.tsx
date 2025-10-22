@@ -7,6 +7,7 @@ import {FormattedMessage, useIntl, defineMessage} from 'react-intl';
 import ReactSelect from 'react-select';
 import type {OnChangeValue, Options} from 'react-select';
 
+import {RadioInput} from '@mattermost/design-system';
 import type {UserNotifyProps} from '@mattermost/types/users';
 
 import SettingItemMax from 'components/setting_item_max';
@@ -20,7 +21,6 @@ import Constants, {NotificationLevels, UserSettingsNotificationSections} from 'u
 import {formatAsComponent} from 'utils/i18n';
 
 import type {Props as UserSettingsNotificationsProps} from '../user_settings_notifications';
-import RadioInput from "webapp/platform/design-system/src/components/primitive/radio_setting/radio_input";
 
 export type Props = {
     active: boolean;

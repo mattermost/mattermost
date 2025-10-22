@@ -5,6 +5,7 @@ import React from 'react';
 import type {RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {RadioInput} from '@mattermost/design-system';
 import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
 
 import {Preferences} from 'mattermost-redux/constants';
@@ -15,7 +16,6 @@ import SettingItemMin from 'components/setting_item_min';
 import type SettingItemMinComponent from 'components/setting_item_min';
 
 import {a11yFocus} from 'utils/utils';
-import RadioInput from "webapp/platform/design-system/src/components/primitive/radio_setting/radio_input";
 
 export type OwnProps = {
     adminMode?: boolean;
@@ -153,6 +153,7 @@ export default class ShowUnreadsCategory extends React.PureComponent<Props, Stat
                             {title}
                         </legend>
                         <RadioInput
+                            id='showUnreadsCategoryOn'
                             className='radio'
                             dataTestId='showUnreadsCategoryOn'
                             name='showUnreadsCategory'
@@ -166,6 +167,7 @@ export default class ShowUnreadsCategory extends React.PureComponent<Props, Stat
                             }
                         />
                         <RadioInput
+                            id='showUnreadsCategoryOff'
                             className='radio'
                             data-testid='showUnreadsCategoryOff'
                             name='showUnreadsCategory'

@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import React, {type ReactNode} from 'react';
 
-import 'src/components/primitive/radio_setting/radio_input.scss';
+import './radio_input.scss';
 
 type Props = {
     id: string;
@@ -18,10 +18,10 @@ type Props = {
     className?: string;
 }
 
-export default function RadioInput({id, value, name, title, dataTestId, checked, handleChange, disabled, className}: Props) {
+export function RadioInput({id, value, name, title, dataTestId, checked, handleChange, disabled, className}: Props) {
     return (
         <label
-            className={classNames('RadioInput', {[className]: Boolean(className)})}
+            className={classNames('RadioInput', className)}
         >
             <input
                 id={id}

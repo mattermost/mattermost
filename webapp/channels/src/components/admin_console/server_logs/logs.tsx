@@ -5,6 +5,7 @@ import debounce from 'lodash/debounce';
 import React from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
+import {RadioInput} from '@mattermost/design-system';
 import type {
     LogFilter,
     LogLevels,
@@ -16,8 +17,6 @@ import {Client4} from 'mattermost-redux/client';
 
 import ExternalLink from 'components/external_link';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
-
-import RadioInput from 'webapp/platform/design-system/src/components/primitive/radio_setting/radio_input';
 
 import LogList from './log_list';
 import PlainLogList from './plain_log_list';

@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import RadioInput from 'webapp/platform/design-system/src/components/primitive/radio_setting/radio_input';
+import {RadioInput} from '@mattermost/design-system';
 
 import Setting from './setting';
 
