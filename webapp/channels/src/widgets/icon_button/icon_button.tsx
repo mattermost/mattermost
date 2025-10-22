@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {forwardRef, memo, useMemo, useCallback} from 'react';
+import React, {forwardRef, memo, useMemo} from 'react';
 import type {ButtonHTMLAttributes, ReactNode} from 'react';
 
 import WithTooltip from 'components/with_tooltip';
@@ -40,10 +40,10 @@ export interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>
     rounded?: boolean;
 
     /** Show count/number alongside icon */
-    count?: boolean;
+    showCount?: boolean;
 
-    /** Text content for the count (typically used for counts/numbers) - will be truncated to 4 characters if longer */
-    countText?: string | number;
+    /** The count to display */
+    count?: number;
 
     /** Show unread indicator (notification dot) */
     unread?: boolean;
@@ -63,8 +63,8 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         destructive = false,
         inverted = false,
         rounded = false,
-        count = false,
-        countText,
+        showCount = false,
+        count,
         unread = false,
         icon,
         disabled = false,
@@ -74,27 +74,6 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         ...htmlProps
     }, ref) => {
         const isDisabled = disabled || loading;
-
-        // Validate and format count text - memoized to prevent recreation on every render
-        const validateCountText = useCallback((text: string | number | undefined): string => {
-            if (!text) {
-                return '';
-            }
-
-            const str = String(text).trim();
-            const maxLength = 4;
-
-            if (str.length > maxLength) {
-                // eslint-disable-next-line no-process-env
-                if (process.env.NODE_ENV === 'development') {
-                    // eslint-disable-next-line no-console
-                    console.warn(`IconButton: countText "${str}" truncated to "${str.slice(0, maxLength)}"`);
-                }
-                return str.slice(0, maxLength);
-            }
-
-            return str;
-        }, []); // No dependencies since this function is pure
 
         const buttonClasses = useMemo(() => classNames(
             'IconButton',
@@ -106,11 +85,11 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
                 'IconButton--rounded': rounded,
                 'IconButton--compact': padding === 'compact',
                 'IconButton--loading': loading,
-                'IconButton--with-count': count,
+                'IconButton--with-count': showCount,
                 'IconButton--with-unread': unread,
             },
             className,
-        ), [size, toggled, destructive, inverted, rounded, padding, loading, count, unread, className]);
+        ), [size, toggled, destructive, inverted, rounded, padding, loading, showCount, unread, className]);
 
         // Clone the icon element and add the appropriate size prop for Compass Icons
         const iconWithSize = useMemo(() => {
@@ -151,9 +130,9 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
                             </span>
                         )}
 
-                        {count && !loading && (
+                        {showCount && !loading && (
                             <span className={`IconButton__count IconButton__count--${size}`}>
-                                {validateCountText(countText)}
+                                {count}
                             </span>
                         )}
                     </span>
