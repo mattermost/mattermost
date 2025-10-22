@@ -502,7 +502,7 @@ func (a *App) rawSendToPushProxy(msg *model.PushNotification) (model.PushRespons
 	}
 
 	// Add server ID header
-	request.Header.Set("X-Mattermost-Server", a.ServerId())
+	request.Header.Set("X-Mattermost-ServerID", a.ServerId())
 
 	resp, err := a.Srv().pushNotificationClient.Do(request)
 	if err != nil {
@@ -581,7 +581,7 @@ func (a *App) SendAckToPushProxy(rctx request.CTX, ack *model.PushNotificationAc
 	}
 
 	// Add server ID header
-	request.Header.Set("X-Mattermost-Server", a.ServerId())
+	request.Header.Set("X-Mattermost-ServerID", a.ServerId())
 
 	resp, err := a.Srv().pushNotificationClient.Do(request)
 	if err != nil {
