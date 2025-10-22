@@ -4,7 +4,7 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
-import { ProductChannelsIcon, LightningBoltOutlineIcon } from '@mattermost/compass-icons/components';
+import {ProductChannelsIcon, LightningBoltOutlineIcon} from '@mattermost/compass-icons/components';
 
 type Props = {
     recapName: string;
