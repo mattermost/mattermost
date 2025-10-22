@@ -1202,9 +1202,28 @@ func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
 			Body:       io.NopCloser(bytes.NewBufferString(message)),
 		}
 	}
-	responseTransfer := &PluginResponseWriter{}
-	api.app.ServeInterPluginRequest(responseTransfer, request, api.id, destinationPluginId)
-	return responseTransfer.GenerateResponse()
+
+	// Create pipe for streaming response
+	pr, pw := io.Pipe()
+	responseTransfer := NewPluginResponseWriter(pw)
+
+	// Serve the request in a goroutine, streaming the response through the pipe
+	go func() {
+		defer func() {
+			// Ensure pipe is closed when request completes
+			if err := recover(); err != nil {
+				responseTransfer.CloseWithError(fmt.Errorf("panic in plugin request: %v", err))
+			} else {
+				responseTransfer.Close()
+			}
+		}()
+		api.app.ServeInterPluginRequest(responseTransfer, request, api.id, destinationPluginId)
+	}()
+
+	// Wait for headers to be ready before returning response
+	<-responseTransfer.HeadersReady
+
+	return responseTransfer.GenerateResponse(pr)
 }
 
 func (api *PluginAPI) CreateCommand(cmd *model.Command) (*model.Command, error) {

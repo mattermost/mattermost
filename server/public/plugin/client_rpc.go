@@ -391,6 +391,7 @@ type Z_ServeHTTPArgs struct {
 	Request              *HTTPRequestSubset
 	Context              *Context
 	RequestBodyStream    uint32
+	ResponseBodyStream   uint32
 }
 
 func (g *hooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -430,6 +431,19 @@ func (g *hooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Re
 		}()
 	}
 
+	// Create response body stream for streaming response writes
+	responseBodyStreamId := g.muxBroker.NextId()
+	go func() {
+		responseBodyConnection, err := g.muxBroker.Accept(responseBodyStreamId)
+		if err != nil {
+			g.log.Error("Plugin failed to ServeHTTP, muxBroker couldn't Accept response body connection", mlog.Err(err))
+			return
+		}
+		defer responseBodyConnection.Close()
+		// Stream response body data from plugin to the actual ResponseWriter
+		io.Copy(w, responseBodyConnection)
+	}()
+
 	forwardedRequest := &HTTPRequestSubset{
 		Method:     r.Method,
 		URL:        r.URL,
@@ -447,6 +461,7 @@ func (g *hooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Re
 		ResponseWriterStream: serveHTTPStreamId,
 		Request:              forwardedRequest,
 		RequestBodyStream:    requestBodyStreamId,
+		ResponseBodyStream:   responseBodyStreamId,
 	}, nil); err != nil {
 		g.log.Error("Plugin failed to ServeHTTP, RPC call failed", mlog.Err(err))
 		http.Error(w, "500 internal server error", http.StatusInternalServerError)
@@ -459,17 +474,28 @@ func (s *hooksRPCServer) ServeHTTP(args *Z_ServeHTTPArgs, returns *struct{}) err
 		fmt.Fprintf(os.Stderr, "[ERROR] Can't connect to remote response writer stream, error: %v", err.Error())
 		return err
 	}
-	w := connectHTTPResponseWriter(connection)
+	defer connection.Close()
+
+	// Connect to response body stream
+	responseBodyConnection, err := s.muxBroker.Dial(args.ResponseBodyStream)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[ERROR] Can't connect to remote response body stream, error: %v", err.Error())
+		return err
+	}
+	defer responseBodyConnection.Close()
+
+	// Create streaming response writer that uses RPC for headers/status and stream for body
+	w := connectStreamingHTTPResponseWriter(connection, responseBodyConnection)
 	defer w.Close()
 
 	r := args.Request
 	if args.RequestBodyStream != 0 {
-		connection, err := s.muxBroker.Dial(args.RequestBodyStream)
+		requestBodyConnection, err := s.muxBroker.Dial(args.RequestBodyStream)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "[ERROR] Can't connect to remote request body stream, error: %v", err.Error())
 			return err
 		}
-		r.Body = connectIOReader(connection)
+		r.Body = connectIOReader(requestBodyConnection)
 	} else {
 		r.Body = io.NopCloser(&bytes.Buffer{})
 	}
@@ -489,13 +515,13 @@ func (s *hooksRPCServer) ServeHTTP(args *Z_ServeHTTPArgs, returns *struct{}) err
 }
 
 type Z_PluginHTTPArgs struct {
-	Request     *HTTPRequestSubset
-	RequestBody []byte
+	Request            *HTTPRequestSubset
+	RequestBodyStream  uint32
+	ResponseBodyStream uint32
 }
 
 type Z_PluginHTTPReturns struct {
-	Response     *http.Response
-	ResponseBody []byte
+	Response *http.Response
 }
 
 func (g *apiRPCClient) PluginHTTP(request *http.Request) *http.Response {
@@ -511,53 +537,112 @@ func (g *apiRPCClient) PluginHTTP(request *http.Request) *http.Response {
 		RequestURI: request.RequestURI,
 	}
 
-	_args := &Z_PluginHTTPArgs{
-		Request: forwardedRequest,
-	}
-
+	// Stream request body if present
+	requestBodyStreamId := uint32(0)
 	if request.Body != nil {
-		requestBody, err := io.ReadAll(request.Body)
-		if err != nil {
-			log.Printf("RPC call to PluginHTTP API failed: %s", err.Error())
-			return nil
-		}
-		request.Body.Close()
-		request.Body = nil
-
-		_args.RequestBody = requestBody
+		requestBodyStreamId = g.muxBroker.NextId()
+		go func() {
+			requestBodyConnection, err := g.muxBroker.Accept(requestBodyStreamId)
+			if err != nil {
+				log.Print("Plugin failed to serve request body stream. MuxBroker could not Accept connection", mlog.Err(err))
+				return
+			}
+			defer requestBodyConnection.Close()
+			serveIOReader(request.Body, requestBodyConnection)
+		}()
 	}
 
+	// Create pipe for streaming response body
+	pr, pw := io.Pipe()
+	responseDone := make(chan bool)
+	responseBodyStreamId := g.muxBroker.NextId()
+	go func() {
+		defer close(responseDone)
+		defer pw.Close()
+
+		responseBodyConnection, err := g.muxBroker.Accept(responseBodyStreamId)
+		if err != nil {
+			log.Print("Plugin failed to serve response body stream. MuxBroker could not Accept connection", mlog.Err(err))
+			pw.CloseWithError(err)
+			return
+		}
+		defer responseBodyConnection.Close()
+		if _, err := io.Copy(pw, responseBodyConnection); err != nil {
+			log.Print("Error reading response body.", mlog.Err(err))
+			pw.CloseWithError(err)
+		}
+	}()
+
+	_args := &Z_PluginHTTPArgs{
+		Request:            forwardedRequest,
+		RequestBodyStream:  requestBodyStreamId,
+		ResponseBodyStream: responseBodyStreamId,
+	}
 	_returns := &Z_PluginHTTPReturns{}
 	if err := g.client.Call("Plugin.PluginHTTP", _args, _returns); err != nil {
 		log.Printf("RPC call to PluginHTTP API failed: %s", err.Error())
+		pr.Close()
+		<-responseDone
 		return nil
 	}
 
-	_returns.Response.Body = io.NopCloser(bytes.NewBuffer(_returns.ResponseBody))
+	// Return response with streaming body
+	_returns.Response.Body = pr
 
 	return _returns.Response
 }
 
 func (s *apiRPCServer) PluginHTTP(args *Z_PluginHTTPArgs, returns *Z_PluginHTTPReturns) error {
-	args.Request.Body = io.NopCloser(bytes.NewBuffer(args.RequestBody))
-
-	if hook, ok := s.impl.(interface {
+	hook, ok := s.impl.(interface {
 		PluginHTTP(request *http.Request) *http.Response
-	}); ok {
-		response := hook.PluginHTTP(args.Request.GetHTTPRequest())
-
-		responseBody, err := io.ReadAll(response.Body)
-		if err != nil {
-			return encodableError(fmt.Errorf("RPC call to PluginHTTP API failed: %s", err.Error()))
-		}
-		response.Body.Close()
-		response.Body = nil
-
-		returns.Response = response
-		returns.ResponseBody = responseBody
-	} else {
+	})
+	if !ok {
 		return encodableError(fmt.Errorf("API PluginHTTP called but not implemented"))
 	}
+
+	// Connect to request body stream if present
+	if args.RequestBodyStream != 0 {
+		requestBodyConnection, err := s.muxBroker.Dial(args.RequestBodyStream)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "[ERROR] Can't connect to remote request body stream, error: %v", err.Error())
+			return err
+		}
+		defer requestBodyConnection.Close()
+		args.Request.Body = connectIOReader(requestBodyConnection)
+	} else {
+		args.Request.Body = io.NopCloser(&bytes.Buffer{})
+	}
+	defer args.Request.Body.Close()
+
+	// Connect to response body stream
+	responseBodyConnection, err := s.muxBroker.Dial(args.ResponseBodyStream)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[ERROR] Can't connect to remote response body stream, error: %v", err.Error())
+		return err
+	}
+
+	// Call the implementation
+	response := hook.PluginHTTP(args.Request.GetHTTPRequest())
+
+	// Capture body in local variable to avoid data race with goroutine
+	responseBody := response.Body
+	response.Body = nil
+
+	// Stream response body in background goroutine to avoid blocking RPC
+	// This allows the client to receive the response immediately and start reading
+	go func() {
+		defer responseBodyConnection.Close()
+		if responseBody != nil {
+			if _, err := io.Copy(responseBodyConnection, responseBody); err != nil {
+				log.Print("Error streaming response body in PluginHTTP", mlog.Err(err))
+			}
+			responseBody.Close()
+		}
+	}()
+
+	// Return response metadata immediately (without body)
+	returns.Response = response
+
 	return nil
 }
 
@@ -1045,6 +1130,7 @@ type Z_ServeMetricsArgs struct {
 	Request              *HTTPRequestSubset
 	Context              *Context
 	RequestBodyStream    uint32
+	ResponseBodyStream   uint32
 }
 
 func (g *hooksRPCClient) ServeMetrics(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1084,6 +1170,19 @@ func (g *hooksRPCClient) ServeMetrics(c *Context, w http.ResponseWriter, r *http
 		}()
 	}
 
+	// Create response body stream for streaming response writes
+	responseBodyStreamId := g.muxBroker.NextId()
+	go func() {
+		responseBodyConnection, err := g.muxBroker.Accept(responseBodyStreamId)
+		if err != nil {
+			g.log.Error("Plugin failed to ServeMetrics, muxBroker couldn't Accept response body connection", mlog.Err(err))
+			return
+		}
+		defer responseBodyConnection.Close()
+		// Stream response body data from plugin to the actual ResponseWriter
+		io.Copy(w, responseBodyConnection)
+	}()
+
 	forwardedRequest := &HTTPRequestSubset{
 		Method:     r.Method,
 		URL:        r.URL,
@@ -1101,6 +1200,7 @@ func (g *hooksRPCClient) ServeMetrics(c *Context, w http.ResponseWriter, r *http
 		ResponseWriterStream: serveMetricsStreamId,
 		Request:              forwardedRequest,
 		RequestBodyStream:    requestBodyStreamId,
+		ResponseBodyStream:   responseBodyStreamId,
 	}, nil); err != nil {
 		g.log.Error("Plugin failed to ServeMetrics, RPC call failed", mlog.Err(err))
 		http.Error(w, "500 internal server error", http.StatusInternalServerError)
@@ -1113,17 +1213,28 @@ func (s *hooksRPCServer) ServeMetrics(args *Z_ServeMetricsArgs, returns *struct{
 		fmt.Fprintf(os.Stderr, "[ERROR] Can't connect to remote response writer stream, error: %v", err.Error())
 		return err
 	}
-	w := connectHTTPResponseWriter(connection)
+	defer connection.Close()
+
+	// Connect to response body stream
+	responseBodyConnection, err := s.muxBroker.Dial(args.ResponseBodyStream)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[ERROR] Can't connect to remote response body stream, error: %v", err.Error())
+		return err
+	}
+	defer responseBodyConnection.Close()
+
+	// Create streaming response writer that uses RPC for headers/status and stream for body
+	w := connectStreamingHTTPResponseWriter(connection, responseBodyConnection)
 	defer w.Close()
 
 	r := args.Request
 	if args.RequestBodyStream != 0 {
-		connection, err := s.muxBroker.Dial(args.RequestBodyStream)
+		requestBodyConnection, err := s.muxBroker.Dial(args.RequestBodyStream)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "[ERROR] Can't connect to remote request body stream, error: %v", err.Error())
 			return err
 		}
-		r.Body = connectIOReader(connection)
+		r.Body = connectIOReader(requestBodyConnection)
 	} else {
 		r.Body = io.NopCloser(&bytes.Buffer{})
 	}

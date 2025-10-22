@@ -49,6 +49,15 @@ func (w *httpResponseWriterRPCServer) WriteHeader(args int, reply *struct{}) err
 	return nil
 }
 
+func (w *httpResponseWriterRPCServer) Flush(args struct{}, reply *struct{}) error {
+	if f, ok := w.w.(http.Flusher); ok {
+		f.Flush()
+	} else {
+		w.log.Warn("Plugin tried to flush a ResponseWriter that does not implement http.Flusher")
+	}
+	return nil
+}
+
 func (w *httpResponseWriterRPCServer) SyncHeader(args http.Header, reply *struct{}) error {
 	dest := w.w.Header()
 	for k := range dest {
@@ -91,6 +100,13 @@ func (w *httpResponseWriterRPCClient) WriteHeader(statusCode int) {
 	w.client.Call("Plugin.WriteHeader", statusCode, nil)
 }
 
+func (w *httpResponseWriterRPCClient) Flush() {
+	if err := w.client.Call("Plugin.SyncHeader", w.header, nil); err != nil {
+		return
+	}
+	w.client.Call("Plugin.Flush", struct{}{}, nil)
+}
+
 func (w *httpResponseWriterRPCClient) Close() error {
 	return w.client.Close()
 }
@@ -99,4 +115,59 @@ func connectHTTPResponseWriter(conn io.ReadWriteCloser) *httpResponseWriterRPCCl
 	return &httpResponseWriterRPCClient{
 		client: rpc.NewClient(conn),
 	}
+}
+
+// streamingHTTPResponseWriter implements http.ResponseWriter by using RPC for headers/status
+// and direct streaming for body writes to avoid buffering
+type streamingHTTPResponseWriter struct {
+	rpcClient  *rpc.Client
+	bodyStream io.WriteCloser
+	header     http.Header
+}
+
+var _ http.ResponseWriter = (*streamingHTTPResponseWriter)(nil)
+var _ http.Flusher = (*streamingHTTPResponseWriter)(nil)
+
+func connectStreamingHTTPResponseWriter(rpcConn io.ReadWriteCloser, bodyStream io.WriteCloser) *streamingHTTPResponseWriter {
+	return &streamingHTTPResponseWriter{
+		rpcClient:  rpc.NewClient(rpcConn),
+		bodyStream: bodyStream,
+	}
+}
+
+func (w *streamingHTTPResponseWriter) Header() http.Header {
+	if w.header == nil {
+		w.rpcClient.Call("Plugin.Header", struct{}{}, &w.header)
+	}
+	return w.header
+}
+
+func (w *streamingHTTPResponseWriter) Write(b []byte) (int, error) {
+	// Sync headers via RPC before first write
+	if err := w.rpcClient.Call("Plugin.SyncHeader", w.header, nil); err != nil {
+		return 0, err
+	}
+	// Write body data directly to stream for true streaming without buffering
+	return w.bodyStream.Write(b)
+}
+
+func (w *streamingHTTPResponseWriter) WriteHeader(statusCode int) {
+	if err := w.rpcClient.Call("Plugin.SyncHeader", w.header, nil); err != nil {
+		return
+	}
+	w.rpcClient.Call("Plugin.WriteHeader", statusCode, nil)
+}
+
+func (w *streamingHTTPResponseWriter) Flush() {
+	if err := w.rpcClient.Call("Plugin.SyncHeader", w.header, nil); err != nil {
+		return
+	}
+	w.rpcClient.Call("Plugin.Flush", struct{}{}, nil)
+	// No need to flush bodyStream as it should write through immediately
+}
+
+func (w *streamingHTTPResponseWriter) Close() error {
+	// Close both connections
+	w.bodyStream.Close()
+	return w.rpcClient.Close()
 }

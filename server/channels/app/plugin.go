@@ -1321,9 +1321,25 @@ func (a *App) CallPluginBridge(rctx request.CTX, sourcePluginID, targetPluginID,
 
 	// Execute the bridge call via internal plugin HTTP
 	// ServeInternalPluginRequest will set authentication headers (Mattermost-User-Id, Mattermost-Plugin-ID, etc.)
-	responseWriter := &PluginResponseWriter{}
-	a.ServeInternalPluginRequest(userID, responseWriter, httpReq, sourcePluginID, targetPluginID)
-	httpResp := responseWriter.GenerateResponse()
+	pr, pw := io.Pipe()
+	responseWriter := NewPluginResponseWriter(pw)
+
+	// Serve the request in a goroutine, streaming the response through the pipe
+	go func() {
+		defer func() {
+			// Ensure pipe is closed when request completes
+			if err := recover(); err != nil {
+				responseWriter.CloseWithError(fmt.Errorf("panic in plugin request: %v", err))
+			} else {
+				responseWriter.Close()
+			}
+		}()
+		a.ServeInternalPluginRequest(userID, responseWriter, httpReq, sourcePluginID, targetPluginID)
+	}()
+
+	// Wait for headers to be ready before continuing
+	<-responseWriter.HeadersReady
+	httpResp := responseWriter.GenerateResponse(pr)
 
 	// Check response status
 	if httpResp.StatusCode < 200 || httpResp.StatusCode >= 300 {

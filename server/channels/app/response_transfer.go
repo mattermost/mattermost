@@ -4,7 +4,6 @@
 package app
 
 import (
-	"bytes"
 	"fmt"
 	"io"
 	"net/http"
@@ -13,9 +12,18 @@ import (
 )
 
 type PluginResponseWriter struct {
-	bytes.Buffer
-	headers    http.Header
-	statusCode int
+	pipeWriter   *io.PipeWriter
+	headers      http.Header
+	statusCode   int
+	HeadersReady chan struct{}
+}
+
+func NewPluginResponseWriter(pw *io.PipeWriter) *PluginResponseWriter {
+	return &PluginResponseWriter{
+		pipeWriter:   pw,
+		headers:      make(http.Header),
+		HeadersReady: make(chan struct{}),
+	}
 }
 
 func (rt *PluginResponseWriter) Header() http.Header {
@@ -25,8 +33,32 @@ func (rt *PluginResponseWriter) Header() http.Header {
 	return rt.headers
 }
 
+func (rt *PluginResponseWriter) Write(data []byte) (int, error) {
+	// Signal that headers are ready on first write if not already done
+	select {
+	case <-rt.HeadersReady:
+		// Already closed
+	default:
+		close(rt.HeadersReady)
+	}
+	return rt.pipeWriter.Write(data)
+}
+
 func (rt *PluginResponseWriter) WriteHeader(statusCode int) {
-	rt.statusCode = statusCode
+	if rt.statusCode == 0 {
+		rt.statusCode = statusCode
+		close(rt.HeadersReady)
+	}
+}
+
+func (rt *PluginResponseWriter) Flush() {
+	// Signal headers are ready if not already done
+	select {
+	case <-rt.HeadersReady:
+	default:
+		close(rt.HeadersReady)
+	}
+	// Pipe doesn't need explicit flushing, but we implement the interface
 }
 
 // From net/http/httptest/recorder.go
@@ -42,13 +74,14 @@ func parseContentLength(cl string) int64 {
 	return n
 }
 
-func (rt *PluginResponseWriter) GenerateResponse() *http.Response {
+func (rt *PluginResponseWriter) GenerateResponse(pr *io.PipeReader) *http.Response {
 	res := &http.Response{
 		Proto:      "HTTP/1.1",
 		ProtoMajor: 1,
 		ProtoMinor: 1,
 		StatusCode: rt.statusCode,
 		Header:     rt.headers.Clone(),
+		Body:       pr,
 	}
 
 	if res.StatusCode == 0 {
@@ -57,13 +90,15 @@ func (rt *PluginResponseWriter) GenerateResponse() *http.Response {
 
 	res.Status = fmt.Sprintf("%03d %s", res.StatusCode, http.StatusText(res.StatusCode))
 
-	if rt.Len() > 0 {
-		res.Body = io.NopCloser(rt)
-	} else {
-		res.Body = http.NoBody
-	}
-
 	res.ContentLength = parseContentLength(rt.headers.Get("Content-Length"))
 
 	return res
+}
+
+func (rt *PluginResponseWriter) CloseWithError(err error) error {
+	return rt.pipeWriter.CloseWithError(err)
+}
+
+func (rt *PluginResponseWriter) Close() error {
+	return rt.pipeWriter.Close()
 }

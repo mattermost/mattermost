@@ -4,7 +4,6 @@
 package plugin
 
 import (
-	"bufio"
 	"encoding/binary"
 	"io"
 )
@@ -31,11 +30,12 @@ func connectIOReader(conn io.ReadWriteCloser) io.ReadCloser {
 }
 
 func serveIOReader(r io.Reader, conn io.ReadWriteCloser) {
-	cr := bufio.NewReader(conn)
 	defer conn.Close()
 	buf := make([]byte, 32*1024)
+	// Use an io.ByteReader for ReadVarint without buffering the entire connection
+	br := &byteReader{r: conn}
 	for {
-		n, err := binary.ReadVarint(cr)
+		n, err := binary.ReadVarint(br)
 		if err != nil {
 			break
 		}
@@ -43,4 +43,16 @@ func serveIOReader(r io.Reader, conn io.ReadWriteCloser) {
 			break
 		}
 	}
+}
+
+// byteReader wraps an io.Reader to provide io.ByteReader interface
+// without buffering beyond what's needed for ReadVarint
+type byteReader struct {
+	r io.Reader
+}
+
+func (b *byteReader) ReadByte() (byte, error) {
+	var buf [1]byte
+	_, err := b.r.Read(buf[:])
+	return buf[0], err
 }
