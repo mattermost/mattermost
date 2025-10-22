@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import ProgressBar from 'design-system/components/primitives/progress_bar';
+import ProgressBar from 'design_system/components/primitives/progress_bar';
 
 import './limit_line.scss';
 

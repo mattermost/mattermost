@@ -16,7 +16,7 @@ import useGetHighestThresholdCloudLimit from 'components/common/hooks/useGetHigh
 import useGetLimits from 'components/common/hooks/useGetLimits';
 import useGetUsage from 'components/common/hooks/useGetUsage';
 
-import ProgressBar from 'design-system/components/primitives/progress_bar';
+import ProgressBar from 'design_system/components/primitives/progress_bar';
 import {ModalIdentifiers} from 'utils/constants';
 import {limitThresholds} from 'utils/limits';
 
