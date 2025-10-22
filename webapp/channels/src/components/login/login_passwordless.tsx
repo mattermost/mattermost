@@ -63,19 +63,19 @@ const LoginPasswordless = () => {
             </svg>
             <h2>
                 {formatMessage({
-                    id: 'login.passwordless.success.title',
+                    id: 'easy_login.success.title',
                     defaultMessage: 'We sent you a link to login!',
                 })}
             </h2>
             <p>
                 {formatMessage({
-                    id: 'login.passwordless.success.description',
+                    id: 'easy_login.success.description',
                     defaultMessage: 'Please check your email for the link to login.',
                 })}
             </p>
             <p className='passwordless-success-expiry'>
                 {formatMessage({
-                    id: 'login.passwordless.success.expiry',
+                    id: 'easy_login.success.expiry',
                     defaultMessage: 'Your link will expire in 5 minutes.',
                 })}
             </p>
