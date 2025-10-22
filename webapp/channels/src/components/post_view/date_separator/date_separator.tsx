@@ -6,7 +6,8 @@ import React, {memo} from 'react';
 import type {FC} from 'react';
 
 import Timestamp, {RelativeRanges} from 'components/timestamp';
-import BasicSeparator from 'components/widgets/separator/basic-separator';
+
+import PostSeparator from 'design_system/components/patterns/post_separator';
 
 const DATE_RANGES = [
     RelativeRanges.TODAY_TITLE_CASE,
@@ -19,14 +20,14 @@ type Props = {
 
 const DateSeparator: FC<Props> = ({date}) => {
     return (
-        <BasicSeparator>
+        <PostSeparator testId='basicSeparator'>
             <Timestamp
                 value={date}
                 useTime={false}
                 useSemanticOutput={false}
                 ranges={DATE_RANGES}
             />
-        </BasicSeparator>
+        </PostSeparator>
     );
 };
 

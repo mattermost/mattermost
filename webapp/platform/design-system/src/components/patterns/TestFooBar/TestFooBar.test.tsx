@@ -13,4 +13,3 @@ describe('TestFooBar', () => {
         expect(screen.getByText('Foo bar baz')).toBeInTheDocument();
     });
 });
-
