@@ -15,7 +15,6 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
 
 import AnnouncementBar from 'components/announcement_bar';
-import BackButton from 'components/common/back_button';
 import InfiniteScroll from 'components/common/infinite_scroll';
 import SiteNameAndDescription from 'components/common/site_name_and_description';
 import ExternalLink from 'components/external_link';
@@ -23,6 +22,7 @@ import LoadingScreen from 'components/loading_screen';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import LogoutIcon from 'components/widgets/icons/fa_logout_icon';
 
+import HistoryBackButton from 'design_system/components/patterns/history_back_button';
 import logoImage from 'images/logo.png';
 import Constants from 'utils/constants';
 import * as UserAgent from 'utils/user_agent';
@@ -363,9 +363,9 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
 
         let headerButton;
         if (this.state.error) {
-            headerButton = <BackButton onClick={this.clearError}/>;
+            headerButton = <HistoryBackButton onClick={this.clearError}/>;
         } else if (isMemberOfTeam) {
-            headerButton = <BackButton/>;
+            headerButton = <HistoryBackButton/>;
         } else {
             headerButton = (
                 <div className='signup-header'>
