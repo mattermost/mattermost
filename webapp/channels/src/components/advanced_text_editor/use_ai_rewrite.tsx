@@ -96,6 +96,8 @@ const useAIRewrite = (
                 };
 
                 handleDraftChange(updatedDraft, {instant: true});
+
+                setPrompt('');
             }
         } catch (error) {
             // Only log error if this is still the current promise
@@ -105,7 +107,6 @@ const useAIRewrite = (
         } finally {
             // Only update state if this is still the current promise
             if (currentPromiseRef.current === promise) {
-                setPrompt('');
                 setIsProcessing(false);
                 currentPromiseRef.current = null;
             }
@@ -188,13 +189,26 @@ const useAIRewrite = (
     const additionalControl = useMemo(() => {
         const showMenuItem = !isProcessing && draft.message.trim();
 
-        const placeholderText = draft.message.trim() ? formatMessage({
+        let placeholderText = formatMessage({
             id: 'texteditor.aiRewrite.prompt',
             defaultMessage: 'Ask AI to edit message...',
-        }) : formatMessage({
-            id: 'texteditor.aiRewrite.create',
-            defaultMessage: 'Create a new message...',
         });
+
+        if (isProcessing) {
+            if (prompt) {
+                placeholderText = prompt;
+            } else if (draft.message.trim()) {
+                placeholderText = formatMessage({
+                    id: 'texteditor.aiRewrite.rewriting',
+                    defaultMessage: 'Rewriting...',
+                });
+            }
+        } else if (!draft.message.trim()) {
+            placeholderText = formatMessage({
+                id: 'texteditor.aiRewrite.create',
+                defaultMessage: 'Create a new message...',
+            });
+        }
 
         return (
             <Menu.Container
@@ -240,7 +254,7 @@ const useAIRewrite = (
                         </>}
                         <Input
                             inputPrefix={isProcessing ? <LoadingSpinner/> : <CreationOutlineIcon size={18}/>}
-                            placeholder={isProcessing && prompt ? prompt : placeholderText}
+                            placeholder={placeholderText}
                             disabled={isProcessing}
                             value={prompt}
                             onChange={(e) => setPrompt(e.target.value)}
