@@ -226,14 +226,15 @@ const InfoTab = ({team, hasChanges, maxFileSize, closeModal, collapseModal, hasC
                     teamName={team.display_name ?? team.name}
                     clientError={imageClientError}
                 />
-                {hasChanges ?
+                {hasChanges ? (
                     <SaveChangesPanel
                         handleCancel={handleCancel}
                         handleSubmit={handleSaveChanges}
                         handleClose={handleClose}
                         tabChangeError={hasChangeTabError}
                         state={saveChangesPanelState}
-                    /> : undefined}
+                    />
+                ) : undefined}
             </div>
         </>
     );

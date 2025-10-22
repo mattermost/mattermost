@@ -7,6 +7,7 @@ import type {Post} from '@mattermost/types/posts';
 
 import PostComponent from 'components/post';
 
+import {PostTypes} from 'mattermost-redux/constants/posts';
 import {Locations} from 'utils/constants';
 
 type Props = {
@@ -20,11 +21,19 @@ type Props = {
 }
 
 export default function PostSearchResultsItem(props: Props) {
+    const isPage = props.post.type === PostTypes.PAGE;
+
     return (
         <div
             className='search-item__container'
             data-testid='search-item-container'
         >
+            {isPage && (
+                <div className='search-item__page-indicator'>
+                    <i className='icon-file-document-outline'/>
+                    <span>{'Wiki Page'}</span>
+                </div>
+            )}
             <PostComponent
                 post={props.post}
                 matches={props.matches}

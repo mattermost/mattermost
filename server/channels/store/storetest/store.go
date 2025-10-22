@@ -72,6 +72,9 @@ type Store struct {
 	AccessControlPolicyStore        mocks.AccessControlPolicyStore
 	AttributesStore                 mocks.AttributesStore
 	ContentFlaggingStore            mocks.ContentFlaggingStore
+	WikiStore                       mocks.WikiStore
+	PageContentStore                mocks.PageContentStore
+	PageStore                       mocks.PageStore
 }
 
 func (s *Store) SetContext(context context.Context)            { s.context = context }
@@ -166,6 +169,15 @@ func (s *Store) Attributes() store.AttributesStore {
 func (s *Store) ContentFlagging() store.ContentFlaggingStore {
 	return &s.ContentFlaggingStore
 }
+func (s *Store) Wiki() store.WikiStore {
+	return &s.WikiStore
+}
+func (s *Store) PageContent() store.PageContentStore {
+	return &s.PageContentStore
+}
+func (s *Store) Page() store.PageStore {
+	return &s.PageStore
+}
 
 func (s *Store) GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error) {
 	return &model.SupportPacketDatabaseSchema{
@@ -218,5 +230,8 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.AccessControlPolicyStore,
 		&s.AttributesStore,
 		&s.ContentFlaggingStore,
+		&s.WikiStore,
+		&s.PageContentStore,
+		&s.PageStore,
 	)
 }

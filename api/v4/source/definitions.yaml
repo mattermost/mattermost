@@ -58,6 +58,12 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/AppError"
+    Conflict:
+      description: Resource conflict
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AppError"
   schemas:
     User:
       type: object
@@ -4429,6 +4435,35 @@ components:
       required:
         - Enabled
         - ReviewerIds
+    Wiki:
+      type: object
+      properties:
+        id:
+          type: string
+        channel_id:
+          type: string
+          description: The ID of the channel this wiki belongs to
+        title:
+          type: string
+          description: The title of the wiki
+        description:
+          type: string
+          description: The description of the wiki
+        icon:
+          type: string
+          description: The icon emoji for the wiki
+        create_at:
+          description: The time in milliseconds a wiki was created
+          type: integer
+          format: int64
+        update_at:
+          description: The time in milliseconds a wiki was last updated
+          type: integer
+          format: int64
+        delete_at:
+          description: The time in milliseconds a wiki was deleted
+          type: integer
+          format: int64
 externalDocs:
   description: Find out more about Mattermost
   url: 'https://about.mattermost.com'

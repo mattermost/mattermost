@@ -768,6 +768,89 @@ func (c *Context) RequireContentReviewerId() *Context {
 	return c
 }
 
+func (c *Context) RequireWikiId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.WikiId) {
+		c.SetInvalidURLParam("wiki_id")
+	}
+	return c
+}
+
+func (c *Context) RequirePageId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.PageId) {
+		c.SetInvalidURLParam("page_id")
+	}
+	return c
+}
+
+func (c *Context) RequireDraftId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if c.Params.DraftId == "" {
+		c.SetInvalidURLParam("draft_id")
+	}
+	return c
+}
+
+func (c *Context) RequireWikiReadPermission() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	wiki, err := c.App.GetWiki(c.AppContext, c.Params.WikiId)
+	if err != nil {
+		c.Err = err
+		return c
+	}
+
+	channel, err := c.App.GetChannel(c.AppContext, wiki.ChannelId)
+	if err != nil {
+		c.Err = err
+		return c
+	}
+
+	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
+		c.SetPermissionError(model.PermissionReadChannelContent)
+	}
+
+	return c
+}
+
+func (c *Context) RequireWikiWritePermission() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	wiki, err := c.App.GetWiki(c.AppContext, c.Params.WikiId)
+	if err != nil {
+		c.Err = err
+		return c
+	}
+
+	channel, err := c.App.GetChannel(c.AppContext, wiki.ChannelId)
+	if err != nil {
+		c.Err = err
+		return c
+	}
+
+	if err := c.App.HasPermissionToModifyWiki(
+		c.AppContext, c.AppContext.Session(), channel,
+		app.WikiOperationEdit, "RequireWikiWritePermission"); err != nil {
+		c.Err = err
+	}
+
+	return c
+}
+
 func (c *Context) GetRemoteID(r *http.Request) string {
 	return r.Header.Get(model.HeaderRemoteclusterId)
 }

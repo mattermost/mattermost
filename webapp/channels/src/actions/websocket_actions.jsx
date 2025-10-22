@@ -23,6 +23,7 @@ import {
     ChannelBookmarkTypes,
     ScheduledPostTypes,
     ContentFlaggingTypes,
+    WikiTypes,
 } from 'mattermost-redux/action_types';
 import {getStandardAnalytics} from 'mattermost-redux/actions/admin';
 import {fetchAppBindings, fetchRHSAppsBindings} from 'mattermost-redux/actions/apps';
@@ -620,6 +621,9 @@ export function handleEvent(msg) {
     case SocketEvents.DRAFT_DELETED:
         dispatch(handleDeleteDraftEvent(msg));
         break;
+    case SocketEvents.PAGE_PUBLISHED:
+        handlePagePublishedEvent(msg);
+        break;
     case SocketEvents.SCHEDULED_POST_CREATED:
         dispatch(handleCreateScheduledPostEvent(msg));
         break;
@@ -880,6 +884,24 @@ export function handlePostUnreadEvent(msg) {
             },
         },
     );
+}
+
+export function handlePagePublishedEvent(msg) {
+    const page = JSON.parse(msg.data.page);
+    const draftId = msg.data.draft_id;
+    const wikiId = msg.data.wiki_id;
+
+    const state = getState();
+    const pendingPublishes = state.entities.wikiPages?.pendingPublishes || {};
+
+    if (pendingPublishes[draftId]) {
+        return;
+    }
+
+    dispatch(batchActions([
+        {type: WikiTypes.RECEIVED_PAGE, data: page},
+        {type: WikiTypes.DELETED_DRAFT, data: {id: draftId, wikiId}},
+    ]));
 }
 
 async function handleTeamAddedEvent(msg) {

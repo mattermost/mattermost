@@ -160,6 +160,14 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
     switch (action.type) {
     case PostTypes.RECEIVED_POST:
     case PostTypes.RECEIVED_NEW_POST: {
+        const post = action.data;
+        if (post.type === Posts.POST_TYPES.PAGE) {
+            console.log('[handlePosts] RECEIVED_POST for page:', {
+                postId: post.id,
+                messageLength: post.message?.length || 0,
+                updateAt: post.update_at,
+            });
+        }
         return handlePostReceived({...state}, action.data);
     }
 
@@ -168,6 +176,15 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
 
         if (posts.length === 0) {
             return state;
+        }
+
+        const pagesPosts = posts.filter((p) => p.type === Posts.POST_TYPES.PAGE);
+        if (pagesPosts.length > 0) {
+            console.log('[handlePosts] RECEIVED_POSTS with pages:', {
+                count: pagesPosts.length,
+                pageIds: pagesPosts.map((p) => p.id),
+                messageLengths: pagesPosts.map((p) => p.message?.length || 0),
+            });
         }
 
         const nextState = {...state};

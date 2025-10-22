@@ -63,6 +63,7 @@ func postSliceColumnsWithTypes() []struct {
 		{"ChannelId", reflect.String},
 		{"RootId", reflect.String},
 		{"OriginalId", reflect.String},
+		{"PageParentId", reflect.String},
 		{"Message", reflect.String},
 		{"Type", reflect.String},
 		{"Props", reflect.Map},
@@ -86,6 +87,7 @@ func postToSlice(post *model.Post) []any {
 		post.ChannelId,
 		post.RootId,
 		post.OriginalId,
+		post.PageParentId,
 		post.Message,
 		post.Type,
 		model.StringInterfaceToJSON(post.Props),
@@ -368,6 +370,7 @@ func (s *SqlPostStore) Update(rctx request.CTX, newPost *model.Post, oldPost *mo
 			ChannelId=:ChannelId,
 			RootId=:RootId,
 			OriginalId=:OriginalId,
+			PageParentId=:PageParentId,
 			Message=:Message,
 			Type=:Type,
 			Props=:Props,
@@ -2118,8 +2121,28 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			textSearchCfg = "simple"
 		}
 
-		searchClause := fmt.Sprintf("to_tsvector('%[1]s', %[2]s) @@  to_tsquery('%[1]s', ?)", textSearchCfg, searchType)
-		baseQuery = baseQuery.Where(searchClause, tsQueryClause)
+		// Build search clause that searches both regular posts and pages
+		// For regular posts: search Message field
+		// For pages: search PageContents.SearchText field
+		regularPostsClause := fmt.Sprintf("(q2.Type != '%s' AND to_tsvector('%s', %s) @@ to_tsquery('%s', ?))", model.PostTypePage, textSearchCfg, searchType, textSearchCfg)
+
+		pageSearchSubquery := s.getSubQueryBuilder().
+			Select("PageId").
+			From("PageContents").
+			Where(fmt.Sprintf("to_tsvector('%s', SearchText) @@ to_tsquery('%s', ?)", textSearchCfg, textSearchCfg), tsQueryClause)
+
+		var pageSearchClause string
+		var pageSearchArgs []any
+		pageSearchClause, pageSearchArgs, err = pageSearchSubquery.ToSql()
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to build page search subquery")
+		}
+
+		pagesClause := fmt.Sprintf("(q2.Type = '%s' AND q2.Id IN (%s))", model.PostTypePage, pageSearchClause)
+
+		// Combine args: one for regular posts, then page search args
+		combinedArgs := append([]any{tsQueryClause}, pageSearchArgs...)
+		baseQuery = baseQuery.Where(fmt.Sprintf("(%s OR %s)", regularPostsClause, pagesClause), combinedArgs...)
 	}
 
 	inQuery := s.getSubQueryBuilder().Select("Id").

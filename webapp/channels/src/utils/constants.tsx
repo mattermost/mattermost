@@ -62,6 +62,10 @@ export const PreviousViewedTypes = {
     THREADS: 'threads',
 };
 
+export const PageDisplayTypes = {
+    PAGE_DRAFT: 'page_draft' as const,
+};
+
 export const Preferences = {
     CATEGORY_CHANNEL_OPEN_TIME: 'channel_open_time',
     CATEGORY_DIRECT_CHANNEL_SHOW: ReduxPreferences.CATEGORY_DIRECT_CHANNEL_SHOW,
@@ -266,6 +270,10 @@ export const ActionTypes = keyMirror({
     CLOSE_LHS: null,
     SET_LHS_SIZE: null,
     SELECT_STATIC_PAGE: null,
+
+    TOGGLE_PAGES_PANEL: null,
+    OPEN_PAGES_PANEL: null,
+    CLOSE_PAGES_PANEL: null,
 
     SET_SHOW_PREVIEW_ON_CREATE_COMMENT: null,
     SET_SHOW_PREVIEW_ON_CREATE_POST: null,
@@ -693,6 +701,7 @@ export const SocketEvents = {
     DRAFT_CREATED: 'draft_created',
     DRAFT_UPDATED: 'draft_updated',
     DRAFT_DELETED: 'draft_deleted',
+    PAGE_PUBLISHED: 'page_published',
     SCHEDULED_POST_CREATED: 'scheduled_post_created',
     SCHEDULED_POST_UPDATED: 'scheduled_post_updated',
     SCHEDULED_POST_DELETED: 'scheduled_post_deleted',
@@ -877,6 +886,7 @@ export const StoragePrefixes = {
     COMMENT_DRAFT: 'comment_draft_',
     EDIT_DRAFT: 'edit_draft_',
     DRAFT: 'draft_',
+    PAGE_DRAFT: 'page_draft_',
     LOGOUT: '__logout__',
     LOGIN: '__login__',
     ANNOUNCEMENT: '__announcement__',
@@ -1058,6 +1068,12 @@ export const RHSStates = {
     CHANNEL_INFO: 'channel-info',
     CHANNEL_MEMBERS: 'channel-members',
     EDIT_HISTORY: 'edit-history',
+    WIKI: 'wiki',
+};
+
+export const WikiRhsTypes = {
+    SET_MODE: 'WIKI_RHS_SET_MODE',
+    SET_WIKI_ID: 'WIKI_RHS_SET_WIKI_ID',
 };
 
 export const UploadStatuses = {

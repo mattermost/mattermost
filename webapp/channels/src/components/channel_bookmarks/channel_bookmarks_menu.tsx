@@ -4,15 +4,20 @@
 import classNames from 'classnames';
 import React, {memo, useCallback} from 'react';
 import {useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
+import {useHistory} from 'react-router-dom';
 import styled, {css} from 'styled-components';
 
 import {
+    BookOutlineIcon,
     LinkVariantIcon,
     PaperclipIcon,
     PlusIcon,
 } from '@mattermost/compass-icons/components';
 import type {ChannelBookmarkCreate} from '@mattermost/types/channel_bookmarks';
+
+import {Client4} from 'mattermost-redux/client';
+import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {createBookmark} from 'actions/channel_bookmarks';
 import {openModal} from 'actions/views/modals';
@@ -38,7 +43,7 @@ function BookmarksMenu({
     const {formatMessage} = useIntl();
     const showLabel = !hasBookmarks;
 
-    const {handleCreateLink, handleCreateFile} = useBookmarkAddActions(channelId);
+    const {handleCreateLink, handleCreateFile, handleCreateWiki} = useBookmarkAddActions(channelId);
     const canAdd = useChannelBookmarkPermission(channelId, 'add');
 
     const addBookmarkLabel = formatMessage({id: 'channel_bookmarks.addBookmark', defaultMessage: 'Add a bookmark'});
@@ -54,6 +59,7 @@ function BookmarksMenu({
 
     const addLinkLabel = formatMessage({id: 'channel_bookmarks.addLink', defaultMessage: 'Add a link'});
     const attachFileLabel = formatMessage({id: 'channel_bookmarks.attachFile', defaultMessage: 'Attach a file'});
+    const createWikiLabel = formatMessage({id: 'channel_bookmarks.createWiki', defaultMessage: 'Create wiki'});
 
     if (!canAdd) {
         return null;
@@ -101,6 +107,13 @@ function BookmarksMenu({
                         labels={<span>{attachFileLabel}</span>}
                     />
                 )}
+                <Menu.Item
+                    key='channelBookmarksCreateWiki'
+                    id='channelBookmarksCreateWiki'
+                    onClick={handleCreateWiki}
+                    leadingElement={<BookOutlineIcon size={18}/>}
+                    labels={<span>{createWikiLabel}</span>}
+                />
             </Menu.Container>
         </MenuButtonContainer>
     );
@@ -117,6 +130,8 @@ const MenuButtonContainer = styled.div<{withLabel: boolean}>`
 
 export const useBookmarkAddActions = (channelId: string) => {
     const dispatch = useDispatch();
+    const history = useHistory();
+    const currentTeam = useSelector(getCurrentTeam);
 
     const handleCreate = useCallback((file?: File) => {
         dispatch(openModal({
@@ -155,5 +170,29 @@ export const useBookmarkAddActions = (channelId: string) => {
         input.click();
     }, [handleCreate]);
 
-    return {handleCreateLink, handleCreateFile};
+    const handleCreateWiki = useCallback(async () => {
+        if (!currentTeam) {
+            console.error('[CreateWiki] No current team found');
+            return;
+        }
+
+        try {
+            console.log('[CreateWiki] Creating wiki for channel', channelId);
+            const wiki = await Client4.createWiki({
+                channel_id: channelId,
+                title: 'Untitled Wiki',
+            });
+            console.log('[CreateWiki] Wiki created successfully (with default draft):', wiki);
+
+            const targetUrl = `/${currentTeam.name}/wiki/${channelId}/${wiki.id}`;
+            console.log('[CreateWiki] Navigating to:', targetUrl);
+            console.log('[CreateWiki] Current location before push:', window.location.pathname);
+            history.push(targetUrl);
+            console.log('[CreateWiki] Navigation pushed, location should change');
+        } catch (error) {
+            console.error('[CreateWiki] Failed to create wiki:', error);
+        }
+    }, [channelId, currentTeam, history]);
+
+    return {handleCreateLink, handleCreateFile, handleCreateWiki};
 };

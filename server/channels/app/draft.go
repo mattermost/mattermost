@@ -39,26 +39,34 @@ func (a *App) UpsertDraft(rctx request.CTX, draft *model.Draft, connectionID str
 		return nil, model.NewAppError("CreateDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
-	// Check that channel exists and has not been deleted
-	channel, errCh := a.Srv().Store().Channel().Get(draft.ChannelId, true)
-	if errCh != nil {
-		err := model.NewAppError("CreateDraft", "api.context.invalid_param.app_error", map[string]any{"Name": "draft.channel_id"}, "", http.StatusBadRequest).Wrap(errCh)
-		return nil, err
-	}
+	if draft.IsPageDraft() {
+		_, err := a.GetWiki(rctx, draft.ChannelId)
+		if err != nil {
+			return nil, model.NewAppError("CreateDraft", "api.context.invalid_param.app_error",
+				map[string]any{"Name": "draft.wiki_id"}, "", http.StatusBadRequest).Wrap(err)
+		}
+	} else {
+		// Check that channel exists and has not been deleted
+		channel, errCh := a.Srv().Store().Channel().Get(draft.ChannelId, true)
+		if errCh != nil {
+			err := model.NewAppError("CreateDraft", "api.context.invalid_param.app_error", map[string]any{"Name": "draft.channel_id"}, "", http.StatusBadRequest).Wrap(errCh)
+			return nil, err
+		}
 
-	if channel.DeleteAt != 0 {
-		err := model.NewAppError("CreateDraft", "api.draft.create_draft.can_not_draft_to_deleted.error", nil, "", http.StatusBadRequest)
-		return nil, err
-	}
+		if channel.DeleteAt != 0 {
+			err := model.NewAppError("CreateDraft", "api.draft.create_draft.can_not_draft_to_deleted.error", nil, "", http.StatusBadRequest)
+			return nil, err
+		}
 
-	restrictDM, err := a.CheckIfChannelIsRestrictedDM(rctx, channel)
-	if err != nil {
-		return nil, err
-	}
+		restrictDM, err := a.CheckIfChannelIsRestrictedDM(rctx, channel)
+		if err != nil {
+			return nil, err
+		}
 
-	if restrictDM {
-		err := model.NewAppError("CreateDraft", "api.draft.create_draft.can_not_draft_to_restricted_dm.error", nil, "", http.StatusBadRequest)
-		return nil, err
+		if restrictDM {
+			err := model.NewAppError("CreateDraft", "api.draft.create_draft.can_not_draft_to_restricted_dm.error", nil, "", http.StatusBadRequest)
+			return nil, err
+		}
 	}
 
 	_, nErr := a.Srv().Store().User().Get(context.Background(), draft.UserId)
@@ -168,4 +176,110 @@ func (a *App) DeleteDraft(rctx request.CTX, draft *model.Draft, connectionID str
 	a.Publish(message)
 
 	return nil
+}
+
+func (a *App) SavePageDraft(rctx request.CTX, userId, wikiId, draftId, message string) (*model.Draft, *model.AppError) {
+	return a.SavePageDraftWithMetadata(rctx, userId, wikiId, draftId, message, "", "", nil)
+}
+
+func (a *App) SavePageDraftWithMetadata(rctx request.CTX, userId, wikiId, draftId, message, title, pageId string, props map[string]any) (*model.Draft, *model.AppError) {
+	rctx.Logger().Trace("Saving page draft with metadata",
+		mlog.String("user_id", userId),
+		mlog.String("wiki_id", wikiId),
+		mlog.String("draft_id", draftId),
+		mlog.String("title", title),
+		mlog.String("page_id", pageId))
+
+	wiki, wikiErr := a.GetWiki(rctx, wikiId)
+	if wikiErr != nil {
+		return nil, model.NewAppError("SavePageDraftWithMetadata", "app.draft.save_page.wiki_not_found.app_error", nil, "", http.StatusNotFound).Wrap(wikiErr)
+	}
+
+	channel, chanErr := a.GetChannel(rctx, wiki.ChannelId)
+	if chanErr != nil {
+		return nil, model.NewAppError("SavePageDraftWithMetadata", "app.draft.save_page.channel_not_found.app_error", nil, "", http.StatusNotFound).Wrap(chanErr)
+	}
+
+	if channel.DeleteAt != 0 {
+		return nil, model.NewAppError("SavePageDraftWithMetadata", "app.draft.save_page.deleted_channel.app_error", nil, "channel is archived", http.StatusBadRequest)
+	}
+
+	draft, err := a.Srv().Store().Draft().UpsertPageDraftWithMetadata(userId, wikiId, draftId, message, title, pageId, props)
+	if err != nil {
+		return nil, model.NewAppError("SavePageDraftWithMetadata", "app.draft.save_page.app_error",
+			nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return draft, nil
+}
+
+func (a *App) GetPageDraft(rctx request.CTX, userId, wikiId, draftId string) (*model.Draft, *model.AppError) {
+	rctx.Logger().Debug("Getting page draft",
+		mlog.String("user_id", userId),
+		mlog.String("wiki_id", wikiId),
+		mlog.String("draft_id", draftId))
+
+	draft, err := a.Srv().Store().Draft().GetPageDraft(userId, wikiId, draftId)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(err, &nfErr) {
+			return nil, model.NewAppError("GetPageDraft", "app.draft.get_page.not_found",
+				nil, "", http.StatusNotFound).Wrap(err)
+		}
+		return nil, model.NewAppError("GetPageDraft", "app.draft.get_page.app_error",
+			nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return draft, nil
+}
+
+func (a *App) DeletePageDraft(rctx request.CTX, userId, wikiId, draftId string) *model.AppError {
+	rctx.Logger().Debug("Deleting page draft",
+		mlog.String("user_id", userId),
+		mlog.String("wiki_id", wikiId),
+		mlog.String("draft_id", draftId))
+
+	if err := a.Srv().Store().Draft().DeletePageDraft(userId, wikiId, draftId); err != nil {
+		return model.NewAppError("DeletePageDraft", "app.draft.delete_page.app_error",
+			nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return nil
+}
+
+func (a *App) GetPageDraftsForWiki(rctx request.CTX, userId, wikiId string) ([]*model.Draft, *model.AppError) {
+	rctx.Logger().Debug("Getting page drafts for wiki",
+		mlog.String("user_id", userId),
+		mlog.String("wiki_id", wikiId))
+
+	wiki, wikiErr := a.GetWiki(rctx, wikiId)
+	if wikiErr != nil {
+		return nil, model.NewAppError("GetPageDraftsForWiki", "app.draft.get_wiki_drafts.wiki_not_found.app_error", nil, "", http.StatusNotFound).Wrap(wikiErr)
+	}
+
+	channel, chanErr := a.GetChannel(rctx, wiki.ChannelId)
+	if chanErr != nil {
+		return nil, model.NewAppError("GetPageDraftsForWiki", "app.draft.get_wiki_drafts.channel_not_found.app_error", nil, "", http.StatusNotFound).Wrap(chanErr)
+	}
+
+	if channel.DeleteAt != 0 {
+		return nil, model.NewAppError("GetPageDraftsForWiki", "app.draft.get_wiki_drafts.deleted_channel.app_error", nil, "channel is archived", http.StatusBadRequest)
+	}
+
+	drafts, err := a.Srv().Store().Draft().GetPageDraftsForWiki(userId, wikiId)
+	if err != nil {
+		rctx.Logger().Error("Failed to get page drafts for wiki",
+			mlog.String("user_id", userId),
+			mlog.String("wiki_id", wikiId),
+			mlog.Err(err))
+		return nil, model.NewAppError("GetPageDraftsForWiki", "app.draft.get_wiki_drafts.app_error",
+			nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	rctx.Logger().Debug("Got page drafts for wiki",
+		mlog.String("user_id", userId),
+		mlog.String("wiki_id", wikiId),
+		mlog.Int("count", len(drafts)))
+
+	return drafts, nil
 }

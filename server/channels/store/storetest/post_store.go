@@ -67,6 +67,8 @@ func TestPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetPostReminderMetadata", func(t *testing.T) { testGetPostReminderMetadata(t, rctx, ss, s) })
 	t.Run("GetNthRecentPostTime", func(t *testing.T) { testGetNthRecentPostTime(t, rctx, ss) })
 	t.Run("GetEditHistoryForPost", func(t *testing.T) { testGetEditHistoryForPost(t, rctx, ss) })
+	t.Run("GetPageChildren", func(t *testing.T) { testGetPageChildren(t, rctx, ss) })
+	t.Run("GetChannelPages", func(t *testing.T) { testGetChannelPages(t, rctx, ss) })
 }
 
 func testPostStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -5722,4 +5724,140 @@ func testGetPostsSinceForSyncExcludeMetadata(t *testing.T, rctx request.CTX, ss 
 		require.Equal(t, 1, postTypeCount[model.PostTypeDisplaynameChange], "should have 1 display name change post")
 		require.Equal(t, 1, postTypeCount[model.PostTypePurposeChange], "should have 1 purpose change post")
 	})
+}
+
+func testGetPageChildren(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamID := model.NewId()
+	channel1, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      teamID,
+		DisplayName: "DisplayName1",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	parentPage := &model.Post{
+		ChannelId: channel1.Id,
+		UserId:    model.NewId(),
+		Type:      model.PostTypePage,
+		Message:   "Parent Page",
+	}
+	parentPage, err = ss.Post().Save(rctx, parentPage)
+	require.NoError(t, err)
+
+	childPage1 := &model.Post{
+		ChannelId:    channel1.Id,
+		UserId:       model.NewId(),
+		Type:         model.PostTypePage,
+		Message:      "Child Page 1",
+		PageParentId: parentPage.Id,
+	}
+	childPage1, err = ss.Post().Save(rctx, childPage1)
+	require.NoError(t, err)
+
+	childPage2 := &model.Post{
+		ChannelId:    channel1.Id,
+		UserId:       model.NewId(),
+		Type:         model.PostTypePage,
+		Message:      "Child Page 2",
+		PageParentId: parentPage.Id,
+	}
+	childPage2, err = ss.Post().Save(rctx, childPage2)
+	require.NoError(t, err)
+
+	otherPage := &model.Post{
+		ChannelId: channel1.Id,
+		UserId:    model.NewId(),
+		Type:      model.PostTypePage,
+		Message:   "Other Page",
+	}
+	otherPage, err = ss.Post().Save(rctx, otherPage)
+	require.NoError(t, err)
+
+	result, err := ss.Page().GetPageChildren(parentPage.Id, model.GetPostsOptions{})
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	require.Len(t, result.Posts, 2, "should return 2 child pages")
+	require.Contains(t, result.Posts, childPage1.Id)
+	require.Contains(t, result.Posts, childPage2.Id)
+	require.NotContains(t, result.Posts, parentPage.Id, "should not include parent")
+	require.NotContains(t, result.Posts, otherPage.Id, "should not include unrelated page")
+}
+
+func testGetChannelPages(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamID := model.NewId()
+	channel1, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      teamID,
+		DisplayName: "DisplayName1",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	channel2, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      teamID,
+		DisplayName: "DisplayName2",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	page1 := &model.Post{
+		ChannelId: channel1.Id,
+		UserId:    model.NewId(),
+		Type:      model.PostTypePage,
+		Message:   "Page 1",
+	}
+	page1, err = ss.Post().Save(rctx, page1)
+	require.NoError(t, err)
+
+	page2 := &model.Post{
+		ChannelId: channel1.Id,
+		UserId:    model.NewId(),
+		Type:      model.PostTypePage,
+		Message:   "Page 2",
+	}
+	page2, err = ss.Post().Save(rctx, page2)
+	require.NoError(t, err)
+
+	childPage := &model.Post{
+		ChannelId:    channel1.Id,
+		UserId:       model.NewId(),
+		Type:         model.PostTypePage,
+		Message:      "Child Page",
+		PageParentId: page1.Id,
+	}
+	childPage, err = ss.Post().Save(rctx, childPage)
+	require.NoError(t, err)
+
+	regularPost := &model.Post{
+		ChannelId: channel1.Id,
+		UserId:    model.NewId(),
+		Type:      model.PostTypeDefault,
+		Message:   "Regular Post",
+	}
+	regularPost, err = ss.Post().Save(rctx, regularPost)
+	require.NoError(t, err)
+
+	pageInChannel2 := &model.Post{
+		ChannelId: channel2.Id,
+		UserId:    model.NewId(),
+		Type:      model.PostTypePage,
+		Message:   "Page in Channel 2",
+	}
+	pageInChannel2, err = ss.Post().Save(rctx, pageInChannel2)
+	require.NoError(t, err)
+
+	result, err := ss.Page().GetChannelPages(channel1.Id)
+	require.NoError(t, err)
+	require.NotNil(t, result)
+	require.Len(t, result.Posts, 3, "should return 3 pages (parent, child, and sibling)")
+	require.Contains(t, result.Posts, page1.Id)
+	require.Contains(t, result.Posts, page2.Id)
+	require.Contains(t, result.Posts, childPage.Id)
+	require.NotContains(t, result.Posts, regularPost.Id, "should not include regular posts")
+	require.NotContains(t, result.Posts, pageInChannel2.Id, "should not include pages from other channels")
+
+	require.Len(t, result.Order, 3, "order should have 3 items")
+	require.Equal(t, page1.Id, result.Order[0], "pages should be ordered by CreateAt ASC (oldest first)")
 }

@@ -1,0 +1,341 @@
+.WikiRHS {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    background: #FFFFFF;
+
+    &__header {
+        display: flex;
+        align-items: center;
+        padding: 16px 20px;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        gap: 8px;
+
+        h2 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--center-channel-color);
+            margin: 0;
+        }
+
+        &-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+        }
+    }
+
+    &__page-title {
+        font-size: 14px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        margin-left: 8px;
+    }
+
+    &__expand-btn,
+    &__close-btn {
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        border-radius: 4px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: var(--center-channel-color);
+        }
+
+        i {
+            font-size: 18px;
+        }
+    }
+
+    &__outline-header {
+        padding: 16px 20px 8px;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+
+        h3 {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+            letter-spacing: 0.5px;
+            margin: 0;
+        }
+    }
+
+    &__outline {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    &__empty-state {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 1;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        text-align: center;
+        padding: 32px 24px;
+        font-size: 14px;
+
+        p {
+            margin: 0;
+        }
+    }
+
+    &__tabs {
+        display: flex;
+        align-items: center;
+        gap: 0;
+        padding: 0 20px;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+
+        button {
+            padding: 12px 16px;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+            transition: all 0.15s ease;
+            position: relative;
+            bottom: -1px;
+
+            &.active {
+                color: var(--button-bg);
+                border-bottom-color: var(--button-bg);
+            }
+
+            &:hover:not(.active) {
+                color: var(--center-channel-color);
+            }
+        }
+    }
+
+    &__filter-btn {
+        margin-left: auto;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        border-radius: 4px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: var(--center-channel-color);
+        }
+
+        i {
+            font-size: 18px;
+        }
+    }
+
+    &__comments {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        flex: 1;
+    }
+
+    &__comments-content,
+    &__outline-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 16px 20px;
+
+        &::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: rgba(var(--center-channel-color-rgb), 0.24);
+            border-radius: 4px;
+
+            &:hover {
+                background: rgba(var(--center-channel-color-rgb), 0.32);
+            }
+        }
+    }
+
+    &__outline-content {
+        padding: 0;
+    }
+
+    &__actions {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 16px 20px;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        background: #FFFFFF;
+    }
+
+    &__view-comments-btn {
+        width: 100%;
+        height: 40px;
+        padding: 0 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        background: transparent;
+        color: var(--center-channel-color);
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            border-color: rgba(var(--center-channel-color-rgb), 0.32);
+        }
+
+        i {
+            font-size: 18px;
+        }
+    }
+
+    &__publish-btn {
+        width: 100%;
+        height: 40px;
+        padding: 0 16px;
+        font-size: 14px;
+        font-weight: 600;
+        border-radius: 4px;
+        transition: all 0.15s ease;
+
+        &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    }
+}
+
+.PageOutline {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+
+    &__nav {
+        flex: 1;
+        overflow-y: auto;
+        margin-bottom: 16px;
+
+        &::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        &::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        &::-webkit-scrollbar-thumb {
+            background: rgba(var(--center-channel-color-rgb), 0.16);
+            border-radius: 3px;
+
+            &:hover {
+                background: rgba(var(--center-channel-color-rgb), 0.24);
+            }
+        }
+    }
+
+    &__list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    &__item {
+        margin: 0 0 4px 0;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
+    }
+
+    &__link {
+        display: block;
+        width: 100%;
+        text-align: left;
+        padding: 8px 12px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
+        line-height: 1.5;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        border-radius: 4px;
+        transition: all 0.15s ease;
+        text-decoration: none;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: var(--center-channel-color);
+        }
+
+        &:active {
+            background: rgba(var(--center-channel-color-rgb), 0.12);
+        }
+    }
+
+    &__empty {
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        font-size: 14px;
+        padding: 24px 12px;
+        text-align: center;
+        font-style: italic;
+    }
+
+    &__switch-to-comments {
+        margin-top: auto;
+        padding: 10px 16px;
+        background: transparent;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.15s ease;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: var(--center-channel-color);
+            border-color: rgba(var(--center-channel-color-rgb), 0.32);
+        }
+
+        &:active {
+            background: rgba(var(--center-channel-color-rgb), 0.12);
+        }
+
+        i {
+            font-size: 16px;
+        }
+    }
+}

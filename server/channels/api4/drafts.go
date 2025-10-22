@@ -18,6 +18,12 @@ func (api *API) InitDrafts() {
 
 	api.BaseRoutes.ChannelForUser.Handle("/drafts/{thread_id:[A-Za-z0-9]+}", api.APISessionRequired(deleteDraft)).Methods(http.MethodDelete)
 	api.BaseRoutes.ChannelForUser.Handle("/drafts", api.APISessionRequired(deleteDraft)).Methods(http.MethodDelete)
+
+	api.BaseRoutes.Wiki.Handle("/drafts/{draft_id:[A-Za-z0-9-]+}", api.APISessionRequired(getPageDraft)).Methods(http.MethodGet)
+	api.BaseRoutes.Wiki.Handle("/drafts/{draft_id:[A-Za-z0-9-]+}", api.APISessionRequired(savePageDraft)).Methods(http.MethodPut)
+	api.BaseRoutes.Wiki.Handle("/drafts/{draft_id:[A-Za-z0-9-]+}", api.APISessionRequired(deletePageDraft)).Methods(http.MethodDelete)
+	api.BaseRoutes.Wiki.Handle("/drafts/{draft_id:[A-Za-z0-9-]+}/publish", api.APISessionRequired(publishPageDraft)).Methods(http.MethodPost)
+	api.BaseRoutes.Wiki.Handle("/drafts", api.APISessionRequired(getPageDraftsForWiki)).Methods(http.MethodGet)
 }
 
 func upsertDraft(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -92,6 +98,11 @@ func getDrafts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Return empty array instead of null when there are no drafts
+	if drafts == nil {
+		drafts = []*model.Draft{}
+	}
+
 	if err := json.NewEncoder(w).Encode(drafts); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -141,4 +152,137 @@ func deleteDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ReturnStatusOK(w)
+}
+
+func getPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireWikiId()
+	c.RequireDraftId()
+	c.RequireWikiReadPermission()
+	if c.Err != nil {
+		return
+	}
+
+	draft, appErr := c.App.GetPageDraft(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId, c.Params.DraftId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(draft); err != nil {
+		c.Logger.Warn("Error encoding draft response", mlog.Err(err))
+	}
+}
+
+func savePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireWikiId()
+	c.RequireDraftId()
+	c.RequireWikiWritePermission()
+	if c.Err != nil {
+		return
+	}
+
+	var req struct {
+		Message string         `json:"message"`
+		Title   string         `json:"title"`
+		PageId  string         `json:"page_id"`
+		Props   map[string]any `json:"props"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		c.SetInvalidParamWithErr("request", err)
+		return
+	}
+
+	c.Logger.Debug("Received page draft save request",
+		mlog.String("wiki_id", c.Params.WikiId),
+		mlog.String("draft_id", c.Params.DraftId),
+		mlog.String("message", req.Message),
+		mlog.Int("message_length", len(req.Message)),
+		mlog.String("title", req.Title),
+		mlog.String("page_id", req.PageId),
+		mlog.Any("props", req.Props))
+
+	draft, appErr := c.App.SavePageDraftWithMetadata(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId, c.Params.DraftId, req.Message, req.Title, req.PageId, req.Props)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(draft); err != nil {
+		c.Logger.Warn("Error encoding draft response", mlog.Err(err))
+	}
+}
+
+func deletePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireWikiId()
+	c.RequireDraftId()
+	c.RequireWikiWritePermission()
+	if c.Err != nil {
+		return
+	}
+
+	if appErr := c.App.DeletePageDraft(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId, c.Params.DraftId); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	ReturnStatusOK(w)
+}
+
+func getPageDraftsForWiki(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireWikiId()
+	c.RequireWikiReadPermission()
+	if c.Err != nil {
+		return
+	}
+
+	drafts, appErr := c.App.GetPageDraftsForWiki(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	// Return empty array instead of null when there are no drafts
+	if drafts == nil {
+		drafts = []*model.Draft{}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(drafts); err != nil {
+		c.Logger.Warn("Error encoding drafts response", mlog.Err(err))
+	}
+}
+
+func publishPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireWikiId()
+	c.RequireDraftId()
+	c.RequireWikiWritePermission()
+	if c.Err != nil {
+		return
+	}
+
+	var req struct {
+		PageParentId string `json:"page_parent_id"`
+		Title        string `json:"title"`
+		SearchText   string `json:"search_text"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		c.SetInvalidParamWithErr("request", err)
+		return
+	}
+
+	post, appErr := c.App.PublishPageDraft(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId, c.Params.DraftId, req.PageParentId, req.Title, req.SearchText)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(post); err != nil {
+		c.Logger.Warn("Error encoding post response", mlog.Err(err))
+	}
 }

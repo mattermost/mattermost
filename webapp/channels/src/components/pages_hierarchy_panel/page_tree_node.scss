@@ -1,0 +1,119 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+// Import design tokens
+$node-height: 32px;
+$node-hover-bg: rgba(20, 93, 191, 0.08);
+$node-selected-bg: rgba(20, 93, 191, 0.16);
+$node-text: var(--center-channel-text);
+$node-text-muted: rgba(var(--center-channel-text-rgb), 0.56);
+$radius-sm: 4px;
+
+.PageTreeNode {
+    height: $node-height; // Figma exact
+    margin: 2px 8px; // Horizontal margin for rounded effect
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: $radius-sm;
+    cursor: pointer;
+    transition: background-color 150ms ease;
+    position: relative;
+
+    // Hover state - from Figma
+    &:hover {
+        background: $node-hover-bg;
+
+        .PageTreeNode__menuButton {
+            opacity: 1; // Show menu on hover
+        }
+    }
+
+    // Selected state - from Matt's design (blue highlight)
+    &--selected {
+        background: $node-selected-bg;
+
+        .PageTreeNode__title {
+            font-weight: 600;
+        }
+
+        .PageTreeNode__menuButton {
+            opacity: 1; // Always show menu on selected
+        }
+    }
+}
+
+.PageTreeNode__expandButton {
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: $node-text-muted;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: $radius-sm;
+    flex-shrink: 0;
+
+    &:hover {
+        background: rgba(var(--center-channel-text-rgb), 0.08);
+        color: $node-text;
+    }
+}
+
+.PageTreeNode__expandSpacer {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.PageTreeNode__icon {
+    width: 20px;
+    height: 20px;
+    color: $node-text-muted;
+    flex-shrink: 0;
+}
+
+.PageTreeNode__title {
+    flex: 1;
+    font-size: 14px;
+    color: $node-text;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.PageTreeNode__draftBadge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background: rgba(var(--center-channel-text-rgb), 0.08);
+    color: $node-text-muted;
+    flex-shrink: 0;
+    text-transform: uppercase;
+}
+
+.PageTreeNode__menuButton {
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: $node-text-muted;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: $radius-sm;
+    flex-shrink: 0;
+    opacity: 0; // Hidden by default, shown on hover
+    transition: opacity 150ms ease;
+
+    &:hover {
+        background: rgba(var(--center-channel-text-rgb), 0.08);
+        color: $node-text;
+    }
+}

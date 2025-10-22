@@ -1,0 +1,195 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+// Figma Design Tokens
+$sidebar-width: 240px;
+$header-height: 56px;
+$search-height: 40px;
+$node-height: 32px;
+$node-indent: 20px;
+$node-base-padding: 16px;
+
+// Colors (from Figma)
+$sidebar-bg: var(--center-channel-bg);
+$sidebar-border: rgba(63, 67, 80, 0.12);
+$node-hover-bg: rgba(20, 93, 191, 0.08);
+$node-selected-bg: rgba(20, 93, 191, 0.16);
+$node-text: var(--center-channel-text);
+$node-text-muted: rgba(var(--center-channel-text-rgb), 0.56);
+
+// Shadows
+$elevation-2: 0px 4px 6px rgba(0, 0, 0, 0.12);
+
+// Spacing
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 12px;
+$spacing-lg: 16px;
+
+// Border radius
+$radius-sm: 4px;
+
+.PagesHierarchyPanel {
+    width: $sidebar-width;
+    height: 100%;
+    background: $sidebar-bg;
+    border-right: 1px solid $sidebar-border;
+    box-shadow: $elevation-2;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: width 0.2s ease-in-out;
+
+    &--collapsed {
+        width: 0;
+        border-right: none;
+        box-shadow: none;
+
+        .PagesHierarchyPanel__header,
+        .PagesHierarchyPanel__search,
+        .PagesHierarchyPanel__tree,
+        .PagesHierarchyPanel__loading,
+        .PagesHierarchyPanel__empty {
+            display: none;
+        }
+    }
+}
+
+// Header (56px height)
+.PagesHierarchyPanel__header {
+    height: $header-height;
+    padding: 0 $spacing-lg;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid $sidebar-border;
+    flex-shrink: 0;
+}
+
+.PagesHierarchyPanel__title {
+    font-size: 16px;
+    font-weight: 600;
+    color: $node-text;
+    margin: 0;
+}
+
+.PagesHierarchyPanel__collapseButton {
+    width: 32px;
+    height: 32px;
+    border-radius: $radius-sm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $node-text-muted;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    flex-shrink: 0;
+
+    &:hover {
+        background: $node-hover-bg;
+        color: $node-text;
+    }
+
+    i {
+        font-size: 18px;
+    }
+}
+
+.PagesHierarchyPanel__newPage {
+    width: 32px;
+    height: 32px;
+    border-radius: $radius-sm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $node-text-muted;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    flex-shrink: 0;
+
+    &:hover:not(:disabled) {
+        background: $node-hover-bg;
+        color: var(--button-bg);
+    }
+
+    &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+}
+
+// Search (40px height)
+.PagesHierarchyPanel__search {
+    margin: $spacing-sm $spacing-lg;
+    height: $search-height;
+    padding: 0 $spacing-md;
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    background: rgba(var(--center-channel-text-rgb), 0.08);
+    border-radius: $radius-sm;
+    flex-shrink: 0;
+
+    .icon-magnify {
+        width: 20px;
+        height: 20px;
+        color: $node-text-muted;
+        flex-shrink: 0;
+    }
+
+    input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        font-size: 14px;
+        color: $node-text;
+        outline: none;
+
+        &::placeholder {
+            color: rgba(var(--center-channel-text-rgb), 0.64);
+        }
+    }
+}
+
+.PagesHierarchyPanel__clearSearch {
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: $node-text-muted;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+        color: $node-text;
+    }
+}
+
+// Tree container
+.PagesHierarchyPanel__tree {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: $spacing-sm 0;
+}
+
+// Loading state
+.PagesHierarchyPanel__loading {
+    padding: $spacing-lg;
+    text-align: center;
+    color: $node-text-muted;
+    font-size: 14px;
+}
+
+// Empty state
+.PagesHierarchyPanel__empty {
+    padding: $spacing-lg;
+    text-align: center;
+    color: $node-text-muted;
+    font-size: 14px;
+}

@@ -5,6 +5,8 @@ package sqlstore
 
 import (
 	"database/sql"
+	"maps"
+	"strings"
 	"sync"
 
 	sq "github.com/mattermost/squirrel"
@@ -31,6 +33,7 @@ func draftSliceColumns() []string {
 		"Message",
 		"RootId",
 		"ChannelId",
+		"WikiId",
 		"UserId",
 		"FileIds",
 		"Props",
@@ -46,6 +49,7 @@ func draftToSlice(draft *model.Draft) []any {
 		draft.Message,
 		draft.RootId,
 		draft.ChannelId,
+		draft.WikiId,
 		draft.UserId,
 		model.ArrayToJSON(draft.FileIds),
 		model.StringInterfaceToJSON(draft.Props),
@@ -59,6 +63,13 @@ func newSqlDraftStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) 
 		metrics:            metrics,
 		maxDraftSizeCached: model.PostMessageMaxRunesV1,
 	}
+}
+
+// channelDraftsOnlyCondition returns a SQL condition to filter for channel drafts only.
+// Page drafts store WikiId in ChannelId field, so they won't match the Channels table join.
+// This method centralizes the discrimination logic used across multiple queries.
+func (s *SqlDraftStore) channelDraftsOnlyCondition() string {
+	return "ChannelId IN (SELECT Id FROM Channels)"
 }
 
 func (s *SqlDraftStore) Get(userId, channelId, rootId string, includeDeleted bool) (*model.Draft, error) {
@@ -98,7 +109,7 @@ func (s *SqlDraftStore) Upsert(draft *model.Draft) (*model.Draft, error) {
 	builder := s.getQueryBuilder().Insert("Drafts").
 		Columns(draftSliceColumns()...).
 		Values(draftToSlice(draft)...).
-		SuffixExpr(sq.Expr("ON CONFLICT (UserId, ChannelId, RootId) DO UPDATE SET UpdateAt = ?, Message = ?, Props = ?, FileIds = ?, Priority = ?, DeleteAt = ?", draft.UpdateAt, draft.Message, draft.Props, draft.FileIds, draft.Priority, 0))
+		SuffixExpr(sq.Expr("ON CONFLICT (userid, channelid, rootid) DO UPDATE SET UpdateAt = ?, Message = ?, Props = ?, FileIds = ?, Priority = ?, DeleteAt = ?", draft.UpdateAt, draft.Message, model.StringInterfaceToJSON(draft.Props), model.ArrayToJSON(draft.FileIds), model.StringInterfaceToJSON(draft.Priority), 0))
 
 	query, args, err := builder.ToSql()
 
@@ -113,6 +124,9 @@ func (s *SqlDraftStore) Upsert(draft *model.Draft) (*model.Draft, error) {
 	return draft, nil
 }
 
+// GetDraftsForUser retrieves channel drafts for a user within a team.
+// Page drafts are automatically excluded because they store WikiId in ChannelId field,
+// which won't match any ChannelMembers row (natural discrimination via join).
 func (s *SqlDraftStore) GetDraftsForUser(userID, teamID string) ([]*model.Draft, error) {
 	var drafts []*model.Draft
 
@@ -342,7 +356,7 @@ func (s *SqlDraftStore) DeleteOrphanDraftsByCreateAtAndUserId(createAt int64, us
 			Where("d.UserId = dd.UserId").
 			Where("d.ChannelId = dd.ChannelId").
 			Where("d.RootId = dd.RootId").
-			Suffix("AND (d.RootId IN (SELECT Id FROM Posts WHERE DeleteAt <> 0) OR NOT EXISTS (SELECT 1 FROM Posts WHERE Posts.Id = d.RootId))")
+			Suffix("AND d." + s.channelDraftsOnlyCondition() + " AND (d.RootId IN (SELECT Id FROM Posts WHERE DeleteAt <> 0) OR NOT EXISTS (SELECT 1 FROM Posts WHERE Posts.Id = d.RootId))")
 	}
 
 	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
@@ -350,4 +364,183 @@ func (s *SqlDraftStore) DeleteOrphanDraftsByCreateAtAndUserId(createAt int64, us
 	}
 
 	return nil
+}
+
+// extractDraftIdFromCompositeRootId extracts the draftId from a composite "wikiId:draftId" RootId.
+// If the RootId doesn't contain ":", it returns the RootId unchanged.
+func extractDraftIdFromCompositeRootId(rootId string) string {
+	parts := strings.Split(rootId, ":")
+	if len(parts) == 2 {
+		return parts[1]
+	}
+	return rootId
+}
+
+// GetPageDraft retrieves a draft for a specific page using wiki-scoped composite key.
+// Page drafts reuse the Drafts table:
+// - ChannelId stores actual channel ID (from wiki.ChannelId)
+// - RootId stores composite key: "wikiId:draftId" in DB, but returns just draftId to API
+// - WikiId stores wiki ID for queries
+// Use draft.IsPageDraft() to programmatically distinguish draft types.
+func (s *SqlDraftStore) GetPageDraft(userId, wikiId, draftId string) (*model.Draft, error) {
+	wiki, err := s.Wiki().Get(wikiId)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get wiki with id = %s", wikiId)
+	}
+
+	query := s.getQueryBuilder().
+		Select(draftSliceColumns()...).
+		From("Drafts").
+		Where(sq.And{
+			sq.Eq{"UserId": userId},
+			sq.Eq{"ChannelId": wiki.ChannelId},
+			sq.Eq{"WikiId": wikiId},
+			sq.Eq{"RootId": wikiId + ":" + draftId},
+			sq.Eq{"DeleteAt": 0},
+		})
+
+	dt := model.Draft{}
+	err = s.GetReplica().GetBuilder(&dt, query)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("Draft", wikiId+"/"+draftId)
+		}
+		return nil, errors.Wrapf(err, "failed to find page draft with wikiId = %s, draftId = %s", wikiId, draftId)
+	}
+
+	mlog.Debug("GetPageDraft: retrieved from DB",
+		mlog.String("wiki_id", wikiId),
+		mlog.String("draft_id", draftId),
+		mlog.String("channel_id", wiki.ChannelId),
+		mlog.String("message", dt.Message),
+		mlog.Int("message_length", len(dt.Message)))
+
+	// Extract draftId from composite RootId before returning
+	dt.RootId = extractDraftIdFromCompositeRootId(dt.RootId)
+
+	return &dt, nil
+}
+
+// UpsertPageDraft creates or updates a page draft using wiki-scoped composite key
+func (s *SqlDraftStore) UpsertPageDraft(userId, wikiId, draftId, message string) (*model.Draft, error) {
+	wiki, err := s.Wiki().Get(wikiId)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get wiki with id = %s", wikiId)
+	}
+
+	draft := &model.Draft{
+		UserId:    userId,
+		ChannelId: wiki.ChannelId,
+		WikiId:    wikiId,
+		RootId:    wikiId + ":" + draftId,
+		Message:   message,
+		Props:     make(map[string]any),
+		FileIds:   []string{},
+	}
+
+	result, err := s.Upsert(draft)
+	if err != nil {
+		return nil, err
+	}
+
+	result.RootId = extractDraftIdFromCompositeRootId(result.RootId)
+	return result, nil
+}
+
+// UpsertPageDraftWithMetadata creates or updates a page draft with title and page_id
+func (s *SqlDraftStore) UpsertPageDraftWithMetadata(userId, wikiId, draftId, message, title, pageId string, additionalProps map[string]any) (*model.Draft, error) {
+	wiki, err := s.Wiki().Get(wikiId)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get wiki with id = %s", wikiId)
+	}
+
+	props := make(map[string]any)
+	if title != "" {
+		props["title"] = title
+	}
+	if pageId != "" {
+		props["page_id"] = pageId
+	}
+	maps.Copy(props, additionalProps)
+
+	draft := &model.Draft{
+		UserId:    userId,
+		ChannelId: wiki.ChannelId,
+		WikiId:    wikiId,
+		RootId:    wikiId + ":" + draftId,
+		Message:   message,
+		Props:     props,
+		FileIds:   []string{},
+	}
+
+	result, err := s.Upsert(draft)
+	if err != nil {
+		return nil, err
+	}
+
+	result.RootId = extractDraftIdFromCompositeRootId(result.RootId)
+	return result, nil
+}
+
+// DeletePageDraft deletes a draft for a specific page using wiki-scoped composite key
+func (s *SqlDraftStore) DeletePageDraft(userId, wikiId, draftId string) error {
+	wiki, err := s.Wiki().Get(wikiId)
+	if err != nil {
+		return errors.Wrapf(err, "failed to get wiki with id = %s", wikiId)
+	}
+
+	query := s.getQueryBuilder().
+		Delete("Drafts").
+		Where(sq.And{
+			sq.Eq{"UserId": userId},
+			sq.Eq{"ChannelId": wiki.ChannelId},
+			sq.Eq{"WikiId": wikiId},
+			sq.Eq{"RootId": wikiId + ":" + draftId},
+		})
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return errors.Wrapf(err, "failed to convert to sql")
+	}
+
+	_, err = s.GetMaster().Exec(sql, args...)
+	if err != nil {
+		return errors.Wrap(err, "failed to delete page draft")
+	}
+
+	return nil
+}
+
+// GetPageDraftsForWiki retrieves all page drafts for a specific wiki
+func (s *SqlDraftStore) GetPageDraftsForWiki(userId, wikiId string) ([]*model.Draft, error) {
+	query := s.getQueryBuilder().
+		Select(draftSliceColumns()...).
+		From("Drafts").
+		Where(sq.And{
+			sq.Eq{"UserId": userId},
+			sq.Eq{"WikiId": wikiId},
+			sq.Like{"RootId": wikiId + ":%"},
+			sq.Eq{"DeleteAt": 0},
+		})
+
+	// Debug: log the SQL query
+	sql, args, _ := query.ToSql()
+	mlog.Debug("GetPageDraftsForWiki SQL", mlog.String("sql", sql), mlog.Any("args", args))
+
+	var drafts []*model.Draft
+	err := s.GetReplica().SelectBuilder(&drafts, query)
+	if err != nil {
+		mlog.Error("GetPageDraftsForWiki failed", mlog.Err(err))
+		return nil, errors.Wrap(err, "failed to get page drafts for wiki")
+	}
+
+	// Extract draftId from composite RootId for each draft before returning
+	for _, draft := range drafts {
+		draft.RootId = extractDraftIdFromCompositeRootId(draft.RootId)
+	}
+
+	mlog.Debug("GetPageDraftsForWiki result", mlog.Int("count", len(drafts)))
+
+	return drafts, nil
 }

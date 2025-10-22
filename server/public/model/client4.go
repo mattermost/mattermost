@@ -631,6 +631,22 @@ func (c *Client4) bookmarkRoute(channelId, bookmarkId string) string {
 	return fmt.Sprintf(c.bookmarksRoute(channelId)+"/%v", bookmarkId)
 }
 
+func (c *Client4) wikisRoute() string {
+	return "/wikis"
+}
+
+func (c *Client4) wikiRoute(wikiId string) string {
+	return fmt.Sprintf("/wikis/%v", wikiId)
+}
+
+func (c *Client4) wikiPagesRoute(wikiId string) string {
+	return fmt.Sprintf("/wikis/%v/pages", wikiId)
+}
+
+func (c *Client4) channelWikisRoute(channelId string) string {
+	return fmt.Sprintf("/channels/%v/wikis", channelId)
+}
+
 func (c *Client4) clientPerfMetricsRoute() string {
 	return "/client_perf"
 }
@@ -5439,6 +5455,48 @@ func (c *Client4) DeleteDraft(ctx context.Context, userId, channelId, rootId str
 	return DecodeJSONFromResponse[*Draft](r)
 }
 
+func (c *Client4) GetPageDraft(ctx context.Context, wikiId, draftId string) (*Draft, *Response, error) {
+	r, err := c.DoAPIGet(ctx, fmt.Sprintf("%s/drafts/%s", c.wikiRoute(wikiId), draftId), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Draft](r)
+}
+
+func (c *Client4) SavePageDraft(ctx context.Context, wikiId, draftId, message string) (*Draft, *Response, error) {
+	payload := map[string]any{
+		"message": message,
+		"title":   "",
+		"page_id": "",
+		"props":   nil,
+	}
+	r, err := c.DoAPIPutJSON(ctx, fmt.Sprintf("%s/drafts/%s", c.wikiRoute(wikiId), draftId), payload)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Draft](r)
+}
+
+func (c *Client4) DeletePageDraft(ctx context.Context, wikiId, draftId string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, fmt.Sprintf("%s/drafts/%s", c.wikiRoute(wikiId), draftId))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) GetPageDraftsForWiki(ctx context.Context, wikiId string) ([]*Draft, *Response, error) {
+	r, err := c.DoAPIGet(ctx, fmt.Sprintf("%s/drafts", c.wikiRoute(wikiId)), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*Draft](r)
+}
+
 // Commands Section
 
 // CreateCommand will create a new command if the user have the right permissions.
@@ -7481,6 +7539,115 @@ func (c *Client4) SubmitClientMetrics(ctx context.Context, report *PerformanceRe
 	}
 
 	return BuildResponse(res), nil
+}
+
+// Wikis Section
+
+// CreateWiki creates a wiki based on the provided struct.
+func (c *Client4) CreateWiki(ctx context.Context, wiki *Wiki) (*Wiki, *Response, error) {
+	r, err := c.DoAPIPostJSON(ctx, c.wikisRoute(), wiki)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Wiki](r)
+}
+
+// GetWiki gets a wiki by id.
+func (c *Client4) GetWiki(ctx context.Context, wikiId string) (*Wiki, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.wikiRoute(wikiId), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Wiki](r)
+}
+
+// GetWikisForChannel gets all wikis for a channel.
+func (c *Client4) GetWikisForChannel(ctx context.Context, channelId string) ([]*Wiki, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.channelWikisRoute(channelId), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*Wiki](r)
+}
+
+// UpdateWiki updates a wiki based on the provided struct.
+func (c *Client4) UpdateWiki(ctx context.Context, wiki *Wiki) (*Wiki, *Response, error) {
+	r, err := c.DoAPIPatchJSON(ctx, c.wikiRoute(wiki.Id), wiki)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Wiki](r)
+}
+
+// DeleteWiki deletes a wiki.
+func (c *Client4) DeleteWiki(ctx context.Context, wikiId string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.wikiRoute(wikiId))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+// GetWikiPages gets all pages for a wiki with pagination.
+func (c *Client4) GetWikiPages(ctx context.Context, wikiId string, page, perPage int) ([]*Post, *Response, error) {
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.DoAPIGet(ctx, c.wikiPagesRoute(wikiId)+"?"+values.Encode(), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*Post](r)
+}
+
+// CreatePage creates a new page in a wiki.
+func (c *Client4) CreatePage(ctx context.Context, wikiId, pageParentId, title string) (*Post, *Response, error) {
+	payload := map[string]string{
+		"title":          title,
+		"page_parent_id": pageParentId,
+	}
+	r, err := c.DoAPIPostJSON(ctx, c.wikiPagesRoute(wikiId), payload)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Post](r)
+}
+
+// GetWikiPage gets a single page from a wiki.
+func (c *Client4) GetWikiPage(ctx context.Context, wikiId, pageId string) (*Post, *Response, error) {
+	r, err := c.DoAPIGet(ctx, fmt.Sprintf("%s/%s", c.wikiPagesRoute(wikiId), pageId), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Post](r)
+}
+
+// AddPageToWiki adds a page to a wiki.
+func (c *Client4) AddPageToWiki(ctx context.Context, wikiId, pageId string) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, fmt.Sprintf("%s/%s", c.wikiPagesRoute(wikiId), pageId), "")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+// RemovePageFromWiki detaches a page from a wiki. The page itself is not deleted, only the association with the wiki is removed.
+func (c *Client4) RemovePageFromWiki(ctx context.Context, wikiId, pageId string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, fmt.Sprintf("%s/%s", c.wikiPagesRoute(wikiId), pageId))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
 }
 
 func (c *Client4) GetFilteredUsersStats(ctx context.Context, options *UserCountOptions) (*UsersStats, *Response, error) {

@@ -57,9 +57,7 @@ const MultiValueSelector = ({
     });
 
     const handleSelectItem = useCallback((name: string) => {
-        const newValues = values.includes(name) ?
-            values.filter((v) => v !== name) :
-            [...values, name];
+        const newValues = values.includes(name) ? values.filter((v) => v !== name) : [...values, name];
         updateValues(newValues);
     }, [values, updateValues]);
 

@@ -9,10 +9,18 @@ export type Draft = {
     delete_at: number;
     user_id: string;
     channel_id: string;
+    wiki_id?: string;
     root_id: string;
     message: string;
     props: Record<string, any>;
     file_ids?: string[];
     metadata?: PostMetadata;
     priority?: PostPriorityMetadata;
+};
+
+export type PageDraft = {
+    pageId: string;
+    message: string;
+    updatedAt: number;
+    saving: boolean;
 };

@@ -4,6 +4,7 @@
 import type {PostType} from '@mattermost/types/posts';
 
 export const PostTypes = {
+    PAGE: 'page' as PostType,
     CHANNEL_DELETED: 'system_channel_deleted' as PostType,
     CHANNEL_UNARCHIVED: 'system_channel_restored' as PostType,
     DISPLAYNAME_CHANGE: 'system_displayname_change' as PostType,

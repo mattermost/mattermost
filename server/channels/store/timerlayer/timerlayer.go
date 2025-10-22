@@ -42,6 +42,7 @@ type TimerLayer struct {
 	NotifyAdminStore                store.NotifyAdminStore
 	OAuthStore                      store.OAuthStore
 	OutgoingOAuthConnectionStore    store.OutgoingOAuthConnectionStore
+	PageContentStore                store.PageContentStore
 	PluginStore                     store.PluginStore
 	PostStore                       store.PostStore
 	PostAcknowledgementStore        store.PostAcknowledgementStore
@@ -71,6 +72,7 @@ type TimerLayer struct {
 	UserAccessTokenStore            store.UserAccessTokenStore
 	UserTermsOfServiceStore         store.UserTermsOfServiceStore
 	WebhookStore                    store.WebhookStore
+	WikiStore                       store.WikiStore
 }
 
 func (s *TimerLayer) AccessControlPolicy() store.AccessControlPolicyStore {
@@ -163,6 +165,10 @@ func (s *TimerLayer) OAuth() store.OAuthStore {
 
 func (s *TimerLayer) OutgoingOAuthConnection() store.OutgoingOAuthConnectionStore {
 	return s.OutgoingOAuthConnectionStore
+}
+
+func (s *TimerLayer) PageContent() store.PageContentStore {
+	return s.PageContentStore
 }
 
 func (s *TimerLayer) Plugin() store.PluginStore {
@@ -281,6 +287,10 @@ func (s *TimerLayer) Webhook() store.WebhookStore {
 	return s.WebhookStore
 }
 
+func (s *TimerLayer) Wiki() store.WikiStore {
+	return s.WikiStore
+}
+
 type TimerLayerAccessControlPolicyStore struct {
 	store.AccessControlPolicyStore
 	Root *TimerLayer
@@ -393,6 +403,11 @@ type TimerLayerOAuthStore struct {
 
 type TimerLayerOutgoingOAuthConnectionStore struct {
 	store.OutgoingOAuthConnectionStore
+	Root *TimerLayer
+}
+
+type TimerLayerPageContentStore struct {
+	store.PageContentStore
 	Root *TimerLayer
 }
 
@@ -538,6 +553,11 @@ type TimerLayerUserTermsOfServiceStore struct {
 
 type TimerLayerWebhookStore struct {
 	store.WebhookStore
+	Root *TimerLayer
+}
+
+type TimerLayerWikiStore struct {
+	store.WikiStore
 	Root *TimerLayer
 }
 
@@ -3602,6 +3622,22 @@ func (s *TimerLayerDraftStore) DeleteOrphanDraftsByCreateAtAndUserId(createAt in
 	return err
 }
 
+func (s *TimerLayerDraftStore) DeletePageDraft(userId string, wikiId string, draftId string) error {
+	start := time.Now()
+
+	err := s.DraftStore.DeletePageDraft(userId, wikiId, draftId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.DeletePageDraft", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerDraftStore) Get(userID string, channelID string, rootID string, includeDeleted bool) (*model.Draft, error) {
 	start := time.Now()
 
@@ -3650,6 +3686,38 @@ func (s *TimerLayerDraftStore) GetLastCreateAtAndUserIdValuesForEmptyDraftsMigra
 	return result, resultVar1, err
 }
 
+func (s *TimerLayerDraftStore) GetPageDraft(userId string, wikiId string, draftId string) (*model.Draft, error) {
+	start := time.Now()
+
+	result, err := s.DraftStore.GetPageDraft(userId, wikiId, draftId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.GetPageDraft", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerDraftStore) GetPageDraftsForWiki(userId string, wikiId string) ([]*model.Draft, error) {
+	start := time.Now()
+
+	result, err := s.DraftStore.GetPageDraftsForWiki(userId, wikiId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.GetPageDraftsForWiki", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerDraftStore) PermanentDeleteByUser(userId string) error {
 	start := time.Now()
 
@@ -3678,6 +3746,38 @@ func (s *TimerLayerDraftStore) Upsert(d *model.Draft) (*model.Draft, error) {
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.Upsert", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerDraftStore) UpsertPageDraft(userId string, wikiId string, draftId string, message string) (*model.Draft, error) {
+	start := time.Now()
+
+	result, err := s.DraftStore.UpsertPageDraft(userId, wikiId, draftId, message)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.UpsertPageDraft", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerDraftStore) UpsertPageDraftWithMetadata(userId string, wikiId string, draftId string, message string, title string, pageId string, props map[string]any) (*model.Draft, error) {
+	start := time.Now()
+
+	result, err := s.DraftStore.UpsertPageDraftWithMetadata(userId, wikiId, draftId, message, title, pageId, props)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.UpsertPageDraftWithMetadata", success, elapsed)
 	}
 	return result, err
 }
@@ -5948,6 +6048,70 @@ func (s *TimerLayerOutgoingOAuthConnectionStore) UpdateConnection(rctx request.C
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("OutgoingOAuthConnectionStore.UpdateConnection", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPageContentStore) Delete(pageID string) error {
+	start := time.Now()
+
+	err := s.PageContentStore.Delete(pageID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PageContentStore.Delete", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerPageContentStore) Get(pageID string) (*model.PageContent, error) {
+	start := time.Now()
+
+	result, err := s.PageContentStore.Get(pageID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PageContentStore.Get", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPageContentStore) Save(pageContent *model.PageContent) (*model.PageContent, error) {
+	start := time.Now()
+
+	result, err := s.PageContentStore.Save(pageContent)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PageContentStore.Save", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerPageContentStore) Update(pageContent *model.PageContent) (*model.PageContent, error) {
+	start := time.Now()
+
+	result, err := s.PageContentStore.Update(pageContent)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PageContentStore.Update", success, elapsed)
 	}
 	return result, err
 }
@@ -13413,6 +13577,134 @@ func (s *TimerLayerWebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) (*m
 	return result, err
 }
 
+func (s *TimerLayerWikiStore) CreateWikiWithDefaultPage(wiki *model.Wiki, userId string) (*model.Wiki, error) {
+	start := time.Now()
+
+	result, err := s.WikiStore.CreateWikiWithDefaultPage(wiki, userId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("WikiStore.CreateWikiWithDefaultPage", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerWikiStore) Delete(id string, hard bool) error {
+	start := time.Now()
+
+	err := s.WikiStore.Delete(id, hard)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("WikiStore.Delete", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerWikiStore) DeleteAllPagesForWiki(wikiId string) error {
+	start := time.Now()
+
+	err := s.WikiStore.DeleteAllPagesForWiki(wikiId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("WikiStore.DeleteAllPagesForWiki", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerWikiStore) Get(id string) (*model.Wiki, error) {
+	start := time.Now()
+
+	result, err := s.WikiStore.Get(id)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("WikiStore.Get", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerWikiStore) GetForChannel(channelId string, includeDeleted bool) ([]*model.Wiki, error) {
+	start := time.Now()
+
+	result, err := s.WikiStore.GetForChannel(channelId, includeDeleted)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("WikiStore.GetForChannel", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerWikiStore) GetPages(wikiId string, offset int, limit int) ([]*model.Post, error) {
+	start := time.Now()
+
+	result, err := s.WikiStore.GetPages(wikiId, offset, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("WikiStore.GetPages", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerWikiStore) Save(wiki *model.Wiki) (*model.Wiki, error) {
+	start := time.Now()
+
+	result, err := s.WikiStore.Save(wiki)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("WikiStore.Save", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerWikiStore) Update(wiki *model.Wiki) (*model.Wiki, error) {
+	start := time.Now()
+
+	result, err := s.WikiStore.Update(wiki)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("WikiStore.Update", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayer) Close() {
 	s.Store.Close()
 }
@@ -13478,6 +13770,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.NotifyAdminStore = &TimerLayerNotifyAdminStore{NotifyAdminStore: childStore.NotifyAdmin(), Root: &newStore}
 	newStore.OAuthStore = &TimerLayerOAuthStore{OAuthStore: childStore.OAuth(), Root: &newStore}
 	newStore.OutgoingOAuthConnectionStore = &TimerLayerOutgoingOAuthConnectionStore{OutgoingOAuthConnectionStore: childStore.OutgoingOAuthConnection(), Root: &newStore}
+	newStore.PageContentStore = &TimerLayerPageContentStore{PageContentStore: childStore.PageContent(), Root: &newStore}
 	newStore.PluginStore = &TimerLayerPluginStore{PluginStore: childStore.Plugin(), Root: &newStore}
 	newStore.PostStore = &TimerLayerPostStore{PostStore: childStore.Post(), Root: &newStore}
 	newStore.PostAcknowledgementStore = &TimerLayerPostAcknowledgementStore{PostAcknowledgementStore: childStore.PostAcknowledgement(), Root: &newStore}
@@ -13507,5 +13800,6 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.UserAccessTokenStore = &TimerLayerUserAccessTokenStore{UserAccessTokenStore: childStore.UserAccessToken(), Root: &newStore}
 	newStore.UserTermsOfServiceStore = &TimerLayerUserTermsOfServiceStore{UserTermsOfServiceStore: childStore.UserTermsOfService(), Root: &newStore}
 	newStore.WebhookStore = &TimerLayerWebhookStore{WebhookStore: childStore.Webhook(), Root: &newStore}
+	newStore.WikiStore = &TimerLayerWikiStore{WikiStore: childStore.Wiki(), Root: &newStore}
 	return &newStore
 }

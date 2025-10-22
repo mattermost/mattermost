@@ -99,6 +99,9 @@ type Store interface {
 	Attributes() AttributesStore
 	GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error)
 	ContentFlagging() ContentFlaggingStore
+	Wiki() WikiStore
+	PageContent() PageContentStore
+	Page() PageStore
 }
 
 type RetentionPolicyStore interface {
@@ -1057,6 +1060,11 @@ type DraftStore interface {
 	DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, userID string) error
 	DeleteOrphanDraftsByCreateAtAndUserId(createAt int64, userID string) error
 	PermanentDeleteByUser(userId string) error
+	GetPageDraft(userId, wikiId, draftId string) (*model.Draft, error)
+	UpsertPageDraft(userId, wikiId, draftId, message string) (*model.Draft, error)
+	UpsertPageDraftWithMetadata(userId, wikiId, draftId, message, title, pageId string, props map[string]any) (*model.Draft, error)
+	DeletePageDraft(userId, wikiId, draftId string) error
+	GetPageDraftsForWiki(userId, wikiId string) ([]*model.Draft, error)
 }
 
 type PostAcknowledgementStore interface {
@@ -1152,6 +1160,24 @@ type ContentFlaggingStore interface {
 	SaveReviewerSettings(reviewerSettings model.ReviewerIDsSettings) error
 	GetReviewerSettings() (*model.ReviewerIDsSettings, error)
 	ClearCaches()
+}
+
+type WikiStore interface {
+	Save(wiki *model.Wiki) (*model.Wiki, error)
+	CreateWikiWithDefaultPage(wiki *model.Wiki, userId string) (*model.Wiki, error)
+	Get(id string) (*model.Wiki, error)
+	GetForChannel(channelId string, includeDeleted bool) ([]*model.Wiki, error)
+	Update(wiki *model.Wiki) (*model.Wiki, error)
+	Delete(id string, hard bool) error
+	GetPages(wikiId string, offset, limit int) ([]*model.Post, error)
+	DeleteAllPagesForWiki(wikiId string) error
+}
+
+type PageContentStore interface {
+	Save(pageContent *model.PageContent) (*model.PageContent, error)
+	Get(pageID string) (*model.PageContent, error)
+	Update(pageContent *model.PageContent) (*model.PageContent, error)
+	Delete(pageID string) error
 }
 
 // ChannelSearchOpts contains options for searching channels.

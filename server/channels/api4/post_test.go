@@ -5537,3 +5537,57 @@ func TestRestorePostVersion(t *testing.T) {
 		require.Nil(t, restoredPost)
 	})
 }
+
+func TestGetChannelPagesPermissions(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.Context.Session().UserId = th.BasicUser.Id
+
+	_, appErr := th.App.CreateWiki(th.Context, &model.Wiki{
+		ChannelId: th.BasicChannel.Id,
+		Title:     "Test Wiki",
+	}, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.CreatePost(th.Context, &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		UserId:    th.BasicUser.Id,
+		Message:   "Page 1",
+		Type:      model.PostTypePage,
+	}, th.BasicChannel, model.CreatePostFlags{})
+	require.Nil(t, appErr)
+
+	t.Run("get channel pages successfully", func(t *testing.T) {
+		postList, appErr := th.App.GetChannelPages(th.Context, th.BasicChannel.Id)
+		require.Nil(t, appErr)
+		require.NotNil(t, postList)
+		require.GreaterOrEqual(t, len(postList.Posts), 1)
+	})
+
+	t.Run("fail without read permission via API", func(t *testing.T) {
+		privateChannel := th.CreatePrivateChannel()
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		_, appErr := th.App.CreateWiki(th.Context, &model.Wiki{
+			ChannelId: privateChannel.Id,
+			Title:     "Private Wiki",
+		}, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: privateChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "Private Page",
+			Type:      model.PostTypePage,
+		}, privateChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		th.Context.Session().UserId = th.BasicUser2.Id
+		postList, appErr := th.App.GetChannelPages(th.Context, privateChannel.Id)
+		require.NotNil(t, appErr)
+		require.Nil(t, postList)
+		require.Equal(t, "api.context.permissions.app_error", appErr.Id)
+	})
+}

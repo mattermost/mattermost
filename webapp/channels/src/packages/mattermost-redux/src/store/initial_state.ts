@@ -225,6 +225,13 @@ const state: GlobalState = {
             byChannelOrThreadId: {},
         },
         contentFlagging: {},
+        wikiPages: {
+            byWiki: {},
+            pageSummaries: {},
+            fullPages: {},
+            loading: {},
+            error: {},
+        },
     },
     errors: [],
     requests: {

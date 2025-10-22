@@ -832,6 +832,48 @@ func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
 	}
 }
 
+func (th *TestHelper) AddPermissionsToRole(permissions []string, roleName string) {
+	role, err := th.App.GetRoleByName(th.Context, roleName)
+	if err != nil {
+		panic(err)
+	}
+
+	modified := false
+	for _, permission := range permissions {
+		if !slices.Contains(role.Permissions, permission) {
+			role.Permissions = append(role.Permissions, permission)
+			modified = true
+		}
+	}
+
+	if modified {
+		_, err := th.App.UpdateRole(role)
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
+func (th *TestHelper) SetupPagePermissions() {
+	pagePermissions := []string{
+		model.PermissionCreatePagePublicChannel.Id,
+		model.PermissionReadPagePublicChannel.Id,
+		model.PermissionEditPagePublicChannel.Id,
+		model.PermissionDeletePagePublicChannel.Id,
+		model.PermissionCreatePagePrivateChannel.Id,
+		model.PermissionReadPagePrivateChannel.Id,
+		model.PermissionEditPagePrivateChannel.Id,
+		model.PermissionDeletePagePrivateChannel.Id,
+	}
+
+	th.AddPermissionsToRole(pagePermissions, model.ChannelUserRoleId)
+	th.AddPermissionsToRole(pagePermissions, model.ChannelAdminRoleId)
+	th.AddPermissionsToRole([]string{
+		model.PermissionReadPagePublicChannel.Id,
+		model.PermissionReadPagePrivateChannel.Id,
+	}, model.ChannelGuestRoleId)
+}
+
 func (th *TestHelper) CreateFileInfo(userId, postId, channelId string) *model.FileInfo {
 	fileInfo := &model.FileInfo{
 		Id:        model.NewId(),

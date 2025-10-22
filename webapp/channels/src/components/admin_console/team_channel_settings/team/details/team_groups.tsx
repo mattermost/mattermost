@@ -31,14 +31,10 @@ export const TeamGroups = ({onGroupRemoved, syncChecked, team, onAddCallback, to
     <AdminPanel
         id='team_groups'
         title={
-            syncChecked ?
-                defineMessage({id: 'admin.team_settings.team_detail.syncedGroupsTitle', defaultMessage: 'Synced Groups'}) :
-                defineMessage({id: 'admin.team_settings.team_detail.groupsTitle', defaultMessage: 'Groups'})
+            syncChecked ? defineMessage({id: 'admin.team_settings.team_detail.syncedGroupsTitle', defaultMessage: 'Synced Groups'}) : defineMessage({id: 'admin.team_settings.team_detail.groupsTitle', defaultMessage: 'Groups'})
         }
         subtitle={
-            syncChecked ?
-                defineMessage({id: 'admin.team_settings.team_detail.syncedGroupsDescription', defaultMessage: 'Add and remove team members based on their group membership.'}) :
-                defineMessage({id: 'admin.team_settings.team_detail.groupsDescription', defaultMessage: 'Group members will be added to the team.'})
+            syncChecked ? defineMessage({id: 'admin.team_settings.team_detail.syncedGroupsDescription', defaultMessage: 'Add and remove team members based on their group membership.'}) : defineMessage({id: 'admin.team_settings.team_detail.groupsDescription', defaultMessage: 'Group members will be added to the team.'})
         }
         button={
             <ToggleModalButton

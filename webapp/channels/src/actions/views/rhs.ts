@@ -35,7 +35,7 @@ import {
 
 import {SidebarSize} from 'components/resizable_sidebar/constants';
 
-import {ActionTypes, RHSStates, Constants} from 'utils/constants';
+import {ActionTypes, RHSStates, Constants, WikiRhsTypes} from 'utils/constants';
 import {Mark, Measure, measureAndReport} from 'utils/performance_telemetry';
 import {getBrowserUtcOffset, getUtcOffsetForTimeZone} from 'utils/timezone';
 
@@ -486,6 +486,25 @@ export function showChannelInfo(channelId: string) {
         type: ActionTypes.UPDATE_RHS_STATE,
         channelId,
         state: RHSStates.CHANNEL_INFO,
+    };
+}
+
+export function openWikiRhs(pageId: string, wikiId?: string): ActionFunc {
+    return (dispatch) => {
+        dispatch({
+            type: ActionTypes.UPDATE_RHS_STATE,
+            pageId,
+            state: RHSStates.WIKI,
+        });
+
+        if (wikiId) {
+            dispatch({
+                type: WikiRhsTypes.SET_WIKI_ID,
+                wikiId,
+            });
+        }
+
+        return {data: true};
     };
 }
 

@@ -449,12 +449,10 @@ function PolicyDetails({
                                 onClick={() => setEditorMode(editorMode === 'table' ? 'cel' : 'table')}
                                 isDisabled={editorMode === 'cel' && !isSimpleExpression(expression)}
                                 tooltipText={
-                                    editorMode === 'cel' && !isSimpleExpression(expression) ?
-                                        formatMessage({
-                                            id: 'admin.access_control.policy.edit_policy.complex_expression_tooltip',
-                                            defaultMessage: 'Complex expression detected. Simple expressions editor is not available at the moment.',
-                                        }) :
-                                        undefined
+                                    editorMode === 'cel' && !isSimpleExpression(expression) ? formatMessage({
+                                        id: 'admin.access_control.policy.edit_policy.complex_expression_tooltip',
+                                        defaultMessage: 'Complex expression detected. Simple expressions editor is not available at the moment.',
+                                    }) : undefined
                                 }
                             />
                         </Card.Header>

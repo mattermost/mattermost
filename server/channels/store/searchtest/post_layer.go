@@ -290,6 +290,11 @@ var searchPostStoreTests = []searchTest{
 		Fn:   testSearchPostDeleted,
 		Tags: []string{EngineAll},
 	},
+	{
+		Name: "Should be able to search wiki pages by content",
+		Fn:   testSearchWikiPages,
+		Tags: []string{EnginePostgres},
+	},
 }
 
 func TestSearchPostStore(t *testing.T, s store.Store, testEngine *SearchTestEngine) {
@@ -2108,6 +2113,74 @@ func testSearchPostDeleted(t *testing.T, th *SearchTestHelper) {
 		params := &model.SearchParams{Terms: "message to delete"}
 		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
 		require.NoError(t, err)
+		require.Len(t, results.Posts, 0)
+	})
+}
+
+func testSearchWikiPages(t *testing.T, th *SearchTestHelper) {
+	regularPost, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "This is a regular post", "", model.PostTypeDefault, 0, false)
+	require.NoError(t, err)
+	defer th.deleteUserPosts(th.User.Id)
+
+	wikiPage, err := th.createPost(th.User.Id, th.ChannelBasic.Id, "Wiki page title", "", model.PostTypePage, 0, false)
+	require.NoError(t, err)
+
+	pageContent := &model.PageContent{
+		PageId: wikiPage.Id,
+		Content: model.TipTapDocument{
+			Type: "doc",
+			Content: []map[string]any{
+				{
+					"type": "paragraph",
+					"content": []map[string]any{
+						{
+							"type": "text",
+							"text": "This is searchable wiki page content with unique keyword wikisearchtest",
+						},
+					},
+				},
+			},
+		},
+		SearchText: "This is searchable wiki page content with unique keyword wikisearchtest",
+		CreateAt:   model.GetMillis(),
+		UpdateAt:   model.GetMillis(),
+	}
+
+	_, err = th.Store.PageContent().Save(pageContent)
+	require.NoError(t, err)
+
+	t.Run("Should find wiki page by content in PageContents table", func(t *testing.T) {
+		params := &model.SearchParams{Terms: "wikisearchtest"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, wikiPage.Id, results.Posts)
+	})
+
+	t.Run("Should find regular posts by message", func(t *testing.T) {
+		params := &model.SearchParams{Terms: "regular post"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, regularPost.Id, results.Posts)
+	})
+
+	t.Run("Should search both posts and pages together", func(t *testing.T) {
+		params := &model.SearchParams{Terms: "searchable"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
+		require.Len(t, results.Posts, 1)
+		th.checkPostInSearchResults(t, wikiPage.Id, results.Posts)
+	})
+
+	t.Run("Should not find page by title when searching content", func(t *testing.T) {
+		params := &model.SearchParams{Terms: "title"}
+		results, err := th.Store.Post().SearchPostsForUser(th.Context, []*model.SearchParams{params}, th.User.Id, th.Team.Id, 0, 20)
+		require.NoError(t, err)
+
 		require.Len(t, results.Posts, 0)
 	})
 }

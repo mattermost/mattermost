@@ -212,3 +212,128 @@ func TestDeleteDraft(t *testing.T) {
 	assert.Equal(t, draft2.ChannelId, draftResp[0].ChannelId)
 	assert.Len(t, draftResp, 1)
 }
+
+func TestPageDraftPermissions(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.AddPermissionToRole(model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(model.PermissionDeleteWikiPublicChannel.Id, model.ChannelUserRoleId)
+	th.Context.Session().UserId = th.BasicUser.Id
+
+	wiki := &model.Wiki{
+		ChannelId: th.BasicChannel.Id,
+		Title:     "Test Wiki",
+	}
+	wiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	draftId := model.NewId()
+
+	t.Run("save page draft successfully", func(t *testing.T) {
+		draft, resp, err := th.Client.SavePageDraft(context.Background(), wiki.Id, draftId, "Test draft content")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, draft)
+		require.Equal(t, "Test draft content", draft.Message)
+	})
+
+	t.Run("get page draft successfully", func(t *testing.T) {
+		draft, resp, err := th.Client.GetPageDraft(context.Background(), wiki.Id, draftId)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, draft)
+		require.Equal(t, "Test draft content", draft.Message)
+	})
+
+	t.Run("fail to get page draft without read permission", func(t *testing.T) {
+		privateChannel := th.CreatePrivateChannel()
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		privateWiki := &model.Wiki{
+			ChannelId: privateChannel.Id,
+			Title:     "Private Wiki",
+		}
+		privateWiki, appErr := th.App.CreateWiki(th.Context, privateWiki, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		privateDraftId := model.NewId()
+		_, appErr = th.App.SavePageDraft(th.Context, th.BasicUser.Id, privateWiki.Id, privateDraftId, "Private draft")
+		require.Nil(t, appErr)
+
+		client2 := th.CreateClient()
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		require.NoError(t, lErr)
+
+		_, resp, err := client2.GetPageDraft(context.Background(), privateWiki.Id, privateDraftId)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("fail to save page draft without edit wiki permission", func(t *testing.T) {
+		privateChannel := th.CreatePrivateChannel()
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		privateWiki := &model.Wiki{
+			ChannelId: privateChannel.Id,
+			Title:     "Private Wiki",
+		}
+		privateWiki, appErr := th.App.CreateWiki(th.Context, privateWiki, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		client2 := th.CreateClient()
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		require.NoError(t, lErr)
+
+		_, resp, err := client2.SavePageDraft(context.Background(), privateWiki.Id, model.NewId(), "Unauthorized draft")
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("fail to delete page draft without edit wiki permission", func(t *testing.T) {
+		privateChannel := th.CreatePrivateChannel()
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		privateWiki := &model.Wiki{
+			ChannelId: privateChannel.Id,
+			Title:     "Private Wiki",
+		}
+		privateWiki, appErr := th.App.CreateWiki(th.Context, privateWiki, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		privateDraftId := model.NewId()
+		_, appErr = th.App.SavePageDraft(th.Context, th.BasicUser.Id, privateWiki.Id, privateDraftId, "Private draft")
+		require.Nil(t, appErr)
+
+		client2 := th.CreateClient()
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		require.NoError(t, lErr)
+
+		resp, err := client2.DeletePageDraft(context.Background(), privateWiki.Id, privateDraftId)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("fail to get page drafts for wiki without read permission", func(t *testing.T) {
+		privateChannel := th.CreatePrivateChannel()
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		privateWiki := &model.Wiki{
+			ChannelId: privateChannel.Id,
+			Title:     "Private Wiki",
+		}
+		privateWiki, appErr := th.App.CreateWiki(th.Context, privateWiki, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		client2 := th.CreateClient()
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		require.NoError(t, lErr)
+
+		_, resp, err := client2.GetPageDraftsForWiki(context.Background(), privateWiki.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+}

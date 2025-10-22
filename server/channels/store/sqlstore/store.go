@@ -112,6 +112,9 @@ type SqlStoreStores struct {
 	accessControlPolicy        store.AccessControlPolicyStore
 	Attributes                 store.AttributesStore
 	ContentFlagging            store.ContentFlaggingStore
+	wiki                       store.WikiStore
+	pageContent                store.PageContentStore
+	page                       store.PageStore
 }
 
 type SqlStore struct {
@@ -263,6 +266,9 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.accessControlPolicy = newSqlAccessControlPolicyStore(store, metrics)
 	store.stores.Attributes = newSqlAttributesStore(store, metrics)
 	store.stores.ContentFlagging = newContentFlaggingStore(store)
+	store.stores.wiki = newSqlWikiStore(store)
+	store.stores.pageContent = newSqlPageContentStore(store)
+	store.stores.page = newSqlPageStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -1070,4 +1076,16 @@ func (ss *SqlStore) ScheduledPost() store.ScheduledPostStore {
 
 func (ss *SqlStore) ContentFlagging() store.ContentFlaggingStore {
 	return ss.stores.ContentFlagging
+}
+
+func (ss *SqlStore) Wiki() store.WikiStore {
+	return ss.stores.wiki
+}
+
+func (ss *SqlStore) PageContent() store.PageContentStore {
+	return ss.stores.pageContent
+}
+
+func (ss *SqlStore) Page() store.PageStore {
+	return ss.stores.page
 }

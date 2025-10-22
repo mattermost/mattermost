@@ -1,0 +1,126 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.PageBreadcrumb {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+
+    &__list {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        font-size: 14px;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+    }
+
+    &__item {
+        display: flex;
+        align-items: center;
+        white-space: nowrap;
+
+        &--current {
+            color: var(--center-channel-color);
+            font-weight: 600;
+        }
+    }
+
+    &__link {
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        text-decoration: none;
+        transition: color 0.15s ease;
+        padding: 2px 4px;
+        border-radius: 4px;
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+
+        &:hover {
+            color: var(--link-color);
+            background: rgba(var(--center-channel-color-rgb), 0.04);
+        }
+
+        &:focus {
+            outline: 2px solid var(--button-bg);
+            outline-offset: 2px;
+        }
+
+        &:active {
+            color: var(--link-color);
+        }
+
+        // Explicitly prevent any pseudo-elements from being added
+        &::before,
+        &::after {
+            content: none !important;
+            display: none !important;
+        }
+    }
+
+    &__separator {
+        margin: 0 8px;
+        color: rgba(var(--center-channel-color-rgb), 0.32);
+        user-select: none;
+    }
+
+    &__current {
+        color: var(--center-channel-color);
+        font-weight: 600;
+        max-width: 300px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    // Loading skeleton
+    &__skeleton {
+        display: flex;
+        align-items: center;
+        height: 20px;
+    }
+
+    &__skeleton-segment {
+        height: 16px;
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        border-radius: 4px;
+        animation: skeleton-pulse 1.5s ease-in-out infinite alternate;
+
+        &--short {
+            width: 60px;
+        }
+
+        &--medium {
+            width: 100px;
+        }
+
+        &--long {
+            width: 140px;
+        }
+    }
+}
+
+@keyframes skeleton-pulse {
+    from {
+        opacity: 0.4;
+    }
+    to {
+        opacity: 0.7;
+    }
+}
+
+// Basic mobile responsive
+@media screen and (max-width: 768px) {
+    .PageBreadcrumb {
+        &__list {
+            font-size: 13px;
+        }
+
+        &__link,
+        &__current {
+            max-width: 150px;
+        }
+    }
+}

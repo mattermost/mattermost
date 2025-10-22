@@ -81,6 +81,7 @@ const (
 	WebsocketEventDraftCreated                        WebsocketEventType = "draft_created"
 	WebsocketEventDraftUpdated                        WebsocketEventType = "draft_updated"
 	WebsocketEventDraftDeleted                        WebsocketEventType = "draft_deleted"
+	WebsocketEventPagePublished                       WebsocketEventType = "page_published"
 	WebsocketEventAcknowledgementAdded                WebsocketEventType = "post_acknowledgement_added"
 	WebsocketEventAcknowledgementRemoved              WebsocketEventType = "post_acknowledgement_removed"
 	WebsocketEventPersistentNotificationTriggered     WebsocketEventType = "persistent_notification_triggered"

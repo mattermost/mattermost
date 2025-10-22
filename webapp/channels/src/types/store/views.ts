@@ -8,6 +8,8 @@ import type {Team} from '@mattermost/types/teams';
 import type {UserThread} from '@mattermost/types/threads';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
+import type {Heading} from 'utils/page_outline';
+
 import type {I18nState} from './i18n';
 import type {LhsViewState} from './lhs';
 import type {RhsViewState} from './rhs';
@@ -223,5 +225,19 @@ export type ViewsState = {
         shouldShowPreviewOnEditPostModal: boolean;
         shouldShowPreviewOnChannelSettingsHeaderModal: boolean;
         shouldShowPreviewOnChannelSettingsPurposeModal: boolean;
+    };
+
+    pagesHierarchy: {
+        expandedNodes: {[wikiId: string]: {[pageId: string]: boolean}};
+        selectedPageId: string | null;
+        isPanelCollapsed: boolean;
+        outlineExpandedNodes: {[pageId: string]: boolean};
+        outlineCache: {[pageId: string]: Heading[]};
+    };
+
+    wikiRhs: {
+        mode: 'outline' | 'comments';
+        wikiId: string | null;
+        selectedPageId: string;
     };
 };

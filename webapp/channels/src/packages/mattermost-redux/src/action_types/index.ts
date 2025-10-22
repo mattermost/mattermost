@@ -33,6 +33,7 @@ import SharedChannelTypes from './shared_channels';
 import TeamTypes from './teams';
 import ThreadTypes from './threads';
 import UserTypes from './users';
+import WikiTypes from './wikis';
 
 export {
     ErrorTypes,
@@ -65,6 +66,7 @@ export {
     ScheduledPostTypes,
     SharedChannelTypes,
     ContentFlaggingTypes,
+    WikiTypes,
 };
 
 /**

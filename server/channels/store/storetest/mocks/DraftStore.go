@@ -86,6 +86,24 @@ func (_m *DraftStore) DeleteOrphanDraftsByCreateAtAndUserId(createAt int64, user
 	return r0
 }
 
+// DeletePageDraft provides a mock function with given fields: userId, wikiId, draftId
+func (_m *DraftStore) DeletePageDraft(userId string, wikiId string, draftId string) error {
+	ret := _m.Called(userId, wikiId, draftId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeletePageDraft")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
+		r0 = rf(userId, wikiId, draftId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Get provides a mock function with given fields: userID, channelID, rootID, includeDeleted
 func (_m *DraftStore) Get(userID string, channelID string, rootID string, includeDeleted bool) (*model.Draft, error) {
 	ret := _m.Called(userID, channelID, rootID, includeDeleted)
@@ -181,6 +199,66 @@ func (_m *DraftStore) GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(crea
 	return r0, r1, r2
 }
 
+// GetPageDraft provides a mock function with given fields: userId, wikiId, draftId
+func (_m *DraftStore) GetPageDraft(userId string, wikiId string, draftId string) (*model.Draft, error) {
+	ret := _m.Called(userId, wikiId, draftId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPageDraft")
+	}
+
+	var r0 *model.Draft
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, string) (*model.Draft, error)); ok {
+		return rf(userId, wikiId, draftId)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, string) *model.Draft); ok {
+		r0 = rf(userId, wikiId, draftId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Draft)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, string) error); ok {
+		r1 = rf(userId, wikiId, draftId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetPageDraftsForWiki provides a mock function with given fields: userId, wikiId
+func (_m *DraftStore) GetPageDraftsForWiki(userId string, wikiId string) ([]*model.Draft, error) {
+	ret := _m.Called(userId, wikiId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPageDraftsForWiki")
+	}
+
+	var r0 []*model.Draft
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string) ([]*model.Draft, error)); ok {
+		return rf(userId, wikiId)
+	}
+	if rf, ok := ret.Get(0).(func(string, string) []*model.Draft); ok {
+		r0 = rf(userId, wikiId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Draft)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(userId, wikiId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // PermanentDeleteByUser provides a mock function with given fields: userId
 func (_m *DraftStore) PermanentDeleteByUser(userId string) error {
 	ret := _m.Called(userId)
@@ -222,6 +300,66 @@ func (_m *DraftStore) Upsert(d *model.Draft) (*model.Draft, error) {
 
 	if rf, ok := ret.Get(1).(func(*model.Draft) error); ok {
 		r1 = rf(d)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpsertPageDraft provides a mock function with given fields: userId, wikiId, draftId, message
+func (_m *DraftStore) UpsertPageDraft(userId string, wikiId string, draftId string, message string) (*model.Draft, error) {
+	ret := _m.Called(userId, wikiId, draftId, message)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpsertPageDraft")
+	}
+
+	var r0 *model.Draft
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, string, string) (*model.Draft, error)); ok {
+		return rf(userId, wikiId, draftId, message)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, string, string) *model.Draft); ok {
+		r0 = rf(userId, wikiId, draftId, message)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Draft)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, string, string) error); ok {
+		r1 = rf(userId, wikiId, draftId, message)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpsertPageDraftWithMetadata provides a mock function with given fields: userId, wikiId, draftId, message, title, pageId, props
+func (_m *DraftStore) UpsertPageDraftWithMetadata(userId string, wikiId string, draftId string, message string, title string, pageId string, props map[string]interface{}) (*model.Draft, error) {
+	ret := _m.Called(userId, wikiId, draftId, message, title, pageId, props)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpsertPageDraftWithMetadata")
+	}
+
+	var r0 *model.Draft
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, string, string, string, string, map[string]interface{}) (*model.Draft, error)); ok {
+		return rf(userId, wikiId, draftId, message, title, pageId, props)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, string, string, string, string, map[string]interface{}) *model.Draft); ok {
+		r0 = rf(userId, wikiId, draftId, message, title, pageId, props)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Draft)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, string, string, string, string, map[string]interface{}) error); ok {
+		r1 = rf(userId, wikiId, draftId, message, title, pageId, props)
 	} else {
 		r1 = ret.Error(1)
 	}
