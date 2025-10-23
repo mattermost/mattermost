@@ -11,14 +11,15 @@ $radius-sm: 4px;
 
 .PageTreeNode {
     height: $node-height; // Figma exact
-    margin: 2px 8px; // Horizontal margin for rounded effect
     display: flex;
+    flex-direction: row;
     align-items: center;
-    gap: 8px;
+    gap: 4px;
     border-radius: $radius-sm;
     cursor: pointer;
     transition: background-color 150ms ease;
     position: relative;
+    padding: 0 4px;
 
     // Hover state - from Figma
     &:hover {
@@ -26,6 +27,18 @@ $radius-sm: 4px;
 
         .PageTreeNode__menuButton {
             opacity: 1; // Show menu on hover
+        }
+
+        // Show expand icon on hover for expandable nodes
+        .PageTreeNode__iconButton--expandable {
+            .PageTreeNode__icon--page {
+                opacity: 0;
+            }
+
+            .PageTreeNode__icon--expand {
+                opacity: 1;
+                color: $node-text;
+            }
         }
     }
 
@@ -43,30 +56,41 @@ $radius-sm: 4px;
     }
 }
 
-.PageTreeNode__expandButton {
+.PageTreeNode__iconButton {
     width: 20px;
     height: 20px;
     padding: 0;
     border: none;
     background: transparent;
-    color: $node-text-muted;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: $radius-sm;
     flex-shrink: 0;
+    position: relative;
 
     &:hover {
         background: rgba(var(--center-channel-text-rgb), 0.08);
-        color: $node-text;
     }
-}
 
-.PageTreeNode__expandSpacer {
-    width: 20px;
-    height: 20px;
-    flex-shrink: 0;
+    // For expandable pages, show expand icon on hover of the whole node
+    &--expandable {
+        .PageTreeNode__icon--page {
+            opacity: 1;
+            transition: opacity 150ms ease;
+        }
+
+        .PageTreeNode__icon--expand {
+            opacity: 0;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: opacity 150ms ease;
+            color: $node-text-muted;
+        }
+    }
 }
 
 .PageTreeNode__icon {
@@ -78,11 +102,17 @@ $radius-sm: 4px;
 
 .PageTreeNode__title {
     flex: 1;
-    font-size: 14px;
+    font-size: 12px;
     color: $node-text;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+
+    &-button {
+        background: unset;
+        color: $node-text;
+        border: unset
+    }
 }
 
 .PageTreeNode__draftBadge {

@@ -14,34 +14,48 @@
         list-style: none;
         margin: 0;
         padding: 0;
-        font-size: 14px;
-        color: rgba(var(--center-channel-color-rgb), 0.64);
+        gap: 4px;
+        font-size: 12px;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
     }
 
     &__item {
         display: flex;
         align-items: center;
-        white-space: nowrap;
+        white-space: nowrap; 
 
-        &--current {
-            color: var(--center-channel-color);
-            font-weight: 600;
+        &:before {
+            content: ' / ';
+            color: rgba(var(--center-channel-color-rgb), 0.32);
+            user-select: none;
+            font-size: 14px;
+            position: relative;
+            left: -6px;
+        }
+
+        &:first-child {
+            &:before {
+                content: none;
+            }
         }
     }
 
-    &__link {
+    .PageBreadcrumb__item--current, 
+    a.PageBreadcrumb__link {
+        padding: 2px 6px;
+        border-radius: 4px;
+        max-width: 300px;
+        overflow: hidden;
+        transition: background 0.15s ease;
+        text-overflow: ellipsis;
+    }
+
+    a.PageBreadcrumb__link {
         color: rgba(var(--center-channel-color-rgb), 0.72);
         text-decoration: none;
-        transition: color 0.15s ease;
-        padding: 2px 4px;
-        border-radius: 4px;
-        max-width: 200px;
-        overflow: hidden;
-        text-overflow: ellipsis;
 
         &:hover {
-            color: var(--link-color);
-            background: rgba(var(--center-channel-color-rgb), 0.04);
+            background: rgba(var(--center-channel-color-rgb), 0.08);
         }
 
         &:focus {
@@ -59,20 +73,6 @@
             content: none !important;
             display: none !important;
         }
-    }
-
-    &__separator {
-        margin: 0 8px;
-        color: rgba(var(--center-channel-color-rgb), 0.32);
-        user-select: none;
-    }
-
-    &__current {
-        color: var(--center-channel-color);
-        font-weight: 600;
-        max-width: 300px;
-        overflow: hidden;
-        text-overflow: ellipsis;
     }
 
     // Loading skeleton

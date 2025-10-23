@@ -41,40 +41,40 @@ const WikiPageHeader = ({
             />
             <div className='PagePane__controls'>
                 <button
-                    className='PagePane__icon-button'
+                    className='PagePane__icon-button btn btn-icon btn-sm'
                     aria-label='Toggle comments'
                     title='Toggle comments'
                     onClick={onToggleComments}
                 >
-                    <i className='icon-message-text-outline'/>
+                    <i className='icon icon-message-text-outline'/>
                 </button>
                 {isDraft ? (
                     <button
-                        className='btn btn-primary'
+                        className='btn btn-primary btn-sm'
                         aria-label='Publish'
                         title='Publish'
                         onClick={onPublish}
                     >
-                        <i className='icon-check'/>
+                        <i className='icon icon-check'/>
                         {'Publish'}
                     </button>
                 ) : (
                     <button
-                        className='btn btn-primary'
+                        className='btn btn-tertiary btn-sm'
                         aria-label='Edit'
                         title='Edit'
                         onClick={onEdit}
                     >
-                        <i className='icon-pencil-outline'/>
+                        <i className='icon icon-pencil-outline'/>
                         {'Edit'}
                     </button>
                 )}
                 <button
-                    className='PagePane__icon-button'
+                    className='PagePane__icon-button btn btn-icon btn-sm'
                     aria-label='More actions'
                     title='More actions'
                 >
-                    <i className='icon-dots-vertical'/>
+                    <i className='icon icon-dots-vertical'/>
                 </button>
             </div>
         </div>

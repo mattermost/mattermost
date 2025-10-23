@@ -134,9 +134,7 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
             <div className={`PageBreadcrumb ${className || ''}`}>
                 <div className='PageBreadcrumb__skeleton'>
                     <div className='PageBreadcrumb__skeleton-segment PageBreadcrumb__skeleton-segment--short'/>
-                    <span className='PageBreadcrumb__separator'>{' / '}</span>
                     <div className='PageBreadcrumb__skeleton-segment PageBreadcrumb__skeleton-segment--medium'/>
-                    <span className='PageBreadcrumb__separator'>{' / '}</span>
                     <div className='PageBreadcrumb__skeleton-segment PageBreadcrumb__skeleton-segment--long'/>
                 </div>
             </div>
@@ -162,14 +160,6 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                         key={item.id}
                         className='PageBreadcrumb__item'
                     >
-                        {index > 0 && (
-                            <span
-                                className='PageBreadcrumb__separator'
-                                aria-hidden='true'
-                            >
-                                {' / '}
-                            </span>
-                        )}
                         <Link
                             to={item.path}
                             className='PageBreadcrumb__link'
@@ -189,12 +179,6 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                 ))}
 
                 <li className='PageBreadcrumb__item PageBreadcrumb__item--current'>
-                    <span
-                        className='PageBreadcrumb__separator'
-                        aria-hidden='true'
-                    >
-                        {' / '}
-                    </span>
                     <span
                         className='PageBreadcrumb__current'
                         aria-current='page'

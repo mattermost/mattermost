@@ -64,49 +64,62 @@ const PageTreeNode = ({
         setShowMenu(true);
     };
 
-    const paddingLeft = (node.depth * 20) + 16;
+    const paddingLeft = (node.depth * 20) + 8;
 
     // Build the link path for the page
     const pageLink = wikiId && channelId ? `/${currentTeam?.name || 'team'}/wiki/${channelId}/${wikiId}/${node.id}` : '#';
+
+    // Get appropriate aria label for icon button
+    const getIconButtonLabel = () => {
+        if (!node.hasChildren) {
+            return 'Select page';
+        }
+        return node.isExpanded ? 'Collapse' : 'Expand';
+    };
 
     return (
         <div
             className={`PageTreeNode ${isSelected ? 'PageTreeNode--selected' : ''} ${isLoading ? 'PageTreeNode--loading' : ''}`}
             style={{paddingLeft: `${paddingLeft}px`, opacity: isLoading ? 0.6 : 1}}
-            onClick={() => {
-                if (isLoading) {
-                    return;
-                }
-                onSelect();
-            }}
             onContextMenu={isLoading ? undefined : handleContextMenu}
         >
-            {/* Expand/collapse button - only if has children */}
-            {node.hasChildren ? (
-                <button
-                    className='PageTreeNode__expandButton'
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        onToggleExpand();
-                    }}
-                    aria-label={node.isExpanded ? 'Collapse' : 'Expand'}
-                    disabled={isLoading}
-                >
-                    <i className={`icon-chevron-${node.isExpanded ? 'down' : 'right'}`}/>
-                </button>
-            ) : (
-                <div className='PageTreeNode__expandSpacer'/>
-            )}
-
-            {/* Page icon or loading spinner */}
+            {/* Page icon with expand functionality on hover */}
             {isLoading ? (
                 <i className='PageTreeNode__icon icon-loading icon-spin'/>
             ) : (
-                <i className='PageTreeNode__icon icon-file-document-outline'/>
+                <button
+                    className={`PageTreeNode__iconButton ${node.hasChildren ? 'PageTreeNode__iconButton--expandable' : ''}`}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        if (node.hasChildren) {
+                            onToggleExpand();
+                        } else {
+                            onSelect();
+                        }
+                    }}
+                    aria-label={getIconButtonLabel()}
+                    disabled={isLoading}
+                >
+                    <i className='PageTreeNode__icon PageTreeNode__icon--page icon-file-generic-outline'/>
+                    {node.hasChildren && (
+                        <i className={`PageTreeNode__icon PageTreeNode__icon--expand icon-chevron-${node.isExpanded ? 'down' : 'right'}`}/>
+                    )}
+                </button>
             )}
 
             {/* Page title */}
-            <span className='PageTreeNode__title'>{node.title}</span>
+            <button
+                className='PageTreeNode__title-button'
+                onClick={(e) => {
+                    e.stopPropagation();
+                    if (!isLoading) {
+                        onSelect();
+                    }
+                }}
+                disabled={isLoading}
+            >
+                <span className='PageTreeNode__title'>{node.title}</span>
+            </button>
 
             {/* Draft badge */}
             {node.page.type === PageDisplayTypes.PAGE_DRAFT && (

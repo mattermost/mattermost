@@ -4,10 +4,11 @@
 import React, {useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+
 import {loadPage} from 'actions/pages';
 import {getFullPage} from 'selectors/pages';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import LoadingScreen from 'components/loading_screen';
 
@@ -40,13 +41,6 @@ const PageViewer = ({pageId, wikiId}: Props) => {
 
     const pageTitle = (page.props?.title as string | undefined) || 'Untitled Page';
     const pageContent = page.message || '';
-
-    console.log('[PageViewer] Rendering with page:', {
-        pageId,
-        hasPage: Boolean(page),
-        messageLength: page.message?.length || 0,
-        updateAt: page.update_at,
-    });
 
     return (
         <div className='PageViewer'>

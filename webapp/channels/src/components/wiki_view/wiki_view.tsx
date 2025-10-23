@@ -94,7 +94,8 @@ const WikiView = () => {
     const actualChannelId = currentPage?.channel_id || currentDraft?.channelId || allDrafts[0]?.channelId || channelId;
 
     // Centralized draft state: true if editing a draft OR showing empty editor for new page
-    const isDraft = Boolean(currentDraft) || (!pageId && !currentPage);
+    // If we have a pageId in the URL, we're viewing a published page (not a draft)
+    const isDraft = pageId ? false : (Boolean(currentDraft) || !currentPage);
 
     // Single source of truth for empty state (no drafts, no pages)
     const isEmptyState = !currentDraft && !pageId && allDrafts.length === 0;
@@ -173,11 +174,11 @@ const WikiView = () => {
                     <>
                         {isPanesPanelCollapsed && wikiId && (
                             <button
-                                className='WikiView__hamburgerButton'
+                                className='WikiView__hamburgerButton btn btn-icon btn-sm'
                                 onClick={handleOpenPagesPanel}
                                 aria-label='Open pages panel'
                             >
-                                <i className='icon-menu'/>
+                                <i className='icon icon-menu-variant'/>
                             </button>
                         )}
 
@@ -206,6 +207,15 @@ const WikiView = () => {
                             )}
                             <div className='PagePane__content'>
                                 {(() => {
+                                    // If we have a pageId in the URL, we're viewing a published page (not editing)
+                                    if (pageId) {
+                                        return (
+                                            <PageViewer
+                                                pageId={pageId}
+                                                wikiId={wikiId}
+                                            />
+                                        );
+                                    }
                                     if (currentDraft) {
                                         return (
                                             <WikiPageEditor
@@ -216,15 +226,7 @@ const WikiView = () => {
                                                 currentUserId={currentUserId}
                                                 channelId={actualChannelId}
                                                 teamId={teamId}
-                                                showAuthor={Boolean(pageId)}
-                                            />
-                                        );
-                                    }
-                                    if (pageId) {
-                                        return (
-                                            <PageViewer
-                                                pageId={pageId}
-                                                wikiId={wikiId}
+                                                showAuthor={false}
                                             />
                                         );
                                     }

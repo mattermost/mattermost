@@ -4,7 +4,7 @@
 // Figma Design Tokens
 $sidebar-width: 240px;
 $header-height: 56px;
-$search-height: 40px;
+$search-height: 28px;
 $node-height: 32px;
 $node-indent: 20px;
 $node-base-padding: 16px;
@@ -30,11 +30,9 @@ $spacing-lg: 16px;
 $radius-sm: 4px;
 
 .PagesHierarchyPanel {
+    padding: $spacing-lg;
     width: $sidebar-width;
     height: 100%;
-    background: $sidebar-bg;
-    border-right: 1px solid $sidebar-border;
-    box-shadow: $elevation-2;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -44,6 +42,7 @@ $radius-sm: 4px;
         width: 0;
         border-right: none;
         box-shadow: none;
+        padding: 0;
 
         .PagesHierarchyPanel__header,
         .PagesHierarchyPanel__search,
@@ -55,45 +54,25 @@ $radius-sm: 4px;
     }
 }
 
-// Header (56px height)
 .PagesHierarchyPanel__header {
-    height: $header-height;
-    padding: 0 $spacing-lg;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 1px solid $sidebar-border;
     flex-shrink: 0;
 }
 
 .PagesHierarchyPanel__title {
-    font-size: 16px;
+    font-size: 12px;
+    font-family: 'Open Sans', sans-serif;
     font-weight: 600;
     color: $node-text;
     margin: 0;
 }
 
-.PagesHierarchyPanel__collapseButton {
-    width: 32px;
-    height: 32px;
-    border-radius: $radius-sm;
+.PagesHierarchyPanel__title-container {
     display: flex;
     align-items: center;
-    justify-content: center;
-    color: $node-text-muted;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    flex-shrink: 0;
-
-    &:hover {
-        background: $node-hover-bg;
-        color: $node-text;
-    }
-
-    i {
-        font-size: 18px;
-    }
+    gap: 8px;
 }
 
 .PagesHierarchyPanel__newPage {
@@ -122,9 +101,9 @@ $radius-sm: 4px;
 
 // Search (40px height)
 .PagesHierarchyPanel__search {
-    margin: $spacing-sm $spacing-lg;
     height: $search-height;
-    padding: 0 $spacing-md;
+    margin: $spacing-sm 0;
+    padding: $spacing-xs $spacing-xs;
     display: flex;
     align-items: center;
     gap: $spacing-sm;
@@ -133,8 +112,11 @@ $radius-sm: 4px;
     flex-shrink: 0;
 
     .icon-magnify {
+        display: flex;
+        align-items: center;
         width: 20px;
         height: 20px;
+        font-size: 16px;
         color: $node-text-muted;
         flex-shrink: 0;
     }
@@ -143,7 +125,7 @@ $radius-sm: 4px;
         flex: 1;
         border: none;
         background: transparent;
-        font-size: 14px;
+        font-size: 12px;
         color: $node-text;
         outline: none;
 

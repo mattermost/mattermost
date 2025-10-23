@@ -1,6 +1,7 @@
 .tiptap-editor-wrapper {
     display: flex;
     flex-direction: column;
+    flex-grow: 1;
     width: 100%;
     min-height: 400px;
     background: var(--center-channel-bg);
@@ -9,7 +10,7 @@
 
     .tiptap-editor-content {
         flex: 1;
-        padding: 24px;
+        padding: 24px 0 80px 0;
         outline: none;
         min-height: 400px;
         font-size: 15px;
@@ -192,71 +193,47 @@
             }
         }
     }
+}
 
-    .tiptap-toolbar {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        padding: 8px 12px;
-        background: var(--center-channel-bg);
-        border-top: 1px solid var(--center-channel-color-08);
-        flex-wrap: wrap;
-        position: sticky;
-        bottom: 0;
-        z-index: 10;
+.tiptap-toolbar {
+    // Visual styles only - positioning handled in wiki_view.scss
+    display: flex;
+    align-items: center;
+    margin: 0 auto;
+    gap: 4px;
+    padding: 8px;
+    background: var(--center-channel-bg);
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    border-radius: var(--radius-m);
+    box-shadow: var(--elevation-4);
+    flex-wrap: nowrap;
+    position: sticky;
+    bottom: 0px;
+    z-index: 1000;
+    width: max-content;
+    max-width: 90%;
+    white-space: nowrap;
 
-        button {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            padding: 6px 10px;
-            background: transparent;
-            border: 1px solid transparent;
-            border-radius: 4px;
-            color: var(--center-channel-color-64);
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.15s ease;
-            min-height: 32px;
+    button {
+        margin: 0;
 
-            i {
-                font-size: 18px;
-                line-height: 1;
-            }
-
-            .toolbar-text {
-                font-size: 13px;
-                font-weight: 500;
-            }
-
-            &:hover:not(:disabled) {
-                background: var(--button-bg-08);
-                color: var(--button-bg);
-                border-color: var(--button-bg-16);
-            }
-
-            &:active:not(:disabled) {
-                background: var(--button-bg-16);
-            }
-
-            &.is-active {
-                background: var(--button-bg-08);
-                color: var(--button-bg);
-                border-color: var(--button-bg);
-            }
-
-            &:disabled {
-                opacity: 0.4;
-                cursor: not-allowed;
-            }
+        &.is-active {
+            background: var(--button-bg-08);
+            color: var(--button-bg);
+            border-color: var(--button-bg);
         }
 
-        .toolbar-divider {
-            width: 1px;
-            height: 24px;
-            background: var(--center-channel-color-16);
-            margin: 0 4px;
+        &:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
         }
+    }
+
+    .toolbar-divider {
+        width: 1px;
+        height: 24px;
+        background: var(--center-channel-color-16);
+        margin: 0 4px;
     }
 }
 

@@ -13,24 +13,26 @@ type Props = {
 const PagesHeader = ({title, onNewPage, onCollapse, isCreating}: Props) => {
     return (
         <div className='PagesHierarchyPanel__header'>
+            <div class="PagesHierarchyPanel__title-container">
+                <button
+                    className='PagesHierarchyPanel__collapseButton btn btn-icon btn-sm'
+                    onClick={onCollapse}
+                    aria-label='Collapse pages panel'
+                >
+                    <i className='icon icon-menu-variant'/>
+                </button>
+                <span className='PagesHierarchyPanel__title'>{title}</span>
+            </div>
             <button
-                className='PagesHierarchyPanel__collapseButton'
-                onClick={onCollapse}
-                aria-label='Collapse pages panel'
-            >
-                <i className='icon-chevron-left'/>
-            </button>
-            <h2 className='PagesHierarchyPanel__title'>{title}</h2>
-            <button
-                className='PagesHierarchyPanel__newPage'
+                className='PagesHierarchyPanel__newPage btn btn-icon btn-sm'
                 onClick={onNewPage}
                 aria-label='Create new page'
                 disabled={isCreating}
             >
                 {isCreating ? (
-                    <i className='icon-loading icon-spin'/>
+                    <i className='icon icon-loading icon-spin'/>
                 ) : (
-                    <i className='icon-plus'/>
+                    <i className='icon icon-plus'/>
                 )}
             </button>
         </div>
