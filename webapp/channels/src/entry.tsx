@@ -19,6 +19,7 @@ import 'katex/dist/katex.min.css';
 
 import '@mattermost/compass-icons/css/compass-icons.css';
 import '@mattermost/components/dist/index.esm.css';
+import '@mattermost/design-system/dist/index.esm.css';
 
 declare global {
     interface Window {
