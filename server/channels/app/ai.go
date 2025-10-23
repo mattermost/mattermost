@@ -111,7 +111,7 @@ func getRewritePromptForAction(action model.AIRewriteAction, message string, cus
 	systemPrompt := `You are a JSON API that rewrites text. Your response must be valid JSON only. Return this exact format: {"rewritten_text":"content"}. Do not use markdown, code blocks, or any formatting. Start with { and end with }.`
 
 	if message == "" {
-		return fmt.Sprintf(`Rewrite according to these instructions: %s`, customPrompt), systemPrompt
+		return fmt.Sprintf(`Write according to these instructions: %s`, customPrompt), systemPrompt
 	}
 
 	var userPrompt string
