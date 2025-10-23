@@ -4589,15 +4589,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Wersja 128+"
+    "translation": "Wersja 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Wersja 138+"
+    "translation": "Wersja 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Wersja 138+"
+    "translation": "Wersja 140+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -11018,5 +11018,65 @@
   {
     "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
     "translation": "Nieprawidłowy limit czasu powiadomienia dla ustawień autotranslacji. Musi być liczbą dodatnią."
+  },
+  {
+    "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
+    "translation": "Identyfikator kanału nie pasuje do identyfikatora kanału oflagowanego postu."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations_for_channel.restricted_permission.app_error",
+    "translation": "Nie można dodać uprawnienia, które jest ograniczone przez zespół lub schemat uprawnień systemu."
+  },
+  {
+    "id": "api.content_flagging.error.user_not_reviewer",
+    "translation": "Użytkownik nie jest recenzentem treści."
+  },
+  {
+    "id": "api.team.get_team.flagged_post_mismatch.app_error",
+    "translation": "Identyfikator zespołu nie pasuje do identyfikatora zespołu w oflagowanym poście."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.no_reviewer_field.app_error",
+    "translation": "Nie znaleziono pola właściwości ID weryfikatora."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.update_status_property_value.app_error",
+    "translation": "Nie udało się zaktualizować wartości właściwości Status przy ustawieniu recenzenta."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.upsert_property_value.app_error",
+    "translation": "Nie udało się ustawić flagowanego recenzenta postów."
+  },
+  {
+    "id": "app.content_flagging.missing_flagged_post_id_field.app_error",
+    "translation": "Nie można znaleźć pola właściwości Flagged Post ID."
+  },
+  {
+    "id": "app.content_flagging.missing_reporting_user_id_field.app_error",
+    "translation": "Nie można znaleźć pola użytkownika raportującego."
+  },
+  {
+    "id": "app.content_flagging.missing_reporting_user_id_property_value.app_error",
+    "translation": "Nie można znaleźć wartości dla pola użytkownika raportującego."
+  },
+  {
+    "id": "app.content_flagging.search_common_reviewers.app_error",
+    "translation": "Nie udało się szukać terminu w Common Reviewers."
+  },
+  {
+    "id": "app.content_flagging.search_reviewer_posts.app_error",
+    "translation": "Nie udało się szukać postów recenzentów dla oflagowanego postu."
+  },
+  {
+    "id": "app.content_flagging.search_sysadmin_reviewers.app_error",
+    "translation": "Nie udało się znaleźć szukanego terminu w System Admin Reviewers."
+  },
+  {
+    "id": "app.content_flagging.search_team_admin_reviewers.app_error",
+    "translation": "Nie udało się wyszukać szukanego hasła w Team Admin Reviewers."
+  },
+  {
+    "id": "app.content_flagging.search_team_reviewers.app_error",
+    "translation": "Nie udało się wyszukać szukanego hasła w Team Reviewers."
   }
 ]
