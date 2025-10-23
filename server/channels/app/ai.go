@@ -111,7 +111,7 @@ func (a *App) RewriteMessage(
 
 // getRewritePromptForAction returns the appropriate prompt and system prompt for the given rewrite action
 func getRewritePromptForAction(action model.AIRewriteAction, message string, customPrompt string) (string, string) {
-	systemPrompt := `You are a text rewriting assistant. You MUST return ONLY a JSON object with this exact structure: {"rewritten_text":"your rewritten content here"}. Do not return plain text. Do not use markdown. Do not wrap in code blocks. Start your response with { and end with }.`
+	systemPrompt := `You are a text rewriting assistant. You MUST return ONLY a JSON object with this exact structure: {"rewritten_text":"your rewritten content here"}. Do not return plain text. Do not use Markdown, except in the rewritten_text field if necessary. Do not wrap in code blocks. Start your response with { and end with }. All further instructions apply only to the rewritten_text field.`
 
 	if message == "" {
 		return fmt.Sprintf(`Rewrite according to these instructions: %s`, customPrompt), systemPrompt
@@ -129,10 +129,10 @@ func getRewritePromptForAction(action model.AIRewriteAction, message string, cus
 		userPrompt = fmt.Sprintf(`Make this up to 2 to 3 times shorter: %s`, message)
 
 	case model.AIRewriteActionElaborate:
-		userPrompt = fmt.Sprintf(`Make this up to 2 to 3 times longer: %s`, message)
+		userPrompt = fmt.Sprintf(`Make this up to 2 to 3 times longer, using Markdown if necessary: %s`, message)
 
 	case model.AIRewriteActionImproveWriting:
-		userPrompt = fmt.Sprintf(`Improve this writing: %s`, message)
+		userPrompt = fmt.Sprintf(`Improve this writing, using Markdown if necessary: %s`, message)
 
 	case model.AIRewriteActionFixSpelling:
 		userPrompt = fmt.Sprintf(`Fix spelling and grammar: %s`, message)
@@ -141,7 +141,7 @@ func getRewritePromptForAction(action model.AIRewriteAction, message string, cus
 		userPrompt = fmt.Sprintf(`Simplify this: %s`, message)
 
 	case model.AIRewriteActionSummarize:
-		userPrompt = fmt.Sprintf(`Summarize this: %s`, message)
+		userPrompt = fmt.Sprintf(`Summarize this, using Markdown if necessary: %s`, message)
 
 	default:
 		userPrompt = message
