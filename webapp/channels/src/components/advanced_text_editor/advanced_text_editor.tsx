@@ -30,7 +30,7 @@ import LocalStorageStore from 'stores/local_storage_store';
 
 import PostBoxIndicator from 'components/advanced_text_editor/post_box_indicator/post_box_indicator';
 import {makeAsyncComponent} from 'components/async_load';
-import AutoHeightSwitcher from 'components/common/auto_height_switcher';
+import AutoHeightSwitcher from 'components/auto_height_switcher';
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import DeletePostModal from 'components/delete_post_modal';
 import {

@@ -13,7 +13,7 @@ import type {
     PostImage,
 } from '@mattermost/types/posts';
 
-import AutoHeightSwitcher from 'components/common/auto_height_switcher';
+import AutoHeightSwitcher from 'components/auto_height_switcher';
 import ExternalImage from 'components/external_image';
 import ExternalLink from 'components/external_link';
 import WithTooltip from 'components/with_tooltip';
