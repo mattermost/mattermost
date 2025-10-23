@@ -31,6 +31,7 @@ export default [
             scss({
                 fileName: 'index.esm.css',
                 outputToFilesystem: true,
+                sass: require('sass'),
             }),
             resolve({
                 browser: true,

@@ -6,9 +6,9 @@ import React from 'react';
 import styled from 'styled-components';
 
 import {CheckIcon, AlertOutlineIcon, AlertCircleOutlineIcon, MessageTextOutlineIcon, CheckCircleOutlineIcon, BellRingOutlineIcon} from '@mattermost/compass-icons/components';
+import {Toggle} from '@mattermost/design-system';
 
 import {MenuItem} from 'components/menu/menu_item';
-import Toggle from 'components/toggle';
 
 type ToggleProps = {
     ariaLabel?: string;

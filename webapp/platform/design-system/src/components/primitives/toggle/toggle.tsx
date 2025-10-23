@@ -18,7 +18,7 @@ type Props = {
     tabIndex?: number;
 }
 
-const Toggle: React.FC<Props> = (props: Props) => {
+export const Toggle: React.FC<Props> = (props: Props) => {
     const {
         onToggle,
         toggled,
@@ -71,5 +71,3 @@ function text(toggled?: boolean, onText?: React.ReactNode, offText?: React.React
     }
     return (<div className={`bg-text ${toggled ? 'on' : 'off'}`}>{toggled ? onText : offText}</div>);
 }
-
-export default Toggle;

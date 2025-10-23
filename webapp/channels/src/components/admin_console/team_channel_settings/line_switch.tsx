@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import Toggle from 'components/toggle';
+import {Toggle} from '@mattermost/design-system';
 
 type Props = {
     id: string;

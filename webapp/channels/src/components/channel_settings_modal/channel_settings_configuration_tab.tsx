@@ -5,6 +5,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import {Toggle} from '@mattermost/design-system';
 import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 
@@ -12,7 +13,6 @@ import {patchChannel} from 'mattermost-redux/actions/channels';
 
 import ColorInput from 'components/color_input';
 import type {TextboxElement} from 'components/textbox';
-import Toggle from 'components/toggle';
 import AdvancedTextbox from 'components/widgets/advanced_textbox/advanced_textbox';
 import type {SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 import SaveChangesPanel from 'components/widgets/modals/components/save_changes_panel';
