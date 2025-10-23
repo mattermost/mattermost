@@ -3320,6 +3320,81 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+  "/api/v4/users/{user_id}/profile/generate":
+    post:
+      tags:
+        - users
+        - ai
+      summary: Generate AI profile for user
+      description: |
+        Analyzes user's posts to generate a profile with writing style analysis and topics/expertise identification.
+
+        ##### Permissions
+
+        Must be logged in as the user whose profile is being generated.
+      operationId: GenerateAIProfile
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID. This can also be "me" which will point to the current user.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProfileGenerateRequest"
+        description: Options for profile generation
+        required: false
+      responses:
+        "200":
+          description: Profile generation successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AIGeneratedProfile"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  "/api/v4/users/{user_id}/profile":
+    get:
+      tags:
+        - users
+        - ai
+      summary: Get user's AI-generated profile
+      description: |
+        Retrieves the stored AI-generated profile for the user.
+
+        ##### Permissions
+
+        Must be logged in as the user whose profile is being retrieved.
+      operationId: GetAIProfile
+      parameters:
+        - name: user_id
+          in: path
+          description: User GUID. This can also be "me" which will point to the current user.
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Profile retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AIGeneratedProfile"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   "/api/v4/users/{user_id}/reset_failed_attempts":
     post:
       tags:

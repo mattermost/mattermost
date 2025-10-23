@@ -413,6 +413,7 @@ type PostStore interface {
 	GetOldestEntityCreationTime() (int64, error)
 	HasAutoResponsePostByUserSince(options model.GetPostsSinceOptions, userID string) (bool, error)
 	GetPostsSinceForSync(options model.GetPostsSinceForSyncOptions, cursor model.GetPostsSinceForSyncCursor, limit int) ([]*model.Post, model.GetPostsSinceForSyncCursor, error)
+	GetPostsForProfileGeneration(userID string, afterTimestamp int64, limit int) ([]*model.Post, error)
 	SetPostReminder(reminder *model.PostReminder) error
 	GetPostReminders(now int64) ([]*model.PostReminder, error)
 	DeleteAllPostRemindersForPost(postId string) error

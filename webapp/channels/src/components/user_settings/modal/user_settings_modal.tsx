@@ -70,7 +70,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
         super(props);
 
         this.state = {
-            active_tab: props.activeTab ?? (props.isContentProductSettings ? 'notifications' : 'profile'),
+            active_tab: props.activeTab ?? 'profile',
             active_section: '',
             showConfirmModal: false,
             enforceFocus: true,
@@ -162,7 +162,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
     // called after the dialog is fully hidden and faded out
     handleHidden = () => {
         this.setState({
-            active_tab: this.props.isContentProductSettings ? 'notifications' : 'profile',
+            active_tab: 'profile',
             active_section: '',
         });
         if (this.props.focusOriginElement) {
@@ -261,6 +261,12 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
         const {formatMessage} = this.props.intl;
         return [
             {
+                name: 'profile',
+                uiName: formatMessage({id: 'user.settings.modal.aiprofile', defaultMessage: 'AI Profile'}),
+                icon: 'icon icon-star-outline',
+                iconTitle: formatMessage({id: 'user.settings.aiprofile.icon', defaultMessage: 'AI Profile Settings Icon'}),
+            },
+            {
                 name: 'notifications',
                 uiName: formatMessage({id: 'user.settings.modal.notifications', defaultMessage: 'Notifications'}),
                 icon: 'icon icon-bell-outline',
@@ -292,9 +298,15 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
         return [
             {
                 name: 'profile',
-                uiName: formatMessage({id: 'user.settings.modal.profile', defaultMessage: 'Profile'}),
+                uiName: formatMessage({id: 'user.settings.modal.aiprofile', defaultMessage: 'AI Profile'}),
+                icon: 'icon icon-star-outline',
+                iconTitle: formatMessage({id: 'user.settings.aiprofile.icon', defaultMessage: 'AI Profile Settings Icon'}),
+            },
+            {
+                name: 'general',
+                uiName: formatMessage({id: 'user.settings.modal.general', defaultMessage: 'General'}),
                 icon: 'icon icon-settings-outline',
-                iconTitle: formatMessage({id: 'user.settings.profile.icon', defaultMessage: 'Profile Settings Icon'}),
+                iconTitle: formatMessage({id: 'user.settings.general.icon', defaultMessage: 'General Settings Icon'}),
             },
             {
                 name: 'security',
@@ -330,7 +342,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
         } else if (this.props.isContentProductSettings) {
             modalTitle = formatMessage({id: 'global_header.productSettings', defaultMessage: 'Settings'});
         } else {
-            modalTitle = formatMessage({id: 'user.settings.modal.title', defaultMessage: 'Profile'});
+            modalTitle = formatMessage({id: 'user.settings.modal.title', defaultMessage: 'AI Profile'});
         }
 
         const headerTitle = (

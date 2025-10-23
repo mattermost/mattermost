@@ -1495,6 +1495,30 @@ func (s *SqlPostStore) GetPostsSinceForSync(options model.GetPostsSinceForSyncOp
 	return posts, cursor, nil
 }
 
+func (s *SqlPostStore) GetPostsForProfileGeneration(userID string, afterTimestamp int64, limit int) ([]*model.Post, error) {
+	query := s.getQueryBuilder().
+		Select("Id", "UserId", "Message", "CreateAt").
+		From("Posts").
+		Where(sq.Eq{"UserId": userID}).
+		Where(sq.GtOrEq{"CreateAt": afterTimestamp}).
+		Where(sq.Eq{"DeleteAt": 0}).
+		OrderBy("CreateAt DESC").
+		Limit(uint64(limit))
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "getpostsforprofilegeneration_tosql")
+	}
+
+	posts := []*model.Post{}
+	err = s.GetReplica().Select(&posts, queryString, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to fetch posts for user profile generation with userId=%s", userID)
+	}
+
+	return posts, nil
+}
+
 func (s *SqlPostStore) GetPostsBefore(rctx request.CTX, options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	return s.getPostsAround(rctx, true, options, sanitizeOptions)
 }
