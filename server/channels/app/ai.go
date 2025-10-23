@@ -108,7 +108,7 @@ func (a *App) RewriteMessage(
 
 // getRewritePromptForAction returns the appropriate prompt and system prompt for the given rewrite action
 func getRewritePromptForAction(action model.AIRewriteAction, message string, customPrompt string) (string, string) {
-	systemPrompt := `You are a text rewriting assistant. You MUST return ONLY a JSON object with this exact structure: {"rewritten_text":"your rewritten content here"}. Do not return plain text. Do not use Markdown, except in the rewritten_text field if necessary. Do not wrap in code blocks. Start your response with { and end with }. All further instructions apply only to the rewritten_text field.`
+	systemPrompt := `You are a JSON API that rewrites text. Your response must be valid JSON only. Return this exact format: {"rewritten_text":"content"}. Do not use markdown, code blocks, or any formatting. Start with { and end with }.`
 
 	if message == "" {
 		return fmt.Sprintf(`Rewrite according to these instructions: %s`, customPrompt), systemPrompt
