@@ -1749,10 +1749,6 @@ func (a *App) SendPasswordReset(rctx request.CTX, email string, siteURL string) 
 		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.sso.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 	}
 
-	if user.IsEasyLoginEnabled() {
-		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.easylogin.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
-	}
-
 	token, err := a.CreatePasswordRecoveryToken(rctx, user.Id, user.Email)
 	if err != nil {
 		return false, err
