@@ -7,6 +7,7 @@ import React from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
+import {Scrollbar} from '@mattermost/design-system';
 import type {PluginRedux} from '@mattermost/types/plugins';
 
 import AdminSidebarCategory from 'components/admin_console/admin_sidebar/admin_sidebar_category';
@@ -16,7 +17,6 @@ import SearchKeywordMarking from 'components/admin_console/search_keyword_markin
 import QuickInput from 'components/quick_input';
 import SearchIcon from 'components/widgets/icons/search_icon';
 
-import {Scrollbar} from '@mattermost/design-system';
 import {generateIndex} from 'utils/admin_console_index';
 import type {Index} from 'utils/admin_console_index';
 import {getHistory} from 'utils/browser_history';
