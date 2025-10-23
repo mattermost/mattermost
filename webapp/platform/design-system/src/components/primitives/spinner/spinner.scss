@@ -1,0 +1,99 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+// Spinner component styles
+.Spinner {
+    display: inline-block;
+    border-radius: 50%;
+    animation: spin 750ms linear infinite;
+    background: conic-gradient(rgba(var(--center-channel-color-rgb), 0), rgba(var(--center-channel-color-rgb), 0.48));
+
+    // Size variants
+    &--xs { 
+        width: 12px; 
+        height: 12px;
+        mask-image: radial-gradient(
+            farthest-side,
+            transparent calc(100% - 1.5px),
+            #fff calc(100% - 1px)
+        );
+    }
+
+    &--sm { 
+        width: 14px; 
+        height: 14px;
+        mask-image: radial-gradient(
+            farthest-side,
+            transparent calc(100% - 1.5px),
+            #fff calc(100% - 1px)
+        );
+    }
+
+    // For IconButton, sm size should be 16px to match IconButton__spinner--sm
+    &--sm-icon { 
+        width: 16px; 
+        height: 16px;
+        mask-image: radial-gradient(
+            farthest-side,
+            transparent calc(100% - 1.5px),
+            #fff calc(100% - 1px)
+        );
+    }
+
+    &--md { 
+        width: 16px; 
+        height: 16px;
+        mask-image: radial-gradient(
+            farthest-side,
+            transparent calc(100% - 2px),
+            #fff calc(100% - 1.5px)
+        );
+    }
+
+    // For IconButton, md size should be 20px to match IconButton__spinner--md
+    &--md-icon { 
+        width: 20px; 
+        height: 20px;
+        mask-image: radial-gradient(
+            farthest-side,
+            transparent calc(100% - 2px),
+            #fff calc(100% - 1.5px)
+        );
+    }
+
+    &--lg { 
+        width: 20px; 
+        height: 20px;
+        mask-image: radial-gradient(
+            farthest-side,
+            transparent calc(100% - 2.5px),
+            #fff calc(100% - 2px)
+        );
+    }
+
+    // For IconButton, lg size should be 24px to match IconButton__spinner--lg
+    &--lg-icon { 
+        width: 24px; 
+        height: 24px;
+        mask-image: radial-gradient(
+            farthest-side,
+            transparent calc(100% - 2.5px),
+            #fff calc(100% - 2px)
+        );
+    }
+
+    // Inverted spinner color override (for dark backgrounds)
+    &--inverted {
+        background: conic-gradient(rgba(var(--button-color-rgb), 0), rgba(var(--button-color-rgb), 0.48));
+    }
+}
+
+// Spinner animation (global)
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}

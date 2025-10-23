@@ -109,6 +109,88 @@ export const Loading: Story = {
     },
 };
 
+// Loading spinner showcase - all sizes and variations
+export const LoadingSpinners: Story = {
+    render: () => (
+        <div style={{display: 'flex', flexDirection: 'column', gap: '24px'}}>
+            <div>
+                <h3 style={{marginBottom: '12px', fontSize: '16px', fontWeight: 'bold'}}>Loading Spinners - All Sizes</h3>
+                <div style={{display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap'}}>
+                    <Button size='xs' loading>Extra Small</Button>
+                    <Button size='sm' loading>Small</Button>
+                    <Button size='md' loading>Medium</Button>
+                    <Button size='lg' loading>Large</Button>
+                </div>
+            </div>
+
+            <div>
+                <h3 style={{marginBottom: '12px', fontSize: '16px', fontWeight: 'bold'}}>Loading Spinners - All Emphasis Levels</h3>
+                <div style={{display: 'flex', gap: '12px', flexWrap: 'wrap'}}>
+                    <Button emphasis='primary' loading>Primary Loading</Button>
+                    <Button emphasis='secondary' loading>Secondary Loading</Button>
+                    <Button emphasis='tertiary' loading>Tertiary Loading</Button>
+                    <Button emphasis='quaternary' loading>Quaternary Loading</Button>
+                    <Button emphasis='link' loading>Link Loading</Button>
+                </div>
+            </div>
+
+            <div>
+                <h3 style={{marginBottom: '12px', fontSize: '16px', fontWeight: 'bold'}}>Destructive Loading States</h3>
+                <div style={{display: 'flex', gap: '12px', flexWrap: 'wrap'}}>
+                    <Button emphasis='primary' destructive loading>Delete All</Button>
+                    <Button emphasis='secondary' destructive loading>Remove</Button>
+                    <Button emphasis='tertiary' destructive loading>Clear</Button>
+                    <Button emphasis='quaternary' destructive loading>Reset</Button>
+                </div>
+            </div>
+
+            <div>
+                <h3 style={{marginBottom: '12px', fontSize: '16px', fontWeight: 'bold'}}>Loading with Icons (Icons Hidden During Loading)</h3>
+                <div style={{display: 'flex', gap: '12px', flexWrap: 'wrap'}}>
+                    <Button loading iconBefore={<span>📁</span>}>Save File</Button>
+                    <Button loading iconAfter={<span>→</span>}>Continue</Button>
+                    <Button loading iconBefore={<span>✓</span>} iconAfter={<span>→</span>}>Complete</Button>
+                </div>
+            </div>
+        </div>
+    ),
+};
+
+// Inverted loading spinners for dark backgrounds
+export const InvertedLoadingSpinners: Story = {
+    render: () => (
+        <div style={{display: 'flex', flexDirection: 'column', gap: '24px'}}>
+            <div>
+                <h3 style={{marginBottom: '12px', fontSize: '16px', fontWeight: 'bold', color: 'white'}}>Inverted Loading Spinners - All Sizes</h3>
+                <div style={{display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap'}}>
+                    <Button size='xs' loading inverted>Extra Small</Button>
+                    <Button size='sm' loading inverted>Small</Button>
+                    <Button size='md' loading inverted>Medium</Button>
+                    <Button size='lg' loading inverted>Large</Button>
+                </div>
+            </div>
+
+            <div>
+                <h3 style={{marginBottom: '12px', fontSize: '16px', fontWeight: 'bold', color: 'white'}}>Inverted Loading - All Emphasis Levels</h3>
+                <div style={{display: 'flex', gap: '12px', flexWrap: 'wrap'}}>
+                    <Button emphasis='primary' loading inverted>Primary Loading</Button>
+                    <Button emphasis='secondary' loading inverted>Secondary Loading</Button>
+                    <Button emphasis='tertiary' loading inverted>Tertiary Loading</Button>
+                    <Button emphasis='quaternary' loading inverted>Quaternary Loading</Button>
+                    <Button emphasis='link' loading inverted>Link Loading</Button>
+                </div>
+            </div>
+        </div>
+    ),
+    decorators: [
+        (Story) => (
+            <div style={{backgroundColor: '#1e1e1e', padding: '20px'}}>
+                <Story />
+            </div>
+        ),
+    ],
+};
+
 export const Disabled: Story = {
     args: {
         children: 'Disabled',

@@ -5,6 +5,8 @@ import classNames from 'classnames';
 import React, {forwardRef, memo, useMemo} from 'react';
 import type {ButtonHTMLAttributes, ReactNode} from 'react';
 
+import Spinner from '../spinner';
+
 import './button.scss';
 
 export type ButtonSize = 'xs' | 'sm' | 'md' | 'lg';
@@ -93,14 +95,6 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps & ButtonHTMLProps>(
             return width ? {width, ...style} : style;
         }, [width, style]);
 
-        const spinnerClasses = useMemo(() => classNames(
-            'Button__spinner',
-            `Button__spinner--${size}`,
-            {
-                'Button__spinner--inverted': inverted,
-            },
-        ), [size, inverted]);
-
         const iconBeforeClasses = useMemo(() => classNames(
             'Button__icon',
             `Button__icon--${size}`,
@@ -123,14 +117,11 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps & ButtonHTMLProps>(
                 {...restHtmlProps}
             >
                 {loading && (
-                    <span
-                        className='Button__loading'
-                        role='status'
-                        aria-label='Loading'
-                    >
-                        <span
-                            className={spinnerClasses}
-                            aria-hidden='true'
+                    <span className='Button__loading'>
+                        <Spinner
+                            size={size}
+                            inverted={inverted}
+                            aria-label='Loading'
                         />
                     </span>
                 )}

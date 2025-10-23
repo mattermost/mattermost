@@ -1,14 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-@keyframes spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
-}
 
 .IconButton {
     display: inline-flex;
@@ -408,39 +400,3 @@
     }
 }
 
-// Spinner (reusing Button component patterns)
-.IconButton__spinner {
-    display: inline-block;
-    border-radius: 50%;
-    animation: spin 750ms linear infinite;
-    background: conic-gradient(rgba(var(--center-channel-color-rgb), 0), rgba(var(--center-channel-color-rgb), 0.48));
-    line-height: 0;
-
-    &--xs {
-        width: 12px;
-        height: 12px;
-        mask-image: radial-gradient(farthest-side, transparent calc(100% - 1.5px), #fff calc(100% - 1px));
-    }
-
-    &--sm {
-        width: 16px;
-        height: 16px;
-        mask-image: radial-gradient(farthest-side, transparent calc(100% - 1.5px), #fff calc(100% - 1px));
-    }
-
-    &--md {
-        width: 20px;
-        height: 20px;
-        mask-image: radial-gradient(farthest-side, transparent calc(100% - 2px), #fff calc(100% - 1.5px));
-    }
-
-    &--lg {
-        width: 24px;
-        height: 24px;
-        mask-image: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #fff calc(100% - 2px));
-    }
-
-    &--inverted {
-        background: conic-gradient(rgba(var(--button-color-rgb), 0), rgba(var(--button-color-rgb), 0.48));
-    }
-}

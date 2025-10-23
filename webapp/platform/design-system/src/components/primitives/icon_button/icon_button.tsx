@@ -8,6 +8,8 @@ import type {ButtonHTMLAttributes, ReactNode} from 'react';
 // Re-enable when WithTooltip is available in platform design system
 // import WithTooltip from 'components/with_tooltip';
 
+import Spinner from '../spinner';
+
 import './icon_button.scss';
 
 export type IconButtonSize = 'xs' | 'sm' | 'md' | 'lg';
@@ -111,14 +113,10 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
             >
                 <span className='IconButton__content'>
                     {loading ? (
-                        <span
-                            className={classNames(
-                                'IconButton__spinner',
-                                `IconButton__spinner--${size}`,
-                                {
-                                    'IconButton__spinner--inverted': inverted,
-                                },
-                            )}
+                        <Spinner
+                            size={size}
+                            inverted={inverted}
+                            forIconButton={true}
                         />
                     ) : (
                         <span className={`IconButton__icon IconButton__icon--${size}`}>
