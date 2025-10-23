@@ -199,7 +199,7 @@ export default class Logs extends React.PureComponent<Props, State> {
 
                     <RadioInput
                         id='admin.logs.LogFormat.json'
-                        data-testid='admin.logs.LogFormat.json'
+                        dataTestId='admin.logs.LogFormat.json'
                         title={<FormattedMessage {...messages.logFormatJson}/>}
                         name='log-format'
                         value='json'
@@ -209,7 +209,7 @@ export default class Logs extends React.PureComponent<Props, State> {
 
                     <RadioInput
                         id='admin.logs.LogFormat.plain'
-                        data-testid='admin.logs.LogFormat.plain'
+                        dataTestId='admin.logs.LogFormat.plain'
                         title={<FormattedMessage {...messages.logFormatPlain}/>}
                         name='log-format'
                         value='plain'

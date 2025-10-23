@@ -305,7 +305,7 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
                         <div className='radio-inline'>
                             <RadioInput
                                 id='systemadmin'
-                                data-testid='manage_role_systemadmin'
+                                dataTestId='manage_role_systemadmin'
                                 title={
                                     <FormattedMessage
                                         id='admin.manage_roles.systemAdmin'
@@ -322,7 +322,7 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
                         <div className='radio-inline'>
                             <RadioInput
                                 id='systemmember'
-                                data-testid='manage_role_systemmember'
+                                dataTestId='manage_role_systemmember'
                                 title={
                                     <FormattedMessage
                                         id='admin.manage_roles.systemMember'

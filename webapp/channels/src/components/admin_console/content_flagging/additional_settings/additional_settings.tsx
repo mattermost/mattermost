@@ -213,18 +213,18 @@ export default function ContentFlaggingAdditionalSettingsSection({id, onChange, 
 
                         <div className='setting-content'>
                             <RadioInput
-                                id='setHideFlaggedPosts_true'
-                                dataTestId='setHideFlaggedPosts_true'
+                                id='hideFlaggedPosts_true'
+                                dataTestId='hideFlaggedPosts_true'
                                 title={labelTrue}
-                                name='setHideFlaggedPosts'
+                                name='hideFlaggedPosts'
                                 value='true'
                                 checked={additionalSettings.HideFlaggedContent}
                                 handleChange={handleHideFlaggedPosts}
                             />
 
                             <RadioInput
-                                id='setHideFlaggedPosts_false'
-                                dataTestId='setHideFlaggedPosts_false'
+                                id='hideFlaggedPosts_false'
+                                dataTestId='hideFlaggedPosts_false'
                                 title={labelFalse}
                                 name='setHideFlaggedPosts'
                                 value='false'

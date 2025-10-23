@@ -132,7 +132,7 @@ const BooleanSetting = ({
             <div className='flex-horizontal'>
                 <RadioInput
                     id={Utils.createSafeId(id) + 'true'}
-                    data-testid={id + 'true'}
+                    dataTestId={id + 'true'}
                     title={trueText}
                     name={id}
                     value='true'
@@ -143,7 +143,7 @@ const BooleanSetting = ({
 
                 <RadioInput
                     id={Utils.createSafeId(id) + 'false'}
-                    data-testid={id + 'false'}
+                    dataTestId={id + 'false'}
                     title={falseText}
                     name={id}
                     value='false'

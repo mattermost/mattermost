@@ -58,6 +58,7 @@ const RadioButtonGroup = ({
             >
                 <RadioInput
                     id={id}
+                    dataTestId={id}
                     className={val === value ? 'selected' : ''}
                     value={val}
                     name={id}
