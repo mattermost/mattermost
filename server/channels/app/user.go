@@ -3107,7 +3107,7 @@ func (a *App) GenerateUserProfile(c request.CTX, userID string, postLimit int, t
 	)
 
 	// Build AI prompt
-	systemPrompt := `You are an AI assistant that analyzes a user's writing style and work-related interests based on their messages.
+	systemPrompt := `You are a JSON API that analyzes a user's writing style and work-related interests based on their messages.
 
 Your task:
 1. Analyze the writing style and create a DETAILED paragraph that captures their communication patterns comprehensively. This report will be used by another LLM to mimic their writing style, so include:
@@ -3121,7 +3121,7 @@ Your task:
 
 2. Identify work-related topics they are interested in or involved with. Return as a simple array of topic names.
 
-Return ONLY valid JSON in this exact format (no additional text) do not include any explanations outside the JSON or any formatting code blocks:
+Return ONLY valid JSON in this exact format (no additional text) do not include any explanations outside the JSON or any formatting code blocks like tripple backticks:
 {
   "writing_style_report": "detailed paragraph here...",
   "topics": ["Topic 1", "Topic 2", "Topic 3"]
