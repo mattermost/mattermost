@@ -16,10 +16,10 @@ import {emitUserLoggedOutEvent} from 'actions/global_actions';
 
 import AnnouncementBar from 'components/announcement_bar';
 import InfiniteScroll from 'components/common/infinite_scroll';
-import SiteNameAndDescription from 'components/common/site_name_and_description';
 import ExternalLink from 'components/external_link';
 import LoadingScreen from 'components/loading_screen';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
+import SiteNameAndDescription from 'components/site_name_and_description';
 import LogoutIcon from 'components/widgets/icons/fa_logout_icon';
 
 import HistoryBackButton from 'design_system/components/patterns/history_back_button';

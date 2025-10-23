@@ -8,6 +8,7 @@ type Props = {
     customDescriptionText?: string;
     siteName: string | undefined;
 };
+
 const SiteNameAndDescription = ({customDescriptionText, siteName = 'Mattermost'}: Props) => {
     const description = customDescriptionText || (
         <FormattedMessage

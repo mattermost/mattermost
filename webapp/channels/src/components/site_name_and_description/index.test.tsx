@@ -5,7 +5,7 @@ import {shallow} from 'enzyme';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import SiteNameAndDescription from 'components/common/site_name_and_description';
+import SiteNameAndDescription from 'components/site_name_and_description';
 
 describe('/components/common/SiteNameAndDescription', () => {
     const baseProps = {
