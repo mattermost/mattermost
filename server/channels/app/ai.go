@@ -25,7 +25,7 @@ func (a *App) RewriteMessage(
 	message string,
 	action model.AIRewriteAction,
 	customPrompt string,
-) (string, *model.AppError) {
+) (*model.AIRewriteResponse, *model.AppError) {
 	// Validate action
 	validActions := map[model.AIRewriteAction]bool{
 		model.AIRewriteActionShorten:        true,
@@ -37,7 +37,7 @@ func (a *App) RewriteMessage(
 		model.AIRewriteActionCustom:         true,
 	}
 	if !validActions[action] {
-		return "", model.NewAppError("RewriteMessage", "app.ai.rewrite.invalid_action", nil, fmt.Sprintf("invalid action: %s", action), 400)
+		return nil, model.NewAppError("RewriteMessage", "app.ai.rewrite.invalid_action", nil, fmt.Sprintf("invalid action: %s", action), 400)
 	}
 
 	// Get prompts for the action
@@ -77,26 +77,23 @@ func (a *App) RewriteMessage(
 			mlog.Err(err),
 			mlog.String("action", string(action)),
 		)
-		return "", model.NewAppError("RewriteMessage", "app.ai.rewrite.agent_call_failed", nil, err.Error(), 500)
+		return nil, model.NewAppError("RewriteMessage", "app.ai.rewrite.agent_call_failed", nil, err.Error(), 500)
 	}
 
 	// Parse the JSON response from the completion
 	// The prompts instruct the AI to return JSON with "rewritten_text" field
-	var aiResponse struct {
-		RewrittenText string   `json:"rewritten_text"`
-		ChangesMade   []string `json:"changes_made"`
-	}
+	var aiResponse model.AIRewriteResponse
 
 	if err := json.Unmarshal([]byte(completion), &aiResponse); err != nil {
 		rctx.Logger().Error("Failed to parse AI response",
 			mlog.Err(err),
 			mlog.String("response", completion),
 		)
-		return "", model.NewAppError("RewriteMessage", "app.ai.rewrite.parse_response_failed", nil, err.Error(), 500)
+		return nil, model.NewAppError("RewriteMessage", "app.ai.rewrite.parse_response_failed", nil, err.Error(), 500)
 	}
 
 	if aiResponse.RewrittenText == "" {
-		return "", model.NewAppError("RewriteMessage", "app.ai.rewrite.empty_response", nil, "", 500)
+		return nil, model.NewAppError("RewriteMessage", "app.ai.rewrite.empty_response", nil, "", 500)
 	}
 
 	// Log success
@@ -106,7 +103,7 @@ func (a *App) RewriteMessage(
 		mlog.Int("rewritten_length", len(aiResponse.RewrittenText)),
 		mlog.String("user_id", userID),
 	)
-	return aiResponse.RewrittenText, nil
+	return &aiResponse, nil
 }
 
 // getRewritePromptForAction returns the appropriate prompt and system prompt for the given rewrite action

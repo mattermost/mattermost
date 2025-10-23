@@ -39,7 +39,7 @@ func rewriteMessage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Return response
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(response); err != nil {
+	if err := json.NewEncoder(w).Encode(*response); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

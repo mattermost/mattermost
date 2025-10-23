@@ -4318,10 +4318,10 @@ export default class Client4 {
     };
 
     getAIRewrittenMessage = (message: string, action?: string, customPrompt?: string) => {
-        return this.doFetch<string>(
+        return this.doFetch<{rewritten_text: string; changes_made: string[]}>(
             `${this.getBaseRoute()}/ai/rewrite`,
             {method: 'post', body: JSON.stringify({message, action, custom_prompt: customPrompt})},
-        );
+        ).then((response) => response.rewritten_text);
     };
 
     // Client Helpers

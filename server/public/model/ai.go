@@ -31,6 +31,12 @@ type AIRewriteRequest struct {
 	CustomPrompt string          `json:"custom_prompt,omitempty"`
 }
 
+// AIRewriteResponse represents a response from the AI plugin
+type AIRewriteResponse struct {
+	RewrittenText string   `json:"rewritten_text"`
+	ChangesMade   []string `json:"changes_made"`
+}
+
 // AIRequest represents a request to call the AI plugin
 type AIRequest struct {
 	Data           map[string]any `json:"data"`
