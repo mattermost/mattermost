@@ -4,6 +4,7 @@
 import type {Meta, StoryObj} from '@storybook/react';
 
 import Button from './button';
+import {ArrowRightIcon, CheckIcon, ChevronDownIcon, PlusIcon} from '@mattermost/compass-icons/components';
 
 const meta: Meta<typeof Button> = {
     title: 'DesignSystem/Primitives/Button',
@@ -225,15 +226,15 @@ export const Inverted: Story = {
 export const WithIcons: Story = {
     render: () => (
         <div style={{display: 'flex', gap: '12px', flexDirection: 'column'}}>
-            <Button iconBefore={<span>→</span>}>
+            <Button iconBefore={<CheckIcon/>}>
                 Icon Before
             </Button>
-            <Button iconAfter={<span>→</span>}>
+            <Button iconAfter={<ArrowRightIcon/>}>
                 Icon After
             </Button>
             <Button
-                iconBefore={<span>✓</span>}
-                iconAfter={<span>→</span>}
+                iconBefore={<PlusIcon/>}
+                iconAfter={<ChevronDownIcon/>}
             >
                 Both Icons
             </Button>
