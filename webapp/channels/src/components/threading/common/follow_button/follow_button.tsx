@@ -6,7 +6,7 @@ import React, {memo} from 'react';
 import type {ComponentProps} from 'react';
 import {useIntl} from 'react-intl';
 
-import Button from '../button';
+import ThreadButton from '../thread_button';
 
 type Props = {
     isFollowing: boolean | null | undefined;
@@ -15,10 +15,10 @@ type Props = {
 function FollowButton({
     isFollowing,
     ...props
-}: Props & Exclude<ComponentProps<typeof Button>, Props>) {
+}: Props & Exclude<ComponentProps<typeof ThreadButton>, Props>) {
     const {formatMessage} = useIntl();
     return (
-        <Button
+        <ThreadButton
             {...props}
             className={classNames(props.className, 'FollowButton')}
             disabled={Boolean(props.disabled)}
@@ -31,7 +31,7 @@ function FollowButton({
                 id: 'threading.notFollowing',
                 defaultMessage: 'Follow',
             })}
-        </Button>
+        </ThreadButton>
     );
 }
 

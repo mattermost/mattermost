@@ -31,7 +31,7 @@ import type {GlobalState} from 'types/store';
 
 import VirtualizedThreadList from './virtualized_thread_list';
 
-import Button from '../../common/button';
+import ThreadButton from '../../common/thread_button';
 import {useThreadRouting} from '../../hooks';
 import MarkAllThreadsAsReadModal from '../mark_all_threads_as_read_modal';
 import type {MarkAllThreadsAsReadModalProps} from '../mark_all_threads_as_read_modal';
@@ -210,8 +210,8 @@ const ThreadList = ({
                         {...tabListProps}
                     >
                         <div className={'tab-button-wrapper'}>
-                            <Button
-                                className={'Button___large Margined'}
+                            <ThreadButton
+                                className={'ThreadButton___large Margined'}
                                 isActive={currentFilter === ThreadFilter.none}
                                 {...tabProps[0]}
                             >
@@ -219,14 +219,14 @@ const ThreadList = ({
                                     id='globalThreads.heading'
                                     defaultMessage='Followed threads'
                                 />
-                            </Button>
+                            </ThreadButton>
                         </div>
                         <div
                             id={'threads-list-unread-button'}
                             className={'tab-button-wrapper'}
                         >
-                            <Button
-                                className={'Button___large Margined'}
+                            <ThreadButton
+                                className={'ThreadButton___large Margined'}
                                 isActive={currentFilter === ThreadFilter.unread}
                                 hasDot={someUnread}
                                 {...tabProps[1]}
@@ -235,7 +235,7 @@ const ThreadList = ({
                                     id='threading.filters.unreads'
                                     defaultMessage='Unreads'
                                 />
-                            </Button>
+                            </ThreadButton>
                             {showUnreadTutorialTip && <CRTUnreadTutorialTip/>}
                         </div>
                     </div>
@@ -248,20 +248,20 @@ const ThreadList = ({
                                 defaultMessage: 'Mark all threads as read',
                             })}
                         >
-                            <Button
+                            <ThreadButton
                                 id={'threads-list__mark-all-as-read'}
                                 aria-label={formatMessage({
                                     id: 'threading.threadList.markRead',
                                     defaultMessage: 'Mark all threads as read',
                                 })}
-                                className={'Button___large Button___icon'}
+                                className={'ThreadButton___large ThreadButton___icon'}
                                 onClick={handleOpenMarkAllAsReadModal}
                                 marginTop={true}
                             >
                                 <span className='icon'>
                                     <PlaylistCheckIcon size={18}/>
                                 </span>
-                            </Button>
+                            </ThreadButton>
                         </WithTooltip>
                     </div>
                 )}

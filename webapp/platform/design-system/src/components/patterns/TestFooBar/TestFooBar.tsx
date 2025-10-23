@@ -3,8 +3,6 @@
 
 import React from 'react';
 
-import './TestFooBar.scss';
-
 export function TestFooBar() {
     return (
         <span className='TestFooBar'>

@@ -12,8 +12,8 @@ import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getPost, getLimitedViews} from 'mattermost-redux/selectors/entities/posts';
 
 import AdvancedCreateComment from 'components/advanced_create_comment';
-import BasicSeparator from 'components/widgets/separator/basic-separator';
 
+import PostSeparator from 'design_system/components/patterns/post_separator';
 import Constants from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -71,7 +71,7 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
     if (channelIsArchived) {
         return (
             <div className='channel-archived-warning__container'>
-                <BasicSeparator/>
+                <PostSeparator testId='basicSeparator'/>
                 <div className='channel-archived-warning__content'>
                     <ArchiveOutlineIcon
                         size={20}

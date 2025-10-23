@@ -17,10 +17,10 @@ exports[`components/threading/global_threads/thread_list should match snapshot 1
         <div
           className="tab-button-wrapper"
         >
-          <Memo(Button)
+          <Memo(ThreadButton)
             aria-controls="threads-list"
             aria-selected={true}
-            className="Button___large Margined"
+            className="ThreadButton___large Margined"
             id="threads-list-filter-none"
             isActive={true}
             onClick={[Function]}
@@ -32,16 +32,16 @@ exports[`components/threading/global_threads/thread_list should match snapshot 1
               defaultMessage="Followed threads"
               id="globalThreads.heading"
             />
-          </Memo(Button)>
+          </Memo(ThreadButton)>
         </div>
         <div
           className="tab-button-wrapper"
           id="threads-list-unread-button"
         >
-          <Memo(Button)
+          <Memo(ThreadButton)
             aria-controls="threads-list"
             aria-selected={false}
-            className="Button___large Margined"
+            className="ThreadButton___large Margined"
             hasDot={true}
             id="threads-list-filter-unread"
             isActive={false}
@@ -54,7 +54,7 @@ exports[`components/threading/global_threads/thread_list should match snapshot 1
               defaultMessage="Unreads"
               id="threading.filters.unreads"
             />
-          </Memo(Button)>
+          </Memo(ThreadButton)>
         </div>
       </div>
     }
@@ -66,9 +66,9 @@ exports[`components/threading/global_threads/thread_list should match snapshot 1
         <WithTooltip
           title="Mark all threads as read"
         >
-          <Memo(Button)
+          <Memo(ThreadButton)
             aria-label="Mark all threads as read"
-            className="Button___large Button___icon"
+            className="ThreadButton___large ThreadButton___icon"
             id="threads-list__mark-all-as-read"
             marginTop={true}
             onClick={[Function]}
@@ -80,7 +80,7 @@ exports[`components/threading/global_threads/thread_list should match snapshot 1
                 size={18}
               />
             </span>
-          </Memo(Button)>
+          </Memo(ThreadButton)>
         </WithTooltip>
       </div>
     }
