@@ -24,7 +24,6 @@ describe('/components/common/RadioButtonGroup', () => {
 
     test('test radio button group input lenght is as expected', () => {
         const wrapper = renderWithContext(<RadioButtonGroup {...baseProps}/>);
-        wrapper.debug();
         const buttons = wrapper.queryAllByTestId('test-string');
 
         expect(buttons.length).toBe(3);

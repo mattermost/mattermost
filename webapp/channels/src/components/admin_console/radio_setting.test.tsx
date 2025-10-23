@@ -45,7 +45,6 @@ describe('components/admin_console/RadioSetting', () => {
             />,
         );
 
-        wrapper.debug();
         wrapper.getByTestId('Administration').click();
 
         expect(onChange).toHaveBeenCalledTimes(1);

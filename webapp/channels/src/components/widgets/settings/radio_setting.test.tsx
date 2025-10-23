@@ -81,8 +81,6 @@ describe('components/widgets/settings/RadioSetting', () => {
             />,
         );
 
-        wrapper.debug();
-
         wrapper.getByTestId('Administration').click();
 
         expect(onChange).toHaveBeenCalledTimes(1);
