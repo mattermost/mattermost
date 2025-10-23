@@ -4,6 +4,6 @@
 import './styles.scss';
 
 export {TestFooBar} from './components/patterns/TestFooBar';
-export {RadioInput} from 'src/components/primitives/radio_setting';
+export {RadioInput} from './components/primitives/radio_setting';
 export {Toggle} from './components/primitives/toggle';
 
