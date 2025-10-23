@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {Meta, StoryObj} from '@storybook/react';
+import React from 'react';
 
 import {ArrowRightIcon, CheckIcon, ChevronDownIcon, PlusIcon} from '@mattermost/compass-icons/components';
 
