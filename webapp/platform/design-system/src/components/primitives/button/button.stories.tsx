@@ -3,8 +3,9 @@
 
 import type {Meta, StoryObj} from '@storybook/react';
 
-import Button from './button';
 import {ArrowRightIcon, CheckIcon, ChevronDownIcon, PlusIcon} from '@mattermost/compass-icons/components';
+
+import Button from './button';
 
 const meta: Meta<typeof Button> = {
     title: 'DesignSystem/Primitives/Button',
