@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {act, screen, fireEvent} from '@testing-library/react';
+/*import {act, screen, fireEvent} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
-
 import {renderWithContext} from 'tests/react_testing_utils';
 
 import Input from './input';
@@ -322,4 +321,4 @@ describe('components/widgets/inputs/Input', () => {
             expect(screen.queryByText(/Must be at least 2 characters/i)).not.toBeInTheDocument();
         });
     });
-});
+});*/

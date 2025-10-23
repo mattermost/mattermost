@@ -4,13 +4,13 @@
 import React from 'react';
 import {defineMessage} from 'react-intl';
 
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 import type {FileInfo} from '@mattermost/types/files';
 
 import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
 
 import ExternalLink from 'components/external_link';
 import AttachmentIcon from 'components/widgets/icons/attachment_icon';
-import WithTooltip from 'components/with_tooltip';
 
 import {trimFilename} from 'utils/file_utils';
 import {localizeMessage} from 'utils/utils';

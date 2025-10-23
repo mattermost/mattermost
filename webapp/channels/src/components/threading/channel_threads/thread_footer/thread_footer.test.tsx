@@ -5,11 +5,11 @@ import {mount} from 'enzyme';
 import React from 'react';
 import type {ComponentProps} from 'react';
 
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 import type {UserThread} from '@mattermost/types/threads';
 
 import Timestamp from 'components/timestamp';
 import Avatars from 'components/widgets/users/avatars';
-import WithTooltip from 'components/with_tooltip';
 
 import {fakeDate} from 'tests/helpers/date';
 import {mockStore} from 'tests/test_store';

@@ -8,6 +8,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {PulsatingDot} from '@mattermost/components';
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 import {type UserCustomStatus, CustomStatusDuration} from '@mattermost/types/users';
 
 import {unsetCustomStatus} from 'mattermost-redux/actions/users';
@@ -18,7 +19,6 @@ import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import CustomStatusText from 'components/custom_status/custom_status_text';
 import ExpiryTime from 'components/custom_status/expiry_time';
 import * as Menu from 'components/menu';
-import WithTooltip from 'components/with_tooltip';
 
 interface Props {
     timezone?: string;

@@ -3,8 +3,13 @@
 
 import emojiRegex from 'emoji-regex';
 import React from 'react';
+import {useSelector} from 'react-redux';
 
 import type {Emoji, SystemEmoji} from '@mattermost/types/emojis';
+
+import {getEmojiImageUrl} from 'mattermost-redux/utils/emoji_utils';
+
+import {getEmojiMap} from 'selectors/emojis';
 
 import {EmojiIndicesByUnicode, Emojis} from 'utils/emoji';
 
@@ -57,6 +62,21 @@ const getEmojiName = (emoji: Emoji, searchedName: string) => {
 
     return 'short_name' in emoji ? emoji.short_name : emoji.name;
 };
+
+/**
+ * Custom hook to get emoji image URL for a given emoji name
+ * Encapsulates the common pattern of getting emojiMap and calculating image URL
+ */
+export function useEmojiImageUrl(emojiName?: string): string | undefined {
+    const emojiMap = useSelector(getEmojiMap);
+
+    if (!emojiName) {
+        return undefined;
+    }
+
+    const emojiFromMap = emojiMap.get(emojiName);
+    return emojiFromMap ? getEmojiImageUrl(emojiFromMap) : undefined;
+}
 
 export function compareEmojis(emojiA: Emoji, emojiB: Emoji, searchedName: string) {
     const aName = getEmojiName(emojiA, searchedName);

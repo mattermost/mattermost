@@ -13,6 +13,7 @@ import {Link} from 'react-router-dom';
 
 import {MagnifyIcon} from '@mattermost/compass-icons/components';
 import {FooterPagination, GenericModal} from '@mattermost/components';
+import Input, {SIZE} from '@mattermost/design-system/src/components/primitives/input/input';
 
 import {getPluginStatuses} from 'mattermost-redux/actions/admin';
 import {setFirstAdminVisitMarketplaceStatus} from 'mattermost-redux/actions/general';
@@ -25,7 +26,6 @@ import {getListing, getInstalledListing} from 'selectors/views/marketplace';
 import {isModalOpen} from 'selectors/views/modals';
 
 import LoadingScreen from 'components/loading_screen';
-import Input, {SIZE} from 'components/widgets/inputs/input/input';
 
 import {ModalIdentifiers} from 'utils/constants';
 import {isCloudLicense} from 'utils/license_utils';

@@ -5,12 +5,13 @@ import classNames from 'classnames';
 import React, {useState, useEffect} from 'react';
 import {useSelector} from 'react-redux';
 
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
+
 import {getCurrentChannel, getMyCurrentChannelMembership} from 'mattermost-redux/selectors/entities/channels';
 
 import {getActiveRhsComponent} from 'selectors/rhs';
 
 import PluginIcon from 'components/widgets/icons/plugin_icon';
-import WithTooltip from 'components/with_tooltip';
 
 import {suitePluginIds} from 'utils/constants';
 

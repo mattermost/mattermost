@@ -8,6 +8,7 @@ import type {IntlShape} from 'react-intl';
 import {FormattedDate, FormattedMessage, FormattedTime, injectIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import Input from '@mattermost/design-system/src/components/primitives/input/input';
 import type {OAuthApp} from '@mattermost/types/integrations';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -20,7 +21,6 @@ import ExternalLink from 'components/external_link';
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 import ToggleModalButton from 'components/toggle_modal_button';
-import Input from 'components/widgets/inputs/input/input';
 
 import icon50 from 'images/icon50x50.png';
 import Constants from 'utils/constants';

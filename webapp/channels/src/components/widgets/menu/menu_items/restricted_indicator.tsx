@@ -6,9 +6,10 @@ import React, {useCallback, type ReactNode} from 'react';
 import {useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
+
 import FeatureRestrictedModal from 'components/feature_restricted_modal/feature_restricted_modal';
 import ToggleModalButton from 'components/toggle_modal_button';
-import WithTooltip from 'components/with_tooltip';
 
 import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
 import {LicenseSkus, ModalIdentifiers} from 'utils/constants';

@@ -6,10 +6,9 @@ import type {MouseEvent, KeyboardEvent} from 'react';
 import {useIntl} from 'react-intl';
 
 import {PencilOutlineIcon} from '@mattermost/compass-icons/components';
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 
 import {getDateForTimezone} from 'mattermost-redux/utils/timezone_utils';
-
-import WithTooltip from 'components/with_tooltip';
 
 import Constants from 'utils/constants';
 import {isSameDay, isWithinLastWeek, isYesterday} from 'utils/datetime';
