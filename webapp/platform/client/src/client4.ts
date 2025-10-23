@@ -979,6 +979,13 @@ export default class Client4 {
         );
     };
 
+    generateAITheme = (userId: string, profileData: {writing_style_report: string; topics: string[]; theme_preference?: 'light' | 'dark' | 'auto'}) => {
+        return this.doFetch<{theme: any; explanation: string; generated_at: number}>(
+            `${this.getUserRoute(userId)}/theme/generate`,
+            {method: 'post', body: JSON.stringify(profileData)},
+        );
+    };
+
     getUserByUsername = (username: string) => {
         return this.doFetch<UserProfile>(
             `${this.getUsersRoute()}/username/${username}`,

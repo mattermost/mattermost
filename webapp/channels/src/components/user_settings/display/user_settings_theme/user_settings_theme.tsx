@@ -17,6 +17,7 @@ import {applyTheme} from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
 
+import AIThemeChooser from './ai_theme_chooser';
 import CustomThemeChooser from './custom_theme_chooser/custom_theme_chooser';
 import PremadeThemeChooser from './premade_theme_chooser';
 
@@ -154,13 +155,24 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
         }
 
         const displayCustom = this.state.type === 'custom';
+        const displayAI = this.state.type === 'ai';
 
         let custom;
         let premade;
+        let ai;
         if (displayCustom && this.props.allowCustomThemes) {
             custom = (
                 <div key='customThemeChooser'>
                     <CustomThemeChooser
+                        theme={this.state.theme}
+                        updateTheme={this.updateTheme}
+                    />
+                </div>
+            );
+        } else if (displayAI) {
+            ai = (
+                <div key='aiThemeChooser'>
+                    <AIThemeChooser
                         theme={this.state.theme}
                         updateTheme={this.updateTheme}
                     />
@@ -185,7 +197,7 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
             if (this.props.allowCustomThemes) {
                 inputs.push(
                     <div
-                        key='premadeCustom'
+                        key='premadeCustomAI'
                         className='user-settings__radio-group-inline'
                     >
                         <div className='radio radio-inline'>
@@ -194,7 +206,7 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
                                     id='standardThemes'
                                     type='radio'
                                     name='theme'
-                                    checked={!displayCustom}
+                                    checked={!displayCustom && !displayAI}
                                     onChange={this.updateType.bind(this, 'premade')}
                                 />
                                 <FormattedMessage
@@ -218,10 +230,25 @@ export default class ThemeSetting extends React.PureComponent<Props, State> {
                                 />
                             </label>
                         </div>
+                        <div className='radio radio-inline'>
+                            <label>
+                                <input
+                                    id='aiThemes'
+                                    type='radio'
+                                    name='theme'
+                                    checked={displayAI}
+                                    onChange={this.updateType.bind(this, 'ai')}
+                                />
+                                <FormattedMessage
+                                    id='user.settings.display.theme.aiTheme'
+                                    defaultMessage='AI-Generated Theme'
+                                />
+                            </label>
+                        </div>
                     </div>,
                 );
 
-                inputs.push(premade, custom);
+                inputs.push(premade, custom, ai);
 
                 inputs.push(
                     <div key='otherThemes'>

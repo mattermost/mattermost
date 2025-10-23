@@ -3218,3 +3218,270 @@ Return ONLY valid JSON in this exact format (no additional text) do not include 
 
 	return profile, nil
 }
+
+// GenerateAITheme generates an AI-powered theme for a user based on their profile
+func (a *App) GenerateAITheme(c request.CTX, userID string, writingStyleReport string, topics []string, themePreference string) (*model.AIThemeResponse, *model.AppError) {
+	// Verify user exists
+	_, err := a.GetUser(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	c.Logger().Debug("Generating AI theme for user",
+		mlog.String("user_id", userID),
+		mlog.String("writing_style_length", fmt.Sprintf("%d", len(writingStyleReport))),
+		mlog.Int("topics_count", len(topics)),
+		mlog.String("theme_preference", themePreference),
+	)
+
+	// Build AI prompt for theme generation
+	systemPrompt := `You are an AI assistant that creates personalized Mattermost themes based on a user's writing style and interests.
+
+Your task:
+1. Analyze the user's writing style and topics of interest
+2. Create a Mattermost theme that reflects their personality and preferences
+3. Ensure the theme follows Mattermost's design principles and accessibility guidelines
+4. Provide a clear explanation of why this theme was chosen
+
+Theme Requirements:
+- Must include all required theme properties (sidebarBg, sidebarText, etc.)
+- Colors must have sufficient contrast for accessibility
+- Should reflect the user's personality and interests
+- Must be professional and suitable for workplace use
+- Follow the same format as existing Mattermost themes
+- Theme preference will be specified: "light" (bright backgrounds), "dark" (dark backgrounds), or "auto" (choose based on user's style)
+
+Theme Design Guidelines:
+- For DARK themes: Use darker tones for centerChannelBg (main content area), with sidebar colors that complement the dark center channel
+- For LIGHT themes: Use lighter tones for centerChannelBg, sidebar can be light, dark, or any color that creates good contrast and visual hierarchy
+- Always ensure sufficient contrast between text and background colors
+- Consider the user's personality and interests when selecting color schemes
+- Maintain professional appearance suitable for workplace use
+
+Return ONLY valid JSON in this exact format (no additional text or code blocks):
+{
+  "theme": {
+    "type": "custom",
+    "sidebarBg": "#hexcolor",
+    "sidebarText": "#hexcolor",
+    "sidebarUnreadText": "#hexcolor",
+    "sidebarTextHoverBg": "#hexcolor",
+    "sidebarTextActiveBorder": "#hexcolor",
+    "sidebarTextActiveColor": "#hexcolor",
+    "sidebarHeaderBg": "#hexcolor",
+    "sidebarTeamBarBg": "#hexcolor",
+    "sidebarHeaderTextColor": "#hexcolor",
+    "onlineIndicator": "#hexcolor",
+    "awayIndicator": "#hexcolor",
+    "dndIndicator": "#hexcolor",
+    "mentionBg": "#hexcolor",
+    "mentionBj": "#hexcolor",
+    "mentionColor": "#hexcolor",
+    "centerChannelBg": "#hexcolor",
+    "centerChannelColor": "#hexcolor",
+    "newMessageSeparator": "#hexcolor",
+    "linkColor": "#hexcolor",
+    "buttonBg": "#hexcolor",
+    "buttonColor": "#hexcolor",
+    "errorTextColor": "#hexcolor",
+    "mentionHighlightBg": "#hexcolor",
+    "mentionHighlightLink": "#hexcolor",
+    "codeTheme": "github"
+  },
+  "explanation": "Detailed explanation of why this theme was chosen based on the user's style and interests"
+}`
+
+	// Set default theme preference if not specified
+	if themePreference == "" {
+		themePreference = "auto"
+	}
+
+	userPrompt := fmt.Sprintf(`Generate a personalized Mattermost theme for a user with the following characteristics:
+
+Writing Style: %s
+
+Topics of Interest: %s
+
+Theme Preference: %s
+
+IMPORTANT THEME DESIGN RULES:
+- If theme preference is "dark": Use dark colors for centerChannelBg (main content area) and choose sidebar colors that complement the dark center channel
+- If theme preference is "light": Use light colors for centerChannelBg, sidebar can be any color that creates good visual hierarchy
+- If theme preference is "auto": Analyze the user's writing style and topics to determine the most appropriate theme type
+
+Create a theme that reflects their personality and professional interests while maintaining accessibility and usability.`, writingStyleReport, strings.Join(topics, ", "), themePreference)
+
+	// Create AI client
+	sessionUserID := ""
+	if session := c.Session(); session != nil {
+		sessionUserID = session.UserId
+	}
+	client := a.getAIClient(sessionUserID)
+
+	// Prepare completion request
+	completionRequest := agentclient.CompletionRequest{
+		Posts: []agentclient.Post{
+			{
+				Role:    "system",
+				Message: systemPrompt,
+			},
+			{
+				Role:    "user",
+				Message: userPrompt,
+			},
+		},
+	}
+
+	// Call the AI plugin
+	c.Logger().Debug("Calling AI agent for theme generation",
+		mlog.String("user_id", userID),
+	)
+
+	completion, aiErr := client.AgentCompletion("", completionRequest)
+	if aiErr != nil {
+		c.Logger().Error("AI agent call failed",
+			mlog.Err(aiErr),
+			mlog.String("user_id", userID),
+		)
+		return nil, model.NewAppError("GenerateAITheme", "app.user.generate_ai_theme.ai_call_failed", nil, aiErr.Error(), http.StatusInternalServerError)
+	}
+
+	// Parse JSON response
+	var aiResponse struct {
+		Theme       map[string]interface{} `json:"theme"`
+		Explanation string                 `json:"explanation"`
+	}
+
+	if parseErr := json.Unmarshal([]byte(completion), &aiResponse); parseErr != nil {
+		c.Logger().Error("Failed to parse AI response",
+			mlog.Err(parseErr),
+			mlog.String("response", completion),
+		)
+		return nil, model.NewAppError("GenerateAITheme", "app.user.generate_ai_theme.parse_failed", nil, parseErr.Error(), http.StatusInternalServerError)
+	}
+
+	// Validate and format the theme
+	theme, validationErr := a.validateAndFormatTheme(aiResponse.Theme)
+	if validationErr != nil {
+		c.Logger().Error("Theme validation failed",
+			mlog.Err(validationErr),
+			mlog.String("user_id", userID),
+		)
+		return nil, model.NewAppError("GenerateAITheme", "app.user.generate_ai_theme.validation_failed", nil, validationErr.Error(), http.StatusInternalServerError)
+	}
+
+	// Create response
+	response := &model.AIThemeResponse{
+		Theme:       theme,
+		Explanation: aiResponse.Explanation,
+		GeneratedAt: model.GetMillis(),
+	}
+
+	c.Logger().Info("Successfully generated AI theme for user",
+		mlog.String("user_id", userID),
+		mlog.String("theme_type", theme["type"]),
+	)
+
+	return response, nil
+}
+
+// validateAndFormatTheme validates and formats an AI-generated theme
+func (a *App) validateAndFormatTheme(themeMap map[string]interface{}) (map[string]string, error) {
+	// Required theme properties
+	requiredProps := []string{
+		"sidebarBg", "sidebarText", "sidebarUnreadText", "sidebarTextHoverBg",
+		"sidebarTextActiveBorder", "sidebarTextActiveColor", "sidebarHeaderBg",
+		"sidebarTeamBarBg", "sidebarHeaderTextColor", "onlineIndicator",
+		"awayIndicator", "dndIndicator", "mentionBg", "mentionBj", "mentionColor",
+		"centerChannelBg", "centerChannelColor", "newMessageSeparator",
+		"linkColor", "buttonBg", "buttonColor", "errorTextColor",
+		"mentionHighlightBg", "mentionHighlightLink", "codeTheme",
+	}
+
+	theme := make(map[string]string)
+
+	// Set default values first
+	theme["type"] = "custom"
+	theme["codeTheme"] = "github"
+
+	// Validate and convert each property
+	for _, prop := range requiredProps {
+		if value, exists := themeMap[prop]; exists {
+			if strValue, ok := value.(string); ok && strValue != "" {
+				// Validate hex color format for color properties
+				if isColorProperty(prop) && !isValidHexColor(strValue) {
+					return nil, fmt.Errorf("invalid hex color for property %s: %s", prop, strValue)
+				}
+				theme[prop] = strValue
+			} else {
+				return nil, fmt.Errorf("invalid value for property %s", prop)
+			}
+		} else {
+			return nil, fmt.Errorf("missing required property: %s", prop)
+		}
+	}
+
+	// Validate color contrast and accessibility
+	if err := a.validateThemeAccessibility(theme); err != nil {
+		return nil, fmt.Errorf("accessibility validation failed: %w", err)
+	}
+
+	return theme, nil
+}
+
+// isColorProperty checks if a property is a color property
+func isColorProperty(prop string) bool {
+	colorProps := []string{
+		"sidebarBg", "sidebarText", "sidebarUnreadText", "sidebarTextHoverBg",
+		"sidebarTextActiveBorder", "sidebarTextActiveColor", "sidebarHeaderBg",
+		"sidebarTeamBarBg", "sidebarHeaderTextColor", "onlineIndicator",
+		"awayIndicator", "dndIndicator", "mentionBg", "mentionBj", "mentionColor",
+		"centerChannelBg", "centerChannelColor", "newMessageSeparator",
+		"linkColor", "buttonBg", "buttonColor", "errorTextColor",
+		"mentionHighlightBg", "mentionHighlightLink",
+	}
+
+	for _, colorProp := range colorProps {
+		if prop == colorProp {
+			return true
+		}
+	}
+	return false
+}
+
+// isValidHexColor validates hex color format
+func isValidHexColor(color string) bool {
+	if len(color) != 7 || color[0] != '#' {
+		return false
+	}
+	for i := 1; i < 7; i++ {
+		c := color[i]
+		if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+			return false
+		}
+	}
+	return true
+}
+
+// validateThemeAccessibility performs basic accessibility checks
+func (a *App) validateThemeAccessibility(theme map[string]string) error {
+	// Basic validation - ensure we have reasonable color combinations
+	// This is a simplified check; in production, you might want more sophisticated contrast validation
+
+	// Check that sidebar text is different from sidebar background
+	if theme["sidebarBg"] == theme["sidebarText"] {
+		return fmt.Errorf("sidebar text and background colors cannot be the same")
+	}
+
+	// Check that center channel text is different from background
+	if theme["centerChannelBg"] == theme["centerChannelColor"] {
+		return fmt.Errorf("center channel text and background colors cannot be the same")
+	}
+
+	// Ensure button text is different from button background
+	if theme["buttonBg"] == theme["buttonColor"] {
+		return fmt.Errorf("button text and background colors cannot be the same")
+	}
+
+	return nil
+}

@@ -99,6 +99,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.User.Handle("/channel_members", api.APISessionRequired(getChannelMembersForUser)).Methods(http.MethodGet)
 	api.BaseRoutes.User.Handle("/profile/generate", api.APISessionRequired(generateUserProfile)).Methods(http.MethodPost)
 	api.BaseRoutes.User.Handle("/profile", api.APISessionRequired(getUserProfile)).Methods(http.MethodGet)
+	api.BaseRoutes.User.Handle("/theme/generate", api.APISessionRequired(generateAITheme)).Methods(http.MethodPost)
 
 	api.BaseRoutes.Users.Handle("/invalid_emails", api.APISessionRequired(getUsersWithInvalidEmails)).Methods(http.MethodGet)
 
@@ -3808,6 +3809,66 @@ func getUserProfile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Return the profile
 	if jsonErr := json.NewEncoder(w).Encode(profile); jsonErr != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(jsonErr))
+	}
+}
+
+func generateAITheme(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	// Parse request body
+	var req struct {
+		WritingStyleReport string   `json:"writing_style_report"`
+		Topics             []string `json:"topics"`
+		ThemePreference    string   `json:"theme_preference,omitempty"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		c.SetInvalidParamWithErr("request_body", err)
+		return
+	}
+
+	// Validate request
+	if req.WritingStyleReport == "" {
+		c.SetInvalidParam("writing_style_report")
+		return
+	}
+	if len(req.Topics) == 0 {
+		c.SetInvalidParam("topics")
+		return
+	}
+
+	// Validate theme preference if provided
+	if req.ThemePreference != "" {
+		validPreferences := map[string]bool{
+			"light": true,
+			"dark":  true,
+			"auto":  true,
+		}
+		if !validPreferences[req.ThemePreference] {
+			c.SetInvalidParam("theme_preference")
+			return
+		}
+	}
+
+	// Permission check: user can only generate their own theme
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+
+	// Call app layer to generate the theme
+	themeResponse, err := c.App.GenerateAITheme(c.AppContext, c.Params.UserId, req.WritingStyleReport, req.Topics, req.ThemePreference)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	// Return JSON response with generated theme
+	if jsonErr := json.NewEncoder(w).Encode(themeResponse); jsonErr != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(jsonErr))
 	}
 }

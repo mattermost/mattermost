@@ -43,3 +43,10 @@ type AIRequest struct {
 	Data           map[string]any `json:"data"`
 	ResponseSchema []byte         `json:"response_schema,omitempty"`
 }
+
+// AIThemeResponse represents a response containing an AI-generated theme
+type AIThemeResponse struct {
+	Theme       map[string]string `json:"theme"`
+	Explanation string            `json:"explanation"`
+	GeneratedAt int64             `json:"generated_at"`
+}
