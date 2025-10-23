@@ -4439,6 +4439,10 @@
     "translation": "Failed to send password reset email successfully."
   },
   {
+    "id": "api.user.send_password_reset.easylogin.app_error",
+    "translation": "Unable to reset password for EasyLogin accounts."
+  },
+  {
     "id": "api.user.send_password_reset.sso.app_error",
     "translation": "Unable to reset password for SSO accounts."
   },
