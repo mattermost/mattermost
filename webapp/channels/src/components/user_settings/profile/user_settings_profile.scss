@@ -41,11 +41,36 @@
     background: rgba(var(--center-channel-color-rgb), 0.04);
     border-radius: 4px;
 
+    &__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+    }
+
     &__title {
         font-size: 16px;
         font-weight: 600;
-        margin-bottom: 12px;
+        margin-bottom: 0;
         color: var(--center-channel-color);
+    }
+
+    &__copy-button {
+        cursor: pointer;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        transition: color 0.15s ease;
+        padding: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &:hover {
+            color: var(--button-bg);
+        }
+
+        .icon {
+            font-size: 16px;
+        }
     }
 
     &__subtitle {

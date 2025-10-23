@@ -10,6 +10,7 @@ import type {AIGeneratedProfile} from '@mattermost/types/users';
 import {Client4} from 'mattermost-redux/client';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
+import CopyButton from 'components/copy_button';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import SettingDesktopHeader from '../headers/setting_desktop_header';
@@ -178,12 +179,19 @@ const UserSettingsProfile: React.FC<Props> = ({closeModal, collapseModal}) => {
                 {/* Writing Style Report Section */}
                 {profile.writing_style_report && (
                     <div className='profile-section'>
-                        <h4 className='profile-section__title'>
-                            <FormattedMessage
-                                id='user.settings.profile.writingStyle'
-                                defaultMessage='Writing Style Analysis'
+                        <div className='profile-section__header'>
+                            <h4 className='profile-section__title'>
+                                <FormattedMessage
+                                    id='user.settings.profile.writingStyle'
+                                    defaultMessage='Writing Style Analysis'
+                                />
+                            </h4>
+                            <CopyButton
+                                content={profile.writing_style_report}
+                                isForText={true}
+                                className='profile-section__copy-button'
                             />
-                        </h4>
+                        </div>
                         <div className='profile-section__content'>
                             <p className='writing-style-report'>
                                 {profile.writing_style_report}
