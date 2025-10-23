@@ -103,7 +103,7 @@ export const Inverted: Story = {
     ),
     decorators: [
         (Story) => (
-            <div style={{backgroundColor: '#1e1e1e', padding: '20px'}}>
+            <div style={{backgroundColor: '#1E325C', padding: '20px'}}>
                 <Story />
             </div>
         ),
