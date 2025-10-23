@@ -14293,11 +14293,11 @@ func (s *RetryLayerTokenStore) Cleanup(expiryTime int64) {
 
 }
 
-func (s *RetryLayerTokenStore) ConsumeOnce(tokenStr string) (*model.Token, error) {
+func (s *RetryLayerTokenStore) ConsumeOnce(tokenType string, tokenStr string) (*model.Token, error) {
 
 	tries := 0
 	for {
-		result, err := s.TokenStore.ConsumeOnce(tokenStr)
+		result, err := s.TokenStore.ConsumeOnce(tokenType, tokenStr)
 		if err == nil {
 			return result, nil
 		}
