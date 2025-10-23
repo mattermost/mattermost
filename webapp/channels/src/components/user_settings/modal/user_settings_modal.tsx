@@ -262,9 +262,9 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
         return [
             {
                 name: 'profile',
-                uiName: formatMessage({id: 'user.settings.modal.profile', defaultMessage: 'Profile'}),
+                uiName: formatMessage({id: 'user.settings.modal.aiprofile', defaultMessage: 'AI Profile'}),
                 icon: 'icon icon-star-outline',
-                iconTitle: formatMessage({id: 'user.settings.profile.icon', defaultMessage: 'Profile Settings Icon'}),
+                iconTitle: formatMessage({id: 'user.settings.aiprofile.icon', defaultMessage: 'AI Profile Settings Icon'}),
             },
             {
                 name: 'notifications',
@@ -298,9 +298,9 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
         return [
             {
                 name: 'profile',
-                uiName: formatMessage({id: 'user.settings.modal.profile', defaultMessage: 'Profile'}),
+                uiName: formatMessage({id: 'user.settings.modal.aiprofile', defaultMessage: 'AI Profile'}),
                 icon: 'icon icon-star-outline',
-                iconTitle: formatMessage({id: 'user.settings.profile.icon', defaultMessage: 'Profile Settings Icon'}),
+                iconTitle: formatMessage({id: 'user.settings.aiprofile.icon', defaultMessage: 'AI Profile Settings Icon'}),
             },
             {
                 name: 'general',
@@ -342,7 +342,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
         } else if (this.props.isContentProductSettings) {
             modalTitle = formatMessage({id: 'global_header.productSettings', defaultMessage: 'Settings'});
         } else {
-            modalTitle = formatMessage({id: 'user.settings.modal.title', defaultMessage: 'Profile'});
+            modalTitle = formatMessage({id: 'user.settings.modal.title', defaultMessage: 'AI Profile'});
         }
 
         const headerTitle = (

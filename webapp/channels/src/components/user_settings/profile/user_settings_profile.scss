@@ -103,14 +103,13 @@
 }
 
 .writing-style-report {
-    line-height: 1.6;
-    padding: 12px;
-    background: rgba(var(--center-channel-color-rgb), 0.02);
-    border-radius: 4px;
-    border-left: 3px solid rgba(var(--button-bg-rgb), 0.4);
-    margin-bottom: 0 !important;
+    font-size: 15px;
+    line-height: 1.7;
+    color: rgba(var(--center-channel-color-rgb), 1);
+    margin-bottom: 24px;
     white-space: pre-wrap;
     word-wrap: break-word;
+    -webkit-font-smoothing: antialiased;
 }
 
 .profile-badges {
