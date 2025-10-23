@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {render, screen} from '@testing-library/react';
+import React from 'react';
 
 import Spinner from './spinner';
 
@@ -86,19 +86,19 @@ describe('Spinner', () => {
     });
 
     it('should accept custom aria-label', () => {
-        render(<Spinner aria-label="Custom loading message" />);
+        render(<Spinner aria-label='Custom loading message' />);
         const spinner = screen.getByRole('status', {hidden: true});
         expect(spinner).toHaveAttribute('aria-label', 'Custom loading message');
     });
 
     it('should accept custom className', () => {
-        render(<Spinner className="custom-class" />);
+        render(<Spinner className='custom-class' />);
         const spinner = screen.getByRole('status', {hidden: true});
         expect(spinner).toHaveClass('custom-class');
     });
 
     it('should pass through additional HTML attributes', () => {
-        render(<Spinner data-testid="spinner-test" />);
+        render(<Spinner data-testid='spinner-test' />);
         const spinner = screen.getByTestId('spinner-test');
         expect(spinner).toBeInTheDocument();
     });
@@ -116,7 +116,7 @@ describe('Spinner', () => {
 
     it('should handle all valid spinner sizes', () => {
         const validSizes = [10, 12, 16, 20, 24, 28, 32];
-        
+
         validSizes.forEach((size) => {
             const {unmount} = render(<Spinner size={size} data-testid={`spinner-${size}`} />);
             const spinner = screen.getByTestId(`spinner-${size}`);
