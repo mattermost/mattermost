@@ -22,6 +22,7 @@ const (
 	AIRewriteActionFixSpelling    AIRewriteAction = "fix_spelling"
 	AIRewriteActionSimplify       AIRewriteAction = "simplify"
 	AIRewriteActionSummarize      AIRewriteAction = "summarize"
+	AIRewriteActionMatchStyle     AIRewriteAction = "match_style"
 )
 
 // AIRewriteRequest represents a request to rewrite a message

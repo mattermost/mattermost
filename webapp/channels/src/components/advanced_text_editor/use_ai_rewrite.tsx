@@ -4,6 +4,7 @@
 import classNames from 'classnames';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import {
     FormatLetterCaseIcon,
@@ -15,6 +16,7 @@ import {
 import type {ServerError} from '@mattermost/types/errors';
 
 import {Client4} from 'mattermost-redux/client';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import * as Menu from 'components/menu';
 import Input from 'components/widgets/inputs/input/input';
@@ -35,6 +37,7 @@ const useAIRewrite = (
     }) | null>>,
 ) => {
     const {formatMessage} = useIntl();
+    const currentUserId = useSelector(getCurrentUserId);
     const [isProcessing, setIsProcessing] = useState(false);
     const [originalMessage, setOriginalMessage] = useState('');
     const [lastAction, setLastAction] = useState<string | null>(null);
@@ -42,6 +45,8 @@ const useAIRewrite = (
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [prompt, setPrompt] = useState('');
     const [textareaWrapper, setTextareaWrapper] = useState<Element | null>(null);
+    const [hasProfile, setHasProfile] = useState(false);
+    const [useMyStyle, setUseMyStyle] = useState(false);
     const currentPromiseRef = useRef<Promise<string> | null>(null);
 
     // Find the textarea wrapper element for positioning the overlay
@@ -67,6 +72,21 @@ const useAIRewrite = (
         return undefined;
     }, []);
 
+    // Check if user has AI profile
+    useEffect(() => {
+        const checkUserProfile = async () => {
+            try {
+                await Client4.getUserProfile(currentUserId);
+                setHasProfile(true);
+            } catch (error) {
+                // Profile doesn't exist or error fetching - hide style options
+                setHasProfile(false);
+            }
+        };
+
+        checkUserProfile();
+    }, [currentUserId]);
+
     const handleAIRewrite = useCallback(async (action?: string, prompt?: string) => {
         // If already processing, ignore the new request
         if (isProcessing) {
@@ -81,8 +101,18 @@ const useAIRewrite = (
             setLastAction(action);
         }
 
+        // Determine the actual action to use
+        let actualAction = action;
+        let actualPrompt = prompt || '';
+
+        // If generating (no message) with "use my style" checked, use match_style action
+        if (!draft.message.trim() && useMyStyle && action === 'custom') {
+            actualAction = 'match_style';
+            actualPrompt = prompt || '';
+        }
+
         // Create the promise and store it
-        const promise = Client4.getAIRewrittenMessage(draft.message, action, prompt);
+        const promise = Client4.getAIRewrittenMessage(draft.message, actualAction, actualPrompt);
         currentPromiseRef.current = promise;
 
         try {
@@ -113,7 +143,7 @@ const useAIRewrite = (
                 currentPromiseRef.current = null;
             }
         }
-    }, [draft, handleDraftChange, isProcessing, setServerError]);
+    }, [draft, handleDraftChange, isProcessing, setServerError, useMyStyle]);
 
     const cancelProcessing = useCallback(() => {
         setIsProcessing(false);
@@ -262,6 +292,21 @@ const useAIRewrite = (
                             onChange={(e) => setPrompt(e.target.value)}
                             onKeyDown={handleCustomPromptKeyDown}
                         />
+                        {!draft.message.trim() && hasProfile && (
+                            <label className='ai-rewrite-style-toggle'>
+                                <input
+                                    type='checkbox'
+                                    checked={useMyStyle}
+                                    onChange={(e) => setUseMyStyle(e.target.checked)}
+                                />
+                                <span>
+                                    {formatMessage({
+                                        id: 'texteditor.aiRewrite.generateInMyStyle',
+                                        defaultMessage: 'Generate in my style',
+                                    })}
+                                </span>
+                            </label>
+                        )}
                     </div>
                 )}
                 menuButton={{
@@ -412,6 +457,23 @@ const useAIRewrite = (
                         onClick={handleMenuAction('summarize')}
                     />
                 }
+                {showMenuItem && hasProfile &&
+                    <Menu.Item
+                        key='ai-match-style'
+                        role='menuitemradio'
+                        aria-checked={false}
+                        labels={
+                            <span>
+                                {formatMessage({
+                                    id: 'texteditor.aiRewrite.matchStyle',
+                                    defaultMessage: 'Rewrite in my style',
+                                })}
+                            </span>
+                        }
+                        leadingElement={<CreationOutlineIcon size={18}/>}
+                        onClick={handleMenuAction('match_style')}
+                    />
+                }
             </Menu.Container>
         );
     }, [
@@ -429,6 +491,8 @@ const useAIRewrite = (
         originalMessage,
         regenerateMessage,
         undoMessage,
+        hasProfile,
+        useMyStyle,
     ]);
 
     return {

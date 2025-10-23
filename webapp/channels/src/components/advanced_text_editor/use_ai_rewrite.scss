@@ -56,3 +56,25 @@
 #ai-rewrite-button {
     pointer-events: auto;
 }
+
+.ai-rewrite-style-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    user-select: none;
+
+    input[type='checkbox'] {
+        cursor: pointer;
+    }
+
+    span {
+        font-size: 14px;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+    }
+
+    &:hover span {
+        color: rgba(var(--center-channel-color-rgb), 1);
+    }
+}

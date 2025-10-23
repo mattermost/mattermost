@@ -35,13 +35,25 @@ func (a *App) RewriteMessage(
 		model.AIRewriteActionSimplify:       true,
 		model.AIRewriteActionSummarize:      true,
 		model.AIRewriteActionCustom:         true,
+		model.AIRewriteActionMatchStyle:     true,
 	}
 	if !validActions[action] {
 		return nil, model.NewAppError("RewriteMessage", "app.ai.rewrite.invalid_action", nil, fmt.Sprintf("invalid action: %s", action), 400)
 	}
 
-	// Get prompts for the action
-	prompt, systemPrompt := getRewritePromptForAction(action, message, customPrompt)
+	var prompt, systemPrompt string
+
+	// Handle style-based rewriting specially
+	if action == model.AIRewriteActionMatchStyle {
+		var appErr *model.AppError
+		prompt, systemPrompt, appErr = a.getStyleBasedRewritePrompt(rctx, userID, message, customPrompt)
+		if appErr != nil {
+			return nil, appErr
+		}
+	} else {
+		// Get prompts for other actions
+		prompt, systemPrompt = getRewritePromptForAction(action, message, customPrompt)
+	}
 
 	// Create AI client
 	sessionUserID := ""
@@ -145,4 +157,54 @@ func getRewritePromptForAction(action model.AIRewriteAction, message string, cus
 	}
 
 	return userPrompt, systemPrompt
+}
+
+// getStyleBasedRewritePrompt fetches user's profile and creates prompts for style-based rewriting
+func (a *App) getStyleBasedRewritePrompt(c request.CTX, userID string, message string, customPrompt string) (string, string, *model.AppError) {
+	// Fetch user
+	user, appErr := a.GetUser(userID)
+	if appErr != nil {
+		return "", "", appErr
+	}
+
+	// Get profile from user props
+	profileJSON, ok := user.Props[model.UserPropsKeyAIGeneratedProfile]
+	if !ok || profileJSON == "" {
+		return "", "", model.NewAppError("getStyleBasedRewritePrompt", "app.ai.rewrite.no_profile", nil, "User has not generated an AI profile", 404)
+	}
+
+	// Parse profile
+	profile, err := model.AIGeneratedProfileFromJSON(profileJSON)
+	if err != nil {
+		return "", "", model.NewAppError("getStyleBasedRewritePrompt", "app.ai.rewrite.invalid_profile", nil, err.Error(), 500)
+	}
+
+	if profile.WritingStyleReport == "" {
+		return "", "", model.NewAppError("getStyleBasedRewritePrompt", "app.ai.rewrite.empty_style_report", nil, "Profile has no writing style report", 500)
+	}
+
+	// System prompt
+	systemPrompt := `You are a JSON API that rewrites or generates text. Your response must be valid JSON only. Return this exact format: {"rewritten_text":"content"}. Do not use markdown, code blocks, or any formatting. Start with { and end with }.`
+
+	var userPrompt string
+
+	if message == "" {
+		// Generation mode (no existing text)
+		if customPrompt == "" {
+			userPrompt = fmt.Sprintf(`Generate a message in this writing style: %s`, profile.WritingStyleReport)
+		} else {
+			userPrompt = fmt.Sprintf(`Generate a message about: %s
+
+Write in this style: %s`, customPrompt, profile.WritingStyleReport)
+		}
+	} else {
+		// Rewrite mode (existing text)
+		userPrompt = fmt.Sprintf(`Rewrite this text to match this writing style exactly. Preserve the meaning but adjust tone, vocabulary, sentence structure, and phrasing to match the style.
+
+Writing Style: %s
+
+Text to rewrite: %s`, profile.WritingStyleReport, message)
+	}
+
+	return userPrompt, systemPrompt, nil
 }
