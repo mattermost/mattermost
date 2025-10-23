@@ -964,30 +964,9 @@ func (a *App) PublishPageDraft(rctx request.CTX, userId, wikiId, draftId, parent
 		rctx.Logger().Debug("Creating new page from draft",
 			mlog.String("wiki_id", wikiId))
 
-		createdPost, createErr := a.CreatePage(rctx, wiki.ChannelId, title, parentId, draft.Message, userId, searchText)
+		createdPost, createErr := a.CreateWikiPage(rctx, wikiId, parentId, title, draft.Message, userId, searchText)
 		if createErr != nil {
 			return nil, createErr
-		}
-
-		createdPost.Props["wiki_id"] = wikiId
-		updatedPost, updateErr := a.UpdatePost(rctx, createdPost, nil)
-		if updateErr != nil {
-			if _, deleteErr := a.DeletePost(rctx, createdPost.Id, userId); deleteErr != nil {
-				rctx.Logger().Warn("Failed to delete page after wiki_id update failure",
-					mlog.String("page_id", createdPost.Id),
-					mlog.Err(deleteErr))
-			}
-			return nil, updateErr
-		}
-		createdPost = updatedPost
-
-		if linkErr := a.AddPageToWiki(rctx, createdPost.Id, wikiId); linkErr != nil {
-			if _, deleteErr := a.DeletePost(rctx, createdPost.Id, userId); deleteErr != nil {
-				rctx.Logger().Warn("Failed to delete page after wiki link failure",
-					mlog.String("page_id", createdPost.Id),
-					mlog.Err(deleteErr))
-			}
-			return nil, linkErr
 		}
 
 		savedPost = createdPost

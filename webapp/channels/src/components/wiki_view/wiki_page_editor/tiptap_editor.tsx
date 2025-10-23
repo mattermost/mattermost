@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {Extension} from '@tiptap/core';
+import FileHandler from '@tiptap/extension-file-handler';
 import Heading from '@tiptap/extension-heading';
 import Image from '@tiptap/extension-image';
 import {Mention} from '@tiptap/extension-mention';
@@ -9,8 +10,10 @@ import {Plugin, PluginKey} from '@tiptap/pm/state';
 import {useEditor, EditorContent} from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import React, {useEffect} from 'react';
+import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getAssociatedGroupsForReference} from 'mattermost-redux/selectors/entities/groups';
 
 import {autocompleteUsersInChannel} from 'actions/views/channel';
@@ -18,10 +21,12 @@ import {searchAssociatedGroupsForReference} from 'actions/views/group';
 
 import WithTooltip from 'components/with_tooltip';
 
+import {canUploadFiles} from 'utils/file_utils';
 import {slugifyHeading} from 'utils/slugify_heading';
 
 import type {GlobalState} from 'types/store';
 
+import {uploadImageForEditor, validateImageFile} from './file_upload_helper';
 import {createMMentionSuggestion} from './mention_mm_bridge';
 
 import './tiptap_editor.scss';
@@ -30,7 +35,10 @@ import './tiptap_editor.scss';
 const HeadingWithId = Heading.extend({
     addAttributes() {
         return {
-            ...this.parent(),
+            level: {
+                default: 1,
+                rendered: false,
+            },
             id: {
                 default: null,
                 parseHTML: (element: any) => element.getAttribute('id'),
@@ -128,12 +136,19 @@ const TipTapEditor = ({
     teamId,
 }: Props) => {
     const dispatch = useDispatch();
+    const intl = useIntl();
+
     const autocompleteGroups = useSelector((state: GlobalState) => {
         if (!teamId || !channelId) {
             return [];
         }
         return getAssociatedGroupsForReference(state, teamId, channelId);
     });
+
+    // Get file upload config from Redux
+    const config = useSelector((state: GlobalState) => getConfig(state));
+    const maxFileSize = parseInt(config.MaxFileSize || '', 10);
+    const uploadsEnabled = canUploadFiles(config);
 
     const extensions = [
         StarterKit.configure({
@@ -149,6 +164,85 @@ const TipTapEditor = ({
             },
         }),
     ];
+
+    // Add FileHandler extension for drag-drop and paste image uploads
+    if (editable && uploadsEnabled && channelId) {
+        extensions.push(
+            FileHandler.configure({
+                allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/svg+xml'],
+                onDrop: (currentEditor, files, pos) => {
+                    files.forEach(async (file) => {
+                        const validation = validateImageFile(file, maxFileSize, intl);
+                        if (!validation.valid) {
+                            return;
+                        }
+
+                        try {
+                            // Upload using MM's uploadFile action
+                            uploadImageForEditor({
+                                file,
+                                channelId,
+                                onSuccess: (result) => {
+                                    const imageUrl = `/api/v4/files/${result.fileInfo.id}`;
+                                    currentEditor.
+                                        chain().
+                                        insertContentAt(pos, {
+                                            type: 'image',
+                                            attrs: {
+                                                src: imageUrl,
+                                                alt: file.name,
+                                                title: file.name,
+                                            },
+                                        }).
+                                        focus().
+                                        run();
+                                },
+                            }, dispatch);
+                        } catch {
+                            // Upload error handled by uploadImageForEditor
+                        }
+                    });
+                },
+                onPaste: (currentEditor, files) => {
+                    // Only handle if files are present (not HTML content)
+                    if (files.length === 0) {
+                        return false;
+                    }
+
+                    files.forEach(async (file) => {
+                        // Validate file
+                        const validation = validateImageFile(file, maxFileSize, intl);
+                        if (!validation.valid) {
+                            return;
+                        }
+
+                        try {
+                            uploadImageForEditor({
+                                file,
+                                channelId,
+                                onSuccess: (result) => {
+                                    const imageUrl = `/api/v4/files/${result.fileInfo.id}`;
+                                    currentEditor.
+                                        chain().
+                                        focus().
+                                        setImage({
+                                            src: imageUrl,
+                                            alt: file.name,
+                                            title: file.name,
+                                        }).
+                                        run();
+                                },
+                            }, dispatch);
+                        } catch {
+                            // Upload error handled by uploadImageForEditor
+                        }
+                    });
+
+                    return true; // Handled
+                },
+            }),
+        );
+    }
 
     if (currentUserId && teamId) {
         extensions.push(
@@ -256,12 +350,51 @@ const TipTapEditor = ({
     };
 
     const addImage = () => {
-        // TODO: Replace window.prompt with a proper modal dialog
-        const url = window.prompt('Enter image URL:'); // eslint-disable-line no-alert
-
-        if (url) {
-            editor.chain().focus().setImage({src: url}).run();
+        if (!channelId || !uploadsEnabled) {
+            const url = window.prompt('Enter image URL:'); // eslint-disable-line no-alert
+            if (url) {
+                editor.chain().focus().setImage({src: url}).run();
+            }
+            return;
         }
+
+        // Create hidden file input (reusing MM pattern)
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/png,image/jpeg,image/gif,image/webp,image/svg+xml';
+        input.multiple = false;
+
+        input.onchange = async (e) => {
+            const file = (e.target as HTMLInputElement).files?.[0];
+            if (!file) {
+                return;
+            }
+
+            const validation = validateImageFile(file, maxFileSize, intl);
+            if (!validation.valid) {
+                return;
+            }
+
+            try {
+                uploadImageForEditor({
+                    file,
+                    channelId,
+                    onSuccess: (result) => {
+                        const imageUrl = `/api/v4/files/${result.fileInfo.id}`;
+                        editor?.chain().focus().setImage({
+                            src: imageUrl,
+                            alt: file.name,
+                            title: file.name,
+                        }).run();
+                    },
+                }, dispatch);
+            } catch {
+                // Upload error handled by uploadImageForEditor
+            }
+        };
+
+        // Trigger file picker
+        input.click();
     };
 
     return (

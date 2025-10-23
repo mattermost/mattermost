@@ -271,7 +271,7 @@ func (a *App) RemovePageFromWiki(rctx request.CTX, pageId, wikiId string) *model
 	return nil
 }
 
-func (a *App) CreateWikiPage(rctx request.CTX, wikiId, parentId, title, userId string) (*model.Post, *model.AppError) {
+func (a *App) CreateWikiPage(rctx request.CTX, wikiId, parentId, title, content, userId, searchText string) (*model.Post, *model.AppError) {
 	rctx.Logger().Debug("Creating wiki page",
 		mlog.String("wiki_id", wikiId),
 		mlog.String("parent_id", parentId))
@@ -281,7 +281,7 @@ func (a *App) CreateWikiPage(rctx request.CTX, wikiId, parentId, title, userId s
 		return nil, err
 	}
 
-	createdPage, createErr := a.CreatePage(rctx, wiki.ChannelId, title, parentId, "", userId, "")
+	createdPage, createErr := a.CreatePage(rctx, wiki.ChannelId, title, parentId, content, userId, searchText)
 	if createErr != nil {
 		return nil, createErr
 	}

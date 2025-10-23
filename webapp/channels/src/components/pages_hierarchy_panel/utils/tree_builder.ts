@@ -67,17 +67,16 @@ export function buildTree(pages: PageOrDraft[]): TreeNode[] {
         }
     });
 
-    // Sort children recursively by create_at (oldest first)
-    const sortChildren = (nodes: TreeNode[]): TreeNode[] => {
-        return nodes.sort((a, b) => {
-            return a.page.create_at - b.page.create_at;
-        }).map((node) => ({
+    // Preserve the order from the database (already sorted by CreateAt DESC)
+    // Recursively process children to maintain their order as well
+    const processChildren = (nodes: TreeNode[]): TreeNode[] => {
+        return nodes.map((node) => ({
             ...node,
-            children: sortChildren(node.children),
+            children: processChildren(node.children),
         }));
     };
 
-    return sortChildren(rootNodes);
+    return processChildren(rootNodes);
 }
 
 /**

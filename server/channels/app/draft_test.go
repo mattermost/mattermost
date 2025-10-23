@@ -479,7 +479,7 @@ func TestPublishPageDraft(t *testing.T) {
 	})
 
 	t.Run("update existing page from draft", func(t *testing.T) {
-		originalPage, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Original Title", user.Id)
+		originalPage, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Original Title", "", user.Id, "")
 		require.Nil(t, appErr)
 
 		draftId := model.NewId()
@@ -503,7 +503,7 @@ func TestPublishPageDraft(t *testing.T) {
 	})
 
 	t.Run("multiple autosaves preserve page_id", func(t *testing.T) {
-		originalPage, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Autosave Test", user.Id)
+		originalPage, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Autosave Test", "", user.Id, "")
 		require.Nil(t, appErr)
 
 		draftId := model.NewId()
@@ -566,7 +566,6 @@ func TestPublishPageDraft(t *testing.T) {
 		assert.Equal(t, title, publishedPage.Props["title"], "Page title should match draft")
 		assert.Equal(t, model.PostTypePage, publishedPage.Type, "Post type should be PostTypePage")
 		assert.Equal(t, channel.Id, publishedPage.ChannelId, "Page should be in correct channel")
-		assert.Equal(t, createdWiki.Id, publishedPage.Props["wiki_id"], "Page should have wiki_id prop")
 		assert.Equal(t, user.Id, publishedPage.UserId, "Page should be created by correct user")
 
 		retrievedPage, getErr := th.App.GetPage(th.Context, publishedPage.Id)
@@ -606,7 +605,7 @@ func TestPageDraftWhenPageDeleted(t *testing.T) {
 	sessionCtx := createSessionContext(th)
 
 	t.Run("unpublished draft retained when page deleted by another user", func(t *testing.T) {
-		page, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Page to Delete", user.Id)
+		page, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Page to Delete", "", user.Id, "")
 		require.Nil(t, appErr)
 
 		draftId := model.NewId()
@@ -628,7 +627,7 @@ func TestPageDraftWhenPageDeleted(t *testing.T) {
 	})
 
 	t.Run("publishing orphaned draft fails when page was deleted concurrently", func(t *testing.T) {
-		page, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Page to Delete Before Publish", user.Id)
+		page, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Page to Delete Before Publish", "", user.Id, "")
 		require.Nil(t, appErr)
 
 		draftId := model.NewId()
@@ -645,7 +644,7 @@ func TestPageDraftWhenPageDeleted(t *testing.T) {
 	})
 
 	t.Run("draft for new page unaffected when different page deleted", func(t *testing.T) {
-		pageToDelete, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Unrelated Page", user.Id)
+		pageToDelete, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Unrelated Page", "", user.Id, "")
 		require.Nil(t, appErr)
 
 		draftId := model.NewId()
@@ -668,7 +667,7 @@ func TestPageDraftWhenPageDeleted(t *testing.T) {
 	})
 
 	t.Run("multiple users' unpublished drafts all retained after page deletion", func(t *testing.T) {
-		page, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Page with Multiple Drafts", user.Id)
+		page, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Page with Multiple Drafts", "", user.Id, "")
 		require.Nil(t, appErr)
 
 		user2 := th.CreateUser()
@@ -698,7 +697,7 @@ func TestPageDraftWhenPageDeleted(t *testing.T) {
 	})
 
 	t.Run("regular post drafts unaffected by page deletion", func(t *testing.T) {
-		page, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Page Unrelated to Post Draft", user.Id)
+		page, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Page Unrelated to Post Draft", "", user.Id, "")
 		require.Nil(t, appErr)
 
 		regularPostDraft := &model.Draft{

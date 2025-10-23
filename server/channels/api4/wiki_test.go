@@ -5,6 +5,7 @@ package api4
 
 import (
 	"context"
+	"net/http"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -391,7 +392,7 @@ func TestGetWikiPage(t *testing.T) {
 	wiki2, appErr = th.App.CreateWiki(th.Context, wiki2, th.BasicUser.Id)
 	require.Nil(t, appErr)
 
-	page, appErr := th.App.CreateWikiPage(th.Context, wiki1.Id, "", "Test Page", th.BasicUser.Id)
+	page, appErr := th.App.CreateWikiPage(th.Context, wiki1.Id, "", "Test Page", "", th.BasicUser.Id, "")
 	require.Nil(t, appErr)
 
 	t.Run("get page from correct wiki successfully", func(t *testing.T) {
@@ -745,7 +746,7 @@ func TestWikiPermissions(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
-	t.Run("removing page from wiki unlinks it without deleting the page", func(t *testing.T) {
+	t.Run("removing page from wiki deletes the page", func(t *testing.T) {
 		publicChannel := th.CreatePublicChannel()
 		th.Context.Session().UserId = th.BasicUser.Id
 
@@ -780,11 +781,9 @@ func TestWikiPermissions(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
-		retrievedPage, appErr := th.App.GetSinglePost(th.Context, page.Id, false)
-		require.Nil(t, appErr)
-		require.Equal(t, page.Id, retrievedPage.Id)
-		require.Equal(t, "Test Page Content", retrievedPage.Message)
-		require.Equal(t, model.PostTypePage, retrievedPage.Type)
+		_, appErr = th.App.GetSinglePost(th.Context, page.Id, false)
+		require.NotNil(t, appErr, "Page should be deleted when removed from wiki")
+		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
 
 		pages, resp, err = th.Client.GetWikiPages(context.Background(), wiki.Id, 0, 100)
 		require.NoError(t, err)
@@ -847,7 +846,6 @@ func TestPageDraftToPublishE2E(t *testing.T) {
 		assert.JSONEq(t, updatedDraftMessage, publishedPage.Message)
 		require.Equal(t, th.BasicChannel.Id, publishedPage.ChannelId)
 		require.Equal(t, pageTitle, publishedPage.Props["title"])
-		require.Equal(t, createdWiki.Id, publishedPage.Props["wiki_id"])
 
 		_, appErr = th.App.GetPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, draftId)
 		require.NotNil(t, appErr)

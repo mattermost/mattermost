@@ -145,7 +145,7 @@ func TestCreatePage(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, createdWiki)
 
-		page, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "New Page", th.BasicUser.Id)
+		page, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "New Page", "", th.BasicUser.Id, "")
 		require.Nil(t, err)
 		require.NotNil(t, page)
 		require.Equal(t, model.PostTypePage, page.Type)
@@ -173,11 +173,11 @@ func TestCreatePage(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, createdWiki)
 
-		parentPage, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Parent Page", th.BasicUser.Id)
+		parentPage, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Parent Page", "", th.BasicUser.Id, "")
 		require.Nil(t, err)
 		require.NotNil(t, parentPage)
 
-		childPage, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, parentPage.Id, "Child Page", th.BasicUser.Id)
+		childPage, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, parentPage.Id, "Child Page", "", th.BasicUser.Id, "")
 		require.Nil(t, err)
 		require.NotNil(t, childPage)
 		require.Equal(t, parentPage.Id, childPage.PageParentId, "Child page should reference parent")
@@ -206,7 +206,7 @@ func TestCreatePage(t *testing.T) {
 		}, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, postErr)
 
-		_, pageErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, regularPost.Id, "Invalid Child", th.BasicUser.Id)
+		_, pageErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, regularPost.Id, "Invalid Child", "", th.BasicUser.Id, "")
 		require.NotNil(t, pageErr, "Should fail when parent is not a page")
 		require.Equal(t, "app.page.create.parent_not_page.app_error", pageErr.Id)
 	})
@@ -244,11 +244,11 @@ func TestCreatePage(t *testing.T) {
 		createdOtherWiki, wikiErr := th.App.CreateWiki(th.Context, otherWiki, th.BasicUser.Id)
 		require.Nil(t, wikiErr)
 
-		otherParentPage, err := th.App.CreateWikiPage(th.Context, createdOtherWiki.Id, "", "Other Parent", th.BasicUser.Id)
+		otherParentPage, err := th.App.CreateWikiPage(th.Context, createdOtherWiki.Id, "", "Other Parent", "", th.BasicUser.Id, "")
 		require.Nil(t, err)
 		require.NotNil(t, otherParentPage)
 
-		_, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, otherParentPage.Id, "Cross-Channel Child", th.BasicUser.Id)
+		_, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, otherParentPage.Id, "Cross-Channel Child", "", th.BasicUser.Id, "")
 		require.NotNil(t, appErr, "Should fail when parent is in different channel")
 		require.Equal(t, "app.page.create.parent_different_channel.app_error", appErr.Id)
 	})
