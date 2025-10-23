@@ -568,6 +568,8 @@ func (es *Service) SendGuestInviteEmails(
 			if isEasyLogin {
 				// Easy login uses SSO-style authentication - clicking the link logs them in directly
 				data.Props["ButtonURL"] = fmt.Sprintf("%s/login/sso/easy?t=%s", siteURL, url.QueryEscape(token.Token))
+				// Add app deep link for easy login (wrapped in template.URL to mark it as safe)
+				data.Props["AppButtonURL"] = template.URL(fmt.Sprintf("mattermost://%s/login/sso/easy?t=%s", strings.TrimPrefix(strings.TrimPrefix(siteURL, "https://"), "http://"), url.QueryEscape(token.Token)))
 			} else {
 				data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s&sbr=%s", siteURL, url.QueryEscape(tokenData), url.QueryEscape(token.Token), es.GetTrackFlowStartedByRole(isFirstAdmin, isSystemAdmin))
 			}
@@ -663,6 +665,8 @@ func (es *Service) SendGuestEasyLoginEmailSelfService(
 
 	// Easy login uses SSO-style authentication - clicking the link logs them in directly
 	data.Props["ButtonURL"] = fmt.Sprintf("%s/login/sso/easy?t=%s", siteURL, url.QueryEscape(token.Token))
+	// Add app deep link for easy login (wrapped in template.URL to mark it as safe)
+	data.Props["AppButtonURL"] = template.URL(fmt.Sprintf("mattermost://%s/login/sso/easy?t=%s", strings.TrimPrefix(strings.TrimPrefix(siteURL, "https://"), "http://"), url.QueryEscape(token.Token)))
 
 	if !*es.config().EmailSettings.SendEmailNotifications {
 		mlog.Info("sending easy login link", mlog.String("to", invite))
