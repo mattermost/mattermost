@@ -1,9 +1,0 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
-// Sass modules must be at the top
-@use 'sass:color';
-
-// Import component styles
-@import './components/primitives/toggle/toggle';
-@import './components/patterns/TestFooBar/TestFooBar';
