@@ -50,7 +50,7 @@ type Props = {
     autoFocus?: boolean;
     suppressNoOptionsMessage?: boolean;
     onPaste?: (e: ClipboardEvent) => void;
-    intl?: IntlShape;
+    intl: IntlShape;
 }
 
 export type EmailInvite = {

@@ -110,6 +110,7 @@ const InviteMembers = (props: Props) => {
             autoFocus={true}
             validAddressMessage={messages.validAddress}
             suppressNoOptionsMessage={suppressNoOptionsMessage}
+            intl={useIntl()}
         />
     );
 
