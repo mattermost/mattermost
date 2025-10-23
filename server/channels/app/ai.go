@@ -111,147 +111,37 @@ func (a *App) RewriteMessage(
 
 // getRewritePromptForAction returns the appropriate prompt and system prompt for the given rewrite action
 func getRewritePromptForAction(action model.AIRewriteAction, message string, customPrompt string) (string, string) {
-	systemPrompt := `You are a text rewriting assistant. You must return ONLY a JSON object with this exact structure:
-{"rewritten_text":"your rewritten content here"}
-
-CRITICAL RULES:
-- Output MUST be valid JSON
-- Output MUST contain exactly one field: "rewritten_text"
-- Do NOT wrap the JSON in markdown code blocks
-- Do NOT add any explanatory text before or after the JSON
-- Do NOT escape newlines or special characters in the rewritten_text field beyond standard JSON escaping
-- The value of "rewritten_text" should contain the rewritten message only`
+	systemPrompt := `You are a text rewriting assistant. You MUST return ONLY a JSON object with this exact structure: {"rewritten_text":"your rewritten content here"}. Do not return plain text. Do not use markdown. Do not wrap in code blocks. Start your response with { and end with }.`
 
 	if message == "" {
-		return fmt.Sprintf(`Rewrite according to these instructions: %s
-
-Return your response as a JSON object with a single "rewritten_text" field containing the newly created message.`, customPrompt), systemPrompt
+		return fmt.Sprintf(`Rewrite according to these instructions: %s`, customPrompt), systemPrompt
 	}
 
 	var userPrompt string
 
 	switch action {
 	case model.AIRewriteActionCustom:
-		userPrompt = fmt.Sprintf(`Apply these custom instructions to rewrite the message below:
+		userPrompt = fmt.Sprintf(`%s
 
-<custom_instructions>
-%s
-</custom_instructions>
-
-<message>
-%s
-</message>
-
-Return a JSON object with "rewritten_text" containing the rewritten message.`, customPrompt, message)
+%s`, customPrompt, message)
 
 	case model.AIRewriteActionShorten:
-		userPrompt = fmt.Sprintf(`<task>
-Rewrite the message below to be concise and succinct while preserving core meaning and intent.
-</task>
-
-<guidelines>
-- Remove redundant words and simplify complex phrases
-- Get straight to the point
-- Maintain the original tone and formality level
-- Keep essential information intact
-</guidelines>
-
-<message>
-%s
-</message>
-
-Return a JSON object with "rewritten_text" containing the shortened message.`, message)
+		userPrompt = fmt.Sprintf(`Make this shorter: %s`, message)
 
 	case model.AIRewriteActionElaborate:
-		userPrompt = fmt.Sprintf(`<task>
-Expand and elaborate on the message below to make it more detailed and comprehensive.
-</task>
-
-<guidelines>
-- Add relevant context, examples, and explanations
-- Aim for 2-3 times the original length (do not exceed this)
-- For longer pieces of text, if necessary, use Markdown formatting within the message (headers ##, lists, bold, italic, code blocks) to improve readability
-- Maintain the original intent while increasing informativeness
-</guidelines>
-
-<message>
-%s
-</message>
-
-Return a JSON object with "rewritten_text" containing the elaborated message.`, message)
+		userPrompt = fmt.Sprintf(`Expand this: %s`, message)
 
 	case model.AIRewriteActionImproveWriting:
-		userPrompt = fmt.Sprintf(`<task>
-Improve the writing quality, clarity, and professionalism of the message below while maintaining original intent.
-</task>
-
-<guidelines>
-- Fix grammar issues and improve sentence structure
-- Enhance clarity and make writing more engaging
-- Use professional language with proper grammar
-- For longer pieces of text, if necessary, use Markdown formatting within the message (headers ##, lists, bold, italic, code blocks) to improve readability
-- Do not significantly lengthen the message
-- Avoid casual language, slang, or overly informal expressions
-</guidelines>
-
-<message>
-%s
-</message>
-
-Return a JSON object with "rewritten_text" containing the improved message.`, message)
+		userPrompt = fmt.Sprintf(`Improve this writing: %s`, message)
 
 	case model.AIRewriteActionFixSpelling:
-		userPrompt = fmt.Sprintf(`<task>
-Fix all spelling and grammar errors in the message below.
-</task>
-
-<guidelines>
-- Correct spelling mistakes, grammatical errors, and typos
-- Preserve original meaning, tone, and style
-- Make no other changes beyond error correction
-</guidelines>
-
-<message>
-%s
-</message>
-
-Return a JSON object with "rewritten_text" containing the corrected message.`, message)
+		userPrompt = fmt.Sprintf(`Fix spelling and grammar: %s`, message)
 
 	case model.AIRewriteActionSimplify:
-		userPrompt = fmt.Sprintf(`<task>
-Simplify the message below to make it easier to understand.
-</task>
-
-<guidelines>
-- Use simpler words and clearer sentence structure
-- Use more accessible vocabulary
-- Make content understandable for a broader audience
-- Preserve original meaning and intent
-</guidelines>
-
-<message>
-%s
-</message>
-
-Return a JSON object with "rewritten_text" containing the simplified message.`, message)
+		userPrompt = fmt.Sprintf(`Simplify this: %s`, message)
 
 	case model.AIRewriteActionSummarize:
-		userPrompt = fmt.Sprintf(`<task>
-Create a concise summary of the message below, capturing key points and main ideas.
-</task>
-
-<guidelines>
-- Extract key points, main ideas, and essential information
-- For longer pieces of text, if necessary, use Markdown formatting within the message (headers ##, bullet points, bold, italic) to improve structure
-- Focus on the most important content
-- Maintain accuracy
-</guidelines>
-
-<message>
-%s
-</message>
-
-Return a JSON object with "rewritten_text" containing the summary.`, message)
+		userPrompt = fmt.Sprintf(`Summarize this: %s`, message)
 
 	default:
 		userPrompt = message
