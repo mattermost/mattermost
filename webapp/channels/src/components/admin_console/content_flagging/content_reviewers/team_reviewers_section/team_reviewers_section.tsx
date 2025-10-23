@@ -5,13 +5,13 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import {Toggle} from '@mattermost/design-system';
 import type {TeamReviewerSetting} from '@mattermost/types/config';
 import type {Team, TeamSearchOpts} from '@mattermost/types/teams';
 
 import {searchTeams} from 'mattermost-redux/actions/teams';
 
 import DataGrid from 'components/admin_console/data_grid/data_grid';
-import Toggle from 'components/toggle';
 import {TeamIcon} from 'components/widgets/team_icon/team_icon';
 
 import * as Utils from 'utils/utils';

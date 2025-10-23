@@ -5,7 +5,7 @@ import React from 'react';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
-import NewMessageSeparator from './new_message_separator';
+import NewMessageSeparator from './index';
 
 describe('components/post_view/new_message_separator', () => {
     test('should render new_message_separator', () => {
