@@ -4435,6 +4435,10 @@
     "translation": "Failed to send email change verification email successfully"
   },
   {
+    "id": "api.user.send_password_reset.easy_login.app_error",
+    "translation": "Unable to reset password for easy login accounts."
+  },
+  {
     "id": "api.user.send_password_reset.send.app_error",
     "translation": "Failed to send password reset email successfully."
   },

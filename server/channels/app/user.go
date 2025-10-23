@@ -1714,6 +1714,10 @@ func (a *App) resetPasswordFromToken(rctx request.CTX, userSuppliedTokenString, 
 		return model.NewAppError("ResetPasswordFromCode", "api.user.reset_password.sso.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 	}
 
+	if user.IsGuest() && user.IsEasyLoginEnabled() {
+		return model.NewAppError("ResetPasswordFromCode", "api.user.send_password_reset.easy_login.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
+	}
+
 	// don't allow password reset for remote/synthetic users
 	if user.IsRemote() {
 		return model.NewAppError("resetPassword", "api.user.reset_password.broken_token.app_error", nil, "", http.StatusBadRequest)
@@ -1745,6 +1749,10 @@ func (a *App) SendPasswordReset(rctx request.CTX, email string, siteURL string) 
 
 	if user.AuthData != nil && *user.AuthData != "" {
 		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.sso.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
+	}
+
+	if user.IsGuest() && user.IsEasyLoginEnabled() {
+		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.easy_login.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 	}
 
 	token, err := a.CreatePasswordRecoveryToken(rctx, user.Id, user.Email)
