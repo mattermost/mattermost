@@ -6,7 +6,9 @@ import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 import styled from 'styled-components';
 
-import RenderEmoji from 'components/emoji/render_emoji';
+import RenderEmoji from '@mattermost/design-system/src/components/primitives/emoji/render_emoji';
+
+import {useEmojiImageUrl} from 'utils/emoji_utils';
 
 // This component is a temporary placeholder for use until the authoritative `compass-components` Chip is implemented.
 
@@ -63,6 +65,7 @@ const Chip = ({
     values,
     additionalMarkup,
 }: Props) => {
+    const emojiImageURL = useEmojiImageUrl(leadingIcon);
     const handleClick = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
         onClick?.();
@@ -77,6 +80,7 @@ const Chip = ({
             {leadingIcon && (
                 <RenderEmoji
                     emojiName={leadingIcon}
+                    emojiImageURL={emojiImageURL}
                     emojiStyle={emojiStyles}
                 />
             )}

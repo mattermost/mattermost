@@ -5,11 +5,8 @@ import classNames from 'classnames';
 import React, {useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 
-import WithTooltip from 'components/with_tooltip';
-
-import {getShortenedURL} from 'utils/url';
-
-import Input from '../input/input';
+import Input from '@mattermost/design-system/src/components/primitives/input/input';
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 
 import './url_input.scss';
 
@@ -81,6 +78,14 @@ function UrlInput({
             event.stopPropagation();
         }
     };
+    const getShortenedURL = (url = '', getLength = 27): string => {
+        if (url.length > 35) {
+            const subLength = getLength - 14;
+            return url.substring(0, 10) + '...' + url.substring(url.length - subLength, url.length);
+        }
+        return url;
+    };
+
     const urlInputLabel = (
         <span
             className='url-input-label'

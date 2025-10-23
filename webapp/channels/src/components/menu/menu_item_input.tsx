@@ -5,8 +5,8 @@ import React from 'react';
 import type {css} from 'styled-components';
 import styled from 'styled-components';
 
-import type {InputProps} from 'components/widgets/inputs/input/input';
-import Input from 'components/widgets/inputs/input/input';
+import type {InputProps} from '@mattermost/design-system/src/components/primitives/input/input';
+import Input from '@mattermost/design-system/src/components/primitives/input/input';
 
 export interface Props extends InputProps {
     type: 'text' | 'password' | 'email' | 'number' | 'tel' | 'url';

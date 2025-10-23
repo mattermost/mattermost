@@ -11,6 +11,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {useRouteMatch} from 'react-router-dom';
 
 import {GenericModal} from '@mattermost/components';
+import RenderEmoji from '@mattermost/design-system/src/components/primitives/emoji/render_emoji';
 import type {Emoji} from '@mattermost/types/emojis';
 import type {UserCustomStatus} from '@mattermost/types/users';
 import {CustomStatusDuration} from '@mattermost/types/users';
@@ -27,12 +28,12 @@ import {makeGetCustomStatus, getRecentCustomStatuses, showStatusDropdownPulsatin
 import CustomStatusSuggestion from 'components/custom_status/custom_status_suggestion';
 import ExpiryMenu from 'components/custom_status/expiry_menu';
 import DateTimeInput, {getRoundedTime} from 'components/datetime_input/datetime_input';
-import RenderEmoji from 'components/emoji/render_emoji';
 import useEmojiPicker from 'components/emoji_picker/use_emoji_picker';
 import QuickInput, {MaxLengthInput} from 'components/quick_input';
 import EmojiIcon from 'components/widgets/icons/emoji_icon';
 
 import {Constants, ModalIdentifiers} from 'utils/constants';
+import {useEmojiImageUrl} from 'utils/emoji_utils';
 import {isKeyPressed} from 'utils/keyboard';
 import {getCurrentMomentForTimezone} from 'utils/timezone';
 
@@ -127,6 +128,7 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
     const firstTimeModalOpened = useSelector(showStatusDropdownPulsatingDot);
     const timezone = useSelector(getCurrentTimezone);
     const inCustomEmojiPath = useRouteMatch('/:team/emoji');
+    const emojiImageURL = useEmojiImageUrl(emoji || 'speech_balloon');
 
     const currentTime = getCurrentMomentForTimezone(timezone);
     let initialCustomExpiryTime: Moment = getRoundedTime(currentTime);
@@ -239,6 +241,7 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
     const customStatusEmoji = emoji || text ? (
         <RenderEmoji
             emojiName={emoji || 'speech_balloon'}
+            emojiImageURL={emojiImageURL}
             size={20}
         />
     ) : <EmojiIcon className={'icon icon--emoji'}/>;

@@ -5,6 +5,7 @@ import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 import type {Post} from '@mattermost/types/posts';
 import type {UserThread} from '@mattermost/types/threads';
 import {threadIsSynthetic} from '@mattermost/types/threads';
@@ -23,7 +24,6 @@ import FollowButton from 'components/threading/common/follow_button';
 import {THREADING_TIME} from 'components/threading/common/options';
 import Timestamp from 'components/timestamp';
 import Avatars from 'components/widgets/users/avatars';
-import WithTooltip from 'components/with_tooltip';
 
 import type {GlobalState} from 'types/store';
 

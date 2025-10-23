@@ -4,8 +4,9 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
+
 import ReplyIcon from 'components/widgets/icons/reply_icon';
-import WithTooltip from 'components/with_tooltip';
 
 import type {Locations} from 'utils/constants';
 

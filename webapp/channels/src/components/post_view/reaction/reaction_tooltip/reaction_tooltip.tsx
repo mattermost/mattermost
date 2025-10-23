@@ -4,9 +4,10 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 import type {Reaction as ReactionType} from '@mattermost/types/reactions';
 
-import WithTooltip from 'components/with_tooltip';
+import {useEmojiImageUrl} from 'utils/emoji_utils';
 
 type Props = {
     canAddReactions: boolean;
@@ -124,6 +125,8 @@ const ReactionTooltip: React.FC<Props> = (props: Props) => {
         });
     }
 
+    const emojiImageUrl = useEmojiImageUrl(emojiName);
+
     if (!React.isValidElement(children)) {
         return null;
     }
@@ -133,6 +136,7 @@ const ReactionTooltip: React.FC<Props> = (props: Props) => {
             title={tooltipTitle}
             hint={tooltipHint}
             emoji={emojiName}
+            emojiImageURL={emojiImageUrl}
             isEmojiLarge={true}
             onOpen={onShow}
         >

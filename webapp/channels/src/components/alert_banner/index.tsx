@@ -12,8 +12,7 @@ import {
     CloseIcon,
     InformationOutlineIcon,
 } from '@mattermost/compass-icons/components';
-
-import WithTooltip from 'components/with_tooltip';
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 
 import './alert_banner.scss';
 

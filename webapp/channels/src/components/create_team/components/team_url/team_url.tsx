@@ -5,12 +5,12 @@ import React from 'react';
 import {Button} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 import type {Team} from '@mattermost/types/teams';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import ExternalLink from 'components/external_link';
-import WithTooltip from 'components/with_tooltip';
 
 import logoImage from 'images/logo.png';
 import Constants from 'utils/constants';

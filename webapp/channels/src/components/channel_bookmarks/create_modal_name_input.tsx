@@ -6,12 +6,12 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import styled from 'styled-components';
 
 import {ChevronDownIcon} from '@mattermost/compass-icons/components';
+import Input from '@mattermost/design-system/src/components/primitives/input/input';
 import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
 import type {Emoji} from '@mattermost/types/emojis';
 import type {FileInfo} from '@mattermost/types/files';
 
 import useEmojiPicker from 'components/emoji_picker/use_emoji_picker';
-import Input from 'components/widgets/inputs/input/input';
 
 import Constants, {A11yCustomEventTypes, type A11yFocusEventDetail} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';

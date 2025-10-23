@@ -3,18 +3,12 @@
 
 import React from 'react';
 import type {MouseEvent, KeyboardEvent} from 'react';
-import {useSelector} from 'react-redux';
-
-import {getEmojiImageUrl} from 'mattermost-redux/utils/emoji_utils';
-
-import {getEmojiMap} from 'selectors/emojis';
-
-import type {GlobalState} from 'types/store';
 
 const emptyEmojiStyle = {};
 
 interface ComponentProps {
     emojiName: string;
+    emojiImageURL?: string;
     size?: number;
     emojiStyle?: React.CSSProperties;
     onClick?: (event: MouseEvent<HTMLSpanElement> | KeyboardEvent<HTMLSpanElement>) => void;
@@ -22,21 +16,14 @@ interface ComponentProps {
 
 const RenderEmoji = ({
     emojiName = '',
+    emojiImageURL,
     emojiStyle = emptyEmojiStyle,
     size = 16,
     onClick,
 }: ComponentProps) => {
-    const emojiMap = useSelector((state: GlobalState) => getEmojiMap(state));
-
-    if (!emojiName) {
+    if (!emojiName || !emojiImageURL) {
         return null;
     }
-
-    const emojiFromMap = emojiMap.get(emojiName);
-    if (!emojiFromMap) {
-        return null;
-    }
-    const emojiImageUrl = getEmojiImageUrl(emojiFromMap);
 
     return (
         <span
@@ -45,7 +32,7 @@ const RenderEmoji = ({
             aria-label={`:${emojiName}:`}
             data-emoticon={emojiName}
             style={{
-                backgroundImage: `url(${emojiImageUrl})`,
+                backgroundImage: `url(${emojiImageURL})`,
                 backgroundSize: 'contain',
                 height: size,
                 width: size,

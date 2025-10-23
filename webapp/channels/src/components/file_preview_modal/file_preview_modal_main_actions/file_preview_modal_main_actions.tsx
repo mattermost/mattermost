@@ -5,6 +5,7 @@ import React, {memo, useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 import type {FileInfo} from '@mattermost/types/files';
 
 import {getFilePublicLink} from 'mattermost-redux/actions/files';
@@ -12,7 +13,6 @@ import {getFilePublicLink as selectFilePublicLink} from 'mattermost-redux/select
 
 import CopyButton from 'components/copy_button';
 import ExternalLink from 'components/external_link';
-import WithTooltip from 'components/with_tooltip';
 
 import {FileTypes} from 'utils/constants';
 import {copyToClipboard, getFileType} from 'utils/utils';

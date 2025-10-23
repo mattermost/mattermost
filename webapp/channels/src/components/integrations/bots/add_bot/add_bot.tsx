@@ -6,6 +6,7 @@ import type {ChangeEvent, FormEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 import type {Bot, BotPatch} from '@mattermost/types/bots';
 import type {Team} from '@mattermost/types/teams';
 import type {UserAccessToken, UserProfile} from '@mattermost/types/users';
@@ -18,7 +19,6 @@ import BackstageHeader from 'components/backstage/components/backstage_header';
 import ExternalLink from 'components/external_link';
 import FormError from 'components/form_error';
 import SpinnerButton from 'components/spinner_button';
-import WithTooltip from 'components/with_tooltip';
 
 import BotDefaultIcon from 'images/bot_default_icon.png';
 import {getHistory} from 'utils/browser_history';

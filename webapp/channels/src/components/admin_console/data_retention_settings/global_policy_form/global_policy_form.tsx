@@ -15,8 +15,8 @@ import SetByEnv from 'components/admin_console/set_by_env';
 import Card from 'components/card/card';
 import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
-import DropdownInputHybrid from 'components/widgets/inputs/dropdown_input_hybrid';
 
+import DropdownInputHybrid from 'design-system/components/primitives/dropdown_input_hybrid/dropdown_input_hybrid';
 import {getHistory} from 'utils/browser_history';
 
 import './global_policy_form.scss';

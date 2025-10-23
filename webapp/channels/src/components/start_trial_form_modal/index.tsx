@@ -7,6 +7,9 @@ import {Modal, Button} from 'react-bootstrap';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
+import Input, {SIZE} from '@mattermost/design-system/src/components/primitives/input/input';
+import type {CustomMessageInputType} from '@mattermost/design-system/src/components/primitives/input/input';
+
 import {getLicenseConfig} from 'mattermost-redux/actions/general';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 
@@ -21,8 +24,6 @@ import useGetTotalUsersNoBots from 'components/common/hooks/useGetTotalUsersNoBo
 import DropdownInput from 'components/dropdown_input';
 import ExternalLink from 'components/external_link';
 import CountrySelector from 'components/payment_form/country_selector';
-import Input, {SIZE} from 'components/widgets/inputs/input/input';
-import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
 
 import {AboutLinks, LicenseLinks, ModalIdentifiers} from 'utils/constants';
 

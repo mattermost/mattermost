@@ -5,12 +5,12 @@ import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import Input from '@mattermost/design-system/src/components/primitives/input/input';
 import {ReportDuration} from '@mattermost/types/reports';
 
 import {setAdminConsoleUsersManagementTableProperties} from 'actions/views/admin';
 
 import * as Menu from 'components/menu';
-import Input from 'components/widgets/inputs/input/input';
 
 import './system_users_date_range_menu.scss';
 

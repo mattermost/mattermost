@@ -5,9 +5,9 @@ import React, {useCallback} from 'react';
 import type {ChangeEvent} from 'react';
 import {useIntl} from 'react-intl';
 
+import Input from '@mattermost/design-system/src/components/primitives/input/input';
 import type {Team} from '@mattermost/types/teams';
 
-import Input from 'components/widgets/inputs/input/input';
 import BaseSettingItem, {type BaseSettingItemProps} from 'components/widgets/modals/components/base_setting_item';
 
 import Constants from 'utils/constants';

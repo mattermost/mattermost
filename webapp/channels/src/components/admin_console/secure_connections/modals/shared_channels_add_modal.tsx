@@ -17,8 +17,8 @@ import {searchAllChannels} from 'mattermost-redux/actions/channels';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 
 import SectionNotice from 'components/section_notice';
-import ChannelsInput from 'components/widgets/inputs/channels_input';
 
+import ChannelsInput from 'design-system/components/primitives/channels_input/channels_input';
 import {isArchivedChannel} from 'utils/channel_utils';
 import Constants from 'utils/constants';
 

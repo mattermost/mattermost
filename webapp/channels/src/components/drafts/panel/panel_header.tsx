@@ -6,10 +6,10 @@ import type {ComponentProps} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {SyncIcon} from '@mattermost/compass-icons/components';
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 
 import Timestamp, {RelativeRanges} from 'components/timestamp';
 import Tag from 'components/widgets/tag/tag';
-import WithTooltip from 'components/with_tooltip';
 
 import './panel_header.scss';
 import {isToday} from 'utils/datetime';

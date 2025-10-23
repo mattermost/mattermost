@@ -3,7 +3,7 @@
 
 import React, {memo} from 'react';
 
-import WithTooltip from 'components/with_tooltip';
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 
 export type TableItem = {
     name: string;

@@ -5,13 +5,13 @@ import classNames from 'classnames';
 import React, {useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import RenderEmoji from '@mattermost/design-system/src/components/primitives/emoji/render_emoji';
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 import type {UserCustomStatus} from '@mattermost/types/users';
 import {CustomStatusDuration} from '@mattermost/types/users';
 
-import RenderEmoji from 'components/emoji/render_emoji';
-import WithTooltip from 'components/with_tooltip';
-
 import {durationValues} from 'utils/constants';
+import {useEmojiImageUrl} from 'utils/emoji_utils';
 
 import CustomStatusText from './custom_status_text';
 
@@ -27,6 +27,7 @@ const CustomStatusSuggestion: React.FC<Props> = (props: Props) => {
     const {handleSuggestionClick, handleClear, status} = props;
     const {emoji, text, duration} = status;
     const [show, setShow] = useState(false);
+    const emojiImageURL = useEmojiImageUrl(emoji);
 
     const showClearButton = () => setShow(true);
 
@@ -71,6 +72,7 @@ const CustomStatusSuggestion: React.FC<Props> = (props: Props) => {
             <div className='statusSuggestion__icon'>
                 <RenderEmoji
                     emojiName={emoji}
+                    emojiImageURL={emojiImageURL}
                     size={20}
                 />
             </div>

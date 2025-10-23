@@ -2,3 +2,6 @@
 // See LICENSE.txt for license information.
 
 export {TestFooBar} from './components/patterns/TestFooBar';
+export {default as CheckInput} from './components/primitives/check';
+export {default as Input} from './components/primitives/input/input';
+export {default as PasswordInput} from './components/primitives/password_input/password_input';
