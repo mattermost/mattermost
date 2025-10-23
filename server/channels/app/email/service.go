@@ -22,6 +22,7 @@ import (
 
 const (
 	emailRateLimitingMemstoreSize = 65536
+	emailRateLimitingPerMinute    = 60
 	emailRateLimitingPerHour      = 20
 	emailRateLimitingMaxBurst     = 20
 
@@ -50,10 +51,11 @@ type Service struct {
 	userService *users.UserService
 	store       store.Store
 
-	templatesContainer      *templates.Container
-	perHourEmailRateLimiter *throttled.GCRARateLimiter
-	perDayEmailRateLimiter  *throttled.GCRARateLimiter
-	EmailBatching           *EmailBatchingJob
+	templatesContainer        *templates.Container
+	perMinuteEmailRateLimiter *throttled.GCRARateLimiter
+	perHourEmailRateLimiter   *throttled.GCRARateLimiter
+	perDayEmailRateLimiter    *throttled.GCRARateLimiter
+	EmailBatching             *EmailBatchingJob
 }
 
 type ServiceConfig struct {
@@ -103,6 +105,11 @@ func (es *Service) setUpRateLimiters() error {
 		return errors.Wrap(err, "Unable to setup email rate limiting memstore.")
 	}
 
+	perMinuteQuota := throttled.RateQuota{
+		MaxRate:  throttled.PerMin(emailRateLimitingPerMinute),
+		MaxBurst: emailRateLimitingMaxBurst,
+	}
+
 	perHourQuota := throttled.RateQuota{
 		MaxRate:  throttled.PerHour(emailRateLimitingPerHour),
 		MaxBurst: emailRateLimitingMaxBurst,
@@ -111,6 +118,11 @@ func (es *Service) setUpRateLimiters() error {
 	perDayQuota := throttled.RateQuota{
 		MaxRate:  throttled.PerDay(1),
 		MaxBurst: 0,
+	}
+
+	perMinuteRateLimiter, err := throttled.NewGCRARateLimiter(store, perMinuteQuota)
+	if err != nil || perMinuteRateLimiter == nil {
+		return errors.Wrap(err, "Unable to setup email rate limiting GCRA rate limiter.")
 	}
 
 	perHourRateLimiter, err := throttled.NewGCRARateLimiter(store, perHourQuota)
@@ -123,6 +135,7 @@ func (es *Service) setUpRateLimiters() error {
 		return errors.Wrap(err, "Unable to setup per day email rate limiting GCRA rate limiter.")
 	}
 
+	es.perMinuteEmailRateLimiter = perMinuteRateLimiter
 	es.perHourEmailRateLimiter = perHourRateLimiter
 	es.perDayEmailRateLimiter = perDayRateLimiter
 	return nil

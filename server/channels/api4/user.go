@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -20,6 +21,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/app/email"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
@@ -2002,19 +2004,35 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	mfaToken := props["token"]
 	deviceId := props["device_id"]
 	ldapOnly := props["ldap_only"] == "true"
+	easyLoginToken := props["easy_login_token"]
 
 	auditRec := c.MakeAuditRecord(model.AuditEventLogin, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterToAuditRec(auditRec, "login_id", loginId)
 	model.AddEventParameterToAuditRec(auditRec, "device_id", deviceId)
 
-	c.LogAuditWithUserId(id, "attempt - login_id="+loginId)
+	var user *model.User
+	var err *model.AppError
 
-	user, err := c.App.AuthenticateUserForLogin(c.AppContext, id, loginId, password, mfaToken, "", ldapOnly)
-	if err != nil {
-		c.LogAuditWithUserId(id, "failure - login_id="+loginId)
-		c.Err = err
-		return
+	if easyLoginToken != "" {
+		auditRec.AddMeta("login_method", "easy_login")
+		c.LogAudit("attempt - easy_login")
+
+		user, err = c.App.AuthenticateUserForEasyLogin(c.AppContext, easyLoginToken)
+		if err != nil {
+			c.LogAudit("failure - easy_login")
+			c.Err = err
+			return
+		}
+	} else {
+		model.AddEventParameterToAuditRec(auditRec, "login_id", loginId)
+		c.LogAuditWithUserId(id, "attempt - login_id="+loginId)
+
+		user, err = c.App.AuthenticateUserForLogin(c.AppContext, id, loginId, password, mfaToken, "", ldapOnly)
+		if err != nil {
+			c.LogAuditWithUserId(id, "failure - login_id="+loginId)
+			c.Err = err
+			return
+		}
 	}
 	auditRec.AddEventResultState(user)
 
@@ -2222,10 +2240,14 @@ func getLoginType(c *Context, w http.ResponseWriter, r *http.Request) {
 		*c.App.Config().GuestAccountsSettings.EnableEasyLogin {
 		eErr := c.App.Srv().EmailService.SendGuestEasyLoginEmailSelfService(user.Email, c.App.GetSiteURL())
 		if eErr != nil {
-			// Log but don't fail or end the request
-			c.Logger.Warn("Failed to send easy login email",
-				mlog.Err(eErr),
-				mlog.String("user_id", user.Id))
+			switch {
+			case errors.Is(eErr, email.NoRateLimiterError):
+				c.Err = model.NewAppError("getLoginType", "app.email.no_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s", user.Id), http.StatusInternalServerError)
+			case errors.Is(eErr, email.SetupRateLimiterError):
+				c.Err = model.NewAppError("getLoginType", "app.email.setup_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, error=%v", user.Id, eErr), http.StatusInternalServerError)
+			default:
+				c.Err = model.NewAppError("getLoginType", "app.email.rate_limit_exceeded.app_error", nil, fmt.Sprintf("user_id=%s, error=%v", user.Id, eErr), http.StatusRequestEntityTooLarge)
+			}
 			return
 		}
 		c.Logger.Debug("Easy login email sent successfully", mlog.String("user_id", user.Id))

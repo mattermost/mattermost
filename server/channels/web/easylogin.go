@@ -35,7 +35,6 @@ func loginWithEasyToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	redirectURL := html.EscapeString(r.URL.Query().Get("redirect_to"))
-	isMobile := r.URL.Query().Get("mobile") == "true"
 
 	// Authenticate user with easy login token
 	user, err := c.App.AuthenticateUserForEasyLogin(c.AppContext, tokenString)
@@ -56,13 +55,19 @@ func loginWithEasyToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create session and log user in
-	session, err := c.App.DoLogin(c.AppContext, w, r, user, "", isMobile, false, true)
+	session, err := c.App.DoLogin(c.AppContext, w, r, user, "", false, false, true)
 	if err != nil {
 		utils.RenderWebAppError(c.App.Config(), w, r, err, c.App.AsymmetricSigningKey())
 		return
 	}
 
 	c.AppContext = c.AppContext.WithSession(session)
+
+	// Mark login as successful in audit log
+	auditRec.Success()
+	c.LogAuditWithUserId(user.Id, "success - easy_login")
+
+	// Attach session cookies and redirect
 	c.App.AttachSessionCookies(c.AppContext, w, r)
 
 	// Determine redirect URL
@@ -74,14 +79,5 @@ func loginWithEasyToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		redirectURL = fullyQualifiedRedirectURL(c.GetSiteURLHeader(), redirectURL, c.App.Config().NativeAppSettings.AppCustomURLSchemes)
 	}
 
-	// Mark login as successful in audit log
-	auditRec.Success()
-	c.LogAuditWithUserId(user.Id, "success - easy_login")
-
-	// Redirect to destination
-	if isMobile {
-		utils.RenderMobileAuthComplete(w, redirectURL)
-	} else {
-		http.Redirect(w, r, redirectURL, http.StatusFound)
-	}
+	http.Redirect(w, r, redirectURL, http.StatusFound)
 }
