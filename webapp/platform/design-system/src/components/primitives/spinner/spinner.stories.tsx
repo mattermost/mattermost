@@ -77,27 +77,27 @@ export const Inverted: Story = {
         <div style={{display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap'}}>
             <div style={{textAlign: 'center'}}>
                 <Spinner size={12} inverted />
-                <div style={{marginTop: '8px', fontSize: '12px', color: 'white'}}>12px Inverted</div>
+                <div style={{marginTop: '8px', fontSize: '12px', color: 'white'}}>12px</div>
             </div>
             <div style={{textAlign: 'center'}}>
                 <Spinner size={16} inverted />
-                <div style={{marginTop: '8px', fontSize: '12px', color: 'white'}}>16px Inverted</div>
+                <div style={{marginTop: '8px', fontSize: '12px', color: 'white'}}>16px</div>
             </div>
             <div style={{textAlign: 'center'}}>
                 <Spinner size={20} inverted />
-                <div style={{marginTop: '8px', fontSize: '12px', color: 'white'}}>20px Inverted</div>
+                <div style={{marginTop: '8px', fontSize: '12px', color: 'white'}}>20px</div>
             </div>
             <div style={{textAlign: 'center'}}>
                 <Spinner size={24} inverted />
-                <div style={{marginTop: '8px', fontSize: '12px', color: 'white'}}>24px Inverted</div>
+                <div style={{marginTop: '8px', fontSize: '12px', color: 'white'}}>24px</div>
             </div>
             <div style={{textAlign: 'center'}}>
                 <Spinner size={28} inverted />
-                <div style={{marginTop: '8px', fontSize: '12px', color: 'white'}}>28px Inverted</div>
+                <div style={{marginTop: '8px', fontSize: '12px', color: 'white'}}>28px</div>
             </div>
             <div style={{textAlign: 'center'}}>
                 <Spinner size={32} inverted />
-                <div style={{marginTop: '8px', fontSize: '12px', color: 'white'}}>32px Inverted</div>
+                <div style={{marginTop: '8px', fontSize: '12px', color: 'white'}}>32px</div>
             </div>
         </div>
     ),
