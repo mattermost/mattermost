@@ -722,7 +722,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             return;
         }
 
-        if (result.data === 'easy_login') {
+        if (result.data === Constants.EASY_LOGIN_SERVICE) {
             setEasyLoginSuccessful(true);
         } else {
             setRequiresPassword(true);

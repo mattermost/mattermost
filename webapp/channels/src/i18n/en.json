@@ -6390,6 +6390,7 @@
   "user.settings.security.oneSignin": "You may only have one sign-in method at a time. Switching sign-in method will send an email notifying you if the change was successful.",
   "user.settings.security.openid": "OpenID",
   "user.settings.security.password": "Password",
+  "user.settings.security.passwordEasyLoginCantUpdate": "Login occurs via Easy Login. Password cannot be updated.",
   "user.settings.security.passwordError": "Your password must be {min}-{max} characters long.",
   "user.settings.security.passwordErrorLowercase": "Your password must be {min}-{max} characters long and include lowercase letters.",
   "user.settings.security.passwordErrorLowercaseNumber": "Your password must be {min}-{max} characters long and include lowercase letters and numbers.",
