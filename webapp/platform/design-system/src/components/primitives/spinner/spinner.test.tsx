@@ -9,76 +9,91 @@ import Spinner from './spinner';
 describe('Spinner', () => {
     it('should render with default props', () => {
         render(<Spinner />);
-        const spinner = screen.getByRole('status');
+        const spinner = screen.getByRole('status', {hidden: true});
         expect(spinner).toBeInTheDocument();
-        expect(spinner).toHaveClass('Spinner', 'Spinner--md');
+        expect(spinner).toHaveClass('Spinner');
         expect(spinner).toHaveAttribute('aria-label', 'Loading');
+        expect(spinner).toHaveAttribute('aria-hidden', 'true');
+        expect(spinner).toHaveStyle({
+            width: '16px',
+            height: '16px',
+        });
     });
 
-    it('should render with xs size', () => {
-        render(<Spinner size="xs" />);
-        const spinner = screen.getByRole('status');
-        expect(spinner).toHaveClass('Spinner--xs');
+    it('should render with 10px size', () => {
+        render(<Spinner size={10} />);
+        const spinner = screen.getByRole('status', {hidden: true});
+        expect(spinner).toHaveStyle({
+            width: '10px',
+            height: '10px',
+        });
     });
 
-    it('should render with sm size', () => {
-        render(<Spinner size="sm" />);
-        const spinner = screen.getByRole('status');
-        expect(spinner).toHaveClass('Spinner--sm');
+    it('should render with 12px size', () => {
+        render(<Spinner size={12} />);
+        const spinner = screen.getByRole('status', {hidden: true});
+        expect(spinner).toHaveStyle({
+            width: '12px',
+            height: '12px',
+        });
     });
 
-    it('should render with md size', () => {
-        render(<Spinner size="md" />);
-        const spinner = screen.getByRole('status');
-        expect(spinner).toHaveClass('Spinner--md');
+    it('should render with 20px size', () => {
+        render(<Spinner size={20} />);
+        const spinner = screen.getByRole('status', {hidden: true});
+        expect(spinner).toHaveStyle({
+            width: '20px',
+            height: '20px',
+        });
     });
 
-    it('should render with lg size', () => {
-        render(<Spinner size="lg" />);
-        const spinner = screen.getByRole('status');
-        expect(spinner).toHaveClass('Spinner--lg');
+    it('should render with 24px size', () => {
+        render(<Spinner size={24} />);
+        const spinner = screen.getByRole('status', {hidden: true});
+        expect(spinner).toHaveStyle({
+            width: '24px',
+            height: '24px',
+        });
+    });
+
+    it('should render with 32px size', () => {
+        render(<Spinner size={32} />);
+        const spinner = screen.getByRole('status', {hidden: true});
+        expect(spinner).toHaveStyle({
+            width: '32px',
+            height: '32px',
+        });
     });
 
     it('should render with inverted style', () => {
         render(<Spinner inverted />);
-        const spinner = screen.getByRole('status');
+        const spinner = screen.getByRole('status', {hidden: true});
         expect(spinner).toHaveClass('Spinner--inverted');
     });
 
-    it('should use icon button sizing for IconButton contexts', () => {
-        render(<Spinner size="sm" forIconButton />);
-        const spinner = screen.getByRole('status');
-        expect(spinner).toHaveClass('Spinner--sm-icon');
-    });
+    it('should calculate stroke width based on size', () => {
+        const {rerender} = render(<Spinner size={10} />);
+        let spinner = screen.getByRole('status', {hidden: true});
+        expect(spinner.style.getPropertyValue('--spinner-stroke-width')).toBe('1px');
 
-    it('should use icon button sizing for medium size in IconButton contexts', () => {
-        render(<Spinner size="md" forIconButton />);
-        const spinner = screen.getByRole('status');
-        expect(spinner).toHaveClass('Spinner--md-icon');
-    });
+        rerender(<Spinner size={20} />);
+        spinner = screen.getByRole('status', {hidden: true});
+        expect(spinner.style.getPropertyValue('--spinner-stroke-width')).toBe('2px');
 
-    it('should use icon button sizing for large size in IconButton contexts', () => {
-        render(<Spinner size="lg" forIconButton />);
-        const spinner = screen.getByRole('status');
-        expect(spinner).toHaveClass('Spinner--lg-icon');
-    });
-
-    it('should not use icon button sizing for xs size', () => {
-        render(<Spinner size="xs" forIconButton />);
-        const spinner = screen.getByRole('status');
-        expect(spinner).toHaveClass('Spinner--xs');
-        expect(spinner).not.toHaveClass('Spinner--xs-icon');
+        rerender(<Spinner size={32} />);
+        spinner = screen.getByRole('status', {hidden: true});
+        expect(spinner.style.getPropertyValue('--spinner-stroke-width')).toBe('3px');
     });
 
     it('should accept custom aria-label', () => {
         render(<Spinner aria-label="Custom loading message" />);
-        const spinner = screen.getByRole('status');
+        const spinner = screen.getByRole('status', {hidden: true});
         expect(spinner).toHaveAttribute('aria-label', 'Custom loading message');
     });
 
     it('should accept custom className', () => {
         render(<Spinner className="custom-class" />);
-        const spinner = screen.getByRole('status');
+        const spinner = screen.getByRole('status', {hidden: true});
         expect(spinner).toHaveClass('custom-class');
     });
 
@@ -86,5 +101,38 @@ describe('Spinner', () => {
         render(<Spinner data-testid="spinner-test" />);
         const spinner = screen.getByTestId('spinner-test');
         expect(spinner).toBeInTheDocument();
+    });
+
+    it('should accept custom style and merge with size styles', () => {
+        render(<Spinner size={20} style={{color: 'red', margin: '10px'}} />);
+        const spinner = screen.getByRole('status', {hidden: true});
+        expect(spinner).toHaveStyle({
+            width: '20px',
+            height: '20px',
+            color: 'red',
+            margin: '10px',
+        });
+    });
+
+    it('should handle all valid spinner sizes', () => {
+        const validSizes = [10, 12, 16, 20, 24, 28, 32];
+        
+        validSizes.forEach((size) => {
+            const {unmount} = render(<Spinner size={size} data-testid={`spinner-${size}`} />);
+            const spinner = screen.getByTestId(`spinner-${size}`);
+            expect(spinner).toHaveStyle({
+                width: `${size}px`,
+                height: `${size}px`,
+            });
+            unmount();
+        });
+    });
+
+    it('should have correct accessibility attributes', () => {
+        render(<Spinner />);
+        const spinner = screen.getByRole('status', {hidden: true});
+        expect(spinner).toHaveAttribute('role', 'status');
+        expect(spinner).toHaveAttribute('aria-hidden', 'true');
+        expect(spinner).toHaveAttribute('aria-label', 'Loading');
     });
 });
