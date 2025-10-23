@@ -126,10 +126,10 @@ func getRewritePromptForAction(action model.AIRewriteAction, message string, cus
 %s`, customPrompt, message)
 
 	case model.AIRewriteActionShorten:
-		userPrompt = fmt.Sprintf(`Make this shorter: %s`, message)
+		userPrompt = fmt.Sprintf(`Make this up to 2 to 3 times shorter: %s`, message)
 
 	case model.AIRewriteActionElaborate:
-		userPrompt = fmt.Sprintf(`Expand this: %s`, message)
+		userPrompt = fmt.Sprintf(`Make this up to 2 to 3 times longer: %s`, message)
 
 	case model.AIRewriteActionImproveWriting:
 		userPrompt = fmt.Sprintf(`Improve this writing: %s`, message)
