@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import React, {useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -17,7 +18,6 @@ import ProfilePicture from 'components/profile_picture';
 import ProfilePopover from 'components/profile_popover';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
 import GuestTag from 'components/widgets/tag/guest_tag';
-import WithTooltip from 'components/with_tooltip';
 
 import type {ChannelMember as ChannelMemberType} from './member_list';
 

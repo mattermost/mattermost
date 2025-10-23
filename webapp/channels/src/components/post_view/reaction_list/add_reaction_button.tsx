@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import React, {useCallback, useState} from 'react';
 import {useIntl} from 'react-intl';
 
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 import type {Emoji} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
 
@@ -13,7 +14,6 @@ import {Permissions} from 'mattermost-redux/constants';
 import useEmojiPicker from 'components/emoji_picker/use_emoji_picker';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 import AddReactionIcon from 'components/widgets/icons/add_reaction_icon';
-import WithTooltip from 'components/with_tooltip';
 
 type Props = {
     post: Post;

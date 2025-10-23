@@ -3,7 +3,9 @@
 
 import React from 'react';
 
-import WithTooltip from 'components/with_tooltip';
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
+
+import {useEmojiImageUrl} from 'utils/emoji_utils';
 
 export interface Props {
     children: React.ReactNode;
@@ -13,6 +15,7 @@ export interface Props {
 
 const PostEmoji = ({children, name, imageUrl}: Props) => {
     const emojiText = `:${name}:`;
+    const emojiImageUrl = useEmojiImageUrl(name);
     const backgroundImageUrl = `url(${imageUrl})`;
 
     if (!imageUrl) {
@@ -23,6 +26,7 @@ const PostEmoji = ({children, name, imageUrl}: Props) => {
         <WithTooltip
             title={emojiText}
             emoji={name}
+            emojiImageUrl={emojiImageUrl}
             isEmojiLarge={true}
         >
             <span

@@ -9,6 +9,8 @@ import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {Link, useLocation, useHistory, Route} from 'react-router-dom';
 
+import {PasswordInput} from '@mattermost/design-system';
+import Input, {SIZE} from '@mattermost/design-system/src/components/primitives/input/input';
 import type {Team} from '@mattermost/types/teams';
 
 import {loadMe} from 'mattermost-redux/actions/users';
@@ -42,8 +44,6 @@ import LockIcon from 'components/widgets/icons/lock_icon';
 import LoginGitlabIcon from 'components/widgets/icons/login_gitlab_icon';
 import LoginGoogleIcon from 'components/widgets/icons/login_google_icon';
 import LoginOpenIDIcon from 'components/widgets/icons/login_openid_icon';
-import Input, {SIZE} from 'components/widgets/inputs/input/input';
-import PasswordInput from 'components/widgets/inputs/password_input/password_input';
 
 import Constants from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';

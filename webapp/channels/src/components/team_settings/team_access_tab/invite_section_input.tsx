@@ -6,6 +6,7 @@ import {defineMessages, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {RefreshIcon} from '@mattermost/compass-icons/components';
+import Input from '@mattermost/design-system/src/components/primitives/input/input';
 import type {Team} from '@mattermost/types/teams';
 
 import {Permissions} from 'mattermost-redux/constants';
@@ -13,7 +14,6 @@ import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import Input from 'components/widgets/inputs/input/input';
 import type {BaseSettingItemProps} from 'components/widgets/modals/components/base_setting_item';
 import BaseSettingItem from 'components/widgets/modals/components/base_setting_item';
 

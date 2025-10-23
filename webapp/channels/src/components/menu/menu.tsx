@@ -18,6 +18,7 @@ import type {
 import {useDispatch, useSelector} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
@@ -25,7 +26,6 @@ import {openModal, closeModal} from 'actions/views/modals';
 import {getIsMobileView} from 'selectors/views/browser';
 
 import CompassDesignProvider from 'components/compass_design_provider';
-import WithTooltip from 'components/with_tooltip';
 
 import Constants, {A11yClassNames} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';

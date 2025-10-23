@@ -8,16 +8,22 @@ import {useIntl} from 'react-intl';
 
 import {CloseCircleIcon} from '@mattermost/compass-icons/components';
 
-import WithTooltip from 'components/with_tooltip';
-
-import {ItemStatus} from 'utils/constants';
-import {formatAsString} from 'utils/i18n';
+import {formatAsString} from '../../../utils/i18n';
+import WithTooltip from '../with_tooltip';
 
 import './input.scss';
 
 export enum SIZE {
     MEDIUM = 'medium',
     LARGE = 'large',
+}
+
+export enum ItemStatus {
+    NONE = 'none',
+    SUCCESS = 'success',
+    INFO = 'info',
+    WARNING = 'warning',
+    ERROR = 'error',
 }
 
 export type CustomMessageInputType = {type?: 'info' | 'error' | 'warning' | 'success'; value: React.ReactNode} | null;

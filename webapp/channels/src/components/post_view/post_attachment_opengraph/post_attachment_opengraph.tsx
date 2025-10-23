@@ -6,6 +6,7 @@ import React, {memo, useRef} from 'react';
 import {useIntl} from 'react-intl';
 
 import {CloseIcon, MenuDownIcon, MenuRightIcon} from '@mattermost/compass-icons/components';
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 import type {
     OpenGraphMetadata,
     OpenGraphMetadataImage,
@@ -16,7 +17,6 @@ import type {
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
 import ExternalImage from 'components/external_image';
 import ExternalLink from 'components/external_link';
-import WithTooltip from 'components/with_tooltip';
 
 import {PostTypes} from 'utils/constants';
 import {isSystemMessage} from 'utils/post_utils';

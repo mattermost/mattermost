@@ -5,6 +5,7 @@ import React, {useCallback} from 'react';
 import {FormattedMessage, FormattedList, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 import type {GlobalState} from '@mattermost/types/store';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -13,7 +14,6 @@ import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 import AlertBanner from 'components/alert_banner';
 import AtMention from 'components/at_mention';
 import type {Value} from 'components/multiselect/multiselect';
-import WithTooltip from 'components/with_tooltip';
 
 type UserProfileValue = Value & UserProfile;
 

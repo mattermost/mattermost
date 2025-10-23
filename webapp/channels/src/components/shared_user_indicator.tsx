@@ -6,7 +6,7 @@ import type {AriaRole, AriaAttributes} from 'react';
 import React from 'react';
 import {useIntl} from 'react-intl';
 
-import WithTooltip from 'components/with_tooltip';
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 
 type Props = {
 

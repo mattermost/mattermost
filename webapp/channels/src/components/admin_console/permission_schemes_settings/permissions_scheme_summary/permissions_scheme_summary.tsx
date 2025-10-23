@@ -6,6 +6,7 @@ import {defineMessage, FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 import type {RouteComponentProps} from 'react-router-dom';
 
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 import type {Scheme} from '@mattermost/types/schemes';
 import type {Team} from '@mattermost/types/teams';
 
@@ -13,7 +14,6 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import ConfirmModal from 'components/confirm_modal';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
-import WithTooltip from 'components/with_tooltip';
 
 const MAX_TEAMS_PER_SCHEME_SUMMARY = 8;
 

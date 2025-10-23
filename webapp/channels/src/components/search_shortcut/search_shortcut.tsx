@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import React from 'react';
 
-import {ShortcutKey, ShortcutKeyVariant} from 'components/shortcut_key';
+import {ShortcutKey, ShortcutKeyVariant} from '@mattermost/design-system/src/components/primitives/shortcut_key';
 
 import {isDesktopApp, isMac} from 'utils/user_agent';
 

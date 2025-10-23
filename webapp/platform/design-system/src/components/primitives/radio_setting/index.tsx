@@ -18,7 +18,7 @@ type Props = {
     className?: string;
 }
 
-export function RadioInput({id, value, name, title, dataTestId, checked, handleChange, disabled, className}: Props) {
+export default function RadioInput({id, value, name, title, dataTestId, checked, handleChange, disabled, className}: Props) {
     return (
         <label
             className={classNames('RadioInput', className)}

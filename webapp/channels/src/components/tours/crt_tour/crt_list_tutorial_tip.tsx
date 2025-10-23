@@ -6,10 +6,9 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {useMeasurePunchouts} from '@mattermost/components';
+import {ShortcutKey, ShortcutKeyVariant} from '@mattermost/design-system/src/components/primitives/shortcut_key';
 
 import {getIsMobileView} from 'selectors/views/browser';
-
-import {ShortcutKey, ShortcutKeyVariant} from 'components/shortcut_key';
 
 import type {GlobalState} from 'types/store';
 

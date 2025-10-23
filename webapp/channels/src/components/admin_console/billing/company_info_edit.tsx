@@ -7,6 +7,8 @@ import {defineMessage, FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useHistory} from 'react-router-dom';
 
+import Input from '@mattermost/design-system/src/components/primitives/input/input';
+
 import {getCloudCustomer, updateCloudCustomer, updateCloudCustomerAddress} from 'mattermost-redux/actions/cloud';
 
 import {setNavigationBlocked} from 'actions/admin_actions.jsx';
@@ -16,7 +18,6 @@ import CountrySelector from 'components/payment_form/country_selector';
 import StateSelector from 'components/payment_form/state_selector';
 import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
-import Input from 'components/widgets/inputs/input/input';
 
 import type {GlobalState} from 'types/store';
 

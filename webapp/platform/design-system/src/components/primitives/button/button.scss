@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-@use "sass/utils/mixins";
-
 // Using CSS variables from theme provider - no hardcoded colors needed
 
 // Base button styles with nested variants
@@ -22,19 +20,19 @@
     outline: none;
     text-decoration: none;
     transition: all 0.15s ease-out;
-    
+
     &:hover {
         text-decoration: none;
     }
-    
+
     &:focus {
         box-shadow: 0 0 0 2px var(--sidebar-text-active-border);
     }
-    
+
     &:focus:not(:focus-visible) {
         box-shadow: none;
     }
-    
+
     &:focus-visible {
         box-shadow: 0 0 0 2px var(--sidebar-text-active-border);
     }
@@ -83,7 +81,7 @@
     &--primary {
         background-color: var(--button-bg);
         color: var(--button-color);
-        
+
         &:hover:not(:disabled) {
             // Modern browsers with color-mix support
             background-color: color-mix(in srgb, var(--button-bg) 88%, black 12%);
@@ -91,25 +89,25 @@
             background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.08));
             background-image: none;
         }
-        
+
         &:active:not(:disabled) {
             // Modern browsers with color-mix support
             background-color: color-mix(in srgb, var(--button-bg) 80%, black 20%);
-            // Fallback for older browsers  
+            // Fallback for older browsers
             background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.16), rgba(0, 0, 0, 0.16));
             background-image: none;
         }
-        
+
         &:disabled {
             background-color: rgba(var(--center-channel-color-rgb), 0.08);
             color: rgba(var(--center-channel-color-rgb), 0.32);
         }
-        
+
         // Destructive variant
         &.Button--destructive {
             background-color: var(--error-text);
             color: var(--button-color);
-            
+
             &:hover:not(:disabled) {
                 // Modern browsers with color-mix support
                 background-color: color-mix(in srgb, var(--error-text) 88%, black 12%);
@@ -117,7 +115,7 @@
                 background-image: linear-gradient(0deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.08));
                 background-image: none;
             }
-            
+
             &:active:not(:disabled) {
                 // Modern browsers with color-mix support
                 background-color: color-mix(in srgb, var(--error-text) 80%, black 20%);
@@ -132,29 +130,29 @@
         border: 1px solid var(--link-color);
         background-color: transparent;
         color: var(--link-color);
-        
+
         &:hover:not(:disabled) {
             background-color: rgba(var(--link-color-rgb), 0.08);
         }
-        
+
         &:active:not(:disabled) {
             background-color: rgba(var(--link-color-rgb), 0.16);
         }
-        
+
         &:disabled {
             border-color: rgba(var(--center-channel-color-rgb), 0.32);
             color: rgba(var(--center-channel-color-rgb), 0.32);
         }
-        
+
         // Destructive variant
         &.Button--destructive {
             border-color: var(--error-text);
             color: var(--error-text);
-            
+
             &:hover:not(:disabled) {
                 background-color: rgba(var(--error-text-color-rgb), 0.08);
             }
-            
+
             &:active:not(:disabled) {
                 background-color: rgba(var(--error-text-color-rgb), 0.16);
             }
@@ -164,29 +162,29 @@
     &--tertiary {
         background-color: rgba(var(--link-color-rgb), 0.08);
         color: var(--link-color);
-        
+
         &:hover:not(:disabled) {
             background-color: rgba(var(--link-color-rgb), 0.12);
         }
-        
+
         &:active:not(:disabled) {
             background-color: rgba(var(--link-color-rgb), 0.16);
         }
-        
+
         &:disabled {
             background-color: rgba(var(--center-channel-color-rgb), 0.08);
             color: rgba(var(--center-channel-color-rgb), 0.32);
         }
-        
+
         // Destructive variant
         &.Button--destructive {
             background-color: rgba(var(--error-text-color-rgb), 0.08);
             color: var(--error-text);
-            
+
             &:hover:not(:disabled) {
                 background-color: rgba(var(--error-text-color-rgb), 0.12);
             }
-            
+
             &:active:not(:disabled) {
                 background-color: rgba(var(--error-text-color-rgb), 0.16);
             }
@@ -196,30 +194,30 @@
     &--quaternary {
         background-color: transparent;
         color: var(--link-color);
-        
+
         &:hover:not(:disabled) {
             background-color: rgba(var(--link-color-rgb), 0.08);
             color: rgba(var(--link-color-rgb), 0.88);
         }
-        
+
         &:active:not(:disabled) {
             background-color: rgba(var(--link-color-rgb), 0.16);
             color: var(--button-bg);
         }
-        
+
         &:disabled {
             color: rgba(var(--center-channel-color-rgb), 0.32);
         }
-        
+
         // Destructive variant
         &.Button--destructive {
             color: var(--error-text);
-            
+
             &:hover:not(:disabled) {
                 background-color: rgba(var(--error-text-color-rgb), 0.08);
                 color: var(--error-text);
             }
-            
+
             &:active:not(:disabled) {
                 background-color: rgba(var(--error-text-color-rgb), 0.16);
                 color: var(--error-text);
@@ -233,7 +231,7 @@
         background-color: transparent;
         color: var(--link-color);
         text-decoration: none;
-        
+
         &:hover:not(:disabled) {
             color: color-mix(in srgb, var(--link-color) 92%, black 8%);
 
@@ -241,23 +239,23 @@
                 text-decoration: underline;
             }
         }
-        
+
         &:active:not(:disabled) {
             color: var(--link-color);
         }
-        
+
         &:disabled {
             color: rgba(var(--center-channel-color-rgb), 0.32);
         }
-        
+
         // Destructive variant
         &.Button--destructive {
             color: var(--error-text);
-            
+
             &:hover:not(:disabled) {
                 color: color-mix(in srgb, var(--error-text) 92%, black 8%);
             }
-            
+
             &:active:not(:disabled) {
                 color: var(--error-text);
             }
@@ -268,11 +266,11 @@
     &--primary.Button--inverted {
         background-color: var(--button-color);
         color: var(--button-bg);
-        
+
         &:hover:not(:disabled) {
             background-color: color-mix(in srgb, var(--button-color) 92%, var(--button-bg) 8%);
         }
-        
+
         &:active:not(:disabled) {
             background-color: color-mix(in srgb, var(--button-color) 84%, var(--button-bg) 16%);
         }
@@ -282,11 +280,11 @@
         border: 1px solid var(--button-color);
         background-color: transparent;
         color: var(--button-color);
-        
+
         &:hover:not(:disabled) {
             background-color: rgba(var(--button-color-rgb), 0.08);
         }
-        
+
         &:active:not(:disabled) {
             background-color: rgba(var(--button-color-rgb), 0.16);
         }
@@ -295,11 +293,11 @@
     &--tertiary.Button--inverted {
         background-color: rgba(var(--button-color-rgb), 0.08);
         color: var(--button-color);
-        
+
         &:hover:not(:disabled) {
             background-color: rgba(var(--button-color-rgb), 0.12);
         }
-        
+
         &:active:not(:disabled) {
             background-color: rgba(var(--button-color-rgb), 0.16);
         }
@@ -308,12 +306,12 @@
     &--quaternary.Button--inverted {
         background-color: transparent;
         color: rgba(var(--button-color-rgb), 0.75);
-        
+
         &:hover:not(:disabled) {
             background-color: rgba(var(--button-color-rgb), 0.08);
             color: rgba(var(--button-color-rgb), 0.88);
         }
-        
+
         &:active:not(:disabled) {
             background-color: rgba(var(--button-color-rgb), 0.16);
             color: var(--button-color);
@@ -322,11 +320,11 @@
 
     &--link.Button--inverted {
         color: var(--button-color);
-        
+
         &:hover:not(:disabled) {
             color: rgba(var(--button-color-rgb), 0.75);
         }
-        
+
         &:active:not(:disabled) {
             color: var(--button-color);
         }
@@ -344,8 +342,8 @@
         background: conic-gradient(rgba(var(--center-channel-color-rgb), 0), rgba(var(--center-channel-color-rgb), 0.48));
 
         // Spinner size modifiers
-        &--xs { 
-            width: 12px; 
+        &--xs {
+            width: 12px;
             height: 12px;
             mask-image: radial-gradient(
                 farthest-side,
@@ -354,8 +352,8 @@
             );
         }
 
-        &--sm { 
-            width: 14px; 
+        &--sm {
+            width: 14px;
             height: 14px;
             mask-image: radial-gradient(
                 farthest-side,
@@ -364,8 +362,8 @@
             );
         }
 
-        &--md { 
-            width: 16px; 
+        &--md {
+            width: 16px;
             height: 16px;
             mask-image: radial-gradient(
                 farthest-side,
@@ -374,8 +372,8 @@
             );
         }
 
-        &--lg { 
-            width: 20px; 
+        &--lg {
+            width: 20px;
             height: 20px;
             mask-image: radial-gradient(
                 farthest-side,
@@ -463,7 +461,7 @@
         background-image: none; // Remove any gradient overlays
         cursor: not-allowed;
         opacity: 1; // Override any global disabled opacity
-        
+
         // Regular (non-inverted) disabled - override destructive styles
         &.Button--destructive {
             // Primary, Secondary, Tertiary destructive disabled
@@ -477,7 +475,7 @@
                 border-color: rgba(var(--center-channel-color-rgb), 0.32);
                 color: rgba(var(--center-channel-color-rgb), 0.32);
             }
-            
+
             // Quaternary, Link destructive disabled
             &.Button--quaternary,
             &.Button--link {
@@ -485,12 +483,12 @@
                 background-color: transparent;
                 color: rgba(var(--center-channel-color-rgb), 0.32);
             }
-            
+
             &.Button--link {
                 text-decoration: none;
             }
         }
-        
+
         // Inverted disabled styles - override all previous states
         &.Button--inverted {
             &.Button--primary {
@@ -498,26 +496,26 @@
                 background-color: rgba(var(--button-color-rgb), 0.08);
                 color: rgba(var(--button-color-rgb), 0.32);
             }
-            
+
             &.Button--secondary {
                 border-color: rgba(var(--button-color-rgb), 0.32);
                 background-color: transparent;
                 color: rgba(var(--button-color-rgb), 0.32);
             }
-            
+
             &.Button--tertiary {
                 border-color: transparent;
                 background-color: rgba(var(--button-color-rgb), 0.08);
                 color: rgba(var(--button-color-rgb), 0.32);
             }
-            
+
             &.Button--quaternary,
             &.Button--link {
                 border-color: transparent;
                 background-color: transparent;
                 color: rgba(var(--button-color-rgb), 0.32);
             }
-            
+
             &.Button--link {
                 text-decoration: none;
             }
