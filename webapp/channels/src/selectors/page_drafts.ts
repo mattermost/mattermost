@@ -21,16 +21,6 @@ export function getPageDraftsForWiki(state: GlobalState, wikiId: string): PostDr
         }
     });
 
-    console.log('[getPageDraftsForWiki] Selector returning drafts:', {
-        wikiId,
-        draftsCount: drafts.length,
-        drafts: drafts.map((d) => ({
-            rootId: d.rootId,
-            title: d.props?.title,
-            pageParentId: d.props?.page_parent_id,
-        })),
-    });
-
     return drafts;
 }
 

@@ -2,9 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useRef, useCallback} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
-
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {useDispatch} from 'react-redux';
 
 import {togglePageOutline} from 'actions/views/pages_hierarchy';
 
@@ -49,7 +47,6 @@ const PageContextMenu = ({
 }: Props) => {
     const menuRef = useRef<HTMLDivElement>(null);
     const dispatch = useDispatch();
-    const currentTeam = useSelector(getCurrentTeam);
 
     // Close on click outside
     useEffect(() => {

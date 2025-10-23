@@ -62,6 +62,72 @@ func (_m *PageContentStore) Get(pageID string) (*model.PageContent, error) {
 	return r0, r1
 }
 
+// GetWithDeleted provides a mock function with given fields: pageID
+func (_m *PageContentStore) GetWithDeleted(pageID string) (*model.PageContent, error) {
+	ret := _m.Called(pageID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetWithDeleted")
+	}
+
+	var r0 *model.PageContent
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (*model.PageContent, error)); ok {
+		return rf(pageID)
+	}
+	if rf, ok := ret.Get(0).(func(string) *model.PageContent); ok {
+		r0 = rf(pageID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PageContent)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(pageID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// PermanentDelete provides a mock function with given fields: pageID
+func (_m *PageContentStore) PermanentDelete(pageID string) error {
+	ret := _m.Called(pageID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for PermanentDelete")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(pageID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// Restore provides a mock function with given fields: pageID
+func (_m *PageContentStore) Restore(pageID string) error {
+	ret := _m.Called(pageID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Restore")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(pageID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Save provides a mock function with given fields: pageContent
 func (_m *PageContentStore) Save(pageContent *model.PageContent) (*model.PageContent, error) {
 	ret := _m.Called(pageContent)

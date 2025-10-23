@@ -89,15 +89,6 @@ const PagesHierarchyPanel = ({
 
     // Convert drafts to Post-like objects to include in tree
     const draftPosts: DraftPage[] = useMemo(() => {
-        console.log('[PagesHierarchyPanel] Converting drafts to draftPosts:', {
-            draftsCount: drafts.length,
-            drafts: drafts.map((d) => ({
-                rootId: d.rootId,
-                title: d.props?.title,
-                pageParentId: d.props?.page_parent_id,
-            })),
-        });
-
         return drafts.map((draft): DraftPage => ({
             id: draft.rootId,
             create_at: draft.createAt,
@@ -163,6 +154,8 @@ const PagesHierarchyPanel = ({
             return;
         }
 
+        // TODO: Replace prompt with modal dialog
+        // eslint-disable-next-line no-alert
         const title = window.prompt('Enter page title:', 'Untitled Page');
         if (!title || title.trim() === '') {
             return;
@@ -172,11 +165,10 @@ const PagesHierarchyPanel = ({
         try {
             const result = await actions.createPage(wikiId, title);
             if (result.error) {
-                alert(`Failed to create page: ${result.error.message || 'Unknown error'}`);
+                // TODO: Show error notification instead of alert
             }
         } catch (error) {
-            alert('Failed to create page. Please try again.');
-            console.error('Create page error:', error);
+            // TODO: Show error notification instead of alert
         } finally {
             setCreatingPage(false);
         }
@@ -187,6 +179,8 @@ const PagesHierarchyPanel = ({
             return;
         }
 
+        // TODO: Replace prompt with modal dialog
+        // eslint-disable-next-line no-alert
         const title = window.prompt('Enter page title:', 'Untitled Page');
         if (!title || title.trim() === '') {
             return;
@@ -196,11 +190,10 @@ const PagesHierarchyPanel = ({
         try {
             const result = await actions.createPage(wikiId, title, pageId);
             if (result.error) {
-                alert(`Failed to create child page: ${result.error.message || 'Unknown error'}`);
+                // TODO: Show error notification instead of alert
             }
         } catch (error) {
-            alert('Failed to create child page. Please try again.');
-            console.error('Create child page error:', error);
+            // TODO: Show error notification instead of alert
         } finally {
             setCreatingPage(false);
         }
@@ -217,6 +210,9 @@ const PagesHierarchyPanel = ({
         }
 
         const currentTitle = (page.props?.title as string | undefined) || page.message || 'Untitled';
+
+        // TODO: Replace prompt with modal dialog
+        // eslint-disable-next-line no-alert
         const newTitle = window.prompt('Enter new title:', currentTitle);
         if (!newTitle || newTitle.trim() === '' || newTitle === currentTitle) {
             return;
@@ -226,24 +222,23 @@ const PagesHierarchyPanel = ({
         try {
             const result = await actions.renamePage(pageId, newTitle, wikiId);
             if (result.error) {
-                alert(`Failed to rename page: ${result.error.message || 'Unknown error'}`);
+                // TODO: Show error notification instead of alert
             }
         } catch (error) {
-            alert('Failed to rename page. Please try again.');
-            console.error('Rename page error:', error);
+            // TODO: Show error notification instead of alert
         } finally {
             setRenamingPageId(null);
         }
     };
 
-    const handleDuplicate = (pageId: string) => {
-        alert('Duplicate functionality coming soon!');
-        console.log('Duplicate page:', pageId);
+    const handleDuplicate = () => {
+        // TODO: Implement duplicate functionality
+        // alert('Duplicate functionality coming soon!');
     };
 
-    const handleMove = (pageId: string) => {
-        alert('Move functionality coming soon! This will open a modal to select a new parent page.');
-        console.log('Move page:', pageId);
+    const handleMove = () => {
+        // TODO: Implement move functionality with modal to select new parent
+        // alert('Move functionality coming soon! This will open a modal to select a new parent page.');
     };
 
     const getDescendantCount = (pageId: string, pages: PageOrDraft[]): number => {
@@ -276,41 +271,28 @@ const PagesHierarchyPanel = ({
 
         const page = allPages.find((p) => p.id === pageId);
         if (!page) {
-            console.error('[handleDelete] Page not found:', pageId);
             return;
         }
 
         const isDraft = page.type === PageDisplayTypes.PAGE_DRAFT;
         const title = page.props?.title || page.message || (isDraft ? 'this draft' : 'this page');
 
-        console.log('[handleDelete] Deleting:', {
-            pageId,
-            isDraft,
-            title,
-            wikiId,
-            pageType: page.type,
-        });
-
         if (isDraft) {
+            // TODO: Replace confirm with modal dialog
+            // eslint-disable-next-line no-alert
             if (!window.confirm(`Are you sure you want to delete "${title}"? This action cannot be undone.`)) {
                 return;
             }
 
             setDeletingPageId(pageId);
             try {
-                console.log('[handleDelete] Calling removePageDraft:', {wikiId, pageId});
                 const result = await actions.removePageDraft(wikiId, pageId);
 
-                console.log('[handleDelete] Result:', result);
-
                 if (result.error) {
-                    alert(`Failed to delete draft: ${result.error.message || 'Unknown error'}`);
-                } else {
-                    console.log('[handleDelete] Successfully deleted draft');
+                    // TODO: Show error notification instead of alert
                 }
             } catch (error) {
-                alert('Failed to delete draft. Please try again.');
-                console.error('Delete draft error:', error);
+                // TODO: Show error notification instead of alert
             } finally {
                 setDeletingPageId(null);
             }
@@ -323,25 +305,21 @@ const PagesHierarchyPanel = ({
             setPageToDelete({page, childCount});
             setShowDeleteModal(true);
         } else {
+            // TODO: Replace confirm with modal dialog
+            // eslint-disable-next-line no-alert
             if (!window.confirm(`Are you sure you want to delete "${title}"? This action cannot be undone.`)) {
                 return;
             }
 
             setDeletingPageId(pageId);
             try {
-                console.log('[handleDelete] Calling deletePage:', {pageId, wikiId});
                 const result = await actions.deletePage(pageId, wikiId);
 
-                console.log('[handleDelete] Result:', result);
-
                 if (result.error) {
-                    alert(`Failed to delete page: ${result.error.message || 'Unknown error'}`);
-                } else {
-                    console.log('[handleDelete] Successfully deleted page');
+                    // TODO: Show error notification instead of alert
                 }
             } catch (error) {
-                alert('Failed to delete page. Please try again.');
-                console.error('Delete page error:', error);
+                // TODO: Show error notification instead of alert
             } finally {
                 setDeletingPageId(null);
             }
@@ -359,37 +337,30 @@ const PagesHierarchyPanel = ({
         setDeletingPageId(page.id);
 
         try {
-            console.log('[handleDeleteConfirm] Deleting page:', {
-                pageId: page.id,
-                wikiId,
-                deleteChildren,
-            });
-
             if (deleteChildren) {
                 const descendantIds = getAllDescendantIds(page.id, allPages);
-                console.log('[handleDeleteConfirm] Deleting descendants:', descendantIds);
 
                 for (const descendantId of descendantIds.reverse()) {
                     // eslint-disable-next-line no-await-in-loop
-                    const result = await actions.deletePage(descendantId, wikiId);
-                    if (result.error) {
-                        console.error('[handleDeleteConfirm] Failed to delete descendant:', descendantId, result.error);
-                    }
+                    await actions.deletePage(descendantId, wikiId);
                 }
             }
 
             const result = await actions.deletePage(page.id, wikiId);
 
-            console.log('[handleDeleteConfirm] Result:', result);
-
             if (result.error) {
-                alert(`Failed to delete page: ${result.error.message || 'Unknown error'}`);
+                // TODO: Show error notification instead of alert
             } else {
-                console.log('[handleDeleteConfirm] Successfully deleted page');
+                const deletedPageIds = deleteChildren ? [page.id, ...getAllDescendantIds(page.id, allPages)] : [page.id];
+                const isViewingDeletedPage = currentPageId && deletedPageIds.includes(currentPageId);
+
+                if (isViewingDeletedPage) {
+                    const parentId = page.page_parent_id || '';
+                    onPageSelect(parentId);
+                }
             }
         } catch (error) {
-            alert('Failed to delete page. Please try again.');
-            console.error('Delete page error:', error);
+            // TODO: Show error notification instead of alert
         } finally {
             setDeletingPageId(null);
             setPageToDelete(null);

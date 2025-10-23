@@ -1259,6 +1259,13 @@ func (s *SqlPostStore) getPostsCollapsedThreads(rctx request.CTX, options model.
 		Where(sq.Eq{"Posts.DeleteAt": 0}).
 		Where(sq.Eq{"Posts.ChannelId": options.ChannelId}).
 		Where(sq.Eq{"Posts.RootId": ""}).
+		Where(sq.Or{
+			sq.And{
+				sq.NotEq{"Posts.Type": "page"},
+				sq.NotEq{"Posts.Type": "page_comment"},
+			},
+			sq.Eq{"Posts.Type": nil},
+		}).
 		Limit(uint64(options.PerPage)).
 		Offset(uint64(offset)).
 		OrderBy("Posts.CreateAt DESC").ToSql()
@@ -1343,6 +1350,13 @@ func (s *SqlPostStore) getPostsSinceCollapsedThreads(rctx request.CTX, options m
 		Where(sq.Eq{"Posts.ChannelId": options.ChannelId}).
 		Where(sq.Gt{"Posts.UpdateAt": options.Time}).
 		Where(sq.Eq{"Posts.RootId": ""}).
+		Where(sq.Or{
+			sq.And{
+				sq.NotEq{"Posts.Type": "page"},
+				sq.NotEq{"Posts.Type": "page_comment"},
+			},
+			sq.Eq{"Posts.Type": nil},
+		}).
 		OrderBy("Posts.CreateAt DESC").
 		Limit(1000).
 		ToSql()
@@ -1732,14 +1746,14 @@ func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int, ski
 	posts := []*model.Post{}
 	var fetchQuery string
 	if skipFetchThreads {
-		fetchQuery = "SELECT p.*, (SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END)) as ReplyCount FROM Posts p WHERE p.ChannelId = ? ORDER BY p.CreateAt DESC LIMIT ? OFFSET ?"
+		fetchQuery = "SELECT p.*, (SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END)) as ReplyCount FROM Posts p WHERE p.ChannelId = ? AND (p.Type NOT IN ('page', 'page_comment') OR p.Type IS NULL) ORDER BY p.CreateAt DESC LIMIT ? OFFSET ?"
 		if !includeDeleted {
-			fetchQuery = "SELECT p.*, (SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE p.ChannelId = ? AND p.DeleteAt = 0 ORDER BY p.CreateAt DESC LIMIT ? OFFSET ?"
+			fetchQuery = "SELECT p.*, (SELECT COUNT(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE p.ChannelId = ? AND p.DeleteAt = 0 AND (p.Type NOT IN ('page', 'page_comment') OR p.Type IS NULL) ORDER BY p.CreateAt DESC LIMIT ? OFFSET ?"
 		}
 	} else {
-		fetchQuery = "SELECT * FROM Posts WHERE Posts.ChannelId = ? ORDER BY Posts.CreateAt DESC LIMIT ? OFFSET ?"
+		fetchQuery = "SELECT * FROM Posts WHERE Posts.ChannelId = ? AND (Posts.Type NOT IN ('page', 'page_comment') OR Posts.Type IS NULL) ORDER BY Posts.CreateAt DESC LIMIT ? OFFSET ?"
 		if !includeDeleted {
-			fetchQuery = "SELECT * FROM Posts WHERE Posts.ChannelId = ? AND Posts.DeleteAt = 0 ORDER BY Posts.CreateAt DESC LIMIT ? OFFSET ?"
+			fetchQuery = "SELECT * FROM Posts WHERE Posts.ChannelId = ? AND Posts.DeleteAt = 0 AND (Posts.Type NOT IN ('page', 'page_comment') OR Posts.Type IS NULL) ORDER BY Posts.CreateAt DESC LIMIT ? OFFSET ?"
 		}
 	}
 
@@ -1806,6 +1820,13 @@ func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int, 
 		Where(sq.And{
 			where,
 			sq.Eq{"p.ChannelId": channelId},
+			sq.Or{
+				sq.And{
+					sq.NotEq{"p.Type": "page"},
+					sq.NotEq{"p.Type": "page_comment"},
+				},
+				sq.Eq{"p.Type": nil},
+			},
 		}).
 		OrderBy("p.CreateAt")
 
@@ -1865,6 +1886,7 @@ func (s *SqlPostStore) getParentsPostsPostgreSQL(channelId string, offset int, l
             ON `+onStatement+`
         WHERE
             q2.ChannelId = ? `+deleteAtQueryCondition+`
+            AND (q2.Type NOT IN ('page', 'page_comment') OR q2.Type IS NULL)
         ORDER BY q2.CreateAt`, channelId, limit, offset, channelId)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", channelId)
@@ -2044,6 +2066,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	).From("Posts q2").
 		Where("q2.DeleteAt = 0").
 		Where(fmt.Sprintf("q2.Type NOT LIKE '%s%%'", model.PostSystemMessagePrefix)).
+		Where(sq.Or{sq.NotEq{"q2.Type": "page_comment"}, sq.Eq{"q2.Type": nil}}).
 		OrderByClause("q2.CreateAt DESC").
 		Limit(100)
 
@@ -3291,6 +3314,51 @@ func (s *SqlPostStore) GetPostReminderMetadata(postID string) (*store.PostRemind
 	}
 
 	return meta, nil
+}
+
+// GetCommentsForPage retrieves all comments and replies for a page using the flat model
+// Returns the page itself plus all comments/replies (which all have RootId = pageId)
+func (s *SqlPostStore) GetCommentsForPage(pageID string, includeDeleted bool) (*model.PostList, error) {
+	if pageID == "" {
+		return nil, store.NewErrInvalidInput("Post", "pageID", pageID)
+	}
+
+	pl := model.NewPostList()
+
+	// Build query: Get page + all comments/replies in one query
+	// Flat model: ALL comments AND replies have RootId = pageId
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Posts").
+		Where(sq.Or{
+			sq.Eq{"Id": pageID},     // Include the page itself
+			sq.Eq{"RootId": pageID}, // All comments and replies
+		}).
+		OrderBy("CreateAt ASC")
+
+	if !includeDeleted {
+		query = query.Where(sq.Eq{"DeleteAt": 0})
+	}
+
+	// Execute query
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to build GetCommentsForPage query")
+	}
+
+	var posts []*model.Post
+	err = s.GetReplica().Select(&posts, queryString, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get comments for page with id=%s", pageID)
+	}
+
+	// Build PostList
+	for _, post := range posts {
+		pl.AddPost(post)
+		pl.AddOrder(post.Id)
+	}
+
+	return pl, nil
 }
 
 func (s *SqlPostStore) RefreshPostStats() error {

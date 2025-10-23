@@ -29,9 +29,8 @@ import './tiptap_editor.scss';
 // Custom heading extension that stores ID as an attribute
 const HeadingWithId = Heading.extend({
     addAttributes() {
-        const parentAttributes = this.parent?.() || {};
         return {
-            ...parentAttributes,
+            ...this.parent(),
             id: {
                 default: null,
                 parseHTML: (element: any) => element.getAttribute('id'),
@@ -241,9 +240,15 @@ const TipTapEditor = ({
     const setLink = () => {
         const previousUrl = editor.getAttributes('link').href;
 
-        // TODO: Replace with proper URL input modal
-        const url = previousUrl || 'https://';
-        if (url === 'https://') {
+        // TODO: Replace window.prompt with a proper modal dialog
+        const url = window.prompt('Enter URL:', previousUrl); // eslint-disable-line no-alert
+
+        if (url === null) {
+            return;
+        }
+
+        if (url === '') {
+            editor.chain().focus().extendMarkRange('link').unsetLink().run();
             return;
         }
 
@@ -251,9 +256,12 @@ const TipTapEditor = ({
     };
 
     const addImage = () => {
-        // TODO: Replace with proper image upload/selection modal
-        const url = 'https://via.placeholder.com/400x300';
-        editor.chain().focus().setImage({src: url}).run();
+        // TODO: Replace window.prompt with a proper modal dialog
+        const url = window.prompt('Enter image URL:'); // eslint-disable-line no-alert
+
+        if (url) {
+            editor.chain().focus().setImage({src: url}).run();
+        }
     };
 
     return (

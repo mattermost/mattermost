@@ -4,18 +4,28 @@
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
+
 import {publishPage} from 'actions/pages';
-import {getSelectedPageId, getWikiRhsMode, getWikiRhsWikiId} from 'selectors/wiki_rhs';
+import {closeRightHandSide} from 'actions/views/rhs';
+import {getSelectedPageId, getWikiRhsWikiId} from 'selectors/wiki_rhs';
 
 import type {GlobalState} from 'types/store';
 
 import WikiRHS from './wiki_rhs';
 
 function mapStateToProps(state: GlobalState) {
+    const pageId = getSelectedPageId(state);
+    const page = pageId ? getPost(state, pageId) : null;
+    const pageTitle = (typeof page?.props?.title === 'string' ? page.props.title : 'Page');
+    const channel = page?.channel_id ? getChannel(state, page.channel_id) : null;
+
     return {
-        pageId: getSelectedPageId(state),
+        pageId,
         wikiId: getWikiRhsWikiId(state),
-        mode: getWikiRhsMode(state),
+        pageTitle,
+        channelLoaded: Boolean(channel),
     };
 }
 
@@ -23,6 +33,7 @@ function mapDispatchToProps(dispatch: any) {
     return {
         actions: bindActionCreators({
             publishPage,
+            closeRightHandSide,
         }, dispatch),
     };
 }

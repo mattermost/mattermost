@@ -69,6 +69,7 @@ func TestPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetEditHistoryForPost", func(t *testing.T) { testGetEditHistoryForPost(t, rctx, ss) })
 	t.Run("GetPageChildren", func(t *testing.T) { testGetPageChildren(t, rctx, ss) })
 	t.Run("GetChannelPages", func(t *testing.T) { testGetChannelPages(t, rctx, ss) })
+	t.Run("GetCommentsForPage", func(t *testing.T) { testGetCommentsForPage(t, rctx, ss) })
 }
 
 func testPostStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -5860,4 +5861,259 @@ func testGetChannelPages(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	require.Len(t, result.Order, 3, "order should have 3 items")
 	require.Equal(t, page1.Id, result.Order[0], "pages should be ordered by CreateAt ASC (oldest first)")
+}
+func testGetCommentsForPage(t *testing.T, rctx request.CTX, ss store.Store) {
+	// Setup: Create channel and user
+	teamID := model.NewId()
+	channel, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      teamID,
+		DisplayName: "Test Channel",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	userID := model.NewId()
+
+	t.Run("returns page and all comments/replies with flat model", func(t *testing.T) {
+		// Create a page
+		page := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Message:   "Test Page",
+		}
+		page, err = ss.Post().Save(rctx, page)
+		require.NoError(t, err)
+
+		// Create first top-level comment
+		comment1 := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePageComment,
+			RootId:    page.Id,
+			Message:   "First comment",
+			Props: model.StringInterface{
+				"page_id": page.Id,
+			},
+		}
+		comment1, err = ss.Post().Save(rctx, comment1)
+		require.NoError(t, err)
+
+		// Create second top-level comment
+		comment2 := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePageComment,
+			RootId:    page.Id,
+			Message:   "Second comment",
+			Props: model.StringInterface{
+				"page_id": page.Id,
+			},
+		}
+		comment2, err = ss.Post().Save(rctx, comment2)
+		require.NoError(t, err)
+
+		// Create reply to first comment (flat model: RootId still = pageId)
+		reply1 := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePageComment,
+			RootId:    page.Id, // Flat model: reply's RootId = pageId, not comment1.Id
+			Message:   "Reply to first comment",
+			Props: model.StringInterface{
+				"page_id":           page.Id,
+				"parent_comment_id": comment1.Id,
+			},
+		}
+		reply1, err = ss.Post().Save(rctx, reply1)
+		require.NoError(t, err)
+
+		// Get all comments
+		result, getErr := ss.Post().GetCommentsForPage(page.Id, false)
+		require.NoError(t, getErr)
+		require.NotNil(t, result)
+
+		// Should return page + 2 comments + 1 reply = 4 total
+		require.Len(t, result.Posts, 4, "should return page + comments + replies")
+
+		// Verify all posts are included
+		require.Contains(t, result.Posts, page.Id, "should include the page itself")
+		require.Contains(t, result.Posts, comment1.Id, "should include comment1")
+		require.Contains(t, result.Posts, comment2.Id, "should include comment2")
+		require.Contains(t, result.Posts, reply1.Id, "should include reply")
+
+		// Verify ordering (CreateAt ASC)
+		require.Len(t, result.Order, 4)
+		require.Equal(t, page.Id, result.Order[0], "page should be first (oldest)")
+	})
+
+	t.Run("filters deleted posts when includeDeleted=false", func(t *testing.T) {
+		// Create a new page
+		page := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Message:   "Page with deleted comment",
+		}
+		page, err = ss.Post().Save(rctx, page)
+		require.NoError(t, err)
+
+		// Create a comment
+		comment := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePageComment,
+			RootId:    page.Id,
+			Message:   "Comment to be deleted",
+			Props: model.StringInterface{
+				"page_id": page.Id,
+			},
+		}
+		comment, err = ss.Post().Save(rctx, comment)
+		require.NoError(t, err)
+
+		// Delete the comment
+		err = ss.Post().Delete(rctx, comment.Id, model.GetMillis(), userID)
+		require.NoError(t, err)
+
+		// Get comments with includeDeleted=false
+		result, getErr := ss.Post().GetCommentsForPage(page.Id, false)
+		require.NoError(t, getErr)
+		require.NotNil(t, result)
+
+		// Should only return the page, not the deleted comment
+		require.Len(t, result.Posts, 1, "should only return page, not deleted comment")
+		require.Contains(t, result.Posts, page.Id)
+		require.NotContains(t, result.Posts, comment.Id, "should not include deleted comment")
+	})
+
+	t.Run("includes deleted posts when includeDeleted=true", func(t *testing.T) {
+		// Create a new page
+		page := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Message:   "Page with deleted comment 2",
+		}
+		page, err = ss.Post().Save(rctx, page)
+		require.NoError(t, err)
+
+		// Create a comment
+		comment := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePageComment,
+			RootId:    page.Id,
+			Message:   "Another comment to be deleted",
+			Props: model.StringInterface{
+				"page_id": page.Id,
+			},
+		}
+		comment, err = ss.Post().Save(rctx, comment)
+		require.NoError(t, err)
+
+		// Delete the comment
+		err = ss.Post().Delete(rctx, comment.Id, model.GetMillis(), userID)
+		require.NoError(t, err)
+
+		// Get comments with includeDeleted=true
+		result, getErr := ss.Post().GetCommentsForPage(page.Id, true)
+		require.NoError(t, getErr)
+		require.NotNil(t, result)
+
+		// Should return both page and deleted comment
+		require.Len(t, result.Posts, 2, "should include page and deleted comment")
+		require.Contains(t, result.Posts, page.Id)
+		require.Contains(t, result.Posts, comment.Id, "should include deleted comment when includeDeleted=true")
+
+		// Verify the comment is marked as deleted
+		deletedComment := result.Posts[comment.Id]
+		require.Greater(t, deletedComment.DeleteAt, int64(0), "deleted comment should have DeleteAt > 0")
+	})
+
+	t.Run("returns empty list for page with no comments", func(t *testing.T) {
+		// Create a page with no comments
+		page := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Message:   "Empty page",
+		}
+		page, err = ss.Post().Save(rctx, page)
+		require.NoError(t, err)
+
+		// Get comments
+		result, getErr := ss.Post().GetCommentsForPage(page.Id, false)
+		require.NoError(t, getErr)
+		require.NotNil(t, result)
+
+		// Should only return the page itself
+		require.Len(t, result.Posts, 1, "should only return the page itself")
+		require.Contains(t, result.Posts, page.Id)
+	})
+
+	t.Run("returns error for invalid pageID", func(t *testing.T) {
+		// Try to get comments for empty pageID
+		result, getErr := ss.Post().GetCommentsForPage("", false)
+		require.Error(t, getErr)
+		require.Nil(t, result)
+
+		var invalidErr *store.ErrInvalidInput
+		require.ErrorAs(t, getErr, &invalidErr)
+	})
+
+	t.Run("verifies flat model: all replies have RootId = pageId", func(t *testing.T) {
+		// Create a page
+		page := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePage,
+			Message:   "Page for flat model test",
+		}
+		page, err = ss.Post().Save(rctx, page)
+		require.NoError(t, err)
+
+		// Create top-level comment
+		comment := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePageComment,
+			RootId:    page.Id,
+			Message:   "Top-level comment",
+			Props: model.StringInterface{
+				"page_id": page.Id,
+			},
+		}
+		comment, err = ss.Post().Save(rctx, comment)
+		require.NoError(t, err)
+
+		// Create reply (flat model: RootId = pageId, not commentId)
+		reply := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Type:      model.PostTypePageComment,
+			RootId:    page.Id, // CRITICAL: RootId points to page, not comment
+			Message:   "Reply",
+			Props: model.StringInterface{
+				"page_id":           page.Id,
+				"parent_comment_id": comment.Id, // Parent relationship tracked in Props
+			},
+		}
+		reply, err = ss.Post().Save(rctx, reply)
+		require.NoError(t, err)
+
+		// Get all comments
+		result, getErr := ss.Post().GetCommentsForPage(page.Id, false)
+		require.NoError(t, getErr)
+		require.NotNil(t, result)
+
+		// All posts should have RootId = pageId (except page itself which has RootId = "")
+		require.Equal(t, "", result.Posts[page.Id].RootId, "page should have empty RootId")
+		require.Equal(t, page.Id, result.Posts[comment.Id].RootId, "comment should have RootId = pageId")
+		require.Equal(t, page.Id, result.Posts[reply.Id].RootId, "reply should have RootId = pageId (flat model)")
+
+		// Parent relationship for reply is in Props, not RootId
+		require.Equal(t, comment.Id, result.Posts[reply.Id].Props["parent_comment_id"], "reply's parent tracked in Props")
+	})
 }

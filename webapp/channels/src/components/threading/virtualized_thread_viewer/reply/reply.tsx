@@ -29,6 +29,10 @@ function Reply({
     previousPostId,
     timestampProps,
 }: Props) {
+    if (!post) {
+        return null;
+    }
+
     return (
         <PostComponent
             a11yIndex={a11yIndex}

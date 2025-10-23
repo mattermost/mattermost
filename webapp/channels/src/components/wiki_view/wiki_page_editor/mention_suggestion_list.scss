@@ -14,15 +14,15 @@
         min-height: 4rem;
         align-items: center;
         padding: 8px 2.4rem;
+        border: none;
         margin: 0;
+        background: transparent;
+        color: #3d3c40 !important;
+        color: var(--center-channel-color) !important;
         cursor: pointer;
         font-size: 14px !important;
         line-height: 20px !important;
-        border: none;
-        background: transparent;
         text-align: left;
-        color: #3d3c40 !important;
-        color: var(--center-channel-color) !important;
 
         &.suggestion--selected,
         &:hover {
@@ -43,8 +43,8 @@
         align-items: center;
         justify-content: center;
         margin: 0 12px 0 0;
-        font-size: 2rem;
         fill: var(--center-channel-color);
+        font-size: 2rem;
         opacity: 0.73;
     }
 
@@ -102,17 +102,17 @@
     width: 496px;
     max-width: 100%;
     max-height: 292px;
-    margin: 0;
     padding: 0;
     padding-bottom: 12px;
-    list-style: none;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
     border-radius: 4px;
+    margin: 0;
     background-color: var(--center-channel-bg);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    list-style: none;
+    -webkit-overflow-scrolling: touch;
     overflow-x: hidden;
     overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
 
     &::-webkit-scrollbar-track {
         width: 0;

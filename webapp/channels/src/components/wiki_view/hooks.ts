@@ -3,15 +3,18 @@
 
 import type {Location} from 'history';
 import {useEffect, useState, useCallback, useRef} from 'react';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
+
+import {getChannel, getChannelMember, selectChannel} from 'mattermost-redux/actions/channels';
+import {getChannel as getChannelSelector} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {loadPageDraftsForWiki, savePageDraft} from 'actions/page_drafts';
 import {loadChannelDefaultPage, loadWikiPages, publishPageDraft, loadPage} from 'actions/pages';
 
-import * as Utils from 'utils/utils';
-
+import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 
 type UseWikiPageDataResult = {
@@ -36,32 +39,46 @@ export function useWikiPageData(
     const dispatch = useDispatch();
     const [isLoading, setLoading] = useState(true);
     const [editingDraftId, setEditingDraftId] = useState<string | null>(null);
+    const currentUserId = useSelector((state: GlobalState) => getCurrentUserId(state));
+    const channel = useSelector((state: GlobalState) => getChannelSelector(state, channelId));
+    const member = useSelector((state: GlobalState) => state.entities.channels.myMembers[channelId]);
+
+    // Persistent channel selection: ensures channel stays selected even after route changes
+    useEffect(() => {
+        if (channel && member && channelId) {
+            dispatch(selectChannel(channelId));
+        }
+    }, [channelId, channel, member, dispatch]);
 
     useEffect(() => {
         const loadPageOrDraft = async () => {
-            console.log('[useWikiPageData] Effect triggered:', {
-                pageId,
-                channelId,
-                wikiId,
-                currentEditingDraftId: editingDraftId,
-            });
+            if (!channelId) {
+                setLoading(false);
+                return;
+            }
+
+            try {
+                if (!channel) {
+                    await dispatch(getChannel(channelId));
+                }
+
+                if (!member) {
+                    await dispatch(getChannelMember(channelId, currentUserId));
+                }
+
+                dispatch(selectChannel(channelId));
+            } catch (error) {
+                // Error loading channel
+            }
 
             if (pageId) {
-                // Clear any draft editing when viewing a published page
-                console.log('[useWikiPageData] Clearing editingDraftId because pageId exists:', {
-                    pageId,
-                    previousEditingDraftId: editingDraftId,
-                });
-                setEditingDraftId(null);
+                // Clear editingDraftId only if we're not editing this specific page
+                if (editingDraftId && editingDraftId !== pageId) {
+                    setEditingDraftId(null);
+                }
 
                 if (wikiId) {
-                    console.log('[useWikiPageData] Loading full page:', {pageId, wikiId});
-                    const result = await dispatch(loadPage(pageId, wikiId));
-                    console.log('[useWikiPageData] Page loaded:', {
-                        hasData: Boolean(result.data),
-                        hasMessage: Boolean(result.data?.message),
-                        messageLength: result.data?.message?.length || 0,
-                    });
+                    await dispatch(loadPage(pageId, wikiId));
                 }
                 setLoading(false);
                 return;
@@ -99,22 +116,16 @@ export function useWikiPageData(
                     const result = await dispatch(loadPageDraftsForWiki(wikiId));
                     const drafts = result.data || [];
 
-                    console.log('[useWikiPageData] Loaded drafts and pages:', {
-                        draftCount: drafts.length,
-                        pageCount: pages.length,
-                        isSelectingDraft: isSelectingDraftRef.current,
-                    });
-
                     // Only clear editingDraftId if we're not selecting a draft
-                    if (isSelectingDraftRef.current) {
-                        console.log('[useWikiPageData] Keeping editingDraftId (selecting draft)');
-                    } else if (drafts.length === 1 && pages.length === 0) {
-                        // If there's exactly one draft and no published pages, auto-select it (typical for new wikis)
-                        console.log('[useWikiPageData] Auto-selecting single draft (new wiki):', drafts[0].rootId);
-                        setEditingDraftId(drafts[0].rootId);
-                    } else {
-                        console.log('[useWikiPageData] Clearing editingDraftId');
-                        setEditingDraftId(null);
+                    if (!isSelectingDraftRef.current) {
+                        if (drafts.length === 1 && pages.length === 0) {
+                            // If there's exactly one draft and no published pages, auto-select it (typical for new wikis)
+                            setEditingDraftId(drafts[0].rootId);
+                        } else if (editingDraftId && drafts.some((d) => d.rootId === editingDraftId)) {
+                            // Preserve existing editingDraftId if the draft still exists
+                        } else {
+                            setEditingDraftId(null);
+                        }
                     }
                 } catch (error) {
                     if (!isSelectingDraftRef.current) {
@@ -129,7 +140,7 @@ export function useWikiPageData(
         };
 
         loadPageOrDraft();
-    }, [pageId, channelId, wikiId, dispatch]);
+    }, [pageId, channelId, wikiId, currentUserId, dispatch, channel, member]);
 
     return {
         isLoading,
@@ -169,7 +180,6 @@ export function useWikiPageActions(
         // Save any pending changes to the PREVIOUS draft before switching
         // BUT: Don't flush if transitioning to null (draft was deleted/published)
         if (autosaveTimeoutRef.current && previousDraftRef.current && wikiId && currentDraft) {
-            console.log('[useWikiPageActions] Flushing pending auto-save before draft change');
             clearTimeout(autosaveTimeoutRef.current);
             autosaveTimeoutRef.current = null;
 
@@ -179,12 +189,6 @@ export function useWikiPageActions(
             const prevTitle = latestTitleRef.current;
             const pageIdFromDraft = prevDraft.props?.page_id as string | undefined;
             const pageParentIdFromDraft = prevDraft.props?.page_parent_id;
-
-            console.log('[useWikiPageActions] Saving to previous draft:', {
-                draftId: prevDraft.rootId,
-                title: prevTitle,
-                contentLength: prevContent.length,
-            });
 
             dispatch(savePageDraft(
                 channelId,
@@ -197,18 +201,11 @@ export function useWikiPageActions(
             ));
         } else if (autosaveTimeoutRef.current && !currentDraft) {
             // Transitioning to null (draft deleted/published) - just cancel the timeout
-            console.log('[useWikiPageActions] Canceling pending auto-save - draft was deleted/published');
             clearTimeout(autosaveTimeoutRef.current);
             autosaveTimeoutRef.current = null;
         }
 
         if (currentDraft) {
-            console.log('[useWikiPageActions] Initializing refs for draft:', {
-                draftId: currentDraft.rootId,
-                title: currentDraft.props?.title,
-                message: currentDraft.message?.substring(0, 50),
-                pageParentId: currentDraft.props?.page_parent_id,
-            });
             latestContentRef.current = currentDraft.message || '';
             latestTitleRef.current = currentDraft.props?.title || '';
             previousDraftRef.current = currentDraft;
@@ -225,16 +222,6 @@ export function useWikiPageActions(
             return;
         }
 
-        console.log('[handleEdit] Starting edit:', {
-            pageId,
-            wikiId,
-            hasMessage: Boolean(currentPage.message),
-            messageLength: currentPage.message?.length || 0,
-            messagePreview: currentPage.message?.substring(0, 100),
-            pageTitle: currentPage.props?.title,
-            pageParentId: currentPage.page_parent_id,
-        });
-
         try {
             const pageTitle = (currentPage.props?.title as string | undefined) || 'Untitled page';
             const pageParentId = currentPage.page_parent_id;
@@ -243,7 +230,8 @@ export function useWikiPageActions(
 
             setEditingDraftId(pageId);
         } catch (error) {
-            alert('Failed to start editing. Please try again.');
+            // TODO: Show error notification instead of alert
+            // alert('Failed to start editing. Please try again.');
         }
     }, [channelId, pageId, wikiId, currentPage, dispatch, setEditingDraftId]);
 
@@ -252,7 +240,6 @@ export function useWikiPageActions(
         latestTitleRef.current = newTitle;
 
         if (!wikiId || !currentDraft) {
-            console.log('[handleTitleChange] Skipping - no wikiId or currentDraft');
             return;
         }
 
@@ -267,28 +254,12 @@ export function useWikiPageActions(
         const pageParentIdFromDraft = currentDraft.props?.page_parent_id;
         const capturedTitle = newTitle;
 
-        console.log('[handleTitleChange] Scheduling auto-save:', {
-            capturedTitle,
-            draftId,
-            pageIdFromDraft,
-            pageParentIdFromDraft,
-            contentLength: content.length,
-        });
-
         autosaveTimeoutRef.current = setTimeout(() => {
             // Verify we're still editing the same draft before saving
             if (!currentDraft || currentDraft.rootId !== draftId) {
-                console.log('[handleTitleChange] Canceling auto-save - draft changed', {
-                    expectedDraftId: draftId,
-                    currentDraftId: currentDraft?.rootId,
-                });
                 return;
             }
 
-            console.log('[handleTitleChange] Executing auto-save:', {
-                title: capturedTitle,
-                draftId,
-            });
             dispatch(savePageDraft(channelId, wikiId, draftId, content, capturedTitle, pageIdFromDraft, pageParentIdFromDraft ? {page_parent_id: pageParentIdFromDraft} : undefined));
         }, 500);
     }, [channelId, wikiId, currentDraft, dispatch]);
@@ -298,7 +269,6 @@ export function useWikiPageActions(
         latestContentRef.current = newContent;
 
         if (!wikiId || !currentDraft) {
-            console.log('[handleContentChange] Skipping - no wikiId or currentDraft');
             return;
         }
 
@@ -313,26 +283,12 @@ export function useWikiPageActions(
         const pageParentIdFromDraft = currentDraft.props?.page_parent_id;
         const capturedContent = newContent;
 
-        console.log('[handleContentChange] Scheduling auto-save:', {
-            draftId,
-            contentLength: capturedContent.length,
-            title,
-        });
-
         autosaveTimeoutRef.current = setTimeout(() => {
             // Verify we're still editing the same draft before saving
             if (!currentDraft || currentDraft.rootId !== draftId) {
-                console.log('[handleContentChange] Canceling auto-save - draft changed', {
-                    expectedDraftId: draftId,
-                    currentDraftId: currentDraft?.rootId,
-                });
                 return;
             }
 
-            console.log('[handleContentChange] Executing auto-save:', {
-                draftId,
-                contentLength: capturedContent.length,
-            });
             dispatch(savePageDraft(channelId, wikiId, draftId, capturedContent, title, pageIdFromDraft, pageParentIdFromDraft ? {page_parent_id: pageParentIdFromDraft} : undefined));
         }, 500);
     }, [channelId, wikiId, currentDraft, dispatch]);
@@ -343,7 +299,8 @@ export function useWikiPageActions(
         }
 
         if (!currentDraft.rootId) {
-            alert('Cannot publish: draft not found. Please refresh the page and try again.');
+            // TODO: Show error notification instead of alert
+            // alert('Cannot publish: draft not found. Please refresh the page and try again.');
             return;
         }
 
@@ -352,23 +309,14 @@ export function useWikiPageActions(
         const title = latestTitleRef.current || currentDraft.props?.title || '';
 
         if (!content || content.trim() === '') {
-            alert('Cannot publish an empty page. Please add some content first.');
+            // TODO: Show error notification instead of alert
+            // alert('Cannot publish an empty page. Please add some content first.');
             return;
         }
 
         const draftRootId = currentDraft.rootId;
         const pageIdFromDraft = currentDraft.props?.page_id as string | undefined;
         const pageParentIdFromDraft = currentDraft.props?.page_parent_id;
-
-        console.log('[handlePublish] Publishing draft:', {
-            draftRootId,
-            pageIdFromDraft,
-            pageParentIdFromDraft,
-            willPassToAPI: pageParentIdFromDraft || '',
-            contentLength: content.length,
-            titleLength: title.length,
-            draftProps: currentDraft.props,
-        });
 
         try {
             // Cancel any pending autosave and save immediately with latest content

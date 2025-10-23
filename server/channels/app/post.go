@@ -544,7 +544,7 @@ func (a *App) handlePostEvents(rctx request.CTX, post *model.Post, user *model.U
 	}
 	a.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
 
-	if _, err := a.SendNotifications(rctx, post, team, channel, user, parentPostList, setOnline); err != nil {
+	if _, err := a.SendNotifications(rctx, post, team, channel, user, parentPostList, setOnline, nil); err != nil {
 		return err
 	}
 

@@ -20,7 +20,9 @@ func TestPageContentStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlS
 	t.Run("GetPageContent", func(t *testing.T) { testGetPageContent(t, rctx, ss) })
 	t.Run("UpdatePageContent", func(t *testing.T) { testUpdatePageContent(t, rctx, ss) })
 	t.Run("DeletePageContent", func(t *testing.T) { testDeletePageContent(t, rctx, ss) })
-	t.Run("PageContentCascadeOnPostDelete", func(t *testing.T) { testPageContentCascadeOnPostDelete(t, rctx, ss) })
+	t.Run("GetPageContentWithDeleted", func(t *testing.T) { testGetPageContentWithDeleted(t, rctx, ss) })
+	t.Run("RestorePageContent", func(t *testing.T) { testRestorePageContent(t, rctx, ss) })
+	t.Run("PermanentDeletePageContent", func(t *testing.T) { testPermanentDeletePageContent(t, rctx, ss) })
 	t.Run("PageContentLargeDocument", func(t *testing.T) { testPageContentLargeDocument(t, rctx, ss) })
 	t.Run("PageContentSearchTextExtraction", func(t *testing.T) { testPageContentSearchTextExtraction(t, rctx, ss) })
 }
@@ -375,80 +377,6 @@ func testDeletePageContent(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 }
 
-func testPageContentCascadeOnPostDelete(t *testing.T, rctx request.CTX, ss store.Store) {
-	team := &model.Team{
-		DisplayName: "Test Team",
-		Name:        model.NewId(),
-		Email:       "test@example.com",
-		Type:        model.TeamOpen,
-	}
-	team, err := ss.Team().Save(team)
-	require.NoError(t, err)
-
-	channel := &model.Channel{
-		TeamId:      team.Id,
-		DisplayName: "Test Channel",
-		Name:        model.NewId(),
-		Type:        model.ChannelTypeOpen,
-	}
-	channel, nErr := ss.Channel().Save(rctx, channel, 1000)
-	require.NoError(t, nErr)
-
-	user := &model.User{
-		Email:    MakeEmail(),
-		Username: model.NewUsername(),
-	}
-	user, err = ss.User().Save(rctx, user)
-	require.NoError(t, err)
-
-	page := &model.Post{
-		ChannelId: channel.Id,
-		UserId:    user.Id,
-		Message:   "",
-		Type:      model.PostTypePage,
-		Props: model.StringInterface{
-			"title": "Test Page for Cascade",
-		},
-	}
-	page, err = ss.Post().Save(rctx, page)
-	require.NoError(t, err)
-
-	pc := &model.PageContent{
-		PageId: page.Id,
-		Content: model.TipTapDocument{
-			Type: "doc",
-			Content: []map[string]any{
-				{
-					"type": "paragraph",
-					"content": []any{
-						map[string]any{
-							"type": "text",
-							"text": "Content that should cascade delete",
-						},
-					},
-				},
-			},
-		},
-	}
-	_, err = ss.PageContent().Save(pc)
-	require.NoError(t, err)
-
-	retrieved, getErr := ss.PageContent().Get(page.Id)
-	require.NoError(t, getErr)
-	require.NotNil(t, retrieved)
-
-	t.Run("page content is deleted when post is deleted", func(t *testing.T) {
-		err := ss.Post().PermanentDeleteByUser(rctx, user.Id)
-		require.NoError(t, err)
-
-		_, getErr := ss.PageContent().Get(page.Id)
-		require.Error(t, getErr)
-
-		var nfErr *store.ErrNotFound
-		require.ErrorAs(t, getErr, &nfErr)
-	})
-}
-
 func testPageContentLargeDocument(t *testing.T, rctx request.CTX, ss store.Store) {
 	team := &model.Team{
 		DisplayName: "Test Team",
@@ -644,5 +572,264 @@ func testPageContentSearchTextExtraction(t *testing.T, rctx request.CTX, ss stor
 		assert.Contains(t, saved.SearchText, "bold text")
 		assert.Contains(t, saved.SearchText, "List item one")
 		assert.Contains(t, saved.SearchText, "List item two")
+	})
+}
+
+func testGetPageContentWithDeleted(t *testing.T, rctx request.CTX, ss store.Store) {
+	team := &model.Team{
+		DisplayName: "Test Team",
+		Name:        model.NewId(),
+		Email:       "test@example.com",
+		Type:        model.TeamOpen,
+	}
+	team, err := ss.Team().Save(team)
+	require.NoError(t, err)
+
+	channel := &model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "Test Channel",
+		Name:        model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}
+	channel, nErr := ss.Channel().Save(rctx, channel, 1000)
+	require.NoError(t, nErr)
+
+	user := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewUsername(),
+	}
+	user, err = ss.User().Save(rctx, user)
+	require.NoError(t, err)
+
+	page := &model.Post{
+		ChannelId: channel.Id,
+		UserId:    user.Id,
+		Message:   "",
+		Type:      model.PostTypePage,
+		Props: model.StringInterface{
+			"title": "Test Page",
+		},
+	}
+	page, err = ss.Post().Save(rctx, page)
+	require.NoError(t, err)
+
+	pc := &model.PageContent{
+		PageId: page.Id,
+		Content: model.TipTapDocument{
+			Type: "doc",
+			Content: []map[string]any{
+				{
+					"type": "paragraph",
+					"content": []any{
+						map[string]any{
+							"type": "text",
+							"text": "Content to soft delete",
+						},
+					},
+				},
+			},
+		},
+	}
+	_, err = ss.PageContent().Save(pc)
+	require.NoError(t, err)
+
+	t.Run("GetWithDeleted returns soft-deleted content", func(t *testing.T) {
+		deleteErr := ss.PageContent().Delete(page.Id)
+		require.NoError(t, deleteErr)
+
+		_, getErr := ss.PageContent().Get(page.Id)
+		require.Error(t, getErr)
+
+		retrieved, getWithDeletedErr := ss.PageContent().GetWithDeleted(page.Id)
+		require.NoError(t, getWithDeletedErr)
+		require.NotNil(t, retrieved)
+		require.Equal(t, page.Id, retrieved.PageId)
+		require.Greater(t, retrieved.DeleteAt, int64(0))
+		require.Contains(t, retrieved.SearchText, "Content to soft delete")
+	})
+}
+
+func testRestorePageContent(t *testing.T, rctx request.CTX, ss store.Store) {
+	team := &model.Team{
+		DisplayName: "Test Team",
+		Name:        model.NewId(),
+		Email:       "test@example.com",
+		Type:        model.TeamOpen,
+	}
+	team, err := ss.Team().Save(team)
+	require.NoError(t, err)
+
+	channel := &model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "Test Channel",
+		Name:        model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}
+	channel, nErr := ss.Channel().Save(rctx, channel, 1000)
+	require.NoError(t, nErr)
+
+	user := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewUsername(),
+	}
+	user, err = ss.User().Save(rctx, user)
+	require.NoError(t, err)
+
+	page := &model.Post{
+		ChannelId: channel.Id,
+		UserId:    user.Id,
+		Message:   "",
+		Type:      model.PostTypePage,
+		Props: model.StringInterface{
+			"title": "Test Page",
+		},
+	}
+	page, err = ss.Post().Save(rctx, page)
+	require.NoError(t, err)
+
+	pc := &model.PageContent{
+		PageId: page.Id,
+		Content: model.TipTapDocument{
+			Type: "doc",
+			Content: []map[string]any{
+				{
+					"type": "paragraph",
+					"content": []any{
+						map[string]any{
+							"type": "text",
+							"text": "Content to restore",
+						},
+					},
+				},
+			},
+		},
+	}
+	_, err = ss.PageContent().Save(pc)
+	require.NoError(t, err)
+
+	t.Run("Restore clears DeleteAt and makes content accessible", func(t *testing.T) {
+		deleteErr := ss.PageContent().Delete(page.Id)
+		require.NoError(t, deleteErr)
+
+		_, getErr := ss.PageContent().Get(page.Id)
+		require.Error(t, getErr)
+
+		restoreErr := ss.PageContent().Restore(page.Id)
+		require.NoError(t, restoreErr)
+
+		restored, getErr := ss.PageContent().Get(page.Id)
+		require.NoError(t, getErr)
+		require.NotNil(t, restored)
+		require.Equal(t, page.Id, restored.PageId)
+		require.Equal(t, int64(0), restored.DeleteAt)
+		require.Contains(t, restored.SearchText, "Content to restore")
+	})
+
+	t.Run("Restore fails for non-deleted content", func(t *testing.T) {
+		page2 := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    user.Id,
+			Message:   "",
+			Type:      model.PostTypePage,
+			Props: model.StringInterface{
+				"title": "Non-deleted Page",
+			},
+		}
+		page2, err = ss.Post().Save(rctx, page2)
+		require.NoError(t, err)
+
+		pc2 := &model.PageContent{
+			PageId: page2.Id,
+			Content: model.TipTapDocument{
+				Type:    "doc",
+				Content: []map[string]any{},
+			},
+		}
+		_, err = ss.PageContent().Save(pc2)
+		require.NoError(t, err)
+
+		restoreErr := ss.PageContent().Restore(page2.Id)
+		require.Error(t, restoreErr)
+
+		var nfErr *store.ErrNotFound
+		require.ErrorAs(t, restoreErr, &nfErr)
+	})
+}
+
+func testPermanentDeletePageContent(t *testing.T, rctx request.CTX, ss store.Store) {
+	team := &model.Team{
+		DisplayName: "Test Team",
+		Name:        model.NewId(),
+		Email:       "test@example.com",
+		Type:        model.TeamOpen,
+	}
+	team, err := ss.Team().Save(team)
+	require.NoError(t, err)
+
+	channel := &model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "Test Channel",
+		Name:        model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}
+	channel, nErr := ss.Channel().Save(rctx, channel, 1000)
+	require.NoError(t, nErr)
+
+	user := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewUsername(),
+	}
+	user, err = ss.User().Save(rctx, user)
+	require.NoError(t, err)
+
+	page := &model.Post{
+		ChannelId: channel.Id,
+		UserId:    user.Id,
+		Message:   "",
+		Type:      model.PostTypePage,
+		Props: model.StringInterface{
+			"title": "Test Page",
+		},
+	}
+	page, err = ss.Post().Save(rctx, page)
+	require.NoError(t, err)
+
+	pc := &model.PageContent{
+		PageId: page.Id,
+		Content: model.TipTapDocument{
+			Type: "doc",
+			Content: []map[string]any{
+				{
+					"type": "paragraph",
+					"content": []any{
+						map[string]any{
+							"type": "text",
+							"text": "Content to permanently delete",
+						},
+					},
+				},
+			},
+		},
+	}
+	_, err = ss.PageContent().Save(pc)
+	require.NoError(t, err)
+
+	t.Run("PermanentDelete removes content from database", func(t *testing.T) {
+		permanentDeleteErr := ss.PageContent().PermanentDelete(page.Id)
+		require.NoError(t, permanentDeleteErr)
+
+		_, getErr := ss.PageContent().Get(page.Id)
+		require.Error(t, getErr)
+
+		_, getWithDeletedErr := ss.PageContent().GetWithDeleted(page.Id)
+		require.Error(t, getWithDeletedErr)
+
+		var nfErr *store.ErrNotFound
+		require.ErrorAs(t, getWithDeletedErr, &nfErr)
+	})
+
+	t.Run("PermanentDelete succeeds even if content does not exist", func(t *testing.T) {
+		permanentDeleteErr := ss.PageContent().PermanentDelete(model.NewId())
+		require.NoError(t, permanentDeleteErr)
 	})
 }

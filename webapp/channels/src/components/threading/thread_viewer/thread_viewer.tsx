@@ -56,6 +56,7 @@ export type Props = Attrs & {
     rootPostId: string;
     enableWebSocketEventScope: boolean;
     lastUpdateAt: number;
+    hideRootPost?: boolean;
 };
 
 type State = {
@@ -256,6 +257,7 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
                                     highlightedPostId={this.props.highlightedPostId}
                                     selectedPostFocusedAt={this.props.selectedPostFocusedAt}
                                     isThreadView={Boolean(this.props.isCollapsedThreadsEnabled && this.props.isThreadView)}
+                                    hideRootPost={this.props.hideRootPost}
                                 />
                             )}
                         </>

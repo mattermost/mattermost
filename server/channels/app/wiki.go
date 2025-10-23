@@ -259,6 +259,13 @@ func (a *App) RemovePageFromWiki(rctx request.CTX, pageId, wikiId string) *model
 		return model.NewAppError("RemovePageFromWiki", "app.wiki.remove_page.app_error", nil, "", http.StatusInternalServerError).Wrap(deleteErr)
 	}
 
+	// In channel-subservient architecture, a page belongs to exactly one wiki (channel).
+	// "Removing from wiki" is semantically equivalent to "deleting the page" since there's no other wiki it can belong to.
+	// DeletePage will soft-delete the page post, which cascades to all comments (RootId = pageId).
+	if deletePageErr := a.DeletePage(rctx, pageId); deletePageErr != nil {
+		return deletePageErr
+	}
+
 	rctx.Logger().Info("Page removed from wiki", mlog.String("page_id", pageId), mlog.String("wiki_id", wikiId))
 
 	return nil

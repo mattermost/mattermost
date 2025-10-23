@@ -404,6 +404,7 @@ type PostStore interface {
 	OverwriteMultiple(rctx request.CTX, posts []*model.Post) ([]*model.Post, int, error)
 	GetPostsByIds(postIds []string) ([]*model.Post, error)
 	GetEditHistoryForPost(postID string) ([]*model.Post, error)
+	GetCommentsForPage(pageID string, includeDeleted bool) (*model.PostList, error)
 	GetPostsBatchForIndexing(startTime int64, startPostID string, limit int) ([]*model.PostForIndexing, error)
 	PermanentDeleteBatchForRetentionPolicies(retentionPolicyBatchConfigs model.RetentionPolicyBatchConfigs, cursor model.RetentionPolicyCursor) (int64, model.RetentionPolicyCursor, error)
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, error)
@@ -1176,8 +1177,11 @@ type WikiStore interface {
 type PageContentStore interface {
 	Save(pageContent *model.PageContent) (*model.PageContent, error)
 	Get(pageID string) (*model.PageContent, error)
+	GetWithDeleted(pageID string) (*model.PageContent, error)
 	Update(pageContent *model.PageContent) (*model.PageContent, error)
 	Delete(pageID string) error
+	PermanentDelete(pageID string) error
+	Restore(pageID string) error
 }
 
 // ChannelSearchOpts contains options for searching channels.

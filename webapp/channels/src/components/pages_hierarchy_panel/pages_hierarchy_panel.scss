@@ -30,19 +30,21 @@ $spacing-lg: 16px;
 $radius-sm: 4px;
 
 .PagesHierarchyPanel {
-    padding: $spacing-lg;
+    display: flex;
     width: $sidebar-width;
     height: 100%;
-    display: flex;
     flex-direction: column;
-    overflow: hidden;
+    padding: $spacing-lg;
+    border-right: 1px solid $sidebar-border;
+    background: $sidebar-bg;
+    box-shadow: $elevation-2;
     transition: width 0.2s ease-in-out;
 
     &--collapsed {
         width: 0;
+        padding: 0;
         border-right: none;
         box-shadow: none;
-        padding: 0;
 
         .PagesHierarchyPanel__header,
         .PagesHierarchyPanel__search,
@@ -56,17 +58,16 @@ $radius-sm: 4px;
 
 .PagesHierarchyPanel__header {
     display: flex;
+    height: $header-height;
+    flex-shrink: 0;
     align-items: center;
     justify-content: space-between;
-    flex-shrink: 0;
 }
 
 .PagesHierarchyPanel__title {
-    font-size: 12px;
     font-family: 'Open Sans', sans-serif;
+    font-size: 12px;
     font-weight: 600;
-    color: $node-text;
-    margin: 0;
 }
 
 .PagesHierarchyPanel__title-container {
@@ -76,17 +77,17 @@ $radius-sm: 4px;
 }
 
 .PagesHierarchyPanel__newPage {
+    display: flex;
     width: 32px;
     height: 32px;
-    border-radius: $radius-sm;
-    display: flex;
+    flex-shrink: 0;
     align-items: center;
     justify-content: center;
-    color: $node-text-muted;
-    background: transparent;
     border: none;
+    border-radius: $radius-sm;
+    background: transparent;
+    color: $node-text-muted;
     cursor: pointer;
-    flex-shrink: 0;
 
     &:hover:not(:disabled) {
         background: $node-hover-bg;
@@ -94,39 +95,39 @@ $radius-sm: 4px;
     }
 
     &:disabled {
-        opacity: 0.6;
         cursor: not-allowed;
+        opacity: 0.6;
     }
 }
 
 // Search (40px height)
 .PagesHierarchyPanel__search {
-    height: $search-height;
-    margin: $spacing-sm 0;
-    padding: $spacing-xs $spacing-xs;
     display: flex;
-    align-items: center;
-    gap: $spacing-sm;
-    background: rgba(var(--center-channel-text-rgb), 0.08);
-    border-radius: $radius-sm;
+    height: $search-height;
     flex-shrink: 0;
+    align-items: center;
+    padding: 0 $spacing-md;
+    border-radius: $radius-sm;
+    margin: $spacing-sm $spacing-lg;
+    background: rgba(var(--center-channel-text-rgb), 0.08);
+    gap: $spacing-sm;
 
     .icon-magnify {
         display: flex;
-        align-items: center;
         width: 20px;
         height: 20px;
-        font-size: 16px;
-        color: $node-text-muted;
         flex-shrink: 0;
+        align-items: center;
+        color: $node-text-muted;
+        font-size: 16px;
     }
 
     input {
         flex: 1;
         border: none;
         background: transparent;
-        font-size: 12px;
         color: $node-text;
+        font-size: 14px;
         outline: none;
 
         &::placeholder {
@@ -136,16 +137,16 @@ $radius-sm: 4px;
 }
 
 .PagesHierarchyPanel__clearSearch {
+    display: flex;
     width: 20px;
     height: 20px;
+    align-items: center;
+    justify-content: center;
     padding: 0;
     border: none;
     background: transparent;
     color: $node-text-muted;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 
     &:hover {
         color: $node-text;
@@ -155,23 +156,23 @@ $radius-sm: 4px;
 // Tree container
 .PagesHierarchyPanel__tree {
     flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
     padding: $spacing-sm 0;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 // Loading state
 .PagesHierarchyPanel__loading {
     padding: $spacing-lg;
-    text-align: center;
     color: $node-text-muted;
     font-size: 14px;
+    text-align: center;
 }
 
 // Empty state
 .PagesHierarchyPanel__empty {
     padding: $spacing-lg;
-    text-align: center;
     color: $node-text-muted;
     font-size: 14px;
+    text-align: center;
 }

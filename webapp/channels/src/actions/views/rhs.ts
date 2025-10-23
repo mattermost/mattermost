@@ -9,7 +9,7 @@ import type {Post} from '@mattermost/types/posts';
 
 import {SearchTypes} from 'mattermost-redux/action_types';
 import {getChannel} from 'mattermost-redux/actions/channels';
-import {getPostsByIds, getPost as fetchPost} from 'mattermost-redux/actions/posts';
+import {getPostsByIds, getPost as fetchPost, getPostThread} from 'mattermost-redux/actions/posts';
 import {
     clearSearch,
     getFlaggedPosts,
@@ -489,8 +489,26 @@ export function showChannelInfo(channelId: string) {
     };
 }
 
-export function openWikiRhs(pageId: string, wikiId?: string): ActionFunc {
-    return (dispatch) => {
+export function openWikiRhs(pageId: string, wikiId?: string): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        // Fetch the page and its thread to ensure they're in Redux
+        const state = getState();
+        let page = getPost(state, pageId);
+
+        if (!page) {
+            // Fetch the page if not in Redux
+            await dispatch(getPostThread(pageId, false, 0));
+            page = getPost(getState(), pageId);
+        }
+
+        // Ensure the channel is loaded
+        if (page?.channel_id) {
+            const channel = getChannelSelector(getState(), page.channel_id);
+            if (!channel) {
+                await dispatch(getChannel(page.channel_id));
+            }
+        }
+
         dispatch({
             type: ActionTypes.UPDATE_RHS_STATE,
             pageId,

@@ -4,12 +4,15 @@
 import React, {useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {loadPage} from 'actions/pages';
 import {getFullPage} from 'selectors/pages';
 
+import {useUser} from 'components/common/hooks/useUser';
 import LoadingScreen from 'components/loading_screen';
 
 import type {GlobalState} from 'types/store';
@@ -28,6 +31,9 @@ const PageViewer = ({pageId, wikiId}: Props) => {
     const page = useSelector((state: GlobalState) => getFullPage(state, pageId));
     const currentUserId = useSelector(getCurrentUserId);
     const currentTeamId = useSelector(getCurrentTeamId);
+    const teammateNameDisplay = useSelector(getTeammateNameDisplaySetting);
+
+    const author = useUser(page?.user_id || '');
 
     useEffect(() => {
         if (pageId && wikiId) {
@@ -41,6 +47,15 @@ const PageViewer = ({pageId, wikiId}: Props) => {
 
     const pageTitle = (page.props?.title as string | undefined) || 'Untitled Page';
     const pageContent = page.message || '';
+    const pageStatus = (page.props?.status as string | undefined) || 'in_progress';
+    const authorName = author ? displayUsername(author, teammateNameDisplay) : 'Unknown';
+
+    const statusLabels: Record<string, string> = {
+        in_progress: 'In progress',
+        draft: 'Draft',
+        published: 'Published',
+        archived: 'Archived',
+    };
 
     return (
         <div className='PageViewer'>
@@ -48,10 +63,11 @@ const PageViewer = ({pageId, wikiId}: Props) => {
                 <h1 className='PageViewer__title'>{pageTitle}</h1>
                 <div className='PageViewer__meta'>
                     <span className='PageViewer__author'>
-                        {`By ${page.user_id}`}
+                        {`By ${authorName}`}
                     </span>
-                    <span className='PageViewer__date'>
-                        {new Date(page.update_at || page.create_at).toLocaleDateString()}
+                    <span className='PageViewer__status'>
+                        <span className='PageViewer__status-indicator'/>
+                        {statusLabels[pageStatus] || 'In progress'}
                     </span>
                 </div>
             </div>

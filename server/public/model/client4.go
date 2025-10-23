@@ -7650,6 +7650,32 @@ func (c *Client4) RemovePageFromWiki(ctx context.Context, wikiId, pageId string)
 	return BuildResponse(r), nil
 }
 
+// CreatePageComment creates a top-level comment on a page.
+func (c *Client4) CreatePageComment(ctx context.Context, wikiId, pageId, message string) (*Post, *Response, error) {
+	payload := map[string]string{
+		"message": message,
+	}
+	r, err := c.DoAPIPostJSON(ctx, fmt.Sprintf("%s/%s/comments", c.wikiPagesRoute(wikiId), pageId), payload)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Post](r)
+}
+
+// CreatePageCommentReply creates a reply to an existing comment on a page.
+func (c *Client4) CreatePageCommentReply(ctx context.Context, wikiId, pageId, parentCommentId, message string) (*Post, *Response, error) {
+	payload := map[string]string{
+		"message": message,
+	}
+	r, err := c.DoAPIPostJSON(ctx, fmt.Sprintf("%s/%s/comments/%s/replies", c.wikiPagesRoute(wikiId), pageId, parentCommentId), payload)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Post](r)
+}
+
 func (c *Client4) GetFilteredUsersStats(ctx context.Context, options *UserCountOptions) (*UsersStats, *Response, error) {
 	v := url.Values{}
 	v.Set("in_team", options.TeamId)

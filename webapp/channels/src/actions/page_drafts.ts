@@ -2,19 +2,16 @@
 // See LICENSE.txt for license information.
 
 import {batchActions} from 'redux-batched-actions';
-import {matchPath} from 'react-router-dom';
 
 import type {Draft as ServerDraft} from '@mattermost/types/drafts';
 import type {FileInfo} from '@mattermost/types/files';
 
 import {Client4} from 'mattermost-redux/client';
 import {syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import WikiActionTypes from 'mattermost-redux/action_types/wikis';
 
 import {setGlobalItem, removeGlobalItem} from 'actions/storage';
 import {setGlobalDraftSource, getDrafts} from 'actions/views/drafts';
 import {getGlobalItem} from 'selectors/storage';
-import {getHistory} from 'utils/browser_history';
 
 import {StoragePrefixes} from 'utils/constants';
 
@@ -134,7 +131,7 @@ export function loadPageDraftsForWiki(wikiId: string): ActionFuncAsync<PostDraft
                 const serverDraftsRaw = await Client4.getPageDraftsForWiki(wikiId);
                 serverDrafts = serverDraftsRaw.map((draft) => transformPageServerDraft(draft, wikiId, draft.root_id));
             } catch (error) {
-                console.error('[loadPageDraftsForWiki] Failed to fetch from server:', error);
+                // Failed to fetch from server
             }
         }
 
@@ -181,22 +178,11 @@ export function removePageDraft(wikiId: string, draftId: string): ActionFuncAsyn
         const state = getState();
         const key = makePageDraftKey(wikiId, draftId);
 
-        console.log('[removePageDraft] Removing draft:', {
-            wikiId,
-            draftId,
-            key,
-            existsInStorage: Boolean(state.storage.storage[key]),
-            allDraftKeys: Object.keys(state.storage.storage).filter((k) => k.startsWith(StoragePrefixes.PAGE_DRAFT)),
-        });
-
         // Delete from server first (if sync is enabled)
         if (syncedDraftsAreAllowedAndEnabled(state)) {
             try {
                 await Client4.deletePageDraft(wikiId, draftId);
-                console.log('[removePageDraft] Server delete succeeded');
             } catch (error) {
-                console.error('[removePageDraft] Server delete failed:', error);
-
                 // Still remove from local storage even if server delete fails
                 // This prevents the draft from being stuck in UI
             }
@@ -205,7 +191,6 @@ export function removePageDraft(wikiId: string, draftId: string): ActionFuncAsyn
         // Remove from local storage after server delete attempt
         dispatch(removeGlobalItem(key));
 
-        console.log('[removePageDraft] Draft removed successfully');
         return {data: true};
     };
 }

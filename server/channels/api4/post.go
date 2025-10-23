@@ -596,22 +596,31 @@ func deletePost(c *Context, w http.ResponseWriter, _ *http.Request) {
 	auditRec.AddEventPriorState(post)
 	auditRec.AddEventObjectType("post")
 
-	if c.AppContext.Session().UserId == post.UserId {
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionDeletePost) {
-			c.SetPermissionError(model.PermissionDeletePost)
+	if post.Type == model.PostTypePage {
+		if !permanent {
+			appErr = c.App.DeletePage(c.AppContext, c.Params.PostId)
+		} else {
+			c.Err = model.NewAppError("deletePost", "api.post.delete_post.permanent_page_deletion_not_supported.app_error", nil, "pages cannot be permanently deleted through this endpoint", http.StatusBadRequest)
 			return
 		}
 	} else {
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionDeleteOthersPosts) {
-			c.SetPermissionError(model.PermissionDeleteOthersPosts)
-			return
+		if c.AppContext.Session().UserId == post.UserId {
+			if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionDeletePost) {
+				c.SetPermissionError(model.PermissionDeletePost)
+				return
+			}
+		} else {
+			if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionDeleteOthersPosts) {
+				c.SetPermissionError(model.PermissionDeleteOthersPosts)
+				return
+			}
 		}
-	}
 
-	if permanent {
-		appErr = c.App.PermanentDeletePost(c.AppContext, c.Params.PostId, c.AppContext.Session().UserId)
-	} else {
-		_, appErr = c.App.DeletePost(c.AppContext, c.Params.PostId, c.AppContext.Session().UserId)
+		if permanent {
+			appErr = c.App.PermanentDeletePost(c.AppContext, c.Params.PostId, c.AppContext.Session().UserId)
+		} else {
+			_, appErr = c.App.DeletePost(c.AppContext, c.Params.PostId, c.AppContext.Session().UserId)
+		}
 	}
 
 	if appErr != nil {

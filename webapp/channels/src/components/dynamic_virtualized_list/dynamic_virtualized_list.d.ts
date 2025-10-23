@@ -19,7 +19,7 @@ declare module 'components/dynamic_virtualized_list' {
 
     interface DynamicVirtualizedListProps {
         canLoadMorePosts: (id: 'BEFORE_ID' | 'AFTER_ID' | undefined) => Promise<void>;
-        children: ({data: any, itemId: any, style: any}) => JSX.Element;
+        children: ({data: any, itemId: any, style: any}) => JSX.Element | null;
         height: number;
         initRangeToRender: number[];
         initScrollToIndex: () => any;

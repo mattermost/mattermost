@@ -53,6 +53,7 @@ const (
 	PostTypeAddBotTeamsChannels  = "add_bot_teams_channels"
 	PostTypeMe                   = "me"
 	PostTypePage                 = "page"
+	PostTypePageComment          = "page_comment"
 	PostCustomTypePrefix         = "custom_"
 	PostTypeReminder             = "reminder"
 
@@ -515,6 +516,7 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypeReminder,
 		PostTypeMe,
 		PostTypePage,
+		PostTypePageComment,
 		PostTypeWrangler,
 		PostTypeGMConvertedToChannel:
 	default:

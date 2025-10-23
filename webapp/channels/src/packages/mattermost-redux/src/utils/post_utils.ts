@@ -211,13 +211,6 @@ export function shouldUpdatePost(receivedPost: Post, storedPost?: Post): boolean
 
     if (storedPost.update_at > receivedPost.update_at) {
         // The stored post is newer than the one we've received
-        if (receivedPost.type === Posts.POST_TYPES.PAGE) {
-            console.log('[shouldUpdatePost] Rejecting page (stored newer):', {
-                postId: receivedPost.id,
-                storedUpdateAt: storedPost.update_at,
-                receivedUpdateAt: receivedPost.update_at,
-            });
-        }
         return false;
     }
 
@@ -243,24 +236,10 @@ export function shouldUpdatePost(receivedPost: Post, storedPost?: Post): boolean
 
         if (receivedPost.type === Posts.POST_TYPES.PAGE && storedPost.message !== receivedPost.message) {
             // Page content has changed (pages load content lazily from PageContents table)
-            console.log('[shouldUpdatePost] Allowing page update (message changed):', {
-                postId: receivedPost.id,
-                updateAt: receivedPost.update_at,
-                storedMessageLength: storedPost.message?.length || 0,
-                receivedMessageLength: receivedPost.message?.length || 0,
-            });
             return true;
         }
 
         // The stored post is the same as the one we've received
-        if (receivedPost.type === Posts.POST_TYPES.PAGE) {
-            console.log('[shouldUpdatePost] Rejecting page (same timestamp):', {
-                postId: receivedPost.id,
-                updateAt: receivedPost.update_at,
-                storedMessageLength: storedPost.message?.length || 0,
-                receivedMessageLength: receivedPost.message?.length || 0,
-            });
-        }
         return false;
     }
 

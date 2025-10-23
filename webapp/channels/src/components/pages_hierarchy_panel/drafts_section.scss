@@ -14,15 +14,15 @@ $radius-sm: 4px;
 }
 
 .DraftsSection__header {
+    display: flex;
     width: 100%;
     height: 32px;
-    padding: 0 16px;
-    display: flex;
     align-items: center;
-    gap: 8px;
-    background: transparent;
+    padding: 0 16px;
     border: none;
+    background: transparent;
     cursor: pointer;
+    gap: 8px;
     text-align: left;
 
     &:hover {
@@ -32,36 +32,32 @@ $radius-sm: 4px;
     i {
         width: 20px;
         height: 20px;
-        color: $node-text-muted;
         flex-shrink: 0;
+        color: $node-text-muted;
     }
 }
 
 .DraftsSection__title {
     flex: 1;
+    color: $node-text;
     font-size: 14px;
     font-weight: 600;
-    color: $node-text;
 }
 
 .DraftsSection__count {
-    font-size: 12px;
     color: rgba(var(--center-channel-text-rgb), 0.64);
-}
-
-.DraftsSection__list {
-    // Container for draft items
+    font-size: 12px;
 }
 
 .DraftsSection__item {
-    height: 32px;
-    margin: 2px 8px;
-    padding: 0 8px 0 32px; // Extra left padding for indentation
     display: flex;
+    height: 32px;
     align-items: center;
-    gap: 8px;
-    cursor: pointer;
+    padding: 0 8px 0 32px; // Extra left padding for indentation
     border-radius: $radius-sm;
+    margin: 2px 8px;
+    cursor: pointer;
+    gap: 8px;
     transition: background-color 150ms ease;
 
     &:hover {
@@ -80,22 +76,22 @@ $radius-sm: 4px;
     .icon-file-document-edit-outline {
         width: 20px;
         height: 20px;
-        color: $node-text-muted;
         flex-shrink: 0;
+        color: $node-text-muted;
     }
 }
 
 .DraftsSection__itemTitle {
-    flex: 1;
-    font-size: 14px;
-    color: $node-text;
     overflow: hidden;
+    flex: 1;
+    color: $node-text;
+    font-size: 14px;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
 .DraftsSection__itemTime {
-    font-size: 12px;
-    color: rgba(var(--center-channel-text-rgb), 0.64);
     flex-shrink: 0;
+    color: rgba(var(--center-channel-text-rgb), 0.64);
+    font-size: 12px;
 }

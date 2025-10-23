@@ -84,6 +84,7 @@ export type Post = {
     channel_id: string;
     root_id: string;
     original_id: string;
+
     /**
      * Parent page ID for hierarchical pages in the wiki/pages feature.
      *

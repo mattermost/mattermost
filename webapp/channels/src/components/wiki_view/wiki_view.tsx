@@ -62,40 +62,31 @@ const WikiView = () => {
 
     const currentDraft = useSelector((state: GlobalState) => {
         if (!wikiId || !editingDraftId) {
-            console.log('[WikiView] currentDraft selector: NO DRAFT', {
-                wikiId: wikiId || 'undefined',
-                editingDraftId: editingDraftId || 'undefined',
-            });
             return null;
         }
         const draft = getPageDraft(state, wikiId, editingDraftId);
-        console.log('[WikiView] currentDraft selector:', {
-            wikiId,
-            editingDraftId,
-            hasDraft: Boolean(draft),
-            draftRootId: draft?.rootId,
-            draftTitle: draft?.props?.title,
-        });
         return draft;
     });
 
     const currentPage = useSelector((state: GlobalState) => {
         const page = pageId ? getFullPage(state, pageId) : null;
-        console.log('[WikiView] currentPage selector:', {
-            pageId,
-            hasPage: Boolean(page),
-            pageTitle: page?.props?.title,
-        });
         return page;
     });
+
+    const pageParentIdRef = React.useRef<string | undefined>(undefined);
+    React.useEffect(() => {
+        if (currentPage?.page_parent_id) {
+            pageParentIdRef.current = currentPage.page_parent_id;
+        }
+    }, [currentPage?.page_parent_id]);
     const allDrafts = useSelector((state: GlobalState) => (wikiId ? getPageDraftsForWiki(state, wikiId) : []));
 
     // Get the actual channel ID from the page or draft (URL params may have wikiId in channelId position)
     const actualChannelId = currentPage?.channel_id || currentDraft?.channelId || allDrafts[0]?.channelId || channelId;
 
     // Centralized draft state: true if editing a draft OR showing empty editor for new page
-    // If we have a pageId in the URL, we're viewing a published page (not a draft)
-    const isDraft = pageId ? false : (Boolean(currentDraft) || !currentPage);
+    // If we have editingDraftId matching pageId, we're editing a published page (draft mode)
+    const isDraft = (pageId && editingDraftId === pageId) || (!pageId && (Boolean(currentDraft) || !currentPage));
 
     // Single source of truth for empty state (no drafts, no pages)
     const isEmptyState = !currentDraft && !pageId && allDrafts.length === 0;
@@ -112,11 +103,15 @@ const WikiView = () => {
     );
 
     const handleToggleComments = () => {
+        // Don't open RHS for drafts (they can't have comments)
+        if (currentDraft) {
+            return;
+        }
+
         if (isWikiRhsOpen) {
             dispatch(closeRightHandSide());
-        } else {
-            const id = pageId || wikiId || channelId;
-            dispatch(openWikiRhs(id, wikiId || ''));
+        } else if (pageId) {
+            dispatch(openWikiRhs(pageId, wikiId || ''));
             dispatch(setWikiRhsMode('comments'));
         }
     };
@@ -156,6 +151,32 @@ const WikiView = () => {
     const handleOpenPagesPanel = () => {
         dispatch(openPagesPanel());
     };
+
+    React.useEffect(() => {
+        if (pageId && !currentPage && !isLoading) {
+            const currentPath = location.pathname;
+            const basePath = currentPath.substring(0, currentPath.lastIndexOf('/'));
+
+            if (pageParentIdRef.current) {
+                history.replace(`${basePath}/${pageParentIdRef.current}`);
+            } else {
+                history.replace(basePath);
+            }
+        }
+    }, [pageId, currentPage, isLoading, location.pathname, history]);
+
+    // Update WikiRHS when navigating to a different page, or close it when viewing a draft
+    React.useEffect(() => {
+        if (isWikiRhsOpen) {
+            if (pageId) {
+                // Update RHS to show comments for the new page
+                dispatch(openWikiRhs(pageId, wikiId || ''));
+            } else if (currentDraft) {
+                // Close RHS when viewing a draft (drafts can't have comments)
+                dispatch(closeRightHandSide());
+            }
+        }
+    }, [pageId, currentDraft, isWikiRhsOpen, wikiId, dispatch]);
 
     return (
         <div className='app__content'>
@@ -207,6 +228,22 @@ const WikiView = () => {
                             )}
                             <div className='PagePane__content'>
                                 {(() => {
+                                    // Check if we're editing a published page (editingDraftId matches pageId)
+                                    if (pageId && editingDraftId === pageId && currentDraft) {
+                                        return (
+                                            <WikiPageEditor
+                                                title={currentDraft.props?.title || ''}
+                                                content={currentDraft.message || ''}
+                                                onTitleChange={handleTitleChange}
+                                                onContentChange={handleContentChange}
+                                                currentUserId={currentUserId}
+                                                channelId={actualChannelId}
+                                                teamId={teamId}
+                                                showAuthor={false}
+                                            />
+                                        );
+                                    }
+
                                     // If we have a pageId in the URL, we're viewing a published page (not editing)
                                     if (pageId) {
                                         return (

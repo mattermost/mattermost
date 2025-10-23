@@ -5,9 +5,10 @@ import React from 'react';
 
 import type {Post} from '@mattermost/types/posts';
 
+import {PostTypes} from 'mattermost-redux/constants/posts';
+
 import PostComponent from 'components/post';
 
-import {PostTypes} from 'mattermost-redux/constants/posts';
 import {Locations} from 'utils/constants';
 
 type Props = {

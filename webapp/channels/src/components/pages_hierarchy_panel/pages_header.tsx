@@ -13,7 +13,7 @@ type Props = {
 const PagesHeader = ({title, onNewPage, onCollapse, isCreating}: Props) => {
     return (
         <div className='PagesHierarchyPanel__header'>
-            <div class="PagesHierarchyPanel__title-container">
+            <div className='PagesHierarchyPanel__title-container'>
                 <button
                     className='PagesHierarchyPanel__collapseButton btn btn-icon btn-sm'
                     onClick={onCollapse}

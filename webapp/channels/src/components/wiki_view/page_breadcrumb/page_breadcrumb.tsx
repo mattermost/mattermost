@@ -6,9 +6,10 @@ import {useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 
 import type {GlobalState} from '@mattermost/types/store';
-import type {BreadcrumbPath, BreadcrumbItem} from '@mattermost/types/wikis';
+import type {BreadcrumbPath} from '@mattermost/types/wikis';
 
 import {Client4} from 'mattermost-redux/client';
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import './page_breadcrumb.scss';
@@ -28,15 +29,7 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const currentTeam = useSelector((state: GlobalState) => getCurrentTeam(state));
-
-    console.log('[PageBreadcrumb] Props received:', {
-        wikiId,
-        pageId,
-        channelId,
-        isDraft,
-        parentPageId,
-        draftTitle,
-    });
+    const currentPage = useSelector((state: GlobalState) => (pageId ? getPost(state, pageId) : null));
 
     // Helper to fix breadcrumb item paths - use /wiki/ route not /channels/
     const fixBreadcrumbPath = (item: BreadcrumbPath['items'][0]): BreadcrumbPath['items'][0] => ({
@@ -74,32 +67,10 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                     // Published page - get breadcrumb from server and fix paths
                     const path = await Client4.getPageBreadcrumb(wikiId, pageId);
 
-                    console.log('[PageBreadcrumb] Server returned breadcrumb:', {
-                        items: path.items.map((i: BreadcrumbItem) => ({
-                            id: i.id,
-                            title: i.title,
-                            titleLength: i.title?.length,
-                            titleChars: JSON.stringify(i.title),
-                            type: i.type,
-                        })),
-                        currentPage: {
-                            title: path.current_page.title,
-                            titleLength: path.current_page.title?.length,
-                            titleChars: JSON.stringify(path.current_page.title),
-                        },
-                    });
-
                     const fixedPath: BreadcrumbPath = {
                         items: path.items.map(fixBreadcrumbPath),
                         current_page: path.current_page,
                     };
-
-                    console.log('[PageBreadcrumb] Final breadcrumb:', {
-                        items: fixedPath.items.map((i) => ({
-                            title: i.title,
-                            titleChars: JSON.stringify(i.title),
-                        })),
-                    });
 
                     setBreadcrumbPath(fixedPath);
                 } else {
@@ -118,7 +89,6 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                 }
             } catch (err) {
                 setError('Failed to load breadcrumb');
-                console.error('Error fetching breadcrumb:', err);
             } finally {
                 setIsLoading(false);
             }
@@ -127,7 +97,7 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
         if (wikiId) {
             fetchBreadcrumb();
         }
-    }, [wikiId, pageId, channelId, isDraft, parentPageId, draftTitle, currentTeam?.name]);
+    }, [wikiId, pageId, channelId, isDraft, parentPageId, draftTitle, currentTeam?.name, currentPage?.update_at]);
 
     if (isLoading) {
         return (
@@ -155,7 +125,7 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
             aria-label='Page breadcrumb navigation'
         >
             <ol className='PageBreadcrumb__list'>
-                {breadcrumbPath.items.map((item, index) => (
+                {breadcrumbPath.items.map((item) => (
                     <li
                         key={item.id}
                         className='PageBreadcrumb__item'
@@ -164,14 +134,6 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                             to={item.path}
                             className='PageBreadcrumb__link'
                             aria-label={`Navigate to ${item.title}`}
-                            onClick={() => {
-                                console.log('[PageBreadcrumb] Link clicked:', {
-                                    title: item.title,
-                                    path: item.path,
-                                    type: item.type,
-                                    id: item.id,
-                                });
-                            }}
                         >
                             {item.title}
                         </Link>

@@ -1219,3 +1219,288 @@ func TestPageGuestPermissions(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 }
+
+func TestPageCommentsE2E(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.AddPermissionToRole(model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(model.PermissionDeleteWikiPublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(model.PermissionReadPagePublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(model.PermissionDeletePagePublicChannel.Id, model.ChannelUserRoleId)
+	th.Context.Session().UserId = th.BasicUser.Id
+
+	wiki := &model.Wiki{
+		ChannelId: th.BasicChannel.Id,
+		Title:     "Test Wiki for Comments",
+	}
+	createdWiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	page, resp, err := th.Client.CreatePage(context.Background(), createdWiki.Id, "", "Test Page for Comments")
+	require.NoError(t, err)
+	CheckCreatedStatus(t, resp)
+
+	t.Run("create page comment and verify type field is set correctly", func(t *testing.T) {
+		comment, resp, err := th.Client.CreatePageComment(context.Background(), createdWiki.Id, page.Id, "This is a top-level comment")
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotEmpty(t, comment.Id)
+		require.Equal(t, model.PostTypePageComment, comment.Type, "Comment should have Type='page_comment'")
+		require.Equal(t, th.BasicChannel.Id, comment.ChannelId)
+		require.Equal(t, page.Id, comment.RootId, "Comment RootId should point to page (flat model)")
+		require.Equal(t, th.BasicUser.Id, comment.UserId)
+		require.Equal(t, "This is a top-level comment", comment.Message)
+
+		require.NotNil(t, comment.Props)
+		require.Equal(t, page.Id, comment.Props["page_id"], "Comment props should contain page_id")
+		_, hasParentCommentId := comment.Props["parent_comment_id"]
+		require.False(t, hasParentCommentId, "Top-level comment should not have parent_comment_id")
+	})
+
+	t.Run("create reply to comment and verify flat model (RootId = pageId)", func(t *testing.T) {
+		topLevelComment, resp, err := th.Client.CreatePageComment(context.Background(), createdWiki.Id, page.Id, "Comment to reply to")
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		reply, resp, err := th.Client.CreatePageCommentReply(context.Background(), createdWiki.Id, page.Id, topLevelComment.Id, "This is a reply")
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotEmpty(t, reply.Id)
+		require.Equal(t, model.PostTypePageComment, reply.Type, "Reply should also have Type='page_comment'")
+		require.Equal(t, th.BasicChannel.Id, reply.ChannelId)
+		require.Equal(t, page.Id, reply.RootId, "Reply RootId should point to page, NOT to parent comment (flat model)")
+		require.Equal(t, th.BasicUser.Id, reply.UserId)
+
+		require.NotNil(t, reply.Props)
+		require.Equal(t, page.Id, reply.Props["page_id"], "Reply props should contain page_id")
+		require.Equal(t, topLevelComment.Id, reply.Props["parent_comment_id"], "Reply props should contain parent_comment_id")
+	})
+
+	t.Run("page comments do NOT appear in channel feed (GetPostsForChannel)", func(t *testing.T) {
+		regularPost, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "Regular channel post",
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		_, resp, err := th.Client.CreatePageComment(context.Background(), createdWiki.Id, page.Id, "Page comment should not appear in feed")
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		_, resp, err = th.Client.CreatePageComment(context.Background(), createdWiki.Id, page.Id, "Another page comment")
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		channelPosts, resp, err := th.Client.GetPostsForChannel(context.Background(), th.BasicChannel.Id, 0, 100, "", false, false)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		foundRegularPost := false
+		foundPageComments := 0
+
+		for _, post := range channelPosts.Posts {
+			if post.Id == regularPost.Id {
+				foundRegularPost = true
+			}
+			if post.Type == model.PostTypePageComment {
+				foundPageComments++
+			}
+		}
+
+		require.True(t, foundRegularPost, "Regular post should appear in channel feed")
+		require.Equal(t, 0, foundPageComments, "Page comments should NOT appear in channel feed")
+	})
+
+	t.Run("pages do NOT appear in channel feed (consistent with Slack Canvas UX)", func(t *testing.T) {
+		regularPost, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "Regular channel post should appear",
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		newPage, resp, err := th.Client.CreatePage(context.Background(), createdWiki.Id, "", "Another Test Page")
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.Equal(t, model.PostTypePage, newPage.Type)
+
+		channelPosts, resp, err := th.Client.GetPostsForChannel(context.Background(), th.BasicChannel.Id, 0, 100, "", false, false)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		foundRegularPost := false
+		foundPages := 0
+
+		for _, post := range channelPosts.Posts {
+			if post.Id == regularPost.Id {
+				foundRegularPost = true
+			}
+			if post.Type == model.PostTypePage {
+				foundPages++
+			}
+		}
+
+		require.True(t, foundRegularPost, "Regular post should appear in channel feed")
+		require.Equal(t, 0, foundPages, "Pages should NOT appear in channel feed (consistent with Slack Canvas UX)")
+	})
+
+	t.Run("page comments do NOT appear in channel search", func(t *testing.T) {
+		_, resp, err := th.Client.CreatePageComment(context.Background(), createdWiki.Id, page.Id, "Unique search term: xyzabc123")
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		regularPost, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "Regular post with unique term: qwerty456",
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		term1 := "xyzabc123"
+		isOr1 := false
+		searchResults, resp, err := th.Client.SearchPostsWithParams(context.Background(), th.BasicTeam.Id, &model.SearchParameter{
+			Terms:      &term1,
+			IsOrSearch: &isOr1,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		foundPageComment := false
+		for _, post := range searchResults.Posts {
+			if post.Type == model.PostTypePageComment {
+				foundPageComment = true
+			}
+		}
+		require.False(t, foundPageComment, "Page comments should NOT appear in channel search results")
+
+		term2 := "qwerty456"
+		isOr2 := false
+		searchResults2, resp, err := th.Client.SearchPostsWithParams(context.Background(), th.BasicTeam.Id, &model.SearchParameter{
+			Terms:      &term2,
+			IsOrSearch: &isOr2,
+		})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		foundRegularPost := false
+		for _, post := range searchResults2.Posts {
+			if post.Id == regularPost.Id {
+				foundRegularPost = true
+			}
+		}
+		require.True(t, foundRegularPost, "Regular posts should appear in search results")
+	})
+
+	t.Run("deleting page deletes all its comments (cascade delete)", func(t *testing.T) {
+		testPage, resp, err := th.Client.CreatePage(context.Background(), createdWiki.Id, "", "Page to delete with comments")
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		comment1, resp, err := th.Client.CreatePageComment(context.Background(), createdWiki.Id, testPage.Id, "Comment 1")
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		comment2, resp, err := th.Client.CreatePageComment(context.Background(), createdWiki.Id, testPage.Id, "Comment 2")
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		reply, resp, err := th.Client.CreatePageCommentReply(context.Background(), createdWiki.Id, testPage.Id, comment1.Id, "Reply to comment 1")
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		retrievedComment1, appErr := th.App.GetSinglePost(th.Context, comment1.Id, false)
+		require.Nil(t, appErr)
+		require.Equal(t, comment1.Id, retrievedComment1.Id)
+
+		resp, err = th.Client.RemovePageFromWiki(context.Background(), createdWiki.Id, testPage.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		_, appErr = th.App.GetSinglePost(th.Context, testPage.Id, false)
+		require.NotNil(t, appErr, "Deleted page should not be retrievable")
+
+		_, appErr = th.App.GetSinglePost(th.Context, comment1.Id, false)
+		require.NotNil(t, appErr, "Comment 1 should be deleted when page is deleted")
+
+		_, appErr = th.App.GetSinglePost(th.Context, comment2.Id, false)
+		require.NotNil(t, appErr, "Comment 2 should be deleted when page is deleted")
+
+		_, appErr = th.App.GetSinglePost(th.Context, reply.Id, false)
+		require.NotNil(t, appErr, "Reply should be deleted when page is deleted")
+	})
+
+	t.Run("cannot reply to a reply (one-level nesting enforced)", func(t *testing.T) {
+		topLevelComment, resp, err := th.Client.CreatePageComment(context.Background(), createdWiki.Id, page.Id, "Top-level for nesting test")
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		reply1, resp, err := th.Client.CreatePageCommentReply(context.Background(), createdWiki.Id, page.Id, topLevelComment.Id, "First reply")
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		_, resp, err = th.Client.CreatePageCommentReply(context.Background(), createdWiki.Id, page.Id, reply1.Id, "Reply to reply (should fail)")
+		require.Error(t, err, "Should not be able to reply to a reply")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("multiple users can comment on same page", func(t *testing.T) {
+		client2 := th.CreateClient()
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		require.NoError(t, lErr)
+
+		th.AddUserToChannel(th.BasicUser2, th.BasicChannel)
+
+		comment1, resp, err := th.Client.CreatePageComment(context.Background(), createdWiki.Id, page.Id, "Comment by BasicUser")
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.Equal(t, th.BasicUser.Id, comment1.UserId)
+
+		comment2, resp, err := client2.CreatePageComment(context.Background(), createdWiki.Id, page.Id, "Comment by BasicUser2")
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.Equal(t, th.BasicUser2.Id, comment2.UserId)
+
+		require.NotEqual(t, comment1.Id, comment2.Id, "Comments should have different IDs")
+		require.Equal(t, page.Id, comment1.RootId, "Both comments should reference the same page")
+		require.Equal(t, page.Id, comment2.RootId, "Both comments should reference the same page")
+	})
+
+	t.Run("verify GetCommentsForPage returns page + all comments/replies", func(t *testing.T) {
+		testPage2, resp, err := th.Client.CreatePage(context.Background(), createdWiki.Id, "", "Page for GetCommentsForPage test")
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		comment1, resp, err := th.Client.CreatePageComment(context.Background(), createdWiki.Id, testPage2.Id, "Comment 1 on testPage2")
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		comment2, resp, err := th.Client.CreatePageComment(context.Background(), createdWiki.Id, testPage2.Id, "Comment 2 on testPage2")
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		reply, resp, err := th.Client.CreatePageCommentReply(context.Background(), createdWiki.Id, testPage2.Id, comment1.Id, "Reply to comment 1")
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		commentsForPage, appErr := th.App.Srv().Store().Post().GetCommentsForPage(testPage2.Id, false)
+		require.NoError(t, appErr)
+		require.NotNil(t, commentsForPage)
+
+		require.Len(t, commentsForPage.Posts, 4, "Should return page + 2 comments + 1 reply = 4 posts")
+
+		require.Contains(t, commentsForPage.Posts, testPage2.Id, "Should include the page itself")
+		require.Contains(t, commentsForPage.Posts, comment1.Id, "Should include comment1")
+		require.Contains(t, commentsForPage.Posts, comment2.Id, "Should include comment2")
+		require.Contains(t, commentsForPage.Posts, reply.Id, "Should include reply")
+
+		require.Equal(t, model.PostTypePage, commentsForPage.Posts[testPage2.Id].Type)
+		require.Equal(t, model.PostTypePageComment, commentsForPage.Posts[comment1.Id].Type)
+		require.Equal(t, model.PostTypePageComment, commentsForPage.Posts[comment2.Id].Type)
+		require.Equal(t, model.PostTypePageComment, commentsForPage.Posts[reply.Id].Type)
+	})
+}

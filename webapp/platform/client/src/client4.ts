@@ -42,7 +42,6 @@ import type {
     PreviewModalContentData,
 } from '@mattermost/types/cloud';
 import type {Compliance} from '@mattermost/types/compliance';
-import type {Wiki, WikiCreate, WikiPatch, BreadcrumbPath} from '@mattermost/types/wikis';
 import type {
     ClientConfig,
     ClientLicense,
@@ -154,6 +153,7 @@ import type {
     UserCustomStatus,
 } from '@mattermost/types/users';
 import type {DeepPartial, PartialExcept, RelationOneToOne} from '@mattermost/types/utilities';
+import type {Wiki, WikiCreate, WikiPatch, BreadcrumbPath} from '@mattermost/types/wikis';
 
 import {cleanUrlForLogging} from './errors';
 import {buildQueryString} from './helpers';
@@ -2120,6 +2120,20 @@ export default class Client4 {
         return this.doFetch<Post>(
             `${this.getWikiRoute(wikiId)}/drafts/${draftId}/publish`,
             {method: 'post', body: JSON.stringify({page_parent_id: pageParentId, title, search_text: searchText})},
+        );
+    };
+
+    createPageComment = (wikiId: string, pageId: string, message: string) => {
+        return this.doFetch<Post>(
+            `${this.getWikiPageRoute(wikiId, pageId)}/comments`,
+            {method: 'post', body: JSON.stringify({message})},
+        );
+    };
+
+    createPageCommentReply = (wikiId: string, pageId: string, parentCommentId: string, message: string) => {
+        return this.doFetch<Post>(
+            `${this.getWikiPageRoute(wikiId, pageId)}/comments/${parentCommentId}/replies`,
+            {method: 'post', body: JSON.stringify({message})},
         );
     };
 

@@ -1,25 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {batchActions} from 'redux-batched-actions';
+import {Editor} from '@tiptap/core';
+import {Mention} from '@tiptap/extension-mention';
+import StarterKit from '@tiptap/starter-kit';
 import {matchPath} from 'react-router-dom';
+import {batchActions} from 'redux-batched-actions';
 
 import type {Post} from '@mattermost/types/posts';
 
 import {PostTypes as PostActionTypes, WikiTypes} from 'mattermost-redux/action_types';
 import {logError} from 'mattermost-redux/actions/errors';
 import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
+import {receivedNewPost} from 'mattermost-redux/actions/posts';
 import {Client4} from 'mattermost-redux/client';
 import {PostTypes} from 'mattermost-redux/constants/posts';
+import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
 import {getHistory} from 'utils/browser_history';
 
 import type {ActionFuncAsync} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
-
-import {Editor} from '@tiptap/core';
-import {Mention} from '@tiptap/extension-mention';
-import StarterKit from '@tiptap/starter-kit';
 
 // Type alias: Pages are stored as Posts in the backend
 export type Page = Post;
@@ -55,7 +56,6 @@ function extractPlaintextFromTipTapJSON(jsonString: string): string {
 
         return plaintext;
     } catch (error) {
-        console.error('[extractPlaintextFromTipTapJSON] Failed to extract plaintext:', error);
         return '';
     }
 }
@@ -213,13 +213,13 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
             },
         };
 
+        dispatch(removeGlobalItem(draftKey));
+
         dispatch(batchActions([
             {type: WikiTypes.PUBLISH_DRAFT_REQUEST, data: {draftId}},
             {type: WikiTypes.RECEIVED_PAGE, data: optimisticPage},
-            {type: WikiTypes.DELETED_DRAFT, data: {id: draftId}},
+            {type: WikiTypes.DELETED_DRAFT, data: {id: draftId, wikiId}},
         ]));
-
-        dispatch(removeGlobalItem(draftKey));
 
         // Extract plaintext from TipTap JSON for search indexing (only when publishing)
         const searchText = extractPlaintextFromTipTapJSON(draft.message || '');
@@ -249,7 +249,6 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
             dispatch(batchActions([
                 {type: WikiTypes.PUBLISH_DRAFT_FAILURE, data: {draftId, error}},
                 {type: WikiTypes.DELETED_PAGE, data: {id: pendingPageId}},
-                {type: WikiTypes.RECEIVED_DRAFT, data: draft},
             ]));
             dispatch(setGlobalItem(draftKey, draft));
 
@@ -269,32 +268,10 @@ export function createPage(wikiId: string, title: string, pageParentId?: string)
             const draftId = `draft-${Date.now()}`;
             const placeholderContent = '';
 
-            console.log('[createPage] Creating draft:', {
-                wikiId,
-                draftId,
-                title,
-                pageParentId,
-            });
-
             const draft = await Client4.savePageDraft(wikiId, draftId, placeholderContent, title, undefined, {page_parent_id: pageParentId});
 
-            console.log('[createPage] Draft saved, returned data:', {
-                draftRootId: draft.root_id,
-                draftTitle: draft.props?.title,
-                draftProps: draft.props,
-            });
-
             const {loadPageDraftsForWiki} = await import('./page_drafts');
-            const result = await dispatch(loadPageDraftsForWiki(wikiId));
-
-            console.log('[createPage] Drafts reloaded:', {
-                draftsCount: result.data?.length || 0,
-                drafts: result.data?.map((d) => ({
-                    rootId: d.rootId,
-                    title: d.props?.title,
-                    pageParentId: d.props?.page_parent_id,
-                })),
-            });
+            await dispatch(loadPageDraftsForWiki(wikiId));
 
             return {data: draft};
         } catch (error) {
@@ -374,10 +351,16 @@ export function deletePage(pageId: string, wikiId: string): ActionFuncAsync {
         const state = getState();
         const originalPost = state.entities.posts.posts[pageId];
 
-        dispatch({
-            type: PostActionTypes.POST_DELETED,
-            data: {id: pageId},
-        });
+        dispatch(batchActions([
+            {
+                type: PostActionTypes.POST_DELETED,
+                data: {id: pageId},
+            },
+            {
+                type: WikiTypes.DELETED_PAGE,
+                data: {id: pageId},
+            },
+        ]));
 
         try {
             await Client4.deletePost(pageId);
@@ -387,10 +370,16 @@ export function deletePage(pageId: string, wikiId: string): ActionFuncAsync {
             return {data: true};
         } catch (error) {
             if (originalPost) {
-                dispatch({
-                    type: PostActionTypes.RECEIVED_POST,
-                    data: originalPost,
-                });
+                dispatch(batchActions([
+                    {
+                        type: PostActionTypes.RECEIVED_POST,
+                        data: originalPost,
+                    },
+                    {
+                        type: WikiTypes.RECEIVED_PAGE,
+                        data: originalPost,
+                    },
+                ]));
             }
 
             forceLogoutIfNecessary(error, dispatch, getState);
@@ -457,6 +446,44 @@ export function publishPage(wikiId: string, pageId: string): ActionFuncAsync<Pos
             });
             return {data};
         } catch (error) {
+            return {error};
+        }
+    };
+}
+
+export function createPageComment(wikiId: string, pageId: string, message: string): ActionFuncAsync<Post> {
+    return async (dispatch, getState) => {
+        try {
+            const comment = await Client4.createPageComment(wikiId, pageId, message);
+
+            const state = getState();
+            const crtEnabled = isCollapsedThreadsEnabled(state);
+
+            dispatch(receivedNewPost(comment, crtEnabled));
+
+            return {data: comment};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
+export function createPageCommentReply(wikiId: string, pageId: string, parentCommentId: string, message: string): ActionFuncAsync<Post> {
+    return async (dispatch, getState) => {
+        try {
+            const reply = await Client4.createPageCommentReply(wikiId, pageId, parentCommentId, message);
+
+            const state = getState();
+            const crtEnabled = isCollapsedThreadsEnabled(state);
+
+            dispatch(receivedNewPost(reply, crtEnabled));
+
+            return {data: reply};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
             return {error};
         }
     };

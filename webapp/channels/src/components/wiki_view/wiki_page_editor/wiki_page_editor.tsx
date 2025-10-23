@@ -41,29 +41,33 @@ const WikiPageEditor = ({
 
     return (
         <div className='page-draft-editor'>
-            <input
-                type='text'
-                className='page-title-input'
-                placeholder='Untitled page...'
-                value={localTitle}
-                onChange={(e) => handleTitleChange(e.target.value)}
-            />
-            <div className='page-meta'>
-                {showAuthor && currentUserId && (
-                    <span className='page-author'>{`By ${currentUserId}`}</span>
-                )}
-                <span className='page-status badge'>{'Draft'}</span>
-                <button className='add-attributes-btn'>{'Add Attributes'}</button>
+            <div className='draft-header'>
+                <input
+                    type='text'
+                    className='page-title-input'
+                    placeholder='Untitled page...'
+                    value={localTitle}
+                    onChange={(e) => handleTitleChange(e.target.value)}
+                />
+                <div className='page-meta'>
+                    {showAuthor && currentUserId && (
+                        <span className='page-author'>{`By ${currentUserId}`}</span>
+                    )}
+                    <span className='page-status badge'>{'Draft'}</span>
+                    <button className='add-attributes-btn'>{'Add Attributes'}</button>
+                </div>
             </div>
-            <TipTapEditor
-                content={content}
-                onContentChange={onContentChange}
-                placeholder="Type '/' to insert objects or start writing..."
-                editable={true}
-                currentUserId={currentUserId}
-                channelId={channelId}
-                teamId={teamId}
-            />
+            <div className='draft-content'>
+                <TipTapEditor
+                    content={content}
+                    onContentChange={onContentChange}
+                    placeholder="Type '/' to insert objects or start writing..."
+                    editable={true}
+                    currentUserId={currentUserId}
+                    channelId={channelId}
+                    teamId={teamId}
+                />
+            </div>
         </div>
     );
 };

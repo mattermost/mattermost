@@ -172,25 +172,19 @@ export const useBookmarkAddActions = (channelId: string) => {
 
     const handleCreateWiki = useCallback(async () => {
         if (!currentTeam) {
-            console.error('[CreateWiki] No current team found');
             return;
         }
 
         try {
-            console.log('[CreateWiki] Creating wiki for channel', channelId);
             const wiki = await Client4.createWiki({
                 channel_id: channelId,
                 title: 'Untitled Wiki',
             });
-            console.log('[CreateWiki] Wiki created successfully (with default draft):', wiki);
 
             const targetUrl = `/${currentTeam.name}/wiki/${channelId}/${wiki.id}`;
-            console.log('[CreateWiki] Navigating to:', targetUrl);
-            console.log('[CreateWiki] Current location before push:', window.location.pathname);
             history.push(targetUrl);
-            console.log('[CreateWiki] Navigation pushed, location should change');
         } catch (error) {
-            console.error('[CreateWiki] Failed to create wiki:', error);
+            // Error creating wiki
         }
     }, [channelId, currentTeam, history]);
 

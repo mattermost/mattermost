@@ -7,7 +7,6 @@ export interface Heading {
     level: number; // 1, 2, 3
 }
 
-
 /**
  * Extracts headings (H1, H2, H3) from TipTap JSON or markdown content
  * @param content The content to parse (TipTap JSON string or markdown)
@@ -15,33 +14,23 @@ export interface Heading {
  */
 export function extractHeadingsFromContent(content: string): Heading[] {
     if (!content || typeof content !== 'string') {
-        console.log('[extractHeadingsFromContent] Empty or invalid content:', {content, type: typeof content});
         return [];
     }
 
     // Try to parse as TipTap JSON first
     try {
         const doc = JSON.parse(content);
-        console.log('[extractHeadingsFromContent] Parsed as JSON:', {
-            docType: doc.type,
-            hasContent: Boolean(doc.content),
-            contentLength: doc.content?.length,
-            firstNode: doc.content?.[0],
-        });
 
         if (doc.type === 'doc' && doc.content) {
             const headings = extractHeadingsFromTipTapJSON(doc);
-            console.log('[extractHeadingsFromContent] Extracted from TipTap JSON:', headings);
             return headings;
         }
     } catch (e) {
-        console.log('[extractHeadingsFromContent] Not valid JSON, trying markdown:', e);
+        // Not JSON, fallback to markdown
     }
 
     // Fallback to markdown parsing
-    console.log('[extractHeadingsFromContent] Trying markdown parsing on:', content.substring(0, 100));
     const headings = extractHeadingsFromMarkdown(content);
-    console.log('[extractHeadingsFromContent] Extracted from markdown:', headings);
     return headings;
 }
 
@@ -52,33 +41,15 @@ export function extractHeadingsFromContent(content: string): Heading[] {
 function extractHeadingsFromTipTapJSON(doc: any): Heading[] {
     const headings: Heading[] = [];
 
-    function traverseNodes(nodes: any[], depth = 0) {
-        console.log(`[extractHeadingsFromTipTapJSON] Traversing ${nodes.length} nodes at depth ${depth}`);
+    function traverseNodes(nodes: any[]) {
         for (const node of nodes) {
-            console.log('[extractHeadingsFromTipTapJSON] Node:', {
-                type: node.type,
-                attrs: node.attrs,
-                hasContent: Boolean(node.content),
-                contentLength: node.content?.length,
-            });
-
             if (node.type === 'heading' && node.attrs?.level <= 3) {
                 const text = extractTextFromNode(node);
                 const id = node.attrs?.id;
-                console.log('[extractHeadingsFromTipTapJSON] Found heading:', {
-                    level: node.attrs.level,
-                    text,
-                    id,
-                });
 
                 if (text && id) {
                     headings.push({
                         id,
-                        text,
-                        level: node.attrs.level,
-                    });
-                } else if (text && !id) {
-                    console.warn('[extractHeadingsFromTipTapJSON] Heading missing ID attr:', {
                         text,
                         level: node.attrs.level,
                     });
@@ -87,7 +58,7 @@ function extractHeadingsFromTipTapJSON(doc: any): Heading[] {
 
             // Recursively traverse child nodes
             if (node.content) {
-                traverseNodes(node.content, depth + 1);
+                traverseNodes(node.content);
             }
         }
     }
@@ -96,7 +67,6 @@ function extractHeadingsFromTipTapJSON(doc: any): Heading[] {
         traverseNodes(doc.content);
     }
 
-    console.log(`[extractHeadingsFromTipTapJSON] Total headings found: ${headings.length}`);
     return headings;
 }
 
@@ -128,13 +98,13 @@ function extractHeadingsFromMarkdown(markdownContent: string): Heading[] {
         const level = match[1].length;
         const text = match[2].trim();
 
-        let slug = text
-            .toLowerCase()
-            .trim()
-            .replace(/\s+/g, '-')
-            .replace(/[^\w-]+/g, '')
-            .replace(/--+/g, '-')
-            .replace(/^-+|-+$/g, '');
+        let slug = text.
+            toLowerCase().
+            trim().
+            replace(/\s+/g, '-').
+            replace(/[^\w-]+/g, '').
+            replace(/--+/g, '-').
+            replace(/^-+|-+$/g, '');
 
         if (usedSlugs.has(slug)) {
             const count = usedSlugs.get(slug)! + 1;
@@ -184,12 +154,8 @@ export function scrollToHeading(headingId: string): void {
         return;
     }
 
-    console.log(`[scrollToHeading] Scrolling to: ${headingId}`);
-
     const element = document.getElementById(headingId);
     if (element) {
-        console.log('[scrollToHeading] Element found:', element);
-
         element.scrollIntoView({
             behavior: 'smooth',
             block: 'center',
@@ -197,10 +163,5 @@ export function scrollToHeading(headingId: string): void {
 
         element.classList.add('highlighted');
         setTimeout(() => element.classList.remove('highlighted'), 2000);
-    } else {
-        console.log(`[scrollToHeading] Element NOT found with ID: ${headingId}`);
-        console.log('[scrollToHeading] Available heading IDs:',
-            Array.from(document.querySelectorAll('h1[id], h2[id], h3[id]')).map((el) => el.id),
-        );
     }
 }

@@ -127,9 +127,9 @@ export default function wikiPagesReducer(state = initialState, action: AnyAction
         nextFullPages[page.id] = page;
 
         const currentPageIds = state.byWiki[wikiId] || [];
-        const nextPageIds = currentPageIds.includes(page.id)
-            ? currentPageIds
-            : [...currentPageIds, page.id];
+        const nextPageIds = currentPageIds.includes(page.id) ?
+            currentPageIds :
+            [...currentPageIds, page.id];
 
         return {
             ...state,

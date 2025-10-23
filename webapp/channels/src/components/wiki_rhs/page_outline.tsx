@@ -10,12 +10,7 @@ type Heading = {
 };
 
 const PageOutline = () => {
-    const headings: Heading[] = [
-        {id: 'heading-1', text: 'Welcome', level: 1},
-        {id: 'heading-2', text: 'Flight Team', level: 2},
-        {id: 'heading-3', text: 'Operational', level: 2},
-        {id: 'heading-4', text: 'Communication', level: 2},
-    ];
+    const headings: Heading[] = [];
 
     const handleHeadingClick = (headingId: string) => {
         const element = document.getElementById(headingId);

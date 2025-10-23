@@ -1,21 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-.PageTreeView {
-    // Container for all tree nodes
-    // Nodes manage their own styling
-}
-
 .PageTreeView__empty {
     padding: 16px;
-    text-align: center;
     color: rgba(var(--center-channel-text-rgb), 0.56);
     font-size: 14px;
+    text-align: center;
 }
 
 .PageTreeView__outline {
-    margin-left: 8px;
     border-left: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    margin-left: 8px;
 }
 
 .PageTreeView__outline-empty {

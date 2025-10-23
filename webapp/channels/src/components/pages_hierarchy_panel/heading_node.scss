@@ -1,15 +1,15 @@
 .HeadingNode {
     &__button {
         display: flex;
+        width: 100%;
         align-items: center;
-        gap: 8px;
         padding: 4px 8px;
         border: none;
         background: transparent;
-        cursor: pointer;
-        width: 100%;
-        text-align: left;
         color: rgba(var(--center-channel-color-rgb), 0.64);
+        cursor: pointer;
+        gap: 8px;
+        text-align: left;
 
         &:hover {
             background: rgba(var(--center-channel-color-rgb), 0.08);
@@ -23,9 +23,9 @@
     }
 
     &__text {
+        overflow: hidden;
         font-size: 13px;
         font-weight: 400;
-        overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
     }

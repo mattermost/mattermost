@@ -30,52 +30,55 @@ const WikiPageHeader = ({
 }: Props) => {
     return (
         <div className='PagePane__header'>
-            <PageBreadcrumb
-                wikiId={wikiId}
-                pageId={pageId}
-                channelId={channelId}
-                isDraft={isDraft}
-                parentPageId={parentPageId}
-                draftTitle={draftTitle}
-                className='PagePane__breadcrumb'
-            />
-            <div className='PagePane__controls'>
-                <button
-                    className='PagePane__icon-button btn btn-icon btn-sm'
-                    aria-label='Toggle comments'
-                    title='Toggle comments'
-                    onClick={onToggleComments}
-                >
-                    <i className='icon icon-message-text-outline'/>
-                </button>
-                {isDraft ? (
+            <div className='PagePane__header-inner'>
+                <PageBreadcrumb
+                    wikiId={wikiId}
+                    pageId={pageId}
+                    channelId={channelId}
+                    isDraft={isDraft}
+                    parentPageId={parentPageId}
+                    draftTitle={draftTitle}
+                    className='PagePane__breadcrumb'
+                />
+                <div className='PagePane__controls'>
                     <button
-                        className='btn btn-primary btn-sm'
-                        aria-label='Publish'
-                        title='Publish'
-                        onClick={onPublish}
+                        className='PagePane__icon-button'
+                        aria-label='Toggle comments'
+                        title={isDraft ? 'Publish to enable comments' : 'Toggle comments'}
+                        onClick={onToggleComments}
+                        disabled={isDraft}
                     >
-                        <i className='icon icon-check'/>
-                        {'Publish'}
+                        <i className='icon-message-text-outline'/>
                     </button>
-                ) : (
+                    {isDraft ? (
+                        <button
+                            className='btn btn-primary'
+                            aria-label='Publish'
+                            title='Publish'
+                            onClick={onPublish}
+                        >
+                            <i className='icon-check'/>
+                            {'Publish'}
+                        </button>
+                    ) : (
+                        <button
+                            className='btn btn-primary'
+                            aria-label='Edit'
+                            title='Edit'
+                            onClick={onEdit}
+                        >
+                            <i className='icon-pencil-outline'/>
+                            {'Edit'}
+                        </button>
+                    )}
                     <button
-                        className='btn btn-tertiary btn-sm'
-                        aria-label='Edit'
-                        title='Edit'
-                        onClick={onEdit}
+                        className='PagePane__icon-button'
+                        aria-label='More actions'
+                        title='More actions'
                     >
-                        <i className='icon icon-pencil-outline'/>
-                        {'Edit'}
+                        <i className='icon-dots-vertical'/>
                     </button>
-                )}
-                <button
-                    className='PagePane__icon-button btn btn-icon btn-sm'
-                    aria-label='More actions'
-                    title='More actions'
-                >
-                    <i className='icon icon-dots-vertical'/>
-                </button>
+                </div>
             </div>
         </div>
     );

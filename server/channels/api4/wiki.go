@@ -25,6 +25,8 @@ func (api *API) InitWiki() {
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}", api.APISessionRequired(removePageFromWiki)).Methods(http.MethodDelete)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/breadcrumb", api.APISessionRequired(getPageBreadcrumb)).Methods(http.MethodGet)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/parent", api.APISessionRequired(updatePageParent)).Methods(http.MethodPut)
+	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/comments", api.APISessionRequired(createPageComment)).Methods(http.MethodPost)
+	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/comments/{parent_comment_id:[A-Za-z0-9]+}/replies", api.APISessionRequired(createPageCommentReply)).Methods(http.MethodPost)
 	api.BaseRoutes.Channel.Handle("/pages", api.APISessionRequired(getChannelPages)).Methods(http.MethodGet)
 }
 
@@ -665,6 +667,159 @@ func getPageBreadcrumb(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(breadcrumbPath); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func createPageComment(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireWikiId()
+	c.RequirePageId()
+	if c.Err != nil {
+		return
+	}
+
+	c.RequireWikiReadPermission()
+	if c.Err != nil {
+		return
+	}
+
+	var req struct {
+		Message string `json:"message"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		c.SetInvalidParamWithErr("request", err)
+		return
+	}
+
+	if req.Message == "" {
+		c.SetInvalidParam("message")
+		return
+	}
+
+	pageWikiId, wikiErr := c.App.GetWikiIdForPage(c.AppContext, c.Params.PageId)
+	if wikiErr != nil {
+		c.Err = wikiErr
+		return
+	}
+
+	if pageWikiId != c.Params.WikiId {
+		c.Err = model.NewAppError("createPageComment", "api.wiki.create_comment.invalid_wiki", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	page, appErr := c.App.GetSinglePost(c.AppContext, c.Params.PageId, false)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if page.Type != model.PostTypePage {
+		c.Err = model.NewAppError("createPageComment", "api.wiki.create_comment.not_page.app_error", nil, "pageId="+c.Params.PageId, http.StatusBadRequest)
+		return
+	}
+
+	if err := c.App.HasPermissionToModifyPage(c.AppContext, c.AppContext.Session(), page, app.PageOperationRead, "createPageComment"); err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("createPageComment", model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("page_id", c.Params.PageId)
+
+	comment, appErr := c.App.CreatePageComment(c.AppContext, c.Params.PageId, req.Message)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
+	auditRec.AddEventResultState(comment)
+	auditRec.AddEventObjectType("page_comment")
+
+	w.WriteHeader(http.StatusCreated)
+	if err := json.NewEncoder(w).Encode(comment); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func createPageCommentReply(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireWikiId()
+	c.RequirePageId()
+	if c.Err != nil {
+		return
+	}
+
+	c.RequireWikiReadPermission()
+	if c.Err != nil {
+		return
+	}
+
+	parentCommentId := c.Params.ParentCommentId
+	if parentCommentId == "" || !model.IsValidId(parentCommentId) {
+		c.SetInvalidParam("parent_comment_id")
+		return
+	}
+
+	var req struct {
+		Message string `json:"message"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		c.SetInvalidParamWithErr("request", err)
+		return
+	}
+
+	if req.Message == "" {
+		c.SetInvalidParam("message")
+		return
+	}
+
+	pageWikiId, wikiErr := c.App.GetWikiIdForPage(c.AppContext, c.Params.PageId)
+	if wikiErr != nil {
+		c.Err = wikiErr
+		return
+	}
+
+	if pageWikiId != c.Params.WikiId {
+		c.Err = model.NewAppError("createPageCommentReply", "api.wiki.create_comment_reply.invalid_wiki", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	page, appErr := c.App.GetSinglePost(c.AppContext, c.Params.PageId, false)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if page.Type != model.PostTypePage {
+		c.Err = model.NewAppError("createPageCommentReply", "api.wiki.create_comment_reply.not_page.app_error", nil, "pageId="+c.Params.PageId, http.StatusBadRequest)
+		return
+	}
+
+	if err := c.App.HasPermissionToModifyPage(c.AppContext, c.AppContext.Session(), page, app.PageOperationRead, "createPageCommentReply"); err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("createPageCommentReply", model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	auditRec.AddMeta("page_id", c.Params.PageId)
+	auditRec.AddMeta("parent_comment_id", parentCommentId)
+
+	reply, appErr := c.App.CreatePageCommentReply(c.AppContext, c.Params.PageId, parentCommentId, req.Message)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
+	auditRec.AddEventResultState(reply)
+	auditRec.AddEventObjectType("page_comment_reply")
+
+	w.WriteHeader(http.StatusCreated)
+	if err := json.NewEncoder(w).Encode(reply); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

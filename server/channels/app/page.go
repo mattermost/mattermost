@@ -228,12 +228,24 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 		return nil, createErr
 	}
 
+	rctx.Logger().Debug("Page Post created successfully, proceeding to create PageContent",
+		mlog.String("page_id", createdPage.Id),
+		mlog.String("channel_id", channelID))
+
 	pageContent := &model.PageContent{
 		PageId: createdPage.Id,
 	}
 	if err := pageContent.SetDocumentJSON(content); err != nil {
+		rctx.Logger().Warn("PageContent validation failed after Post creation - attempting cleanup to prevent orphaned Post",
+			mlog.String("page_id", createdPage.Id),
+			mlog.Err(err))
 		if _, delErr := a.DeletePost(rctx, createdPage.Id, userID); delErr != nil {
-			rctx.Logger().Warn("Failed to delete page post during cleanup", mlog.String("page_id", createdPage.Id), mlog.Err(delErr))
+			rctx.Logger().Error("ORPHAN PREVENTION FAILED: Could not delete Post after PageContent validation failed - orphaned Post may exist",
+				mlog.String("page_id", createdPage.Id),
+				mlog.Err(delErr))
+		} else {
+			rctx.Logger().Debug("Successfully cleaned up Post after PageContent validation failed",
+				mlog.String("page_id", createdPage.Id))
 		}
 		return nil, model.NewAppError("CreatePage", "app.page.create.invalid_content.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
@@ -244,13 +256,21 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 
 	_, contentErr := a.Srv().Store().PageContent().Save(pageContent)
 	if contentErr != nil {
+		rctx.Logger().Warn("PageContent save failed after Post creation - attempting cleanup to prevent orphaned Post",
+			mlog.String("page_id", createdPage.Id),
+			mlog.Err(contentErr))
 		if _, delErr := a.DeletePost(rctx, createdPage.Id, userID); delErr != nil {
-			rctx.Logger().Warn("Failed to delete page post during cleanup", mlog.String("page_id", createdPage.Id), mlog.Err(delErr))
+			rctx.Logger().Error("ORPHAN PREVENTION FAILED: Could not delete Post after PageContent save failed - orphaned Post may exist",
+				mlog.String("page_id", createdPage.Id),
+				mlog.Err(delErr))
+		} else {
+			rctx.Logger().Debug("Successfully cleaned up Post after PageContent save failed",
+				mlog.String("page_id", createdPage.Id))
 		}
 		return nil, model.NewAppError("CreatePage", "app.page.create.save_content.app_error", nil, "", http.StatusInternalServerError).Wrap(contentErr)
 	}
 
-	rctx.Logger().Info("Page created",
+	rctx.Logger().Info("Page created successfully",
 		mlog.String("page_id", createdPage.Id),
 		mlog.String("channel_id", channelID),
 		mlog.String("parent_id", pageParentID))
@@ -322,11 +342,27 @@ func (a *App) UpdatePage(rctx request.CTX, pageID, title, content, searchText st
 		return nil, err
 	}
 
+	titleChanged := false
 	if title != "" {
 		if len(title) > 255 {
 			return nil, model.NewAppError("UpdatePage", "app.page.update.title_too_long.app_error", nil, "title must be 255 characters or less", http.StatusBadRequest)
 		}
 		post.Props["title"] = title
+		titleChanged = true
+	}
+
+	var updatedPost *model.Post
+	if titleChanged {
+		var updateErr *model.AppError
+		updatedPost, updateErr = a.UpdatePost(rctx, post, nil)
+		if updateErr != nil {
+			return nil, updateErr
+		}
+		rctx.Logger().Debug("Page Post updated successfully, proceeding to update PageContent",
+			mlog.String("page_id", pageID),
+			mlog.Bool("has_content_update", content != ""))
+	} else {
+		updatedPost = post
 	}
 
 	if content != "" {
@@ -356,17 +392,18 @@ func (a *App) UpdatePage(rctx request.CTX, pageID, title, content, searchText st
 		}
 
 		if contentErr != nil {
+			rctx.Logger().Error("Failed to update PageContent after Post update succeeded - Post changes persisted but content update failed",
+				mlog.String("page_id", pageID),
+				mlog.Bool("title_was_updated", titleChanged),
+				mlog.Err(contentErr))
 			return nil, model.NewAppError("UpdatePage", "app.page.update.save_content.app_error", nil, "", http.StatusInternalServerError).Wrap(contentErr)
 		}
 	}
 
-	updatedPost, updateErr := a.UpdatePost(rctx, post, nil)
-	if updateErr != nil {
-		return nil, updateErr
-	}
-
-	rctx.Logger().Info("Page updated",
-		mlog.String("page_id", pageID))
+	rctx.Logger().Info("Page updated successfully",
+		mlog.String("page_id", pageID),
+		mlog.Bool("title_updated", titleChanged),
+		mlog.Bool("content_updated", content != ""))
 
 	return updatedPost, nil
 }
@@ -389,8 +426,96 @@ func (a *App) DeletePage(rctx request.CTX, pageID string) *model.AppError {
 
 	rctx.Logger().Info("Deleting page", mlog.String("page_id", pageID))
 
+	if contentErr := a.Srv().Store().PageContent().Delete(pageID); contentErr != nil {
+		var nfErr *store.ErrNotFound
+		if !errors.As(contentErr, &nfErr) {
+			rctx.Logger().Warn("Failed to delete PageContent during page deletion - orphaned content may remain",
+				mlog.String("page_id", pageID),
+				mlog.Err(contentErr))
+		}
+	} else {
+		rctx.Logger().Debug("Successfully deleted PageContent before Post soft-delete",
+			mlog.String("page_id", pageID))
+	}
+
 	_, deleteErr := a.DeletePost(rctx, pageID, rctx.Session().UserId)
 	return deleteErr
+}
+
+func (a *App) RestorePage(rctx request.CTX, pageID string) *model.AppError {
+	post, err := a.GetSinglePost(rctx, pageID, true)
+	if err != nil {
+		return model.NewAppError("RestorePage",
+			"app.page.restore.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
+	}
+
+	if post.Type != model.PostTypePage {
+		return model.NewAppError("RestorePage",
+			"app.page.restore.not_a_page.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if post.DeleteAt == 0 {
+		return model.NewAppError("RestorePage",
+			"app.page.restore.not_deleted.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	session := rctx.Session()
+	if err := a.HasPermissionToModifyPage(rctx, session, post, PageOperationDelete, "RestorePage"); err != nil {
+		return err
+	}
+
+	if err := a.Srv().Store().PageContent().Restore(pageID); err != nil {
+		var nfErr *store.ErrNotFound
+		if !errors.As(err, &nfErr) {
+			return model.NewAppError("RestorePage",
+				"app.page.restore.content_error.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		rctx.Logger().Warn("PageContent not found during restore", mlog.String("page_id", pageID))
+	}
+
+	post.DeleteAt = 0
+	post.UpdateAt = model.GetMillis()
+	if _, err := a.Srv().Store().Post().Update(rctx, post, post); err != nil {
+		return model.NewAppError("RestorePage",
+			"app.page.restore.post_error.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	rctx.Logger().Info("Restored page", mlog.String("page_id", pageID))
+	return nil
+}
+
+func (a *App) PermanentDeletePage(rctx request.CTX, pageID string) *model.AppError {
+	post, err := a.GetSinglePost(rctx, pageID, true)
+	if err != nil {
+		return model.NewAppError("PermanentDeletePage",
+			"app.page.permanent_delete.not_found.app_error", nil, "", http.StatusNotFound).Wrap(err)
+	}
+
+	if post.Type != model.PostTypePage {
+		return model.NewAppError("PermanentDeletePage",
+			"app.page.permanent_delete.not_a_page.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	session := rctx.Session()
+	if err := a.HasPermissionToModifyPage(rctx, session, post, PageOperationDelete, "PermanentDeletePage"); err != nil {
+		return err
+	}
+
+	rctx.Logger().Info("Permanently deleting page", mlog.String("page_id", pageID))
+
+	if err := a.Srv().Store().PageContent().PermanentDelete(pageID); err != nil {
+		var nfErr *store.ErrNotFound
+		if !errors.As(err, &nfErr) {
+			rctx.Logger().Warn("Failed to permanently delete PageContent",
+				mlog.String("page_id", pageID), mlog.Err(err))
+		}
+	}
+
+	if err := a.PermanentDeletePost(rctx, pageID, session.UserId); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // GetPageChildren fetches direct children of a page
@@ -671,14 +796,19 @@ func (a *App) getPageTitle(page *model.Post) string {
 // TipTap stores mentions as nodes with type="mention" and attrs.id containing the user ID.
 // This is simpler than markdown parsing since IDs are explicit in the structure.
 func (a *App) ExtractMentionsFromTipTapContent(content string) ([]string, error) {
+	mlog.Info("DEBUG: ExtractMentionsFromTipTapContent - Raw content", mlog.String("content", content[:min(500, len(content))]))
+
 	var doc struct {
 		Type    string            `json:"type"`
 		Content []json.RawMessage `json:"content"`
 	}
 
 	if err := json.Unmarshal([]byte(content), &doc); err != nil {
+		mlog.Info("DEBUG: ExtractMentionsFromTipTapContent - JSON unmarshal error", mlog.Err(err))
 		return nil, err
 	}
+
+	mlog.Info("DEBUG: ExtractMentionsFromTipTapContent - Parsed doc", mlog.String("doc_type", doc.Type), mlog.Int("content_nodes", len(doc.Content)))
 
 	mentionIDs := make(map[string]bool)
 	a.extractMentionsFromNodes(doc.Content, mentionIDs)
@@ -688,6 +818,7 @@ func (a *App) ExtractMentionsFromTipTapContent(content string) ([]string, error)
 		result = append(result, id)
 	}
 
+	mlog.Info("DEBUG: ExtractMentionsFromTipTapContent - Final result", mlog.Int("mention_count", len(result)), mlog.Any("mention_ids", result))
 	return result, nil
 }
 
@@ -703,14 +834,19 @@ func (a *App) extractMentionsFromNodes(nodes []json.RawMessage, mentionIDs map[s
 		}
 
 		if err := json.Unmarshal(nodeRaw, &node); err != nil {
+			mlog.Info("DEBUG: extractMentionsFromNodes - Failed to unmarshal node", mlog.Err(err))
 			continue
 		}
 
+		mlog.Info("DEBUG: extractMentionsFromNodes - Processing node", mlog.String("node_type", node.Type), mlog.Bool("has_attrs", node.Attrs != nil))
+
 		if node.Type == "mention" && node.Attrs != nil && node.Attrs.ID != "" {
+			mlog.Info("DEBUG: extractMentionsFromNodes - Found mention!", mlog.String("user_id", node.Attrs.ID))
 			mentionIDs[node.Attrs.ID] = true
 		}
 
 		if len(node.Content) > 0 {
+			mlog.Info("DEBUG: extractMentionsFromNodes - Recursing into child nodes", mlog.Int("child_count", len(node.Content)))
 			a.extractMentionsFromNodes(node.Content, mentionIDs)
 		}
 	}
@@ -877,27 +1013,43 @@ func (a *App) PublishPageDraft(rctx request.CTX, userId, wikiId, draftId, parent
 		return savedPost, nil
 	}
 
+	rctx.Logger().Info("DEBUG: Starting mention extraction", mlog.String("page_id", pageWithContent.Id), mlog.Int("content_length", len(pageWithContent.Message)))
 	mentionedUserIDs, extractErr := a.ExtractMentionsFromTipTapContent(pageWithContent.Message)
+	rctx.Logger().Info("DEBUG: Mention extraction result",
+		mlog.String("page_id", pageWithContent.Id),
+		mlog.Int("mention_count", len(mentionedUserIDs)),
+		mlog.Any("mentioned_user_ids", mentionedUserIDs),
+		mlog.Err(extractErr))
+
 	if extractErr != nil {
 		rctx.Logger().Warn("Failed to extract mentions from page content", mlog.String("page_id", pageWithContent.Id), mlog.Err(extractErr))
 	} else if len(mentionedUserIDs) > 0 {
+		rctx.Logger().Info("DEBUG: Found mentions, getting user for notifications", mlog.String("author_user_id", userId))
 		user, userErr := a.GetUser(userId)
 		if userErr != nil {
 			rctx.Logger().Warn("Failed to get user for mention notifications", mlog.String("user_id", userId), mlog.Err(userErr))
 		} else {
+			rctx.Logger().Info("DEBUG: Got user, getting team", mlog.String("team_id", channel.TeamId))
 			team, teamErr := a.GetTeam(channel.TeamId)
 			if teamErr != nil {
 				rctx.Logger().Warn("Failed to get team for mention notifications", mlog.String("team_id", channel.TeamId), mlog.Err(teamErr))
 			} else {
-				if _, notifyErr := a.SendNotifications(rctx, pageWithContent, team, channel, user, nil, true); notifyErr != nil {
+				rctx.Logger().Info("DEBUG: Calling SendNotifications",
+					mlog.String("page_id", pageWithContent.Id),
+					mlog.String("channel_id", channel.Id),
+					mlog.String("team_id", team.Id),
+					mlog.String("author_id", user.Id))
+				if _, notifyErr := a.SendNotifications(rctx, pageWithContent, team, channel, user, nil, true, mentionedUserIDs); notifyErr != nil {
 					rctx.Logger().Warn("Failed to send mention notifications for page", mlog.String("page_id", pageWithContent.Id), mlog.Err(notifyErr))
 				} else {
-					rctx.Logger().Debug("Sent mention notifications for page",
+					rctx.Logger().Info("DEBUG: Successfully sent mention notifications for page",
 						mlog.String("page_id", pageWithContent.Id),
 						mlog.Int("mention_count", len(mentionedUserIDs)))
 				}
 			}
 		}
+	} else {
+		rctx.Logger().Info("DEBUG: No mentions found in page content", mlog.String("page_id", pageWithContent.Id))
 	}
 
 	pageJSON, jsonErr := pageWithContent.ToJSON()
@@ -917,4 +1069,116 @@ func (a *App) PublishPageDraft(rctx request.CTX, userId, wikiId, draftId, parent
 	a.Publish(message)
 
 	return pageWithContent, nil
+}
+
+// CreatePageComment creates a top-level comment on a page
+func (a *App) CreatePageComment(rctx request.CTX, pageID, message string) (*model.Post, *model.AppError) {
+	// Validate page exists
+	page, err := a.GetSinglePost(rctx, pageID, false)
+	if err != nil {
+		return nil, model.NewAppError("CreatePageComment",
+			"app.page.create_comment.page_not_found.app_error",
+			nil, "", http.StatusNotFound).Wrap(err)
+	}
+
+	// Validate it's actually a page
+	if page.Type != model.PostTypePage {
+		return nil, model.NewAppError("CreatePageComment",
+			"app.page.create_comment.not_a_page.app_error",
+			nil, "post is not a page", http.StatusBadRequest)
+	}
+
+	// Check user has permission to view channel (inherited by comments)
+	channel, chanErr := a.GetChannel(rctx, page.ChannelId)
+	if chanErr != nil {
+		return nil, chanErr
+	}
+
+	comment := &model.Post{
+		ChannelId: page.ChannelId,
+		UserId:    rctx.Session().UserId,
+		RootId:    pageID,
+		Message:   message,
+		Type:      model.PostTypePageComment,
+		Props: model.StringInterface{
+			"page_id": pageID,
+		},
+	}
+
+	// Use existing CreatePost to get all hooks, validation, WebSocket events
+	createdComment, createErr := a.CreatePost(rctx, comment, channel, model.CreatePostFlags{})
+	if createErr != nil {
+		return nil, createErr
+	}
+
+	rctx.Logger().Debug("Page comment created",
+		mlog.String("comment_id", createdComment.Id),
+		mlog.String("page_id", pageID))
+
+	return createdComment, nil
+}
+
+// CreatePageCommentReply creates a reply to a page comment (one level of nesting only)
+func (a *App) CreatePageCommentReply(rctx request.CTX, pageID, parentCommentID, message string) (*model.Post, *model.AppError) {
+	// Validate page exists
+	page, err := a.GetSinglePost(rctx, pageID, false)
+	if err != nil || page.Type != model.PostTypePage {
+		return nil, model.NewAppError("CreatePageCommentReply",
+			"app.page.create_comment_reply.page_not_found.app_error",
+			nil, "", http.StatusNotFound)
+	}
+
+	// Validate parent comment exists
+	parentComment, err := a.GetSinglePost(rctx, parentCommentID, false)
+	if err != nil {
+		return nil, model.NewAppError("CreatePageCommentReply",
+			"app.page.create_comment_reply.parent_not_found.app_error",
+			nil, "", http.StatusNotFound).Wrap(err)
+	}
+
+	// Validate parent is a page comment
+	if parentComment.Type != model.PostTypePageComment {
+		return nil, model.NewAppError("CreatePageCommentReply",
+			"app.page.create_comment_reply.parent_not_comment.app_error",
+			nil, "parent is not a page comment", http.StatusBadRequest)
+	}
+
+	// Validate: Can only reply to top-level comments (not to replies)
+	// Enforce Confluence-style one-level nesting
+	if parentComment.Props["parent_comment_id"] != nil {
+		return nil, model.NewAppError("CreatePageCommentReply",
+			"app.page.create_comment_reply.reply_to_reply_not_allowed.app_error",
+			nil, "Can only reply to top-level comments", http.StatusBadRequest)
+	}
+
+	// Get channel
+	channel, chanErr := a.GetChannel(rctx, page.ChannelId)
+	if chanErr != nil {
+		return nil, chanErr
+	}
+
+	reply := &model.Post{
+		ChannelId: page.ChannelId,
+		UserId:    rctx.Session().UserId,
+		RootId:    pageID,
+		Message:   message,
+		Type:      model.PostTypePageComment,
+		Props: model.StringInterface{
+			"page_id":           pageID,
+			"parent_comment_id": parentCommentID,
+		},
+	}
+
+	// Use existing CreatePost to get all hooks, validation, WebSocket events
+	createdReply, createErr := a.CreatePost(rctx, reply, channel, model.CreatePostFlags{})
+	if createErr != nil {
+		return nil, createErr
+	}
+
+	rctx.Logger().Debug("Page comment reply created",
+		mlog.String("reply_id", createdReply.Id),
+		mlog.String("page_id", pageID),
+		mlog.String("parent_comment_id", parentCommentID))
+
+	return createdReply, nil
 }

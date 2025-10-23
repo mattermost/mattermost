@@ -110,19 +110,7 @@ export function togglePageOutline(pageId: string, pageContent?: string): ActionF
                 content = fullPage?.message || '';
             }
 
-            console.log('[togglePageOutline] Processing page:', {
-                pageId,
-                contentLength: content?.length,
-                contentPreview: content?.substring(0, 200),
-                contentType: typeof content,
-            });
-
             const headings = extractHeadingsFromContent(content || '');
-
-            console.log('[togglePageOutline] Extracted headings:', {
-                count: headings.length,
-                headings,
-            });
 
             dispatch({
                 type: SET_OUTLINE_EXPANDED,

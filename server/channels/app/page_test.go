@@ -8,6 +8,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/stretchr/testify/require"
 )
 
@@ -223,8 +224,12 @@ func TestDeletePage(t *testing.T) {
 	sessionCtx := createSessionContext(th)
 
 	t.Run("successfully deletes page and its content", func(t *testing.T) {
-		createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "")
+		createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", `{"type":"doc","content":[{"type":"paragraph"}]}`, th.BasicUser.Id, "")
 		require.Nil(t, err)
+
+		pageContent, getErr := th.App.Srv().Store().PageContent().Get(createdPage.Id)
+		require.NoError(t, getErr)
+		require.NotNil(t, pageContent, "PageContent should exist before deletion")
 
 		err = th.App.DeletePage(sessionCtx, createdPage.Id)
 		require.Nil(t, err)
@@ -232,7 +237,12 @@ func TestDeletePage(t *testing.T) {
 		deletedPage, getErr := th.App.Srv().Store().Post().GetSingle(th.Context, createdPage.Id, true)
 		require.NoError(t, getErr)
 		require.NotNil(t, deletedPage)
-		require.NotEqual(t, int64(0), deletedPage.DeleteAt)
+		require.NotEqual(t, int64(0), deletedPage.DeleteAt, "Post should be soft-deleted")
+
+		_, getContentErr := th.App.Srv().Store().PageContent().Get(createdPage.Id)
+		require.Error(t, getContentErr, "PageContent should be deleted")
+		var nfErr *store.ErrNotFound
+		require.ErrorAs(t, getContentErr, &nfErr, "Should return NotFound error for deleted PageContent")
 	})
 
 	t.Run("fails for non-existent page", func(t *testing.T) {
@@ -1166,5 +1176,150 @@ func TestExtractMentionsFromTipTapContent(t *testing.T) {
 		require.Len(t, mentions, 2)
 		require.Contains(t, mentions, "user1")
 		require.Contains(t, mentions, "user2")
+	})
+}
+
+func TestCreatePageComment(t *testing.T) {
+	th := Setup(t).InitBasic()
+	setupPagePermissions(th)
+	defer th.TearDown()
+
+	rctx := createSessionContext(th)
+
+	page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "")
+	require.Nil(t, err)
+	require.NotNil(t, page)
+
+	t.Run("successfully creates top-level page comment", func(t *testing.T) {
+		comment, appErr := th.App.CreatePageComment(rctx, page.Id, "This is a comment on the page")
+		require.Nil(t, appErr)
+		require.NotNil(t, comment)
+
+		require.Equal(t, model.PostTypePageComment, comment.Type)
+		require.Equal(t, page.ChannelId, comment.ChannelId)
+		require.Equal(t, page.Id, comment.RootId)
+		require.Equal(t, th.BasicUser.Id, comment.UserId)
+		require.Equal(t, "This is a comment on the page", comment.Message)
+
+		require.NotNil(t, comment.Props)
+		require.Equal(t, page.Id, comment.Props["page_id"])
+		require.Nil(t, comment.Props["parent_comment_id"])
+	})
+
+	t.Run("fails when page does not exist", func(t *testing.T) {
+		comment, appErr := th.App.CreatePageComment(rctx, "invalid_page_id", "Comment on non-existent page")
+		require.NotNil(t, appErr)
+		require.Nil(t, comment)
+		require.Equal(t, "app.page.create_comment.page_not_found.app_error", appErr.Id)
+	})
+
+	t.Run("fails when root post is not a page", func(t *testing.T) {
+		regularPost, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "Regular post",
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, err)
+
+		comment, appErr := th.App.CreatePageComment(rctx, regularPost.Id, "Comment on regular post")
+		require.NotNil(t, appErr)
+		require.Nil(t, comment)
+		require.Equal(t, "app.page.create_comment.not_a_page.app_error", appErr.Id)
+	})
+
+	t.Run("creates multiple comments on same page", func(t *testing.T) {
+		comment1, appErr := th.App.CreatePageComment(rctx, page.Id, "First comment")
+		require.Nil(t, appErr)
+		require.NotNil(t, comment1)
+
+		comment2, appErr := th.App.CreatePageComment(rctx, page.Id, "Second comment")
+		require.Nil(t, appErr)
+		require.NotNil(t, comment2)
+
+		require.NotEqual(t, comment1.Id, comment2.Id)
+		require.Equal(t, page.Id, comment1.RootId)
+		require.Equal(t, page.Id, comment2.RootId)
+	})
+}
+
+func TestCreatePageCommentReply(t *testing.T) {
+	th := Setup(t).InitBasic()
+	setupPagePermissions(th)
+	defer th.TearDown()
+
+	rctx := createSessionContext(th)
+
+	page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "")
+	require.Nil(t, err)
+
+	topLevelComment, appErr := th.App.CreatePageComment(rctx, page.Id, "Top-level comment")
+	require.Nil(t, appErr)
+
+	t.Run("successfully creates reply to top-level comment", func(t *testing.T) {
+		reply, appErr := th.App.CreatePageCommentReply(rctx, page.Id, topLevelComment.Id, "This is a reply")
+		require.Nil(t, appErr)
+		require.NotNil(t, reply)
+
+		require.Equal(t, model.PostTypePageComment, reply.Type)
+		require.Equal(t, page.ChannelId, reply.ChannelId)
+		require.Equal(t, page.Id, reply.RootId)
+		require.Equal(t, th.BasicUser.Id, reply.UserId)
+		require.Equal(t, "This is a reply", reply.Message)
+
+		require.NotNil(t, reply.Props)
+		require.Equal(t, page.Id, reply.Props["page_id"])
+		require.Equal(t, topLevelComment.Id, reply.Props["parent_comment_id"])
+	})
+
+	t.Run("fails when page does not exist", func(t *testing.T) {
+		reply, appErr := th.App.CreatePageCommentReply(rctx, "invalid_page_id", topLevelComment.Id, "Reply to non-existent page")
+		require.NotNil(t, appErr)
+		require.Nil(t, reply)
+		require.Equal(t, "app.page.create_comment_reply.page_not_found.app_error", appErr.Id)
+	})
+
+	t.Run("fails when parent comment does not exist", func(t *testing.T) {
+		reply, appErr := th.App.CreatePageCommentReply(rctx, page.Id, "invalid_comment_id", "Reply to non-existent comment")
+		require.NotNil(t, appErr)
+		require.Nil(t, reply)
+		require.Equal(t, "app.page.create_comment_reply.parent_not_found.app_error", appErr.Id)
+	})
+
+	t.Run("fails when parent is not a page comment", func(t *testing.T) {
+		regularPost, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "Regular post",
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, err)
+
+		reply, appErr := th.App.CreatePageCommentReply(rctx, page.Id, regularPost.Id, "Reply to regular post")
+		require.NotNil(t, appErr)
+		require.Nil(t, reply)
+		require.Equal(t, "app.page.create_comment_reply.parent_not_comment.app_error", appErr.Id)
+	})
+
+	t.Run("enforces one-level nesting - cannot reply to a reply", func(t *testing.T) {
+		reply1, appErr := th.App.CreatePageCommentReply(rctx, page.Id, topLevelComment.Id, "First reply")
+		require.Nil(t, appErr)
+
+		reply2, appErr := th.App.CreatePageCommentReply(rctx, page.Id, reply1.Id, "Reply to reply (should fail)")
+		require.NotNil(t, appErr)
+		require.Nil(t, reply2)
+		require.Equal(t, "app.page.create_comment_reply.reply_to_reply_not_allowed.app_error", appErr.Id)
+	})
+
+	t.Run("creates multiple replies to same comment", func(t *testing.T) {
+		reply1, appErr := th.App.CreatePageCommentReply(rctx, page.Id, topLevelComment.Id, "Reply 1")
+		require.Nil(t, appErr)
+
+		reply2, appErr := th.App.CreatePageCommentReply(rctx, page.Id, topLevelComment.Id, "Reply 2")
+		require.Nil(t, appErr)
+
+		require.NotEqual(t, reply1.Id, reply2.Id)
+		require.Equal(t, page.Id, reply1.RootId)
+		require.Equal(t, page.Id, reply2.RootId)
+		require.Equal(t, topLevelComment.Id, reply1.Props["parent_comment_id"])
+		require.Equal(t, topLevelComment.Id, reply2.Props["parent_comment_id"])
 	})
 }

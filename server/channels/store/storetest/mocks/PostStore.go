@@ -204,6 +204,36 @@ func (_m *PostStore) Get(rctx request.CTX, id string, opts model.GetPostsOptions
 	return r0, r1
 }
 
+// GetCommentsForPage provides a mock function with given fields: pageID, includeDeleted
+func (_m *PostStore) GetCommentsForPage(pageID string, includeDeleted bool) (*model.PostList, error) {
+	ret := _m.Called(pageID, includeDeleted)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetCommentsForPage")
+	}
+
+	var r0 *model.PostList
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, bool) (*model.PostList, error)); ok {
+		return rf(pageID, includeDeleted)
+	}
+	if rf, ok := ret.Get(0).(func(string, bool) *model.PostList); ok {
+		r0 = rf(pageID, includeDeleted)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PostList)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, bool) error); ok {
+		r1 = rf(pageID, includeDeleted)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetDirectPostParentsForExportAfter provides a mock function with given fields: limit, afterID, includeArchivedChannels
 func (_m *PostStore) GetDirectPostParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool) ([]*model.DirectPostForExport, error) {
 	ret := _m.Called(limit, afterID, includeArchivedChannels)

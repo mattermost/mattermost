@@ -30,8 +30,10 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         Preferences.LINK_PREVIEW_DISPLAY_DEFAULT === 'true',
     );
 
+    const post = getPost(state, ownProps.id);
+
     return {
-        post: getPost(state, ownProps.id),
+        post,
         previewEnabled,
         previewCollapsed,
     };

@@ -3,7 +3,7 @@
 
 import type {Post} from '@mattermost/types/posts';
 
-import {PageDisplayTypes} from 'utils/constants';
+import type {PageDisplayTypes} from 'utils/constants';
 
 export type Page = Post;
 
@@ -34,16 +34,6 @@ export function buildTree(pages: PageOrDraft[]): TreeNode[] {
     // First pass: Create all nodes
     pages.forEach((page) => {
         const title = (page.props?.title as string | undefined) || page.message || 'Untitled';
-
-        if (page.type === PageDisplayTypes.PAGE_DRAFT) {
-            console.log('[buildTree] Creating draft node:', {
-                id: page.id,
-                title,
-                propsTitle: page.props?.title,
-                message: page.message?.substring(0, 30),
-                parentId: page.page_parent_id,
-            });
-        }
 
         nodeMap.set(page.id, {
             id: page.id,

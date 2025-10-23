@@ -21,6 +21,7 @@ type PageContent struct {
 	SearchText string         `json:"search_text,omitempty"`
 	CreateAt   int64          `json:"create_at"`
 	UpdateAt   int64          `json:"update_at"`
+	DeleteAt   int64          `json:"delete_at"`
 }
 
 type TipTapDocument struct {

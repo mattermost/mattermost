@@ -5,26 +5,26 @@
 
     .DeletePageModal__warning {
         margin: 0 0 20px;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
         font-size: 14px;
         line-height: 20px;
-        color: rgba(var(--center-channel-color-rgb), 0.72);
     }
 
     .DeletePageModal__options {
         display: flex;
         flex-direction: column;
-        gap: 12px;
         margin-bottom: 20px;
+        gap: 12px;
     }
 
     .DeletePageModal__option {
         display: flex;
         align-items: flex-start;
-        gap: 12px;
         padding: 16px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
         border-radius: 4px;
         cursor: pointer;
+        gap: 12px;
         transition: all 0.15s ease;
 
         &:hover {
@@ -40,37 +40,37 @@
 
     .DeletePageModal__optionContent {
         display: flex;
+        flex: 1;
         flex-direction: column;
         gap: 4px;
-        flex: 1;
 
         strong {
+            color: var(--center-channel-color);
             font-size: 14px;
             font-weight: 600;
-            color: var(--center-channel-color);
         }
     }
 
     .DeletePageModal__optionDescription {
+        color: rgba(var(--center-channel-color-rgb), 0.64);
         font-size: 12px;
         line-height: 16px;
-        color: rgba(var(--center-channel-color-rgb), 0.64);
     }
 
     .DeletePageModal__note {
         display: flex;
         align-items: center;
-        gap: 8px;
-        margin: 0;
         padding: 12px;
-        background: rgba(var(--dnd-indicator-rgb), 0.08);
         border-radius: 4px;
-        font-size: 12px;
+        margin: 0;
+        background: rgba(var(--dnd-indicator-rgb), 0.08);
         color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 12px;
+        gap: 8px;
 
         .icon {
-            font-size: 16px;
             color: var(--dnd-indicator);
+            font-size: 16px;
         }
     }
 }
