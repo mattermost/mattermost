@@ -6,12 +6,12 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {CheckIcon, ChevronRightIcon, DotsHorizontalIcon, EyeOutlineIcon, PencilOutlineIcon, SyncIcon, TrashCanOutlineIcon, ContentCopyIcon} from '@mattermost/compass-icons/components';
+import {Toggle} from '@mattermost/design-system';
 import type {FieldVisibility, UserPropertyField} from '@mattermost/types/properties';
 
 import {openModal} from 'actions/views/modals';
 
 import * as Menu from 'components/menu';
-import Toggle from 'components/toggle';
 
 import {ModalIdentifiers} from 'utils/constants';
 
