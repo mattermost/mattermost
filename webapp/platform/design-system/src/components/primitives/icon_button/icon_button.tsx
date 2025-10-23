@@ -22,6 +22,14 @@ const ICON_SIZE_MAP = {
     lg: 32,
 } as const;
 
+// Map IconButton sizes to Spinner pixel sizes (using Figma design system values)
+const ICONBUTTON_SPINNER_SIZE_MAP = {
+    xs: 12,
+    sm: 16,
+    md: 20,
+    lg: 24,
+} as const;
+
 export interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
     /** Icon size and overall button dimensions */
@@ -114,9 +122,8 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
                 <span className='IconButton__content'>
                     {loading ? (
                         <Spinner
-                            size={size}
+                            size={ICONBUTTON_SPINNER_SIZE_MAP[size]}
                             inverted={inverted}
-                            forIconButton={true}
                         />
                     ) : (
                         <span className={`IconButton__icon IconButton__icon--${size}`}>

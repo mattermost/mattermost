@@ -7,50 +7,54 @@ import type {HTMLAttributes} from 'react';
 
 import './spinner.scss';
 
-export type SpinnerSize = 'xs' | 'sm' | 'md' | 'lg';
+// Figma design system spinner sizes
+export type SpinnerSize = 10 | 12 | 16 | 20 | 24 | 28 | 32;
 
 export interface SpinnerProps extends Omit<HTMLAttributes<HTMLSpanElement>, 'role'> {
-    /** Size of the spinner */
+
+    /** Size of the spinner in pixels (10, 12, 16, 20, 24, 28, 32) */
     size?: SpinnerSize;
-    
+
     /** Whether the spinner should use inverted colors for dark backgrounds */
     inverted?: boolean;
-    
-    /** Whether this spinner is being used in an IconButton (affects sizing) */
-    forIconButton?: boolean;
-    
+
     /** Accessible label for screen readers */
     'aria-label'?: string;
 }
 
 const Spinner: React.FC<SpinnerProps> = ({
-    size = 'md',
+    size = 16,
     inverted = false,
-    forIconButton = false,
     className,
     'aria-label': ariaLabel = 'Loading',
+    style,
     ...htmlProps
 }) => {
-    // Create size modifier that accounts for IconButton differences
-    const sizeModifier = forIconButton && (size === 'sm' || size === 'md' || size === 'lg') 
-        ? `${size}-icon` 
-        : size;
+    // Calculate stroke width based on size (roughly 10% of size, with min/max bounds)
+    const strokeWidth = Math.max(1, Math.min(2.5, size * 0.1));
 
     const spinnerClasses = classNames(
         'Spinner',
-        `Spinner--${sizeModifier}`,
         {
             'Spinner--inverted': inverted,
         },
         className,
     );
 
+    const spinnerStyle = {
+        width: `${size}px`,
+        height: `${size}px`,
+        '--spinner-stroke-width': `${strokeWidth}px`,
+        ...style,
+    };
+
     return (
         <span
             className={spinnerClasses}
-            role="status"
+            role='status'
             aria-label={ariaLabel}
-            aria-hidden="true"
+            aria-hidden='true'
+            style={spinnerStyle}
             {...htmlProps}
         />
     );

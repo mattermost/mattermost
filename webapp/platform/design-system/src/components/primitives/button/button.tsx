@@ -12,7 +12,13 @@ import './button.scss';
 export type ButtonSize = 'xs' | 'sm' | 'md' | 'lg';
 export type ButtonEmphasis = 'primary' | 'secondary' | 'tertiary' | 'quaternary' | 'link';
 
-// Removed ButtonStyle type - now using inverted boolean prop
+// Map Button sizes to Spinner pixel sizes (using Figma design system values)
+const BUTTON_SPINNER_SIZE_MAP = {
+    xs: 12,
+    sm: 12,
+    md: 16,
+    lg: 20,
+} as const;
 
 export interface ButtonProps {
 
@@ -119,7 +125,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps & ButtonHTMLProps>(
                 {loading && (
                     <span className='Button__loading'>
                         <Spinner
-                            size={size}
+                            size={BUTTON_SPINNER_SIZE_MAP[size]}
                             inverted={inverted}
                             aria-label='Loading'
                         />
