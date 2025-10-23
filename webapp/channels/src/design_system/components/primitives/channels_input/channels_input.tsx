@@ -193,3 +193,53 @@ export default class ChannelsInput<T extends Channel> extends React.PureComponen
         );
     }
 }
+
+// This is a copy of the messages for the platform package
+// to make the i18n extract happy.
+// TODO: Remove this once we have a proper i18n solution.
+export const translationsPlatformPackage = defineMessages({
+    shortcutAlt: {
+        id: 'shortcuts.generic.alt',
+        defaultMessage: 'Alt',
+    },
+    shortcutCtrl: {
+        id: 'shortcuts.generic.ctrl',
+        defaultMessage: 'Ctrl',
+    },
+    shortcutShift: {
+        id: 'shortcuts.generic.shift',
+        defaultMessage: 'Shift',
+    },
+    urlInputDone: {
+        id: 'url_input.buttonLabel.done',
+        defaultMessage: 'Done',
+    },
+    urlInputEdit: {
+        id: 'url_input.buttonLabel.edit',
+        defaultMessage: 'Edit',
+    },
+    urlInputLabel: {
+        id: 'url_input.label.url',
+        defaultMessage: 'URL: ',
+    },
+    widgetInputClear: {
+        id: 'widget.input.clear',
+        defaultMessage: 'Clear',
+    },
+    widgetInputMaxLength: {
+        id: 'widget.input.max_length',
+        defaultMessage: 'Must be no more than {limit} characters',
+    },
+    widgetInputMinLength: {
+        id: 'widget.input.min_length',
+        defaultMessage: 'Must be at least {minLength} characters',
+    },
+    passwordInputCreate: {
+        id: 'widget.passwordInput.createPassword',
+        defaultMessage: 'Choose a Password',
+    },
+    passwordInputPassword: {
+        id: 'widget.passwordInput.password',
+        defaultMessage: 'Password',
+    },
+});

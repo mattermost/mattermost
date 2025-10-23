@@ -8,6 +8,9 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 import {useLocation, useHistory, Route} from 'react-router-dom';
 
+import {CheckInput, PasswordInput} from '@mattermost/design-system';
+import Input, {SIZE} from '@mattermost/design-system/src/components/primitives/input/input';
+import type {CustomMessageInputType} from '@mattermost/design-system/src/components/primitives/input/input';
 import type {ServerError} from '@mattermost/types/errors';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -43,10 +46,6 @@ import LockIcon from 'components/widgets/icons/lock_icon';
 import LoginGitlabIcon from 'components/widgets/icons/login_gitlab_icon';
 import LoginGoogleIcon from 'components/widgets/icons/login_google_icon';
 import LoginOpenIDIcon from 'components/widgets/icons/login_openid_icon';
-import CheckInput from 'components/widgets/inputs/check';
-import Input, {SIZE} from 'components/widgets/inputs/input/input';
-import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
-import PasswordInput from 'components/widgets/inputs/password_input/password_input';
 
 import {Constants, HostedCustomerLinks, ItemStatus, ValidationErrors} from 'utils/constants';
 import {isValidPassword} from 'utils/password';

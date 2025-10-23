@@ -5,10 +5,9 @@ import React, {memo} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
-import {ShortcutKey, ShortcutKeyVariant} from 'components/shortcut_key';
-
-import {isMessageDescriptor} from 'utils/i18n';
-import {isMac} from 'utils/user_agent';
+import {isMessageDescriptor} from '../../../utils/i18n';
+import {isMac} from '../../../utils/user_agent';
+import {ShortcutKey, ShortcutKeyVariant} from '../shortcut_key/';
 
 export const ShortcutKeys = {
     alt: defineMessage({

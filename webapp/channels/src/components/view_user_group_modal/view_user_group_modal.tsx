@@ -6,6 +6,7 @@ import {Modal} from 'react-bootstrap';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
 import {useFocusTrap} from '@mattermost/components/src/hooks/useFocusTrap';
+import Input from '@mattermost/design-system/src/components/primitives/input/input';
 import type {Group} from '@mattermost/types/groups';
 import {GroupSource, PluginGroupSourcePrefix} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
@@ -16,7 +17,6 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import LoadingScreen from 'components/loading_screen';
 import NoResultsIndicator from 'components/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
-import Input from 'components/widgets/inputs/input/input';
 
 import Constants from 'utils/constants';
 

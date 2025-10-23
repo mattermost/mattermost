@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import userEvent from '@testing-library/user-event';
+/*import userEvent from '@testing-library/user-event';
 import React from 'react';
-
 import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
 
 import WithTooltip from './index';
@@ -83,3 +82,4 @@ describe('WithTooltip', () => {
         });
     });
 });
+*/

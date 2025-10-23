@@ -8,6 +8,7 @@ import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {EmoticonHappyOutlineIcon} from '@mattermost/compass-icons/components';
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 import type {Emoji} from '@mattermost/types/emojis';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
@@ -16,7 +17,6 @@ import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import useEmojiPicker, {useEmojiPickerOffset} from 'components/emoji_picker/use_emoji_picker';
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import WithTooltip from 'components/with_tooltip';
 
 import {horizontallyWithin} from 'utils/floating';
 import {splitMessageBasedOnCaretPosition} from 'utils/post_utils';

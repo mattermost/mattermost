@@ -4,9 +4,8 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import Input from '@mattermost/design-system/src/components/primitives/input/input';
 import type {Team} from '@mattermost/types/teams';
-
-import Input from 'components/widgets/inputs/input/input';
 
 import logoImage from 'images/logo.png';
 import Constants from 'utils/constants';

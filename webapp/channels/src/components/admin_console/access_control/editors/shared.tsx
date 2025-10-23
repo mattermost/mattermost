@@ -4,8 +4,9 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
+
 import Markdown from 'components/markdown';
-import WithTooltip from 'components/with_tooltip';
 
 import './shared.scss';
 

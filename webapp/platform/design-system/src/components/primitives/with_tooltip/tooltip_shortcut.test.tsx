@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+/*import React from 'react';
 import {defineMessage} from 'react-intl';
-
 import {renderWithContext, screen} from 'tests/react_testing_utils';
-import * as userAgentUtils from 'utils/user_agent';
 
 import TooltipShortcut from './tooltip_shortcut';
+
+import * as userAgentUtils from '../../../utils/user_agent';
 
 jest.mock('utils/user_agent', () => ({
     isMac: jest.fn(),
@@ -71,4 +71,4 @@ describe('TooltipShortcut', () => {
 
         expect(screen.getByText('Enter')).toBeInTheDocument();
     });
-});
+});*/

@@ -6,12 +6,12 @@ import {FormattedMessage, useIntl} from 'react-intl';
 
 import {CheckIcon, ContentCopyIcon} from '@mattermost/compass-icons/components';
 import {GenericModal} from '@mattermost/components';
+import Input from '@mattermost/design-system/src/components/primitives/input/input';
 import type {RemoteCluster} from '@mattermost/types/remote_clusters';
 
 import useCopyText, {messages as copymsg} from 'components/common/hooks/useCopyText';
 import LoadingScreen from 'components/loading_screen';
 import SectionNotice from 'components/section_notice';
-import Input from 'components/widgets/inputs/input/input';
 
 import {Button, ModalFieldset, ModalNoticeWrapper, ModalParagraph} from '../controls';
 

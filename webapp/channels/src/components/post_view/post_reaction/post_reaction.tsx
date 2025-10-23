@@ -5,6 +5,7 @@ import classNames from 'classnames';
 import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
 
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 import type {Emoji} from '@mattermost/types/emojis';
 
 import Permissions from 'mattermost-redux/constants/permissions';
@@ -13,7 +14,6 @@ import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 import useEmojiPicker from 'components/emoji_picker/use_emoji_picker';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 import EmojiIcon from 'components/widgets/icons/emoji_icon';
-import WithTooltip from 'components/with_tooltip';
 
 import {Locations} from 'utils/constants';
 

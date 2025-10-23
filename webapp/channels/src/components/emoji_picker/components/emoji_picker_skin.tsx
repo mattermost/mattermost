@@ -8,9 +8,8 @@ import type {IntlShape, MessageDescriptor} from 'react-intl';
 import {CSSTransition} from 'react-transition-group';
 
 import {CloseIcon} from '@mattermost/compass-icons/components';
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 import type {SystemEmoji} from '@mattermost/types/emojis';
-
-import WithTooltip from 'components/with_tooltip';
 
 import imgTrans from 'images/img_trans.gif';
 import * as Emoji from 'utils/emoji';

@@ -7,8 +7,9 @@ import {useIntl} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
 import type {Props as SelectProps, ActionMeta, StylesConfig} from 'react-select';
 
+import type {CustomMessageInputType} from '@mattermost/design-system/src/components/primitives/input/input';
+
 import InputError from 'components/input_error';
-import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
 
 import {ItemStatus} from 'utils/constants';
 

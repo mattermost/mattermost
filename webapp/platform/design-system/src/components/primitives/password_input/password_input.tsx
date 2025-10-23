@@ -6,10 +6,8 @@ import React, {useState} from 'react';
 import type {ChangeEventHandler, FocusEventHandler} from 'react';
 import {useIntl} from 'react-intl';
 
-import {ItemStatus} from 'utils/constants';
-
-import Input from '../input/input';
-import type {CustomMessageInputType, SIZE} from '../input/input';
+import type {CustomMessageInputType, SIZE} from '@mattermost/design-system/src/components/primitives/input/input';
+import Input, {ItemStatus} from '@mattermost/design-system/src/components/primitives/input/input';
 
 import './password_input.scss';
 

@@ -10,6 +10,7 @@ import {FormattedMessage, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
 import {DownloadOutlineIcon, LinkVariantIcon, CheckIcon} from '@mattermost/compass-icons/components';
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 import type {FileInfo} from '@mattermost/types/files';
 import type {PostImage} from '@mattermost/types/posts';
 
@@ -17,7 +18,6 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import {getFileMiniPreviewUrl} from 'mattermost-redux/utils/file_utils';
 
 import LoadingImagePreview from 'components/loading_image_preview';
-import WithTooltip from 'components/with_tooltip';
 
 import {FileTypes} from 'utils/constants';
 import {copyToClipboard, getFileType} from 'utils/utils';

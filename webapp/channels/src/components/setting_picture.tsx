@@ -5,14 +5,14 @@ import React, {Component, createRef} from 'react';
 import type {ChangeEvent, CSSProperties, MouseEvent, ReactNode, RefObject} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
+
 import FormError from 'components/form_error';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {Constants} from 'utils/constants';
 import * as FileUtils from 'utils/file_utils';
 import {localizeMessage} from 'utils/utils';
-
-import WithTooltip from './with_tooltip';
 
 type Props = {
     clientError?: ReactNode;

@@ -4,9 +4,9 @@
 import React, {useState} from 'react';
 import {useSelector} from 'react-redux';
 
-import {isCustomStatusEnabled} from 'selectors/views/custom_status';
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 
-import WithTooltip from 'components/with_tooltip';
+import {isCustomStatusEnabled} from 'selectors/views/custom_status';
 
 import type {GlobalState} from 'types/store';
 

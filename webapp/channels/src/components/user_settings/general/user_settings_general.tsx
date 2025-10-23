@@ -9,6 +9,7 @@ import type {IntlShape} from 'react-intl';
 import ReactSelect from 'react-select';
 import type {OnChangeValue, ActionMeta, StylesConfig} from 'react-select';
 
+import Input from '@mattermost/design-system/src/components/primitives/input/input';
 import type {UserPropertyField, PropertyFieldOption} from '@mattermost/types/properties';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -20,7 +21,6 @@ import {isEmail} from 'mattermost-redux/utils/helpers';
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 import SettingPicture from 'components/setting_picture';
-import Input from 'components/widgets/inputs/input/input';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {AnnouncementBarMessages, AnnouncementBarTypes, AcceptedProfileImageTypes, Constants, ValidationErrors} from 'utils/constants';

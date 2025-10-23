@@ -7,12 +7,11 @@ import React, {memo} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {useIntl} from 'react-intl';
 
-import RenderEmoji from 'components/emoji/render_emoji';
-
-import {isMessageDescriptor} from 'utils/i18n';
-
 import TooltipShortcut from './tooltip_shortcut';
 import {type ShortcutDefinition} from './tooltip_shortcut';
+
+import {isMessageDescriptor} from '../../../utils/i18n';
+import RenderEmoji from '../emoji/render_emoji';
 
 const TOOLTIP_EMOTICON_SIZE = 16;
 const TOOLTIP_EMOTICON_LARGE_SIZE = 48;
@@ -20,6 +19,7 @@ const TOOLTIP_EMOTICON_LARGE_SIZE = 48;
 interface Props {
     title: string | ReactNode | MessageDescriptor;
     emoji?: string;
+    emojiImageUrl?: string;
     isEmojiLarge?: boolean;
     hint?: string | ReactNode | MessageDescriptor;
     shortcut?: ShortcutDefinition;
@@ -49,8 +49,9 @@ function TooltipContent(props: Props) {
                     <span className='tooltipContentEmoji'>
                         <RenderEmoji
                             emojiName={props.emoji}
+                            emojiImageUrl={props.emojiImageUrl}
                             size={props.isEmojiLarge ? TOOLTIP_EMOTICON_LARGE_SIZE : TOOLTIP_EMOTICON_SIZE}
-                        />
+                        />x
                     </span>
                 )}
                 <span className='tooltipContentTitle'>{title}</span>

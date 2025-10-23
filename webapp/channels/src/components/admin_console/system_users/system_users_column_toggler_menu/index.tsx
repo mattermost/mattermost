@@ -5,10 +5,10 @@ import type {Column, CoreColumn} from '@tanstack/react-table';
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import Input from '@mattermost/design-system/src/components/primitives/input/input';
 import type {UserReport} from '@mattermost/types/reports';
 
 import * as Menu from 'components/menu';
-import Input from 'components/widgets/inputs/input/input';
 
 import {ColumnNames} from '../constants';
 

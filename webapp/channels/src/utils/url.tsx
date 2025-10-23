@@ -30,14 +30,6 @@ export function cleanUpUrlable(input: string): string {
     return cleaned;
 }
 
-export function getShortenedURL(url = '', getLength = 27): string {
-    if (url.length > 35) {
-        const subLength = getLength - 14;
-        return url.substring(0, 10) + '...' + url.substring(url.length - subLength, url.length);
-    }
-    return url;
-}
-
 export function getSiteURLFromWindowObject(obj: WindowObject): string {
     let siteURL = '';
     if (obj.location.origin) {

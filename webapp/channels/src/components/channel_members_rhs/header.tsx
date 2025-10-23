@@ -5,9 +5,8 @@ import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import styled from 'styled-components';
 
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 import type {Channel} from '@mattermost/types/channels';
-
-import WithTooltip from 'components/with_tooltip';
 
 interface Props {
     channel: Channel;

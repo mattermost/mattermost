@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import React, {useRef, useState} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
-import WithTooltip from 'components/with_tooltip';
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 
 import {copyToClipboard} from 'utils/utils';
 
