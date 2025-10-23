@@ -6,6 +6,7 @@ import React from 'react';
 import {type WrappedComponentProps, injectIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 import type {Channel} from '@mattermost/types/channels';
 
 import {mark} from 'actions/telemetry_actions';
@@ -13,7 +14,6 @@ import {mark} from 'actions/telemetry_actions';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
 import {ChannelsAndDirectMessagesTour} from 'components/tours/onboarding_tour';
-import WithTooltip from 'components/with_tooltip';
 
 import Pluggable from 'plugins/pluggable';
 import Constants, {RHSStates} from 'utils/constants';

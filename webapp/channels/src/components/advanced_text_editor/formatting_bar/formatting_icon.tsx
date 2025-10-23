@@ -18,13 +18,13 @@ import {
     FormatListNumberedIcon,
 } from '@mattermost/compass-icons/components';
 import type IconProps from '@mattermost/compass-icons/components/props';
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import type {
     KeyboardShortcutDescriptor} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import WithTooltip from 'components/with_tooltip';
 
 import type {MarkdownMode} from 'utils/markdown/apply_markdown';
 

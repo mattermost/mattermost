@@ -4,6 +4,8 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
+import {renderWithContext} from 'tests/react_testing_utils';
+
 import RadioSetting from './radio_setting';
 
 describe('components/admin_console/RadioSetting', () => {
@@ -28,7 +30,7 @@ describe('components/admin_console/RadioSetting', () => {
 
     test('onChange', () => {
         const onChange = jest.fn();
-        const wrapper = shallow(
+        const wrapper = renderWithContext(
             <RadioSetting
                 id='string.id'
                 label='some label'
@@ -42,7 +44,8 @@ describe('components/admin_console/RadioSetting', () => {
                 setByEnv={false}
             />,
         );
-        wrapper.find('input').at(0).simulate('change', {target: {value: 'Administration'}});
+
+        wrapper.getByTestId('Administration').click();
 
         expect(onChange).toHaveBeenCalledTimes(1);
         expect(onChange).toHaveBeenCalledWith('string.id', 'Administration');

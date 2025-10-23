@@ -24,12 +24,33 @@ import type {ReactElement, ReactNode} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {defineMessage} from 'react-intl';
 
-import {OverlayArrow, OverlaysTimings, OverlayTransitionStyles, RootHtmlPortalId} from 'utils/constants';
-
 import TooltipContent from './tooltip_content';
 import type {ShortcutDefinition} from './tooltip_shortcut';
 
 import './with_tooltip.scss';
+
+export const OverlayArrow = {
+    WIDTH: 10, // in px
+    HEIGHT: 6, // in px
+    OFFSET: 8, // in px
+};
+
+export const OverlaysTimings = {
+    CURSOR_REST_TIME_BEFORE_OPEN: 400, // in ms
+    CURSOR_MOUSEOVER_TO_OPEN: 400, // in ms
+    CURSOR_MOUSEOUT_TO_CLOSE: 0,
+    CURSOR_MOUSEOUT_TO_CLOSE_WITH_DELAY: 200, // in ms
+    FADE_IN_DURATION: 250, // in ms
+    FADE_OUT_DURATION: 150, // in ms
+};
+
+export const OverlayTransitionStyles = {
+    START: {
+        opacity: 0,
+    },
+};
+
+export const RootHtmlPortalId = 'root-html-portal';
 
 /**
  * Shortcut keys map to translations that can be used in the tooltip
@@ -55,6 +76,7 @@ export const ShortcutKeys = {
 interface Props {
     title: string | ReactNode | MessageDescriptor;
     emoji?: string;
+    emojiImageUrl?: string;
     isEmojiLarge?: boolean;
     hint?: string | ReactNode | MessageDescriptor;
     shortcut?: ShortcutDefinition;
@@ -92,6 +114,7 @@ export default function WithTooltip({
     children,
     title,
     emoji,
+    emojiImageUrl,
     isEmojiLarge = false,
     hint,
     shortcut,
@@ -195,6 +218,7 @@ export default function WithTooltip({
                         <TooltipContent
                             title={title}
                             emoji={emoji}
+                            emojiImageUrl={emojiImageUrl}
                             isEmojiLarge={isEmojiLarge}
                             hint={hint}
                             shortcut={shortcut}

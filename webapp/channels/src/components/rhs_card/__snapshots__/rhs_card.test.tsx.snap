@@ -7,7 +7,7 @@ exports[`comoponents/rhs_card/RhsCard should match on post when no plugin defini
   <Connect(injectIntl(RhsCardHeader))
     previousRhsState={Object {}}
   />
-  <Scrollbars
+  <Scrollbar
     onScroll={[Function]}
   >
     <div
@@ -87,7 +87,7 @@ exports[`comoponents/rhs_card/RhsCard should match on post when no plugin defini
         </div>
       </div>
     </div>
-  </Scrollbars>
+  </Scrollbar>
 </div>
 `;
 
@@ -98,7 +98,7 @@ exports[`comoponents/rhs_card/RhsCard should match on post when plugin defining 
   <Connect(injectIntl(RhsCardHeader))
     previousRhsState={Object {}}
   />
-  <Scrollbars
+  <Scrollbar
     onScroll={[Function]}
   >
     <div
@@ -178,7 +178,7 @@ exports[`comoponents/rhs_card/RhsCard should match on post when plugin defining 
         </div>
       </div>
     </div>
-  </Scrollbars>
+  </Scrollbar>
 </div>
 `;
 
@@ -189,7 +189,7 @@ exports[`comoponents/rhs_card/RhsCard should match on post when plugin defining 
   <Connect(injectIntl(RhsCardHeader))
     previousRhsState={Object {}}
   />
-  <Scrollbars
+  <Scrollbar
     onScroll={[Function]}
   >
     <div
@@ -269,7 +269,7 @@ exports[`comoponents/rhs_card/RhsCard should match on post when plugin defining 
         </div>
       </div>
     </div>
-  </Scrollbars>
+  </Scrollbar>
 </div>
 `;
 

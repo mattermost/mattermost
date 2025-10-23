@@ -29,40 +29,36 @@ exports[`components/user_settings/advanced/JoinLeaveSection should match snapsho
         <div
           className="radio"
         >
-          <label>
-            <input
-              checked={true}
-              id="joinLeaveOn"
-              name="joinLeave"
-              onChange={[Function]}
-              type="radio"
-              value="true"
-            />
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="On"
-              id="user.settings.advance.on"
-            />
-          </label>
-          <br />
+          <RadioInput
+            checked={true}
+            handleChange={[Function]}
+            id="joinLeaveOn"
+            name="joinLeave"
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="On"
+                id="user.settings.advance.on"
+              />
+            }
+            value="true"
+          />
         </div>
         <div
           className="radio"
         >
-          <label>
-            <input
-              checked={false}
-              id="joinLeaveOff"
-              name="joinLeave"
-              onChange={[Function]}
-              type="radio"
-              value="false"
-            />
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Off"
-              id="user.settings.advance.off"
-            />
-          </label>
-          <br />
+          <RadioInput
+            checked={false}
+            handleChange={[Function]}
+            id="joinLeaveOff"
+            name="joinLeave"
+            title={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Off"
+                id="user.settings.advance.off"
+              />
+            }
+            value="false"
+          />
         </div>
         <div
           className="mt-5"

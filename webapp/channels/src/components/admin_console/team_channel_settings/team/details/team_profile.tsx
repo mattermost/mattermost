@@ -7,6 +7,7 @@ import React, {useEffect, useState} from 'react';
 import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 import type {Team} from '@mattermost/types/teams';
 
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
@@ -16,7 +17,6 @@ import useGetUsageDeltas from 'components/common/hooks/useGetUsageDeltas';
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import TeamIcon from 'components/widgets/team_icon/team_icon';
-import WithTooltip from 'components/with_tooltip';
 
 import {imageURLForTeam} from 'utils/utils';
 

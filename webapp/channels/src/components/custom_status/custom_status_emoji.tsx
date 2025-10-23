@@ -5,14 +5,15 @@ import React, {memo, useMemo, useRef} from 'react';
 import type {MouseEvent, KeyboardEvent} from 'react';
 import {useSelector} from 'react-redux';
 
+import RenderEmoji from '@mattermost/design-system/src/components/primitives/emoji/render_emoji';
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 import {CustomStatusDuration} from '@mattermost/types/users';
 
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
 import {isCustomStatusEnabled, isCustomStatusExpired, makeGetCustomStatus} from 'selectors/views/custom_status';
 
-import RenderEmoji from 'components/emoji/render_emoji';
-import WithTooltip from 'components/with_tooltip';
+import {useEmojiImageUrl} from 'utils/emoji_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -46,6 +47,8 @@ function CustomStatusEmoji({
     const customStatusExpired = useSelector((state: GlobalState) => isCustomStatusExpired(state, customStatus));
     const customStatusEnabled = useSelector(isCustomStatusEnabled);
 
+    const emojiImageURL = useEmojiImageUrl(customStatus?.emoji);
+
     const emojiRef = useRef<HTMLSpanElement>(null);
 
     if (!customStatusEnabled || !customStatus?.emoji || customStatusExpired) {
@@ -55,6 +58,7 @@ function CustomStatusEmoji({
     const statusEmoji = (
         <RenderEmoji
             emojiName={customStatus.emoji}
+            emojiImageUrl={emojiImageURL}
             size={emojiSize}
             emojiStyle={emojiStyle}
             onClick={onClick}
@@ -91,6 +95,7 @@ function CustomStatusEmoji({
                 </>
             }
             emoji={customStatus.emoji}
+            emojiImageUrl={emojiImageURL}
             isEmojiLarge={true}
         >
             <span

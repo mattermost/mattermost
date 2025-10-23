@@ -7,13 +7,13 @@ import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {Scrollbar} from '@mattermost/design-system';
 import type {Post} from '@mattermost/types/posts';
 
 import {ensureString} from 'mattermost-redux/utils/post_utils';
 
 import {emitCloseRightHandSide} from 'actions/global_actions';
 
-import Scrollbars from 'components/common/scrollbars';
 import Markdown from 'components/markdown';
 import PostProfilePicture from 'components/post_profile_picture';
 import RhsCardHeader from 'components/rhs_card_header';
@@ -138,7 +138,7 @@ export default class RhsCard extends React.Component<Props, State> {
         return (
             <div className='sidebar-right__body sidebar-right__card'>
                 <RhsCardHeader previousRhsState={this.props.previousRhsState}/>
-                <Scrollbars onScroll={this.handleScroll}>
+                <Scrollbar onScroll={this.handleScroll}>
                     <div className='post-right__scroll'>
                         {content}
                         <div className='d-flex post-card--info'>
@@ -163,7 +163,7 @@ export default class RhsCard extends React.Component<Props, State> {
                             </div>
                         </div>
                     </div>
-                </Scrollbars>
+                </Scrollbar>
             </div>
         );
     }

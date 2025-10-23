@@ -6,6 +6,7 @@ import React, {useEffect, useState} from 'react';
 import type {RefObject} from 'react';
 import {FormattedDate, FormattedMessage, FormattedNumber, FormattedTime, defineMessage, defineMessages, useIntl} from 'react-intl';
 
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 import type {ClientLicense} from '@mattermost/types/config';
 
 import {Client4} from 'mattermost-redux/client';
@@ -15,7 +16,6 @@ import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import ExternalLink from 'components/external_link';
 import Tag from 'components/widgets/tag/tag';
-import WithTooltip from 'components/with_tooltip';
 
 import {FileTypes, LicenseLinks, LicenseSkus} from 'utils/constants';
 import {calculateOverageUserActivated} from 'utils/overage_team';

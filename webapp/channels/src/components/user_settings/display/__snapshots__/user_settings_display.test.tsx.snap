@@ -223,42 +223,36 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                       id="user.settings.display.channelDisplayTitle"
                     />
                   </legend>
-                  <div
+                  <RadioInput
+                    checked={false}
                     className="radio"
-                  >
-                    <label>
-                      <input
-                        checked={false}
-                        id="channel_display_modeFormatA"
-                        name="channel_display_modeFormat"
-                        onChange={[Function]}
-                        type="radio"
-                      />
-                      <Memo(MemoizedFormattedMessage)
-                        defaultMessage="Full width"
-                        id="user.settings.display.fullScreen"
-                      />
-                    </label>
-                    <br />
-                  </div>
-                  <div
+                    handleChange={[Function]}
+                    id="channel_display_modeFormatA"
+                    name="channel_display_modeFormat"
+                    title={
+                      <React.Fragment>
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="Full width"
+                          id="user.settings.display.fullScreen"
+                        />
+                      </React.Fragment>
+                    }
+                  />
+                  <RadioInput
+                    checked={false}
                     className="radio"
-                  >
-                    <label>
-                      <input
-                        checked={false}
-                        id="channel_display_modeFormatB"
-                        name="channel_display_modeFormat"
-                        onChange={[Function]}
-                        type="radio"
-                      />
-                      <Memo(MemoizedFormattedMessage)
-                        defaultMessage="Fixed width, centered"
-                        id="user.settings.display.fixedWidthCentered"
-                      />
-                    </label>
-                    <br />
-                  </div>
+                    handleChange={[Function]}
+                    id="channel_display_modeFormatB"
+                    name="channel_display_modeFormat"
+                    title={
+                      <React.Fragment>
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="Fixed width, centered"
+                          id="user.settings.display.fixedWidthCentered"
+                        />
+                      </React.Fragment>
+                    }
+                  />
                   <div>
                     <br />
                     <Memo(MemoizedFormattedMessage)
@@ -599,42 +593,36 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                       id="user.settings.display.clickToReply"
                     />
                   </legend>
-                  <div
+                  <RadioInput
+                    checked={false}
                     className="radio"
-                  >
-                    <label>
-                      <input
-                        checked={false}
-                        id="click_to_replyFormatA"
-                        name="click_to_replyFormat"
-                        onChange={[Function]}
-                        type="radio"
-                      />
-                      <Memo(MemoizedFormattedMessage)
-                        defaultMessage="On"
-                        id="user.settings.sidebar.on"
-                      />
-                    </label>
-                    <br />
-                  </div>
-                  <div
+                    handleChange={[Function]}
+                    id="click_to_replyFormatA"
+                    name="click_to_replyFormat"
+                    title={
+                      <React.Fragment>
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="On"
+                          id="user.settings.sidebar.on"
+                        />
+                      </React.Fragment>
+                    }
+                  />
+                  <RadioInput
+                    checked={false}
                     className="radio"
-                  >
-                    <label>
-                      <input
-                        checked={false}
-                        id="click_to_replyFormatB"
-                        name="click_to_replyFormat"
-                        onChange={[Function]}
-                        type="radio"
-                      />
-                      <Memo(MemoizedFormattedMessage)
-                        defaultMessage="Off"
-                        id="user.settings.sidebar.off"
-                      />
-                    </label>
-                    <br />
-                  </div>
+                    handleChange={[Function]}
+                    id="click_to_replyFormatB"
+                    name="click_to_replyFormat"
+                    title={
+                      <React.Fragment>
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="Off"
+                          id="user.settings.sidebar.off"
+                        />
+                      </React.Fragment>
+                    }
+                  />
                   <div>
                     <br />
                     <Memo(MemoizedFormattedMessage)
@@ -855,42 +843,36 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                       id="user.settings.display.clockDisplay"
                     />
                   </legend>
-                  <div
+                  <RadioInput
+                    checked={false}
                     className="radio"
-                  >
-                    <label>
-                      <input
-                        checked={false}
-                        id="clockFormatA"
-                        name="clockFormat"
-                        onChange={[Function]}
-                        type="radio"
-                      />
-                      <Memo(MemoizedFormattedMessage)
-                        defaultMessage="12-hour clock (example: 4:00 PM)"
-                        id="user.settings.display.normalClock"
-                      />
-                    </label>
-                    <br />
-                  </div>
-                  <div
+                    handleChange={[Function]}
+                    id="clockFormatA"
+                    name="clockFormat"
+                    title={
+                      <React.Fragment>
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="12-hour clock (example: 4:00 PM)"
+                          id="user.settings.display.normalClock"
+                        />
+                      </React.Fragment>
+                    }
+                  />
+                  <RadioInput
+                    checked={false}
                     className="radio"
-                  >
-                    <label>
-                      <input
-                        checked={false}
-                        id="clockFormatB"
-                        name="clockFormat"
-                        onChange={[Function]}
-                        type="radio"
-                      />
-                      <Memo(MemoizedFormattedMessage)
-                        defaultMessage="24-hour clock (example: 16:00)"
-                        id="user.settings.display.militaryClock"
-                      />
-                    </label>
-                    <br />
-                  </div>
+                    handleChange={[Function]}
+                    id="clockFormatB"
+                    name="clockFormat"
+                    title={
+                      <React.Fragment>
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="24-hour clock (example: 16:00)"
+                          id="user.settings.display.militaryClock"
+                        />
+                      </React.Fragment>
+                    }
+                  />
                   <div>
                     <br />
                     <Memo(MemoizedFormattedMessage)
@@ -1351,42 +1333,36 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                       id="user.settings.display.collapseDisplay"
                     />
                   </legend>
-                  <div
+                  <RadioInput
+                    checked={false}
                     className="radio"
-                  >
-                    <label>
-                      <input
-                        checked={false}
-                        id="collapseFormatA"
-                        name="collapseFormat"
-                        onChange={[Function]}
-                        type="radio"
-                      />
-                      <Memo(MemoizedFormattedMessage)
-                        defaultMessage="Expanded"
-                        id="user.settings.display.collapseOn"
-                      />
-                    </label>
-                    <br />
-                  </div>
-                  <div
+                    handleChange={[Function]}
+                    id="collapseFormatA"
+                    name="collapseFormat"
+                    title={
+                      <React.Fragment>
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="Expanded"
+                          id="user.settings.display.collapseOn"
+                        />
+                      </React.Fragment>
+                    }
+                  />
+                  <RadioInput
+                    checked={false}
                     className="radio"
-                  >
-                    <label>
-                      <input
-                        checked={false}
-                        id="collapseFormatB"
-                        name="collapseFormat"
-                        onChange={[Function]}
-                        type="radio"
-                      />
-                      <Memo(MemoizedFormattedMessage)
-                        defaultMessage="Collapsed"
-                        id="user.settings.display.collapseOff"
-                      />
-                    </label>
-                    <br />
-                  </div>
+                    handleChange={[Function]}
+                    id="collapseFormatB"
+                    name="collapseFormat"
+                    title={
+                      <React.Fragment>
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="Collapsed"
+                          id="user.settings.display.collapseOff"
+                        />
+                      </React.Fragment>
+                    }
+                  />
                   <div>
                     <br />
                     <Memo(MemoizedFormattedMessage)
@@ -2357,42 +2333,36 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                       id="user.settings.display.linkPreviewDisplay"
                     />
                   </legend>
-                  <div
+                  <RadioInput
+                    checked={false}
                     className="radio"
-                  >
-                    <label>
-                      <input
-                        checked={false}
-                        id="linkpreviewFormatA"
-                        name="linkpreviewFormat"
-                        onChange={[Function]}
-                        type="radio"
-                      />
-                      <Memo(MemoizedFormattedMessage)
-                        defaultMessage="On"
-                        id="user.settings.display.linkPreviewOn"
-                      />
-                    </label>
-                    <br />
-                  </div>
-                  <div
+                    handleChange={[Function]}
+                    id="linkpreviewFormatA"
+                    name="linkpreviewFormat"
+                    title={
+                      <React.Fragment>
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="On"
+                          id="user.settings.display.linkPreviewOn"
+                        />
+                      </React.Fragment>
+                    }
+                  />
+                  <RadioInput
+                    checked={false}
                     className="radio"
-                  >
-                    <label>
-                      <input
-                        checked={false}
-                        id="linkpreviewFormatB"
-                        name="linkpreviewFormat"
-                        onChange={[Function]}
-                        type="radio"
-                      />
-                      <Memo(MemoizedFormattedMessage)
-                        defaultMessage="Off"
-                        id="user.settings.display.linkPreviewOff"
-                      />
-                    </label>
-                    <br />
-                  </div>
+                    handleChange={[Function]}
+                    id="linkpreviewFormatB"
+                    name="linkpreviewFormat"
+                    title={
+                      <React.Fragment>
+                        <Memo(MemoizedFormattedMessage)
+                          defaultMessage="Off"
+                          id="user.settings.display.linkPreviewOff"
+                        />
+                      </React.Fragment>
+                    }
+                  />
                   <div>
                     <br />
                     <Memo(MemoizedFormattedMessage)
@@ -2787,60 +2757,54 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
                       id="user.settings.display.messageDisplayTitle"
                     />
                   </legend>
-                  <div
+                  <RadioInput
+                    checked={false}
                     className="radio"
-                  >
-                    <label>
-                      <input
-                        checked={false}
-                        id="message_displayFormatA"
-                        name="message_displayFormat"
-                        onChange={[Function]}
-                        type="radio"
-                      />
-                      <Memo(MemoizedFormattedMessage)
-                        defaultMessage="Standard"
-                        id="user.settings.display.messageDisplayClean"
-                      />
-                      : 
-                      <span
-                        className="font-weight--normal"
-                      >
+                    handleChange={[Function]}
+                    id="message_displayFormatA"
+                    name="message_displayFormat"
+                    title={
+                      <React.Fragment>
                         <Memo(MemoizedFormattedMessage)
-                          defaultMessage="Easy to scan and read."
-                          id="user.settings.display.messageDisplayCleanDes"
+                          defaultMessage="Standard"
+                          id="user.settings.display.messageDisplayClean"
                         />
-                      </span>
-                    </label>
-                    <br />
-                  </div>
-                  <div
+                        : 
+                        <span
+                          className="font-weight--normal"
+                        >
+                          <Memo(MemoizedFormattedMessage)
+                            defaultMessage="Easy to scan and read."
+                            id="user.settings.display.messageDisplayCleanDes"
+                          />
+                        </span>
+                      </React.Fragment>
+                    }
+                  />
+                  <RadioInput
+                    checked={false}
                     className="radio"
-                  >
-                    <label>
-                      <input
-                        checked={false}
-                        id="message_displayFormatB"
-                        name="message_displayFormat"
-                        onChange={[Function]}
-                        type="radio"
-                      />
-                      <Memo(MemoizedFormattedMessage)
-                        defaultMessage="Compact"
-                        id="user.settings.display.messageDisplayCompact"
-                      />
-                      : 
-                      <span
-                        className="font-weight--normal"
-                      >
+                    handleChange={[Function]}
+                    id="message_displayFormatB"
+                    name="message_displayFormat"
+                    title={
+                      <React.Fragment>
                         <Memo(MemoizedFormattedMessage)
-                          defaultMessage="Fit as many messages on the screen as we can."
-                          id="user.settings.display.messageDisplayCompactDes"
+                          defaultMessage="Compact"
+                          id="user.settings.display.messageDisplayCompact"
                         />
-                      </span>
-                    </label>
-                    <br />
-                  </div>
+                        : 
+                        <span
+                          className="font-weight--normal"
+                        >
+                          <Memo(MemoizedFormattedMessage)
+                            defaultMessage="Fit as many messages on the screen as we can."
+                            id="user.settings.display.messageDisplayCompactDes"
+                          />
+                        </span>
+                      </React.Fragment>
+                    }
+                  />
                   <div>
                     <br />
                     <Memo(MemoizedFormattedMessage)

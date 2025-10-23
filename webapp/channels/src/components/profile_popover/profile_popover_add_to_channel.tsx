@@ -5,6 +5,7 @@ import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {canManageAnyChannelMembersInCurrentTeam as getCanManageAnyChannelMembersInCurrentTeam} from 'mattermost-redux/selectors/entities/channels';
@@ -12,7 +13,6 @@ import {getCurrentTeam, getTeamMember} from 'mattermost-redux/selectors/entities
 
 import AddUserToChannelModal from 'components/add_user_to_channel_modal';
 import ToggleModalButton from 'components/toggle_modal_button';
-import WithTooltip from 'components/with_tooltip';
 
 import {ModalIdentifiers} from 'utils/constants';
 

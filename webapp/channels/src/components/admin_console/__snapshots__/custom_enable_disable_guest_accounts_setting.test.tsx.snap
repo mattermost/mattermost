@@ -15,31 +15,35 @@ exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting renders
     <div
       class="col-sm-8"
     >
-      <label
-        class="Label-eJcoMl iShgPr"
+      <div
+        class="flex-horizontal"
       >
-        <input
-          data-testid="MySettingtrue"
-          id="MySettingtrue"
-          name="MySetting"
-          type="radio"
-          value="true"
-        />
-        True
-      </label>
-      <label
-        class="Label-eJcoMl iShgPr"
-      >
-        <input
-          checked=""
-          data-testid="MySettingfalse"
-          id="MySettingfalse"
-          name="MySetting"
-          type="radio"
-          value="false"
-        />
-        False
-      </label>
+        <label
+          class="RadioInput"
+        >
+          <input
+            data-testid="MySettingtrue"
+            id="MySettingtrue"
+            name="MySetting"
+            type="radio"
+            value="true"
+          />
+          True
+        </label>
+        <label
+          class="RadioInput"
+        >
+          <input
+            checked=""
+            data-testid="MySettingfalse"
+            id="MySettingfalse"
+            name="MySetting"
+            type="radio"
+            value="false"
+          />
+          False
+        </label>
+      </div>
       <div
         class="help-text"
         data-testid="MySettinghelp-text"
@@ -72,31 +76,35 @@ exports[`components/AdminConsole/CustomEnableDisableGuestAccountsSetting renders
     <div
       class="col-sm-8"
     >
-      <label
-        class="Label-eJcoMl iShgPr"
+      <div
+        class="flex-horizontal"
       >
-        <input
-          checked=""
-          data-testid="MySettingtrue"
-          id="MySettingtrue"
-          name="MySetting"
-          type="radio"
-          value="true"
-        />
-        True
-      </label>
-      <label
-        class="Label-eJcoMl iShgPr"
-      >
-        <input
-          data-testid="MySettingfalse"
-          id="MySettingfalse"
-          name="MySetting"
-          type="radio"
-          value="false"
-        />
-        False
-      </label>
+        <label
+          class="RadioInput"
+        >
+          <input
+            checked=""
+            data-testid="MySettingtrue"
+            id="MySettingtrue"
+            name="MySetting"
+            type="radio"
+            value="true"
+          />
+          True
+        </label>
+        <label
+          class="RadioInput"
+        >
+          <input
+            data-testid="MySettingfalse"
+            id="MySettingfalse"
+            name="MySetting"
+            type="radio"
+            value="false"
+          />
+          False
+        </label>
+      </div>
       <div
         class="help-text"
         data-testid="MySettinghelp-text"

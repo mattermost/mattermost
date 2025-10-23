@@ -30,7 +30,9 @@ exports[`components/user_settings/display/render_emoticons_as_emoji/render_emoti
             <div
               class="radio"
             >
-              <label>
+              <label
+                class="RadioInput"
+              >
                 <input
                   checked=""
                   class="a11y--active a11y--focused"
@@ -41,12 +43,13 @@ exports[`components/user_settings/display/render_emoticons_as_emoji/render_emoti
                 />
                 On
               </label>
-              <br />
             </div>
             <div
               class="radio"
             >
-              <label>
+              <label
+                class="RadioInput"
+              >
                 <input
                   id="renderEmoticonsAsEmojiOff"
                   name="renderEmoticonsAsEmoji"
@@ -55,7 +58,6 @@ exports[`components/user_settings/display/render_emoticons_as_emoji/render_emoti
                 />
                 Off
               </label>
-              <br />
             </div>
             <div
               class="mt-5"

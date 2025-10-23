@@ -6,15 +6,15 @@ import React, {useCallback, useRef} from 'react';
 import SimpleBar from 'simplebar-react';
 
 import 'simplebar-react/dist/simplebar.min.css';
-import './scrollbars.scss';
+import './scrollbar.scss';
 
-export type ScrollbarsProps = {
+type Props = {
     children: React.ReactNode;
     color?: string;
     onScroll?: (e: Event) => void;
 };
 
-const Scrollbars = React.forwardRef<HTMLElement, ScrollbarsProps>(({
+const Scrollbar = React.forwardRef<HTMLDivElement, Props>(({
     children,
     color,
     onScroll,
@@ -33,7 +33,7 @@ const Scrollbars = React.forwardRef<HTMLElement, ScrollbarsProps>(({
         }
     }, [onScroll]);
 
-    const mergedRef = useMergeRefs<HTMLElement>([ref, setScrollRef]);
+    const mergedRef = useMergeRefs<HTMLDivElement>([ref, setScrollRef]);
 
     return (
         <SimpleBar
@@ -48,5 +48,6 @@ const Scrollbars = React.forwardRef<HTMLElement, ScrollbarsProps>(({
         </SimpleBar>
     );
 });
-Scrollbars.displayName = 'Scrollbars';
-export default Scrollbars;
+
+Scrollbar.displayName = 'Scrollbar';
+export default Scrollbar;

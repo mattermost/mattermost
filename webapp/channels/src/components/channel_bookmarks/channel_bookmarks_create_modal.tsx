@@ -9,6 +9,7 @@ import styled from 'styled-components';
 
 import {PencilOutlineIcon, CheckIcon} from '@mattermost/compass-icons/components';
 import {GenericModal} from '@mattermost/components';
+import Input from '@mattermost/design-system/src/components/primitives/input/input';
 import type {ChannelBookmark, ChannelBookmarkCreate, ChannelBookmarkPatch} from '@mattermost/types/channel_bookmarks';
 import type {FileInfo} from '@mattermost/types/files';
 
@@ -22,7 +23,6 @@ import {uploadFile} from 'actions/file_actions';
 import FileAttachment from 'components/file_attachment';
 import type {FilePreviewInfo} from 'components/file_preview/file_preview';
 import FileProgressPreview from 'components/file_preview/file_progress_preview';
-import Input from 'components/widgets/inputs/input/input';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import Constants from 'utils/constants';

@@ -5,10 +5,10 @@ import React from 'react';
 import {defineMessage, FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
+import Input from '@mattermost/design-system/src/components/primitives/input/input';
+
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isEmail} from 'mattermost-redux/utils/helpers';
-
-import Input from 'components/widgets/inputs/input/input';
 
 import HistoryBackButton from 'design_system/components/patterns/history_back_button';
 

@@ -5,11 +5,11 @@ import React from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
+import {Scrollbar} from '@mattermost/design-system';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
-import Scrollbars from 'components/common/scrollbars';
 import QuickInput from 'components/quick_input';
 import UserList from 'components/user_list';
 
@@ -301,7 +301,7 @@ class SearchableUserList extends React.PureComponent<Props, State> {
                     </div>
                 </div>
                 <div className='more-modal__list'>
-                    <Scrollbars ref={this.scrollbarsRef}>
+                    <Scrollbar ref={this.scrollbarsRef}>
                         <UserList
                             users={usersToDisplay}
                             extraInfo={this.props.extraInfo}
@@ -311,7 +311,7 @@ class SearchableUserList extends React.PureComponent<Props, State> {
                             rowComponentType={this.props.rowComponentType}
                             isDisabled={this.props.isDisabled}
                         />
-                    </Scrollbars>
+                    </Scrollbar>
                 </div>
                 <div className='filter-controls'>
                     {previousButton}

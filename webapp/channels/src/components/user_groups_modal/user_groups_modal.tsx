@@ -5,6 +5,7 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
+import Input from '@mattermost/design-system/src/components/primitives/input/input';
 import type {GetGroupsForUserParams, GetGroupsParams, Group, GroupSearchParams} from '@mattermost/types/groups';
 
 import './user_groups_modal.scss';
@@ -13,7 +14,6 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import CreateUserGroupsModal from 'components/create_user_groups_modal';
 import NoResultsIndicator from 'components/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
-import Input from 'components/widgets/inputs/input/input';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
 

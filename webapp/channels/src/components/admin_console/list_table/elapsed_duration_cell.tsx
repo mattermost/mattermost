@@ -5,7 +5,7 @@ import moment from 'moment';
 import React, {useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
-import WithTooltip from 'components/with_tooltip';
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 
 interface Props {
     date?: number;

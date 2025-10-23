@@ -4,11 +4,12 @@
 import React, {type ReactNode, useState} from 'react';
 import {useIntl} from 'react-intl';
 
+import Input, {SIZE} from '@mattermost/design-system/src/components/primitives/input/input';
+
 import type {SubmitOptions} from 'components/claim/components/email_to_ldap';
 import ShieldWithCheckmarkSVG from 'components/common/svg_images_components/shield_with_checkmark';
 import ColumnLayout from 'components/header_footer_route/content_layouts/column';
 import SaveButton from 'components/save_button';
-import Input, {SIZE} from 'components/widgets/inputs/input/input';
 
 import './login_mfa.scss';
 

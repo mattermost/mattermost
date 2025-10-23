@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-@use 'utils/mixins';
+// @use 'utils/mixins';
 
 .url-input-main {
     display: flex;
@@ -42,7 +42,26 @@
         }
 
         .url-input-button {
-            @include mixins.link;
+            // start of @include mixins.link;
+            border: none;
+            box-shadow: none;
+            color: var(--link-color);
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 16px;
+
+            &:hover,
+            &:active,
+            &:focus {
+                text-decoration-line: underline;
+            }
+
+            &:disabled {
+                color: rgba(var(--center-channel-color-rgb), 0.32);
+                cursor: not-allowed;
+                text-decoration: none;
+            }
+            // end of @include mixins.link;
 
             padding: 0;
             border: none;

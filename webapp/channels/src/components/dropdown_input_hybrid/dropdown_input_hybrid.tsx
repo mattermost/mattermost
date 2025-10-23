@@ -8,7 +8,7 @@ import {useIntl} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
 import type {Props as SelectProps, IndicatorsContainerProps, ControlProps, OptionProps, StylesConfig, SingleValue, GroupBase} from 'react-select';
 
-import 'components/widgets/inputs/input/input.scss';
+import '@mattermost/design-system/src/components/primitives/input/input.scss';
 import './dropdown_input_hybrid.scss';
 import {formatAsString} from 'utils/i18n';
 

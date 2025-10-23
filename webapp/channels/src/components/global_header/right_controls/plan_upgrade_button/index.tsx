@@ -5,13 +5,14 @@ import React, {useEffect} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
+
 import {getCloudProducts, getCloudSubscription} from 'mattermost-redux/actions/cloud';
 import {getCloudSubscription as selectCloudSubscription, getSubscriptionProduct as selectSubscriptionProduct, isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
-import WithTooltip from 'components/with_tooltip';
 
 import {CloudProducts} from 'utils/constants';
 

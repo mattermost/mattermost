@@ -6,10 +6,11 @@ import React from 'react';
 import type {IntlShape} from 'react-intl';
 import {useIntl} from 'react-intl';
 
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
+
 import {removeAuditCertificate, uploadAuditCertificate} from 'actions/admin_actions';
 
 import useGetCloudInstallationStatus from 'components/common/hooks/useGetCloudInstallationStatus';
-import WithTooltip from 'components/with_tooltip';
 
 import FileUploadSetting from '../file_upload_setting';
 import RemoveFileSetting from '../remove_file_setting';

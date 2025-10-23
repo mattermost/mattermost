@@ -9,6 +9,7 @@ import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 import {RootCloseWrapper} from 'react-overlays';
 
+import {WithTooltip} from '@mattermost/design-system/src/components/primitives/with_tooltip';
 import type {AppBinding} from '@mattermost/types/apps';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 
@@ -16,7 +17,6 @@ import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
 
 import HeaderIconWrapper from 'components/channel_header/components/header_icon_wrapper';
 import PluginChannelHeaderIcon from 'components/widgets/icons/plugin_channel_header_icon';
-import WithTooltip from 'components/with_tooltip';
 
 import {createCallContext} from 'utils/apps';
 import {Constants} from 'utils/constants';

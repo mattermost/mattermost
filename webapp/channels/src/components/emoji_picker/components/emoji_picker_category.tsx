@@ -5,10 +5,10 @@ import classNames from 'classnames';
 import React, {memo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 import type {EmojiCategory} from '@mattermost/types/emojis';
 
 import type {Category, CategoryOrEmojiRow} from 'components/emoji_picker/types';
-import WithTooltip from 'components/with_tooltip';
 
 export interface Props {
     category: Category;

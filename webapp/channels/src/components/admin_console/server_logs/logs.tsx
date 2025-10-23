@@ -5,6 +5,7 @@ import debounce from 'lodash/debounce';
 import React from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
+import {RadioInput} from '@mattermost/design-system';
 import type {
     LogFilter,
     LogLevels,
@@ -196,28 +197,25 @@ export default class Logs extends React.PureComponent<Props, State> {
                         <FormattedMessage {...messages.logFormatTitle}/>
                     </span>
 
-                    <label>
-                        <input
-                            type='radio'
-                            id='admin.logs.LogFormat.json'
-                            name='log-format'
-                            value='json'
-                            checked={!this.state.isPlainLogs}
-                            onChange={this.onLogFormatToggle}
-                        />
-                        <FormattedMessage {...messages.logFormatJson}/>
-                    </label>
-                    <label>
-                        <input
-                            type='radio'
-                            id='admin.logs.LogFormat.plain'
-                            name='log-format'
-                            value='plain'
-                            checked={this.state.isPlainLogs}
-                            onChange={this.onLogFormatToggle}
-                        />
-                        <FormattedMessage {...messages.logFormatPlain}/>
-                    </label>
+                    <RadioInput
+                        id='admin.logs.LogFormat.json'
+                        dataTestId='admin.logs.LogFormat.json'
+                        title={<FormattedMessage {...messages.logFormatJson}/>}
+                        name='log-format'
+                        value='json'
+                        checked={!this.state.isPlainLogs}
+                        handleChange={this.onLogFormatToggle}
+                    />
+
+                    <RadioInput
+                        id='admin.logs.LogFormat.plain'
+                        dataTestId='admin.logs.LogFormat.plain'
+                        title={<FormattedMessage {...messages.logFormatPlain}/>}
+                        name='log-format'
+                        value='plain'
+                        checked={this.state.isPlainLogs}
+                        handleChange={this.onLogFormatToggle}
+                    />
                 </div>
             );
         }

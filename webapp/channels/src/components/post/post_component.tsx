@@ -6,6 +6,7 @@ import React, {useCallback, useEffect, useRef, useState, useMemo} from 'react';
 import type {MouseEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 import type {Emoji} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
 import type {Team} from '@mattermost/types/teams';
@@ -35,7 +36,6 @@ import ThreadFooter from 'components/threading/channel_threads/thread_footer';
 import type {Props as TimestampProps} from 'components/timestamp/timestamp';
 import ArchiveIcon from 'components/widgets/icons/archive_icon';
 import InfoSmallIcon from 'components/widgets/icons/info_small_icon';
-import WithTooltip from 'components/with_tooltip';
 
 import {getHistory} from 'utils/browser_history';
 import Constants, {A11yCustomEventTypes, AppEvents, Locations} from 'utils/constants';

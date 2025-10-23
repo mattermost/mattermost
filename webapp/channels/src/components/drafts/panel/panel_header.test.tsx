@@ -4,7 +4,7 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import WithTooltip from 'components/with_tooltip';
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 
 import PanelHeader from './panel_header';
 
