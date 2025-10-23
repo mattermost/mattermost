@@ -1,0 +1,433 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.create-recap-modal {
+    .modal-content {
+        width: 600px;
+    }
+
+    .create-recap-modal-body {
+        padding: 0px 0px;
+        overflow-y: auto;
+        max-height: 500px;
+    }
+
+    .create-recap-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+
+        .create-recap-modal-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            .bot-label {
+                font-size: 12px;
+                font-weight: 600;
+                color: rgba(var(--center-channel-color-rgb), 0.56);
+                text-transform: uppercase;
+                letter-spacing: 0.24px;
+            }
+
+            .bot-dropdown {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                padding: 2px 4px 2px 6px;
+                background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                border-radius: 4px;
+                font-size: 11px;
+                font-weight: 600;
+                color: var(--center-channel-color);
+
+                .icon {
+                    font-size: 12px;
+                }
+            }
+        }
+    }
+
+    .create-recap-modal-error {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 16px;
+        margin-bottom: 16px;
+        background-color: rgba(var(--error-text-rgb), 0.08);
+        border: 1px solid rgba(var(--error-text-rgb), 0.24);
+        border-radius: 4px;
+        color: var(--error-text);
+        font-size: 14px;
+
+        .icon {
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+    }
+
+    .create-recap-modal-footer-content {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .create-recap-modal-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 24px 32px;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+
+        &-left {
+            flex: 1;
+        }
+
+        &-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+
+            .btn-link {
+                background-color: rgba(var(--button-bg-rgb), 0.08);
+                color: var(--button-bg);
+                padding: 10px 20px;
+                border-radius: 4px;
+
+                .icon {
+                    font-size: 16px;
+                    margin-right: 8px;
+                }
+            }
+
+            .btn-primary {
+                .icon {
+                    font-size: 16px;
+                    margin-left: 8px;
+                }
+            }
+        }
+    }
+
+    // Step One Styles
+    .step-one {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+
+            .form-label {
+                font-size: 14px;
+                font-weight: 600;
+                color: var(--center-channel-color);
+                margin-bottom: 0;
+            }
+
+            &.name-input-group {
+                margin-bottom: 28px;
+
+                .form-label {
+                    padding-bottom: 8px;
+                }
+            }
+
+            &.type-selection-group {
+                .form-label {
+                    margin-bottom: 12px;
+                }
+            }
+
+            .input-container {
+                position: relative;
+                display: flex;
+                align-items: center;
+
+                .icon {
+                    position: absolute;
+                    left: 16px;
+                    font-size: 16px;
+                    color: rgba(var(--center-channel-color-rgb), 0.64);
+                }
+
+                .form-control {
+                    height: 40px;
+                    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+                    border-radius: 4px;
+
+                    &:focus {
+                        border-color: var(--button-bg);
+                    }
+                }
+            }
+        }
+
+        .recap-type-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+
+            .recap-type-card {
+                position: relative;
+                display: flex;
+                gap: 12px;
+                align-items: center;
+                padding: 12px 20px 12px 12px;
+                background-color: var(--center-channel-bg);
+                border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+                border-radius: 4px;
+                cursor: pointer;
+                transition: all 0.2s;
+                text-align: left;
+
+                &:hover {
+                    background-color: rgba(var(--center-channel-color-rgb), 0.04);
+                }
+
+                &.selected {
+                    border-color: var(--button-bg);
+                    background-color: rgba(var(--button-bg-rgb), 0.04);
+
+                    .recap-type-card-icon {
+                        background-color: rgba(var(--button-bg-rgb), 0.08);
+
+                        .icon {
+                            color: var(--button-bg);
+                        }
+                    }
+                }
+
+                .recap-type-card-icon {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 40px;
+                    height: 40px;
+                    background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                    border-radius: 20px;
+                    flex-shrink: 0;
+
+                    .icon {
+                        font-size: 24px;
+                        color: rgba(var(--center-channel-color-rgb), 0.56);
+                    }
+                }
+
+                .recap-type-card-content {
+                    flex: 1;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 2px;
+                    padding: 1px 0 3px;
+
+                    .recap-type-card-title {
+                        font-size: 14px;
+                        font-weight: 600;
+                        color: var(--center-channel-color);
+                        line-height: 20px;
+                    }
+
+                    .recap-type-card-description {
+                        font-size: 12px;
+                        color: rgba(var(--center-channel-color-rgb), 0.72);
+                        line-height: 16px;
+                    }
+                }
+
+                .selected-icon {
+                    font-size: 20px;
+                    color: var(--button-bg);
+                }
+            }
+        }
+    }
+
+    // Step Two Channel Selector Styles
+    .step-two-channel-selector {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+
+        .form-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--center-channel-color);
+            margin-bottom: 0;
+        }
+
+        .channel-selector-container {
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+            border-radius: 4px;
+            overflow: hidden;
+            max-height: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .channel-selector-search {
+            padding: 8px 12px 12px;
+            background-color: var(--center-channel-bg);
+            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+            position: relative;
+            display: flex;
+            align-items: center;
+
+            .icon {
+                position: absolute;
+                left: 28px;
+                font-size: 16px;
+                color: rgba(var(--center-channel-color-rgb), 0.64);
+            }
+
+            .form-control {
+                padding-left: 48px;
+                height: 40px;
+                border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+                border-radius: 4px;
+            }
+        }
+
+        .channel-selector-list {
+            flex: 1;
+            overflow-y: auto;
+            background-color: var(--center-channel-bg);
+        }
+
+        .channel-group {
+            .channel-group-title {
+                padding: 6px 20px;
+                font-size: 12px;
+                font-weight: 600;
+                color: rgba(var(--center-channel-color-rgb), 0.56);
+                text-transform: uppercase;
+                letter-spacing: 0.24px;
+                background-color: var(--center-channel-bg);
+            }
+        }
+
+        .channel-selector-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 20px 6px 16px;
+            cursor: pointer;
+            background-color: var(--center-channel-bg);
+
+            &:hover {
+                background-color: rgba(var(--center-channel-color-rgb), 0.04);
+            }
+
+            .channel-selector-checkbox {
+                padding: 4px;
+
+                input[type='checkbox'] {
+                    width: 12px;
+                    height: 12px;
+                    cursor: pointer;
+                }
+            }
+
+            .channel-selector-channel-info {
+                flex: 1;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 2px 4px;
+
+                .icon {
+                    font-size: 16px;
+                    color: rgba(var(--center-channel-color-rgb), 0.56);
+                }
+
+                .channel-name {
+                    font-size: 14px;
+                    color: var(--center-channel-color);
+                    line-height: 20px;
+                }
+            }
+        }
+
+        .channel-selector-empty {
+            padding: 40px 20px;
+            text-align: center;
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+            font-size: 14px;
+        }
+    }
+
+    // Step Two Summary Styles
+    .step-two-summary {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+
+        .form-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--center-channel-color);
+            margin-bottom: 0;
+        }
+
+        .summary-channels-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .summary-channel-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            margin-left: -16px;
+
+            .icon {
+                font-size: 16px;
+                color: rgba(var(--center-channel-color-rgb), 0.56);
+            }
+
+            .channel-name {
+                font-size: 14px;
+                color: var(--center-channel-color);
+                line-height: 20px;
+            }
+        }
+    }
+
+    // Pagination Dots
+    .pagination-dots {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+
+        .pagination-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: rgba(var(--center-channel-color-rgb), 0.24);
+            transition: all 0.2s;
+
+            &.active {
+                width: 14px;
+                height: 14px;
+                background-color: var(--button-bg);
+                position: relative;
+
+                &::after {
+                    content: '';
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    width: 6px;
+                    height: 6px;
+                    border-radius: 50%;
+                    background-color: var(--center-channel-bg);
+                }
+            }
+        }
+    }
+}
+

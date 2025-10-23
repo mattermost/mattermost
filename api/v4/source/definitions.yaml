@@ -4472,6 +4472,76 @@ components:
         writing_style_report: "The user communicates in a direct, professional manner with a preference for technical precision. They favor concise explanations while maintaining clarity, often using industry-standard terminology. Their tone is collaborative and solution-oriented, with a tendency to provide concrete examples. Sentence structure is typically straightforward with occasional use of technical jargon appropriate for backend development contexts."
         topics: ["Backend Development", "Kubernetes", "API Design", "Go Programming"]
         generated_at: 1640995200000
+    Recap:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the recap
+        user_id:
+          type: string
+          description: ID of the user who created the recap
+        title:
+          type: string
+          description: AI-generated title for the recap (max 5 words)
+        create_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds the recap was created
+        update_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds the recap was last updated
+        delete_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds the recap was deleted
+        total_message_count:
+          type: integer
+          description: Total number of messages summarized across all channels
+        status:
+          type: string
+          enum: [pending, processing, completed, failed]
+          description: Current status of the recap job
+        channels:
+          type: array
+          items:
+            $ref: "#/components/schemas/RecapChannel"
+          description: List of channel summaries included in this recap
+    RecapChannel:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the recap channel
+        recap_id:
+          type: string
+          description: ID of the parent recap
+        channel_id:
+          type: string
+          description: ID of the channel that was summarized
+        channel_name:
+          type: string
+          description: Display name of the channel
+        highlights:
+          type: array
+          items:
+            type: string
+          description: Key discussion points and important information from the channel
+        action_items:
+          type: array
+          items:
+            type: string
+          description: Tasks, todos, and action items mentioned in the channel
+        source_post_ids:
+          type: array
+          items:
+            type: string
+          description: IDs of the posts used to generate this summary
+        create_at:
+          type: integer
+          format: int64
+          description: The time in milliseconds the recap channel was created
 externalDocs:
   description: Find out more about Mattermost
   url: 'https://about.mattermost.com'
