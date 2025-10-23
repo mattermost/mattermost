@@ -80,11 +80,9 @@ describe('components/primitives/button', () => {
             const button = screen.getByRole('button');
             expect(button).toHaveAttribute('aria-busy', 'true');
 
-            const loadingStatus = screen.getByRole('status');
+            const loadingStatus = screen.getByRole('status', {hidden: true});
             expect(loadingStatus).toHaveAttribute('aria-label', 'Loading');
-
-            const spinner = loadingStatus.querySelector('span[aria-hidden="true"]');
-            expect(spinner).toBeInTheDocument();
+            expect(loadingStatus).toHaveAttribute('aria-hidden', 'true');
         });
 
         test('should be focusable and have proper focus management', async () => {
@@ -108,7 +106,7 @@ describe('components/primitives/button', () => {
         test('should announce loading state to screen readers', () => {
             render(<Button loading>Save</Button>);
 
-            expect(screen.getByRole('status')).toBeInTheDocument();
+            expect(screen.getByRole('status', {hidden: true})).toBeInTheDocument();
             expect(screen.getByLabelText('Loading')).toBeInTheDocument();
         });
 
@@ -127,7 +125,7 @@ describe('components/primitives/button', () => {
             const button = screen.getByRole('button');
             expect(button).toBeInTheDocument();
             expect(button).toHaveAttribute('aria-busy', 'true');
-            expect(screen.getByRole('status')).toBeInTheDocument();
+            expect(screen.getByRole('status', {hidden: true})).toBeInTheDocument();
         });
     });
 
@@ -203,7 +201,7 @@ describe('components/primitives/button', () => {
         test('should render loading state correctly', () => {
             render(<Button loading>Loading Button</Button>);
 
-            expect(screen.getByRole('status')).toBeInTheDocument();
+            expect(screen.getByRole('status', {hidden: true})).toBeInTheDocument();
             expect(screen.getByRole('button')).toHaveClass('Button--loading');
         });
 
@@ -322,7 +320,7 @@ describe('components/primitives/button', () => {
 
             expect(screen.queryByTestId('icon-before')).not.toBeInTheDocument();
             expect(screen.queryByTestId('icon-after')).not.toBeInTheDocument();
-            expect(screen.getByRole('status')).toBeInTheDocument();
+            expect(screen.getByRole('status', {hidden: true})).toBeInTheDocument();
         });
 
         test('should apply correct icon classes based on size', () => {

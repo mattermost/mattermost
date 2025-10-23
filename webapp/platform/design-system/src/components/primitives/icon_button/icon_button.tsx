@@ -8,6 +8,8 @@ import type {ButtonHTMLAttributes, ReactNode} from 'react';
 // Re-enable when WithTooltip is available in platform design system
 // import WithTooltip from 'components/with_tooltip';
 
+import Spinner from '../spinner';
+
 import './icon_button.scss';
 
 export type IconButtonSize = 'xs' | 'sm' | 'md' | 'lg';
@@ -18,6 +20,14 @@ const ICON_SIZE_MAP = {
     sm: 18,
     md: 24,
     lg: 32,
+} as const;
+
+// Map IconButton sizes to Spinner pixel sizes (using Figma design system values)
+const ICONBUTTON_SPINNER_SIZE_MAP = {
+    xs: 12,
+    sm: 16,
+    md: 20,
+    lg: 24,
 } as const;
 
 export interface IconButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -111,14 +121,9 @@ const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
             >
                 <span className='IconButton__content'>
                     {loading ? (
-                        <span
-                            className={classNames(
-                                'IconButton__spinner',
-                                `IconButton__spinner--${size}`,
-                                {
-                                    'IconButton__spinner--inverted': inverted,
-                                },
-                            )}
+                        <Spinner
+                            size={ICONBUTTON_SPINNER_SIZE_MAP[size]}
+                            inverted={inverted}
                         />
                     ) : (
                         <span className={`IconButton__icon IconButton__icon--${size}`}>
