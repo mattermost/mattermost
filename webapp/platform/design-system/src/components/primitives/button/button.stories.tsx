@@ -2,9 +2,11 @@
 // See LICENSE.txt for license information.
 
 import type {Meta, StoryObj} from '@storybook/react';
+import React from 'react';
+
+import {ArrowRightIcon, CheckIcon, ChevronDownIcon, PlusIcon} from '@mattermost/compass-icons/components';
 
 import Button from './button';
-import {ArrowRightIcon, CheckIcon, ChevronDownIcon, PlusIcon} from '@mattermost/compass-icons/components';
 
 const meta: Meta<typeof Button> = {
     title: 'DesignSystem/Primitives/Button',

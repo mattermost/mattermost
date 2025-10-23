@@ -4,8 +4,8 @@
 import type {Meta, StoryObj} from '@storybook/react';
 import React from 'react';
 
-import Button from '../button';
-import IconButton from '../icon_button';
+import Button from '../button/button';
+import IconButton from '../icon_button/icon_button';
 import Spinner from './spinner';
 
 // Mock icon components (in real usage, these would be from @mattermost/compass-icons)
