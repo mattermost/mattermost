@@ -35,7 +35,7 @@
   "include": [
     "./src/**/*",
     "./src/**/*.json"
-, "../platform/design-system/src/components/primitives/input", "../platform/design-system/src/components/primitives/with_tooltip"  ],
+  ],
   "references": [
     {"path": "../platform/client"},
     {"path": "../platform/components"},

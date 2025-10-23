@@ -102,6 +102,4 @@ const PostRecentReactions = (({
     );
 });
 
-PostRecentReactions.displayName = 'PostRecentReactions';
-
 export default PostRecentReactions;

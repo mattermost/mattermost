@@ -23,11 +23,11 @@ import TeamList from 'components/admin_console/data_retention_settings/team_list
 import Card from 'components/card/card';
 import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
 import ChannelSelectorModal from 'components/channel_selector_modal';
+import DropdownInputHybrid from 'components/dropdown_input_hybrid/dropdown_input_hybrid';
 import SaveButton from 'components/save_button';
 import TeamSelectorModal from 'components/team_selector_modal';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
-import DropdownInputHybrid from 'design-system/components/primitives/dropdown_input_hybrid/dropdown_input_hybrid';
 import {getHistory} from 'utils/browser_history';
 import {ItemStatus} from 'utils/constants';
 

@@ -7,7 +7,7 @@ import {CSSTransition} from 'react-transition-group';
 
 import type {UserProfile} from '@mattermost/types/users';
 
-import {UsersEmailsInput} from 'design-system/components/primitives/users_emails_input/users_emails_input';
+import {UsersEmailsInput} from 'design_system/components/primitives/users_emails_input/users_emails_input';
 import {Constants} from 'utils/constants';
 
 import Description from './description';

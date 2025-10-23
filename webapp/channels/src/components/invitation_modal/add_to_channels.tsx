@@ -10,7 +10,7 @@ import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
 import CloseCircleIcon from 'components/widgets/icons/close_circle_icon';
 
-import ChannelsInput from 'design-system/components/primitives/channels_input/channels_input';
+import ChannelsInput from 'design_system/components/primitives/channels_input/channels_input';
 import Constants from 'utils/constants';
 
 import {InviteType} from './invite_as';
