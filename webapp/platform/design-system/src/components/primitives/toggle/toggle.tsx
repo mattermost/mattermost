@@ -4,6 +4,8 @@
 import classNames from 'classnames';
 import React from 'react';
 
+import './toggle.scss';
+
 type Props = {
     onToggle: () => void;
     toggled?: boolean;
