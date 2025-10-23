@@ -8,7 +8,7 @@ const emptyEmojiStyle = {};
 
 interface ComponentProps {
     emojiName: string;
-    emojiImageURL?: string;
+    emojiImageUrl?: string;
     size?: number;
     emojiStyle?: React.CSSProperties;
     onClick?: (event: MouseEvent<HTMLSpanElement> | KeyboardEvent<HTMLSpanElement>) => void;
@@ -16,12 +16,12 @@ interface ComponentProps {
 
 const RenderEmoji = ({
     emojiName = '',
-    emojiImageURL,
+    emojiImageUrl,
     emojiStyle = emptyEmojiStyle,
     size = 16,
     onClick,
 }: ComponentProps) => {
-    if (!emojiName || !emojiImageURL) {
+    if (!emojiName || !emojiImageUrl) {
         return null;
     }
 
@@ -32,7 +32,7 @@ const RenderEmoji = ({
             aria-label={`:${emojiName}:`}
             data-emoticon={emojiName}
             style={{
-                backgroundImage: `url(${emojiImageURL})`,
+                backgroundImage: `url(${emojiImageUrl})`,
                 backgroundSize: 'contain',
                 height: size,
                 width: size,

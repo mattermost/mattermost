@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback} from 'react';
 
 import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 import type {Emoji} from '@mattermost/types/emojis';
@@ -39,10 +39,10 @@ const PostRecentReactions = (({
     defaultEmojis,
     actions,
 }: Props) => {
-    const handleToggleEmoji = (emoji: Emoji): void => {
+    const handleToggleEmoji = useCallback((emoji: Emoji): void => {
         const emojiName = getEmojiName(emoji);
         actions.toggleReaction(postId, emojiName);
-    };
+    }, []);
 
     const complementEmojis = (emojisToComplement: Emoji[]): Emoji[] => {
         const additional = defaultEmojis.filter((e) => {
@@ -86,7 +86,7 @@ const PostRecentReactions = (({
             <WithTooltip
                 title={emojiName(emoji, locale)}
                 emoji={getEmojiName(emoji)}
-                emojiImageURL={getEmojiImageUrl(emoji)}
+                emojiImageUrl={getEmojiImageUrl(emoji)}
                 isEmojiLarge={true}
             >
                 <li>

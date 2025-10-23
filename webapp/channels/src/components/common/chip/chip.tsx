@@ -80,7 +80,7 @@ const Chip = ({
             {leadingIcon && (
                 <RenderEmoji
                     emojiName={leadingIcon}
-                    emojiImageURL={emojiImageURL}
+                    emojiImageUrl={emojiImageURL}
                     emojiStyle={emojiStyles}
                 />
             )}

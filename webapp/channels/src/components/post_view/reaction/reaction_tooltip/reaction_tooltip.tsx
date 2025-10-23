@@ -136,7 +136,7 @@ const ReactionTooltip: React.FC<Props> = (props: Props) => {
             title={tooltipTitle}
             hint={tooltipHint}
             emoji={emojiName}
-            emojiImageURL={emojiImageUrl}
+            emojiImageUrl={emojiImageUrl}
             isEmojiLarge={true}
             onOpen={onShow}
         >

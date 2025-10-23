@@ -19,7 +19,7 @@ const TOOLTIP_EMOTICON_LARGE_SIZE = 48;
 interface Props {
     title: string | ReactNode | MessageDescriptor;
     emoji?: string;
-    emojiImageURL?: string;
+    emojiImageUrl?: string;
     isEmojiLarge?: boolean;
     hint?: string | ReactNode | MessageDescriptor;
     shortcut?: ShortcutDefinition;
@@ -49,7 +49,7 @@ function TooltipContent(props: Props) {
                     <span className='tooltipContentEmoji'>
                         <RenderEmoji
                             emojiName={props.emoji}
-                            emojiImageURL={props.emojiImageURL}
+                            emojiImageUrl={props.emojiImageUrl}
                             size={props.isEmojiLarge ? TOOLTIP_EMOTICON_LARGE_SIZE : TOOLTIP_EMOTICON_SIZE}
                         />x
                     </span>

@@ -76,7 +76,7 @@ export const ShortcutKeys = {
 interface Props {
     title: string | ReactNode | MessageDescriptor;
     emoji?: string;
-    emojiImageURL?: string;
+    emojiImageUrl?: string;
     isEmojiLarge?: boolean;
     hint?: string | ReactNode | MessageDescriptor;
     shortcut?: ShortcutDefinition;
@@ -114,7 +114,7 @@ export default function WithTooltip({
     children,
     title,
     emoji,
-    emojiImageURL,
+    emojiImageUrl,
     isEmojiLarge = false,
     hint,
     shortcut,
@@ -218,7 +218,7 @@ export default function WithTooltip({
                         <TooltipContent
                             title={title}
                             emoji={emoji}
-                            emojiImageURL={emojiImageURL}
+                            emojiImageUrl={emojiImageUrl}
                             isEmojiLarge={isEmojiLarge}
                             hint={hint}
                             shortcut={shortcut}

@@ -44,7 +44,7 @@ const BookmarkIcon = ({
         icon = (
             <RenderEmoji
                 emojiName={emojiName}
-                emojiImageURL={emojiImageURL}
+                emojiImageUrl={emojiImageURL}
                 size={size}
             />
         );

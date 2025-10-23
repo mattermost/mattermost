@@ -26,7 +26,7 @@ const PostEmoji = ({children, name, imageUrl}: Props) => {
         <WithTooltip
             title={emojiText}
             emoji={name}
-            emojiImageURL={emojiImageUrl}
+            emojiImageUrl={emojiImageUrl}
             isEmojiLarge={true}
         >
             <span

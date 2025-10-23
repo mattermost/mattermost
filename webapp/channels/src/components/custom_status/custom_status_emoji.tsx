@@ -58,7 +58,7 @@ function CustomStatusEmoji({
     const statusEmoji = (
         <RenderEmoji
             emojiName={customStatus.emoji}
-            emojiImageURL={emojiImageURL}
+            emojiImageUrl={emojiImageURL}
             size={emojiSize}
             emojiStyle={emojiStyle}
             onClick={onClick}
@@ -95,7 +95,7 @@ function CustomStatusEmoji({
                 </>
             }
             emoji={customStatus.emoji}
-            emojiImageURL={emojiImageURL}
+            emojiImageUrl={emojiImageURL}
             isEmojiLarge={true}
         >
             <span
