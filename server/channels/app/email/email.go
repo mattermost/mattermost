@@ -623,7 +623,7 @@ func (es *Service) SendGuestEasyLoginEmailSelfService(
 	}
 
 	// Rate limit by email address for self-service requests
-	rateLimited, result, err := es.perHourEmailRateLimiter.RateLimit(invite, 1)
+	rateLimited, result, err := es.perMinuteEmailRateLimiter.RateLimit(invite, 1)
 	if err != nil {
 		return SetupRateLimiterError
 	}
@@ -648,6 +648,7 @@ func (es *Service) SendGuestEasyLoginEmailSelfService(
 	data.Props["Button"] = i18n.T("api.templates.invite_body.button")
 
 	// Login-only token - no team or channel info needed
+	// TODO: re-use existing token if it hasn't expired
 	token := model.NewToken(
 		TokenTypeEasyLogin,
 		model.MapToJSON(map[string]string{
