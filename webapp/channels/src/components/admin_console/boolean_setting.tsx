@@ -5,6 +5,8 @@ import React, {useCallback, useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import styled from 'styled-components';
 
+import {RadioInput} from '@mattermost/design-system';
+
 import * as Utils from 'utils/utils';
 
 import SettingSet from './setting_set';
@@ -127,32 +129,29 @@ const BooleanSetting = ({
             label={label}
             setByEnv={setByEnv}
         >
-            <Label isDisabled={disabled || setByEnv}>
-                <input
-                    data-testid={id + 'true'}
-                    type='radio'
-                    value='true'
+            <div className='flex-horizontal'>
+                <RadioInput
                     id={Utils.createSafeId(id) + 'true'}
+                    dataTestId={id + 'true'}
+                    title={trueText}
                     name={id}
+                    value='true'
                     checked={value}
-                    onChange={handleChange}
+                    handleChange={handleChange}
                     disabled={disabled || setByEnv}
                 />
-                {trueText}
-            </Label>
-            <Label isDisabled={disabled || setByEnv}>
-                <input
-                    data-testid={id + 'false'}
-                    type='radio'
-                    value='false'
+
+                <RadioInput
                     id={Utils.createSafeId(id) + 'false'}
+                    dataTestId={id + 'false'}
+                    title={falseText}
                     name={id}
+                    value='false'
                     checked={!value}
-                    onChange={handleChange}
+                    handleChange={handleChange}
                     disabled={disabled || setByEnv}
                 />
-                {falseText}
-            </Label>
+            </div>
         </SettingSet>
     );
 };

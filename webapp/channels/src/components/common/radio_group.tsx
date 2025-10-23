@@ -4,6 +4,8 @@
 import React from 'react';
 import type {ReactNode} from 'react';
 
+import {RadioInput} from '@mattermost/design-system';
+
 import Tag from 'components/widgets/tag/tag';
 
 type RadioGroupProps = {
@@ -37,28 +39,34 @@ const RadioButtonGroup = ({
         if (testId) {
             moreProps['data-testid'] = testId;
         }
+
+        const title = (
+            <>
+                {key}
+                {(sideLegend && val === sideLegend?.matchVal) &&
+                    <span className='side-legend'>
+                        {sideLegend.text}
+                    </span>
+                }
+            </>
+        );
+
         options.push(
             <div
                 className='radio'
                 key={val}
             >
-                <label className={val === value ? 'selected' : ''}>
-                    <input
-                        type='radio'
-                        value={val}
-                        name={id}
-                        checked={val === value}
-                        onChange={handleChange}
-                        disabled={disabled}
-                        {...moreProps}
-                    />
-                    {key}
-                    {(sideLegend && val === sideLegend?.matchVal) &&
-                        <span className='side-legend'>
-                            {sideLegend.text}
-                        </span>
-                    }
-                </label>
+                <RadioInput
+                    id={id}
+                    dataTestId={id}
+                    className={val === value ? 'selected' : ''}
+                    value={val}
+                    name={id}
+                    title={title}
+                    checked={val === value}
+                    handleChange={handleChange}
+                    disabled={disabled}
+                />
                 {(badge && val === badge?.matchVal) &&
                     <Tag
                         className={`radio-badge ${badge.extraClass ?? ''}`}

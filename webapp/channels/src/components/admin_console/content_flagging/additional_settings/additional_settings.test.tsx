@@ -56,7 +56,7 @@ describe('ContentFlaggingAdditionalSettingsSection', () => {
         expect(screen.getByTestId('requireReviewerComment_false')).not.toBeChecked();
 
         // Hide flagged posts - should be false
-        expect(screen.getByTestId('setHideFlaggedPosts_false')).toBeChecked();
+        expect(screen.getByTestId('hideFlaggedPosts_false')).toBeChecked();
         expect(screen.getByTestId('hideFlaggedPosts_true')).not.toBeChecked();
     });
 
@@ -142,7 +142,7 @@ describe('ContentFlaggingAdditionalSettingsSection', () => {
 
         expect(screen.getByTestId('requireReporterComment_false')).toBeChecked();
         expect(screen.getByTestId('requireReviewerComment_false')).toBeChecked();
-        expect(screen.getByTestId('setHideFlaggedPosts_false')).toBeChecked();
+        expect(screen.getByTestId('hideFlaggedPosts_false')).toBeChecked();
     });
 
     test('should render CreatableReactSelect with correct props', () => {

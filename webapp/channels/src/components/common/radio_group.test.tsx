@@ -6,6 +6,8 @@ import React from 'react';
 
 import RadioButtonGroup from 'components/common/radio_group';
 
+import {renderWithContext} from 'tests/react_testing_utils';
+
 describe('/components/common/RadioButtonGroup', () => {
     const onChange = jest.fn();
     const baseProps = {
@@ -21,17 +23,17 @@ describe('/components/common/RadioButtonGroup', () => {
     });
 
     test('test radio button group input lenght is as expected', () => {
-        const wrapper = shallow(<RadioButtonGroup {...baseProps}/>);
-        const buttons = wrapper.find('input');
+        const wrapper = renderWithContext(<RadioButtonGroup {...baseProps}/>);
+        const buttons = wrapper.queryAllByTestId('test-string');
 
         expect(buttons.length).toBe(3);
     });
 
     test('test radio button group onChange function', () => {
-        const wrapper = shallow(<RadioButtonGroup {...baseProps}/>);
+        const wrapper = renderWithContext(<RadioButtonGroup {...baseProps}/>);
 
-        const buttons = wrapper.find('input');
-        buttons.at(0).simulate('change');
+        const buttons = wrapper.queryAllByTestId('test-string');
+        buttons[0].click();
 
         expect(onChange).toHaveBeenCalledTimes(1);
     });

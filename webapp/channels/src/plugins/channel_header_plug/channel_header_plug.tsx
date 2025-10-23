@@ -9,7 +9,7 @@ import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 import {RootCloseWrapper} from 'react-overlays';
 
-import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
+import {WithTooltip} from '@mattermost/design-system/src/components/primitives/with_tooltip';
 import type {AppBinding} from '@mattermost/types/apps';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 

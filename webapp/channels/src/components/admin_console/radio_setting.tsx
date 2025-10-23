@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+import {RadioInput} from '@mattermost/design-system';
+
 import Setting from './setting';
 
 interface Props {
@@ -30,22 +32,17 @@ const RadioSetting = ({
     };
 
     const options = values.map(({value: optionValue, text}) => (
-        <div
-            className='radio'
+        <RadioInput
             key={optionValue}
-        >
-            <label>
-                <input
-                    type='radio'
-                    value={optionValue}
-                    name={id}
-                    checked={optionValue === value}
-                    onChange={handleChange}
-                    disabled={disabled || setByEnv}
-                />
-                {text}
-            </label>
-        </div>
+            id={optionValue}
+            dataTestId={optionValue}
+            title={text}
+            name={id}
+            value={optionValue}
+            checked={optionValue === value}
+            handleChange={handleChange}
+            disabled={disabled || setByEnv}
+        />
     ));
 
     return (

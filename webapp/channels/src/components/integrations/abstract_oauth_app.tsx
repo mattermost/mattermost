@@ -7,6 +7,7 @@ import {FormattedMessage} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {RadioInput} from '@mattermost/design-system';
 import type {OAuthApp} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
@@ -266,32 +267,37 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
                         />
                     </label>
                     <div className='col-md-5 col-sm-8'>
-                        <label className='radio-inline'>
-                            <input
-                                type='radio'
+                        <div className='flex-horizontal'>
+                            <RadioInput
+                                id='is_trusted'
+                                className='radio-inline'
                                 value='true'
                                 name='is_trusted'
                                 checked={this.state.is_trusted}
-                                onChange={this.updateTrusted}
+                                handleChange={this.updateTrusted}
+                                title={
+                                    <FormattedMessage
+                                        id='installed_oauth_apps.trusted.yes'
+                                        defaultMessage='Yes'
+                                    />
+                                }
                             />
-                            <FormattedMessage
-                                id='installed_oauth_apps.trusted.yes'
-                                defaultMessage='Yes'
-                            />
-                        </label>
-                        <label className='radio-inline'>
-                            <input
-                                type='radio'
+
+                            <RadioInput
+                                id='is_untrusted'
+                                className='radio-inline'
                                 value='false'
                                 name='is_trusted'
                                 checked={!this.state.is_trusted}
-                                onChange={this.updateTrusted}
+                                handleChange={this.updateTrusted}
+                                title={
+                                    <FormattedMessage
+                                        id='installed_oauth_apps.trusted.no'
+                                        defaultMessage='No'
+                                    />
+                                }
                             />
-                            <FormattedMessage
-                                id='installed_oauth_apps.trusted.no'
-                                defaultMessage='No'
-                            />
-                        </label>
+                        </div>
                         <div className='form__help'>
                             <FormattedMessage
                                 id='add_oauth_app.trusted.help'

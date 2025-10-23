@@ -5,6 +5,8 @@ export {TestFooBar} from './components/patterns/TestFooBar';
 export {default as CheckInput} from './components/primitives/check';
 export {default as Input} from './components/primitives/input/input';
 export {default as PasswordInput} from './components/primitives/password_input/password_input';
+export {default as RadioInput} from './components/primitives/radio_setting';
+
 
 export * from './components/primitives/button';
 export * from './components/primitives/icon_button';

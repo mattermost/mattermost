@@ -29,44 +29,30 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
       Array [
         <fieldset>
           <fieldset>
-            <div
-              className="radio"
-            >
-              <label>
-                <input
-                  checked={false}
-                  data-email-interval={30}
-                  data-enable-email="true"
-                  id="emailNotificationImmediately"
-                  name="emailNotifications"
-                  onChange={[Function]}
-                  type="radio"
-                />
+            <RadioInput
+              checked={false}
+              handleChange={[Function]}
+              id="emailNotificationImmediately"
+              name="emailNotifications"
+              title={
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="On"
                   id="user.settings.notifications.email.on"
                 />
-              </label>
-            </div>
-            <div
-              className="radio"
-            >
-              <label>
-                <input
-                  checked={true}
-                  data-email-interval={0}
-                  data-enable-email="false"
-                  id="emailNotificationNever"
-                  name="emailNotifications"
-                  onChange={[Function]}
-                  type="radio"
-                />
+              }
+            />
+            <RadioInput
+              checked={true}
+              handleChange={[Function]}
+              id="emailNotificationNever"
+              name="emailNotifications"
+              title={
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Off"
                   id="user.settings.notifications.email.off"
                 />
-              </label>
-            </div>
+              }
+            />
           </fieldset>
           <div
             className="mt-3"
@@ -121,18 +107,28 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
               key="userNotificationEmailOptions"
             >
               <fieldset>
-                <div
-                  className="radio"
+                <RadioInput
+                  checked={false}
+                  handleChange={[Function]}
+                  id="emailNotificationImmediately"
+                  name="emailNotifications"
+                  title={
+                    <Memo(MemoizedFormattedMessage)
+                      defaultMessage="On"
+                      id="user.settings.notifications.email.on"
+                    />
+                  }
                 >
-                  <label>
+                  <label
+                    className="RadioInput"
+                  >
                     <input
                       checked={false}
-                      data-email-interval={30}
-                      data-enable-email="true"
                       id="emailNotificationImmediately"
                       name="emailNotifications"
                       onChange={[Function]}
                       type="radio"
+                      value=""
                     />
                     <FormattedMessage
                       defaultMessage="On"
@@ -143,19 +139,29 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                       </span>
                     </FormattedMessage>
                   </label>
-                </div>
-                <div
-                  className="radio"
+                </RadioInput>
+                <RadioInput
+                  checked={true}
+                  handleChange={[Function]}
+                  id="emailNotificationNever"
+                  name="emailNotifications"
+                  title={
+                    <Memo(MemoizedFormattedMessage)
+                      defaultMessage="Off"
+                      id="user.settings.notifications.email.off"
+                    />
+                  }
                 >
-                  <label>
+                  <label
+                    className="RadioInput"
+                  >
                     <input
                       checked={true}
-                      data-email-interval={0}
-                      data-enable-email="false"
                       id="emailNotificationNever"
                       name="emailNotifications"
                       onChange={[Function]}
                       type="radio"
+                      value=""
                     />
                     <FormattedMessage
                       defaultMessage="Off"
@@ -166,7 +172,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                       </span>
                     </FormattedMessage>
                   </label>
-                </div>
+                </RadioInput>
               </fieldset>
               <div
                 className="mt-3"
@@ -341,38 +347,24 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
             />
           </legend>
           <fieldset>
-            <div
-              className="radio"
-            >
-              <label>
-                <input
-                  checked={false}
-                  data-email-interval={30}
-                  data-enable-email="true"
-                  id="emailNotificationImmediately"
-                  name="emailNotifications"
-                  onChange={[Function]}
-                  type="radio"
-                />
+            <RadioInput
+              checked={false}
+              handleChange={[Function]}
+              id="emailNotificationImmediately"
+              name="emailNotifications"
+              title={
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="As soon as you’re away for 5 minutes"
                   id="user.settings.notifications.email.asSoonAsYouAreAwayForFiveMinutes"
                 />
-              </label>
-            </div>
-            <div
-              className="radio"
-            >
-              <label>
-                <input
-                  checked={false}
-                  data-email-interval={900}
-                  data-enable-email="true"
-                  id="emailNotificationMinutes"
-                  name="emailNotifications"
-                  onChange={[Function]}
-                  type="radio"
-                />
+              }
+            />
+            <RadioInput
+              checked={false}
+              handleChange={[Function]}
+              id="emailNotificationMinutes"
+              name="emailNotifications"
+              title={
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Every {count, plural, one {minute} other {{count, number} minutes}}"
                   id="user.settings.notifications.email.everyXMinutes"
@@ -382,46 +374,32 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                     }
                   }
                 />
-              </label>
-            </div>
-            <div
-              className="radio"
-            >
-              <label>
-                <input
-                  checked={false}
-                  data-email-interval={3600}
-                  data-enable-email="true"
-                  id="emailNotificationHour"
-                  name="emailNotifications"
-                  onChange={[Function]}
-                  type="radio"
-                />
+              }
+            />
+            <RadioInput
+              checked={false}
+              handleChange={[Function]}
+              id="emailNotificationHour"
+              name="emailNotifications"
+              title={
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Every hour"
                   id="user.settings.notifications.email.everyHour"
                 />
-              </label>
-            </div>
-            <div
-              className="radio"
-            >
-              <label>
-                <input
-                  checked={true}
-                  data-email-interval={0}
-                  data-enable-email="false"
-                  id="emailNotificationNever"
-                  name="emailNotifications"
-                  onChange={[Function]}
-                  type="radio"
-                />
+              }
+            />
+            <RadioInput
+              checked={true}
+              handleChange={[Function]}
+              id="emailNotificationNever"
+              name="emailNotifications"
+              title={
                 <Memo(MemoizedFormattedMessage)
                   defaultMessage="Never"
                   id="user.settings.notifications.email.never"
                 />
-              </label>
-            </div>
+              }
+            />
           </fieldset>
           <div
             className="mt-3"
@@ -488,18 +466,28 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                 </FormattedMessage>
               </legend>
               <fieldset>
-                <div
-                  className="radio"
+                <RadioInput
+                  checked={false}
+                  handleChange={[Function]}
+                  id="emailNotificationImmediately"
+                  name="emailNotifications"
+                  title={
+                    <Memo(MemoizedFormattedMessage)
+                      defaultMessage="As soon as you’re away for 5 minutes"
+                      id="user.settings.notifications.email.asSoonAsYouAreAwayForFiveMinutes"
+                    />
+                  }
                 >
-                  <label>
+                  <label
+                    className="RadioInput"
+                  >
                     <input
                       checked={false}
-                      data-email-interval={30}
-                      data-enable-email="true"
                       id="emailNotificationImmediately"
                       name="emailNotifications"
                       onChange={[Function]}
                       type="radio"
+                      value=""
                     />
                     <FormattedMessage
                       defaultMessage="As soon as you’re away for 5 minutes"
@@ -510,19 +498,34 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                       </span>
                     </FormattedMessage>
                   </label>
-                </div>
-                <div
-                  className="radio"
+                </RadioInput>
+                <RadioInput
+                  checked={false}
+                  handleChange={[Function]}
+                  id="emailNotificationMinutes"
+                  name="emailNotifications"
+                  title={
+                    <Memo(MemoizedFormattedMessage)
+                      defaultMessage="Every {count, plural, one {minute} other {{count, number} minutes}}"
+                      id="user.settings.notifications.email.everyXMinutes"
+                      values={
+                        Object {
+                          "count": 15,
+                        }
+                      }
+                    />
+                  }
                 >
-                  <label>
+                  <label
+                    className="RadioInput"
+                  >
                     <input
                       checked={false}
-                      data-email-interval={900}
-                      data-enable-email="true"
                       id="emailNotificationMinutes"
                       name="emailNotifications"
                       onChange={[Function]}
                       type="radio"
+                      value=""
                     />
                     <FormattedMessage
                       defaultMessage="Every {count, plural, one {minute} other {{count, number} minutes}}"
@@ -538,19 +541,29 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                       </span>
                     </FormattedMessage>
                   </label>
-                </div>
-                <div
-                  className="radio"
+                </RadioInput>
+                <RadioInput
+                  checked={false}
+                  handleChange={[Function]}
+                  id="emailNotificationHour"
+                  name="emailNotifications"
+                  title={
+                    <Memo(MemoizedFormattedMessage)
+                      defaultMessage="Every hour"
+                      id="user.settings.notifications.email.everyHour"
+                    />
+                  }
                 >
-                  <label>
+                  <label
+                    className="RadioInput"
+                  >
                     <input
                       checked={false}
-                      data-email-interval={3600}
-                      data-enable-email="true"
                       id="emailNotificationHour"
                       name="emailNotifications"
                       onChange={[Function]}
                       type="radio"
+                      value=""
                     />
                     <FormattedMessage
                       defaultMessage="Every hour"
@@ -561,19 +574,29 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                       </span>
                     </FormattedMessage>
                   </label>
-                </div>
-                <div
-                  className="radio"
+                </RadioInput>
+                <RadioInput
+                  checked={true}
+                  handleChange={[Function]}
+                  id="emailNotificationNever"
+                  name="emailNotifications"
+                  title={
+                    <Memo(MemoizedFormattedMessage)
+                      defaultMessage="Never"
+                      id="user.settings.notifications.email.never"
+                    />
+                  }
                 >
-                  <label>
+                  <label
+                    className="RadioInput"
+                  >
                     <input
                       checked={true}
-                      data-email-interval={0}
-                      data-enable-email="false"
                       id="emailNotificationNever"
                       name="emailNotifications"
                       onChange={[Function]}
                       type="radio"
+                      value=""
                     />
                     <FormattedMessage
                       defaultMessage="Never"
@@ -584,7 +607,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                       </span>
                     </FormattedMessage>
                   </label>
-                </div>
+                </RadioInput>
               </fieldset>
               <div
                 className="mt-3"
@@ -697,44 +720,30 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
     Array [
       <fieldset>
         <fieldset>
-          <div
-            className="radio"
-          >
-            <label>
-              <input
-                checked={false}
-                data-email-interval={30}
-                data-enable-email="true"
-                id="emailNotificationImmediately"
-                name="emailNotifications"
-                onChange={[Function]}
-                type="radio"
-              />
+          <RadioInput
+            checked={false}
+            handleChange={[Function]}
+            id="emailNotificationImmediately"
+            name="emailNotifications"
+            title={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="On"
                 id="user.settings.notifications.email.on"
               />
-            </label>
-          </div>
-          <div
-            className="radio"
-          >
-            <label>
-              <input
-                checked={true}
-                data-email-interval={0}
-                data-enable-email="false"
-                id="emailNotificationNever"
-                name="emailNotifications"
-                onChange={[Function]}
-                type="radio"
-              />
+            }
+          />
+          <RadioInput
+            checked={true}
+            handleChange={[Function]}
+            id="emailNotificationNever"
+            name="emailNotifications"
+            title={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="Off"
                 id="user.settings.notifications.email.off"
               />
-            </label>
-          </div>
+            }
+          />
         </fieldset>
         <div
           className="mt-3"
@@ -767,44 +776,30 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
     Array [
       <fieldset>
         <fieldset>
-          <div
-            className="radio"
-          >
-            <label>
-              <input
-                checked={true}
-                data-email-interval={30}
-                data-enable-email="true"
-                id="emailNotificationImmediately"
-                name="emailNotifications"
-                onChange={[Function]}
-                type="radio"
-              />
+          <RadioInput
+            checked={true}
+            handleChange={[Function]}
+            id="emailNotificationImmediately"
+            name="emailNotifications"
+            title={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="On"
                 id="user.settings.notifications.email.on"
               />
-            </label>
-          </div>
-          <div
-            className="radio"
-          >
-            <label>
-              <input
-                checked={false}
-                data-email-interval={0}
-                data-enable-email="false"
-                id="emailNotificationNever"
-                name="emailNotifications"
-                onChange={[Function]}
-                type="radio"
-              />
+            }
+          />
+          <RadioInput
+            checked={false}
+            handleChange={[Function]}
+            id="emailNotificationNever"
+            name="emailNotifications"
+            title={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="Off"
                 id="user.settings.notifications.email.off"
               />
-            </label>
-          </div>
+            }
+          />
         </fieldset>
         <div
           className="mt-3"
@@ -858,44 +853,30 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
     Array [
       <fieldset>
         <fieldset>
-          <div
-            className="radio"
-          >
-            <label>
-              <input
-                checked={false}
-                data-email-interval={30}
-                data-enable-email="true"
-                id="emailNotificationImmediately"
-                name="emailNotifications"
-                onChange={[Function]}
-                type="radio"
-              />
+          <RadioInput
+            checked={false}
+            handleChange={[Function]}
+            id="emailNotificationImmediately"
+            name="emailNotifications"
+            title={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="On"
                 id="user.settings.notifications.email.on"
               />
-            </label>
-          </div>
-          <div
-            className="radio"
-          >
-            <label>
-              <input
-                checked={true}
-                data-email-interval={0}
-                data-enable-email="false"
-                id="emailNotificationNever"
-                name="emailNotifications"
-                onChange={[Function]}
-                type="radio"
-              />
+            }
+          />
+          <RadioInput
+            checked={true}
+            handleChange={[Function]}
+            id="emailNotificationNever"
+            name="emailNotifications"
+            title={
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="Off"
                 id="user.settings.notifications.email.off"
               />
-            </label>
-          </div>
+            }
+          />
         </fieldset>
         <div
           className="mt-3"

@@ -131,7 +131,7 @@ describe('components/user_settings/notifications/EmailNotificationSetting', () =
 
     test('should pass handleChange', () => {
         const wrapper = mountWithIntl(<EmailNotificationSetting {...requiredProps}/>);
-        wrapper.find('#emailNotificationImmediately').simulate('change');
+        wrapper.find('#emailNotificationImmediately').at(1).simulate('change');
 
         expect(wrapper.state('enableEmail')).toBe(true);
         expect(wrapper.state('newInterval')).toBe(Preferences.INTERVAL_IMMEDIATE);
@@ -158,7 +158,7 @@ describe('components/user_settings/notifications/EmailNotificationSetting', () =
         expect(newUpdateSection).toBeCalledWith('');
 
         const newInterval = Preferences.INTERVAL_IMMEDIATE;
-        wrapper.find('#emailNotificationImmediately').simulate('change');
+        wrapper.find('#emailNotificationImmediately').at(1).simulate('change');
         await (wrapper.instance() as EmailNotificationSetting).handleSubmit();
 
         expect(wrapper.state('newInterval')).toBe(newInterval);
