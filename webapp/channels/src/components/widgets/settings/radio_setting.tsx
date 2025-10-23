@@ -48,6 +48,7 @@ const RadioSetting = ({
                         <RadioInput
                             key={option}
                             id={option}
+                            dataTestId={option}
                             title={text}
                             name={id}
                             value={option}

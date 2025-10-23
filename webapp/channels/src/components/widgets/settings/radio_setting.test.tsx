@@ -4,6 +4,8 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
+import {renderWithContext} from 'tests/react_testing_utils';
+
 import RadioSetting from './radio_setting';
 
 describe('components/widgets/settings/RadioSetting', () => {
@@ -31,6 +33,7 @@ describe('components/widgets/settings/RadioSetting', () => {
             >
               <RadioInput
                 checked={false}
+                dataTestId="Engineering"
                 handleChange={[Function]}
                 id="Engineering"
                 key="Engineering"
@@ -40,6 +43,7 @@ describe('components/widgets/settings/RadioSetting', () => {
               />
               <RadioInput
                 checked={true}
+                dataTestId="Sales"
                 handleChange={[Function]}
                 id="Sales"
                 key="Sales"
@@ -49,6 +53,7 @@ describe('components/widgets/settings/RadioSetting', () => {
               />
               <RadioInput
                 checked={false}
+                dataTestId="Administration"
                 handleChange={[Function]}
                 id="Administration"
                 key="Administration"
@@ -62,7 +67,7 @@ describe('components/widgets/settings/RadioSetting', () => {
 
     test('onChange', () => {
         const onChange = jest.fn();
-        const wrapper = shallow(
+        const wrapper = renderWithContext(
             <RadioSetting
                 id='string.id'
                 label='some label'
@@ -76,10 +81,9 @@ describe('components/widgets/settings/RadioSetting', () => {
             />,
         );
 
-        wrapper.
-            find('input').
-            at(0).
-            simulate('change', {target: {value: 'Administration'}});
+        wrapper.debug();
+
+        wrapper.getByTestId('Administration').click();
 
         expect(onChange).toHaveBeenCalledTimes(1);
         expect(onChange).toHaveBeenCalledWith('string.id', 'Administration');
