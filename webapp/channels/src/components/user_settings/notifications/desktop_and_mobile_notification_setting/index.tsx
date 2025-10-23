@@ -7,6 +7,7 @@ import {FormattedMessage, useIntl, defineMessage} from 'react-intl';
 import ReactSelect from 'react-select';
 import type {OnChangeValue, Options} from 'react-select';
 
+import {RadioInput} from '@mattermost/design-system';
 import type {UserNotifyProps} from '@mattermost/types/users';
 
 import SettingItemMax from 'components/setting_item_max';
@@ -122,15 +123,13 @@ function DesktopAndMobileNotificationSettings({
                         key={optionOfSendNotifications.value}
                         className='radio'
                     >
-                        <label>
-                            <input
-                                type='radio'
-                                checked={desktopActivity === optionOfSendNotifications.value}
-                                value={optionOfSendNotifications.value}
-                                onChange={handleChangeForSendDesktopNotificationsRadio}
-                            />
-                            {formatAsComponent(optionOfSendNotifications.label)}
-                        </label>
+                        <RadioInput
+                            id={optionOfSendNotifications.value}
+                            checked={desktopActivity === optionOfSendNotifications.value}
+                            value={optionOfSendNotifications.value}
+                            handleChange={handleChangeForSendDesktopNotificationsRadio}
+                            title={formatAsComponent(optionOfSendNotifications.label)}
+                        />
                     </div>
                 ))}
             </fieldset>

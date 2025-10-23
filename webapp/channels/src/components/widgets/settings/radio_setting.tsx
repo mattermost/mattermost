@@ -4,6 +4,8 @@
 import React, {memo, useCallback} from 'react';
 import type {ChangeEventHandler} from 'react';
 
+import {RadioInput} from '@mattermost/design-system';
+
 import Setting from './setting';
 
 type Props = {
@@ -43,21 +45,16 @@ const RadioSetting = ({
             {
                 options.map(({value: option, text}) => {
                     return (
-                        <div
-                            className='radio'
+                        <RadioInput
                             key={option}
-                        >
-                            <label>
-                                <input
-                                    type='radio'
-                                    value={option}
-                                    name={id}
-                                    checked={option === value}
-                                    onChange={handleChange}
-                                />
-                                {text}
-                            </label>
-                        </div>
+                            id={option}
+                            dataTestId={option}
+                            title={text}
+                            name={id}
+                            value={option}
+                            checked={option === value}
+                            handleChange={handleChange}
+                        />
                     );
                 })
             }

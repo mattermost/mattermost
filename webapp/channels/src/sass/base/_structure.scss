@@ -318,3 +318,15 @@ body.app__body #root {
 img {
     max-width: 100%;
 }
+
+.flex-horizontal {
+    display: flex;
+    flex-direction: row;
+    gap: 24px;
+}
+
+.flex-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}

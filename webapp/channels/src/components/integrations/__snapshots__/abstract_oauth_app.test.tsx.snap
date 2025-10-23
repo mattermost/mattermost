@@ -54,36 +54,38 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot 1`] = `
           <div
             className="col-md-5 col-sm-8"
           >
-            <label
-              className="radio-inline"
+            <div
+              className="flex-horizontal"
             >
-              <input
+              <RadioInput
                 checked={true}
+                className="radio-inline"
+                handleChange={[Function]}
+                id="is_trusted"
                 name="is_trusted"
-                onChange={[Function]}
-                type="radio"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Yes"
+                    id="installed_oauth_apps.trusted.yes"
+                  />
+                }
                 value="true"
               />
-              <MemoizedFormattedMessage
-                defaultMessage="Yes"
-                id="installed_oauth_apps.trusted.yes"
-              />
-            </label>
-            <label
-              className="radio-inline"
-            >
-              <input
+              <RadioInput
                 checked={false}
+                className="radio-inline"
+                handleChange={[Function]}
+                id="is_untrusted"
                 name="is_trusted"
-                onChange={[Function]}
-                type="radio"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="No"
+                    id="installed_oauth_apps.trusted.no"
+                  />
+                }
                 value="false"
               />
-              <MemoizedFormattedMessage
-                defaultMessage="No"
-                id="installed_oauth_apps.trusted.no"
-              />
-            </label>
+            </div>
             <div
               className="form__help"
             >
@@ -363,36 +365,38 @@ exports[`components/integrations/AbstractOAuthApp should match snapshot, display
           <div
             className="col-md-5 col-sm-8"
           >
-            <label
-              className="radio-inline"
+            <div
+              className="flex-horizontal"
             >
-              <input
+              <RadioInput
                 checked={true}
+                className="radio-inline"
+                handleChange={[Function]}
+                id="is_trusted"
                 name="is_trusted"
-                onChange={[Function]}
-                type="radio"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="Yes"
+                    id="installed_oauth_apps.trusted.yes"
+                  />
+                }
                 value="true"
               />
-              <MemoizedFormattedMessage
-                defaultMessage="Yes"
-                id="installed_oauth_apps.trusted.yes"
-              />
-            </label>
-            <label
-              className="radio-inline"
-            >
-              <input
+              <RadioInput
                 checked={false}
+                className="radio-inline"
+                handleChange={[Function]}
+                id="is_untrusted"
                 name="is_trusted"
-                onChange={[Function]}
-                type="radio"
+                title={
+                  <Memo(MemoizedFormattedMessage)
+                    defaultMessage="No"
+                    id="installed_oauth_apps.trusted.no"
+                  />
+                }
                 value="false"
               />
-              <MemoizedFormattedMessage
-                defaultMessage="No"
-                id="installed_oauth_apps.trusted.no"
-              />
-            </label>
+            </div>
             <div
               className="form__help"
             >

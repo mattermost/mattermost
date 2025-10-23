@@ -4,6 +4,7 @@
 import React, {useCallback, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {RadioInput} from '@mattermost/design-system';
 import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -86,21 +87,19 @@ const RenderEmoticonsAsEmoji: React.FC<Props> = ({user, renderEmoticonsAsEmoji, 
                         className='radio'
                         key={option}
                     >
-                        <label>
-                            <input
-                                id={inputId}
-                                type='radio'
-                                name='renderEmoticonsAsEmoji'
-                                value={option}
-                                checked={value === option}
-                                onChange={handleChange}
-                            />
-                            <FormattedMessage
-                                id={messageId}
-                                defaultMessage={defaultMessage}
-                            />
-                        </label>
-                        <br/>
+                        <RadioInput
+                            id={inputId}
+                            name='renderEmoticonsAsEmoji'
+                            value={option}
+                            checked={value === option}
+                            handleChange={handleChange}
+                            title={
+                                <FormattedMessage
+                                    id={messageId}
+                                    defaultMessage={defaultMessage}
+                                />
+                            }
+                        />
                     </div>
                 );
             })}
