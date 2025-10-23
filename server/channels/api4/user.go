@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -20,6 +21,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/app/email"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
@@ -2238,10 +2240,14 @@ func getLoginType(c *Context, w http.ResponseWriter, r *http.Request) {
 		*c.App.Config().GuestAccountsSettings.EnableEasyLogin {
 		eErr := c.App.Srv().EmailService.SendGuestEasyLoginEmailSelfService(user.Email, c.App.GetSiteURL())
 		if eErr != nil {
-			// Log but don't fail or end the request
-			c.Logger.Warn("Failed to send easy login email",
-				mlog.Err(eErr),
-				mlog.String("user_id", user.Id))
+			switch {
+			case errors.Is(eErr, email.NoRateLimiterError):
+				c.Err = model.NewAppError("getLoginType", "app.email.no_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s", user.Id), http.StatusInternalServerError)
+			case errors.Is(eErr, email.SetupRateLimiterError):
+				c.Err = model.NewAppError("getLoginType", "app.email.setup_rate_limiter.app_error", nil, fmt.Sprintf("user_id=%s, error=%v", user.Id, eErr), http.StatusInternalServerError)
+			default:
+				c.Err = model.NewAppError("getLoginType", "app.email.rate_limit_exceeded.app_error", nil, fmt.Sprintf("user_id=%s, error=%v", user.Id, eErr), http.StatusRequestEntityTooLarge)
+			}
 			return
 		}
 		c.Logger.Debug("Easy login email sent successfully", mlog.String("user_id", user.Id))
