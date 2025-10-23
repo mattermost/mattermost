@@ -10,9 +10,6 @@ import en from '../src/i18n/en.json';
 // The sass-loader is configured with proper includePaths to resolve @use statements
 import '../src/sass/styles.scss';
 
-// Import additional CSS variable overrides for Storybook if needed
-import './storybook-styles.css';
-
 const preview: Preview = {
     parameters: {
         actions: {argTypesRegex: '^on[A-Z].*'},
