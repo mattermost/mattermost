@@ -795,6 +795,11 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             setHasError(false);
             dismissAlert();
         }
+
+        if (enableEasyLogin && requiresPassword) {
+            setRequiresPassword(false);
+            setPassword('');
+        }
     };
 
     const handlePasswordInputOnChange = ({target: {value: password}}: React.ChangeEvent<HTMLInputElement>) => {
