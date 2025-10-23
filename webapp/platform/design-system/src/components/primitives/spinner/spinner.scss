@@ -12,7 +12,7 @@
     mask-image: radial-gradient(
         farthest-side,
         transparent calc(100% - var(--spinner-stroke-width, 2px)),
-        #fff calc(100% - calc(var(--spinner-stroke-width, 2px) * 0.5))
+        #fff calc(100% - var(--spinner-stroke-width, 2px))
     );
 
     // Inverted spinner color override (for dark backgrounds)
