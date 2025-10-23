@@ -2732,6 +2732,7 @@ func (a *App) removeUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 
 	a.Srv().Platform().InvalidateChannelCacheForUser(userIDToRemove)
 	a.invalidateCacheForChannelMembers(channel.Id)
+	a.Srv().Store().AutoTranslation().InvalidateUserAutoTranslation(userIDToRemove, channel.Id)
 
 	var actorUser *model.User
 	if removerUserId != "" {

@@ -733,6 +733,21 @@ func (s *TimerLayerAuditStore) Save(audit *model.Audit) error {
 	return err
 }
 
+func (s *TimerLayerAutoTranslationStore) ClearCaches() {
+	start := time.Now()
+
+	s.AutoTranslationStore.ClearCaches()
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.ClearCaches", success, elapsed)
+	}
+}
+
 func (s *TimerLayerAutoTranslationStore) Get(objectType string, objectID string, dstLang string) (*model.Translation, *model.AppError) {
 	start := time.Now()
 
@@ -779,6 +794,36 @@ func (s *TimerLayerAutoTranslationStore) GetUserLanguage(userID string, channelI
 		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.GetUserLanguage", success, elapsed)
 	}
 	return result, resultVar1
+}
+
+func (s *TimerLayerAutoTranslationStore) InvalidateUserAutoTranslation(userID string, channelID string) {
+	start := time.Now()
+
+	s.AutoTranslationStore.InvalidateUserAutoTranslation(userID, channelID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.InvalidateUserAutoTranslation", success, elapsed)
+	}
+}
+
+func (s *TimerLayerAutoTranslationStore) InvalidateUserLocaleCache(userID string) {
+	start := time.Now()
+
+	s.AutoTranslationStore.InvalidateUserLocaleCache(userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if true {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AutoTranslationStore.InvalidateUserLocaleCache", success, elapsed)
+	}
 }
 
 func (s *TimerLayerAutoTranslationStore) IsChannelEnabled(channelID string) (bool, *model.AppError) {
@@ -5325,6 +5370,22 @@ func (s *TimerLayerJobStore) GetAllByTypesPage(rctx request.CTX, jobTypes []stri
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("JobStore.GetAllByTypesPage", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerJobStore) GetByTypeAndData(rctx request.CTX, jobType string, data map[string]string, useMaster bool, statuses ...string) ([]*model.Job, error) {
+	start := time.Now()
+
+	result, err := s.JobStore.GetByTypeAndData(rctx, jobType, data, useMaster, statuses...)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("JobStore.GetByTypeAndData", success, elapsed)
 	}
 	return result, err
 }
@@ -11322,6 +11383,22 @@ func (s *TimerLayerTokenStore) Cleanup(expiryTime int64) {
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("TokenStore.Cleanup", success, elapsed)
 	}
+}
+
+func (s *TimerLayerTokenStore) ConsumeOnce(tokenStr string) (*model.Token, error) {
+	start := time.Now()
+
+	result, err := s.TokenStore.ConsumeOnce(tokenStr)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TokenStore.ConsumeOnce", success, elapsed)
+	}
+	return result, err
 }
 
 func (s *TimerLayerTokenStore) Delete(token string) error {

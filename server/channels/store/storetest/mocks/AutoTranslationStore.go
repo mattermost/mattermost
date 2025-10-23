@@ -14,6 +14,11 @@ type AutoTranslationStore struct {
 	mock.Mock
 }
 
+// ClearCaches provides a mock function with no fields
+func (_m *AutoTranslationStore) ClearCaches() {
+	_m.Called()
+}
+
 // Get provides a mock function with given fields: objectType, objectID, dstLang
 func (_m *AutoTranslationStore) Get(objectType string, objectID string, dstLang string) (*model.Translation, *model.AppError) {
 	ret := _m.Called(objectType, objectID, dstLang)
@@ -106,6 +111,16 @@ func (_m *AutoTranslationStore) GetUserLanguage(userID string, channelID string)
 	}
 
 	return r0, r1
+}
+
+// InvalidateUserAutoTranslation provides a mock function with given fields: userID, channelID
+func (_m *AutoTranslationStore) InvalidateUserAutoTranslation(userID string, channelID string) {
+	_m.Called(userID, channelID)
+}
+
+// InvalidateUserLocaleCache provides a mock function with given fields: userID
+func (_m *AutoTranslationStore) InvalidateUserLocaleCache(userID string) {
+	_m.Called(userID)
 }
 
 // IsChannelEnabled provides a mock function with given fields: channelID

@@ -805,6 +805,12 @@ func (s *RetryLayerAuditStore) Save(audit *model.Audit) error {
 
 }
 
+func (s *RetryLayerAutoTranslationStore) ClearCaches() {
+
+	s.AutoTranslationStore.ClearCaches()
+
+}
+
 func (s *RetryLayerAutoTranslationStore) Get(objectType string, objectID string, dstLang string) (*model.Translation, *model.AppError) {
 
 	return s.AutoTranslationStore.Get(objectType, objectID, dstLang)
@@ -820,6 +826,18 @@ func (s *RetryLayerAutoTranslationStore) GetActiveDestinationLanguages(channelID
 func (s *RetryLayerAutoTranslationStore) GetUserLanguage(userID string, channelID string) (string, *model.AppError) {
 
 	return s.AutoTranslationStore.GetUserLanguage(userID, channelID)
+
+}
+
+func (s *RetryLayerAutoTranslationStore) InvalidateUserAutoTranslation(userID string, channelID string) {
+
+	s.AutoTranslationStore.InvalidateUserAutoTranslation(userID, channelID)
+
+}
+
+func (s *RetryLayerAutoTranslationStore) InvalidateUserLocaleCache(userID string) {
+
+	s.AutoTranslationStore.InvalidateUserLocaleCache(userID)
 
 }
 
@@ -6507,6 +6525,27 @@ func (s *RetryLayerJobStore) GetAllByTypesPage(rctx request.CTX, jobTypes []stri
 	tries := 0
 	for {
 		result, err := s.JobStore.GetAllByTypesPage(rctx, jobTypes, offset, limit)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerJobStore) GetByTypeAndData(rctx request.CTX, jobType string, data map[string]string, useMaster bool, statuses ...string) ([]*model.Job, error) {
+
+	tries := 0
+	for {
+		result, err := s.JobStore.GetByTypeAndData(rctx, jobType, data, useMaster, statuses...)
 		if err == nil {
 			return result, nil
 		}
@@ -14275,6 +14314,27 @@ func (s *RetryLayerThreadStore) UpdateTeamIdForChannelThreads(channelId string, 
 func (s *RetryLayerTokenStore) Cleanup(expiryTime int64) {
 
 	s.TokenStore.Cleanup(expiryTime)
+
+}
+
+func (s *RetryLayerTokenStore) ConsumeOnce(tokenStr string) (*model.Token, error) {
+
+	tries := 0
+	for {
+		result, err := s.TokenStore.ConsumeOnce(tokenStr)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
 
 }
 

@@ -5,7 +5,6 @@ package model
 
 import (
 	"encoding/json"
-	"io"
 	"maps"
 )
 
@@ -38,20 +37,7 @@ type Translation struct {
 	Confidence *float64         `json:"confidence,omitempty"`
 	State      TranslationState `json:"state"`
 	Meta       map[string]any   `json:"meta,omitempty"`
-	NormHash   *string          `json:"norm_hash,omitempty"`
-}
-
-func (t *Translation) ToJSON() string {
-	b, _ := json.Marshal(t)
-	return string(b)
-}
-
-func (t *Translation) FromJSON(data io.Reader) (*Translation, error) {
-	err := json.NewDecoder(data).Decode(&t)
-	if err != nil {
-		return nil, err
-	}
-	return t, nil
+	NormHash   string           `json:"norm_hash,omitempty"`
 }
 
 func (t *Translation) Clone() *Translation {
@@ -63,11 +49,7 @@ func (t *Translation) Clone() *Translation {
 		val := *t.Confidence
 		confidence = &val
 	}
-	var normHash *string
-	if t.NormHash != nil {
-		val := *t.NormHash
-		normHash = &val
-	}
+
 	var meta map[string]any
 	if t.Meta != nil {
 		meta = make(map[string]any, len(t.Meta))
@@ -89,7 +71,7 @@ func (t *Translation) Clone() *Translation {
 		Confidence: confidence,
 		State:      t.State,
 		Meta:       meta,
-		NormHash:   normHash,
+		NormHash:   t.NormHash,
 	}
 }
 
@@ -109,7 +91,7 @@ func (t *Translation) IsValid() bool {
 	if t.Type == TranslationTypeObject && len(t.ObjectJSON) == 0 {
 		return false
 	}
-	if t.NormHash != nil && *t.NormHash == "" {
+	if t.NormHash == "" {
 		return false
 	}
 	return true

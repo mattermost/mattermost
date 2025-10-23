@@ -1159,6 +1159,14 @@ type AutoTranslationStore interface {
 	Get(objectType, objectID, dstLang string) (*model.Translation, *model.AppError)
 	Save(translation *model.Translation) *model.AppError
 	Search(dstLang, searchTerm string, limit int) ([]*model.Translation, *model.AppError)
+
+	ClearCaches()
+	// InvalidateUserAutoTranslation invalidates all auto-translation caches for a user in a channel.
+	// This is called when a user is removed from a channel.
+	InvalidateUserAutoTranslation(userID, channelID string)
+	// InvalidateUserLocaleCache invalidates all language caches for a user across all channels.
+	// This is called when a user changes their locale preference.
+	InvalidateUserLocaleCache(userID string)
 }
 
 // ChannelSearchOpts contains options for searching channels.

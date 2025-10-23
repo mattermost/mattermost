@@ -1,3 +1,6 @@
+-- Drop users covering index
+DROP INDEX IF EXISTS idx_users_id_locale;
+
 -- Drop channelmembers autotranslation index
 DROP INDEX IF EXISTS idx_channelmembers_autotranslation_enabled;
 

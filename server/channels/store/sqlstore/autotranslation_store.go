@@ -21,16 +21,16 @@ type SqlAutoTranslationStore struct {
 type TranslationMeta json.RawMessage
 
 type Translation struct {
-	ObjectType        string          `db:"object_type"`
-	ObjectID          string          `db:"object_id"`
-	DstLang           string          `db:"dst_lang"`
-	ProviderID        string          `db:"provider_id"`
-	NormHash          string          `db:"norm_hash"`
+	ObjectType        string          `db:"objectType"`
+	ObjectID          string          `db:"objectId"`
+	DstLang           string          `db:"dstLang"`
+	ProviderID        string          `db:"providerId"`
+	NormHash          string          `db:"normHash"`
 	Text              string          `db:"text"`
 	Confidence        *float64        `db:"confidence"`
 	Meta              TranslationMeta `db:"meta"`
-	UpdateAt          int64           `db:"updateat"`
-	ContentSearchText *string         `db:"content_search_text"`
+	UpdateAt          int64           `db:"updateAt"`
+	ContentSearchText *string         `db:"contentSearchText"`
 }
 
 func (m *TranslationMeta) ToMap() (map[string]any, error) {
@@ -83,7 +83,7 @@ func (s *SqlAutoTranslationStore) SetChannelEnabled(channelID string, enabled bo
 	query := s.getQueryBuilder().
 		Update("channels").
 		Set("props", sq.Expr(
-			"jsonb_set(COALESCE(props, '{}'::jsonb), '{autotranslation}', (?::jsonb), true)",
+			"jsonb_set(props, '{autotranslation}', (?::jsonb))",
 			fmt.Sprintf("%v", enabled),
 		)).
 		Where(sq.Eq{"id": channelID})
@@ -149,7 +149,7 @@ func (s *SqlAutoTranslationStore) SetUserEnabled(userID, channelID string, enabl
 	query := s.getQueryBuilder().
 		Update("channelmembers").
 		Set("props", sq.Expr(
-			"jsonb_set(COALESCE(props, '{}'::jsonb), '{autotranslation}', (?::jsonb), true)",
+			"jsonb_set(props, '{autotranslation}', (?::jsonb))",
 			fmt.Sprintf("%v", enabled),
 		)).
 		Where(sq.Eq{"userid": userID, "channelid": channelID})
@@ -250,9 +250,9 @@ func (s *SqlAutoTranslationStore) GetActiveDestinationLanguages(channelID, exclu
 
 func (s *SqlAutoTranslationStore) Get(objectType, objectID, dstLang string) (*model.Translation, *model.AppError) {
 	query := s.getQueryBuilder().
-		Select("object_type", "object_id", "dst_lang", "provider_id", "norm_hash", "text", "confidence", "meta", "updateat").
+		Select("objectType", "objectId", "dstLang", "providerId", "normHash", "text", "confidence", "meta", "updateAt").
 		From("translations").
-		Where(sq.Eq{"object_type": objectType, "object_id": objectID, "dst_lang": dstLang})
+		Where(sq.Eq{"objectId": objectID, "dstLang": dstLang})
 
 	queryString, args, qErr := query.ToSql()
 	if qErr != nil {
@@ -289,7 +289,7 @@ func (s *SqlAutoTranslationStore) Get(objectType, objectID, dstLang string) (*mo
 		Type:       model.TranslationType(translationTypeStr),
 		Confidence: translation.Confidence,
 		State:      model.TranslationStateReady,
-		NormHash:   &translation.NormHash,
+		NormHash:   translation.NormHash,
 	}
 
 	if result.Type == model.TranslationTypeObject {
@@ -304,7 +304,7 @@ func (s *SqlAutoTranslationStore) Get(objectType, objectID, dstLang string) (*mo
 func (s *SqlAutoTranslationStore) Save(translation *model.Translation) *model.AppError {
 	if !translation.IsValid() {
 		return model.NewAppError("SqlAutoTranslationStore.Save",
-			"store.sql_autotranslation.save.invalid_translation", nil, "translation="+translation.ToJSON(), 400)
+			"store.sql_autotranslation.save.invalid_translation", nil, "translation="+translation.ObjectID+" "+translation.Lang, 400)
 	}
 
 	now := model.GetMillis()
@@ -329,27 +329,24 @@ func (s *SqlAutoTranslationStore) Save(translation *model.Translation) *model.Ap
 
 	dstLang := translation.Lang
 	providerID := translation.Provider
-	normHash := ""
-	if translation.NormHash != nil {
-		normHash = *translation.NormHash
-	}
 	text := contentSearchText
 	confidence := translation.Confidence
 
 	query := s.getQueryBuilder().
 		Insert("translations").
-		Columns("object_type", "object_id", "dst_lang", "provider_id", "norm_hash", "text", "confidence", "meta", "updateat", "content_search_text").
-		Values(objectType, objectID, dstLang, providerID, normHash, text, confidence, json.RawMessage(metaBytes), now, contentSearchText).
-		Suffix(`ON CONFLICT (object_type, object_id, dst_lang)
+		Columns("objectId", "dstLang", "objectType", "providerId", "normHash", "text", "confidence", "meta", "updateAt", "contentSearchText").
+		Values(objectID, dstLang, objectType, providerID, translation.NormHash, text, confidence, json.RawMessage(metaBytes), now, contentSearchText).
+		Suffix(`ON CONFLICT (objectId, dstLang)
 				DO UPDATE SET
-					provider_id = EXCLUDED.provider_id,
-					norm_hash = EXCLUDED.norm_hash,
+					objectType = EXCLUDED.objectType,
+					providerId = EXCLUDED.providerId,
+					normHash = EXCLUDED.normHash,
 					text = EXCLUDED.text,
 					confidence = EXCLUDED.confidence,
 					meta = EXCLUDED.meta,
-					updateat = EXCLUDED.updateat,
-					content_search_text = EXCLUDED.content_search_text
-					WHERE translations.norm_hash IS DISTINCT FROM EXCLUDED.norm_hash`)
+					updateAt = EXCLUDED.updateAt,
+					contentSearchText = EXCLUDED.contentSearchText
+					WHERE translations.normHash IS DISTINCT FROM EXCLUDED.normHash`)
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -367,11 +364,11 @@ func (s *SqlAutoTranslationStore) Save(translation *model.Translation) *model.Ap
 
 func (s *SqlAutoTranslationStore) Search(dstLang, searchTerm string, limit int) ([]*model.Translation, *model.AppError) {
 	ftsQuery := s.getQueryBuilder().
-		Select("object_type", "object_id", "dst_lang", "text", "confidence", "meta").
-		Column("ts_rank(to_tsvector('simple', COALESCE(content_search_text, text)), plainto_tsquery('simple', ?)) AS score", searchTerm).
+		Select("objectType", "objectId", "dstLang", "text", "confidence", "meta").
+		Column("ts_rank(to_tsvector('simple', COALESCE(contentSearchText, text)), plainto_tsquery('simple', ?)) AS score", searchTerm).
 		From("translations").
-		Where(sq.Eq{"dst_lang": dstLang}).
-		Where("to_tsvector('simple', COALESCE(content_search_text, text)) @@ plainto_tsquery('simple', ?)", searchTerm).
+		Where(sq.Eq{"dstLang": dstLang}).
+		Where("to_tsvector('simple', COALESCE(contentSearchText, text)) @@ plainto_tsquery('simple', ?)", searchTerm).
 		OrderBy("score DESC").
 		Limit(uint64(limit))
 
@@ -382,9 +379,9 @@ func (s *SqlAutoTranslationStore) Search(dstLang, searchTerm string, limit int) 
 	}
 
 	type searchResult struct {
-		ObjectType string          `db:"object_type"`
-		ObjectID   string          `db:"object_id"`
-		DstLang    string          `db:"dst_lang"`
+		ObjectType string          `db:"objectType"`
+		ObjectID   string          `db:"objectId"`
+		DstLang    string          `db:"dstLang"`
 		Text       string          `db:"text"`
 		Confidence *float64        `db:"confidence"`
 		Score      float64         `db:"score"`
@@ -400,11 +397,11 @@ func (s *SqlAutoTranslationStore) Search(dstLang, searchTerm string, limit int) 
 	// Fallback to trigram similarity search if FTS returns no results
 	if len(results) == 0 {
 		trigramQuery := s.getQueryBuilder().
-			Select("object_type", "object_id", "dst_lang", "text", "confidence").
-			Column("similarity(COALESCE(content_search_text, text), ?) AS score", searchTerm).
+			Select("objectType", "objectId", "dstLang", "text", "confidence", "meta").
+			Column("similarity(COALESCE(contentSearchText, text), ?) AS score", searchTerm).
 			From("translations").
-			Where(sq.Eq{"dst_lang": dstLang}).
-			Where("COALESCE(content_search_text, text) ILIKE '%' || ? || '%'", searchTerm).
+			Where(sq.Eq{"dstLang": dstLang}).
+			Where("COALESCE(contentSearchText, text) ILIKE '%' || ? || '%'", searchTerm).
 			OrderBy("score DESC").
 			Limit(uint64(limit))
 
@@ -441,3 +438,9 @@ func (s *SqlAutoTranslationStore) Search(dstLang, searchTerm string, limit int) 
 
 	return translations, nil
 }
+
+func (s *SqlAutoTranslationStore) ClearCaches() {}
+
+func (s *SqlAutoTranslationStore) InvalidateUserAutoTranslation(userID, channelID string) {}
+
+func (s *SqlAutoTranslationStore) InvalidateUserLocaleCache(userID string) {}
