@@ -99,6 +99,7 @@ type Store interface {
 	Attributes() AttributesStore
 	AutoTranslation() AutoTranslationStore
 	GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error)
+	ContentFlagging() ContentFlaggingStore
 }
 
 type RetentionPolicyStore interface {
@@ -507,6 +508,8 @@ type UserStore interface {
 	RefreshPostStatsForUsers() error
 	GetUserReport(filter *model.UserReportOptions) ([]*model.UserReportQuery, error)
 	GetUserCountForReport(filter *model.UserReportOptions) (int64, error)
+	SearchCommonContentFlaggingReviewers(term string) ([]*model.User, error)
+	SearchTeamContentFlaggingReviewers(teamId, term string) ([]*model.User, error)
 }
 
 type BotStore interface {
@@ -694,7 +697,7 @@ type TokenStore interface {
 	Save(recovery *model.Token) error
 	Delete(token string) error
 	GetByToken(token string) (*model.Token, error)
-	ConsumeOnce(tokenStr string) (*model.Token, error)
+	ConsumeOnce(tokenType, tokenStr string) (*model.Token, error)
 	Cleanup(expiryTime int64)
 	GetAllTokensByType(tokenType string) ([]*model.Token, error)
 	RemoveAllTokensByType(tokenType string) error
@@ -1167,6 +1170,12 @@ type AutoTranslationStore interface {
 	// InvalidateUserLocaleCache invalidates all language caches for a user across all channels.
 	// This is called when a user changes their locale preference.
 	InvalidateUserLocaleCache(userID string)
+}
+
+type ContentFlaggingStore interface {
+	SaveReviewerSettings(reviewerSettings model.ReviewerIDsSettings) error
+	GetReviewerSettings() (*model.ReviewerIDsSettings, error)
+	ClearCaches()
 }
 
 // ChannelSearchOpts contains options for searching channels.

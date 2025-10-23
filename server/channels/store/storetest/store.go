@@ -72,6 +72,7 @@ type Store struct {
 	AccessControlPolicyStore        mocks.AccessControlPolicyStore
 	AttributesStore                 mocks.AttributesStore
 	AutoTranslationStore            mocks.AutoTranslationStore
+	ContentFlaggingStore            mocks.ContentFlaggingStore
 }
 
 func (s *Store) SetContext(context context.Context)            { s.context = context }
@@ -167,6 +168,10 @@ func (s *Store) AutoTranslation() store.AutoTranslationStore {
 	return &s.AutoTranslationStore
 }
 
+func (s *Store) ContentFlagging() store.ContentFlaggingStore {
+	return &s.ContentFlaggingStore
+}
+
 func (s *Store) GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error) {
 	return &model.SupportPacketDatabaseSchema{
 		Tables: []model.DatabaseTable{},
@@ -218,5 +223,6 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.AccessControlPolicyStore,
 		&s.AttributesStore,
 		&s.AutoTranslationStore,
+		&s.ContentFlaggingStore,
 	)
 }

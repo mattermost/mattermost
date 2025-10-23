@@ -189,7 +189,7 @@ rm $1'old'`
 		s.Require().Nil(file.Close())
 		s.Require().Nil(os.Chmod(file.Name(), 0700))
 
-		os.Setenv("EDITOR", file.Name())
+		s.T().Setenv("EDITOR", file.Name())
 
 		// check the value after editing
 		err = configEditCmdF(c, nil, nil)

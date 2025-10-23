@@ -79,6 +79,7 @@ const (
 
 	ActiveDestinationLanguagesCacheSize = 10000
 	ActiveDestinationLanguagesCacheSec  = 5 * 60 // Shorter TTL - changes with user activity
+	ContentFlaggingCacheSize            = 100
 )
 
 var clearCacheMessageData = []byte("")
@@ -139,6 +140,8 @@ type LocalCacheStore struct {
 	channelAutoTranslationCache     cache.Cache
 	userAutoTranslationCache        cache.Cache
 	activeDestinationLanguagesCache cache.Cache
+	contentFlagging                 LocalCacheContentFlaggingStore
+	contentFlaggingCache            cache.Cache
 }
 
 func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface, cacheProvider cache.Provider, logger mlog.LoggerIFace) (localCacheStore LocalCacheStore, err error) {
@@ -407,6 +410,14 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		return
 	}
 	localCacheStore.autotranslation = LocalCacheAutoTranslationStore{AutoTranslationStore: baseStore.AutoTranslation(), rootStore: &localCacheStore}
+	if localCacheStore.contentFlaggingCache, err = cacheProvider.NewCache(&cache.CacheOptions{
+		Size:                   ContentFlaggingCacheSize,
+		Name:                   "ContentFlagging",
+		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForContentFlagging,
+	}); err != nil {
+		return
+	}
+	localCacheStore.contentFlagging = LocalCacheContentFlaggingStore{ContentFlaggingStore: baseStore.ContentFlagging(), rootStore: &localCacheStore}
 
 	if cluster != nil {
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForReactions, localCacheStore.reaction.handleClusterInvalidateReaction)
@@ -435,6 +446,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForChannelAutoTranslation, localCacheStore.autotranslation.handleClusterInvalidateChannelAutoTranslation)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForUserAutoTranslation, localCacheStore.autotranslation.handleClusterInvalidateUserAutoTranslation)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForActiveDestLangs, localCacheStore.autotranslation.handleClusterInvalidateActiveDestLangs)
+		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForContentFlagging, localCacheStore.contentFlagging.handleClusterInvalidateContentFlagging)
 	}
 	return
 }
@@ -485,6 +497,10 @@ func (s LocalCacheStore) Team() store.TeamStore {
 
 func (s LocalCacheStore) AutoTranslation() store.AutoTranslationStore {
 	return s.autotranslation
+}
+
+func (s LocalCacheStore) ContentFlagging() store.ContentFlaggingStore {
+	return s.contentFlagging
 }
 
 func (s LocalCacheStore) DropAllTables() {

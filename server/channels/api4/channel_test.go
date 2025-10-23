@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"sort"
 	"strings"
 	"testing"
@@ -1632,6 +1633,11 @@ func TestDeleteGroupChannel(t *testing.T) {
 
 func TestGetChannel(t *testing.T) {
 	mainHelper.Parallel(t)
+	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
+	defer func() {
+		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
+	}()
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	client := th.Client
@@ -1682,6 +1688,48 @@ func TestGetChannel(t *testing.T) {
 		_, resp, err = client.GetChannel(context.Background(), th.BasicUser.Id, "")
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("Content reviewer should be able to get channel without membership with flagged post", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		contentReviewClient := th.CreateClient()
+		_, _, err := contentReviewClient.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		require.NoError(t, err)
+
+		privateChannel := th.CreateChannelWithClient(contentReviewClient, model.ChannelTypePrivate)
+		post := th.CreatePostWithClient(contentReviewClient, privateChannel)
+
+		response, err := contentReviewClient.FlagPostForContentReview(context.Background(), post.Id, &model.FlagContentRequest{
+			Reason:  "Sensitive data",
+			Comment: "This is sensitive content",
+		})
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, response.StatusCode)
+
+		th.RemoveUserFromChannel(th.BasicUser, privateChannel)
+
+		// We will fetch the channel providing the required params to indicate that we are fetching it for content review
+		fetchedChannel, _, err := contentReviewClient.GetChannelAsContentReviewer(context.Background(), privateChannel.Id, "", post.Id)
+		require.NoError(t, err)
+		require.Equal(t, privateChannel.Id, fetchedChannel.Id)
+
+		// This also doesn't work if user is not a content reviewer
+		contentFlaggingSettings, _, err := th.SystemAdminClient.GetContentFlaggingSettings(context.Background())
+		require.NoError(t, err)
+		require.NotNil(t, contentFlaggingSettings)
+
+		// Making system admin as a reviewer because there needs to be some reviewers
+		contentFlaggingSettings.ReviewerSettings.CommonReviewerIds = []string{th.SystemAdminUser.Id}
+		resp, err = th.SystemAdminClient.SaveContentFlaggingSettings(context.Background(), contentFlaggingSettings)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		_, resp, err = contentReviewClient.GetChannelAsContentReviewer(context.Background(), privateChannel.Id, "", post.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 	})
 }
 
