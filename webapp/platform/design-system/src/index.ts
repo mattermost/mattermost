@@ -11,3 +11,4 @@ export {default as RadioInput} from './components/primitives/radio_setting';
 export * from './components/primitives/button';
 export * from './components/primitives/icon_button';
 export * from './components/primitives/toggle';
+export * from './components/primitives/scrollbar';
