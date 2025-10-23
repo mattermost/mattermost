@@ -7,7 +7,7 @@ import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 
 import FollowButton from './follow_button';
 
-import Button from '../button';
+import ThreadButton from '../thread_button';
 
 describe('components/threading/common/follow_button', () => {
     test('should say follow', () => {
@@ -22,9 +22,9 @@ describe('components/threading/common/follow_button', () => {
 
         expect(wrapper).toMatchSnapshot();
 
-        expect(wrapper.find(Button).text()).toBe('Follow');
+        expect(wrapper.find(ThreadButton).text()).toBe('Follow');
 
-        wrapper.find(Button).simulate('click');
+        wrapper.find(ThreadButton).simulate('click');
         expect(clickHandler).toHaveBeenCalled();
     });
 
@@ -37,7 +37,7 @@ describe('components/threading/common/follow_button', () => {
 
         expect(wrapper).toMatchSnapshot();
 
-        expect(wrapper.find(Button).text()).toBe('Following');
+        expect(wrapper.find(ThreadButton).text()).toBe('Following');
     });
 
     test('should fire click handler', () => {
@@ -50,7 +50,7 @@ describe('components/threading/common/follow_button', () => {
             />,
         );
 
-        wrapper.find(Button).simulate('click');
+        wrapper.find(ThreadButton).simulate('click');
         expect(clickHandler).toHaveBeenCalled();
     });
 });

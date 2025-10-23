@@ -27,7 +27,7 @@ import {getIsMobileView} from 'selectors/views/browser';
 import Markdown from 'components/markdown';
 import {makeGetMentionKeysForPost} from 'components/post_markdown';
 import PriorityBadge from 'components/post_priority/post_priority_badge';
-import Button from 'components/threading/common/button';
+import ThreadButton from 'components/threading/common/thread_button';
 import Timestamp from 'components/timestamp';
 import CRTListTutorialTip from 'components/tours/crt_tour/crt_list_tutorial_tip';
 import Tag from 'components/widgets/tag/tag';
@@ -266,16 +266,16 @@ function ThreadItem({
                                 />
                             )}
                         >
-                            <Button
+                            <ThreadButton
                                 marginTop={true}
-                                className='Button___icon'
+                                className='ThreadButton___icon'
                                 aria-label={formatMessage({
                                     id: 'threading.threadItem.menu',
                                     defaultMessage: 'Actions',
                                 })}
                             >
                                 <DotsVerticalIcon size={18}/>
-                            </Button>
+                            </ThreadButton>
                         </WithTooltip>
                     </ThreadMenu>
                 </div>
