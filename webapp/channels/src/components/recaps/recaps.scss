@@ -318,7 +318,20 @@
                 line-height: 16px;
                 color: var(--center-channel-color);
                 background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                border: none;
                 border-radius: 4px;
+                cursor: pointer;
+                transition: background-color 0.2s, color 0.2s;
+
+                &:hover:not(:disabled) {
+                    background-color: rgba(var(--center-channel-color-rgb), 0.16);
+                    color: var(--button-bg);
+                }
+
+                &:disabled {
+                    cursor: not-allowed;
+                    opacity: 0.5;
+                }
             }
 
             .recap-channel-collapse-button {
@@ -403,6 +416,21 @@
                             color: var(--button-bg);
                             background-color: rgba(var(--button-bg-rgb), 0.08);
                             border-radius: 4px;
+
+                            &.recap-item-badge-link {
+                                cursor: pointer;
+                                transition: all 0.2s;
+                                text-decoration: none;
+
+                                &:hover {
+                                    background-color: rgba(var(--button-bg-rgb), 0.16);
+                                    transform: translateY(-1px);
+                                }
+
+                                &:active {
+                                    transform: translateY(0);
+                                }
+                            }
                         }
                     }
                 }
@@ -412,13 +440,13 @@
 
     // Recap Processing Styles
     .recap-processing {
-        max-width: 966px;
-        margin: 0 auto;
+        background-color: var(--center-channel-bg);
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        border-radius: 4px;
+        overflow: hidden;
+        transition: all 0.2s;
 
         .recap-processing-card {
-            background-color: var(--center-channel-bg);
-            border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
-            border-radius: 4px;
             padding: 24px;
 
             .recap-processing-header {

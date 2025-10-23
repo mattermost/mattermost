@@ -16,9 +16,10 @@ import (
 
 type AppIface interface {
 	GetChannel(rctx request.CTX, channelID string) (*model.Channel, *model.AppError)
+	GetTeam(teamID string) (*model.Team, *model.AppError)
 	GetUser(userID string) (*model.User, *model.AppError)
 	GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions) (*model.PostList, *model.AppError)
-	SummarizePosts(rctx request.CTX, userID string, posts []*model.Post, channelName string) (*model.AISummaryResponse, *model.AppError)
+	SummarizePosts(rctx request.CTX, userID string, posts []*model.Post, channelName, teamName string) (*model.AISummaryResponse, *model.AppError)
 }
 
 func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, appInstance AppIface) *jobs.SimpleWorker {
@@ -66,7 +67,7 @@ func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, appInstanc
 			}
 
 			// Fetch last 15 unread posts + 5 context posts (20 total)
-			posts, postsErr := fetchPostsForRecap(appInstance, logger, channelID, lastViewedAt, 20)
+			posts, postsErr := fetchPostsForRecap(appInstance, logger, channelID, lastViewedAt, 1000)
 			if postsErr != nil {
 				logger.Warn("Failed to fetch posts", mlog.Err(postsErr))
 				failedChannels = append(failedChannels, channelID)
@@ -78,8 +79,16 @@ func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, appInstanc
 				continue
 			}
 
+			// Get team info for permalink generation
+			team, teamErr := appInstance.GetTeam(channel.TeamId)
+			if teamErr != nil {
+				logger.Warn("Failed to get team", mlog.String("team_id", channel.TeamId), mlog.Err(teamErr))
+				failedChannels = append(failedChannels, channelID)
+				continue
+			}
+
 			// Summarize posts
-			summary, err := appInstance.SummarizePosts(request.EmptyContext(logger), userID, posts, channel.DisplayName)
+			summary, err := appInstance.SummarizePosts(request.EmptyContext(logger), userID, posts, channel.DisplayName, team.Name)
 			if err != nil {
 				logger.Error("Failed to summarize posts", mlog.Err(err))
 				failedChannels = append(failedChannels, channelID)
