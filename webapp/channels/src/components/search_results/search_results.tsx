@@ -6,6 +6,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {useIntl, FormattedMessage, defineMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {Scrollbar} from '@mattermost/design-system';
 import type {FileSearchResultItem as FileSearchResultItemType} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
 
@@ -15,7 +16,6 @@ import {isDateLine, getDateForDateLine} from 'mattermost-redux/utils/post_list';
 
 import {getFilesDropdownPluginMenuItems} from 'selectors/plugins';
 
-import Scrollbars from 'components/common/scrollbars';
 import FileSearchResultItem from 'components/file_search_results';
 import NoResultsIndicator from 'components/no_results_indicator/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
@@ -374,7 +374,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                 </div>
             }
             <SearchLimitsBanner searchType={searchType}/>
-            <Scrollbars
+            <Scrollbar
                 ref={scrollbars}
                 color='--center-channel-color-rgb'
                 onScroll={handleScroll}
@@ -406,7 +406,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                     </div>
                     {loadingMorePostsComponent}
                 </div>
-            </Scrollbars>
+            </Scrollbar>
         </div>
     );
 };

@@ -23,6 +23,7 @@ const config = {
         '^@mattermost/(client)$': '<rootDir>/../platform/$1/src',
         '^@mattermost/(design-system)$': '<rootDir>/../platform/$1/src',
         '^@mattermost/(types)/(.*)$': '<rootDir>/../platform/$1/src/$2',
+        '^@mattermost/(design-system)$': '<rootDir>/../platform/$1/src',
         '^mattermost-redux/test/(.*)$':
             '<rootDir>/src/packages/mattermost-redux/test/$1',
         '^mattermost-redux/(.*)$': '<rootDir>/src/packages/mattermost-redux/src/$1',

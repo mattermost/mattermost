@@ -10,6 +10,7 @@ import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-in
 import {SpringSystem} from 'rebound';
 import type {Spring} from 'rebound';
 
+import {Scrollbar} from '@mattermost/design-system';
 import type {ChannelCategory} from '@mattermost/types/channel_categories';
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
@@ -17,7 +18,6 @@ import type {Team} from '@mattermost/types/teams';
 import {General} from 'mattermost-redux/constants';
 
 import {makeAsyncComponent} from 'components/async_load';
-import Scrollbars from 'components/common/scrollbars';
 import SidebarCategory from 'components/sidebar/sidebar_category';
 
 import {findNextUnreadChannelId} from 'utils/channel_utils';
@@ -520,12 +520,12 @@ export class SidebarList extends React.PureComponent<Props, State> {
                         extraClass='nav-pills__unread-indicator-bottom'
                         content={below}
                     />
-                    <Scrollbars
+                    <Scrollbar
                         ref={this.scrollbar}
                         onScroll={this.onScroll}
                     >
                         {channelList}
-                    </Scrollbars>
+                    </Scrollbar>
                 </div>
             </>
         );

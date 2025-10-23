@@ -5,6 +5,8 @@ import React, {useState, useEffect, lazy} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
+
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
@@ -13,7 +15,6 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {makeAsyncComponent} from 'components/async_load';
-import WithTooltip from 'components/with_tooltip';
 
 import {useGetCloudPreviewModalContent} from 'hooks/useGetCloudPreviewModalContent';
 

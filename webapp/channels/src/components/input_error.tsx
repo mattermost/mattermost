@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import React from 'react';
 
-import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
+import type {CustomMessageInputType} from '@mattermost/design-system/src/components/primitives/input/input';
 
 import {ItemStatus} from 'utils/constants';
 

@@ -1,17 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback} from 'react';
 
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 import type {Emoji} from '@mattermost/types/emojis';
 
 import Permissions from 'mattermost-redux/constants/permissions';
-import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
+import {getEmojiImageUrl, getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
-import WithTooltip from 'components/with_tooltip';
-
-import {Locations} from 'utils/constants';
 
 import EmojiItem from './recent_reactions_emoji_item';
 
@@ -24,32 +22,32 @@ type Props = {
     location?: LocationTypes;
     locale: string;
     emojis: Emoji[];
-    size: number;
+    size?: number;
     defaultEmojis: Emoji[];
     actions: {
         toggleReaction: (postId: string, emojiName: string) => void;
     };
 }
 
-type State = {
-    location: LocationTypes;
-}
-
-export default class PostRecentReactions extends React.PureComponent<Props, State> {
-    public static defaultProps: Partial<Props> = {
-        location: Locations.CENTER as 'CENTER',
-        size: 3,
-    };
-
-    handleToggleEmoji = (emoji: Emoji): void => {
+const PostRecentReactions = (({
+    channelId,
+    postId,
+    teamId,
+    locale,
+    emojis,
+    size = 3,
+    defaultEmojis,
+    actions,
+}: Props) => {
+    const handleToggleEmoji = useCallback((emoji: Emoji): void => {
         const emojiName = getEmojiName(emoji);
-        this.props.actions.toggleReaction(this.props.postId, emojiName);
-    };
+        actions.toggleReaction(postId, emojiName);
+    }, []);
 
-    complementEmojis = (emojis: Emoji[]): (Emoji[]) => {
-        const additional = this.props.defaultEmojis.filter((e) => {
+    const complementEmojis = (emojisToComplement: Emoji[]): Emoji[] => {
+        const additional = defaultEmojis.filter((e) => {
             let ignore = false;
-            for (const emoji of emojis) {
+            for (const emoji of emojisToComplement) {
                 if (e.name === emoji.name) {
                     ignore = true;
                     break;
@@ -57,55 +55,51 @@ export default class PostRecentReactions extends React.PureComponent<Props, Stat
             }
             return !ignore;
         });
-        const l = emojis.length;
-        for (let i = 0; i < this.props.size - l; i++) {
-            emojis.push(additional[i]);
+        const l = emojisToComplement.length;
+        for (let i = 0; i < size - l; i++) {
+            emojisToComplement.push(additional[i]);
         }
 
-        return emojis;
+        return emojisToComplement;
     };
 
-    emojiName = (emoji: Emoji, locale: string): string => {
+    const emojiName = (emoji: Emoji, emojiLocale: string): string => {
         function capitalizeFirstLetter(s: string) {
-            return s[0].toLocaleUpperCase(locale) + s.slice(1);
+            return s[0].toLocaleUpperCase(emojiLocale) + s.slice(1);
         }
         const name = getEmojiName(emoji);
         return capitalizeFirstLetter(name.replace(/_/g, ' '));
     };
 
-    render() {
-        const {
-            channelId,
-            teamId,
-        } = this.props;
-
-        let emojis = [...this.props.emojis].slice(0, this.props.size);
-        if (emojis.length < this.props.size) {
-            emojis = this.complementEmojis(emojis);
-        }
-
-        return emojis.map((emoji, n) => (
-            <ChannelPermissionGate
-                key={this.emojiName(emoji, this.props.locale)} // emojis will be unique therefore no duplication expected.
-                channelId={channelId}
-                teamId={teamId}
-                permissions={[Permissions.ADD_REACTION]}
-            >
-                <WithTooltip
-                    title={this.emojiName(emoji, this.props.locale)}
-                    emoji={getEmojiName(emoji)}
-                    isEmojiLarge={true}
-                >
-                    <li>
-                        <EmojiItem
-                            emoji={emoji}
-                            onItemClick={this.handleToggleEmoji}
-                            order={n}
-                        />
-                    </li>
-                </WithTooltip>
-            </ChannelPermissionGate>
-        ),
-        );
+    let processedEmojis = [...emojis].slice(0, size);
+    if (processedEmojis.length < size) {
+        processedEmojis = complementEmojis(processedEmojis);
     }
-}
+
+    return processedEmojis.map((emoji, n) => (
+        <ChannelPermissionGate
+            key={emojiName(emoji, locale)} // emojis will be unique therefore no duplication expected.
+            channelId={channelId}
+            teamId={teamId}
+            permissions={[Permissions.ADD_REACTION]}
+        >
+            <WithTooltip
+                title={emojiName(emoji, locale)}
+                emoji={getEmojiName(emoji)}
+                emojiImageUrl={getEmojiImageUrl(emoji)}
+                isEmojiLarge={true}
+            >
+                <li>
+                    <EmojiItem
+                        emoji={emoji}
+                        onItemClick={handleToggleEmoji}
+                        order={n}
+                    />
+                </li>
+            </WithTooltip>
+        </ChannelPermissionGate>
+    ),
+    );
+});
+
+export default PostRecentReactions;

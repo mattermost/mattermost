@@ -6,53 +6,38 @@ exports[`components/admin_console/RadioSetting should match snapshot 1`] = `
   label="some label"
   setByEnv={false}
 >
-  <div
-    className="radio"
+  <RadioInput
+    checked={false}
+    dataTestId="Engineering"
+    disabled={false}
+    handleChange={[Function]}
+    id="Engineering"
     key="Engineering"
-  >
-    <label>
-      <input
-        checked={false}
-        disabled={false}
-        name="string.id"
-        onChange={[Function]}
-        type="radio"
-        value="Engineering"
-      />
-      this is engineering
-    </label>
-  </div>
-  <div
-    className="radio"
+    name="string.id"
+    title="this is engineering"
+    value="Engineering"
+  />
+  <RadioInput
+    checked={true}
+    dataTestId="Sales"
+    disabled={false}
+    handleChange={[Function]}
+    id="Sales"
     key="Sales"
-  >
-    <label>
-      <input
-        checked={true}
-        disabled={false}
-        name="string.id"
-        onChange={[Function]}
-        type="radio"
-        value="Sales"
-      />
-      this is sales
-    </label>
-  </div>
-  <div
-    className="radio"
+    name="string.id"
+    title="this is sales"
+    value="Sales"
+  />
+  <RadioInput
+    checked={false}
+    dataTestId="Administration"
+    disabled={false}
+    handleChange={[Function]}
+    id="Administration"
     key="Administration"
-  >
-    <label>
-      <input
-        checked={false}
-        disabled={false}
-        name="string.id"
-        onChange={[Function]}
-        type="radio"
-        value="Administration"
-      />
-      this is administration
-    </label>
-  </div>
+    name="string.id"
+    title="this is administration"
+    value="Administration"
+  />
 </Memo(Settings)>
 `;

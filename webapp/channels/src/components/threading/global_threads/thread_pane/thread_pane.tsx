@@ -7,6 +7,7 @@ import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
 import {DotsVerticalIcon} from '@mattermost/compass-icons/components';
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 import type {UserThread, UserThreadSynthetic} from '@mattermost/types/threads';
 
 import {setThreadFollow} from 'mattermost-redux/actions/threads';
@@ -15,7 +16,6 @@ import {getPost, makeGetPostsForThread} from 'mattermost-redux/selectors/entitie
 
 import PopoutButton from 'components/popout_button';
 import Header from 'components/widgets/header';
-import WithTooltip from 'components/with_tooltip';
 
 import {popoutThread} from 'utils/popouts/popout_windows';
 

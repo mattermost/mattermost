@@ -5,9 +5,8 @@ import React, {useEffect} from 'react';
 import {useIntl, FormattedMessage, FormattedNumber, defineMessages} from 'react-intl';
 
 import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
-
-import Input from 'components/widgets/inputs/input/input';
-import WithTooltip from 'components/with_tooltip';
+import Input from '@mattermost/design-system/src/components/primitives/input/input';
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 
 import {ItemStatus} from 'utils/constants';
 

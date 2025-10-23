@@ -5,12 +5,12 @@ import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {FilterVariantIcon} from '@mattermost/compass-icons/components';
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 
 import {IconContainer} from 'components/advanced_text_editor/formatting_bar/formatting_icon';
 import type {SearchFilterType} from 'components/search/types';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import WithTooltip from 'components/with_tooltip';
 
 import './files_filter_menu.scss';
 

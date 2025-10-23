@@ -37,7 +37,7 @@ exports[`SidebarList should match snapshot 1`] = `
       onClick={[Function]}
       show={false}
     />
-    <Scrollbars
+    <Scrollbar
       onScroll={[Function]}
     >
       <DragDropContext
@@ -60,7 +60,7 @@ exports[`SidebarList should match snapshot 1`] = `
           <Component />
         </Connect(Droppable)>
       </DragDropContext>
-    </Scrollbars>
+    </Scrollbar>
   </div>
 </Fragment>
 `;

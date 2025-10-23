@@ -166,6 +166,8 @@ const config: StorybookConfig = {
                             loadPaths: [
                                 path.resolve(__dirname, '../src/sass'),
                                 path.resolve(__dirname, '../src'),
+                                path.resolve(__dirname, '../../platform/design-system/src'),
+                                path.resolve(__dirname, '../../platform/components/src'),
                                 path.resolve(__dirname, '../../node_modules'),
                             ],
                         },

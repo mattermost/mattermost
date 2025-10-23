@@ -9,55 +9,61 @@ exports[`/components/common/RadioButtonGroup should match snapshot 1`] = `
     className="radio"
     key="value1"
   >
-    <label
+    <RadioInput
+      checked={false}
       className=""
-    >
-      <input
-        checked={false}
-        disabled={false}
-        name="test-string"
-        onChange={[Function]}
-        type="radio"
-        value="value1"
-      />
-      key1
-    </label>
+      dataTestId="test-string"
+      disabled={false}
+      handleChange={[Function]}
+      id="test-string"
+      name="test-string"
+      title={
+        <React.Fragment>
+          key1
+        </React.Fragment>
+      }
+      value="value1"
+    />
   </div>
   <div
     className="radio"
     key="value2"
   >
-    <label
+    <RadioInput
+      checked={true}
       className="selected"
-    >
-      <input
-        checked={true}
-        disabled={false}
-        name="test-string"
-        onChange={[Function]}
-        type="radio"
-        value="value2"
-      />
-      key2
-    </label>
+      dataTestId="test-string"
+      disabled={false}
+      handleChange={[Function]}
+      id="test-string"
+      name="test-string"
+      title={
+        <React.Fragment>
+          key2
+        </React.Fragment>
+      }
+      value="value2"
+    />
   </div>
   <div
     className="radio"
     key="value3"
   >
-    <label
+    <RadioInput
+      checked={false}
       className=""
-    >
-      <input
-        checked={false}
-        disabled={false}
-        name="test-string"
-        onChange={[Function]}
-        type="radio"
-        value="value3"
-      />
-      key3
-    </label>
+      dataTestId="test-string"
+      disabled={false}
+      handleChange={[Function]}
+      id="test-string"
+      name="test-string"
+      title={
+        <React.Fragment>
+          key3
+        </React.Fragment>
+      }
+      value="value3"
+    />
   </div>
 </div>
 `;

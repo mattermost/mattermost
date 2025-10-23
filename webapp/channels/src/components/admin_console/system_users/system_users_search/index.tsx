@@ -6,9 +6,9 @@ import React, {useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {setAdminConsoleUsersManagementTableProperties} from 'actions/views/admin';
+import Input from '@mattermost/design-system/src/components/primitives/input/input';
 
-import Input from 'components/widgets/inputs/input/input';
+import {setAdminConsoleUsersManagementTableProperties} from 'actions/views/admin';
 
 import type {AdminConsoleUserManagementTableProperties} from 'types/store/views';
 

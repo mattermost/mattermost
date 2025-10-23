@@ -42,9 +42,12 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
               >
                 Log Format:
               </span>
-              <label>
+              <label
+                class="RadioInput"
+              >
                 <input
                   checked=""
+                  data-testid="admin.logs.LogFormat.json"
                   id="admin.logs.LogFormat.json"
                   name="log-format"
                   type="radio"
@@ -52,8 +55,11 @@ exports[`components/admin_console/server_logs/Logs should display the logs corre
                 />
                 JSON
               </label>
-              <label>
+              <label
+                class="RadioInput"
+              >
                 <input
+                  data-testid="admin.logs.LogFormat.plain"
                   id="admin.logs.LogFormat.plain"
                   name="log-format"
                   type="radio"

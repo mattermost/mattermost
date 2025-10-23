@@ -7,13 +7,13 @@ import React from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
+import {Scrollbar} from '@mattermost/design-system';
 import type {PluginRedux} from '@mattermost/types/plugins';
 
 import AdminSidebarCategory from 'components/admin_console/admin_sidebar/admin_sidebar_category';
 import AdminSidebarSection from 'components/admin_console/admin_sidebar/admin_sidebar_section';
 import AdminSidebarHeader from 'components/admin_console/admin_sidebar_header';
 import SearchKeywordMarking from 'components/admin_console/search_keyword_marking';
-import Scrollbars from 'components/common/scrollbars';
 import QuickInput from 'components/quick_input';
 import SearchIcon from 'components/widgets/icons/search_icon';
 
@@ -287,7 +287,7 @@ class AdminSidebar extends React.PureComponent<Props, State> {
                         onClear={this.handleClearFilter}
                     />
                 </div>
-                <Scrollbars>
+                <Scrollbar>
                     <div className='nav-pills__container'>
                         <SearchKeywordMarking keyword={this.state.filter}>
                             <ul className={classNames('nav nav-pills nav-stacked', {'task-list-shown': showTaskList})}>
@@ -295,7 +295,7 @@ class AdminSidebar extends React.PureComponent<Props, State> {
                             </ul>
                         </SearchKeywordMarking>
                     </div>
-                </Scrollbars>
+                </Scrollbar>
             </div>
         );
     }

@@ -6,6 +6,7 @@ import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {AccountMultipleOutlineIcon, ChevronRightIcon} from '@mattermost/compass-icons/components';
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 import type {Group} from '@mattermost/types/groups';
 import type {GlobalState} from '@mattermost/types/store';
 import type {UserProfile} from '@mattermost/types/users';
@@ -13,7 +14,6 @@ import type {UserProfile} from '@mattermost/types/users';
 import {getUser, makeDisplayNameGetter, makeGetProfilesByIdsAndUsernames} from 'mattermost-redux/selectors/entities/users';
 
 import type {Value} from 'components/multiselect/multiselect';
-import WithTooltip from 'components/with_tooltip';
 
 import Constants from 'utils/constants';
 

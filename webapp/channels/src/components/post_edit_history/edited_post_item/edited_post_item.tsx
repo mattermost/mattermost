@@ -7,6 +7,7 @@ import {defineMessages, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {CheckIcon} from '@mattermost/compass-icons/components';
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 import type {Post} from '@mattermost/types/posts';
 
 import {getPostEditHistory, restorePostVersion} from 'mattermost-redux/actions/posts';
@@ -22,7 +23,6 @@ import PostMessageContainer from 'components/post_view/post_message_view';
 import Timestamp, {RelativeRanges} from 'components/timestamp';
 import UserProfileComponent from 'components/user_profile';
 import Avatar from 'components/widgets/users/avatar';
-import WithTooltip from 'components/with_tooltip';
 
 import {ModalIdentifiers, StoragePrefixes} from 'utils/constants';
 import {imageURLForUser} from 'utils/utils';

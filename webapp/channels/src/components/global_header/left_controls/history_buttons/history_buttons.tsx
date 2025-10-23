@@ -6,13 +6,14 @@ import {useIntl} from 'react-intl';
 import {useHistory} from 'react-router-dom';
 import styled from 'styled-components';
 
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
+
 import IconButton from 'components/global_header/header_icon_button';
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import type {
     KeyboardShortcutDescriptor} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import WithTooltip from 'components/with_tooltip';
 
 import DesktopApp from 'utils/desktop_api';
 

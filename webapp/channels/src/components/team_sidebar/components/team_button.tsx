@@ -7,11 +7,12 @@ import {Draggable} from 'react-beautiful-dnd';
 import {defineMessages, useIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
+import {ShortcutKeys} from '@mattermost/design-system/src/components/primitives/with_tooltip/tooltip_shortcut';
+
 import {mark} from 'actions/telemetry_actions';
 
 import TeamIcon from 'components/widgets/team_icon/team_icon';
-import WithTooltip from 'components/with_tooltip';
-import {ShortcutKeys} from 'components/with_tooltip/tooltip_shortcut';
 
 import {Mark} from 'utils/performance_telemetry';
 

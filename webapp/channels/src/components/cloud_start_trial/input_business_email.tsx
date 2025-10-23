@@ -4,8 +4,8 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
-import Input from 'components/widgets/inputs/input/input';
-import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
+import Input from '@mattermost/design-system/src/components/primitives/input/input';
+import type {CustomMessageInputType} from '@mattermost/design-system/src/components/primitives/input/input';
 interface InputBusinessEmailProps {
     email: string;
     handleEmailValues: (e: React.ChangeEvent<HTMLInputElement>) => void;

@@ -6,11 +6,11 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
+import type {CustomMessageInputType} from '@mattermost/design-system/src/components/primitives/input/input';
+import Input from '@mattermost/design-system/src/components/primitives/input/input';
 import type {AllowedIPRange} from '@mattermost/types/config';
 
 import ExternalLink from 'components/external_link';
-import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
-import Input from 'components/widgets/inputs/input/input';
 
 import './add_edit_ip_filter_modal.scss';
 import {validateCIDR} from './ip_filtering_utils';

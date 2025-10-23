@@ -5,6 +5,7 @@ import React from 'react';
 import type {RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {RadioInput} from '@mattermost/design-system';
 import type {PreferencesType, PreferenceType} from '@mattermost/types/preferences';
 
 import {Preferences} from 'mattermost-redux/constants';
@@ -151,38 +152,35 @@ export default class ShowUnreadsCategory extends React.PureComponent<Props, Stat
                         <legend className='form-legend hidden-label'>
                             {title}
                         </legend>
-                        <div className='radio'>
-                            <label>
-                                <input
-                                    data-testid='showUnreadsCategoryOn'
-                                    type='radio'
-                                    name='showUnreadsCategory'
-                                    checked={this.state.checked}
-                                    onChange={() => this.setState({checked: true})}
-                                />
+                        <RadioInput
+                            id='showUnreadsCategoryOn'
+                            className='radio'
+                            dataTestId='showUnreadsCategoryOn'
+                            name='showUnreadsCategory'
+                            checked={this.state.checked}
+                            handleChange={() => this.setState({checked: true})}
+                            title={
                                 <FormattedMessage
                                     id='user.settings.sidebar.on'
                                     defaultMessage='On'
                                 />
-                            </label>
-                            <br/>
-                        </div>
-                        <div className='radio'>
-                            <label>
-                                <input
-                                    data-testid='showUnreadsCategoryOff'
-                                    type='radio'
-                                    name='showUnreadsCategory'
-                                    checked={!this.state.checked}
-                                    onChange={() => this.setState({checked: false})}
-                                />
+                            }
+                        />
+                        <RadioInput
+                            id='showUnreadsCategoryOff'
+                            className='radio'
+                            dataTestId='showUnreadsCategoryOff'
+                            name='showUnreadsCategory'
+                            checked={!this.state.checked}
+                            handleChange={() => this.setState({checked: false})}
+                            title={
                                 <FormattedMessage
                                     id='user.settings.sidebar.off'
                                     defaultMessage='Off'
                                 />
-                            </label>
-                            <br/>
-                        </div>
+                            }
+                        />
+
                         <div className='mt-5'>
                             <FormattedMessage
                                 id='user.settings.sidebar.showUnreadsCategoryDesc'

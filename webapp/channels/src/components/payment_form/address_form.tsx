@@ -5,9 +5,8 @@ import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 
+import Input from '@mattermost/design-system/src/components/primitives/input/input';
 import type {Address} from '@mattermost/types/cloud';
-
-import Input from 'components/widgets/inputs/input/input';
 
 import CountrySelector from './country_selector';
 import StateSelector from './state_selector';
