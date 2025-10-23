@@ -1,9 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Meta} from '@storybook/react';
 import React, {type ComponentProps, useState} from 'react';
 
 import {Toggle} from './toggle';
+
+const meta: Meta<typeof Toggle> = {
+    title: 'DesignSystem/Primitives/Toggle',
+    component: Toggle,
+    tags: ['autodocs'],
+};
+
+export default meta;
 
 // Interactive wrapper component
 type ToggleWithStateProps = Omit<ComponentProps<typeof Toggle>, 'onToggle'>;
