@@ -5,6 +5,7 @@ import React, {memo, useEffect, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import {Scrollbar} from '@mattermost/design-system';
 import type {Post} from '@mattermost/types/posts';
 
 import {getPostEditHistory} from 'mattermost-redux/actions/posts';
@@ -12,8 +13,6 @@ import {getPostEditHistory} from 'mattermost-redux/actions/posts';
 import AlertIcon from 'components/common/svg_images_components/alert_svg';
 import LoadingScreen from 'components/loading_screen';
 import SearchResultsHeader from 'components/search_results_header';
-
-import Scrollbar from 'design_system/components/primitives/scrollbar';
 
 import EditedPostItem from './edited_post_item';
 

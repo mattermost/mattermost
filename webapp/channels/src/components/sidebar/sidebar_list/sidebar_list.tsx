@@ -10,6 +10,7 @@ import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-in
 import {SpringSystem} from 'rebound';
 import type {Spring} from 'rebound';
 
+import {Scrollbar} from '@mattermost/design-system';
 import type {ChannelCategory} from '@mattermost/types/channel_categories';
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
@@ -19,7 +20,6 @@ import {General} from 'mattermost-redux/constants';
 import {makeAsyncComponent} from 'components/async_load';
 import SidebarCategory from 'components/sidebar/sidebar_category';
 
-import Scrollbar from 'design_system/components/primitives/scrollbar';
 import {findNextUnreadChannelId} from 'utils/channel_utils';
 import {Constants, DraggingStates, DraggingStateTypes} from 'utils/constants';
 import {isKeyPressed, cmdOrCtrlPressed} from 'utils/keyboard';

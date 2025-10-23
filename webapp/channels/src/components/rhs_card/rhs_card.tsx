@@ -7,6 +7,7 @@ import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
+import {Scrollbar} from '@mattermost/design-system';
 import type {Post} from '@mattermost/types/posts';
 
 import {ensureString} from 'mattermost-redux/utils/post_utils';
@@ -18,7 +19,6 @@ import PostProfilePicture from 'components/post_profile_picture';
 import RhsCardHeader from 'components/rhs_card_header';
 import UserProfile from 'components/user_profile';
 
-import Scrollbar from 'design_system/components/primitives/scrollbar';
 import Constants from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
 

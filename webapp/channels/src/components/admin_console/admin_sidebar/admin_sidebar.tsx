@@ -16,7 +16,7 @@ import SearchKeywordMarking from 'components/admin_console/search_keyword_markin
 import QuickInput from 'components/quick_input';
 import SearchIcon from 'components/widgets/icons/search_icon';
 
-import Scrollbar from 'design_system/components/primitives/scrollbar';
+import {Scrollbar} from '@mattermost/design-system';
 import {generateIndex} from 'utils/admin_console_index';
 import type {Index} from 'utils/admin_console_index';
 import {getHistory} from 'utils/browser_history';

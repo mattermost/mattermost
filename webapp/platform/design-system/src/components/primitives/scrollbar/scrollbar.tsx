@@ -6,9 +6,9 @@ import React, {useCallback, useRef} from 'react';
 import SimpleBar from 'simplebar-react';
 
 import 'simplebar-react/dist/simplebar.min.css';
-import './index.scss';
+import './scrollbar.scss';
 
-export type Props = {
+type Props = {
     children: React.ReactNode;
     color?: string;
     onScroll?: (e: Event) => void;

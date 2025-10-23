@@ -9,6 +9,7 @@ import {injectIntl, FormattedMessage} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
+import {Scrollbar} from '@mattermost/design-system';
 import type {Team} from '@mattermost/types/teams';
 
 import Permissions from 'mattermost-redux/constants/permissions';
@@ -17,7 +18,6 @@ import SystemPermissionGate from 'components/permissions_gates/system_permission
 import TeamButton from 'components/team_sidebar/components/team_button';
 
 import WebSocketClient from 'client/web_websocket_client';
-import Scrollbar from 'design_system/components/primitives/scrollbar';
 import Pluggable from 'plugins/pluggable';
 import {Constants} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';

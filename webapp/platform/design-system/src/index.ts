@@ -6,3 +6,4 @@ import './styles.scss';
 export {TestFooBar} from './components/patterns/TestFooBar';
 
 export {Toggle} from './components/primitives/toggle';
+export {Scrollbar} from './components/primitives/scrollbar';

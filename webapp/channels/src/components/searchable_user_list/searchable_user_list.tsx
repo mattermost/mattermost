@@ -5,14 +5,13 @@ import React from 'react';
 import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
+import {Scrollbar} from '@mattermost/design-system';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
 import QuickInput from 'components/quick_input';
 import UserList from 'components/user_list';
-
-import Scrollbar from 'design_system/components/primitives/scrollbar';
 
 const NEXT_BUTTON_TIMEOUT = 500;
 

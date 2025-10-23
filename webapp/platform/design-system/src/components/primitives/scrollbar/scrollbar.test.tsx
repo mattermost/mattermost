@@ -1,20 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {fireEvent, render} from '@testing-library/react';
 import React from 'react';
 
-import {fireEvent, render} from 'tests/react_testing_utils';
-
-import Scrollbars from './index';
+import Scrollbar from './scrollbar';
 
 describe('Scrollbar', () => {
     test('should attach scroll handler to the correct element', () => {
         const onScroll = jest.fn();
 
         render(
-            <Scrollbars onScroll={onScroll}>
+            <Scrollbar onScroll={onScroll}>
                 {'This is some content in a scrollable area'}
-            </Scrollbars>,
+            </Scrollbar>,
         );
 
         // Ideally, we'd actually scroll the content of the element, but jsdom doesn't implement scroll events
@@ -26,13 +25,13 @@ describe('Scrollbar', () => {
     test('should attach ref to the correct element', () => {
         let scrollElement;
         render(
-            <Scrollbars
+            <Scrollbar
                 ref={(element) => {
                     scrollElement = element;
                 }}
             >
                 <div/>
-            </Scrollbars>,
+            </Scrollbar>,
         );
 
         expect(scrollElement).toBe(document.querySelector('.simplebar-content-wrapper'));
