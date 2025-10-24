@@ -1,0 +1,13 @@
+@use 'utils/mixins';
+
+.LinkModal {
+    &__apply {
+        @include mixins.button-small;
+        @include mixins.primary-button;
+    }
+
+    &__cancel {
+        @include mixins.button-small;
+        @include mixins.tertiary-button;
+    }
+}
