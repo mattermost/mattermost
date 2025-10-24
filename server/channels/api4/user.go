@@ -130,7 +130,7 @@ func loginSSOCodeExchange(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Consume one-time code atomically
-	token, appErr := c.App.ConsumeTokenOnce(loginCode)
+	token, appErr := c.App.ConsumeTokenOnce(model.TokenTypeSSOCodeExchange, loginCode)
 	if appErr != nil {
 		c.Err = appErr
 		return
