@@ -515,6 +515,18 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 		post.AddProp(model.PostPropsGroupHighlightDisabled, true)
 	}
 
+	// Populate AI-generated username from provided user ID
+	if aiGenUserID, ok := post.GetProp(model.PostPropsAIGeneratedByUserID).(string); ok && aiGenUserID != "" {
+		user, err := a.GetUser(aiGenUserID)
+		if err != nil {
+			// If user doesn't exist, remove the ai_generated_by prop to avoid storing invalid data
+			rctx.Logger().Warn("Failed to get user for AI-generated post, removing ai_generated_by prop", mlog.String("user_id", aiGenUserID), mlog.Err(err))
+			post.DelProp(model.PostPropsAIGeneratedByUserID)
+		} else {
+			post.AddProp(model.PostPropsAIGeneratedByUsername, user.Username)
+		}
+	}
+
 	return nil
 }
 
