@@ -1402,6 +1402,131 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
             ],
         });
     });
+
+    it('should suggest for full-width "＠"', async () => {
+        const pretext = '＠';
+        const itemsCall3 = [
+            membersGroup([
+                userid10,
+                userid3,
+                userid1,
+                userid2,
+                userid4,
+            ]),
+            groupsGroup([
+                groupid1,
+                groupid2,
+                groupid3,
+            ]),
+            specialMentionsGroup([
+                {username: 'here'},
+                {username: 'channel'},
+                {username: 'all'},
+            ]),
+            nonMembersGroup([
+                userid5,
+                userid6,
+            ]),
+        ];
+        const params = {
+            ...baseParams,
+            autocompleteUsersInChannel: jest.fn().mockImplementation(() => new Promise((resolve) => {
+                resolve({data: {
+                    users: [userid4],
+                    out_of_channel: [userid5, userid6],
+                }});
+            })),
+            searchAssociatedGroupsForReference: jest.fn().mockImplementation(() => new Promise((resolve) => {
+                resolve({
+                    data: [groupid1, groupid2, groupid3],
+                });
+                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+            })),
+        };
+
+        const provider = new AtMentionProvider(params);
+        jest.spyOn(provider, 'getProfilesWithLastViewAtInChannel').mockImplementation(() => [userid10, userid3, userid1, userid2]);
+
+        const resultCallback = jest.fn();
+        expect(provider.handlePretextChanged(pretext, resultCallback)).toEqual(true);
+
+        expect(resultCallback).toHaveBeenNthCalledWith(1, {
+            matchedPretext,
+            groups: [
+                membersGroup([
+                    userid10,
+                    userid3,
+                    userid1,
+                    userid2,
+                ]),
+                groupsGroup([
+                    groupid1,
+                    groupid2,
+                    groupid3,
+                ]),
+                specialMentionsGroup([
+                    {username: 'here'},
+                    {username: 'channel'},
+                    {username: 'all'},
+                ]),
+            ],
+        });
+
+        jest.runOnlyPendingTimers();
+
+        expect(resultCallback).toHaveBeenNthCalledWith(2, {
+            matchedPretext,
+            groups: [
+                membersGroup([
+                    userid10,
+                    userid3,
+                    userid1,
+                    userid2,
+                ]),
+                groupsGroup([
+                    groupid1,
+                    groupid2,
+                    groupid3,
+                ]),
+                specialMentionsGroup([
+                    {username: 'here'},
+                    {username: 'channel'},
+                    {username: 'all'},
+                ]),
+                otherMembersGroup(),
+            ],
+        });
+
+        await Promise.resolve().then(() => {
+            expect(resultCallback).toHaveBeenNthCalledWith(3, {
+                matchedPretext,
+                groups: itemsCall3,
+            });
+        });
+    });
+
+    it('should suggest for full-width "＠" with username prefix', async () => {
+        const pretext = '＠us';
+
+        const params = {
+            ...baseParams,
+            autocompleteUsersInChannel: jest.fn().mockImplementation(() => new Promise((resolve) => {
+                resolve({data: {
+                    users: [userid4],
+                    out_of_channel: [userid5, userid6],
+                }});
+            })),
+            searchAssociatedGroupsForReference: jest.fn().mockResolvedValue({data: []}),
+        };
+
+        const provider = new AtMentionProvider(params);
+        jest.spyOn(provider, 'getProfilesWithLastViewAtInChannel').mockImplementation(() => [userid10, userid3, userid1, userid2]);
+
+        const resultCallback = jest.fn();
+        expect(provider.handlePretextChanged(pretext, resultCallback)).toEqual(true);
+
+        expect(params.autocompleteUsersInChannel).toHaveBeenCalledWith('us');
+    });
 });
 
 for (const [name, func] of [
