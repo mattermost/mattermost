@@ -495,6 +495,10 @@ func (c *Client4) oAuthAppRoute(appId string) string {
 	return fmt.Sprintf("/oauth/apps/%v", appId)
 }
 
+func (c *Client4) oAuthRegisterRoute() string {
+	return "/oauth/apps/register"
+}
+
 func (c *Client4) outgoingOAuthConnectionsRoute() string {
 	return "/oauth/outgoing_connections"
 }
@@ -5086,6 +5090,25 @@ func (c *Client4) RegenerateOAuthAppSecret(ctx context.Context, appId string) (*
 	return DecodeJSONFromResponse[*OAuthApp](r)
 }
 
+// RegisterOAuthClient registers a new OAuth 2.0 client using Dynamic Client Registration (DCR).
+func (c *Client4) RegisterOAuthClient(ctx context.Context, request *ClientRegistrationRequest) (*ClientRegistrationResponse, *Response, error) {
+	buf, err := json.Marshal(request)
+	if err != nil {
+		return nil, nil, NewAppError("RegisterOAuthClient", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIPostJSON(ctx, c.oAuthRegisterRoute(), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var response ClientRegistrationResponse
+	if err := json.NewDecoder(r.Body).Decode(&response); err != nil {
+		return nil, nil, NewAppError("RegisterOAuthClient", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &response, BuildResponse(r), nil
+}
+
 // GetAuthorizedOAuthAppsForUser gets a page of OAuth 2.0 client applications the user has authorized to use access their account.
 func (c *Client4) GetAuthorizedOAuthAppsForUser(ctx context.Context, userId string, page, perPage int) ([]*OAuthApp, *Response, error) {
 	values := url.Values{}
@@ -5106,7 +5129,7 @@ func (c *Client4) AuthorizeOAuthApp(ctx context.Context, authRequest *AuthorizeR
 		return "", nil, err
 	}
 	// The request doesn't go to the /api/v4 subpath, so we can't use the usual helper methods
-	r, err := c.doAPIRequestBytes(ctx, http.MethodPost, c.URL+"/oauth/authorize", buf, "")
+	r, err := c.DoAPIPostJSON(ctx, c.URL+"/oauth/authorize", buf)
 	if err != nil {
 		return "", BuildResponse(r), err
 	}
@@ -5127,7 +5150,7 @@ func (c *Client4) DeauthorizeOAuthApp(ctx context.Context, appId string) (*Respo
 		return nil, err
 	}
 	// The request doesn't go to the /api/v4 subpath, so we can't use the usual helper methods
-	r, err := c.doAPIRequestBytes(ctx, http.MethodPost, c.URL+"/oauth/deauthorize", buf, "")
+	r, err := c.DoAPIPostJSON(ctx, c.URL+"/oauth/deauthorize", buf)
 	if err != nil {
 		return BuildResponse(r), err
 	}
