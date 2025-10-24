@@ -6,6 +6,7 @@ package app
 import (
 	"bytes"
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -14,6 +15,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
 func (a *App) SaveReportChunk(format string, prefix string, count int, reportData []model.ReportableObject) *model.AppError {
@@ -304,4 +306,35 @@ func getTranslatedDateRange(dateRange string) string {
 	default:
 		return i18n.T("app.report.date_range.all_time")
 	}
+}
+
+func (a *App) GetPostsForReporting(rctx request.CTX, options model.ReportPostOptions, cursor model.ReportPostOptionsCursor) (*model.ReportPostListResponse, *model.AppError) {
+	response, err := a.Srv().Store().Post().GetPostsForReporting(rctx, options, cursor)
+	if err != nil {
+		var invErr *store.ErrInvalidInput
+		switch {
+		case errors.As(err, &invErr):
+			return nil, model.NewAppError("GetPostsForReporting", "app.post.get_posts_for_reporting.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		default:
+			return nil, model.NewAppError("GetPostsForReporting", "app.post.get_posts_for_reporting.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	// Optionally enrich posts with metadata if requested
+	if options.IncludeMetadata {
+		for id, post := range response.Posts {
+			// Use PreparePostForClient to add metadata (files, reactions counts, emojis, priority, acknowledgements)
+			// This does NOT include embeds or images - those are only for UI presentation
+			enrichedPost := a.PreparePostForClient(rctx, post, &model.PreparePostForClientOpts{
+				IncludePriority: true,
+			})
+			response.Posts[id] = enrichedPost
+		}
+	}
+
+	// Reporting endpoints don't need filtering for inaccessible posts since they require admin permissions
+	// and are used for compliance/auditing purposes
+	a.applyPostsWillBeConsumedHook(response.Posts)
+
+	return response, nil
 }

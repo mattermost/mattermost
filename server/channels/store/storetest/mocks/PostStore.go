@@ -862,6 +862,36 @@ func (_m *PostStore) GetPostsCreatedAt(channelID string, timestamp int64) ([]*mo
 	return r0, r1
 }
 
+// GetPostsForReporting provides a mock function with given fields: rctx, options, cursor
+func (_m *PostStore) GetPostsForReporting(rctx request.CTX, options model.ReportPostOptions, cursor model.ReportPostOptionsCursor) (*model.ReportPostListResponse, error) {
+	ret := _m.Called(rctx, options, cursor)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPostsForReporting")
+	}
+
+	var r0 *model.ReportPostListResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, model.ReportPostOptions, model.ReportPostOptionsCursor) (*model.ReportPostListResponse, error)); ok {
+		return rf(rctx, options, cursor)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, model.ReportPostOptions, model.ReportPostOptionsCursor) *model.ReportPostListResponse); ok {
+		r0 = rf(rctx, options, cursor)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ReportPostListResponse)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, model.ReportPostOptions, model.ReportPostOptionsCursor) error); ok {
+		r1 = rf(rctx, options, cursor)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetPostsSince provides a mock function with given fields: rctx, options, allowFromCache, sanitizeOptions
 func (_m *PostStore) GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	ret := _m.Called(rctx, options, allowFromCache, sanitizeOptions)
