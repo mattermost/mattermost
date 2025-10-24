@@ -37,8 +37,31 @@ const sectionTitles: Record<DisplaySettingsSection, string> = {
 export default class DisplaySettings {
     readonly container: Locator;
 
+    readonly title;
+    public id = '#displaySettings';
+    readonly expandedSection;
+    public expandedSectionId = '.section-max';
+
+    readonly themeEditButton;
+    readonly collapsedReplyThreadsEditButton;
+    readonly clockDisplayEditButton;
+    readonly teammateNameDisplayEditButton;
+    readonly timezoneEditButton;
+    readonly languageEditButton;
+
     constructor(container: Locator) {
         this.container = container;
+
+        this.title = container.getByRole('heading', {name: 'Display Settings', exact: true});
+        this.expandedSection = container.locator(this.expandedSectionId);
+
+        // Edit buttons for each setting section
+        this.themeEditButton = container.locator('#themeEdit');
+        this.collapsedReplyThreadsEditButton = container.locator('#collapsedReplyThreadsEdit');
+        this.clockDisplayEditButton = container.locator('#clockDisplayEdit');
+        this.teammateNameDisplayEditButton = container.locator('#teammateNameDisplayEdit');
+        this.timezoneEditButton = container.locator('#timezoneEdit');
+        this.languageEditButton = container.locator('#languagesEdit');
     }
 
     async toBeVisible() {
