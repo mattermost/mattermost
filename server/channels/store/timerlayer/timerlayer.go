@@ -5159,6 +5159,22 @@ func (s *TimerLayerJobStore) GetAllByTypesPage(rctx request.CTX, jobTypes []stri
 	return result, err
 }
 
+func (s *TimerLayerJobStore) GetByTypeAndData(rctx request.CTX, jobType string, data map[string]string, useMaster bool, statuses ...string) ([]*model.Job, error) {
+	start := time.Now()
+
+	result, err := s.JobStore.GetByTypeAndData(rctx, jobType, data, useMaster, statuses...)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("JobStore.GetByTypeAndData", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerJobStore) GetCountByStatusAndType(status string, jobType string) (int64, error) {
 	start := time.Now()
 
@@ -11104,6 +11120,22 @@ func (s *TimerLayerTokenStore) Cleanup(expiryTime int64) {
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("TokenStore.Cleanup", success, elapsed)
 	}
+}
+
+func (s *TimerLayerTokenStore) ConsumeOnce(tokenType string, tokenStr string) (*model.Token, error) {
+	start := time.Now()
+
+	result, err := s.TokenStore.ConsumeOnce(tokenType, tokenStr)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TokenStore.ConsumeOnce", success, elapsed)
+	}
+	return result, err
 }
 
 func (s *TimerLayerTokenStore) Delete(token string) error {

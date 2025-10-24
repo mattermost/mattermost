@@ -692,7 +692,7 @@ type TokenStore interface {
 	Save(recovery *model.Token) error
 	Delete(token string) error
 	GetByToken(token string) (*model.Token, error)
-	ConsumeOnce(tokenStr string) (*model.Token, error)
+	ConsumeOnce(tokenType, tokenStr string) (*model.Token, error)
 	Cleanup(expiryTime int64)
 	GetAllTokensByType(tokenType string) ([]*model.Token, error)
 	RemoveAllTokensByType(tokenType string) error

@@ -1751,8 +1751,8 @@ func (a *App) GetTokenById(token string) (*model.Token, *model.AppError) {
 	return rtoken, nil
 }
 
-func (a *App) ConsumeTokenOnce(tokenStr string) (*model.Token, *model.AppError) {
-	token, err := a.Srv().Store().Token().ConsumeOnce(tokenStr)
+func (a *App) ConsumeTokenOnce(tokenType, tokenStr string) (*model.Token, *model.AppError) {
+	token, err := a.Srv().Store().Token().ConsumeOnce(tokenType, tokenStr)
 	if err != nil {
 		var status int
 		switch err.(type) {
