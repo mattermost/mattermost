@@ -4,6 +4,9 @@
 /* eslint-disable max-lines */
 
 import {batchActions} from 'redux-batched-actions';
+import React from 'react';
+
+import {AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
 
 import {
     ChannelTypes,
@@ -113,7 +116,7 @@ import {setGlobalItem} from 'actions/storage';
 import {loadProfilesForDM, loadProfilesForGM, loadProfilesForSidebar} from 'actions/user_actions';
 import {syncPostsInChannel} from 'actions/views/channel';
 import {setGlobalDraft, transformServerDraft} from 'actions/views/drafts';
-import {openModal} from 'actions/views/modals';
+import {openModal, closeModal} from 'actions/views/modals';
 import {closeRightHandSide} from 'actions/views/rhs';
 import {incrementWsErrorCount, resetWsErrorCount} from 'actions/views/system';
 import {updateThreadLastOpened} from 'actions/views/threads';
@@ -122,6 +125,7 @@ import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
 import store from 'stores/redux_store';
 
 import DialogRouter from 'components/dialog_router';
+import InfoToast from 'components/info_toast/info_toast';
 import RemovedFromChannelModal from 'components/removed_from_channel_modal';
 
 import WebSocketClient from 'client/web_websocket_client';
@@ -649,6 +653,9 @@ export function handleEvent(msg) {
         break;
     case SocketEvents.CONTENT_FLAGGING_REPORT_VALUE_CHANGED:
         dispatch(handleContentFlaggingReportValueChanged(msg));
+        break;
+    case SocketEvents.FILE_DOWNLOAD_REJECTED:
+        dispatch(handleFileDownloadRejected(msg));
         break;
     default:
     }
@@ -1985,5 +1992,27 @@ export function handleContentFlaggingReportValueChanged(msg) {
     return {
         type: ContentFlaggingTypes.CONTENT_FLAGGING_REPORT_VALUE_UPDATED,
         data: msg.data,
+    };
+}
+
+export function handleFileDownloadRejected(msg) {
+    return (dispatch, getState) => {
+        const {file_id, file_name, rejection_reason} = msg.data;
+        
+        // Show toast notification using the existing InfoToast system
+        dispatch(openModal({
+            modalId: ModalIdentifiers.INFO_TOAST,
+            dialogType: InfoToast,
+            dialogProps: {
+                content: {
+                    icon: React.createElement(AlertCircleOutlineIcon, { size: 18 }),
+                    message: rejection_reason,
+                },
+                onExited: () => {
+                    // Close the modal when the toast is dismissed
+                    dispatch(closeModal(ModalIdentifiers.INFO_TOAST));
+                },
+            },
+        }));
     };
 }
