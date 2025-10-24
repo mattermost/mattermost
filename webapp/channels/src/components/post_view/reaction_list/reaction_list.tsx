@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useMemo, useCallback} from 'react';
+import {useIntl} from 'react-intl';
 
 import type {Emoji} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
@@ -10,8 +11,6 @@ import type {Reaction as ReactionType} from '@mattermost/types/reactions';
 import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 
 import Reaction from 'components/post_view/reaction';
-
-import {localizeMessage} from 'utils/utils';
 
 import AddReactionButton from './add_reaction_button';
 
@@ -46,88 +45,73 @@ type Props = {
     };
 };
 
-type State = {
-    emojiNames: string[];
-};
+const ReactionList: React.FC<Props> = ({post, teamId, reactions: reactionMap, canAddReactions, actions}) => {
+    const intl = useIntl();
 
-export default class ReactionList extends React.PureComponent<Props, State> {
-    constructor(props: Props) {
-        super(props);
-
-        this.state = {
-            emojiNames: [],
-        };
-    }
-
-    static getDerivedStateFromProps(props: Props, state: State): Partial<State> | null {
-        let emojiNames = state.emojiNames;
-
-        for (const {emoji_name: emojiName} of Object.values(props.reactions ?? {})) {
-            if (!emojiNames.includes(emojiName)) {
-                emojiNames = [...emojiNames, emojiName];
-            }
+    const emojiNames = useMemo(() => {
+        if (!reactionMap) {
+            return [];
         }
 
-        return (emojiNames === state.emojiNames) ? null : {emojiNames};
-    }
+        const names = Object.values(reactionMap).map((r) => r.emoji_name);
+        return [...new Set(names)];
+    }, [reactionMap]);
 
-    handleEmojiClick = (emoji: Emoji): void => {
+    const handleEmojiClick = useCallback((emoji: Emoji): void => {
         const emojiName = getEmojiName(emoji);
-        this.props.actions.toggleReaction(this.props.post.id, emojiName);
-    };
+        actions.toggleReaction(post.id, emojiName);
+    }, [post.id, actions.toggleReaction]);
 
-    render(): React.ReactNode {
-        const reactionsByName = new Map();
-
-        if (this.props.reactions) {
-            for (const reaction of Object.values(this.props.reactions)) {
+    const reactionsByName = useMemo(() => {
+        const map = new Map<string, ReactionType[]>();
+        if (reactionMap) {
+            for (const reaction of Object.values(reactionMap)) {
                 const emojiName = reaction.emoji_name;
 
-                if (reactionsByName.has(emojiName)) {
-                    reactionsByName.get(emojiName).push(reaction);
+                if (map.has(emojiName)) {
+                    map.get(emojiName)!.push(reaction);
                 } else {
-                    reactionsByName.set(emojiName, [reaction]);
+                    map.set(emojiName, [reaction]);
                 }
             }
         }
+        return map;
+    }, [reactionMap]);
 
-        if (reactionsByName.size === 0) {
-            return null;
-        }
+    if (reactionsByName.size === 0) {
+        return null;
+    }
 
-        const reactions = this.state.emojiNames.map((emojiName) => {
-            if (reactionsByName.has(emojiName)) {
-                return (
-                    <Reaction
-                        key={emojiName}
-                        post={this.props.post}
-                        emojiName={emojiName}
-                        reactions={reactionsByName.get(emojiName) || []}
-                    />
-                );
-            }
-            return null;
-        });
-
-        let addReaction = null;
-        if (this.props.canAddReactions) {
-            addReaction = (
-                <AddReactionButton
-                    post={this.props.post}
-                    teamId={this.props.teamId}
-                    onEmojiClick={this.handleEmojiClick}
+    const reactionComponents = emojiNames.map((emojiName) => {
+        if (reactionsByName.has(emojiName)) {
+            return (
+                <Reaction
+                    key={emojiName}
+                    post={post}
+                    emojiName={emojiName}
+                    reactions={reactionsByName.get(emojiName) || []}
                 />
             );
         }
+        return null;
+    });
 
-        return (
-            <div
-                aria-label={localizeMessage({id: 'reaction.container.ariaLabel', defaultMessage: 'reactions'})}
-                className='post-reaction-list'
-            >
-                {reactions}
-                {addReaction}
-            </div>
-        );
-    }
-}
+    return (
+        <div
+            aria-label={intl.formatMessage({id: 'reaction.container.ariaLabel', defaultMessage: 'reactions'})}
+            className='post-reaction-list'
+            role='group'
+        >
+            {reactionComponents}
+            {canAddReactions && (
+                <AddReactionButton
+                    post={post}
+                    teamId={teamId}
+                    onEmojiClick={handleEmojiClick}
+                />
+            )}
+        </div>
+    );
+};
+
+export default ReactionList;
