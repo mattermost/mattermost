@@ -768,6 +768,17 @@ func (c *Context) RequireContentReviewerId() *Context {
 	return c
 }
 
+func (c *Context) RequireRecapId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.RecapId) {
+		c.SetInvalidURLParam("recap_id")
+	}
+	return c
+}
+
 func (c *Context) GetRemoteID(r *http.Request) string {
 	return r.Header.Get(model.HeaderRemoteclusterId)
 }

@@ -862,6 +862,36 @@ func (_m *PostStore) GetPostsCreatedAt(channelID string, timestamp int64) ([]*mo
 	return r0, r1
 }
 
+// GetPostsForProfileGeneration provides a mock function with given fields: userID, afterTimestamp, limit
+func (_m *PostStore) GetPostsForProfileGeneration(userID string, afterTimestamp int64, limit int) ([]*model.Post, error) {
+	ret := _m.Called(userID, afterTimestamp, limit)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPostsForProfileGeneration")
+	}
+
+	var r0 []*model.Post
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, int64, int) ([]*model.Post, error)); ok {
+		return rf(userID, afterTimestamp, limit)
+	}
+	if rf, ok := ret.Get(0).(func(string, int64, int) []*model.Post); ok {
+		r0 = rf(userID, afterTimestamp, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Post)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, int64, int) error); ok {
+		r1 = rf(userID, afterTimestamp, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetPostsSince provides a mock function with given fields: rctx, options, allowFromCache, sanitizeOptions
 func (_m *PostStore) GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	ret := _m.Called(rctx, options, allowFromCache, sanitizeOptions)

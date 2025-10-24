@@ -11,7 +11,8 @@ import (
 )
 
 const (
-	UserPropsKeyCustomStatus = "customStatus"
+	UserPropsKeyCustomStatus       = "customStatus"
+	UserPropsKeyAIGeneratedProfile = "ai_generated_profile"
 
 	CustomStatusTextMaxRunes = 100
 	MaxRecentCustomStatuses  = 5

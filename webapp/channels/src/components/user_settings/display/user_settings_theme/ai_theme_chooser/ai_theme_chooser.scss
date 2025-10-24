@@ -1,0 +1,186 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.ai-theme-chooser {
+    .ai-theme-empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        
+        &__icon {
+            font-size: 48px;
+            color: rgba(var(--center-channel-color-rgb), 0.4);
+            margin-bottom: 16px;
+        }
+        
+        &__title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--center-channel-color);
+        }
+        
+        &__text {
+            color: rgba(var(--center-channel-color-rgb), 0.6);
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+    }
+    
+    .ai-theme-preference-selection {
+        margin-bottom: 24px;
+        text-align: left;
+        
+        &__title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--center-channel-color);
+        }
+        
+        &__options {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            
+            .radio {
+                margin: 0;
+                
+                label {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    font-size: 14px;
+                    color: var(--center-channel-color);
+                    cursor: pointer;
+                    padding: 8px 0;
+                    white-space: nowrap;
+                    
+                    input[type="radio"] {
+                        margin: 0;
+                        flex-shrink: 0;
+                        width: 18px;
+                        height: 18px;
+                        order: -1;
+                    }
+
+                    span {
+                        margin-left: 24px;
+                    }
+                }
+            }
+        }
+    }
+    
+    .ai-theme-content {
+        .ai-theme-timestamp {
+            font-size: 12px;
+            color: rgba(var(--center-channel-color-rgb), 0.6);
+            margin-bottom: 16px;
+            text-align: right;
+        }
+        
+        .ai-theme-preview {
+            margin-bottom: 24px;
+            
+            &__header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 16px;
+            }
+            
+            &__title {
+                font-size: 16px;
+                font-weight: 600;
+                margin: 0;
+                color: var(--center-channel-color);
+            }
+            
+            &__actions {
+                .btn {
+                    min-width: 120px;
+                }
+            }
+            
+            &__thumbnail {
+                border: 1px solid rgba(var(--center-channel-color-rgb), 0.1);
+                border-radius: 8px;
+                overflow: hidden;
+                max-width: 300px;
+            }
+        }
+        
+        .ai-theme-explanation {
+            margin-bottom: 24px;
+            
+            &__header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 12px;
+            }
+            
+            &__title {
+                font-size: 14px;
+                font-weight: 600;
+                margin: 0;
+                color: var(--center-channel-color);
+            }
+            
+            &__copy-button {
+                opacity: 0.7;
+                transition: opacity 0.2s ease;
+                
+                &:hover {
+                    opacity: 1;
+                }
+            }
+            
+            &__content {
+                background: rgba(var(--center-channel-color-rgb), 0.04);
+                border-radius: 6px;
+                padding: 16px;
+            }
+            
+            &__text {
+                margin: 0;
+                line-height: 1.5;
+                color: var(--center-channel-color);
+                font-size: 14px;
+            }
+        }
+        
+        .ai-theme-actions {
+            text-align: center;
+            
+            .btn {
+                min-width: 140px;
+            }
+        }
+    }
+    
+    .alert {
+        margin-bottom: 16px;
+        padding: 12px 16px;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        
+        &.alert-danger {
+            background-color: rgba(var(--error-text-color-rgb), 0.1);
+            border: 1px solid rgba(var(--error-text-color-rgb), 0.2);
+            color: var(--error-text-color);
+        }
+        
+        &.alert-success {
+            background-color: rgba(var(--online-indicator-rgb), 0.1);
+            border: 1px solid rgba(var(--online-indicator-rgb), 0.2);
+            color: var(--online-indicator);
+        }
+        
+        .icon {
+            font-size: 16px;
+        }
+    }
+}

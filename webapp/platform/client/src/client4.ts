@@ -119,6 +119,7 @@ import type {
     PropertyValue,
 } from '@mattermost/types/properties';
 import type {Reaction} from '@mattermost/types/reactions';
+import type {Recap, CreateRecapRequest} from '@mattermost/types/recaps';
 import type {RemoteCluster, RemoteClusterAcceptInvite, RemoteClusterPatch, RemoteClusterWithPassword} from '@mattermost/types/remote_clusters';
 import type {UserReport, UserReportFilter, UserReportOptions} from '@mattermost/types/reports';
 import type {Role} from '@mattermost/types/roles';
@@ -151,6 +152,7 @@ import type {
     UserStatus,
     GetFilteredUsersStatsOpts,
     UserCustomStatus,
+    AIGeneratedProfile,
 } from '@mattermost/types/users';
 import type {DeepPartial, PartialExcept, RelationOneToOne} from '@mattermost/types/utilities';
 
@@ -451,6 +453,10 @@ export default class Client4 {
         return `${this.getBaseRoute()}/jobs`;
     }
 
+    getRecapsRoute() {
+        return `${this.getBaseRoute()}/recaps`;
+    }
+
     getPluginsRoute() {
         return `${this.getBaseRoute()}/plugins`;
     }
@@ -477,6 +483,10 @@ export default class Client4 {
 
     getBotRoute(botUserId: string) {
         return `${this.getBotsRoute()}/${botUserId}`;
+    }
+
+    getAIRoute() {
+        return `${this.getBaseRoute()}/ai`;
     }
 
     getGroupsRoute() {
@@ -952,6 +962,27 @@ export default class Client4 {
         return this.doFetch<UserProfile>(
             `${this.getUserRoute(userId)}`,
             {method: 'get'},
+        );
+    };
+
+    generateUserProfile = (userId: string, options?: {postLimit?: number; timeRangeMonths?: number}) => {
+        return this.doFetch<AIGeneratedProfile>(
+            `${this.getUserRoute(userId)}/profile/generate`,
+            {method: 'post', body: options ? JSON.stringify(options) : undefined},
+        );
+    };
+
+    getUserProfile = (userId: string) => {
+        return this.doFetch<AIGeneratedProfile>(
+            `${this.getUserRoute(userId)}/profile`,
+            {method: 'get'},
+        );
+    };
+
+    generateAITheme = (userId: string, profileData: {writing_style_report: string; topics: string[]; theme_preference?: 'light' | 'dark' | 'auto'}) => {
+        return this.doFetch<{theme: any; explanation: string; generated_at: number}>(
+            `${this.getUserRoute(userId)}/theme/generate`,
+            {method: 'post', body: JSON.stringify(profileData)},
         );
     };
 
@@ -3232,6 +3263,42 @@ export default class Client4 {
         );
     };
 
+    // Recaps Routes
+    createRecap = (request: CreateRecapRequest) => {
+        return this.doFetch<Recap>(
+            `${this.getRecapsRoute()}`,
+            {method: 'post', body: JSON.stringify(request)},
+        );
+    };
+
+    getRecaps = (page = 0, perPage = PER_PAGE_DEFAULT) => {
+        return this.doFetch<Recap[]>(
+            `${this.getRecapsRoute()}${buildQueryString({page, per_page: perPage})}`,
+            {method: 'get'},
+        );
+    };
+
+    getRecap = (recapId: string) => {
+        return this.doFetch<Recap>(
+            `${this.getRecapsRoute()}/${recapId}`,
+            {method: 'get'},
+        );
+    };
+
+    markRecapAsRead = (recapId: string) => {
+        return this.doFetch<Recap>(
+            `${this.getRecapsRoute()}/${recapId}/read`,
+            {method: 'post'},
+        );
+    };
+
+    deleteRecap = (recapId: string) => {
+        return this.doFetch<StatusOK>(
+            `${this.getRecapsRoute()}/${recapId}`,
+            {method: 'delete'},
+        );
+    };
+
     // Admin Routes
 
     getLogs = (logFilter: LogFilterQuery) => {
@@ -4097,6 +4164,15 @@ export default class Client4 {
         );
     };
 
+    // AI Routes
+
+    rewriteMessage = (message: string, action: string) => {
+        return this.doFetch<{rewritten_message: string; original_message: string; action: string}>(
+            `${this.getAIRoute()}/rewrite`,
+            {method: 'post', body: JSON.stringify({message, action})},
+        );
+    };
+
     // Cloud routes
     getCloudProducts = (includeLegacyProducts?: boolean) => {
         let query = '';
@@ -4302,6 +4378,13 @@ export default class Client4 {
             `${this.url}/plugins/${'com.mattermost.calls'}/${channelId}`,
             {method: 'get'},
         );
+    };
+
+    getAIRewrittenMessage = (message: string, action?: string, customPrompt?: string) => {
+        return this.doFetch<{rewritten_text: string; changes_made: string[]}>(
+            `${this.getBaseRoute()}/ai/rewrite`,
+            {method: 'post', body: JSON.stringify({message, action, custom_prompt: customPrompt})},
+        ).then((response) => response.rewritten_text);
     };
 
     // Client Helpers

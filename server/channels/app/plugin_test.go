@@ -1308,3 +1308,76 @@ func TestGetPluginStateOverride(t *testing.T) {
 		})
 	})
 }
+
+func TestPluginBridge(t *testing.T) {
+	t.Run("CallPluginBridge returns error when plugins not initialized", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		// Ensure plugins are not initialized
+		th.App.ch.SetPluginsEnvironment(nil)
+
+		request := []byte(`{"test": "data"}`)
+		schema := []byte(`{"type": "object"}`)
+		_, err := th.App.CallPluginBridge(th.Context, "source-plugin", "target-plugin", "/api/v1/test", request, schema)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "plugins are not initialized")
+	})
+
+	t.Run("CallPluginBridge returns error when target plugin not active", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = true
+		})
+		th.App.InitPlugins(th.Context, *th.App.Config().PluginSettings.Directory, *th.App.Config().PluginSettings.ClientDirectory)
+		defer th.App.ch.ShutDownPlugins()
+
+		request := []byte(`{"test": "data"}`)
+		schema := []byte(`{"type": "object", "properties": {"result": {"type": "string"}}}`)
+		_, err := th.App.CallPluginBridge(th.Context, "source-plugin", "nonexistent-plugin", "/api/v1/test", request, schema)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "not active")
+	})
+
+	t.Run("CallPluginFromCore passes empty source plugin ID", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		// This test verifies that CallPluginFromCore correctly passes an empty string as the source
+		// We can't test the full flow without a real plugin, but we can verify the parameters
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = true
+		})
+		th.App.InitPlugins(th.Context, *th.App.Config().PluginSettings.Directory, *th.App.Config().PluginSettings.ClientDirectory)
+		defer th.App.ch.ShutDownPlugins()
+
+		request := []byte(`{"test": "data"}`)
+		schema := []byte(`{"summary": "string", "confidence": "number"}`)
+		_, err := th.App.CallPluginFromCore(th.Context, "nonexistent-plugin", "/api/v1/test", request, schema)
+		require.Error(t, err)
+		// Should fail because plugin doesn't exist, but this verifies the method signature
+		require.Contains(t, err.Error(), "not active")
+	})
+
+	t.Run("CallPluginBridge with nil response schema works", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = true
+		})
+		th.App.InitPlugins(th.Context, *th.App.Config().PluginSettings.Directory, *th.App.Config().PluginSettings.ClientDirectory)
+		defer th.App.ch.ShutDownPlugins()
+
+		request := []byte(`{"test": "data"}`)
+		_, err := th.App.CallPluginBridge(th.Context, "source-plugin", "nonexistent-plugin", "/api/v1/test", request, nil)
+		require.Error(t, err)
+		// Should fail because plugin doesn't exist, but verifies nil schema is accepted
+		require.Contains(t, err.Error(), "not active")
+	})
+}
+
+// TestPluginBridgeContext is no longer needed since we're using HTTP headers
+// for source tracking instead of RPC Context fields

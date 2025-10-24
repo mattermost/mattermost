@@ -97,6 +97,9 @@ func (api *API) InitUser() {
 
 	api.BaseRoutes.User.Handle("/uploads", api.APISessionRequired(getUploadsForUser)).Methods(http.MethodGet)
 	api.BaseRoutes.User.Handle("/channel_members", api.APISessionRequired(getChannelMembersForUser)).Methods(http.MethodGet)
+	api.BaseRoutes.User.Handle("/profile/generate", api.APISessionRequired(generateUserProfile)).Methods(http.MethodPost)
+	api.BaseRoutes.User.Handle("/profile", api.APISessionRequired(getUserProfile)).Methods(http.MethodGet)
+	api.BaseRoutes.User.Handle("/theme/generate", api.APISessionRequired(generateAITheme)).Methods(http.MethodPost)
 
 	api.BaseRoutes.Users.Handle("/invalid_emails", api.APISessionRequired(getUsersWithInvalidEmails)).Methods(http.MethodGet)
 
@@ -3710,4 +3713,162 @@ func resetPasswordFailedAttempts(c *Context, w http.ResponseWriter, r *http.Requ
 	auditRec.Success()
 
 	ReturnStatusOK(w)
+}
+
+func generateUserProfile(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	// Parse optional request body for post_limit and time_range_months
+	var options struct {
+		PostLimit       *int `json:"postLimit"`
+		TimeRangeMonths *int `json:"timeRangeMonths"`
+	}
+
+	if r.ContentLength > 0 {
+		if jsonErr := json.NewDecoder(r.Body).Decode(&options); jsonErr != nil {
+			c.SetInvalidParamWithErr("request_body", jsonErr)
+			return
+		}
+	}
+
+	// Permission check: user can only generate their own profile
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+
+	// Set default values
+	postLimit := 100
+	timeRangeMonths := 6
+
+	if options.PostLimit != nil {
+		postLimit = *options.PostLimit
+	}
+	if options.TimeRangeMonths != nil {
+		timeRangeMonths = *options.TimeRangeMonths
+	}
+
+	// Validate parameters
+	if postLimit < 1 || postLimit > 1000 {
+		c.SetInvalidParam("postLimit")
+		return
+	}
+	if timeRangeMonths < 1 || timeRangeMonths > 24 {
+		c.SetInvalidParam("timeRangeMonths")
+		return
+	}
+
+	// Call app layer to generate the profile
+	profile, err := c.App.GenerateUserProfile(c.AppContext, c.Params.UserId, postLimit, timeRangeMonths)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	// Return JSON response with generated profile
+	if jsonErr := json.NewEncoder(w).Encode(profile); jsonErr != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(jsonErr))
+	}
+}
+
+func getUserProfile(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	// Permission check: user can only view their own profile
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+
+	// Fetch user from database
+	user, err := c.App.GetUser(c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	// Get profile from User.Props["ai_generated_profile"]
+	profileJSON, ok := user.Props["ai_generated_profile"]
+	if !ok {
+		c.Err = model.NewAppError("getUserProfile", "api.user.get_user_profile.not_found.app_error", nil, "", http.StatusNotFound)
+		return
+	}
+
+	// Parse JSON and return AIGeneratedProfile
+	var profile model.AIGeneratedProfile
+	if jsonErr := json.Unmarshal([]byte(profileJSON), &profile); jsonErr != nil {
+		c.Err = model.NewAppError("getUserProfile", "api.user.get_user_profile.parse_error.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+		return
+	}
+
+	// Return the profile
+	if jsonErr := json.NewEncoder(w).Encode(profile); jsonErr != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(jsonErr))
+	}
+}
+
+func generateAITheme(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	// Parse request body
+	var req struct {
+		WritingStyleReport string   `json:"writing_style_report"`
+		Topics             []string `json:"topics"`
+		ThemePreference    string   `json:"theme_preference,omitempty"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		c.SetInvalidParamWithErr("request_body", err)
+		return
+	}
+
+	// Validate request
+	if req.WritingStyleReport == "" {
+		c.SetInvalidParam("writing_style_report")
+		return
+	}
+	if len(req.Topics) == 0 {
+		c.SetInvalidParam("topics")
+		return
+	}
+
+	// Validate theme preference if provided
+	if req.ThemePreference != "" {
+		validPreferences := map[string]bool{
+			"light": true,
+			"dark":  true,
+			"auto":  true,
+		}
+		if !validPreferences[req.ThemePreference] {
+			c.SetInvalidParam("theme_preference")
+			return
+		}
+	}
+
+	// Permission check: user can only generate their own theme
+	if !c.App.SessionHasPermissionToUser(*c.AppContext.Session(), c.Params.UserId) {
+		c.SetPermissionError(model.PermissionEditOtherUsers)
+		return
+	}
+
+	// Call app layer to generate the theme
+	themeResponse, err := c.App.GenerateAITheme(c.AppContext, c.Params.UserId, req.WritingStyleReport, req.Topics, req.ThemePreference)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	// Return JSON response with generated theme
+	if jsonErr := json.NewEncoder(w).Encode(themeResponse); jsonErr != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(jsonErr))
+	}
 }

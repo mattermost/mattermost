@@ -114,6 +114,7 @@ export type ClientPluginManifest = {
     webapp: {
         bundle_path: string;
     };
+    props?: Record<string, any>;
 }
 
 export type MarketplaceLabel = { // TODO remove this in favour of the definition in types/marketplace after the mattermost-redux migration

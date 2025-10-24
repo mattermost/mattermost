@@ -21,6 +21,7 @@ import jobs from './jobs';
 import limits from './limits';
 import posts from './posts';
 import preferences from './preferences';
+import recaps from './recaps';
 import roles from './roles';
 import scheduledPosts from './scheduled_posts';
 import schemes from './schemes';
@@ -41,6 +42,7 @@ export default combineReducers({
     posts,
     files,
     preferences,
+    recaps,
     typing,
     integrations,
     emojis,

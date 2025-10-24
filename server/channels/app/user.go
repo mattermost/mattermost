@@ -18,6 +18,7 @@ import (
 
 	"golang.org/x/sync/errgroup"
 
+	agentclient "github.com/mattermost/mattermost-plugin-ai/public/client"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
@@ -3024,6 +3025,462 @@ func (a *App) ResetPasswordFailedAttempts(rctx request.CTX, user *model.User) *m
 	err := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, 0)
 	if err != nil {
 		return model.NewAppError("ResetPasswordFailedAttempts", "app.user.reset_password_failed_attempts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return nil
+}
+
+// GenerateUserProfile generates an AI-powered profile for a user based on their posts
+func (a *App) GenerateUserProfile(c request.CTX, userID string, postLimit int, timeRangeMonths int) (*model.AIGeneratedProfile, *model.AppError) {
+	// Set defaults if not specified
+	if postLimit <= 0 {
+		postLimit = 1000
+	}
+	if timeRangeMonths <= 0 {
+		timeRangeMonths = 6
+	}
+
+	// Fetch user to verify exists
+	user, err := a.GetUser(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Calculate time threshold: now - (timeRangeMonths * 30 days)
+	now := model.GetMillis()
+	timeThreshold := now - (int64(timeRangeMonths) * 30 * 24 * 60 * 60 * 1000)
+
+	c.Logger().Debug("Fetching user posts for AI profile generation",
+		mlog.String("user_id", userID),
+		mlog.Int("post_limit", postLimit),
+		mlog.Int("time_range_months", timeRangeMonths),
+	)
+
+	// Fetch posts using optimized store method
+	posts, storeErr := a.Srv().Store().Post().GetPostsForProfileGeneration(userID, timeThreshold, postLimit)
+	if storeErr != nil {
+		c.Logger().Error("Failed to fetch user posts",
+			mlog.Err(storeErr),
+			mlog.String("user_id", userID),
+		)
+		return nil, model.NewAppError("GenerateUserProfile", "app.user.generate_profile.fetch_posts_failed", nil, storeErr.Error(), http.StatusInternalServerError)
+	}
+
+	if len(posts) == 0 {
+		return nil, model.NewAppError("GenerateUserProfile", "app.user.generate_profile.no_posts", nil, "user has no posts in the specified time range", http.StatusBadRequest)
+	}
+
+	c.Logger().Debug("Found user posts for profile generation",
+		mlog.String("user_id", userID),
+		mlog.Int("post_count", len(posts)),
+	)
+
+	// Prepare posts for AI analysis
+	// Extract message content and format into a string
+	var postsContent strings.Builder
+	const maxContentSize = 50000 // 50k characters limit to avoid token limits
+	postCount := 0
+
+	for _, post := range posts {
+		if post.Message == "" {
+			continue
+		}
+
+		// Check if adding this post would exceed the limit
+		if postsContent.Len()+len(post.Message)+2 > maxContentSize {
+			break
+		}
+
+		postsContent.WriteString(post.Message)
+		postsContent.WriteString("\n\n")
+		postCount++
+	}
+
+	if postsContent.Len() == 0 {
+		return nil, model.NewAppError("GenerateUserProfile", "app.user.generate_profile.no_content", nil, "user posts have no content", http.StatusBadRequest)
+	}
+
+	c.Logger().Debug("Prepared posts content for AI analysis",
+		mlog.String("user_id", userID),
+		mlog.Int("posts_included", postCount),
+		mlog.Int("content_length", postsContent.Len()),
+	)
+
+	// Build AI prompt
+	systemPrompt := `You are a JSON API that analyzes a user's writing style and work-related interests based on their messages.
+
+Your task:
+1. Analyze the writing style and create a DETAILED paragraph that captures their communication patterns comprehensively. This report will be used by another LLM to mimic their writing style, so include:
+   - Tone and formality level
+   - Vocabulary preferences and common phrases
+   - Sentence structure and length patterns
+   - Technical terminology usage
+   - How they explain concepts, give feedback, and communicate
+   - Formatting preferences (lists, emphasis, structure)
+   - Any unique characteristics or quirks
+
+2. Identify work-related topics they are interested in or involved with. Return as a simple array of topic names.
+
+Return ONLY valid JSON in this exact format (no additional text) do not include any explanations outside the JSON or any formatting code blocks like tripple backticks:
+{
+  "writing_style_report": "detailed paragraph here...",
+  "topics": ["Topic 1", "Topic 2", "Topic 3"]
+}`
+
+	userPrompt := fmt.Sprintf("Analyze the following user posts and generate a profile:\n\n%s", postsContent.String())
+
+	// Create AI client
+	sessionUserID := ""
+	if session := c.Session(); session != nil {
+		sessionUserID = session.UserId
+	}
+	client := a.getAIClient(sessionUserID)
+
+	// Prepare completion request
+	completionRequest := agentclient.CompletionRequest{
+		Posts: []agentclient.Post{
+			{
+				Role:    "system",
+				Message: systemPrompt,
+			},
+			{
+				Role:    "user",
+				Message: userPrompt,
+			},
+		},
+	}
+
+	// Call the AI plugin
+	c.Logger().Debug("Calling AI agent for profile generation",
+		mlog.String("user_id", userID),
+	)
+
+	completion, aiErr := client.AgentCompletion("", completionRequest)
+	if aiErr != nil {
+		c.Logger().Error("AI agent call failed",
+			mlog.Err(aiErr),
+			mlog.String("user_id", userID),
+		)
+		return nil, model.NewAppError("GenerateUserProfile", "app.user.generate_profile.ai_call_failed", nil, aiErr.Error(), http.StatusInternalServerError)
+	}
+
+	// Parse JSON response into AIGeneratedProfile
+	var aiResponse struct {
+		WritingStyleReport string   `json:"writing_style_report"`
+		Topics             []string `json:"topics"`
+	}
+
+	if parseErr := json.Unmarshal([]byte(completion), &aiResponse); parseErr != nil {
+		c.Logger().Error("Failed to parse AI response",
+			mlog.Err(parseErr),
+			mlog.String("response", completion),
+		)
+		return nil, model.NewAppError("GenerateUserProfile", "app.user.generate_profile.parse_failed", nil, parseErr.Error(), http.StatusInternalServerError)
+	}
+
+	// Validate response
+	if aiResponse.WritingStyleReport == "" {
+		return nil, model.NewAppError("GenerateUserProfile", "app.user.generate_profile.invalid_response", nil, "writing_style_report is required", http.StatusInternalServerError)
+	}
+	if len(aiResponse.Topics) == 0 {
+		return nil, model.NewAppError("GenerateUserProfile", "app.user.generate_profile.invalid_response", nil, "topics array is required", http.StatusInternalServerError)
+	}
+
+	// Create profile with generated timestamp
+	profile := &model.AIGeneratedProfile{
+		WritingStyleReport: aiResponse.WritingStyleReport,
+		Topics:             aiResponse.Topics,
+		GeneratedAt:        model.GetMillis(),
+	}
+
+	// Store profile in user props
+	profileJSON, jsonErr := profile.ToJSON()
+	if jsonErr != nil {
+		return nil, model.NewAppError("GenerateUserProfile", "app.user.generate_profile.json_failed", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+
+	user.Props[model.UserPropsKeyAIGeneratedProfile] = profileJSON
+
+	// Update user to save the profile
+	_, updateErr := a.UpdateUser(c, user, false)
+	if updateErr != nil {
+		c.Logger().Error("Failed to update user with generated profile",
+			mlog.Err(updateErr),
+			mlog.String("user_id", userID),
+		)
+		return nil, updateErr
+	}
+
+	c.Logger().Info("Successfully generated AI profile for user",
+		mlog.String("user_id", userID),
+		mlog.Int("posts_analyzed", postCount),
+	)
+
+	return profile, nil
+}
+
+// GenerateAITheme generates an AI-powered theme for a user based on their profile
+func (a *App) GenerateAITheme(c request.CTX, userID string, writingStyleReport string, topics []string, themePreference string) (*model.AIThemeResponse, *model.AppError) {
+	// Verify user exists
+	_, err := a.GetUser(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	c.Logger().Debug("Generating AI theme for user",
+		mlog.String("user_id", userID),
+		mlog.String("writing_style_length", fmt.Sprintf("%d", len(writingStyleReport))),
+		mlog.Int("topics_count", len(topics)),
+		mlog.String("theme_preference", themePreference),
+	)
+
+	// Build AI prompt for theme generation
+	systemPrompt := `You are an AI assistant that creates personalized Mattermost themes based on a user's writing style and interests.
+
+Your task:
+1. Analyze the user's writing style and topics of interest
+2. Create a Mattermost theme that reflects their personality and preferences
+3. Ensure the theme follows Mattermost's design principles and accessibility guidelines
+4. Provide a clear explanation of why this theme was chosen
+
+Theme Requirements:
+- Must include all required theme properties (sidebarBg, sidebarText, etc.)
+- Colors must have sufficient contrast for accessibility
+- Should reflect the user's personality and interests
+- Must be professional and suitable for workplace use
+- Follow the same format as existing Mattermost themes
+- Theme preference will be specified: "light" (bright backgrounds), "dark" (dark backgrounds), or "auto" (choose based on user's style)
+
+Theme Design Guidelines:
+- For DARK themes: Use darker tones for centerChannelBg (main content area), with sidebar colors that complement the dark center channel
+- For LIGHT themes: Use lighter tones for centerChannelBg, sidebar can be light, dark, or any color that creates good contrast and visual hierarchy
+- Always ensure sufficient contrast between text and background colors
+- Consider the user's personality and interests when selecting color schemes
+- Maintain professional appearance suitable for workplace use
+
+Return ONLY valid JSON in this exact format (no additional text or code blocks):
+{
+  "theme": {
+    "type": "custom",
+    "sidebarBg": "#hexcolor",
+    "sidebarText": "#hexcolor",
+    "sidebarUnreadText": "#hexcolor",
+    "sidebarTextHoverBg": "#hexcolor",
+    "sidebarTextActiveBorder": "#hexcolor",
+    "sidebarTextActiveColor": "#hexcolor",
+    "sidebarHeaderBg": "#hexcolor",
+    "sidebarTeamBarBg": "#hexcolor",
+    "sidebarHeaderTextColor": "#hexcolor",
+    "onlineIndicator": "#hexcolor",
+    "awayIndicator": "#hexcolor",
+    "dndIndicator": "#hexcolor",
+    "mentionBg": "#hexcolor",
+    "mentionBj": "#hexcolor",
+    "mentionColor": "#hexcolor",
+    "centerChannelBg": "#hexcolor",
+    "centerChannelColor": "#hexcolor",
+    "newMessageSeparator": "#hexcolor",
+    "linkColor": "#hexcolor",
+    "buttonBg": "#hexcolor",
+    "buttonColor": "#hexcolor",
+    "errorTextColor": "#hexcolor",
+    "mentionHighlightBg": "#hexcolor",
+    "mentionHighlightLink": "#hexcolor",
+    "codeTheme": "github"
+  },
+  "explanation": "Detailed explanation of why this theme was chosen based on the user's style and interests"
+}`
+
+	// Set default theme preference if not specified
+	if themePreference == "" {
+		themePreference = "auto"
+	}
+
+	userPrompt := fmt.Sprintf(`Generate a personalized Mattermost theme for a user with the following characteristics:
+
+Writing Style: %s
+
+Topics of Interest: %s
+
+Theme Preference: %s
+
+IMPORTANT THEME DESIGN RULES:
+- If theme preference is "dark": Use dark colors for centerChannelBg (main content area) and choose sidebar colors that complement the dark center channel
+- If theme preference is "light": Use light colors for centerChannelBg, sidebar can be any color that creates good visual hierarchy
+- If theme preference is "auto": Analyze the user's writing style and topics to determine the most appropriate theme type
+
+Create a theme that reflects their personality and professional interests while maintaining accessibility and usability.`, writingStyleReport, strings.Join(topics, ", "), themePreference)
+
+	// Create AI client
+	sessionUserID := ""
+	if session := c.Session(); session != nil {
+		sessionUserID = session.UserId
+	}
+	client := a.getAIClient(sessionUserID)
+
+	// Prepare completion request
+	completionRequest := agentclient.CompletionRequest{
+		Posts: []agentclient.Post{
+			{
+				Role:    "system",
+				Message: systemPrompt,
+			},
+			{
+				Role:    "user",
+				Message: userPrompt,
+			},
+		},
+	}
+
+	// Call the AI plugin
+	c.Logger().Debug("Calling AI agent for theme generation",
+		mlog.String("user_id", userID),
+	)
+
+	completion, aiErr := client.AgentCompletion("", completionRequest)
+	if aiErr != nil {
+		c.Logger().Error("AI agent call failed",
+			mlog.Err(aiErr),
+			mlog.String("user_id", userID),
+		)
+		return nil, model.NewAppError("GenerateAITheme", "app.user.generate_ai_theme.ai_call_failed", nil, aiErr.Error(), http.StatusInternalServerError)
+	}
+
+	// Parse JSON response
+	var aiResponse struct {
+		Theme       map[string]interface{} `json:"theme"`
+		Explanation string                 `json:"explanation"`
+	}
+
+	if parseErr := json.Unmarshal([]byte(completion), &aiResponse); parseErr != nil {
+		c.Logger().Error("Failed to parse AI response",
+			mlog.Err(parseErr),
+			mlog.String("response", completion),
+		)
+		return nil, model.NewAppError("GenerateAITheme", "app.user.generate_ai_theme.parse_failed", nil, parseErr.Error(), http.StatusInternalServerError)
+	}
+
+	// Validate and format the theme
+	theme, validationErr := a.validateAndFormatTheme(aiResponse.Theme)
+	if validationErr != nil {
+		c.Logger().Error("Theme validation failed",
+			mlog.Err(validationErr),
+			mlog.String("user_id", userID),
+		)
+		return nil, model.NewAppError("GenerateAITheme", "app.user.generate_ai_theme.validation_failed", nil, validationErr.Error(), http.StatusInternalServerError)
+	}
+
+	// Create response
+	response := &model.AIThemeResponse{
+		Theme:       theme,
+		Explanation: aiResponse.Explanation,
+		GeneratedAt: model.GetMillis(),
+	}
+
+	c.Logger().Info("Successfully generated AI theme for user",
+		mlog.String("user_id", userID),
+		mlog.String("theme_type", theme["type"]),
+	)
+
+	return response, nil
+}
+
+// validateAndFormatTheme validates and formats an AI-generated theme
+func (a *App) validateAndFormatTheme(themeMap map[string]interface{}) (map[string]string, error) {
+	// Required theme properties
+	requiredProps := []string{
+		"sidebarBg", "sidebarText", "sidebarUnreadText", "sidebarTextHoverBg",
+		"sidebarTextActiveBorder", "sidebarTextActiveColor", "sidebarHeaderBg",
+		"sidebarTeamBarBg", "sidebarHeaderTextColor", "onlineIndicator",
+		"awayIndicator", "dndIndicator", "mentionBg", "mentionBj", "mentionColor",
+		"centerChannelBg", "centerChannelColor", "newMessageSeparator",
+		"linkColor", "buttonBg", "buttonColor", "errorTextColor",
+		"mentionHighlightBg", "mentionHighlightLink", "codeTheme",
+	}
+
+	theme := make(map[string]string)
+
+	// Set default values first
+	theme["type"] = "custom"
+	theme["codeTheme"] = "github"
+
+	// Validate and convert each property
+	for _, prop := range requiredProps {
+		if value, exists := themeMap[prop]; exists {
+			if strValue, ok := value.(string); ok && strValue != "" {
+				// Validate hex color format for color properties
+				if isColorProperty(prop) && !isValidHexColor(strValue) {
+					return nil, fmt.Errorf("invalid hex color for property %s: %s", prop, strValue)
+				}
+				theme[prop] = strValue
+			} else {
+				return nil, fmt.Errorf("invalid value for property %s", prop)
+			}
+		} else {
+			return nil, fmt.Errorf("missing required property: %s", prop)
+		}
+	}
+
+	// Validate color contrast and accessibility
+	if err := a.validateThemeAccessibility(theme); err != nil {
+		return nil, fmt.Errorf("accessibility validation failed: %w", err)
+	}
+
+	return theme, nil
+}
+
+// isColorProperty checks if a property is a color property
+func isColorProperty(prop string) bool {
+	colorProps := []string{
+		"sidebarBg", "sidebarText", "sidebarUnreadText", "sidebarTextHoverBg",
+		"sidebarTextActiveBorder", "sidebarTextActiveColor", "sidebarHeaderBg",
+		"sidebarTeamBarBg", "sidebarHeaderTextColor", "onlineIndicator",
+		"awayIndicator", "dndIndicator", "mentionBg", "mentionBj", "mentionColor",
+		"centerChannelBg", "centerChannelColor", "newMessageSeparator",
+		"linkColor", "buttonBg", "buttonColor", "errorTextColor",
+		"mentionHighlightBg", "mentionHighlightLink",
+	}
+
+	for _, colorProp := range colorProps {
+		if prop == colorProp {
+			return true
+		}
+	}
+	return false
+}
+
+// isValidHexColor validates hex color format
+func isValidHexColor(color string) bool {
+	if len(color) != 7 || color[0] != '#' {
+		return false
+	}
+	for i := 1; i < 7; i++ {
+		c := color[i]
+		if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+			return false
+		}
+	}
+	return true
+}
+
+// validateThemeAccessibility performs basic accessibility checks
+func (a *App) validateThemeAccessibility(theme map[string]string) error {
+	// Basic validation - ensure we have reasonable color combinations
+	// This is a simplified check; in production, you might want more sophisticated contrast validation
+
+	// Check that sidebar text is different from sidebar background
+	if theme["sidebarBg"] == theme["sidebarText"] {
+		return fmt.Errorf("sidebar text and background colors cannot be the same")
+	}
+
+	// Check that center channel text is different from background
+	if theme["centerChannelBg"] == theme["centerChannelColor"] {
+		return fmt.Errorf("center channel text and background colors cannot be the same")
+	}
+
+	// Ensure button text is different from button background
+	if theme["buttonBg"] == theme["buttonColor"] {
+		return fmt.Errorf("button text and background colors cannot be the same")
 	}
 
 	return nil

@@ -13,6 +13,7 @@ import DisplayTab from './display';
 import GeneralTab from './general';
 import NotificationsTab from './notifications';
 import PluginTab from './plugin';
+import ProfileTab from './profile';
 import SecurityTab from './security';
 import SidebarTab from './sidebar';
 
@@ -32,6 +33,15 @@ export type Props = {
 
 export default function UserSettings(props: Props) {
     if (props.activeTab === 'profile') {
+        return (
+            <div>
+                <ProfileTab
+                    closeModal={props.closeModal}
+                    collapseModal={props.collapseModal}
+                />
+            </div>
+        );
+    } else if (props.activeTab === 'general') {
         return (
             <div>
                 <GeneralTab
