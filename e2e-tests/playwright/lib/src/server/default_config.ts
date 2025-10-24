@@ -598,6 +598,7 @@ const defaultServerConfig: AdminConfig = {
         UsersStatusAndProfileFetchingPollIntervalMilliseconds: 3000,
         YoutubeReferrerPolicy: false,
         ExperimentalChannelCategorySorting: false,
+        ExperimentalLastViewSanitize: true,
     },
     AnalyticsSettings: {
         MaxUsersForStatistics: 2500,
