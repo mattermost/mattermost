@@ -5,6 +5,9 @@ import React, {useState, useEffect} from 'react';
 
 import TipTapEditor from './tiptap_editor';
 
+import {usePageInlineComments} from '../hooks/usePageInlineComments';
+import InlineCommentModal from '../inline_comment_modal';
+
 type Props = {
     title: string;
     content: string;
@@ -13,6 +16,8 @@ type Props = {
     currentUserId?: string;
     channelId?: string;
     teamId?: string;
+    pageId?: string;
+    wikiId?: string;
     showAuthor?: boolean;
 };
 
@@ -24,12 +29,23 @@ const WikiPageEditor = ({
     currentUserId,
     channelId,
     teamId,
+    pageId,
+    wikiId,
     showAuthor = false,
 }: Props) => {
-    // Local state for immediate UI feedback
     const [localTitle, setLocalTitle] = useState(title);
 
-    // Sync local state when prop changes (e.g., switching drafts)
+    // Use shared inline comments hook
+    const {
+        inlineComments,
+        handleCommentClick,
+        handleCreateInlineComment,
+        showCommentModal,
+        commentAnchor,
+        handleSubmitComment,
+        handleCloseModal,
+    } = usePageInlineComments(pageId, wikiId);
+
     useEffect(() => {
         setLocalTitle(title);
     }, [title]);
@@ -66,8 +82,20 @@ const WikiPageEditor = ({
                     currentUserId={currentUserId}
                     channelId={channelId}
                     teamId={teamId}
+                    pageId={pageId}
+                    wikiId={wikiId}
+                    inlineComments={inlineComments}
+                    onCommentClick={handleCommentClick}
+                    onCreateInlineComment={handleCreateInlineComment}
                 />
             </div>
+            {showCommentModal && commentAnchor && (
+                <InlineCommentModal
+                    selectedText={commentAnchor.text}
+                    onSubmit={handleSubmitComment}
+                    onExited={handleCloseModal}
+                />
+            )}
         </div>
     );
 };

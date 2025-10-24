@@ -70,9 +70,34 @@ const PagesHierarchyPanel = ({
 
     // Load pages and drafts on mount or when wikiId changes
     useEffect(() => {
+        console.log('[DEBUG] PagesHierarchyPanel mounted/wikiId changed:', wikiId);
         actions.loadWikiPages(wikiId);
         actions.loadPageDraftsForWiki(wikiId);
     }, [wikiId]);
+
+    // Debug: Log when pages or drafts props change
+    useEffect(() => {
+        console.log('[DEBUG] PagesHierarchyPanel - pages prop changed:', {
+            count: pages.length,
+            ids: pages.map((p) => ({id: p.id, title: p.props?.title})),
+        });
+    }, [pages]);
+
+    useEffect(() => {
+        console.log('[DEBUG] PagesHierarchyPanel - drafts prop changed:', {
+            count: drafts.length,
+            drafts: drafts.map((d) => ({
+                rootId: d.rootId,
+                title: d.props?.title,
+                channelId: d.channelId,
+                wikiId: d.wikiId,
+                page_parent_id: d.props?.page_parent_id,
+                page_id: d.props?.page_id,
+                createAt: d.createAt,
+                updateAt: d.updateAt,
+            })),
+        });
+    }, [drafts]);
 
     // Set selected page when currentPageId changes
     useEffect(() => {
@@ -89,7 +114,7 @@ const PagesHierarchyPanel = ({
 
     // Convert drafts to Post-like objects to include in tree
     const draftPosts: DraftPage[] = useMemo(() => {
-        return drafts.map((draft): DraftPage => ({
+        const converted = drafts.map((draft): DraftPage => ({
             id: draft.rootId,
             create_at: draft.createAt,
             update_at: draft.updateAt,
@@ -121,13 +146,58 @@ const PagesHierarchyPanel = ({
                 images: {},
             },
         }));
+        console.log('[DEBUG] PagesHierarchyPanel - draftPosts converted:', converted.map((d) => ({
+            id: d.id,
+            title: d.props?.title,
+            type: d.type,
+            page_parent_id: d.page_parent_id,
+        })));
+        return converted;
     }, [drafts]);
 
     // Combine pages and drafts for tree building
     // But exclude published pages that have a draft (to avoid duplicates)
-    const draftIds = useMemo(() => new Set(drafts.map((d) => d.rootId)), [drafts]);
-    const pagesWithoutDrafts = useMemo(() => pages.filter((page) => !draftIds.has(page.id)), [pages, draftIds]);
-    const allPages = useMemo(() => [...pagesWithoutDrafts, ...draftPosts], [pagesWithoutDrafts, draftPosts]);
+    const draftIds = useMemo(() => {
+        const ids = new Set(drafts.map((d) => d.rootId));
+        console.log('[DEBUG] PagesHierarchyPanel - draftIds (rootIds from drafts):', Array.from(ids));
+        return ids;
+    }, [drafts]);
+    const pagesWithoutDrafts = useMemo(() => {
+        const filtered = pages.filter((page) => {
+            const hasDraft = draftIds.has(page.id);
+            if (hasDraft) {
+                console.log('[DEBUG] PagesHierarchyPanel - FILTERING OUT published page (has draft):', {
+                    pageId: page.id,
+                    title: page.props?.title,
+                    type: page.type,
+                });
+            }
+            return !hasDraft;
+        });
+        console.log('[DEBUG] PagesHierarchyPanel - pages:', pages.length, 'pagesWithoutDrafts:', filtered.length);
+        console.log('[DEBUG] PagesHierarchyPanel - published pages details:', pages.map((p) => ({
+            id: p.id,
+            title: p.props?.title,
+            type: p.type,
+            page_parent_id: p.page_parent_id,
+        })));
+        return filtered;
+    }, [pages, draftIds]);
+    const allPages = useMemo(() => {
+        const combined = [...pagesWithoutDrafts, ...draftPosts];
+        console.log('[DEBUG] PagesHierarchyPanel - allPages (FINAL):', combined.length, 'breakdown:', {
+            pagesWithoutDrafts: pagesWithoutDrafts.length,
+            draftPosts: draftPosts.length,
+        });
+        console.log('[DEBUG] PagesHierarchyPanel - allPages details:', combined.map((p) => ({
+            id: p.id,
+            title: p.props?.title,
+            type: p.type,
+            isDraft: p.type === PageDisplayTypes.PAGE_DRAFT,
+            page_parent_id: p.page_parent_id,
+        })));
+        return combined;
+    }, [pagesWithoutDrafts, draftPosts]);
 
     // Build tree from flat pages (including drafts)
     const tree = useMemo(() => buildTree(allPages), [allPages]);
@@ -164,11 +234,16 @@ const PagesHierarchyPanel = ({
         setCreatingPage(true);
         try {
             const result = await actions.createPage(wikiId, title);
+            console.log('[handleNewPage] createPage result:', result);
             if (result.error) {
-                // TODO: Show error notification instead of alert
+                console.error('[handleNewPage] Error creating page:', result.error);
+            } else if (result.data) {
+                const draftId = result.data;
+                console.log('[handleNewPage] Draft created with draftId:', draftId);
+                handlePageSelect(draftId);
             }
         } catch (error) {
-            // TODO: Show error notification instead of alert
+            console.error('[handleNewPage] Exception:', error);
         } finally {
             setCreatingPage(false);
         }
@@ -191,6 +266,10 @@ const PagesHierarchyPanel = ({
             const result = await actions.createPage(wikiId, title, pageId);
             if (result.error) {
                 // TODO: Show error notification instead of alert
+            } else if (result.data) {
+                const draftId = result.data;
+                actions.toggleNodeExpanded(wikiId, pageId);
+                handlePageSelect(draftId);
             }
         } catch (error) {
             // TODO: Show error notification instead of alert

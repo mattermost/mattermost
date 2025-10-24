@@ -6,6 +6,7 @@ package app
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 	"sync"
@@ -154,8 +155,8 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 	if title == "" {
 		return nil, model.NewAppError("CreatePage", "app.page.create.missing_title.app_error", nil, "title is required for pages", http.StatusBadRequest)
 	}
-	if len(title) > 255 {
-		return nil, model.NewAppError("CreatePage", "app.page.create.title_too_long.app_error", nil, "title must be 255 characters or less", http.StatusBadRequest)
+	if len(title) > model.MaxPageTitleLength {
+		return nil, model.NewAppError("CreatePage", "app.page.create.title_too_long.app_error", nil, fmt.Sprintf("title must be %d characters or less", model.MaxPageTitleLength), http.StatusBadRequest)
 	}
 
 	channel, chanErr := a.GetChannel(rctx, channelID)
@@ -344,8 +345,8 @@ func (a *App) UpdatePage(rctx request.CTX, pageID, title, content, searchText st
 
 	titleChanged := false
 	if title != "" {
-		if len(title) > 255 {
-			return nil, model.NewAppError("UpdatePage", "app.page.update.title_too_long.app_error", nil, "title must be 255 characters or less", http.StatusBadRequest)
+		if len(title) > model.MaxPageTitleLength {
+			return nil, model.NewAppError("UpdatePage", "app.page.update.title_too_long.app_error", nil, fmt.Sprintf("title must be %d characters or less", model.MaxPageTitleLength), http.StatusBadRequest)
 		}
 		post.Props["title"] = title
 		titleChanged = true
@@ -796,7 +797,7 @@ func (a *App) getPageTitle(page *model.Post) string {
 // TipTap stores mentions as nodes with type="mention" and attrs.id containing the user ID.
 // This is simpler than markdown parsing since IDs are explicit in the structure.
 func (a *App) ExtractMentionsFromTipTapContent(content string) ([]string, error) {
-	mlog.Info("DEBUG: ExtractMentionsFromTipTapContent - Raw content", mlog.String("content", content[:min(500, len(content))]))
+	mlog.Trace("extractMentions.parsing", mlog.Int("content_length", len(content)))
 
 	var doc struct {
 		Type    string            `json:"type"`
@@ -804,11 +805,11 @@ func (a *App) ExtractMentionsFromTipTapContent(content string) ([]string, error)
 	}
 
 	if err := json.Unmarshal([]byte(content), &doc); err != nil {
-		mlog.Info("DEBUG: ExtractMentionsFromTipTapContent - JSON unmarshal error", mlog.Err(err))
+		mlog.Debug("extractMentions.parse_error", mlog.Err(err))
 		return nil, err
 	}
 
-	mlog.Info("DEBUG: ExtractMentionsFromTipTapContent - Parsed doc", mlog.String("doc_type", doc.Type), mlog.Int("content_nodes", len(doc.Content)))
+	mlog.Trace("extractMentions.parsed", mlog.String("doc_type", doc.Type), mlog.Int("content_nodes", len(doc.Content)))
 
 	mentionIDs := make(map[string]bool)
 	a.extractMentionsFromNodes(doc.Content, mentionIDs)
@@ -818,7 +819,7 @@ func (a *App) ExtractMentionsFromTipTapContent(content string) ([]string, error)
 		result = append(result, id)
 	}
 
-	mlog.Info("DEBUG: ExtractMentionsFromTipTapContent - Final result", mlog.Int("mention_count", len(result)), mlog.Any("mention_ids", result))
+	mlog.Debug("extractMentions.complete", mlog.Int("mention_count", len(result)))
 	return result, nil
 }
 
@@ -834,39 +835,32 @@ func (a *App) extractMentionsFromNodes(nodes []json.RawMessage, mentionIDs map[s
 		}
 
 		if err := json.Unmarshal(nodeRaw, &node); err != nil {
-			mlog.Info("DEBUG: extractMentionsFromNodes - Failed to unmarshal node", mlog.Err(err))
+			mlog.Trace("extractMentions.node_parse_error", mlog.Err(err))
 			continue
 		}
 
-		mlog.Info("DEBUG: extractMentionsFromNodes - Processing node", mlog.String("node_type", node.Type), mlog.Bool("has_attrs", node.Attrs != nil))
+		mlog.Trace("extractMentions.processing_node", mlog.String("node_type", node.Type))
 
 		if node.Type == "mention" && node.Attrs != nil && node.Attrs.ID != "" {
-			mlog.Info("DEBUG: extractMentionsFromNodes - Found mention!", mlog.String("user_id", node.Attrs.ID))
+			mlog.Trace("extractMentions.found_mention", mlog.String("user_id", node.Attrs.ID))
 			mentionIDs[node.Attrs.ID] = true
 		}
 
 		if len(node.Content) > 0 {
-			mlog.Info("DEBUG: extractMentionsFromNodes - Recursing into child nodes", mlog.Int("child_count", len(node.Content)))
 			a.extractMentionsFromNodes(node.Content, mentionIDs)
 		}
 	}
 }
 
-// PublishPageDraft publishes a draft as a page
-func (a *App) PublishPageDraft(rctx request.CTX, userId, wikiId, draftId, parentId, title, searchText string) (*model.Post, *model.AppError) {
-	rctx.Logger().Debug("Publishing page draft",
-		mlog.String("user_id", userId),
-		mlog.String("wiki_id", wikiId),
-		mlog.String("draft_id", draftId))
-
+func (a *App) validatePageDraftForPublish(rctx request.CTX, userId, wikiId, draftId, parentId string) (*model.Draft, *model.Wiki, *model.Channel, *model.AppError) {
 	draft, err := a.Srv().Store().Draft().GetPageDraft(userId, wikiId, draftId)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(err, &nfErr) {
-			return nil, model.NewAppError("PublishPageDraft", "app.draft.publish_page.not_found",
+			return nil, nil, nil, model.NewAppError("validatePageDraftForPublish", "app.draft.publish_page.not_found",
 				nil, "", http.StatusNotFound).Wrap(err)
 		}
-		return nil, model.NewAppError("PublishPageDraft", "app.draft.publish_page.get_error",
+		return nil, nil, nil, model.NewAppError("validatePageDraftForPublish", "app.draft.publish_page.get_error",
 			nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -878,43 +872,45 @@ func (a *App) PublishPageDraft(rctx request.CTX, userId, wikiId, draftId, parent
 		mlog.Any("props", draft.Props))
 
 	if strings.TrimSpace(draft.Message) == "" && len(draft.FileIds) == 0 {
-		return nil, model.NewAppError("PublishPageDraft", "app.draft.publish_page.empty",
+		return nil, nil, nil, model.NewAppError("validatePageDraftForPublish", "app.draft.publish_page.empty",
 			nil, "cannot publish empty page draft", http.StatusBadRequest)
 	}
 
 	wiki, wikiErr := a.GetWiki(rctx, wikiId)
 	if wikiErr != nil {
-		return nil, wikiErr
+		return nil, nil, nil, wikiErr
 	}
 
 	channel, chanErr := a.GetChannel(rctx, wiki.ChannelId)
 	if chanErr != nil {
-		return nil, chanErr
+		return nil, nil, nil, chanErr
 	}
 
 	session := rctx.Session()
-	if permErr := a.HasPermissionToModifyWiki(rctx, session, channel, WikiOperationEdit, "PublishPageDraft"); permErr != nil {
-		return nil, permErr
+	if permErr := a.HasPermissionToModifyWiki(rctx, session, channel, WikiOperationEdit, "validatePageDraftForPublish"); permErr != nil {
+		return nil, nil, nil, permErr
 	}
 
 	if parentId != "" {
 		parentPage, parentErr := a.GetSinglePost(rctx, parentId, false)
 		if parentErr != nil {
-			return nil, model.NewAppError("PublishPageDraft", "api.page.publish.parent_not_found.app_error", nil, "", http.StatusNotFound).Wrap(parentErr)
+			return nil, nil, nil, model.NewAppError("validatePageDraftForPublish", "api.page.publish.parent_not_found.app_error", nil, "", http.StatusNotFound).Wrap(parentErr)
 		}
 
 		if parentPage.Type != model.PostTypePage {
-			return nil, model.NewAppError("PublishPageDraft", "api.page.publish.parent_not_page.app_error", nil, "", http.StatusBadRequest)
+			return nil, nil, nil, model.NewAppError("validatePageDraftForPublish", "api.page.publish.parent_not_page.app_error", nil, "", http.StatusBadRequest)
 		}
 
 		if parentPage.ChannelId != wiki.ChannelId {
-			return nil, model.NewAppError("PublishPageDraft", "api.page.publish.parent_different_channel.app_error", nil, "", http.StatusBadRequest)
+			return nil, nil, nil, model.NewAppError("validatePageDraftForPublish", "api.page.publish.parent_different_channel.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 
-	pageId, isUpdate := draft.Props["page_id"].(string)
+	return draft, wiki, channel, nil
+}
 
-	var savedPost *model.Post
+func (a *App) applyDraftToPage(rctx request.CTX, draft *model.Draft, wikiId, parentId, title, searchText, userId string) (*model.Post, *model.AppError) {
+	pageId, isUpdate := draft.Props["page_id"].(string)
 
 	if isUpdate && pageId != "" {
 		rctx.Logger().Debug("Updating existing page from draft",
@@ -923,7 +919,7 @@ func (a *App) PublishPageDraft(rctx request.CTX, userId, wikiId, draftId, parent
 
 		existingPost, getErr := a.GetSinglePost(rctx, pageId, false)
 		if getErr != nil {
-			return nil, model.NewAppError("PublishPageDraft", "app.draft.publish_page.get_existing_error",
+			return nil, model.NewAppError("applyDraftToPage", "app.draft.publish_page.get_existing_error",
 				nil, "", http.StatusInternalServerError).Wrap(getErr)
 		}
 
@@ -934,7 +930,7 @@ func (a *App) PublishPageDraft(rctx request.CTX, userId, wikiId, draftId, parent
 			}
 
 			if _, exists := ancestors.Posts[pageId]; exists {
-				return nil, model.NewAppError("PublishPageDraft", "api.page.publish.circular_reference.app_error",
+				return nil, model.NewAppError("applyDraftToPage", "api.page.publish.circular_reference.app_error",
 					nil, "pageId="+pageId+", parentId="+parentId, http.StatusBadRequest)
 			}
 		}
@@ -954,27 +950,64 @@ func (a *App) PublishPageDraft(rctx request.CTX, userId, wikiId, draftId, parent
 			}
 		}
 
-		savedPost = updatedPost
-
 		rctx.Logger().Info("Page updated from draft",
-			mlog.String("page_id", savedPost.Id),
+			mlog.String("page_id", updatedPost.Id),
 			mlog.String("wiki_id", wikiId),
 			mlog.String("parent_id", parentId))
-	} else {
-		rctx.Logger().Debug("Creating new page from draft",
-			mlog.String("wiki_id", wikiId))
 
-		createdPost, createErr := a.CreateWikiPage(rctx, wikiId, parentId, title, draft.Message, userId, searchText)
-		if createErr != nil {
-			return nil, createErr
-		}
+		return updatedPost, nil
+	}
 
-		savedPost = createdPost
+	rctx.Logger().Debug("Creating new page from draft",
+		mlog.String("wiki_id", wikiId))
 
-		rctx.Logger().Info("Page created from draft",
-			mlog.String("page_id", savedPost.Id),
-			mlog.String("wiki_id", wikiId),
-			mlog.String("parent_id", parentId))
+	createdPost, createErr := a.CreateWikiPage(rctx, wikiId, parentId, title, draft.Message, userId, searchText)
+	if createErr != nil {
+		return nil, createErr
+	}
+
+	rctx.Logger().Info("Page created from draft",
+		mlog.String("page_id", createdPost.Id),
+		mlog.String("wiki_id", wikiId),
+		mlog.String("parent_id", parentId))
+
+	return createdPost, nil
+}
+
+func (a *App) broadcastPagePublished(page *model.Post, wikiId, channelId, draftId, userId string) {
+	pageJSON, jsonErr := page.ToJSON()
+	if jsonErr != nil {
+		mlog.Warn("Failed to encode page to JSON", mlog.Err(jsonErr))
+		return
+	}
+
+	message := model.NewWebSocketEvent(model.WebsocketEventPagePublished, "", channelId, "", nil, "")
+	message.Add("page_id", page.Id)
+	message.Add("wiki_id", wikiId)
+	message.Add("draft_id", draftId)
+	message.Add("user_id", userId)
+	message.Add("page", pageJSON)
+	message.SetBroadcast(&model.WebsocketBroadcast{
+		ChannelId: channelId,
+	})
+	a.Publish(message)
+}
+
+// PublishPageDraft publishes a draft as a page
+func (a *App) PublishPageDraft(rctx request.CTX, userId, wikiId, draftId, parentId, title, searchText string) (*model.Post, *model.AppError) {
+	rctx.Logger().Debug("Publishing page draft",
+		mlog.String("user_id", userId),
+		mlog.String("wiki_id", wikiId),
+		mlog.String("draft_id", draftId))
+
+	draft, wiki, channel, err := a.validatePageDraftForPublish(rctx, userId, wikiId, draftId, parentId)
+	if err != nil {
+		return nil, err
+	}
+
+	savedPost, err := a.applyDraftToPage(rctx, draft, wikiId, parentId, title, searchText, userId)
+	if err != nil {
+		return nil, err
 	}
 
 	if deleteErr := a.Srv().Store().Draft().DeletePageDraft(userId, wikiId, draftId); deleteErr != nil {
@@ -992,66 +1025,53 @@ func (a *App) PublishPageDraft(rctx request.CTX, userId, wikiId, draftId, parent
 		return savedPost, nil
 	}
 
-	rctx.Logger().Info("DEBUG: Starting mention extraction", mlog.String("page_id", pageWithContent.Id), mlog.Int("content_length", len(pageWithContent.Message)))
 	mentionedUserIDs, extractErr := a.ExtractMentionsFromTipTapContent(pageWithContent.Message)
-	rctx.Logger().Info("DEBUG: Mention extraction result",
-		mlog.String("page_id", pageWithContent.Id),
-		mlog.Int("mention_count", len(mentionedUserIDs)),
-		mlog.Any("mentioned_user_ids", mentionedUserIDs),
-		mlog.Err(extractErr))
-
 	if extractErr != nil {
 		rctx.Logger().Warn("Failed to extract mentions from page content", mlog.String("page_id", pageWithContent.Id), mlog.Err(extractErr))
-	} else if len(mentionedUserIDs) > 0 {
-		rctx.Logger().Info("DEBUG: Found mentions, getting user for notifications", mlog.String("author_user_id", userId))
-		user, userErr := a.GetUser(userId)
-		if userErr != nil {
-			rctx.Logger().Warn("Failed to get user for mention notifications", mlog.String("user_id", userId), mlog.Err(userErr))
-		} else {
-			rctx.Logger().Info("DEBUG: Got user, getting team", mlog.String("team_id", channel.TeamId))
-			team, teamErr := a.GetTeam(channel.TeamId)
-			if teamErr != nil {
-				rctx.Logger().Warn("Failed to get team for mention notifications", mlog.String("team_id", channel.TeamId), mlog.Err(teamErr))
-			} else {
-				rctx.Logger().Info("DEBUG: Calling SendNotifications",
-					mlog.String("page_id", pageWithContent.Id),
-					mlog.String("channel_id", channel.Id),
-					mlog.String("team_id", team.Id),
-					mlog.String("author_id", user.Id))
-				if _, notifyErr := a.SendNotifications(rctx, pageWithContent, team, channel, user, nil, true, mentionedUserIDs); notifyErr != nil {
-					rctx.Logger().Warn("Failed to send mention notifications for page", mlog.String("page_id", pageWithContent.Id), mlog.Err(notifyErr))
-				} else {
-					rctx.Logger().Info("DEBUG: Successfully sent mention notifications for page",
-						mlog.String("page_id", pageWithContent.Id),
-						mlog.Int("mention_count", len(mentionedUserIDs)))
-				}
-			}
-		}
 	} else {
-		rctx.Logger().Info("DEBUG: No mentions found in page content", mlog.String("page_id", pageWithContent.Id))
+		a.sendPageMentionNotifications(rctx, pageWithContent, channel, userId, mentionedUserIDs)
 	}
 
-	pageJSON, jsonErr := pageWithContent.ToJSON()
-	if jsonErr != nil {
-		rctx.Logger().Warn("Failed to encode page to JSON", mlog.Err(jsonErr))
-	}
-
-	message := model.NewWebSocketEvent(model.WebsocketEventPagePublished, "", wiki.ChannelId, "", nil, "")
-	message.Add("page_id", pageWithContent.Id)
-	message.Add("wiki_id", wikiId)
-	message.Add("draft_id", draftId)
-	message.Add("user_id", userId)
-	message.Add("page", pageJSON)
-	message.SetBroadcast(&model.WebsocketBroadcast{
-		ChannelId: wiki.ChannelId,
-	})
-	a.Publish(message)
+	a.broadcastPagePublished(pageWithContent, wikiId, wiki.ChannelId, draftId, userId)
 
 	return pageWithContent, nil
 }
 
+func (a *App) sendPageMentionNotifications(rctx request.CTX, page *model.Post, channel *model.Channel, authorUserID string, mentionedUserIDs []string) {
+	if len(mentionedUserIDs) == 0 {
+		rctx.Logger().Debug("No mentions in page", mlog.String("page_id", page.Id))
+		return
+	}
+
+	user, err := a.GetUser(authorUserID)
+	if err != nil {
+		rctx.Logger().Warn("Failed to get user for mention notifications",
+			mlog.String("user_id", authorUserID),
+			mlog.Err(err))
+		return
+	}
+
+	team, err := a.GetTeam(channel.TeamId)
+	if err != nil {
+		rctx.Logger().Warn("Failed to get team for mention notifications",
+			mlog.String("team_id", channel.TeamId),
+			mlog.Err(err))
+		return
+	}
+
+	if _, err := a.SendNotifications(rctx, page, team, channel, user, nil, true, mentionedUserIDs); err != nil {
+		rctx.Logger().Warn("Failed to send mention notifications for page",
+			mlog.String("page_id", page.Id),
+			mlog.Err(err))
+	} else {
+		rctx.Logger().Debug("Successfully sent mention notifications for page",
+			mlog.String("page_id", page.Id),
+			mlog.Int("mention_count", len(mentionedUserIDs)))
+	}
+}
+
 // CreatePageComment creates a top-level comment on a page
-func (a *App) CreatePageComment(rctx request.CTX, pageID, message string) (*model.Post, *model.AppError) {
+func (a *App) CreatePageComment(rctx request.CTX, pageID, message string, inlineAnchor map[string]any) (*model.Post, *model.AppError) {
 	// Validate page exists
 	page, err := a.GetSinglePost(rctx, pageID, false)
 	if err != nil {
@@ -1073,15 +1093,23 @@ func (a *App) CreatePageComment(rctx request.CTX, pageID, message string) (*mode
 		return nil, chanErr
 	}
 
+	props := model.StringInterface{
+		"page_id": pageID,
+	}
+
+	// If inline_anchor is provided, this is an inline comment
+	if len(inlineAnchor) > 0 {
+		props["comment_type"] = "inline"
+		props["inline_anchor"] = inlineAnchor
+	}
+
 	comment := &model.Post{
 		ChannelId: page.ChannelId,
 		UserId:    rctx.Session().UserId,
 		RootId:    pageID,
 		Message:   message,
 		Type:      model.PostTypePageComment,
-		Props: model.StringInterface{
-			"page_id": pageID,
-		},
+		Props:     props,
 	}
 
 	// Use existing CreatePost to get all hooks, validation, WebSocket events

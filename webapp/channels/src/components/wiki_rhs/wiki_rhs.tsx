@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import ThreadViewer from 'components/threading/thread_viewer';
+import WikiThreadViewer from './wiki_thread_viewer_container';
 
 import './wiki_rhs.scss';
 
@@ -43,7 +43,7 @@ const WikiRHS = ({pageId, pageTitle, channelLoaded, actions}: Props) => {
 
             <div className='WikiRHS__comments-content'>
                 {pageId && channelLoaded && (
-                    <ThreadViewer
+                    <WikiThreadViewer
                         rootPostId={pageId}
                         useRelativeTimestamp={true}
                         isThreadView={false}

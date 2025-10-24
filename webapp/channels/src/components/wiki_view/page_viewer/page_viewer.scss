@@ -183,3 +183,17 @@
         }
     }
 }
+
+// Highlight animation for clicked comments in RHS
+.highlight-animation {
+    animation: comment-highlight 2s ease-out;
+}
+
+@keyframes comment-highlight {
+    0% {
+        background-color: rgba(255, 235, 59, 0.4);
+    }
+    100% {
+        background-color: transparent;
+    }
+}

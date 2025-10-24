@@ -47,7 +47,6 @@ func TestCreatePageWithContent(t *testing.T) {
 	th := Setup(t).InitBasic()
 	setupPagePermissions(th)
 	defer th.TearDown()
-	setupPagePermissions(th)
 
 	t.Run("creates page with empty content", func(t *testing.T) {
 		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "")
@@ -137,7 +136,6 @@ func TestGetPage(t *testing.T) {
 	th := Setup(t).InitBasic()
 	setupPagePermissions(th)
 	defer th.TearDown()
-	setupPagePermissions(th)
 
 	sessionCtx := createSessionContext(th)
 
@@ -1191,7 +1189,7 @@ func TestCreatePageComment(t *testing.T) {
 	require.NotNil(t, page)
 
 	t.Run("successfully creates top-level page comment", func(t *testing.T) {
-		comment, appErr := th.App.CreatePageComment(rctx, page.Id, "This is a comment on the page")
+		comment, appErr := th.App.CreatePageComment(rctx, page.Id, "This is a comment on the page", nil)
 		require.Nil(t, appErr)
 		require.NotNil(t, comment)
 
@@ -1207,7 +1205,7 @@ func TestCreatePageComment(t *testing.T) {
 	})
 
 	t.Run("fails when page does not exist", func(t *testing.T) {
-		comment, appErr := th.App.CreatePageComment(rctx, "invalid_page_id", "Comment on non-existent page")
+		comment, appErr := th.App.CreatePageComment(rctx, "invalid_page_id", "Comment on non-existent page", nil)
 		require.NotNil(t, appErr)
 		require.Nil(t, comment)
 		require.Equal(t, "app.page.create_comment.page_not_found.app_error", appErr.Id)
@@ -1221,18 +1219,18 @@ func TestCreatePageComment(t *testing.T) {
 		}, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, err)
 
-		comment, appErr := th.App.CreatePageComment(rctx, regularPost.Id, "Comment on regular post")
+		comment, appErr := th.App.CreatePageComment(rctx, regularPost.Id, "Comment on regular post", nil)
 		require.NotNil(t, appErr)
 		require.Nil(t, comment)
 		require.Equal(t, "app.page.create_comment.not_a_page.app_error", appErr.Id)
 	})
 
 	t.Run("creates multiple comments on same page", func(t *testing.T) {
-		comment1, appErr := th.App.CreatePageComment(rctx, page.Id, "First comment")
+		comment1, appErr := th.App.CreatePageComment(rctx, page.Id, "First comment", nil)
 		require.Nil(t, appErr)
 		require.NotNil(t, comment1)
 
-		comment2, appErr := th.App.CreatePageComment(rctx, page.Id, "Second comment")
+		comment2, appErr := th.App.CreatePageComment(rctx, page.Id, "Second comment", nil)
 		require.Nil(t, appErr)
 		require.NotNil(t, comment2)
 
@@ -1252,7 +1250,7 @@ func TestCreatePageCommentReply(t *testing.T) {
 	page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "")
 	require.Nil(t, err)
 
-	topLevelComment, appErr := th.App.CreatePageComment(rctx, page.Id, "Top-level comment")
+	topLevelComment, appErr := th.App.CreatePageComment(rctx, page.Id, "Top-level comment", nil)
 	require.Nil(t, appErr)
 
 	t.Run("successfully creates reply to top-level comment", func(t *testing.T) {

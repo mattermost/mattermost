@@ -7,9 +7,9 @@ import Heading from '@tiptap/extension-heading';
 import Image from '@tiptap/extension-image';
 import {Mention} from '@tiptap/extension-mention';
 import {Plugin, PluginKey} from '@tiptap/pm/state';
-import {useEditor, EditorContent} from '@tiptap/react';
+import {useEditor, EditorContent, type Editor} from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
@@ -21,12 +21,15 @@ import {searchAssociatedGroupsForReference} from 'actions/views/group';
 
 import WithTooltip from 'components/with_tooltip';
 
+import {PageConstants} from 'utils/constants';
 import {canUploadFiles} from 'utils/file_utils';
 import {slugifyHeading} from 'utils/slugify_heading';
 
 import type {GlobalState} from 'types/store';
 
 import {uploadImageForEditor, validateImageFile} from './file_upload_helper';
+import InlineCommentButton from './inline_comment_button';
+import InlineCommentExtension from './inline_comment_extension';
 import {createMMentionSuggestion} from './mention_mm_bridge';
 
 import './tiptap_editor.scss';
@@ -104,6 +107,21 @@ type Props = {
     currentUserId?: string;
     channelId?: string;
     teamId?: string;
+    pageId?: string;
+    wikiId?: string;
+    onCreateInlineComment?: (anchor: {text: string; context_before: string; context_after: string; char_offset: number}) => void;
+    inlineComments?: Array<{
+        id: string;
+        props: {
+            inline_anchor?: {
+                text: string;
+                context_before: string;
+                context_after: string;
+                char_offset: number;
+            };
+        };
+    }>;
+    onCommentClick?: (commentId: string) => void;
 };
 
 const getInitialContent = (content: string) => {
@@ -134,6 +152,11 @@ const TipTapEditor = ({
     currentUserId,
     channelId,
     teamId,
+    pageId,
+    wikiId,
+    onCreateInlineComment,
+    inlineComments = [],
+    onCommentClick,
 }: Props) => {
     const dispatch = useDispatch();
     const intl = useIntl();
@@ -150,6 +173,45 @@ const TipTapEditor = ({
     const maxFileSize = parseInt(config.MaxFileSize || '', 10);
     const uploadsEnabled = canUploadFiles(config);
 
+    console.log('[TipTapEditor] Rendering with', inlineComments?.length || 0, 'inline comments:', inlineComments);
+
+    const handleImageUpload = async (
+        currentEditor: Editor,
+        file: File,
+        position?: number,
+    ) => {
+        const validation = validateImageFile(file, maxFileSize, intl);
+        if (!validation.valid) {
+            return;
+        }
+
+        try {
+            await uploadImageForEditor({
+                file,
+                channelId: channelId || '',
+                onSuccess: (result) => {
+                    const imageUrl = `/api/v4/files/${result.fileInfo.id}`;
+                    const imageAttrs = {
+                        src: imageUrl,
+                        alt: file.name,
+                        title: file.name,
+                    };
+
+                    if (position !== undefined) {
+                        currentEditor.chain().insertContentAt(position, {
+                            type: 'image',
+                            attrs: imageAttrs,
+                        }).focus().run();
+                    } else {
+                        currentEditor.chain().focus().setImage(imageAttrs).run();
+                    }
+                },
+            }, dispatch);
+        } catch {
+            // Upload error handled by uploadImageForEditor
+        }
+    };
+
     const extensions = [
         StarterKit.configure({
             heading: false,
@@ -163,7 +225,13 @@ const TipTapEditor = ({
                 class: 'wiki-image',
             },
         }),
+        InlineCommentExtension.configure({
+            comments: inlineComments,
+            onAddComment: onCreateInlineComment,
+            onCommentClick,
+        }),
     ];
+    console.log('[TipTapEditor] Configured InlineCommentExtension with comments:', inlineComments);
 
     // Add FileHandler extension for drag-drop and paste image uploads
     if (editable && uploadsEnabled && channelId) {
@@ -172,73 +240,19 @@ const TipTapEditor = ({
                 allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/svg+xml'],
                 onDrop: (currentEditor, files, pos) => {
                     files.forEach(async (file) => {
-                        const validation = validateImageFile(file, maxFileSize, intl);
-                        if (!validation.valid) {
-                            return;
-                        }
-
-                        try {
-                            // Upload using MM's uploadFile action
-                            uploadImageForEditor({
-                                file,
-                                channelId,
-                                onSuccess: (result) => {
-                                    const imageUrl = `/api/v4/files/${result.fileInfo.id}`;
-                                    currentEditor.
-                                        chain().
-                                        insertContentAt(pos, {
-                                            type: 'image',
-                                            attrs: {
-                                                src: imageUrl,
-                                                alt: file.name,
-                                                title: file.name,
-                                            },
-                                        }).
-                                        focus().
-                                        run();
-                                },
-                            }, dispatch);
-                        } catch {
-                            // Upload error handled by uploadImageForEditor
-                        }
+                        await handleImageUpload(currentEditor, file, pos);
                     });
                 },
                 onPaste: (currentEditor, files) => {
-                    // Only handle if files are present (not HTML content)
                     if (files.length === 0) {
                         return false;
                     }
 
                     files.forEach(async (file) => {
-                        // Validate file
-                        const validation = validateImageFile(file, maxFileSize, intl);
-                        if (!validation.valid) {
-                            return;
-                        }
-
-                        try {
-                            uploadImageForEditor({
-                                file,
-                                channelId,
-                                onSuccess: (result) => {
-                                    const imageUrl = `/api/v4/files/${result.fileInfo.id}`;
-                                    currentEditor.
-                                        chain().
-                                        focus().
-                                        setImage({
-                                            src: imageUrl,
-                                            alt: file.name,
-                                            title: file.name,
-                                        }).
-                                        run();
-                                },
-                            }, dispatch);
-                        } catch {
-                            // Upload error handled by uploadImageForEditor
-                        }
+                        await handleImageUpload(currentEditor, file);
                     });
 
-                    return true; // Handled
+                    return true;
                 },
             }),
         );
@@ -323,6 +337,16 @@ const TipTapEditor = ({
         }
     }, [channelId, editable, dispatch]);
 
+    // Update inline comments when they change
+    useEffect(() => {
+        if (editor && (editor.storage as any).inlineComment) {
+            console.log('[TipTapEditor] Updating InlineCommentExtension storage with', inlineComments.length, 'comments');
+            (editor.storage as any).inlineComment.comments = inlineComments;
+            // Force decorations to update
+            editor.view.updateState(editor.state);
+        }
+    }, [editor, inlineComments]);
+
     if (!editor) {
         return null;
     }
@@ -366,30 +390,8 @@ const TipTapEditor = ({
 
         input.onchange = async (e) => {
             const file = (e.target as HTMLInputElement).files?.[0];
-            if (!file) {
-                return;
-            }
-
-            const validation = validateImageFile(file, maxFileSize, intl);
-            if (!validation.valid) {
-                return;
-            }
-
-            try {
-                uploadImageForEditor({
-                    file,
-                    channelId,
-                    onSuccess: (result) => {
-                        const imageUrl = `/api/v4/files/${result.fileInfo.id}`;
-                        editor?.chain().focus().setImage({
-                            src: imageUrl,
-                            alt: file.name,
-                            title: file.name,
-                        }).run();
-                    },
-                }, dispatch);
-            } catch {
-                // Upload error handled by uploadImageForEditor
+            if (file && editor) {
+                await handleImageUpload(editor, file);
             }
         };
 
@@ -397,9 +399,40 @@ const TipTapEditor = ({
         input.click();
     };
 
+    const handleCreateComment = (selection: {text: string; from: number; to: number}) => {
+        console.log('[TipTapEditor] handleCreateComment called with selection:', selection);
+
+        if (!editor || !onCreateInlineComment) {
+            console.log('[TipTapEditor] No editor or onCreateInlineComment callback');
+            return;
+        }
+
+        const {state} = editor;
+        const doc = state.doc;
+
+        const contextBefore = doc.textBetween(Math.max(0, selection.from - PageConstants.INLINE_COMMENT_CONTEXT_LENGTH), selection.from).trim();
+        const contextAfter = doc.textBetween(selection.to, Math.min(doc.content.size, selection.to + PageConstants.INLINE_COMMENT_CONTEXT_LENGTH)).trim();
+
+        const anchor = {
+            text: selection.text,
+            context_before: contextBefore,
+            context_after: contextAfter,
+            char_offset: selection.from,
+        };
+
+        console.log('[TipTapEditor] Creating inline comment with anchor:', anchor);
+        onCreateInlineComment(anchor);
+    };
+
     return (
         <div className='tiptap-editor-wrapper'>
             <EditorContent editor={editor}/>
+            {editor && onCreateInlineComment && (
+                <InlineCommentButton
+                    editor={editor}
+                    onCreateComment={handleCreateComment}
+                />
+            )}
 
             {editable && (
                 <div className='tiptap-toolbar'>

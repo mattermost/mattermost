@@ -44,7 +44,7 @@ func createWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("createWiki", model.AuditStatusFail)
-	defer c.LogAuditRec(auditRec)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	auditRec.AddMeta("channel_id", wiki.ChannelId)
 
 	if !model.IsValidId(wiki.ChannelId) {
@@ -150,28 +150,16 @@ func updateWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 	wiki.Id = c.Params.WikiId
 
 	auditRec := c.MakeAuditRecord("updateWiki", model.AuditStatusFail)
-	defer c.LogAuditRec(auditRec)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	auditRec.AddMeta("wiki_id", wiki.Id)
 
-	oldWiki, getErr := c.App.GetWiki(c.AppContext, wiki.Id)
-	if getErr != nil {
-		c.Err = getErr
+	oldWiki, _, ok := c.RequireWikiModifyPermission(app.WikiOperationEdit, "updateWiki")
+	if !ok {
 		return
 	}
 	auditRec.AddEventPriorState(oldWiki)
 
 	wiki.ChannelId = oldWiki.ChannelId
-
-	channel, appErr := c.App.GetChannel(c.AppContext, oldWiki.ChannelId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	if err := c.App.HasPermissionToModifyWiki(c.AppContext, c.AppContext.Session(), channel, app.WikiOperationEdit, "updateWiki"); err != nil {
-		c.Err = err
-		return
-	}
 
 	updatedWiki, appErr := c.App.UpdateWiki(c.AppContext, &wiki)
 	if appErr != nil {
@@ -201,26 +189,14 @@ func deleteWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("deleteWiki", model.AuditStatusFail)
-	defer c.LogAuditRec(auditRec)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	auditRec.AddMeta("wiki_id", c.Params.WikiId)
 
-	oldWiki, getErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
-	if getErr != nil {
-		c.Err = getErr
+	oldWiki, _, ok := c.RequireWikiModifyPermission(app.WikiOperationDelete, "deleteWiki")
+	if !ok {
 		return
 	}
 	auditRec.AddEventPriorState(oldWiki)
-
-	channel, appErr := c.App.GetChannel(c.AppContext, oldWiki.ChannelId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	if err := c.App.HasPermissionToModifyWiki(c.AppContext, c.AppContext.Session(), channel, app.WikiOperationDelete, "deleteWiki"); err != nil {
-		c.Err = err
-		return
-	}
 
 	if appErr := c.App.DeleteWiki(c.AppContext, c.Params.WikiId); appErr != nil {
 		c.Err = appErr
@@ -309,20 +285,8 @@ func addPageToWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("wiki_id", c.Params.WikiId)
 	auditRec.AddMeta("page_id", c.Params.PageId)
 
-	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	channel, appErr := c.App.GetChannel(c.AppContext, wiki.ChannelId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	if err := c.App.HasPermissionToModifyWiki(c.AppContext, c.AppContext.Session(), channel, app.WikiOperationEdit, "addPageToWiki"); err != nil {
-		c.Err = err
+	wiki, _, ok := c.RequireWikiModifyPermission(app.WikiOperationEdit, "addPageToWiki")
+	if !ok {
 		return
 	}
 
@@ -365,20 +329,8 @@ func removePageFromWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("wiki_id", c.Params.WikiId)
 	auditRec.AddMeta("page_id", c.Params.PageId)
 
-	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	channel, appErr := c.App.GetChannel(c.AppContext, wiki.ChannelId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	if err := c.App.HasPermissionToModifyWiki(c.AppContext, c.AppContext.Session(), channel, app.WikiOperationDelete, "removePageFromWiki"); err != nil {
-		c.Err = err
+	wiki, _, ok := c.RequireWikiModifyPermission(app.WikiOperationDelete, "removePageFromWiki")
+	if !ok {
 		return
 	}
 
@@ -426,19 +378,12 @@ func createPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("createPage", model.AuditStatusFail)
-	defer c.LogAuditRec(auditRec)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	auditRec.AddMeta("wiki_id", c.Params.WikiId)
 	auditRec.AddMeta("parent_id", req.PageParentId)
 
-	wiki, getErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
-	if getErr != nil {
-		c.Err = getErr
-		return
-	}
-
-	channel, appErr := c.App.GetChannel(c.AppContext, wiki.ChannelId)
-	if appErr != nil {
-		c.Err = appErr
+	_, channel, ok := c.RequireWikiModifyPermission(app.WikiOperationEdit, "createPage")
+	if !ok {
 		return
 	}
 
@@ -453,12 +398,6 @@ func createPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channel.Id, pagePermission) {
 		c.SetPermissionError(pagePermission)
-		return
-	}
-
-	// Check wiki permission (container)
-	if err := c.App.HasPermissionToModifyWiki(c.AppContext, c.AppContext.Session(), channel, app.WikiOperationEdit, "createPage"); err != nil {
-		c.Err = err
 		return
 	}
 
@@ -684,7 +623,8 @@ func createPageComment(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req struct {
-		Message string `json:"message"`
+		Message      string         `json:"message"`
+		InlineAnchor map[string]any `json:"inline_anchor"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -725,10 +665,10 @@ func createPageComment(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	auditRec := c.MakeAuditRecord("createPageComment", model.AuditStatusFail)
-	defer c.LogAuditRec(auditRec)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	auditRec.AddMeta("page_id", c.Params.PageId)
 
-	comment, appErr := c.App.CreatePageComment(c.AppContext, c.Params.PageId, req.Message)
+	comment, appErr := c.App.CreatePageComment(c.AppContext, c.Params.PageId, req.Message, req.InlineAnchor)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -804,7 +744,7 @@ func createPageCommentReply(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	auditRec := c.MakeAuditRecord("createPageCommentReply", model.AuditStatusFail)
-	defer c.LogAuditRec(auditRec)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
 	auditRec.AddMeta("page_id", c.Params.PageId)
 	auditRec.AddMeta("parent_comment_id", parentCommentId)
 

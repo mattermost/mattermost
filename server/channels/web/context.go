@@ -851,6 +851,31 @@ func (c *Context) RequireWikiWritePermission() *Context {
 	return c
 }
 
+func (c *Context) RequireWikiModifyPermission(op app.WikiOperation, callerContext string) (*model.Wiki, *model.Channel, bool) {
+	if c.Err != nil {
+		return nil, nil, false
+	}
+
+	wiki, err := c.App.GetWiki(c.AppContext, c.Params.WikiId)
+	if err != nil {
+		c.Err = err
+		return nil, nil, false
+	}
+
+	channel, err := c.App.GetChannel(c.AppContext, wiki.ChannelId)
+	if err != nil {
+		c.Err = err
+		return nil, nil, false
+	}
+
+	if err := c.App.HasPermissionToModifyWiki(c.AppContext, c.AppContext.Session(), channel, op, callerContext); err != nil {
+		c.Err = err
+		return nil, nil, false
+	}
+
+	return wiki, channel, true
+}
+
 func (c *Context) GetRemoteID(r *http.Request) string {
 	return r.Header.Get(model.HeaderRemoteclusterId)
 }

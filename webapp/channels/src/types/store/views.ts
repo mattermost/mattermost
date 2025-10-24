@@ -239,5 +239,6 @@ export type ViewsState = {
         mode: 'outline' | 'comments';
         wikiId: string | null;
         selectedPageId: string;
+        focusedInlineCommentId: string | null;
     };
 };

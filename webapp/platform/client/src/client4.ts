@@ -2123,10 +2123,14 @@ export default class Client4 {
         );
     };
 
-    createPageComment = (wikiId: string, pageId: string, message: string) => {
+    createPageComment = (wikiId: string, pageId: string, message: string, inlineAnchor?: {text: string; context_before: string; context_after: string; node_path: string[]; char_offset: number}) => {
+        const body: {message: string; inline_anchor?: any} = {message};
+        if (inlineAnchor) {
+            body.inline_anchor = inlineAnchor;
+        }
         return this.doFetch<Post>(
             `${this.getWikiPageRoute(wikiId, pageId)}/comments`,
-            {method: 'post', body: JSON.stringify({message})},
+            {method: 'post', body: JSON.stringify(body)},
         );
     };
 

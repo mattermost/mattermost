@@ -14,3 +14,7 @@ export function getWikiRhsMode(state: GlobalState): 'outline' | 'comments' {
 export function getSelectedPageId(state: GlobalState): string {
     return state.views.wikiRhs?.selectedPageId || '';
 }
+
+export function getFocusedInlineCommentId(state: GlobalState): string | null {
+    return state.views.wikiRhs?.focusedInlineCommentId || null;
+}

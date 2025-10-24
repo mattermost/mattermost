@@ -10,6 +10,7 @@ import type {Emoji} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
 
 import {General} from 'mattermost-redux/constants';
+import {PostTypes} from 'mattermost-redux/constants/posts';
 import {getDirectTeammate} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getPost, makeGetCommentCountForPost, makeIsPostCommentMention, isPostAcknowledgementsEnabled, isPostPriorityEnabled, isPostFlagged} from 'mattermost-redux/selectors/entities/posts';
@@ -110,6 +111,19 @@ function makeMapStateToProps() {
         const user = getUser(state, post.user_id);
         const isBot = Boolean(user && user.is_bot);
         const highlightedPostId = getHighlightedPostId(state);
+
+        // DEBUG: Check if user profile is available for this post
+        if (post.type === PostTypes.PAGE_COMMENT) {
+            console.log(`[Post Component DEBUG] Rendering post ${post.id}:`, {
+                user_id: post.user_id,
+                has_user_object: Boolean(user),
+                user_username: user?.username || 'MISSING',
+                user_first_name: user?.first_name || 'MISSING',
+                user_last_name: user?.last_name || 'MISSING',
+                parent_comment_id: post.props?.parent_comment_id || 'none (root comment)',
+                location: ownProps.location,
+            });
+        }
 
         const selectedCard = getSelectedPostCard(state);
 

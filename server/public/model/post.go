@@ -66,6 +66,7 @@ const (
 	PostPropsMaxRunes     = 800000
 	PostPropsMaxUserRunes = PostPropsMaxRunes - 40000 // Leave some room for system / pre-save modifications
 	PostPageMaxDepth      = 10                        // Maximum depth for page hierarchies
+	MaxPageTitleLength    = 255                       // Maximum length for page titles
 
 	PropsAddChannelMember = "add_channel_member"
 

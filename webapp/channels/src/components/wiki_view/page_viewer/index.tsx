@@ -17,6 +17,8 @@ import LoadingScreen from 'components/loading_screen';
 
 import type {GlobalState} from 'types/store';
 
+import {usePageInlineComments} from '../hooks/usePageInlineComments';
+import InlineCommentModal from '../inline_comment_modal';
 import TipTapEditor from '../wiki_page_editor/tiptap_editor';
 
 import './page_viewer.scss';
@@ -34,6 +36,17 @@ const PageViewer = ({pageId, wikiId}: Props) => {
     const teammateNameDisplay = useSelector(getTeammateNameDisplaySetting);
 
     const author = useUser(page?.user_id || '');
+
+    // Use shared inline comments hook
+    const {
+        inlineComments,
+        handleCommentClick,
+        handleCreateInlineComment,
+        showCommentModal,
+        commentAnchor,
+        handleSubmitComment,
+        handleCloseModal,
+    } = usePageInlineComments(pageId, wikiId || undefined);
 
     useEffect(() => {
         if (pageId && wikiId) {
@@ -79,8 +92,20 @@ const PageViewer = ({pageId, wikiId}: Props) => {
                     currentUserId={currentUserId}
                     channelId={page.channel_id}
                     teamId={currentTeamId}
+                    pageId={pageId}
+                    wikiId={wikiId || undefined}
+                    inlineComments={inlineComments}
+                    onCommentClick={handleCommentClick}
+                    onCreateInlineComment={handleCreateInlineComment}
                 />
             </div>
+            {showCommentModal && commentAnchor && (
+                <InlineCommentModal
+                    selectedText={commentAnchor.text}
+                    onSubmit={handleSubmitComment}
+                    onExited={handleCloseModal}
+                />
+            )}
         </div>
     );
 };

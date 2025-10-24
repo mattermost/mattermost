@@ -1,0 +1,49 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.inline-comment-bubble {
+    display: flex;
+    align-items: center;
+    padding: 6px 8px;
+    background: var(--center-channel-bg);
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    border-radius: 4px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12), 0 0 1px rgba(0, 0, 0, 0.08);
+    z-index: 1000;
+
+    .inline-comment-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 8px;
+        background: transparent;
+        border: none;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 20px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        border-radius: 4px;
+
+        &:hover {
+            background: rgba(var(--button-bg-rgb), 0.08);
+            color: var(--button-bg);
+        }
+
+        &:active {
+            background: rgba(var(--button-bg-rgb), 0.12);
+        }
+
+        .icon {
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        span {
+            white-space: nowrap;
+        }
+    }
+}

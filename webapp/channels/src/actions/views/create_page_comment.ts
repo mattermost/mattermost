@@ -7,8 +7,8 @@ import type {CreatePostReturnType} from 'mattermost-redux/actions/posts';
 import {PostTypes} from 'mattermost-redux/constants/posts';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
-import {createPageComment as createPageCommentAction} from 'actions/pages';
-import {getWikiRhsWikiId} from 'selectors/wiki_rhs';
+import {createPageComment as createPageCommentAction, createPageCommentReply} from 'actions/pages';
+import {getWikiRhsWikiId, getFocusedInlineCommentId} from 'selectors/wiki_rhs';
 
 import type {ActionFuncAsync} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
@@ -28,6 +28,9 @@ export function isPagePost(post: Post | null | undefined): boolean {
  * - Use page-specific API endpoints (/wikis/{wikiId}/pages/{pageId}/comments)
  * - Set Type="page_comment" on the backend
  * - Keep wiki/pages logic isolated and maintainable
+ *
+ * If there's a focused inline comment in the RHS state, creates a reply to that comment.
+ * Otherwise, creates a new top-level page comment.
  *
  * @param pageId - The page post ID (used as rootId)
  * @param draft - The comment draft containing message and metadata
@@ -58,7 +61,14 @@ export function submitPageComment(
             return {error};
         }
 
-        const response = await dispatch(createPageCommentAction(wikiId, pageId, draft.message));
+        const focusedInlineCommentId = getFocusedInlineCommentId(state);
+
+        let response;
+        if (focusedInlineCommentId) {
+            response = await dispatch(createPageCommentReply(wikiId, pageId, focusedInlineCommentId, draft.message));
+        } else {
+            response = await dispatch(createPageCommentAction(wikiId, pageId, draft.message));
+        }
 
         const result: CreatePostReturnType = {
             error: response.error,

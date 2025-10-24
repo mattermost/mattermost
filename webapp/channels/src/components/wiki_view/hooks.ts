@@ -11,7 +11,7 @@ import {getChannel, getChannelMember, selectChannel} from 'mattermost-redux/acti
 import {getChannel as getChannelSelector} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {loadPageDraftsForWiki, savePageDraft} from 'actions/page_drafts';
+import {savePageDraft} from 'actions/page_drafts';
 import {loadChannelDefaultPage, loadWikiPages, publishPageDraft, loadPage} from 'actions/pages';
 
 import type {GlobalState} from 'types/store';
@@ -19,26 +19,26 @@ import type {PostDraft} from 'types/store/draft';
 
 type UseWikiPageDataResult = {
     isLoading: boolean;
-    editingDraftId: string | null;
-    setEditingDraftId: (id: string | null) => void;
 };
 
 /**
  * Loads page or draft data for the wiki view and handles navigation
+ * Phase 1 Refactor: Removed editingDraftId state - now using draftId from route params only
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function useWikiPageData(
     pageId: string | undefined,
+    draftId: string | undefined,
     channelId: string,
     wikiId: string | null,
-    teamId: string,
+    _teamId: string,
     location: Location,
     history: any,
-    path: string,
-    isSelectingDraftRef: React.MutableRefObject<boolean>,
+    _path: string,
+    _isSelectingDraftRef: React.MutableRefObject<boolean>,
 ): UseWikiPageDataResult {
     const dispatch = useDispatch();
     const [isLoading, setLoading] = useState(true);
-    const [editingDraftId, setEditingDraftId] = useState<string | null>(null);
     const currentUserId = useSelector((state: GlobalState) => getCurrentUserId(state));
     const channel = useSelector((state: GlobalState) => getChannelSelector(state, channelId));
     const member = useSelector((state: GlobalState) => state.entities.channels.myMembers[channelId]);
@@ -72,11 +72,6 @@ export function useWikiPageData(
             }
 
             if (pageId) {
-                // Clear editingDraftId only if we're not editing this specific page
-                if (editingDraftId && editingDraftId !== pageId) {
-                    setEditingDraftId(null);
-                }
-
                 if (wikiId) {
                     await dispatch(loadPage(pageId, wikiId));
                 }
@@ -92,11 +87,9 @@ export function useWikiPageData(
             }
 
             // Load pages list for the hierarchy panel
-            let pages: any[] = [];
             if (wikiId) {
                 try {
-                    const pagesResult = await dispatch(loadWikiPages(wikiId));
-                    pages = pagesResult.data || [];
+                    await dispatch(loadWikiPages(wikiId));
                 } catch (error) {
                     // Error loading pages - continue anyway
                 }
@@ -109,43 +102,16 @@ export function useWikiPageData(
                 }
             }
 
-            // Load drafts for the wiki
-            // When at wiki root, check if we should auto-select a draft
-            if (wikiId) {
-                try {
-                    const result = await dispatch(loadPageDraftsForWiki(wikiId));
-                    const drafts = result.data || [];
-
-                    // Only clear editingDraftId if we're not selecting a draft
-                    if (!isSelectingDraftRef.current) {
-                        if (drafts.length === 1 && pages.length === 0) {
-                            // If there's exactly one draft and no published pages, auto-select it (typical for new wikis)
-                            setEditingDraftId(drafts[0].rootId);
-                        } else if (editingDraftId && drafts.some((d) => d.rootId === editingDraftId)) {
-                            // Preserve existing editingDraftId if the draft still exists
-                        } else {
-                            setEditingDraftId(null);
-                        }
-                    }
-                } catch (error) {
-                    if (!isSelectingDraftRef.current) {
-                        setEditingDraftId(null);
-                    }
-                } finally {
-                    setLoading(false);
-                }
-            } else {
-                setLoading(false);
-            }
+            // Note: Drafts are loaded by PagesHierarchyPanel, no need to reload here
+            // This avoids race condition where we re-add a just-deleted draft
+            setLoading(false);
         };
 
         loadPageOrDraft();
-    }, [pageId, channelId, wikiId, currentUserId, dispatch, channel, member]);
+    }, [pageId, draftId, channelId, wikiId, currentUserId, dispatch, channel, member]);
 
     return {
         isLoading,
-        editingDraftId,
-        setEditingDraftId,
     };
 }
 
@@ -158,16 +124,17 @@ type UseWikiPageActionsResult = {
 
 /**
  * Provides actions for editing and publishing wiki pages
+ * Phase 1 Refactor: Removed setEditingDraftId parameter - now using route navigation only
  */
 export function useWikiPageActions(
     channelId: string,
     pageId: string | undefined,
+    draftId: string | undefined,
     wikiId: string | null,
     currentPage: Post | null,
     currentDraft: PostDraft | null,
     location: Location,
     history: any,
-    setEditingDraftId: (id: string | null) => void,
 ): UseWikiPageActionsResult {
     const dispatch = useDispatch();
     const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -228,12 +195,15 @@ export function useWikiPageActions(
 
             await dispatch(savePageDraft(channelId, wikiId, pageId, currentPage.message, pageTitle, pageId, pageParentId ? {page_parent_id: pageParentId} : undefined));
 
-            setEditingDraftId(pageId);
+            // Phase 1 Refactor: Navigate to draft route instead of setting local state
+            const currentPath = location.pathname;
+            const basePath = currentPath.substring(0, currentPath.lastIndexOf('/'));
+            history.replace(`${basePath}/drafts/${pageId}`);
         } catch (error) {
             // TODO: Show error notification instead of alert
             // alert('Failed to start editing. Please try again.');
         }
-    }, [channelId, pageId, wikiId, currentPage, dispatch, setEditingDraftId]);
+    }, [channelId, pageId, wikiId, currentPage, dispatch, location.pathname, history]);
 
     const handleTitleChange = useCallback((newTitle: string) => {
         // Update ref immediately
@@ -299,8 +269,6 @@ export function useWikiPageActions(
         }
 
         if (!currentDraft.rootId) {
-            // TODO: Show error notification instead of alert
-            // alert('Cannot publish: draft not found. Please refresh the page and try again.');
             return;
         }
 
@@ -309,8 +277,6 @@ export function useWikiPageActions(
         const title = latestTitleRef.current || currentDraft.props?.title || '';
 
         if (!content || content.trim() === '') {
-            // TODO: Show error notification instead of alert
-            // alert('Cannot publish an empty page. Please add some content first.');
             return;
         }
 
@@ -333,17 +299,17 @@ export function useWikiPageActions(
             ));
 
             if (result.data) {
-                setEditingDraftId(null);
+                // Phase 1 Refactor: Clean navigation to published page
+                // Build URL from scratch instead of manipulating current path
+                const teamName = location.pathname.split('/')[1]; // Extract team from /:team/wiki/...
+                const redirectUrl = `/${teamName}/wiki/${channelId}/${wikiId}/${result.data.id}`;
 
-                const currentPath = location.pathname;
-                const basePath = pageId ? currentPath.substring(0, currentPath.lastIndexOf('/')) : currentPath;
-                const redirectUrl = `${basePath}/${result.data.id}`;
                 history.replace(redirectUrl);
             }
         } catch (error) {
-            // Error handled
+            // Error during publish
         }
-    }, [channelId, wikiId, currentDraft, pageId, location.pathname, history, dispatch, setEditingDraftId]);
+    }, [channelId, wikiId, currentDraft, draftId, location.pathname, history, dispatch]);
 
     return {
         handleEdit,

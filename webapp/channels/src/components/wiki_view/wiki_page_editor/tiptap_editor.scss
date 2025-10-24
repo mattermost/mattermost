@@ -240,3 +240,18 @@
 .ProseMirror-focused {
     outline: none;
 }
+
+// Inline comment highlight styles
+.inline-comment-highlight {
+    background-color: rgba(255, 235, 59, 0.3);
+    border-bottom: 2px solid rgba(255, 193, 7, 0.6);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    padding: 2px 0;
+    border-radius: 2px;
+
+    &:hover {
+        background-color: rgba(255, 235, 59, 0.5);
+        border-bottom-color: rgba(255, 193, 7, 0.9);
+    }
+}

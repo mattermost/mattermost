@@ -66,6 +66,11 @@ export const PageDisplayTypes = {
     PAGE_DRAFT: 'page_draft' as const,
 };
 
+export const PageConstants = {
+    PAGE_FETCH_LIMIT: 100,
+    INLINE_COMMENT_CONTEXT_LENGTH: 50,
+};
+
 export const Preferences = {
     CATEGORY_CHANNEL_OPEN_TIME: 'channel_open_time',
     CATEGORY_DIRECT_CHANNEL_SHOW: ReduxPreferences.CATEGORY_DIRECT_CHANNEL_SHOW,
@@ -1074,6 +1079,7 @@ export const RHSStates = {
 export const WikiRhsTypes = {
     SET_MODE: 'WIKI_RHS_SET_MODE',
     SET_WIKI_ID: 'WIKI_RHS_SET_WIKI_ID',
+    SET_FOCUSED_INLINE_COMMENT_ID: 'WIKI_RHS_SET_FOCUSED_INLINE_COMMENT_ID',
 };
 
 export const UploadStatuses = {

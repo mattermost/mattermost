@@ -1,9 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Editor} from '@tiptap/core';
-import {Mention} from '@tiptap/extension-mention';
-import StarterKit from '@tiptap/starter-kit';
 import {matchPath} from 'react-router-dom';
 import {batchActions} from 'redux-batched-actions';
 
@@ -18,47 +15,14 @@ import {PostTypes} from 'mattermost-redux/constants/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
 import {getHistory} from 'utils/browser_history';
+import {PageConstants} from 'utils/constants';
+import {extractPlaintextFromTipTapJSON} from 'utils/tiptap_utils';
 
 import type {ActionFuncAsync} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 
 // Type alias: Pages are stored as Posts in the backend
 export type Page = Post;
-
-/**
- * Extract plaintext from TipTap JSON for search indexing.
- * Only called when publishing a page (not on draft saves).
- */
-function extractPlaintextFromTipTapJSON(jsonString: string): string {
-    if (!jsonString || jsonString.trim() === '') {
-        return '';
-    }
-
-    try {
-        const jsonContent = JSON.parse(jsonString);
-
-        // Create a temporary editor to extract text
-        const tempEditor = new Editor({
-            extensions: [
-                StarterKit,
-                Mention.configure({
-                    HTMLAttributes: {
-                        class: 'mention',
-                    },
-                }),
-            ],
-            content: jsonContent,
-            editable: false,
-        });
-
-        const plaintext = tempEditor.getText({blockSeparator: '\n\n'});
-        tempEditor.destroy();
-
-        return plaintext;
-    } catch (error) {
-        return '';
-    }
-}
 
 export const GET_WIKI_PAGES_REQUEST = WikiTypes.GET_WIKI_PAGES_REQUEST;
 export const GET_WIKI_PAGES_SUCCESS = WikiTypes.GET_WIKI_PAGES_SUCCESS;
@@ -70,7 +34,7 @@ export function loadWikiPages(wikiId: string): ActionFuncAsync<Post[]> {
         dispatch({type: GET_WIKI_PAGES_REQUEST, data: {wikiId}});
 
         try {
-            const pages = await Client4.getWikiPages(wikiId, 0, 100);
+            const pages = await Client4.getWikiPages(wikiId, 0, PageConstants.PAGE_FETCH_LIMIT);
 
             dispatch({
                 type: GET_WIKI_PAGES_SUCCESS,
@@ -213,12 +177,11 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
             },
         };
 
-        dispatch(removeGlobalItem(draftKey));
+        console.log('[DEBUG] publishPageDraft - starting publish:', {draftId, wikiId});
 
         dispatch(batchActions([
             {type: WikiTypes.PUBLISH_DRAFT_REQUEST, data: {draftId}},
             {type: WikiTypes.RECEIVED_PAGE, data: optimisticPage},
-            {type: WikiTypes.DELETED_DRAFT, data: {id: draftId, wikiId}},
         ]));
 
         // Extract plaintext from TipTap JSON for search indexing (only when publishing)
@@ -227,10 +190,15 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
         try {
             const data = await Client4.publishPageDraft(wikiId, draftId, pageParentId, title, searchText) as Page;
 
+            console.log('[DEBUG] publishPageDraft - server published, now cleaning up draft:', {draftId, wikiId});
+
             dispatch(batchActions([
                 {type: WikiTypes.PUBLISH_DRAFT_SUCCESS, data: {draftId, pageId: data.id, optimisticId: pendingPageId}},
                 {type: WikiTypes.RECEIVED_PAGE, data: {...data, optimisticId: pendingPageId}},
+                {type: WikiTypes.DELETED_DRAFT, data: {id: draftId, wikiId}},
             ]));
+
+            dispatch(removeGlobalItem(draftKey));
 
             const history = getHistory();
             const match = matchPath<{wikiId: string; draftId: string}>(history.location.pathname, {
@@ -262,18 +230,18 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
 }
 
 // Create a new page draft
-export function createPage(wikiId: string, title: string, pageParentId?: string): ActionFuncAsync {
+export function createPage(wikiId: string, title: string, pageParentId?: string): ActionFuncAsync<string> {
     return async (dispatch, getState) => {
         try {
             const draftId = `draft-${Date.now()}`;
             const placeholderContent = '';
 
-            const draft = await Client4.savePageDraft(wikiId, draftId, placeholderContent, title, undefined, {page_parent_id: pageParentId});
+            await Client4.savePageDraft(wikiId, draftId, placeholderContent, title, undefined, {page_parent_id: pageParentId});
 
             const {loadPageDraftsForWiki} = await import('./page_drafts');
             await dispatch(loadPageDraftsForWiki(wikiId));
 
-            return {data: draft};
+            return {data: draftId};
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));

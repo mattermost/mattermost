@@ -489,7 +489,7 @@ export function showChannelInfo(channelId: string) {
     };
 }
 
-export function openWikiRhs(pageId: string, wikiId?: string): ActionFuncAsync {
+export function openWikiRhs(pageId: string, wikiId?: string, focusedInlineCommentId?: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         // Fetch the page and its thread to ensure they're in Redux
         const state = getState();
@@ -521,6 +521,12 @@ export function openWikiRhs(pageId: string, wikiId?: string): ActionFuncAsync {
                 wikiId,
             });
         }
+
+        // Set focused inline comment ID (null if not provided)
+        dispatch({
+            type: WikiRhsTypes.SET_FOCUSED_INLINE_COMMENT_ID,
+            commentId: focusedInlineCommentId || null,
+        });
 
         return {data: true};
     };

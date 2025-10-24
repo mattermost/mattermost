@@ -37,8 +37,8 @@ const WikiView = () => {
     const dispatch = useDispatch();
     const history = useHistory();
     const location = useLocation();
-    const {params, path} = useRouteMatch<{pageId?: string; channelId: string; wikiId: string}>();
-    const {pageId, channelId, wikiId} = params;
+    const {params, path} = useRouteMatch<{pageId?: string; draftId?: string; channelId: string; wikiId: string}>();
+    const {pageId, draftId, channelId, wikiId} = params;
 
     const teamId = useSelector(getCurrentTeamId);
     const currentUserId = useSelector(getCurrentUserId);
@@ -46,11 +46,12 @@ const WikiView = () => {
     const isWikiRhsOpen = rhsState === 'wiki';
     const isPanesPanelCollapsed = useSelector((state: GlobalState) => getIsPanesPanelCollapsed(state));
 
-    // Track if we're navigating to select a draft (to preserve editingDraftId during navigation)
+    // Track if we're navigating to select a draft
     const isSelectingDraftRef = React.useRef(false);
 
-    const {isLoading, editingDraftId, setEditingDraftId} = useWikiPageData(
+    const {isLoading} = useWikiPageData(
         pageId,
+        draftId,
         channelId,
         wikiId,
         teamId,
@@ -61,11 +62,10 @@ const WikiView = () => {
     );
 
     const currentDraft = useSelector((state: GlobalState) => {
-        if (!wikiId || !editingDraftId) {
+        if (!wikiId || !draftId) {
             return null;
         }
-        const draft = getPageDraft(state, wikiId, editingDraftId);
-        return draft;
+        return getPageDraft(state, wikiId, draftId);
     });
 
     const currentPage = useSelector((state: GlobalState) => {
@@ -84,30 +84,46 @@ const WikiView = () => {
     // Get the actual channel ID from the page or draft (URL params may have wikiId in channelId position)
     const actualChannelId = currentPage?.channel_id || currentDraft?.channelId || allDrafts[0]?.channelId || channelId;
 
-    // Centralized draft state: true if editing a draft OR showing empty editor for new page
-    // If we have editingDraftId matching pageId, we're editing a published page (draft mode)
-    const isDraft = (pageId && editingDraftId === pageId) || (!pageId && (Boolean(currentDraft) || !currentPage));
+    // Phase 1 Refactor: isDraft now derived from route - draftId in URL means we're editing a draft
+    const isDraft = Boolean(draftId) || (!pageId && !draftId && (Boolean(currentDraft) || !currentPage));
 
     // Single source of truth for empty state (no drafts, no pages)
     const isEmptyState = !currentDraft && !pageId && allDrafts.length === 0;
 
+    // Auto-select draft when at wiki root
+    React.useEffect(() => {
+        if (
+            !pageId &&
+            !draftId &&
+            allDrafts.length > 0
+        ) {
+            const firstDraft = allDrafts[0];
+            if (firstDraft) {
+                const teamName = location.pathname.split('/')[1];
+                const draftUrl = `/${teamName}/wiki/${channelId}/${wikiId}/drafts/${firstDraft.rootId}`;
+                history.replace(draftUrl);
+            }
+        }
+    }, [pageId, draftId, allDrafts, channelId, wikiId, location.pathname, history]);
+
+    // --------------------------------------------------------------------------
+    // Clear editingDraftId when the draft is deleted or published while we are
+    // editing it. This prevents the editor from getting stuck with a non-existent
+    // draft id in local state.
+    // Phase 1 Refactor: Removed cleanup effect - no longer needed with route-based draft IDs
+
     const {handleEdit, handlePublish, handleTitleChange, handleContentChange} = useWikiPageActions(
         channelId,
         pageId,
+        draftId,
         wikiId,
         currentPage || null,
         currentDraft,
         location,
         history,
-        setEditingDraftId,
     );
 
     const handleToggleComments = () => {
-        // Don't open RHS for drafts (they can't have comments)
-        if (currentDraft) {
-            return;
-        }
-
         if (isWikiRhsOpen) {
             dispatch(closeRightHandSide());
         } else if (pageId) {
@@ -117,40 +133,24 @@ const WikiView = () => {
     };
 
     const handlePageSelect = (selectedPageId: string) => {
-        const isDraft = allDrafts.some((draft) => draft.rootId === selectedPageId);
+        const isSelectedIdDraft = selectedPageId.startsWith('draft-') || allDrafts.some((draft) => draft.rootId === selectedPageId);
+        const teamName = location.pathname.split('/')[1];
+        const baseWikiUrl = `/${teamName}/wiki/${channelId}/${wikiId}`;
 
-        if (isDraft) {
-            // Set flag to prevent the hook from clearing editingDraftId during navigation
-            isSelectingDraftRef.current = true;
-
-            // Set the draft ID first (synchronously)
-            setEditingDraftId(selectedPageId);
-
-            // Then navigate to wiki root if needed (clear pageId from URL)
-            if (pageId) {
-                // Currently on a page URL, navigate back to wiki root
-                const currentPath = location.pathname;
-                const basePath = currentPath.substring(0, currentPath.lastIndexOf('/'));
-                history.push(basePath);
-            }
-
-            // Clear flag after a short delay (after effect runs)
-            setTimeout(() => {
-                isSelectingDraftRef.current = false;
-            }, 100);
+        if (isSelectedIdDraft) {
+            const draftUrl = `${baseWikiUrl}/drafts/${selectedPageId}`;
+            history.push(draftUrl);
         } else {
-            isSelectingDraftRef.current = false;
-            setEditingDraftId(null);
-            const currentPath = location.pathname;
-            const basePath = pageId ? currentPath.substring(0, currentPath.lastIndexOf('/')) : currentPath;
-            const redirectUrl = `${basePath}/${selectedPageId}`;
-            history.push(redirectUrl);
+            const pageUrl = `${baseWikiUrl}/${selectedPageId}`;
+            history.push(pageUrl);
         }
     };
 
     const handleOpenPagesPanel = () => {
         dispatch(openPagesPanel());
     };
+
+    // (duplicate logic removed below – handled earlier in component)
 
     React.useEffect(() => {
         if (pageId && !currentPage && !isLoading) {
@@ -165,18 +165,12 @@ const WikiView = () => {
         }
     }, [pageId, currentPage, isLoading, location.pathname, history]);
 
-    // Update WikiRHS when navigating to a different page, or close it when viewing a draft
+    // Update WikiRHS when navigating to a different page
     React.useEffect(() => {
-        if (isWikiRhsOpen) {
-            if (pageId) {
-                // Update RHS to show comments for the new page
-                dispatch(openWikiRhs(pageId, wikiId || ''));
-            } else if (currentDraft) {
-                // Close RHS when viewing a draft (drafts can't have comments)
-                dispatch(closeRightHandSide());
-            }
+        if (isWikiRhsOpen && pageId) {
+            dispatch(openWikiRhs(pageId, wikiId || ''));
         }
-    }, [pageId, currentDraft, isWikiRhsOpen, wikiId, dispatch]);
+    }, [pageId, isWikiRhsOpen, wikiId, dispatch]);
 
     return (
         <div className='app__content'>
@@ -227,70 +221,45 @@ const WikiView = () => {
                                 />
                             )}
                             <div className='PagePane__content'>
-                                {(() => {
-                                    // Check if we're editing a published page (editingDraftId matches pageId)
-                                    if (pageId && editingDraftId === pageId && currentDraft) {
-                                        return (
-                                            <WikiPageEditor
-                                                title={currentDraft.props?.title || ''}
-                                                content={currentDraft.message || ''}
-                                                onTitleChange={handleTitleChange}
-                                                onContentChange={handleContentChange}
-                                                currentUserId={currentUserId}
-                                                channelId={actualChannelId}
-                                                teamId={teamId}
-                                                showAuthor={false}
-                                            />
-                                        );
-                                    }
-
-                                    // If we have a pageId in the URL, we're viewing a published page (not editing)
-                                    if (pageId) {
-                                        return (
-                                            <PageViewer
-                                                pageId={pageId}
-                                                wikiId={wikiId}
-                                            />
-                                        );
-                                    }
-                                    if (currentDraft) {
-                                        return (
-                                            <WikiPageEditor
-                                                title={currentDraft.props?.title || ''}
-                                                content={currentDraft.message || ''}
-                                                onTitleChange={handleTitleChange}
-                                                onContentChange={handleContentChange}
-                                                currentUserId={currentUserId}
-                                                channelId={actualChannelId}
-                                                teamId={teamId}
-                                                showAuthor={false}
-                                            />
-                                        );
-                                    }
-
-                                    if (isEmptyState) {
-                                        return (
-                                            <div className='PagePane__emptyState'>
-                                                <i className='icon-file-document-outline'/>
-                                                <h3>{'No Pages Yet'}</h3>
-                                                <p>{'Create your first page to get started'}</p>
-                                            </div>
-                                        );
-                                    }
-
-                                    return (
-                                        <WikiPageEditor
-                                            title={''}
-                                            content={''}
-                                            onTitleChange={handleTitleChange}
-                                            onContentChange={handleContentChange}
-                                            currentUserId={currentUserId}
-                                            channelId={actualChannelId}
-                                            teamId={teamId}
-                                            showAuthor={false}
-                                        />
-                                    );
-                                })()}
+                                {draftId && !currentDraft && (
+                                    <div className='no-results__holder'>
+                                        <LoadingScreen/>
+                                    </div>
+                                )}
+                                {draftId && currentDraft && (
+                                    <WikiPageEditor
+                                        title={currentDraft.props?.title || ''}
+                                        content={currentDraft.message || ''}
+                                        onTitleChange={handleTitleChange}
+                                        onContentChange={handleContentChange}
+                                        currentUserId={currentUserId}
+                                        channelId={actualChannelId}
+                                        teamId={teamId}
+                                        pageId={draftId}
+                                        wikiId={wikiId}
+                                        showAuthor={false}
+                                    />
+                                )}
+                                {pageId && (
+                                    <PageViewer
+                                        key={pageId}
+                                        pageId={pageId}
+                                        wikiId={wikiId}
+                                    />
+                                )}
+                                {isEmptyState && (
+                                    <div className='PagePane__emptyState'>
+                                        <i className='icon-file-document-outline'/>
+                                        <h3>{'No Pages Yet'}</h3>
+                                        <p>{'Create your first page to get started'}</p>
+                                    </div>
+                                )}
+                                {!draftId && !pageId && !isEmptyState && (
+                                    <div className='PagePane__emptyState'>
+                                        <i className='icon-file-document-outline'/>
+                                        <h3>{'Select a page or create a new one'}</h3>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </>

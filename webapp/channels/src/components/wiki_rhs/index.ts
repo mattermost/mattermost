@@ -21,6 +21,33 @@ function mapStateToProps(state: GlobalState) {
     const pageTitle = (typeof page?.props?.title === 'string' ? page.props.title : 'Page');
     const channel = page?.channel_id ? getChannel(state, page.channel_id) : null;
 
+    // DEBUG: Check thread posts and user data
+    if (pageId) {
+        const postsInThread = state.entities.posts.postsInThread[pageId] || [];
+        const allPosts = state.entities.posts.posts;
+        const allUsers = state.entities.users.profiles;
+
+        console.log('[WikiRHS DEBUG] Thread posts for page:', pageId);
+        console.log('[WikiRHS DEBUG] Post IDs in thread:', postsInThread);
+
+        postsInThread.forEach((postId: string) => {
+            const post = allPosts[postId];
+            if (post) {
+                const user = allUsers[post.user_id];
+                console.log(`[WikiRHS DEBUG] Post ${postId}:`, {
+                    type: post.type,
+                    user_id: post.user_id,
+                    has_user_profile: Boolean(user),
+                    user_username: user?.username || 'MISSING',
+                    parent_comment_id: post.props?.parent_comment_id || 'none (root comment)',
+                    message_preview: post.message.substring(0, 30),
+                });
+            } else {
+                console.log(`[WikiRHS DEBUG] Post ${postId}: NOT FOUND IN REDUX`);
+            }
+        });
+    }
+
     return {
         pageId,
         wikiId: getWikiRhsWikiId(state),
