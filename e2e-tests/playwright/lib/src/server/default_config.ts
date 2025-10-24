@@ -820,4 +820,17 @@ const defaultServerConfig: AdminConfig = {
             TeamAdminsAsReviewers: true,
         },
     },
+    AutoTranslationSettings: {
+        Enable: false,
+        Provider: '',
+        LibreTranslate: {
+            URL: '',
+            APIKey: '',
+        },
+        TimeoutMs: {
+            NewPost: 800,
+            Fetch: 2000,
+            Notification: 300,
+        },
+    },
 };

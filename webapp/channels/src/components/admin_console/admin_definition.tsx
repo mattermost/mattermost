@@ -83,6 +83,7 @@ import {
     SystemRolesFeatureDiscovery,
 } from './feature_discovery/features';
 import AttributeBasedAccessControlFeatureDiscovery from './feature_discovery/features/attribute_based_access_control';
+import AutoTranslationFeatureDiscovery from './feature_discovery/features/auto_translation';
 import UserAttributesFeatureDiscovery from './feature_discovery/features/user_attributes';
 import FeatureFlags, {messages as featureFlagsMessages} from './feature_flags';
 import GroupDetails from './group_settings/group_details';
@@ -91,6 +92,8 @@ import IPFiltering from './ip_filtering';
 import LDAPWizard from './ldap_wizard';
 import LicenseSettings from './license_settings';
 import {searchableStrings as licenseSettingsSearchableStrings} from './license_settings/license_settings';
+import AutoTranslation, {searchableStrings as autoTranslationSearchableStrings} from './localization/auto_translation';
+import Localization, {searchableStrings as localizationSearchableStrings} from './localization/localization';
 import MessageExportSettings, {searchableStrings as messageExportSearchableStrings} from './message_export_settings';
 import OpenIdConvert from './openid_convert';
 import PasswordSettings, {searchableStrings as passwordSearchableStrings} from './password_settings';
@@ -2437,51 +2440,38 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'site_config/localization',
                 title: defineMessage({id: 'admin.sidebar.localization', defaultMessage: 'Localization'}),
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.LOCALIZATION)),
+                searchableStrings: localizationSearchableStrings.concat(autoTranslationSearchableStrings),
                 schema: {
                     id: 'LocalizationSettings',
                     name: defineMessage({id: 'admin.site.localization', defaultMessage: 'Localization'}),
                     settings: [
                         {
-                            type: 'language',
-                            key: 'LocalizationSettings.DefaultServerLocale',
-                            label: defineMessage({id: 'admin.general.localization.serverLocaleTitle', defaultMessage: 'Default Server Language:'}),
-                            help_text: defineMessage({id: 'admin.general.localization.serverLocaleDescription', defaultMessage: 'Default language for system messages.'}),
+                            type: 'custom',
+                            key: 'LocalizationSettings',
+                            component: Localization,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.LOCALIZATION)),
                         },
                         {
-                            type: 'language',
-                            key: 'LocalizationSettings.DefaultClientLocale',
-                            label: defineMessage({id: 'admin.general.localization.clientLocaleTitle', defaultMessage: 'Default Client Language:'}),
-                            help_text: defineMessage({id: 'admin.general.localization.clientLocaleDescription', defaultMessage: 'Default language for newly created users and pages where the user hasn\'t logged in.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.LOCALIZATION)),
+                            type: 'custom',
+                            key: 'AutoTranslationSettings',
+                            component: AutoTranslation,
+                            isHidden: it.any(
+                                it.configIsFalse('FeatureFlags', 'AutoTranslation'),
+                                it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                            ),
                         },
                         {
-                            type: 'language',
-                            key: 'LocalizationSettings.AvailableLocales',
-                            label: defineMessage({id: 'admin.general.localization.availableLocalesTitle', defaultMessage: 'Available Languages:'}),
-                            help_text: defineMessage({id: 'admin.general.localization.availableLocalesDescription', defaultMessage: 'Set which languages are available for users in <strong>Settings > Display > Language</strong> (leave this field blank to have all supported languages available). If you\'re manually adding new languages, the <strong>Default Client Language</strong> must be added before saving this setting.\n \nWould like to help with translations? Join the <link>Mattermost Translation Server</link> to contribute.'}),
-                            help_text_markdown: false,
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href='http://translate.mattermost.com/'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
+                            type: 'custom',
+                            key: 'auto-translation-discovery',
+                            component: AutoTranslationFeatureDiscovery,
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
+                            isHidden: it.any(
+                                it.all(
+                                    it.configIsTrue('FeatureFlags', 'AutoTranslation'),
+                                    it.minLicenseTier(LicenseSkus.EnterpriseAdvanced),
                                 ),
-                                strong: (msg: string) => <strong>{msg}</strong>,
-                            },
-                            multiple: true,
-                            no_result: defineMessage({id: 'admin.general.localization.availableLocalesNoResults', defaultMessage: 'No results found'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.LOCALIZATION)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'LocalizationSettings.EnableExperimentalLocales',
-                            label: defineMessage({id: 'admin.general.localization.enableExperimentalLocalesTitle', defaultMessage: 'Enable Experimental Locales:'}),
-                            help_text: defineMessage({id: 'admin.general.localization.enableExperimentalLocalesDescription', defaultMessage: 'When true, it allows users to select experimental (e.g., in progress) languages.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.LOCALIZATION)),
+                                it.configIsFalse('FeatureFlags', 'AutoTranslation'),
+                            ),
                         },
                     ],
                 },
