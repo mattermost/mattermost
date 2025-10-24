@@ -20,6 +20,7 @@ const (
 	SystemFirstAdminRole                   = "FirstAdminRole"
 	SystemFirstServerRunTimestampKey       = "FirstServerRunTimestamp"
 	SystemClusterEncryptionKey             = "ClusterEncryptionKey"
+	SystemPushProxyAuthToken               = "PushProxyAuthToken"
 	SystemUpgradedFromTeId                 = "UpgradedFromTE"
 	SystemWarnMetricNumberOfTeams5         = "warn_metric_number_of_teams_5"
 	SystemWarnMetricNumberOfChannels50     = "warn_metric_number_of_channels_50"
