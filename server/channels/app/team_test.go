@@ -445,6 +445,10 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		th.BasicTeam.AllowedDomains = "example.com"
 		_, err := th.App.UpdateTeam(th.BasicTeam)
 		require.Nil(t, err, "Should update the team")
+		defer func() {
+			th.BasicTeam.AllowedDomains = ""
+			_, _ = th.App.UpdateTeam(th.BasicTeam)
+		}()
 
 		user := model.User{Email: strings.ToLower(model.NewId()) + "test@invalid.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 		ruser, _ := th.App.CreateUser(th.Context, &user)
@@ -484,6 +488,88 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		assert.Equal(t, model.SidebarCategoryChannels, res.Categories[1].Type)
 		assert.Equal(t, model.SidebarCategoryDirectMessages, res.Categories[2].Type)
 	})
+
+	// Tests for Easy Login Invitation tokens
+	t.Run("valid easy login invitation token adds guest to team and channels", func(t *testing.T) {
+		guest := th.CreateGuest()
+		channel1 := th.CreateChannel(th.Context, th.BasicTeam)
+		channel2 := th.CreateChannel(th.Context, th.BasicTeam)
+
+		tokenData := map[string]string{
+			"teamId":   th.BasicTeam.Id,
+			"channels": channel1.Id + " " + channel2.Id,
+			"email":    guest.Email,
+			"guest":    "true",
+			"senderId": th.BasicUser.Id,
+		}
+		token := model.NewToken(
+			TokenTypeEasyLoginInvitation,
+			model.MapToJSON(tokenData),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		_, _, err := th.App.AddUserToTeamByToken(th.Context, guest.Id, token.Token)
+		require.Nil(t, err, "Should add guest to team successfully")
+
+		// Verify token was deleted
+		_, nErr := th.App.Srv().Store().Token().GetByToken(token.Token)
+		require.Error(t, nErr, "Token should be deleted after use")
+
+		// Verify guest was added to specified channels
+		members, chanErr := th.App.GetChannelMembersForUser(th.Context, th.BasicTeam.Id, guest.Id)
+		require.Nil(t, chanErr)
+
+		channelIds := make(map[string]bool)
+		for _, member := range members {
+			channelIds[member.ChannelId] = true
+		}
+		assert.True(t, channelIds[channel1.Id], "Guest should be in channel1")
+		assert.True(t, channelIds[channel2.Id], "Guest should be in channel2")
+	})
+
+	t.Run("easy login invitation token with expired timestamp fails", func(t *testing.T) {
+		guest := th.CreateGuest()
+
+		tokenData := map[string]string{
+			"teamId":   th.BasicTeam.Id,
+			"channels": th.BasicChannel.Id,
+			"email":    guest.Email,
+			"guest":    "true",
+			"senderId": th.BasicUser.Id,
+		}
+		token := model.NewToken(
+			TokenTypeEasyLoginInvitation,
+			model.MapToJSON(tokenData),
+		)
+		// Make token expired (48 hours + 1ms)
+		token.CreateAt = model.GetMillis() - InvitationExpiryTime - 1
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		_, _, err := th.App.AddUserToTeamByToken(th.Context, guest.Id, token.Token)
+		require.NotNil(t, err, "Should fail on expired easy login token")
+		assert.Equal(t, "api.user.create_user.signup_link_expired.app_error", err.Id)
+	})
+
+	t.Run("easy login invitation token should not add regular user", func(t *testing.T) {
+		regularUser := th.CreateUser()
+
+		tokenData := map[string]string{
+			"teamId":   th.BasicTeam.Id,
+			"channels": th.BasicChannel.Id,
+			"email":    regularUser.Email,
+			"guest":    "true",
+			"senderId": th.BasicUser.Id,
+		}
+		token := model.NewToken(
+			TokenTypeEasyLoginInvitation,
+			model.MapToJSON(tokenData),
+		)
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		// Regular users cannot use easy login tokens (they're guest-only)
+		_, _, err := th.App.AddUserToTeamByToken(th.Context, regularUser.Id, token.Token)
+		require.NotNil(t, err, "Should fail when adding regular user with easy login token")
+	})
 }
 
 func TestAddUserToTeamByTeamId(t *testing.T) {
@@ -503,6 +589,10 @@ func TestAddUserToTeamByTeamId(t *testing.T) {
 		th.BasicTeam.AllowedDomains = "example.com"
 		_, err := th.App.UpdateTeam(th.BasicTeam)
 		require.Nil(t, err, "Should update the team")
+		defer func() {
+			th.BasicTeam.AllowedDomains = ""
+			_, _ = th.App.UpdateTeam(th.BasicTeam)
+		}()
 
 		user := model.User{Email: strings.ToLower(model.NewId()) + "test@invalid.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 		ruser, _ := th.App.CreateUser(th.Context, &user)
@@ -1665,6 +1755,7 @@ func TestInviteGuestsToChannelsGracefully(t *testing.T) {
 			true,
 			false,
 			false,
+			false,
 		).Once().Return(nil)
 		emailServiceMock.On("Stop").Once().Return()
 		th.App.Srv().EmailService = &emailServiceMock
@@ -1672,7 +1763,7 @@ func TestInviteGuestsToChannelsGracefully(t *testing.T) {
 		res, err := th.App.InviteGuestsToChannelsGracefully(th.Context, th.BasicTeam.Id, &model.GuestsInvite{
 			Emails:   []string{"idontexist@mattermost.com"},
 			Channels: []string{th.BasicChannel.Id},
-		}, th.BasicUser.Id)
+		}, th.BasicUser.Id, false)
 		require.Nil(t, err)
 		require.Len(t, res, 1)
 		require.Nil(t, res[0].Error)
@@ -1692,6 +1783,7 @@ func TestInviteGuestsToChannelsGracefully(t *testing.T) {
 			true,
 			false,
 			false,
+			false,
 		).Once().Return(email.SendMailError)
 		emailServiceMock.On("Stop").Once().Return()
 		th.App.Srv().EmailService = &emailServiceMock
@@ -1699,7 +1791,7 @@ func TestInviteGuestsToChannelsGracefully(t *testing.T) {
 		res, err := th.App.InviteGuestsToChannelsGracefully(th.Context, th.BasicTeam.Id, &model.GuestsInvite{
 			Emails:   []string{"idontexist@mattermost.com"},
 			Channels: []string{th.BasicChannel.Id},
-		}, th.BasicUser.Id)
+		}, th.BasicUser.Id, false)
 
 		require.Nil(t, err)
 		require.Len(t, res, 1)

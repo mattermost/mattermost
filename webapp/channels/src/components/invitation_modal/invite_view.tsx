@@ -25,13 +25,14 @@ import OverageUsersBannerNotice from './overage_users_banner_notice';
 
 import './invite_view.scss';
 
-export const initializeInviteState = (initialSearchValue = '', inviteAsGuest = false): InviteState => {
+export const initializeInviteState = (initialSearchValue = '', inviteAsGuest = false, canInviteGuestsWithEasyLogin = false): InviteState => {
     return deepFreeze({
         inviteType: inviteAsGuest ? InviteType.GUEST : InviteType.MEMBER,
         customMessage: defaultCustomMessage,
         inviteChannels: defaultInviteChannels,
         usersEmails: [],
         usersEmailsSearch: initialSearchValue,
+        canInviteGuestsWithEasyLogin,
     });
 };
 
@@ -41,6 +42,7 @@ export type InviteState = {
     inviteChannels: InviteChannels;
     usersEmails: Array<UserProfile | string>;
     usersEmailsSearch: string;
+    canInviteGuestsWithEasyLogin: boolean;
 };
 
 export type Props = InviteState & {
@@ -68,6 +70,8 @@ export type Props = InviteState & {
     townSquareDisplayName: string;
     channelToInvite?: Channel;
     onPaste?: (e: ClipboardEvent) => void;
+    useEasyLogin: boolean;
+    toggleEasyLogin: () => void;
 }
 
 export default function InviteView(props: Props) {
@@ -234,6 +238,22 @@ export default function InviteView(props: Props) {
                     canInviteGuests={props.canInviteGuests}
                 />
                 }
+                {props.inviteType === InviteType.GUEST && props.canInviteGuestsWithEasyLogin && (
+                    <div className='InviteView__easyLoginSection'>
+                        <label className='InviteView__easyLoginCheckbox'>
+                            <input
+                                type='checkbox'
+                                checked={props.useEasyLogin}
+                                onChange={props.toggleEasyLogin}
+                                data-testid='InviteView__easyLoginCheckbox'
+                            />
+                            <FormattedMessage
+                                id='invite_modal.easy_login'
+                                defaultMessage='Enable easy login workflow for guests'
+                            />
+                        </label>
+                    </div>
+                )}
                 {(props.inviteType === InviteType.GUEST || (props.inviteType === InviteType.MEMBER && props.channelToInvite)) && (
                     <AddToChannels
                         setCustomMessage={props.setCustomMessage}

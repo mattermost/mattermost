@@ -20,6 +20,7 @@ describe('mapStateToProps', () => {
                 config: {
                     EnableGuestAccounts: 'true',
                     BuildEnterpriseReady: 'true',
+                    EnableEasyLogin: 'false',
                 },
                 license: {
                     IsLicensed: 'true',
@@ -179,5 +180,98 @@ describe('mapStateToProps', () => {
         const props = mapStateToProps(testState, {channelToInvite: testChannel});
 
         expect(props.currentTeam?.id).toBe(testChannel.team_id);
+    });
+
+    test('canInviteGuestsWithEasyLogin is false when EnableEasyLogin is false', () => {
+        const testState = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                general: {
+                    config: {
+                        EnableGuestAccounts: 'true',
+                        BuildEnterpriseReady: 'true',
+                        EnableEasyLogin: 'false',
+                    },
+                    license: {
+                        IsLicensed: 'true',
+                    },
+                },
+                teams: {
+                    ...initialState.entities.teams,
+                    teams: {
+                        [currentTeamId]: {
+                            id: currentTeamId,
+                            group_constrained: false,
+                        },
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        const props = mapStateToProps(testState, {});
+        expect(props.canInviteGuestsWithEasyLogin).toBe(false);
+    });
+
+    test('canInviteGuestsWithEasyLogin is true when EnableEasyLogin is true and can invite guests', () => {
+        const testState = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                general: {
+                    config: {
+                        EnableGuestAccounts: 'true',
+                        BuildEnterpriseReady: 'true',
+                        EnableEasyLogin: 'true',
+                    },
+                    license: {
+                        IsLicensed: 'true',
+                    },
+                },
+                teams: {
+                    ...initialState.entities.teams,
+                    teams: {
+                        [currentTeamId]: {
+                            id: currentTeamId,
+                            group_constrained: false,
+                        },
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        const props = mapStateToProps(testState, {});
+        expect(props.canInviteGuestsWithEasyLogin).toBe(true);
+    });
+
+    test('canInviteGuestsWithEasyLogin is false when EnableEasyLogin is true but cannot invite guests', () => {
+        const testState = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                general: {
+                    config: {
+                        EnableGuestAccounts: 'false',
+                        BuildEnterpriseReady: 'true',
+                        EnableEasyLogin: 'true',
+                    },
+                    license: {
+                        IsLicensed: 'true',
+                    },
+                },
+                teams: {
+                    ...initialState.entities.teams,
+                    teams: {
+                        [currentTeamId]: {
+                            id: currentTeamId,
+                            group_constrained: false,
+                        },
+                    },
+                },
+            },
+        } as unknown as GlobalState;
+
+        const props = mapStateToProps(testState, {});
+        expect(props.canInviteGuestsWithEasyLogin).toBe(false);
     });
 });

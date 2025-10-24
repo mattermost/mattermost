@@ -711,6 +711,7 @@ const defaultServerConfig: AdminConfig = {
         AllowEmailAccounts: true,
         EnforceMultifactorAuthentication: false,
         RestrictCreationToDomains: '',
+        EnableEasyLogin: false,
     },
     ImageProxySettings: {
         Enable: false,
