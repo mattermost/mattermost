@@ -155,6 +155,8 @@ export const Preferences = {
     TO_CLOUD_YEARLY_PLAN_NUDGE: 'to_cloud_yearly_plan_nudge',
     TO_PAID_PLAN_NUDGE: 'to_paid_plan_nudge',
     CLOUD_ANNUAL_RENEWAL_BANNER: 'cloud_annual_renewal_banner',
+
+    CATEGORY_ABAC_ACTIVITY_WARNING: 'abac_activity_warning',
 };
 
 // For one off things that have a special, attention-grabbing UI until you interact with them

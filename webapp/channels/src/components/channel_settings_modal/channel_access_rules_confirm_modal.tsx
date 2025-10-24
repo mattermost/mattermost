@@ -25,6 +25,7 @@ type ChannelAccessRulesConfirmModalProps = {
     isProcessing?: boolean;
     autoSyncEnabled?: boolean;
     isStacked?: boolean;
+    willShowActivityWarning?: boolean;
 };
 
 const USERS_PER_PAGE = 50;
@@ -39,6 +40,7 @@ function ChannelAccessRulesConfirmModal({
     isProcessing = false,
     autoSyncEnabled = false,
     isStacked = false,
+    willShowActivityWarning = false,
 }: ChannelAccessRulesConfirmModalProps) {
     const dispatch = useDispatch();
 
@@ -136,8 +138,8 @@ function ChannelAccessRulesConfirmModal({
 
     const modalTitle = (
         <FormattedMessage
-            id='channel_settings.access_rules.confirm_modal.title'
-            defaultMessage='Save and apply rules'
+            id={willShowActivityWarning ? 'channel_settings.access_rules.confirm_modal.title_with_warning' : 'channel_settings.access_rules.confirm_modal.title'}
+            defaultMessage={willShowActivityWarning ? 'Review membership impact' : 'Save and apply rules'}
         />
     );
 
@@ -168,20 +170,35 @@ function ChannelAccessRulesConfirmModal({
                     onClick={onConfirm}
                     disabled={isProcessing}
                 >
-                    {isProcessing ? (
-                        <>
-                            <span className='icon icon-loading icon-spin'/>
+                    {(() => {
+                        if (isProcessing) {
+                            return (
+                                <>
+                                    <span className='icon icon-loading icon-spin'/>
+                                    <FormattedMessage
+                                        id='channel_settings.access_rules.confirm_modal.saving'
+                                        defaultMessage='Saving...'
+                                    />
+                                </>
+                            );
+                        }
+
+                        if (willShowActivityWarning) {
+                            return (
+                                <FormattedMessage
+                                    id='channel_settings.access_rules.confirm_modal.continue'
+                                    defaultMessage='Continue'
+                                />
+                            );
+                        }
+
+                        return (
                             <FormattedMessage
-                                id='channel_settings.access_rules.confirm_modal.saving'
-                                defaultMessage='Saving...'
+                                id={autoSyncEnabled ? 'channel_settings.access_rules.confirm_modal.save_and_apply' : 'channel_settings.access_rules.confirm_modal.save'}
+                                defaultMessage={autoSyncEnabled ? 'Save and apply' : 'Save'}
                             />
-                        </>
-                    ) : (
-                        <FormattedMessage
-                            id={autoSyncEnabled ? 'channel_settings.access_rules.confirm_modal.save_and_apply' : 'channel_settings.access_rules.confirm_modal.save'}
-                            defaultMessage={autoSyncEnabled ? 'Save and apply' : 'Save'}
-                        />
-                    )}
+                        );
+                    })()}
                 </button>
             </div>
         </div>

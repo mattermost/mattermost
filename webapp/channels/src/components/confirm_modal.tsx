@@ -59,6 +59,11 @@ type Props = {
     checkboxText?: React.ReactNode;
 
     /*
+     * CSS class to apply to the checkbox container
+     */
+    checkboxClass?: string;
+
+    /*
      * If true, show the checkbox in the footer instead of the modal body
      */
     checkboxInFooter?: boolean;
@@ -72,6 +77,11 @@ type Props = {
      * Function called when the cancel button is pressed or the modal is hidden. Passes `true` if the checkbox is checked
      */
     onCancel?: (checked: boolean) => void;
+
+    /*
+     * Function called when the checkbox is changed. Passes `true` if the checkbox is checked
+     */
+    onCheckboxChange?: (checked: boolean) => void;
 
     /**
      * Function called when modal is dismissed
@@ -87,6 +97,11 @@ type Props = {
      * Set to hide the confirm button
      */
     hideConfirm?: boolean;
+
+    /*
+     * Set to disable the confirm button
+     */
+    confirmDisabled?: boolean;
 
     /*
      * The element that triggered the modal
@@ -125,12 +140,17 @@ export default class ConfirmModal extends React.Component<Props, State> {
     shouldComponentUpdate(nextProps: Props, nextState: State) {
         return (
             nextProps.show !== this.props.show ||
+            nextProps.title !== this.props.title ||
+            nextProps.message !== this.props.message ||
+            nextProps.confirmButtonText !== this.props.confirmButtonText ||
+            nextProps.confirmDisabled !== this.props.confirmDisabled ||
             nextState.checked !== this.state.checked
         );
     }
 
     handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         this.setState({checked: e.target.checked});
+        this.props.onCheckboxChange?.(e.target.checked);
     };
 
     handleConfirm = () => {
@@ -151,8 +171,9 @@ export default class ConfirmModal extends React.Component<Props, State> {
     render() {
         let checkbox;
         if (this.props.showCheckbox) {
+            const checkboxClass = this.props.checkboxClass || 'checkbox text-right mb-0';
             checkbox = (
-                <div className='checkbox text-right mb-0'>
+                <div className={checkboxClass}>
                     <label>
                         <input
                             type='checkbox'
@@ -224,6 +245,7 @@ export default class ConfirmModal extends React.Component<Props, State> {
                                 onClick={this.handleConfirm}
                                 id='confirmModalButton'
                                 autoFocus={true}
+                                disabled={this.props.confirmDisabled}
                             >
                                 {this.props.confirmButtonText}
                             </button>

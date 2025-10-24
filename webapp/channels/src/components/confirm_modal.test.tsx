@@ -64,4 +64,58 @@ describe('ConfirmModal', () => {
 
         expect(props.onCancel).toHaveBeenCalledWith(true);
     });
+
+    test('should disable confirm button when confirmDisabled is true', () => {
+        const props = {
+            ...baseProps,
+            confirmDisabled: true,
+        };
+
+        const wrapper = shallow(<ConfirmModal {...props}/>);
+        const confirmButton = wrapper.find('#confirmModalButton');
+
+        expect(confirmButton.prop('disabled')).toBe(true);
+    });
+
+    test('should enable confirm button when confirmDisabled is false', () => {
+        const props = {
+            ...baseProps,
+            confirmDisabled: false,
+        };
+
+        const wrapper = shallow(<ConfirmModal {...props}/>);
+        const confirmButton = wrapper.find('#confirmModalButton');
+
+        expect(confirmButton.prop('disabled')).toBe(false);
+    });
+
+    test('should use custom checkbox class when provided', () => {
+        const props = {
+            ...baseProps,
+            showCheckbox: true,
+            checkboxClass: 'custom-checkbox-class',
+        };
+
+        const wrapper = shallow(<ConfirmModal {...props}/>);
+        const checkboxContainer = wrapper.find('.custom-checkbox-class');
+
+        expect(checkboxContainer.exists()).toBe(true);
+    });
+
+    test('should call onCheckboxChange when checkbox is changed', () => {
+        const mockOnCheckboxChange = jest.fn();
+        const props = {
+            ...baseProps,
+            showCheckbox: true,
+            onCheckboxChange: mockOnCheckboxChange,
+        };
+
+        const wrapper = shallow(<ConfirmModal {...props}/>);
+        const checkbox = wrapper.find('input[type="checkbox"]');
+
+        checkbox.simulate('change', {target: {checked: true}});
+
+        expect(mockOnCheckboxChange).toHaveBeenCalledWith(true);
+        expect(wrapper.state('checked')).toBe(true);
+    });
 });

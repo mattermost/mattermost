@@ -22,6 +22,7 @@ import {useChannelSystemPolicies} from 'hooks/useChannelSystemPolicies';
 import type {GlobalState} from 'types/store';
 
 import ChannelAccessRulesConfirmModal from './channel_access_rules_confirm_modal';
+import ChannelActivityWarningModal from './channel_activity_warning_modal';
 
 import './channel_settings_access_rules_tab.scss';
 
@@ -62,6 +63,10 @@ function ChannelSettingsAccessRulesTab({
 
     // Validation modal state
     const [showSelfExclusionModal, setShowSelfExclusionModal] = useState(false);
+
+    // Activity warning modal state
+    const [showActivityWarningModal, setShowActivityWarningModal] = useState(false);
+    const [shouldShowActivityWarning, setShouldShowActivityWarning] = useState(false);
 
     // Confirmation modal state
     const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -430,7 +435,8 @@ function ChannelSettingsAccessRulesTab({
             if (isEmptyRulesState) {
                 // Just save directly - the performSave will handle empty state correctly
                 const success = await performSave();
-                return success ? 'saved' : 'error';
+                const result = success ? 'saved' : 'error';
+                return result;
             }
 
             // Validate expression if auto-sync is enabled
@@ -453,27 +459,44 @@ function ChannelSettingsAccessRulesTab({
             // Calculate membership changes
             const changes = await calculateMembershipChanges(expression);
 
-            // If there are changes, show confirmation modal
+            // Check for activity warning ONLY when adding users (risk of leaking chat history)
+            // Only check if: there are users being added + there's channel activity
+            let shouldShowWarning = false;
+            if (channel.id && changes.toAdd.length > 0) {
+                try {
+                    // Check for channel activity before adding users
+                    const warningResult = await actions.getChannelActivityWarning(channel.id);
+                    shouldShowWarning = warningResult.data?.should_show_warning || false;
+                } catch (error) {
+                    // If warning check fails, continue with save (don't block users)
+                    // eslint-disable-next-line no-console
+                    console.warn('Failed to check activity warning:', error);
+                }
+            }
+
+            // If there are changes, show confirmation modal FIRST
             if (changes.toAdd.length > 0 || changes.toRemove.length > 0) {
                 setUsersToAdd(changes.toAdd);
                 setUsersToRemove(changes.toRemove);
+                setShouldShowActivityWarning(shouldShowWarning);
                 setShowConfirmModal(true);
                 return 'confirmation_required';
             }
 
             // No changes, save directly
             const success = await performSave();
-            return success ? 'saved' : 'error';
+            const finalResult = success ? 'saved' : 'error';
+            return finalResult;
         } catch (error) {
             // eslint-disable-next-line no-console
-            console.error('Failed to save access rules:', error);
+            console.error('handleSave: Caught error in save process:', error);
             setFormError(formatMessage({
                 id: 'channel_settings.access_rules.save_error',
                 defaultMessage: 'Failed to save access rules',
             }));
             return 'error';
         }
-    }, [expression, autoSyncMembers, formatMessage, validateSelfExclusion, calculateMembershipChanges, performSave, isEmptyRulesState]);
+    }, [expression, autoSyncMembers, formatMessage, validateSelfExclusion, calculateMembershipChanges, performSave, isEmptyRulesState, channel.id, actions]);
 
     // Prevent duplicate saves with immediate response
     const saveInProgressRef = useRef(false);
@@ -485,6 +508,16 @@ function ChannelSettingsAccessRulesTab({
             return;
         }
 
+        // Close confirmation modal first
+        setShowConfirmModal(false);
+
+        // If activity warning should be shown, show it instead of saving directly
+        if (shouldShowActivityWarning) {
+            setShowActivityWarningModal(true);
+            return;
+        }
+
+        // No activity warning needed, proceed with save
         saveInProgressRef.current = true;
 
         try {
@@ -497,7 +530,7 @@ function ChannelSettingsAccessRulesTab({
         } finally {
             saveInProgressRef.current = false;
         }
-    }, [performSave]);
+    }, [shouldShowActivityWarning, performSave]);
 
     // Handle save changes panel actions - immediate response, no debounce
     const handleSaveChanges = useCallback(async () => {
@@ -517,7 +550,8 @@ function ChannelSettingsAccessRulesTab({
                 setSaveChangesPanelState('error');
             }
 
-            // If result is 'confirmation_required', do nothing to the panel state
+            // When result === 'confirmation_required', no panel state change needed
+            // Modal workflows will handle the next steps
         } finally {
             saveInProgressRef.current = false;
         }
@@ -535,6 +569,29 @@ function ChannelSettingsAccessRulesTab({
 
     const handleClose = useCallback(() => {
         setSaveChangesPanelState(undefined);
+    }, []);
+
+    // Handle activity warning modal actions
+    const handleActivityWarningContinue = useCallback(async () => {
+        setShowActivityWarningModal(false);
+
+        // Proceed with save after activity warning acknowledgment
+        saveInProgressRef.current = true;
+
+        try {
+            const success = await performSave();
+            if (success) {
+                setSaveChangesPanelState('saved');
+            } else {
+                setSaveChangesPanelState('error');
+            }
+        } finally {
+            saveInProgressRef.current = false;
+        }
+    }, [performSave]);
+
+    const handleActivityWarningClose = useCallback(() => {
+        setShowActivityWarningModal(false);
     }, []);
 
     // Calculate if there are errors
@@ -762,6 +819,15 @@ function ChannelSettingsAccessRulesTab({
                 isProcessing={isProcessingSave}
                 autoSyncEnabled={autoSyncMembers}
                 isStacked={true}
+                willShowActivityWarning={shouldShowActivityWarning}
+            />
+
+            {/* Activity warning modal */}
+            <ChannelActivityWarningModal
+                isOpen={showActivityWarningModal}
+                onClose={handleActivityWarningClose}
+                onConfirm={handleActivityWarningContinue}
+                channelName={channel.display_name}
             />
         </div>
     );
