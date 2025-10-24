@@ -47,6 +47,7 @@ import AccessControlPolicyJobs from './access_control/jobs';
 import PolicyDetails from './access_control/policy_details';
 import * as DefinitionConstants from './admin_definition_constants';
 import {getRestrictedIndicator, it, usesLegacyOauth, validators} from './admin_definition_helpers';
+import BleveSettings, {searchableStrings as bleveSearchableStrings} from './admin_settings/bleve_settings';
 import AuditLoggingCertificateUploadSetting from './audit_logging';
 import Audits from './audits';
 import {searchableStrings as auditSearchableStrings} from './audits/audits';
