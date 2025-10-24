@@ -87,13 +87,6 @@ class ChannelHeader extends React.PureComponent<Props> {
         }
     };
 
-    showChannelFiles = () => {
-        if (this.props.rhsState === RHSStates.CHANNEL_FILES) {
-            this.props.actions.closeRightHandSide();
-        } else if (this.props.channel) {
-            this.props.actions.showChannelFiles(this.props.channel.id);
-        }
-    };
 
     toggleChannelMembersRHS = () => {
         if (this.props.rhsState === RHSStates.CHANNEL_MEMBERS) {
@@ -221,10 +214,6 @@ class ChannelHeader extends React.PureComponent<Props> {
             }
         }
 
-        const channelFilesIconClass = classNames('channel-header__icon channel-header__icon--left btn btn-icon btn-xs ', {
-            'channel-header__icon--active': rhsState === RHSStates.CHANNEL_FILES,
-        });
-        const channelFilesIcon = <i className='icon icon-file-text-outline'/>;
         const pinnedIconClass = classNames('channel-header__icon channel-header__icon--wide channel-header__icon--left btn btn-icon btn-xs', {
             'channel-header__icon--active': rhsState === RHSStates.PIN,
         });
@@ -362,16 +351,6 @@ class ChannelHeader extends React.PureComponent<Props> {
                                     {muteTrigger}
                                     {memberListButton}
                                     {pinnedButton}
-                                    {this.props.isFileAttachmentsEnabled &&
-                                        <HeaderIconWrapper
-                                            buttonClass={channelFilesIconClass}
-                                            buttonId={'channelHeaderFilesButton'}
-                                            onClick={this.showChannelFiles}
-                                            tooltip={this.props.intl.formatMessage({id: 'channel_header.channelFiles', defaultMessage: 'Channel files'})}
-                                        >
-                                            {channelFilesIcon}
-                                        </HeaderIconWrapper>
-                                    }
                                 </div>
                                 <div
                                     id='channelHeaderDescription'
