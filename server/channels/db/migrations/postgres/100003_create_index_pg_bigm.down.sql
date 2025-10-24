@@ -1,1 +1,1 @@
-DROP INDEX CONCURRENTLY IF EXISTS idx_posts_lower_message_bigm;
+DROP INDEX IF EXISTS idx_posts_lower_message_bigm;
