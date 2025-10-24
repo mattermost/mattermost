@@ -84,6 +84,7 @@ import usePriority from './use_priority';
 import useSubmit from './use_submit';
 import useTextboxFocus from './use_textbox_focus';
 import useUploadFiles from './use_upload_files';
+import LinkCreationModal from './LinkCreationModal';
 
 import './advanced_text_editor.scss';
 
@@ -132,6 +133,7 @@ const AdvancedTextEditor = ({
     const getChannelSelector = useMemo(makeGetChannel, []);
     const getDraftSelector = useMemo(makeGetDraft, []);
     const getDisplayName = useMemo(makeGetDisplayName, []);
+    
 
     let textboxId: string;
     if (isInEditMode) {
@@ -221,6 +223,8 @@ const AdvancedTextEditor = ({
     const [isMessageLong, setIsMessageLong] = useState(false);
     const [renderScrollbar, setRenderScrollbar] = useState(false);
     const [keepEditorInFocus, setKeepEditorInFocus] = useState(false);
+    const [showLinkModal, setShowLinkModal] = useState(false);
+    const [initialLinkText, setInitialLinkText] = useState('');
 
     const readOnlyChannel = !canPost;
     const hasDraftMessage = Boolean(draft.message);
@@ -294,6 +298,41 @@ const AdvancedTextEditor = ({
             Utils.setSelectionRange(textbox, res.selectionStart, res.selectionEnd);
         });
     }, [showPreview, handleDraftChange, draft]);
+
+    const getCurrentValue = useCallback(() => textboxRef.current?.getInputBox().value, [textboxRef]);
+
+    const getCurrentSelection = useCallback(() => {
+        const input = textboxRef.current?.getInputBox();
+
+        return {
+            start: input?.selectionStart || 0,
+            end: input?.selectionEnd || 0,
+        };
+    }, [textboxRef]);
+
+
+
+const insertLink = useCallback((text: string, url: string) => {
+    const linkMarkdown = `[${text}](${url})`;
+    
+    insertRawMarkdown({markdown: linkMarkdown}); 
+
+    setShowLinkModal(false);
+}, [insertRawMarkdown, setShowLinkModal]);
+
+    const openLinkModal = useCallback(() => {
+        if (showPreview) {
+            return;
+        }
+
+        const selection = getCurrentSelection();
+        const fullMessage = getCurrentValue() || '';
+        const selectedText = fullMessage.substring(selection.start, selection.end) || '';
+
+        setInitialLinkText(selectedText);
+        
+        setShowLinkModal(true);
+    }, [showPreview, getCurrentSelection, getCurrentValue]);
 
     const toggleAdvanceTextEditor = useCallback(() => {
         dispatch(savePreferences(currentUserId, [{
@@ -427,6 +466,7 @@ const AdvancedTextEditor = ({
         toggleEmojiPicker,
         isInEditMode,
         handleCancel,
+        openLinkModal,
     );
 
     const handleSubmitWithEvent = useCallback((e: React.FormEvent) => {
@@ -470,16 +510,7 @@ const AdvancedTextEditor = ({
      * down the current message value that came from the parents state was not optimal,
      * although still working as expected
      */
-    const getCurrentValue = useCallback(() => textboxRef.current?.getInputBox().value, [textboxRef]);
-
-    const getCurrentSelection = useCallback(() => {
-        const input = textboxRef.current?.getInputBox();
-
-        return {
-            start: input.selectionStart,
-            end: input.selectionEnd,
-        };
-    }, [textboxRef]);
+   
 
     const handleWidthChange = useCallback((width: number) => {
         const input = textboxRef.current?.getInputBox();
@@ -692,6 +723,7 @@ const AdvancedTextEditor = ({
                     disableControls={showPreview}
                     additionalControls={additionalControls}
                     location={location}
+                    openLinkModal={openLinkModal}
                 />
             )}
             slot2={null}
@@ -743,6 +775,15 @@ const AdvancedTextEditor = ({
                     postId={rootId}
                 />
             )}
+            <LinkCreationModal
+                show={showLinkModal}
+                onHide={() => setShowLinkModal(false)}
+                onExited={() => {
+                    // Placeholder for cleanup if needed
+                }}
+                onInsert={insertLink}
+                initialText={initialLinkText}
+            />
             <div
                 className={classNames('AdvancedTextEditor', {
                     'AdvancedTextEditor__attachment-disabled': !canUploadFiles,
