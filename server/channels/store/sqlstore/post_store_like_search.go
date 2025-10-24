@@ -63,6 +63,7 @@ func (s *SqlPostStore) likesearch(teamId string, userId string, params *model.Se
 	if terms == "" && excludedTerms == "" {
 		// we've already confirmed that we have a channel or user to search for
 	} else {
+		//　以下serach()との差分----------------------------------------
 		//  ワイルドカードをLIKE句の検索用に変換
 		terms = wildCardRegex.ReplaceAllLiteralString(terms, "%")
 		excludedTerms = wildCardRegex.ReplaceAllLiteralString(excludedTerms, "%")
@@ -77,21 +78,20 @@ func (s *SqlPostStore) likesearch(teamId string, userId string, params *model.Se
 		for _, phrase := range phrases {
 			cleanPhrase := strings.Trim(phrase, `"`)
 			if cleanPhrase != "" {
-				searchClauses = append(searchClauses, fmt.Sprintf("%s LIKE ?", searchType))
-				searchArgs = append(searchArgs, "%"+cleanPhrase+"%")
+				searchClauses = append(searchClauses, fmt.Sprintf("LOWER(%s) LIKE ?", searchType))
+				searchArgs = append(searchArgs, "%"+strings.ToLower(cleanPhrase)+"%")
 			}
 		}
 
 		termWords := strings.Fields(terms)
 		if len(termWords) > 0 {
 			for _, word := range termWords {
+				searchClauses = append(searchClauses, fmt.Sprintf("LOWER(%s) LIKE ?", searchType))
 				//前方一致検索のみ対応
 				if strings.HasSuffix(word, "%") {
-					searchClauses = append(searchClauses, fmt.Sprintf("%s LIKE ?", searchType))
-					searchArgs = append(searchArgs, word)
+					searchArgs = append(searchArgs, strings.ToLower(word))
 				} else {
-					searchClauses = append(searchClauses, fmt.Sprintf("%s LIKE ?", searchType))
-					searchArgs = append(searchArgs, "%"+word+"%")
+					searchArgs = append(searchArgs, "%"+strings.ToLower(word)+"%")
 				}
 			}
 		}
@@ -113,16 +113,17 @@ func (s *SqlPostStore) likesearch(teamId string, userId string, params *model.Se
 					continue
 				}
 				if strings.HasSuffix(cleanWord, "%") {
-					excludedClauses = append(excludedClauses, fmt.Sprintf("%s NOT LIKE ?", searchType))
-					excludedArgs = append(excludedArgs, cleanWord)
+					excludedClauses = append(excludedClauses, fmt.Sprintf("LOWER(%s) NOT LIKE ?", searchType))
+					excludedArgs = append(excludedArgs, strings.ToLower(cleanWord))
 				} else {
-					excludedClauses = append(excludedClauses, fmt.Sprintf("%s NOT LIKE ?", searchType))
-					excludedArgs = append(excludedArgs, "%"+cleanWord+"%")
+					excludedClauses = append(excludedClauses, fmt.Sprintf("LOWER(%s) NOT LIKE ?", searchType))
+					excludedArgs = append(excludedArgs, "%"+strings.ToLower(cleanWord)+"%")
 				}
 			}
 			baseQuery = baseQuery.Where(strings.Join(excludedClauses, " AND "), excludedArgs...)
 		}
 	}
+	// 差分終了-----------------------------------------------
 
 	inQuery := s.getSubQueryBuilder().Select("Id").
 		From("Channels, ChannelMembers").
