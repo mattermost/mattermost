@@ -38,27 +38,39 @@ const FailedPostOptions = ({
 
     return (
         <span className='pending-post-actions'>
-            <a
-                className='post-retry'
-                href='#'
-                onClick={retryPost}
+            <span
+                className='post__status post__status--failed pending-post-actions__error-message'
+                role='alert'
             >
+                <i className='icon icon-alert-outline'/>
                 <FormattedMessage
-                    id='pending_post_actions.retry'
-                    defaultMessage='Retry'
+                    id='post.status.failed'
+                    defaultMessage='Send failed'
                 />
-            </a>
-            {' - '}
-            <a
-                className='post-cancel'
-                href='#'
-                onClick={cancelPost}
-            >
-                <FormattedMessage
-                    id='pending_post_actions.cancel'
-                    defaultMessage='Cancel'
-                />
-            </a>
+            </span>
+            <span className='pending-post-actions__action-buttons'>
+                <a
+                    className='post-retry'
+                    href='#'
+                    onClick={retryPost}
+                >
+                    <FormattedMessage
+                        id='pending_post_actions.retry'
+                        defaultMessage='Retry'
+                    />
+                </a>
+                {' - '}
+                <a
+                    className='post-cancel'
+                    href='#'
+                    onClick={cancelPost}
+                >
+                    <FormattedMessage
+                        id='pending_post_actions.cancel'
+                        defaultMessage='Cancel'
+                    />
+                </a>
+            </span>
         </span>
     );
 };

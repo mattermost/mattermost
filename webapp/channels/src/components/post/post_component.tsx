@@ -2,21 +2,22 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback, useEffect, useRef, useState, useMemo} from 'react';
-import type {MouseEvent} from 'react';
-import {FormattedMessage} from 'react-intl';
+import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react';
+import type { MouseEvent } from 'react';
+import { FormattedMessage } from 'react-intl';
 
-import type {Emoji} from '@mattermost/types/emojis';
-import type {Post} from '@mattermost/types/posts';
-import type {Team} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
+import type { Emoji } from '@mattermost/types/emojis';
+import type { Post } from '@mattermost/types/posts';
+import type { Team } from '@mattermost/types/teams';
+import type { UserProfile } from '@mattermost/types/users';
 
-import {Posts} from 'mattermost-redux/constants/index';
+import { Posts } from 'mattermost-redux/constants/index';
 import {
     isMeMessage as checkIsMeMessage,
-    isPostPendingOrFailed} from 'mattermost-redux/utils/post_utils';
+    isPostPendingOrFailed
+} from 'mattermost-redux/utils/post_utils';
 
-import AutoHeightSwitcher, {AutoHeightSlots} from 'components/common/auto_height_switcher';
+import AutoHeightSwitcher, { AutoHeightSlots } from 'components/common/auto_height_switcher';
 import EditPost from 'components/edit_post';
 import FileAttachmentListContainer from 'components/file_attachment_list';
 import MessageWithAdditionalContent from 'components/message_with_additional_content';
@@ -32,21 +33,21 @@ import PostPreHeader from 'components/post_view/post_pre_header';
 import PostTime from 'components/post_view/post_time';
 import ReactionList from 'components/post_view/reaction_list';
 import ThreadFooter from 'components/threading/channel_threads/thread_footer';
-import type {Props as TimestampProps} from 'components/timestamp/timestamp';
+import type { Props as TimestampProps } from 'components/timestamp/timestamp';
 import ArchiveIcon from 'components/widgets/icons/archive_icon';
 import InfoSmallIcon from 'components/widgets/icons/info_small_icon';
 import WithTooltip from 'components/with_tooltip';
 
-import {getHistory} from 'utils/browser_history';
-import Constants, {A11yCustomEventTypes, AppEvents, Locations} from 'utils/constants';
-import type {A11yFocusEventDetail} from 'utils/constants';
-import {isKeyPressed} from 'utils/keyboard';
+import { getHistory } from 'utils/browser_history';
+import Constants, { A11yCustomEventTypes, AppEvents, Locations } from 'utils/constants';
+import type { A11yFocusEventDetail } from 'utils/constants';
+import { isKeyPressed } from 'utils/keyboard';
 import * as PostUtils from 'utils/post_utils';
-import {makeIsEligibleForClick} from 'utils/utils';
+import { makeIsEligibleForClick } from 'utils/utils';
 
-import type {PostActionComponent, PostPluginComponent} from 'types/store/plugins';
+import type { PostActionComponent, PostPluginComponent } from 'types/store/plugins';
 
-import {withPostErrorBoundary} from './post_error_boundary';
+import { withPostErrorBoundary } from './post_error_boundary';
 import PostOptions from './post_options';
 import PostUserProfile from './user_profile';
 
@@ -64,7 +65,7 @@ export type Props = {
     enableEmojiPicker?: boolean;
     enablePostUsernameOverride?: boolean;
     isReadOnly?: boolean;
-    pluginPostTypes?: {[postType: string]: PostPluginComponent};
+    pluginPostTypes?: { [postType: string]: PostPluginComponent };
     channelIsArchived?: boolean;
     channelIsShared?: boolean;
     isConsecutivePost?: boolean;
@@ -119,7 +120,7 @@ export type Props = {
 };
 
 function PostComponent(props: Props) {
-    const {post, shouldHighlight, togglePostMenu} = props;
+    const { post, shouldHighlight, togglePostMenu } = props;
 
     const isSearchResultItem = (props.matches && props.matches.length > 0) || props.isMentionSearch || (props.term && props.term.length > 0);
     const isRHS = props.location === Locations.RHS_ROOT || props.location === Locations.RHS_COMMENT || props.location === Locations.SEARCH;
@@ -137,6 +138,9 @@ function PostComponent(props: Props) {
 
     const isSystemMessage = PostUtils.isSystemMessage(post);
     const fromAutoResponder = PostUtils.fromAutoResponder(post);
+
+    const isFailed = Boolean(post.failed);
+    const isPending = !isFailed && post.id === post.pending_post_id;
 
     useEffect(() => {
         if (shouldHighlight) {
@@ -161,11 +165,11 @@ function PostComponent(props: Props) {
 
             document.dispatchEvent(new CustomEvent<A11yFocusEventDetail>(
                 A11yCustomEventTypes.FOCUS, {
-                    detail: {
-                        target: postRef.current,
-                        keyboardOnly: true,
-                    },
+                detail: {
+                    target: postRef.current,
+                    keyboardOnly: true,
                 },
+            },
             ));
         }
     }, [hasReceivedA11yFocus, shouldHighlight]);
@@ -295,6 +299,8 @@ function PostComponent(props: Props) {
             'post--hovered': hovered,
             'same--user': props.isConsecutivePost && (!props.compactDisplay || props.location === Locations.RHS_COMMENT),
             'cursor--pointer': alt && !props.channelIsArchived,
+            'post--pending': isPending,
+            'post--failed': isFailed,
             'post--hide-controls': post.failed || post.state === Posts.POST_DELETED,
             'post--comment same--root': fromAutoResponder,
             'post--pinned-or-flagged': (post.is_pinned || props.isFlagged) && props.location === Locations.CENTER,
@@ -332,8 +338,8 @@ function PostComponent(props: Props) {
         props.actions.selectPostCard(post);
     };
 
-    // When adding clickable targets within a root post to exclude from post's on click to open thread,
-    // please add to/maintain the selector below
+    // When adding clickable targets within a root post to exclude from the post click handler,
+    // remember to update the selector below.
     const isEligibleForClick = useMemo(() => makeIsEligibleForClick('.post-image__column, .embed-responsive-item, .attachment, .hljs, code'), []);
 
     const handlePostClick = useCallback((e: MouseEvent<HTMLDivElement>) => {
@@ -377,7 +383,7 @@ function PostComponent(props: Props) {
         getHistory().push(`/${props.teamName}/pl/${post.id}`);
     }, [props.isMobileView, props.actions, props.teamName, post?.id]);
 
-    const {selectPostFromRightHandSideSearch} = props.actions;
+    const { selectPostFromRightHandSideSearch } = props.actions;
 
     const handleCommentClick = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
@@ -396,7 +402,10 @@ function PostComponent(props: Props) {
         }
     }, [handleCommentClick, handleJumpClick, props.currentTeam?.id, teamId]);
 
-    const postClass = classNames('post__body', {'post--edited': PostUtils.isEdited(post), 'search-item-snippet': isSearchResultItem});
+    const postClass = classNames('post__body', { 'post--edited': PostUtils.isEdited(post), 'search-item-snippet': isSearchResultItem });
+    const postBodyMainClass = classNames('post__body-main', {
+        'post__body-main--dimmed': isPending || isFailed,
+    });
 
     let comment;
     if (props.isFirstReply && post.type !== Constants.PostTypes.EPHEMERAL) {
@@ -424,6 +433,7 @@ function PostComponent(props: Props) {
     let profilePic;
     const hideProfilePicture = hasSameRoot(props) && (!post.root_id && !props.hasReplies) && !PostUtils.isFromBot(post);
     const hideProfileCase = !(props.location === Locations.RHS_COMMENT && props.compactDisplay && props.isConsecutivePost);
+    const shouldShowPostTime = ((!hideProfilePicture && props.location === Locations.CENTER) || hover || props.location !== Locations.CENTER) && !isPending;
     if (!hideProfilePicture && hideProfileCase) {
         profilePic = (
             <PostProfilePicture
@@ -483,19 +493,19 @@ function PostComponent(props: Props) {
     const getTestId = () => {
         let idPrefix: string;
         switch (props.location) {
-        case 'CENTER':
-            idPrefix = 'post';
-            break;
-        case 'RHS_ROOT':
-        case 'RHS_COMMENT':
-            idPrefix = 'rhsPost';
-            break;
-        case 'SEARCH':
-            idPrefix = 'searchResult';
-            break;
+            case 'CENTER':
+                idPrefix = 'post';
+                break;
+            case 'RHS_ROOT':
+            case 'RHS_COMMENT':
+                idPrefix = 'rhsPost';
+                break;
+            case 'SEARCH':
+                idPrefix = 'searchResult';
+                break;
 
-        default:
-            idPrefix = 'post';
+            default:
+                idPrefix = 'post';
         }
 
         return idPrefix + `_${post.id}`;
@@ -503,7 +513,7 @@ function PostComponent(props: Props) {
 
     let priority;
     if (post.metadata?.priority && props.isPostPriorityEnabled && post.state !== Posts.POST_DELETED) {
-        priority = <span className='d-flex mr-2 ml-1'><PriorityLabel priority={post.metadata.priority.priority}/></span>;
+        priority = <span className='d-flex mr-2 ml-1'><PriorityLabel priority={post.metadata.priority.priority} /></span>;
     }
 
     let postAriaLabelDivTestId = '';
@@ -533,23 +543,23 @@ function PostComponent(props: Props) {
                         aria-hidden='true'
                     >
                         {(Boolean(isSearchResultItem) || props.isFlaggedPosts) &&
-                        <span className='search-channel__name'>
-                            {channelDisplayName}
-                        </span>
+                            <span className='search-channel__name'>
+                                {channelDisplayName}
+                            </span>
                         }
                         {props.channelIsArchived &&
-                        <span className='search-channel__archived'>
-                            <ArchiveIcon className='icon icon__archive channel-header-archived-icon svg-text-color'/>
-                            <FormattedMessage
-                                id='search_item.channelArchived'
-                                defaultMessage='Archived'
-                            />
-                        </span>
+                            <span className='search-channel__archived'>
+                                <ArchiveIcon className='icon icon__archive channel-header-archived-icon svg-text-color' />
+                                <FormattedMessage
+                                    id='search_item.channelArchived'
+                                    defaultMessage='Archived'
+                                />
+                            </span>
                         }
                         {(Boolean(isSearchResultItem) || props.isFlaggedPosts) && Boolean(props.teamDisplayName) &&
-                        <span className='search-team__name'>
-                            {props.teamDisplayName}
-                        </span>
+                            <span className='search-team__name'>
+                                {props.teamDisplayName}
+                            </span>
                         }
                     </div>
                 }
@@ -577,14 +587,14 @@ function PostComponent(props: Props) {
                                 isSystemMessage={isSystemMessage}
                             />
                             <div className='col d-flex align-items-center'>
-                                {((!hideProfilePicture && props.location === Locations.CENTER) || hover || props.location !== Locations.CENTER) &&
+                                {shouldShowPostTime &&
                                     <PostTime
                                         isPermalink={!(Posts.POST_DELETED === post.state || isPostPendingOrFailed(post))}
                                         teamName={props.team?.name}
                                         eventTime={post.create_at}
                                         postId={post.id}
                                         location={props.location}
-                                        timestampProps={{...props.timestampProps, style: props.isConsecutivePost && !props.compactDisplay ? 'narrow' : undefined}}
+                                        timestampProps={{ ...props.timestampProps, style: props.isConsecutivePost && !props.compactDisplay ? 'narrow' : undefined }}
                                     />
                                 }
                                 {priority}
@@ -614,16 +624,16 @@ function PostComponent(props: Props) {
                                 {visibleMessage}
                             </div>
                             {!props.isPostBeingEdited &&
-                            <PostOptions
-                                {...props}
-                                teamId={teamId}
-                                handleDropdownOpened={handleDropdownOpened}
-                                handleCommentClick={handleCommentClick}
-                                hover={hover || a11yActive}
-                                removePost={props.actions.removePost}
-                                handleJumpClick={handleJumpClick}
-                                isPostHeaderVisible={getPostHeaderVisible()}
-                            />
+                                <PostOptions
+                                    {...props}
+                                    teamId={teamId}
+                                    handleDropdownOpened={handleDropdownOpened}
+                                    handleCommentClick={handleCommentClick}
+                                    hover={hover || a11yActive}
+                                    removePost={props.actions.removePost}
+                                    handleJumpClick={handleJumpClick}
+                                    isPostHeaderVisible={getPostHeaderVisible()}
+                                />
                             }
                         </div>
                         {comment}
@@ -631,33 +641,35 @@ function PostComponent(props: Props) {
                             className={postClass}
                             id={isRHS ? undefined : `${post.id}_message`}
                         >
-                            {post.failed && <FailedPostOptions post={post}/>}
-                            <AutoHeightSwitcher
-                                showSlot={slotBasedOnEditOrMessageView}
-                                shouldScrollIntoView={props.isPostBeingEdited}
-                                slot1={message}
-                                slot2={<EditPost/>}
-                                onTransitionEnd={() => document.dispatchEvent(new Event(AppEvents.FOCUS_EDIT_TEXTBOX))}
-                            />
-                            {
-                                showFileAttachments &&
-                                <FileAttachmentListContainer
-                                    post={post}
-                                    compactDisplay={props.compactDisplay}
-                                    handleFileDropdownOpened={handleFileDropdownOpened}
+                            {post.failed && <FailedPostOptions post={post} />}
+                            <div className={postBodyMainClass}>
+                                <AutoHeightSwitcher
+                                    showSlot={slotBasedOnEditOrMessageView}
+                                    shouldScrollIntoView={props.isPostBeingEdited}
+                                    slot1={message}
+                                    slot2={<EditPost />}
+                                    onTransitionEnd={() => document.dispatchEvent(new Event(AppEvents.FOCUS_EDIT_TEXTBOX))}
                                 />
-                            }
-                            <div className='post__body-reactions-acks'>
-                                {props.isPostAcknowledgementsEnabled && post.metadata?.priority?.requested_ack && (
-                                    <PostAcknowledgements
-                                        authorId={post.user_id}
-                                        isDeleted={post.state === Posts.POST_DELETED}
-                                        postId={post.id}
+                                {
+                                    showFileAttachments &&
+                                    <FileAttachmentListContainer
+                                        post={post}
+                                        compactDisplay={props.compactDisplay}
+                                        handleFileDropdownOpened={handleFileDropdownOpened}
                                     />
-                                )}
-                                {showReactions && <ReactionList post={post}/>}
+                                }
+                                <div className='post__body-reactions-acks'>
+                                    {props.isPostAcknowledgementsEnabled && post.metadata?.priority?.requested_ack && (
+                                        <PostAcknowledgements
+                                            authorId={post.user_id}
+                                            isDeleted={post.state === Posts.POST_DELETED}
+                                            postId={post.id}
+                                        />
+                                    )}
+                                    {showReactions && <ReactionList post={post} />}
+                                </div>
+                                {threadFooter}
                             </div>
-                            {threadFooter}
                         </div>
                     </div>
                 </div>
