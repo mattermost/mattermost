@@ -7,15 +7,12 @@ cd "$(dirname "$0")"
 # Print run information
 mme2e_log "Printing Cypress container informations"
 ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress node -p 'module.paths'
-${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress bash <<"EOF"
-cat <<INNEREOF
-node version:    $(node -v)
-npm version:     $(npm -v)
-debian version:  $(cat /etc/debian_version)
-user:            $(whoami)
-chrome:          $(google-chrome --version || true)
-firefox:         $(firefox --version || true)
-INNEREOF
+${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress bash <<'EOF'
+echo "node version:    $(node -v)"
+echo "npm version:     $(npm -v)"
+echo "os:              $(grep -E '^PRETTY_NAME=' /etc/os-release | cut -d'"' -f2)"
+echo "debian version:  $(cat /etc/debian_version)"
+echo "user:            $(whoami)"
 EOF
 
 # Initialize cypress report directory

@@ -3,16 +3,12 @@
 
 /* eslint-disable no-console */
 
-const fs = require('fs');
+import fs from 'fs';
 
-const chalk = require('chalk');
-const intersection = require('lodash.intersection');
-const without = require('lodash.without');
-const shell = require('shelljs');
-const argv = require('yargs').
-    default('includeFile', '').
-    default('excludeFile', '').
-    argv;
+import chalk from 'chalk';
+import intersection from 'lodash.intersection';
+import without from 'lodash.without';
+import shell from 'shelljs';
 
 const TEST_DIR = 'tests';
 
@@ -61,7 +57,7 @@ const findFiles = (pattern) => {
         map((file) => file.replace('./', ''));
 };
 
-function getBaseTestFiles() {
+function getBaseTestFiles(argv) {
     const {invert, group, stage} = argv;
 
     const allFiles = grepFiles(grepCommand());
@@ -157,9 +153,9 @@ function removeFromFiles(files = {}, filesToRemove = []) {
     return {testFilesObject, removedFiles};
 }
 
-function getSortedTestFiles(platform, browser, headless) {
+export function getSortedTestFiles(platform, browser, headless, argv) {
     // Get test files based on stage, group and/or invert
-    const baseTestFiles = getBaseTestFiles();
+    const baseTestFiles = getBaseTestFiles(argv);
 
     // Add files matched by spec metadata
     const includeFilesByGroup = getFilesByMetadata(argv.includeGroup);
@@ -253,7 +249,3 @@ function getSkippedFiles(platform, browser, headless) {
 
     return platformFiles.concat(browserFiles, headlessFiles);
 }
-
-module.exports = {
-    getSortedTestFiles,
-};

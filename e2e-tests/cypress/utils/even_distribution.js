@@ -18,7 +18,7 @@ function* distributeItems(total, divider) {
     }
 }
 
-function getTestFilesIdentifier(numberOfTestFiles, part, of) {
+export function getTestFilesIdentifier(numberOfTestFiles, part, of) {
     const PART = parseInt(part, 10) || 1;
     const OF = parseInt(of, 10) || 1;
     if (PART > OF) {
@@ -42,7 +42,3 @@ function getTestFilesIdentifier(numberOfTestFiles, part, of) {
 
     return {start, end, count};
 }
-
-module.exports = {
-    getTestFilesIdentifier,
-};
