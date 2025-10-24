@@ -10,7 +10,7 @@ import Input from '@mattermost/design-system/src/components/primitives/input/inp
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
-import BackButton from 'components/common/back_button';
+import HistoryBackButton from 'design_system/components/patterns/history_back_button';
 
 export interface Props {
     intl: IntlShape;
@@ -115,7 +115,7 @@ export class PasswordResetSendLink extends React.PureComponent<Props, State> {
 
         return (
             <div>
-                <BackButton/>
+                <HistoryBackButton/>
                 <div className='col-sm-12'>
                     <div className='signup-team__container'>
                         <FormattedMessage

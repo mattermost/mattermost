@@ -4,11 +4,9 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import CircularChart from 'components/common/circular_chart/circular_chart';
+import CircularChart from './circular_chart';
 
-// import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-
-describe('/components/common/CircularChart', () => {
+describe('/components/admin_console/workspace-optimization/circular_chart', () => {
     const baseProps = {
         value: 75,
         isPercentage: false,

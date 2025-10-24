@@ -21,7 +21,7 @@ type Props = {
     onClick?: React.EventHandler<React.MouseEvent>;
 }
 
-const BackButton = ({url = '/', className, onClick}: Props): JSX.Element => {
+const HistoryBackButton = ({url = '/', className, onClick}: Props): JSX.Element => {
     const {formatMessage} = useIntl();
 
     return (
@@ -45,4 +45,4 @@ const BackButton = ({url = '/', className, onClick}: Props): JSX.Element => {
     );
 };
 
-export default BackButton;
+export default HistoryBackButton;

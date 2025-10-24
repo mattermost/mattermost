@@ -8,11 +8,11 @@ import styled from 'styled-components';
 
 import {CheckIcon} from '@mattermost/compass-icons/components';
 
-import Accordion from 'components/common/accordion/accordion';
-import type {AccordionItemType} from 'components/common/accordion/accordion';
 import LoadingScreen from 'components/loading_screen';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
+import type {AccordionItemType} from './accordion';
+import Accordion from './accordion';
 import ChipsList from './chips_list';
 import type {ChipsInfoType} from './chips_list';
 import CtaButtons from './cta_buttons';

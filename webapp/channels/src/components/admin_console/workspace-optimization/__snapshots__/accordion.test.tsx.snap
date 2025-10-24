@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`/components/common/Accordion should match snapshot 1`] = `
+exports[`/components/admin_console/workspace-optimization/accordion should match snapshot 1`] = `
 <ul
   className="Accordion"
 >
