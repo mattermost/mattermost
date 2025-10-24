@@ -75,7 +75,14 @@ func setupTestHelper(dbStore store.Store, sqlStore *sqlstore.SqlStore, sqlSettin
 	*memoryConfig.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
 	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
 	*memoryConfig.LogSettings.EnableSentry = false // disable error reporting during tests
-	*memoryConfig.LogSettings.ConsoleLevel = mlog.LvlStdLog.Name
+
+	// Check for environment variable override for console log level (useful for debugging tests)
+	consoleLevel := os.Getenv("MM_LOGSETTINGS_CONSOLELEVEL")
+	if consoleLevel == "" {
+		consoleLevel = mlog.LvlStdLog.Name
+	}
+	*memoryConfig.LogSettings.ConsoleLevel = consoleLevel
+
 	*memoryConfig.AnnouncementSettings.AdminNoticesEnabled = false
 	*memoryConfig.AnnouncementSettings.UserNoticesEnabled = false
 	*memoryConfig.LogSettings.FileLocation = filepath.Join(tempWorkspace, "logs", "mattermost.log")
