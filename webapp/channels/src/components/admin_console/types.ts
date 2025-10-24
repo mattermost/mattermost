@@ -35,6 +35,7 @@ type AdminDefinitionSettingCustom = Omit<AdminDefinitionSettingBase, 'label'> & 
     showTitle?: boolean;
     component: Component;
     label?: string | MessageDescriptor;
+    validate?: Validator;
 }
 
 type AdminDefinitionSettingBase = {
