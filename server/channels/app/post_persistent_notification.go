@@ -228,15 +228,12 @@ func (a *App) persistentNotificationsAuxiliaryData(channelsMap map[string]*model
 		}
 
 		channelKeywords[c.Id] = make(MentionKeywords, len(profileMap))
-		validProfileMap := make(map[string]*model.User, len(profileMap))
 		for userID, user := range profileMap {
-			if user.IsBot {
-				continue
+			if !user.IsBot {
+				channelKeywords[c.Id].AddUserKeyword(userID, "@"+user.Username)
 			}
-			validProfileMap[userID] = user
-			channelKeywords[c.Id].AddUserKeyword(userID, "@"+user.Username)
 		}
-		channelProfileMap[c.Id] = validProfileMap
+		channelProfileMap[c.Id] = profileMap
 	}
 	return channelGroupMap, channelProfileMap, channelKeywords, channelNotifyProps, nil
 }
@@ -278,7 +275,7 @@ func (a *App) channelTeamMapsForPosts(posts []*model.Post) (map[string]*model.Ch
 func (a *App) sendPersistentNotifications(post *model.Post, channel *model.Channel, team *model.Team, mentions *MentionResults, profileMap model.UserMap, channelNotifyProps map[string]map[string]model.StringMap) error {
 	mentionedUsersList := make(model.StringArray, 0, len(mentions.Mentions))
 	for id, v := range mentions.Mentions {
-		// Don't send notification to post owner nor GM mentions
+		// Don't send notification to post owner, GM mentions, or bots
 		if id != post.UserId && v > GMMention {
 			mentionedUsersList = append(mentionedUsersList, id)
 		}
