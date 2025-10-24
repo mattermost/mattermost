@@ -4,9 +4,10 @@
 import {Client4} from '@mattermost/client';
 
 import clientRequest from '../plugins/client_request';
+import { type Options, type ClientResponse } from '@mattermost/types/client4';
 
 export class E2EClient extends Client4 {
-    async doFetchWithResponse(url, options) {
+    protected doFetchWithResponse = async (url: string, options: Options): Promise<ClientResponse<any>> => {
         const {
             body,
             headers,
@@ -30,6 +31,10 @@ export class E2EClient extends Client4 {
             this.setUserId(response.data.id);
             this.setUserRoles(response.data.roles);
         }
-        return response;
-    }
+        return {
+            response: response as unknown as Response,
+            headers: response.headers,
+            data: response.data,
+        };
+    };
 }
