@@ -46,6 +46,14 @@ const CommentIcon = ({
         defaultMessage: 'Reply',
     });
 
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && handleCommentClick) {
+            handleCommentClick(e as unknown as React.MouseEvent);
+            e.stopPropagation();
+            e.preventDefault();
+        }
+    };
+
     return (
         <WithTooltip
             title={replyTitle}
@@ -55,6 +63,7 @@ const CommentIcon = ({
                 aria-label={replyTitle.toLowerCase()}
                 className={`${iconStyle} ${extraClass}`}
                 onClick={handleCommentClick}
+                onKeyDown={handleKeyDown}
             >
                 <span className='d-flex align-items-center'>
                     <ReplyIcon className='icon icon--small'/>
