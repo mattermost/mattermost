@@ -11772,7 +11772,7 @@ func (s *OpenTracingLayerTokenStore) Cleanup(expiryTime int64) {
 
 }
 
-func (s *OpenTracingLayerTokenStore) ConsumeOnce(tokenStr string) (*model.Token, error) {
+func (s *OpenTracingLayerTokenStore) ConsumeOnce(tokenType string, tokenStr string) (*model.Token, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TokenStore.ConsumeOnce")
 	s.Root.Store.SetContext(newCtx)
@@ -11781,7 +11781,7 @@ func (s *OpenTracingLayerTokenStore) ConsumeOnce(tokenStr string) (*model.Token,
 	}()
 
 	defer span.Finish()
-	result, err := s.TokenStore.ConsumeOnce(tokenStr)
+	result, err := s.TokenStore.ConsumeOnce(tokenType, tokenStr)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

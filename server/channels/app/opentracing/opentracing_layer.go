@@ -1886,7 +1886,7 @@ func (a *OpenTracingAppLayer) Config() *model.Config {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) ConsumeTokenOnce(tokenStr string) (*model.Token, *model.AppError) {
+func (a *OpenTracingAppLayer) ConsumeTokenOnce(tokenType string, tokenStr string) (*model.Token, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ConsumeTokenOnce")
 
@@ -1898,7 +1898,7 @@ func (a *OpenTracingAppLayer) ConsumeTokenOnce(tokenStr string) (*model.Token, *
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.ConsumeTokenOnce(tokenStr)
+	resultVar0, resultVar1 := a.app.ConsumeTokenOnce(tokenType, tokenStr)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -2683,7 +2683,7 @@ func (a *OpenTracingAppLayer) CreateRole(role *model.Role) (*model.Role, *model.
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) CreateSamlRelayToken(extra string) (*model.Token, *model.AppError) {
+func (a *OpenTracingAppLayer) CreateSamlRelayToken(tokenType string, extra string) (*model.Token, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateSamlRelayToken")
 
@@ -2695,7 +2695,7 @@ func (a *OpenTracingAppLayer) CreateSamlRelayToken(extra string) (*model.Token, 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.CreateSamlRelayToken(extra)
+	resultVar0, resultVar1 := a.app.CreateSamlRelayToken(tokenType, extra)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
