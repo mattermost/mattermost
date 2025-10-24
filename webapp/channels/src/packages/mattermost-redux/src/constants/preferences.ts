@@ -55,6 +55,12 @@ const Preferences = {
     CATEGORY_WHATS_NEW_MODAL: 'whats_new_modal',
     HAS_SEEN_SIDEBAR_WHATS_NEW_MODAL: 'has_seen_sidebar_whats_new_modal',
 
+    CATEGORY_SHORTCUT_ACTIONS: 'shortcut_actions',
+    MARK_ALL_READ_WITHOUT_CONFIRM: 'mark_all_read_without_confirm',
+
+    CATEGORY_NEW_FEATURES: 'new_features',
+    HAS_SEEN_MARK_ALL_READ_FEATURE: 'mark_all_read_seen',
+
     CATEGORY_PERFORMANCE_DEBUGGING: 'performance_debugging',
     NAME_DISABLE_CLIENT_PLUGINS: 'disable_client_plugins',
     NAME_DISABLE_TYPING_MESSAGES: 'disable_typing_messages',
