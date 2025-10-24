@@ -302,33 +302,20 @@ func canUserDirectMessage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if the user can see the other user at all
-	canSee, err := c.App.UserCanSeeOtherUser(c.AppContext, c.Params.UserId, c.Params.OtherUserId)
-	if err != nil {
-		c.Err = err
-		return
-	}
-	if !canSee {
-		result := map[string]bool{"can_dm": false}
-		if err := json.NewEncoder(w).Encode(result); err != nil {
-			c.Logger.Warn("Error encoding JSON response", mlog.Err(err))
-		}
-		return
-	}
-
 	canDM := true
 
-	// Get shared channel sync service for remote user checks
+	// Check remote connection validation FIRST before user visibility checks
+	// This ensures that admin users cannot bypass shared channel connection restrictions
 	scs := c.App.Srv().GetSharedChannelSyncService()
 	if scs != nil {
 		otherUser, otherErr := c.App.GetUser(c.Params.OtherUserId)
 		if otherErr != nil {
 			canDM = false
 		} else {
-			originalRemoteId := otherUser.GetOriginalRemoteID()
-
-			// Check if the other user is from a remote cluster
+			// For remote users, validate direct connection to original cluster
 			if otherUser.IsRemote() {
+				originalRemoteId := otherUser.GetOriginalRemoteID()
+
 				// If original remote ID is unknown, fall back to current RemoteId as best guess
 				if originalRemoteId == model.UserOriginalRemoteIdUnknown {
 					originalRemoteId = otherUser.GetRemoteID()
@@ -341,6 +328,18 @@ func canUserDirectMessage(c *Context, w http.ResponseWriter, r *http.Request) {
 					canDM = false
 				}
 			}
+		}
+	}
+
+	// Only check general user visibility if the remote connection check passed
+	if canDM {
+		canSee, err := c.App.UserCanSeeOtherUser(c.AppContext, c.Params.UserId, c.Params.OtherUserId)
+		if err != nil {
+			c.Err = err
+			return
+		}
+		if !canSee {
+			canDM = false
 		}
 	}
 
