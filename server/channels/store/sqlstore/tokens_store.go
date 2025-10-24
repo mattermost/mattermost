@@ -65,13 +65,41 @@ func (s SqlTokenStore) GetByToken(tokenString string) (*model.Token, error) {
 func (s SqlTokenStore) ConsumeOnce(tokenType, tokenStr string) (*model.Token, error) {
 	var token model.Token
 
-	query := `DELETE FROM Tokens WHERE Type = ? AND Token = ? RETURNING *`
-
-	if err := s.GetMaster().Get(&token, query, tokenType, tokenStr); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("Token", tokenStr)
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		query := `DELETE FROM Tokens WHERE Type = ? AND Token = ? RETURNING *`
+		if err := s.GetMaster().Get(&token, query, tokenType, tokenStr); err != nil {
+			if err == sql.ErrNoRows {
+				return nil, store.NewErrNotFound("Token", tokenStr)
+			}
+			return nil, errors.Wrapf(err, "failed to consume token with type %s", tokenType)
 		}
-		return nil, errors.Wrapf(err, "failed to consume token with type %s", tokenType)
+	} else if s.DriverName() == model.DatabaseDriverMysql {
+		tx, err := s.GetMaster().Beginx()
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to begin transaction")
+		}
+		defer func() {
+			if err != nil {
+				tx.Rollback()
+			}
+		}()
+
+		query := `SELECT * FROM Tokens WHERE Type = ? AND Token = ? FOR UPDATE`
+		if err = tx.Get(&token, query, tokenType, tokenStr); err != nil {
+			if err == sql.ErrNoRows {
+				return nil, store.NewErrNotFound("Token", tokenStr)
+			}
+			return nil, errors.Wrapf(err, "failed to select token with type %s", tokenType)
+		}
+
+		deleteQuery := `DELETE FROM Tokens WHERE Type = ? AND Token = ?`
+		if _, err = tx.Exec(deleteQuery, tokenType, tokenStr); err != nil {
+			return nil, errors.Wrapf(err, "failed to delete token with type %s", tokenType)
+		}
+
+		if err = tx.Commit(); err != nil {
+			return nil, errors.Wrap(err, "failed to commit transaction")
+		}
 	}
 
 	return &token, nil
