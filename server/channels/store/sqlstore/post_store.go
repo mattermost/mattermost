@@ -2063,41 +2063,12 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		}
 	}
 
-	// Preserve URLs by replacing them with safe placeholders before processing special characters
-	urlPattern := regexp.MustCompile(`https?://[^\s]+`)
-	urlPlaceholders := make(map[string]string)
-
-	processTerms := func(input string) string {
-		counter := 0
-		return urlPattern.ReplaceAllStringFunc(input, func(url string) string {
-			placeholder := fmt.Sprintf("URLPLACEHOLDER%d", counter)
-			urlPlaceholders[placeholder] = url
-			counter++
-			return placeholder
-		})
-	}
-
-	restoreTerms := func(input string) string {
-		for placeholder, url := range urlPlaceholders {
-			input = strings.Replace(input, placeholder, url, -1)
-		}
-		return input
-	}
-
-	// Process terms to preserve URLs
-	terms = processTerms(terms)
-	excludedTerms = processTerms(excludedTerms)
-
 	for _, c := range s.specialSearchChars() {
 		if !params.IsHashtag {
 			terms = strings.Replace(terms, c, " ", -1)
 		}
 		excludedTerms = strings.Replace(excludedTerms, c, " ", -1)
 	}
-
-	// Restore URLs after special character processing
-	terms = restoreTerms(terms)
-	excludedTerms = restoreTerms(excludedTerms)
 
 	if terms == "" && excludedTerms == "" {
 		// we've already confirmed that we have a channel or user to search for

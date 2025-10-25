@@ -355,6 +355,8 @@ func (ss *SqlStore) specialSearchChars() []string {
 		")",
 		"~",
 		":",
+		".",
+		"/",
 	}
 
 	// Postgres can handle "@" without any errors
