@@ -780,7 +780,7 @@ func (g *apiRPCClient) LogDebug(msg string, keyValuePairs ...any) {
 	_args := &Z_LogDebugArgs{msg, stringifiedPairs}
 	_returns := &Z_LogDebugReturns{}
 	if err := g.client.Call("Plugin.LogDebug", _args, _returns); err != nil {
-		log.Printf("RPC call to LogDebug API failed: %s", err.Error())
+		g.LogError("RPC call to LogDebug API failed: %s", mlog.Err(err))
 	}
 }
 
@@ -807,7 +807,7 @@ func (g *apiRPCClient) LogInfo(msg string, keyValuePairs ...any) {
 	_args := &Z_LogInfoArgs{msg, stringifiedPairs}
 	_returns := &Z_LogInfoReturns{}
 	if err := g.client.Call("Plugin.LogInfo", _args, _returns); err != nil {
-		log.Printf("RPC call to LogInfo API failed: %s", err.Error())
+		g.LogError("RPC call to LogInfo API failed", mlog.Err(err))
 	}
 }
 
@@ -834,7 +834,7 @@ func (g *apiRPCClient) LogWarn(msg string, keyValuePairs ...any) {
 	_args := &Z_LogWarnArgs{msg, stringifiedPairs}
 	_returns := &Z_LogWarnReturns{}
 	if err := g.client.Call("Plugin.LogWarn", _args, _returns); err != nil {
-		log.Printf("RPC call to LogWarn API failed: %s", err.Error())
+		g.LogError("RPC call to LogWarn API failed", mlog.Err(err))
 	}
 }
 
@@ -889,7 +889,7 @@ func (g *apiRPCClient) LogAuditRec(rec *model.AuditRecord) {
 	_args := &Z_LogAuditRecArgs{&gobSafeRec}
 	_returns := &Z_LogAuditRecReturns{}
 	if err := g.client.Call("Plugin.LogAuditRec", _args, _returns); err != nil {
-		log.Printf("RPC call to LogAuditRec API failed: %s", err.Error())
+		g.LogError("RPC call to LogAuditRec API failed", mlog.Err(err))
 	}
 }
 
@@ -917,7 +917,7 @@ func (g *apiRPCClient) LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.L
 	_args := &Z_LogAuditRecWithLevelArgs{&gobSafeRec, level}
 	_returns := &Z_LogAuditRecWithLevelReturns{}
 	if err := g.client.Call("Plugin.LogAuditRecWithLevel", _args, _returns); err != nil {
-		log.Printf("RPC call to LogAuditRecWithLevel API failed: %s", err.Error())
+		g.LogError("RPC call to LogAuditRecWithLevel API failed", mlog.Err(err))
 	}
 }
 
