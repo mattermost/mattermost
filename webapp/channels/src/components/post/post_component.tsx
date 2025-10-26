@@ -1,4 +1,4 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+﻿// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
@@ -459,17 +459,17 @@ function PostComponent(props: Props) {
     );
 
     const failedStatusInHeader = isFailed && !props.isConsecutivePost ? failedStatusLabel : null;
-    const failedActionsHeader = isFailed && !props.isConsecutivePost ? (
-        <FailedPostOptions
-            post={post}
-            variant='header'
-            showStatus={false}
-        />
-    ) : null;
     const failedStatusInline = isFailed && props.isConsecutivePost ? (
         <FailedPostOptions
             post={post}
             variant='inline'
+        />
+    ) : null;
+    const failedActionsOverlay = isFailed && !props.isConsecutivePost ? (
+        <FailedPostOptions
+            post={post}
+            variant='overlay'
+            showStatus={false}
         />
     ) : null;
 
@@ -656,7 +656,7 @@ function PostComponent(props: Props) {
                                 isSystemMessage={isSystemMessage}
                             />
                             {failedStatusInHeader}
-                            <div className='col d-flex align-items-center flex-wrap'>
+                            <div className='col d-flex align-items-center'>
                                 {headerStatusInlineRight}
                                 {shouldShowPostTime &&
                                     <PostTime
@@ -693,7 +693,6 @@ function PostComponent(props: Props) {
                                     </WithTooltip>
                                 }
                                 {visibleMessage}
-                                {failedActionsHeader}
                             </div>
                             {!props.isPostBeingEdited &&
                                 <PostOptions
@@ -726,6 +725,7 @@ function PostComponent(props: Props) {
                                     </div>
                                     {inlineStatusInBody}
                                 </div>
+                                {failedActionsOverlay}
                                 {
                                     showFileAttachments &&
                                     <FileAttachmentListContainer
@@ -755,4 +755,3 @@ function PostComponent(props: Props) {
 }
 
 export default withPostErrorBoundary(PostComponent);
-
