@@ -603,7 +603,7 @@
         display: inline-flex;
         align-items: center;
         gap: 2px;
-        margin-left: 8px;
+        margin-left: 4px;
         font-size: 12px;
         white-space: nowrap;
 
@@ -1494,37 +1494,17 @@
             margin-top: 0.6em;
         }
 
-        p+ul,
-        p+ol {
+        post__message-top-content p+ol {
             margin-top: 0.6em;
         }
 
         .pending-post-actions {
             display: inline-flex;
             align-items: center;
-            gap: 12px;
+            gap: 4px;
             font-size: 12px;
             white-space: nowrap;
             flex-shrink: 0;
-
-            &--inline {
-                margin-left: 8px;
-            }
-
-            &--overlay {
-                position: absolute;
-                top: 8px;
-                right: 12px;
-                align-items: flex-start;
-                gap: 8px;
-                z-index: 2;
-            }
-
-            &--header {
-                margin-left: auto;
-                justify-content: flex-end;
-                gap: 8px;
-            }
 
             &__status {
                 display: inline-flex;

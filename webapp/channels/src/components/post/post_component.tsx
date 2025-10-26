@@ -462,14 +462,11 @@ function PostComponent(props: Props) {
     const failedStatusInline = isFailed && props.isConsecutivePost ? (
         <FailedPostOptions
             post={post}
-            variant='inline'
         />
     ) : null;
-    const failedActionsOverlay = isFailed && !props.isConsecutivePost ? (
+    const failedActionsHeader = isFailed && !props.isConsecutivePost ? (
         <FailedPostOptions
             post={post}
-            variant='overlay'
-            showStatus={false}
         />
     ) : null;
 
@@ -725,7 +722,6 @@ function PostComponent(props: Props) {
                                     </div>
                                     {inlineStatusInBody}
                                 </div>
-                                {failedActionsOverlay}
                                 {
                                     showFileAttachments &&
                                     <FileAttachmentListContainer

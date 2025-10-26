@@ -15,7 +15,6 @@ import type { ExtendedPost } from 'mattermost-redux/actions/posts';
 type Props = {
     post: Post;
     className?: string;
-    variant?: 'inline' | 'overlay' | 'header';
     showStatus?: boolean;
     actions: {
         createPost: (post: Post, files: FileInfo[]) => void;
@@ -26,8 +25,6 @@ type Props = {
 const FailedPostOptions = ({
     post,
     className,
-    variant = 'inline',
-    showStatus = true,
     actions,
 }: Props) => {
     const retryPost = useCallback((): void => {
@@ -42,30 +39,11 @@ const FailedPostOptions = ({
 
     const containerClass = classNames(
         'pending-post-actions',
-        className,
-        {
-            'pending-post-actions--inline': variant === 'inline',
-            'pending-post-actions--overlay': variant === 'overlay',
-            'pending-post-actions--header': variant === 'header',
-        },
+        className
     );
-
-    const status = showStatus ? (
-        <span
-            className='post__status post__status--failed pending-post-actions__status'
-            role='alert'
-        >
-            <AlertIcon className='pending-post-actions__status-icon' />
-            <FormattedMessage
-                id='post.status.failed'
-                defaultMessage='Message failed'
-            />
-        </span>
-    ) : null;
 
     return (
         <div className={containerClass}>
-            {status}
             <div className='pending-post-actions__buttons'>
                 <button
                     type='button'
