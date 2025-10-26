@@ -1,17 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useCallback} from 'react';
-import type {MouseEvent} from 'react';
-import {FormattedMessage} from 'react-intl';
+import classNames from 'classnames';
+import React, { memo, useCallback } from 'react';
+import { FormattedMessage } from 'react-intl';
 
-import type {FileInfo} from '@mattermost/types/files';
-import type {Post} from '@mattermost/types/posts';
+import AlertIcon from 'components/widgets/icons/alert_icon';
 
-import type {ExtendedPost} from 'mattermost-redux/actions/posts';
+import type { FileInfo } from '@mattermost/types/files';
+import type { Post } from '@mattermost/types/posts';
+
+import type { ExtendedPost } from 'mattermost-redux/actions/posts';
 
 type Props = {
     post: Post;
+    className?: string;
+    variant?: 'inline' | 'overlay';
+    showStatus?: boolean;
     actions: {
         createPost: (post: Post, files: FileInfo[]) => void;
         removePost: (post: ExtendedPost) => void;
@@ -20,59 +25,74 @@ type Props = {
 
 const FailedPostOptions = ({
     post,
+    className,
+    variant = 'inline',
+    showStatus = true,
     actions,
 }: Props) => {
-    const retryPost = useCallback((e: MouseEvent): void => {
-        e.preventDefault();
-
-        const postDetails = {...post};
+    const retryPost = useCallback((): void => {
+        const postDetails = { ...post };
         Reflect.deleteProperty(postDetails, 'id');
         actions.createPost(postDetails, []);
     }, [actions, post]);
 
-    const cancelPost = useCallback((e: MouseEvent): void => {
-        e.preventDefault();
-
+    const deletePost = useCallback((): void => {
         actions.removePost(post);
     }, [actions, post]);
 
+    const containerClass = classNames(
+        'pending-post-actions',
+        className,
+        {
+            'pending-post-actions--inline': variant === 'inline',
+            'pending-post-actions--overlay': variant === 'overlay',
+        },
+    );
+
+    const status = showStatus ? (
+        <span
+            className='post__status post__status--failed pending-post-actions__status'
+            role='alert'
+        >
+            <AlertIcon className='pending-post-actions__status-icon' />
+            <FormattedMessage
+                id='post.status.failed'
+                defaultMessage='Message failed'
+            />
+        </span>
+    ) : null;
+
     return (
-        <span className='pending-post-actions'>
-            <span
-                className='post__status post__status--failed pending-post-actions__error-message'
-                role='alert'
-            >
-                <i className='icon icon-alert-outline'/>
-                <FormattedMessage
-                    id='post.status.failed'
-                    defaultMessage='Send failed'
-                />
-            </span>
-            <span className='pending-post-actions__action-buttons'>
-                <a
-                    className='post-retry'
-                    href='#'
+        <div className={containerClass}>
+            {status}
+            <div className='pending-post-actions__buttons'>
+                <button
+                    type='button'
+                    className='pending-post-actions__button pending-post-actions__button--delete post-delete'
+                    onClick={deletePost}
+                >
+                    <FormattedMessage
+                        id='pending_post_actions.delete'
+                        defaultMessage='Delete'
+                    />
+                </button>
+                <button
+                    type='button'
+                    className='pending-post-actions__button pending-post-actions__button--retry post-retry'
                     onClick={retryPost}
                 >
                     <FormattedMessage
                         id='pending_post_actions.retry'
                         defaultMessage='Retry'
                     />
-                </a>
-                {' - '}
-                <a
-                    className='post-cancel'
-                    href='#'
-                    onClick={cancelPost}
-                >
-                    <FormattedMessage
-                        id='pending_post_actions.cancel'
-                        defaultMessage='Cancel'
-                    />
-                </a>
-            </span>
-        </span>
+                </button>
+            </div>
+        </div>
     );
 };
 
 export default memo(FailedPostOptions);
+
+
+
+

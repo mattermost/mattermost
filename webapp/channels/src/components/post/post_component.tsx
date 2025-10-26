@@ -126,6 +126,7 @@ function PostComponent(props: Props) {
     const isRHS = props.location === Locations.RHS_ROOT || props.location === Locations.RHS_COMMENT || props.location === Locations.SEARCH;
     const postRef = useRef<HTMLDivElement>(null);
     const postHeaderRef = useRef<HTMLDivElement>(null);
+    const pendingIndicatorTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const teamId = props.team?.id ?? props.currentTeam?.id ?? '';
 
     const [hover, setHover] = useState(false);
@@ -135,12 +136,37 @@ function PostComponent(props: Props) {
     const [fadeOutHighlight, setFadeOutHighlight] = useState(false);
     const [alt, setAlt] = useState(false);
     const [hasReceivedA11yFocus, setHasReceivedA11yFocus] = useState(false);
+    const [showPendingIndicator, setShowPendingIndicator] = useState(false);
 
     const isSystemMessage = PostUtils.isSystemMessage(post);
     const fromAutoResponder = PostUtils.fromAutoResponder(post);
 
     const isFailed = Boolean(post.failed);
     const isPending = !isFailed && post.id === post.pending_post_id;
+
+    useEffect(() => {
+        if (pendingIndicatorTimeoutRef.current) {
+            clearTimeout(pendingIndicatorTimeoutRef.current);
+            pendingIndicatorTimeoutRef.current = null;
+        }
+
+        if (!isPending) {
+            setShowPendingIndicator(false);
+            return;
+        }
+
+        setShowPendingIndicator(false);
+        pendingIndicatorTimeoutRef.current = setTimeout(() => {
+            setShowPendingIndicator(true);
+        }, 5000);
+
+        return () => {
+            if (pendingIndicatorTimeoutRef.current) {
+                clearTimeout(pendingIndicatorTimeoutRef.current);
+                pendingIndicatorTimeoutRef.current = null;
+            }
+        };
+    }, [isPending, post.id]);
 
     useEffect(() => {
         if (shouldHighlight) {
@@ -403,9 +429,51 @@ function PostComponent(props: Props) {
     }, [handleCommentClick, handleJumpClick, props.currentTeam?.id, teamId]);
 
     const postClass = classNames('post__body', { 'post--edited': PostUtils.isEdited(post), 'search-item-snippet': isSearchResultItem });
-    const postBodyMainClass = classNames('post__body-main', {
-        'post__body-main--dimmed': isPending || isFailed,
-    });
+    const postBodyMainClass = classNames('post__body-main');
+
+    const renderPendingStatus = useCallback((extraClass?: string) => (
+        <span className={classNames('post__status', 'post__status--pending', extraClass)}>
+            <FormattedMessage
+                id='post.status.sending'
+                defaultMessage='Sending...'
+            />
+        </span>
+    ), []);
+
+    const shouldShowPendingStatus = showPendingIndicator && isPending;
+    const pendingStatusInHeader = shouldShowPendingStatus && !props.isConsecutivePost ? renderPendingStatus() : null;
+    const pendingStatusInBody = shouldShowPendingStatus && props.isConsecutivePost ? renderPendingStatus('post__status--body') : null;
+
+    const failedStatusLabel = (
+        <span
+            className='post__status post__status--failed post__status--message'
+            role='alert'
+        >
+            <i className='icon icon-alert-outline' />
+            <FormattedMessage
+                id='post.status.failed'
+                defaultMessage='Message failed'
+            />
+        </span>
+    );
+
+    const failedStatusInHeader = isFailed && !props.isConsecutivePost ? failedStatusLabel : null;
+    const failedStatusInline = isFailed && props.isConsecutivePost ? (
+        <FailedPostOptions
+            post={post}
+            variant='inline'
+        />
+    ) : null;
+    const failedActionsOverlay = isFailed && !props.isConsecutivePost ? (
+        <FailedPostOptions
+            post={post}
+            variant='overlay'
+            showStatus={false}
+        />
+    ) : null;
+
+    const headerStatusInlineRight = failedStatusInHeader ? null : pendingStatusInHeader;
+    const inlineStatusInBody = failedStatusInline ?? pendingStatusInBody;
 
     let comment;
     if (props.isFirstReply && post.type !== Constants.PostTypes.EPHEMERAL) {
@@ -433,7 +501,7 @@ function PostComponent(props: Props) {
     let profilePic;
     const hideProfilePicture = hasSameRoot(props) && (!post.root_id && !props.hasReplies) && !PostUtils.isFromBot(post);
     const hideProfileCase = !(props.location === Locations.RHS_COMMENT && props.compactDisplay && props.isConsecutivePost);
-    const shouldShowPostTime = ((!hideProfilePicture && props.location === Locations.CENTER) || hover || props.location !== Locations.CENTER) && !isPending;
+    const shouldShowPostTime = ((!hideProfilePicture && props.location === Locations.CENTER) || hover || props.location !== Locations.CENTER);
     if (!hideProfilePicture && hideProfileCase) {
         profilePic = (
             <PostProfilePicture
@@ -586,7 +654,9 @@ function PostComponent(props: Props) {
                                 {...props}
                                 isSystemMessage={isSystemMessage}
                             />
+                            {failedStatusInHeader}
                             <div className='col d-flex align-items-center'>
+                                {headerStatusInlineRight}
                                 {shouldShowPostTime &&
                                     <PostTime
                                         isPermalink={!(Posts.POST_DELETED === post.state || isPostPendingOrFailed(post))}
@@ -641,15 +711,20 @@ function PostComponent(props: Props) {
                             className={postClass}
                             id={isRHS ? undefined : `${post.id}_message`}
                         >
-                            {post.failed && <FailedPostOptions post={post} />}
                             <div className={postBodyMainClass}>
-                                <AutoHeightSwitcher
-                                    showSlot={slotBasedOnEditOrMessageView}
-                                    shouldScrollIntoView={props.isPostBeingEdited}
-                                    slot1={message}
-                                    slot2={<EditPost />}
-                                    onTransitionEnd={() => document.dispatchEvent(new Event(AppEvents.FOCUS_EDIT_TEXTBOX))}
-                                />
+                                <div className='post__message-top'>
+                                    <div className='post__message-top-content'>
+                                        <AutoHeightSwitcher
+                                            showSlot={slotBasedOnEditOrMessageView}
+                                            shouldScrollIntoView={props.isPostBeingEdited}
+                                            slot1={message}
+                                            slot2={<EditPost />}
+                                            onTransitionEnd={() => document.dispatchEvent(new Event(AppEvents.FOCUS_EDIT_TEXTBOX))}
+                                        />
+                                    </div>
+                                    {inlineStatusInBody}
+                                </div>
+                                {failedActionsOverlay}
                                 {
                                     showFileAttachments &&
                                     <FileAttachmentListContainer

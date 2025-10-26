@@ -56,13 +56,13 @@
             white-space: pre-wrap;
         }
 
-        ul + p,
-        ol + p {
+        ul+p,
+        ol+p {
             margin-top: 0.6em;
         }
 
-        p + ul,
-        p + ol {
+        p+ul,
+        p+ol {
             margin-top: 0.6em;
         }
     }
@@ -258,7 +258,7 @@
         top: 50px;
     }
 
-    > div {
+    >div {
         display: inline-block;
         padding: 0 8px;
         border: 1px solid rgba(var(--sidebar-header-text-color-rgb), 0.5);
@@ -381,7 +381,7 @@
     display: flex;
     margin: 0 1px 0 0;
 
-    > div {
+    >div {
         margin: 0 4px 0 0;
     }
 
@@ -412,7 +412,7 @@
             fill: functions.v(button-bg);
         }
 
-        & + input {
+        &+input {
             position: absolute;
             top: 0;
             right: 0;
@@ -439,12 +439,12 @@
 
 .post-body__info {
     display: flex;
-    color:  rgba(var(--center-channel-color-rgb), 0.75);
+    color: rgba(var(--center-channel-color-rgb), 0.75);
     font-size: 12px;
     gap: 4px;
     margin-block-start: 4px;
 
-    &__icon{
+    &__icon {
         color: rgba(var(--center-channel-color-rgb), 0.64);
         padding-block-start: 1px;
     }
@@ -459,7 +459,7 @@
     font-size: 12px;
     gap: 8px;
 
-    > button {
+    >button {
         @include mixins.button-small;
 
         padding: 10px 16px;
@@ -602,9 +602,10 @@
     .post__status {
         display: inline-flex;
         align-items: center;
-        gap: 4px;
+        gap: 2px;
         margin-left: 8px;
         font-size: 12px;
+        white-space: nowrap;
 
         &:first-child {
             margin-left: 0;
@@ -613,13 +614,52 @@
         &--failed {
             color: var(--error-text);
         }
+
+        &--pending {
+            color: rgba(var(--center-channel-color-rgb), 0.56);
+        }
+
+        &--body {
+            justify-content: flex-end;
+            margin-left: 0;
+            flex-shrink: 0;
+            align-self: flex-start;
+        }
+
+        .pending-post-actions__status-icon {
+            display: inline-flex;
+            margin-right: 0;
+
+            svg {
+                width: 16px;
+                height: 16px;
+            }
+        }
+    }
+
+    .post__message-top {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        flex-wrap: nowrap;
+    }
+
+    .post__message-top-content {
+        flex: 1 1 auto;
+        min-width: 0;
     }
 
     .post__body-main {
-        display: block;
+        position: relative;
+    }
 
-        &--dimmed {
-            opacity: 0.65;
+    &.post--failed {
+        background-color: rgba(var(--error-text-color-rgb), 0.16);
+
+        &:hover,
+        &.post--hovered,
+        &.a11y--active {
+            background-color: rgba(var(--error-text-color-rgb), 0.24);
         }
     }
 
@@ -631,8 +671,8 @@
                     align-items: center;
                 }
 
-                > .open,
-                > div {
+                >.open,
+                >div {
                     flex: 0 1 30px;
                     align-items: center;
 
@@ -711,6 +751,7 @@
 
     &.post--thread {
         &.same--user {
+
             .post__header,
             .post-preview__header {
                 margin-bottom: 0;
@@ -747,7 +788,7 @@
                 visibility: hidden;
             }
 
-            > div {
+            >div {
                 margin-bottom: 0;
             }
         }
@@ -760,7 +801,7 @@
             overflow: inherit;
         }
 
-        .post-message--collapsed + .post-image__columns {
+        .post-message--collapsed+.post-image__columns {
             &::before {
                 position: absolute;
                 top: 0;
@@ -988,7 +1029,7 @@
         }
     }
 
-    .post__img > :hover {
+    .post__img> :hover {
         cursor: pointer;
     }
 
@@ -1001,12 +1042,15 @@
         color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 11px;
         font-style: italic;
-        -webkit-user-select: none; /* Chrome all / Safari all */
-        -moz-user-select: none; /* Firefox all */
-        -ms-user-select: none; /* IE 10+ */
+        -webkit-user-select: none;
+        /* Chrome all / Safari all */
+        -moz-user-select: none;
+        /* Firefox all */
+        -ms-user-select: none;
+        /* IE 10+ */
         user-select: none;
 
-        > i {
+        >i {
             margin-right: 2px;
         }
     }
@@ -1155,7 +1199,7 @@
             .popover {
                 margin-top: 84px;
 
-                > .arrow {
+                >.arrow {
                     top: 21px !important;
                 }
             }
@@ -1225,7 +1269,7 @@
             display: table-cell;
         }
 
-        > div {
+        >div {
             vertical-align: top;
         }
     }
@@ -1260,7 +1304,8 @@
 
                 text-align: left;
                 text-overflow: ellipsis;
-                -moz-user-select: all; /* Firefox all */
+                -moz-user-select: all;
+                /* Firefox all */
                 vertical-align: top;
                 white-space: nowrap;
             }
@@ -1333,9 +1378,12 @@
                     min-width: 28px;
                     height: 28px;
                     border-radius: unset;
-                    -webkit-user-select: none; /* Chrome all / Safari all */
-                    -moz-user-select: none; /* Firefox all */
-                    -ms-user-select: none; /* IE 10+ */
+                    -webkit-user-select: none;
+                    /* Chrome all / Safari all */
+                    -moz-user-select: none;
+                    /* Firefox all */
+                    -ms-user-select: none;
+                    /* IE 10+ */
                     user-select: none;
                 }
             }
@@ -1417,7 +1465,7 @@
             padding-right: 20px !important;
         }
 
-        p + p {
+        p+p {
             margin: 0.5em 0 0;
         }
 
@@ -1440,42 +1488,83 @@
             }
         }
 
-        ul + p,
-        ol + p {
+        ul+p,
+        ol+p {
             margin-top: 0.6em;
         }
 
-        p + ul,
-        p + ol {
+        p+ul,
+        p+ol {
             margin-top: 0.6em;
         }
 
         .pending-post-actions {
-            position: absolute;
-            z-index: 100;
-            top: 0;
-            right: 12px;
-            font-size: 0.9em;
             display: inline-flex;
             align-items: center;
-            column-gap: 8px;
+            gap: 12px;
+            font-size: 12px;
             white-space: nowrap;
+            flex-shrink: 0;
 
-            &__error-message {
-                padding: 2px 4px;
-                background: functions.alpha-color(variables.$white, 0.8);
+            &--inline {
+                margin-left: 8px;
             }
 
-            &__action-buttons {
+            &--overlay {
+                position: absolute;
+                top: 8px;
+                right: 12px;
+                align-items: flex-start;
+                gap: 8px;
+                z-index: 2;
+            }
+
+            &__status {
                 display: inline-flex;
                 align-items: center;
-                gap: 6px;
-                margin-left: 4px;
-                padding: 5px 7px;
-                background: functions.alpha-color(variables.$black, 0.7);
+                gap: 4px;
+                font-size: 12px;
+            }
 
-                a {
-                    color: variables.$white;
+            &__buttons {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            &__button {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 4px 10px;
+                border: 0;
+                border-radius: 4px;
+                font-size: 12px;
+                font-weight: 600;
+                cursor: pointer;
+                background: transparent;
+
+                &:focus-visible {
+                    outline: 2px solid currentColor;
+                    outline-offset: 2px;
+                }
+
+                &--retry {
+                    color: var(--button-bg);
+                    background-color: rgba(var(--button-bg-rgb), 0.12);
+
+                    &:hover {
+                        background-color: rgba(var(--button-bg-rgb), 0.2);
+                    }
+                }
+
+                &--delete {
+                    color: var(--error-text);
+                    background-color: rgba(var(--error-text-color-rgb), 0.16);
+
+                    &:hover {
+                        background-color: rgba(var(--error-text-color-rgb), 0.24);
+                    }
                 }
             }
         }
@@ -1502,9 +1591,12 @@
         color: rgba(var(--center-channel-color-rgb), 0.65);
         font-size: 13px;
         text-overflow: ellipsis;
-        -webkit-user-select: none; /* Chrome all / Safari all */
-        -moz-user-select: none; /* Firefox all */
-        -ms-user-select: none; /* IE 10+ */
+        -webkit-user-select: none;
+        /* Chrome all / Safari all */
+        -moz-user-select: none;
+        /* Firefox all */
+        -ms-user-select: none;
+        /* IE 10+ */
         user-select: none;
         white-space: nowrap;
 
@@ -1627,6 +1719,7 @@
             color: rgba(var(--center-channel-color-rgb), 0.75);
         }
     }
+
     // styles for image container of large images.
     .image-loaded-container {
         position: relative;
@@ -2037,7 +2130,7 @@
     opacity: 0.73;
 }
 
-.post-message__text > ul,
+.post-message__text>ul,
 .post-code,
 .table-responsive {
     direction: ltr;
@@ -2068,6 +2161,7 @@
 
     &.top .post {
         padding-top: 16px; // this is based off of 8px padding for post + 1em
+
         &.same--root.same--user {
             padding-top: 1em;
         }
@@ -2229,6 +2323,7 @@
     background-color: rgb(var(--pinned-highlight-bg-mixed-rgb));
 
     .post-collapse {
+
         .post-collapse__show-more,
         .post-attachment-collapse__show-more {
             pointer-events: auto;
@@ -2241,6 +2336,7 @@
 }
 
 .post.current--user {
+
     &.other--root,
     &.post--root {
         .post__header-set-custom-status {
@@ -2250,7 +2346,7 @@
             margin-left: 8px;
             background: rgba(var(--center-channel-color-rgb), 0.08);
 
-            &-icon > svg {
+            &-icon>svg {
                 width: 12px;
                 height: 12px;
                 margin-right: 4px;
@@ -2266,7 +2362,7 @@
             }
 
             &:hover {
-                &-icon > svg {
+                &-icon>svg {
                     fill: rgba(var(--center-channel-color-rgb), 0.8);
                 }
 
@@ -2278,7 +2374,7 @@
             &:active {
                 background: rgba(var(--button-bg-rgb), 0.08);
 
-                &-icon > svg {
+                &-icon>svg {
                     fill: var(--button-bg);
                 }
 

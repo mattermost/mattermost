@@ -567,7 +567,6 @@ describe('PostComponent', () => {
             const postElement = container.querySelector('.post');
             expect(postElement).not.toBeNull();
             expect(postElement).toHaveClass('post--pending');
-            expect(container.querySelector('.post__time')).toBeNull();
         });
 
         test('shows failure indicator when post failed to send', () => {
@@ -586,9 +585,10 @@ describe('PostComponent', () => {
             expect(postElement).not.toBeNull();
             expect(postElement).not.toHaveClass('post--pending');
             expect(postElement).toHaveClass('post--failed');
-            expect(screen.getByText('Send failed')).toBeInTheDocument();
+            expect(screen.getByText('Message failed')).toBeInTheDocument();
             expect(screen.getByText('Retry')).toBeInTheDocument();
-            expect(screen.getByText('Cancel')).toBeInTheDocument();
+            expect(screen.getByText('Delete')).toBeInTheDocument();
+            expect(screen.queryByText('Cancel')).not.toBeInTheDocument();
         });
     });
 });
