@@ -40,19 +40,45 @@ const FileInfoPreview = ({
 
     const infoString = infoParts.join(', ');
 
+    // Using <a href> for file downloads triggers a full-page navigation, which closes the WebSocket connection.
+    // To avoid this, the file is fetched and downloaded in memory instead.
+    const handleDownload = async () => {
+        try{
+            const res = await fetch(fileUrl);
+            if(!res.ok) {
+                throw new Error(`Failed to download file: HTTP ${res.status}`);
+            }
+
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            
+            const aTag = document.createElement("a");
+            aTag.href = url;
+            aTag.download = fileInfo.name || "download";
+            
+            document.body.appendChild(aTag);
+            aTag.click();
+            aTag.remove();
+
+            URL.revokeObjectURL(url);
+        } catch(err) {
+            console.error(err);
+        }
+    };
+
     let preview = null;
     if (canDownloadFiles) {
         preview = (
-            <a
-                className='file-details__preview'
-                href={fileUrl}
+            <div
+                className='file-details__preview--clickable'
+                onClick={handleDownload}
             >
                 <span className='file-details__preview-helper'/>
                 <img
                     alt={'file preview'}
                     src={Utils.getFileIconPath(fileInfo)}
                 />
-            </a>
+            </div>
         );
     } else {
         preview = (
