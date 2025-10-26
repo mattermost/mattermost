@@ -457,7 +457,7 @@
     color: rgba(var(--center-channel-color-rgb), 0.75);
     font-family: "Open Sans", sans-serif;
     font-size: 12px;
-    gap: 8px;
+    gap: 6px;
 
     >button {
         @include mixins.button-small;
@@ -642,20 +642,20 @@
         display: flex;
         align-items: center;
         flex-wrap: wrap;
-        gap: 8px;
+        gap: 6px;
         width: 100%;
     }
 
     .post__header-actions .pending-post-actions--header {
         margin-left: auto;
         display: inline-flex;
-        gap: 8px;
+        gap: 6px;
     }
 
     .post__header-actions .pending-post-actions__buttons {
         display: inline-flex;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
     }
 
     .post__header-actions .pending-post-actions__button {
@@ -672,11 +672,11 @@
 
     .post__header-actions .pending-post-actions__button--delete {
         color: var(--error-text);
-        background-color: rgba(var(--error-text-color-rgb), 0.16);
+        background-color: #fbf1f1;
     }
 
     .post__header-actions .pending-post-actions__button--delete:hover {
-        background-color: rgba(var(--error-text-color-rgb), 0.24);
+        background-color: #f8e4e4;
     }
 
     .post__header-actions .pending-post-actions__button--retry {
@@ -691,25 +691,28 @@
     .post__message-top {
         display: flex;
         align-items: flex-start;
-        gap: 8px;
+        gap: 6px;
         flex-wrap: nowrap;
     }
 
     .post__message-top-content {
         display: flex;
-        align-items: baseline;
-        gap: 8px;
+        align-items: flex-start;
+        gap: 6px;
         flex: 1 1 auto;
         min-width: 0;
     }
 
     .post__message-top-text {
         flex: 1 1 auto;
+        display: flex;
+        align-items: center;
     }
 
     .post__message-top-content .post__status--body {
         margin-left: auto;
         white-space: nowrap;
+        align-self: center;
     }
 
     .post__body-main {
@@ -717,12 +720,12 @@
     }
 
     &.post--failed {
-        background-color: rgba(var(--error-text-color-rgb), 0.16);
+        background-color: #fbf1f1;
 
         &:hover,
         &.post--hovered,
         &.a11y--active {
-            background-color: rgba(var(--error-text-color-rgb), 0.24);
+            background-color: #f8e4e4;
         }
     }
 
@@ -1355,7 +1358,7 @@
             flex: 0 auto;
             margin-right: 8px;
             font-weight: 600;
-            gap: 8px;
+            gap: 6px;
             text-overflow: ellipsis;
 
             &.permalink--username {
@@ -1571,7 +1574,7 @@
             &--header {
                 margin-left: auto;
                 justify-content: flex-end;
-                gap: 8px;
+                gap: 6px;
             }
 
             &--inline {
@@ -1588,7 +1591,7 @@
             &__buttons {
                 display: inline-flex;
                 align-items: center;
-                gap: 8px;
+                gap: 6px;
             }
 
             &__button {
@@ -1619,10 +1622,10 @@
 
                 &--delete {
                     color: var(--error-text);
-                    background-color: rgba(var(--error-text-color-rgb), 0.16);
+                    background-color: #fbf1f1;
 
                     &:hover {
-                        background-color: rgba(var(--error-text-color-rgb), 0.24);
+                        background-color: #f8e4e4;
                     }
                 }
             }
