@@ -15,7 +15,7 @@ import type { ExtendedPost } from 'mattermost-redux/actions/posts';
 type Props = {
     post: Post;
     className?: string;
-    variant?: 'inline' | 'overlay';
+    variant?: 'inline' | 'overlay' | 'header';
     showStatus?: boolean;
     actions: {
         createPost: (post: Post, files: FileInfo[]) => void;
@@ -46,6 +46,7 @@ const FailedPostOptions = ({
         {
             'pending-post-actions--inline': variant === 'inline',
             'pending-post-actions--overlay': variant === 'overlay',
+            'pending-post-actions--header': variant === 'header',
         },
     );
 

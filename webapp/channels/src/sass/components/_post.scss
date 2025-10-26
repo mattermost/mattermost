@@ -633,6 +633,7 @@
             svg {
                 width: 16px;
                 height: 16px;
+                fill: var(--error-text);
             }
         }
     }
@@ -1517,6 +1518,12 @@
                 align-items: flex-start;
                 gap: 8px;
                 z-index: 2;
+            }
+
+            &--header {
+                margin-left: auto;
+                justify-content: flex-end;
+                gap: 8px;
             }
 
             &__status {

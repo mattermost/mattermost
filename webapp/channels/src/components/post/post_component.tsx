@@ -26,6 +26,7 @@ import PostProfilePicture from 'components/post_profile_picture';
 import PostAcknowledgements from 'components/post_view/acknowledgements';
 import CommentedOn from 'components/post_view/commented_on/commented_on';
 import FailedPostOptions from 'components/post_view/failed_post_options';
+import AlertIcon from 'components/widgets/icons/alert_icon';
 import PostAriaLabelDiv from 'components/post_view/post_aria_label_div';
 import PostBodyAdditionalContent from 'components/post_view/post_body_additional_content';
 import PostMessageContainer from 'components/post_view/post_message_view';
@@ -449,7 +450,7 @@ function PostComponent(props: Props) {
             className='post__status post__status--failed post__status--message'
             role='alert'
         >
-            <i className='icon icon-alert-outline' />
+            <AlertIcon className='pending-post-actions__status-icon' />
             <FormattedMessage
                 id='post.status.failed'
                 defaultMessage='Message failed'
@@ -458,17 +459,17 @@ function PostComponent(props: Props) {
     );
 
     const failedStatusInHeader = isFailed && !props.isConsecutivePost ? failedStatusLabel : null;
+    const failedActionsHeader = isFailed && !props.isConsecutivePost ? (
+        <FailedPostOptions
+            post={post}
+            variant='header'
+            showStatus={false}
+        />
+    ) : null;
     const failedStatusInline = isFailed && props.isConsecutivePost ? (
         <FailedPostOptions
             post={post}
             variant='inline'
-        />
-    ) : null;
-    const failedActionsOverlay = isFailed && !props.isConsecutivePost ? (
-        <FailedPostOptions
-            post={post}
-            variant='overlay'
-            showStatus={false}
         />
     ) : null;
 
@@ -501,7 +502,7 @@ function PostComponent(props: Props) {
     let profilePic;
     const hideProfilePicture = hasSameRoot(props) && (!post.root_id && !props.hasReplies) && !PostUtils.isFromBot(post);
     const hideProfileCase = !(props.location === Locations.RHS_COMMENT && props.compactDisplay && props.isConsecutivePost);
-    const shouldShowPostTime = ((!hideProfilePicture && props.location === Locations.CENTER) || hover || props.location !== Locations.CENTER);
+    const shouldShowPostTime = !isFailed && (((!hideProfilePicture && props.location === Locations.CENTER) || hover || props.location !== Locations.CENTER));
     if (!hideProfilePicture && hideProfileCase) {
         profilePic = (
             <PostProfilePicture
@@ -655,7 +656,7 @@ function PostComponent(props: Props) {
                                 isSystemMessage={isSystemMessage}
                             />
                             {failedStatusInHeader}
-                            <div className='col d-flex align-items-center'>
+                            <div className='col d-flex align-items-center flex-wrap'>
                                 {headerStatusInlineRight}
                                 {shouldShowPostTime &&
                                     <PostTime
@@ -692,6 +693,7 @@ function PostComponent(props: Props) {
                                     </WithTooltip>
                                 }
                                 {visibleMessage}
+                                {failedActionsHeader}
                             </div>
                             {!props.isPostBeingEdited &&
                                 <PostOptions
@@ -724,7 +726,6 @@ function PostComponent(props: Props) {
                                     </div>
                                     {inlineStatusInBody}
                                 </div>
-                                {failedActionsOverlay}
                                 {
                                     showFileAttachments &&
                                     <FileAttachmentListContainer
@@ -754,3 +755,4 @@ function PostComponent(props: Props) {
 }
 
 export default withPostErrorBoundary(PostComponent);
+
