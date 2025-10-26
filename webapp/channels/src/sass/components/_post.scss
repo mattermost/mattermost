@@ -638,6 +638,56 @@
         }
     }
 
+    .post__header-actions {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .post__header-actions .pending-post-actions--header {
+        margin-left: auto;
+        display: inline-flex;
+        gap: 8px;
+    }
+
+    .post__header-actions .pending-post-actions__buttons {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .post__header-actions .pending-post-actions__button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4px 10px;
+        border-radius: 4px;
+        border: 0;
+        background: transparent;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .post__header-actions .pending-post-actions__button--delete {
+        color: var(--error-text);
+        background-color: rgba(var(--error-text-color-rgb), 0.16);
+    }
+
+    .post__header-actions .pending-post-actions__button--delete:hover {
+        background-color: rgba(var(--error-text-color-rgb), 0.24);
+    }
+
+    .post__header-actions .pending-post-actions__button--retry {
+        color: var(--button-bg);
+        background-color: rgba(var(--button-bg-rgb), 0.12);
+    }
+
+    .post__header-actions .pending-post-actions__button--retry:hover {
+        background-color: rgba(var(--button-bg-rgb), 0.2);
+    }
+
     .post__message-top {
         display: flex;
         align-items: flex-start;
@@ -646,8 +696,20 @@
     }
 
     .post__message-top-content {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
         flex: 1 1 auto;
         min-width: 0;
+    }
+
+    .post__message-top-text {
+        flex: 1 1 auto;
+    }
+
+    .post__message-top-content .post__status--body {
+        margin-left: auto;
+        white-space: nowrap;
     }
 
     .post__body-main {
@@ -1505,6 +1567,16 @@
             font-size: 12px;
             white-space: nowrap;
             flex-shrink: 0;
+
+            &--header {
+                margin-left: auto;
+                justify-content: flex-end;
+                gap: 8px;
+            }
+
+            &--inline {
+                margin-left: 8px;
+            }
 
             &__status {
                 display: inline-flex;

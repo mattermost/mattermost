@@ -20,10 +20,6 @@ describe('components/post_view/FailedPostOptions', () => {
     test('should match default component state', () => {
         renderWithContext(<FailedPostOptions {...baseProps}/>);
 
-        const statusText = screen.getByText('Message failed');
-        expect(statusText).toBeInTheDocument();
-        expect(statusText.closest('.post__status--failed')).not.toBeNull();
-
         const retryButton = screen.getByRole('button', {name: 'Retry'});
         const deleteButton = screen.getByRole('button', {name: 'Delete'});
 
@@ -74,17 +70,5 @@ describe('components/post_view/FailedPostOptions', () => {
         userEvent.click(deleteButton);
 
         expect(props.actions.removePost.mock.calls.length).toBe(1);
-    });
-
-    test('should hide status when showStatus is false', () => {
-        renderWithContext(
-            <FailedPostOptions
-                {...baseProps}
-                showStatus={false}
-            />,
-        );
-
-        expect(screen.queryByText('Message failed')).toBeNull();
-        expect(screen.getAllByRole('button')).toHaveLength(2);
     });
 });

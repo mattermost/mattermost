@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
@@ -445,33 +445,41 @@ function PostComponent(props: Props) {
     const pendingStatusInHeader = shouldShowPendingStatus && !props.isConsecutivePost ? renderPendingStatus() : null;
     const pendingStatusInBody = shouldShowPendingStatus && props.isConsecutivePost ? renderPendingStatus('post__status--body') : null;
 
-    const failedStatusLabel = (
-        <span
-            className='post__status post__status--failed post__status--message'
-            role='alert'
-        >
+    const failedLabelHeader = isFailed && !props.isConsecutivePost ? (
+        <span className='post__status post__status--failed post__status--message'>
             <AlertIcon className='pending-post-actions__status-icon' />
             <FormattedMessage
                 id='post.status.failed'
                 defaultMessage='Message failed'
             />
         </span>
-    );
+    ) : null;
 
-    const failedStatusInHeader = isFailed && !props.isConsecutivePost ? failedStatusLabel : null;
-    const failedStatusInline = isFailed && props.isConsecutivePost ? (
+    const failedLabelInline = isFailed && props.isConsecutivePost ? (
+        <span className='post__status post__status--failed post__status--body'>
+            <AlertIcon className='pending-post-actions__status-icon' />
+            <FormattedMessage
+                id='post.status.failed'
+                defaultMessage='Message failed'
+            />
+        </span>
+    ) : null;
+
+    const failedActionsInline = isFailed && props.isConsecutivePost ? (
         <FailedPostOptions
             post={post}
+            className='pending-post-actions--inline'
         />
     ) : null;
     const failedActionsHeader = isFailed && !props.isConsecutivePost ? (
         <FailedPostOptions
             post={post}
+            className='pending-post-actions--header'
         />
     ) : null;
 
-    const headerStatusInlineRight = failedStatusInHeader ? null : pendingStatusInHeader;
-    const inlineStatusInBody = failedStatusInline ?? pendingStatusInBody;
+    const headerStatusInlineRight = isFailed ? null : pendingStatusInHeader;
+    const inlineStatusInBody = failedActionsInline ?? pendingStatusInBody;
 
     let comment;
     if (props.isFirstReply && post.type !== Constants.PostTypes.EPHEMERAL) {
@@ -652,8 +660,8 @@ function PostComponent(props: Props) {
                                 {...props}
                                 isSystemMessage={isSystemMessage}
                             />
-                            {failedStatusInHeader}
-                            <div className='col d-flex align-items-center'>
+                            <div className='col d-flex align-items-center flex-wrap post__header-actions'>
+                                {failedLabelHeader}
                                 {headerStatusInlineRight}
                                 {shouldShowPostTime &&
                                     <PostTime
@@ -690,6 +698,7 @@ function PostComponent(props: Props) {
                                     </WithTooltip>
                                 }
                                 {visibleMessage}
+                                {failedActionsHeader}
                             </div>
                             {!props.isPostBeingEdited &&
                                 <PostOptions
@@ -712,13 +721,16 @@ function PostComponent(props: Props) {
                             <div className={postBodyMainClass}>
                                 <div className='post__message-top'>
                                     <div className='post__message-top-content'>
-                                        <AutoHeightSwitcher
-                                            showSlot={slotBasedOnEditOrMessageView}
-                                            shouldScrollIntoView={props.isPostBeingEdited}
-                                            slot1={message}
-                                            slot2={<EditPost />}
-                                            onTransitionEnd={() => document.dispatchEvent(new Event(AppEvents.FOCUS_EDIT_TEXTBOX))}
-                                        />
+                                        <div className='post__message-top-text'>
+                                            <AutoHeightSwitcher
+                                                showSlot={slotBasedOnEditOrMessageView}
+                                                shouldScrollIntoView={props.isPostBeingEdited}
+                                                slot1={message}
+                                                slot2={<EditPost />}
+                                                onTransitionEnd={() => document.dispatchEvent(new Event(AppEvents.FOCUS_EDIT_TEXTBOX))}
+                                            />
+                                        </div>
+                                        {failedLabelInline}
                                     </div>
                                     {inlineStatusInBody}
                                 </div>

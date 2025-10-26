@@ -5,17 +5,13 @@ import classNames from 'classnames';
 import React, { memo, useCallback } from 'react';
 import { FormattedMessage } from 'react-intl';
 
-import AlertIcon from 'components/widgets/icons/alert_icon';
-
 import type { FileInfo } from '@mattermost/types/files';
 import type { Post } from '@mattermost/types/posts';
-
 import type { ExtendedPost } from 'mattermost-redux/actions/posts';
 
 type Props = {
     post: Post;
     className?: string;
-    showStatus?: boolean;
     actions: {
         createPost: (post: Post, files: FileInfo[]) => void;
         removePost: (post: ExtendedPost) => void;
@@ -37,13 +33,8 @@ const FailedPostOptions = ({
         actions.removePost(post);
     }, [actions, post]);
 
-    const containerClass = classNames(
-        'pending-post-actions',
-        className
-    );
-
     return (
-        <div className={containerClass}>
+        <div className={classNames('pending-post-actions', className)}>
             <div className='pending-post-actions__buttons'>
                 <button
                     type='button'
@@ -71,7 +62,3 @@ const FailedPostOptions = ({
 };
 
 export default memo(FailedPostOptions);
-
-
-
-
