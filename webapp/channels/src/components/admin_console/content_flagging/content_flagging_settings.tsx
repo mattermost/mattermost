@@ -129,21 +129,27 @@ export default function ContentFlaggingSettings() {
                             helpText=''
                         />
                     </div>
-                    <ContentFlaggingContentReviewers
-                        id='ReviewerSettings'
-                        onChange={handleSettingsChange}
-                        value={contentFlaggingSettings!.ReviewerSettings}
-                    />
-                    <ContentFlaggingNotificationSettingsSection
-                        id='NotificationSettings'
-                        onChange={handleSettingsChange}
-                        value={contentFlaggingSettings!.NotificationSettings}
-                    />
-                    <ContentFlaggingAdditionalSettingsSection
-                        id='AdditionalSettings'
-                        onChange={handleSettingsChange}
-                        value={contentFlaggingSettings!.AdditionalSettings}
-                    />
+
+                    {
+                        contentFlaggingSettings.EnableContentFlagging &&
+                        <>
+                            <ContentFlaggingContentReviewers
+                                id='ReviewerSettings'
+                                onChange={handleSettingsChange}
+                                value={contentFlaggingSettings!.ReviewerSettings}
+                            />
+                            <ContentFlaggingNotificationSettingsSection
+                                id='NotificationSettings'
+                                onChange={handleSettingsChange}
+                                value={contentFlaggingSettings!.NotificationSettings}
+                            />
+                            <ContentFlaggingAdditionalSettingsSection
+                                id='AdditionalSettings'
+                                onChange={handleSettingsChange}
+                                value={contentFlaggingSettings!.AdditionalSettings}
+                            />
+                        </>
+                    }
                 </div>
             </div>
 
