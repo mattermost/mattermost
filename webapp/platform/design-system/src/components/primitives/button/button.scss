@@ -346,21 +346,25 @@
         &--xs {
             width: 12px;
             height: 12px;
+            font-size: 12px;
         }
 
         &--sm {
             width: 14px;
             height: 14px;
+            font-size: 14px;
         }
 
         &--md {
             width: 16px;
-            height: 16px;
+            height: 16px;   
+            font-size: 16px;
         }
 
         &--lg {
             width: 20px;
-            height: 20px;
+            height: 20px;   
+            font-size: 20px;
         }
 
         // Icon position modifiers
