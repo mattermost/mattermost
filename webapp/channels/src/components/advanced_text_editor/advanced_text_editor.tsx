@@ -55,7 +55,7 @@ import Constants, {
     ModalIdentifiers,
     AdvancedTextEditorTextboxIds,
 } from 'utils/constants';
-import {canUploadFiles as canUploadFilesAccordingtoConfig} from 'utils/file_utils';
+import {canUploadFiles as canUploadFilesAccordingToConfig} from 'utils/file_utils';
 import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import {applyMarkdown as applyMarkdownUtil} from 'utils/markdown/apply_markdown';
 import {isErrorInvalidSlashCommand} from 'utils/post_utils';
@@ -167,7 +167,7 @@ const AdvancedTextEditor = ({
     const draftFromStore = useSelector((state: GlobalState) => getDraftSelector(state, channelId, rootId, storageKey));
     const badConnection = useSelector((state: GlobalState) => connectionErrorCount(state) > 1);
     const maxPostSize = useSelector((state: GlobalState) => parseInt(getConfig(state).MaxPostSize || '', 10) || Constants.DEFAULT_CHARACTER_LIMIT);
-    const canUploadFiles = useSelector((state: GlobalState) => canUploadFilesAccordingtoConfig(getConfig(state)));
+    const canUploadFiles = useSelector((state: GlobalState) => canUploadFilesAccordingToConfig(getConfig(state)));
     const fullWidthTextBox = useSelector((state: GlobalState) => get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN);
     const isFormattingBarHidden = useSelector((state: GlobalState) => {
         const preferenceName = getFormattingBarPreferenceName();
