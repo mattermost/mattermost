@@ -1,7 +1,7 @@
 FROM postgres:13
 
 RUN apt-get update
-RUN apt-get install -y \
+RUN apt-get install -y --no-install-recommends \
         build-essential \
         postgresql-server-dev-13 \
         git \
@@ -16,6 +16,7 @@ RUN git clone https://github.com/pgbigm/pg_bigm.git /usr/src/pg_bigm && \
         build-essential \
         postgresql-server-dev-13 \
         git \
+        ca-certificates \
         libicu-dev && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /usr/src/pg_bigm
