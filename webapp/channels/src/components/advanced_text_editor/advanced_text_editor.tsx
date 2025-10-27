@@ -650,9 +650,9 @@ const AdvancedTextEditor = ({
         createMessage = formatMessage(
             {
                 id: 'create_post.write',
-                defaultMessage: 'Write to {displayName}',
+                defaultMessage: 'Write to {channelDisplayName}',
             },
-            {displayName},
+            {channelDisplayName: displayName},
         );
     } else if (readOnlyChannel) {
         createMessage = formatMessage(
