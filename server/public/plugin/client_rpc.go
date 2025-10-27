@@ -650,42 +650,6 @@ func (s *hooksRPCServer) FileWillBeUploaded(args *Z_FileWillBeUploadedArgs, retu
 	return nil
 }
 
-// FileWillBeDownloaded hook RPC structures and methods
-type Z_FileWillBeDownloadedArgs struct {
-	A *Context
-	B *model.FileInfo
-	C string
-}
-
-type Z_FileWillBeDownloadedReturns struct {
-	A string
-}
-
-func (g *hooksRPCClient) FileWillBeDownloaded(c *Context, info *model.FileInfo, userID string) string {
-	if !g.implemented[FileWillBeDownloadedID] {
-		return ""
-	}
-
-	_args := &Z_FileWillBeDownloadedArgs{c, info, userID}
-	_returns := &Z_FileWillBeDownloadedReturns{}
-	if err := g.client.Call("Plugin.FileWillBeDownloaded", _args, _returns); err != nil {
-		g.log.Error("RPC call FileWillBeDownloaded to plugin failed.", mlog.Err(err))
-	}
-
-	return _returns.A
-}
-
-func (s *hooksRPCServer) FileWillBeDownloaded(args *Z_FileWillBeDownloadedArgs, returns *Z_FileWillBeDownloadedReturns) error {
-	if hook, ok := s.impl.(interface {
-		FileWillBeDownloaded(c *Context, info *model.FileInfo, userID string) string
-	}); ok {
-		returns.A = hook.FileWillBeDownloaded(args.A, args.B, args.C)
-	} else {
-		return fmt.Errorf("hook FileWillBeDownloaded called but not implemented")
-	}
-	return nil
-}
-
 // MessageWillBePosted is in this file because of the difficulty of identifying which fields need special behaviour.
 // The special behaviour needed is decoding the returned post into the original one to avoid the unintentional removal
 // of fields by older plugins.

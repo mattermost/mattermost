@@ -166,9 +166,9 @@ func (hooks *hooksTimerLayer) FileWillBeUploaded(c *Context, info *model.FileInf
 
 func (hooks *hooksTimerLayer) FileWillBeDownloaded(c *Context, info *model.FileInfo, userID string) string {
 	startTime := timePkg.Now()
-	_returns := hooks.hooksImpl.FileWillBeDownloaded(c, info, userID)
+	_returnsA := hooks.hooksImpl.FileWillBeDownloaded(c, info, userID)
 	hooks.recordTime(startTime, "FileWillBeDownloaded", true)
-	return _returns
+	return _returnsA
 }
 
 func (hooks *hooksTimerLayer) ReactionHasBeenAdded(c *Context, reaction *model.Reaction) {
