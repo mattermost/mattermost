@@ -1268,9 +1268,121 @@ func (s *SqlPostStore) getPostsCollapsedThreads(rctx request.CTX, options model.
 	return s.prepareThreadedResponse(rctx, posts, options.CollapsedThreadsExtended, false, sanitizeOptions)
 }
 
+// getPostsWithCursor retrieves posts using cursor-based pagination.
+// It supports pagination by either CreateAt or UpdateAt timestamps based on the cursor.
+func (s *SqlPostStore) getPostsWithCursor(rctx request.CTX, options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
+	if options.PerPage > 1000 {
+		return nil, store.NewErrInvalidInput("Post", "<options.PerPage>", options.PerPage)
+	}
+
+	// Decode the cursor
+	cursor, err := model.DecodePostsSinceCursor(options.Cursor)
+	if err != nil {
+		return nil, store.NewErrInvalidInput("Post", "cursor", options.Cursor)
+	}
+
+	// Determine which timestamp field to use based on cursor
+	cursorTimestamp := cursor.LastPostTimestamp
+	var timeField string
+	var untilTimestamp int64
+
+	if cursor.TimeType == model.TimeTypeUpdateAt {
+		timeField = "UpdateAt"
+		untilTimestamp = options.UntilUpdateAt
+	} else {
+		// Default to CreateAt
+		timeField = "CreateAt"
+		untilTimestamp = options.UntilCreateAt
+	}
+
+	// Build the query using squirrel
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Posts").
+		Where(sq.Eq{"ChannelId": options.ChannelId}).
+		OrderBy(timeField, "Id").
+		Limit(uint64(options.PerPage) + 1) // Fetch one extra to determine HasNext
+
+	// Add cursor-based WHERE clause: (timestamp > cursor) OR (timestamp = cursor AND id > cursor_id)
+	query = query.Where(sq.Or{
+		sq.Gt{timeField: cursorTimestamp},
+		sq.And{
+			sq.Eq{timeField: cursorTimestamp},
+			sq.Gt{"Id": cursor.LastPostID},
+		},
+	})
+
+	// Add upper bound filter if specified
+	if untilTimestamp > 0 {
+		query = query.Where(sq.Lt{timeField: untilTimestamp})
+	}
+
+	// Add DeleteAt filter unless explicitly including deleted posts
+	if !options.IncludeDeleted {
+		query = query.Where(sq.Eq{"DeleteAt": 0})
+	}
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "getPostsWithCursor_tosql")
+	}
+
+	posts := []*model.Post{}
+	err = s.GetReplica().Select(&posts, queryString, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to find Posts with channelId=%s", options.ChannelId)
+	}
+
+	// Determine if there are more results
+	hasNext := len(posts) > options.PerPage
+	if hasNext {
+		// Remove the extra post we fetched
+		posts = posts[:options.PerPage]
+	}
+
+	// Build the PostList
+	list := model.NewPostList()
+	for _, p := range posts {
+		list.AddPost(p)
+		list.AddOrder(p.Id)
+	}
+
+	// Set HasNext field
+	list.HasNext = &hasNext
+
+	// Build NextCursor if there are more results
+	if hasNext && len(posts) > 0 {
+		lastPost := posts[len(posts)-1]
+		var lastTimestamp int64
+		if cursor.TimeType == model.TimeTypeUpdateAt {
+			lastTimestamp = lastPost.UpdateAt
+		} else {
+			lastTimestamp = lastPost.CreateAt
+		}
+
+		nextCursor := model.GetPostsSinceCursor{
+			TimeType:          cursor.TimeType,
+			LastPostTimestamp: lastTimestamp,
+			LastPostID:        lastPost.Id,
+		}
+
+		nextCursorStr, err := model.EncodePostsSinceCursor(nextCursor)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to encode next cursor")
+		}
+		list.NextCursor = nextCursorStr
+	}
+
+	list.MakeNonNil()
+	return list, nil
+}
+
 func (s *SqlPostStore) GetPosts(rctx request.CTX, options model.GetPostsOptions, _ bool, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	if options.PerPage > 1000 {
 		return nil, store.NewErrInvalidInput("Post", "<options.PerPage>", options.PerPage)
+	}
+	if options.Cursor != "" {
+		return s.getPostsWithCursor(rctx, options, sanitizeOptions)
 	}
 	if options.CollapsedThreads {
 		return s.getPostsCollapsedThreads(rctx, options, sanitizeOptions)

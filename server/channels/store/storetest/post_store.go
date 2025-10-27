@@ -37,6 +37,7 @@ func TestPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetPostsBeforeAfter", func(t *testing.T) { testPostStoreGetPostsBeforeAfter(t, rctx, ss) })
 	t.Run("GetPostsSince", func(t *testing.T) { testPostStoreGetPostsSince(t, rctx, ss) })
 	t.Run("GetPosts", func(t *testing.T) { testPostStoreGetPosts(t, rctx, ss) })
+	t.Run("GetPostsWithCursor", func(t *testing.T) { testPostStoreGetPostsWithCursor(t, rctx, ss) })
 	t.Run("GetPostBeforeAfter", func(t *testing.T) { testPostStoreGetPostBeforeAfter(t, rctx, ss) })
 	t.Run("UserCountsWithPostsByDay", func(t *testing.T) { testUserCountsWithPostsByDay(t, rctx, ss) })
 	t.Run("PostCountsByDuration", func(t *testing.T) { testPostCountsByDay(t, rctx, ss) })
@@ -5721,5 +5722,465 @@ func testGetPostsSinceForSyncExcludeMetadata(t *testing.T, rctx request.CTX, ss 
 		require.Equal(t, 1, postTypeCount[model.PostTypeHeaderChange], "should have 1 header change post")
 		require.Equal(t, 1, postTypeCount[model.PostTypeDisplaynameChange], "should have 1 display name change post")
 		require.Equal(t, 1, postTypeCount[model.PostTypePurposeChange], "should have 1 purpose change post")
+	})
+}
+
+func testPostStoreGetPostsWithCursor(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("cursor pagination with CreateAt - multiple pages", func(t *testing.T) {
+		teamID := model.NewId()
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "DisplayName",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		channelID := channel.Id
+		userID := model.NewId()
+		baseTime := model.GetMillis()
+
+		// Create 5 posts with explicit timestamps
+		var posts []*model.Post
+		for i := 0; i < 5; i++ {
+			post, err := ss.Post().Save(rctx, &model.Post{
+				ChannelId: channelID,
+				UserId:    userID,
+				Message:   fmt.Sprintf("message %d", i),
+				CreateAt:  baseTime + int64(i*1000),
+			})
+			require.NoError(t, err)
+			posts = append(posts, post)
+		}
+
+		// Create initial cursor using the first post
+		initialCursor := model.GetPostsSinceCursor{
+			TimeType:          model.TimeTypeCreateAt,
+			LastPostTimestamp: posts[0].CreateAt,
+			LastPostID:        posts[0].Id,
+		}
+		cursorStr, err := model.EncodePostsSinceCursor(initialCursor)
+		require.NoError(t, err)
+
+		// Fetch posts with cursor, requesting 2 per page
+		postList, err := ss.Post().GetPosts(rctx, model.GetPostsOptions{
+			ChannelId: channelID,
+			Cursor:    cursorStr,
+			PerPage:   2,
+		}, false, map[string]bool{})
+		require.NoError(t, err)
+
+		// Should get posts 1 and 2 (after post 0)
+		assert.Len(t, postList.Posts, 2)
+		assert.Len(t, postList.Order, 2)
+		require.NotNil(t, postList.HasNext)
+		assert.True(t, *postList.HasNext, "should have more results")
+		assert.NotEmpty(t, postList.NextCursor, "should have next cursor")
+		assert.Equal(t, posts[1].Id, postList.Order[0])
+		assert.Equal(t, posts[2].Id, postList.Order[1])
+
+		// Use the next cursor to fetch the next page
+		postList2, err := ss.Post().GetPosts(rctx, model.GetPostsOptions{
+			ChannelId: channelID,
+			Cursor:    postList.NextCursor,
+			PerPage:   2,
+		}, false, map[string]bool{})
+		require.NoError(t, err)
+
+		// Should get posts 3 and 4
+		assert.Len(t, postList2.Posts, 2)
+		assert.Len(t, postList2.Order, 2)
+		require.NotNil(t, postList2.HasNext)
+		assert.False(t, *postList2.HasNext, "should not have more results")
+		assert.Empty(t, postList2.NextCursor, "should not have next cursor")
+		assert.Equal(t, posts[3].Id, postList2.Order[0])
+		assert.Equal(t, posts[4].Id, postList2.Order[1])
+	})
+
+	t.Run("cursor pagination with UpdateAt - multiple pages", func(t *testing.T) {
+		teamID := model.NewId()
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "DisplayName",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		channelID := channel.Id
+		userID := model.NewId()
+		baseTime := model.GetMillis()
+
+		// Create posts with explicit CreateAt timestamps
+		var posts []*model.Post
+		for i := 0; i < 5; i++ {
+			post, err := ss.Post().Save(rctx, &model.Post{
+				ChannelId: channelID,
+				UserId:    userID,
+				Message:   fmt.Sprintf("message %d", i),
+				CreateAt:  baseTime + int64(i*1000),
+			})
+			require.NoError(t, err)
+			posts = append(posts, post)
+		}
+
+		// Update some posts to change their UpdateAt with explicit timestamps
+		posts[1].Message = "updated message 1"
+		posts[1].UpdateAt = baseTime + 10000
+		updatedPost1, err := ss.Post().Update(rctx, posts[1], posts[1])
+		require.NoError(t, err)
+		posts[1] = updatedPost1
+
+		posts[3].Message = "updated message 3"
+		posts[3].UpdateAt = baseTime + 11000
+		updatedPost3, err := ss.Post().Update(rctx, posts[3], posts[3])
+		require.NoError(t, err)
+		posts[3] = updatedPost3
+
+		// Create initial cursor using the first post's UpdateAt
+		initialCursor := model.GetPostsSinceCursor{
+			TimeType:          model.TimeTypeUpdateAt,
+			LastPostTimestamp: posts[0].UpdateAt,
+			LastPostID:        posts[0].Id,
+		}
+		cursorStr, err := model.EncodePostsSinceCursor(initialCursor)
+		require.NoError(t, err)
+
+		// Fetch posts with cursor
+		postList, err := ss.Post().GetPosts(rctx, model.GetPostsOptions{
+			ChannelId: channelID,
+			Cursor:    cursorStr,
+			PerPage:   10,
+		}, false, map[string]bool{})
+		require.NoError(t, err)
+
+		// Should get posts ordered by UpdateAt
+		assert.GreaterOrEqual(t, len(postList.Posts), 4)
+		require.NotNil(t, postList.HasNext)
+		assert.False(t, *postList.HasNext)
+	})
+
+	t.Run("time range filtering with UntilCreateAt", func(t *testing.T) {
+		teamID := model.NewId()
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "DisplayName",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		channelID := channel.Id
+		userID := model.NewId()
+		baseTime := model.GetMillis()
+
+		// Create 5 posts with explicit timestamps
+		var posts []*model.Post
+		for i := 0; i < 5; i++ {
+			post, err := ss.Post().Save(rctx, &model.Post{
+				ChannelId: channelID,
+				UserId:    userID,
+				Message:   fmt.Sprintf("message %d", i),
+				CreateAt:  baseTime + int64(i*1000),
+			})
+			require.NoError(t, err)
+			posts = append(posts, post)
+		}
+
+		// Create cursor from first post
+		initialCursor := model.GetPostsSinceCursor{
+			TimeType:          model.TimeTypeCreateAt,
+			LastPostTimestamp: posts[0].CreateAt,
+			LastPostID:        posts[0].Id,
+		}
+		cursorStr, err := model.EncodePostsSinceCursor(initialCursor)
+		require.NoError(t, err)
+
+		// Fetch posts with upper bound at post[3]'s CreateAt
+		postList, err := ss.Post().GetPosts(rctx, model.GetPostsOptions{
+			ChannelId:     channelID,
+			Cursor:        cursorStr,
+			UntilCreateAt: posts[3].CreateAt,
+			PerPage:       10,
+		}, false, map[string]bool{})
+		require.NoError(t, err)
+
+		// Should only get posts 1 and 2 (between post[0] and post[3])
+		assert.Len(t, postList.Posts, 2)
+		assert.Equal(t, posts[1].Id, postList.Order[0])
+		assert.Equal(t, posts[2].Id, postList.Order[1])
+		require.NotNil(t, postList.HasNext)
+		assert.False(t, *postList.HasNext)
+	})
+
+	t.Run("empty results when no posts after cursor", func(t *testing.T) {
+		teamID := model.NewId()
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "DisplayName",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		channelID := channel.Id
+		userID := model.NewId()
+		baseTime := model.GetMillis()
+
+		// Create a single post
+		post, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: channelID,
+			UserId:    userID,
+			Message:   "single message",
+			CreateAt:  baseTime,
+		})
+		require.NoError(t, err)
+
+		// Create cursor from the only post
+		cursor := model.GetPostsSinceCursor{
+			TimeType:          model.TimeTypeCreateAt,
+			LastPostTimestamp: post.CreateAt,
+			LastPostID:        post.Id,
+		}
+		cursorStr, err := model.EncodePostsSinceCursor(cursor)
+		require.NoError(t, err)
+
+		// Fetch posts with cursor - should be empty
+		postList, err := ss.Post().GetPosts(rctx, model.GetPostsOptions{
+			ChannelId: channelID,
+			Cursor:    cursorStr,
+			PerPage:   10,
+		}, false, map[string]bool{})
+		require.NoError(t, err)
+
+		assert.Len(t, postList.Posts, 0)
+		assert.Len(t, postList.Order, 0)
+		require.NotNil(t, postList.HasNext)
+		assert.False(t, *postList.HasNext)
+		assert.Empty(t, postList.NextCursor)
+	})
+
+	t.Run("single page results", func(t *testing.T) {
+		teamID := model.NewId()
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "DisplayName",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		channelID := channel.Id
+		userID := model.NewId()
+		baseTime := model.GetMillis()
+
+		// Create 3 posts
+		var posts []*model.Post
+		for i := 0; i < 3; i++ {
+			post, err := ss.Post().Save(rctx, &model.Post{
+				ChannelId: channelID,
+				UserId:    userID,
+				Message:   fmt.Sprintf("message %d", i),
+				CreateAt:  baseTime + int64(i*1000),
+			})
+			require.NoError(t, err)
+			posts = append(posts, post)
+		}
+
+		// Create cursor from first post
+		cursor := model.GetPostsSinceCursor{
+			TimeType:          model.TimeTypeCreateAt,
+			LastPostTimestamp: posts[0].CreateAt,
+			LastPostID:        posts[0].Id,
+		}
+		cursorStr, err := model.EncodePostsSinceCursor(cursor)
+		require.NoError(t, err)
+
+		// Request 10 posts per page (more than available)
+		postList, err := ss.Post().GetPosts(rctx, model.GetPostsOptions{
+			ChannelId: channelID,
+			Cursor:    cursorStr,
+			PerPage:   10,
+		}, false, map[string]bool{})
+		require.NoError(t, err)
+
+		// Should get 2 posts without HasNext
+		assert.Len(t, postList.Posts, 2)
+		require.NotNil(t, postList.HasNext)
+		assert.False(t, *postList.HasNext)
+		assert.Empty(t, postList.NextCursor)
+	})
+
+	t.Run("exact page boundary", func(t *testing.T) {
+		teamID := model.NewId()
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "DisplayName",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		channelID := channel.Id
+		userID := model.NewId()
+		baseTime := model.GetMillis()
+
+		// Create exactly 3 posts (1 for cursor + 2 for results)
+		var posts []*model.Post
+		for i := 0; i < 3; i++ {
+			post, err := ss.Post().Save(rctx, &model.Post{
+				ChannelId: channelID,
+				UserId:    userID,
+				Message:   fmt.Sprintf("message %d", i),
+				CreateAt:  baseTime + int64(i*1000),
+			})
+			require.NoError(t, err)
+			posts = append(posts, post)
+		}
+
+		// Create cursor from first post
+		cursor := model.GetPostsSinceCursor{
+			TimeType:          model.TimeTypeCreateAt,
+			LastPostTimestamp: posts[0].CreateAt,
+			LastPostID:        posts[0].Id,
+		}
+		cursorStr, err := model.EncodePostsSinceCursor(cursor)
+		require.NoError(t, err)
+
+		// Request exactly 2 posts (matching available count)
+		postList, err := ss.Post().GetPosts(rctx, model.GetPostsOptions{
+			ChannelId: channelID,
+			Cursor:    cursorStr,
+			PerPage:   2,
+		}, false, map[string]bool{})
+		require.NoError(t, err)
+
+		// Should get exactly 2 posts without HasNext
+		assert.Len(t, postList.Posts, 2)
+		require.NotNil(t, postList.HasNext)
+		assert.False(t, *postList.HasNext, "should not have more results at exact boundary")
+		assert.Empty(t, postList.NextCursor)
+	})
+
+	t.Run("invalid cursor returns error", func(t *testing.T) {
+		teamID := model.NewId()
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "DisplayName",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		// Try with invalid cursor
+		_, err = ss.Post().GetPosts(rctx, model.GetPostsOptions{
+			ChannelId: channel.Id,
+			Cursor:    "invalid:cursor:format",
+			PerPage:   10,
+		}, false, map[string]bool{})
+		require.Error(t, err)
+	})
+
+	t.Run("PerPage exceeds 1000 returns error", func(t *testing.T) {
+		teamID := model.NewId()
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "DisplayName",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		userID := model.NewId()
+		baseTime := model.GetMillis()
+		post, err := ss.Post().Save(rctx, &model.Post{
+			ChannelId: channel.Id,
+			UserId:    userID,
+			Message:   "test",
+			CreateAt:  baseTime,
+		})
+		require.NoError(t, err)
+
+		cursor := model.GetPostsSinceCursor{
+			TimeType:          model.TimeTypeCreateAt,
+			LastPostTimestamp: post.CreateAt,
+			LastPostID:        post.Id,
+		}
+		cursorStr, err := model.EncodePostsSinceCursor(cursor)
+		require.NoError(t, err)
+
+		// Try with PerPage > 1000
+		_, err = ss.Post().GetPosts(rctx, model.GetPostsOptions{
+			ChannelId: channel.Id,
+			Cursor:    cursorStr,
+			PerPage:   1001,
+		}, false, map[string]bool{})
+		require.Error(t, err)
+	})
+
+	t.Run("respects IncludeDeleted option", func(t *testing.T) {
+		teamID := model.NewId()
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "DisplayName",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		channelID := channel.Id
+		userID := model.NewId()
+		baseTime := model.GetMillis()
+
+		// Create 3 posts
+		var posts []*model.Post
+		for i := 0; i < 3; i++ {
+			post, err := ss.Post().Save(rctx, &model.Post{
+				ChannelId: channelID,
+				UserId:    userID,
+				Message:   fmt.Sprintf("message %d", i),
+				CreateAt:  baseTime + int64(i*1000),
+			})
+			require.NoError(t, err)
+			posts = append(posts, post)
+		}
+
+		// Delete the middle post
+		err = ss.Post().Delete(rctx, posts[1].Id, model.GetMillis(), userID)
+		require.NoError(t, err)
+
+		// Create cursor from first post
+		cursor := model.GetPostsSinceCursor{
+			TimeType:          model.TimeTypeCreateAt,
+			LastPostTimestamp: posts[0].CreateAt,
+			LastPostID:        posts[0].Id,
+		}
+		cursorStr, err := model.EncodePostsSinceCursor(cursor)
+		require.NoError(t, err)
+
+		// Fetch without including deleted
+		postList, err := ss.Post().GetPosts(rctx, model.GetPostsOptions{
+			ChannelId:      channelID,
+			Cursor:         cursorStr,
+			PerPage:        10,
+			IncludeDeleted: false,
+		}, false, map[string]bool{})
+		require.NoError(t, err)
+
+		// Should only get post 2 (post 1 is deleted)
+		assert.Len(t, postList.Posts, 1)
+		assert.Equal(t, posts[2].Id, postList.Order[0])
+
+		// Fetch with including deleted
+		postListWithDeleted, err := ss.Post().GetPosts(rctx, model.GetPostsOptions{
+			ChannelId:      channelID,
+			Cursor:         cursorStr,
+			PerPage:        10,
+			IncludeDeleted: true,
+		}, false, map[string]bool{})
+		require.NoError(t, err)
+
+		// Should get both posts 1 and 2
+		assert.Len(t, postListWithDeleted.Posts, 2)
 	})
 }
