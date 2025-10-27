@@ -5,7 +5,7 @@ import React from 'react';
 
 import MultiSelectCard from './multi_select_card';
 import type {Props as CardProps} from './multi_select_card';
-import './index.scss';
+import './multi_select_cards.scss';
 
 type Props = {
     next?: () => void;
