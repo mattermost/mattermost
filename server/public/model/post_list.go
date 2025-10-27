@@ -5,9 +5,102 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"sort"
+	"strconv"
+	"strings"
 )
+
+const (
+	// TimeTypeCreateAt indicates using CreateAt timestamp for filtering and pagination
+	TimeTypeCreateAt = "create_at"
+	// TimeTypeUpdateAt indicates using UpdateAt timestamp for filtering and pagination
+	TimeTypeUpdateAt = "update_at"
+)
+
+// GetPostsSinceCursor represents a cursor for paginating through posts since a given timestamp.
+// The cursor encodes the time type, timestamp, and post ID to enable stateless pagination.
+type GetPostsSinceCursor struct {
+	// TimeType specifies which timestamp field to use: "create_at" or "update_at"
+	TimeType string
+	// LastPostTimestamp is the timestamp of the last post returned in the previous page
+	LastPostTimestamp int64
+	// LastPostID is the ID of the last post returned in the previous page
+	LastPostID string
+}
+
+// validateAndNormalizePostsSinceCursor validates a GetPostsSinceCursor and normalizes empty TimeType to "create_at".
+// Returns the normalized TimeType and an error if validation fails.
+func validateAndNormalizePostsSinceCursor(timeType string, timestamp int64, postID string) (string, error) {
+	// Validate TimeType: must be "create_at", "update_at", or empty (defaults to "create_at")
+	if timeType == "" {
+		timeType = TimeTypeCreateAt
+	} else if timeType != TimeTypeCreateAt && timeType != TimeTypeUpdateAt {
+		return "", fmt.Errorf("invalid TimeType: must be %q or %q, got %q", TimeTypeCreateAt, TimeTypeUpdateAt, timeType)
+	}
+
+	// Validate timestamp: must be non-negative
+	if timestamp < 0 {
+		return "", fmt.Errorf("invalid timestamp: must be >= 0, got %d", timestamp)
+	}
+
+	// Validate post ID: must be non-empty
+	if postID == "" {
+		return "", fmt.Errorf("invalid post ID: must be non-empty")
+	}
+
+	return timeType, nil
+}
+
+// EncodePostsSinceCursor encodes a GetPostsSinceCursor into a string format.
+// The cursor is encoded as: {timeType}:{timestamp}:{postId}
+// Returns an error if the cursor fails validation.
+func EncodePostsSinceCursor(cursor GetPostsSinceCursor) (string, error) {
+	// Validate and normalize the cursor
+	timeType, err := validateAndNormalizePostsSinceCursor(cursor.TimeType, cursor.LastPostTimestamp, cursor.LastPostID)
+	if err != nil {
+		return "", err
+	}
+
+	// Encode cursor as: {timeType}:{timestamp}:{postId}
+	encoded := fmt.Sprintf("%s:%s:%s", timeType, strconv.FormatInt(cursor.LastPostTimestamp, 10), cursor.LastPostID)
+	return encoded, nil
+}
+
+// DecodePostsSinceCursor decodes a cursor string into a GetPostsSinceCursor struct.
+// The cursor string must be in the format: {timeType}:{timestamp}:{postId}
+// Returns an error if the cursor string is malformed or fails validation.
+// Guarantee: if decode succeeds, the returned cursor is valid and ready to use.
+func DecodePostsSinceCursor(cursorStr string) (GetPostsSinceCursor, error) {
+	// Split cursor string on ':' and expect exactly 3 parts
+	parts := strings.Split(cursorStr, ":")
+	if len(parts) != 3 {
+		return GetPostsSinceCursor{}, fmt.Errorf("invalid cursor format: expected 3 parts separated by ':', got %d parts", len(parts))
+	}
+
+	timeType := parts[0]
+	timestampStr := parts[1]
+	postID := parts[2]
+
+	// Parse timestamp string to int64 with base 10 and 64 bits
+	timestamp, err := strconv.ParseInt(timestampStr, 10, 64)
+	if err != nil {
+		return GetPostsSinceCursor{}, fmt.Errorf("invalid timestamp: failed to parse %q as int64: %w", timestampStr, err)
+	}
+
+	// Validate and normalize the cursor fields
+	timeType, err = validateAndNormalizePostsSinceCursor(timeType, timestamp, postID)
+	if err != nil {
+		return GetPostsSinceCursor{}, err
+	}
+
+	return GetPostsSinceCursor{
+		TimeType:          timeType,
+		LastPostTimestamp: timestamp,
+		LastPostID:        postID,
+	}, nil
+}
 
 type PostList struct {
 	Order      []string         `json:"order"`

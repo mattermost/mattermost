@@ -146,3 +146,283 @@ func TestPostListToSlice(t *testing.T) {
 
 	assert.Equal(t, want, pl.ToSlice())
 }
+
+func TestEncodePostsSinceCursor(t *testing.T) {
+	t.Run("valid cursor with create_at", func(t *testing.T) {
+		cursor := GetPostsSinceCursor{
+			TimeType:          TimeTypeCreateAt,
+			LastPostTimestamp: 1704067200000,
+			LastPostID:        "abc123xyz789",
+		}
+
+		encoded, err := EncodePostsSinceCursor(cursor)
+		assert.NoError(t, err)
+		assert.Equal(t, "create_at:1704067200000:abc123xyz789", encoded)
+	})
+
+	t.Run("valid cursor with update_at", func(t *testing.T) {
+		cursor := GetPostsSinceCursor{
+			TimeType:          TimeTypeUpdateAt,
+			LastPostTimestamp: 1704070800000,
+			LastPostID:        "xyz789abc123",
+		}
+
+		encoded, err := EncodePostsSinceCursor(cursor)
+		assert.NoError(t, err)
+		assert.Equal(t, "update_at:1704070800000:xyz789abc123", encoded)
+	})
+
+	t.Run("empty TimeType defaults to create_at", func(t *testing.T) {
+		cursor := GetPostsSinceCursor{
+			TimeType:          "",
+			LastPostTimestamp: 1704067200000,
+			LastPostID:        "abc123xyz789",
+		}
+
+		encoded, err := EncodePostsSinceCursor(cursor)
+		assert.NoError(t, err)
+		assert.Equal(t, "create_at:1704067200000:abc123xyz789", encoded)
+	})
+
+	t.Run("zero timestamp is valid", func(t *testing.T) {
+		cursor := GetPostsSinceCursor{
+			TimeType:          TimeTypeCreateAt,
+			LastPostTimestamp: 0,
+			LastPostID:        "abc123xyz789",
+		}
+
+		encoded, err := EncodePostsSinceCursor(cursor)
+		assert.NoError(t, err)
+		assert.Equal(t, "create_at:0:abc123xyz789", encoded)
+	})
+
+	t.Run("invalid TimeType returns error", func(t *testing.T) {
+		cursor := GetPostsSinceCursor{
+			TimeType:          "invalid_type",
+			LastPostTimestamp: 1704067200000,
+			LastPostID:        "abc123xyz789",
+		}
+
+		encoded, err := EncodePostsSinceCursor(cursor)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid TimeType")
+		assert.Equal(t, "", encoded)
+	})
+
+	t.Run("negative timestamp returns error", func(t *testing.T) {
+		cursor := GetPostsSinceCursor{
+			TimeType:          TimeTypeCreateAt,
+			LastPostTimestamp: -1,
+			LastPostID:        "abc123xyz789",
+		}
+
+		encoded, err := EncodePostsSinceCursor(cursor)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid timestamp")
+		assert.Equal(t, "", encoded)
+	})
+
+	t.Run("empty LastPostID returns error", func(t *testing.T) {
+		cursor := GetPostsSinceCursor{
+			TimeType:          TimeTypeCreateAt,
+			LastPostTimestamp: 1704067200000,
+			LastPostID:        "",
+		}
+
+		encoded, err := EncodePostsSinceCursor(cursor)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid post ID")
+		assert.Equal(t, "", encoded)
+	})
+
+	t.Run("large timestamp value", func(t *testing.T) {
+		cursor := GetPostsSinceCursor{
+			TimeType:          TimeTypeCreateAt,
+			LastPostTimestamp: 9999999999999,
+			LastPostID:        "abc123xyz789",
+		}
+
+		encoded, err := EncodePostsSinceCursor(cursor)
+		assert.NoError(t, err)
+		assert.Equal(t, "create_at:9999999999999:abc123xyz789", encoded)
+	})
+
+	t.Run("post ID with special characters", func(t *testing.T) {
+		cursor := GetPostsSinceCursor{
+			TimeType:          TimeTypeCreateAt,
+			LastPostTimestamp: 1704067200000,
+			LastPostID:        "abc-123_xyz.789",
+		}
+
+		encoded, err := EncodePostsSinceCursor(cursor)
+		assert.NoError(t, err)
+		assert.Equal(t, "create_at:1704067200000:abc-123_xyz.789", encoded)
+	})
+}
+
+func TestDecodePostsSinceCursor(t *testing.T) {
+	t.Run("valid cursor with create_at", func(t *testing.T) {
+		cursorStr := "create_at:1704067200000:abc123xyz789"
+
+		cursor, err := DecodePostsSinceCursor(cursorStr)
+		assert.NoError(t, err)
+		assert.Equal(t, TimeTypeCreateAt, cursor.TimeType)
+		assert.Equal(t, int64(1704067200000), cursor.LastPostTimestamp)
+		assert.Equal(t, "abc123xyz789", cursor.LastPostID)
+	})
+
+	t.Run("valid cursor with update_at", func(t *testing.T) {
+		cursorStr := "update_at:1704070800000:xyz789abc123"
+
+		cursor, err := DecodePostsSinceCursor(cursorStr)
+		assert.NoError(t, err)
+		assert.Equal(t, TimeTypeUpdateAt, cursor.TimeType)
+		assert.Equal(t, int64(1704070800000), cursor.LastPostTimestamp)
+		assert.Equal(t, "xyz789abc123", cursor.LastPostID)
+	})
+
+	t.Run("zero timestamp is valid", func(t *testing.T) {
+		cursorStr := "create_at:0:abc123xyz789"
+
+		cursor, err := DecodePostsSinceCursor(cursorStr)
+		assert.NoError(t, err)
+		assert.Equal(t, TimeTypeCreateAt, cursor.TimeType)
+		assert.Equal(t, int64(0), cursor.LastPostTimestamp)
+		assert.Equal(t, "abc123xyz789", cursor.LastPostID)
+	})
+
+	t.Run("large timestamp value", func(t *testing.T) {
+		cursorStr := "create_at:9999999999999:abc123xyz789"
+
+		cursor, err := DecodePostsSinceCursor(cursorStr)
+		assert.NoError(t, err)
+		assert.Equal(t, TimeTypeCreateAt, cursor.TimeType)
+		assert.Equal(t, int64(9999999999999), cursor.LastPostTimestamp)
+		assert.Equal(t, "abc123xyz789", cursor.LastPostID)
+	})
+
+	t.Run("post ID with special characters", func(t *testing.T) {
+		cursorStr := "create_at:1704067200000:abc-123_xyz.789"
+
+		cursor, err := DecodePostsSinceCursor(cursorStr)
+		assert.NoError(t, err)
+		assert.Equal(t, TimeTypeCreateAt, cursor.TimeType)
+		assert.Equal(t, int64(1704067200000), cursor.LastPostTimestamp)
+		assert.Equal(t, "abc-123_xyz.789", cursor.LastPostID)
+	})
+
+	t.Run("malformed cursor with too few parts", func(t *testing.T) {
+		cursorStr := "create_at:1704067200000"
+
+		cursor, err := DecodePostsSinceCursor(cursorStr)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid cursor format")
+		assert.Contains(t, err.Error(), "got 2 parts")
+		assert.Equal(t, GetPostsSinceCursor{}, cursor)
+	})
+
+	t.Run("malformed cursor with too many parts", func(t *testing.T) {
+		cursorStr := "create_at:1704067200000:abc123:extra"
+
+		cursor, err := DecodePostsSinceCursor(cursorStr)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid cursor format")
+		assert.Contains(t, err.Error(), "got 4 parts")
+		assert.Equal(t, GetPostsSinceCursor{}, cursor)
+	})
+
+	t.Run("invalid TimeType", func(t *testing.T) {
+		cursorStr := "invalid_type:1704067200000:abc123xyz789"
+
+		cursor, err := DecodePostsSinceCursor(cursorStr)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid TimeType")
+		assert.Equal(t, GetPostsSinceCursor{}, cursor)
+	})
+
+	t.Run("non-numeric timestamp", func(t *testing.T) {
+		cursorStr := "create_at:notanumber:abc123xyz789"
+
+		cursor, err := DecodePostsSinceCursor(cursorStr)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid timestamp")
+		assert.Contains(t, err.Error(), "failed to parse")
+		assert.Equal(t, GetPostsSinceCursor{}, cursor)
+	})
+
+	t.Run("negative timestamp", func(t *testing.T) {
+		cursorStr := "create_at:-1:abc123xyz789"
+
+		cursor, err := DecodePostsSinceCursor(cursorStr)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid timestamp")
+		assert.Contains(t, err.Error(), "must be >= 0")
+		assert.Equal(t, GetPostsSinceCursor{}, cursor)
+	})
+
+	t.Run("empty post ID", func(t *testing.T) {
+		cursorStr := "create_at:1704067200000:"
+
+		cursor, err := DecodePostsSinceCursor(cursorStr)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid post ID")
+		assert.Equal(t, GetPostsSinceCursor{}, cursor)
+	})
+
+	t.Run("empty string", func(t *testing.T) {
+		cursorStr := ""
+
+		cursor, err := DecodePostsSinceCursor(cursorStr)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid cursor format")
+		assert.Equal(t, GetPostsSinceCursor{}, cursor)
+	})
+
+	t.Run("round-trip encoding and decoding with create_at", func(t *testing.T) {
+		original := GetPostsSinceCursor{
+			TimeType:          TimeTypeCreateAt,
+			LastPostTimestamp: 1704067200000,
+			LastPostID:        "abc123xyz789",
+		}
+
+		encoded, err := EncodePostsSinceCursor(original)
+		assert.NoError(t, err)
+
+		decoded, err := DecodePostsSinceCursor(encoded)
+		assert.NoError(t, err)
+		assert.Equal(t, original, decoded)
+	})
+
+	t.Run("round-trip encoding and decoding with update_at", func(t *testing.T) {
+		original := GetPostsSinceCursor{
+			TimeType:          TimeTypeUpdateAt,
+			LastPostTimestamp: 1704070800000,
+			LastPostID:        "xyz789abc123",
+		}
+
+		encoded, err := EncodePostsSinceCursor(original)
+		assert.NoError(t, err)
+
+		decoded, err := DecodePostsSinceCursor(encoded)
+		assert.NoError(t, err)
+		assert.Equal(t, original, decoded)
+	})
+
+	t.Run("round-trip with empty TimeType defaults to create_at", func(t *testing.T) {
+		original := GetPostsSinceCursor{
+			TimeType:          "",
+			LastPostTimestamp: 1704067200000,
+			LastPostID:        "abc123xyz789",
+		}
+
+		encoded, err := EncodePostsSinceCursor(original)
+		assert.NoError(t, err)
+
+		decoded, err := DecodePostsSinceCursor(encoded)
+		assert.NoError(t, err)
+		// TimeType should be normalized to "create_at"
+		assert.Equal(t, TimeTypeCreateAt, decoded.TimeType)
+		assert.Equal(t, original.LastPostTimestamp, decoded.LastPostTimestamp)
+		assert.Equal(t, original.LastPostID, decoded.LastPostID)
+	})
+}
