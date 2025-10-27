@@ -79,10 +79,11 @@ const preview: Preview = {
 
             // Theme wrapper component to handle theme application with useEffect
             const ThemeWrapper: React.FC<{children: React.ReactNode}> = ({children}) => {
+                const themeObject = getTheme(themeKey);
+                
                 React.useEffect(() => {
-                    const themeObject = getTheme(themeKey);
                     applyThemeToStorybook(themeObject);
-                }, []);
+                }, [themeObject]);
 
                 return <>{children}</>;
             };
@@ -96,7 +97,15 @@ const preview: Preview = {
                             defaultLocale="en"
                         >
                             <Router history={history}>
-                                <div className="app__body" style={{padding: '20px', minHeight: '100vh'}}>
+                                <div 
+                                    className="app__body" 
+                                    style={{
+                                        padding: '20px', 
+                                        minHeight: '100vh',
+                                        backgroundColor: getTheme(themeKey).centerChannelBg,
+                                        color: getTheme(themeKey).centerChannelColor,
+                                    }}
+                                >
                                     <Story />
                                 </div>
                             </Router>
