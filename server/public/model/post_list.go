@@ -111,6 +111,8 @@ type PostList struct {
 	HasNext *bool `json:"has_next,omitempty"`
 	// If there are inaccessible posts, FirstInaccessiblePostTime is the time of the latest inaccessible post
 	FirstInaccessiblePostTime int64 `json:"first_inaccessible_post_time"`
+	// NextCursor is a cursor that can be used to fetch the next page of results
+	NextCursor string `json:"next_cursor,omitempty"`
 }
 
 func NewPostList() *PostList {
@@ -136,6 +138,7 @@ func (o *PostList) Clone() *PostList {
 		PrevPostId:                o.PrevPostId,
 		HasNext:                   o.HasNext,
 		FirstInaccessiblePostTime: o.FirstInaccessiblePostTime,
+		NextCursor:                o.NextCursor,
 	}
 }
 
