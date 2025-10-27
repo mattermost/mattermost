@@ -9,7 +9,7 @@ import CreatableReactSelect from 'react-select/creatable';
 import type {ContentFlaggingAdditionalSettings} from '@mattermost/types/config';
 
 import {Label} from 'components/admin_console/boolean_setting';
-import type {SystemConsoleCustomSettingsComponentProps} from 'components/admin_console/schema_admin_settings';
+import type {SystemConsoleCustomSettingChangeHandler} from 'components/admin_console/schema_admin_settings';
 import {CreatableReactSelectInput} from 'components/user_settings/notifications/user_settings_notifications';
 
 import {ReasonOption} from './reason_option';
@@ -23,7 +23,13 @@ import {
 import '../content_flagging_section_base.scss';
 import './additional_settings.scss';
 
-export default function ContentFlaggingAdditionalSettingsSection({id, onChange, value}: SystemConsoleCustomSettingsComponentProps) {
+type Props = {
+    id: string;
+    onChange: SystemConsoleCustomSettingChangeHandler;
+    value: ContentFlaggingAdditionalSettings;
+}
+
+export default function ContentFlaggingAdditionalSettingsSection({id, onChange, value}: Props) {
     const [additionalSettings, setAdditionalSettings] = React.useState<ContentFlaggingAdditionalSettings>(value as ContentFlaggingAdditionalSettings);
 
     const handleReasonsChange = useCallback((newValues: OnChangeValue<{ value: string }, true>) => {

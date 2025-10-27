@@ -64,6 +64,7 @@ describe('components/AboutBuildModal', () => {
         license = {
             IsLicensed: 'true',
             Company: 'Mattermost Inc',
+            SkuShortName: 'entry',
         };
         socketStatus = {
             connected: true,
@@ -76,7 +77,7 @@ describe('components/AboutBuildModal', () => {
         expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Server Version: 3.6.0');
         expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Database Schema Version: 77');
         expect(screen.getByTestId('aboutModalVersionInfo')).toHaveTextContent('Build Number: 123456');
-        expect(screen.getByText('Mattermost Enterprise Edition')).toBeInTheDocument();
+        expect(screen.getByText('Mattermost Entry')).toBeInTheDocument();
         expect(screen.getByText('Modern communication from behind your firewall.')).toBeInTheDocument();
         expect(screen.getByRole('link', {name: 'mattermost.com'})).toHaveAttribute('href', 'https://mattermost.com/?utm_source=mattermost&utm_medium=in-product&utm_content=about_build_modal&uid=&sid=&edition=enterprise&server_version=3.6.0');
         expect(screen.getByText('EE Build Hash: 0123456789abcdef', {exact: false})).toBeInTheDocument();

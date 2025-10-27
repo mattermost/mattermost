@@ -33,6 +33,10 @@ interface TableEditorProps {
     actions: {
         getVisualAST: (expr: string) => Promise<ActionResult>;
     };
+
+    // Props for user self-exclusion detection
+    isSystemAdmin?: boolean;
+    validateExpressionAgainstRequester?: (expression: string) => Promise<ActionResult<{requester_matches: boolean}>>;
 }
 
 // Finds the first available (non-disabled) attribute from a list of user attributes.
@@ -109,6 +113,8 @@ function TableEditor({
     onParseError,
     channelId,
     actions,
+    isSystemAdmin = false,
+    validateExpressionAgainstRequester,
 }: TableEditorProps): JSX.Element {
     const {formatMessage} = useIntl();
 
@@ -116,6 +122,9 @@ function TableEditor({
     const [showTestResults, setShowTestResults] = useState(false);
     const [showHelpModal, setShowHelpModal] = useState(false);
     const [autoOpenAttributeMenuForRow, setAutoOpenAttributeMenuForRow] = useState<number | null>(null);
+
+    // State for user self-exclusion detection (only applies to non-system-admins)
+    const [userWouldBeExcluded, setUserWouldBeExcluded] = useState(false);
 
     // Effect to parse the incoming CEL expression string (value prop)
     // and update the internal rows state. Handles errors during parsing.
@@ -150,6 +159,27 @@ function TableEditor({
             }
         });
     }, [value]);
+
+    // Effect to check if user would be excluded by their own rules
+    useEffect(() => {
+        const checkUserSelfExclusion = async () => {
+            // Only check for non-system admins when there's an expression and validation function
+            if (isSystemAdmin || !value.trim() || !validateExpressionAgainstRequester) {
+                setUserWouldBeExcluded(false);
+                return;
+            }
+
+            try {
+                const result = await validateExpressionAgainstRequester(value);
+                setUserWouldBeExcluded(!result.data?.requester_matches);
+            } catch (error) {
+                // If validation fails, assume they would not be excluded (to allow testing)
+                setUserWouldBeExcluded(false);
+            }
+        };
+
+        checkUserSelfExclusion();
+    }, [value, isSystemAdmin, validateExpressionAgainstRequester]);
 
     // Converts the internal rows state back into a CEL expression string
     // and calls the onChange and onValidate props.
@@ -415,7 +445,15 @@ function TableEditor({
                 />
                 <TestButton
                     onClick={() => setShowTestResults(true)}
-                    disabled={disabled || !value}
+                    disabled={disabled || !value || userWouldBeExcluded}
+                    disabledTooltip={
+                        userWouldBeExcluded ?
+                            formatMessage({
+                                id: 'admin.access_control.table_editor.user_excluded_tooltip',
+                                defaultMessage: 'You cannot test access rules that would exclude you from the channel',
+                            }) :
+                            undefined
+                    }
                 />
             </div>
 

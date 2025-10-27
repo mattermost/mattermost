@@ -153,14 +153,14 @@ TEMPLATES_DIR=templates
 # Plugins Packages
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
 PLUGIN_PACKAGES += mattermost-plugin-calls-v1.10.0
-PLUGIN_PACKAGES += mattermost-plugin-github-v2.4.0
+PLUGIN_PACKAGES += mattermost-plugin-github-v2.5.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.11.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v4.4.0
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.4.2
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.5.0
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.8.0
-PLUGIN_PACKAGES += mattermost-plugin-agents-v1.3.1
-PLUGIN_PACKAGES += mattermost-plugin-boards-v9.1.6
+PLUGIN_PACKAGES += mattermost-plugin-agents-v1.4.0
+PLUGIN_PACKAGES += mattermost-plugin-boards-v9.1.7
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.3.4
 PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.2.0
@@ -292,6 +292,8 @@ else
 
 	docker compose down -v
 	docker compose rm -v
+
+	docker volume rm mattermost-server_postgres-14-data || true
 endif
 
 plugin-checker:
@@ -320,7 +322,7 @@ golang-versions: ## Install Golang versions used for compatibility testing (e.g.
 	export GO_COMPATIBILITY_TEST_VERSIONS="${GO_COMPATIBILITY_TEST_VERSIONS}"
 
 golangci-lint: ## Run golangci-lint on codebase
-	$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.1.6
+	$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.5.0
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	$(GOBIN)/golangci-lint run ./... ./public/... $(BUILD_ENTERPRISE_DIR)/...
 else
