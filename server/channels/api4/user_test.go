@@ -6,6 +6,8 @@ package api4
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"image/png"
@@ -8487,6 +8489,85 @@ func TestLoginWithDesktopToken(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Len(t, sessions, 0)
+	})
+}
+
+func TestLoginSSOCodeExchange(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("wrong token type cannot be used for code exchange", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.MobileSSOCodeExchange = true
+		})
+
+		token := model.NewToken(model.TokenTypeOAuth, "extra-data")
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+		defer func() {
+			_ = th.App.Srv().Store().Token().Delete(token.Token)
+		}()
+
+		props := map[string]string{
+			"login_code":    token.Token,
+			"code_verifier": "test_verifier",
+			"state":         "test_state",
+		}
+
+		resp, err := th.Client.DoAPIPost(context.Background(), "/users/login/sso/code-exchange", model.MapToJSON(props))
+		require.Error(t, err)
+		require.Equal(t, http.StatusNotFound, resp.StatusCode)
+	})
+
+	t.Run("successful code exchange with S256 challenge", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.MobileSSOCodeExchange = true
+		})
+
+		samlUser := th.CreateUserWithAuth(model.UserAuthServiceSaml)
+
+		codeVerifier := "test_code_verifier_123456789"
+		state := "test_state_value"
+
+		sum := sha256.Sum256([]byte(codeVerifier))
+		codeChallenge := base64.RawURLEncoding.EncodeToString(sum[:])
+
+		extra := map[string]string{
+			"user_id":               samlUser.Id,
+			"code_challenge":        codeChallenge,
+			"code_challenge_method": "S256",
+			"state":                 state,
+		}
+
+		token := model.NewToken(model.TokenTypeSSOCodeExchange, model.MapToJSON(extra))
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		props := map[string]string{
+			"login_code":    token.Token,
+			"code_verifier": codeVerifier,
+			"state":         state,
+		}
+
+		resp, err := th.Client.DoAPIPost(context.Background(), "/users/login/sso/code-exchange", model.MapToJSON(props))
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var result map[string]string
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&result))
+		assert.NotEmpty(t, result["token"])
+		assert.NotEmpty(t, result["csrf"])
+
+		_, err = th.App.Srv().Store().Token().GetByToken(token.Token)
+		require.Error(t, err)
+
+		authenticatedClient := model.NewAPIv4Client(th.Client.URL)
+		authenticatedClient.SetToken(result["token"])
+
+		user, _, err := authenticatedClient.GetMe(context.Background(), "")
+		require.NoError(t, err)
+		assert.Equal(t, samlUser.Id, user.Id)
+		assert.Equal(t, samlUser.Email, user.Email)
+		assert.Equal(t, samlUser.Username, user.Username)
 	})
 }
 
