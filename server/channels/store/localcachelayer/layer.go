@@ -71,15 +71,10 @@ const (
 	ChannelCacheSec = 15 * 60 // 15 mins
 
 	// Auto-translation caches
-	ChannelAutoTranslationCacheSize = 20000
-	ChannelAutoTranslationCacheSec  = 30 * 60
-
 	UserAutoTranslationCacheSize = 50000 // User+channel combos
 	UserAutoTranslationCacheSec  = 15 * 60
 
-	ActiveDestinationLanguagesCacheSize = 10000
-	ActiveDestinationLanguagesCacheSec  = 5 * 60 // Shorter TTL - changes with user activity
-	ContentFlaggingCacheSize            = 100
+	ContentFlaggingCacheSize = 100
 )
 
 var clearCacheMessageData = []byte("")
@@ -136,12 +131,10 @@ type LocalCacheStore struct {
 	termsOfService      LocalCacheTermsOfServiceStore
 	termsOfServiceCache cache.Cache
 
-	autotranslation                 LocalCacheAutoTranslationStore
-	channelAutoTranslationCache     cache.Cache
-	userAutoTranslationCache        cache.Cache
-	activeDestinationLanguagesCache cache.Cache
-	contentFlagging                 LocalCacheContentFlaggingStore
-	contentFlaggingCache            cache.Cache
+	autotranslation          LocalCacheAutoTranslationStore
+	userAutoTranslationCache cache.Cache
+	contentFlagging          LocalCacheContentFlaggingStore
+	contentFlaggingCache     cache.Cache
 }
 
 func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface, cacheProvider cache.Provider, logger mlog.LoggerIFace) (localCacheStore LocalCacheStore, err error) {
@@ -385,27 +378,11 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	localCacheStore.team = LocalCacheTeamStore{TeamStore: baseStore.Team(), rootStore: &localCacheStore}
 
 	// Auto-translation
-	if localCacheStore.channelAutoTranslationCache, err = cacheProvider.NewCache(&cache.CacheOptions{
-		Size:                   ChannelAutoTranslationCacheSize,
-		Name:                   "ChannelAutoTranslation",
-		DefaultExpiry:          ChannelAutoTranslationCacheSec * time.Second,
-		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForChannelAutoTranslation,
-	}); err != nil {
-		return
-	}
 	if localCacheStore.userAutoTranslationCache, err = cacheProvider.NewCache(&cache.CacheOptions{
 		Size:                   UserAutoTranslationCacheSize,
 		Name:                   "UserAutoTranslation",
 		DefaultExpiry:          UserAutoTranslationCacheSec * time.Second,
 		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForUserAutoTranslation,
-	}); err != nil {
-		return
-	}
-	if localCacheStore.activeDestinationLanguagesCache, err = cacheProvider.NewCache(&cache.CacheOptions{
-		Size:                   ActiveDestinationLanguagesCacheSize,
-		Name:                   "ActiveDestinationLanguages",
-		DefaultExpiry:          ActiveDestinationLanguagesCacheSec * time.Second,
-		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForActiveDestLangs,
 	}); err != nil {
 		return
 	}
@@ -443,9 +420,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForProfileInChannel, localCacheStore.user.handleClusterInvalidateProfilesInChannel)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForAllProfiles, localCacheStore.user.handleClusterInvalidateAllProfiles)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForTeams, localCacheStore.team.handleClusterInvalidateTeam)
-		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForChannelAutoTranslation, localCacheStore.autotranslation.handleClusterInvalidateChannelAutoTranslation)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForUserAutoTranslation, localCacheStore.autotranslation.handleClusterInvalidateUserAutoTranslation)
-		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForActiveDestLangs, localCacheStore.autotranslation.handleClusterInvalidateActiveDestLangs)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForContentFlagging, localCacheStore.contentFlagging.handleClusterInvalidateContentFlagging)
 	}
 	return
@@ -636,9 +611,7 @@ func (s *LocalCacheStore) Invalidate() {
 	s.doClearCacheCluster(s.profilesInChannelCache)
 	s.doClearCacheCluster(s.teamAllTeamIdsForUserCache)
 	s.doClearCacheCluster(s.rolePermissionsCache)
-	s.doClearCacheCluster(s.channelAutoTranslationCache)
 	s.doClearCacheCluster(s.userAutoTranslationCache)
-	s.doClearCacheCluster(s.activeDestinationLanguagesCache)
 }
 
 // allocateCacheTargets is used to fill target value types

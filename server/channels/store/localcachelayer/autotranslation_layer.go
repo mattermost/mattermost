@@ -17,10 +17,6 @@ type LocalCacheAutoTranslationStore struct {
 }
 
 // Cache key generators
-func channelAutoTranslationKey(channelID string) string {
-	return fmt.Sprintf("channel:%s", channelID)
-}
-
 func userAutoTranslationKey(userID, channelID string) string {
 	return fmt.Sprintf("user:%s:%s", userID, channelID)
 }
@@ -29,19 +25,7 @@ func userLanguageKey(userID, channelID string) string {
 	return fmt.Sprintf("lang:%s:%s", userID, channelID)
 }
 
-func activeDestinationLanguagesKey(channelID string) string {
-	return fmt.Sprintf("active:%s", channelID)
-}
-
-// Cluster invalidation handlers
-func (s *LocalCacheAutoTranslationStore) handleClusterInvalidateChannelAutoTranslation(msg *model.ClusterMessage) {
-	if bytes.Equal(msg.Data, clearCacheMessageData) {
-		s.rootStore.channelAutoTranslationCache.Purge()
-	} else {
-		s.rootStore.channelAutoTranslationCache.Remove(string(msg.Data))
-	}
-}
-
+// Cluster invalidation handler
 func (s *LocalCacheAutoTranslationStore) handleClusterInvalidateUserAutoTranslation(msg *model.ClusterMessage) {
 	if bytes.Equal(msg.Data, clearCacheMessageData) {
 		s.rootStore.userAutoTranslationCache.Purge()
@@ -50,64 +34,44 @@ func (s *LocalCacheAutoTranslationStore) handleClusterInvalidateUserAutoTranslat
 	}
 }
 
-func (s *LocalCacheAutoTranslationStore) handleClusterInvalidateActiveDestLangs(msg *model.ClusterMessage) {
-	if bytes.Equal(msg.Data, clearCacheMessageData) {
-		s.rootStore.activeDestinationLanguagesCache.Purge()
-	} else {
-		s.rootStore.activeDestinationLanguagesCache.Remove(string(msg.Data))
-	}
-}
-
 // ClearCaches purges all auto-translation caches
 func (s LocalCacheAutoTranslationStore) ClearCaches() {
-	s.rootStore.doClearCacheCluster(s.rootStore.channelAutoTranslationCache)
 	s.rootStore.doClearCacheCluster(s.rootStore.userAutoTranslationCache)
-	s.rootStore.doClearCacheCluster(s.rootStore.activeDestinationLanguagesCache)
 
 	if s.rootStore.metrics != nil {
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelAutoTranslationCache.Name())
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.userAutoTranslationCache.Name())
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.activeDestinationLanguagesCache.Name())
 	}
 }
 
-// IsChannelEnabled checks if auto-translation is enabled for a channel (with caching)
+// IsChannelEnabled checks if auto-translation is enabled for a channel
+// Uses the existing Channel cache instead of maintaining a separate cache
 func (s LocalCacheAutoTranslationStore) IsChannelEnabled(channelID string) (bool, *model.AppError) {
-	key := channelAutoTranslationKey(channelID)
-
-	var enabled bool
-	if err := s.rootStore.doStandardReadCache(s.rootStore.channelAutoTranslationCache, key, &enabled); err == nil {
-		return enabled, nil
+	// Get channel from cache (with DB fallback)
+	channel, err := s.rootStore.Channel().Get(channelID, true)
+	if err != nil {
+		return false, model.NewAppError("LocalCacheAutoTranslationStore.IsChannelEnabled",
+			"store.sql_autotranslation.is_channel_enabled.app_error", nil, err.Error(), 500)
 	}
 
-	enabled, appErr := s.AutoTranslationStore.IsChannelEnabled(channelID)
-	if appErr != nil {
-		return false, appErr
+	// Check autotranslation property in channel props
+	if channel.Props != nil {
+		if enabled, ok := channel.Props["autotranslation"].(bool); ok {
+			return enabled, nil
+		}
 	}
 
-	s.rootStore.doStandardAddToCache(s.rootStore.channelAutoTranslationCache, key, enabled)
-	return enabled, nil
+	return false, nil
 }
 
-// SetChannelEnabled sets auto-translation status for a channel and invalidates cache
+// SetChannelEnabled sets auto-translation status for a channel and invalidates Channel cache
 func (s LocalCacheAutoTranslationStore) SetChannelEnabled(channelID string, enabled bool) *model.AppError {
 	appErr := s.AutoTranslationStore.SetChannelEnabled(channelID, enabled)
 	if appErr != nil {
 		return appErr
 	}
 
-	// Invalidate channel cache
-	key := channelAutoTranslationKey(channelID)
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelAutoTranslationCache, key, nil)
-
-	// Invalidate active destination languages cache for this channel
-	activeLangsKey := activeDestinationLanguagesKey(channelID)
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.activeDestinationLanguagesCache, activeLangsKey, nil)
-
-	if s.rootStore.metrics != nil {
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelAutoTranslationCache.Name())
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.activeDestinationLanguagesCache.Name())
-	}
+	// Invalidate the Channel cache since we modified channel.props
+	s.rootStore.Channel().InvalidateChannel(channelID)
 
 	return nil
 }
@@ -141,17 +105,12 @@ func (s LocalCacheAutoTranslationStore) SetUserEnabled(userID, channelID string,
 	userKey := userAutoTranslationKey(userID, channelID)
 	s.rootStore.doInvalidateCacheCluster(s.rootStore.userAutoTranslationCache, userKey, nil)
 
-	// Invalidate user language cache
+	// Invalidate user language cache (for safety, in case locale changed while disabled)
 	langKey := userLanguageKey(userID, channelID)
 	s.rootStore.doInvalidateCacheCluster(s.rootStore.userAutoTranslationCache, langKey, nil)
 
-	// Invalidate active destination languages cache for this channel
-	activeLangsKey := activeDestinationLanguagesKey(channelID)
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.activeDestinationLanguagesCache, activeLangsKey, nil)
-
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.userAutoTranslationCache.Name())
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.activeDestinationLanguagesCache.Name())
 	}
 
 	return nil
@@ -179,31 +138,6 @@ func (s LocalCacheAutoTranslationStore) GetUserLanguage(userID, channelID string
 	return language, nil
 }
 
-// GetActiveDestinationLanguages gets distinct locales of users with auto-translation enabled (with caching)
-// Only caches when filterUserIDs is nil (the most common case)
-func (s LocalCacheAutoTranslationStore) GetActiveDestinationLanguages(channelID, excludeUserID string, filterUserIDs *[]string) ([]string, *model.AppError) {
-	// Only cache when filterUserIDs is nil (most common case)
-	if filterUserIDs == nil && excludeUserID == "" {
-		key := activeDestinationLanguagesKey(channelID)
-
-		var languages []string
-		if err := s.rootStore.doStandardReadCache(s.rootStore.activeDestinationLanguagesCache, key, &languages); err == nil {
-			return languages, nil
-		}
-
-		languages, appErr := s.AutoTranslationStore.GetActiveDestinationLanguages(channelID, excludeUserID, filterUserIDs)
-		if appErr != nil {
-			return nil, appErr
-		}
-
-		s.rootStore.doStandardAddToCache(s.rootStore.activeDestinationLanguagesCache, key, languages)
-		return languages, nil
-	}
-
-	// For complex queries with filters, bypass cache
-	return s.AutoTranslationStore.GetActiveDestinationLanguages(channelID, excludeUserID, filterUserIDs)
-}
-
 // InvalidateUserAutoTranslation invalidates all user auto-translation caches for a specific user+channel
 // This should be called when a user is removed from a channel
 func (s LocalCacheAutoTranslationStore) InvalidateUserAutoTranslation(userID, channelID string) {
@@ -215,13 +149,8 @@ func (s LocalCacheAutoTranslationStore) InvalidateUserAutoTranslation(userID, ch
 	langKey := userLanguageKey(userID, channelID)
 	s.rootStore.doInvalidateCacheCluster(s.rootStore.userAutoTranslationCache, langKey, nil)
 
-	// Invalidate active destination languages cache for this channel
-	activeLangsKey := activeDestinationLanguagesKey(channelID)
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.activeDestinationLanguagesCache, activeLangsKey, nil)
-
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.userAutoTranslationCache.Name())
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.activeDestinationLanguagesCache.Name())
 	}
 }
 

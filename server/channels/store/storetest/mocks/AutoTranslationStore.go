@@ -19,9 +19,9 @@ func (_m *AutoTranslationStore) ClearCaches() {
 	_m.Called()
 }
 
-// Get provides a mock function with given fields: objectType, objectID, dstLang
-func (_m *AutoTranslationStore) Get(objectType string, objectID string, dstLang string) (*model.Translation, *model.AppError) {
-	ret := _m.Called(objectType, objectID, dstLang)
+// Get provides a mock function with given fields: objectID, dstLang
+func (_m *AutoTranslationStore) Get(objectID string, dstLang string) (*model.Translation, *model.AppError) {
+	ret := _m.Called(objectID, dstLang)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Get")
@@ -29,19 +29,19 @@ func (_m *AutoTranslationStore) Get(objectType string, objectID string, dstLang 
 
 	var r0 *model.Translation
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, string, string) (*model.Translation, *model.AppError)); ok {
-		return rf(objectType, objectID, dstLang)
+	if rf, ok := ret.Get(0).(func(string, string) (*model.Translation, *model.AppError)); ok {
+		return rf(objectID, dstLang)
 	}
-	if rf, ok := ret.Get(0).(func(string, string, string) *model.Translation); ok {
-		r0 = rf(objectType, objectID, dstLang)
+	if rf, ok := ret.Get(0).(func(string, string) *model.Translation); ok {
+		r0 = rf(objectID, dstLang)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Translation)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string, string) *model.AppError); ok {
-		r1 = rf(objectType, objectID, dstLang)
+	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+		r1 = rf(objectID, dstLang)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -52,7 +52,7 @@ func (_m *AutoTranslationStore) Get(objectType string, objectID string, dstLang 
 }
 
 // GetActiveDestinationLanguages provides a mock function with given fields: channelID, excludeUserID, filterUserIDs
-func (_m *AutoTranslationStore) GetActiveDestinationLanguages(channelID string, excludeUserID string, filterUserIDs *[]string) ([]string, *model.AppError) {
+func (_m *AutoTranslationStore) GetActiveDestinationLanguages(channelID string, excludeUserID string, filterUserIDs []string) ([]string, *model.AppError) {
 	ret := _m.Called(channelID, excludeUserID, filterUserIDs)
 
 	if len(ret) == 0 {
@@ -61,10 +61,10 @@ func (_m *AutoTranslationStore) GetActiveDestinationLanguages(channelID string, 
 
 	var r0 []string
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, string, *[]string) ([]string, *model.AppError)); ok {
+	if rf, ok := ret.Get(0).(func(string, string, []string) ([]string, *model.AppError)); ok {
 		return rf(channelID, excludeUserID, filterUserIDs)
 	}
-	if rf, ok := ret.Get(0).(func(string, string, *[]string) []string); ok {
+	if rf, ok := ret.Get(0).(func(string, string, []string) []string); ok {
 		r0 = rf(channelID, excludeUserID, filterUserIDs)
 	} else {
 		if ret.Get(0) != nil {
@@ -72,7 +72,7 @@ func (_m *AutoTranslationStore) GetActiveDestinationLanguages(channelID string, 
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string, *[]string) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(string, string, []string) *model.AppError); ok {
 		r1 = rf(channelID, excludeUserID, filterUserIDs)
 	} else {
 		if ret.Get(1) != nil {

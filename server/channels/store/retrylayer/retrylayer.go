@@ -821,13 +821,13 @@ func (s *RetryLayerAutoTranslationStore) ClearCaches() {
 
 }
 
-func (s *RetryLayerAutoTranslationStore) Get(objectType string, objectID string, dstLang string) (*model.Translation, *model.AppError) {
+func (s *RetryLayerAutoTranslationStore) Get(objectID string, dstLang string) (*model.Translation, *model.AppError) {
 
-	return s.AutoTranslationStore.Get(objectType, objectID, dstLang)
+	return s.AutoTranslationStore.Get(objectID, dstLang)
 
 }
 
-func (s *RetryLayerAutoTranslationStore) GetActiveDestinationLanguages(channelID string, excludeUserID string, filterUserIDs *[]string) ([]string, *model.AppError) {
+func (s *RetryLayerAutoTranslationStore) GetActiveDestinationLanguages(channelID string, excludeUserID string, filterUserIDs []string) ([]string, *model.AppError) {
 
 	return s.AutoTranslationStore.GetActiveDestinationLanguages(channelID, excludeUserID, filterUserIDs)
 

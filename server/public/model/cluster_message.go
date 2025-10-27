@@ -42,9 +42,7 @@ const (
 	ClusterEventRemovePlugin                                ClusterEvent = "remove_plugin"
 	ClusterEventPluginEvent                                 ClusterEvent = "plugin_event"
 	ClusterEventInvalidateCacheForTermsOfService            ClusterEvent = "inv_terms_of_service"
-	ClusterEventInvalidateCacheForChannelAutoTranslation    ClusterEvent = "inv_channel_autotranslation"
 	ClusterEventInvalidateCacheForUserAutoTranslation       ClusterEvent = "inv_user_autotranslation"
-	ClusterEventInvalidateCacheForActiveDestLangs           ClusterEvent = "inv_active_dest_langs"
 	ClusterEventBusyStateChanged                            ClusterEvent = "busy_state_change"
 	// Note: if you are adding a new event, please also add it in the slice of
 	// m.ClusterEventMap in metrics/metrics.go file.

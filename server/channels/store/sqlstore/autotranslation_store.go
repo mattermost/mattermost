@@ -209,7 +209,7 @@ func (s *SqlAutoTranslationStore) GetUserLanguage(userID, channelID string) (str
 	return locale, nil
 }
 
-func (s *SqlAutoTranslationStore) GetActiveDestinationLanguages(channelID, excludeUserID string, filterUserIDs *[]string) ([]string, *model.AppError) {
+func (s *SqlAutoTranslationStore) GetActiveDestinationLanguages(channelID, excludeUserID string, filterUserIDs []string) ([]string, *model.AppError) {
 	query := s.getQueryBuilder().
 		Select("DISTINCT u.locale").
 		From("channelmembers cm").
@@ -222,8 +222,8 @@ func (s *SqlAutoTranslationStore) GetActiveDestinationLanguages(channelID, exclu
 	// Filter to specific user IDs if provided (e.g., users with active WebSocket connections)
 	// When filterUserIDs is non-nil and non-empty, squirrel converts it to an IN clause
 	// Example: WHERE cm.userid IN ('id1', 'id2', 'id3')
-	if filterUserIDs != nil && len(*filterUserIDs) > 0 {
-		query = query.Where(sq.Eq{"cm.userid": *filterUserIDs})
+	if len(filterUserIDs) > 0 {
+		query = query.Where(sq.Eq{"cm.userid": filterUserIDs})
 	}
 
 	// Exclude specific user if provided (e.g., the message author)
@@ -248,7 +248,7 @@ func (s *SqlAutoTranslationStore) GetActiveDestinationLanguages(channelID, exclu
 	return languages, nil
 }
 
-func (s *SqlAutoTranslationStore) Get(objectType, objectID, dstLang string) (*model.Translation, *model.AppError) {
+func (s *SqlAutoTranslationStore) Get(objectID, dstLang string) (*model.Translation, *model.AppError) {
 	query := s.getQueryBuilder().
 		Select("objectType", "objectId", "dstLang", "providerId", "normHash", "text", "confidence", "meta", "updateAt").
 		From("translations").

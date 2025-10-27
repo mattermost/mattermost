@@ -758,10 +758,10 @@ func (s *TimerLayerAutoTranslationStore) ClearCaches() {
 	}
 }
 
-func (s *TimerLayerAutoTranslationStore) Get(objectType string, objectID string, dstLang string) (*model.Translation, *model.AppError) {
+func (s *TimerLayerAutoTranslationStore) Get(objectID string, dstLang string) (*model.Translation, *model.AppError) {
 	start := time.Now()
 
-	result, resultVar1 := s.AutoTranslationStore.Get(objectType, objectID, dstLang)
+	result, resultVar1 := s.AutoTranslationStore.Get(objectID, dstLang)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -774,7 +774,7 @@ func (s *TimerLayerAutoTranslationStore) Get(objectType string, objectID string,
 	return result, resultVar1
 }
 
-func (s *TimerLayerAutoTranslationStore) GetActiveDestinationLanguages(channelID string, excludeUserID string, filterUserIDs *[]string) ([]string, *model.AppError) {
+func (s *TimerLayerAutoTranslationStore) GetActiveDestinationLanguages(channelID string, excludeUserID string, filterUserIDs []string) ([]string, *model.AppError) {
 	start := time.Now()
 
 	result, resultVar1 := s.AutoTranslationStore.GetActiveDestinationLanguages(channelID, excludeUserID, filterUserIDs)

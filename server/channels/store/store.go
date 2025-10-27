@@ -1158,8 +1158,8 @@ type AutoTranslationStore interface {
 	// GetActiveDestinationLanguages returns distinct locales of users who have auto-translation enabled.
 	// Optional filterUserIDs parameter restricts results to specific user IDs (typically those with active WebSocket connections).
 	// Pass nil for filterUserIDs to include all users, or a pointer to a slice to filter to specific users.
-	GetActiveDestinationLanguages(channelID, excludeUserID string, filterUserIDs *[]string) ([]string, *model.AppError)
-	Get(objectType, objectID, dstLang string) (*model.Translation, *model.AppError)
+	GetActiveDestinationLanguages(channelID, excludeUserID string, filterUserIDs []string) ([]string, *model.AppError)
+	Get(objectID, dstLang string) (*model.Translation, *model.AppError)
 	Save(translation *model.Translation) *model.AppError
 	Search(dstLang, searchTerm string, limit int) ([]*model.Translation, *model.AppError)
 
