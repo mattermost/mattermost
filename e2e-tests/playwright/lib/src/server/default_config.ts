@@ -755,7 +755,6 @@ const defaultServerConfig: AdminConfig = {
         ContentFlagging: false,
         InteractiveDialogAppsForm: true,
         EnableMattermostEntry: true,
-        ChannelAdminManageABACRules: false,
         MobileSSOCodeExchange: true,
         AutoTranslation: false,
     },
@@ -823,14 +822,14 @@ const defaultServerConfig: AdminConfig = {
     AutoTranslationSettings: {
         Enable: false,
         Provider: '',
-        LibreTranslate: {
-            URL: '',
-            APIKey: '',
-        },
-        TimeoutMs: {
+        TimeoutsMs: {
             NewPost: 800,
             Fetch: 2000,
             Notification: 300,
+        },
+        LibreTranslate: {
+            URL: '',
+            APIKey: '',
         },
     },
 };

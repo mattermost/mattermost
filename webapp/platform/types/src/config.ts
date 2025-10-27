@@ -746,7 +746,7 @@ export type AutoTranslationSettings = {
         URL: string;
         APIKey: string;
     };
-    TimeoutMs: {
+    TimeoutsMs: {
         NewPost: number;
         Fetch: number;
         Notification: number;
