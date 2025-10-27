@@ -2296,9 +2296,46 @@ export default class Client4 {
         );
     };
 
-    getPostsSince = (channelId: string, since: number, fetchThreads = true, collapsedThreads = false, collapsedThreadsExtended = false) => {
+    getPostsSince = (channelId: string, since: number, fetchThreads = true, collapsedThreads = false, collapsedThreadsExtended = false, until = 0, timeType = '') => {
+        const params: Record<string, any> = {
+            since,
+            skipFetchThreads: !fetchThreads,
+            collapsedThreads,
+            collapsedThreadsExtended,
+        };
+
+        if (until > 0) {
+            params.until = until;
+        }
+
+        if (timeType) {
+            params.time_type = timeType;
+        }
+
         return this.doFetch<PostList>(
-            `${this.getChannelRoute(channelId)}/posts${buildQueryString({since, skipFetchThreads: !fetchThreads, collapsedThreads, collapsedThreadsExtended})}`,
+            `${this.getChannelRoute(channelId)}/posts${buildQueryString(params)}`,
+            {method: 'get'},
+        );
+    };
+
+    getPostsWithCursor = (channelId: string, cursor: string, fetchThreads = true, collapsedThreads = false, collapsedThreadsExtended = false, until = 0, perPage = 0) => {
+        const params: Record<string, any> = {
+            cursor,
+            skipFetchThreads: !fetchThreads,
+            collapsedThreads,
+            collapsedThreadsExtended,
+        };
+
+        if (until > 0) {
+            params.until = until;
+        }
+
+        if (perPage > 0) {
+            params.per_page = perPage;
+        }
+
+        return this.doFetch<PostList>(
+            `${this.getChannelRoute(channelId)}/posts${buildQueryString(params)}`,
             {method: 'get'},
         );
     };

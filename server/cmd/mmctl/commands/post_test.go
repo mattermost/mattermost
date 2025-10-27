@@ -241,7 +241,7 @@ func (s *MmctlUnitTestSuite) TestPostListCmdF() {
 
 		s.client.
 			EXPECT().
-			GetPostsSince(context.TODO(), channelID, sinceTimeMillis, false).
+			GetPostsSince(context.TODO(), channelID, sinceTimeMillis, false, int64(0), "").
 			Return(mockPostList, &model.Response{}, nil).
 			Times(1)
 
@@ -255,6 +255,140 @@ func (s *MmctlUnitTestSuite) TestPostListCmdF() {
 		s.Require().Nil(err)
 		s.Require().Equal(printer.GetLines()[0], mockPost)
 		s.Len(printer.GetLines(), 1)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("list posts with cursor", func() {
+		printer.Clean()
+
+		cursorArg := "create_at:1704070800000:x7k9m2n4p6q8"
+		mockChannel := model.Channel{Name: channelName, Id: channelID}
+		mockPost := &model.Post{Message: "some text", Id: "some-id", UserId: userID}
+		mockPostList := model.NewPostList()
+		mockPostList.AddPost(mockPost)
+		mockPostList.AddOrder(mockPost.Id)
+		mockPostList.NextCursor = "create_at:1704074400000:y8l0n3o5q7r9"
+		mockUser := model.User{Id: userID, Username: "some-user"}
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Int("number", 1, "")
+		cmd.Flags().String("cursor", cursorArg, "")
+
+		s.client.
+			EXPECT().
+			GetChannel(context.TODO(), channelName, "").
+			Return(&mockChannel, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetPostsWithCursor(context.TODO(), channelID, cursorArg, int64(0), 1, false).
+			Return(mockPostList, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUser(context.TODO(), userID, "").
+			Return(&mockUser, &model.Response{}, nil).
+			Times(1)
+
+		err := postListCmdF(s.client, cmd, []string{channelName})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 2) // post + cursor
+		s.Require().Equal(printer.GetLines()[0], "Next cursor: create_at:1704074400000:y8l0n3o5q7r9")
+		s.Require().Equal(printer.GetLines()[1], mockPost)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("list posts with since and until", func() {
+		printer.Clean()
+
+		sinceArg := "2024-01-01T00:00:00-05:00"
+		untilArg := "2024-01-31T23:59:59-05:00"
+		sinceTime, _ := time.Parse(ISO8601Layout, sinceArg)
+		untilTime, _ := time.Parse(ISO8601Layout, untilArg)
+		sinceTimeMillis := model.GetMillisForTime(sinceTime)
+		untilTimeMillis := model.GetMillisForTime(untilTime)
+
+		mockChannel := model.Channel{Name: channelName, Id: channelID}
+		mockPost := &model.Post{Message: "some text", Id: "some-id", UserId: userID}
+		mockPostList := model.NewPostList()
+		mockPostList.AddPost(mockPost)
+		mockPostList.AddOrder(mockPost.Id)
+		mockUser := model.User{Id: userID, Username: "some-user"}
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Int("number", 1, "")
+		cmd.Flags().String("since", sinceArg, "")
+		cmd.Flags().String("until", untilArg, "")
+
+		s.client.
+			EXPECT().
+			GetChannel(context.TODO(), channelName, "").
+			Return(&mockChannel, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetPostsSince(context.TODO(), channelID, sinceTimeMillis, false, untilTimeMillis, "").
+			Return(mockPostList, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUser(context.TODO(), userID, "").
+			Return(&mockUser, &model.Response{}, nil).
+			Times(1)
+
+		err := postListCmdF(s.client, cmd, []string{channelName})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], mockPost)
+		s.Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("list posts with time-type", func() {
+		printer.Clean()
+
+		sinceArg := "2024-01-01T00:00:00-05:00"
+		timeTypeArg := "update_at"
+		sinceTime, _ := time.Parse(ISO8601Layout, sinceArg)
+		sinceTimeMillis := model.GetMillisForTime(sinceTime)
+
+		mockChannel := model.Channel{Name: channelName, Id: channelID}
+		mockPost := &model.Post{Message: "some text", Id: "some-id", UserId: userID}
+		mockPostList := model.NewPostList()
+		mockPostList.AddPost(mockPost)
+		mockPostList.AddOrder(mockPost.Id)
+		mockUser := model.User{Id: userID, Username: "some-user"}
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Int("number", 1, "")
+		cmd.Flags().String("since", sinceArg, "")
+		cmd.Flags().String("time-type", timeTypeArg, "")
+
+		s.client.
+			EXPECT().
+			GetChannel(context.TODO(), channelName, "").
+			Return(&mockChannel, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetPostsSince(context.TODO(), channelID, sinceTimeMillis, false, int64(0), timeTypeArg).
+			Return(mockPostList, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUser(context.TODO(), userID, "").
+			Return(&mockUser, &model.Response{}, nil).
+			Times(1)
+
+		err := postListCmdF(s.client, cmd, []string{channelName})
+		s.Require().Nil(err)
+		s.Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], mockPost)
 		s.Len(printer.GetErrorLines(), 0)
 	})
 }

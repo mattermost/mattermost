@@ -36,7 +36,11 @@ var PostListCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List posts for a channel",
 	Example: `  post list myteam:mychannel
-  post list myteam:mychannel --number 20`,
+  post list myteam:mychannel --number 20
+  post list myteam:mychannel --since 2024-01-01T00:00:00-05:00
+  post list myteam:mychannel --since 2024-01-01T00:00:00-05:00 --until 2024-01-31T23:59:59-05:00
+  post list myteam:mychannel --since 2024-01-01T00:00:00-05:00 --time-type update_at
+  post list myteam:mychannel --cursor "create_at:1704070800000:x7k9m2n4p6q8"`,
 	Args: cobra.ExactArgs(1),
 	RunE: withClient(postListCmdF),
 }
@@ -70,6 +74,9 @@ func init() {
 	PostListCmd.Flags().BoolP("show-ids", "i", false, "Show posts ids")
 	PostListCmd.Flags().BoolP("follow", "f", false, "Output appended data as new messages are posted to the channel")
 	PostListCmd.Flags().StringP("since", "s", "", "List messages posted after a certain time (ISO 8601)")
+	PostListCmd.Flags().String("until", "", "List messages posted before a certain time (ISO 8601)")
+	PostListCmd.Flags().String("time-type", "", "Time type to use for filtering: 'create_at' or 'update_at' (defaults to 'create_at')")
+	PostListCmd.Flags().String("cursor", "", "Cursor for pagination (from previous response's next_cursor)")
 
 	PostDeleteCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the post and a DB backup has been performed")
 	PostDeleteCmd.Flags().Bool("permanent", false, "Permanently delete the post and its contents from the database")
@@ -168,18 +175,30 @@ func printPost(c client.Client, post *model.Post, usernames map[string]string, s
 	}
 }
 
-func getPostList(client client.Client, channelID, since string, perPage int) (*model.PostList, *model.Response, error) {
-	if since == "" {
-		return client.GetPostsForChannel(context.TODO(), channelID, 0, perPage, "", false, false)
+func getPostList(client client.Client, channelID, since, until, timeType, cursor string, perPage int) (*model.PostList, *model.Response, error) {
+	var untilMillis int64
+	if until != "" {
+		untilTime, err := time.Parse(ISO8601Layout, until)
+		if err != nil {
+			return nil, nil, fmt.Errorf("invalid until time '%s'", until)
+		}
+		untilMillis = model.GetMillisForTime(untilTime)
 	}
 
-	sinceTime, err := time.Parse(ISO8601Layout, since)
-	if err != nil {
-		return nil, nil, fmt.Errorf("invalid since time '%s'", since)
+	if cursor != "" {
+		return client.GetPostsWithCursor(context.TODO(), channelID, cursor, untilMillis, perPage, false)
 	}
 
-	sinceTimeMillis := model.GetMillisForTime(sinceTime)
-	return client.GetPostsSince(context.TODO(), channelID, sinceTimeMillis, false)
+	if since != "" {
+		sinceTime, err := time.Parse(ISO8601Layout, since)
+		if err != nil {
+			return nil, nil, fmt.Errorf("invalid since time '%s'", since)
+		}
+		sinceTimeMillis := model.GetMillisForTime(sinceTime)
+		return client.GetPostsSince(context.TODO(), channelID, sinceTimeMillis, false, untilMillis, timeType)
+	}
+
+	return client.GetPostsForChannel(context.TODO(), channelID, 0, perPage, "", false, false)
 }
 
 func postListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
@@ -194,10 +213,18 @@ func postListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	showIds, _ := cmd.Flags().GetBool("show-ids")
 	follow, _ := cmd.Flags().GetBool("follow")
 	since, _ := cmd.Flags().GetString("since")
+	until, _ := cmd.Flags().GetString("until")
+	timeType, _ := cmd.Flags().GetString("time-type")
+	cursor, _ := cmd.Flags().GetString("cursor")
 
-	postList, _, err := getPostList(c, channel.Id, since, number)
+	postList, _, err := getPostList(c, channel.Id, since, until, timeType, cursor, number)
 	if err != nil {
 		return err
+	}
+
+	// Print next_cursor if available
+	if postList.NextCursor != "" {
+		printer.Print(fmt.Sprintf("Next cursor: %s", postList.NextCursor))
 	}
 
 	posts := postList.ToSlice()

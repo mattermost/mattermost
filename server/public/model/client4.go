@@ -3399,10 +3399,54 @@ func (c *Client4) GetFlaggedPostsForUserInChannel(ctx context.Context, userId st
 }
 
 // GetPostsSince gets posts created after a specified time as Unix time in milliseconds.
-func (c *Client4) GetPostsSince(ctx context.Context, channelId string, time int64, collapsedThreads bool) (*PostList, *Response, error) {
+// Additional parameters:
+//   - until: Upper bound timestamp in milliseconds (exclusive). Pass 0 to omit.
+//   - timeType: Either "create_at" or "update_at" to specify which timestamp field to use. Pass empty string for default ("create_at").
+//
+// The response will include next_cursor field when more results are available for pagination.
+func (c *Client4) GetPostsSince(ctx context.Context, channelId string, time int64, collapsedThreads bool, until int64, timeType string) (*PostList, *Response, error) {
 	values := url.Values{}
 	values.Set("since", strconv.FormatInt(time, 10))
 	values.Set("collapsedThreads", c.boolString(collapsedThreads))
+
+	if until > 0 {
+		values.Set("until", strconv.FormatInt(until, 10))
+	}
+
+	if timeType != "" {
+		values.Set("time_type", timeType)
+	}
+
+	r, err := c.DoAPIGet(ctx, c.channelRoute(channelId)+"/posts?"+values.Encode(), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*PostList](r)
+}
+
+// GetPostsWithCursor gets posts using cursor-based pagination.
+// Parameters:
+//   - cursor: Cursor string from a previous response's next_cursor field
+//   - until: Optional upper bound timestamp in milliseconds (exclusive). Pass 0 to omit.
+//   - perPage: Number of posts per page (max 1000). Pass 0 for default.
+//   - collapsedThreads: Whether to return collapsed threads
+//
+// The cursor encodes the time type, timestamp, and post ID, so you don't need to specify time_type separately.
+// The response will include next_cursor field when more results are available.
+func (c *Client4) GetPostsWithCursor(ctx context.Context, channelId string, cursor string, until int64, perPage int, collapsedThreads bool) (*PostList, *Response, error) {
+	values := url.Values{}
+	values.Set("cursor", cursor)
+	values.Set("collapsedThreads", c.boolString(collapsedThreads))
+
+	if until > 0 {
+		values.Set("until", strconv.FormatInt(until, 10))
+	}
+
+	if perPage > 0 {
+		values.Set("per_page", strconv.Itoa(perPage))
+	}
+
 	r, err := c.DoAPIGet(ctx, c.channelRoute(channelId)+"/posts?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err

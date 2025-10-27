@@ -1229,9 +1229,9 @@ func (mr *MockClientMockRecorder) GetPostsForChannel(arg0, arg1, arg2, arg3, arg
 }
 
 // GetPostsSince mocks base method.
-func (m *MockClient) GetPostsSince(arg0 context.Context, arg1 string, arg2 int64, arg3 bool) (*model.PostList, *model.Response, error) {
+func (m *MockClient) GetPostsSince(arg0 context.Context, arg1 string, arg2 int64, arg3 bool, arg4 int64, arg5 string) (*model.PostList, *model.Response, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetPostsSince", arg0, arg1, arg2, arg3)
+	ret := m.ctrl.Call(m, "GetPostsSince", arg0, arg1, arg2, arg3, arg4, arg5)
 	ret0, _ := ret[0].(*model.PostList)
 	ret1, _ := ret[1].(*model.Response)
 	ret2, _ := ret[2].(error)
@@ -1239,9 +1239,25 @@ func (m *MockClient) GetPostsSince(arg0 context.Context, arg1 string, arg2 int64
 }
 
 // GetPostsSince indicates an expected call of GetPostsSince.
-func (mr *MockClientMockRecorder) GetPostsSince(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+func (mr *MockClientMockRecorder) GetPostsSince(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPostsSince", reflect.TypeOf((*MockClient)(nil).GetPostsSince), arg0, arg1, arg2, arg3)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPostsSince", reflect.TypeOf((*MockClient)(nil).GetPostsSince), arg0, arg1, arg2, arg3, arg4, arg5)
+}
+
+// GetPostsWithCursor mocks base method.
+func (m *MockClient) GetPostsWithCursor(arg0 context.Context, arg1 string, arg2 string, arg3 int64, arg4 int, arg5 bool) (*model.PostList, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPostsWithCursor", arg0, arg1, arg2, arg3, arg4, arg5)
+	ret0, _ := ret[0].(*model.PostList)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetPostsWithCursor indicates an expected call of GetPostsWithCursor.
+func (mr *MockClientMockRecorder) GetPostsWithCursor(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPostsWithCursor", reflect.TypeOf((*MockClient)(nil).GetPostsWithCursor), arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
 // GetPreferenceByCategoryAndName mocks base method.
