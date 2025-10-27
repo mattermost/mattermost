@@ -804,4 +804,91 @@ func TestAuthorizeOAuthUser_InvalidToken(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 		assert.Equal(t, "api.user.authorize_oauth_user.invalid_state.app_error", appErr.Id)
 	})
+
+	t.Run("rejects token with mismatched email", func(t *testing.T) {
+		cookieValue := model.NewId()
+		action := "email_to_sso"
+
+		tokenExtra := generateOAuthStateTokenExtra("token@example.com", action, cookieValue)
+		token, err := th.App.CreateOAuthStateToken(tokenExtra)
+		require.Nil(t, err)
+
+		stateProps := map[string]string{
+			"token":  token.Token,
+			"email":  "state@example.com",
+			"action": action,
+		}
+		state := base64.StdEncoding.EncodeToString([]byte(model.MapToJSON(stateProps)))
+
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest("GET", "/", nil)
+		r.AddCookie(&http.Cookie{
+			Name:  CookieOAuth,
+			Value: cookieValue,
+		})
+
+		_, _, _, appErr := th.App.AuthorizeOAuthUser(th.Context, w, r, service, "auth-code", state, "http://localhost/callback")
+
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Equal(t, "api.user.authorize_oauth_user.invalid_state.app_error", appErr.Id)
+	})
+
+	t.Run("rejects token with mismatched action", func(t *testing.T) {
+		cookieValue := model.NewId()
+		email := "user@example.com"
+
+		tokenExtra := generateOAuthStateTokenExtra(email, "email_to_sso", cookieValue)
+		token, err := th.App.CreateOAuthStateToken(tokenExtra)
+		require.Nil(t, err)
+
+		stateProps := map[string]string{
+			"token":  token.Token,
+			"email":  email,
+			"action": "sso_to_email",
+		}
+		state := base64.StdEncoding.EncodeToString([]byte(model.MapToJSON(stateProps)))
+
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest("GET", "/", nil)
+		r.AddCookie(&http.Cookie{
+			Name:  CookieOAuth,
+			Value: cookieValue,
+		})
+
+		_, _, _, appErr := th.App.AuthorizeOAuthUser(th.Context, w, r, service, "auth-code", state, "http://localhost/callback")
+
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Equal(t, "api.user.authorize_oauth_user.invalid_state.app_error", appErr.Id)
+	})
+
+	t.Run("rejects token with mismatched cookie", func(t *testing.T) {
+		email := "user@example.com"
+		action := "email_to_sso"
+
+		tokenExtra := generateOAuthStateTokenExtra(email, action, "token-cookie-value")
+		token, err := th.App.CreateOAuthStateToken(tokenExtra)
+		require.Nil(t, err)
+
+		stateProps := map[string]string{
+			"token":  token.Token,
+			"email":  email,
+			"action": action,
+		}
+		state := base64.StdEncoding.EncodeToString([]byte(model.MapToJSON(stateProps)))
+
+		w := httptest.NewRecorder()
+		r := httptest.NewRequest("GET", "/", nil)
+		r.AddCookie(&http.Cookie{
+			Name:  CookieOAuth,
+			Value: "different-cookie-value",
+		})
+
+		_, _, _, appErr := th.App.AuthorizeOAuthUser(th.Context, w, r, service, "auth-code", state, "http://localhost/callback")
+
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Equal(t, "api.user.authorize_oauth_user.invalid_state.app_error", appErr.Id)
+	})
 }
