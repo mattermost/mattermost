@@ -10836,10 +10836,6 @@
     "translation": "Wybierz powód oflagowania tej wiadomości."
   },
   {
-    "id": "api.content_flagging.error.reviewer_only",
-    "translation": "Nie masz uprawnień do wyświetlania tego zasobu."
-  },
-  {
     "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
     "translation": "Nie możesz zapisać wersji roboczej do zastrzeżonego kanału wiadomości bezpośrednich"
   },
@@ -10882,5 +10878,145 @@
   {
     "id": "app.content_flagging.can_flag_post.in_progress",
     "translation": "Nie możesz oflagować tego postu, ponieważ jest już oflagowany."
+  },
+  {
+    "id": "api.encoding_error",
+    "translation": "Napotkano błąd kodowania JSON dla odpowiedzi API"
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.removed",
+    "translation": "Nie możesz oflagować tego postu, ponieważ został on usunięty w wyniku wcześniejszej prośby o oflagowanie."
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.retained",
+    "translation": "Nie możesz oflagować tego postu, ponieważ został on zachowany w poprzednim żądaniu oflagowania."
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.unknown",
+    "translation": "Nie możesz oflagować tego postu, ponieważ ma on nieznany status."
+  },
+  {
+    "id": "app.content_flagging.create_property_values.app_error",
+    "translation": "Nie udało się zapisać wartości właściwości dla oflagowanego posta."
+  },
+  {
+    "id": "app.content_flagging.flag_post.marshal_comment.app_error",
+    "translation": "Nie udało się pobrać komentarza użytkownika flagującego"
+  },
+  {
+    "id": "app.content_flagging.flag_post.marshal_reason.app_error",
+    "translation": "Nie udało się pobrać powodu użytkownika flagującego"
+  },
+  {
+    "id": "app.content_flagging.flag_post_confirmation.message",
+    "translation": "Wiadomość od @{{.username}} została oznaczona do sprawdzenia. Otrzymasz powiadomienie, gdy zostanie ona sprawdzona przez weryfikatora treści. "
+  },
+  {
+    "id": "app.content_flagging.get_group.error",
+    "translation": "Nie udało się pobrać bota Content Flagging."
+  },
+  {
+    "id": "app.content_flagging.get_reviewer_settings.app_error",
+    "translation": "Nie udało się pobrać ustawień recenzenta treści z bazy danych"
+  },
+  {
+    "id": "app.content_flagging.get_status_property.app_error",
+    "translation": "Nie udało się uzyskać pola właściwości Status."
+  },
+  {
+    "id": "app.content_flagging.get_users_in_team.app_error",
+    "translation": "Nie udało się szukać recenzentów w zespole."
+  },
+  {
+    "id": "app.content_flagging.keep_flag_post.marshal_comment.app_error",
+    "translation": "Nie udało się zebrać komentarza recenzenta"
+  },
+  {
+    "id": "app.content_flagging.keep_post.status_update.app_error",
+    "translation": "Nie udało się zaktualizować statusu oflagowanego postu podczas usuwania oflagowanego postu "
+  },
+  {
+    "id": "app.content_flagging.keep_post.undelete.app_error",
+    "translation": "Nie udało się zaktualizować postu w bazie danych podczas próby usunięcia oflagowanego postu."
+  },
+  {
+    "id": "app.content_flagging.marshal_property_values.app_error",
+    "translation": "Nie udało się pobrać wartości właściwości Content Flagging do wysłania w zdarzeniu WebSocket."
+  },
+  {
+    "id": "app.content_flagging.no_status_property.app_error",
+    "translation": "Nie można pobrać oflagowanego posta, ponieważ nie jest on oflagowany."
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.app_error",
+    "translation": "Nie udało się nadpisać postu z usuniętym postem podczas trwałego usuwania oflagowanego postu."
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.marshal_comment.app_error",
+    "translation": "Nie udało się zebrać komentarza recenzenta"
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.update_property_value.app_error",
+    "translation": "Nie udało się zaktualizować statusu oflagowanego postu podczas trwałego usunięcia oflagowanego postu."
+  },
+  {
+    "id": "app.content_flagging.restore_file_info.app_error",
+    "translation": "Nie udało się przywrócić plików info dla oflagowanego posta."
+  },
+  {
+    "id": "app.content_flagging.save_reviewer_settings.app_error",
+    "translation": "Nie udało się zapisać ustawień weryfikatora treści w bazie danych."
+  },
+  {
+    "id": "app.content_flagging.search_property_fields.app_error",
+    "translation": "Szukanie pól właściwości Content Flagging nie powiodło się."
+  },
+  {
+    "id": "app.content_flagging.search_property_values.app_error",
+    "translation": "Nie udało się pobrać wartości właściwości flagowania treści posta z bazy danych."
+  },
+  {
+    "id": "app.content_flagging.search_status_property.app_error",
+    "translation": "Nie udało się znaleźć wartości właściwości dla oflagowanego posta."
+  },
+  {
+    "id": "app.post_priority.delete_for_post.app_error",
+    "translation": "Nie udało się trwale usunąć danych priorytetu postu z bazy danych."
+  },
+  {
+    "id": "app.save_scheduled_post.restricted_dm.error",
+    "translation": "Nie możesz zaplanować postu w ograniczonym DM"
+  },
+  {
+    "id": "app.system.content_review_bot.bot_displayname",
+    "translation": "Przegląd zawartości"
+  },
+  {
+    "id": "app.upload.create.cannot_upload_to_restricted_dm.error",
+    "translation": "Nie można przesłać pliku do zastrzeżonej wiadomości bezpośredniej."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.libretranslate.url.app_error",
+    "translation": "Adres URL LibreTranslate musi być prawidłowym adresem URL i zaczynać się od http:// lub https://."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.provider.app_error",
+    "translation": "Nieprawidłowy dostawca autotranslacji, nie może być pusty."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.provider.unsupported.app_error",
+    "translation": "Nieobsługiwany dostawca autotranslacji."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.fetch.app_error",
+    "translation": "Nieprawidłowy limit czasu pobierania dla ustawień automatycznego tłumaczenia. Musi być liczbą dodatnią."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.new_post.app_error",
+    "translation": "Nieprawidłowy limit czasu nowej poczty dla ustawień autotranslacji. Musi być liczbą dodatnią."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
+    "translation": "Nieprawidłowy limit czasu powiadomienia dla ustawień autotranslacji. Musi być liczbą dodatnią."
   }
 ]
