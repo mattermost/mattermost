@@ -101,7 +101,8 @@ const preview: Preview = {
                                     className="app__body" 
                                     style={{
                                         padding: '20px', 
-                                        minHeight: '100vh',
+                                        minWidth: 'calc(100vw - 2rem)',
+                                        minHeight: 'calc(100vh - 2rem)',
                                         backgroundColor: getTheme(themeKey).centerChannelBg,
                                         color: getTheme(themeKey).centerChannelColor,
                                     }}

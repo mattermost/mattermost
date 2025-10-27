@@ -5,13 +5,13 @@ This Storybook instance supports all 5 official Mattermost themes, allowing you 
 ## Available Themes
 
 ### Light Themes
-1. **🔵 Denim** (Default) - The classic Mattermost blue theme
-2. **💎 Sapphire** - A vibrant blue theme with cyan accents
-3. **⚪ Quartz** - A light gray theme with minimal color
+1. **Denim** (Default) - The classic Mattermost blue theme
+2. **Sapphire** - A vibrant blue theme with cyan accents
+3. **Quartz** - A light gray theme with minimal color
 
 ### Dark Themes
-4. **🌙 Indigo** - A dark blue theme
-5. **⚫ Onyx** - A dark gray/black theme
+4. **Indigo** - A dark blue theme
+5. **Onyx** - A dark gray/black theme
 
 ## How to Switch Themes
 
