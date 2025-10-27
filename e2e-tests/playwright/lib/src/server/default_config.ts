@@ -759,7 +759,6 @@ const defaultServerConfig: AdminConfig = {
         ContentFlagging: false,
         InteractiveDialogAppsForm: true,
         EnableMattermostEntry: true,
-        ChannelAdminManageABACRules: false,
         MobileSSOCodeExchange: true,
         AutoTranslation: false,
     },
@@ -831,9 +830,10 @@ const defaultServerConfig: AdminConfig = {
             URL: '',
             APIKey: '',
         },
-        TimeoutMs: {
-            NewPost: 800,
-            Fetch: 2000,
+        TimeoutsMs: {
+            Short: 1200,
+            Medium: 2500,
+            Long: 6000,
             Notification: 300,
         },
     },

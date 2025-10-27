@@ -2704,15 +2704,29 @@ type AutoTranslationSettings struct {
 	// Agents         *AgentsProviderSettings         `access:"site_localization,cloud_restrictable"`
 }
 
+// AutoTranslationTimeoutsInMs defines content-aware timeout thresholds.
+// Based on LibreTranslate benchmark findings, timeouts are set according to content length:
+// - Short: ≤200 runes
+// - Medium: ≤500 runes
+// - Long: >500 runes
+// - Notification: preserved for notification-specific timeout requirements
 type AutoTranslationTimeoutsInMs struct {
-	NewPost      *int `access:"site_localization,cloud_restrictable"`
-	Fetch        *int `access:"site_localization,cloud_restrictable"`
-	Notification *int `access:"site_localization,cloud_restrictable"`
+	Short        *int `access:"site_localization,cloud_restrictable"` // ≤200 runes, default: 1200ms
+	Medium       *int `access:"site_localization,cloud_restrictable"` // ≤500 runes, default: 2500ms
+	Long         *int `access:"site_localization,cloud_restrictable"` // >500 runes, default: 6000ms
+	Notification *int `access:"site_localization,cloud_restrictable"` // Notification timeout, default: 300ms
 }
 
+// LibreTranslateProviderSettings configures the LibreTranslate translation provider.
+// Rate limiting settings based on benchmark findings for a single LibreTranslate instance
+// running on g4dn.xlarge GPU hardware:
+// - MaxConcurrency: 12 concurrent requests safely supported
+// - MaxRPS: 14 requests per second safely supported
 type LibreTranslateProviderSettings struct {
-	URL    *string `access:"site_localization,cloud_restrictable"`
-	APIKey *string `access:"site_localization,cloud_restrictable"`
+	URL            *string `access:"site_localization,cloud_restrictable"` // LibreTranslate server URL
+	APIKey         *string `access:"site_localization,cloud_restrictable"` // Optional API key for authenticated requests
+	MaxConcurrency *int    `access:"site_localization,cloud_restrictable"` // Max concurrent HTTP requests, default: 12
+	MaxRPS         *int    `access:"site_localization,cloud_restrictable"` // Max requests per second, default: 14
 }
 
 // TODO: Enable Agents provider in future release
@@ -2747,12 +2761,16 @@ func (s *AutoTranslationSettings) SetDefaults() {
 }
 
 func (s *AutoTranslationTimeoutsInMs) SetDefaults() {
-	if s.NewPost == nil {
-		s.NewPost = NewPointer(800)
+	if s.Short == nil {
+		s.Short = NewPointer(1200)
 	}
 
-	if s.Fetch == nil {
-		s.Fetch = NewPointer(2000)
+	if s.Medium == nil {
+		s.Medium = NewPointer(2500)
+	}
+
+	if s.Long == nil {
+		s.Long = NewPointer(6000)
 	}
 
 	if s.Notification == nil {
@@ -2767,6 +2785,14 @@ func (s *LibreTranslateProviderSettings) SetDefaults() {
 
 	if s.APIKey == nil {
 		s.APIKey = NewPointer("")
+	}
+
+	if s.MaxConcurrency == nil {
+		s.MaxConcurrency = NewPointer(12)
+	}
+
+	if s.MaxRPS == nil {
+		s.MaxRPS = NewPointer(14)
 	}
 }
 
@@ -4705,11 +4731,14 @@ func (s *AutoTranslationSettings) isValid() *AppError {
 
 	// Validate timeouts if set
 	if s.TimeoutsMs != nil {
-		if s.TimeoutsMs.NewPost != nil && *s.TimeoutsMs.NewPost <= 0 {
-			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.new_post.app_error", nil, "", http.StatusBadRequest)
+		if s.TimeoutsMs.Short != nil && *s.TimeoutsMs.Short <= 0 {
+			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.short.app_error", nil, "", http.StatusBadRequest)
 		}
-		if s.TimeoutsMs.Fetch != nil && *s.TimeoutsMs.Fetch <= 0 {
-			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.fetch.app_error", nil, "", http.StatusBadRequest)
+		if s.TimeoutsMs.Medium != nil && *s.TimeoutsMs.Medium <= 0 {
+			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.medium.app_error", nil, "", http.StatusBadRequest)
+		}
+		if s.TimeoutsMs.Long != nil && *s.TimeoutsMs.Long <= 0 {
+			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.long.app_error", nil, "", http.StatusBadRequest)
 		}
 		if s.TimeoutsMs.Notification != nil && *s.TimeoutsMs.Notification <= 0 {
 			return NewAppError("Config.IsValid", "model.config.is_valid.autotranslation.timeouts.notification.app_error", nil, "", http.StatusBadRequest)
