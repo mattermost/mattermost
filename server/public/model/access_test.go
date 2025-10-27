@@ -6,13 +6,14 @@ package model
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestAccessIsValid(t *testing.T) {
 	ad := AccessData{}
 
-	require.NotNil(t, ad.IsValid())
+	assert.NotNil(t, ad.IsValid())
 
 	ad.ClientId = NewRandomString(28)
 	require.NotNil(t, ad.IsValid())
