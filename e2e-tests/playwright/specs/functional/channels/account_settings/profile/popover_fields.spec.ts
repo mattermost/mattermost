@@ -22,7 +22,7 @@ test('Profile popover should show correct fields after at-mention autocomplete @
     });
 
     // Create and add another user using admin client
-    const testUser2 = await adminClient.createUser(pw.random.user('other'), '', '');
+    const testUser2 = await adminClient.createUser(await pw.random.user('other'), '', '');
     await adminClient.addToTeam(team.id, testUser2.id);
 
     // 1. Login as the first user
