@@ -1,6 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import path from 'node:path';
+import fs from 'node:fs';
+
 import {v4 as uuidv4} from 'uuid';
 
 const second = 1000;
@@ -58,4 +61,49 @@ export function hexToRgb(hex: string): string {
 
     // Return the RGB string
     return `rgb(${r}, ${g}, ${b})`;
+}
+
+/**
+ * Finds the playwright root directory by searching for playwright.config.ts.
+ * Searches in e2e-tests folder first, then e2e-tests/playwright folder.
+ * @returns The path to the playwright root directory or null if not found.
+ */
+export function findPlaywrightRoot(): string | null {
+    let currentDir = process.cwd();
+    const root = path.parse(currentDir).root;
+
+    // Walk up from current directory
+    while (currentDir !== root) {
+        // First, check if playwright.config.ts exists in e2e-tests folder
+        const e2eTestsPath = path.join(currentDir, 'e2e-tests');
+        const e2eTestsConfigPath = path.join(e2eTestsPath, 'playwright.config.ts');
+        if (fs.existsSync(e2eTestsConfigPath)) {
+            return e2eTestsPath;
+        }
+
+        // Then, check if playwright.config.ts exists in e2e-tests/playwright folder
+        const e2ePlaywrightPath = path.join(currentDir, 'e2e-tests', 'playwright');
+        const e2ePlaywrightConfigPath = path.join(e2ePlaywrightPath, 'playwright.config.ts');
+        if (fs.existsSync(e2ePlaywrightConfigPath)) {
+            return e2ePlaywrightPath;
+        }
+
+        currentDir = path.dirname(currentDir);
+    }
+
+    return null;
+}
+
+/**
+ * Resolves the directory path.
+ * Tries to find directory at the playwright root, falls back to current working directory.
+ * @returns The resolved directory path.
+ */
+export function resolvePlaywrightPath(dir: string): string {
+    const playwrightRoot = findPlaywrightRoot();
+    if (playwrightRoot) {
+        return path.join(playwrightRoot, dir);
+    }
+    // Fall back to current working directory
+    return path.join(process.cwd(), dir);
 }
