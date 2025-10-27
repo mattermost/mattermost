@@ -2074,53 +2074,67 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	if terms == "" && excludedTerms == "" {
 		// we've already confirmed that we have a channel or user to search for
 	} else {
-		// Parse text for wildcards
-		terms = wildCardRegex.ReplaceAllLiteralString(terms, ":* ")
-		excludedTerms = wildCardRegex.ReplaceAllLiteralString(excludedTerms, ":* ")
+		// if (true){
+		// app層の変数なのでだいぶ上から引数を追加する必要があるが、*app.Config().LocalizationSettings.DefaultServerLocale == "ja" かどうかを見て分岐させても良さそう
+		if (model.GetServiceEnvironment() != model.ServiceEnvironmentTest && model.GetServiceEnvironment() != model.ServiceEnvironmentDev ) {
+			//日本語全文検索
+			terms = wildCardRegex.ReplaceAllLiteralString(terms, "%")
+			excludedTerms = wildCardRegex.ReplaceAllLiteralString(excludedTerms, "%")
 
-		simpleSearch := false
-		// Replace spaces with to_tsquery symbols
-		replaceSpaces := func(input string, excludedInput bool) string {
-			if input == "" {
+			phrases := quotedStringsRegex.FindAllString(terms, -1)
+			terms = quotedStringsRegex.ReplaceAllString(terms, " ")
+
+			baseQuery = s.generateLikeSearchQuery(baseQuery, params, phrases, terms, excludedTerms, searchType)
+
+		} else {
+			// Parse text for wildcards
+			terms = wildCardRegex.ReplaceAllLiteralString(terms, ":* ")
+			excludedTerms = wildCardRegex.ReplaceAllLiteralString(excludedTerms, ":* ")
+
+			simpleSearch := false
+			// Replace spaces with to_tsquery symbols
+			replaceSpaces := func(input string, excludedInput bool) string {
+				if input == "" {
+					return input
+				}
+
+				// Remove extra spaces
+				input = strings.Join(strings.Fields(input), " ")
+
+				// Replace spaces within quoted strings with '<->'
+				input = quotedStringsRegex.ReplaceAllStringFunc(input, func(match string) string {
+					// If the whole search term is a quoted string,
+					// we don't want to do stemming.
+					if input == match {
+						simpleSearch = true
+					}
+					return strings.Replace(match, " ", "<->", -1)
+				})
+
+				// Replace spaces outside of quoted substrings with '&' or '|'
+				replacer := "&"
+				if excludedInput || params.OrTerms {
+					replacer = "|"
+				}
+				input = strings.Replace(input, " ", replacer, -1)
+
 				return input
 			}
 
-			// Remove extra spaces
-			input = strings.Join(strings.Fields(input), " ")
-
-			// Replace spaces within quoted strings with '<->'
-			input = quotedStringsRegex.ReplaceAllStringFunc(input, func(match string) string {
-				// If the whole search term is a quoted string,
-				// we don't want to do stemming.
-				if input == match {
-					simpleSearch = true
-				}
-				return strings.Replace(match, " ", "<->", -1)
-			})
-
-			// Replace spaces outside of quoted substrings with '&' or '|'
-			replacer := "&"
-			if excludedInput || params.OrTerms {
-				replacer = "|"
+			tsQueryClause := replaceSpaces(terms, false)
+			excludedClause := replaceSpaces(excludedTerms, true)
+			if excludedClause != "" {
+				tsQueryClause += " &!(" + excludedClause + ")"
 			}
-			input = strings.Replace(input, " ", replacer, -1)
 
-			return input
+			textSearchCfg := s.pgDefaultTextSearchConfig
+			if simpleSearch {
+				textSearchCfg = "simple"
+			}
+
+			searchClause := fmt.Sprintf("to_tsvector('%[1]s', %[2]s) @@  to_tsquery('%[1]s', ?)", textSearchCfg, searchType)
+			baseQuery = baseQuery.Where(searchClause, tsQueryClause)
 		}
-
-		tsQueryClause := replaceSpaces(terms, false)
-		excludedClause := replaceSpaces(excludedTerms, true)
-		if excludedClause != "" {
-			tsQueryClause += " &!(" + excludedClause + ")"
-		}
-
-		textSearchCfg := s.pgDefaultTextSearchConfig
-		if simpleSearch {
-			textSearchCfg = "simple"
-		}
-
-		searchClause := fmt.Sprintf("to_tsvector('%[1]s', %[2]s) @@  to_tsquery('%[1]s', ?)", textSearchCfg, searchType)
-		baseQuery = baseQuery.Where(searchClause, tsQueryClause)
 	}
 
 	inQuery := s.getSubQueryBuilder().Select("Id").

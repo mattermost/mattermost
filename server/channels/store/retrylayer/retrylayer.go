@@ -8268,27 +8268,6 @@ func (s *RetryLayerPostStore) InvalidateLastPostTimeCache(channelID string) {
 
 }
 
-func (s *RetryLayerPostStore) LikeSearchPostsForUser(rctx request.CTX, paramsList []*model.SearchParams, userID string, teamID string, page int, perPage int) (*model.PostSearchResults, error) {
-
-	tries := 0
-	for {
-		result, err := s.PostStore.LikeSearchPostsForUser(rctx, paramsList, userID, teamID, page, perPage)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
 func (s *RetryLayerPostStore) Overwrite(rctx request.CTX, post *model.Post) (*model.Post, error) {
 
 	tries := 0
