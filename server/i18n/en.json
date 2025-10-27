@@ -10861,6 +10861,10 @@
     "translation": "Unable to get user language."
   },
   {
+    "id": "store.sql_autotranslation.is_channel_enabled.app_error",
+    "translation": "Unable to get channel autotranslation enabled status."
+  },
+  {
     "id": "store.sql_autotranslation.member_not_found",
     "translation": "Member not found."
   },
