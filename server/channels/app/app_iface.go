@@ -521,7 +521,7 @@ type AppIface interface {
 	CompleteSwitchWithOAuth(c request.CTX, service string, userData io.Reader, email string, tokenUser *model.User) (*model.User, *model.AppError)
 	Compliance() einterfaces.ComplianceInterface
 	Config() *model.Config
-	ConsumeTokenOnce(tokenStr string) (*model.Token, *model.AppError)
+	ConsumeTokenOnce(tokenType, tokenStr string) (*model.Token, *model.AppError)
 	ConvertGroupMessageToChannel(c request.CTX, convertedByUserId string, gmConversionRequest *model.GroupMessageConversionRequestBody) (*model.Channel, *model.AppError)
 	CopyFileInfos(rctx request.CTX, userID string, fileIDs []string) ([]string, *model.AppError)
 	CopyWranglerPostlist(c request.CTX, wpl *model.WranglerPostList, targetChannel *model.Channel) (*model.Post, *model.AppError)
@@ -551,7 +551,7 @@ type AppIface interface {
 	CreateRemoteClusterInvite(remoteId, siteURL, token, password string) (string, *model.AppError)
 	CreateRetentionPolicy(policy *model.RetentionPolicyWithTeamAndChannelIDs) (*model.RetentionPolicyWithTeamAndChannelCounts, *model.AppError)
 	CreateRole(role *model.Role) (*model.Role, *model.AppError)
-	CreateSamlRelayToken(extra string) (*model.Token, *model.AppError)
+	CreateSamlRelayToken(tokenType string, extra string) (*model.Token, *model.AppError)
 	CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError)
 	CreateSession(c request.CTX, session *model.Session) (*model.Session, *model.AppError)
 	CreateSidebarCategory(c request.CTX, userID, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError)
