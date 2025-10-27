@@ -727,13 +727,6 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 	a.invalidateCacheForChannelPosts(flaggedPost.ChannelId)
 
 	a.Srv().Go(func() {
-		_, postErr := a.postKeepPostReviewerMessage(rctx, flaggedPost.Id, reviewerId, actionRequest.Comment, groupId)
-		if postErr != nil {
-			rctx.Logger().Error("Failed to post keep post reviewer message after retaining flagged post", mlog.Err(postErr), mlog.String("post_id", flaggedPost.Id))
-		}
-	})
-
-	a.Srv().Go(func() {
 		a.sendKeepFlaggedPostNotification(rctx, flaggedPost, reviewerId, actionRequest.Comment, groupId)
 	})
 
