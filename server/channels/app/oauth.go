@@ -1041,9 +1041,8 @@ func generateOAuthStateTokenExtra(email, action, cookie string) string {
 	return email + ":" + action + ":" + cookie
 }
 
-// parseOAuthStateTokenExtra parses the token extra string into its constituent parts.
-// The token extra format is "email:action:cookie".
-// Returns an error if the format is invalid or any field is empty.
+// parseOAuthStateTokenExtra parses a token extra string in the format "email:action:cookie".
+// Returns an error if the token does not contain exactly 3 colon-separated parts.
 func parseOAuthStateTokenExtra(tokenExtra string) (email, action, cookie string, err error) {
 	parts := strings.Split(tokenExtra, ":")
 	if len(parts) != 3 {
@@ -1053,18 +1052,6 @@ func parseOAuthStateTokenExtra(tokenExtra string) (email, action, cookie string,
 	email = parts[0]
 	action = parts[1]
 	cookie = parts[2]
-
-	if email == "" {
-		return "", "", "", fmt.Errorf("email cannot be empty")
-	}
-
-	if action == "" {
-		return "", "", "", fmt.Errorf("action cannot be empty")
-	}
-
-	if cookie == "" {
-		return "", "", "", fmt.Errorf("cookie cannot be empty")
-	}
 
 	return email, action, cookie, nil
 }

@@ -534,6 +534,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 				recorder := httptest.ResponseRecorder{}
 				body, receivedStateProps, _, err := th.App.AuthorizeOAuthUser(th.Context, &recorder, request, model.ServiceGitlab, "", state, "")
 
+				require.Nil(t, err)
 				require.NotNil(t, body)
 				bodyBytes, bodyErr := io.ReadAll(body)
 				require.NoError(t, bodyErr)
@@ -705,22 +706,12 @@ func TestParseOAuthStateTokenExtra(t *testing.T) {
 		assert.Equal(t, "randomcookie123", cookie)
 	})
 
-	t.Run("valid token with empty email should fail", func(t *testing.T) {
-		_, _, _, err := parseOAuthStateTokenExtra(":email_to_sso:randomcookie123")
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "email cannot be empty")
-	})
-
-	t.Run("valid token with empty action should fail", func(t *testing.T) {
-		_, _, _, err := parseOAuthStateTokenExtra("user@example.com::randomcookie123")
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "action cannot be empty")
-	})
-
-	t.Run("valid token with empty cookie should fail", func(t *testing.T) {
-		_, _, _, err := parseOAuthStateTokenExtra("user@example.com:email_to_sso:")
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "cookie cannot be empty")
+	t.Run("valid token with empty email and action", func(t *testing.T) {
+		email, action, cookie, err := parseOAuthStateTokenExtra("::randomcookie123")
+		require.NoError(t, err)
+		assert.Equal(t, "", email)
+		assert.Equal(t, "", action)
+		assert.Equal(t, "randomcookie123", cookie)
 	})
 
 	t.Run("token with too many colons", func(t *testing.T) {
