@@ -282,9 +282,15 @@ func (s *SqlAutoTranslationStore) Get(objectID, dstLang string) (*model.Translat
 		}
 	}
 
+	// Default objectType to "post" if not set
+	objectType := translation.ObjectType
+	if objectType == "" {
+		objectType = "post"
+	}
+
 	result := &model.Translation{
 		ObjectID:   translation.ObjectID,
-		ObjectType: translation.ObjectType,
+		ObjectType: objectType,
 		Lang:       translation.DstLang,
 		Type:       model.TranslationType(translationTypeStr),
 		Confidence: translation.Confidence,
@@ -315,7 +321,11 @@ func (s *SqlAutoTranslationStore) Save(translation *model.Translation) *model.Ap
 		contentSearchText = string(translation.ObjectJSON)
 	}
 
-	objectType := translation.ObjectType
+	var objectType *string
+	if translation.ObjectType != "" {
+		objectType = &translation.ObjectType
+	}
+
 	objectID := translation.ObjectID
 	metaMap := map[string]any{
 		"type": string(translation.Type),
@@ -425,9 +435,15 @@ func (s *SqlAutoTranslationStore) Search(dstLang, searchTerm string, limit int) 
 				"store.sql_autotranslation.meta_json.app_error", nil, err.Error(), 500)
 		}
 
+		// Default objectType to "post" if not set
+		objectType := result.ObjectType
+		if objectType == "" {
+			objectType = "post"
+		}
+
 		translations[i] = &model.Translation{
 			ObjectID:   result.ObjectID,
-			ObjectType: result.ObjectType,
+			ObjectType: objectType,
 			Lang:       result.DstLang,
 			Type:       model.TranslationType(meta["type"].(string)),
 			Text:       result.Text,

@@ -6,7 +6,7 @@ CREATE EXTENSION IF NOT EXISTS unaccent;
 CREATE TABLE IF NOT EXISTS translations (
     objectId            varchar(26)    NOT NULL,    -- object ID (e.g., post ID)
     dstLang             varchar        NOT NULL,    -- ISO code from user preference
-    objectType          varchar        NOT NULL,    -- e.g., 'post' (object-agnostic)
+    objectType          varchar        NULL,         -- e.g., 'post' (object-agnostic) if NULL assume "post"
     providerId          varchar        NOT NULL,    -- 'agents' | 'libretranslate' | ...
     normHash            char(64)       NOT NULL,    -- sha256 (hex) of normalized source
     text                text           NOT NULL,    -- translated text (rehydrated)
