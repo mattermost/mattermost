@@ -852,7 +852,7 @@ func (a *App) AuthorizeOAuthUser(rctx request.CTX, w http.ResponseWriter, r *htt
 
 	tokenEmail, tokenAction, tokenCookie, parseErr := parseOAuthStateTokenExtra(expectedToken.Extra)
 	if parseErr != nil {
-		return nil, stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.invalid_state.app_error", nil, "", http.StatusBadRequest).Wrap(errors.New("invalid state token"))
+		return nil, stateProps, nil, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.invalid_state.app_error", nil, "", http.StatusBadRequest).Wrap(parseErr)
 	}
 
 	if tokenEmail != stateEmail || tokenAction != stateAction || tokenCookie != cookie.Value {
@@ -1041,6 +1041,9 @@ func generateOAuthStateTokenExtra(email, action, cookie string) string {
 	return email + ":" + action + ":" + cookie
 }
 
+// parseOAuthStateTokenExtra parses the token extra string into its constituent parts.
+// The token extra format is "email:action:cookie".
+// Returns an error if the format is invalid or any field is empty.
 func parseOAuthStateTokenExtra(tokenExtra string) (email, action, cookie string, err error) {
 	parts := strings.Split(tokenExtra, ":")
 	if len(parts) != 3 {
