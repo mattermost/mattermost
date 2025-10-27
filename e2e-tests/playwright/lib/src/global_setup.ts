@@ -45,7 +45,7 @@ async function sysadminSetup(client: Client4, user: UserProfile | null) {
     const myTeams = await client.getMyTeams();
     const myDefaultTeam = myTeams && myTeams.length > 0 && myTeams.find((team) => team.name === defaultTeam.name);
     if (!myDefaultTeam) {
-        await client.createTeam(createRandomTeam(defaultTeam.name, defaultTeam.displayName, 'O', false));
+        await client.createTeam(await createRandomTeam(defaultTeam.name, defaultTeam.displayName, 'O', false));
     } else if (myDefaultTeam && testConfig.resetBeforeTest) {
         await Promise.all(
             myTeams.filter((team) => team.name !== defaultTeam.name).map((team) => client.deleteTeam(team.id)),

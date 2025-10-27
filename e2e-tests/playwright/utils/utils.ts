@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {v4 as uuidv4} from 'uuid';
-
-export function getRandomId(length = 7): string {
+export async function getRandomId(length = 7): Promise<string> {
     const MAX_SUBSTRING_INDEX = 27;
+
+    // Dynamically import uuid (works even in CommonJS)
+    const {v4: uuidv4} = await import('uuid');
 
     return uuidv4()
         .replace(/-/g, '')

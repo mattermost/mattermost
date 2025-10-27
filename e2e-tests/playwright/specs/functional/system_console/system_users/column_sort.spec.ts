@@ -15,7 +15,7 @@ test('MM-T5523-1 Sortable columns should sort the list when clicked', async ({pw
 
     // # Create 10 random users
     for (let i = 0; i < 10; i++) {
-        await adminClient.createUser(pw.random.user(), '', '');
+        await adminClient.createUser(await pw.random.user(), '', '');
     }
 
     // # Visit system console
@@ -59,7 +59,7 @@ test('MM-T5523-2 Non sortable columns should not sort the list when clicked', as
 
     // # Create 10 random users
     for (let i = 0; i < 10; i++) {
-        await adminClient.createUser(pw.random.user(), '', '');
+        await adminClient.createUser(await pw.random.user(), '', '');
     }
 
     // # Visit system console

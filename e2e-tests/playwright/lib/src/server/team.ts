@@ -5,8 +5,13 @@ import {Team, TeamType} from '@mattermost/types/teams';
 
 import {getRandomId} from '@/util';
 
-export function createRandomTeam(name = 'team', displayName = 'Team', type: TeamType = 'O', unique = true): Team {
-    const randomSuffix = getRandomId();
+export async function createRandomTeam(
+    name = 'team',
+    displayName = 'Team',
+    type: TeamType = 'O',
+    unique = true,
+): Promise<Team> {
+    const randomSuffix = await getRandomId();
 
     const team = {
         name: unique ? `${name}-${randomSuffix}` : name,

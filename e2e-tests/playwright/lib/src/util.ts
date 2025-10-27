@@ -1,7 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {v4 as uuidv4} from 'uuid';
+// Lazy-load the ESM-only uuid package dynamically
+let uuidv4: (() => string) | null = null;
+
+async function loadUuid() {
+    if (!uuidv4) {
+        const {v4} = await import('uuid');
+        uuidv4 = v4;
+    }
+    return uuidv4!;
+}
 
 const second = 1000;
 const minute = 60 * 1000;
@@ -23,18 +32,19 @@ export const duration = {
  * @param {number} ms - duration in millisecond
  * @return {Promise} promise with timeout
  */
-export const wait = async (ms = 0) => {
+export const wait = async (ms = 0): Promise<void> => {
     return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
 /**
- * @param {Number} length - length on random string to return, e.g. 7 (default)
- * @return {String} random string
+ * Generate a random ID string.
+ * Because uuid is dynamically loaded, this is async.
  */
-export function getRandomId(length = 7): string {
+export async function getRandomId(length = 7): Promise<string> {
     const MAX_SUBSTRING_INDEX = 27;
 
-    return uuidv4()
+    const v4 = await loadUuid();
+    return v4()
         .replace(/-/g, '')
         .substring(MAX_SUBSTRING_INDEX - length, MAX_SUBSTRING_INDEX);
 }
@@ -48,14 +58,9 @@ export const illegalRe = /[/?<>\\:*|":&();]/g;
 export const simpleEmailRe = /\S+@\S+\.\S+/;
 
 export function hexToRgb(hex: string): string {
-    // Remove the # if present
     hex = hex.replace(/^#/, '');
-
-    // Parse the hex values
     const r = parseInt(hex.substring(0, 2), 16);
     const g = parseInt(hex.substring(2, 4), 16);
     const b = parseInt(hex.substring(4, 6), 16);
-
-    // Return the RGB string
     return `rgb(${r}, ${g}, ${b})`;
 }

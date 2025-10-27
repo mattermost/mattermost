@@ -20,8 +20,8 @@ async function setupAndGetRandomUser(pw: PlaywrightExtended) {
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Create a random user to edit for
-    const user = await adminClient.createUser(pw.random.user(), '', '');
-    const team = await adminClient.createTeam(pw.random.team());
+    const user = await adminClient.createUser(await pw.random.user(), '', '');
+    const team = await adminClient.createTeam(await pw.random.team());
     await adminClient.addToTeam(team.id, user.id);
 
     // # Visit system console
@@ -156,7 +156,7 @@ test('MM-T5520-4 should reset the users password', async ({pw}) => {
 
     // # Enter a random password and click Save
     const passwordInput = systemConsolePage.page.locator('input[type="password"]');
-    await passwordInput.fill(pw.random.id());
+    await passwordInput.fill(await pw.random.id());
     await systemConsolePage.clickResetButton();
 
     // * Verify that the modal closed and no error showed

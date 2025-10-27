@@ -10,7 +10,7 @@ import {testConfig} from '@/test_config';
 import {REMOTE_USERS_HOUR_LIMIT_END_OF_THE_DAY, REMOTE_USERS_HOUR_LIMIT_BEGINNING_OF_THE_DAY} from '@/constant';
 
 export async function createNewUserProfile(client: Client4, prefix = 'user') {
-    const randomUser = createRandomUser(prefix);
+    const randomUser = await createRandomUser(prefix);
 
     const newUser = await client.createUser(randomUser, '', '');
     newUser.password = randomUser.password;
@@ -18,8 +18,8 @@ export async function createNewUserProfile(client: Client4, prefix = 'user') {
     return newUser;
 }
 
-export function createRandomUser(prefix = 'user') {
-    const randomId = getRandomId();
+export async function createRandomUser(prefix = 'user') {
+    const randomId = await getRandomId();
 
     const user = {
         email: `${prefix}${randomId}@sample.mattermost.com`,

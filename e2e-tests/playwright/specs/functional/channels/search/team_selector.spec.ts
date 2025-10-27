@@ -56,7 +56,7 @@ test('team selector should be visible if user belongs to multiple teams', async 
     const {adminClient, user, team} = await pw.initSetup();
 
     // # Create a second team and add the user to it
-    const secondTeam = await adminClient.createTeam(pw.random.team('team', 'Team', 'O', true));
+    const secondTeam = await adminClient.createTeam(await pw.random.team('team', 'Team', 'O', true));
     await adminClient.addUsersToTeam(secondTeam.id, [user.id]);
 
     // # Create a channel in the first team
@@ -131,7 +131,7 @@ test('team selector should show filter input with more than 4 teams', async ({pw
     // # Create 4 more teams (for a total of 5) and add the user to them
     const teams = [team];
     for (let i = 0; i < 4; i++) {
-        const newTeam = await adminClient.createTeam(pw.random.team('team', 'Team', 'O', true));
+        const newTeam = await adminClient.createTeam(await pw.random.team('team', 'Team', 'O', true));
         await adminClient.addUsersToTeam(newTeam.id, [user.id]);
         teams.push(newTeam);
     }

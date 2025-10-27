@@ -8,6 +8,7 @@ import ChannelsPostCreate from './post_create';
 import ChannelsPostEdit from './post_edit';
 import ChannelsPost from './post';
 import ScheduledPostIndicator from './scheduled_post_indicator';
+import FlagPostConfirmationDialog from './flag_post_confirmation_dialog';
 
 import {duration, hexToRgb} from '@/util';
 import {waitUntil} from '@/test_action';
@@ -23,6 +24,7 @@ export default class ChannelsCenterView {
     readonly postEdit;
     readonly editedPostIcon;
     readonly channelBanner;
+    readonly flagPostConfirmationDialog;
 
     constructor(container: Locator, page: Page) {
         this.container = container;
@@ -35,6 +37,10 @@ export default class ChannelsCenterView {
         this.scheduledPostIndicator = new ScheduledPostIndicator(container.getByTestId('scheduledPostIndicator'));
         this.editedPostIcon = (postID: string) => container.locator(`#postEdited_${postID}`);
         this.channelBanner = container.getByTestId('channel_banner_container');
+        this.flagPostConfirmationDialog = new FlagPostConfirmationDialog(
+            page.locator('#FlagPostModal div.modal-content'),
+            page,
+        );
     }
 
     async toBeVisible() {

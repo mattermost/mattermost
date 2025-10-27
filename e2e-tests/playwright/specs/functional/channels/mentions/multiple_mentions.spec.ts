@@ -24,7 +24,7 @@ test('displays multiple mentions correctly in Recent Mentions panel', {tag: '@me
 
     // # Create a second user to be mentioned
     const {adminClient} = await pw.getAdminClient();
-    const mentionedUser = pw.random.user('mentioned');
+    const mentionedUser = await pw.random.user('mentioned');
     const {id: mentionedUserID} = await adminClient.createUser(mentionedUser, '', '');
 
     // # Add the mentioned user to the team

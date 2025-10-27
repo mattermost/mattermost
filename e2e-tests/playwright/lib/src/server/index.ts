@@ -8,3 +8,9 @@ export {initSetup, getAdminClient} from './init';
 export {createRandomPost} from './post';
 export {createRandomTeam} from './team';
 export {createNewUserProfile, createRandomUser, getDefaultAdminUser, isOutsideRemoteUserHour} from './user';
+export {
+    ContentFlaggingClient,
+    generateFlagReason,
+    generateFlagComment,
+    generateContentFlaggingConfig,
+} from './content_flagging_client';
