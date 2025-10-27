@@ -831,6 +831,6 @@ const defaultServerConfig: AdminConfig = {
             NewPost: 800,
             Fetch: 2000,
             Notification: 300,
-        }
+        },
     },
 };
