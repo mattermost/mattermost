@@ -86,6 +86,7 @@ func (s *SqlAutoTranslationStore) SetChannelEnabled(channelID string, enabled bo
 			"jsonb_set(props, '{autotranslation}', (?::jsonb))",
 			fmt.Sprintf("%v", enabled),
 		)).
+		Set("updateAt", model.GetMillis()).
 		Where(sq.Eq{"id": channelID})
 
 	queryString, args, err := query.ToSql()

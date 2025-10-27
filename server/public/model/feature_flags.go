@@ -75,9 +75,6 @@ type FeatureFlags struct {
 	InteractiveDialogAppsForm bool
 
 	EnableMattermostEntry bool
-	// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this field when feature is GA
-	// Enable channel admins to manage ABAC rules for their channels
-	ChannelAdminManageABACRules bool
 
 	// Enable mobile SSO SAML code-exchange flow (no tokens in deep links)
 	MobileSSOCodeExchange bool
