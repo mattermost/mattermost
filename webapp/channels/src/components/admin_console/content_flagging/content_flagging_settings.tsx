@@ -129,27 +129,24 @@ export default function ContentFlaggingSettings() {
                             helpText=''
                         />
                     </div>
-
-                    {
-                        contentFlaggingSettings.EnableContentFlagging &&
-                        <>
-                            <ContentFlaggingContentReviewers
-                                id='ReviewerSettings'
-                                onChange={handleSettingsChange}
-                                value={contentFlaggingSettings!.ReviewerSettings}
-                            />
-                            <ContentFlaggingNotificationSettingsSection
-                                id='NotificationSettings'
-                                onChange={handleSettingsChange}
-                                value={contentFlaggingSettings!.NotificationSettings}
-                            />
-                            <ContentFlaggingAdditionalSettingsSection
-                                id='AdditionalSettings'
-                                onChange={handleSettingsChange}
-                                value={contentFlaggingSettings!.AdditionalSettings}
-                            />
-                        </>
-                    }
+                    <ContentFlaggingContentReviewers
+                        id='ReviewerSettings'
+                        onChange={handleSettingsChange}
+                        value={contentFlaggingSettings!.ReviewerSettings}
+                        disabled={!contentFlaggingSettings.EnableContentFlagging}
+                    />
+                    <ContentFlaggingNotificationSettingsSection
+                        id='NotificationSettings'
+                        onChange={handleSettingsChange}
+                        value={contentFlaggingSettings!.NotificationSettings}
+                        disabled={!contentFlaggingSettings.EnableContentFlagging}
+                    />
+                    <ContentFlaggingAdditionalSettingsSection
+                        id='AdditionalSettings'
+                        onChange={handleSettingsChange}
+                        value={contentFlaggingSettings!.AdditionalSettings}
+                        disabled={!contentFlaggingSettings.EnableContentFlagging}
+                    />
                 </div>
             </div>
 

@@ -25,6 +25,7 @@ type Props = {
     id: string;
     onChange: SystemConsoleCustomSettingChangeHandler;
     value: ContentFlaggingReviewerSetting;
+    disabled?: boolean;
 }
 
 export default function ContentFlaggingContentReviewers(props: Props) {
@@ -111,7 +112,7 @@ export default function ContentFlaggingContentReviewers(props: Props) {
                         </div>
 
                         <div className='setting-content'>
-                            <Label isDisabled={false}>
+                            <Label isDisabled={props.disabled || false}>
                                 <input
                                     data-testid='sameReviewersForAllTeams_true'
                                     id='sameReviewersForAllTeams_true'
@@ -119,6 +120,7 @@ export default function ContentFlaggingContentReviewers(props: Props) {
                                     value='true'
                                     checked={reviewerSetting.CommonReviewers}
                                     onChange={handleSameReviewersForAllTeamsChange}
+                                    disabled={props.disabled || false}
                                 />
                                 <FormattedMessage
                                     id='admin.true'
@@ -126,7 +128,7 @@ export default function ContentFlaggingContentReviewers(props: Props) {
                                 />
                             </Label>
 
-                            <Label isDisabled={false}>
+                            <Label isDisabled={props.disabled || false}>
                                 <input
                                     data-testid='sameReviewersForAllTeams_false'
                                     id='sameReviewersForAllTeams_false'
@@ -134,6 +136,7 @@ export default function ContentFlaggingContentReviewers(props: Props) {
                                     value='false'
                                     checked={!reviewerSetting.CommonReviewers}
                                     onChange={handleSameReviewersForAllTeamsChange}
+                                    disabled={props.disabled || false}
                                 />
                                 <FormattedMessage
                                     id='admin.false'
@@ -159,6 +162,7 @@ export default function ContentFlaggingContentReviewers(props: Props) {
                                     id='content_reviewers_common_reviewers'
                                     multiSelectInitialValue={reviewerSetting.CommonReviewerIds}
                                     multiSelectOnChange={handleCommonReviewersChange}
+                                    disabled={props.disabled}
                                 />
                             </div>
                         </div>
@@ -203,6 +207,7 @@ export default function ContentFlaggingContentReviewers(props: Props) {
                                     defaultChecked={reviewerSetting.SystemAdminsAsReviewers}
                                     onChange={handleSystemAdminReviewerChange}
                                     setByEnv={false}
+                                    disabled={props.disabled}
                                 />
 
                                 <CheckboxSetting
@@ -216,6 +221,7 @@ export default function ContentFlaggingContentReviewers(props: Props) {
                                     defaultChecked={reviewerSetting.TeamAdminsAsReviewers}
                                     onChange={handleTeamAdminReviewerChange}
                                     setByEnv={false}
+                                    disabled={props.disabled}
                                 />
                             </div>
 

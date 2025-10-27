@@ -65,6 +65,7 @@ type Props = {
     };
 
     className?: string;
+    disabled?: boolean;
 };
 
 type State = {
