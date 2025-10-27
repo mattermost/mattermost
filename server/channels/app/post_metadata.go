@@ -61,6 +61,7 @@ func (a *App) PreparePostListForClient(rctx request.CTX, originalList *model.Pos
 		PrevPostId:                originalList.PrevPostId,
 		HasNext:                   originalList.HasNext,
 		FirstInaccessiblePostTime: originalList.FirstInaccessiblePostTime,
+		NextCursor:                originalList.NextCursor,
 	}
 
 	for id, originalPost := range originalList.Posts {

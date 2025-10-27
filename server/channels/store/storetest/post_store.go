@@ -6183,4 +6183,199 @@ func testPostStoreGetPostsWithCursor(t *testing.T, rctx request.CTX, ss store.St
 		// Should get both posts 1 and 2
 		assert.Len(t, postListWithDeleted.Posts, 2)
 	})
+
+	t.Run("initial query with FromCreateAt - no cursor", func(t *testing.T) {
+		teamID := model.NewId()
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "DisplayName",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		channelID := channel.Id
+		userID := model.NewId()
+		baseTime := model.GetMillis()
+
+		// Create 5 posts with explicit timestamps
+		var posts []*model.Post
+		for i := 0; i < 5; i++ {
+			post, err := ss.Post().Save(rctx, &model.Post{
+				ChannelId: channelID,
+				UserId:    userID,
+				Message:   fmt.Sprintf("message %d", i),
+				CreateAt:  baseTime + int64(i*1000),
+			})
+			require.NoError(t, err)
+			posts = append(posts, post)
+		}
+
+		// Query from post 1's CreateAt
+		sinceTime := posts[1].CreateAt
+		postList, err := ss.Post().GetPosts(rctx, model.GetPostsOptions{
+			ChannelId:    channelID,
+			FromCreateAt: sinceTime,
+			PerPage:      10,
+		}, false, map[string]bool{})
+		require.NoError(t, err)
+
+		// Should get posts 1, 2, 3, 4 (posts >= sinceTime)
+		assert.Len(t, postList.Posts, 4)
+		assert.Equal(t, posts[1].Id, postList.Order[0])
+		assert.Equal(t, posts[2].Id, postList.Order[1])
+		assert.Equal(t, posts[3].Id, postList.Order[2])
+		assert.Equal(t, posts[4].Id, postList.Order[3])
+		require.NotNil(t, postList.HasNext)
+		assert.False(t, *postList.HasNext)
+	})
+
+	t.Run("initial query with FromCreateAt and UntilCreateAt - time range", func(t *testing.T) {
+		teamID := model.NewId()
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "DisplayName",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		channelID := channel.Id
+		userID := model.NewId()
+		baseTime := model.GetMillis()
+
+		// Create 5 posts with explicit timestamps
+		var posts []*model.Post
+		for i := 0; i < 5; i++ {
+			post, err := ss.Post().Save(rctx, &model.Post{
+				ChannelId: channelID,
+				UserId:    userID,
+				Message:   fmt.Sprintf("message %d", i),
+				CreateAt:  baseTime + int64(i*1000),
+			})
+			require.NoError(t, err)
+			posts = append(posts, post)
+		}
+
+		// Query from post 1 to post 4 (exclusive)
+		sinceTime := posts[1].CreateAt
+		untilTime := posts[4].CreateAt
+		postList, err := ss.Post().GetPosts(rctx, model.GetPostsOptions{
+			ChannelId:     channelID,
+			FromCreateAt:  sinceTime,
+			UntilCreateAt: untilTime,
+			PerPage:       10,
+		}, false, map[string]bool{})
+		require.NoError(t, err)
+
+		// Should get posts 1, 2, 3 (since <= CreateAt < until)
+		assert.Len(t, postList.Posts, 3)
+		assert.Equal(t, posts[1].Id, postList.Order[0])
+		assert.Equal(t, posts[2].Id, postList.Order[1])
+		assert.Equal(t, posts[3].Id, postList.Order[2])
+	})
+
+	t.Run("initial query with FromUpdateAt - no cursor", func(t *testing.T) {
+		teamID := model.NewId()
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "DisplayName",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		channelID := channel.Id
+		userID := model.NewId()
+		baseTime := model.GetMillis()
+
+		// Create 3 posts with explicit UpdateAt times
+		var posts []*model.Post
+		for i := 0; i < 3; i++ {
+			post := &model.Post{
+				ChannelId: channelID,
+				UserId:    userID,
+				Message:   fmt.Sprintf("message %d", i),
+				CreateAt:  baseTime + int64(i*1000),
+				UpdateAt:  baseTime + int64(i*1000), // Set explicit UpdateAt
+			}
+			post, err := ss.Post().Save(rctx, post)
+			require.NoError(t, err)
+			posts = append(posts, post)
+		}
+
+		// Query from post 1's UpdateAt time
+		sinceTime := posts[1].UpdateAt
+		postList, err := ss.Post().GetPosts(rctx, model.GetPostsOptions{
+			ChannelId:    channelID,
+			FromUpdateAt: sinceTime,
+			PerPage:      10,
+		}, false, map[string]bool{})
+		require.NoError(t, err)
+
+		// Should get posts 1 and 2 (posts with UpdateAt >= sinceTime)
+		assert.Len(t, postList.Posts, 2)
+		assert.Equal(t, posts[1].Id, postList.Order[0])
+		assert.Equal(t, posts[2].Id, postList.Order[1])
+	})
+
+	t.Run("pagination with FromCreateAt then cursor continuation", func(t *testing.T) {
+		teamID := model.NewId()
+		channel, err := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "DisplayName",
+			Name:        "channel" + model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		channelID := channel.Id
+		userID := model.NewId()
+		baseTime := model.GetMillis()
+
+		// Create 5 posts
+		var posts []*model.Post
+		for i := 0; i < 5; i++ {
+			post, err := ss.Post().Save(rctx, &model.Post{
+				ChannelId: channelID,
+				UserId:    userID,
+				Message:   fmt.Sprintf("message %d", i),
+				CreateAt:  baseTime + int64(i*1000),
+			})
+			require.NoError(t, err)
+			posts = append(posts, post)
+		}
+
+		// Initial query with FromCreateAt, requesting 2 per page
+		sinceTime := posts[0].CreateAt
+		postList, err := ss.Post().GetPosts(rctx, model.GetPostsOptions{
+			ChannelId:    channelID,
+			FromCreateAt: sinceTime,
+			PerPage:      2,
+		}, false, map[string]bool{})
+		require.NoError(t, err)
+
+		// Should get posts 0 and 1
+		assert.Len(t, postList.Posts, 2)
+		assert.Equal(t, posts[0].Id, postList.Order[0])
+		assert.Equal(t, posts[1].Id, postList.Order[1])
+		require.NotNil(t, postList.HasNext)
+		assert.True(t, *postList.HasNext)
+		assert.NotEmpty(t, postList.NextCursor)
+
+		// Use cursor to get next page
+		postList2, err := ss.Post().GetPosts(rctx, model.GetPostsOptions{
+			ChannelId: channelID,
+			Cursor:    postList.NextCursor,
+			PerPage:   2,
+		}, false, map[string]bool{})
+		require.NoError(t, err)
+
+		// Should get posts 2 and 3
+		assert.Len(t, postList2.Posts, 2)
+		assert.Equal(t, posts[2].Id, postList2.Order[0])
+		assert.Equal(t, posts[3].Id, postList2.Order[1])
+		require.NotNil(t, postList2.HasNext)
+		assert.True(t, *postList2.HasNext)
+	})
 }

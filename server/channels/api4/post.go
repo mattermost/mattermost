@@ -199,6 +199,44 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+
+	// Parse new cursor-based pagination parameters
+	cursor := r.URL.Query().Get("cursor")
+
+	untilString := r.URL.Query().Get("until")
+	var until int64
+	if untilString != "" {
+		until, parseError = strconv.ParseInt(untilString, 10, 64)
+		if parseError != nil {
+			c.SetInvalidParamWithErr("until", parseError)
+			return
+		}
+	}
+
+	timeType := r.URL.Query().Get("time_type")
+	if timeType == "" {
+		timeType = model.TimeTypeCreateAt // default
+	}
+
+	// Validate parameter combinations
+	if cursor != "" {
+		// cursor is mutually exclusive with since and time_type
+		if sinceString != "" {
+			c.SetInvalidParam("cursor and since cannot be used together")
+			return
+		}
+		if r.URL.Query().Get("time_type") != "" {
+			c.SetInvalidParam("cursor and time_type cannot be used together")
+			return
+		}
+	} else if sinceString != "" || untilString != "" {
+		// Only validate time_type if we're using since/until (not cursor)
+		if timeType != model.TimeTypeCreateAt && timeType != model.TimeTypeUpdateAt {
+			c.SetInvalidParam("time_type must be 'create_at' or 'update_at'")
+			return
+		}
+	}
+
 	skipFetchThreads, _ := strconv.ParseBool(r.URL.Query().Get("skipFetchThreads"))
 	collapsedThreads, _ := strconv.ParseBool(r.URL.Query().Get("collapsedThreads"))
 	collapsedThreadsExtended, _ := strconv.ParseBool(r.URL.Query().Get("collapsedThreadsExtended"))
@@ -225,8 +263,37 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	var list *model.PostList
 	etag := ""
 
-	if since > 0 {
-		list, err = c.App.GetPostsSince(c.AppContext, model.GetPostsSinceOptions{ChannelId: channelId, Time: since, SkipFetchThreads: skipFetchThreads, CollapsedThreads: collapsedThreads, CollapsedThreadsExtended: collapsedThreadsExtended, UserId: c.AppContext.Session().UserId})
+	if cursor != "" || since > 0 {
+		// Use GetPostsPage for cursor-based and time-range queries
+		opts := model.GetPostsOptions{
+			ChannelId:                channelId,
+			PerPage:                  perPage,
+			SkipFetchThreads:         skipFetchThreads,
+			CollapsedThreads:         collapsedThreads,
+			CollapsedThreadsExtended: collapsedThreadsExtended,
+			UserId:                   c.AppContext.Session().UserId,
+			IncludeDeleted:           includeDeleted,
+			Cursor:                   cursor,
+		}
+
+		// Map since/until to the appropriate fields based on time_type
+		if since > 0 {
+			if timeType == model.TimeTypeUpdateAt {
+				opts.FromUpdateAt = since
+			} else {
+				opts.FromCreateAt = since
+			}
+		}
+
+		if until > 0 {
+			if timeType == model.TimeTypeUpdateAt {
+				opts.UntilUpdateAt = until
+			} else {
+				opts.UntilCreateAt = until
+			}
+		}
+
+		list, err = c.App.GetPostsPage(c.AppContext, opts)
 	} else if afterPost != "" {
 		etag = c.App.GetPostsEtag(channelId, collapsedThreads)
 

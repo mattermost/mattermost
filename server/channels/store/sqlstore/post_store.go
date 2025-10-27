@@ -1268,31 +1268,49 @@ func (s *SqlPostStore) getPostsCollapsedThreads(rctx request.CTX, options model.
 	return s.prepareThreadedResponse(rctx, posts, options.CollapsedThreadsExtended, false, sanitizeOptions)
 }
 
-// getPostsWithCursor retrieves posts using cursor-based pagination.
-// It supports pagination by either CreateAt or UpdateAt timestamps based on the cursor.
-func (s *SqlPostStore) getPostsWithCursor(rctx request.CTX, options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
+// getPostsByTimeRange retrieves posts within a time range with optional cursor-based pagination.
+// Supports both initial queries (using FromCreateAt/FromUpdateAt) and continuation queries (using Cursor).
+func (s *SqlPostStore) getPostsByTimeRange(rctx request.CTX, options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	if options.PerPage > 1000 {
 		return nil, store.NewErrInvalidInput("Post", "<options.PerPage>", options.PerPage)
 	}
 
-	// Decode the cursor
-	cursor, err := model.DecodePostsSinceCursor(options.Cursor)
-	if err != nil {
-		return nil, store.NewErrInvalidInput("Post", "cursor", options.Cursor)
-	}
-
-	// Determine which timestamp field to use based on cursor
-	cursorTimestamp := cursor.LastPostTimestamp
 	var timeField string
+	var timeType string
+	var sinceTimestamp int64
+	var cursorPostID string
 	var untilTimestamp int64
 
-	if cursor.TimeType == model.TimeTypeUpdateAt {
+	if options.Cursor != "" {
+		// Cursor-based pagination: decode cursor
+		cursor, err := model.DecodePostsSinceCursor(options.Cursor)
+		if err != nil {
+			return nil, store.NewErrInvalidInput("Post", "cursor", options.Cursor)
+		}
+
+		timeType = cursor.TimeType
+		sinceTimestamp = cursor.LastPostTimestamp
+		cursorPostID = cursor.LastPostID
+
+		if cursor.TimeType == model.TimeTypeUpdateAt {
+			timeField = "UpdateAt"
+			untilTimestamp = options.UntilUpdateAt
+		} else {
+			timeField = "CreateAt"
+			untilTimestamp = options.UntilCreateAt
+		}
+	} else if options.FromUpdateAt > 0 {
+		timeType = model.TimeTypeUpdateAt
 		timeField = "UpdateAt"
+		sinceTimestamp = options.FromUpdateAt
 		untilTimestamp = options.UntilUpdateAt
-	} else {
-		// Default to CreateAt
+	} else if options.FromCreateAt > 0 {
+		timeType = model.TimeTypeCreateAt
 		timeField = "CreateAt"
+		sinceTimestamp = options.FromCreateAt
 		untilTimestamp = options.UntilCreateAt
+	} else {
+		return nil, store.NewErrInvalidInput("Post", "time range", "must provide Cursor, FromCreateAt, or FromUpdateAt")
 	}
 
 	// Build the query using squirrel
@@ -1303,14 +1321,20 @@ func (s *SqlPostStore) getPostsWithCursor(rctx request.CTX, options model.GetPos
 		OrderBy(timeField, "Id").
 		Limit(uint64(options.PerPage) + 1) // Fetch one extra to determine HasNext
 
-	// Add cursor-based WHERE clause: (timestamp > cursor) OR (timestamp = cursor AND id > cursor_id)
-	query = query.Where(sq.Or{
-		sq.Gt{timeField: cursorTimestamp},
-		sq.And{
-			sq.Eq{timeField: cursorTimestamp},
-			sq.Gt{"Id": cursor.LastPostID},
-		},
-	})
+	// Add time-based WHERE clause
+	if cursorPostID != "" {
+		// Cursor-based pagination: (timestamp > cursor) OR (timestamp = cursor AND id > cursor_id)
+		query = query.Where(sq.Or{
+			sq.Gt{timeField: sinceTimestamp},
+			sq.And{
+				sq.Eq{timeField: sinceTimestamp},
+				sq.Gt{"Id": cursorPostID},
+			},
+		})
+	} else if sinceTimestamp > 0 {
+		// Initial since query: timestamp >= since
+		query = query.Where(sq.GtOrEq{timeField: sinceTimestamp})
+	}
 
 	// Add upper bound filter if specified
 	if untilTimestamp > 0 {
@@ -1324,7 +1348,7 @@ func (s *SqlPostStore) getPostsWithCursor(rctx request.CTX, options model.GetPos
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
-		return nil, errors.Wrap(err, "getPostsWithCursor_tosql")
+		return nil, errors.Wrap(err, "getPostsByTimeRange_tosql")
 	}
 
 	posts := []*model.Post{}
@@ -1354,14 +1378,14 @@ func (s *SqlPostStore) getPostsWithCursor(rctx request.CTX, options model.GetPos
 	if hasNext && len(posts) > 0 {
 		lastPost := posts[len(posts)-1]
 		var lastTimestamp int64
-		if cursor.TimeType == model.TimeTypeUpdateAt {
+		if timeType == model.TimeTypeUpdateAt {
 			lastTimestamp = lastPost.UpdateAt
 		} else {
 			lastTimestamp = lastPost.CreateAt
 		}
 
 		nextCursor := model.GetPostsSinceCursor{
-			TimeType:          cursor.TimeType,
+			TimeType:          timeType,
 			LastPostTimestamp: lastTimestamp,
 			LastPostID:        lastPost.Id,
 		}
@@ -1381,8 +1405,9 @@ func (s *SqlPostStore) GetPosts(rctx request.CTX, options model.GetPostsOptions,
 	if options.PerPage > 1000 {
 		return nil, store.NewErrInvalidInput("Post", "<options.PerPage>", options.PerPage)
 	}
-	if options.Cursor != "" {
-		return s.getPostsWithCursor(rctx, options, sanitizeOptions)
+	// Use time-based pagination when cursor or time fields are provided
+	if options.Cursor != "" || options.FromCreateAt > 0 || options.FromUpdateAt > 0 {
+		return s.getPostsByTimeRange(rctx, options, sanitizeOptions)
 	}
 	if options.CollapsedThreads {
 		return s.getPostsCollapsedThreads(rctx, options, sanitizeOptions)

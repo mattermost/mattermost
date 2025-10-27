@@ -2940,6 +2940,107 @@ func TestGetPostsAfter(t *testing.T) {
 	})
 }
 
+func TestGetPostsForChannelCursorPagination(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+
+	// Create a fresh channel without any existing posts
+	testChannel := th.CreatePublicChannel()
+
+	// Helper function to call API with custom query parameters
+	getPostsWithQuery := func(channelId, queryParams string) (*model.PostList, *model.Response, error) {
+		route := fmt.Sprintf("/channels/%s/posts?%s", channelId, queryParams)
+		r, err := client.DoAPIGet(context.Background(), route, "")
+		if err != nil {
+			return nil, model.BuildResponse(r), err
+		}
+		defer r.Body.Close()
+		var postList model.PostList
+		if err := json.NewDecoder(r.Body).Decode(&postList); err != nil {
+			return nil, nil, model.NewAppError("getPostsWithQuery", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		return &postList, model.BuildResponse(r), nil
+	}
+
+	// Create test posts with known timestamps
+	// Use SystemAdminClient to preserve explicit CreateAt timestamps
+	baseTime := model.GetMillis()
+	post1 := &model.Post{ChannelId: testChannel.Id, Message: "post1", CreateAt: baseTime}
+	post1, _, _ = th.SystemAdminClient.CreatePost(context.Background(), post1)
+
+	post2 := &model.Post{ChannelId: testChannel.Id, Message: "post2", CreateAt: baseTime + 1000}
+	post2, _, _ = th.SystemAdminClient.CreatePost(context.Background(), post2)
+
+	post3 := &model.Post{ChannelId: testChannel.Id, Message: "post3", CreateAt: baseTime + 2000}
+	post3, _, _ = th.SystemAdminClient.CreatePost(context.Background(), post3)
+
+	post4 := &model.Post{ChannelId: testChannel.Id, Message: "post4", CreateAt: baseTime + 3000}
+	post4, _, _ = th.SystemAdminClient.CreatePost(context.Background(), post4)
+
+	t.Run("cursor pagination with since parameter", func(t *testing.T) {
+		// Get posts since post2's create time
+		posts, _, err := getPostsWithQuery(testChannel.Id,
+			fmt.Sprintf("since=%d&per_page=2", post2.CreateAt))
+		require.NoError(t, err)
+
+		// Should get post2 and post3 (first page)
+		require.Len(t, posts.Order, 2)
+		require.Equal(t, post2.Id, posts.Order[0])
+		require.Equal(t, post3.Id, posts.Order[1])
+		require.NotNil(t, posts.HasNext)
+		require.True(t, *posts.HasNext)
+		require.NotEmpty(t, posts.NextCursor)
+
+		// Use cursor to get next page
+		posts2, _, err := getPostsWithQuery(testChannel.Id,
+			fmt.Sprintf("cursor=%s&per_page=2", url.QueryEscape(posts.NextCursor)))
+		require.NoError(t, err)
+
+		// Should get post4
+		require.Len(t, posts2.Order, 1)
+		require.Equal(t, post4.Id, posts2.Order[0])
+		require.NotNil(t, posts2.HasNext)
+		require.False(t, *posts2.HasNext)
+		require.Empty(t, posts2.NextCursor)
+	})
+
+	t.Run("time range with since and until", func(t *testing.T) {
+		// Get posts from post2 to post4 (exclusive)
+		posts, _, err := getPostsWithQuery(testChannel.Id,
+			fmt.Sprintf("since=%d&until=%d&per_page=10", post2.CreateAt, post4.CreateAt))
+		require.NoError(t, err)
+
+		// Should get post2 and post3 only
+		require.Len(t, posts.Order, 2)
+		require.Equal(t, post2.Id, posts.Order[0])
+		require.Equal(t, post3.Id, posts.Order[1])
+	})
+
+	t.Run("validation: cursor and since are mutually exclusive", func(t *testing.T) {
+		_, resp, err := getPostsWithQuery(testChannel.Id,
+			fmt.Sprintf("cursor=test&since=%d", baseTime))
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("validation: cursor and time_type are mutually exclusive", func(t *testing.T) {
+		_, resp, err := getPostsWithQuery(testChannel.Id,
+			"cursor=test&time_type=create_at")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("validation: invalid time_type value", func(t *testing.T) {
+		_, resp, err := getPostsWithQuery(testChannel.Id,
+			fmt.Sprintf("since=%d&time_type=invalid", baseTime))
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+}
+
 func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	mainHelper.Parallel(t)
 
