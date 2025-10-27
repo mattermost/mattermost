@@ -410,6 +410,9 @@ type GetPostsOptions struct {
 	UpdatesOnly              bool   // This flag is used to make the API work with the updateAt value.
 	IncludeDeleted           bool
 	IncludePostPriority      bool
+	Cursor                   string // Used for cursor-based pagination.
+	UntilCreateAt            int64  // Upper bound timestamp when filtering by CreateAt.
+	UntilUpdateAt            int64  // Upper bound timestamp when filtering by UpdateAt.
 }
 
 type PostCountOptions struct {
