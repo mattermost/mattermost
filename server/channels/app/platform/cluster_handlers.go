@@ -116,7 +116,6 @@ func (ps *PlatformService) InvalidateAllCachesSkipSend() *model.AppError {
 	ps.Store.Post().ClearCaches()
 	ps.Store.FileInfo().ClearCaches()
 	ps.Store.Webhook().ClearCaches()
-	ps.Store.AutoTranslation().ClearCaches()
 
 	if err := linkCache.Purge(); err != nil {
 		ps.logger.Warn("Failed to clear the link cache", mlog.Err(err))
