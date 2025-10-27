@@ -3132,7 +3132,6 @@ func (s *SqlPostStore) updateThreadsFromPosts(transaction *sqlxTxWrapper, posts 
 			if err != nil {
 				return errors.Wrapf(err, "failed to re-select or lock thread %s after creation attempt", rootId)
 			}
-
 		}
 
 		// Thread record exists, proceed with the safe, incremental update logic
