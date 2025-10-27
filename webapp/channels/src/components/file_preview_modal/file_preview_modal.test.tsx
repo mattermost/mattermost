@@ -13,7 +13,9 @@ import {generateId} from 'utils/utils';
 
 describe('components/FilePreviewModal', () => {
     const baseProps = {
-        fileInfos: [TestHelper.getFileInfoMock({id: 'file_id', extension: 'jpg'})],
+        fileInfos: [
+            TestHelper.getFileInfoMock({id: 'file_id', extension: 'jpg'}),
+        ],
         startIndex: 0,
         canDownloadFiles: true,
         enablePublicLink: true,
@@ -36,7 +38,9 @@ describe('components/FilePreviewModal', () => {
     });
 
     test('should match snapshot, loaded with .mov file', () => {
-        const fileInfos = [TestHelper.getFileInfoMock({id: 'file_id', extension: 'mov'})];
+        const fileInfos = [
+            TestHelper.getFileInfoMock({id: 'file_id', extension: 'mov'}),
+        ];
         const props = {...baseProps, fileInfos};
         const wrapper = shallow(<FilePreviewModal {...props}/>);
 
@@ -45,7 +49,9 @@ describe('components/FilePreviewModal', () => {
     });
 
     test('should match snapshot, loaded with .m4a file', () => {
-        const fileInfos = [TestHelper.getFileInfoMock({id: 'file_id', extension: 'm4a'})];
+        const fileInfos = [
+            TestHelper.getFileInfoMock({id: 'file_id', extension: 'm4a'}),
+        ];
         const props = {...baseProps, fileInfos};
         const wrapper = shallow(<FilePreviewModal {...props}/>);
 
@@ -54,7 +60,9 @@ describe('components/FilePreviewModal', () => {
     });
 
     test('should match snapshot, loaded with .js file', () => {
-        const fileInfos = [TestHelper.getFileInfoMock({id: 'file_id', extension: 'js'})];
+        const fileInfos = [
+            TestHelper.getFileInfoMock({id: 'file_id', extension: 'js'}),
+        ];
         const props = {...baseProps, fileInfos};
         const wrapper = shallow(<FilePreviewModal {...props}/>);
 
@@ -63,7 +71,9 @@ describe('components/FilePreviewModal', () => {
     });
 
     test('should match snapshot, loaded with other file', () => {
-        const fileInfos = [TestHelper.getFileInfoMock({id: 'file_id', extension: 'other'})];
+        const fileInfos = [
+            TestHelper.getFileInfoMock({id: 'file_id', extension: 'other'}),
+        ];
         const props = {...baseProps, fileInfos};
         const wrapper = shallow(<FilePreviewModal {...props}/>);
 
@@ -105,7 +115,9 @@ describe('components/FilePreviewModal', () => {
             TestHelper.getFileInfoMock({id: 'file_id_3', extension: 'mp4'}),
         ];
         const props = {...baseProps, fileInfos};
-        const wrapper = shallow<FilePreviewModal>(<FilePreviewModal {...props}/>);
+        const wrapper = shallow<FilePreviewModal>(
+            <FilePreviewModal {...props}/>,
+        );
 
         wrapper.setState({loaded: [true, true, true]});
 
@@ -124,7 +136,9 @@ describe('components/FilePreviewModal', () => {
     });
 
     test('should handle onMouseEnter and onMouseLeave', () => {
-        const wrapper = shallow<FilePreviewModal>(<FilePreviewModal {...baseProps}/>);
+        const wrapper = shallow<FilePreviewModal>(
+            <FilePreviewModal {...baseProps}/>,
+        );
         wrapper.setState({loaded: [true]});
 
         wrapper.instance().onMouseEnterImage();
@@ -135,7 +149,9 @@ describe('components/FilePreviewModal', () => {
     });
 
     test('should handle on modal close', () => {
-        const wrapper = shallow<FilePreviewModal>(<FilePreviewModal {...baseProps}/>);
+        const wrapper = shallow<FilePreviewModal>(
+            <FilePreviewModal {...baseProps}/>,
+        );
         wrapper.setState({
             loaded: [true],
         });
@@ -145,56 +161,82 @@ describe('components/FilePreviewModal', () => {
     });
 
     test('should match snapshot for external file', () => {
-        const fileInfos = [
-            TestHelper.getFileInfoMock({extension: 'png'}),
-        ];
+        const fileInfos = [TestHelper.getFileInfoMock({extension: 'png'})];
         const props = {...baseProps, fileInfos};
         const wrapper = shallow(<FilePreviewModal {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
     test('should correctly identify image URLs with isImageUrl method', () => {
-        const wrapper = shallow<FilePreviewModal>(<FilePreviewModal {...baseProps}/>);
+        const wrapper = shallow<FilePreviewModal>(
+            <FilePreviewModal {...baseProps}/>,
+        );
 
         // Test proxied image URLs
-        expect(wrapper.instance().isImageUrl('http://localhost:8065/api/v4/image?url=https%3A%2F%2Fexample.com%2Fimage.jpg')).toBe(true);
+        expect(
+            wrapper.
+                instance().
+                isImageUrl(
+                    'http://localhost:8065/api/v4/image?url=https%3A%2F%2Fexample.com%2Fimage.jpg',
+                ),
+        ).toBe(true);
 
         // Test URLs with image extensions
-        expect(wrapper.instance().isImageUrl('https://example.com/image.jpg')).toBe(true);
-        expect(wrapper.instance().isImageUrl('https://example.com/image.png')).toBe(true);
-        expect(wrapper.instance().isImageUrl('https://example.com/image.gif')).toBe(true);
+        expect(
+            wrapper.instance().isImageUrl('https://example.com/image.jpg'),
+        ).toBe(true);
+        expect(
+            wrapper.instance().isImageUrl('https://example.com/image.png'),
+        ).toBe(true);
+        expect(
+            wrapper.instance().isImageUrl('https://example.com/image.gif'),
+        ).toBe(true);
 
         // Test non-image URLs
-        expect(wrapper.instance().isImageUrl('https://example.com/document.pdf')).toBe(false);
-        expect(wrapper.instance().isImageUrl('https://example.com/file.txt')).toBe(false);
+        expect(
+            wrapper.instance().isImageUrl('https://example.com/document.pdf'),
+        ).toBe(false);
+        expect(
+            wrapper.instance().isImageUrl('https://example.com/file.txt'),
+        ).toBe(false);
     });
 
     test('should handle external image URLs correctly', () => {
         // Create a mock for Utils.loadImage
-        const loadImageSpy = jest.spyOn(Utils, 'loadImage').mockImplementation((url, onLoad) => {
-            // Create a mock ProgressEvent
-            const mockProgressEvent = new ProgressEvent('progress');
+        const loadImageSpy = jest.
+            spyOn(Utils, 'loadImage').
+            mockImplementation((url, onLoad) => {
+                // Create a mock ProgressEvent
+                const mockProgressEvent = new ProgressEvent('progress');
 
-            // Call onLoad with the mock event if it exists
-            if (onLoad) {
-                onLoad.call({} as XMLHttpRequest, mockProgressEvent);
-            }
-        });
+                // Call onLoad with the mock event if it exists
+                if (onLoad) {
+                    onLoad.call({} as XMLHttpRequest, mockProgressEvent);
+                }
+            });
 
         // Create a LinkInfo object for an external image URL
-        const externalImageUrl = 'http://localhost:8065/api/v4/image?url=https%3A%2F%2Fexample.com%2Fimage.jpg';
-        const fileInfos = [{
-            has_preview_image: false,
-            link: externalImageUrl,
-            extension: '',
-            name: 'External Image',
-        }];
+        const externalImageUrl =
+            'http://localhost:8065/api/v4/image?url=https%3A%2F%2Fexample.com%2Fimage.jpg';
+        const fileInfos = [
+            {
+                has_preview_image: false,
+                link: externalImageUrl,
+                extension: '',
+                name: 'External Image',
+            },
+        ];
 
         const props = {...baseProps, fileInfos};
-        const wrapper = shallow<FilePreviewModal>(<FilePreviewModal {...props}/>);
+        const wrapper = shallow<FilePreviewModal>(
+            <FilePreviewModal {...props}/>,
+        );
 
         // Spy on handleImageLoaded
-        const handleImageLoadedSpy = jest.spyOn(wrapper.instance(), 'handleImageLoaded');
+        const handleImageLoadedSpy = jest.spyOn(
+            wrapper.instance(),
+            'handleImageLoaded',
+        );
 
         // Call loadImage with the external image URL
         wrapper.instance().loadImage(0);
@@ -220,7 +262,9 @@ describe('components/FilePreviewModal', () => {
             TestHelper.getFileInfoMock({id: 'file_id_3', extension: 'mp4'}),
         ];
         const props = {...baseProps, fileInfos};
-        const wrapper = shallow<FilePreviewModal>(<FilePreviewModal {...props}/>);
+        const wrapper = shallow<FilePreviewModal>(
+            <FilePreviewModal {...props}/>,
+        );
 
         let index = 1;
         wrapper.setState({loaded: [true, false, false]});
@@ -240,7 +284,9 @@ describe('components/FilePreviewModal', () => {
             TestHelper.getFileInfoMock({id: 'file_id_3', extension: 'mp4'}),
         ];
         const props = {...baseProps, fileInfos};
-        const wrapper = shallow<FilePreviewModal>(<FilePreviewModal {...props}/>);
+        const wrapper = shallow<FilePreviewModal>(
+            <FilePreviewModal {...props}/>,
+        );
 
         let index = 1;
         wrapper.setState({loaded: [true, false, false]});
@@ -260,7 +306,9 @@ describe('components/FilePreviewModal', () => {
             TestHelper.getFileInfoMock({id: 'file_id_3', extension: 'mp4'}),
         ];
         const props = {...baseProps, fileInfos};
-        const wrapper = shallow<FilePreviewModal>(<FilePreviewModal {...props}/>);
+        const wrapper = shallow<FilePreviewModal>(
+            <FilePreviewModal {...props}/>,
+        );
 
         const index = 1;
         let completedPercentage = 30;
@@ -276,16 +324,27 @@ describe('components/FilePreviewModal', () => {
     });
 
     test('should pass componentWillReceiveProps', () => {
-        const wrapper = shallow<FilePreviewModal>(<FilePreviewModal {...baseProps}/>);
+        const wrapper = shallow<FilePreviewModal>(
+            <FilePreviewModal {...baseProps}/>,
+        );
 
         expect(Object.keys(wrapper.state('loaded')).length).toBe(1);
         expect(Object.keys(wrapper.state('progress')).length).toBe(1);
 
         wrapper.setProps({
             fileInfos: [
-                TestHelper.getFileInfoMock({id: 'file_id_1', extension: 'gif'}),
-                TestHelper.getFileInfoMock({id: 'file_id_2', extension: 'wma'}),
-                TestHelper.getFileInfoMock({id: 'file_id_3', extension: 'mp4'}),
+                TestHelper.getFileInfoMock({
+                    id: 'file_id_1',
+                    extension: 'gif',
+                }),
+                TestHelper.getFileInfoMock({
+                    id: 'file_id_2',
+                    extension: 'wma',
+                }),
+                TestHelper.getFileInfoMock({
+                    id: 'file_id_3',
+                    extension: 'mp4',
+                }),
             ],
         });
         expect(Object.keys(wrapper.state('loaded')).length).toBe(3);
@@ -293,12 +352,14 @@ describe('components/FilePreviewModal', () => {
     });
 
     test('should match snapshot when plugin overrides the preview component', () => {
-        const pluginFilePreviewComponents = [{
-            id: generateId(),
-            pluginId: 'file-preview',
-            override: () => true,
-            component: () => <div>{'Preview'}</div>,
-        }];
+        const pluginFilePreviewComponents = [
+            {
+                id: generateId(),
+                pluginId: 'file-preview',
+                override: () => true,
+                component: () => <div>{'Preview'}</div>,
+            },
+        ];
         const props = {...baseProps, pluginFilePreviewComponents};
         const wrapper = shallow(<FilePreviewModal {...props}/>);
 
@@ -306,15 +367,38 @@ describe('components/FilePreviewModal', () => {
     });
 
     test('should fall back to default preview if plugin does not need to override preview component', () => {
-        const pluginFilePreviewComponents = [{
-            id: generateId(),
-            pluginId: 'file-preview',
-            override: () => false,
-            component: () => <div>{'Preview'}</div>,
-        }];
+        const pluginFilePreviewComponents = [
+            {
+                id: generateId(),
+                pluginId: 'file-preview',
+                override: () => false,
+                component: () => <div>{'Preview'}</div>,
+            },
+        ];
         const props = {...baseProps, pluginFilePreviewComponents};
         const wrapper = shallow(<FilePreviewModal {...props}/>);
 
         expect(wrapper).toMatchSnapshot();
+    });
+
+    // tested the rendering of txt file preview
+    test('should render TXT file in preview modal', () => {
+        const txtFile = TestHelper.getFileInfoMock({
+            id: 'file_id_txt',
+            extension: 'txt',
+            mime_type: 'text/plain',
+            name: 'sample.txt',
+        });
+
+        const props = {...baseProps, fileInfos: [txtFile]};
+        const wrapper = shallow<FilePreviewModal>(
+            <FilePreviewModal {...props}/>,
+        );
+
+        wrapper.setState({loaded: [true]});
+
+        // Expect the modal to render an iframe or pre block for TXT
+        expect(wrapper.find('.txt-preview').exists()).toBe(true);
+        console.log(wrapper.debug());
     });
 });

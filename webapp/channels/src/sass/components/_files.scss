@@ -450,6 +450,13 @@
     }
 }
 
+.txt-preview{
+    font-family: monospace;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
 .post-image__thumbnail {
     @include mixins.cursor(zoom-in);
 
