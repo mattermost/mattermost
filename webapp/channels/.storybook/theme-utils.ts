@@ -4,14 +4,18 @@
 /**
  * Theme utilities for Storybook
  * 
- * This file provides theme definitions and utilities to apply Mattermost themes in Storybook.
- * It mirrors the theme application logic from webapp/channels/src/utils/utils.tsx
+ * This file provides utilities to apply Mattermost themes in Storybook.
+ * It reuses existing theme utilities from the webapp.
  */
 
 import type {Theme} from '../src/packages/mattermost-redux/src/selectors/entities/preferences';
 
 // Import the official Mattermost themes
 import Preferences from '../src/packages/mattermost-redux/src/constants/preferences';
+
+// Reuse existing utilities from the webapp
+import {toRgbValues} from '../src/utils/utils';
+import {blendColors} from '../src/packages/mattermost-redux/src/utils/theme_utils';
 
 export const THEMES = Preferences.THEMES;
 
@@ -26,62 +30,8 @@ export const THEME_KEYS = {
 export type ThemeKey = typeof THEME_KEYS[keyof typeof THEME_KEYS];
 
 /**
- * Convert hex color to RGB values string (e.g., "255, 255, 255")
- */
-function toRgbValues(hexStr: string): string {
-    if (!hexStr || hexStr[0] !== '#') {
-        return '0, 0, 0';
-    }
-
-    const hex = hexStr.substring(1);
-    let r = 0;
-    let g = 0;
-    let b = 0;
-
-    if (hex.length === 3) {
-        r = parseInt(hex.substring(0, 1) + hex.substring(0, 1), 16);
-        g = parseInt(hex.substring(1, 2) + hex.substring(1, 2), 16);
-        b = parseInt(hex.substring(2, 3) + hex.substring(2, 3), 16);
-    } else if (hex.length === 6) {
-        r = parseInt(hex.substring(0, 2), 16);
-        g = parseInt(hex.substring(2, 4), 16);
-        b = parseInt(hex.substring(4, 6), 16);
-    }
-
-    return `${r}, ${g}, ${b}`;
-}
-
-/**
- * Blend two colors together
- * Used for creating derived theme colors
- */
-function blendColors(color1: string, color2: string, ratio: number, asHex = false): string {
-    const hex = (x: string) => {
-        const hexValue = x.toString(16);
-        return hexValue.length === 1 ? '0' + hexValue : hexValue;
-    };
-
-    const r1 = parseInt(color1.substring(1, 3), 16);
-    const g1 = parseInt(color1.substring(3, 5), 16);
-    const b1 = parseInt(color1.substring(5, 7), 16);
-
-    const r2 = parseInt(color2.substring(1, 3), 16);
-    const g2 = parseInt(color2.substring(3, 5), 16);
-    const b2 = parseInt(color2.substring(5, 7), 16);
-
-    const r = Math.ceil(r1 * ratio + r2 * (1 - ratio));
-    const g = Math.ceil(g1 * ratio + g2 * (1 - ratio));
-    const b = Math.ceil(b1 * ratio + b2 * (1 - ratio));
-
-    if (asHex) {
-        return '#' + hex(r) + hex(g) + hex(b);
-    }
-
-    return `${r}, ${g}, ${b}`;
-}
-
-/**
  * Drop alpha channel from rgba string, returning rgb string
+ * Helper function for derived color calculations
  */
 function dropAlpha(rgba: string): string {
     if (rgba.includes(',')) {
@@ -177,11 +127,11 @@ export function getTheme(themeKey: ThemeKey): Theme {
  */
 export function getThemeOptions() {
     return [
-        {value: THEME_KEYS.DENIM, title: 'Denim (Light)', left: '🔵'},
-        {value: THEME_KEYS.SAPPHIRE, title: 'Sapphire (Light)', left: '💎'},
-        {value: THEME_KEYS.QUARTZ, title: 'Quartz (Light)', left: '⚪'},
-        {value: THEME_KEYS.INDIGO, title: 'Indigo (Dark)', left: '🌙'},
-        {value: THEME_KEYS.ONYX, title: 'Onyx (Dark)', left: '⚫'},
+        {value: THEME_KEYS.DENIM, title: 'Denim (Light)'},
+        {value: THEME_KEYS.SAPPHIRE, title: 'Sapphire (Light)'},
+        {value: THEME_KEYS.QUARTZ, title: 'Quartz (Light)'},
+        {value: THEME_KEYS.INDIGO, title: 'Indigo (Dark)'},
+        {value: THEME_KEYS.ONYX, title: 'Onyx (Dark)'},
     ];
 }
 
