@@ -139,4 +139,15 @@ type MetricsInterface interface {
 	ObserveAccessControlExpressionCompileDuration(value float64)
 	ObserveAccessControlEvaluateDuration(value float64)
 	IncrementAccessControlCacheInvalidation()
+
+	ObserveAutoTranslateRequestDuration(path, provider, dstLang, contentLength, fieldCountBucket string, elapsed float64)
+	IncrementAutoTranslateResult(state, path, provider, dstLang, fieldCountBucket string)
+	IncrementAutoTranslateProviderCall(provider, dstLang string)
+	IncrementAutoTranslateDedupeInflight()
+	IncrementAutoTranslateUpsert(operation, dstLang string)
+	IncrementAutoTranslateProviderError(provider, dstLang, errorType string)
+	ObserveAutoTranslateRateLimitWait(provider string, elapsed float64)
+	ObserveAutoTranslateConcurrencyWait(provider string, elapsed float64)
+	ObserveAutoTranslateProviderBatchDuration(provider, dstLang, fieldCountBucket string, elapsed float64)
+	ObserveTranslationSearchQueryDuration(queryType, dstLang string, elapsed float64)
 }

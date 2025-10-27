@@ -78,6 +78,31 @@ func (_m *MetricsInterface) IncrementAccessControlCacheInvalidation() {
 	_m.Called()
 }
 
+// IncrementAutoTranslateDedupeInflight provides a mock function with no fields
+func (_m *MetricsInterface) IncrementAutoTranslateDedupeInflight() {
+	_m.Called()
+}
+
+// IncrementAutoTranslateProviderCall provides a mock function with given fields: provider, dstLang
+func (_m *MetricsInterface) IncrementAutoTranslateProviderCall(provider string, dstLang string) {
+	_m.Called(provider, dstLang)
+}
+
+// IncrementAutoTranslateProviderError provides a mock function with given fields: provider, dstLang, errorType
+func (_m *MetricsInterface) IncrementAutoTranslateProviderError(provider string, dstLang string, errorType string) {
+	_m.Called(provider, dstLang, errorType)
+}
+
+// IncrementAutoTranslateResult provides a mock function with given fields: state, path, provider, dstLang, fieldCountBucket
+func (_m *MetricsInterface) IncrementAutoTranslateResult(state string, path string, provider string, dstLang string, fieldCountBucket string) {
+	_m.Called(state, path, provider, dstLang, fieldCountBucket)
+}
+
+// IncrementAutoTranslateUpsert provides a mock function with given fields: operation, dstLang
+func (_m *MetricsInterface) IncrementAutoTranslateUpsert(operation string, dstLang string) {
+	_m.Called(operation, dstLang)
+}
+
 // IncrementChannelIndexCounter provides a mock function with no fields
 func (_m *MetricsInterface) IncrementChannelIndexCounter() {
 	_m.Called()
@@ -323,6 +348,26 @@ func (_m *MetricsInterface) ObserveAccessControlSearchQueryDuration(value float6
 	_m.Called(value)
 }
 
+// ObserveAutoTranslateConcurrencyWait provides a mock function with given fields: provider, elapsed
+func (_m *MetricsInterface) ObserveAutoTranslateConcurrencyWait(provider string, elapsed float64) {
+	_m.Called(provider, elapsed)
+}
+
+// ObserveAutoTranslateProviderBatchDuration provides a mock function with given fields: provider, dstLang, fieldCountBucket, elapsed
+func (_m *MetricsInterface) ObserveAutoTranslateProviderBatchDuration(provider string, dstLang string, fieldCountBucket string, elapsed float64) {
+	_m.Called(provider, dstLang, fieldCountBucket, elapsed)
+}
+
+// ObserveAutoTranslateRateLimitWait provides a mock function with given fields: provider, elapsed
+func (_m *MetricsInterface) ObserveAutoTranslateRateLimitWait(provider string, elapsed float64) {
+	_m.Called(provider, elapsed)
+}
+
+// ObserveAutoTranslateRequestDuration provides a mock function with given fields: path, provider, dstLang, contentLength, fieldCountBucket, elapsed
+func (_m *MetricsInterface) ObserveAutoTranslateRequestDuration(path string, provider string, dstLang string, contentLength string, fieldCountBucket string, elapsed float64) {
+	_m.Called(path, provider, dstLang, contentLength, fieldCountBucket, elapsed)
+}
+
 // ObserveClientChannelSwitchDuration provides a mock function with given fields: platform, agent, fresh, userID, elapsed
 func (_m *MetricsInterface) ObserveClientChannelSwitchDuration(platform string, agent string, fresh string, userID string, elapsed float64) {
 	_m.Called(platform, agent, fresh, userID, elapsed)
@@ -551,6 +596,11 @@ func (_m *MetricsInterface) ObserveSharedChannelsTaskInQueueDuration(elapsed flo
 // ObserveStoreMethodDuration provides a mock function with given fields: method, success, elapsed
 func (_m *MetricsInterface) ObserveStoreMethodDuration(method string, success string, elapsed float64) {
 	_m.Called(method, success, elapsed)
+}
+
+// ObserveTranslationSearchQueryDuration provides a mock function with given fields: queryType, dstLang, elapsed
+func (_m *MetricsInterface) ObserveTranslationSearchQueryDuration(queryType string, dstLang string, elapsed float64) {
+	_m.Called(queryType, dstLang, elapsed)
 }
 
 // Register provides a mock function with no fields

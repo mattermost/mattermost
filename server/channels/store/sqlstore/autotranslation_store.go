@@ -11,10 +11,12 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
 type SqlAutoTranslationStore struct {
 	*SqlStore
+	metrics einterfaces.MetricsInterface
 }
 
 type TranslationMeta json.RawMessage
@@ -42,9 +44,10 @@ func (m *TranslationMeta) ToMap() (map[string]any, error) {
 	return result, nil
 }
 
-func newSqlAutoTranslationStore(sqlStore *SqlStore) store.AutoTranslationStore {
+func newSqlAutoTranslationStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) store.AutoTranslationStore {
 	return &SqlAutoTranslationStore{
 		SqlStore: sqlStore,
+		metrics:  metrics,
 	}
 }
 
@@ -273,7 +276,7 @@ func (s *SqlAutoTranslationStore) Save(translation *model.Translation) *model.Ap
 	}
 
 	var objectType *string
-	if translation.ObjectType != "" {
+	if translation.ObjectType != "" && translation.ObjectType != "post" {
 		objectType = &translation.ObjectType
 	}
 
@@ -305,11 +308,22 @@ func (s *SqlAutoTranslationStore) Save(translation *model.Translation) *model.Ap
 					confidence = EXCLUDED.confidence,
 					meta = EXCLUDED.meta,
 					updateAt = EXCLUDED.updateAt
-					WHERE translations.normHash IS DISTINCT FROM EXCLUDED.normHash`)
+					WHERE translations.normHash IS DISTINCT FROM EXCLUDED.normHash
+				RETURNING (xmax = 0) AS wasInsert`)
 
-	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
+	var wasInsert bool
+	if err := s.GetMaster().GetBuilder(&wasInsert, query); err != nil {
 		return model.NewAppError("SqlAutoTranslationStore.Save",
 			"store.sql_autotranslation.save.app_error", nil, err.Error(), 500)
+	}
+
+	// Track upsert with operation type
+	if s.metrics != nil {
+		operation := "update"
+		if wasInsert {
+			operation = "insert"
+		}
+		s.metrics.IncrementAutoTranslateUpsert(operation, dstLang)
 	}
 
 	return nil

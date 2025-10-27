@@ -44,6 +44,7 @@ const (
 	MetricsSubsystemClientsWeb         = "webapp"
 	MetricsSubsystemClientsDesktopApp  = "desktopapp"
 	MetricsSubsystemAccessControl      = "access_control"
+	MetricsSubsystemAutoTranslation    = "autotranslation"
 	MetricsCloudInstallationLabel      = "installationId"
 	MetricsCloudDatabaseClusterLabel   = "databaseClusterName"
 	MetricsCloudInstallationGroupLabel = "installationGroupId"
@@ -238,6 +239,17 @@ type MetricsInterfaceImpl struct {
 	AccessControlEvaluateDuration          prometheus.Histogram
 	AccessControlSearchQueryDuration       prometheus.Histogram
 	AccessControlCacheInvalidation         prometheus.Counter
+
+	AutoTranslateRequestDuration       *prometheus.HistogramVec
+	AutoTranslateResultsCounter        *prometheus.CounterVec
+	AutoTranslateProviderCalls         *prometheus.CounterVec
+	AutoTranslateDedupeInflight        prometheus.Counter
+	AutoTranslateUpserts               *prometheus.CounterVec
+	AutoTranslateProviderErrors        *prometheus.CounterVec
+	AutoTranslateRateLimitWait         *prometheus.HistogramVec
+	AutoTranslateConcurrencyWait       *prometheus.HistogramVec
+	AutoTranslateProviderBatchDuration *prometheus.HistogramVec
+	TranslationSearchQueryDuration     *prometheus.HistogramVec
 }
 
 func init() {
@@ -1577,6 +1589,131 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		})
 	m.Registry.MustRegister(m.AccessControlCacheInvalidation)
 
+	// Auto-Translation metrics
+	m.AutoTranslateRequestDuration = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemAutoTranslation,
+			Name:        "request_seconds",
+			Help:        "Time taken for translation requests, segmented by path, provider, language, content length, and field count.",
+			Buckets:     []float64{0.1, 0.25, 0.5, 0.8, 1.0, 1.5, 2.0, 3.0, 5.0, 7.5, 10.0},
+			ConstLabels: additionalLabels,
+		},
+		[]string{"path", "provider", "dst_lang", "content_length", "field_count"},
+	)
+	m.Registry.MustRegister(m.AutoTranslateRequestDuration)
+
+	m.AutoTranslateResultsCounter = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemAutoTranslation,
+			Name:        "results_total",
+			Help:        "Count of translation results by state, path, provider, language, and field count.",
+			ConstLabels: additionalLabels,
+		},
+		[]string{"state", "path", "provider", "dst_lang", "field_count"},
+	)
+	m.Registry.MustRegister(m.AutoTranslateResultsCounter)
+
+	m.AutoTranslateProviderCalls = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemAutoTranslation,
+			Name:        "provider_calls_total",
+			Help:        "Total number of provider API calls after cache and deduplication.",
+			ConstLabels: additionalLabels,
+		},
+		[]string{"provider", "dst_lang"},
+	)
+	m.Registry.MustRegister(m.AutoTranslateProviderCalls)
+
+	m.AutoTranslateDedupeInflight = prometheus.NewCounter(
+		prometheus.CounterOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemAutoTranslation,
+			Name:        "dedupe_inflight_total",
+			Help:        "Number of duplicate concurrent requests prevented by singleflight pattern.",
+			ConstLabels: additionalLabels,
+		},
+	)
+	m.Registry.MustRegister(m.AutoTranslateDedupeInflight)
+
+	m.AutoTranslateUpserts = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemAutoTranslation,
+			Name:        "upserts_total",
+			Help:        "Count of database upsert operations by type and language.",
+			ConstLabels: additionalLabels,
+		},
+		[]string{"operation", "dst_lang"},
+	)
+	m.Registry.MustRegister(m.AutoTranslateUpserts)
+
+	m.AutoTranslateProviderErrors = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemAutoTranslation,
+			Name:        "provider_errors_total",
+			Help:        "Count of provider errors by type for root cause analysis.",
+			ConstLabels: additionalLabels,
+		},
+		[]string{"provider", "dst_lang", "error_type"},
+	)
+	m.Registry.MustRegister(m.AutoTranslateProviderErrors)
+
+	m.AutoTranslateRateLimitWait = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemAutoTranslation,
+			Name:        "ratelimit_wait_seconds",
+			Help:        "Time spent waiting for RPS quota. High values indicate RPS limit is too strict.",
+			Buckets:     []float64{0.01, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0},
+			ConstLabels: additionalLabels,
+		},
+		[]string{"provider"},
+	)
+	m.Registry.MustRegister(m.AutoTranslateRateLimitWait)
+
+	m.AutoTranslateConcurrencyWait = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemAutoTranslation,
+			Name:        "concurrency_wait_seconds",
+			Help:        "Time spent waiting for concurrency slot. High values indicate MaxConcurrent is too low.",
+			Buckets:     []float64{0.01, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0},
+			ConstLabels: additionalLabels,
+		},
+		[]string{"provider"},
+	)
+	m.Registry.MustRegister(m.AutoTranslateConcurrencyWait)
+
+	m.AutoTranslateProviderBatchDuration = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemAutoTranslation,
+			Name:        "provider_batch_duration_seconds",
+			Help:        "Pure provider execution time excluding rate limiter waits. Used to prove parallelization efficiency.",
+			Buckets:     []float64{0.1, 0.25, 0.5, 0.8, 1.0, 1.5, 2.0, 3.0, 5.0, 7.5, 10.0},
+			ConstLabels: additionalLabels,
+		},
+		[]string{"provider", "dst_lang", "field_count"},
+	)
+	m.Registry.MustRegister(m.AutoTranslateProviderBatchDuration)
+
+	m.TranslationSearchQueryDuration = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemAutoTranslation,
+			Name:        "search_query_seconds",
+			Help:        "Database search query latency by query type (FTS vs trigram).",
+			Buckets:     []float64{0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0},
+			ConstLabels: additionalLabels,
+		},
+		[]string{"query_type", "dst_lang"},
+	)
+	m.Registry.MustRegister(m.TranslationSearchQueryDuration)
+
 	return m
 }
 
@@ -2197,6 +2334,46 @@ func (mi *MetricsInterfaceImpl) IncrementAccessControlCacheInvalidation() {
 
 func (mi *MetricsInterfaceImpl) ClearMobileClientSessionMetadata() {
 	mi.MobileClientSessionMetadataGauge.Reset()
+}
+
+func (mi *MetricsInterfaceImpl) ObserveAutoTranslateRequestDuration(path, provider, dstLang, contentLength, fieldCountBucket string, elapsed float64) {
+	mi.AutoTranslateRequestDuration.With(prometheus.Labels{"path": path, "provider": provider, "dst_lang": dstLang, "content_length": contentLength, "field_count": fieldCountBucket}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) IncrementAutoTranslateResult(state, path, provider, dstLang, fieldCountBucket string) {
+	mi.AutoTranslateResultsCounter.With(prometheus.Labels{"state": state, "path": path, "provider": provider, "dst_lang": dstLang, "field_count": fieldCountBucket}).Inc()
+}
+
+func (mi *MetricsInterfaceImpl) IncrementAutoTranslateProviderCall(provider, dstLang string) {
+	mi.AutoTranslateProviderCalls.With(prometheus.Labels{"provider": provider, "dst_lang": dstLang}).Inc()
+}
+
+func (mi *MetricsInterfaceImpl) IncrementAutoTranslateDedupeInflight() {
+	mi.AutoTranslateDedupeInflight.Inc()
+}
+
+func (mi *MetricsInterfaceImpl) IncrementAutoTranslateUpsert(operation, dstLang string) {
+	mi.AutoTranslateUpserts.With(prometheus.Labels{"operation": operation, "dst_lang": dstLang}).Inc()
+}
+
+func (mi *MetricsInterfaceImpl) IncrementAutoTranslateProviderError(provider, dstLang, errorType string) {
+	mi.AutoTranslateProviderErrors.With(prometheus.Labels{"provider": provider, "dst_lang": dstLang, "error_type": errorType}).Inc()
+}
+
+func (mi *MetricsInterfaceImpl) ObserveAutoTranslateRateLimitWait(provider string, elapsed float64) {
+	mi.AutoTranslateRateLimitWait.With(prometheus.Labels{"provider": provider}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveAutoTranslateConcurrencyWait(provider string, elapsed float64) {
+	mi.AutoTranslateConcurrencyWait.With(prometheus.Labels{"provider": provider}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveAutoTranslateProviderBatchDuration(provider, dstLang, fieldCountBucket string, elapsed float64) {
+	mi.AutoTranslateProviderBatchDuration.With(prometheus.Labels{"provider": provider, "dst_lang": dstLang, "field_count": fieldCountBucket}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveTranslationSearchQueryDuration(queryType, dstLang string, elapsed float64) {
+	mi.TranslationSearchQueryDuration.With(prometheus.Labels{"query_type": queryType, "dst_lang": dstLang}).Observe(elapsed)
 }
 
 func extractDBCluster(driver, connectionString string) (string, error) {

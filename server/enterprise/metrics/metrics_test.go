@@ -258,3 +258,238 @@ func TestExtractDBCluster(t *testing.T) {
 		})
 	}
 }
+
+func TestAutoTranslationMetrics(t *testing.T) {
+	th := api4.SetupEnterprise(t, app.StartMetrics)
+
+	configureMetrics(th)
+	mi := th.App.Metrics()
+
+	miImpl, ok := mi.(*MetricsInterfaceImpl)
+	require.True(t, ok, fmt.Sprintf("App.Metrics is not *MetricsInterfaceImpl, but %T", mi))
+
+	t.Run("test ObserveAutoTranslateRequestDuration", func(t *testing.T) {
+		path := string(model.AutoTranslationPathCreate)
+		provider := "libretranslate"
+		dstLang := "es"
+		contentLength := "medium"
+		fieldCountBucket := "1-5"
+		elapsed := 0.8
+		m := &prometheusModels.Metric{}
+
+		actualMetric, err := miImpl.AutoTranslateRequestDuration.GetMetricWith(prometheus.Labels{
+			"path":           path,
+			"provider":       provider,
+			"dst_lang":       dstLang,
+			"content_length": contentLength,
+			"field_count":    fieldCountBucket,
+		})
+		require.NoError(t, err)
+		require.NoError(t, actualMetric.(prometheus.Histogram).Write(m))
+		require.Equal(t, uint64(0), m.Histogram.GetSampleCount())
+		require.Equal(t, 0.0, m.Histogram.GetSampleSum())
+
+		mi.ObserveAutoTranslateRequestDuration(path, provider, dstLang, contentLength, fieldCountBucket, elapsed)
+		actualMetric, err = miImpl.AutoTranslateRequestDuration.GetMetricWith(prometheus.Labels{
+			"path":           path,
+			"provider":       provider,
+			"dst_lang":       dstLang,
+			"content_length": contentLength,
+			"field_count":    fieldCountBucket,
+		})
+		require.NoError(t, err)
+		require.NoError(t, actualMetric.(prometheus.Histogram).Write(m))
+		require.Equal(t, uint64(1), m.Histogram.GetSampleCount())
+		require.InDelta(t, elapsed, m.Histogram.GetSampleSum(), 0.001)
+	})
+
+	t.Run("test IncrementAutoTranslateResult", func(t *testing.T) {
+		state := "ready"
+		path := string(model.AutoTranslationPathCreate)
+		provider := "libretranslate"
+		dstLang := "fr"
+		fieldCountBucket := "1-5"
+		m := &prometheusModels.Metric{}
+
+		actualMetric, err := miImpl.AutoTranslateResultsCounter.GetMetricWith(prometheus.Labels{
+			"state":       state,
+			"path":        path,
+			"provider":    provider,
+			"dst_lang":    dstLang,
+			"field_count": fieldCountBucket,
+		})
+		require.NoError(t, err)
+		require.NoError(t, actualMetric.Write(m))
+		require.Equal(t, 0.0, m.Counter.GetValue())
+
+		mi.IncrementAutoTranslateResult(state, path, provider, dstLang, fieldCountBucket)
+		actualMetric, err = miImpl.AutoTranslateResultsCounter.GetMetricWith(prometheus.Labels{
+			"state":       state,
+			"path":        path,
+			"provider":    provider,
+			"dst_lang":    dstLang,
+			"field_count": fieldCountBucket,
+		})
+		require.NoError(t, err)
+		require.NoError(t, actualMetric.Write(m))
+		require.Equal(t, 1.0, m.Counter.GetValue())
+	})
+
+	t.Run("test IncrementAutoTranslateProviderCall", func(t *testing.T) {
+		provider := "libretranslate"
+		dstLang := "de"
+		m := &prometheusModels.Metric{}
+
+		actualMetric, err := miImpl.AutoTranslateProviderCalls.GetMetricWith(prometheus.Labels{
+			"provider": provider,
+			"dst_lang": dstLang,
+		})
+		require.NoError(t, err)
+		require.NoError(t, actualMetric.Write(m))
+		require.Equal(t, 0.0, m.Counter.GetValue())
+
+		mi.IncrementAutoTranslateProviderCall(provider, dstLang)
+		actualMetric, err = miImpl.AutoTranslateProviderCalls.GetMetricWith(prometheus.Labels{
+			"provider": provider,
+			"dst_lang": dstLang,
+		})
+		require.NoError(t, err)
+		require.NoError(t, actualMetric.Write(m))
+		require.Equal(t, 1.0, m.Counter.GetValue())
+	})
+
+	t.Run("test IncrementAutoTranslateDedupeInflight", func(t *testing.T) {
+		m := &prometheusModels.Metric{}
+
+		require.NoError(t, miImpl.AutoTranslateDedupeInflight.Write(m))
+		initialValue := m.Counter.GetValue()
+
+		mi.IncrementAutoTranslateDedupeInflight()
+		require.NoError(t, miImpl.AutoTranslateDedupeInflight.Write(m))
+		require.Equal(t, initialValue+1.0, m.Counter.GetValue())
+	})
+
+	t.Run("test IncrementAutoTranslateUpsert", func(t *testing.T) {
+		operation := "insert"
+		dstLang := "pt"
+		m := &prometheusModels.Metric{}
+
+		actualMetric, err := miImpl.AutoTranslateUpserts.GetMetricWith(prometheus.Labels{
+			"operation": operation,
+			"dst_lang":  dstLang,
+		})
+		require.NoError(t, err)
+		require.NoError(t, actualMetric.Write(m))
+		require.Equal(t, 0.0, m.Counter.GetValue())
+
+		mi.IncrementAutoTranslateUpsert(operation, dstLang)
+		actualMetric, err = miImpl.AutoTranslateUpserts.GetMetricWith(prometheus.Labels{
+			"operation": operation,
+			"dst_lang":  dstLang,
+		})
+		require.NoError(t, err)
+		require.NoError(t, actualMetric.Write(m))
+		require.Equal(t, 1.0, m.Counter.GetValue())
+	})
+
+	t.Run("test IncrementAutoTranslateProviderError", func(t *testing.T) {
+		provider := "libretranslate"
+		dstLang := "ja"
+		errorType := "rate_limit"
+		m := &prometheusModels.Metric{}
+
+		actualMetric, err := miImpl.AutoTranslateProviderErrors.GetMetricWith(prometheus.Labels{
+			"provider":   provider,
+			"dst_lang":   dstLang,
+			"error_type": errorType,
+		})
+		require.NoError(t, err)
+		require.NoError(t, actualMetric.Write(m))
+		require.Equal(t, 0.0, m.Counter.GetValue())
+
+		mi.IncrementAutoTranslateProviderError(provider, dstLang, errorType)
+		actualMetric, err = miImpl.AutoTranslateProviderErrors.GetMetricWith(prometheus.Labels{
+			"provider":   provider,
+			"dst_lang":   dstLang,
+			"error_type": errorType,
+		})
+		require.NoError(t, err)
+		require.NoError(t, actualMetric.Write(m))
+		require.Equal(t, 1.0, m.Counter.GetValue())
+	})
+
+	t.Run("test ObserveAutoTranslateRateLimitWait", func(t *testing.T) {
+		provider := "libretranslate"
+		elapsed := 2.5
+		m := &prometheusModels.Metric{}
+
+		actualMetric, err := miImpl.AutoTranslateRateLimitWait.GetMetricWith(prometheus.Labels{
+			"provider": provider,
+		})
+		require.NoError(t, err)
+		require.NoError(t, actualMetric.(prometheus.Histogram).Write(m))
+		require.Equal(t, uint64(0), m.Histogram.GetSampleCount())
+		require.Equal(t, 0.0, m.Histogram.GetSampleSum())
+
+		mi.ObserveAutoTranslateRateLimitWait(provider, elapsed)
+		actualMetric, err = miImpl.AutoTranslateRateLimitWait.GetMetricWith(prometheus.Labels{
+			"provider": provider,
+		})
+		require.NoError(t, err)
+		require.NoError(t, actualMetric.(prometheus.Histogram).Write(m))
+		require.Equal(t, uint64(1), m.Histogram.GetSampleCount())
+		require.InDelta(t, elapsed, m.Histogram.GetSampleSum(), 0.001)
+	})
+
+	t.Run("test ObserveAutoTranslateConcurrencyWait", func(t *testing.T) {
+		provider := "libretranslate"
+		elapsed := 0.15
+		m := &prometheusModels.Metric{}
+
+		actualMetric, err := miImpl.AutoTranslateConcurrencyWait.GetMetricWith(prometheus.Labels{
+			"provider": provider,
+		})
+		require.NoError(t, err)
+		require.NoError(t, actualMetric.(prometheus.Histogram).Write(m))
+		require.Equal(t, uint64(0), m.Histogram.GetSampleCount())
+		require.Equal(t, 0.0, m.Histogram.GetSampleSum())
+
+		mi.ObserveAutoTranslateConcurrencyWait(provider, elapsed)
+		actualMetric, err = miImpl.AutoTranslateConcurrencyWait.GetMetricWith(prometheus.Labels{
+			"provider": provider,
+		})
+		require.NoError(t, err)
+		require.NoError(t, actualMetric.(prometheus.Histogram).Write(m))
+		require.Equal(t, uint64(1), m.Histogram.GetSampleCount())
+		require.InDelta(t, elapsed, m.Histogram.GetSampleSum(), 0.001)
+	})
+
+	t.Run("test ObserveAutoTranslateProviderBatchDuration", func(t *testing.T) {
+		provider := "libretranslate"
+		dstLang := "zh"
+		fieldCountBucket := "6-20"
+		elapsed := 1.2
+		m := &prometheusModels.Metric{}
+
+		actualMetric, err := miImpl.AutoTranslateProviderBatchDuration.GetMetricWith(prometheus.Labels{
+			"provider":    provider,
+			"dst_lang":    dstLang,
+			"field_count": fieldCountBucket,
+		})
+		require.NoError(t, err)
+		require.NoError(t, actualMetric.(prometheus.Histogram).Write(m))
+		require.Equal(t, uint64(0), m.Histogram.GetSampleCount())
+		require.Equal(t, 0.0, m.Histogram.GetSampleSum())
+
+		mi.ObserveAutoTranslateProviderBatchDuration(provider, dstLang, fieldCountBucket, elapsed)
+		actualMetric, err = miImpl.AutoTranslateProviderBatchDuration.GetMetricWith(prometheus.Labels{
+			"provider":    provider,
+			"dst_lang":    dstLang,
+			"field_count": fieldCountBucket,
+		})
+		require.NoError(t, err)
+		require.NoError(t, actualMetric.(prometheus.Histogram).Write(m))
+		require.Equal(t, uint64(1), m.Histogram.GetSampleCount())
+		require.InDelta(t, elapsed, m.Histogram.GetSampleSum(), 0.001)
+	})
+}
