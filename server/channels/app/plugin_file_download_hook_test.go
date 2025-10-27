@@ -146,10 +146,7 @@ func TestHookFileWillBeDownloaded(t *testing.T) {
 		var rejectionReason string
 		th.App.Channels().RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			rejectionReason = hooks.FileWillBeDownloaded(pluginContext, info, th.BasicUser.Id)
-			if rejectionReason != "" {
-				return false
-			}
-			return true
+			return rejectionReason == ""
 		}, plugin.FileWillBeDownloadedID)
 
 		// Verify the file download was allowed
@@ -267,10 +264,7 @@ func TestHookFileWillBeDownloaded(t *testing.T) {
 		var rejectionReason string
 		th.App.Channels().RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
 			rejectionReason = hooks.FileWillBeDownloaded(pluginContext, info, th.BasicUser.Id)
-			if rejectionReason != "" {
-				return false
-			}
-			return true
+			return rejectionReason == ""
 		}, plugin.FileWillBeDownloadedID)
 
 		// No plugins means no rejection

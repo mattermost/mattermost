@@ -1997,7 +1997,32 @@ export function handleContentFlaggingReportValueChanged(msg) {
 
 export function handleFileDownloadRejected(msg) {
     return (dispatch, getState) => {
-        const {file_id, file_name, rejection_reason} = msg.data;
+        const {file_id, file_name, rejection_reason, channel_id, post_id, download_type} = msg.data;
+        
+        // Build a user-friendly message based on download type and context
+        let displayMessage;
+        
+        switch (download_type) {
+        case 'thumbnail':
+            displayMessage = `Thumbnail download blocked: ${rejection_reason}`;
+            break;
+        case 'preview':
+            displayMessage = `Preview download blocked: ${rejection_reason}`;
+            break;
+        case 'public':
+            displayMessage = `Public file download blocked: ${rejection_reason}`;
+            break;
+        case 'file':
+        default:
+            if (file_name) {
+                displayMessage = `Download of "${file_name}" blocked: ${rejection_reason}`;
+            } else {
+                displayMessage = `File download blocked: ${rejection_reason}`;
+            }
+            break;
+        }
+        
+        console.log('[FILE_DOWNLOAD_REJECTED] Displaying message:', displayMessage);
         
         // Show toast notification using the existing InfoToast system
         dispatch(openModal({
@@ -2006,7 +2031,7 @@ export function handleFileDownloadRejected(msg) {
             dialogProps: {
                 content: {
                     icon: React.createElement(AlertCircleOutlineIcon, { size: 18 }),
-                    message: rejection_reason,
+                    message: displayMessage,
                 },
                 onExited: () => {
                     // Close the modal when the toast is dismissed
