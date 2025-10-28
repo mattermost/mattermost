@@ -734,7 +734,6 @@ func TestParseOAuthStateTokenExtra(t *testing.T) {
 }
 
 func TestAuthorizeOAuthUser_InvalidToken(t *testing.T) {
-	mainHelper.Parallel(t)
 	th := Setup(t)
 	defer th.TearDown()
 
