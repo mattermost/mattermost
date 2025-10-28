@@ -1377,10 +1377,7 @@ func (a *App) CallPluginBridge(rctx request.CTX, sourcePluginID, targetPluginID,
 //	reqJSON, _ := json.Marshal(request)
 //	schema := []byte(`{"type": "object", "properties": {"summary": {"type": "string"}}}`)
 //	response, err := app.CallPluginFromCore(rctx, "mattermost-ai", "/api/v1/completion", reqJSON, schema)
-//
-// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge - Remove this entire function comment and keep the implementation as-is
 func (a *App) CallPluginFromCore(rctx request.CTX, targetPluginID, endpoint string, requestData []byte, responseSchema []byte) ([]byte, error) {
 	// Empty string for sourcePluginID indicates core server origin
-	// Feature flag check is handled by CallPluginBridge
 	return a.CallPluginBridge(rctx, "", targetPluginID, endpoint, requestData, responseSchema)
 }
