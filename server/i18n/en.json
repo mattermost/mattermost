@@ -212,6 +212,10 @@
     "translation": "Unable to upload file. File is too large."
   },
   {
+    "id": "api.ai.rewrite.not_implemented",
+    "translation": ""
+  },
+  {
     "id": "api.back_to_app",
     "translation": "Back to {{.SiteName}}"
   },
@@ -4653,6 +4657,34 @@
   {
     "id": "app.admin.test_site_url.failure",
     "translation": "This is not a valid live URL"
+  },
+  {
+    "id": "app.ai.plugin_bridge.not_implemented",
+    "translation": ""
+  },
+  {
+    "id": "app.ai.rewrite.agent_call_failed",
+    "translation": ""
+  },
+  {
+    "id": "app.ai.rewrite.empty_response",
+    "translation": ""
+  },
+  {
+    "id": "app.ai.rewrite.invalid_action",
+    "translation": ""
+  },
+  {
+    "id": "app.ai.rewrite.invalid_message",
+    "translation": ""
+  },
+  {
+    "id": "app.ai.rewrite.not_implemented",
+    "translation": ""
+  },
+  {
+    "id": "app.ai.rewrite.parse_response_failed",
+    "translation": ""
   },
   {
     "id": "app.analytics.getanalytics.internal_error",
