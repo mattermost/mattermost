@@ -4628,15 +4628,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 128+"
+    "translation": "Version 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 138+"
+    "translation": "Version 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 138+"
+    "translation": "Version 140+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -11014,5 +11014,65 @@
   {
     "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
     "translation": "Ungültiges Zeitlimit für Benachrichtigungen bei automatischen Übersetzungseinstellungen. Muss eine positive Zahl sein."
+  },
+  {
+    "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
+    "translation": "Die Kanal-ID stimmt nicht mit der Kanal-ID des markierten Beitrags überein."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations_for_channel.restricted_permission.app_error",
+    "translation": "Kann keine Berechtigung hinzufügen, die durch das Team- oder Systemberechtigungsschema eingeschränkt ist."
+  },
+  {
+    "id": "api.content_flagging.error.user_not_reviewer",
+    "translation": "Benutzer ist kein Inhaltsprüfer."
+  },
+  {
+    "id": "api.team.get_team.flagged_post_mismatch.app_error",
+    "translation": "Die Team-ID stimmt nicht mit der Team-ID des markierten Beitrags überein."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.no_reviewer_field.app_error",
+    "translation": "Kein Reviewer-ID-Eigenschaftsfeld gefunden."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.update_status_property_value.app_error",
+    "translation": "Der Wert der Eigenschaft Status konnte beim Setzen des Überprüfers nicht aktualisiert werden."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.upsert_property_value.app_error",
+    "translation": "Überprüfer der Nachricht konnte nicht gesetzt werden."
+  },
+  {
+    "id": "app.content_flagging.missing_flagged_post_id_field.app_error",
+    "translation": "Das Eigenschaftsfeld Flagged Post ID kann nicht gefunden werden."
+  },
+  {
+    "id": "app.content_flagging.missing_reporting_user_id_field.app_error",
+    "translation": "Das Feld \"Reporting User\" kann nicht gefunden werden."
+  },
+  {
+    "id": "app.content_flagging.missing_reporting_user_id_property_value.app_error",
+    "translation": "Es konnte kein Wert für das \"Reporting User\" Feld gefunden werden."
+  },
+  {
+    "id": "app.content_flagging.search_common_reviewers.app_error",
+    "translation": "Die Suche nach dem Begriff in Allgemeine Prüfer ist fehlgeschlagen."
+  },
+  {
+    "id": "app.content_flagging.search_reviewer_posts.app_error",
+    "translation": "Die Suche nach dem markierten Beitrag in den Beiträgen der Überprüfer ist fehlgeschlagen."
+  },
+  {
+    "id": "app.content_flagging.search_sysadmin_reviewers.app_error",
+    "translation": "Die Suche nach dem Suchbegriff in System Admin Reviewers ist fehlgeschlagen."
+  },
+  {
+    "id": "app.content_flagging.search_team_admin_reviewers.app_error",
+    "translation": "Die Suche nach dem Suchbegriff in Team Admin Reviewers ist fehlgeschlagen."
+  },
+  {
+    "id": "app.content_flagging.search_team_reviewers.app_error",
+    "translation": "Die Suche nach dem Suchbegriff in Team Reviewers ist fehlgeschlagen."
   }
 ]
