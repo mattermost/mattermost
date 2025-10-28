@@ -6955,6 +6955,10 @@
     "translation": "Unable to retrieve posts for reporting. Invalid input."
   },
   {
+    "id": "app.post.get_posts_for_reporting.license_error",
+    "translation": "Your license does not support reporting on posts."
+  },
+  {
     "id": "app.post.get_posts_since.app_error",
     "translation": "Unable to get the posts for the channel."
   },
