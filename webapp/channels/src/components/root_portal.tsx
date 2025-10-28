@@ -9,22 +9,24 @@ interface Props {
 }
 
 const RootPortal = ({children}: Props) => {
-    const el = useRef<HTMLDivElement>(document.createElement('div'));
+    const el = useRef<HTMLDivElement | null>(null);
+
+    if (!el.current) {
+        el.current = document.createElement('div');
+    }
 
     useEffect(() => {
-        const element = el.current;
-
         const rootPortal = document.getElementById('root-portal');
 
         if (rootPortal) {
-            rootPortal.appendChild(element);
+            rootPortal.appendChild(el.current as HTMLDivElement);
         }
 
         return () => {
             const rootPortal = document.getElementById('root-portal');
 
             if (rootPortal) {
-                rootPortal.removeChild(element);
+                rootPortal.removeChild(el.current as HTMLDivElement);
             }
         };
     }, []);
