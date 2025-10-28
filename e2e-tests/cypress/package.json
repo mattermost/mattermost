@@ -1,6 +1,5 @@
 {
   "name": "cypress",
-  "type": "module",
   "devDependencies": {
     "@aws-sdk/client-s3": "3.910.0",
     "@aws-sdk/lib-storage": "3.910.0",
@@ -32,7 +31,7 @@
     "chalk": "5.6.2",
     "client-oauth2": "github:larkox/js-client-oauth2#e24e2eb5dfcbbbb3a59d095e831dbe0012b0ac49",
     "cross-env": "10.1.0",
-    "cypress": "15.4.0",
+    "cypress": "15.5.0",
     "cypress-file-upload": "5.0.8",
     "cypress-multi-reporters": "2.0.5",
     "cypress-plugin-tab": "1.0.5",
