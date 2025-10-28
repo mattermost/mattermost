@@ -203,6 +203,10 @@
 
         Requires `manage_system` permission (system admin only).
 
+        ##### License
+
+        Requires an Enterprise license (or higher).
+
         ##### Features
 
         - Cursor-based pagination for efficient large dataset retrieval
