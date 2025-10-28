@@ -2074,8 +2074,10 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	if terms == "" && excludedTerms == "" {
 		// we've already confirmed that we have a channel or user to search for
 	} else {
-		if model.GetServiceEnvironment() == model.ServiceEnvironmentTest {
-			// if model.GetServiceEnvironment() != model.ServiceEnvironmentTest && model.GetServiceEnvironment() != model.ServiceEnvironmentDev {
+		// if (true){
+		// app層の変数なのでだいぶ上から引数を追加する必要があるが、*app.Config().LocalizationSettings.DefaultServerLocale == "ja" かどうかを見て分岐させても良さそう
+		if (model.GetServiceEnvironment() == model.ServiceEnvironmentProduction) {
+		// if model.GetServiceEnvironment() != model.ServiceEnvironmentTest && model.GetServiceEnvironment() != model.ServiceEnvironmentDev {
 			//日本語全文検索
 			terms = wildCardRegex.ReplaceAllLiteralString(terms, "%")
 			excludedTerms = wildCardRegex.ReplaceAllLiteralString(excludedTerms, "%")
