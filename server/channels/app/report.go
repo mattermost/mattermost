@@ -314,7 +314,7 @@ func (a *App) GetPostsForReporting(rctx request.CTX, options model.ReportPostOpt
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(err, &invErr):
-			return nil, model.NewAppError("GetPostsForReporting", "app.post.get_posts_for_reporting.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+			return nil, model.NewAppError("GetPostsForReporting", "app.post.get_posts_for_reporting.invalid_input_error", nil, "", http.StatusBadRequest).Wrap(err)
 		default:
 			return nil, model.NewAppError("GetPostsForReporting", "app.post.get_posts_for_reporting.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}

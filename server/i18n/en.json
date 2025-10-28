@@ -2735,6 +2735,14 @@
     }
   },
   {
+    "id": "api.post.get_posts_for_reporting.invalid_per_page",
+    "translation": "Invalid max page size value."
+  },
+  {
+    "id": "api.post.get_posts_for_reporting.invalid_time_range",
+    "translation": "Invalid time range."
+  },
+  {
     "id": "api.post.move_thread.disabled.app_error",
     "translation": "Thread moving is disabled"
   },
@@ -6937,6 +6945,14 @@
   {
     "id": "app.post.get_posts_created_at.app_error",
     "translation": "Unable to get the posts for the channel."
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.app_error",
+    "translation": "Unable to retrieve posts for reporting."
+  },
+  {
+    "id": "app.post.get_posts_for_reporting.invalid_input_error",
+    "translation": "Unable to retrieve posts for reporting. Invalid input."
   },
   {
     "id": "app.post.get_posts_since.app_error",
