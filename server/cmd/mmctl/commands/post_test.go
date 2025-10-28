@@ -4,8 +4,11 @@
 package commands
 
 import (
+	"bytes"
 	"context"
+	"io"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -292,11 +295,24 @@ func (s *MmctlUnitTestSuite) TestPostListCmdF() {
 			Return(&mockUser, &model.Response{}, nil).
 			Times(1)
 
+		// Capture stderr to verify cursor is printed there
+		oldStderr := os.Stderr
+		r, w, _ := os.Pipe()
+		os.Stderr = w
+
 		err := postListCmdF(s.client, cmd, []string{channelName})
+
+		// Restore stderr and read captured output
+		w.Close()
+		os.Stderr = oldStderr
+		var buf bytes.Buffer
+		io.Copy(&buf, r)
+		stderrOutput := buf.String()
+
 		s.Require().Nil(err)
-		s.Len(printer.GetLines(), 2) // post + cursor
-		s.Require().Equal(printer.GetLines()[0], "Next cursor: create_at:1704074400000:y8l0n3o5q7r9")
-		s.Require().Equal(printer.GetLines()[1], mockPost)
+		s.Contains(stderrOutput, "Next cursor: create_at:1704074400000:y8l0n3o5q7r9")
+		s.Len(printer.GetLines(), 1) // only the post (cursor goes to stderr)
+		s.Require().Equal(printer.GetLines()[0], mockPost)
 		s.Len(printer.GetErrorLines(), 0)
 	})
 
