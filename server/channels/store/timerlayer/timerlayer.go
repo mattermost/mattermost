@@ -11243,10 +11243,10 @@ func (s *TimerLayerTokenStore) Cleanup(expiryTime int64) {
 	}
 }
 
-func (s *TimerLayerTokenStore) ConsumeOnce(tokenStr string) (*model.Token, error) {
+func (s *TimerLayerTokenStore) ConsumeOnce(tokenType string, tokenStr string) (*model.Token, error) {
 	start := time.Now()
 
-	result, err := s.TokenStore.ConsumeOnce(tokenStr)
+	result, err := s.TokenStore.ConsumeOnce(tokenType, tokenStr)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
