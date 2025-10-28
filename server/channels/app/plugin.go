@@ -1281,6 +1281,11 @@ func (ch *Channels) IsPluginActive(pluginName string) (bool, error) {
 //
 // Returns the JSON-encoded response from the target plugin, or an error.
 func (a *App) CallPluginBridge(rctx request.CTX, sourcePluginID, targetPluginID, endpoint string, requestData []byte, responseSchema []byte) ([]byte, error) {
+	// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge - Remove this feature flag check and always allow plugin bridge calls
+	if !a.Config().FeatureFlags.EnableAIPluginBridge {
+		return nil, errors.New("plugin bridge is not enabled")
+	}
+
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return nil, errors.New("plugins are not initialized")
@@ -1372,7 +1377,10 @@ func (a *App) CallPluginBridge(rctx request.CTX, sourcePluginID, targetPluginID,
 //	reqJSON, _ := json.Marshal(request)
 //	schema := []byte(`{"type": "object", "properties": {"summary": {"type": "string"}}}`)
 //	response, err := app.CallPluginFromCore(rctx, "mattermost-ai", "/api/v1/completion", reqJSON, schema)
+//
+// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge - Remove this entire function comment and keep the implementation as-is
 func (a *App) CallPluginFromCore(rctx request.CTX, targetPluginID, endpoint string, requestData []byte, responseSchema []byte) ([]byte, error) {
 	// Empty string for sourcePluginID indicates core server origin
+	// Feature flag check is handled by CallPluginBridge
 	return a.CallPluginBridge(rctx, "", targetPluginID, endpoint, requestData, responseSchema)
 }

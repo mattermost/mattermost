@@ -1310,9 +1310,30 @@ func TestGetPluginStateOverride(t *testing.T) {
 }
 
 func TestPluginBridge(t *testing.T) {
+	// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge - Remove this entire test case
+	t.Run("CallPluginBridge returns error when feature flag disabled", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.EnableAIPluginBridge = false
+		})
+
+		request := []byte(`{"test": "data"}`)
+		schema := []byte(`{"type": "object"}`)
+		_, err := th.App.CallPluginBridge(th.Context, "source-plugin", "target-plugin", "/api/v1/test", request, schema)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "plugin bridge is not enabled")
+	})
+
 	t.Run("CallPluginBridge returns error when plugins not initialized", func(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
+
+		// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge - Remove this feature flag configuration from test
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.EnableAIPluginBridge = true
+		})
 
 		// Ensure plugins are not initialized
 		th.App.ch.SetPluginsEnvironment(nil)
@@ -1328,8 +1349,10 @@ func TestPluginBridge(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
 
+		// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge - Remove this feature flag configuration from test
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.Enable = true
+			cfg.FeatureFlags.EnableAIPluginBridge = true
 		})
 		th.App.InitPlugins(th.Context, *th.App.Config().PluginSettings.Directory, *th.App.Config().PluginSettings.ClientDirectory)
 		defer th.App.ch.ShutDownPlugins()
@@ -1347,8 +1370,10 @@ func TestPluginBridge(t *testing.T) {
 
 		// This test verifies that CallPluginFromCore correctly passes an empty string as the source
 		// We can't test the full flow without a real plugin, but we can verify the parameters
+		// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge - Remove this feature flag configuration from test
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.Enable = true
+			cfg.FeatureFlags.EnableAIPluginBridge = true
 		})
 		th.App.InitPlugins(th.Context, *th.App.Config().PluginSettings.Directory, *th.App.Config().PluginSettings.ClientDirectory)
 		defer th.App.ch.ShutDownPlugins()
@@ -1365,8 +1390,10 @@ func TestPluginBridge(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
 
+		// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge - Remove this feature flag configuration from test
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.PluginSettings.Enable = true
+			cfg.FeatureFlags.EnableAIPluginBridge = true
 		})
 		th.App.InitPlugins(th.Context, *th.App.Config().PluginSettings.Directory, *th.App.Config().PluginSettings.ClientDirectory)
 		defer th.App.ch.ShutDownPlugins()

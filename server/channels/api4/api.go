@@ -364,6 +364,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitAuditLogging()
 	api.InitAccessControlPolicy()
 	api.InitContentFlagging()
+	// FEATURE_FLAG_REMOVAL: EnableAIRewrites - Remove this comment; InitAI will always initialize routes
 	api.InitAI()
 
 	// If we allow testing then listen for manual testing URL hits

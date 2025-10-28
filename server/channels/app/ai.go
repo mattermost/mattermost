@@ -20,6 +20,16 @@ func (a *App) getAIClient(userID string) *agentclient.Client {
 
 // RewriteMessage rewrites a message using AI based on the specified action
 func (a *App) RewriteMessage(rctx request.CTX, userID string, message string, action model.AIRewriteAction) (*model.AIRewriteResponse, *model.AppError) {
+	// FEATURE_FLAG_REMOVAL: EnableAIRewrites - Remove this feature flag check and always allow message rewriting
+	if !a.Config().FeatureFlags.EnableAIRewrites {
+		return nil, model.NewAppError("RewriteMessage", "app.ai.rewrite.not_implemented", nil, "AI rewrites feature is not enabled", 501)
+	}
+
+	// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge - Remove this feature flag check and always allow plugin bridge calls
+	if !a.Config().FeatureFlags.EnableAIPluginBridge {
+		return nil, model.NewAppError("RewriteMessage", "app.ai.plugin_bridge.not_implemented", nil, "AI plugin bridge is not enabled", 501)
+	}
+
 	// Validate inputs
 	if message == "" {
 		return nil, model.NewAppError("RewriteMessage", "app.ai.rewrite.invalid_message", nil, "message cannot be empty", 400)

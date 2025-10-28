@@ -82,6 +82,12 @@ type FeatureFlags struct {
 	// FEATURE_FLAG_REMOVAL: AutoTranslation - Remove this when MVP is to be released
 	// Enable auto-translation feature for messages in channels
 	AutoTranslation bool
+
+	// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge
+	EnableAIPluginBridge bool
+
+	//FEATURE_FLAG_REMOVAL: EnableAIRewrites - Remove this when MVP is to be released
+	EnableAIRewrites bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -118,6 +124,11 @@ func (f *FeatureFlags) SetDefaults() {
 
 	// FEATURE_FLAG_REMOVAL: AutoTranslation - Remove this default when MVP is to be released
 	f.AutoTranslation = false
+
+	// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge - Remove this default when MVP is to be released
+	f.EnableAIPluginBridge = false
+	// FEATURE_FLAG_REMOVAL: EnableAIRewrites - Remove this default when MVP is to be released
+	f.EnableAIRewrites = false
 }
 
 // ToMap returns the feature flags as a map[string]string

@@ -3,6 +3,7 @@
 
 package model
 
+// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge - Remove this comment; these constants are used by the plugin bridge
 const (
 	// AI Plugin ID
 	AIPluginID = "mattermost-ai"
@@ -11,6 +12,7 @@ const (
 	AIEndpointCompletion = "/inter-plugin/v1/completion"
 )
 
+// FEATURE_FLAG_REMOVAL: EnableAIRewrites - Remove this comment; AIRewriteAction and related types/constants are for the AI rewrites feature
 // AIRewriteAction represents the type of rewrite operation to perform
 type AIRewriteAction string
 
@@ -34,6 +36,7 @@ type AIRewriteResponse struct {
 	Action           AIRewriteAction `json:"action"`
 }
 
+// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge - Remove this comment; AIRequest is used for generic plugin bridge calls
 // AIRequest represents a request to call the AI plugin
 type AIRequest struct {
 	Data           map[string]any `json:"data"`
