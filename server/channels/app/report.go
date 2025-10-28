@@ -309,6 +309,10 @@ func getTranslatedDateRange(dateRange string) string {
 }
 
 func (a *App) GetPostsForReporting(rctx request.CTX, options model.ReportPostOptions, cursor model.ReportPostOptionsCursor) (*model.ReportPostListResponse, *model.AppError) {
+	if !model.MinimumEnterpriseLicense(a.Srv().License()) {
+		return nil, model.NewAppError("GetPostsForReporting", "app.post.get_posts_for_reporting.license_error", nil, "", http.StatusBadRequest)
+	}
+
 	response, err := a.Srv().Store().Post().GetPostsForReporting(rctx, options, cursor)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
