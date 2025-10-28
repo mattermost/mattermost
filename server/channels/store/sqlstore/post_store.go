@@ -2076,7 +2076,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	} else {
 		// if (true){
 		// app層の変数なのでだいぶ上から引数を追加する必要があるが、*app.Config().LocalizationSettings.DefaultServerLocale == "ja" かどうかを見て分岐させても良さそう
-		if (model.GetServiceEnvironment() != model.ServiceEnvironmentTest && model.GetServiceEnvironment() != model.ServiceEnvironmentDev ) {
+		if model.GetServiceEnvironment() != model.ServiceEnvironmentTest && model.GetServiceEnvironment() != model.ServiceEnvironmentDev {
 			//日本語全文検索
 			terms = wildCardRegex.ReplaceAllLiteralString(terms, "%")
 			excludedTerms = wildCardRegex.ReplaceAllLiteralString(excludedTerms, "%")
