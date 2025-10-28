@@ -42,7 +42,7 @@ func (*EchoProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Command
 	}
 }
 
-func (*EchoProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
+func (*EchoProvider) DoCommand(a *app.App, rctx request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	if message == "" {
 		return &model.CommandResponse{Text: args.T("api.command_echo.message.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
@@ -89,8 +89,8 @@ func (*EchoProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArg
 
 		time.Sleep(time.Duration(delay) * time.Second)
 
-		if _, err := a.CreatePostMissingChannel(c, post, true, true); err != nil {
-			c.Logger().Error("Unable to create /echo post.", mlog.Err(err))
+		if _, err := a.CreatePostMissingChannel(rctx, post, true, true); err != nil {
+			rctx.Logger().Error("Unable to create /echo post.", mlog.Err(err))
 		}
 	})
 

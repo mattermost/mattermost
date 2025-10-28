@@ -2,12 +2,15 @@
 // See LICENSE.txt for license information.
 
 import {writeFile} from 'node:fs/promises';
+import path from 'node:path';
+import fs from 'node:fs';
 
 import {Browser, BrowserContext, request} from '@playwright/test';
 import {UserProfile} from '@mattermost/types/users';
 
 import {testConfig} from './test_config';
 import {pages} from './ui/pages';
+import {resolvePlaywrightPath} from './util';
 
 export class TestBrowser {
     readonly browser: Browser;
@@ -34,10 +37,11 @@ export class TestBrowser {
         const systemConsolePage = new pages.SystemConsolePage(page);
         const scheduledPostsPage = new pages.ScheduledPostsPage(page);
         const draftsPage = new pages.DraftsPage(page);
+        const threadsPage = new pages.ThreadsPage(page);
 
         this.context = context;
 
-        return {context, page, channelsPage, systemConsolePage, scheduledPostsPage, draftsPage};
+        return {context, page, channelsPage, systemConsolePage, scheduledPostsPage, draftsPage, threadsPage};
     }
 
     async close() {
@@ -68,9 +72,15 @@ export async function loginByAPI(loginId: string, password: string, token = '', 
     });
 
     // Save signed-in state to a folder
-    const storagePath = `storage_state/${Date.now()}_${loginId}_${password}${token ? '_' + token : ''}${
-        ldapOnly ? '_ldap' : ''
-    }.json`;
+    const storageStateDir = resolvePlaywrightPath('storage_state');
+
+    // Ensure storage_state directory exists
+    if (!fs.existsSync(storageStateDir)) {
+        fs.mkdirSync(storageStateDir, {recursive: true});
+    }
+
+    const filename = `${Date.now()}_${loginId}_${password}${token ? '_' + token : ''}${ldapOnly ? '_ldap' : ''}.json`;
+    const storagePath = path.join(storageStateDir, filename);
     const storageState = await requestContext.storageState({path: storagePath});
     await requestContext.dispose();
 

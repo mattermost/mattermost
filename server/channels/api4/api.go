@@ -93,8 +93,6 @@ type Routes struct {
 
 	Elasticsearch *mux.Router // 'api/v4/elasticsearch'
 
-	Bleve *mux.Router // 'api/v4/bleve'
-
 	DataRetention *mux.Router // 'api/v4/data_retention'
 
 	Brand *mux.Router // 'api/v4/brand'
@@ -126,6 +124,7 @@ type Routes struct {
 	Cloud *mux.Router // 'api/v4/cloud'
 
 	Imports *mux.Router // 'api/v4/imports'
+	Import  *mux.Router // 'api/v4/imports/{import_name:.+\\.zip}'
 
 	Exports *mux.Router // 'api/v4/exports'
 	Export  *mux.Router // 'api/v4/exports/{export_name:.+\\.zip}'
@@ -161,6 +160,8 @@ type Routes struct {
 
 	AccessControlPolicies *mux.Router // 'api/v4/access_control_policies'
 	AccessControlPolicy   *mux.Router // 'api/v4/access_control_policies/{policy_id:[A-Za-z0-9]+}'
+
+	ContentFlagging *mux.Router // 'api/v4/content_flagging'
 }
 
 type API struct {
@@ -253,7 +254,6 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.Reactions = api.BaseRoutes.APIRoot.PathPrefix("/reactions").Subrouter()
 	api.BaseRoutes.Jobs = api.BaseRoutes.APIRoot.PathPrefix("/jobs").Subrouter()
 	api.BaseRoutes.Elasticsearch = api.BaseRoutes.APIRoot.PathPrefix("/elasticsearch").Subrouter()
-	api.BaseRoutes.Bleve = api.BaseRoutes.APIRoot.PathPrefix("/bleve").Subrouter()
 	api.BaseRoutes.DataRetention = api.BaseRoutes.APIRoot.PathPrefix("/data_retention").Subrouter()
 
 	api.BaseRoutes.Emojis = api.BaseRoutes.APIRoot.PathPrefix("/emoji").Subrouter()
@@ -273,6 +273,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.Cloud = api.BaseRoutes.APIRoot.PathPrefix("/cloud").Subrouter()
 
 	api.BaseRoutes.Imports = api.BaseRoutes.APIRoot.PathPrefix("/imports").Subrouter()
+	api.BaseRoutes.Import = api.BaseRoutes.Imports.PathPrefix("/{import_name:.+\\.zip}").Subrouter()
 	api.BaseRoutes.Exports = api.BaseRoutes.APIRoot.PathPrefix("/exports").Subrouter()
 	api.BaseRoutes.Export = api.BaseRoutes.Exports.PathPrefix("/{export_name:.+\\.zip}").Subrouter()
 
@@ -308,6 +309,8 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.AccessControlPolicies = api.BaseRoutes.APIRoot.PathPrefix("/access_control_policies").Subrouter()
 	api.BaseRoutes.AccessControlPolicy = api.BaseRoutes.APIRoot.PathPrefix("/access_control_policies/{policy_id:[A-Za-z0-9]+}").Subrouter()
 
+	api.BaseRoutes.ContentFlagging = api.BaseRoutes.APIRoot.PathPrefix("/content_flagging").Subrouter()
+
 	api.InitUser()
 	api.InitBot()
 	api.InitTeam()
@@ -325,7 +328,6 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitCluster()
 	api.InitLdap()
 	api.InitElasticsearch()
-	api.InitBleve()
 	api.InitDataRetention()
 	api.InitBrand()
 	api.InitJob()
@@ -361,6 +363,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitCustomProfileAttributes()
 	api.InitAuditLogging()
 	api.InitAccessControlPolicy()
+	api.InitContentFlagging()
 
 	// If we allow testing then listen for manual testing URL hits
 	if *srv.Config().ServiceSettings.EnableTesting {
@@ -436,6 +439,7 @@ func InitLocal(srv *app.Server) *API {
 	api.BaseRoutes.Upload = api.BaseRoutes.Uploads.PathPrefix("/{upload_id:[A-Za-z0-9]+}").Subrouter()
 
 	api.BaseRoutes.Imports = api.BaseRoutes.APIRoot.PathPrefix("/imports").Subrouter()
+	api.BaseRoutes.Import = api.BaseRoutes.Imports.PathPrefix("/{import_name:.+\\.zip}").Subrouter()
 	api.BaseRoutes.Exports = api.BaseRoutes.APIRoot.PathPrefix("/exports").Subrouter()
 	api.BaseRoutes.Export = api.BaseRoutes.Exports.PathPrefix("/{export_name:.+\\.zip}").Subrouter()
 

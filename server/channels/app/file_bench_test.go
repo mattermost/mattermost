@@ -175,7 +175,7 @@ func BenchmarkUploadFile(b *testing.B) {
 	for _, file := range files {
 		for _, fb := range fileBenchmarks {
 			b.Run(file.title+"-"+fb.title, func(b *testing.B) {
-				for i := 0; i < b.N; i++ {
+				for i := 0; b.Loop(); i++ {
 					fb.f(b, i, file.data, file.ext)
 				}
 			})

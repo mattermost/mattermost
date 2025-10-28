@@ -28,8 +28,6 @@ import * as Utils from 'utils/utils';
 
 import type {TextboxElement} from './index';
 
-const ALL = ['all'];
-
 export type Props = {
     id: string;
     channelId: string;
@@ -106,7 +104,6 @@ export default class Textbox extends React.PureComponent<Props> {
 
         this.suggestionProviders.push(
             new AtMentionProvider({
-                textboxId: this.props.id,
                 currentUserId: this.props.currentUserId,
                 channelId: this.props.channelId,
                 autocompleteUsersInChannel: (prefix: string) => this.props.actions.autocompleteUsersInChannel(prefix, this.props.channelId),
@@ -148,7 +145,6 @@ export default class Textbox extends React.PureComponent<Props> {
             for (const provider of this.suggestionProviders) {
                 if (provider instanceof AtMentionProvider) {
                     provider.setProps({
-                        textboxId: this.props.id,
                         currentUserId: this.props.currentUserId,
                         channelId: this.props.channelId,
                         autocompleteUsersInChannel: (prefix: string) => this.props.actions.autocompleteUsersInChannel(prefix, this.props.channelId),
@@ -326,7 +322,6 @@ export default class Textbox extends React.PureComponent<Props> {
                     listPosition={this.props.suggestionListPosition}
                     providers={this.suggestionProviders}
                     value={this.props.value}
-                    renderDividers={ALL}
                     disabled={this.props.disabled}
                     contextId={this.props.channelId}
                     openWhenEmpty={this.props.openWhenEmpty}

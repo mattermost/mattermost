@@ -10,9 +10,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
   submit={[MockFunction]}
   updateSection={[MockFunction]}
 >
-  <SettingItemMax
-    containerStyle=""
-    infoPosition="bottom"
+  <Memo(SettingItemMax)
     inputs={
       Array [
         <div
@@ -43,7 +41,6 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
       ]
     }
     saving={false}
-    section=""
     shiftEnter={true}
     submit={[MockFunction]}
     title={
@@ -120,6 +117,9 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
             className="setting-list-item"
           >
             <hr />
+            <div
+              role="alert"
+            />
             <SaveButton
               disabled={false}
               onClick={[Function]}
@@ -157,6 +157,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
             </SaveButton>
             <button
               className="btn btn-tertiary"
+              data-testid="cancelButton"
               id="cancelSetting"
               onClick={[Function]}
             >
@@ -173,7 +174,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
         </div>
       </div>
     </section>
-  </SettingItemMax>
+  </Memo(SettingItemMax)>
 </ManageAutoResponder>
 `;
 
@@ -187,9 +188,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
   submit={[MockFunction]}
   updateSection={[MockFunction]}
 >
-  <SettingItemMax
-    containerStyle=""
-    infoPosition="bottom"
+  <Memo(SettingItemMax)
     inputs={
       Array [
         <div
@@ -248,7 +247,6 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
       ]
     }
     saving={false}
-    section=""
     shiftEnter={true}
     submit={[MockFunction]}
     title={
@@ -370,6 +368,9 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
             className="setting-list-item"
           >
             <hr />
+            <div
+              role="alert"
+            />
             <SaveButton
               disabled={false}
               onClick={[Function]}
@@ -407,6 +408,7 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
             </SaveButton>
             <button
               className="btn btn-tertiary"
+              data-testid="cancelButton"
               id="cancelSetting"
               onClick={[Function]}
             >
@@ -423,6 +425,6 @@ exports[`components/user_settings/notifications/ManageAutoResponder should match
         </div>
       </div>
     </section>
-  </SettingItemMax>
+  </Memo(SettingItemMax)>
 </ManageAutoResponder>
 `;

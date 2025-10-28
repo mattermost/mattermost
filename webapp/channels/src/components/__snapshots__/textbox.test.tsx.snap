@@ -110,7 +110,6 @@ exports[`components/TextBox should match snapshot with additional, optional prop
           "priorityProfiles": undefined,
           "requestStarted": false,
           "searchAssociatedGroupsForReference": [Function],
-          "textboxId": "someid",
           "triggerCharacter": "@",
           "useChannelMentions": true,
         },
@@ -135,11 +134,6 @@ exports[`components/TextBox should match snapshot with additional, optional prop
           "requestStarted": false,
           "triggerCharacter": ":",
         },
-      ]
-    }
-    renderDividers={
-      Array [
-        "all",
       ]
     }
     spellCheck="true"
@@ -258,7 +252,6 @@ exports[`components/TextBox should match snapshot with required props 1`] = `
           "priorityProfiles": undefined,
           "requestStarted": false,
           "searchAssociatedGroupsForReference": [Function],
-          "textboxId": "someid",
           "triggerCharacter": "@",
           "useChannelMentions": true,
         },
@@ -283,11 +276,6 @@ exports[`components/TextBox should match snapshot with required props 1`] = `
           "requestStarted": false,
           "triggerCharacter": ":",
         },
-      ]
-    }
-    renderDividers={
-      Array [
-        "all",
       ]
     }
     spellCheck="true"
@@ -406,7 +394,6 @@ exports[`components/TextBox should throw error when new property is too long 1`]
           "priorityProfiles": undefined,
           "requestStarted": false,
           "searchAssociatedGroupsForReference": [Function],
-          "textboxId": "someid",
           "triggerCharacter": "@",
           "useChannelMentions": true,
         },
@@ -431,11 +418,6 @@ exports[`components/TextBox should throw error when new property is too long 1`]
           "requestStarted": false,
           "triggerCharacter": ":",
         },
-      ]
-    }
-    renderDividers={
-      Array [
-        "all",
       ]
     }
     spellCheck="true"
@@ -554,7 +536,6 @@ exports[`components/TextBox should throw error when value is too long 1`] = `
           "priorityProfiles": undefined,
           "requestStarted": false,
           "searchAssociatedGroupsForReference": [Function],
-          "textboxId": "someid",
           "triggerCharacter": "@",
           "useChannelMentions": true,
         },
@@ -579,11 +560,6 @@ exports[`components/TextBox should throw error when value is too long 1`] = `
           "requestStarted": false,
           "triggerCharacter": ":",
         },
-      ]
-    }
-    renderDividers={
-      Array [
-        "all",
       ]
     }
     spellCheck="true"

@@ -237,7 +237,7 @@ function ChannelSettingsInfoTab({
             header: channelHeader.trim(),
         };
 
-        const {error} = await dispatch(patchChannel(channel.id, updated));
+        const {data, error} = await dispatch(patchChannel(channel.id, updated));
         if (error) {
             handleServerError(error as ServerError);
             return false;
@@ -245,10 +245,10 @@ function ChannelSettingsInfoTab({
 
         // After every successful save, update local state to match the saved values
         // with this, we make sure that the unsavedChanges check will return false after saving
-        setDisplayName(updated.display_name);
-        setChannelURL(updated.name);
-        setChannelPurpose(updated.purpose);
-        setChannelHeader(updated.header);
+        setDisplayName(data?.display_name ?? updated.display_name);
+        setChannelURL(data?.name ?? updated.name);
+        setChannelPurpose(data?.purpose ?? updated.purpose);
+        setChannelHeader(data?.header ?? updated.header);
         return true;
     }, [channel, displayName, channelUrl, channelPurpose, channelHeader, channelType, setFormError, handleServerError]);
 
@@ -344,12 +344,11 @@ function ChannelSettingsInfoTab({
             />
 
             {/* Channel Name Section*/}
-            <label
-                htmlFor='input_channel-settings-name'
-                className='Input_legend'
+            <div
+                className='ChannelSettingsModal__infoTabTitle'
             >
-                {formatMessage({id: 'channel_settings.label.name', defaultMessage: 'Channel Name'})}
-            </label>
+                {formatMessage({id: 'channel_settings.channel_info_tab.name', defaultMessage: 'Channel Info'})}
+            </div>
             <ChannelNameFormField
                 value={displayName}
                 name='channel-settings-name'
@@ -365,6 +364,7 @@ function ChannelSettingsInfoTab({
                 urlError={internalUrlError}
                 currentUrl={channelUrl}
                 readOnly={!canManageChannelProperties}
+                isEditingExistingChannel={true}
             />
 
             {/* Channel Type Section*/}

@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -99,7 +100,13 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, sqlSettings *model.SqlS
 	*memoryConfig.ServiceSettings.EnableLocalMode = true
 	*memoryConfig.ServiceSettings.LocalModeSocketLocation = filepath.Join(tempWorkspace, "mattermost_local.sock")
 	*memoryConfig.LogSettings.EnableSentry = false // disable error reporting during tests
-	*memoryConfig.LogSettings.ConsoleLevel = mlog.LvlStdLog.Name
+
+	// Check for environment variable override for console log level (useful for debugging tests)
+	consoleLevel := os.Getenv("MM_LOGSETTINGS_CONSOLELEVEL")
+	if consoleLevel == "" {
+		consoleLevel = mlog.LvlStdLog.Name
+	}
+	*memoryConfig.LogSettings.ConsoleLevel = consoleLevel
 	*memoryConfig.LogSettings.FileLocation = filepath.Join(tempWorkspace, "logs", "mattermost.log")
 	*memoryConfig.AnnouncementSettings.AdminNoticesEnabled = false
 	*memoryConfig.AnnouncementSettings.UserNoticesEnabled = false
@@ -121,6 +128,12 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, sqlSettings *model.SqlS
 		updateConfig(memoryConfig)
 	}
 	memoryStore.Set(memoryConfig)
+	for _, signaturePublicKeyFile := range memoryConfig.PluginSettings.SignaturePublicKeyFiles {
+		var signaturePublicKey []byte
+		signaturePublicKey, err = os.ReadFile(signaturePublicKeyFile)
+		require.NoError(tb, err, "failed to read signature public key file %s", signaturePublicKeyFile)
+		memoryStore.SetFile(signaturePublicKeyFile, signaturePublicKey)
+	}
 
 	configStore, err := config.NewStoreFromBacking(memoryStore, nil, false)
 	require.NoError(tb, err)
@@ -159,10 +172,6 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, sqlSettings *model.SqlS
 		TestLogger:        testLogger,
 		LogBuffer:         buffer,
 		Store:             dbStore,
-	}
-
-	if s.Platform().SearchEngine != nil && s.Platform().SearchEngine.BleveEngine != nil && searchEngine != nil {
-		searchEngine.BleveEngine = s.Platform().SearchEngine.BleveEngine
 	}
 
 	if searchEngine != nil {
@@ -270,8 +279,13 @@ func SetupEnterprise(tb testing.TB, options ...app.Option) *TestHelper {
 		tb.SkipNow()
 	}
 
+	removeSpuriousErrors := func(config *model.Config) {
+		// If not set, you will receive an unactionable error in the console
+		*config.ServiceSettings.SiteURL = "http://localhost:8065"
+	}
+
 	dbStore, dbSettings, searchEngine := setupStores(tb)
-	th := setupTestHelper(tb, dbStore, dbSettings, searchEngine, true, true, nil, options)
+	th := setupTestHelper(tb, dbStore, dbSettings, searchEngine, true, true, removeSpuriousErrors, options)
 	th.InitLogin(tb)
 
 	return th
@@ -355,7 +369,12 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 }
 
 func SetupEnterpriseWithStoreMock(tb testing.TB, options ...app.Option) *TestHelper {
-	th := setupTestHelper(tb, testlib.GetMockStoreForSetupFunctions(), nil, nil, true, false, nil, options)
+	removeSpuriousErrors := func(config *model.Config) {
+		// If not set, you will receive an unactionable error in the console
+		*config.ServiceSettings.SiteURL = "http://localhost:8065"
+	}
+
+	th := setupTestHelper(tb, testlib.GetMockStoreForSetupFunctions(), nil, nil, true, false, removeSpuriousErrors, options)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -430,6 +449,13 @@ func (th *TestHelper) TearDown() {
 		if err != nil {
 			panic(err)
 		}
+	}
+}
+
+func (th *TestHelper) RemoveLicense() {
+	err := th.App.Srv().RemoveLicense()
+	if err != nil {
+		th.TestLogger.Warn("TestHelper.RemoveLicense: failed to remove license", mlog.Err(err))
 	}
 }
 
@@ -565,7 +591,7 @@ func (th *TestHelper) DeleteBots() *TestHelper {
 }
 
 func (th *TestHelper) waitForConnectivity(tb testing.TB) {
-	for i := 0; i < 1000; i++ {
+	for range 1000 {
 		conn, err := net.Dial("tcp", fmt.Sprintf("localhost:%v", th.App.Srv().ListenAddr.Port))
 		if err == nil {
 			conn.Close()
@@ -1313,7 +1339,7 @@ func (th *TestHelper) cleanupTestFile(info *model.FileInfo) error {
 }
 
 func (th *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Channel) {
-	if cm, err := th.App.Srv().Store().Channel().GetMember(context.Background(), channel.Id, user.Id); err == nil {
+	if cm, err := th.App.Srv().Store().Channel().GetMember(th.Context, channel.Id, user.Id); err == nil {
 		cm.SchemeAdmin = true
 		if _, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, cm); err != nil {
 			panic(err)
@@ -1356,7 +1382,7 @@ func (th *TestHelper) SaveDefaultRolePermissions() map[string][]string {
 		"channel_user",
 		"channel_admin",
 	} {
-		role, err1 := th.App.GetRoleByName(context.Background(), roleName)
+		role, err1 := th.App.GetRoleByName(th.Context, roleName)
 		if err1 != nil {
 			panic(err1)
 		}
@@ -1368,7 +1394,7 @@ func (th *TestHelper) SaveDefaultRolePermissions() map[string][]string {
 
 func (th *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
 	for roleName, permissions := range data {
-		role, err1 := th.App.GetRoleByName(context.Background(), roleName)
+		role, err1 := th.App.GetRoleByName(th.Context, roleName)
 		if err1 != nil {
 			panic(err1)
 		}
@@ -1387,7 +1413,7 @@ func (th *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
 }
 
 func (th *TestHelper) RemovePermissionFromRole(permission string, roleName string) {
-	role, err1 := th.App.GetRoleByName(context.Background(), roleName)
+	role, err1 := th.App.GetRoleByName(th.Context, roleName)
 	if err1 != nil {
 		panic(err1)
 	}
@@ -1412,15 +1438,13 @@ func (th *TestHelper) RemovePermissionFromRole(permission string, roleName strin
 }
 
 func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
-	role, err1 := th.App.GetRoleByName(context.Background(), roleName)
+	role, err1 := th.App.GetRoleByName(th.Context, roleName)
 	if err1 != nil {
 		panic(err1)
 	}
 
-	for _, existingPermission := range role.Permissions {
-		if existingPermission == permission {
-			return
-		}
+	if slices.Contains(role.Permissions, permission) {
+		return
 	}
 
 	role.Permissions = append(role.Permissions, permission)

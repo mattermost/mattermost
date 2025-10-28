@@ -2,12 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {Channel} from '@mattermost/types/channels';
+import {UserProfile} from '@mattermost/types/users';
+import {Team} from '@mattermost/types/teams';
+
 import * as TIMEOUTS from '../../../../../fixtures/timeouts';
 import {getAdminAccount} from '../../../../../support/env';
 
 import {checkBoxes} from './constants';
-import {UserProfile} from '@mattermost/types/users';
-import {Team} from '@mattermost/types/teams';
 
 // # Visits the channel configuration for a channel with channelName
 export const visitChannelConfigPage = (channel: Channel) => {

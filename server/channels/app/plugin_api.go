@@ -29,11 +29,11 @@ type PluginAPI struct {
 	manifest *model.Manifest
 }
 
-func NewPluginAPI(a *App, c request.CTX, manifest *model.Manifest) *PluginAPI {
+func NewPluginAPI(a *App, rctx request.CTX, manifest *model.Manifest) *PluginAPI {
 	return &PluginAPI{
 		id:       manifest.Id,
 		manifest: manifest,
-		ctx:      c,
+		ctx:      rctx,
 		app:      a,
 		logger:   a.Log().Sugar(mlog.String("plugin_id", manifest.Id)),
 	}
@@ -153,11 +153,11 @@ func (api *PluginAPI) GetSystemInstallDate() (int64, *model.AppError) {
 }
 
 func (api *PluginAPI) GetDiagnosticId() string {
-	return api.app.TelemetryId()
+	return api.app.ServerId()
 }
 
 func (api *PluginAPI) GetTelemetryId() string {
-	return api.app.TelemetryId()
+	return api.app.ServerId()
 }
 
 func (api *PluginAPI) CreateTeam(team *model.Team) (*model.Team, *model.AppError) {
@@ -195,6 +195,21 @@ func (api *PluginAPI) UpdateTeam(team *model.Team) (*model.Team, *model.AppError
 
 func (api *PluginAPI) GetTeamsForUser(userID string) ([]*model.Team, *model.AppError) {
 	return api.app.GetTeamsForUser(userID)
+}
+
+func (api *PluginAPI) LogAuditRec(rec *model.AuditRecord) {
+	api.LogAuditRecWithLevel(rec, mlog.LvlAuditCLI)
+}
+
+func (api *PluginAPI) LogAuditRecWithLevel(rec *model.AuditRecord, level mlog.Level) {
+	if rec == nil {
+		return
+	}
+
+	// Ensure the plugin_id is always logged with the correct ID
+	model.AddEventParameterToAuditRec(rec, "plugin_id", api.id)
+
+	api.app.Srv().Audit.LogRecord(level, *rec)
 }
 
 func (api *PluginAPI) CreateTeamMember(teamID, userID string) (*model.TeamMember, *model.AppError) {
@@ -255,7 +270,7 @@ func (api *PluginAPI) GetUsers(options *model.UserGetOptions) ([]*model.User, *m
 }
 
 func (api *PluginAPI) GetUsersByIds(usersID []string) ([]*model.User, *model.AppError) {
-	return api.app.GetUsers(usersID)
+	return api.app.GetUsers(api.ctx, usersID)
 }
 
 func (api *PluginAPI) GetUser(userID string) (*model.User, *model.AppError) {
@@ -795,7 +810,7 @@ func (api *PluginAPI) DeletePost(postID string) *model.AppError {
 }
 
 func (api *PluginAPI) GetPostThread(postID string) (*model.PostList, *model.AppError) {
-	list, appErr := api.app.GetPostThread(postID, model.GetPostsOptions{}, "")
+	list, appErr := api.app.GetPostThread(api.ctx, postID, model.GetPostsOptions{}, "")
 	if list != nil {
 		list = list.ForPlugin()
 	}
@@ -811,7 +826,7 @@ func (api *PluginAPI) GetPost(postID string) (*model.Post, *model.AppError) {
 }
 
 func (api *PluginAPI) GetPostsSince(channelID string, time int64) (*model.PostList, *model.AppError) {
-	list, appErr := api.app.GetPostsSince(model.GetPostsSinceOptions{ChannelId: channelID, Time: time})
+	list, appErr := api.app.GetPostsSince(api.ctx, model.GetPostsSinceOptions{ChannelId: channelID, Time: time})
 	if list != nil {
 		list = list.ForPlugin()
 	}
@@ -819,7 +834,7 @@ func (api *PluginAPI) GetPostsSince(channelID string, time int64) (*model.PostLi
 }
 
 func (api *PluginAPI) GetPostsAfter(channelID, postID string, page, perPage int) (*model.PostList, *model.AppError) {
-	list, appErr := api.app.GetPostsAfterPost(model.GetPostsOptions{ChannelId: channelID, PostId: postID, Page: page, PerPage: perPage})
+	list, appErr := api.app.GetPostsAfterPost(api.ctx, model.GetPostsOptions{ChannelId: channelID, PostId: postID, Page: page, PerPage: perPage})
 	if list != nil {
 		list = list.ForPlugin()
 	}
@@ -827,7 +842,7 @@ func (api *PluginAPI) GetPostsAfter(channelID, postID string, page, perPage int)
 }
 
 func (api *PluginAPI) GetPostsBefore(channelID, postID string, page, perPage int) (*model.PostList, *model.AppError) {
-	list, appErr := api.app.GetPostsBeforePost(model.GetPostsOptions{ChannelId: channelID, PostId: postID, Page: page, PerPage: perPage})
+	list, appErr := api.app.GetPostsBeforePost(api.ctx, model.GetPostsOptions{ChannelId: channelID, PostId: postID, Page: page, PerPage: perPage})
 	if list != nil {
 		list = list.ForPlugin()
 	}
@@ -835,7 +850,7 @@ func (api *PluginAPI) GetPostsBefore(channelID, postID string, page, perPage int
 }
 
 func (api *PluginAPI) GetPostsForChannel(channelID string, page, perPage int) (*model.PostList, *model.AppError) {
-	list, appErr := api.app.GetPostsPage(model.GetPostsOptions{ChannelId: channelID, Page: page, PerPage: perPage})
+	list, appErr := api.app.GetPostsPage(api.ctx, model.GetPostsOptions{ChannelId: channelID, Page: page, PerPage: perPage})
 	if list != nil {
 		list = list.ForPlugin()
 	}
@@ -1486,4 +1501,106 @@ func (api *PluginAPI) DeleteGroupConstrainedMemberships() *model.AppError {
 	}
 
 	return nil
+}
+
+func (api *PluginAPI) CreatePropertyField(field *model.PropertyField) (*model.PropertyField, error) {
+	if field == nil {
+		return nil, fmt.Errorf("invalid input: property field parameter is required")
+	}
+
+	return api.app.PropertyService().CreatePropertyField(field)
+}
+
+func (api *PluginAPI) GetPropertyField(groupID, fieldID string) (*model.PropertyField, error) {
+	return api.app.PropertyService().GetPropertyField(groupID, fieldID)
+}
+
+func (api *PluginAPI) GetPropertyFields(groupID string, ids []string) ([]*model.PropertyField, error) {
+	return api.app.PropertyService().GetPropertyFields(groupID, ids)
+}
+
+func (api *PluginAPI) UpdatePropertyField(groupID string, field *model.PropertyField) (*model.PropertyField, error) {
+	return api.app.PropertyService().UpdatePropertyField(groupID, field)
+}
+
+func (api *PluginAPI) DeletePropertyField(groupID, fieldID string) error {
+	return api.app.PropertyService().DeletePropertyField(groupID, fieldID)
+}
+
+func (api *PluginAPI) SearchPropertyFields(groupID string, opts model.PropertyFieldSearchOpts) ([]*model.PropertyField, error) {
+	return api.app.PropertyService().SearchPropertyFields(groupID, opts)
+}
+
+func (api *PluginAPI) CountPropertyFields(groupID string, includeDeleted bool) (int64, error) {
+	if includeDeleted {
+		return api.app.PropertyService().CountAllPropertyFieldsForGroup(groupID)
+	}
+	return api.app.PropertyService().CountActivePropertyFieldsForGroup(groupID)
+}
+
+func (api *PluginAPI) CountPropertyFieldsForTarget(groupID, targetType, targetID string, includeDeleted bool) (int64, error) {
+	if includeDeleted {
+		return api.app.PropertyService().CountAllPropertyFieldsForTarget(groupID, targetType, targetID)
+	}
+	return api.app.PropertyService().CountActivePropertyFieldsForTarget(groupID, targetType, targetID)
+}
+
+func (api *PluginAPI) CreatePropertyValue(value *model.PropertyValue) (*model.PropertyValue, error) {
+	return api.app.PropertyService().CreatePropertyValue(value)
+}
+
+func (api *PluginAPI) GetPropertyValue(groupID, valueID string) (*model.PropertyValue, error) {
+	return api.app.PropertyService().GetPropertyValue(groupID, valueID)
+}
+
+func (api *PluginAPI) GetPropertyValues(groupID string, ids []string) ([]*model.PropertyValue, error) {
+	return api.app.PropertyService().GetPropertyValues(groupID, ids)
+}
+
+func (api *PluginAPI) UpdatePropertyValue(groupID string, value *model.PropertyValue) (*model.PropertyValue, error) {
+	return api.app.PropertyService().UpdatePropertyValue(groupID, value)
+}
+
+func (api *PluginAPI) UpsertPropertyValue(value *model.PropertyValue) (*model.PropertyValue, error) {
+	return api.app.PropertyService().UpsertPropertyValue(value)
+}
+
+func (api *PluginAPI) DeletePropertyValue(groupID, valueID string) error {
+	return api.app.PropertyService().DeletePropertyValue(groupID, valueID)
+}
+
+func (api *PluginAPI) SearchPropertyValues(groupID string, opts model.PropertyValueSearchOpts) ([]*model.PropertyValue, error) {
+	return api.app.PropertyService().SearchPropertyValues(groupID, opts)
+}
+
+func (api *PluginAPI) RegisterPropertyGroup(name string) (*model.PropertyGroup, error) {
+	return api.app.PropertyService().RegisterPropertyGroup(name)
+}
+
+func (api *PluginAPI) GetPropertyGroup(name string) (*model.PropertyGroup, error) {
+	return api.app.PropertyService().GetPropertyGroup(name)
+}
+
+func (api *PluginAPI) GetPropertyFieldByName(groupID, targetID, name string) (*model.PropertyField, error) {
+	return api.app.PropertyService().GetPropertyFieldByName(groupID, targetID, name)
+}
+
+func (api *PluginAPI) UpdatePropertyFields(groupID string, fields []*model.PropertyField) ([]*model.PropertyField, error) {
+	return api.app.PropertyService().UpdatePropertyFields(groupID, fields)
+}
+
+func (api *PluginAPI) UpdatePropertyValues(groupID string, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	return api.app.PropertyService().UpdatePropertyValues(groupID, values)
+}
+
+func (api *PluginAPI) UpsertPropertyValues(values []*model.PropertyValue) ([]*model.PropertyValue, error) {
+	return api.app.PropertyService().UpsertPropertyValues(values)
+}
+
+func (api *PluginAPI) DeletePropertyValuesForTarget(groupID, targetType, targetID string) error {
+	return api.app.PropertyService().DeletePropertyValuesForTarget(groupID, targetType, targetID)
+}
+
+func (api *PluginAPI) DeletePropertyValuesForField(groupID, fieldID string) error {
+	return api.app.PropertyService().DeletePropertyValuesForField(groupID, fieldID)
 }

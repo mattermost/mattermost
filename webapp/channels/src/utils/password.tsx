@@ -11,13 +11,11 @@ import Constants from 'utils/constants';
 
 export function isValidPassword(password: string, passwordConfig: PasswordConfig, intl?: IntlShape) {
     let errorId = passwordErrors.passwordError.id;
-    const telemetryErrorIds = [];
     let valid = true;
     const minimumLength = passwordConfig.minimumLength || Constants.MIN_PASSWORD_LENGTH;
 
     if (password.length < minimumLength || password.length > Constants.MAX_PASSWORD_LENGTH) {
         valid = false;
-        telemetryErrorIds.push({field: 'password', rule: 'error_length'});
     }
 
     if (passwordConfig.requireLowercase) {
@@ -26,7 +24,6 @@ export function isValidPassword(password: string, passwordConfig: PasswordConfig
         }
 
         errorId += 'Lowercase';
-        telemetryErrorIds.push({field: 'password', rule: 'lowercase'});
     }
 
     if (passwordConfig.requireUppercase) {
@@ -35,7 +32,6 @@ export function isValidPassword(password: string, passwordConfig: PasswordConfig
         }
 
         errorId += 'Uppercase';
-        telemetryErrorIds.push({field: 'password', rule: 'uppercase'});
     }
 
     if (passwordConfig.requireNumber) {
@@ -44,7 +40,6 @@ export function isValidPassword(password: string, passwordConfig: PasswordConfig
         }
 
         errorId += 'Number';
-        telemetryErrorIds.push({field: 'password', rule: 'number'});
     }
 
     if (passwordConfig.requireSymbol) {
@@ -53,7 +48,6 @@ export function isValidPassword(password: string, passwordConfig: PasswordConfig
         }
 
         errorId += 'Symbol';
-        telemetryErrorIds.push({field: 'password', rule: 'symbol'});
     }
 
     let error;
@@ -81,7 +75,7 @@ export function isValidPassword(password: string, passwordConfig: PasswordConfig
         );
     }
 
-    return {valid, error, telemetryErrorIds};
+    return {valid, error};
 }
 
 export const passwordErrors = defineMessages({

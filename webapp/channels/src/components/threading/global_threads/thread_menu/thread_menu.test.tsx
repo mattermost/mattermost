@@ -27,6 +27,9 @@ jest.mock('mattermost-redux/actions/threads');
 jest.mock('actions/views/threads');
 jest.mock('actions/post_actions');
 jest.mock('utils/utils');
+jest.mock('hooks/useReadout', () => ({
+    useReadout: () => jest.fn(),
+}));
 
 const mockRouting = {
     params: {

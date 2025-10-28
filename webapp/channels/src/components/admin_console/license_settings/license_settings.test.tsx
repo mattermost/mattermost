@@ -42,7 +42,7 @@ describe('components/admin_console/license_settings/LicenseSettings', () => {
         upgradedFromTE: false,
         enterpriseReady: true,
         totalUsers: 10,
-        isMySql: false,
+        environmentConfig: {},
         actions: {
             getLicenseConfig: jest.fn(),
             uploadLicense: jest.fn(),
@@ -56,6 +56,7 @@ describe('components/admin_console/license_settings/LicenseSettings', () => {
             openModal: jest.fn(),
             getFilteredUsersStats: jest.fn(),
             getServerLimits: jest.fn(),
+            isAllowedToUpgradeToEnterprise: jest.fn().mockImplementation(() => Promise.resolve({})),
         },
     };
 
@@ -105,14 +106,17 @@ describe('components/admin_console/license_settings/LicenseSettings', () => {
     });
 
     test('upgrade to enterprise click', async () => {
+        const promise = Promise.resolve({});
         const actions = {
             ...defaultProps.actions,
             getLicenseConfig: jest.fn(),
             upgradeToE0: jest.fn(),
             upgradeToE0Status: jest.fn().mockImplementation(() => Promise.resolve({percentage: 0, error: null})),
+            isAllowedToUpgradeToEnterprise: jest.fn().mockImplementation(() => promise),
         };
         const props = {...defaultProps, enterpriseReady: false, actions};
         const wrapper = shallow<LicenseSettings>(<LicenseSettings {...props}/>);
+        await promise;
 
         expect(actions.getLicenseConfig).toBeCalledTimes(1);
         expect(actions.upgradeToE0Status).toBeCalledTimes(1);

@@ -11,8 +11,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/go-sql-driver/mysql"
-
 	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
@@ -523,6 +521,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		model.ClusterEventInvalidateCacheForLastPostTime,
 		model.ClusterEventInvalidateCacheForPostsUsage,
 		model.ClusterEventInvalidateCacheForTeams,
+		model.ClusterEventInvalidateCacheForContentFlagging,
 		model.ClusterEventClearSessionCacheForAllUsers,
 		model.ClusterEventInstallPlugin,
 		model.ClusterEventRemovePlugin,
@@ -2222,14 +2221,6 @@ func extractHost(driver, connectionString string) (string, error) {
 			return "", errors.Wrap(err, "failed to parse postgres connection string")
 		}
 		return parsedURL.Host, nil
-	case model.DatabaseDriverMysql:
-		config, err := mysql.ParseDSN(connectionString)
-		if err != nil {
-			return "", errors.Wrap(err, "failed to parse mysql connection string")
-		}
-		host := strings.Split(config.Addr, ":")[0]
-
-		return host, nil
 	}
 	return "", errors.Errorf("unsupported database driver: %q", driver)
 }

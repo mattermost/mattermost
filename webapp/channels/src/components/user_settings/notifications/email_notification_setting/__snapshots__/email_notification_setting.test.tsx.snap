@@ -24,9 +24,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
   threads="all"
   updateSection={[MockFunction]}
 >
-  <SettingItemMax
-    containerStyle=""
-    infoPosition="bottom"
+  <Memo(SettingItemMax)
     inputs={
       Array [
         <fieldset>
@@ -83,7 +81,6 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
       ]
     }
     saving={false}
-    section=""
     serverError=""
     submit={[Function]}
     title={
@@ -189,6 +186,9 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
             className="setting-list-item"
           >
             <hr />
+            <div
+              role="alert"
+            />
             <SaveButton
               disabled={false}
               onClick={[Function]}
@@ -226,6 +226,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
             </SaveButton>
             <button
               className="btn btn-tertiary"
+              data-testid="cancelButton"
               id="cancelSetting"
               onClick={[Function]}
             >
@@ -242,7 +243,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
         </div>
       </div>
     </section>
-  </SettingItemMax>
+  </Memo(SettingItemMax)>
 </EmailNotificationSetting>
 `;
 
@@ -327,9 +328,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
   threads="all"
   updateSection={[MockFunction]}
 >
-  <SettingItemMax
-    containerStyle=""
-    infoPosition="bottom"
+  <Memo(SettingItemMax)
     inputs={
       Array [
         <fieldset>
@@ -437,7 +436,6 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
       ]
     }
     saving={false}
-    section=""
     serverError=""
     submit={[Function]}
     title={
@@ -606,6 +604,9 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
             className="setting-list-item"
           >
             <hr />
+            <div
+              role="alert"
+            />
             <SaveButton
               disabled={false}
               onClick={[Function]}
@@ -643,6 +644,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
             </SaveButton>
             <button
               className="btn btn-tertiary"
+              data-testid="cancelButton"
               id="cancelSetting"
               onClick={[Function]}
             >
@@ -659,14 +661,12 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
         </div>
       </div>
     </section>
-  </SettingItemMax>
+  </Memo(SettingItemMax)>
 </EmailNotificationSetting>
 `;
 
 exports[`components/user_settings/notifications/EmailNotificationSetting should match snapshot, not send email notifications 1`] = `
-<SettingItemMax
-  containerStyle=""
-  infoPosition="bottom"
+<Memo(SettingItemMax)
   inputs={
     Array [
       <div
@@ -679,7 +679,6 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
       </div>,
     ]
   }
-  saving={false}
   section="email"
   serverError=""
   title={
@@ -693,9 +692,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
 `;
 
 exports[`components/user_settings/notifications/EmailNotificationSetting should match snapshot, on serverError 1`] = `
-<SettingItemMax
-  containerStyle=""
-  infoPosition="bottom"
+<Memo(SettingItemMax)
   inputs={
     Array [
       <fieldset>
@@ -752,7 +749,6 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
     ]
   }
   saving={false}
-  section=""
   serverError="serverError"
   submit={[Function]}
   title={
@@ -766,9 +762,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
 `;
 
 exports[`components/user_settings/notifications/EmailNotificationSetting should match snapshot, when CRT on and email set to immediately 1`] = `
-<SettingItemMax
-  containerStyle=""
-  infoPosition="bottom"
+<Memo(SettingItemMax)
   inputs={
     Array [
       <fieldset>
@@ -846,7 +840,6 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
     ]
   }
   saving={false}
-  section=""
   serverError=""
   submit={[Function]}
   title={
@@ -860,9 +853,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
 `;
 
 exports[`components/user_settings/notifications/EmailNotificationSetting should match snapshot, when CRT on and email set to never 1`] = `
-<SettingItemMax
-  containerStyle=""
-  infoPosition="bottom"
+<Memo(SettingItemMax)
   inputs={
     Array [
       <fieldset>
@@ -919,7 +910,6 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
     ]
   }
   saving={false}
-  section=""
   serverError=""
   submit={[Function]}
   title={

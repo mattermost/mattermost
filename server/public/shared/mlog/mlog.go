@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"maps"
 	"os"
 	"strings"
 	"sync/atomic"
@@ -65,9 +66,7 @@ type Sugar = logr.Sugar
 type LoggerConfiguration map[string]TargetCfg
 
 func (lc LoggerConfiguration) Append(cfg LoggerConfiguration) {
-	for k, v := range cfg {
-		lc[k] = v
-	}
+	maps.Copy(lc, cfg)
 }
 
 func (lc LoggerConfiguration) IsValid() error {
@@ -87,9 +86,7 @@ func (lc LoggerConfiguration) IsValid() error {
 
 func (lc LoggerConfiguration) toTargetCfg() map[string]logrcfg.TargetCfg {
 	tcfg := make(map[string]logrcfg.TargetCfg)
-	for k, v := range lc {
-		tcfg[k] = v
-	}
+	maps.Copy(tcfg, lc)
 	return tcfg
 }
 

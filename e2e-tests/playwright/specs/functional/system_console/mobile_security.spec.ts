@@ -8,7 +8,10 @@ test('should be able to enable mobile security settings when licensed', async ({
 
     const license = await adminClient.getClientLicenseOld();
 
-    test.skip(license.SkuShortName !== 'enterprise', 'Skipping test - server has no enterprise license');
+    test.skip(
+        license.SkuShortName !== 'enterprise' || license.short_sku_name !== 'advanced',
+        'Skipping test - server has no enterprise or enterprise advanced license',
+    );
 
     if (!adminUser) {
         throw new Error('Failed to create admin user');
@@ -96,6 +99,62 @@ test('should be able to enable mobile security settings when licensed', async ({
     expect(await systemConsolePage.mobileSecurity.enableBiometricAuthenticationToggleTrue.isChecked()).toBe(true);
     expect(await systemConsolePage.mobileSecurity.preventScreenCaptureToggleTrue.isChecked()).toBe(true);
     expect(await systemConsolePage.mobileSecurity.jailbreakProtectionToggleTrue.isChecked()).toBe(true);
+
+    if (license.SkuShortName === 'advanced') {
+        // # Enable Secure File Preview
+        await systemConsolePage.mobileSecurity.clickEnableSecureFilePreviewToggleTrue();
+
+        // * Verify all toggles are enabled
+        expect(await systemConsolePage.mobileSecurity.enableBiometricAuthenticationToggleTrue.isChecked()).toBe(true);
+        expect(await systemConsolePage.mobileSecurity.preventScreenCaptureToggleTrue.isChecked()).toBe(true);
+        expect(await systemConsolePage.mobileSecurity.jailbreakProtectionToggleTrue.isChecked()).toBe(true);
+        expect(await systemConsolePage.mobileSecurity.enableSecureFilePreviewToggleTrue.isChecked()).toBe(true);
+        expect(await systemConsolePage.mobileSecurity.allowPdfLinkNavigationToggleTrue.isChecked()).toBe(false);
+
+        // # Save settings
+        await systemConsolePage.mobileSecurity.clickSaveButton();
+        // # Wait until the save button has settled
+        await pw.waitUntil(async () => (await systemConsolePage.mobileSecurity.saveButton.textContent()) === 'Save');
+
+        // # Go to any other section and come back to Mobile Security
+        await systemConsolePage.sidebar.goToItem('Users');
+        await systemConsolePage.systemUsers.toBeVisible();
+        await systemConsolePage.sidebar.goToItem('Mobile Security');
+
+        // * Verify all toggles are still enabled
+        expect(await systemConsolePage.mobileSecurity.enableBiometricAuthenticationToggleTrue.isChecked()).toBe(true);
+        expect(await systemConsolePage.mobileSecurity.preventScreenCaptureToggleTrue.isChecked()).toBe(true);
+        expect(await systemConsolePage.mobileSecurity.jailbreakProtectionToggleTrue.isChecked()).toBe(true);
+        expect(await systemConsolePage.mobileSecurity.enableSecureFilePreviewToggleTrue.isChecked()).toBe(true);
+        expect(await systemConsolePage.mobileSecurity.allowPdfLinkNavigationToggleTrue.isChecked()).toBe(false);
+
+        // # Enable Allow PDF Link Navigation
+        await systemConsolePage.mobileSecurity.clickAllowPdfLinkNavigationToggleTrue();
+
+        // * Verify all toggles are enabled
+        expect(await systemConsolePage.mobileSecurity.enableBiometricAuthenticationToggleTrue.isChecked()).toBe(true);
+        expect(await systemConsolePage.mobileSecurity.preventScreenCaptureToggleTrue.isChecked()).toBe(true);
+        expect(await systemConsolePage.mobileSecurity.jailbreakProtectionToggleTrue.isChecked()).toBe(true);
+        expect(await systemConsolePage.mobileSecurity.enableSecureFilePreviewToggleTrue.isChecked()).toBe(true);
+        expect(await systemConsolePage.mobileSecurity.allowPdfLinkNavigationToggleTrue.isChecked()).toBe(true);
+
+        // # Save settings
+        await systemConsolePage.mobileSecurity.clickSaveButton();
+        // # Wait until the save button has settled
+        await pw.waitUntil(async () => (await systemConsolePage.mobileSecurity.saveButton.textContent()) === 'Save');
+
+        // # Go to any other section and come back to Mobile Security
+        await systemConsolePage.sidebar.goToItem('Users');
+        await systemConsolePage.systemUsers.toBeVisible();
+        await systemConsolePage.sidebar.goToItem('Mobile Security');
+
+        // * Verify all toggles are still enabled
+        expect(await systemConsolePage.mobileSecurity.enableBiometricAuthenticationToggleTrue.isChecked()).toBe(true);
+        expect(await systemConsolePage.mobileSecurity.preventScreenCaptureToggleTrue.isChecked()).toBe(true);
+        expect(await systemConsolePage.mobileSecurity.jailbreakProtectionToggleTrue.isChecked()).toBe(true);
+        expect(await systemConsolePage.mobileSecurity.enableSecureFilePreviewToggleTrue.isChecked()).toBe(true);
+        expect(await systemConsolePage.mobileSecurity.allowPdfLinkNavigationToggleTrue.isChecked()).toBe(true);
+    }
 });
 
 test('should show mobile security upsell when not licensed', async ({pw}) => {

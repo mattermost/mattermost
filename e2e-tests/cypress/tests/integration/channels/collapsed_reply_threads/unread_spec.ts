@@ -12,6 +12,7 @@
 import {Channel} from '@mattermost/types/channels';
 import {Team} from '@mattermost/types/teams';
 import {UserProfile} from '@mattermost/types/users';
+
 import * as TIMEOUTS from '../../../fixtures/timeouts';
 
 describe('Collapsed Reply Threads', () => {
@@ -96,7 +97,7 @@ describe('Collapsed Reply Threads', () => {
         });
     });
 
-    it.skip('MM-T5671 should handle mention counts correctly when marking a thread as unread and unfollowing it', () => {
+    it('MM-T5671 should handle mention counts correctly when marking a thread as unread and unfollowing it', () => {
         // # Post a root post as current user
         cy.postMessageAs({
             sender: otherUser,
@@ -135,6 +136,9 @@ describe('Collapsed Reply Threads', () => {
 
                 // # Switch to a different team
                 cy.apiCreateTeam('team', 'Team').then(({team: otherTeam}) => {
+                    // # Reload the page to ensure newly created team is loaded
+                    cy.reload();
+
                     // # Click on the other team button to switch teams
                     cy.get(`#${otherTeam.name}TeamButton`).click();
 

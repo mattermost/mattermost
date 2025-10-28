@@ -26,7 +26,6 @@ const getStatusColors = (theme: Theme) => {
 const markdownOptions = {
     mentionHighlight: false,
     markdown: false,
-    autolinkedUrlSchemes: [],
 };
 
 type Props = {
@@ -46,7 +45,7 @@ const ActionButton = ({
     actionExecuting,
     actionExecutingMessage,
 }: Props) => {
-    const handleActionClick = useCallback((e) => handleAction(e, action.options), [action.options, handleAction]);
+    const handleActionClick = useCallback((e: React.MouseEvent) => handleAction(e, action.options), [action.options, handleAction]);
     let hexColor: string | null | undefined;
 
     if (action.style) {
@@ -56,6 +55,8 @@ const ActionButton = ({
             secureGetFromRecord(theme, action.style) ||
             (action.style.match('^#(?:[0-9a-fA-F]{3}){1,2}$') && action.style);
     }
+
+    const name = action.name || action.id || '';
 
     return (
         <ActionBtn
@@ -72,7 +73,7 @@ const ActionButton = ({
                 text={actionExecutingMessage}
             >
                 <Markdown
-                    message={action.name}
+                    message={name}
                     options={markdownOptions}
                 />
             </LoadingWrapper>

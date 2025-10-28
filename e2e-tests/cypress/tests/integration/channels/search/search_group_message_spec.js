@@ -68,7 +68,7 @@ describe('Search', () => {
 
             //# Search for the message
             cy.uiGetSearchContainer().should('be.visible').click();
-            cy.uiGetSearchBox().first().clear().type(`${message}{enter}`);
+            cy.uiGetSearchBox().clear().type(`${message}{enter}`);
 
             // * Should return exactly one result from the group channel and matches the message
             cy.findAllByTestId('search-item-container').should('be.visible').and('have.length', 1).within(() => {

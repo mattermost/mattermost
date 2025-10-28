@@ -43,7 +43,7 @@ func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model
 	data = []byte("some other data")
 
 	var longKey string
-	for i := 0; i < model.KeyValueKeyMaxRunes; i++ {
+	for range model.KeyValueKeyMaxRunes {
 		longKey += "k"
 	}
 

@@ -32,11 +32,11 @@ exports[`components/marketplace/ doesn't show web marketplace banner in FeatureF
   restoreFocus={true}
   role="none"
   show={true}
+  style={Object {}}
 >
   <div
     className="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
     onKeyDown={[Function]}
-    tabIndex={0}
   >
     <ModalHeader
       bsClass="modal-header"
@@ -144,11 +144,11 @@ exports[`components/marketplace/ hides search, shows web marketplace banner in F
   restoreFocus={true}
   role="none"
   show={true}
+  style={Object {}}
 >
   <div
     className="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
     onKeyDown={[Function]}
-    tabIndex={0}
   >
     <ModalHeader
       bsClass="modal-header"
@@ -257,11 +257,11 @@ exports[`components/marketplace/ should render default 1`] = `
   restoreFocus={true}
   role="none"
   show={true}
+  style={Object {}}
 >
   <div
     className="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
     onKeyDown={[Function]}
-    tabIndex={0}
   >
     <ModalHeader
       bsClass="modal-header"
@@ -421,11 +421,11 @@ exports[`components/marketplace/ should render with error banner 1`] = `
   restoreFocus={true}
   role="none"
   show={true}
+  style={Object {}}
 >
   <div
     className="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
     onKeyDown={[Function]}
-    tabIndex={0}
   >
     <ModalHeader
       bsClass="modal-header"
@@ -602,11 +602,11 @@ exports[`components/marketplace/ should render with no plugins available 1`] = `
   restoreFocus={true}
   role="none"
   show={true}
+  style={Object {}}
 >
   <div
     className="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
     onKeyDown={[Function]}
-    tabIndex={0}
   >
     <ModalHeader
       bsClass="modal-header"
@@ -774,11 +774,11 @@ exports[`components/marketplace/ should render with plugins available 1`] = `
   restoreFocus={true}
   role="none"
   show={true}
+  style={Object {}}
 >
   <div
     className="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
     onKeyDown={[Function]}
-    tabIndex={0}
   >
     <ModalHeader
       bsClass="modal-header"
@@ -964,11 +964,11 @@ exports[`components/marketplace/ should render with plugins installed 1`] = `
   restoreFocus={true}
   role="none"
   show={true}
+  style={Object {}}
 >
   <div
     className="GenericModal__wrapper GenericModal__wrapper-enter-key-press-catcher"
     onKeyDown={[Function]}
-    tabIndex={0}
   >
     <ModalHeader
       bsClass="modal-header"

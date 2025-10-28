@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {screen} from '@testing-library/react';
+import {screen, fireEvent} from '@testing-library/react';
 import React from 'react';
 
 import type {UserPropertyField} from '@mattermost/types/properties';
@@ -11,6 +11,13 @@ import {renderWithContext} from 'tests/react_testing_utils';
 import ProfilePopoverPhone from './profile_popover_phone';
 
 import {TestHelper} from '../../utils/test_helper';
+
+// Mock window.open
+const mockWindowOpen = jest.fn();
+Object.defineProperty(window, 'open', {
+    writable: true,
+    value: mockWindowOpen,
+});
 
 describe('components/ProfilePopoverPhone', () => {
     const attribute: UserPropertyField = {
@@ -38,6 +45,10 @@ describe('components/ProfilePopoverPhone', () => {
         }),
     };
 
+    beforeEach(() => {
+        mockWindowOpen.mockClear();
+    });
+
     test('should not render when phone is missing', () => {
         const props = {
             ...baseProps,
@@ -46,8 +57,8 @@ describe('components/ProfilePopoverPhone', () => {
                 custom_profile_attributes: {},
             }),
         };
-        renderWithContext(<ProfilePopoverPhone {...props}/>);
-        expect(screen.queryByRole('link')).not.toBeInTheDocument();
+        const {container} = renderWithContext(<ProfilePopoverPhone {...props}/>);
+        expect(container.firstChild).toBeNull();
     });
 
     test('should not render when phone is empty', () => {
@@ -60,17 +71,17 @@ describe('components/ProfilePopoverPhone', () => {
                 },
             }),
         };
-        renderWithContext(<ProfilePopoverPhone {...props}/>);
-        expect(screen.queryByRole('link')).not.toBeInTheDocument();
+        const {container} = renderWithContext(<ProfilePopoverPhone {...props}/>);
+        expect(container.firstChild).toBeNull();
     });
 
     test('should render phone with icon', () => {
         renderWithContext(<ProfilePopoverPhone {...baseProps}/>);
 
         const phone = '+1 (555) 123-4567';
-        const link = screen.getByRole('link');
-        expect(link).toHaveAttribute('href', 'tel:+1 (555) 123-4567');
-        expect(link).toHaveTextContent(phone);
+        const phoneLink = screen.getByText(phone);
+        expect(phoneLink).toBeInTheDocument();
+        expect(phoneLink.tagName).toBe('A');
         expect(screen.getByTitle(phone)).toBeInTheDocument();
         expect(screen.getByLabelText('phone icon')).toBeInTheDocument();
     });
@@ -88,8 +99,31 @@ describe('components/ProfilePopoverPhone', () => {
         renderWithContext(<ProfilePopoverPhone {...props}/>);
 
         const phone = '+44 20 7123 4567';
-        const link = screen.getByRole('link');
-        expect(link).toHaveAttribute('href', 'tel:+44 20 7123 4567');
-        expect(link).toHaveTextContent(phone);
+        const phoneLink = screen.getByText(phone);
+        expect(phoneLink).toBeInTheDocument();
+        expect(phoneLink.tagName).toBe('A');
+    });
+
+    test('should open phone dialer when clicked', () => {
+        renderWithContext(<ProfilePopoverPhone {...baseProps}/>);
+
+        const phone = '+1 (555) 123-4567';
+        const phoneLink = screen.getByText(phone);
+
+        fireEvent.click(phoneLink);
+
+        expect(mockWindowOpen).toHaveBeenCalledWith('tel:+1 (555) 123-4567');
+    });
+
+    test('should prevent default click behavior', () => {
+        renderWithContext(<ProfilePopoverPhone {...baseProps}/>);
+
+        const phone = '+1 (555) 123-4567';
+        const phoneLink = screen.getByText(phone);
+
+        const clickEvent = fireEvent.click(phoneLink);
+
+        expect(clickEvent).toBe(false); // fireEvent.click returns false when preventDefault was called
+        expect(mockWindowOpen).toHaveBeenCalledWith('tel:+1 (555) 123-4567');
     });
 });

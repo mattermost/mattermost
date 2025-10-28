@@ -226,6 +226,68 @@ func TestCPAFieldToPropertyField(t *testing.T) {
 			}
 		})
 	}
+
+	// Test managed attribute functionality
+	t.Run("managed attribute", func(t *testing.T) {
+		managedTests := []struct {
+			name     string
+			cpaField *CPAField
+		}{
+			{
+				name: "CPA field with managed attribute should include it in conversion",
+				cpaField: &CPAField{
+					PropertyField: PropertyField{
+						ID:       NewId(),
+						GroupID:  CustomProfileAttributesPropertyGroupName,
+						Name:     "Managed Field",
+						Type:     PropertyFieldTypeText,
+						CreateAt: GetMillis(),
+						UpdateAt: GetMillis(),
+					},
+					Attrs: CPAAttrs{
+						Visibility: CustomProfileAttributesVisibilityAlways,
+						SortOrder:  1,
+						Managed:    "admin",
+					},
+				},
+			},
+			{
+				name: "CPA field with empty managed attribute should include it in conversion",
+				cpaField: &CPAField{
+					PropertyField: PropertyField{
+						ID:       NewId(),
+						GroupID:  CustomProfileAttributesPropertyGroupName,
+						Name:     "Non-managed Field",
+						Type:     PropertyFieldTypeText,
+						CreateAt: GetMillis(),
+						UpdateAt: GetMillis(),
+					},
+					Attrs: CPAAttrs{
+						Visibility: CustomProfileAttributesVisibilityWhenSet,
+						SortOrder:  2,
+						Managed:    "",
+					},
+				},
+			},
+		}
+
+		for _, tt := range managedTests {
+			t.Run(tt.name, func(t *testing.T) {
+				pf := tt.cpaField.ToPropertyField()
+
+				require.NotNil(t, pf)
+
+				// Check that the PropertyField was copied correctly
+				assert.Equal(t, tt.cpaField.ID, pf.ID)
+				assert.Equal(t, tt.cpaField.GroupID, pf.GroupID)
+				assert.Equal(t, tt.cpaField.Name, pf.Name)
+				assert.Equal(t, tt.cpaField.Type, pf.Type)
+
+				// Check that the managed attribute was converted correctly
+				assert.Equal(t, tt.cpaField.Attrs.Managed, pf.Attrs[CustomProfileAttributesPropertyAttrsManaged])
+			})
+		}
+	})
 }
 
 func TestCustomProfileAttributeSelectOptionIsValid(t *testing.T) {
@@ -695,6 +757,134 @@ func TestCPAField_SanitizeAndValidate(t *testing.T) {
 			}
 		})
 	}
+
+	// Test managed fields functionality
+	t.Run("managed fields", func(t *testing.T) {
+		managedTests := []struct {
+			name          string
+			field         *CPAField
+			expectError   bool
+			errorId       string
+			expectedAttrs CPAAttrs
+		}{
+			{
+				name: "valid managed field with admin value",
+				field: &CPAField{
+					PropertyField: PropertyField{
+						Type: PropertyFieldTypeText,
+					},
+					Attrs: CPAAttrs{
+						Managed: "admin",
+					},
+				},
+				expectError: false,
+				expectedAttrs: CPAAttrs{
+					Visibility: CustomProfileAttributesVisibilityDefault,
+					Managed:    "admin",
+				},
+			},
+			{
+				name: "managed field with whitespace should be trimmed",
+				field: &CPAField{
+					PropertyField: PropertyField{
+						Type: PropertyFieldTypeText,
+					},
+					Attrs: CPAAttrs{
+						Managed: " admin ",
+					},
+				},
+				expectError: false,
+				expectedAttrs: CPAAttrs{
+					Visibility: CustomProfileAttributesVisibilityDefault,
+					Managed:    "admin",
+				},
+			},
+			{
+				name: "field with empty managed should be allowed",
+				field: &CPAField{
+					PropertyField: PropertyField{
+						Type: PropertyFieldTypeText,
+					},
+					Attrs: CPAAttrs{
+						Managed: "",
+					},
+				},
+				expectError: false,
+				expectedAttrs: CPAAttrs{
+					Visibility: CustomProfileAttributesVisibilityDefault,
+					Managed:    "",
+				},
+			},
+			{
+				name: "field with invalid managed value should fail",
+				field: &CPAField{
+					PropertyField: PropertyField{
+						Type: PropertyFieldTypeText,
+					},
+					Attrs: CPAAttrs{
+						Managed: "invalid",
+					},
+				},
+				expectError: true,
+				errorId:     "app.custom_profile_attributes.sanitize_and_validate.app_error",
+			},
+			{
+				name: "managed field should clear LDAP sync properties",
+				field: &CPAField{
+					PropertyField: PropertyField{
+						Type: PropertyFieldTypeText,
+					},
+					Attrs: CPAAttrs{
+						Managed: "admin",
+						LDAP:    "ldap_attribute",
+						SAML:    "saml_attribute",
+					},
+				},
+				expectError: false,
+				expectedAttrs: CPAAttrs{
+					Visibility: CustomProfileAttributesVisibilityDefault,
+					Managed:    "admin",
+					LDAP:       "", // Should be cleared
+					SAML:       "", // Should be cleared
+				},
+			},
+			{
+				name: "managed field should clear sync properties even when field supports syncing",
+				field: &CPAField{
+					PropertyField: PropertyField{
+						Type: PropertyFieldTypeText, // Text fields support syncing
+					},
+					Attrs: CPAAttrs{
+						Managed: "admin",
+						LDAP:    "ldap_attribute",
+					},
+				},
+				expectError: false,
+				expectedAttrs: CPAAttrs{
+					Visibility: CustomProfileAttributesVisibilityDefault,
+					Managed:    "admin",
+					LDAP:       "", // Should be cleared due to mutual exclusivity
+					SAML:       "",
+				},
+			},
+		}
+
+		for _, tt := range managedTests {
+			t.Run(tt.name, func(t *testing.T) {
+				err := tt.field.SanitizeAndValidate()
+				if tt.expectError {
+					require.NotNil(t, err)
+					require.Equal(t, tt.errorId, err.Id)
+				} else {
+					require.Nil(t, err)
+					assert.Equal(t, tt.expectedAttrs.Visibility, tt.field.Attrs.Visibility)
+					assert.Equal(t, tt.expectedAttrs.Managed, tt.field.Attrs.Managed)
+					assert.Equal(t, tt.expectedAttrs.LDAP, tt.field.Attrs.LDAP)
+					assert.Equal(t, tt.expectedAttrs.SAML, tt.field.Attrs.SAML)
+				}
+			})
+		}
+	})
 }
 
 func TestSanitizeAndValidatePropertyValue(t *testing.T) {
@@ -892,4 +1082,54 @@ func TestSanitizeAndValidatePropertyValue(t *testing.T) {
 			require.Equal(t, "invalid user id: invalid-id", err.Error())
 		})
 	})
+}
+
+func TestCPAField_IsAdminManaged(t *testing.T) {
+	tests := []struct {
+		name     string
+		field    *CPAField
+		expected bool
+	}{
+		{
+			name: "field with managed admin attribute should return true",
+			field: &CPAField{
+				Attrs: CPAAttrs{
+					Managed: "admin",
+				},
+			},
+			expected: true,
+		},
+		{
+			name: "field with empty managed attribute should return false",
+			field: &CPAField{
+				Attrs: CPAAttrs{
+					Managed: "",
+				},
+			},
+			expected: false,
+		},
+		{
+			name: "field with non-admin managed attribute should return false",
+			field: &CPAField{
+				Attrs: CPAAttrs{
+					Managed: "user",
+				},
+			},
+			expected: false,
+		},
+		{
+			name: "field with no managed attribute should return false",
+			field: &CPAField{
+				Attrs: CPAAttrs{},
+			},
+			expected: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := tt.field.IsAdminManaged()
+			assert.Equal(t, tt.expected, result)
+		})
+	}
 }

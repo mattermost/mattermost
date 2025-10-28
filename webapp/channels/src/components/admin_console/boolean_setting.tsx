@@ -9,7 +9,7 @@ import * as Utils from 'utils/utils';
 
 import SettingSet from './setting_set';
 
-const Label = styled.label<{isDisabled: boolean}>`
+export const Label = styled.label<{isDisabled: boolean}>`
     display: inline-flex;
     opacity: ${({isDisabled}) => (isDisabled ? 0.5 : 1)};
     margin-top: 8px;

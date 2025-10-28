@@ -629,12 +629,10 @@ func BenchmarkBulkImport(b *testing.B) {
 	require.NoError(b, err)
 	defer jsonFile.Close()
 
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
+	for b.Loop() {
 		err, _ := th.App.BulkImportWithPath(th.Context, jsonFile, nil, false, true, runtime.NumCPU(), dir)
 		require.Nil(b, err)
 	}
-	b.StopTimer()
 }
 
 func TestImportBulkImportWithAttachments(t *testing.T) {
@@ -678,4 +676,38 @@ func TestImportBulkImportWithAttachments(t *testing.T) {
 
 	files := GetAttachments(adminUser.Id, th, t)
 	require.Len(t, files, 11)
+}
+
+func TestDeleteImport(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	importDir := filepath.Join(th.tempWorkspace, "data", "import")
+	err := os.MkdirAll(importDir, os.ModePerm)
+	require.NoError(t, err)
+	f, err := os.Create(filepath.Join(importDir, "import.zip"))
+	require.NoError(t, err)
+	f.Close()
+	defer func() {
+		err = os.RemoveAll(importDir)
+		require.NoError(t, err)
+	}()
+
+	t.Run("delete import successful", func(t *testing.T) {
+		imports, err := th.App.ListImports()
+		require.Nil(t, err)
+		require.Equal(t, 1, len(imports))
+		require.Equal(t, "import.zip", imports[0])
+
+		delErr := th.App.DeleteImport("import.zip")
+		require.Nil(t, delErr)
+
+		imports, err = th.App.ListImports()
+		require.Nil(t, err)
+		require.Equal(t, 0, len(imports))
+
+		//idempotency check
+		delErr = th.App.DeleteImport("import.zip")
+		require.Nil(t, delErr)
+	})
 }

@@ -40,6 +40,12 @@ class ChannelHeader extends React.PureComponent<Props> {
 
     componentDidMount() {
         this.props.actions.getCustomEmojisInText(this.props.channel ? this.props.channel.header : '');
+
+        // Fetch remote names for shared channels on initial mount
+        if (this.props.channel?.shared) {
+            // Don't force refresh on initial load, use cached data if available
+            this.props.actions.fetchChannelRemotes(this.props.channel.id);
+        }
     }
 
     componentDidUpdate(prevProps: Props) {
@@ -47,6 +53,17 @@ class ChannelHeader extends React.PureComponent<Props> {
         const prevHeader = prevProps.channel ? prevProps.channel.header : '';
         if (header !== prevHeader) {
             this.props.actions.getCustomEmojisInText(header);
+        }
+
+        // Fetch remote names when channel changes or when a channel becomes shared
+        if (this.props.channel?.shared) {
+            if (this.props.channel.id !== prevProps.channel?.id) {
+                // For regular channel changes, use cached data if available
+                this.props.actions.fetchChannelRemotes(this.props.channel.id);
+            } else if (this.props.channel.shared !== prevProps.channel?.shared) {
+                // Only force refresh when a channel's shared status changes
+                this.props.actions.fetchChannelRemotes(this.props.channel.id, true);
+            }
         }
     }
 
@@ -337,6 +354,7 @@ class ChannelHeader extends React.PureComponent<Props> {
                                 <ChannelHeaderTitle
                                     dmUser={dmUser}
                                     gmMembers={gmMembers}
+                                    remoteNames={this.props.remoteNames}
                                 />
                                 <div
                                     className='channel-header__icons'
@@ -370,11 +388,15 @@ class ChannelHeader extends React.PureComponent<Props> {
                             </div>
                         </div>
                     </div>
-                    <ChannelHeaderPlug
-                        channel={channel}
-                        channelMember={channelMember}
-                    />
-                    <CallButton/>
+                    {(!channel.shared || this.props.sharedChannelsPluginsEnabled) && (
+                        <>
+                            <ChannelHeaderPlug
+                                channel={channel}
+                                channelMember={channelMember}
+                            />
+                            <CallButton/>
+                        </>
+                    )}
                     <ChannelInfoButton channel={channel}/>
                 </div>
             </div>

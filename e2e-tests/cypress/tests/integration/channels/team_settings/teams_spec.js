@@ -139,6 +139,9 @@ describe('Teams Suite', () => {
             });
 
             cy.get('#sidebarItem_off-topic').should('be.visible').click({force: true});
+
+            cy.findAllByTestId('postView').last().scrollIntoView();
+
             cy.getLastPost().wait(TIMEOUTS.HALF_SEC).then(($el) => {
                 cy.wrap($el).get('.user-popover').
                     should('be.visible').
@@ -244,6 +247,8 @@ describe('Teams Suite', () => {
 
         // Save and close
         cy.uiSaveAndClose();
+
+        cy.wait(TIMEOUTS.ONE_HUNDRED_MILLIS);
 
         // # Open team menu and click "Team Settings"
         cy.uiOpenTeamMenu('Team settings');
