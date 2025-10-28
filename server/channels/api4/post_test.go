@@ -2233,7 +2233,7 @@ func TestGetPostsForChannel(t *testing.T) {
 	post5 := th.CreatePost()
 
 	th.TestForAllClients(t, func(t *testing.T, c *model.Client4) {
-		posts, _, err := c.GetPostsSince(context.Background(), th.BasicChannel.Id, since, false, 0, "")
+		posts, _, err := c.GetPostsSince(context.Background(), th.BasicChannel.Id, since, false, 0, "", 60)
 		require.NoError(t, err)
 		require.Len(t, posts.Posts, 2, "should return 2 posts")
 
@@ -2969,7 +2969,7 @@ func TestGetPostsForChannelCursorPagination(t *testing.T) {
 	// Use SystemAdminClient to preserve explicit CreateAt timestamps
 	baseTime := model.GetMillis()
 	post1 := &model.Post{ChannelId: testChannel.Id, Message: "post1", CreateAt: baseTime}
-	post1, _, _ = th.SystemAdminClient.CreatePost(context.Background(), post1)
+	_, _, _ = th.SystemAdminClient.CreatePost(context.Background(), post1)
 
 	post2 := &model.Post{ChannelId: testChannel.Id, Message: "post2", CreateAt: baseTime + 1000}
 	post2, _, _ = th.SystemAdminClient.CreatePost(context.Background(), post2)

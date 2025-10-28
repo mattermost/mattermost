@@ -3402,9 +3402,10 @@ func (c *Client4) GetFlaggedPostsForUserInChannel(ctx context.Context, userId st
 // Additional parameters:
 //   - until: Upper bound timestamp in milliseconds (exclusive). Pass 0 to omit.
 //   - timeType: Either "create_at" or "update_at" to specify which timestamp field to use. Pass empty string for default ("create_at").
+//   - perPage: Number of posts per page. Pass 0 to use server default.
 //
 // The response will include next_cursor field when more results are available for pagination.
-func (c *Client4) GetPostsSince(ctx context.Context, channelId string, time int64, collapsedThreads bool, until int64, timeType string) (*PostList, *Response, error) {
+func (c *Client4) GetPostsSince(ctx context.Context, channelId string, time int64, collapsedThreads bool, until int64, timeType string, perPage int) (*PostList, *Response, error) {
 	values := url.Values{}
 	values.Set("since", strconv.FormatInt(time, 10))
 	values.Set("collapsedThreads", c.boolString(collapsedThreads))
@@ -3415,6 +3416,10 @@ func (c *Client4) GetPostsSince(ctx context.Context, channelId string, time int6
 
 	if timeType != "" {
 		values.Set("time_type", timeType)
+	}
+
+	if perPage > 0 {
+		values.Set("per_page", strconv.Itoa(perPage))
 	}
 
 	r, err := c.DoAPIGet(ctx, c.channelRoute(channelId)+"/posts?"+values.Encode(), "")

@@ -241,7 +241,7 @@ func (s *MmctlUnitTestSuite) TestPostListCmdF() {
 
 		s.client.
 			EXPECT().
-			GetPostsSince(context.TODO(), channelID, sinceTimeMillis, false, int64(0), "").
+			GetPostsSince(context.TODO(), channelID, sinceTimeMillis, false, int64(0), "", 1).
 			Return(mockPostList, &model.Response{}, nil).
 			Times(1)
 
@@ -330,7 +330,7 @@ func (s *MmctlUnitTestSuite) TestPostListCmdF() {
 
 		s.client.
 			EXPECT().
-			GetPostsSince(context.TODO(), channelID, sinceTimeMillis, false, untilTimeMillis, "").
+			GetPostsSince(context.TODO(), channelID, sinceTimeMillis, false, untilTimeMillis, "", 1).
 			Return(mockPostList, &model.Response{}, nil).
 			Times(1)
 
@@ -375,7 +375,7 @@ func (s *MmctlUnitTestSuite) TestPostListCmdF() {
 
 		s.client.
 			EXPECT().
-			GetPostsSince(context.TODO(), channelID, sinceTimeMillis, false, int64(0), timeTypeArg).
+			GetPostsSince(context.TODO(), channelID, sinceTimeMillis, false, int64(0), timeTypeArg, 1).
 			Return(mockPostList, &model.Response{}, nil).
 			Times(1)
 

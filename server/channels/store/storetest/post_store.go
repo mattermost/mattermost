@@ -5742,14 +5742,14 @@ func testPostStoreGetPostsWithCursor(t *testing.T, rctx request.CTX, ss store.St
 
 		// Create 5 posts with explicit timestamps
 		var posts []*model.Post
-		for i := 0; i < 5; i++ {
-			post, err := ss.Post().Save(rctx, &model.Post{
+		for i := range 5 {
+			post, saveErr := ss.Post().Save(rctx, &model.Post{
 				ChannelId: channelID,
 				UserId:    userID,
 				Message:   fmt.Sprintf("message %d", i),
 				CreateAt:  baseTime + int64(i*1000),
 			})
-			require.NoError(t, err)
+			require.NoError(t, saveErr)
 			posts = append(posts, post)
 		}
 
@@ -5813,14 +5813,14 @@ func testPostStoreGetPostsWithCursor(t *testing.T, rctx request.CTX, ss store.St
 
 		// Create posts with explicit CreateAt timestamps
 		var posts []*model.Post
-		for i := 0; i < 5; i++ {
-			post, err := ss.Post().Save(rctx, &model.Post{
+		for i := range 5 {
+			post, saveErr := ss.Post().Save(rctx, &model.Post{
 				ChannelId: channelID,
 				UserId:    userID,
 				Message:   fmt.Sprintf("message %d", i),
 				CreateAt:  baseTime + int64(i*1000),
 			})
-			require.NoError(t, err)
+			require.NoError(t, saveErr)
 			posts = append(posts, post)
 		}
 
@@ -5876,14 +5876,14 @@ func testPostStoreGetPostsWithCursor(t *testing.T, rctx request.CTX, ss store.St
 
 		// Create 5 posts with explicit timestamps
 		var posts []*model.Post
-		for i := 0; i < 5; i++ {
-			post, err := ss.Post().Save(rctx, &model.Post{
+		for i := range 5 {
+			post, saveErr := ss.Post().Save(rctx, &model.Post{
 				ChannelId: channelID,
 				UserId:    userID,
 				Message:   fmt.Sprintf("message %d", i),
 				CreateAt:  baseTime + int64(i*1000),
 			})
-			require.NoError(t, err)
+			require.NoError(t, saveErr)
 			posts = append(posts, post)
 		}
 
@@ -5976,14 +5976,14 @@ func testPostStoreGetPostsWithCursor(t *testing.T, rctx request.CTX, ss store.St
 
 		// Create 3 posts
 		var posts []*model.Post
-		for i := 0; i < 3; i++ {
-			post, err := ss.Post().Save(rctx, &model.Post{
+		for i := range 3 {
+			post, saveErr := ss.Post().Save(rctx, &model.Post{
 				ChannelId: channelID,
 				UserId:    userID,
 				Message:   fmt.Sprintf("message %d", i),
 				CreateAt:  baseTime + int64(i*1000),
 			})
-			require.NoError(t, err)
+			require.NoError(t, saveErr)
 			posts = append(posts, post)
 		}
 
@@ -6027,14 +6027,14 @@ func testPostStoreGetPostsWithCursor(t *testing.T, rctx request.CTX, ss store.St
 
 		// Create exactly 3 posts (1 for cursor + 2 for results)
 		var posts []*model.Post
-		for i := 0; i < 3; i++ {
-			post, err := ss.Post().Save(rctx, &model.Post{
+		for i := range 3 {
+			post, saveErr := ss.Post().Save(rctx, &model.Post{
 				ChannelId: channelID,
 				UserId:    userID,
 				Message:   fmt.Sprintf("message %d", i),
 				CreateAt:  baseTime + int64(i*1000),
 			})
-			require.NoError(t, err)
+			require.NoError(t, saveErr)
 			posts = append(posts, post)
 		}
 
@@ -6134,14 +6134,14 @@ func testPostStoreGetPostsWithCursor(t *testing.T, rctx request.CTX, ss store.St
 
 		// Create 3 posts
 		var posts []*model.Post
-		for i := 0; i < 3; i++ {
-			post, err := ss.Post().Save(rctx, &model.Post{
+		for i := range 3 {
+			post, saveErr := ss.Post().Save(rctx, &model.Post{
 				ChannelId: channelID,
 				UserId:    userID,
 				Message:   fmt.Sprintf("message %d", i),
 				CreateAt:  baseTime + int64(i*1000),
 			})
-			require.NoError(t, err)
+			require.NoError(t, saveErr)
 			posts = append(posts, post)
 		}
 
@@ -6200,14 +6200,14 @@ func testPostStoreGetPostsWithCursor(t *testing.T, rctx request.CTX, ss store.St
 
 		// Create 5 posts with explicit timestamps
 		var posts []*model.Post
-		for i := 0; i < 5; i++ {
-			post, err := ss.Post().Save(rctx, &model.Post{
+		for i := range 5 {
+			post, saveErr := ss.Post().Save(rctx, &model.Post{
 				ChannelId: channelID,
 				UserId:    userID,
 				Message:   fmt.Sprintf("message %d", i),
 				CreateAt:  baseTime + int64(i*1000),
 			})
-			require.NoError(t, err)
+			require.NoError(t, saveErr)
 			posts = append(posts, post)
 		}
 
@@ -6246,14 +6246,14 @@ func testPostStoreGetPostsWithCursor(t *testing.T, rctx request.CTX, ss store.St
 
 		// Create 5 posts with explicit timestamps
 		var posts []*model.Post
-		for i := 0; i < 5; i++ {
-			post, err := ss.Post().Save(rctx, &model.Post{
+		for i := range 5 {
+			post, saveErr := ss.Post().Save(rctx, &model.Post{
 				ChannelId: channelID,
 				UserId:    userID,
 				Message:   fmt.Sprintf("message %d", i),
 				CreateAt:  baseTime + int64(i*1000),
 			})
-			require.NoError(t, err)
+			require.NoError(t, saveErr)
 			posts = append(posts, post)
 		}
 
@@ -6291,7 +6291,7 @@ func testPostStoreGetPostsWithCursor(t *testing.T, rctx request.CTX, ss store.St
 
 		// Create 3 posts with explicit UpdateAt times
 		var posts []*model.Post
-		for i := 0; i < 3; i++ {
+		for i := range 3 {
 			post := &model.Post{
 				ChannelId: channelID,
 				UserId:    userID,
@@ -6299,8 +6299,8 @@ func testPostStoreGetPostsWithCursor(t *testing.T, rctx request.CTX, ss store.St
 				CreateAt:  baseTime + int64(i*1000),
 				UpdateAt:  baseTime + int64(i*1000), // Set explicit UpdateAt
 			}
-			post, err := ss.Post().Save(rctx, post)
-			require.NoError(t, err)
+			post, saveErr := ss.Post().Save(rctx, post)
+			require.NoError(t, saveErr)
 			posts = append(posts, post)
 		}
 
@@ -6335,14 +6335,14 @@ func testPostStoreGetPostsWithCursor(t *testing.T, rctx request.CTX, ss store.St
 
 		// Create 5 posts
 		var posts []*model.Post
-		for i := 0; i < 5; i++ {
-			post, err := ss.Post().Save(rctx, &model.Post{
+		for i := range 5 {
+			post, saveErr := ss.Post().Save(rctx, &model.Post{
 				ChannelId: channelID,
 				UserId:    userID,
 				Message:   fmt.Sprintf("message %d", i),
 				CreateAt:  baseTime + int64(i*1000),
 			})
-			require.NoError(t, err)
+			require.NoError(t, saveErr)
 			posts = append(posts, post)
 		}
 

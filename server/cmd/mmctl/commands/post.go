@@ -195,7 +195,7 @@ func getPostList(client client.Client, channelID, since, until, timeType, cursor
 			return nil, nil, fmt.Errorf("invalid since time '%s'", since)
 		}
 		sinceTimeMillis := model.GetMillisForTime(sinceTime)
-		return client.GetPostsSince(context.TODO(), channelID, sinceTimeMillis, false, untilMillis, timeType)
+		return client.GetPostsSince(context.TODO(), channelID, sinceTimeMillis, false, untilMillis, timeType, perPage)
 	}
 
 	return client.GetPostsForChannel(context.TODO(), channelID, 0, perPage, "", false, false)
