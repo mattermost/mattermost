@@ -2084,7 +2084,6 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 			terms = quotedStringsRegex.ReplaceAllString(terms, " ")
 
 			baseQuery = s.generateLikeSearchQuery(baseQuery, params, phrases, terms, excludedTerms, searchType)
-
 		} else {
 			// Parse text for wildcards
 			terms = wildCardRegex.ReplaceAllLiteralString(terms, ":* ")
