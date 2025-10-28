@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -222,17 +223,17 @@ func postListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	// Print next_cursor if available
-	if postList.NextCursor != "" {
-		printer.Print(fmt.Sprintf("Next cursor: %s", postList.NextCursor))
-	}
-
 	posts := postList.ToSlice()
 	showTimestamp := since != ""
 	usernames := map[string]string{}
 	for i := 1; i <= len(posts); i++ {
 		post := posts[len(posts)-i]
 		printPost(c, post, usernames, showIds, showTimestamp)
+	}
+
+	// Print next_cursor to stderr if available (metadata, not part of main output)
+	if postList.NextCursor != "" {
+		fmt.Fprintf(os.Stderr, "Next cursor: %s\n", postList.NextCursor)
 	}
 
 	var multiErr *multierror.Error
