@@ -5512,15 +5512,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Sürüm 138+"
+    "translation": "Sürüm 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Sürüm 138+"
+    "translation": "Sürüm 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Sürüm 128+"
+    "translation": "Sürüm 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -11014,5 +11014,65 @@
   {
     "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
     "translation": "Otomatik çeviri ayarları için bildirim zaman aşımı değeri geçersiz. Pozitif bir sayı olmalıdır."
+  },
+  {
+    "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
+    "translation": "Kanal kimliği, işaretlenmiş iletinin kanal kimliğiyle eşleşmiyor."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations_for_channel.restricted_permission.app_error",
+    "translation": "Takım veya sistem izin şeması tarafından kısıtlanmış bir izin eklenemez."
+  },
+  {
+    "id": "api.content_flagging.error.user_not_reviewer",
+    "translation": "Kullanıcı bir içerik değerlendirici değil."
+  },
+  {
+    "id": "api.team.get_team.flagged_post_mismatch.app_error",
+    "translation": "Takım kimliği, işaretlenmiş iletinin takım kimliği ile eşleşmiyor."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.no_reviewer_field.app_error",
+    "translation": "İçerik değerlendirici kimliği özelliği alanı bulunamadı."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.update_status_property_value.app_error",
+    "translation": "İçerik değerlendirici ayarlandığında Durum özelliğinin değeri güncellenemedi."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.upsert_property_value.app_error",
+    "translation": "İşaretlenmiş iletinin içerik değerlendiricisi ayarlanamadı."
+  },
+  {
+    "id": "app.content_flagging.missing_flagged_post_id_field.app_error",
+    "translation": "İşaretlenmiş ileti kimliği özelliği alanı bulunamadı."
+  },
+  {
+    "id": "app.content_flagging.missing_reporting_user_id_field.app_error",
+    "translation": "Şikayet edilen kullanıcı alanı bulunamadı."
+  },
+  {
+    "id": "app.content_flagging.missing_reporting_user_id_property_value.app_error",
+    "translation": "Şikayet edilen kullanıcı alanının değeri bulunamadı."
+  },
+  {
+    "id": "app.content_flagging.search_common_reviewers.app_error",
+    "translation": "İfade genel içerik değerlendiricilerinde aranamadı."
+  },
+  {
+    "id": "app.content_flagging.search_reviewer_posts.app_error",
+    "translation": "İşlaretlenmiş iletinin içerik değerlendiricisi iletileri aranamadı."
+  },
+  {
+    "id": "app.content_flagging.search_sysadmin_reviewers.app_error",
+    "translation": "Arama ifadesi sistem yöneticisi içerik değerlendiricileri içinde aranamadı."
+  },
+  {
+    "id": "app.content_flagging.search_team_admin_reviewers.app_error",
+    "translation": "Arama ifadesi takım yöneticisi içerik değerlendirilerinde aranamadı."
+  },
+  {
+    "id": "app.content_flagging.search_team_reviewers.app_error",
+    "translation": "Arama ifadesi takım içerik denetleyicilerinde aranamadı."
   }
 ]
