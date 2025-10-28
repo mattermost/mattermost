@@ -306,7 +306,8 @@ func (s *MmctlUnitTestSuite) TestPostListCmdF() {
 		w.Close()
 		os.Stderr = oldStderr
 		var buf bytes.Buffer
-		io.Copy(&buf, r)
+		_, copyErr := io.Copy(&buf, r)
+		s.Require().NoError(copyErr)
 		stderrOutput := buf.String()
 
 		s.Require().Nil(err)

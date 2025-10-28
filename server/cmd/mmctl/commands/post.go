@@ -226,9 +226,22 @@ func postListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	posts := postList.ToSlice()
 	showTimestamp := since != ""
 	usernames := map[string]string{}
-	for i := 1; i <= len(posts); i++ {
-		post := posts[len(posts)-i]
-		printPost(c, post, usernames, showIds, showTimestamp)
+
+	// Cursor pagination and since queries return posts in chronological order (ASC),
+	// so we print them as-is. Traditional GetPostsForChannel returns DESC, so we reverse.
+	usingCursorPagination := since != "" || cursor != ""
+
+	if usingCursorPagination {
+		// Print posts in chronological order (as returned by API)
+		for _, post := range posts {
+			printPost(c, post, usernames, showIds, showTimestamp)
+		}
+	} else {
+		// Reverse DESC to show chronologically
+		for i := 1; i <= len(posts); i++ {
+			post := posts[len(posts)-i]
+			printPost(c, post, usernames, showIds, showTimestamp)
+		}
 	}
 
 	// Print next_cursor to stderr if available (metadata, not part of main output)
