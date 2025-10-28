@@ -57,6 +57,7 @@ const preview: Preview = {
         backgrounds: {
             disable: true, // Disable backgrounds addon since we're using theme-based backgrounds
         },
+        layout: 'centered',
     },
     globalTypes: {
         theme: {
@@ -73,14 +74,14 @@ const preview: Preview = {
     decorators: [
         (Story, context) => {
             const history = createMemoryHistory();
-            
+
             // Get theme from globals context
             const themeKey = (context.globals.theme || THEME_KEYS.DENIM) as ThemeKey;
 
             // Theme wrapper component to handle theme application with useEffect
             const ThemeWrapper: React.FC<{children: React.ReactNode}> = ({children}) => {
                 const themeObject = getTheme(themeKey);
-                
+
                 React.useEffect(() => {
                     applyThemeToStorybook(themeObject);
                 }, [themeObject]);
@@ -97,18 +98,7 @@ const preview: Preview = {
                             defaultLocale="en"
                         >
                             <Router history={history}>
-                                <div 
-                                    className="app__body" 
-                                    style={{
-                                        padding: '20px', 
-                                        minWidth: 'calc(100vw - 2rem)',
-                                        minHeight: 'calc(100vh - 2rem)',
-                                        backgroundColor: getTheme(themeKey).centerChannelBg,
-                                        color: getTheme(themeKey).centerChannelColor,
-                                    }}
-                                >
-                                    <Story />
-                                </div>
+                                <Story />
                             </Router>
                         </IntlProvider>
                     </Provider>
