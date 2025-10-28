@@ -787,7 +787,7 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !isMember {
 		auditRec := c.MakeAuditRecord(model.AuditEventViewedPostWithoutMembership, model.AuditStatusSuccess)
-		defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+		defer c.LogAuditRec(auditRec)
 		auditRec.AddMeta("reason", "get_post_thread")
 		auditRec.AddMeta("post_id", c.Params.PostId)
 	}

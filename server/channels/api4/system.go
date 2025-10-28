@@ -20,7 +20,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/utils"
-	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 	"github.com/mattermost/mattermost/server/v8/platform/services/upgrader"
@@ -752,7 +751,7 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 
 			if !isMember {
 				auditRec := c.MakeAuditRecord(model.AuditEventViewedPostWithoutMembership, model.AuditStatusSuccess)
-				defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+				defer c.LogAuditRec(auditRec)
 				auditRec.AddMeta("reason", "push_notification_ack")
 				auditRec.AddMeta("post_id", ack.PostId)
 			}

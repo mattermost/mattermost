@@ -843,7 +843,7 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !isMember {
 		auditRec := c.MakeAuditRecord(model.AuditEventViewedPinnedPostsWithoutMembership, model.AuditStatusSuccess)
-		defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+		defer c.LogAuditRec(auditRec)
 		auditRec.AddMeta("reason", "get_pinned_posts")
 		auditRec.AddMeta("channel_id", c.Params.ChannelId)
 	}

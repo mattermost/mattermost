@@ -551,7 +551,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !isMember {
 		auditRec := c.MakeAuditRecord(model.AuditEventViewedFileWithoutMembership, model.AuditStatusSuccess)
-		defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+		defer c.LogAuditRec(auditRec)
 		auditRec.AddMeta("reason", "get_file")
 		auditRec.AddMeta("file_id", c.Params.FileId)
 	}
@@ -604,7 +604,7 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !isMember {
 		auditRec := c.MakeAuditRecord(model.AuditEventViewedThumbnailWithoutMembership, model.AuditStatusSuccess)
-		defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+		defer c.LogAuditRec(auditRec)
 		auditRec.AddMeta("reason", "get_file_thumbnail")
 		auditRec.AddMeta("file_id", c.Params.FileId)
 	}
@@ -711,7 +711,7 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !isMember {
 		auditRec := c.MakeAuditRecord(model.AuditEventViewedFilePreviewWithoutMembership, model.AuditStatusSuccess)
-		defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+		defer c.LogAuditRec(auditRec)
 		auditRec.AddMeta("reason", "get_file_preview")
 		auditRec.AddMeta("file_id", c.Params.FileId)
 	}
@@ -753,7 +753,7 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !isMember {
 		auditRec := c.MakeAuditRecord(model.AuditEventViewedFileInfoWithoutMembership, model.AuditStatusSuccess)
-		defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+		defer c.LogAuditRec(auditRec)
 		auditRec.AddMeta("reason", "get_file_info")
 		auditRec.AddMeta("file_id", c.Params.FileId)
 	}
