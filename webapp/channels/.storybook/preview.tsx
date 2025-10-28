@@ -55,7 +55,12 @@ const preview: Preview = {
             },
         },
         backgrounds: {
-            disable: true, // Disable backgrounds addon since we're using theme-based backgrounds
+            default: 'Center Channel', // This gets moved to preview.initialGlobals.backgrounds.value in newer versions of Storybook
+            values: [ // This gets renamed to options and changed to an object in newer versions of Storybook
+                {name: 'Center Channel', value: 'var(--center-channel-bg)'},
+                {name: 'Global Header', value: 'var(--sidebar-header-bg)'},
+                {name: 'Sidebar', value: 'var(--sidebar-bg)'},
+            ],
         },
         layout: 'centered',
     },
