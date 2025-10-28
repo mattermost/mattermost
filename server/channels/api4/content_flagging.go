@@ -54,6 +54,32 @@ func requireContentFlaggingEnabled(c *Context) {
 	}
 }
 
+func requireTeamContentReviewer(c *Context, userId, teamId string) {
+	isReviewer, appErr := c.App.IsUserTeamContentReviewer(userId, teamId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if !isReviewer {
+		c.Err = model.NewAppError("requireTeamContentReviewer", "api.content_flagging.error.user_not_reviewer", nil, "", http.StatusForbidden)
+		return
+	}
+}
+
+func requireFlaggedPost(c *Context, postId string) {
+	if postId == "" {
+		c.SetInvalidParam("flagged_post_id")
+		return
+	}
+
+	_, appErr := c.App.GetPostContentFlaggingStatusValue(postId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+}
+
 func getFlaggingConfiguration(c *Context, w http.ResponseWriter, r *http.Request) {
 	requireContentFlaggingEnabled(c)
 	if c.Err != nil {
@@ -69,14 +95,8 @@ func getFlaggingConfiguration(c *Context, w http.ResponseWriter, r *http.Request
 	teamId := r.URL.Query().Get("team_id")
 	asReviewer := false
 	if teamId != "" {
-		isReviewer, appErr := c.App.IsUserTeamContentReviewer(c.AppContext.Session().UserId, teamId)
-		if appErr != nil {
-			c.Err = appErr
-			return
-		}
-
-		if !isReviewer {
-			c.Err = model.NewAppError("getFlaggingConfiguration", "api.content_flagging.error.reviewer_only", nil, "", http.StatusForbidden)
+		requireTeamContentReviewer(c, c.AppContext.Session().UserId, teamId)
+		if c.Err != nil {
 			return
 		}
 
@@ -251,14 +271,8 @@ func getPostPropertyValues(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	userId := c.AppContext.Session().UserId
-	isReviewer, appErr := c.App.IsUserTeamContentReviewer(userId, channel.TeamId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	if !isReviewer {
-		c.Err = model.NewAppError("getPostPropertyValues", "api.content_flagging.error.reviewer_only", nil, "", http.StatusForbidden)
+	requireTeamContentReviewer(c, userId, channel.TeamId)
+	if c.Err != nil {
 		return
 	}
 
@@ -310,25 +324,18 @@ func getFlaggedPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	isReviewer, appErr := c.App.IsUserTeamContentReviewer(userId, channel.TeamId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	if !isReviewer {
-		c.Err = model.NewAppError("getFlaggedPost", "api.content_flagging.error.reviewer_only", nil, "", http.StatusForbidden)
+	requireTeamContentReviewer(c, userId, channel.TeamId)
+	if c.Err != nil {
 		return
 	}
 
 	// This validates that the post is flagged
-	_, appErr = c.App.GetPostContentFlaggingStatusValue(postId)
-	if appErr != nil {
-		c.Err = appErr
+	requireFlaggedPost(c, postId)
+	if c.Err != nil {
 		return
 	}
 
-	post = c.App.PreparePostForClientWithEmbedsAndImages(c.AppContext, post, &model.PreparePostForClientOpts{IncludePriority: true, RetainContent: true})
+	post = c.App.PreparePostForClientWithEmbedsAndImages(c.AppContext, post, &model.PreparePostForClientOpts{IncludePriority: true, RetainContent: true, IncludeDeleted: true})
 	post, err := c.App.SanitizePostMetadataForUser(c.AppContext, post, c.AppContext.Session().UserId)
 	if err != nil {
 		c.Err = err
@@ -417,14 +424,8 @@ func keepRemoveFlaggedPostChecks(c *Context, r *http.Request) (*model.FlagConten
 		return nil, "", nil
 	}
 
-	isReviewer, appErr := c.App.IsUserTeamContentReviewer(userId, channel.TeamId)
-	if appErr != nil {
-		c.Err = appErr
-		return nil, "", nil
-	}
-
-	if !isReviewer {
-		c.Err = model.NewAppError("", "api.content_flagging.error.reviewer_only", nil, "", http.StatusForbidden)
+	requireTeamContentReviewer(c, userId, channel.TeamId)
+	if c.Err != nil {
 		return nil, "", nil
 	}
 
@@ -525,14 +526,8 @@ func searchReviewers(c *Context, w http.ResponseWriter, r *http.Request) {
 	userId := c.AppContext.Session().UserId
 	searchTerm := strings.TrimSpace(r.URL.Query().Get("term"))
 
-	isReviewer, appErr := c.App.IsUserTeamContentReviewer(userId, teamId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	if !isReviewer {
-		c.Err = model.NewAppError("searchReviewers", "api.content_flagging.error.reviewer_only", nil, "", http.StatusForbidden)
+	requireTeamContentReviewer(c, userId, teamId)
+	if c.Err != nil {
 		return
 	}
 
@@ -578,26 +573,14 @@ func assignFlaggedPostReviewer(c *Context, w http.ResponseWriter, r *http.Reques
 	}
 
 	assignedBy := c.AppContext.Session().UserId
-	isReviewer, appErr := c.App.IsUserTeamContentReviewer(assignedBy, channel.TeamId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	if !isReviewer {
-		c.Err = model.NewAppError("assignFlaggedPostReviewer", "api.content_flagging.error.reviewer_only", nil, "", http.StatusForbidden)
+	requireTeamContentReviewer(c, assignedBy, channel.TeamId)
+	if c.Err != nil {
 		return
 	}
 
 	reviewerId := c.Params.ContentReviewerId
-	isReviewer, appErr = c.App.IsUserTeamContentReviewer(reviewerId, channel.TeamId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	if !isReviewer {
-		c.Err = model.NewAppError("assignFlaggedPostReviewer", "api.content_flagging.error.assignee_not_reviewer", nil, "", http.StatusBadRequest)
+	requireTeamContentReviewer(c, reviewerId, channel.TeamId)
+	if c.Err != nil {
 		return
 	}
 
