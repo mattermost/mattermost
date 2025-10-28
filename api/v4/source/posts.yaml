@@ -556,14 +556,20 @@
         - posts
       summary: Get posts for a channel
       description: >
-        Get a page of posts in a channel. Use the query parameters to modify the
-        behaviour of this endpoint. The parameter `since` must not be used with any of
-        `before`, `after`, `page`, and `per_page` parameters.
+        Get a page of posts in a channel. This endpoint supports cursor-based pagination for
+        time-filtered queries.
 
-        If `since` is used, it will always return all posts modified since that time,
-        ordered by their create time limited till 1000. A caveat with this parameter is that
-        there is no guarantee that the returned posts will be consecutive. It is left to the clients
-        to maintain state and fill any missing holes in the post order.
+
+        **Cursor-based pagination**: Use `since` (and optionally `until` and `time_type`) to
+        specify a time range. The `per_page` parameter controls page size (maximum 1000). The
+        response includes a `next_cursor` field when more results are available. Use this cursor
+        in subsequent requests to retrieve additional pages. The `cursor` parameter cannot be
+        combined with `since`, `time_type`, `before`, `after`, or `page` parameters.
+
+
+        **Offset-based pagination**: Use `page` and `per_page` with optional `before` or `after`
+        post IDs for traditional offset-based navigation. Cannot be combined with cursor parameters.
+
 
         ##### Permissions
 
@@ -591,17 +597,44 @@
         - name: since
           in: query
           description: Provide a non-zero value in Unix time milliseconds to select posts
-            modified after that time
+            at or after this time. Used as the starting point for cursor-based pagination.
+            Cannot be combined with `cursor`, `before`, `after`, or `page` parameters.
           schema:
             type: integer
+        - name: until
+          in: query
+          description: Upper bound timestamp in milliseconds. Returns posts before this time.
+            Can be used with `since` to define a time range, or with `cursor` to limit results.
+          schema:
+            type: integer
+        - name: time_type
+          in: query
+          description: Specifies which timestamp field to use for filtering and pagination.
+            Options are `create_at` (default, uses post creation time) or `update_at` (uses
+            post last update time). Cannot be combined with `cursor` parameter.
+          schema:
+            type: string
+            enum:
+              - create_at
+              - update_at
+            default: create_at
+        - name: cursor
+          in: query
+          description: A cursor for pagination in the format `{timeType}:{timestamp}:{postId}`.
+            Obtained from the `next_cursor` field in previous responses. Cannot be combined
+            with `since`, `time_type`, `before`, `after`, or `page` parameters.
+          schema:
+            type: string
         - name: before
           in: query
-          description: A post id to select the posts that came before this one
+          description: A post id to select the posts that came before this one. Cannot be
+            combined with cursor-based pagination parameters.
           schema:
             type: string
         - name: after
           in: query
-          description: A post id to select the posts that came after this one
+          description: A post id to select the posts that came after this one. Cannot be
+            combined with cursor-based pagination parameters.
           schema:
             type: string
         - name: include_deleted

@@ -507,6 +507,12 @@ components:
         has_next:
           type: boolean
           description: Whether there are more items after this page.
+        next_cursor:
+          type: string
+          description: A cursor for pagination in the format `{timeType}:{timestamp}:{postId}`.
+            Present when `has_next` is true and cursor-based pagination is being used.
+            Use this value in the `cursor` query parameter of subsequent requests to retrieve
+            the next page of results.
     PostListWithSearchMatches:
       type: object
       properties:
