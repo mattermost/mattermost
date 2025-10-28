@@ -334,7 +334,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 
 		// Set the status to Assigned
 		statusValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusAssigned))
-		statusValue, err := th.App.Srv().propertyService.UpdatePropertyValue(groupId, statusValue)
+		_, err := th.App.Srv().propertyService.UpdatePropertyValue(groupId, statusValue)
 		require.NoError(t, err)
 
 		appErr = th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicChannel.TeamId, th.BasicUser.Id, th.SystemAdminUser.Id)
@@ -346,7 +346,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 
 		// Set the status to Removed
 		statusValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRemoved))
-		statusValue, err = th.App.Srv().propertyService.UpdatePropertyValue(groupId, statusValue)
+		_, err = th.App.Srv().propertyService.UpdatePropertyValue(groupId, statusValue)
 		require.NoError(t, err)
 
 		appErr = th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicChannel.TeamId, th.BasicUser.Id, th.SystemAdminUser.Id)
@@ -358,7 +358,7 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 
 		// Set the status to Retained
 		statusValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRetained))
-		statusValue, err = th.App.Srv().propertyService.UpdatePropertyValue(groupId, statusValue)
+		_, err = th.App.Srv().propertyService.UpdatePropertyValue(groupId, statusValue)
 		require.NoError(t, err)
 
 		appErr = th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicChannel.TeamId, th.BasicUser.Id, th.SystemAdminUser.Id)

@@ -886,7 +886,7 @@ func (a *App) AssignFlaggedPostReviewer(rctx request.CTX, flaggedPostId, flagged
 	}
 
 	status := strings.Trim(string(statusPropertyValue.Value), `"`)
-	
+
 	groupId, appErr := a.ContentFlaggingGroupId()
 	if appErr != nil {
 		return appErr
