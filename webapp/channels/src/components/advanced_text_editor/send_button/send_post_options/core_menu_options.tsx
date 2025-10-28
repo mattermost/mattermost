@@ -4,6 +4,7 @@
 import {DateTime} from 'luxon';
 import React, {memo, useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import useTimePostBoxIndicator from 'components/advanced_text_editor/use_post_box_indicator';
 import * as Menu from 'components/menu';
@@ -11,16 +12,19 @@ import type {Props as MenuItemProps} from 'components/menu/menu_item';
 import Timestamp from 'components/timestamp';
 
 import RecentUsedCustomDate from './recent_used_custom_date';
+import { getCurrentLocale } from 'selectors/i18n';
 
 type Props = {
     handleOnSelect: (e: React.FormEvent, scheduledAt: number) => void;
     channelId: string;
 }
 
-function getScheduledTimeInTeammateTimezone(userCurrentTimestamp: number, teammateTimezoneString: string): string {
+function getScheduledTimeInTeammateTimezone(userCurrentTimestamp: number, teammateTimezoneString: string, userLocale: string): string {
     const scheduledTimeUTC = DateTime.fromMillis(userCurrentTimestamp, {zone: 'utc'});
     const teammateScheduledTime = scheduledTimeUTC.setZone(teammateTimezoneString);
-    const formattedTime = teammateScheduledTime.toFormat('h:mm a');
+    const formattedTime = teammateScheduledTime.
+        setLocale(userLocale).
+        toLocaleString(DateTime.TIME_SIMPLE);
     return formattedTime;
 }
 
@@ -41,6 +45,7 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
         isBot,
     } = useTimePostBoxIndicator(channelId);
 
+    const locale = useSelector(getCurrentLocale);
     const now = DateTime.now().setZone(userCurrentTimezone);
     const tomorrow9amTime = DateTime.now().
         setZone(userCurrentTimezone).
@@ -66,7 +71,7 @@ function CoreMenuOptions({handleOnSelect, channelId}: Props) {
 
     if (isDM && !isBot && !isSelfDM) {
         const teammateTimezoneString = teammateTimezone.useAutomaticTimezone ? teammateTimezone.automaticTimezone : teammateTimezone.manualTimezone || 'UTC';
-        const scheduledTimeInTeammateTimezone = getScheduledTimeInTeammateTimezone(tomorrow9amTime, teammateTimezoneString);
+        const scheduledTimeInTeammateTimezone = getScheduledTimeInTeammateTimezone(tomorrow9amTime, teammateTimezoneString, locale);
         const teammateTimeDisplay = (
             <FormattedMessage
                 id='create_post_button.option.schedule_message.options.teammate_user_hour'
