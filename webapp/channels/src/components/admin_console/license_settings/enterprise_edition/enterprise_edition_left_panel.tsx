@@ -15,7 +15,7 @@ import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagVal
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 import ExternalLink from 'components/external_link';
-import Tag from 'components/widgets/tag/tag';
+import Tag from '@mattermost/design-system/src/components/primitives/tag';
 
 import {FileTypes, LicenseLinks, LicenseSkus} from 'utils/constants';
 import {calculateOverageUserActivated} from 'utils/overage_team';

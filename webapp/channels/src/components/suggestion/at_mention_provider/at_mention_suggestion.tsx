@@ -15,7 +15,7 @@ import SharedUserIndicator from 'components/shared_user_indicator';
 import StatusIcon from 'components/status_icon';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
-import Tag from 'components/widgets/tag/tag';
+import Tag from '@mattermost/design-system/src/components/primitives/tag';
 import Avatar from 'components/widgets/users/avatar';
 
 import * as Utils from 'utils/utils';

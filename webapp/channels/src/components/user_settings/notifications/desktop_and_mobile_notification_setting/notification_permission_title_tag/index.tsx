@@ -5,7 +5,7 @@ import React from 'react';
 import {useIntl} from 'react-intl';
 
 import {useDesktopAppNotificationPermission} from 'components/common/hooks/use_desktop_notification_permission';
-import Tag from 'components/widgets/tag/tag';
+import Tag from '@mattermost/design-system/src/components/primitives/tag';
 
 import {
     getNotificationPermission,

@@ -15,7 +15,7 @@ import {Client4} from 'mattermost-redux/client';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import ProfilePicture from 'components/profile_picture';
 import BotTag from 'components/widgets/tag/bot_tag';
-import Tag from 'components/widgets/tag/tag';
+import Tag from '@mattermost/design-system/src/components/primitives/tag';
 
 import * as Utils from 'utils/utils';
 

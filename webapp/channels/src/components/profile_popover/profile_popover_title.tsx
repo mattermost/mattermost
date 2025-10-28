@@ -13,7 +13,7 @@ import {getRhsState} from 'selectors/rhs';
 
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
-import Tag from 'components/widgets/tag/tag';
+import Tag from '@mattermost/design-system/src/components/primitives/tag';
 
 import type {A11yFocusEventDetail} from 'utils/constants';
 import {A11yCustomEventTypes} from 'utils/constants';

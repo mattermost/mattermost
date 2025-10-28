@@ -1,0 +1,144 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.Tag {
+    appearance: none;
+
+    display: inline-flex;
+    align-items: center;
+    align-content: center;
+    align-self: center;
+    gap: 4px;
+    max-width: 100%;
+    margin: 0;
+    overflow: hidden;
+
+    border: none;
+    border-radius: 4px;
+
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 600;
+    line-height: 16px;
+
+    // Default styles
+    background: rgba(var(--semantic-color-general), 0.08);
+    color: rgb(var(--semantic-color-general));
+
+    // Uppercase modifier
+    &--uppercase {
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+    }
+
+    // Size variants
+    &--xs {
+        height: 16px;
+        font-size: 10px;
+        line-height: 12px;
+        padding: 1px 4px;
+    }
+
+    &--sm {
+        height: 20px;
+        font-size: 12px;
+        line-height: 16px;
+        padding: 2px 5px;
+    }
+
+    &--md {
+        height: 24px;
+        font-size: 14px;
+        line-height: 20px;
+        padding: 2px 6px;
+    }
+
+    // Variant colors
+    &--info {
+        background: rgba(var(--semantic-color-info), 1);
+        color: rgb(255, 255, 255);
+
+        &.Tag--clickable {
+            &:hover,
+            &:focus {
+                background: color-mix(in srgb, rgb(var(--semantic-color-info)) 88%, black 12%);
+            }
+        }
+    }
+
+    &--success {
+        background: rgba(var(--semantic-color-success), 1);
+        color: rgb(255, 255, 255);
+
+        &.Tag--clickable {
+            &:hover,
+            &:focus {
+                background: color-mix(in srgb, rgb(var(--semantic-color-success)) 88%, black 12%);
+            }
+        }
+    }
+
+    &--warning {
+        background: rgba(var(--semantic-color-warning), 1);
+        color: rgb(255, 255, 255);
+
+        &.Tag--clickable {
+            &:hover,
+            &:focus {
+                background: color-mix(in srgb, rgb(var(--semantic-color-warning)) 88%, black 12%);
+            }
+        }
+    }
+
+    &--danger {
+        background: rgba(var(--semantic-color-danger), 1);
+        color: rgb(255, 255, 255);
+
+        &.Tag--clickable {
+            &:hover,
+            &:focus {
+                background: color-mix(in srgb, rgb(var(--semantic-color-danger)) 88%, black 12%);
+            }
+        }
+    }
+
+    &--dangerDim {
+        background: rgba(var(--semantic-color-danger), 0.08);
+        color: rgb(var(--semantic-color-danger));
+
+        &.Tag--clickable {
+            &:hover,
+            &:focus {
+                background: rgba(var(--semantic-color-danger), 0.12);
+            }
+        }
+    }
+
+    // Default variant clickable state
+    &--default.Tag--clickable,
+    &--clickable:not([class*="Tag--info"]):not([class*="Tag--success"]):not([class*="Tag--warning"]):not([class*="Tag--danger"]) {
+        &:hover,
+        &:focus {
+            background: rgba(var(--semantic-color-general), 0.12);
+        }
+    }
+
+    // Clickable state (base cursor)
+    &--clickable {
+        cursor: pointer;
+    }
+
+    // Icon
+    &__icon {
+        display: inline-flex;
+        align-items: center;
+        flex-shrink: 0;
+    }
+
+    // Text content
+    &__text {
+        max-width: 100%;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+}

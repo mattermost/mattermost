@@ -11,7 +11,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import DataGrid from 'components/admin_console/data_grid/data_grid';
 import type {Row, Column} from 'components/admin_console/data_grid/data_grid';
 import type {FilterOptions} from 'components/admin_console/filter/filter';
-import Tag from 'components/widgets/tag/tag';
+import Tag from '@mattermost/design-system/src/components/primitives/tag';
 
 import UserGridName from './user_grid_name';
 import UserGridRemove from './user_grid_remove';

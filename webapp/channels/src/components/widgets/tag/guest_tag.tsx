@@ -10,8 +10,8 @@ import type {GlobalState} from '@mattermost/types/store';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
-import Tag from './tag';
-import type {TagSize} from './tag';
+import Tag from '@mattermost/design-system/src/components/primitives/tag';
+import type {TagSize} from '@mattermost/design-system/src/components/primitives/tag';
 
 type Props = {
     className?: string;
