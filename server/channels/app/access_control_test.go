@@ -13,7 +13,6 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
@@ -1278,4 +1277,3 @@ func TestIsSystemPolicyAppliedToChannel(t *testing.T) {
 		assert.False(t, result)
 	})
 }
-

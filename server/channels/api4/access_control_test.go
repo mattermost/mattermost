@@ -5,8 +5,6 @@ package api4
 
 import (
 	"context"
-	"encoding/json"
-	"net/http"
 	"os"
 	"testing"
 
@@ -867,4 +865,3 @@ func TestSearchChannelsForAccessControlPolicy(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 }
-
