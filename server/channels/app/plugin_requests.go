@@ -51,7 +51,7 @@ func (ch *Channels) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 
 // ServeInternalPluginRequest handles internal plugin HTTP requests from one plugin to another,
 // or from core server to a plugin (when sourcePluginId is "com.mattermost.server").
-func (a *App) ServeInternalPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId, destinationPluginId string) {
+func (a *App) ServeInternalPluginRequest(userID string, w http.ResponseWriter, r *http.Request, sourcePluginId, destinationPluginId string) {
 	pluginsEnvironment := a.ch.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		appErr := model.NewAppError("ServeInternalPluginRequest", "app.plugin.disabled.app_error", nil, "Plugin environment not found.", http.StatusNotImplemented)

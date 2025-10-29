@@ -1202,8 +1202,9 @@ func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
 			Body:       io.NopCloser(bytes.NewBufferString(message)),
 		}
 	}
+	userID := api.ctx.Session().UserId
 	responseTransfer := &PluginResponseWriter{}
-	api.app.ServeInternalPluginRequest(responseTransfer, request, api.id, destinationPluginId)
+	api.app.ServeInternalPluginRequest(userID, responseTransfer, request, api.id, destinationPluginId)
 	return responseTransfer.GenerateResponse()
 }
 
