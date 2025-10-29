@@ -54,19 +54,20 @@ const preview: Preview = {
             },
         },
         backgrounds: {
-            default: 'mattermost',
-            values: [
-                {
+            options: {
+                mattermost: {
                     name: 'mattermost',
                     value: '#ffffff',
                 },
-                {
+
+                dark: {
                     name: 'dark',
                     value: '#1e1e1e',
-                },
-            ],
+                }
+            }
         },
     },
+
     decorators: [
         (Story) => {
             const history = createMemoryHistory();
@@ -87,6 +88,12 @@ const preview: Preview = {
             );
         },
     ],
+
+    initialGlobals: {
+        backgrounds: {
+            value: 'mattermost'
+        }
+    }
 };
 
 export default preview;
