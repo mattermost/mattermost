@@ -6,13 +6,14 @@ import React, {memo, useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {getCurrentLocale} from 'selectors/i18n';
+
 import useTimePostBoxIndicator from 'components/advanced_text_editor/use_post_box_indicator';
 import * as Menu from 'components/menu';
 import type {Props as MenuItemProps} from 'components/menu/menu_item';
 import Timestamp from 'components/timestamp';
 
 import RecentUsedCustomDate from './recent_used_custom_date';
-import { getCurrentLocale } from 'selectors/i18n';
 
 type Props = {
     handleOnSelect: (e: React.FormEvent, scheduledAt: number) => void;
