@@ -654,7 +654,6 @@
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        margin-left: 4px;
     }
 
     .post__header-actions .pending-post-actions__button {
@@ -690,7 +689,7 @@
     .post__message-top {
         display: flex;
         align-items: center;
-        gap: 6px;
+        gap: 12px;
         flex-wrap: nowrap;
     }
 
