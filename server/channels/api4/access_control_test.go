@@ -882,7 +882,8 @@ func TestGetChannelActivityWarning(t *testing.T) {
 	}
 
 	t.Run("GetChannelActivityWarning without authentication", func(t *testing.T) {
-		th.Client.Logout(context.Background())
+		_, err := th.Client.Logout(context.Background())
+		require.NoError(t, err)
 		resp, err := th.Client.DoAPIGet(context.Background(), "/access_control_policies/"+channelPolicy.ID+"/activity", "")
 		require.Error(t, err)
 		require.Equal(t, http.StatusUnauthorized, resp.StatusCode)

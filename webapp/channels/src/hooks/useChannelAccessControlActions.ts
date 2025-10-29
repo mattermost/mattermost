@@ -23,7 +23,6 @@ import {
 } from 'mattermost-redux/actions/access_control';
 import {getChannelMembers} from 'mattermost-redux/actions/channels';
 import {createJob} from 'mattermost-redux/actions/jobs';
-import {savePreferences} from 'mattermost-redux/actions/preferences';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 export interface ChannelAccessControlActions {
@@ -41,7 +40,6 @@ export interface ChannelAccessControlActions {
     getChannelActivityWarning: (policyId: string) => Promise<ActionResult<{
         should_show_warning: boolean;
     }>>;
-    savePreferences: (userId: string, preferences: any[]) => Promise<ActionResult>;
 }
 
 /**
@@ -145,13 +143,6 @@ export const useChannelAccessControlActions = (channelId?: string): ChannelAcces
          */
         getChannelActivityWarning: (policyId: string) => {
             return dispatch(getChannelActivityWarning(policyId));
-        },
-
-        /**
-         * Save user preferences
-         */
-        savePreferences: (userId: string, preferences: any[]) => {
-            return dispatch(savePreferences(userId, preferences));
         },
     }), [dispatch, channelId]);
 };

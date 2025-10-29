@@ -43,7 +43,6 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         validateExpressionAgainstRequester: jest.fn(),
         getChannelActivityWarning: jest.fn(),
         dismissChannelActivityWarning: jest.fn(),
-        savePreferences: jest.fn(),
     };
 
     const mockUserAttributes: UserPropertyField[] = [
@@ -1591,6 +1590,46 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 const checkbox = screen.getByRole('checkbox');
                 expect(checkbox).toBeDisabled();
             });
+        });
+    });
+
+    test('should show activity warning when API fails (fail-closed security)', async () => {
+        const user = userEvent.setup();
+
+        // Mock API failure
+        mockActions.getChannelActivityWarning.mockRejectedValue(new Error('Network error'));
+        
+        // Mock searchUsers to return users that would be added
+        mockActions.searchUsers.mockResolvedValue({
+            data: {
+                users: [
+                    {id: 'user1', username: 'user1', email: 'user1@test.com'},
+                ],
+                total_count: 1,
+            },
+        });
+
+        renderWithContext(
+            <ChannelSettingsAccessRulesTab {...baseProps}/>,
+            initialState,
+        );
+
+        // Trigger save
+        const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
+        await user.click(saveButton);
+
+        // Wait for confirmation modal
+        await waitFor(() => {
+            expect(screen.getByText('Review membership impact')).toBeInTheDocument();
+        });
+
+        // Click continue
+        const continueButton = screen.getByText('Continue');
+        await user.click(continueButton);
+
+        // Activity warning should appear even though API failed
+        await waitFor(() => {
+            expect(screen.getByText('Exposing channel history')).toBeInTheDocument();
         });
     });
 });

@@ -428,11 +428,11 @@ func testAccessControlPolicyStoreGetPolicyHistory(t *testing.T, rctx request.CTX
 	t.Run("should return empty history for newly created policy", func(t *testing.T) {
 		policyID := model.NewId()
 		newPolicy := &model.AccessControlPolicy{
-			ID:       policyID,
-			Name:     "New Policy",
-			Type:     model.AccessControlPolicyTypeChannel,
-			Active:   true,
-			Version:  model.AccessControlPolicyVersionV0_2,
+			ID:      policyID,
+			Name:    "New Policy",
+			Type:    model.AccessControlPolicyTypeChannel,
+			Active:  true,
+			Version: model.AccessControlPolicyVersionV0_2,
 			Rules: []model.AccessControlPolicyRule{
 				{Expression: "user.department == 'engineering'", Actions: []string{"*"}},
 			},
@@ -445,8 +445,8 @@ func testAccessControlPolicyStoreGetPolicyHistory(t *testing.T, rctx request.CTX
 		require.NotNil(t, savedPolicy)
 
 		t.Cleanup(func() {
-			err := ss.AccessControlPolicy().Delete(rctx, policyID)
-			require.NoError(t, err)
+			deleteErr := ss.AccessControlPolicy().Delete(rctx, policyID)
+			require.NoError(t, deleteErr)
 		})
 
 		// Should have no history for newly created policy
@@ -458,11 +458,11 @@ func testAccessControlPolicyStoreGetPolicyHistory(t *testing.T, rctx request.CTX
 	t.Run("should return policy history in descending revision order after updates", func(t *testing.T) {
 		policyID := model.NewId()
 		originalPolicy := &model.AccessControlPolicy{
-			ID:       policyID,
-			Name:     "Test Policy",
-			Type:     model.AccessControlPolicyTypeChannel,
-			Active:   true,
-			Version:  model.AccessControlPolicyVersionV0_2,
+			ID:      policyID,
+			Name:    "Test Policy",
+			Type:    model.AccessControlPolicyTypeChannel,
+			Active:  true,
+			Version: model.AccessControlPolicyVersionV0_2,
 			Rules: []model.AccessControlPolicyRule{
 				{Expression: "user.department == 'engineering'", Actions: []string{"*"}},
 			},
@@ -475,8 +475,8 @@ func testAccessControlPolicyStoreGetPolicyHistory(t *testing.T, rctx request.CTX
 		require.Equal(t, 1, savedPolicy.Revision)
 
 		t.Cleanup(func() {
-			err := ss.AccessControlPolicy().Delete(rctx, policyID)
-			require.NoError(t, err)
+			deleteErr := ss.AccessControlPolicy().Delete(rctx, policyID)
+			require.NoError(t, deleteErr)
 		})
 
 		// Update policy first time (moves original to history)
@@ -501,11 +501,11 @@ func testAccessControlPolicyStoreGetPolicyHistory(t *testing.T, rctx request.CTX
 		policies, err := ss.AccessControlPolicy().GetPolicyHistory(rctx, policyID, 10)
 		require.NoError(t, err)
 		require.Len(t, policies, 2) // Should have 2 history records (original + first update)
-		
+
 		// Verify ordering: most recent revision first
 		require.Equal(t, 2, policies[0].Revision) // First update (sales)
 		require.Equal(t, 1, policies[1].Revision) // Original (engineering)
-		
+
 		// Verify content
 		require.Equal(t, "user.department == 'sales'", policies[0].Rules[0].Expression)
 		require.Equal(t, "user.department == 'engineering'", policies[1].Rules[0].Expression)
@@ -514,11 +514,11 @@ func testAccessControlPolicyStoreGetPolicyHistory(t *testing.T, rctx request.CTX
 	t.Run("should respect limit parameter", func(t *testing.T) {
 		policyID := model.NewId()
 		originalPolicy := &model.AccessControlPolicy{
-			ID:       policyID,
-			Name:     "Limit Test Policy",
-			Type:     model.AccessControlPolicyTypeChannel,
-			Active:   true,
-			Version:  model.AccessControlPolicyVersionV0_2,
+			ID:      policyID,
+			Name:    "Limit Test Policy",
+			Type:    model.AccessControlPolicyTypeChannel,
+			Active:  true,
+			Version: model.AccessControlPolicyVersionV0_2,
 			Rules: []model.AccessControlPolicyRule{
 				{Expression: "user.department == 'engineering'", Actions: []string{"*"}},
 			},
@@ -530,8 +530,8 @@ func testAccessControlPolicyStoreGetPolicyHistory(t *testing.T, rctx request.CTX
 		require.NoError(t, err)
 
 		t.Cleanup(func() {
-			err := ss.AccessControlPolicy().Delete(rctx, policyID)
-			require.NoError(t, err)
+			deleteErr := ss.AccessControlPolicy().Delete(rctx, policyID)
+			require.NoError(t, deleteErr)
 		})
 
 		// Create 3 more updates (4 total revisions, 3 in history)
@@ -540,14 +540,14 @@ func testAccessControlPolicyStoreGetPolicyHistory(t *testing.T, rctx request.CTX
 			updatedPolicy.Rules = []model.AccessControlPolicyRule{
 				{Expression: fmt.Sprintf("user.department == 'dept%d'", i), Actions: []string{"*"}},
 			}
-			_, err := ss.AccessControlPolicy().Save(rctx, &updatedPolicy)
-			require.NoError(t, err)
+			_, saveErr := ss.AccessControlPolicy().Save(rctx, &updatedPolicy)
+			require.NoError(t, saveErr)
 		}
 
 		// Test limit = 1
 		policies, err := ss.AccessControlPolicy().GetPolicyHistory(rctx, policyID, 1)
 		require.NoError(t, err)
-		require.Len(t, policies, 1) // Should only return 1 despite having 3 history entries
+		require.Len(t, policies, 1)               // Should only return 1 despite having 3 history entries
 		require.Equal(t, 3, policies[0].Revision) // Most recent history entry
 
 		// Test limit = 2

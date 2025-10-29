@@ -13,8 +13,8 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
-	mocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	storemocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
 func TestGetChannelsForPolicy(t *testing.T) {
@@ -1313,11 +1313,11 @@ func TestShouldShowChannelActivityWarning(t *testing.T) {
 
 		// No policy history exists
 		mockAccessControlPolicyStore.On("GetPolicyHistory", mock.AnythingOfType("*request.Context"), channelID, 2).Return([]*model.AccessControlPolicy{}, nil)
-		
+
 		// Channel exists with creation timestamp
 		channel := &model.Channel{Id: channelID, CreateAt: 1000}
 		mockChannelStore.On("Get", channelID, true).Return(channel, nil)
-		
+
 		// No posts since channel creation
 		emptyPostList := &model.PostList{Posts: map[string]*model.Post{}}
 		mockPostStore.On("GetPostsSince", mock.AnythingOfType("*request.Context"), model.GetPostsSinceOptions{
@@ -1348,7 +1348,7 @@ func TestShouldShowChannelActivityWarning(t *testing.T) {
 
 		// No policy history exists
 		mockAccessControlPolicyStore.On("GetPolicyHistory", mock.AnythingOfType("*request.Context"), channelID, 2).Return([]*model.AccessControlPolicy{}, nil)
-		
+
 		// Channel get fails
 		mockChannelStore.On("Get", channelID, true).Return(nil, model.NewAppError("Get", "app.channel.get.app_error", nil, "error", http.StatusInternalServerError))
 
@@ -1376,11 +1376,11 @@ func TestShouldShowChannelActivityWarning(t *testing.T) {
 
 		// No policy history exists
 		mockAccessControlPolicyStore.On("GetPolicyHistory", mock.AnythingOfType("*request.Context"), channelID, 2).Return([]*model.AccessControlPolicy{}, nil)
-		
+
 		// Channel exists with creation timestamp
 		channel := &model.Channel{Id: channelID, CreateAt: 1000}
 		mockChannelStore.On("Get", channelID, true).Return(channel, nil)
-		
+
 		// Posts exist since channel creation (CreateAt > 1000)
 		// Note: Only regular posts (Type == "") are counted by the implementation
 		postsAfterCreation := &model.PostList{
@@ -1422,7 +1422,7 @@ func TestShouldShowChannelActivityWarning(t *testing.T) {
 		mockStore := th.App.Srv().Store().(*storemocks.Store)
 		mockAccessControlPolicyStore := storemocks.AccessControlPolicyStore{}
 		mockAccessControlPolicyStore.On("GetPolicyHistory", mock.AnythingOfType("*request.Context"), channelID, 2).Return(singlePolicy, nil)
-		
+
 		// Mock the current policy (our fix calls Get() when there's one policy in history)
 		currentPolicy := &model.AccessControlPolicy{
 			ID:       channelID,
@@ -1464,7 +1464,7 @@ func TestShouldShowChannelActivityWarning(t *testing.T) {
 		mockStore := th.App.Srv().Store().(*storemocks.Store)
 		mockAccessControlPolicyStore := storemocks.AccessControlPolicyStore{}
 		mockAccessControlPolicyStore.On("GetPolicyHistory", mock.AnythingOfType("*request.Context"), channelID, 2).Return(singlePolicy, nil)
-		
+
 		// Mock the current policy (our fix calls Get() when there's one policy in history)
 		currentPolicy := &model.AccessControlPolicy{
 			ID:       channelID,
@@ -1515,7 +1515,7 @@ func TestShouldShowChannelActivityWarning(t *testing.T) {
 		mockStore := th.App.Srv().Store().(*storemocks.Store)
 		mockAccessControlPolicyStore := storemocks.AccessControlPolicyStore{}
 		mockAccessControlPolicyStore.On("GetPolicyHistory", mock.AnythingOfType("*request.Context"), channelID, 2).Return(singlePolicy, nil)
-		
+
 		// Mock the current policy (our fix calls Get() when there's one policy in history)
 		currentPolicy := &model.AccessControlPolicy{
 			ID:       channelID,

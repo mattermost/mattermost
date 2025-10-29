@@ -468,9 +468,17 @@ function ChannelSettingsAccessRulesTab({
                     const warningResult = await actions.getChannelActivityWarning(channel.id);
                     shouldShowWarning = warningResult.data?.should_show_warning || false;
                 } catch (error) {
-                    // If warning check fails, continue with save (don't block users)
+                    // If warning check fails, assume there IS activity and show warning
+                    // Just to asure we never bypass the security warning due to technical issues
                     // eslint-disable-next-line no-console
-                    console.warn('Failed to check activity warning:', error);
+                    console.warn('Failed to check activity warning, showing warning as precaution:', error);
+                    shouldShowWarning = true; // Fail-closed: Show warning on error
+
+                    // Show error message to inform admin about the technical issue
+                    setFormError(formatMessage({
+                        id: 'channel_settings.access_rules.warning_check_failed',
+                        defaultMessage: 'Unable to verify channel activity. Proceeding with security warning as precaution.',
+                    }));
                 }
             }
 

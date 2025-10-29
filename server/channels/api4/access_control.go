@@ -763,7 +763,7 @@ func getChannelActivityWarning(c *Context, w http.ResponseWriter, r *http.Reques
 	}
 
 	if policy.Type != model.AccessControlPolicyTypeChannel {
-		c.Logger.Debug("Policy is not channel type for activity warning", mlog.String("policy_type", string(policy.Type)))
+		c.Logger.Debug("Policy is not channel type for activity warning", mlog.String("policy_type", policy.Type))
 		c.SetInvalidParam("policy_type")
 		return
 	}
