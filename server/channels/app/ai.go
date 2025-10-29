@@ -4,21 +4,15 @@
 package app
 
 import (
-<<<<<<< HEAD
 	"encoding/json"
 	"fmt"
 	"strings"
 	"time"
 
-	agentclient "github.com/mattermost/mattermost-plugin-ai/public/client"
+	agentclient "github.com/mattermost/mattermost-plugin-ai/public/bridgeclient"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-=======
-	"errors"
-
-	agentclient "github.com/mattermost/mattermost-plugin-ai/public/bridgeclient"
->>>>>>> plugin-bridge-poc
 )
 
 // getAIClient returns an AI client for making requests to the AI plugin
@@ -26,7 +20,6 @@ func (a *App) getAIClient(userID string) *agentclient.Client {
 	return agentclient.NewClientFromApp(a, userID)
 }
 
-<<<<<<< HEAD
 // RewriteMessage rewrites a message using AI based on the specified action
 func (a *App) RewriteMessage(rctx request.CTX, userID string, message string, action model.AIRewriteAction) (*model.AIRewriteResponse, *model.AppError) {
 	// Validate inputs
@@ -302,14 +295,4 @@ func (a *App) GenerateRecapTitle(rctx request.CTX, userID string, channelNames [
 	}
 
 	return title, nil
-=======
-// Placeholder - NewClientFromApp needs to be called to initialize the AI client in order to ensure everything lines up from a build perspective, and getAIClient can't be uncalled because of linter
-// TODO: Remove once a proper feature actually uses the AI Client
-func (a *App) AIClient() error {
-	aiClient := a.getAIClient("")
-	if aiClient == nil {
-		return errors.New("failed to get AI client")
-	}
-	return nil
->>>>>>> plugin-bridge-poc
 }
