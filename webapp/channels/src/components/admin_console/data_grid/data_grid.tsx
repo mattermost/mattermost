@@ -208,6 +208,7 @@ class DataGrid extends React.PureComponent<Props, State> {
                     term={this.props.term}
                     filterProps={this.props.filterProps}
                     extraComponent={this.props.extraComponent}
+                    disabled={this.props.disabled}
                 />
             );
         }

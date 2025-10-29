@@ -181,6 +181,7 @@ export default function ContentFlaggingContentReviewers(props: Props) {
                             <TeamReviewers
                                 teamReviewersSetting={reviewerSetting.TeamReviewersSetting}
                                 onChange={handleTeamReviewerSettingsChange}
+                                disabled={props.disabled}
                             />
 
                         </div>
