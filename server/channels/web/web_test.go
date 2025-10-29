@@ -77,7 +77,14 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool, options []app.Option
 	*newConfig.PluginSettings.AutomaticPrepackagedPlugins = false
 	*newConfig.LogSettings.EnableSentry = false // disable error reporting during tests
 	*newConfig.LogSettings.ConsoleJson = false
-	*newConfig.LogSettings.ConsoleLevel = mlog.LvlStdLog.Name
+
+	// Check for environment variable override for console log level (useful for debugging tests)
+	consoleLevel := os.Getenv("MM_LOGSETTINGS_CONSOLELEVEL")
+	if consoleLevel == "" {
+		consoleLevel = mlog.LvlStdLog.Name
+	}
+	*newConfig.LogSettings.ConsoleLevel = consoleLevel
+
 	_, _, err := memoryStore.Set(newConfig)
 	require.NoError(tb, err)
 	options = append(options, app.ConfigStore(memoryStore))
