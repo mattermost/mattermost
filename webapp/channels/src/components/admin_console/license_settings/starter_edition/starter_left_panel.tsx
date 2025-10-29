@@ -48,12 +48,6 @@ const StarterLeftPanel: React.FC<StarterEditionProps> = ({
     return (
         <div className='StarterLeftPanel'>
             {viewPlansButton}
-            <div className='pre-title'>
-                <FormattedMessage
-                    id='admin.license.enterpriseEdition'
-                    defaultMessage='Enterprise Edition'
-                />
-            </div>
             <div className='title'>
                 <FormattedMessage
                     id='admin.license.freeEdition.title'

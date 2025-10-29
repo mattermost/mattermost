@@ -113,6 +113,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ContentFlagging = false
 	f.InteractiveDialogAppsForm = true
 	f.EnableMattermostEntry = true
+
 	f.MobileSSOCodeExchange = true
 
 	// FEATURE_FLAG_REMOVAL: AutoTranslation - Remove this default when MVP is to be released

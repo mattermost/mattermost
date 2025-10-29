@@ -452,6 +452,10 @@
     "translation": "Your license does not support channel moderation"
   },
   {
+    "id": "api.channel.patch_channel_moderations_for_channel.restricted_permission.app_error",
+    "translation": "Cannot add a permission that is restricted by the team or system permission scheme."
+  },
+  {
     "id": "api.channel.patch_update_channel.forbidden.app_error",
     "translation": "Failed to update the channel."
   },
@@ -10966,15 +10970,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 138+"
+    "translation": "Version 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 138+"
+    "translation": "Version 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 128+"
+    "translation": "Version 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
