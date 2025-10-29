@@ -9973,7 +9973,7 @@
   },
   {
     "id": "app.scheduled_post.error_reason.unknown",
-    "translation": "Невідома помилка"
+    "translation": "Невідома Помилка"
   },
   {
     "id": "app.scheduled_post.error_reason.user_deleted",
@@ -10450,5 +10450,41 @@
   {
     "id": "api.access_control_policy.get_channels.limit.app_error",
     "translation": "Обмеження на кількість каналів недійсне."
+  },
+  {
+    "id": "api.content_flagging.error.comment_required",
+    "translation": "Додайте коментар із поясненням, чому ви позначаєте це повідомлення."
+  },
+  {
+    "id": "api.content_flagging.error.comment_too_long",
+    "translation": "Причина позначення повідомлення не може бути довшою за {{.MaxLength}} символів."
+  },
+  {
+    "id": "api.content_flagging.error.disabled",
+    "translation": "Функція позначення вмісту вимкнена."
+  },
+  {
+    "id": "api.content_flagging.error.license",
+    "translation": "Ваша ліцензія не підтримує позначення вмісту."
+  },
+  {
+    "id": "api.content_flagging.error.not_available_on_team",
+    "translation": "Функція позначення вмісту не ввімкнена в цій команді."
+  },
+  {
+    "id": "api.content_flagging.error.post_not_in_progress",
+    "translation": "Позначений пост повинен мати статус очікує на розгляд або призначений, щоб його можна було зберегти або видалити."
+  },
+  {
+    "id": "api.content_flagging.error.reason_invalid",
+    "translation": "Невідома причина, вказана для позначення повідомлення."
+  },
+  {
+    "id": "api.content_flagging.error.reason_required",
+    "translation": "Будь ласка, виберіть причину для позначення цього повідомлення."
+  },
+  {
+    "id": "api.content_flagging.error.user_not_reviewer",
+    "translation": "Користувач не є рецензентом контенту."
   }
 ]
