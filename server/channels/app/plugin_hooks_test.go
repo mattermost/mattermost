@@ -32,6 +32,14 @@ import (
 )
 
 func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, apiFunc func(*model.Manifest) plugin.API) (func(), []string, []error) {
+	return setAppEnvironmentWithPlugins(t, pluginCode, app, apiFunc, "")
+}
+
+func SetAppEnvironmentWithPluginsGoVersion(t *testing.T, pluginCode []string, app *App, apiFunc func(*model.Manifest) plugin.API, goVersion string) (func(), []string, []error) {
+	return setAppEnvironmentWithPlugins(t, pluginCode, app, apiFunc, goVersion)
+}
+
+func setAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, apiFunc func(*model.Manifest) plugin.API, goVersion string) (func(), []string, []error) {
 	pluginDir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	webappPluginDir, err := os.MkdirTemp("", "")
@@ -46,7 +54,7 @@ func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, a
 	for _, code := range pluginCode {
 		pluginID := model.NewId()
 		backend := filepath.Join(pluginDir, pluginID, "backend.exe")
-		utils.CompileGo(t, code, backend)
+		utils.CompileGoVersion(t, goVersion, code, backend)
 
 		err = os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "server": {"executable": "backend.exe"}}`), 0600)
 		require.NoError(t, err)
@@ -328,7 +336,8 @@ func TestHookMessageHasBeenPosted(t *testing.T) {
 		func main() {
 			plugin.ClientMain(&MyPlugin{})
 		}
-	`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+	`,
+		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
 	defer tearDown()
 
 	post := &model.Post{
@@ -367,7 +376,8 @@ func TestHookMessageWillBeUpdated(t *testing.T) {
 		func main() {
 			plugin.ClientMain(&MyPlugin{})
 		}
-	`}, th.App, th.NewPluginAPI)
+	`,
+		}, th.App, th.NewPluginAPI)
 	defer tearDown()
 
 	post := &model.Post{
@@ -415,7 +425,8 @@ func TestHookMessageHasBeenUpdated(t *testing.T) {
 		func main() {
 			plugin.ClientMain(&MyPlugin{})
 		}
-	`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+	`,
+		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
 	defer tearDown()
 
 	post := &model.Post{
@@ -461,7 +472,8 @@ func TestHookMessageHasBeenDeleted(t *testing.T) {
 		func main() {
 			plugin.ClientMain(&MyPlugin{})
 		}
-	`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+	`,
+		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
 	defer tearDown()
 
 	post := &model.Post{
@@ -727,7 +739,8 @@ func TestUserWillLogIn_Blocked(t *testing.T) {
 		func main() {
 			plugin.ClientMain(&MyPlugin{})
 		}
-	`}, th.App, th.NewPluginAPI)
+	`,
+		}, th.App, th.NewPluginAPI)
 	defer tearDown()
 
 	r := &http.Request{}
@@ -767,7 +780,8 @@ func TestUserWillLogInIn_Passed(t *testing.T) {
 		func main() {
 			plugin.ClientMain(&MyPlugin{})
 		}
-	`}, th.App, th.NewPluginAPI)
+	`,
+		}, th.App, th.NewPluginAPI)
 	defer tearDown()
 
 	r := &http.Request{}
@@ -809,7 +823,8 @@ func TestUserHasLoggedIn(t *testing.T) {
 		func main() {
 			plugin.ClientMain(&MyPlugin{})
 		}
-	`}, th.App, th.NewPluginAPI)
+	`,
+		}, th.App, th.NewPluginAPI)
 	defer tearDown()
 
 	r := &http.Request{}
@@ -851,7 +866,8 @@ func TestUserHasBeenDeactivated(t *testing.T) {
 		func main() {
 			plugin.ClientMain(&MyPlugin{})
 		}
-	`}, th.App, th.NewPluginAPI)
+	`,
+		}, th.App, th.NewPluginAPI)
 	defer tearDown()
 
 	user := &model.User{
@@ -899,7 +915,8 @@ func TestUserHasBeenCreated(t *testing.T) {
 		func main() {
 			plugin.ClientMain(&MyPlugin{})
 		}
-	`}, th.App, th.NewPluginAPI)
+	`,
+		}, th.App, th.NewPluginAPI)
 	defer tearDown()
 
 	user := &model.User{
@@ -944,7 +961,8 @@ func TestErrorString(t *testing.T) {
 			func main() {
 				plugin.ClientMain(&MyPlugin{})
 			}
-		`}, th.App, th.NewPluginAPI)
+		`,
+			}, th.App, th.NewPluginAPI)
 		defer tearDown()
 
 		require.Len(t, activationErrors, 1)
@@ -974,7 +992,8 @@ func TestErrorString(t *testing.T) {
 			func main() {
 				plugin.ClientMain(&MyPlugin{})
 			}
-		`}, th.App, th.NewPluginAPI)
+		`,
+			}, th.App, th.NewPluginAPI)
 		defer tearDown()
 
 		require.Len(t, activationErrors, 1)
@@ -1030,7 +1049,8 @@ func TestHookContext(t *testing.T) {
 		func main() {
 			plugin.ClientMain(&MyPlugin{})
 		}
-	`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+	`,
+		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
 	defer tearDown()
 
 	post := &model.Post{
@@ -1078,7 +1098,8 @@ func TestActiveHooks(t *testing.T) {
 			func main() {
 				plugin.ClientMain(&MyPlugin{})
 			}
-		`}, th.App, th.NewPluginAPI)
+		`,
+			}, th.App, th.NewPluginAPI)
 		defer tearDown()
 
 		require.Len(t, pluginIDs, 1)
@@ -1134,8 +1155,7 @@ func TestHookMetrics(t *testing.T) {
 
 		pluginID := model.NewId()
 		backend := filepath.Join(pluginDir, pluginID, "backend.exe")
-		code :=
-			`
+		code := `
 	package main
 
 	import (
@@ -1241,7 +1261,8 @@ func TestHookReactionHasBeenAdded(t *testing.T) {
 		func main() {
 			plugin.ClientMain(&MyPlugin{})
 		}
-	`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+	`,
+		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
 	defer tearDown()
 
 	reaction := &model.Reaction{
@@ -1286,7 +1307,8 @@ func TestHookReactionHasBeenRemoved(t *testing.T) {
 		func main() {
 			plugin.ClientMain(&MyPlugin{})
 		}
-	`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+	`,
+		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
 	defer tearDown()
 
 	reaction := &model.Reaction{
@@ -1329,7 +1351,8 @@ func TestHookRunDataRetention(t *testing.T) {
 		func main() {
 			plugin.ClientMain(&MyPlugin{})
 		}
-	`}, th.App, th.NewPluginAPI)
+	`,
+		}, th.App, th.NewPluginAPI)
 	defer tearDown()
 
 	require.Len(t, pluginIDs, 1)
@@ -1373,7 +1396,8 @@ func TestHookOnSendDailyTelemetry(t *testing.T) {
 		func main() {
 			plugin.ClientMain(&MyPlugin{})
 		}
-	`}, th.App, th.NewPluginAPI)
+	`,
+		}, th.App, th.NewPluginAPI)
 	defer tearDown()
 
 	require.Len(t, pluginIDs, 1)
@@ -1417,7 +1441,8 @@ func TestHookOnCloudLimitsUpdated(t *testing.T) {
 		func main() {
 			plugin.ClientMain(&MyPlugin{})
 		}
-	`}, th.App, th.NewPluginAPI)
+	`,
+		}, th.App, th.NewPluginAPI)
 	defer tearDown()
 
 	require.Len(t, pluginIDs, 1)
