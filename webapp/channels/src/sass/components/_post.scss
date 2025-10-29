@@ -626,15 +626,24 @@
             align-self: flex-start;
         }
 
-        .pending-post-actions__status-icon {
+        .post__status-icon {
             display: inline-flex;
             margin-right: 0;
 
             svg {
-                width: 16px;
-                height: 16px;
+                width: 14px;
+                height: 14px;
+            }
+        }
+
+        .post__status-icon--failed {
+            svg {
                 fill: var(--error-text);
             }
+        }
+
+        .post__status-icon--pending {
+            color: rgba(var(--center-channel-color-rgb), 0.4);
         }
     }
 

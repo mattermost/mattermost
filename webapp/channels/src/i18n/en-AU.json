@@ -5095,7 +5095,7 @@
   "post_info.menuAriaLabel": "Post extra options",
   "post_info.message.show_less": "Show less",
   "post_info.message.show_more": "Show more",
-  "post.status.sending": "Sending...",
+  "post.status.sending": "Sending",
   "post_info.message.visible": "(Only visible to you)",
   "post_info.message.visible.compact": " (Only visible to you)",
   "post_info.move_thread": "Move Thread",

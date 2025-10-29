@@ -27,6 +27,7 @@ import PostAcknowledgements from 'components/post_view/acknowledgements';
 import CommentedOn from 'components/post_view/commented_on/commented_on';
 import FailedPostOptions from 'components/post_view/failed_post_options';
 import AlertIcon from 'components/widgets/icons/alert_icon';
+import ClockSendIcon from 'components/widgets/icons/clock_send_icon';
 import PostAriaLabelDiv from 'components/post_view/post_aria_label_div';
 import PostBodyAdditionalContent from 'components/post_view/post_body_additional_content';
 import PostMessageContainer from 'components/post_view/post_message_view';
@@ -436,8 +437,9 @@ function PostComponent(props: Props) {
         <span className={classNames('post__status', 'post__status--pending', extraClass)}>
             <FormattedMessage
                 id='post.status.sending'
-                defaultMessage='Sending...'
+                defaultMessage='Sending'
             />
+            <ClockSendIcon className='post__status-icon post__status-icon--pending' />
         </span>
     ), []);
 
@@ -447,7 +449,7 @@ function PostComponent(props: Props) {
 
     const failedLabelHeader = isFailed && !props.isConsecutivePost ? (
         <span className='post__status post__status--failed post__status--message'>
-            <AlertIcon className='pending-post-actions__status-icon' />
+            <AlertIcon className='post__status-icon post__status-icon--failed' />
             <FormattedMessage
                 id='post.status.failed'
                 defaultMessage='Message failed'
@@ -457,7 +459,7 @@ function PostComponent(props: Props) {
 
     const failedLabelInline = isFailed && props.isConsecutivePost ? (
         <span className='post__status post__status--failed post__status--body'>
-            <AlertIcon className='pending-post-actions__status-icon' />
+            <AlertIcon className='post__status-icon post__status-icon--failed' />
             <FormattedMessage
                 id='post.status.failed'
                 defaultMessage='Message failed'
@@ -507,7 +509,7 @@ function PostComponent(props: Props) {
     let profilePic;
     const hideProfilePicture = hasSameRoot(props) && (!post.root_id && !props.hasReplies) && !PostUtils.isFromBot(post);
     const hideProfileCase = !(props.location === Locations.RHS_COMMENT && props.compactDisplay && props.isConsecutivePost);
-    const shouldShowPostTime = !isFailed && (((!hideProfilePicture && props.location === Locations.CENTER) || hover || props.location !== Locations.CENTER));
+    const shouldShowPostTime = !isFailed && !isPending && (((!hideProfilePicture && props.location === Locations.CENTER) || hover || props.location !== Locations.CENTER));
     if (!hideProfilePicture && hideProfileCase) {
         profilePic = (
             <PostProfilePicture
