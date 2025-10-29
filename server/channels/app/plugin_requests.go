@@ -5,7 +5,6 @@ package app
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"net/http"
 	"path"
@@ -54,12 +53,11 @@ func (ch *Channels) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 // This is used by the Plugin Bridge to route requests with proper authentication headers.
 //
 // Parameters:
-//   - rctx: Request context containing session and other metadata
+//   - userID: User ID to set in the authentication header (empty string if no user context)
 //   - w: HTTP response writer
 //   - r: HTTP request (should have URL path set to the endpoint, NOT including plugin ID)
 //   - sourcePluginID: ID of calling plugin (empty string if from core)
 //   - targetPluginID: ID of target plugin to call
-//   - responseSchema: Optional JSON schema for expected response (will be base64-encoded in header)
 func (a *App) ServeInternalPluginRequest(userID string, w http.ResponseWriter, r *http.Request, sourcePluginID, targetPluginID string) {
 	pluginsEnvironment := a.ch.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
@@ -90,10 +88,8 @@ func (a *App) ServeInternalPluginRequest(userID string, w http.ResponseWriter, r
 		UserAgent: r.UserAgent(),
 	}
 
-	// Set authentication headers - these are trusted because this function is only called internally
+	// Set authentication headers - these are trusted because this function is internal
 	// and not exposed to external HTTP routes
-
-	// Set user ID header if available from session
 	r.Header.Set("Mattermost-User-Id", userID)
 
 	// Set plugin ID header to identify the caller
@@ -105,45 +101,15 @@ func (a *App) ServeInternalPluginRequest(userID string, w http.ResponseWriter, r
 		r.Header.Set("Mattermost-Plugin-ID", "com.mattermost.server")
 	}
 
-	fmt.Println("Serving internal plugin request from", sourcePluginID, "to", targetPluginID)
-	fmt.Println("Request URL:", r.URL.String())
-
 	hooks.ServeHTTP(context, w, r)
 }
 
 // ServeInterPluginRequest handles inter-plugin HTTP requests.
 // Deprecated: Use ServeInternalPluginRequest for new code. This is kept for backward compatibility.
+// This function does not set user authentication headers, unlike ServeInternalPluginRequest.
 func (a *App) ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId, destinationPluginId string) {
-	pluginsEnvironment := a.ch.GetPluginsEnvironment()
-	if pluginsEnvironment == nil {
-		appErr := model.NewAppError("ServeInterPluginRequest", "app.plugin.disabled.app_error", nil, "Plugin environment not found.", http.StatusNotImplemented)
-		a.Log().Error(appErr.Error())
-		w.WriteHeader(appErr.StatusCode)
-		w.Header().Set("Content-Type", "application/json")
-		if _, err := w.Write([]byte(appErr.ToJSON())); err != nil {
-			mlog.Warn("Error while writing response", mlog.Err(err))
-		}
-		return
-	}
-
-	hooks, err := pluginsEnvironment.HooksForPlugin(destinationPluginId)
-	if err != nil {
-		a.Log().Error("Access to route for non-existent plugin in inter plugin request",
-			mlog.String("source_plugin_id", sourcePluginId),
-			mlog.String("destination_plugin_id", destinationPluginId),
-			mlog.String("url", r.URL.String()),
-			mlog.Err(err),
-		)
-		http.NotFound(w, r)
-		return
-	}
-
-	context := &plugin.Context{
-		RequestId: model.NewId(),
-		UserAgent: r.UserAgent(),
-	}
-
-	hooks.ServeHTTP(context, w, r)
+	// Call ServeInternalPluginRequest with empty userID since this function doesn't handle user authentication
+	a.ServeInternalPluginRequest("", w, r, sourcePluginId, destinationPluginId)
 }
 
 // ServePluginPublicRequest serves public plugin files
