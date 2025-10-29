@@ -1076,7 +1076,7 @@ func TestCleanUp(t *testing.T) {
 	require.NotNil(t, ds)
 	defer ds.Close()
 
-	t.Run("should keep last 5 configurations regadless", func(t *testing.T) {
+	t.Run("should keep last 5 configurations regardless", func(t *testing.T) {
 		dbs, ok := ds.backingStore.(*DatabaseStore)
 		require.True(t, ok, "should be a DatabaseStore instance")
 
