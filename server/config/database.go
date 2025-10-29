@@ -348,12 +348,10 @@ func (ds *DatabaseStore) cleanUp(thresholdCreateAt int64) error {
 		WHERE CreateAt < :timestamp
 			AND (Active IS NULL OR Active = false)
 			AND ID NOT IN (
-				SELECT ID FROM (
-					SELECT ID
-					FROM Configurations
-					ORDER BY CreateAt DESC
-					LIMIT 5
-				) AS recent
+				SELECT ID
+				FROM Configurations
+				ORDER BY CreateAt DESC
+				LIMIT 5
 			)
 	`
 
