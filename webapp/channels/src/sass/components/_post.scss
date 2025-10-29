@@ -642,7 +642,6 @@
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        margin-left: 8px;
     }
 
     .post__header-actions .pending-post-actions--header {
@@ -655,6 +654,7 @@
         display: inline-flex;
         align-items: center;
         gap: 6px;
+        margin-left: 4px;
     }
 
     .post__header-actions .pending-post-actions__button {
@@ -671,11 +671,11 @@
 
     .post__header-actions .pending-post-actions__button--delete {
         color: var(--error-text);
-        background-color: #fbf1f1;
+        background-color: rgba(var(--error-text-color-rgb), 0.12);
     }
 
     .post__header-actions .pending-post-actions__button--delete:hover {
-        background-color: #f8e4e4;
+        background-color: rgba(var(--error-text-color-rgb), 0.2);
     }
 
     .post__header-actions .pending-post-actions__button--retry {
@@ -689,14 +689,14 @@
 
     .post__message-top {
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         gap: 6px;
         flex-wrap: nowrap;
     }
 
     .post__message-top-content {
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         gap: 6px;
         flex: 1 1 auto;
         min-width: 0;
@@ -711,6 +711,10 @@
     .post__message-top-content .post__status--body {
         margin-left: auto;
         white-space: nowrap;
+        align-self: center;
+    }
+
+    .post__message-top>.pending-post-actions--inline {
         align-self: center;
     }
 
@@ -1577,7 +1581,7 @@
             }
 
             &--inline {
-                margin-left: 8px;
+                margin-left: 0px;
             }
 
             &__status {
@@ -1621,10 +1625,10 @@
 
                 &--delete {
                     color: var(--error-text);
-                    background-color: #fbf1f1;
+                    background-color: rgba(var(--error-text-color-rgb), 0.12);
 
                     &:hover {
-                        background-color: #f8e4e4;
+                        background-color: rgba(var(--error-text-color-rgb), 0.2);
                     }
                 }
             }
