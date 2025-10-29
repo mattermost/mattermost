@@ -639,11 +639,10 @@
     }
 
     .post__header-actions {
-        display: flex;
+        display: inline-flex;
         align-items: center;
-        flex-wrap: wrap;
         gap: 6px;
-        width: 100%;
+        margin-left: 8px;
     }
 
     .post__header-actions .pending-post-actions--header {
@@ -725,7 +724,7 @@
         &:hover,
         &.post--hovered,
         &.a11y--active {
-            background-color: #f8e4e4;
+            background-color: #fbf1f1 !important;
         }
     }
 
