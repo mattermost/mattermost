@@ -543,10 +543,6 @@ jobs:
           context: ${{ inputs.status_check_context }}
           description: ${{ needs.report.outputs.commit_status_message || 'Error during test execution' }}
           status: failure
-          target_url: >-
-            ${{ inputs.TEST == 'playwright'
-              && needs.report.outputs.playwright_report_url
-              || needs.generate-test-cycle.outputs.status_check_url }}
 
 
   update-success-final-status:
@@ -566,7 +562,3 @@ jobs:
           context: ${{ inputs.status_check_context }}
           description: ${{ needs.report.outputs.commit_status_message || 'Error during test execution' }}
           status: success
-          target_url: >-
-            ${{ inputs.TEST == 'playwright'
-              && needs.report.outputs.playwright_report_url
-              || needs.generate-test-cycle.outputs.status_check_url }}

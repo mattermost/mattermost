@@ -131,7 +131,12 @@ jobs:
               _COMMIT_SHA_COMPUTED=$(git rev-parse --verify "$REF") # NB: not actually used for resolving the commit; it's only to double check the value of 'inputs.ref'
               ### For image tag generation: utilize 'inputs.ref', assume that it is a full commit SHA
               COMMIT_SHA="${REF}"
-              BRANCH="server-pr-${PR_NUMBER}"   # For reference, the real branch name may be retrievable with command: 'jq -r .head.ref <pr.json'
+              # For reference, the real branch name may be retrievable with command: 'jq -r .head.ref <pr.json'
+              if [ "$FIPS_ENABLED" = "true" ]; then
+                BRANCH="server-fips-pr-${PR_NUMBER}"
+              else
+                BRANCH="server-pr-${PR_NUMBER}"
+              fi
               SERVER_IMAGE_TAG="${COMMIT_SHA::7}"
               SERVER_IMAGE_ORG=mattermostdevelopment
               BUILD_ID_SUFFIX="${REPORT_TYPE@L}-${SERVER}-ent"
@@ -231,16 +236,21 @@ jobs:
       - name: ci/notify-user
         env:
           COMMIT_SHA: "${{steps.generate.outputs.commit_sha}}"
+          SERVER_IMAGE: "${{steps.generate.outputs.SERVER_IMAGE}}"
           STATUS_CHECK_CONTEXT: "${{steps.generate.outputs.status_check_context}}"
           WORKFLOW_RUN_URL: "${{steps.generate.outputs.WORKFLOW_RUN_URL}}"
           CYCLE_URL: "${{steps.generate.outputs.CYCLE_URL}}"
           RUN_CYPRESS: "${{inputs.RUN_CYPRESS == 'true' || ''}}"
           RUN_PLAYWRIGHT: "${{inputs.RUN_PLAYWRIGHT == 'true' || ''}}"
+          FIPS_ENABLED: "${{inputs.FIPS_ENABLED}}"
         run: |
           if [ -n "$PR_NUMBER" ]; then
             gh issue -R "${{ github.repository }}" comment "$PR_NUMBER" --body-file - <<EOF
-          E2E test run is starting for commit \`${COMMIT_SHA}\`${MM_ENV:+, with \`MM_ENV=$MM_ENV\`}${MM_SERVICE_OVERRIDES:+, Cypress service overrides \`$MM_SERVICE_OVERRIDES\`}.
-          To check the run progress:
+          **${FIPS_ENABLED:+\(FIPS\) }E2E tests starting with \`${SERVER_IMAGE}\`**
+          ${MM_ENV:+- with \`MM_ENV=$MM_ENV\`}
+          ${MM_SERVICE_OVERRIDES:+- Cypress service overrides \`$MM_SERVICE_OVERRIDES\`}
+
+          Progress:
           - Cypress: ${RUN_CYPRESS:+look for commit status \`$STATUS_CHECK_CONTEXT\` or the access the [Automation Dashboard Cycle URL]($CYCLE_URL)}$([ -n "${RUN_CYPRESS:-}" ] || echo -n "will not run").
           - Playwright: ${RUN_PLAYWRIGHT:+look for commit status \`$STATUS_CHECK_CONTEXT-playwright\`}$([ -n "${RUN_PLAYWRIGHT:-}" ] || echo -n "will not run").
           
@@ -342,13 +352,41 @@ jobs:
       RUN_CYPRESS: "${{inputs.RUN_CYPRESS == 'true' || ''}}"
       RUN_PLAYWRIGHT: "${{inputs.RUN_PLAYWRIGHT == 'true' || ''}}"
       PLAYWRIGHT_REPORT_URL: "${{ needs.e2e-fulltest-playwright.outputs.playwright_report_url }}"
+      FIPS_ENABLED: "${{inputs.FIPS_ENABLED}}"
+      CYPRESS_PASS_RATE: "${{ needs.e2e-fulltest-cypress.outputs.pass_rate }}"
+      PLAYWRIGHT_PASS_RATE: "${{ needs.e2e-fulltest-playwright.outputs.pass_rate }}"
     steps:
       - name: ci/notify-user-test-completion
         run: |
+          # Determine overall test status based on pass rates
+          STATUS_ICON=""
+          STATUS_TEXT=""
+
+          ALL_PASSED=true
+          if [ -n "$RUN_CYPRESS" ]; then
+            if [ "$CYPRESS_PASS_RATE" != "100.00%" ]; then
+              ALL_PASSED=false
+            fi
+          fi
+          if [ -n "$RUN_PLAYWRIGHT" ]; then
+            if [ "$PLAYWRIGHT_PASS_RATE" != "100.00%" ]; then
+              ALL_PASSED=false
+            fi
+          fi
+
+          if [ "$ALL_PASSED" = "true" ]; then
+            STATUS_ICON="✅"
+            STATUS_TEXT="PASSED"
+          else
+            STATUS_ICON="❌"
+            STATUS_TEXT="FAILED"
+          fi
+
           if [ -n "$PR_NUMBER" ]; then
             gh issue -R "${{ github.repository }}" comment "$PR_NUMBER" --body-file - <<EOF
-          E2E test has completed for commit \`${COMMIT_SHA}\`${MM_ENV:+, with \`MM_ENV=$MM_ENV\`}.
-          Server image: \`${SERVER_IMAGE}\`
+          **${STATUS_ICON} ${FIPS_ENABLED:+\(FIPS\) }E2E test ${STATUS_TEXT} with \`${SERVER_IMAGE}\`**
+          ${MM_ENV:+- with \`MM_ENV=$MM_ENV\`}
+          ${MM_SERVICE_OVERRIDES:+- Cypress service overrides \`$MM_SERVICE_OVERRIDES\`}
 
           Results summary:
           - Cypress: ${RUN_CYPRESS:+pass rate is \`${{ needs.e2e-fulltest-cypress.outputs.pass_rate || 'unknown' }}\` (see [Automation Dashboard]($CYCLE_URL) and commit status check \`$STATUS_CHECK_CONTEXT\`)}$([ -n "${RUN_CYPRESS:-}" ] || echo -n "did not run").
