@@ -78,16 +78,16 @@ func (s SqlTokenStore) GetByToken(tokenString string) (*model.Token, error) {
 	return &token, nil
 }
 
-func (s SqlTokenStore) ConsumeOnce(tokenStr string) (*model.Token, error) {
+func (s SqlTokenStore) ConsumeOnce(tokenType, tokenStr string) (*model.Token, error) {
 	var token model.Token
 
-	query := `DELETE FROM Tokens WHERE Token = ? RETURNING *`
+	query := `DELETE FROM Tokens WHERE Type = ? AND Token = ? RETURNING *`
 
-	if err := s.GetMaster().Get(&token, query, tokenStr); err != nil {
+	if err := s.GetMaster().Get(&token, query, tokenType, tokenStr); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("Token", tokenStr)
 		}
-		return nil, errors.Wrapf(err, "failed to consume token")
+		return nil, errors.Wrapf(err, "failed to consume token with type %s", tokenType)
 	}
 
 	return &token, nil

@@ -9,7 +9,6 @@ import type {Role} from '@mattermost/types/roles';
 
 import PermissionCheckbox from './permission_checkbox';
 import PermissionDescription from './permission_description';
-import type {AdditionalValues} from './permissions_tree/types';
 import {permissionRolesStrings} from './strings/permissions';
 
 type Props = {
@@ -21,7 +20,7 @@ type Props = {
     selectRow: (id: string) => void;
     value: string;
     onChange: (id: string) => void;
-    additionalValues: AdditionalValues;
+    additionalValues: Record<string, any>;
 }
 
 const PermissionRow = ({

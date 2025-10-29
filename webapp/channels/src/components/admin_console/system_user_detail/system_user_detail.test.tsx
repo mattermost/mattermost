@@ -13,7 +13,7 @@ import SystemUserDetail, {getUserAuthenticationTextField} from 'components/admin
 import type {Params, Props} from 'components/admin_console/system_user_detail/system_user_detail';
 
 import type {MockIntl} from 'tests/helpers/intl-test-helper';
-import {renderWithContext, waitFor, within} from 'tests/react_testing_utils';
+import {renderWithContext, screen, waitFor, waitForElementToBeRemoved} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -54,21 +54,16 @@ describe('SystemUserDetail', () => {
         } as RouteComponentProps<Params>),
     };
 
-    const waitForLoadingToFinish = async (container: HTMLElement) => {
-        const noUserBody = container.querySelector('.noUserBody');
-        const spinner = within(noUserBody as HTMLElement).getByTestId('loadingSpinner');
-        expect(spinner).toBeInTheDocument();
-
-        await waitFor(() => {
-            expect(container.querySelector('[data-testid="loadingSpinner"]')).not.toBeInTheDocument();
-        });
+    const waitForLoadingToFinish = async () => {
+        await waitForElementToBeRemoved(screen.queryAllByTitle('Loading Icon'));
+        await waitFor(() => expect(screen.queryByText('No teams found')).toBeInTheDocument());
     };
 
     test('should match default snapshot', async () => {
         const props = defaultProps;
         const {container} = renderWithContext(<SystemUserDetail {...props}/>);
 
-        await waitForLoadingToFinish(container);
+        await waitForLoadingToFinish();
 
         expect(container).toMatchSnapshot();
     });
@@ -80,7 +75,7 @@ describe('SystemUserDetail', () => {
         };
         const {container} = renderWithContext(<SystemUserDetail {...props}/>);
 
-        await waitForLoadingToFinish(container);
+        await waitForLoadingToFinish();
 
         expect(container).toMatchSnapshot();
     });
@@ -92,7 +87,7 @@ describe('SystemUserDetail', () => {
         };
         const {container} = renderWithContext(<SystemUserDetail {...props}/>);
 
-        await waitForLoadingToFinish(container);
+        await waitForLoadingToFinish();
 
         expect(container).toMatchSnapshot();
     });
@@ -104,7 +99,7 @@ describe('SystemUserDetail', () => {
         };
         const {container} = renderWithContext(<SystemUserDetail {...props}/>);
 
-        await waitForLoadingToFinish(container);
+        await waitForLoadingToFinish();
 
         expect(container).toMatchSnapshot();
     });
@@ -118,7 +113,7 @@ describe('SystemUserDetail', () => {
 
         const {container} = renderWithContext(<SystemUserDetail {...props}/>);
 
-        await waitForLoadingToFinish(container);
+        await waitForLoadingToFinish();
 
         const activateButton = container.querySelector('button[disabled]');
         expect(activateButton).toHaveTextContent('Deactivate (Managed By LDAP)');
@@ -133,7 +128,7 @@ describe('SystemUserDetail', () => {
         };
         const {container} = renderWithContext(<SystemUserDetail {...props}/>);
 
-        await waitForLoadingToFinish(container);
+        await waitForLoadingToFinish();
 
         expect(container).toMatchSnapshot();
     });
