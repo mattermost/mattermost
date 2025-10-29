@@ -629,15 +629,50 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if channel.Type == model.ChannelTypeOpen {
-		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel) && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel) {
-			c.SetPermissionError(model.PermissionReadPublicChannel)
+	isContentReviewer := false
+	asContentReviewer, _ := strconv.ParseBool(r.URL.Query().Get("as_content_reviewer"))
+	if asContentReviewer {
+		requireContentFlaggingEnabled(c)
+		if c.Err != nil {
 			return
 		}
-	} else {
-		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel) {
-			c.SetPermissionError(model.PermissionReadChannel)
+
+		requireTeamContentReviewer(c, c.AppContext.Session().UserId, channel.TeamId)
+		if c.Err != nil {
 			return
+		}
+
+		flaggedPostId := r.URL.Query().Get("flagged_post_id")
+		requireFlaggedPost(c, flaggedPostId)
+		if c.Err != nil {
+			return
+		}
+
+		post, appErr := c.App.GetSinglePost(c.AppContext, flaggedPostId, true)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+
+		if post.ChannelId != channel.Id {
+			c.Err = model.NewAppError("getChannel", "api.channel.get_channel.flagged_post_mismatch.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+
+		isContentReviewer = true
+	}
+
+	if !isContentReviewer {
+		if channel.Type == model.ChannelTypeOpen {
+			if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionReadPublicChannel) && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel) {
+				c.SetPermissionError(model.PermissionReadPublicChannel)
+				return
+			}
+		} else {
+			if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionReadChannel) {
+				c.SetPermissionError(model.PermissionReadChannel)
+				return
+			}
 		}
 	}
 
@@ -2427,7 +2462,7 @@ func getDirectOrGroupMessageMembersCommonTeams(c *Context, w http.ResponseWriter
 		return
 	}
 
-	if err := json.NewEncoder(w).Encode(teams); err != nil {
+	if err := json.NewEncoder(w).Encode(c.App.SanitizeTeams(*c.AppContext.Session(), teams)); err != nil {
 		c.Logger.Warn("Error while writing response from getDirectOrGroupMessageMembersCommonTeams", mlog.Err(err))
 	}
 }
