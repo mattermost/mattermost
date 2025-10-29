@@ -46,6 +46,10 @@ on:
         type: string
         description: Enable Playwright run
         default: "true"
+      FIPS_ENABLED:
+        type: string
+        description: When true, use mattermost-enterprise-fips-edition image for testing instead of standard enterprise edition
+        default: "true"
 
 concurrency:
   group: "${{ github.workflow }}-${{ inputs.REPORT_TYPE }}-${{ inputs.PR_NUMBER || inputs.ref }}-${{ inputs.MM_ENV }}"
@@ -86,6 +90,7 @@ jobs:
       REPORT_TYPE: "${{ inputs.REPORT_TYPE }}"
       ROLLING_RELEASE_FROM_TAG: "${{ inputs.ROLLING_RELEASE_FROM_TAG }}"
       AUTOMATION_DASHBOARD_URL: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_URL }}"
+      FIPS_ENABLED: "${{ inputs.FIPS_ENABLED }}"
       # We could exclude the @smoke group for PRs, but then we wouldn't have it in the report
       TEST_FILTER_CYPRESS_PR: >-
         --stage="@prod"
@@ -199,9 +204,15 @@ jobs:
           # BUILD_ID format: $pipelineID-$imageTag-$testType-$serverType-$serverEdition
           # Reference on BUILD_ID parsing: https://github.com/saturninoabril/automation-dashboard/blob/175891781bf1072c162c58c6ec0abfc5bcb3520e/lib/common_utils.ts#L3-L23
           BUILD_ID="${{ github.run_id }}_${{ github.run_attempt }}-${SERVER_IMAGE_TAG}-${BUILD_ID_SUFFIX}"
+          # Determine server image name based on FIPS_ENABLED parameter
+          if [ "$FIPS_ENABLED" = "true" ]; then
+            SERVER_IMAGE_NAME="mattermost-enterprise-fips-edition"
+          else
+            SERVER_IMAGE_NAME="mattermost-enterprise-edition"
+          fi
           echo "commit_sha=${COMMIT_SHA}" >> $GITHUB_OUTPUT
           echo "BRANCH=${BRANCH}" >> $GITHUB_OUTPUT
-          echo "SERVER_IMAGE=${SERVER_IMAGE_ORG}/mattermost-enterprise-edition:${SERVER_IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "SERVER_IMAGE=${SERVER_IMAGE_ORG}/${SERVER_IMAGE_NAME}:${SERVER_IMAGE_TAG}" >> $GITHUB_OUTPUT
           echo "SERVER=${SERVER}" >> $GITHUB_OUTPUT
           echo "server_uppercase=${SERVER@U}" >> $GITHUB_OUTPUT
           echo "ENABLED_DOCKER_SERVICES=${ENABLED_DOCKER_SERVICES}" >> $GITHUB_OUTPUT
@@ -324,6 +335,7 @@ jobs:
       PR_NUMBER: "${{ inputs.PR_NUMBER || '' }}"
       MM_ENV: "${{ inputs.MM_ENV || '' }}"
       COMMIT_SHA: "${{ needs.generate-test-variables.outputs.commit_sha }}"
+      SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.SERVER_IMAGE }}"
       STATUS_CHECK_CONTEXT: "${{ needs.generate-test-variables.outputs.status_check_context }}"
       WORKFLOW_RUN_URL: "${{ needs.generate-test-variables.outputs.WORKFLOW_RUN_URL }}"
       CYCLE_URL: "${{ needs.generate-test-variables.outputs.CYCLE_URL }}"
@@ -336,10 +348,12 @@ jobs:
           if [ -n "$PR_NUMBER" ]; then
             gh issue -R "${{ github.repository }}" comment "$PR_NUMBER" --body-file - <<EOF
           E2E test has completed for commit \`${COMMIT_SHA}\`${MM_ENV:+, with \`MM_ENV=$MM_ENV\`}.
+          Server image: \`${SERVER_IMAGE}\`
+
           Results summary:
           - Cypress: ${RUN_CYPRESS:+pass rate is \`${{ needs.e2e-fulltest-cypress.outputs.pass_rate || 'unknown' }}\` (see [Automation Dashboard]($CYCLE_URL) and commit status check \`$STATUS_CHECK_CONTEXT\`)}$([ -n "${RUN_CYPRESS:-}" ] || echo -n "did not run").
           - Playwright: ${RUN_PLAYWRIGHT:+pass rate is \`${{ needs.e2e-fulltest-playwright.outputs.pass_rate || 'unknown' }}\` (see [Playwright Report URL]($PLAYWRIGHT_REPORT_URL) and commit status check \`$STATUS_CHECK_CONTEXT-playwright\`)}$([ -n "${RUN_PLAYWRIGHT:-}" ] || echo -n "did not run").
-          
+
           The run summary artifacts are available in the corresponding [Workflow Run]($WORKFLOW_RUN_URL).
           EOF
           fi
