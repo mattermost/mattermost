@@ -113,3 +113,18 @@ func WikiFromJSON(data []byte) (*Wiki, error) {
 	}
 	return &wiki, nil
 }
+
+// BreadcrumbItem represents a single item in the breadcrumb path
+type BreadcrumbItem struct {
+	Id        string `json:"id"`
+	Title     string `json:"title"`
+	Type      string `json:"type"` // "wiki", "page"
+	Path      string `json:"path"`
+	ChannelId string `json:"channel_id"`
+}
+
+// BreadcrumbPath represents the full breadcrumb navigation path
+type BreadcrumbPath struct {
+	Items       []*BreadcrumbItem `json:"items"`
+	CurrentPage *BreadcrumbItem   `json:"current_page"`
+}

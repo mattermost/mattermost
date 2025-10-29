@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -21,6 +22,10 @@ func TestWikiStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("UpdateWiki", func(t *testing.T) { testUpdateWiki(t, rctx, ss) })
 	t.Run("DeleteWiki", func(t *testing.T) { testDeleteWiki(t, rctx, ss) })
 	t.Run("GetPages", func(t *testing.T) { testGetPages(t, rctx, ss) })
+	t.Run("MovePageToWiki", func(t *testing.T) { testMovePageToWiki(t, rctx, ss) })
+	t.Run("CreateWikiWithDefaultPage", func(t *testing.T) { testCreateWikiWithDefaultPage(t, rctx, ss) })
+	t.Run("DeleteAllPagesForWiki", func(t *testing.T) { testDeleteAllPagesForWiki(t, rctx, ss) })
+	t.Run("GetAbandonedPages", func(t *testing.T) { testGetAbandonedPages(t, rctx, ss) })
 }
 
 func testSaveWiki(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -519,6 +524,583 @@ func testGetPages(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, pagesErr)
 		for _, p := range pages {
 			assert.NotEqual(t, deletedPage.Id, p.Id)
+		}
+	})
+}
+
+func testMovePageToWiki(t *testing.T, rctx request.CTX, ss store.Store) {
+	team := &model.Team{
+		DisplayName: "Test Team",
+		Name:        model.NewId(),
+		Email:       "test@example.com",
+		Type:        model.TeamOpen,
+	}
+	team, err := ss.Team().Save(team)
+	require.NoError(t, err)
+	defer func() { _ = ss.Team().PermanentDelete(team.Id) }()
+
+	channel := &model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "Test Channel",
+		Name:        model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}
+	channel, nErr := ss.Channel().Save(rctx, channel, 100)
+	require.NoError(t, nErr)
+	defer func() { _ = ss.Channel().PermanentDelete(rctx, channel.Id) }()
+
+	user := &model.User{
+		Email:    "test@example.com",
+		Username: model.NewId(),
+	}
+	user, err = ss.User().Save(rctx, user)
+	require.NoError(t, err)
+	defer func() { _ = ss.User().PermanentDelete(rctx, user.Id) }()
+
+	sourceWiki := &model.Wiki{
+		ChannelId: channel.Id,
+		Title:     "Source Wiki",
+	}
+	sourceWiki, err = ss.Wiki().Save(sourceWiki)
+	require.NoError(t, err)
+
+	targetWiki := &model.Wiki{
+		ChannelId: channel.Id,
+		Title:     "Target Wiki",
+	}
+	targetWiki, err = ss.Wiki().Save(targetWiki)
+	require.NoError(t, err)
+
+	t.Run("move single page without children", func(t *testing.T) {
+		rootPage := &model.Post{
+			UserId:    user.Id,
+			ChannelId: channel.Id,
+			Message:   "Root page content",
+			Type:      model.PostTypePage,
+			Props: map[string]any{
+				"title": "Root Page",
+			},
+		}
+		rootPage, err := ss.Post().Save(rctx, rootPage)
+		require.NoError(t, err)
+
+		rootPropValue := []byte(`"` + sourceWiki.Id + `"`)
+		rootProp := &model.PropertyValue{
+			TargetType: "post",
+			TargetID:   rootPage.Id,
+			GroupID:    model.WikiPropertyGroupID,
+			FieldID:    model.WikiPropertyFieldID,
+			Value:      rootPropValue,
+		}
+		_, err = ss.PropertyValue().Create(rootProp)
+		require.NoError(t, err)
+
+		err = ss.Wiki().MovePageToWiki(rootPage.Id, targetWiki.Id, nil)
+		require.NoError(t, err)
+
+		props, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+			GroupID:    model.WikiPropertyGroupID,
+			TargetType: "post",
+			TargetIDs:  []string{rootPage.Id},
+			FieldID:    model.WikiPropertyFieldID,
+			PerPage:    10,
+		})
+		require.NoError(t, err)
+		require.Len(t, props, 1)
+
+		expectedValue := json.RawMessage(`"` + targetWiki.Id + `"`)
+		assert.Equal(t, expectedValue, props[0].Value)
+
+		movedPage, err := ss.Post().GetSingle(rctx, rootPage.Id, false)
+		require.NoError(t, err)
+		assert.Equal(t, "", movedPage.PageParentId)
+	})
+
+	t.Run("move page with entire subtree", func(t *testing.T) {
+		parentPage := &model.Post{
+			UserId:    user.Id,
+			ChannelId: channel.Id,
+			Message:   "Parent page content",
+			Type:      model.PostTypePage,
+			Props: map[string]any{
+				"title": "Parent Page",
+			},
+		}
+		parentPage, err := ss.Post().Save(rctx, parentPage)
+		require.NoError(t, err)
+
+		parentPropValue := []byte(`"` + sourceWiki.Id + `"`)
+		parentProp := &model.PropertyValue{
+			TargetType: "post",
+			TargetID:   parentPage.Id,
+			GroupID:    model.WikiPropertyGroupID,
+			FieldID:    model.WikiPropertyFieldID,
+			Value:      parentPropValue,
+		}
+		_, err = ss.PropertyValue().Create(parentProp)
+		require.NoError(t, err)
+
+		childPage1 := &model.Post{
+			UserId:       user.Id,
+			ChannelId:    channel.Id,
+			Message:      "Child 1 content",
+			Type:         model.PostTypePage,
+			PageParentId: parentPage.Id,
+			Props: map[string]any{
+				"title": "Child Page 1",
+			},
+		}
+		childPage1, err = ss.Post().Save(rctx, childPage1)
+		require.NoError(t, err)
+
+		child1PropValue := []byte(`"` + sourceWiki.Id + `"`)
+		child1Prop := &model.PropertyValue{
+			TargetType: "post",
+			TargetID:   childPage1.Id,
+			GroupID:    model.WikiPropertyGroupID,
+			FieldID:    model.WikiPropertyFieldID,
+			Value:      child1PropValue,
+		}
+		_, err = ss.PropertyValue().Create(child1Prop)
+		require.NoError(t, err)
+
+		childPage2 := &model.Post{
+			UserId:       user.Id,
+			ChannelId:    channel.Id,
+			Message:      "Child 2 content",
+			Type:         model.PostTypePage,
+			PageParentId: parentPage.Id,
+			Props: map[string]any{
+				"title": "Child Page 2",
+			},
+		}
+		childPage2, err = ss.Post().Save(rctx, childPage2)
+		require.NoError(t, err)
+
+		child2PropValue := []byte(`"` + sourceWiki.Id + `"`)
+		child2Prop := &model.PropertyValue{
+			TargetType: "post",
+			TargetID:   childPage2.Id,
+			GroupID:    model.WikiPropertyGroupID,
+			FieldID:    model.WikiPropertyFieldID,
+			Value:      child2PropValue,
+		}
+		_, err = ss.PropertyValue().Create(child2Prop)
+		require.NoError(t, err)
+
+		grandchildPage := &model.Post{
+			UserId:       user.Id,
+			ChannelId:    channel.Id,
+			Message:      "Grandchild content",
+			Type:         model.PostTypePage,
+			PageParentId: childPage1.Id,
+			Props: map[string]any{
+				"title": "Grandchild Page",
+			},
+		}
+		grandchildPage, err = ss.Post().Save(rctx, grandchildPage)
+		require.NoError(t, err)
+
+		grandchildPropValue := []byte(`"` + sourceWiki.Id + `"`)
+		grandchildProp := &model.PropertyValue{
+			TargetType: "post",
+			TargetID:   grandchildPage.Id,
+			GroupID:    model.WikiPropertyGroupID,
+			FieldID:    model.WikiPropertyFieldID,
+			Value:      grandchildPropValue,
+		}
+		_, err = ss.PropertyValue().Create(grandchildProp)
+		require.NoError(t, err)
+
+		err = ss.Wiki().MovePageToWiki(parentPage.Id, targetWiki.Id, nil)
+		require.NoError(t, err)
+
+		expectedTargetValue := json.RawMessage(`"` + targetWiki.Id + `"`)
+
+		parentProps, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+			GroupID:    model.WikiPropertyGroupID,
+			TargetType: "post",
+			TargetIDs:  []string{parentPage.Id},
+			FieldID:    model.WikiPropertyFieldID,
+			PerPage:    10,
+		})
+		require.NoError(t, err)
+		require.Len(t, parentProps, 1)
+		assert.Equal(t, expectedTargetValue, parentProps[0].Value)
+
+		child1Props, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+			GroupID:    model.WikiPropertyGroupID,
+			TargetType: "post",
+			TargetIDs:  []string{childPage1.Id},
+			FieldID:    model.WikiPropertyFieldID,
+			PerPage:    10,
+		})
+		require.NoError(t, err)
+		require.Len(t, child1Props, 1)
+		assert.Equal(t, expectedTargetValue, child1Props[0].Value)
+
+		child2Props, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+			GroupID:    model.WikiPropertyGroupID,
+			TargetType: "post",
+			TargetIDs:  []string{childPage2.Id},
+			FieldID:    model.WikiPropertyFieldID,
+			PerPage:    10,
+		})
+		require.NoError(t, err)
+		require.Len(t, child2Props, 1)
+		assert.Equal(t, expectedTargetValue, child2Props[0].Value)
+
+		grandchildProps, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+			GroupID:    model.WikiPropertyGroupID,
+			TargetType: "post",
+			TargetIDs:  []string{grandchildPage.Id},
+			FieldID:    model.WikiPropertyFieldID,
+			PerPage:    10,
+		})
+		require.NoError(t, err)
+		require.Len(t, grandchildProps, 1)
+		assert.Equal(t, expectedTargetValue, grandchildProps[0].Value)
+
+		movedParent, err := ss.Post().GetSingle(rctx, parentPage.Id, false)
+		require.NoError(t, err)
+		assert.Equal(t, "", movedParent.PageParentId)
+
+		movedChild1, err := ss.Post().GetSingle(rctx, childPage1.Id, false)
+		require.NoError(t, err)
+		assert.Equal(t, parentPage.Id, movedChild1.PageParentId)
+
+		movedChild2, err := ss.Post().GetSingle(rctx, childPage2.Id, false)
+		require.NoError(t, err)
+		assert.Equal(t, parentPage.Id, movedChild2.PageParentId)
+
+		movedGrandchild, err := ss.Post().GetSingle(rctx, grandchildPage.Id, false)
+		require.NoError(t, err)
+		assert.Equal(t, childPage1.Id, movedGrandchild.PageParentId)
+	})
+
+	t.Run("move non-existent page", func(t *testing.T) {
+		err := ss.Wiki().MovePageToWiki(model.NewId(), targetWiki.Id, nil)
+		assert.Error(t, err)
+		var nfErr *store.ErrNotFound
+		assert.ErrorAs(t, err, &nfErr)
+	})
+}
+
+func testCreateWikiWithDefaultPage(t *testing.T, rctx request.CTX, ss store.Store) {
+	team := &model.Team{
+		DisplayName: "Test Team",
+		Name:        model.NewId(),
+		Email:       "test@example.com",
+		Type:        model.TeamOpen,
+	}
+	team, err := ss.Team().Save(team)
+	require.NoError(t, err)
+	defer func() { _ = ss.Team().PermanentDelete(team.Id) }()
+
+	channel := &model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "Test Channel",
+		Name:        model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}
+	channel, nErr := ss.Channel().Save(rctx, channel, 100)
+	require.NoError(t, nErr)
+	defer func() { _ = ss.Channel().PermanentDelete(rctx, channel.Id) }()
+
+	user := &model.User{
+		Email:    "test@example.com",
+		Username: model.NewId(),
+	}
+	user, err = ss.User().Save(rctx, user)
+	require.NoError(t, err)
+	defer func() { _ = ss.User().PermanentDelete(rctx, user.Id) }()
+
+	_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
+		ChannelId:   channel.Id,
+		UserId:      user.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.NoError(t, err)
+
+	t.Run("create wiki with default draft successfully", func(t *testing.T) {
+		wiki := &model.Wiki{
+			ChannelId:   channel.Id,
+			Title:       "Test Wiki",
+			Description: "Test wiki description",
+		}
+
+		savedWiki, err := ss.Wiki().CreateWikiWithDefaultPage(wiki, user.Id)
+		require.NoError(t, err)
+		require.NotEmpty(t, savedWiki.Id)
+		assert.Equal(t, wiki.ChannelId, savedWiki.ChannelId)
+		assert.Equal(t, wiki.Title, savedWiki.Title)
+		assert.Equal(t, wiki.Description, savedWiki.Description)
+
+		drafts, err := ss.Draft().GetDraftsForUser(user.Id, "")
+		require.NoError(t, err)
+		require.Len(t, drafts, 1)
+		assert.Equal(t, user.Id, drafts[0].UserId)
+		assert.Equal(t, channel.Id, drafts[0].ChannelId)
+		assert.Equal(t, savedWiki.Id, drafts[0].WikiId)
+		assert.Contains(t, drafts[0].RootId, savedWiki.Id)
+		assert.Equal(t, "", drafts[0].Message)
+		wikiIdProp, ok := drafts[0].Props["wiki_id"]
+		assert.True(t, ok)
+		assert.Equal(t, savedWiki.Id, wikiIdProp)
+		titleProp, ok := drafts[0].Props["title"]
+		assert.True(t, ok)
+		assert.Equal(t, "Untitled page", titleProp)
+	})
+
+	t.Run("create wiki with invalid data fails", func(t *testing.T) {
+		invalidWiki := &model.Wiki{
+			Title: "No Channel",
+		}
+		_, err := ss.Wiki().CreateWikiWithDefaultPage(invalidWiki, user.Id)
+		assert.Error(t, err)
+	})
+
+	t.Run("create wiki with non-existent channel fails", func(t *testing.T) {
+		invalidWiki := &model.Wiki{
+			ChannelId: model.NewId(),
+			Title:     "Test Wiki",
+		}
+		_, err := ss.Wiki().CreateWikiWithDefaultPage(invalidWiki, user.Id)
+		assert.Error(t, err)
+	})
+}
+
+func testDeleteAllPagesForWiki(t *testing.T, rctx request.CTX, ss store.Store) {
+	team := &model.Team{
+		DisplayName: "Test Team",
+		Name:        model.NewId(),
+		Email:       "test@example.com",
+		Type:        model.TeamOpen,
+	}
+	team, err := ss.Team().Save(team)
+	require.NoError(t, err)
+	defer func() { _ = ss.Team().PermanentDelete(team.Id) }()
+
+	channel := &model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "Test Channel",
+		Name:        model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}
+	channel, nErr := ss.Channel().Save(rctx, channel, 100)
+	require.NoError(t, nErr)
+	defer func() { _ = ss.Channel().PermanentDelete(rctx, channel.Id) }()
+
+	user := &model.User{
+		Email:    "test@example.com",
+		Username: model.NewId(),
+	}
+	user, err = ss.User().Save(rctx, user)
+	require.NoError(t, err)
+	defer func() { _ = ss.User().PermanentDelete(rctx, user.Id) }()
+
+	wiki := &model.Wiki{
+		ChannelId:   channel.Id,
+		Title:       "Test Wiki",
+		Description: "Test wiki description",
+	}
+	wiki, err = ss.Wiki().Save(wiki)
+	require.NoError(t, err)
+	defer func() { _ = ss.Wiki().Delete(wiki.Id, false) }()
+
+	page1 := &model.Post{
+		ChannelId: channel.Id,
+		UserId:    user.Id,
+		Message:   "Test page 1 content",
+		Type:      model.PostTypePage,
+		Props: model.StringInterface{
+			"wiki_id": wiki.Id,
+		},
+	}
+	page1, err = ss.Post().Save(rctx, page1)
+	require.NoError(t, err)
+
+	page1PropValue := []byte(`"` + wiki.Id + `"`)
+	page1Prop := &model.PropertyValue{
+		TargetType: "post",
+		TargetID:   page1.Id,
+		GroupID:    model.WikiPropertyGroupID,
+		FieldID:    model.WikiPropertyFieldID,
+		Value:      page1PropValue,
+	}
+	_, err = ss.PropertyValue().Create(page1Prop)
+	require.NoError(t, err)
+
+	page2 := &model.Post{
+		ChannelId: channel.Id,
+		UserId:    user.Id,
+		Message:   "Test page 2 content",
+		Type:      model.PostTypePage,
+		Props: model.StringInterface{
+			"wiki_id": wiki.Id,
+		},
+	}
+	page2, err = ss.Post().Save(rctx, page2)
+	require.NoError(t, err)
+
+	page2PropValue := []byte(`"` + wiki.Id + `"`)
+	page2Prop := &model.PropertyValue{
+		TargetType: "post",
+		TargetID:   page2.Id,
+		GroupID:    model.WikiPropertyGroupID,
+		FieldID:    model.WikiPropertyFieldID,
+		Value:      page2PropValue,
+	}
+	_, err = ss.PropertyValue().Create(page2Prop)
+	require.NoError(t, err)
+
+	draft := &model.Draft{
+		CreateAt:  model.GetMillis(),
+		UpdateAt:  model.GetMillis(),
+		UserId:    user.Id,
+		ChannelId: wiki.Id,
+		WikiId:    wiki.Id,
+		RootId:    wiki.Id + ":" + model.NewId(),
+		Message:   "Draft content",
+		Props: model.StringInterface{
+			"wiki_id": wiki.Id,
+		},
+	}
+	_, err = ss.Draft().Upsert(draft)
+	require.NoError(t, err)
+
+	t.Run("delete all pages and drafts for wiki", func(t *testing.T) {
+		err := ss.Wiki().DeleteAllPagesForWiki(wiki.Id)
+		require.NoError(t, err)
+
+		deletedPage1, err := ss.Post().GetSingle(rctx, page1.Id, false)
+		assert.Nil(t, deletedPage1)
+		assert.Error(t, err)
+
+		deletedPage2, err := ss.Post().GetSingle(rctx, page2.Id, false)
+		assert.Nil(t, deletedPage2)
+		assert.Error(t, err)
+
+		page1Props, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+			GroupID:    model.WikiPropertyGroupID,
+			TargetType: "post",
+			TargetIDs:  []string{page1.Id},
+			FieldID:    model.WikiPropertyFieldID,
+			PerPage:    10,
+		})
+		require.NoError(t, err)
+		assert.Len(t, page1Props, 0)
+
+		page2Props, err := ss.PropertyValue().SearchPropertyValues(model.PropertyValueSearchOpts{
+			GroupID:    model.WikiPropertyGroupID,
+			TargetType: "post",
+			TargetIDs:  []string{page2.Id},
+			FieldID:    model.WikiPropertyFieldID,
+			PerPage:    10,
+		})
+		require.NoError(t, err)
+		assert.Len(t, page2Props, 0)
+
+		drafts, err := ss.Draft().GetDraftsForUser(user.Id, "")
+		require.NoError(t, err)
+		assert.Len(t, drafts, 0)
+	})
+
+	t.Run("delete for non-existent wiki succeeds", func(t *testing.T) {
+		err := ss.Wiki().DeleteAllPagesForWiki(model.NewId())
+		assert.NoError(t, err)
+	})
+}
+
+func testGetAbandonedPages(t *testing.T, rctx request.CTX, ss store.Store) {
+	team := &model.Team{
+		DisplayName: "Test Team",
+		Name:        model.NewId(),
+		Email:       "test@example.com",
+		Type:        model.TeamOpen,
+	}
+	team, err := ss.Team().Save(team)
+	require.NoError(t, err)
+	defer func() { _ = ss.Team().PermanentDelete(team.Id) }()
+
+	channel := &model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "Test Channel",
+		Name:        model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}
+	channel, nErr := ss.Channel().Save(rctx, channel, 100)
+	require.NoError(t, nErr)
+	defer func() { _ = ss.Channel().PermanentDelete(rctx, channel.Id) }()
+
+	user := &model.User{
+		Email:    "test@example.com",
+		Username: model.NewId(),
+	}
+	user, err = ss.User().Save(rctx, user)
+	require.NoError(t, err)
+	defer func() { _ = ss.User().PermanentDelete(rctx, user.Id) }()
+
+	now := model.GetMillis()
+	oldTime := now - (24 * 60 * 60 * 1000)
+	cutoffTime := now - (12 * 60 * 60 * 1000)
+
+	oldEmptyPage := &model.Post{
+		ChannelId: channel.Id,
+		UserId:    user.Id,
+		Message:   "",
+		Type:      model.PostTypePage,
+		CreateAt:  oldTime,
+		UpdateAt:  oldTime,
+	}
+	oldEmptyPage, err = ss.Post().Save(rctx, oldEmptyPage)
+	require.NoError(t, err)
+	defer func() { _ = ss.Post().PermanentDeleteByUser(rctx, user.Id) }()
+
+	recentEmptyPage := &model.Post{
+		ChannelId: channel.Id,
+		UserId:    user.Id,
+		Message:   "",
+		Type:      model.PostTypePage,
+		CreateAt:  now,
+		UpdateAt:  now,
+	}
+	recentEmptyPage, err = ss.Post().Save(rctx, recentEmptyPage)
+	require.NoError(t, err)
+
+	oldPageWithContent := &model.Post{
+		ChannelId: channel.Id,
+		UserId:    user.Id,
+		Message:   "This page has content",
+		Type:      model.PostTypePage,
+		CreateAt:  oldTime,
+		UpdateAt:  oldTime,
+	}
+	oldPageWithContent, err = ss.Post().Save(rctx, oldPageWithContent)
+	require.NoError(t, err)
+
+	t.Run("get abandoned pages older than cutoff", func(t *testing.T) {
+		abandonedPages, err := ss.Wiki().GetAbandonedPages(cutoffTime)
+		require.NoError(t, err)
+		require.Len(t, abandonedPages, 1)
+		assert.Equal(t, oldEmptyPage.Id, abandonedPages[0].Id)
+		assert.Equal(t, "", abandonedPages[0].Message)
+		assert.Equal(t, model.PostTypePage, abandonedPages[0].Type)
+	})
+
+	t.Run("get abandoned pages excludes recent empty pages", func(t *testing.T) {
+		abandonedPages, err := ss.Wiki().GetAbandonedPages(cutoffTime)
+		require.NoError(t, err)
+		for _, page := range abandonedPages {
+			assert.NotEqual(t, recentEmptyPage.Id, page.Id)
+		}
+	})
+
+	t.Run("get abandoned pages excludes pages with content", func(t *testing.T) {
+		abandonedPages, err := ss.Wiki().GetAbandonedPages(cutoffTime)
+		require.NoError(t, err)
+		for _, page := range abandonedPages {
+			assert.NotEqual(t, oldPageWithContent.Id, page.Id)
 		}
 	})
 }

@@ -28,7 +28,9 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
 
     const isWikiRhsOpen = rhsState === 'wiki';
 
-    const fetchInlineComments = useCallback(async () => {
+    // Store fetch logic in a ref to avoid recreating callbacks
+    const fetchInlineCommentsRef = useRef<() => Promise<void>>();
+    fetchInlineCommentsRef.current = async () => {
         if (!pageId) {
             return;
         }
@@ -46,7 +48,12 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
         } catch (error) {
             setInlineComments([]);
         }
-    }, [pageId]);
+    };
+
+    // Stable wrapper that calls the latest version from ref
+    const fetchInlineComments = useCallback(async () => {
+        await fetchInlineCommentsRef.current?.();
+    }, []);
 
     // Callback when a new inline comment is created
     const handleInlineCommentCreated = useCallback((commentId: string) => {
@@ -69,10 +76,10 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
         handleCloseModal,
     } = useInlineComments(pageId, wikiId, handleInlineCommentCreated);
 
-    // Fetch comments when pageId changes
+    // Fetch comments when pageId changes (only re-run when pageId actually changes, not when fetchInlineComments reference changes)
     useEffect(() => {
         fetchInlineComments();
-    }, [fetchInlineComments]);
+    }, [pageId]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Store the latest callback logic in a ref to avoid closure issues with TipTap
     const handleCommentClickRef = useRef((commentId: string) => {
@@ -102,6 +109,8 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
     // Update the ref on every render with the latest values
     useEffect(() => {
         handleCommentClickRef.current = (commentId: string) => {
+            const startTime = performance.now();
+
             if (isWikiRhsOpen && lastClickedCommentId === commentId) {
                 dispatch(closeRightHandSide());
                 setLastClickedCommentId(null);
@@ -121,6 +130,7 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
                     setTimeout(() => {
                         commentElement.classList.remove('highlight-animation');
                     }, 2000);
+                } else {
                 }
             }, 300);
         };

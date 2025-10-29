@@ -1033,8 +1033,13 @@ export function postsInThread(state: RelationOneToMany<Post, Post> = {}, action:
         const nextPostsForThread = [...postsForThread];
 
         for (const post of newPosts) {
-            if (post.root_id !== action.rootId) {
-                // Only store comments
+
+            // Include the root post itself (root_id === '') AND all replies (root_id === action.rootId)
+            const isRootPost = post.id === action.rootId && post.root_id === '';
+            const isReply = post.root_id === action.rootId;
+
+            if (!isRootPost && !isReply) {
+                // Skip posts that are neither the root nor replies to the root
                 continue;
             }
 

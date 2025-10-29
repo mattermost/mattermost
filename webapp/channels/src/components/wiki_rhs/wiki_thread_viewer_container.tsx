@@ -43,6 +43,7 @@ function makeMapStateToProps() {
     const getChannel = makeGetChannel();
 
     return function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
+        const start = performance.now();
         const currentUserId = getCurrentUserId(state);
         const currentTeamId = getCurrentTeamId(state);
         const selected = getPost(state, ownProps.rootPostId);
@@ -68,7 +69,7 @@ function makeMapStateToProps() {
             lastUpdateAt = getThreadLastUpdateAt(state, selected.id);
         }
 
-        return {
+        const result = {
             isCollapsedThreadsEnabled: isCollapsedThreadsEnabled(state),
             appsEnabled: appsEnabled(state),
             currentUserId,
@@ -83,6 +84,8 @@ function makeMapStateToProps() {
             enableWebSocketEventScope,
             lastUpdateAt,
         };
+
+        return result;
     };
 }
 

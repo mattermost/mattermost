@@ -10,6 +10,12 @@ import {TestHelper} from 'utils/test_helper';
 
 import PostSearchResultsItem from './post_search_results_item';
 
+jest.mock('components/post', () => {
+    return function PostComponent({post}: {post: any}) {
+        return <div>{post.message}</div>;
+    };
+});
+
 describe('PostSearchResultsItem', () => {
     const team = TestHelper.getTeamMock({id: 'team1'});
     const channel = TestHelper.getChannelMock({id: 'channel1', team_id: team.id});

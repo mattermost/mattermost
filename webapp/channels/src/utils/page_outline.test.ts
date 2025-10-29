@@ -14,7 +14,7 @@ describe('extractHeadingsFromContent', () => {
             content: [
                 {
                     type: 'heading',
-                    attrs: {level: 1},
+                    attrs: {level: 1, id: 'heading-1'},
                     content: [{type: 'text', text: 'Heading 1'}],
                 },
                 {
@@ -23,12 +23,12 @@ describe('extractHeadingsFromContent', () => {
                 },
                 {
                     type: 'heading',
-                    attrs: {level: 2},
+                    attrs: {level: 2, id: 'heading-2'},
                     content: [{type: 'text', text: 'Heading 2'}],
                 },
                 {
                     type: 'heading',
-                    attrs: {level: 3},
+                    attrs: {level: 3, id: 'heading-3'},
                     content: [{type: 'text', text: 'Heading 3'}],
                 },
             ],

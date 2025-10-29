@@ -7640,9 +7640,45 @@ func (c *Client4) AddPageToWiki(ctx context.Context, wikiId, pageId string) (*Re
 	return BuildResponse(r), nil
 }
 
-// RemovePageFromWiki detaches a page from a wiki. The page itself is not deleted, only the association with the wiki is removed.
-func (c *Client4) RemovePageFromWiki(ctx context.Context, wikiId, pageId string) (*Response, error) {
+// DeletePageFromWiki permanently deletes a page from a wiki. The page and all its comments are soft-deleted.
+func (c *Client4) DeletePageFromWiki(ctx context.Context, wikiId, pageId string) (*Response, error) {
 	r, err := c.DoAPIDelete(ctx, fmt.Sprintf("%s/%s", c.wikiPagesRoute(wikiId), pageId))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+// MovePageToWiki moves a page from one wiki to another within the same channel.
+func (c *Client4) MovePageToWiki(ctx context.Context, sourceWikiId, pageId, targetWikiId string) (*Response, error) {
+	payload := map[string]string{
+		"target_wiki_id": targetWikiId,
+	}
+	r, err := c.DoAPIPutJSON(ctx, fmt.Sprintf("%s/%s/move", c.wikiPagesRoute(sourceWikiId), pageId), payload)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+// GetPageBreadcrumb retrieves the breadcrumb navigation path for a page.
+func (c *Client4) GetPageBreadcrumb(ctx context.Context, wikiId, pageId string) (*BreadcrumbPath, *Response, error) {
+	r, err := c.DoAPIGet(ctx, fmt.Sprintf("%s/%s/breadcrumb", c.wikiPagesRoute(wikiId), pageId), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*BreadcrumbPath](r)
+}
+
+// UpdatePageParent changes the parent of a page in the hierarchy.
+func (c *Client4) UpdatePageParent(ctx context.Context, wikiId, pageId, newParentId string) (*Response, error) {
+	payload := map[string]string{
+		"new_parent_id": newParentId,
+	}
+	r, err := c.DoAPIPutJSON(ctx, fmt.Sprintf("%s/%s/parent", c.wikiPagesRoute(wikiId), pageId), payload)
 	if err != nil {
 		return BuildResponse(r), err
 	}

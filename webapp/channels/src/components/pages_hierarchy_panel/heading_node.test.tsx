@@ -1,46 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import {screen} from '@testing-library/react';
 
+import type {DeepPartial} from '@mattermost/types/utilities';
+
+import {renderWithContext} from 'tests/react_testing_utils';
+
+import type {GlobalState} from 'types/store';
 import type {Heading} from 'utils/page_outline';
 
 import HeadingNode from './heading_node';
-
-jest.mock('utils/page_outline', () => ({
-    scrollToHeading: jest.fn(),
-}));
-
-const mockHistory = {
-    push: jest.fn(),
-};
-
-jest.mock('react-router-dom', () => ({
-    useHistory: () => mockHistory,
-}));
-
-jest.mock('react-redux', () => ({
-    useSelector: (selector: any) => selector({
-        entities: {
-            channels: {
-                currentChannelId: 'current-channel',
-            },
-        },
-        views: {
-            wiki: {
-                currentPageId: 'current-page',
-            },
-        },
-    }),
-}));
-
-// Mock window.location
-delete (global as any).window.location;
-(global as any).window = Object.create(window);
-(global as any).window.location = {
-    pathname: '/test-team/pl/page123',
-};
 
 describe('HeadingNode', () => {
     const baseProps = {
@@ -54,95 +25,229 @@ describe('HeadingNode', () => {
         teamName: 'test-team',
     };
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-    });
+    const initialState: DeepPartial<GlobalState> = {
+        entities: {
+            users: {
+                currentUserId: 'user-1',
+            },
+            teams: {
+                currentTeamId: 'test-team',
+                teams: {
+                    'test-team': {
+                        id: 'test-team',
+                        name: 'test-team',
+                        display_name: 'Test Team',
+                        delete_at: 0,
+                        create_at: 0,
+                        update_at: 0,
+                        type: 'O',
+                        company_name: '',
+                        allowed_domains: '',
+                        invite_id: '',
+                        allow_open_invite: false,
+                        scheme_id: '',
+                        group_constrained: false,
+                        policy_id: '',
+                        description: '',
+                        email: '',
+                    },
+                },
+            },
+            channels: {
+                currentChannelId: 'current-channel',
+            },
+        },
+    };
 
-    test('should render heading node with correct text', () => {
-        const wrapper = shallow(<HeadingNode {...baseProps}/>);
 
-        expect(wrapper.find('.HeadingNode__text').text()).toBe('Test Heading');
-    });
+    describe('Rendering', () => {
+        test('should render heading node with correct text', () => {
+            const {container} = renderWithContext(<HeadingNode {...baseProps}/>, initialState);
 
-    test('should render with correct icon', () => {
-        const wrapper = shallow(<HeadingNode {...baseProps}/>);
-
-        expect(wrapper.find('.icon-text-short').exists()).toBe(true);
-    });
-
-    test('should apply correct padding based on depth and level', () => {
-        const wrapper = shallow(<HeadingNode {...baseProps}/>);
-
-        const expectedPadding = ((baseProps.heading.level - 1) * 16) + 16;
-        expect(wrapper.find('.HeadingNode').prop('style')).toEqual({
-            paddingLeft: `${expectedPadding}px`,
+            expect(screen.getByText('Test Heading')).toBeInTheDocument();
+            expect(container.querySelector('.HeadingNode__text')).toHaveTextContent('Test Heading');
         });
-    });
 
-    test('should apply correct padding for nested heading (depth=2, level=2)', () => {
-        const props = {
-            ...baseProps,
-            heading: {...baseProps.heading, level: 2},
-            depth: 2,
-        };
-        const wrapper = shallow(<HeadingNode {...props}/>);
+        test('should render with correct icon', () => {
+            const {container} = renderWithContext(<HeadingNode {...baseProps}/>, initialState);
 
-        const expectedPadding = ((2 - 1) * 16) + 16;
-        expect(wrapper.find('.HeadingNode').prop('style')).toEqual({
-            paddingLeft: `${expectedPadding}px`,
+            expect(container.querySelector('.icon-text-short')).toBeInTheDocument();
         });
-    });
 
-    test('should have correct ARIA attributes', () => {
-        const wrapper = shallow(<HeadingNode {...baseProps}/>);
-        const button = wrapper.find('.HeadingNode__button');
+        test('should apply correct padding based on depth and level', () => {
+            const {container} = renderWithContext(<HeadingNode {...baseProps}/>, initialState);
 
-        expect(button.prop('role')).toBe('treeitem');
-        expect(button.prop('aria-level')).toBe(baseProps.heading.level);
-    });
+            const expectedPadding = ((baseProps.heading.level - 1) * 16) + 16;
+            const headingNode = container.querySelector('.HeadingNode');
+            expect(headingNode).toHaveStyle({
+                paddingLeft: `${expectedPadding}px`,
+            });
+        });
 
-    test('should render different heading levels with correct ARIA levels', () => {
-        const levels = [1, 2, 3];
-
-        levels.forEach((level) => {
+        test('should apply correct padding for nested heading (depth=2, level=2)', () => {
             const props = {
                 ...baseProps,
-                heading: {...baseProps.heading, level},
+                heading: {...baseProps.heading, level: 2},
+                depth: 2,
             };
-            const wrapper = shallow(<HeadingNode {...props}/>);
-            const button = wrapper.find('.HeadingNode__button');
+            const {container} = renderWithContext(<HeadingNode {...props}/>, initialState);
 
-            expect(button.prop('aria-level')).toBe(level);
+            const expectedPadding = ((2 - 1) * 16) + 16;
+            const headingNode = container.querySelector('.HeadingNode');
+            expect(headingNode).toHaveStyle({
+                paddingLeft: `${expectedPadding}px`,
+            });
+        });
+
+        test('should have correct ARIA attributes', () => {
+            const {container} = renderWithContext(<HeadingNode {...baseProps}/>, initialState);
+            const button = container.querySelector('.HeadingNode__button');
+
+            expect(button).toHaveAttribute('role', 'treeitem');
+            expect(button).toHaveAttribute('aria-level', String(baseProps.heading.level));
+        });
+
+        test('should render different heading levels with correct ARIA levels', () => {
+            const levels = [1, 2, 3];
+
+            levels.forEach((level) => {
+                const props = {
+                    ...baseProps,
+                    heading: {...baseProps.heading, level},
+                };
+                const {container} = renderWithContext(<HeadingNode {...props}/>, initialState);
+                const button = container.querySelector('.HeadingNode__button');
+
+                expect(button).toHaveAttribute('aria-level', String(level));
+            });
+        });
+
+        test('should render with correct class names', () => {
+            const {container} = renderWithContext(<HeadingNode {...baseProps}/>, initialState);
+
+            expect(container.querySelector('.HeadingNode')).toBeInTheDocument();
+            expect(container.querySelector('.HeadingNode__button')).toBeInTheDocument();
+            expect(container.querySelector('.HeadingNode__text')).toBeInTheDocument();
+        });
+
+        test('should handle long heading text', () => {
+            const longText = 'This is a very long heading text that should be handled properly without breaking the layout or causing issues';
+            const props = {
+                ...baseProps,
+                heading: {...baseProps.heading, text: longText},
+            };
+            const {container} = renderWithContext(<HeadingNode {...props}/>, initialState);
+
+            expect(screen.getByText(longText)).toBeInTheDocument();
+            expect(container.querySelector('.HeadingNode__text')).toHaveTextContent(longText);
+        });
+
+        test('should handle special characters in heading text', () => {
+            const specialText = 'Heading with *markdown* **bold** and `code`';
+            const props = {
+                ...baseProps,
+                heading: {...baseProps.heading, text: specialText},
+            };
+            const {container} = renderWithContext(<HeadingNode {...props}/>, initialState);
+
+            expect(screen.getByText(specialText)).toBeInTheDocument();
+            expect(container.querySelector('.HeadingNode__text')).toHaveTextContent(specialText);
         });
     });
 
-    test('should render with correct class names', () => {
-        const wrapper = shallow(<HeadingNode {...baseProps}/>);
+    describe('Structure', () => {
+        test('should render button element', () => {
+            const {container} = renderWithContext(<HeadingNode {...baseProps}/>, initialState);
 
-        expect(wrapper.find('.HeadingNode').exists()).toBe(true);
-        expect(wrapper.find('.HeadingNode__button').exists()).toBe(true);
-        expect(wrapper.find('.HeadingNode__text').exists()).toBe(true);
+            const button = container.querySelector('.HeadingNode__button');
+            expect(button?.tagName).toBe('BUTTON');
+        });
+
+        test('should render icon and text in correct order', () => {
+            const {container} = renderWithContext(<HeadingNode {...baseProps}/>, initialState);
+
+            const button = container.querySelector('.HeadingNode__button');
+            const icon = button?.querySelector('.icon-text-short');
+            const text = button?.querySelector('.HeadingNode__text');
+
+            expect(icon).toBeInTheDocument();
+            expect(text).toBeInTheDocument();
+        });
     });
 
-    test('should handle long heading text', () => {
-        const longText = 'This is a very long heading text that should be handled properly without breaking the layout or causing issues';
-        const props = {
-            ...baseProps,
-            heading: {...baseProps.heading, text: longText},
-        };
-        const wrapper = shallow(<HeadingNode {...props}/>);
+    describe('Multiple Heading Levels', () => {
+        test('should render level 1 heading with correct padding', () => {
+            const props = {
+                ...baseProps,
+                heading: {...baseProps.heading, level: 1},
+            };
+            const {container} = renderWithContext(<HeadingNode {...props}/>, initialState);
 
-        expect(wrapper.find('.HeadingNode__text').text()).toBe(longText);
+            const expectedPadding = ((1 - 1) * 16) + 16; // 16px
+            const headingNode = container.querySelector('.HeadingNode');
+            expect(headingNode).toHaveStyle({paddingLeft: `${expectedPadding}px`});
+        });
+
+        test('should render level 2 heading with correct padding', () => {
+            const props = {
+                ...baseProps,
+                heading: {...baseProps.heading, level: 2},
+            };
+            const {container} = renderWithContext(<HeadingNode {...props}/>, initialState);
+
+            const expectedPadding = ((2 - 1) * 16) + 16; // 32px
+            const headingNode = container.querySelector('.HeadingNode');
+            expect(headingNode).toHaveStyle({paddingLeft: `${expectedPadding}px`});
+        });
+
+        test('should render level 3 heading with correct padding', () => {
+            const props = {
+                ...baseProps,
+                heading: {...baseProps.heading, level: 3},
+            };
+            const {container} = renderWithContext(<HeadingNode {...props}/>, initialState);
+
+            const expectedPadding = ((3 - 1) * 16) + 16; // 48px
+            const headingNode = container.querySelector('.HeadingNode');
+            expect(headingNode).toHaveStyle({paddingLeft: `${expectedPadding}px`});
+        });
     });
 
-    test('should handle special characters in heading text', () => {
-        const specialText = 'Heading with *markdown* **bold** and `code`';
-        const props = {
-            ...baseProps,
-            heading: {...baseProps.heading, text: specialText},
-        };
-        const wrapper = shallow(<HeadingNode {...props}/>);
+    describe('Edge Cases', () => {
+        test('should handle empty heading text', () => {
+            const props = {
+                ...baseProps,
+                heading: {...baseProps.heading, text: ''},
+            };
+            const {container} = renderWithContext(<HeadingNode {...props}/>, initialState);
 
-        expect(wrapper.find('.HeadingNode__text').text()).toBe(specialText);
+            const textElement = container.querySelector('.HeadingNode__text');
+            expect(textElement).toBeInTheDocument();
+            expect(textElement).toHaveTextContent('');
+        });
+
+        test('should handle heading with only whitespace', () => {
+            const props = {
+                ...baseProps,
+                heading: {...baseProps.heading, text: '   '},
+            };
+            const {container} = renderWithContext(<HeadingNode {...props}/>, initialState);
+
+            const textElement = container.querySelector('.HeadingNode__text');
+            expect(textElement).toBeInTheDocument();
+        });
+
+        test('should handle heading at maximum depth', () => {
+            const props = {
+                ...baseProps,
+                heading: {...baseProps.heading, level: 6},
+                depth: 10,
+            };
+            const {container} = renderWithContext(<HeadingNode {...props}/>, initialState);
+
+            const expectedPadding = ((6 - 1) * 16) + 16; // 96px
+            const headingNode = container.querySelector('.HeadingNode');
+            expect(headingNode).toHaveStyle({paddingLeft: `${expectedPadding}px`});
+        });
     });
 });

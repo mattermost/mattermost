@@ -82,16 +82,32 @@ export function buildTree(pages: PageOrDraft[]): TreeNode[] {
 /**
  * Get all ancestor IDs for a given page (for expanding path)
  */
-export function getAncestorIds(pages: Post[], pageId: string): string[] {
+export function getAncestorIds(pages: Post[], pageId: string, pageMap?: Map<string, Post>): string[] {
     const ancestorIds: string[] = [];
-    const pageMap = new Map(pages.map((p) => [p.id, p]));
+    const map = pageMap || new Map(pages.map((p) => [p.id, p]));
 
-    let currentPage = pageMap.get(pageId);
+    let currentPage = map.get(pageId);
     while (currentPage && currentPage.page_parent_id) {
         const parentId = currentPage.page_parent_id;
         ancestorIds.unshift(parentId);
-        currentPage = pageMap.get(parentId);
+        currentPage = map.get(parentId);
     }
 
     return ancestorIds;
+}
+
+/**
+ * Check if targetNode is a descendant of sourceNode
+ * Used for drag-and-drop validation to prevent dropping a page into its own subtree
+ */
+export function isDescendant(source: TreeNode | null, target: TreeNode | null): boolean {
+    if (!source || !target) {
+        return false;
+    }
+
+    if (source.id === target.id) {
+        return true;
+    }
+
+    return source.children.some((child) => isDescendant(child, target));
 }

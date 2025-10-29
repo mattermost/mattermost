@@ -728,6 +728,7 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 	if !updatePostOptions.SafeUpdate {
 		newPost.IsPinned = receivedUpdatedPost.IsPinned
 		newPost.HasReactions = receivedUpdatedPost.HasReactions
+		newPost.PageParentId = receivedUpdatedPost.PageParentId
 		newPost.SetProps(receivedUpdatedPost.GetProps())
 
 		var fileIds []string
@@ -972,13 +973,28 @@ func (a *App) PatchPost(rctx request.CTX, postID string, patch *model.PostPatch,
 		patch.DisableMentionHighlights()
 	}
 
+	rctx.Logger().Debug("[PatchPost] Before patching",
+		mlog.String("post_id", post.Id),
+		mlog.String("post_type", post.Type),
+		mlog.String("current_page_parent_id", post.PageParentId),
+		mlog.Any("patch_page_parent_id", patch.PageParentId),
+		mlog.Any("patch_props", patch.Props))
+
 	post.Patch(patch)
+
+	rctx.Logger().Debug("[PatchPost] After patching",
+		mlog.String("post_id", post.Id),
+		mlog.String("patched_page_parent_id", post.PageParentId))
 
 	patchPostOptions.SafeUpdate = false
 	updatedPost, err := a.UpdatePost(rctx, post, patchPostOptions)
 	if err != nil {
 		return nil, err
 	}
+
+	rctx.Logger().Debug("[PatchPost] After UpdatePost",
+		mlog.String("post_id", updatedPost.Id),
+		mlog.String("updated_page_parent_id", updatedPost.PageParentId))
 
 	return updatedPost, nil
 }
@@ -1094,6 +1110,11 @@ func (a *App) GetPostThread(rctx request.CTX, postID string, opts model.GetPosts
 	}
 
 	if appErr := a.filterInaccessiblePosts(posts, filterOptions); appErr != nil {
+		return nil, appErr
+	}
+
+	// Load page content for any pages in the thread
+	if appErr := a.LoadPageContentForPostList(rctx, posts); appErr != nil {
 		return nil, appErr
 	}
 

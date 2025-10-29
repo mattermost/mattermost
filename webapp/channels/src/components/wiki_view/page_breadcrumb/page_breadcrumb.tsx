@@ -43,26 +43,50 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
             setError(null);
             try {
                 if (isDraft) {
-                    // For drafts at wiki root (no pageId), just show wiki + draft
-                    // Don't show parent hierarchy since we're not on a page URL
-                    const wiki = await Client4.getWiki(wikiId);
-                    const simplePath: BreadcrumbPath = {
-                        items: [{
-                            id: wikiId,
-                            title: wiki.title,
-                            type: 'wiki',
-                            path: `/${currentTeam?.name || 'team'}/wiki/${channelId}/${wikiId}`,
-                            channel_id: channelId,
-                        }],
-                        current_page: {
-                            id: 'draft',
-                            title: draftTitle || 'Untitled page',
-                            type: 'page',
-                            path: `/${currentTeam?.name || 'team'}/wiki/${channelId}/${wikiId}`,
-                            channel_id: channelId,
-                        },
-                    };
-                    setBreadcrumbPath(simplePath);
+                    if (parentPageId) {
+                        // Draft with parent - fetch parent breadcrumb and add draft as current page
+                        const parentPath = await Client4.getPageBreadcrumb(wikiId, parentPageId);
+                        const fixedPath: BreadcrumbPath = {
+                            items: [
+                                ...parentPath.items.map(fixBreadcrumbPath),
+                                {
+                                    id: parentPageId,
+                                    title: parentPath.current_page.title,
+                                    type: 'page',
+                                    path: `/${currentTeam?.name || 'team'}/wiki/${channelId}/${wikiId}/${parentPageId}`,
+                                    channel_id: channelId,
+                                },
+                            ],
+                            current_page: {
+                                id: 'draft',
+                                title: draftTitle || 'Untitled page',
+                                type: 'page',
+                                path: `/${currentTeam?.name || 'team'}/wiki/${channelId}/${wikiId}`,
+                                channel_id: channelId,
+                            },
+                        };
+                        setBreadcrumbPath(fixedPath);
+                    } else {
+                        // Draft at wiki root - just show wiki + draft
+                        const wiki = await Client4.getWiki(wikiId);
+                        const simplePath: BreadcrumbPath = {
+                            items: [{
+                                id: wikiId,
+                                title: wiki.title,
+                                type: 'wiki',
+                                path: `/${currentTeam?.name || 'team'}/wiki/${channelId}/${wikiId}`,
+                                channel_id: channelId,
+                            }],
+                            current_page: {
+                                id: 'draft',
+                                title: draftTitle || 'Untitled page',
+                                type: 'page',
+                                path: `/${currentTeam?.name || 'team'}/wiki/${channelId}/${wikiId}`,
+                                channel_id: channelId,
+                            },
+                        };
+                        setBreadcrumbPath(simplePath);
+                    }
                 } else if (pageId) {
                     // Published page - get breadcrumb from server and fix paths
                     const path = await Client4.getPageBreadcrumb(wikiId, pageId);
@@ -123,6 +147,7 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
         <nav
             className={`PageBreadcrumb ${className || ''}`}
             aria-label='Page breadcrumb navigation'
+            data-testid='breadcrumb'
         >
             <ol className='PageBreadcrumb__list'>
                 {breadcrumbPath.items.map((item) => (

@@ -82,6 +82,9 @@ const PageTreeNode = ({
             className={`PageTreeNode ${isSelected ? 'PageTreeNode--selected' : ''} ${isLoading ? 'PageTreeNode--loading' : ''}`}
             style={{paddingLeft: `${paddingLeft}px`, opacity: isLoading ? 0.6 : 1}}
             onContextMenu={isLoading ? undefined : handleContextMenu}
+            data-testid='page-tree-node'
+            data-page-id={node.id}
+            data-is-draft={node.page.type === PageDisplayTypes.PAGE_DRAFT}
         >
             {/* Page icon with expand functionality on hover */}
             {isLoading ? (
@@ -99,6 +102,7 @@ const PageTreeNode = ({
                     }}
                     aria-label={getIconButtonLabel()}
                     disabled={isLoading}
+                    data-testid='page-tree-node-expand-button'
                 >
                     <i className='PageTreeNode__icon PageTreeNode__icon--page icon-file-generic-outline'/>
                     {node.hasChildren && (
@@ -117,13 +121,19 @@ const PageTreeNode = ({
                     }
                 }}
                 disabled={isLoading}
+                data-testid='page-tree-node-title'
             >
                 <span className='PageTreeNode__title'>{node.title}</span>
             </button>
 
             {/* Draft badge */}
             {node.page.type === PageDisplayTypes.PAGE_DRAFT && (
-                <span className='PageTreeNode__draftBadge'>{'Draft'}</span>
+                <span
+                    className='PageTreeNode__draftBadge'
+                    data-testid='draft-badge'
+                >
+                    {'Draft'}
+                </span>
             )}
 
             {/* Context menu button - shows on hover */}
@@ -135,6 +145,7 @@ const PageTreeNode = ({
                         handleMenuButtonClick(e);
                     }}
                     aria-label='Page menu'
+                    data-testid='page-tree-node-menu-button'
                 >
                     <i className='icon-dots-vertical'/>
                 </button>

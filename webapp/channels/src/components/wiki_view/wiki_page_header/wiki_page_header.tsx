@@ -28,9 +28,16 @@ const WikiPageHeader = ({
     onPublish,
     onToggleComments,
 }: Props) => {
+
     return (
-        <div className='PagePane__header'>
-            <div className='PagePane__header-inner'>
+        <div
+            className='PagePane__header'
+            data-testid='wiki-page-header'
+        >
+            <div
+                className='PagePane__header-inner'
+                data-testid='wiki-page-header-inner'
+            >
                 <PageBreadcrumb
                     wikiId={wikiId}
                     pageId={pageId}
@@ -40,13 +47,16 @@ const WikiPageHeader = ({
                     draftTitle={draftTitle}
                     className='PagePane__breadcrumb'
                 />
-                <div className='PagePane__controls'>
+                <div
+                    className='PagePane__controls'
+                    data-testid='wiki-page-controls'
+                >
                     <button
                         className='PagePane__icon-button'
                         aria-label='Toggle comments'
-                        title={isDraft ? 'Publish to enable comments' : 'Toggle comments'}
+                        title='Toggle comments'
                         onClick={onToggleComments}
-                        disabled={isDraft}
+                        data-testid='wiki-page-toggle-comments'
                     >
                         <i className='icon-message-text-outline'/>
                     </button>
@@ -56,6 +66,7 @@ const WikiPageHeader = ({
                             aria-label='Publish'
                             title='Publish'
                             onClick={onPublish}
+                            data-testid='wiki-page-publish-button'
                         >
                             <i className='icon-check'/>
                             {'Publish'}
@@ -66,6 +77,7 @@ const WikiPageHeader = ({
                             aria-label='Edit'
                             title='Edit'
                             onClick={onEdit}
+                            data-testid='wiki-page-edit-button'
                         >
                             <i className='icon-pencil-outline'/>
                             {'Edit'}
@@ -75,6 +87,7 @@ const WikiPageHeader = ({
                         className='PagePane__icon-button'
                         aria-label='More actions'
                         title='More actions'
+                        data-testid='wiki-page-more-actions'
                     >
                         <i className='icon-dots-vertical'/>
                     </button>

@@ -5,6 +5,7 @@ export {makeClient} from './client';
 export {createRandomChannel} from './channel';
 export {getOnPremServerConfig} from './default_config';
 export {initSetup, getAdminClient} from './init';
+export {createPageViaDraft} from './page';
 export {createRandomPost} from './post';
 export {createRandomTeam} from './team';
 export {createNewUserProfile, createRandomUser, getDefaultAdminUser, isOutsideRemoteUserHour} from './user';

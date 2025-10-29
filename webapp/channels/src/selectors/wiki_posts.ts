@@ -14,13 +14,14 @@ export function makeGetFilteredPostIdsForWikiThread(): (
     rootId: string,
     focusedInlineCommentId: string | null
 ) => string[] {
-    const getPostsForThread = makeGetPostsForThread();
-
     return createIdsSelector(
         'makeGetFilteredPostIdsForWikiThread',
-        getPostsForThread,
+        (state: GlobalState) => state.entities.posts.posts,
+        (state: GlobalState, rootId: string) => state.entities.posts.postsInThread[rootId] || [],
         (state: GlobalState, rootId: string, focusedId: string | null) => focusedId,
-        (posts, focusedInlineCommentId) => {
+        (allPostsById, postIdsInThread, focusedInlineCommentId) => {
+            // Only look at posts in this thread, not all posts in the system
+            const posts = postIdsInThread.map((id) => allPostsById[id]).filter(Boolean);
             // Helper to check if a post is an inline comment
             const isInlineComment = (post: Post): boolean => {
                 return post.type === PostTypes.PAGE_COMMENT &&

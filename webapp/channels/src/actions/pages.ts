@@ -42,16 +42,26 @@ export function loadWikiPages(wikiId: string): ActionFuncAsync<Post[]> {
             });
 
             if (pages && pages.length > 0) {
-                dispatch({
-                    type: WikiTypes.RECEIVED_PAGE_SUMMARIES,
-                    data: {wikiId, pages},
-                });
+                const state = getState();
+                const existingPosts = state.entities.posts.posts;
 
                 dispatch({
                     type: PostActionTypes.RECEIVED_POSTS,
                     data: {
                         posts: pages.reduce((acc: Record<string, Post>, page: Post) => {
-                            acc[page.id] = page;
+                            const existingPost = existingPosts[page.id];
+
+                            // If page already exists in Redux with content, preserve the content
+                            // GetWikiPages returns pages without content (for performance)
+                            // Only full GetPage loads content from PageContents table
+                            if (existingPost && existingPost.message && existingPost.message.trim() !== '') {
+                                acc[page.id] = {
+                                    ...page,
+                                    message: existingPost.message,
+                                };
+                            } else {
+                                acc[page.id] = page;
+                            }
                             return acc;
                         }, {}),
                     },
@@ -93,6 +103,14 @@ export function loadChannelPages(channelId: string): ActionFuncAsync {
 // Load single page
 export function loadPage(pageId: string, wikiId: string): ActionFuncAsync<Page> {
     return async (dispatch, getState) => {
+        const state = getState();
+        const existingPage = state.entities.posts.posts[pageId];
+
+        // Return cached page if content already exists
+        if (existingPage?.message?.trim()) {
+            return {data: existingPage};
+        }
+
         let data: Page;
         try {
             data = await Client4.getWikiPage(wikiId, pageId) as Page;
@@ -103,7 +121,7 @@ export function loadPage(pageId: string, wikiId: string): ActionFuncAsync<Page> 
         }
 
         dispatch({
-            type: WikiTypes.RECEIVED_FULL_PAGE,
+            type: PostActionTypes.RECEIVED_POST,
             data,
         });
 
@@ -133,7 +151,7 @@ export function loadChannelDefaultPage(channelId: string): ActionFuncAsync<Page>
 }
 
 // Publish a page draft
-export function publishPageDraft(wikiId: string, draftId: string, pageParentId: string, title: string): ActionFuncAsync<Page> {
+export function publishPageDraft(wikiId: string, draftId: string, pageParentId: string, title: string, searchText?: string, message?: string): ActionFuncAsync<Page> {
     return async (dispatch, getState) => {
         const {makePageDraftKey} = await import('./page_drafts');
         const {getGlobalItem} = await import('selectors/storage');
@@ -146,6 +164,16 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
         if (!draft) {
             return {error: {message: 'Draft not found'}};
         }
+
+        // Use passed message if provided (latest content from editor), otherwise fall back to draft.message
+        const draftMessage = message !== undefined ? message : (draft.message || '');
+
+        console.log('[publishPageDraft] Creating optimistic page with:', {
+            messageProvided: message !== undefined,
+            messageLength: message?.length || 0,
+            draftMessageLength: (draft.message || '').length,
+            finalMessageLength: draftMessage.length,
+        });
 
         const pendingPageId = `pending-${Date.now()}`;
         const optimisticPage: Page = {
@@ -160,7 +188,7 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
             root_id: '',
             original_id: '',
             page_parent_id: pageParentId || '',
-            message: draft.message || '',
+            message: draftMessage,
             type: PostTypes.PAGE,
             props: {
                 title: draft.props?.title || title || 'Untitled',
@@ -177,24 +205,24 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
             },
         };
 
-        console.log('[DEBUG] publishPageDraft - starting publish:', {draftId, wikiId});
-
         dispatch(batchActions([
             {type: WikiTypes.PUBLISH_DRAFT_REQUEST, data: {draftId}},
             {type: WikiTypes.RECEIVED_PAGE, data: optimisticPage},
+            {type: PostActionTypes.RECEIVED_POST, data: optimisticPage},
         ]));
 
         // Extract plaintext from TipTap JSON for search indexing (only when publishing)
-        const searchText = extractPlaintextFromTipTapJSON(draft.message || '');
+        // Use passed searchText if provided, otherwise extract from message
+        const finalSearchText = searchText !== undefined ? searchText : extractPlaintextFromTipTapJSON(draftMessage);
 
         try {
-            const data = await Client4.publishPageDraft(wikiId, draftId, pageParentId, title, searchText) as Page;
-
-            console.log('[DEBUG] publishPageDraft - server published, now cleaning up draft:', {draftId, wikiId});
+            const data = await Client4.publishPageDraft(wikiId, draftId, pageParentId, title, finalSearchText, draftMessage) as Page;
 
             dispatch(batchActions([
                 {type: WikiTypes.PUBLISH_DRAFT_SUCCESS, data: {draftId, pageId: data.id, optimisticId: pendingPageId}},
-                {type: WikiTypes.RECEIVED_PAGE, data: {...data, optimisticId: pendingPageId}},
+                {type: PostActionTypes.POST_REMOVED, data: {id: pendingPageId}},
+                {type: PostActionTypes.RECEIVED_POST, data},
+                {type: WikiTypes.RECEIVED_PAGE, data},
                 {type: WikiTypes.DELETED_DRAFT, data: {id: draftId, wikiId}},
             ]));
 
@@ -209,19 +237,23 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
                 history.replace(`/wikis/${wikiId}/pages/${data.id}`);
             }
 
+            // Reload hierarchy to show the newly published page
+            // loadWikiPages now preserves existing content in Redux, so this is safe
             await dispatch(loadWikiPages(wikiId));
 
             return {data};
         } catch (error) {
             const {setGlobalItem} = await import('actions/storage');
+            const {LogErrorBarMode} = await import('mattermost-redux/actions/errors');
             dispatch(batchActions([
                 {type: WikiTypes.PUBLISH_DRAFT_FAILURE, data: {draftId, error}},
+                {type: PostActionTypes.POST_REMOVED, data: {id: pendingPageId}},
                 {type: WikiTypes.DELETED_PAGE, data: {id: pendingPageId}},
             ]));
             dispatch(setGlobalItem(draftKey, draft));
 
             forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
+            dispatch(logError(error, {errorBarMode: LogErrorBarMode.Always}));
             return {error};
         } finally {
             dispatch({type: WikiTypes.PUBLISH_DRAFT_COMPLETED, data: {draftId}});
@@ -271,11 +303,6 @@ export function renamePage(pageId: string, newTitle: string, wikiId: string): Ac
             data: optimisticPost,
         });
 
-        dispatch({
-            type: WikiTypes.RECEIVED_PAGE,
-            data: optimisticPost,
-        });
-
         try {
             const data = await Client4.patchPost({
                 id: pageId,
@@ -287,22 +314,12 @@ export function renamePage(pageId: string, newTitle: string, wikiId: string): Ac
                 data,
             });
 
-            dispatch({
-                type: WikiTypes.RECEIVED_PAGE,
-                data,
-            });
-
             await dispatch(loadWikiPages(wikiId));
 
             return {data};
         } catch (error) {
             dispatch({
                 type: PostActionTypes.RECEIVED_POST,
-                data: originalPost,
-            });
-
-            dispatch({
-                type: WikiTypes.RECEIVED_PAGE,
                 data: originalPost,
             });
 
@@ -398,6 +415,83 @@ export function movePage(pageId: string, newParentId: string, wikiId: string): A
                 data: originalPost,
             });
 
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
+// Move a page in hierarchy (used for drag-and-drop)
+export function movePageInHierarchy(pageId: string, newParentId: string | null, wikiId: string): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        const state = getState();
+        const originalPost = state.entities.posts.posts[pageId];
+
+        if (!originalPost) {
+            return {error: new Error('Page not found')};
+        }
+
+        const optimisticPost = {
+            ...originalPost,
+            page_parent_id: newParentId || '',
+            props: {
+                ...originalPost.props,
+                page_parent_id: newParentId || '',
+            },
+            update_at: Date.now(),
+        };
+
+        dispatch({
+            type: PostActionTypes.RECEIVED_POST,
+            data: optimisticPost,
+        });
+
+        try {
+            const patchData = {
+                id: pageId,
+                page_parent_id: newParentId || '',
+            };
+            const data = await Client4.patchPost(patchData);
+
+            dispatch({
+                type: PostActionTypes.RECEIVED_POST,
+                data,
+            });
+
+            await dispatch(loadWikiPages(wikiId));
+
+            return {data};
+        } catch (error) {
+            dispatch({
+                type: PostActionTypes.RECEIVED_POST,
+                data: originalPost,
+            });
+
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
+// Move a page to a different wiki
+export function movePageToWiki(pageId: string, sourceWikiId: string, targetWikiId: string, parentPageId?: string): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        try {
+            await Client4.movePageToWiki(sourceWikiId, pageId, targetWikiId, parentPageId);
+
+            const isSameWiki = sourceWikiId === targetWikiId;
+
+            if (isSameWiki) {
+                await dispatch(loadWikiPages(sourceWikiId));
+            } else {
+                await dispatch(loadWikiPages(sourceWikiId));
+                await dispatch(loadWikiPages(targetWikiId));
+            }
+
+            return {data: true};
+        } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
             return {error};

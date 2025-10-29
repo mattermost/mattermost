@@ -75,6 +75,7 @@ const InlineCommentModal = ({selectedText, onSubmit, onExited}: Props) => {
                     type='button'
                     className='btn btn-tertiary'
                     onClick={handleHide}
+                    data-testid='cancel-button'
                 >
                     {'Cancel'}
                 </button>
@@ -83,6 +84,7 @@ const InlineCommentModal = ({selectedText, onSubmit, onExited}: Props) => {
                     className='btn btn-primary'
                     onClick={handleSubmit}
                     disabled={!message.trim()}
+                    data-testid='inline-comment-submit'
                 >
                     {'Comment'}
                 </button>

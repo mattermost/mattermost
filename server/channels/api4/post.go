@@ -940,6 +940,11 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	c.Logger.Debug("[patchPost] Received PostPatch",
+		mlog.Any("page_parent_id", post.PageParentId),
+		mlog.Any("message", post.Message),
+		mlog.Any("props", post.Props))
+
 	auditRec := c.MakeAuditRecord(model.AuditEventPatchPost, model.AuditStatusFail)
 	model.AddEventParameterToAuditRec(auditRec, "id", c.Params.PostId)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "patch", &post)

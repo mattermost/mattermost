@@ -741,7 +741,7 @@ func TestWikiPermissions(t *testing.T) {
 		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
 		require.NoError(t, lErr)
 
-		resp, err := client2.RemovePageFromWiki(context.Background(), wiki.Id, page.Id)
+		resp, err := client2.DeletePageFromWiki(context.Background(), wiki.Id, page.Id)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -777,7 +777,7 @@ func TestWikiPermissions(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionDeleteWikiPublicChannel.Id, model.ChannelUserRoleId)
 		th.AddPermissionToRole(model.PermissionReadPagePublicChannel.Id, model.ChannelUserRoleId)
 		th.AddPermissionToRole(model.PermissionDeletePagePublicChannel.Id, model.ChannelUserRoleId)
-		resp, err = th.Client.RemovePageFromWiki(context.Background(), wiki.Id, page.Id)
+		resp, err = th.Client.DeletePageFromWiki(context.Background(), wiki.Id, page.Id)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
@@ -839,7 +839,7 @@ func TestPageDraftToPublishE2E(t *testing.T) {
 		require.Equal(t, updatedDraftMessage, updatedDraft.Message)
 
 		pageTitle := "Test Page"
-		publishedPage, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, draftId, "", pageTitle, "")
+		publishedPage, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, draftId, "", pageTitle, "", "")
 		require.Nil(t, appErr)
 		require.NotEmpty(t, publishedPage.Id)
 		require.Equal(t, model.PostTypePage, publishedPage.Type)
@@ -886,7 +886,7 @@ func TestPageDraftToPublishE2E(t *testing.T) {
 		_, appErr := th.App.SavePageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, draftId, "")
 		require.Nil(t, appErr)
 
-		_, appErr = th.App.PublishPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, draftId, "", "Empty Page", "")
+		_, appErr = th.App.PublishPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, draftId, "", "Empty Page", "", "")
 		require.NotNil(t, appErr)
 		require.Equal(t, "app.draft.publish_page.empty", appErr.Id)
 	})
@@ -904,14 +904,14 @@ func TestPageDraftToPublishE2E(t *testing.T) {
 		_, appErr := th.App.SavePageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, parentDraftId, createTipTapContent("Parent page content"))
 		require.Nil(t, appErr)
 
-		parentPage, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, parentDraftId, "", "Parent Page", "")
+		parentPage, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, parentDraftId, "", "Parent Page", "", "")
 		require.Nil(t, appErr)
 
 		childDraftId := model.NewId()
 		_, appErr = th.App.SavePageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, childDraftId, createTipTapContent("Child page content"))
 		require.Nil(t, appErr)
 
-		childPage, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, childDraftId, parentPage.Id, "Child Page", "")
+		childPage, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, childDraftId, parentPage.Id, "Child Page", "", "")
 		require.Nil(t, appErr)
 		require.Equal(t, parentPage.Id, childPage.PageParentId)
 	})
@@ -1105,7 +1105,7 @@ func TestPagePermissionMatrix(t *testing.T) {
 			require.NoError(t, err)
 			CheckCreatedStatus(t, resp)
 
-			resp, err = th.Client.RemovePageFromWiki(context.Background(), wiki.Id, page.Id)
+			resp, err = th.Client.DeletePageFromWiki(context.Background(), wiki.Id, page.Id)
 			require.NoError(t, err)
 			CheckOKStatus(t, resp)
 		})
@@ -1119,7 +1119,7 @@ func TestPagePermissionMatrix(t *testing.T) {
 			_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
 			require.NoError(t, lErr)
 
-			resp, err = client2.RemovePageFromWiki(context.Background(), wiki.Id, page.Id)
+			resp, err = client2.DeletePageFromWiki(context.Background(), wiki.Id, page.Id)
 			require.Error(t, err)
 			CheckForbiddenStatus(t, resp)
 		})
@@ -1136,7 +1136,7 @@ func TestPagePermissionMatrix(t *testing.T) {
 			_, appErr := th.App.UpdateChannelMemberRoles(th.Context, publicChannel.Id, th.BasicUser2.Id, "channel_user channel_admin")
 			require.Nil(t, appErr)
 
-			resp, err = client2.RemovePageFromWiki(context.Background(), wiki.Id, page.Id)
+			resp, err = client2.DeletePageFromWiki(context.Background(), wiki.Id, page.Id)
 			require.NoError(t, err)
 			CheckOKStatus(t, resp)
 		})
@@ -1171,7 +1171,7 @@ func TestPagePermissionMatrix(t *testing.T) {
 			th.RemovePermissionFromRole(model.PermissionDeleteWikiPublicChannel.Id, model.ChannelUserRoleId)
 			defer th.AddPermissionToRole(model.PermissionDeleteWikiPublicChannel.Id, model.ChannelUserRoleId)
 
-			resp, err = th.Client.RemovePageFromWiki(context.Background(), wiki.Id, page.Id)
+			resp, err = th.Client.DeletePageFromWiki(context.Background(), wiki.Id, page.Id)
 			require.Error(t, err)
 			CheckForbiddenStatus(t, resp)
 		})
@@ -1212,7 +1212,7 @@ func TestPageGuestPermissions(t *testing.T) {
 	})
 
 	t.Run("guest cannot delete page", func(t *testing.T) {
-		resp, err := guestClient.RemovePageFromWiki(context.Background(), wiki.Id, page.Id)
+		resp, err := guestClient.DeletePageFromWiki(context.Background(), wiki.Id, page.Id)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -1415,7 +1415,7 @@ func TestPageCommentsE2E(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Equal(t, comment1.Id, retrievedComment1.Id)
 
-		resp, err = th.Client.RemovePageFromWiki(context.Background(), createdWiki.Id, testPage.Id)
+		resp, err = th.Client.DeletePageFromWiki(context.Background(), createdWiki.Id, testPage.Id)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
@@ -1500,5 +1500,741 @@ func TestPageCommentsE2E(t *testing.T) {
 		require.Equal(t, model.PostTypePageComment, commentsForPage.Posts[comment1.Id].Type)
 		require.Equal(t, model.PostTypePageComment, commentsForPage.Posts[comment2.Id].Type)
 		require.Equal(t, model.PostTypePageComment, commentsForPage.Posts[reply.Id].Type)
+	})
+}
+
+func TestMovePageToWiki(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.AddPermissionToRole(model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(model.PermissionEditPagePublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(model.PermissionReadPagePublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(model.PermissionCreateWikiPrivateChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(model.PermissionEditWikiPrivateChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(model.PermissionCreatePagePrivateChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(model.PermissionEditPagePrivateChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(model.PermissionReadPagePrivateChannel.Id, model.ChannelUserRoleId)
+	th.Context.Session().UserId = th.BasicUser.Id
+
+	t.Run("successfully move page to target wiki in same channel", func(t *testing.T) {
+		sourceWiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Source Wiki",
+		}
+		createdSourceWiki, resp, err := th.Client.CreateWiki(context.Background(), sourceWiki)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		targetWiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Target Wiki",
+		}
+		createdTargetWiki, resp, err := th.Client.CreateWiki(context.Background(), targetWiki)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		page, appErr := th.App.CreateWikiPage(th.Context, createdSourceWiki.Id, "", "Page to Move", "", th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		resp, err = th.Client.MovePageToWiki(context.Background(), createdSourceWiki.Id, page.Id, createdTargetWiki.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		movedPageWikiId, appErr := th.App.GetWikiIdForPage(th.Context, page.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, createdTargetWiki.Id, movedPageWikiId)
+	})
+
+	t.Run("successfully move page with children (subtree)", func(t *testing.T) {
+		sourceWiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Source Wiki with Hierarchy",
+		}
+		createdSourceWiki, resp, err := th.Client.CreateWiki(context.Background(), sourceWiki)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		targetWiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Target Wiki for Subtree",
+		}
+		createdTargetWiki, resp, err := th.Client.CreateWiki(context.Background(), targetWiki)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		parentPage, appErr := th.App.CreateWikiPage(th.Context, createdSourceWiki.Id, "", "Parent Page", "", th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		childPage1, appErr := th.App.CreateWikiPage(th.Context, createdSourceWiki.Id, parentPage.Id, "Child Page 1", "", th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		childPage2, appErr := th.App.CreateWikiPage(th.Context, createdSourceWiki.Id, parentPage.Id, "Child Page 2", "", th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		resp, err = th.Client.MovePageToWiki(context.Background(), createdSourceWiki.Id, parentPage.Id, createdTargetWiki.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		parentWikiId, appErr := th.App.GetWikiIdForPage(th.Context, parentPage.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, createdTargetWiki.Id, parentWikiId)
+
+		child1WikiId, appErr := th.App.GetWikiIdForPage(th.Context, childPage1.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, createdTargetWiki.Id, child1WikiId)
+
+		child2WikiId, appErr := th.App.GetWikiIdForPage(th.Context, childPage2.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, createdTargetWiki.Id, child2WikiId)
+	})
+
+	t.Run("fail when user lacks edit permission on source wiki", func(t *testing.T) {
+		privateChannel := th.CreatePrivateChannel()
+		_, err := th.App.AddUserToChannel(th.Context, th.BasicUser, privateChannel, false)
+		require.Nil(t, err)
+
+		th.Context.Session().UserId = th.BasicUser.Id
+		sourceWiki := &model.Wiki{
+			ChannelId: privateChannel.Id,
+			Title:     "Private Source Wiki",
+		}
+		createdSourceWiki, appErr := th.App.CreateWiki(th.Context, sourceWiki, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		targetWiki := &model.Wiki{
+			ChannelId: privateChannel.Id,
+			Title:     "Private Target Wiki",
+		}
+		createdTargetWiki, appErr := th.App.CreateWiki(th.Context, targetWiki, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		page, appErr := th.App.CreateWikiPage(th.Context, createdSourceWiki.Id, "", "Private Page", "", th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		client2 := th.CreateClient()
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		require.NoError(t, lErr)
+
+		resp, moveErr := client2.MovePageToWiki(context.Background(), createdSourceWiki.Id, page.Id, createdTargetWiki.Id)
+		require.Error(t, moveErr)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("fail when user lacks create permission on target wiki", func(t *testing.T) {
+		privateChannel := th.CreatePrivateChannel()
+		_, err := th.App.AddUserToChannel(th.Context, th.BasicUser, privateChannel, false)
+		require.Nil(t, err)
+		_, err = th.App.AddUserToChannel(th.Context, th.BasicUser2, privateChannel, false)
+		require.Nil(t, err)
+
+		th.Context.Session().UserId = th.BasicUser.Id
+		sourceWiki := &model.Wiki{
+			ChannelId: privateChannel.Id,
+			Title:     "Source Wiki",
+		}
+		createdSourceWiki, appErr := th.App.CreateWiki(th.Context, sourceWiki, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		targetWiki := &model.Wiki{
+			ChannelId: privateChannel.Id,
+			Title:     "Restricted Target Wiki",
+		}
+		createdTargetWiki, appErr := th.App.CreateWiki(th.Context, targetWiki, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		page, appErr := th.App.CreateWikiPage(th.Context, createdSourceWiki.Id, "", "Page to Move", "", th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		th.RemovePermissionFromRole(model.PermissionCreatePagePrivateChannel.Id, model.ChannelUserRoleId)
+		defer th.AddPermissionToRole(model.PermissionCreatePagePrivateChannel.Id, model.ChannelUserRoleId)
+
+		client2 := th.CreateClient()
+		_, _, lErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		require.NoError(t, lErr)
+
+		resp, moveErr := client2.MovePageToWiki(context.Background(), createdSourceWiki.Id, page.Id, createdTargetWiki.Id)
+		require.Error(t, moveErr)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("system admin can move pages", func(t *testing.T) {
+		th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
+		th.AddUserToChannel(th.SystemAdminUser, th.BasicChannel)
+		_, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.SystemAdminUser.Id, "channel_user channel_admin")
+		require.Nil(t, appErr)
+
+		sourceWiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Admin Source Wiki",
+		}
+		createdSourceWiki, resp, err := th.Client.CreateWiki(context.Background(), sourceWiki)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		targetWiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Admin Target Wiki",
+		}
+		createdTargetWiki, resp, err := th.Client.CreateWiki(context.Background(), targetWiki)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		page, appErr := th.App.CreateWikiPage(th.Context, createdSourceWiki.Id, "", "Admin Page", "", th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		resp, err = th.SystemAdminClient.MovePageToWiki(context.Background(), createdSourceWiki.Id, page.Id, createdTargetWiki.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		movedPageWikiId, appErr := th.App.GetWikiIdForPage(th.Context, page.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, createdTargetWiki.Id, movedPageWikiId)
+	})
+
+	t.Run("fail with invalid page ID", func(t *testing.T) {
+		sourceWiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Source Wiki",
+		}
+		createdSourceWiki, resp, err := th.Client.CreateWiki(context.Background(), sourceWiki)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		targetWiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Target Wiki",
+		}
+		createdTargetWiki, resp, err := th.Client.CreateWiki(context.Background(), targetWiki)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		resp, err = th.Client.MovePageToWiki(context.Background(), createdSourceWiki.Id, "invalid", createdTargetWiki.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("fail with non-existent page", func(t *testing.T) {
+		sourceWiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Source Wiki",
+		}
+		createdSourceWiki, resp, err := th.Client.CreateWiki(context.Background(), sourceWiki)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		targetWiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Target Wiki",
+		}
+		createdTargetWiki, resp, err := th.Client.CreateWiki(context.Background(), targetWiki)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		nonExistentPageId := model.NewId()
+
+		resp, err = th.Client.MovePageToWiki(context.Background(), createdSourceWiki.Id, nonExistentPageId, createdTargetWiki.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("fail with invalid wiki ID", func(t *testing.T) {
+		sourceWiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Source Wiki",
+		}
+		createdSourceWiki, resp, err := th.Client.CreateWiki(context.Background(), sourceWiki)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		page, appErr := th.App.CreateWikiPage(th.Context, createdSourceWiki.Id, "", "Page", "", th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		resp, err = th.Client.MovePageToWiki(context.Background(), "invalid", page.Id, createdSourceWiki.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("fail with invalid target wiki ID", func(t *testing.T) {
+		sourceWiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Source Wiki",
+		}
+		createdSourceWiki, resp, err := th.Client.CreateWiki(context.Background(), sourceWiki)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		page, appErr := th.App.CreateWikiPage(th.Context, createdSourceWiki.Id, "", "Page", "", th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		resp, err = th.Client.MovePageToWiki(context.Background(), createdSourceWiki.Id, page.Id, "invalid")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("fail with non-existent target wiki", func(t *testing.T) {
+		sourceWiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Source Wiki",
+		}
+		createdSourceWiki, resp, err := th.Client.CreateWiki(context.Background(), sourceWiki)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		page, appErr := th.App.CreateWikiPage(th.Context, createdSourceWiki.Id, "", "Page", "", th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		nonExistentWikiId := model.NewId()
+
+		resp, err = th.Client.MovePageToWiki(context.Background(), createdSourceWiki.Id, page.Id, nonExistentWikiId)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("fail when page is not in source wiki", func(t *testing.T) {
+		wiki1 := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Wiki 1",
+		}
+		createdWiki1, resp, err := th.Client.CreateWiki(context.Background(), wiki1)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		wiki2 := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Wiki 2",
+		}
+		createdWiki2, resp, err := th.Client.CreateWiki(context.Background(), wiki2)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		wiki3 := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Wiki 3",
+		}
+		createdWiki3, resp, err := th.Client.CreateWiki(context.Background(), wiki3)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		page, appErr := th.App.CreateWikiPage(th.Context, createdWiki2.Id, "", "Page in Wiki 2", "", th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		resp, err = th.Client.MovePageToWiki(context.Background(), createdWiki1.Id, page.Id, createdWiki3.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("idempotent when source and target wiki are the same", func(t *testing.T) {
+		sourceWiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Same Wiki",
+		}
+		createdWiki, resp, err := th.Client.CreateWiki(context.Background(), sourceWiki)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		page, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Page", "", th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		resp, err = th.Client.MovePageToWiki(context.Background(), createdWiki.Id, page.Id, createdWiki.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		pageWikiId, appErr := th.App.GetWikiIdForPage(th.Context, page.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, createdWiki.Id, pageWikiId)
+	})
+
+	t.Run("fail when moving between different channels", func(t *testing.T) {
+		channel2 := th.CreatePublicChannel()
+
+		sourceWiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Channel 1 Wiki",
+		}
+		createdSourceWiki, resp, err := th.Client.CreateWiki(context.Background(), sourceWiki)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		targetWiki := &model.Wiki{
+			ChannelId: channel2.Id,
+			Title:     "Channel 2 Wiki",
+		}
+		createdTargetWiki, resp, err := th.Client.CreateWiki(context.Background(), targetWiki)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		page, appErr := th.App.CreateWikiPage(th.Context, createdSourceWiki.Id, "", "Page", "", th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		resp, err = th.Client.MovePageToWiki(context.Background(), createdSourceWiki.Id, page.Id, createdTargetWiki.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+}
+
+func TestGetPageBreadcrumb(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.AddPermissionToRole(model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(model.PermissionCreateWikiPrivateChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(model.PermissionCreatePagePrivateChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(model.PermissionReadPagePublicChannel.Id, model.ChannelUserRoleId)
+	th.Context.Session().UserId = th.BasicUser.Id
+
+	t.Run("get breadcrumb for root page", func(t *testing.T) {
+		wiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Test Wiki",
+		}
+		createdWiki, resp, err := th.Client.CreateWiki(context.Background(), wiki)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		rootPage, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Root Page", "", th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		breadcrumb, resp, err := th.Client.GetPageBreadcrumb(context.Background(), createdWiki.Id, rootPage.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, breadcrumb)
+		require.Len(t, breadcrumb.Items, 1)
+		require.Equal(t, "Test Wiki", breadcrumb.Items[0].Title)
+		require.Equal(t, "wiki", breadcrumb.Items[0].Type)
+		require.Equal(t, rootPage.Id, breadcrumb.CurrentPage.Id)
+		require.Equal(t, "Root Page", breadcrumb.CurrentPage.Title)
+	})
+
+	t.Run("get breadcrumb for 3-level hierarchy", func(t *testing.T) {
+		wiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Hierarchical Wiki",
+		}
+		createdWiki, resp, err := th.Client.CreateWiki(context.Background(), wiki)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		level1, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Level 1", "", th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		level2, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, level1.Id, "Level 2", "", th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		level3, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, level2.Id, "Level 3", "", th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		breadcrumb, resp, err := th.Client.GetPageBreadcrumb(context.Background(), createdWiki.Id, level3.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, breadcrumb)
+		require.Len(t, breadcrumb.Items, 3)
+		require.Equal(t, "Hierarchical Wiki", breadcrumb.Items[0].Title)
+		require.Equal(t, "Level 1", breadcrumb.Items[1].Title)
+		require.Equal(t, "Level 2", breadcrumb.Items[2].Title)
+		require.Equal(t, "Level 3", breadcrumb.CurrentPage.Title)
+	})
+
+	t.Run("get breadcrumb with URL construction", func(t *testing.T) {
+		wiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "URL Test Wiki",
+		}
+		createdWiki, resp, err := th.Client.CreateWiki(context.Background(), wiki)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		page, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Test Page", "", th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		breadcrumb, resp, err := th.Client.GetPageBreadcrumb(context.Background(), createdWiki.Id, page.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, breadcrumb)
+		require.Contains(t, breadcrumb.Items[0].Path, th.BasicTeam.Name)
+		require.Contains(t, breadcrumb.Items[0].Path, th.BasicChannel.Id)
+		require.Contains(t, breadcrumb.Items[0].Path, "wikiId="+createdWiki.Id)
+		require.Contains(t, breadcrumb.CurrentPage.Path, page.Id)
+	})
+
+	t.Run("fail when page not found", func(t *testing.T) {
+		wiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Test Wiki",
+		}
+		createdWiki, resp, err := th.Client.CreateWiki(context.Background(), wiki)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		_, resp, err = th.Client.GetPageBreadcrumb(context.Background(), createdWiki.Id, model.NewId())
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("fail when wiki not found", func(t *testing.T) {
+		wiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Test Wiki",
+		}
+		createdWiki, resp, err := th.Client.CreateWiki(context.Background(), wiki)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		page, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Test Page", "", th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		_, resp, err = th.Client.GetPageBreadcrumb(context.Background(), model.NewId(), page.Id)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("fail when page belongs to different wiki", func(t *testing.T) {
+		wiki1 := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Wiki 1",
+		}
+		createdWiki1, resp, err := th.Client.CreateWiki(context.Background(), wiki1)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		wiki2 := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Wiki 2",
+		}
+		createdWiki2, resp, err := th.Client.CreateWiki(context.Background(), wiki2)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		page, appErr := th.App.CreateWikiPage(th.Context, createdWiki1.Id, "", "Test Page", "", th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		_, resp, err = th.Client.GetPageBreadcrumb(context.Background(), createdWiki2.Id, page.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("fail without read permission", func(t *testing.T) {
+		privateChannel := th.CreatePrivateChannel()
+
+		th.Context.Session().UserId = th.BasicUser.Id
+		privateWiki := &model.Wiki{
+			ChannelId: privateChannel.Id,
+			Title:     "Private Wiki",
+		}
+		createdPrivateWiki, appErr := th.App.CreateWiki(th.Context, privateWiki, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		page, appErr := th.App.CreateWikiPage(th.Context, createdPrivateWiki.Id, "", "Private Page", "", th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		client2 := th.CreateClient()
+		_, _, loginErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		require.NoError(t, loginErr)
+
+		_, resp, err := client2.GetPageBreadcrumb(context.Background(), createdPrivateWiki.Id, page.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+}
+
+func TestUpdatePageParent(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.AddPermissionToRole(model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(model.PermissionCreateWikiPrivateChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(model.PermissionCreatePagePrivateChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(model.PermissionEditPagePublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(model.PermissionReadPagePublicChannel.Id, model.ChannelUserRoleId)
+	th.Context.Session().UserId = th.BasicUser.Id
+
+	t.Run("successfully change page parent", func(t *testing.T) {
+		wiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Test Wiki",
+		}
+		createdWiki, resp, err := th.Client.CreateWiki(context.Background(), wiki)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		parent1, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Parent 1", "", th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		parent2, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Parent 2", "", th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		child, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, parent1.Id, "Child", "", th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		resp, err = th.Client.UpdatePageParent(context.Background(), createdWiki.Id, child.Id, parent2.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		updatedChild, appErr := th.App.GetSinglePost(th.Context, child.Id, false)
+		require.Nil(t, appErr)
+		require.Equal(t, parent2.Id, updatedChild.PageParentId)
+	})
+
+	t.Run("successfully set page to root (empty parent)", func(t *testing.T) {
+		wiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Test Wiki",
+		}
+		createdWiki, resp, err := th.Client.CreateWiki(context.Background(), wiki)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		parent, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Parent", "", th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		child, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, parent.Id, "Child", "", th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		resp, err = th.Client.UpdatePageParent(context.Background(), createdWiki.Id, child.Id, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		updatedChild, appErr := th.App.GetSinglePost(th.Context, child.Id, false)
+		require.Nil(t, appErr)
+		require.Equal(t, "", updatedChild.PageParentId)
+	})
+
+	t.Run("fail with invalid parent ID format", func(t *testing.T) {
+		wiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Test Wiki",
+		}
+		createdWiki, resp, err := th.Client.CreateWiki(context.Background(), wiki)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		page, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Test Page", "", th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		resp, err = th.Client.UpdatePageParent(context.Background(), createdWiki.Id, page.Id, "invalid-id")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("fail when parent not found", func(t *testing.T) {
+		wiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Test Wiki",
+		}
+		createdWiki, resp, err := th.Client.CreateWiki(context.Background(), wiki)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		page, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Test Page", "", th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		resp, err = th.Client.UpdatePageParent(context.Background(), createdWiki.Id, page.Id, model.NewId())
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("fail when parent is not a page", func(t *testing.T) {
+		wiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Test Wiki",
+		}
+		createdWiki, resp, err := th.Client.CreateWiki(context.Background(), wiki)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		page, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Test Page", "", th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		regularPost, postErr := th.App.CreatePost(th.Context, &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "Regular post",
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, postErr)
+
+		resp, err = th.Client.UpdatePageParent(context.Background(), createdWiki.Id, page.Id, regularPost.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("fail when page belongs to different wiki", func(t *testing.T) {
+		wiki1 := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Wiki 1",
+		}
+		createdWiki1, resp, err := th.Client.CreateWiki(context.Background(), wiki1)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		wiki2 := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Wiki 2",
+		}
+		createdWiki2, resp, err := th.Client.CreateWiki(context.Background(), wiki2)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		page1, appErr := th.App.CreateWikiPage(th.Context, createdWiki1.Id, "", "Page 1", "", th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		page2, appErr := th.App.CreateWikiPage(th.Context, createdWiki2.Id, "", "Page 2", "", th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		resp, err = th.Client.UpdatePageParent(context.Background(), createdWiki1.Id, page1.Id, page2.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("fail without edit permission", func(t *testing.T) {
+		privateChannel := th.CreatePrivateChannel()
+
+		th.Context.Session().UserId = th.BasicUser.Id
+		privateWiki := &model.Wiki{
+			ChannelId: privateChannel.Id,
+			Title:     "Private Wiki",
+		}
+		createdPrivateWiki, appErr := th.App.CreateWiki(th.Context, privateWiki, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		page, appErr := th.App.CreateWikiPage(th.Context, createdPrivateWiki.Id, "", "Private Page", "", th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		parent, appErr := th.App.CreateWikiPage(th.Context, createdPrivateWiki.Id, "", "Private Parent", "", th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		client2 := th.CreateClient()
+		_, _, loginErr := client2.Login(context.Background(), th.BasicUser2.Username, "Pa$$word11")
+		require.NoError(t, loginErr)
+
+		resp, err := client2.UpdatePageParent(context.Background(), createdPrivateWiki.Id, page.Id, parent.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("prevent circular reference", func(t *testing.T) {
+		wiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Test Wiki",
+		}
+		createdWiki, resp, err := th.Client.CreateWiki(context.Background(), wiki)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		parent, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Parent", "", th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		child, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, parent.Id, "Child", "", th.BasicUser.Id, "")
+		require.Nil(t, appErr)
+
+		resp, err = th.Client.UpdatePageParent(context.Background(), createdWiki.Id, parent.Id, child.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
 	})
 }

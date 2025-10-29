@@ -267,6 +267,7 @@ func publishPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		PageParentId string `json:"page_parent_id"`
 		Title        string `json:"title"`
 		SearchText   string `json:"search_text"`
+		Message      string `json:"message"` // Optional: latest content from editor (prevents race condition)
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -274,7 +275,7 @@ func publishPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	post, appErr := c.App.PublishPageDraft(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId, c.Params.DraftId, req.PageParentId, req.Title, req.SearchText)
+	post, appErr := c.App.PublishPageDraft(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId, c.Params.DraftId, req.PageParentId, req.Title, req.SearchText, req.Message)
 	if appErr != nil {
 		c.Err = appErr
 		return

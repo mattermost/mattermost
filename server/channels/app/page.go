@@ -17,24 +17,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-var (
-	pageHierarchyLocks   = make(map[string]*sync.Mutex)
-	pageHierarchyLocksMu sync.Mutex
-)
-
-// getPageHierarchyLock retrieves or creates a mutex for a specific channel's page hierarchy
-func getPageHierarchyLock(channelID string) *sync.Mutex {
-	pageHierarchyLocksMu.Lock()
-	defer pageHierarchyLocksMu.Unlock()
-
-	if lock, exists := pageHierarchyLocks[channelID]; exists {
-		return lock
-	}
-
-	lock := &sync.Mutex{}
-	pageHierarchyLocks[channelID] = lock
-	return lock
-}
+var pageHierarchyLock sync.Mutex
 
 // PageOperation represents the type of operation being performed on a page
 type PageOperation int
@@ -46,6 +29,27 @@ const (
 	PageOperationDelete
 )
 
+func getPagePermission(channelType model.ChannelType, operation PageOperation) *model.Permission {
+	permMap := map[model.ChannelType]map[PageOperation]*model.Permission{
+		model.ChannelTypeOpen: {
+			PageOperationCreate: model.PermissionCreatePagePublicChannel,
+			PageOperationRead:   model.PermissionReadPagePublicChannel,
+			PageOperationEdit:   model.PermissionEditPagePublicChannel,
+			PageOperationDelete: model.PermissionDeletePagePublicChannel,
+		},
+		model.ChannelTypePrivate: {
+			PageOperationCreate: model.PermissionCreatePagePrivateChannel,
+			PageOperationRead:   model.PermissionReadPagePrivateChannel,
+			PageOperationEdit:   model.PermissionEditPagePrivateChannel,
+			PageOperationDelete: model.PermissionDeletePagePrivateChannel,
+		},
+	}
+	if ops, ok := permMap[channelType]; ok {
+		return ops[operation]
+	}
+	return nil
+}
+
 // HasPermissionToModifyPage checks if a user can perform an action on a page.
 // It verifies channel membership, channel-level page permission, and ownership.
 // This implements the additive permission model: channel permission + ownership check.
@@ -56,44 +60,38 @@ func (a *App) HasPermissionToModifyPage(
 	operation PageOperation,
 	operationName string,
 ) *model.AppError {
-	// 1. Get channel
 	channel, err := a.GetChannel(rctx, page.ChannelId)
 	if err != nil {
 		return err
 	}
 
-	// 2. Determine required permission based on channel type and operation
-	var permission *model.Permission
 	switch channel.Type {
-	case model.ChannelTypeOpen:
-		switch operation {
-		case PageOperationCreate:
-			permission = model.PermissionCreatePagePublicChannel
-		case PageOperationRead:
-			permission = model.PermissionReadPagePublicChannel
-		case PageOperationEdit:
-			permission = model.PermissionEditPagePublicChannel
-		case PageOperationDelete:
-			permission = model.PermissionDeletePagePublicChannel
+	case model.ChannelTypeOpen, model.ChannelTypePrivate:
+		permission := getPagePermission(channel.Type, operation)
+		if permission == nil {
+			return model.NewAppError(operationName, "api.page.permission.invalid_channel_type", nil, "", http.StatusForbidden)
 		}
-	case model.ChannelTypePrivate:
-		switch operation {
-		case PageOperationCreate:
-			permission = model.PermissionCreatePagePrivateChannel
-		case PageOperationRead:
-			permission = model.PermissionReadPagePrivateChannel
-		case PageOperationEdit:
-			permission = model.PermissionEditPagePrivateChannel
-		case PageOperationDelete:
-			permission = model.PermissionDeletePagePrivateChannel
+		if !a.SessionHasPermissionToChannel(rctx, *session, channel.Id, permission) {
+			return model.NewAppError(operationName, "api.context.permissions.app_error", nil, "", http.StatusForbidden)
 		}
+
+		if operation == PageOperationEdit || operation == PageOperationDelete {
+			if page.UserId != session.UserId {
+				member, err := a.GetChannelMember(rctx, channel.Id, session.UserId)
+				if err != nil {
+					return model.NewAppError(operationName, "api.page.permission.no_channel_access", nil, "", http.StatusForbidden).Wrap(err)
+				}
+				if !member.SchemeAdmin {
+					return model.NewAppError(operationName, "api.context.permissions.app_error", nil, "", http.StatusForbidden)
+				}
+			}
+		}
+
 	case model.ChannelTypeGroup, model.ChannelTypeDirect:
-		// In DMs/GMs, check if user is a member
 		if _, err := a.GetChannelMember(rctx, channel.Id, session.UserId); err != nil {
 			return model.NewAppError(operationName, "api.page.permission.no_channel_access", nil, "", http.StatusForbidden)
 		}
 
-		// Guests cannot modify pages in DM/GM
 		user, err := a.GetUser(session.UserId)
 		if err != nil {
 			return err
@@ -102,44 +100,20 @@ func (a *App) HasPermissionToModifyPage(
 			return model.NewAppError(operationName, "api.page.permission.guest_cannot_modify", nil, "", http.StatusForbidden)
 		}
 
-		// For edit/delete operations, check ownership (same as public/private channels)
 		if operation == PageOperationEdit || operation == PageOperationDelete {
 			if page.UserId != session.UserId {
-				// Not the author - need channel admin role
 				member, err := a.GetChannelMember(rctx, channel.Id, session.UserId)
 				if err != nil {
 					return model.NewAppError(operationName, "api.page.permission.no_channel_access", nil, "", http.StatusForbidden).Wrap(err)
 				}
-
 				if !member.SchemeAdmin {
 					return model.NewAppError(operationName, "api.context.permissions.app_error", nil, "", http.StatusForbidden)
 				}
 			}
 		}
 
-		return nil
 	default:
 		return model.NewAppError(operationName, "api.page.permission.invalid_channel_type", nil, "", http.StatusForbidden)
-	}
-
-	// 3. Check channel-level permission
-	if !a.SessionHasPermissionToChannel(rctx, *session, channel.Id, permission) {
-		return model.NewAppError(operationName, "api.context.permissions.app_error", nil, "", http.StatusForbidden)
-	}
-
-	// 4. Ownership check for Edit/Delete (ChannelUsers can only modify their own pages)
-	if operation == PageOperationEdit || operation == PageOperationDelete {
-		if page.UserId != session.UserId {
-			// Not the author - need channel admin role
-			member, err := a.GetChannelMember(rctx, channel.Id, session.UserId)
-			if err != nil {
-				return model.NewAppError(operationName, "api.page.permission.no_channel_access", nil, "", http.StatusForbidden).Wrap(err)
-			}
-
-			if !member.SchemeAdmin {
-				return model.NewAppError(operationName, "api.context.permissions.app_error", nil, "", http.StatusForbidden)
-			}
-		}
 	}
 
 	return nil
@@ -325,6 +299,39 @@ func (a *App) GetPage(rctx request.CTX, pageID string) (*model.Post, *model.AppE
 
 	rctx.Logger().Debug("GetPage: returning post", mlog.String("page_id", pageID), mlog.Int("message_length", len(post.Message)))
 	return post, nil
+}
+
+// LoadPageContentForPostList loads page content from the pagecontent table for any pages in the PostList.
+// This populates the Message field with the full page content stored in the pagecontent table.
+func (a *App) LoadPageContentForPostList(rctx request.CTX, postList *model.PostList) *model.AppError {
+	if postList == nil || postList.Posts == nil {
+		return nil
+	}
+
+	for _, post := range postList.Posts {
+		if post.Type == model.PostTypePage {
+			pageContent, contentErr := a.Srv().Store().PageContent().Get(post.Id)
+			if contentErr != nil {
+				var nfErr *store.ErrNotFound
+				if errors.As(contentErr, &nfErr) {
+					rctx.Logger().Warn("LoadPageContentForPostList: PageContent not found for page", mlog.String("page_id", post.Id))
+					post.Message = ""
+				} else {
+					rctx.Logger().Error("LoadPageContentForPostList: error fetching PageContent", mlog.String("page_id", post.Id), mlog.Err(contentErr))
+					return model.NewAppError("LoadPageContentForPostList", "app.page.get.content.app_error", nil, "", http.StatusInternalServerError).Wrap(contentErr)
+				}
+			} else {
+				contentJSON, jsonErr := pageContent.GetDocumentJSON()
+				if jsonErr != nil {
+					rctx.Logger().Error("LoadPageContentForPostList: error serializing page content", mlog.String("page_id", post.Id), mlog.Err(jsonErr))
+					return model.NewAppError("LoadPageContentForPostList", "app.page.get.serialize_content.app_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+				}
+				post.Message = contentJSON
+			}
+		}
+	}
+
+	return nil
 }
 
 // UpdatePage updates a page's title and/or content
@@ -610,11 +617,10 @@ func (a *App) ChangePageParent(rctx request.CTX, postID string, newParentID stri
 		return err
 	}
 
-	// Acquire lock for the channel's page hierarchy to prevent race conditions
+	// Acquire lock for page hierarchy to prevent race conditions
 	// This ensures that concurrent parent changes cannot create circular references
-	lock := getPageHierarchyLock(post.ChannelId)
-	lock.Lock()
-	defer lock.Unlock()
+	pageHierarchyLock.Lock()
+	defer pageHierarchyLock.Unlock()
 
 	if newParentID != "" {
 		if newParentID == postID {
@@ -696,24 +702,9 @@ func (a *App) calculatePageDepth(rctx request.CTX, pageID string) (int, *model.A
 	return depth, nil
 }
 
-// BreadcrumbItem represents a single item in the breadcrumb path
-type BreadcrumbItem struct {
-	Id        string `json:"id"`
-	Title     string `json:"title"`
-	Type      string `json:"type"` // "wiki", "page"
-	Path      string `json:"path"`
-	ChannelId string `json:"channel_id"`
-}
-
-// BreadcrumbPath represents the full breadcrumb navigation path
-type BreadcrumbPath struct {
-	Items       []*BreadcrumbItem `json:"items"`
-	CurrentPage *BreadcrumbItem   `json:"current_page"`
-}
-
 // BuildBreadcrumbPath builds the breadcrumb navigation path for a page
-func (a *App) BuildBreadcrumbPath(rctx request.CTX, page *model.Post) (*BreadcrumbPath, *model.AppError) {
-	var breadcrumbItems []*BreadcrumbItem
+func (a *App) BuildBreadcrumbPath(rctx request.CTX, page *model.Post) (*model.BreadcrumbPath, *model.AppError) {
+	var breadcrumbItems []*model.BreadcrumbItem
 
 	// Get page ancestors (walk up hierarchy)
 	ancestors, err := a.GetPageAncestors(rctx, page.Id)
@@ -745,7 +736,7 @@ func (a *App) BuildBreadcrumbPath(rctx request.CTX, page *model.Post) (*Breadcru
 	}
 
 	// Add wiki root (use wiki title instead of generic "Pages")
-	wikiRoot := &BreadcrumbItem{
+	wikiRoot := &model.BreadcrumbItem{
 		Id:        wikiId,
 		Title:     wiki.Title,
 		Type:      "wiki",
@@ -758,7 +749,7 @@ func (a *App) BuildBreadcrumbPath(rctx request.CTX, page *model.Post) (*Breadcru
 	if ancestors != nil && len(ancestors.Order) > 0 {
 		for _, ancestorId := range ancestors.Order {
 			if ancestor, ok := ancestors.Posts[ancestorId]; ok {
-				item := &BreadcrumbItem{
+				item := &model.BreadcrumbItem{
 					Id:        ancestor.Id,
 					Title:     a.getPageTitle(ancestor),
 					Type:      "page",
@@ -771,7 +762,7 @@ func (a *App) BuildBreadcrumbPath(rctx request.CTX, page *model.Post) (*Breadcru
 	}
 
 	// Current page
-	currentPage := &BreadcrumbItem{
+	currentPage := &model.BreadcrumbItem{
 		Id:        page.Id,
 		Title:     a.getPageTitle(page),
 		Type:      "page",
@@ -779,7 +770,7 @@ func (a *App) BuildBreadcrumbPath(rctx request.CTX, page *model.Post) (*Breadcru
 		ChannelId: page.ChannelId,
 	}
 
-	return &BreadcrumbPath{
+	return &model.BreadcrumbPath{
 		Items:       breadcrumbItems,
 		CurrentPage: currentPage,
 	}, nil
@@ -852,7 +843,7 @@ func (a *App) extractMentionsFromNodes(nodes []json.RawMessage, mentionIDs map[s
 	}
 }
 
-func (a *App) validatePageDraftForPublish(rctx request.CTX, userId, wikiId, draftId, parentId string) (*model.Draft, *model.Wiki, *model.Channel, *model.AppError) {
+func (a *App) validatePageDraftForPublish(rctx request.CTX, userId, wikiId, draftId, parentId, message string) (*model.Draft, *model.Wiki, *model.Channel, *model.AppError) {
 	draft, err := a.Srv().Store().Draft().GetPageDraft(userId, wikiId, draftId)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -864,14 +855,22 @@ func (a *App) validatePageDraftForPublish(rctx request.CTX, userId, wikiId, draf
 			nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// Use provided message if available (from editor), otherwise use draft.Message from DB
+	contentToValidate := message
+	if contentToValidate == "" {
+		contentToValidate = draft.Message
+	}
+
 	rctx.Logger().Debug("Draft content before validation",
-		mlog.String("message", draft.Message),
-		mlog.Int("message_length", len(draft.Message)),
-		mlog.Int("trimmed_length", len(strings.TrimSpace(draft.Message))),
+		mlog.String("provided_message", message),
+		mlog.Int("provided_length", len(message)),
+		mlog.String("db_message", draft.Message),
+		mlog.Int("db_length", len(draft.Message)),
+		mlog.Int("trimmed_length", len(strings.TrimSpace(contentToValidate))),
 		mlog.Int("file_count", len(draft.FileIds)),
 		mlog.Any("props", draft.Props))
 
-	if strings.TrimSpace(draft.Message) == "" && len(draft.FileIds) == 0 {
+	if strings.TrimSpace(contentToValidate) == "" && len(draft.FileIds) == 0 {
 		return nil, nil, nil, model.NewAppError("validatePageDraftForPublish", "app.draft.publish_page.empty",
 			nil, "cannot publish empty page draft", http.StatusBadRequest)
 	}
@@ -994,15 +993,25 @@ func (a *App) broadcastPagePublished(page *model.Post, wikiId, channelId, draftI
 }
 
 // PublishPageDraft publishes a draft as a page
-func (a *App) PublishPageDraft(rctx request.CTX, userId, wikiId, draftId, parentId, title, searchText string) (*model.Post, *model.AppError) {
+func (a *App) PublishPageDraft(rctx request.CTX, userId, wikiId, draftId, parentId, title, searchText, message string) (*model.Post, *model.AppError) {
 	rctx.Logger().Debug("Publishing page draft",
 		mlog.String("user_id", userId),
 		mlog.String("wiki_id", wikiId),
-		mlog.String("draft_id", draftId))
+		mlog.String("draft_id", draftId),
+		mlog.Int("message_length", len(message)))
 
-	draft, wiki, channel, err := a.validatePageDraftForPublish(rctx, userId, wikiId, draftId, parentId)
+	draft, wiki, channel, err := a.validatePageDraftForPublish(rctx, userId, wikiId, draftId, parentId, message)
 	if err != nil {
 		return nil, err
+	}
+
+	// If message is provided (latest content from editor), use it instead of draft.Message from database
+	// This prevents race condition where draft.Message might be stale
+	if message != "" {
+		rctx.Logger().Debug("Using provided message instead of draft.Message",
+			mlog.Int("provided_length", len(message)),
+			mlog.Int("draft_length", len(draft.Message)))
+		draft.Message = message
 	}
 
 	savedPost, err := a.applyDraftToPage(rctx, draft, wikiId, parentId, title, searchText, userId)

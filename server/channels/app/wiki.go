@@ -22,34 +22,34 @@ const (
 	WikiOperationDelete WikiOperation = "delete"
 )
 
+func getWikiPermission(channelType model.ChannelType, operation WikiOperation) *model.Permission {
+	permMap := map[model.ChannelType]map[WikiOperation]*model.Permission{
+		model.ChannelTypeOpen: {
+			WikiOperationCreate: model.PermissionCreateWikiPublicChannel,
+			WikiOperationEdit:   model.PermissionEditWikiPublicChannel,
+			WikiOperationDelete: model.PermissionDeleteWikiPublicChannel,
+		},
+		model.ChannelTypePrivate: {
+			WikiOperationCreate: model.PermissionCreateWikiPrivateChannel,
+			WikiOperationEdit:   model.PermissionEditWikiPrivateChannel,
+			WikiOperationDelete: model.PermissionDeleteWikiPrivateChannel,
+		},
+	}
+	if ops, ok := permMap[channelType]; ok {
+		return ops[operation]
+	}
+	return nil
+}
+
 func (a *App) HasPermissionToModifyWiki(rctx request.CTX, session *model.Session, channel *model.Channel, operation WikiOperation, operationName string) *model.AppError {
 	switch channel.Type {
-	case model.ChannelTypeOpen:
-		var permission *model.Permission
-		switch operation {
-		case WikiOperationCreate:
-			permission = model.PermissionCreateWikiPublicChannel
-		case WikiOperationEdit:
-			permission = model.PermissionEditWikiPublicChannel
-		case WikiOperationDelete:
-			permission = model.PermissionDeleteWikiPublicChannel
+	case model.ChannelTypeOpen, model.ChannelTypePrivate:
+		permission := getWikiPermission(channel.Type, operation)
+		if permission == nil {
+			return model.NewAppError(operationName, "api.wiki.permission.forbidden.app_error", nil, "", http.StatusForbidden)
 		}
 		if !a.SessionHasPermissionToChannel(rctx, *session, channel.Id, permission) {
-			return model.NewAppError(operationName, "api.wiki.permission.public_channel.app_error", nil, "", http.StatusForbidden)
-		}
-
-	case model.ChannelTypePrivate:
-		var permission *model.Permission
-		switch operation {
-		case WikiOperationCreate:
-			permission = model.PermissionCreateWikiPrivateChannel
-		case WikiOperationEdit:
-			permission = model.PermissionEditWikiPrivateChannel
-		case WikiOperationDelete:
-			permission = model.PermissionDeleteWikiPrivateChannel
-		}
-		if !a.SessionHasPermissionToChannel(rctx, *session, channel.Id, permission) {
-			return model.NewAppError(operationName, "api.wiki.permission.private_channel.app_error", nil, "", http.StatusForbidden)
+			return model.NewAppError(operationName, "api.wiki.permission.app_error", nil, "", http.StatusForbidden)
 		}
 
 	case model.ChannelTypeGroup, model.ChannelTypeDirect:
@@ -229,21 +229,21 @@ func (a *App) AddPageToWiki(rctx request.CTX, pageId, wikiId string) *model.AppE
 	return nil
 }
 
-func (a *App) RemovePageFromWiki(rctx request.CTX, pageId, wikiId string) *model.AppError {
-	rctx.Logger().Debug("Removing page from wiki", mlog.String("page_id", pageId), mlog.String("wiki_id", wikiId))
+func (a *App) DeletePageFromWiki(rctx request.CTX, pageId, wikiId string) *model.AppError {
+	rctx.Logger().Debug("Deleting page from wiki", mlog.String("page_id", pageId), mlog.String("wiki_id", wikiId))
 
 	wiki, wikiErr := a.GetWiki(rctx, wikiId)
 	if wikiErr != nil {
-		return model.NewAppError("RemovePageFromWiki", "app.wiki.remove_page.wiki_not_found.app_error", nil, "", http.StatusNotFound).Wrap(wikiErr)
+		return model.NewAppError("DeletePageFromWiki", "app.wiki.delete_page.wiki_not_found.app_error", nil, "", http.StatusNotFound).Wrap(wikiErr)
 	}
 
 	channel, chanErr := a.GetChannel(rctx, wiki.ChannelId)
 	if chanErr != nil {
-		return model.NewAppError("RemovePageFromWiki", "app.wiki.remove_page.channel_not_found.app_error", nil, "", http.StatusNotFound).Wrap(chanErr)
+		return model.NewAppError("DeletePageFromWiki", "app.wiki.delete_page.channel_not_found.app_error", nil, "", http.StatusNotFound).Wrap(chanErr)
 	}
 
 	if channel.DeleteAt != 0 {
-		return model.NewAppError("RemovePageFromWiki", "app.wiki.remove_page.deleted_channel.app_error", nil, "channel is archived", http.StatusBadRequest)
+		return model.NewAppError("DeletePageFromWiki", "app.wiki.delete_page.deleted_channel.app_error", nil, "channel is archived", http.StatusBadRequest)
 	}
 
 	post, err := a.GetSinglePost(rctx, pageId, false)
@@ -252,21 +252,18 @@ func (a *App) RemovePageFromWiki(rctx request.CTX, pageId, wikiId string) *model
 	}
 
 	if post.Type != model.PostTypePage {
-		return model.NewAppError("RemovePageFromWiki", "api.wiki.remove.not_a_page", nil, "", http.StatusBadRequest)
+		return model.NewAppError("DeletePageFromWiki", "api.wiki.delete.not_a_page", nil, "", http.StatusBadRequest)
 	}
 
 	if deleteErr := a.Srv().Store().PropertyValue().DeleteForTarget(model.WikiPropertyGroupID, "post", post.Id); deleteErr != nil {
-		return model.NewAppError("RemovePageFromWiki", "app.wiki.remove_page.app_error", nil, "", http.StatusInternalServerError).Wrap(deleteErr)
+		return model.NewAppError("DeletePageFromWiki", "app.wiki.delete_page.app_error", nil, "", http.StatusInternalServerError).Wrap(deleteErr)
 	}
 
-	// In channel-subservient architecture, a page belongs to exactly one wiki (channel).
-	// "Removing from wiki" is semantically equivalent to "deleting the page" since there's no other wiki it can belong to.
-	// DeletePage will soft-delete the page post, which cascades to all comments (RootId = pageId).
 	if deletePageErr := a.DeletePage(rctx, pageId); deletePageErr != nil {
 		return deletePageErr
 	}
 
-	rctx.Logger().Info("Page removed from wiki", mlog.String("page_id", pageId), mlog.String("wiki_id", wikiId))
+	rctx.Logger().Info("Page deleted from wiki", mlog.String("page_id", pageId), mlog.String("wiki_id", wikiId))
 
 	return nil
 }
@@ -323,4 +320,150 @@ func (a *App) GetWikiIdForPage(rctx request.CTX, pageId string) (string, *model.
 	}
 
 	return wikiId, nil
+}
+
+func (a *App) MovePageToWiki(rctx request.CTX, pageId, targetWikiId string, parentPageId *string) *model.AppError {
+	session := rctx.Session()
+
+	page, err := a.GetSinglePost(rctx, pageId, false)
+	if err != nil {
+		return model.NewAppError("MovePageToWiki", "app.page.move.page_not_found", nil, "", http.StatusNotFound).Wrap(err)
+	}
+
+	if page.Type != model.PostTypePage {
+		return model.NewAppError("MovePageToWiki", "app.page.move.not_a_page", nil, "", http.StatusBadRequest)
+	}
+
+	targetWiki, err := a.GetWiki(rctx, targetWikiId)
+	if err != nil {
+		return model.NewAppError("MovePageToWiki", "app.page.move.target_wiki_not_found", nil, "", http.StatusNotFound).Wrap(err)
+	}
+
+	sourceWikiId, err := a.GetWikiIdForPage(rctx, pageId)
+	if err != nil {
+		return model.NewAppError("MovePageToWiki", "app.page.move.source_wiki_not_found", nil, "", http.StatusNotFound).Wrap(err)
+	}
+
+	isSameWiki := sourceWikiId == targetWikiId
+
+	if isSameWiki && parentPageId == nil {
+		rctx.Logger().Debug("Same-wiki move without parent change has no effect",
+			mlog.String("page_id", pageId),
+			mlog.String("wiki_id", targetWikiId))
+		return nil
+	}
+
+	sourceWiki, err := a.GetWiki(rctx, sourceWikiId)
+	if err != nil {
+		return model.NewAppError("MovePageToWiki", "app.page.move.source_wiki_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if page.ChannelId != targetWiki.ChannelId {
+		return model.NewAppError("MovePageToWiki", "app.page.move.cross_channel_not_supported", nil,
+			"Cross-channel moves not supported in Phase 1", http.StatusBadRequest)
+	}
+
+	if sourceWiki.ChannelId != targetWiki.ChannelId {
+		return model.NewAppError("MovePageToWiki", "app.page.move.wiki_channel_mismatch", nil, "", http.StatusInternalServerError)
+	}
+
+	if appErr := a.HasPermissionToModifyPage(rctx, session, page, PageOperationEdit, "MovePageToWiki"); appErr != nil {
+		return appErr
+	}
+
+	channel, chanErr := a.GetChannel(rctx, targetWiki.ChannelId)
+	if chanErr != nil {
+		return model.NewAppError("MovePageToWiki", "app.page.move.channel_not_found", nil, "", http.StatusInternalServerError).Wrap(chanErr)
+	}
+
+	var targetPermission *model.Permission
+	switch channel.Type {
+	case model.ChannelTypeOpen:
+		targetPermission = model.PermissionCreatePagePublicChannel
+	case model.ChannelTypePrivate:
+		targetPermission = model.PermissionCreatePagePrivateChannel
+	case model.ChannelTypeGroup, model.ChannelTypeDirect:
+		targetPermission = nil
+	default:
+		return model.NewAppError("MovePageToWiki", "app.page.move.invalid_channel_type", nil, "", http.StatusBadRequest)
+	}
+
+	if targetPermission != nil && !a.SessionHasPermissionToChannel(rctx, *session, targetWiki.ChannelId, targetPermission) {
+		return model.NewAppError("MovePageToWiki", "app.page.move.no_target_permission", nil,
+			"User cannot add pages to target wiki", http.StatusForbidden)
+	}
+
+	targetPages, pagesErr := a.Srv().Store().Wiki().GetPages(targetWikiId, 0, 10000)
+	if pagesErr != nil {
+		return model.NewAppError("MovePageToWiki", "app.page.move.get_target_pages_failed", nil, "", http.StatusInternalServerError).Wrap(pagesErr)
+	}
+
+	pageTitle, _ := page.Props["title"].(string)
+	for _, existingPage := range targetPages {
+		if existingPage.Id == pageId {
+			continue
+		}
+		if existingTitle, ok := existingPage.Props["title"].(string); ok && existingTitle == pageTitle {
+			return model.NewAppError("MovePageToWiki", "app.page.move.title_conflict", nil,
+				"Target wiki already has a page with this title", http.StatusConflict)
+		}
+	}
+
+	if parentPageId != nil && *parentPageId != "" {
+		parentPage, parentErr := a.GetSinglePost(rctx, *parentPageId, false)
+		if parentErr != nil {
+			return model.NewAppError("MovePageToWiki", "app.page.move.parent_not_found", nil,
+				"Parent page not found", http.StatusNotFound).Wrap(parentErr)
+		}
+
+		if parentPage.Type != model.PostTypePage {
+			return model.NewAppError("MovePageToWiki", "app.page.move.parent_not_a_page", nil,
+				"Parent must be a page", http.StatusBadRequest)
+		}
+
+		parentWikiId, parentWikiErr := a.GetWikiIdForPage(rctx, *parentPageId)
+		if parentWikiErr != nil {
+			return model.NewAppError("MovePageToWiki", "app.page.move.parent_wiki_not_found", nil,
+				"Could not determine parent's wiki", http.StatusInternalServerError).Wrap(parentWikiErr)
+		}
+
+		if parentWikiId != targetWikiId {
+			return model.NewAppError("MovePageToWiki", "app.page.move.parent_wrong_wiki", nil,
+				"Parent page must be in target wiki", http.StatusBadRequest)
+		}
+
+		if *parentPageId == pageId {
+			return model.NewAppError("MovePageToWiki", "app.page.move.self_parent", nil,
+				"Cannot move page under itself", http.StatusBadRequest)
+		}
+
+		descendants, descErr := a.GetPageDescendants(rctx, pageId)
+		if descErr != nil {
+			return model.NewAppError("MovePageToWiki", "app.page.move.get_descendants_failed", nil,
+				"Failed to get page descendants", http.StatusInternalServerError).Wrap(descErr)
+		}
+
+		for _, descendant := range descendants.Posts {
+			if descendant.Id == *parentPageId {
+				return model.NewAppError("MovePageToWiki", "app.page.move.circular_reference", nil,
+					"Cannot move page under its own descendant", http.StatusBadRequest)
+			}
+		}
+	}
+
+	if storeErr := a.Srv().Store().Wiki().MovePageToWiki(pageId, targetWikiId, parentPageId); storeErr != nil {
+		return model.NewAppError("MovePageToWiki", "app.page.move.failed", nil, "", http.StatusInternalServerError).Wrap(storeErr)
+	}
+
+	rctx.Logger().Info("Page moved to wiki",
+		mlog.String("page_id", pageId),
+		mlog.String("page_title", pageTitle),
+		mlog.String("source_wiki_id", sourceWikiId),
+		mlog.String("source_wiki_title", sourceWiki.Title),
+		mlog.String("target_wiki_id", targetWikiId),
+		mlog.String("target_wiki_title", targetWiki.Title),
+		mlog.String("channel_id", page.ChannelId),
+		mlog.String("user_id", session.UserId))
+
+	return nil
 }

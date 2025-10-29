@@ -173,6 +173,7 @@ type PostPatch struct {
 	Props        *StringInterface `json:"props"`
 	FileIds      *StringArray     `json:"file_ids"`
 	HasReactions *bool            `json:"has_reactions"`
+	PageParentId *string          `json:"page_parent_id"`
 }
 
 type PostReminder struct {
@@ -860,6 +861,10 @@ func (o *Post) Patch(patch *PostPatch) {
 
 	if patch.HasReactions != nil {
 		o.HasReactions = *patch.HasReactions
+	}
+
+	if patch.PageParentId != nil {
+		o.PageParentId = *patch.PageParentId
 	}
 }
 

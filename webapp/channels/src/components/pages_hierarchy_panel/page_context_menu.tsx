@@ -173,6 +173,7 @@ const PageContextMenu = ({
                 left: `${position.x}px`,
             }}
             onClick={(e) => e.stopPropagation()}
+            data-testid='page-context-menu'
         >
             {menuOptions.map((option) => {
                 if (option.separator) {
@@ -189,6 +190,7 @@ const PageContextMenu = ({
                         key={option.id}
                         className={`PageContextMenu__item ${option.dangerous ? 'PageContextMenu__item--dangerous' : ''}`}
                         onClick={option.action}
+                        data-testid={`page-context-menu-${option.id}`}
                     >
                         <i className={option.icon}/>
                         <span>{option.label}</span>

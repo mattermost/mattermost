@@ -6,20 +6,21 @@ import React, {lazy} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {useRouteMatch, useHistory, useLocation} from 'react-router-dom';
 
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentTeamId, getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {openPagesPanel} from 'actions/views/pages_hierarchy';
 import {closeRightHandSide, openWikiRhs} from 'actions/views/rhs';
 import {setWikiRhsMode} from 'actions/views/wiki_rhs';
 import {getPageDraft, getPageDraftsForWiki} from 'selectors/page_drafts';
-import {getFullPage} from 'selectors/pages';
+import {getPage, getWikiPages} from 'selectors/pages';
 import {getIsPanesPanelCollapsed} from 'selectors/pages_hierarchy';
 import {getRhsState} from 'selectors/rhs';
 
 import {makeAsyncComponent} from 'components/async_load';
 import LoadingScreen from 'components/loading_screen';
 import PagesHierarchyPanel from 'components/pages_hierarchy_panel';
+import {getWikiUrl, getTeamNameFromPath} from 'utils/url';
 
 import type {GlobalState} from 'types/store';
 
@@ -41,6 +42,7 @@ const WikiView = () => {
     const {pageId, draftId, channelId, wikiId} = params;
 
     const teamId = useSelector(getCurrentTeamId);
+    const currentTeam = useSelector(getCurrentTeam);
     const currentUserId = useSelector(getCurrentUserId);
     const rhsState = useSelector((state: GlobalState) => getRhsState(state));
     const isWikiRhsOpen = rhsState === 'wiki';
@@ -65,11 +67,12 @@ const WikiView = () => {
         if (!wikiId || !draftId) {
             return null;
         }
-        return getPageDraft(state, wikiId, draftId);
+        const draft = getPageDraft(state, wikiId, draftId);
+        return draft;
     });
 
     const currentPage = useSelector((state: GlobalState) => {
-        const page = pageId ? getFullPage(state, pageId) : null;
+        const page = pageId ? getPage(state, pageId) : null;
         return page;
     });
 
@@ -80,6 +83,7 @@ const WikiView = () => {
         }
     }, [currentPage?.page_parent_id]);
     const allDrafts = useSelector((state: GlobalState) => (wikiId ? getPageDraftsForWiki(state, wikiId) : []));
+    const allPages = useSelector((state: GlobalState) => (wikiId ? getWikiPages(state, wikiId) : []));
 
     // Get the actual channel ID from the page or draft (URL params may have wikiId in channelId position)
     const actualChannelId = currentPage?.channel_id || currentDraft?.channelId || allDrafts[0]?.channelId || channelId;
@@ -88,23 +92,33 @@ const WikiView = () => {
     const isDraft = Boolean(draftId) || (!pageId && !draftId && (Boolean(currentDraft) || !currentPage));
 
     // Single source of truth for empty state (no drafts, no pages)
-    const isEmptyState = !currentDraft && !pageId && allDrafts.length === 0;
+    const isEmptyState = !currentDraft && !pageId && allDrafts.length === 0 && allPages.length === 0;
 
-    // Auto-select draft when at wiki root
+    // Auto-select draft or page when at wiki root
     React.useEffect(() => {
-        if (
-            !pageId &&
-            !draftId &&
-            allDrafts.length > 0
-        ) {
-            const firstDraft = allDrafts[0];
-            if (firstDraft) {
-                const teamName = location.pathname.split('/')[1];
-                const draftUrl = `/${teamName}/wiki/${channelId}/${wikiId}/drafts/${firstDraft.rootId}`;
-                history.replace(draftUrl);
+        if (!pageId && !draftId) {
+            const teamName = getTeamNameFromPath(location.pathname);
+
+            // Priority 1: Select first draft if drafts exist
+            if (allDrafts.length > 0) {
+                const firstDraft = allDrafts[0];
+                if (firstDraft) {
+                    const draftUrl = getWikiUrl(teamName, channelId, wikiId, firstDraft.rootId, true);
+                    history.replace(draftUrl);
+                    return;
+                }
+            }
+
+            // Priority 2: Select first published page if no drafts but pages exist
+            if (allPages.length > 0) {
+                const firstPage = allPages[0];
+                if (firstPage) {
+                    const pageUrl = getWikiUrl(teamName, channelId, wikiId, firstPage.id, false);
+                    history.replace(pageUrl);
+                }
             }
         }
-    }, [pageId, draftId, allDrafts, channelId, wikiId, location.pathname, history]);
+    }, [pageId, draftId, allDrafts, allPages, channelId, wikiId, location.pathname, history]);
 
     // --------------------------------------------------------------------------
     // Clear editingDraftId when the draft is deleted or published while we are
@@ -133,24 +147,23 @@ const WikiView = () => {
     };
 
     const handlePageSelect = (selectedPageId: string) => {
-        const isSelectedIdDraft = selectedPageId.startsWith('draft-') || allDrafts.some((draft) => draft.rootId === selectedPageId);
-        const teamName = location.pathname.split('/')[1];
-        const baseWikiUrl = `/${teamName}/wiki/${channelId}/${wikiId}`;
+        const startTime = performance.now();
 
-        if (isSelectedIdDraft) {
-            const draftUrl = `${baseWikiUrl}/drafts/${selectedPageId}`;
-            history.push(draftUrl);
-        } else {
-            const pageUrl = `${baseWikiUrl}/${selectedPageId}`;
-            history.push(pageUrl);
+        const isSelectedIdDraft = selectedPageId.startsWith('draft-') || allDrafts.some((draft) => draft.rootId === selectedPageId);
+        const teamName = getTeamNameFromPath(location.pathname);
+        const url = getWikiUrl(teamName, channelId, wikiId, selectedPageId, isSelectedIdDraft);
+
+        history.push(url);
+
+        // If RHS is open, update it to show the new page's comments
+        if (isWikiRhsOpen && !isSelectedIdDraft) {
+            dispatch(openWikiRhs(selectedPageId, wikiId || ''));
         }
     };
 
     const handleOpenPagesPanel = () => {
         dispatch(openPagesPanel());
     };
-
-    // (duplicate logic removed below – handled earlier in component)
 
     React.useEffect(() => {
         if (pageId && !currentPage && !isLoading) {
@@ -165,24 +178,33 @@ const WikiView = () => {
         }
     }, [pageId, currentPage, isLoading, location.pathname, history]);
 
-    // Update WikiRHS when navigating to a different page
-    React.useEffect(() => {
-        if (isWikiRhsOpen && pageId) {
-            dispatch(openWikiRhs(pageId, wikiId || ''));
-        }
-    }, [pageId, isWikiRhsOpen, wikiId, dispatch]);
+    // DISABLED: Auto-updating RHS when navigating causes 60+ second render blocks
+    // The RHS ThreadViewer mounting blocks PageViewer from rendering
+    // Users can manually toggle RHS to update it to the new page
+    // React.useEffect(() => {
+    //     if (isWikiRhsOpen && pageId) {
+    //         dispatch(openWikiRhs(pageId, wikiId || ''));
+    //     }
+    // }, [pageId, isWikiRhsOpen, wikiId, dispatch]);
 
     return (
-        <div className='app__content'>
+        <div
+            className='app__content'
+            data-testid='wiki-view-app-content'
+        >
             <ChannelHeader/>
             <ChannelBookmarks channelId={channelId}/>
             <div
                 className={classNames('WikiView', {
                     'page-selected': Boolean(pageId),
                 })}
+                data-testid='wiki-view'
             >
                 {isLoading ? (
-                    <div className='no-results__holder'>
+                    <div
+                        className='no-results__holder'
+                        data-testid='wiki-view-loading'
+                    >
                         <LoadingScreen/>
                     </div>
                 ) : (
@@ -192,6 +214,7 @@ const WikiView = () => {
                                 className='WikiView__hamburgerButton btn btn-icon btn-sm'
                                 onClick={handleOpenPagesPanel}
                                 aria-label='Open pages panel'
+                                data-testid='wiki-view-hamburger-button'
                             >
                                 <i className='icon icon-menu-variant'/>
                             </button>
@@ -206,7 +229,10 @@ const WikiView = () => {
                             />
                         )}
 
-                        <div className={classNames('PagePane', {'PagePane--sidebarCollapsed': isPanesPanelCollapsed})}>
+                        <div
+                            className={classNames('PagePane', {'PagePane--sidebarCollapsed': isPanesPanelCollapsed})}
+                            data-testid='wiki-page-pane'
+                        >
                             {!isEmptyState && (
                                 <WikiPageHeader
                                     wikiId={wikiId || ''}
@@ -220,26 +246,31 @@ const WikiView = () => {
                                     onToggleComments={handleToggleComments}
                                 />
                             )}
-                            <div className='PagePane__content'>
+                            <div
+                                className='PagePane__content'
+                                data-testid='wiki-page-content'
+                            >
                                 {draftId && !currentDraft && (
                                     <div className='no-results__holder'>
                                         <LoadingScreen/>
                                     </div>
                                 )}
-                                {draftId && currentDraft && (
-                                    <WikiPageEditor
-                                        title={currentDraft.props?.title || ''}
-                                        content={currentDraft.message || ''}
-                                        onTitleChange={handleTitleChange}
-                                        onContentChange={handleContentChange}
-                                        currentUserId={currentUserId}
-                                        channelId={actualChannelId}
-                                        teamId={teamId}
-                                        pageId={draftId}
-                                        wikiId={wikiId}
-                                        showAuthor={false}
-                                    />
-                                )}
+                                {draftId && currentDraft && (() => {
+                                    const editorProps = {
+                                        key: draftId,
+                                        title: currentDraft.props?.title || '',
+                                        content: currentDraft.message || '',
+                                        onTitleChange: handleTitleChange,
+                                        onContentChange: handleContentChange,
+                                        currentUserId,
+                                        channelId: actualChannelId,
+                                        teamId,
+                                        pageId: draftId,
+                                        wikiId,
+                                        showAuthor: false,
+                                    };
+                                    return <WikiPageEditor {...editorProps} />;
+                                })()}
                                 {pageId && (
                                     <PageViewer
                                         key={pageId}

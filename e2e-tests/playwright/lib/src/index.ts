@@ -7,6 +7,7 @@ export {baseGlobalSetup} from './global_setup';
 export {TestBrowser} from './browser_context';
 export {getBlobFromAsset, getFileFromAsset} from './file';
 export {duration, wait} from './util';
+export {createPageViaDraft} from './server';
 
 export {
     ChannelsPage,

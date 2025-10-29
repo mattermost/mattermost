@@ -227,8 +227,6 @@ const state: GlobalState = {
         contentFlagging: {},
         wikiPages: {
             byWiki: {},
-            pageSummaries: {},
-            fullPages: {},
             loading: {},
             error: {},
         },

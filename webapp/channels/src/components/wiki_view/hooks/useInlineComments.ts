@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useState} from 'react';
+import {useState, useCallback} from 'react';
 
 import {Client4} from 'mattermost-redux/client';
 
@@ -16,19 +16,14 @@ export const useInlineComments = (pageId?: string, wikiId?: string, onCommentCre
     const [showCommentModal, setShowCommentModal] = useState(false);
     const [commentAnchor, setCommentAnchor] = useState<CommentAnchor | null>(null);
 
-    const handleCreateInlineComment = (anchor: CommentAnchor) => {
-        console.log('[useInlineComments] handleCreateInlineComment called with anchor:', anchor);
+    const handleCreateInlineComment = useCallback((anchor: CommentAnchor) => {
         setCommentAnchor(anchor);
         setShowCommentModal(true);
-    };
+    }, []);
 
-    const handleSubmitComment = async (message: string) => {
-        console.log('[useInlineComments] handleSubmitComment called with message:', message);
-        console.log('[useInlineComments] Current anchor:', commentAnchor);
-        console.log('[useInlineComments] pageId:', pageId, 'wikiId:', wikiId);
+    const handleSubmitComment = useCallback(async (message: string) => {
 
         if (!commentAnchor || !pageId || !wikiId) {
-            console.log('[useInlineComments] Missing required data, aborting');
             return;
         }
 
@@ -40,28 +35,25 @@ export const useInlineComments = (pageId?: string, wikiId?: string, onCommentCre
             node_path: [],
         };
 
-        console.log('[useInlineComments] Creating page comment with payload:', payload);
 
         try {
             const result = await Client4.createPageComment(wikiId, pageId, message, payload);
-            console.log('[useInlineComments] Comment created successfully:', result);
 
             if (onCommentCreated && result.id) {
-                console.log('[useInlineComments] Calling onCommentCreated callback with commentId:', result.id);
                 onCommentCreated(result.id);
             }
         } catch (error) {
-            console.error('[useInlineComments] Failed to create inline comment:', error);
+            // Silently handle inline comment creation errors
         }
 
         setShowCommentModal(false);
         setCommentAnchor(null);
-    };
+    }, [commentAnchor, pageId, wikiId, onCommentCreated]);
 
-    const handleCloseModal = () => {
+    const handleCloseModal = useCallback(() => {
         setShowCommentModal(false);
         setCommentAnchor(null);
-    };
+    }, []);
 
     return {
         showCommentModal,

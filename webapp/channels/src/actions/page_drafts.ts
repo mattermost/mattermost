@@ -28,7 +28,7 @@ export function makePageDraftKey(wikiId: string, draftId: string): string {
     return `${StoragePrefixes.PAGE_DRAFT}${wikiId}_${draftId}`;
 }
 
-function transformPageServerDraft(serverDraft: ServerDraft, wikiId: string, draftId: string): PageDraft {
+export function transformPageServerDraft(serverDraft: ServerDraft, wikiId: string, draftId: string): PageDraft {
     let fileInfos: FileInfo[] = [];
     if (serverDraft.metadata?.files) {
         fileInfos = serverDraft.metadata.files;
@@ -123,17 +123,15 @@ export function loadPageDraft(wikiId: string, draftId: string): ActionFuncAsync<
 
 export function loadPageDraftsForWiki(wikiId: string): ActionFuncAsync<PostDraft[]> {
     return async (dispatch, getState) => {
-        console.log('[DEBUG] loadPageDraftsForWiki ACTION CALLED:', {wikiId, stack: new Error().stack});
         const state = getState();
 
         let serverDrafts: PageDraft[] = [];
         if (syncedDraftsAreAllowedAndEnabled(state)) {
             try {
                 const serverDraftsRaw = await Client4.getPageDraftsForWiki(wikiId);
-                console.log('[DEBUG] loadPageDraftsForWiki - fetched from server:', {count: serverDraftsRaw.length});
                 serverDrafts = serverDraftsRaw.map((draft) => transformPageServerDraft(draft, wikiId, draft.root_id));
             } catch (error) {
-                console.log('[DEBUG] loadPageDraftsForWiki - server fetch failed:', error);
+                // Handle error silently
             }
         }
 
@@ -153,7 +151,6 @@ export function loadPageDraftsForWiki(wikiId: string): ActionFuncAsync<PostDraft
                 }
             }
         });
-        console.log('[DEBUG] loadPageDraftsForWiki - local drafts found:', {count: localDrafts.length, keys: localDrafts.map((d) => d.key)});
 
         const drafts = [...serverDrafts, ...localDrafts];
 
@@ -168,7 +165,6 @@ export function loadPageDraftsForWiki(wikiId: string): ActionFuncAsync<PostDraft
         const actions = Array.from(draftsMap).map(([key, draft]) => {
             return setGlobalItem(key, draft.value);
         });
-        console.log('[DEBUG] loadPageDraftsForWiki - RE-ADDING drafts to storage:', {count: actions.length, keys: Array.from(draftsMap.keys())});
 
         dispatch(batchActions(actions));
 

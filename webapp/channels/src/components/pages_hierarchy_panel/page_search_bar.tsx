@@ -11,19 +11,24 @@ type Props = {
 
 const PageSearchBar = ({value, placeholder = 'Find pages...', onChange}: Props) => {
     return (
-        <div className='PagesHierarchyPanel__search'>
+        <div
+            className='PagesHierarchyPanel__search'
+            data-testid='pages-search-bar'
+        >
             <i className='icon-magnify'/>
             <input
                 type='text'
                 placeholder={placeholder}
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
+                data-testid='pages-search-input'
             />
             {value && (
                 <button
                     className='PagesHierarchyPanel__clearSearch'
                     onClick={() => onChange('')}
                     aria-label='Clear search'
+                    data-testid='pages-search-clear'
                 >
                     <i className='icon-close'/>
                 </button>

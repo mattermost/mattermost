@@ -53,7 +53,5 @@ export async function logFocusedElement(page: Page) {
         };
     });
 
-    // eslint-disable-next-line no-console
-    console.log('Currently focused element:', focusedElementInfo);
     return focusedElementInfo;
 }

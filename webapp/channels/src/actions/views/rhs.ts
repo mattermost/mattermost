@@ -32,6 +32,7 @@ import {
     getPreviousRhsState,
     getSearchTeam,
 } from 'selectors/rhs';
+import {getSelectedPageId} from 'selectors/wiki_rhs';
 
 import {SidebarSize} from 'components/resizable_sidebar/constants';
 
@@ -509,11 +510,18 @@ export function openWikiRhs(pageId: string, wikiId?: string, focusedInlineCommen
             }
         }
 
-        dispatch({
-            type: ActionTypes.UPDATE_RHS_STATE,
-            pageId,
-            state: RHSStates.WIKI,
-        });
+        const currentRhsState = getRhsState(getState());
+        const currentPageId = getSelectedPageId(getState());
+
+        // Only dispatch UPDATE_RHS_STATE if we're not already in WIKI state with the same page
+        // This prevents unnecessary remounting of WikiRHS and ThreadViewer
+        if (currentRhsState !== RHSStates.WIKI || currentPageId !== pageId) {
+            dispatch({
+                type: ActionTypes.UPDATE_RHS_STATE,
+                pageId,
+                state: RHSStates.WIKI,
+            });
+        }
 
         if (wikiId) {
             dispatch({

@@ -86,8 +86,6 @@ export type GlobalState = {
         contentFlagging: ContentFlaggingState;
         wikiPages: {
             byWiki: Record<string, string[]>;
-            pageSummaries: Record<string, Pick<Post, 'id' | 'type' | 'user_id' | 'create_at' | 'update_at' | 'delete_at' | 'props' | 'page_parent_id'>>;
-            fullPages: Record<string, Post>;
             loading: Record<string, boolean>;
             error: Record<string, string | null>;
         };

@@ -22,9 +22,10 @@ func (api *API) InitWiki() {
 	api.BaseRoutes.Wiki.Handle("/pages", api.APISessionRequired(createPage)).Methods(http.MethodPost)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}", api.APISessionRequired(getWikiPage)).Methods(http.MethodGet)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}", api.APISessionRequired(addPageToWiki)).Methods(http.MethodPost)
-	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}", api.APISessionRequired(removePageFromWiki)).Methods(http.MethodDelete)
+	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}", api.APISessionRequired(deletePageFromWiki)).Methods(http.MethodDelete)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/breadcrumb", api.APISessionRequired(getPageBreadcrumb)).Methods(http.MethodGet)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/parent", api.APISessionRequired(updatePageParent)).Methods(http.MethodPut)
+	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/move", api.APISessionRequired(movePageToWiki)).Methods(http.MethodPut)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/comments", api.APISessionRequired(createPageComment)).Methods(http.MethodPost)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/comments/{parent_comment_id:[A-Za-z0-9]+}/replies", api.APISessionRequired(createPageCommentReply)).Methods(http.MethodPost)
 	api.BaseRoutes.Channel.Handle("/pages", api.APISessionRequired(getChannelPages)).Methods(http.MethodGet)
@@ -317,19 +318,19 @@ func addPageToWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 	ReturnStatusOK(w)
 }
 
-func removePageFromWiki(c *Context, w http.ResponseWriter, r *http.Request) {
+func deletePageFromWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireWikiId()
 	c.RequirePageId()
 	if c.Err != nil {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("removePageFromWiki", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord("deletePageFromWiki", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("wiki_id", c.Params.WikiId)
 	auditRec.AddMeta("page_id", c.Params.PageId)
 
-	wiki, _, ok := c.RequireWikiModifyPermission(app.WikiOperationDelete, "removePageFromWiki")
+	wiki, _, ok := c.RequireWikiModifyPermission(app.WikiOperationDelete, "deletePageFromWiki")
 	if !ok {
 		return
 	}
@@ -340,17 +341,17 @@ func removePageFromWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.HasPermissionToModifyPage(c.AppContext, c.AppContext.Session(), page, app.PageOperationDelete, "removePageFromWiki"); err != nil {
+	if err := c.App.HasPermissionToModifyPage(c.AppContext, c.AppContext.Session(), page, app.PageOperationDelete, "deletePageFromWiki"); err != nil {
 		c.Err = err
 		return
 	}
 
 	if page.ChannelId != wiki.ChannelId {
-		c.Err = model.NewAppError("removePageFromWiki", "api.wiki.remove.channel_mismatch", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("deletePageFromWiki", "api.wiki.delete.channel_mismatch", nil, "", http.StatusBadRequest)
 		return
 	}
 
-	if appErr := c.App.RemovePageFromWiki(c.AppContext, c.Params.PageId, c.Params.WikiId); appErr != nil {
+	if appErr := c.App.DeletePageFromWiki(c.AppContext, c.Params.PageId, c.Params.WikiId); appErr != nil {
 		c.Err = appErr
 		return
 	}
@@ -454,6 +455,31 @@ func updatePageParent(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// If new parent is specified, verify it exists, is a page, and belongs to the same wiki
+	if req.NewParentId != "" {
+		parentPost, err := c.App.GetSinglePost(c.AppContext, req.NewParentId, false)
+		if err != nil {
+			c.Err = model.NewAppError("updatePageParent", "api.wiki.update_page_parent.parent_not_found", nil, "", http.StatusBadRequest).Wrap(err)
+			return
+		}
+
+		if parentPost.Type != model.PostTypePage {
+			c.Err = model.NewAppError("updatePageParent", "api.wiki.update_page_parent.parent_not_page", nil, "", http.StatusBadRequest)
+			return
+		}
+
+		parentWikiId, wikiErr := c.App.GetWikiIdForPage(c.AppContext, req.NewParentId)
+		if wikiErr != nil {
+			c.Err = wikiErr
+			return
+		}
+
+		if parentWikiId != c.Params.WikiId {
+			c.Err = model.NewAppError("updatePageParent", "api.wiki.update_page_parent.parent_different_wiki", nil, "", http.StatusBadRequest)
+			return
+		}
+	}
+
 	auditRec := c.MakeAuditRecord("updatePageParent", model.AuditStatusFail)
 	model.AddEventParameterToAuditRec(auditRec, "page_id", c.Params.PageId)
 	model.AddEventParameterToAuditRec(auditRec, "new_parent_id", req.NewParentId)
@@ -475,41 +501,87 @@ func updatePageParent(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.NewParentId != "" {
-		newParent, err := c.App.GetPostIfAuthorized(c.AppContext, req.NewParentId, c.AppContext.Session(), false)
-		if err != nil {
-			c.Err = model.NewAppError("updatePageParent", "api.wiki.update_page_parent.parent_not_found.app_error", nil, "parentId="+req.NewParentId, http.StatusNotFound).Wrap(err)
-			return
-		}
-
-		if newParent.Type != model.PostTypePage {
-			c.Err = model.NewAppError("updatePageParent", "api.wiki.update_page_parent.parent_not_page.app_error", nil, "parentId="+req.NewParentId, http.StatusBadRequest)
-			return
-		}
-
-		if newParent.ChannelId != post.ChannelId {
-			c.Err = model.NewAppError("updatePageParent", "api.wiki.update_page_parent.different_channel.app_error", nil, "postChannelId="+post.ChannelId+", parentChannelId="+newParent.ChannelId, http.StatusBadRequest)
-			return
-		}
-
-		ancestors, err := c.App.GetPageAncestors(c.AppContext, req.NewParentId)
-		if err != nil {
-			c.Err = err
-			return
-		}
-
-		if _, exists := ancestors.Posts[c.Params.PageId]; exists {
-			c.Err = model.NewAppError("updatePageParent", "api.wiki.update_page_parent.circular_reference.app_error", nil, "pageId="+c.Params.PageId+", newParentId="+req.NewParentId, http.StatusBadRequest)
-			return
-		}
-	}
-
 	if appErr := c.App.ChangePageParent(c.AppContext, c.Params.PageId, req.NewParentId); appErr != nil {
 		c.Err = appErr
 		return
 	}
 
 	auditRec.Success()
+
+	ReturnStatusOK(w)
+}
+
+func movePageToWiki(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireWikiId()
+	c.RequirePageId()
+	if c.Err != nil {
+		return
+	}
+
+	type MovePageRequest struct {
+		TargetWikiId string  `json:"target_wiki_id"`
+		ParentPageId *string `json:"parent_page_id,omitempty"`
+	}
+
+	var req MovePageRequest
+	if jsonErr := json.NewDecoder(r.Body).Decode(&req); jsonErr != nil {
+		c.SetInvalidParamWithErr("request", jsonErr)
+		return
+	}
+
+	if !model.IsValidId(req.TargetWikiId) {
+		c.SetInvalidParam("target_wiki_id")
+		return
+	}
+
+	if req.ParentPageId != nil && *req.ParentPageId != "" && !model.IsValidId(*req.ParentPageId) {
+		c.SetInvalidParam("parent_page_id")
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("movePageToWiki", model.AuditStatusFail)
+	model.AddEventParameterToAuditRec(auditRec, "page_id", c.Params.PageId)
+	model.AddEventParameterToAuditRec(auditRec, "source_wiki_id", c.Params.WikiId)
+	model.AddEventParameterToAuditRec(auditRec, "target_wiki_id", req.TargetWikiId)
+	if req.ParentPageId != nil && *req.ParentPageId != "" {
+		model.AddEventParameterToAuditRec(auditRec, "parent_page_id", *req.ParentPageId)
+	}
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+
+	sourceWiki, _, ok := c.RequireWikiModifyPermission(app.WikiOperationEdit, "movePageToWiki")
+	if !ok {
+		return
+	}
+
+	pageWikiId, wikiErr := c.App.GetWikiIdForPage(c.AppContext, c.Params.PageId)
+	if wikiErr != nil {
+		c.Err = wikiErr
+		return
+	}
+
+	if pageWikiId != c.Params.WikiId {
+		c.Err = model.NewAppError("movePageToWiki", "api.wiki.move_page.invalid_wiki", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	page, pageErr := c.App.GetSinglePost(c.AppContext, c.Params.PageId, false)
+	if pageErr != nil {
+		c.Err = pageErr
+		return
+	}
+
+	if err := c.App.HasPermissionToModifyPage(c.AppContext, c.AppContext.Session(), page, app.PageOperationEdit, "movePageToWiki"); err != nil {
+		c.Err = err
+		return
+	}
+
+	if appErr := c.App.MovePageToWiki(c.AppContext, c.Params.PageId, req.TargetWikiId, req.ParentPageId); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
+	c.LogAudit("page_id=" + c.Params.PageId + " source_wiki_id=" + c.Params.WikiId + " target_wiki_id=" + req.TargetWikiId + " source_wiki_title=" + sourceWiki.Title)
 
 	ReturnStatusOK(w)
 }

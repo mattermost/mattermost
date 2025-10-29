@@ -156,6 +156,56 @@
             margin: 1em 0;
         }
 
+        table {
+            border-collapse: collapse;
+            table-layout: fixed;
+            width: 100%;
+            margin: 1em 0;
+            overflow: hidden;
+            border: 1px solid var(--center-channel-color-16);
+            border-radius: 4px;
+
+            td,
+            th {
+                min-width: 1em;
+                border: 1px solid var(--center-channel-color-16);
+                padding: 8px 12px;
+                vertical-align: top;
+                box-sizing: border-box;
+                position: relative;
+                background-color: var(--center-channel-bg);
+
+                > * {
+                    margin-bottom: 0;
+                }
+            }
+
+            th {
+                font-weight: 600;
+                text-align: left;
+                background-color: var(--center-channel-color-04);
+                color: var(--center-channel-color);
+            }
+
+            .selectedCell {
+                background-color: var(--button-bg-08);
+            }
+
+            .column-resize-handle {
+                position: absolute;
+                right: -2px;
+                top: 0;
+                bottom: -2px;
+                width: 4px;
+                background-color: var(--button-bg);
+                pointer-events: none;
+            }
+
+            p {
+                margin: 0;
+            }
+        }
+
         strong {
             font-weight: 600;
         }
@@ -192,6 +242,35 @@
                 outline: 2px solid var(--button-bg);
             }
         }
+
+        .channel-mention {
+            padding: 2px 4px;
+            border-radius: 3px;
+            background-color: rgba(var(--link-color-rgb, 35, 137, 215), 0.08);
+            color: var(--link-color);
+            cursor: pointer;
+            font-weight: 600;
+
+            &::before {
+                content: '~';
+            }
+
+            &:hover {
+                text-decoration: underline;
+            }
+
+            // Override TipTap's default blue background for contenteditable="false" nodes
+            &[contenteditable="false"] {
+                background-color: rgba(var(--link-color-rgb, 35, 137, 215), 0.08) !important;
+                color: var(--link-color) !important;
+            }
+
+            // When selected by TipTap
+            &.ProseMirror-selectednode {
+                background-color: var(--button-bg-08) !important;
+                outline: 2px solid var(--button-bg);
+            }
+        }
     }
 }
 
@@ -203,8 +282,9 @@
     display: flex;
     width: max-content;
     max-width: 90%;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     align-items: center;
+    justify-content: center;
     margin: 0 auto;
     padding: 8px;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
@@ -212,7 +292,6 @@
     background: var(--center-channel-bg);
     box-shadow: var(--elevation-4);
     gap: 4px;
-    white-space: nowrap;
 
     button {
         margin: 0;

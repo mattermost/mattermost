@@ -485,6 +485,7 @@ export const ModalIdentifiers = {
     EXPORT_ERROR_MODAL: 'export_error_modal',
     CHANNEL_BOOKMARK_DELETE: 'channel_bookmark_delete',
     CHANNEL_BOOKMARK_CREATE: 'channel_bookmark_create',
+    CREATE_WIKI: 'create_wiki', // [THROWAWAY CODE - PAGES EXPERIMENT]
     CONFIRM_MANAGE_USER_SETTINGS_MODAL: 'confirm_switch_to_settings',
     SCHEDULED_POST_CUSTOM_TIME_MODAL: 'scheduled_post_custom_time',
     SECURE_CONNECTION_DELETE: 'secure_connection_delete',

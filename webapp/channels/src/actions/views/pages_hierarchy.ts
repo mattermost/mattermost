@@ -104,10 +104,8 @@ export function togglePageOutline(pageId: string, pageContent?: string): ActionF
         } else {
             let content = pageContent;
             if (!content) {
-                // Pages are stored in wikiPages.fullPages (with content) or pageSummaries (without)
-                // If page isn't fully loaded yet, message will be empty
-                const fullPage = state.entities.wikiPages?.fullPages?.[pageId];
-                content = fullPage?.message || '';
+                const page = state.entities.posts.posts[pageId];
+                content = page?.message || '';
             }
 
             const headings = extractHeadingsFromContent(content || '');

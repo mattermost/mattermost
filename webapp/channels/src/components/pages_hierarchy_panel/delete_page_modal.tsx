@@ -41,6 +41,7 @@ const DeletePageModal = ({
             onExited={onCancel}
             confirmButtonText='Delete'
             confirmButtonClassName='btn-danger'
+            confirmButtonTestId='delete-button'
             autoCloseOnConfirmButton={true}
         >
             <div className='DeletePageModal__body'>

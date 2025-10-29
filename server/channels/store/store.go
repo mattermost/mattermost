@@ -1171,7 +1171,9 @@ type WikiStore interface {
 	Update(wiki *model.Wiki) (*model.Wiki, error)
 	Delete(id string, hard bool) error
 	GetPages(wikiId string, offset, limit int) ([]*model.Post, error)
+	GetAbandonedPages(cutoffTime int64) ([]*model.Post, error)
 	DeleteAllPagesForWiki(wikiId string) error
+	MovePageToWiki(pageId, targetWikiId string, parentPageId *string) error
 }
 
 type PageContentStore interface {

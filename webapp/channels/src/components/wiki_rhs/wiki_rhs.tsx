@@ -20,14 +20,29 @@ type Props = {
 
 const WikiRHS = ({pageId, pageTitle, channelLoaded, actions}: Props) => {
     return (
-        <div className='sidebar--right__content WikiRHS'>
-            <div className='WikiRHS__header'>
-                <h2>{'Thread'}</h2>
-                <span className='WikiRHS__page-title'>{pageTitle}</span>
-                <div className='WikiRHS__header-actions'>
+        <div
+            className='sidebar--right__content WikiRHS'
+            data-testid='wiki-rhs'
+        >
+            <div
+                className='WikiRHS__header'
+                data-testid='wiki-rhs-header'
+            >
+                <h2 data-testid='wiki-rhs-header-title'>{'Thread'}</h2>
+                <span
+                    className='WikiRHS__page-title'
+                    data-testid='wiki-rhs-page-title'
+                >
+                    {pageTitle}
+                </span>
+                <div
+                    className='WikiRHS__header-actions'
+                    data-testid='wiki-rhs-header-actions'
+                >
                     <button
                         className='WikiRHS__expand-btn'
                         aria-label='Expand'
+                        data-testid='wiki-rhs-expand-button'
                     >
                         <i className='icon-arrow-expand'/>
                     </button>
@@ -35,13 +50,17 @@ const WikiRHS = ({pageId, pageTitle, channelLoaded, actions}: Props) => {
                         className='WikiRHS__close-btn'
                         aria-label='Close'
                         onClick={actions.closeRightHandSide}
+                        data-testid='wiki-rhs-close-button'
                     >
                         <i className='icon-close'/>
                     </button>
                 </div>
             </div>
 
-            <div className='WikiRHS__comments-content'>
+            <div
+                className='WikiRHS__comments-content'
+                data-testid='wiki-rhs-comments-content'
+            >
                 {pageId && channelLoaded && (
                     <WikiThreadViewer
                         rootPostId={pageId}
@@ -51,12 +70,18 @@ const WikiRHS = ({pageId, pageTitle, channelLoaded, actions}: Props) => {
                     />
                 )}
                 {pageId && !channelLoaded && (
-                    <div className='WikiRHS__empty-state'>
+                    <div
+                        className='WikiRHS__empty-state'
+                        data-testid='wiki-rhs-loading'
+                    >
                         <p>{'Loading...'}</p>
                     </div>
                 )}
                 {!pageId && (
-                    <div className='WikiRHS__empty-state'>
+                    <div
+                        className='WikiRHS__empty-state'
+                        data-testid='wiki-rhs-empty-state'
+                    >
                         <p>{'Save page to enable comments'}</p>
                     </div>
                 )}

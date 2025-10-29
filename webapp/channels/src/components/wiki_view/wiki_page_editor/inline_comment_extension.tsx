@@ -74,38 +74,30 @@ const InlineCommentExtension = Extension.create<InlineCommentConfig>({
                 props: {
                     decorations(state) {
                         const comments = extension.storage.comments || [];
-                        console.log('[InlineCommentExtension] decorations() called with', comments.length, 'comments:', comments);
 
                         if (comments.length === 0) {
-                            console.log('[InlineCommentExtension] No comments, returning empty decoration set');
                             return DecorationSet.empty;
                         }
 
                         const decorations: Decoration[] = [];
                         const doc = state.doc;
-                        console.log('[InlineCommentExtension] Document size:', doc.content.size, 'Text content:', doc.textContent);
 
                         comments.forEach((comment: {id: string; props?: any}) => {
                             const anchor = comment.props?.inline_anchor;
-                            console.log('[InlineCommentExtension] Processing comment', comment.id, 'anchor:', anchor);
 
                             if (!anchor) {
-                                console.log('[InlineCommentExtension] Comment', comment.id, 'has no anchor, skipping');
                                 return;
                             }
 
                             const text = anchor.text;
                             const offset = anchor.char_offset || 0;
-                            console.log('[InlineCommentExtension] Looking for text:', text, 'at offset:', offset);
 
                             try {
                                 const from = offset;
                                 const to = offset + text.length;
-                                console.log('[InlineCommentExtension] Trying positions from:', from, 'to:', to);
 
                                 if (from >= 0 && to <= doc.content.size) {
                                     const docText = doc.textBetween(from, to);
-                                    console.log('[InlineCommentExtension] Text at position:', docText, 'Expected:', text, 'Match:', docText === text);
 
                                     if (docText === text) {
                                         decorations.push(
@@ -114,33 +106,21 @@ const InlineCommentExtension = Extension.create<InlineCommentConfig>({
                                                 'data-comment-id': comment.id,
                                             }),
                                         );
-                                        console.log('[InlineCommentExtension] Created decoration for comment', comment.id);
-                                    } else {
-                                        console.log('[InlineCommentExtension] Text mismatch - not creating decoration');
                                     }
-                                } else {
-                                    console.log('[InlineCommentExtension] Position out of bounds (doc size:', doc.content.size + ')');
                                 }
                             } catch (error) {
-                                console.error('[InlineCommentExtension] Failed to create decoration for comment:', comment.id, error);
+                                // Silently skip comments that fail to create decorations
                             }
                         });
 
-                        console.log('[InlineCommentExtension] Created', decorations.length, 'decorations');
                         return DecorationSet.create(doc, decorations);
                     },
                     handleClickOn(view, pos, node, nodePos, event) {
                         const target = event.target as HTMLElement;
-                        console.log('[InlineCommentExtension] handleClickOn triggered', {
-                            hasHighlightClass: target.classList.contains('inline-comment-highlight'),
-                            classList: Array.from(target.classList),
-                            commentId: target.getAttribute('data-comment-id'),
-                            hasCallback: !!extension.options.onCommentClick,
-                        });
                         if (target.classList.contains('inline-comment-highlight')) {
                             const commentId = target.getAttribute('data-comment-id');
                             if (commentId && extension.options.onCommentClick) {
-                                console.log('[InlineCommentExtension] Calling onCommentClick with:', commentId);
+                                const clickTime = performance.now();
                                 extension.options.onCommentClick(commentId);
                                 return true;
                             }

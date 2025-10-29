@@ -6,6 +6,7 @@ package sqlstore
 import (
 	"database/sql"
 
+	"github.com/lib/pq"
 	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
 
@@ -403,6 +404,117 @@ func (s *SqlWikiStore) DeleteAllPagesForWiki(wikiId string) error {
 
 	if _, err = transaction.ExecBuilder(draftsDeleteQuery); err != nil {
 		return errors.Wrap(err, "failed to delete drafts for wiki")
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return errors.Wrap(err, "commit_transaction")
+	}
+
+	return nil
+}
+
+func (s *SqlWikiStore) MovePageToWiki(pageId, targetWikiId string, parentPageId *string) error {
+	var err error
+	transaction, err := s.GetMaster().Beginx()
+	if err != nil {
+		return errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	updateAt := model.GetMillis()
+
+	recursiveCTE := `
+		WITH RECURSIVE page_subtree AS (
+			SELECT Id FROM Posts WHERE Id = ? AND Type = ? AND DeleteAt = 0
+			UNION ALL
+			SELECT p.Id FROM Posts p
+			INNER JOIN page_subtree ps ON p.PageParentId = ps.Id
+			WHERE p.Type = ? AND p.DeleteAt = 0
+		)
+		SELECT Id FROM page_subtree
+	`
+
+	var pageIDs []string
+	if err = transaction.Select(&pageIDs, recursiveCTE, pageId, model.PostTypePage, model.PostTypePage); err != nil {
+		return errors.Wrap(err, "failed to find page subtree")
+	}
+
+	if len(pageIDs) == 0 {
+		return store.NewErrNotFound("Page", pageId)
+	}
+
+	newParentId := ""
+	if parentPageId != nil && *parentPageId != "" {
+		newParentId = *parentPageId
+	}
+
+	updatePostQuery := `
+		UPDATE Posts
+		SET PageParentId = ?, UpdateAt = ?
+		WHERE Id = ? AND DeleteAt = 0
+	`
+
+	if _, err = transaction.Exec(updatePostQuery, newParentId, updateAt, pageId); err != nil {
+		return errors.Wrap(err, "failed to update page parent")
+	}
+
+	valueJSON := []byte(`"` + targetWikiId + `"`)
+	if s.IsBinaryParamEnabled() {
+		valueJSON = AppendBinaryFlag(valueJSON)
+	}
+
+	updateQuery := `
+		UPDATE PropertyValues
+		SET Value = ?, UpdateAt = ?
+		WHERE TargetID = ANY(?)
+		  AND TargetType = 'post'
+		  AND FieldID = ?
+		  AND GroupID = ?
+		  AND DeleteAt = 0
+	`
+
+	result, err := transaction.Exec(updateQuery, valueJSON, updateAt, pq.Array(pageIDs), model.WikiPropertyFieldID, model.WikiPropertyGroupID)
+	if err != nil {
+		return errors.Wrap(err, "failed to update property values for page subtree")
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "failed to get rows affected")
+	}
+
+	if int(rowsAffected) < len(pageIDs) {
+		missingCount := len(pageIDs) - int(rowsAffected)
+		mlog.Warn("Some pages in subtree missing wiki PropertyValues, creating them",
+			mlog.Int("missing_count", missingCount),
+			mlog.String("page_id", pageId))
+
+		insertQuery := `
+			INSERT INTO PropertyValues (ID, TargetID, TargetType, GroupID, FieldID, Value, CreateAt, UpdateAt, DeleteAt)
+			SELECT ?, ps.Id, 'post', ?, ?, ?, ?, ?, 0
+			FROM unnest(?::text[]) ps(Id)
+			WHERE NOT EXISTS (
+				SELECT 1 FROM PropertyValues pv
+				WHERE pv.TargetID = ps.Id
+				  AND pv.FieldID = ?
+				  AND pv.GroupID = ?
+				  AND pv.DeleteAt = 0
+			)
+		`
+
+		if _, err = transaction.Exec(insertQuery,
+			model.NewId(),
+			model.WikiPropertyGroupID,
+			model.WikiPropertyFieldID,
+			valueJSON,
+			updateAt,
+			updateAt,
+			pq.Array(pageIDs),
+			model.WikiPropertyFieldID,
+			model.WikiPropertyGroupID,
+		); err != nil {
+			return errors.Wrap(err, "failed to create property values for orphaned pages")
+		}
 	}
 
 	if err = transaction.Commit(); err != nil {

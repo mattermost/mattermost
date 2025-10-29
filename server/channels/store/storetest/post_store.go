@@ -68,7 +68,10 @@ func TestPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetNthRecentPostTime", func(t *testing.T) { testGetNthRecentPostTime(t, rctx, ss) })
 	t.Run("GetEditHistoryForPost", func(t *testing.T) { testGetEditHistoryForPost(t, rctx, ss) })
 	t.Run("GetPageChildren", func(t *testing.T) { testGetPageChildren(t, rctx, ss) })
+	t.Run("GetPageAncestors", func(t *testing.T) { testGetPageAncestors(t, rctx, ss) })
+	t.Run("GetPageDescendants", func(t *testing.T) { testGetPageDescendants(t, rctx, ss) })
 	t.Run("GetChannelPages", func(t *testing.T) { testGetChannelPages(t, rctx, ss) })
+	t.Run("ChangePageParent", func(t *testing.T) { testChangePageParent(t, rctx, ss) })
 	t.Run("GetCommentsForPage", func(t *testing.T) { testGetCommentsForPage(t, rctx, ss) })
 }
 
@@ -6115,5 +6118,382 @@ func testGetCommentsForPage(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		// Parent relationship for reply is in Props, not RootId
 		require.Equal(t, comment.Id, result.Posts[reply.Id].Props["parent_comment_id"], "reply's parent tracked in Props")
+	})
+}
+
+func testGetPageAncestors(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamID := model.NewId()
+	channel, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      teamID,
+		DisplayName: "Test Channel",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	userID := model.NewId()
+
+	t.Run("get ancestors of 3-level hierarchy", func(t *testing.T) {
+		grandparent := &model.Post{
+			UserId:    userID,
+			ChannelId: channel.Id,
+			Message:   "Grandparent",
+			Type:      model.PostTypePage,
+			Props: map[string]any{
+				"title": "Grandparent",
+			},
+		}
+		grandparent, err := ss.Post().Save(rctx, grandparent)
+		require.NoError(t, err)
+
+		parent := &model.Post{
+			UserId:       userID,
+			ChannelId:    channel.Id,
+			Message:      "Parent",
+			Type:         model.PostTypePage,
+			PageParentId: grandparent.Id,
+			Props: map[string]any{
+				"title": "Parent",
+			},
+		}
+		parent, err = ss.Post().Save(rctx, parent)
+		require.NoError(t, err)
+
+		child := &model.Post{
+			UserId:       userID,
+			ChannelId:    channel.Id,
+			Message:      "Child",
+			Type:         model.PostTypePage,
+			PageParentId: parent.Id,
+			Props: map[string]any{
+				"title": "Child",
+			},
+		}
+		child, err = ss.Post().Save(rctx, child)
+		require.NoError(t, err)
+
+		ancestors, err := ss.Page().GetPageAncestors(child.Id)
+		require.NoError(t, err)
+		require.NotNil(t, ancestors)
+		assert.Len(t, ancestors.Posts, 2)
+		assert.Contains(t, ancestors.Posts, parent.Id)
+		assert.Contains(t, ancestors.Posts, grandparent.Id)
+	})
+
+	t.Run("get ancestors returns empty for root page", func(t *testing.T) {
+		root := &model.Post{
+			UserId:    userID,
+			ChannelId: channel.Id,
+			Message:   "Root page",
+			Type:      model.PostTypePage,
+			Props: map[string]any{
+				"title": "Root",
+			},
+		}
+		root, err := ss.Post().Save(rctx, root)
+		require.NoError(t, err)
+
+		ancestors, err := ss.Page().GetPageAncestors(root.Id)
+		require.NoError(t, err)
+		require.NotNil(t, ancestors)
+		assert.Len(t, ancestors.Posts, 0)
+	})
+
+	t.Run("get ancestors excludes deleted pages", func(t *testing.T) {
+		grandparent := &model.Post{
+			UserId:    userID,
+			ChannelId: channel.Id,
+			Message:   "Grandparent",
+			Type:      model.PostTypePage,
+			DeleteAt:  model.GetMillis(),
+			Props: map[string]any{
+				"title": "Deleted Grandparent",
+			},
+		}
+		grandparent, err := ss.Post().Save(rctx, grandparent)
+		require.NoError(t, err)
+
+		parent := &model.Post{
+			UserId:       userID,
+			ChannelId:    channel.Id,
+			Message:      "Parent",
+			Type:         model.PostTypePage,
+			PageParentId: grandparent.Id,
+			Props: map[string]any{
+				"title": "Parent",
+			},
+		}
+		parent, err = ss.Post().Save(rctx, parent)
+		require.NoError(t, err)
+
+		child := &model.Post{
+			UserId:       userID,
+			ChannelId:    channel.Id,
+			Message:      "Child",
+			Type:         model.PostTypePage,
+			PageParentId: parent.Id,
+			Props: map[string]any{
+				"title": "Child",
+			},
+		}
+		child, err = ss.Post().Save(rctx, child)
+		require.NoError(t, err)
+
+		ancestors, err := ss.Page().GetPageAncestors(child.Id)
+		require.NoError(t, err)
+		assert.Len(t, ancestors.Posts, 1)
+		assert.Contains(t, ancestors.Posts, parent.Id)
+		assert.NotContains(t, ancestors.Posts, grandparent.Id)
+	})
+}
+
+func testGetPageDescendants(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamID := model.NewId()
+	channel, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      teamID,
+		DisplayName: "Test Channel",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	userID := model.NewId()
+
+	t.Run("get descendants of page with subtree", func(t *testing.T) {
+		root := &model.Post{
+			UserId:    userID,
+			ChannelId: channel.Id,
+			Message:   "Root",
+			Type:      model.PostTypePage,
+			Props: map[string]any{
+				"title": "Root",
+			},
+		}
+		root, err := ss.Post().Save(rctx, root)
+		require.NoError(t, err)
+
+		child1 := &model.Post{
+			UserId:       userID,
+			ChannelId:    channel.Id,
+			Message:      "Child 1",
+			Type:         model.PostTypePage,
+			PageParentId: root.Id,
+			Props: map[string]any{
+				"title": "Child 1",
+			},
+		}
+		child1, err = ss.Post().Save(rctx, child1)
+		require.NoError(t, err)
+
+		grandchild := &model.Post{
+			UserId:       userID,
+			ChannelId:    channel.Id,
+			Message:      "Grandchild",
+			Type:         model.PostTypePage,
+			PageParentId: child1.Id,
+			Props: map[string]any{
+				"title": "Grandchild",
+			},
+		}
+		grandchild, err = ss.Post().Save(rctx, grandchild)
+		require.NoError(t, err)
+
+		child2 := &model.Post{
+			UserId:       userID,
+			ChannelId:    channel.Id,
+			Message:      "Child 2",
+			Type:         model.PostTypePage,
+			PageParentId: root.Id,
+			Props: map[string]any{
+				"title": "Child 2",
+			},
+		}
+		child2, err = ss.Post().Save(rctx, child2)
+		require.NoError(t, err)
+
+		descendants, err := ss.Page().GetPageDescendants(root.Id)
+		require.NoError(t, err)
+		require.NotNil(t, descendants)
+		assert.Len(t, descendants.Posts, 3)
+		assert.Contains(t, descendants.Posts, child1.Id)
+		assert.Contains(t, descendants.Posts, child2.Id)
+		assert.Contains(t, descendants.Posts, grandchild.Id)
+	})
+
+	t.Run("get descendants returns empty for leaf page", func(t *testing.T) {
+		leaf := &model.Post{
+			UserId:    userID,
+			ChannelId: channel.Id,
+			Message:   "Leaf page",
+			Type:      model.PostTypePage,
+			Props: map[string]any{
+				"title": "Leaf",
+			},
+		}
+		leaf, err := ss.Post().Save(rctx, leaf)
+		require.NoError(t, err)
+
+		descendants, err := ss.Page().GetPageDescendants(leaf.Id)
+		require.NoError(t, err)
+		require.NotNil(t, descendants)
+		assert.Len(t, descendants.Posts, 0)
+	})
+
+	t.Run("get descendants excludes deleted pages", func(t *testing.T) {
+		root := &model.Post{
+			UserId:    userID,
+			ChannelId: channel.Id,
+			Message:   "Root",
+			Type:      model.PostTypePage,
+			Props: map[string]any{
+				"title": "Root",
+			},
+		}
+		root, err := ss.Post().Save(rctx, root)
+		require.NoError(t, err)
+
+		activeChild := &model.Post{
+			UserId:       userID,
+			ChannelId:    channel.Id,
+			Message:      "Active child",
+			Type:         model.PostTypePage,
+			PageParentId: root.Id,
+			Props: map[string]any{
+				"title": "Active",
+			},
+		}
+		activeChild, err = ss.Post().Save(rctx, activeChild)
+		require.NoError(t, err)
+
+		deletedChild := &model.Post{
+			UserId:       userID,
+			ChannelId:    channel.Id,
+			Message:      "Deleted child",
+			Type:         model.PostTypePage,
+			PageParentId: root.Id,
+			DeleteAt:     model.GetMillis(),
+			Props: map[string]any{
+				"title": "Deleted",
+			},
+		}
+		deletedChild, err = ss.Post().Save(rctx, deletedChild)
+		require.NoError(t, err)
+
+		descendants, err := ss.Page().GetPageDescendants(root.Id)
+		require.NoError(t, err)
+		assert.Len(t, descendants.Posts, 1)
+		assert.Contains(t, descendants.Posts, activeChild.Id)
+		assert.NotContains(t, descendants.Posts, deletedChild.Id)
+	})
+}
+
+func testChangePageParent(t *testing.T, rctx request.CTX, ss store.Store) {
+	teamID := model.NewId()
+	channel, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      teamID,
+		DisplayName: "Test Channel",
+		Name:        "channel" + model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}, -1)
+	require.NoError(t, err)
+
+	userID := model.NewId()
+
+	t.Run("change page parent successfully", func(t *testing.T) {
+		oldParent := &model.Post{
+			UserId:    userID,
+			ChannelId: channel.Id,
+			Message:   "Old parent",
+			Type:      model.PostTypePage,
+			Props: map[string]any{
+				"title": "Old Parent",
+			},
+		}
+		oldParent, err := ss.Post().Save(rctx, oldParent)
+		require.NoError(t, err)
+
+		newParent := &model.Post{
+			UserId:    userID,
+			ChannelId: channel.Id,
+			Message:   "New parent",
+			Type:      model.PostTypePage,
+			Props: map[string]any{
+				"title": "New Parent",
+			},
+		}
+		newParent, err = ss.Post().Save(rctx, newParent)
+		require.NoError(t, err)
+
+		page := &model.Post{
+			UserId:       userID,
+			ChannelId:    channel.Id,
+			Message:      "Page to move",
+			Type:         model.PostTypePage,
+			PageParentId: oldParent.Id,
+			Props: map[string]any{
+				"title": "Page",
+			},
+		}
+		page, err = ss.Post().Save(rctx, page)
+		require.NoError(t, err)
+
+		err = ss.Page().ChangePageParent(page.Id, newParent.Id)
+		require.NoError(t, err)
+
+		updatedPage, err := ss.Post().GetSingle(rctx, page.Id, false)
+		require.NoError(t, err)
+		assert.Equal(t, newParent.Id, updatedPage.PageParentId)
+		assert.Greater(t, updatedPage.UpdateAt, page.UpdateAt)
+	})
+
+	t.Run("change page to root (empty parent)", func(t *testing.T) {
+		parent := &model.Post{
+			UserId:    userID,
+			ChannelId: channel.Id,
+			Message:   "Parent",
+			Type:      model.PostTypePage,
+			Props: map[string]any{
+				"title": "Parent",
+			},
+		}
+		parent, err := ss.Post().Save(rctx, parent)
+		require.NoError(t, err)
+
+		page := &model.Post{
+			UserId:       userID,
+			ChannelId:    channel.Id,
+			Message:      "Page with parent",
+			Type:         model.PostTypePage,
+			PageParentId: parent.Id,
+			Props: map[string]any{
+				"title": "Page",
+			},
+		}
+		page, err = ss.Post().Save(rctx, page)
+		require.NoError(t, err)
+
+		err = ss.Page().ChangePageParent(page.Id, "")
+		require.NoError(t, err)
+
+		updatedPage, err := ss.Post().GetSingle(rctx, page.Id, false)
+		require.NoError(t, err)
+		assert.Empty(t, updatedPage.PageParentId)
+	})
+
+	t.Run("change page parent fails for non-existent page", func(t *testing.T) {
+		newParent := &model.Post{
+			UserId:    userID,
+			ChannelId: channel.Id,
+			Message:   "New parent",
+			Type:      model.PostTypePage,
+			Props: map[string]any{
+				"title": "New Parent",
+			},
+		}
+		newParent, err := ss.Post().Save(rctx, newParent)
+		require.NoError(t, err)
+
+		err = ss.Page().ChangePageParent("nonexistent", newParent.Id)
+		require.Error(t, err)
 	})
 }

@@ -2,6 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useEffect} from 'react';
+import {useSelector, useDispatch} from 'react-redux';
+
+import {getChannelPages} from 'selectors/pages';
+import {loadChannelPages} from 'actions/pages';
+
+import type {GlobalState} from 'types/store';
 
 import TipTapEditor from './tiptap_editor';
 
@@ -33,7 +39,17 @@ const WikiPageEditor = ({
     wikiId,
     showAuthor = false,
 }: Props) => {
+    const dispatch = useDispatch();
     const [localTitle, setLocalTitle] = useState(title);
+
+    const pages = useSelector((state: GlobalState) => getChannelPages(state, channelId || ''));
+
+    // Fetch all pages in the channel for cross-wiki linking
+    useEffect(() => {
+        if (channelId) {
+            dispatch(loadChannelPages(channelId));
+        }
+    }, [dispatch, channelId]);
 
     // Use shared inline comments hook
     const {
@@ -56,21 +72,46 @@ const WikiPageEditor = ({
     };
 
     return (
-        <div className='page-draft-editor'>
-            <div className='draft-header'>
+        <div
+            className='page-draft-editor'
+            data-testid='wiki-page-editor'
+        >
+            <div
+                className='draft-header'
+                data-testid='wiki-page-editor-header'
+            >
                 <input
                     type='text'
                     className='page-title-input'
                     placeholder='Untitled page...'
                     value={localTitle}
                     onChange={(e) => handleTitleChange(e.target.value)}
+                    data-testid='wiki-page-title-input'
                 />
-                <div className='page-meta'>
+                <div
+                    className='page-meta'
+                    data-testid='wiki-page-meta'
+                >
                     {showAuthor && currentUserId && (
-                        <span className='page-author'>{`By ${currentUserId}`}</span>
+                        <span
+                            className='page-author'
+                            data-testid='wiki-page-author'
+                        >
+                            {`By ${currentUserId}`}
+                        </span>
                     )}
-                    <span className='page-status badge'>{'Draft'}</span>
-                    <button className='add-attributes-btn'>{'Add Attributes'}</button>
+                    <span
+                        className='page-status badge'
+                        data-testid='wiki-page-draft-badge'
+                    >
+                        {'Draft'}
+                    </span>
+                    <button
+                        className='add-attributes-btn'
+                        data-testid='wiki-page-add-attributes'
+                    >
+                        {'Add Attributes'}
+                    </button>
                 </div>
             </div>
             <div className='draft-content'>
@@ -84,6 +125,7 @@ const WikiPageEditor = ({
                     teamId={teamId}
                     pageId={pageId}
                     wikiId={wikiId}
+                    pages={pages}
                     inlineComments={inlineComments}
                     onCommentClick={handleCommentClick}
                     onCreateInlineComment={handleCreateInlineComment}

@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {TextSelection} from '@tiptap/pm/state';
 import {BubbleMenu} from '@tiptap/react/menus';
 import React from 'react';
 
@@ -31,25 +32,32 @@ const InlineCommentButton = ({editor, onCreateComment}: Props) => {
     return (
         <BubbleMenu
             editor={editor}
-            shouldShow={({state}: {state: any}) => {
+            shouldShow={({state}: {editor: any; state: any}) => {
                 const {selection} = state;
-                const {from, to} = selection;
-                return from !== to;
+
+                // Only show for non-empty TextSelection (not NodeSelection or collapsed cursor)
+                if (!(selection instanceof TextSelection) || selection.empty) {
+                    return false;
+                }
+
+                // Ensure selected text is not just whitespace
+                const text = state.doc.textBetween(selection.from, selection.to).trim();
+                return text.length > 0;
             }}
-            options={{
-                placement: 'top',
-            }}
-            className='inline-comment-bubble'
         >
-            <button
-                type='button'
-                onClick={handleClick}
-                className='inline-comment-btn'
-                title='Add comment to selection'
-            >
-                <i className='icon icon-plus'/>
-                <span>{'Comment'}</span>
-            </button>
+            <div className='inline-comment-bubble'>
+                <button
+                    type='button'
+                    onClick={handleClick}
+                    className='inline-comment-btn'
+                    aria-label='Add comment to selection'
+                    title='Add comment to selection'
+                    data-testid='inline-comment-submit'
+                >
+                    <i className='icon icon-plus'/>
+                    <span>{'Comment'}</span>
+                </button>
+            </div>
         </BubbleMenu>
     );
 };

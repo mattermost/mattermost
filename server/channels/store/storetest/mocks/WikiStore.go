@@ -110,6 +110,36 @@ func (_m *WikiStore) Get(id string) (*model.Wiki, error) {
 	return r0, r1
 }
 
+// GetAbandonedPages provides a mock function with given fields: cutoffTime
+func (_m *WikiStore) GetAbandonedPages(cutoffTime int64) ([]*model.Post, error) {
+	ret := _m.Called(cutoffTime)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAbandonedPages")
+	}
+
+	var r0 []*model.Post
+	var r1 error
+	if rf, ok := ret.Get(0).(func(int64) ([]*model.Post, error)); ok {
+		return rf(cutoffTime)
+	}
+	if rf, ok := ret.Get(0).(func(int64) []*model.Post); ok {
+		r0 = rf(cutoffTime)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Post)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(int64) error); ok {
+		r1 = rf(cutoffTime)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetForChannel provides a mock function with given fields: channelId, includeDeleted
 func (_m *WikiStore) GetForChannel(channelId string, includeDeleted bool) ([]*model.Wiki, error) {
 	ret := _m.Called(channelId, includeDeleted)
@@ -168,6 +198,24 @@ func (_m *WikiStore) GetPages(wikiId string, offset int, limit int) ([]*model.Po
 	}
 
 	return r0, r1
+}
+
+// MovePageToWiki provides a mock function with given fields: pageId, targetWikiId, parentPageId
+func (_m *WikiStore) MovePageToWiki(pageId string, targetWikiId string, parentPageId *string) error {
+	ret := _m.Called(pageId, targetWikiId, parentPageId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MovePageToWiki")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, *string) error); ok {
+		r0 = rf(pageId, targetWikiId, parentPageId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // Save provides a mock function with given fields: wiki

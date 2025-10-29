@@ -20,3 +20,22 @@
     font-size: 13px;
     font-style: italic;
 }
+
+// Drag-and-drop styles
+.PageTreeView--dragging-over {
+    background-color: rgba(var(--button-bg-rgb), 0.04);
+}
+
+.PageTreeView__node--dragging {
+    opacity: 0.5;
+    background-color: rgba(var(--button-bg-rgb), 0.08);
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.PageTreeView__node--combine-target {
+    background-color: rgba(var(--button-bg-rgb), 0.12);
+    border: 2px dashed rgba(var(--button-bg-rgb), 0.4);
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}

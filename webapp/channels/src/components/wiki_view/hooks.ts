@@ -2,17 +2,20 @@
 // See LICENSE.txt for license information.
 
 import type {Location} from 'history';
-import {useEffect, useState, useCallback, useRef} from 'react';
+import {useEffect, useLayoutEffect, useState, useCallback, useRef} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
 
 import {getChannel, getChannelMember, selectChannel} from 'mattermost-redux/actions/channels';
 import {getChannel as getChannelSelector} from 'mattermost-redux/selectors/entities/channels';
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {savePageDraft} from 'actions/page_drafts';
 import {loadChannelDefaultPage, loadWikiPages, publishPageDraft, loadPage} from 'actions/pages';
+import {getWikiUrl, getTeamNameFromPath} from 'utils/url';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
@@ -40,15 +43,28 @@ export function useWikiPageData(
     const dispatch = useDispatch();
     const [isLoading, setLoading] = useState(true);
     const currentUserId = useSelector((state: GlobalState) => getCurrentUserId(state));
+    const currentTeam = useSelector((state: GlobalState) => getCurrentTeam(state));
     const channel = useSelector((state: GlobalState) => getChannelSelector(state, channelId));
     const member = useSelector((state: GlobalState) => state.entities.channels.myMembers[channelId]);
 
+    // Use refs to avoid re-running effect when channel/member objects change reference
+    const channelRef = useRef(channel);
+    const memberRef = useRef(member);
+    const historyRef = useRef(history);
+    const currentTeamRef = useRef(currentTeam);
+    channelRef.current = channel;
+    memberRef.current = member;
+    historyRef.current = history;
+    currentTeamRef.current = currentTeam;
+
     // Persistent channel selection: ensures channel stays selected even after route changes
     useEffect(() => {
-        if (channel && member && channelId) {
+        const currentChannel = channelRef.current;
+        const currentMember = memberRef.current;
+        if (currentChannel && currentMember && channelId) {
             dispatch(selectChannel(channelId));
         }
-    }, [channelId, channel, member, dispatch]);
+    }, [channelId, dispatch]); // Removed channel and member from dependencies - using refs instead
 
     useEffect(() => {
         const loadPageOrDraft = async () => {
@@ -63,17 +79,37 @@ export function useWikiPageData(
                 }
 
                 if (!member) {
-                    await dispatch(getChannelMember(channelId, currentUserId));
+                    const result = await dispatch(getChannelMember(channelId, currentUserId));
+
+                    // Check for permission error (non-member trying to access channel)
+                    if (result.error) {
+                        const defaultChannel = 'town-square';
+                        const teamName = currentTeamRef.current?.name || '';
+                        historyRef.current.push(`/error?type=channel_not_found&returnTo=/${teamName}/channels/${defaultChannel}`);
+                        return;
+                    }
                 }
 
                 dispatch(selectChannel(channelId));
             } catch (error) {
-                // Error loading channel
+                // Handle unexpected errors with redirect
+                const defaultChannel = 'town-square';
+                const teamName = currentTeamRef.current?.name || '';
+                historyRef.current.push(`/error?type=channel_not_found&returnTo=/${teamName}/channels/${defaultChannel}`);
+                return;
             }
 
             if (pageId) {
                 if (wikiId) {
-                    await dispatch(loadPage(pageId, wikiId));
+                    const result = await dispatch(loadPage(pageId, wikiId));
+
+                    // Check for permission error (403) when loading page
+                    if (result.error && result.error.status_code === 403) {
+                        const defaultChannel = 'town-square';
+                        const teamName = currentTeamRef.current?.name || '';
+                        historyRef.current.push(`/error?type=channel_not_found&returnTo=/${teamName}/channels/${defaultChannel}`);
+                        return;
+                    }
                 }
                 setLoading(false);
                 return;
@@ -141,9 +177,30 @@ export function useWikiPageActions(
     const latestContentRef = useRef<string>('');
     const latestTitleRef = useRef<string>('');
     const previousDraftRef = useRef<PostDraft | null>(null);
+    const draftGenerationRef = useRef(0);
+    const currentDraftIdRef = useRef<string | null>(null);
 
-    // Initialize refs when draft changes
-    useEffect(() => {
+    // Initialize refs when draft changes. We deliberately use `useLayoutEffect`
+    // instead of `useEffect` so that any pending changes to the **previous**
+    // draft are flushed *before* React mounts the child editor for the newly
+    // selected draft. Using a layout-effect guarantees that this code runs
+    // earlier in the effect phase (parent → child order) and therefore the
+    // `latestContentRef` / `latestTitleRef` values still correspond to the
+    // previous draft. This prevents the scenario where the new editor updates
+    // `latestContentRef` during its own `useEffect`/`onUpdate` callbacks and
+    // consequently causes us to save the previous draft with the new draft's
+    // content (overwriting it).
+    //
+    // See https://react.dev/learn/synchronizing-with-effects#fetching-data for
+    // effect ordering details.
+    useLayoutEffect(() => {
+        // Increment generation counter ONLY when switching to a different draft (different rootId)
+        const newDraftId = currentDraft?.rootId || null;
+        if (newDraftId !== currentDraftIdRef.current) {
+            draftGenerationRef.current += 1;
+            currentDraftIdRef.current = newDraftId;
+        }
+
         // Save any pending changes to the PREVIOUS draft before switching
         // BUT: Don't flush if transitioning to null (draft was deleted/published)
         if (autosaveTimeoutRef.current && previousDraftRef.current && wikiId && currentDraft) {
@@ -217,16 +274,17 @@ export function useWikiPageActions(
             clearTimeout(autosaveTimeoutRef.current);
         }
 
-        // Capture draft details in closure to prevent stale data
+        // Capture draft details and generation in closure to prevent stale data
         const draftId = currentDraft.rootId;
         const content = latestContentRef.current || currentDraft.message || '';
         const pageIdFromDraft = currentDraft.props?.page_id as string | undefined;
         const pageParentIdFromDraft = currentDraft.props?.page_parent_id;
         const capturedTitle = newTitle;
+        const capturedGeneration = draftGenerationRef.current;
 
         autosaveTimeoutRef.current = setTimeout(() => {
-            // Verify we're still editing the same draft before saving
-            if (!currentDraft || currentDraft.rootId !== draftId) {
+            // Verify we're still editing the same draft AND generation before saving
+            if (!currentDraft || currentDraft.rootId !== draftId || draftGenerationRef.current !== capturedGeneration) {
                 return;
             }
 
@@ -234,11 +292,23 @@ export function useWikiPageActions(
         }, 500);
     }, [channelId, wikiId, currentDraft, dispatch]);
 
+    // Store the latest values in refs to avoid recreating handleContentChange
+    const channelIdRef = useRef(channelId);
+    const wikiIdRef = useRef(wikiId);
+    const currentDraftRef = useRef(currentDraft);
+    const dispatchRef = useRef(dispatch);
+
+    // Update refs on every render
+    channelIdRef.current = channelId;
+    wikiIdRef.current = wikiId;
+    currentDraftRef.current = currentDraft;
+    dispatchRef.current = dispatch;
+
     const handleContentChange = useCallback((newContent: string) => {
         // Update ref immediately
         latestContentRef.current = newContent;
 
-        if (!wikiId || !currentDraft) {
+        if (!wikiIdRef.current || !currentDraftRef.current) {
             return;
         }
 
@@ -246,22 +316,27 @@ export function useWikiPageActions(
             clearTimeout(autosaveTimeoutRef.current);
         }
 
-        // Capture draft details in closure to prevent stale data
-        const draftId = currentDraft.rootId;
-        const title = latestTitleRef.current || currentDraft.props?.title || '';
-        const pageIdFromDraft = currentDraft.props?.page_id as string | undefined;
-        const pageParentIdFromDraft = currentDraft.props?.page_parent_id;
+        // Capture draft details and generation in closure to prevent stale data
+        // IMPORTANT: Capture from currentDraft prop (via ref) at call time, before any draft switches
+        const capturedDraft = currentDraftRef.current;
+        const draftId = capturedDraft.rootId;
+        const title = latestTitleRef.current || capturedDraft.props?.title || '';
+        const pageIdFromDraft = capturedDraft.props?.page_id as string | undefined;
+        const pageParentIdFromDraft = capturedDraft.props?.page_parent_id;
         const capturedContent = newContent;
+        const capturedChannelId = channelIdRef.current;
+        const capturedWikiId = wikiIdRef.current;
+        const capturedGeneration = draftGenerationRef.current;
 
         autosaveTimeoutRef.current = setTimeout(() => {
-            // Verify we're still editing the same draft before saving
-            if (!currentDraft || currentDraft.rootId !== draftId) {
+            // Verify we're still editing the same draft AND generation before saving
+            if (!currentDraftRef.current || currentDraftRef.current.rootId !== draftId || draftGenerationRef.current !== capturedGeneration) {
                 return;
             }
 
-            dispatch(savePageDraft(channelId, wikiId, draftId, capturedContent, title, pageIdFromDraft, pageParentIdFromDraft ? {page_parent_id: pageParentIdFromDraft} : undefined));
+            dispatchRef.current(savePageDraft(capturedChannelId, capturedWikiId, draftId ?? '', capturedContent, title, pageIdFromDraft, pageParentIdFromDraft ? {page_parent_id: pageParentIdFromDraft} : undefined));
         }, 500);
-    }, [channelId, wikiId, currentDraft, dispatch]);
+    }, []); // Empty deps - stable function reference
 
     const handlePublish = useCallback(async () => {
         if (!wikiId || !currentDraft) {
@@ -285,29 +360,36 @@ export function useWikiPageActions(
         const pageParentIdFromDraft = currentDraft.props?.page_parent_id;
 
         try {
-            // Cancel any pending autosave and save immediately with latest content
+            // Cancel any pending autosave
             if (autosaveTimeoutRef.current) {
                 clearTimeout(autosaveTimeoutRef.current);
             }
-            await dispatch(savePageDraft(channelId, wikiId, draftRootId, content, title, pageIdFromDraft, pageParentIdFromDraft ? {page_parent_id: pageParentIdFromDraft} : undefined));
+
+            // COMMENTED OUT: No longer need to save draft before publishing since we pass content directly
+            // This also eliminates potential race condition where savePageDraft could resurrect a deleted draft
+            // if the publish completes first (ON CONFLICT ... DO UPDATE SET DeleteAt = 0 in Upsert)
+            // await dispatch(savePageDraft(channelId, wikiId, draftRootId, content, title, pageIdFromDraft, pageParentIdFromDraft ? {page_parent_id: pageParentIdFromDraft} : undefined));
 
             const result = await dispatch(publishPageDraft(
                 wikiId,
                 draftRootId,
                 pageParentIdFromDraft || '',
                 title,
+                '',
+                content,
             ));
 
-            if (result.data) {
-                // Phase 1 Refactor: Clean navigation to published page
-                // Build URL from scratch instead of manipulating current path
-                const teamName = location.pathname.split('/')[1]; // Extract team from /:team/wiki/...
-                const redirectUrl = `/${teamName}/wiki/${channelId}/${wikiId}/${result.data.id}`;
+            if (result.error) {
+                return;
+            }
 
+            if (result.data) {
+                const teamName = getTeamNameFromPath(location.pathname);
+                const redirectUrl = getWikiUrl(teamName, channelId, wikiId, result.data.id);
                 history.replace(redirectUrl);
             }
         } catch (error) {
-            // Error during publish
+            // Unexpected error - already logged by publishPageDraft action
         }
     }, [channelId, wikiId, currentDraft, draftId, location.pathname, history, dispatch]);
 

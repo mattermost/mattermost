@@ -2,15 +2,17 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 
 import type {Post} from '@mattermost/types/posts';
+import {Client4} from 'mattermost-redux/client';
 
 import {PageDisplayTypes} from 'utils/constants';
 
 import type {PostDraft} from 'types/store/draft';
 
 import DeletePageModal from './delete_page_modal';
+import MovePageModal from 'components/move_page_modal';
 import PageSearchBar from './page_search_bar';
 import PageTreeView from './page_tree_view';
 import PagesHeader from './pages_header';
@@ -44,6 +46,7 @@ type Props = {
         renamePage: (pageId: string, newTitle: string, wikiId: string) => Promise<{data?: Post; error?: any}>;
         deletePage: (pageId: string, wikiId: string) => Promise<{data?: boolean; error?: any}>;
         movePage: (pageId: string, newParentId: string, wikiId: string) => Promise<{data?: Post; error?: any}>;
+        movePageToWiki: (pageId: string, sourceWikiId: string, targetWikiId: string, parentPageId?: string) => Promise<{data?: boolean; error?: any}>;
         closePagesPanel: () => void;
     };
 };
@@ -67,37 +70,20 @@ const PagesHierarchyPanel = ({
     const [deletingPageId, setDeletingPageId] = useState<string | null>(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [pageToDelete, setPageToDelete] = useState<{page: Post; childCount: number} | null>(null);
+    const [showMoveModal, setShowMoveModal] = useState(false);
+    const [pageToMove, setPageToMove] = useState<{pageId: string; pageTitle: string; hasChildren: boolean} | null>(null);
+    const [availableWikis, setAvailableWikis] = useState<any[]>([]);
 
     // Load pages and drafts on mount or when wikiId changes
     useEffect(() => {
-        console.log('[DEBUG] PagesHierarchyPanel mounted/wikiId changed:', wikiId);
         actions.loadWikiPages(wikiId);
         actions.loadPageDraftsForWiki(wikiId);
     }, [wikiId]);
 
-    // Debug: Log when pages or drafts props change
-    useEffect(() => {
-        console.log('[DEBUG] PagesHierarchyPanel - pages prop changed:', {
-            count: pages.length,
-            ids: pages.map((p) => ({id: p.id, title: p.props?.title})),
-        });
+    // Memoize pageMap to avoid recreating it on every render
+    const pageMap = useMemo(() => {
+        return new Map(pages.map((p) => [p.id, p]));
     }, [pages]);
-
-    useEffect(() => {
-        console.log('[DEBUG] PagesHierarchyPanel - drafts prop changed:', {
-            count: drafts.length,
-            drafts: drafts.map((d) => ({
-                rootId: d.rootId,
-                title: d.props?.title,
-                channelId: d.channelId,
-                wikiId: d.wikiId,
-                page_parent_id: d.props?.page_parent_id,
-                page_id: d.props?.page_id,
-                createAt: d.createAt,
-                updateAt: d.updateAt,
-            })),
-        });
-    }, [drafts]);
 
     // Set selected page when currentPageId changes
     useEffect(() => {
@@ -105,16 +91,16 @@ const PagesHierarchyPanel = ({
             actions.setSelectedPage(currentPageId);
 
             // Expand ancestors to show path to current page
-            const ancestorIds = getAncestorIds(pages, currentPageId);
+            const ancestorIds = getAncestorIds(pages, currentPageId, pageMap);
             if (ancestorIds.length > 0) {
                 actions.expandAncestors(wikiId, ancestorIds);
             }
         }
-    }, [currentPageId, pages, wikiId]);
+    }, [currentPageId, pages, wikiId, pageMap, selectedPageId, actions]);
 
     // Convert drafts to Post-like objects to include in tree
     const draftPosts: DraftPage[] = useMemo(() => {
-        const converted = drafts.map((draft): DraftPage => ({
+        return drafts.map((draft): DraftPage => ({
             id: draft.rootId,
             create_at: draft.createAt,
             update_at: draft.updateAt,
@@ -146,57 +132,18 @@ const PagesHierarchyPanel = ({
                 images: {},
             },
         }));
-        console.log('[DEBUG] PagesHierarchyPanel - draftPosts converted:', converted.map((d) => ({
-            id: d.id,
-            title: d.props?.title,
-            type: d.type,
-            page_parent_id: d.page_parent_id,
-        })));
-        return converted;
     }, [drafts]);
 
     // Combine pages and drafts for tree building
     // But exclude published pages that have a draft (to avoid duplicates)
     const draftIds = useMemo(() => {
-        const ids = new Set(drafts.map((d) => d.rootId));
-        console.log('[DEBUG] PagesHierarchyPanel - draftIds (rootIds from drafts):', Array.from(ids));
-        return ids;
+        return new Set(drafts.map((d) => d.props?.page_id).filter(Boolean));
     }, [drafts]);
     const pagesWithoutDrafts = useMemo(() => {
-        const filtered = pages.filter((page) => {
-            const hasDraft = draftIds.has(page.id);
-            if (hasDraft) {
-                console.log('[DEBUG] PagesHierarchyPanel - FILTERING OUT published page (has draft):', {
-                    pageId: page.id,
-                    title: page.props?.title,
-                    type: page.type,
-                });
-            }
-            return !hasDraft;
-        });
-        console.log('[DEBUG] PagesHierarchyPanel - pages:', pages.length, 'pagesWithoutDrafts:', filtered.length);
-        console.log('[DEBUG] PagesHierarchyPanel - published pages details:', pages.map((p) => ({
-            id: p.id,
-            title: p.props?.title,
-            type: p.type,
-            page_parent_id: p.page_parent_id,
-        })));
-        return filtered;
+        return pages.filter((page) => !draftIds.has(page.id));
     }, [pages, draftIds]);
     const allPages = useMemo(() => {
-        const combined = [...pagesWithoutDrafts, ...draftPosts];
-        console.log('[DEBUG] PagesHierarchyPanel - allPages (FINAL):', combined.length, 'breakdown:', {
-            pagesWithoutDrafts: pagesWithoutDrafts.length,
-            draftPosts: draftPosts.length,
-        });
-        console.log('[DEBUG] PagesHierarchyPanel - allPages details:', combined.map((p) => ({
-            id: p.id,
-            title: p.props?.title,
-            type: p.type,
-            isDraft: p.type === PageDisplayTypes.PAGE_DRAFT,
-            page_parent_id: p.page_parent_id,
-        })));
-        return combined;
+        return [...pagesWithoutDrafts, ...draftPosts];
     }, [pagesWithoutDrafts, draftPosts]);
 
     // Build tree from flat pages (including drafts)
@@ -211,7 +158,10 @@ const PagesHierarchyPanel = ({
     }, [tree, searchQuery]);
 
     const handlePageSelect = (pageId: string) => {
+        const startTime = performance.now();
+
         actions.setSelectedPage(pageId);
+
         onPageSelect(pageId);
     };
 
@@ -234,16 +184,14 @@ const PagesHierarchyPanel = ({
         setCreatingPage(true);
         try {
             const result = await actions.createPage(wikiId, title);
-            console.log('[handleNewPage] createPage result:', result);
             if (result.error) {
-                console.error('[handleNewPage] Error creating page:', result.error);
+                // TODO: Show error notification instead of alert
             } else if (result.data) {
                 const draftId = result.data;
-                console.log('[handleNewPage] Draft created with draftId:', draftId);
                 handlePageSelect(draftId);
             }
         } catch (error) {
-            console.error('[handleNewPage] Exception:', error);
+            // TODO: Show error notification instead of alert
         } finally {
             setCreatingPage(false);
         }
@@ -268,7 +216,7 @@ const PagesHierarchyPanel = ({
                 // TODO: Show error notification instead of alert
             } else if (result.data) {
                 const draftId = result.data;
-                actions.toggleNodeExpanded(wikiId, pageId);
+                actions.expandAncestors(wikiId, [pageId]);
                 handlePageSelect(draftId);
             }
         } catch (error) {
@@ -315,33 +263,93 @@ const PagesHierarchyPanel = ({
         // alert('Duplicate functionality coming soon!');
     };
 
-    const handleMove = () => {
-        // TODO: Implement move functionality with modal to select new parent
-        // alert('Move functionality coming soon! This will open a modal to select a new parent page.');
+    const handleMove = async (pageId: string) => {
+        const page = allPages.find((p) => p.id === pageId);
+        if (!page) {
+            return;
+        }
+
+        const pageTitle = page.props?.title || page.message || 'Untitled';
+        const childCount = getDescendantCount(pageId, childrenMap);
+        const hasChildren = childCount > 0;
+
+        try {
+            const wikis = await Client4.getChannelWikis(channelId);
+            setAvailableWikis(wikis || []);
+            setPageToMove({pageId, pageTitle: String(pageTitle), hasChildren});
+            setShowMoveModal(true);
+        } catch (error) {
+            // TODO: Show error notification instead of alert
+        }
     };
 
-    const getDescendantCount = (pageId: string, pages: PageOrDraft[]): number => {
-        const children = pages.filter((p) => p.page_parent_id === pageId);
+    const fetchPagesForWiki = useCallback(async (wikiId: string): Promise<typeof pages> => {
+        try {
+            const result = await actions.loadWikiPages(wikiId);
+            return result.data || [];
+        } catch (error) {
+            return [];
+        }
+    }, [actions]);
+
+    const handleMoveConfirm = async (targetWikiId: string, parentPageId?: string) => {
+        if (!pageToMove) {
+            return;
+        }
+
+        try {
+            const result = await actions.movePageToWiki(pageToMove.pageId, wikiId, targetWikiId, parentPageId);
+            if (result.error) {
+                // TODO: Show error notification instead of alert
+            }
+        } catch (error) {
+            // TODO: Show error notification instead of alert
+        } finally {
+            setShowMoveModal(false);
+            setPageToMove(null);
+        }
+    };
+
+    const handleMoveCancel = () => {
+        setShowMoveModal(false);
+        setPageToMove(null);
+    };
+
+    // Memoize children map for efficient descendant lookups
+    const childrenMap = useMemo(() => {
+        const map = new Map<string, PageOrDraft[]>();
+        allPages.forEach((page) => {
+            const parentId = page.page_parent_id || '';
+            if (!map.has(parentId)) {
+                map.set(parentId, []);
+            }
+            map.get(parentId)!.push(page);
+        });
+        return map;
+    }, [allPages]);
+
+    const getDescendantCount = useCallback((pageId: string, childrenMap: Map<string, PageOrDraft[]>): number => {
+        const children = childrenMap.get(pageId) || [];
         let count = children.length;
 
         children.forEach((child) => {
-            count += getDescendantCount(child.id, pages);
+            count += getDescendantCount(child.id, childrenMap);
         });
 
         return count;
-    };
+    }, []);
 
-    const getAllDescendantIds = (pageId: string, pages: PageOrDraft[]): string[] => {
-        const children = pages.filter((p) => p.page_parent_id === pageId);
+    const getAllDescendantIds = useCallback((pageId: string, childrenMap: Map<string, PageOrDraft[]>): string[] => {
+        const children = childrenMap.get(pageId) || [];
         const descendantIds: string[] = [];
 
         children.forEach((child) => {
             descendantIds.push(child.id);
-            descendantIds.push(...getAllDescendantIds(child.id, pages));
+            descendantIds.push(...getAllDescendantIds(child.id, childrenMap));
         });
 
         return descendantIds;
-    };
+    }, []);
 
     const handleDelete = async (pageId: string) => {
         if (deletingPageId) {
@@ -378,7 +386,7 @@ const PagesHierarchyPanel = ({
             return;
         }
 
-        const childCount = getDescendantCount(pageId, allPages);
+        const childCount = getDescendantCount(pageId, childrenMap);
 
         if (childCount > 0) {
             setPageToDelete({page, childCount});
@@ -396,6 +404,12 @@ const PagesHierarchyPanel = ({
 
                 if (result.error) {
                     // TODO: Show error notification instead of alert
+                } else {
+                    const isViewingDeletedPage = currentPageId && currentPageId === pageId;
+                    if (isViewingDeletedPage) {
+                        const parentId = page.page_parent_id || '';
+                        onPageSelect(parentId);
+                    }
                 }
             } catch (error) {
                 // TODO: Show error notification instead of alert
@@ -417,7 +431,7 @@ const PagesHierarchyPanel = ({
 
         try {
             if (deleteChildren) {
-                const descendantIds = getAllDescendantIds(page.id, allPages);
+                const descendantIds = getAllDescendantIds(page.id, childrenMap);
 
                 for (const descendantId of descendantIds.reverse()) {
                     // eslint-disable-next-line no-await-in-loop
@@ -430,7 +444,7 @@ const PagesHierarchyPanel = ({
             if (result.error) {
                 // TODO: Show error notification instead of alert
             } else {
-                const deletedPageIds = deleteChildren ? [page.id, ...getAllDescendantIds(page.id, allPages)] : [page.id];
+                const deletedPageIds = deleteChildren ? [page.id, ...getAllDescendantIds(page.id, childrenMap)] : [page.id];
                 const isViewingDeletedPage = currentPageId && deletedPageIds.includes(currentPageId);
 
                 if (isViewingDeletedPage) {
@@ -457,8 +471,12 @@ const PagesHierarchyPanel = ({
                 className={classNames('PagesHierarchyPanel', {
                     'PagesHierarchyPanel--collapsed': isPanelCollapsed,
                 })}
+                data-testid='pages-hierarchy-panel'
             >
-                <div className='PagesHierarchyPanel__loading'>
+                <div
+                    className='PagesHierarchyPanel__loading'
+                    data-testid='pages-hierarchy-loading'
+                >
                     {'Loading pages...'}
                 </div>
             </div>
@@ -470,6 +488,7 @@ const PagesHierarchyPanel = ({
             className={classNames('PagesHierarchyPanel', {
                 'PagesHierarchyPanel--collapsed': isPanelCollapsed,
             })}
+            data-testid='pages-hierarchy-panel'
         >
             {/* Header */}
             <PagesHeader
@@ -486,9 +505,15 @@ const PagesHierarchyPanel = ({
             />
 
             {/* Tree (includes both pages and drafts) */}
-            <div className='PagesHierarchyPanel__tree'>
+            <div
+                className='PagesHierarchyPanel__tree'
+                data-testid='pages-hierarchy-tree'
+            >
                 {filteredTree.length === 0 ? (
-                    <div className='PagesHierarchyPanel__empty'>
+                    <div
+                        className='PagesHierarchyPanel__empty'
+                        data-testid='pages-hierarchy-empty'
+                    >
                         {searchQuery ? 'No pages found' : 'No pages yet'}
                     </div>
                 ) : (
@@ -519,6 +544,20 @@ const PagesHierarchyPanel = ({
                     childCount={pageToDelete.childCount}
                     onConfirm={handleDeleteConfirm}
                     onCancel={handleDeleteCancel}
+                />
+            )}
+
+            {/* Move page to wiki modal */}
+            {showMoveModal && pageToMove && (
+                <MovePageModal
+                    pageId={pageToMove.pageId}
+                    pageTitle={pageToMove.pageTitle}
+                    currentWikiId={wikiId}
+                    availableWikis={availableWikis}
+                    fetchPagesForWiki={fetchPagesForWiki}
+                    hasChildren={pageToMove.hasChildren}
+                    onConfirm={handleMoveConfirm}
+                    onCancel={handleMoveCancel}
                 />
             )}
         </div>

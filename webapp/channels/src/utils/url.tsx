@@ -30,6 +30,24 @@ export function cleanUpUrlable(input: string): string {
     return cleaned;
 }
 
+export function getWikiUrl(teamName: string, channelId: string, wikiId: string, pageId?: string, isDraft?: boolean): string {
+    const baseUrl = `/${teamName}/wiki/${channelId}/${wikiId}`;
+
+    if (!pageId) {
+        return baseUrl;
+    }
+
+    if (isDraft) {
+        return `${baseUrl}/drafts/${pageId}`;
+    }
+
+    return `${baseUrl}/${pageId}`;
+}
+
+export function getTeamNameFromPath(pathname: string): string {
+    return pathname.split('/')[1];
+}
+
 export function getShortenedURL(url = '', getLength = 27): string {
     if (url.length > 35) {
         const subLength = getLength - 14;

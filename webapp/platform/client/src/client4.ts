@@ -2116,10 +2116,21 @@ export default class Client4 {
         );
     };
 
-    publishPageDraft = (wikiId: string, draftId: string, pageParentId: string, title: string, searchText?: string) => {
+    movePageToWiki = (sourceWikiId: string, pageId: string, targetWikiId: string, parentPageId?: string) => {
+        const body: {target_wiki_id: string; parent_page_id?: string} = {target_wiki_id: targetWikiId};
+        if (parentPageId) {
+            body.parent_page_id = parentPageId;
+        }
+        return this.doFetch<StatusOK>(
+            `${this.getWikiPageRoute(sourceWikiId, pageId)}/move`,
+            {method: 'put', body: JSON.stringify(body)},
+        );
+    };
+
+    publishPageDraft = (wikiId: string, draftId: string, pageParentId: string, title: string, searchText?: string, message?: string) => {
         return this.doFetch<Post>(
             `${this.getWikiRoute(wikiId)}/drafts/${draftId}/publish`,
-            {method: 'post', body: JSON.stringify({page_parent_id: pageParentId, title, search_text: searchText})},
+            {method: 'post', body: JSON.stringify({page_parent_id: pageParentId, title, search_text: searchText, message})},
         );
     };
 

@@ -27,6 +27,7 @@ import * as Menu from 'components/menu';
 import {ModalIdentifiers} from 'utils/constants';
 
 import ChannelBookmarkCreateModal from './channel_bookmarks_create_modal';
+import CreateWikiModal from './create_wiki_modal'; // [THROWAWAY CODE - PAGES EXPERIMENT]
 import {MAX_BOOKMARKS_PER_CHANNEL, useChannelBookmarkPermission} from './utils';
 
 type BookmarksMenuProps = {
@@ -59,7 +60,8 @@ function BookmarksMenu({
 
     const addLinkLabel = formatMessage({id: 'channel_bookmarks.addLink', defaultMessage: 'Add a link'});
     const attachFileLabel = formatMessage({id: 'channel_bookmarks.attachFile', defaultMessage: 'Attach a file'});
-    const createWikiLabel = formatMessage({id: 'channel_bookmarks.createWiki', defaultMessage: 'Create wiki'});
+    // [THROWAWAY CODE - PAGES EXPERIMENT] Mark wiki creation with experiment emoji for easy identification
+    const createWikiLabel = formatMessage({id: 'channel_bookmarks.createWiki', defaultMessage: '🧪 Create wiki (experiment)'});
 
     if (!canAdd) {
         return null;
@@ -170,23 +172,48 @@ export const useBookmarkAddActions = (channelId: string) => {
         input.click();
     }, [handleCreate]);
 
-    const handleCreateWiki = useCallback(async () => {
-        if (!currentTeam) {
-            return;
-        }
+    const handleCreateWiki = useCallback(() => {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.CREATE_WIKI,
+            dialogType: CreateWikiModal,
+            dialogProps: {
+                onConfirm: async (wikiName: string) => {
+                    if (!currentTeam) {
+                        return;
+                    }
 
-        try {
-            const wiki = await Client4.createWiki({
-                channel_id: channelId,
-                title: 'Untitled Wiki',
-            });
+                    try {
+                        // [THROWAWAY CODE - PAGES EXPERIMENT] Create wiki with user-provided name
+                        const wiki = await Client4.createWiki({
+                            channel_id: channelId,
+                            title: wikiName,
+                        });
 
-            const targetUrl = `/${currentTeam.name}/wiki/${channelId}/${wiki.id}`;
-            history.push(targetUrl);
-        } catch (error) {
-            // Error creating wiki
-        }
-    }, [channelId, currentTeam, history]);
+                        // [THROWAWAY CODE - PAGES EXPERIMENT] Auto-create bookmark for wiki with experiment marker
+                        try {
+                            const wikiUrl = `/${currentTeam.name}/wiki/${channelId}/${wiki.id}`;
+                            await dispatch(createBookmark(channelId, {
+                                display_name: wiki.title,
+                                link_url: window.location.origin + wikiUrl,
+                                type: 'link',
+                                emoji: '🧪', // Experiment marker - makes throwaway wikis easily identifiable
+                            }));
+                        } catch (bookmarkError) {
+                            // Continue even if bookmark creation fails
+                        }
+
+                        const targetUrl = `/${currentTeam.name}/wiki/${channelId}/${wiki.id}`;
+                        history.push(targetUrl);
+                    } catch (error) {
+                        // Error creating wiki
+                    }
+                },
+                onCancel: () => {
+                    // Modal dismissed
+                },
+            },
+        }));
+    }, [channelId, currentTeam, history, dispatch]);
 
     return {handleCreateLink, handleCreateFile, handleCreateWiki};
 };
