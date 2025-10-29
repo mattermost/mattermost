@@ -1310,8 +1310,25 @@ func TestGetPluginStateOverride(t *testing.T) {
 }
 
 func TestPluginBridge(t *testing.T) {
-	t.Run("CallPluginBridge returns error when plugins not initialized", func(t *testing.T) {
-		th := Setup(t)
+	// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge - Remove this entire test case
+	t.Run("CallPlugin returns error when feature flag disabled", func(t *testing.T) {
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.EnableAIPluginBridge = false
+		})
+		defer th.TearDown()
+
+		request := []byte(`{"test": "data"}`)
+		schema := []byte(`{"type": "object"}`)
+		_, err := th.App.CallPlugin(th.Context, "source-plugin", "target-plugin", "/api/v1/test", request, schema)
+		require.Error(t, err)
+		require.Contains(t, err.Error(), "plugin bridge is not enabled")
+	})
+
+	t.Run("CallPlugin returns error when plugins not initialized", func(t *testing.T) {
+		// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge - Remove this feature flag configuration from test
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.EnableAIPluginBridge = true
+		})
 		defer th.TearDown()
 
 		// Ensure plugins are not initialized
@@ -1319,37 +1336,39 @@ func TestPluginBridge(t *testing.T) {
 
 		request := []byte(`{"test": "data"}`)
 		schema := []byte(`{"type": "object"}`)
-		_, err := th.App.CallPluginBridge(th.Context, "source-plugin", "target-plugin", "/api/v1/test", request, schema)
+		_, err := th.App.CallPlugin(th.Context, "source-plugin", "target-plugin", "/api/v1/test", request, schema)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "plugins are not initialized")
 	})
 
-	t.Run("CallPluginBridge returns error when target plugin not active", func(t *testing.T) {
-		th := Setup(t)
+	t.Run("CallPlugin returns error when target plugin not active", func(t *testing.T) {
+		// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge - Remove this feature flag configuration from test
+		th := SetupConfig(t, func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = true
+			cfg.FeatureFlags.EnableAIPluginBridge = true
+		})
 		defer th.TearDown()
 
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.PluginSettings.Enable = true
-		})
 		th.App.InitPlugins(th.Context, *th.App.Config().PluginSettings.Directory, *th.App.Config().PluginSettings.ClientDirectory)
 		defer th.App.ch.ShutDownPlugins()
 
 		request := []byte(`{"test": "data"}`)
 		schema := []byte(`{"type": "object", "properties": {"result": {"type": "string"}}}`)
-		_, err := th.App.CallPluginBridge(th.Context, "source-plugin", "nonexistent-plugin", "/api/v1/test", request, schema)
+		_, err := th.App.CallPlugin(th.Context, "source-plugin", "nonexistent-plugin", "/api/v1/test", request, schema)
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "not active")
 	})
 
-	t.Run("CallPluginFromCore passes empty source plugin ID", func(t *testing.T) {
-		th := Setup(t)
+	t.Run("CallPluginFromCore passes com.mattermost.server as source plugin ID", func(t *testing.T) {
+		// This test verifies that CallPluginFromCore correctly passes "com.mattermost.server" as the source
+		// We can't test the full flow without a real plugin, but we can verify the parameters
+		// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge - Remove this feature flag configuration from test
+		th := SetupConfig(t, func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = true
+			cfg.FeatureFlags.EnableAIPluginBridge = true
+		})
 		defer th.TearDown()
 
-		// This test verifies that CallPluginFromCore correctly passes an empty string as the source
-		// We can't test the full flow without a real plugin, but we can verify the parameters
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.PluginSettings.Enable = true
-		})
 		th.App.InitPlugins(th.Context, *th.App.Config().PluginSettings.Directory, *th.App.Config().PluginSettings.ClientDirectory)
 		defer th.App.ch.ShutDownPlugins()
 
@@ -1361,18 +1380,19 @@ func TestPluginBridge(t *testing.T) {
 		require.Contains(t, err.Error(), "not active")
 	})
 
-	t.Run("CallPluginBridge with nil response schema works", func(t *testing.T) {
-		th := Setup(t)
+	t.Run("CallPlugin with nil response schema works", func(t *testing.T) {
+		// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge - Remove this feature flag configuration from test
+		th := SetupConfig(t, func(cfg *model.Config) {
+			*cfg.PluginSettings.Enable = true
+			cfg.FeatureFlags.EnableAIPluginBridge = true
+		})
 		defer th.TearDown()
 
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.PluginSettings.Enable = true
-		})
 		th.App.InitPlugins(th.Context, *th.App.Config().PluginSettings.Directory, *th.App.Config().PluginSettings.ClientDirectory)
 		defer th.App.ch.ShutDownPlugins()
 
 		request := []byte(`{"test": "data"}`)
-		_, err := th.App.CallPluginBridge(th.Context, "source-plugin", "nonexistent-plugin", "/api/v1/test", request, nil)
+		_, err := th.App.CallPlugin(th.Context, "source-plugin", "nonexistent-plugin", "/api/v1/test", request, nil)
 		require.Error(t, err)
 		// Should fail because plugin doesn't exist, but verifies nil schema is accepted
 		require.Contains(t, err.Error(), "not active")

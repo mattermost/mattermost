@@ -484,10 +484,6 @@ export default class Client4 {
         return `${this.getBotsRoute()}/${botUserId}`;
     }
 
-    getAIRoute() {
-        return `${this.getBaseRoute()}/ai`;
-    }
-
     getGroupsRoute() {
         return `${this.getBaseRoute()}/groups`;
     }
@@ -4139,15 +4135,6 @@ export default class Client4 {
         return this.doFetch<Bot>(
             `${this.getBotRoute(botUserId)}/assign/${newOwnerId}`,
             {method: 'post'},
-        );
-    };
-
-    // AI Routes
-
-    rewriteMessage = (message: string, action: string) => {
-        return this.doFetch<{rewritten_message: string; original_message: string; action: string}>(
-            `${this.getAIRoute()}/rewrite`,
-            {method: 'post', body: JSON.stringify({message, action})},
         );
     };
 
