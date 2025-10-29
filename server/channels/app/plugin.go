@@ -1268,20 +1268,20 @@ func (ch *Channels) IsPluginActive(pluginName string) (bool, error) {
 	return pluginStatus.State == model.PluginStateRunning, nil
 }
 
-// CallPluginBridge executes a bridge call from one plugin to another, or from core to a plugin
+// CallPlugin executes a call from one plugin to another, or from core to a plugin
 // via HTTP. This enables RESTful bidirectional communication beyond the standard plugin API.
 //
 // Parameters:
 //   - rctx: Request context for logging and tracing
-//   - sourcePluginID: ID of the calling plugin (empty string if called from core)
+//   - sourcePluginID: ID of the calling plugin (use "com.mattermost.server" for core server calls)
 //   - targetPluginID: ID of the plugin to call
 //   - endpoint: REST endpoint path to call on the target plugin (e.g., "/api/v1/completion")
 //   - requestData: JSON-encoded request body
 //   - responseSchema: JSON schema or example structure defining expected response format (can be nil)
 //
 // Returns the JSON-encoded response from the target plugin, or an error.
-func (a *App) CallPluginBridge(rctx request.CTX, sourcePluginID, targetPluginID, endpoint string, requestData []byte, responseSchema []byte) ([]byte, error) {
-	// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge - Remove this feature flag check and always allow plugin bridge calls
+func (a *App) CallPlugin(rctx request.CTX, sourcePluginID, targetPluginID, endpoint string, requestData []byte, responseSchema []byte) ([]byte, error) {
+	// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge - Remove this feature flag check and always allow plugin calls
 	if !a.Config().FeatureFlags.EnableAIPluginBridge {
 		return nil, errors.New("plugin bridge is not enabled")
 	}
@@ -1305,17 +1305,24 @@ func (a *App) CallPluginBridge(rctx request.CTX, sourcePluginID, targetPluginID,
 		return nil, errors.Wrap(err, "failed to create HTTP request")
 	}
 
-	// Set basic headers (authentication headers are set by ServeInternalPluginRequest)
+	// Set basic headers
 	httpReq.Header.Set("Content-Type", "application/json")
 	httpReq.Header.Set("X-Mattermost-Request-Id", model.NewId())
 	httpReq.Header.Set("User-Agent", "Mattermost-Plugin-Bridge/1.0")
 
-	// Log the bridge call for debugging and auditing
+	// Set authentication headers - these are trusted because this function is only called internally
+	// and not exposed to external HTTP routes
 	userID := ""
 	if session := rctx.Session(); session != nil {
 		userID = session.UserId
 	}
-	rctx.Logger().Debug("Plugin bridge call",
+
+	// Set user ID header if available from session
+	if userID != "" {
+		httpReq.Header.Set("Mattermost-User-Id", userID)
+	}
+
+	rctx.Logger().Debug("Plugin call",
 		mlog.String("source_plugin_id", sourcePluginID),
 		mlog.String("target_plugin_id", targetPluginID),
 		mlog.String("endpoint", endpoint),
@@ -1324,10 +1331,9 @@ func (a *App) CallPluginBridge(rctx request.CTX, sourcePluginID, targetPluginID,
 		mlog.Bool("has_response_schema", responseSchema != nil),
 	)
 
-	// Execute the bridge call via internal plugin HTTP
-	// ServeInternalPluginRequest will set authentication headers (Mattermost-User-Id, Mattermost-Plugin-ID, etc.)
+	// Execute the call via internal plugin HTTP (which sets the Mattermost-Plugin-ID header)
 	responseWriter := &PluginResponseWriter{}
-	a.ServeInternalPluginRequest(userID, responseWriter, httpReq, sourcePluginID, targetPluginID)
+	a.ServeInternalPluginRequest(responseWriter, httpReq, sourcePluginID, targetPluginID)
 	httpResp := responseWriter.GenerateResponse()
 
 	// Check response status
@@ -1335,21 +1341,21 @@ func (a *App) CallPluginBridge(rctx request.CTX, sourcePluginID, targetPluginID,
 		body, _ := io.ReadAll(httpResp.Body)
 		httpResp.Body.Close()
 
-		rctx.Logger().Error("Plugin bridge call failed",
+		rctx.Logger().Error("Plugin call failed",
 			mlog.String("source_plugin_id", sourcePluginID),
 			mlog.String("target_plugin_id", targetPluginID),
 			mlog.String("endpoint", endpoint),
 			mlog.Int("status_code", httpResp.StatusCode),
 			mlog.String("response_body", string(body)),
 		)
-		return nil, errors.Errorf("bridge call to %s at %s failed with status %d: %s", targetPluginID, endpoint, httpResp.StatusCode, string(body))
+		return nil, errors.Errorf("call to plugin %s at %s failed with status %d: %s", targetPluginID, endpoint, httpResp.StatusCode, string(body))
 	}
 
 	// Read response body
 	defer httpResp.Body.Close()
 	responseData, err := io.ReadAll(httpResp.Body)
 	if err != nil {
-		rctx.Logger().Error("Failed to read plugin bridge response",
+		rctx.Logger().Error("Failed to read plugin response",
 			mlog.String("source_plugin_id", sourcePluginID),
 			mlog.String("target_plugin_id", targetPluginID),
 			mlog.String("endpoint", endpoint),
@@ -1358,7 +1364,7 @@ func (a *App) CallPluginBridge(rctx request.CTX, sourcePluginID, targetPluginID,
 		return nil, errors.Wrap(err, "failed to read response body")
 	}
 
-	rctx.Logger().Debug("Plugin bridge call succeeded",
+	rctx.Logger().Debug("Plugin call succeeded",
 		mlog.String("source_plugin_id", sourcePluginID),
 		mlog.String("target_plugin_id", targetPluginID),
 		mlog.String("endpoint", endpoint),
@@ -1368,7 +1374,7 @@ func (a *App) CallPluginBridge(rctx request.CTX, sourcePluginID, targetPluginID,
 	return responseData, nil
 }
 
-// CallPluginFromCore allows core Mattermost server code to make bridge calls to plugins via HTTP.
+// CallPluginFromCore allows core Mattermost server code to make calls to plugins via HTTP.
 // This is the primary entry point for core features to invoke plugin functionality.
 //
 // Example usage:
@@ -1378,6 +1384,6 @@ func (a *App) CallPluginBridge(rctx request.CTX, sourcePluginID, targetPluginID,
 //	schema := []byte(`{"type": "object", "properties": {"summary": {"type": "string"}}}`)
 //	response, err := app.CallPluginFromCore(rctx, "mattermost-ai", "/api/v1/completion", reqJSON, schema)
 func (a *App) CallPluginFromCore(rctx request.CTX, targetPluginID, endpoint string, requestData []byte, responseSchema []byte) ([]byte, error) {
-	// Empty string for sourcePluginID indicates core server origin
-	return a.CallPluginBridge(rctx, "", targetPluginID, endpoint, requestData, responseSchema)
+	// Use "com.mattermost.server" as sourcePluginID for core server calls
+	return a.CallPlugin(rctx, "com.mattermost.server", targetPluginID, endpoint, requestData, responseSchema)
 }
