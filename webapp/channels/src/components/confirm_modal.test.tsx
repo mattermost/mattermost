@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {act} from '@testing-library/react';
 
 import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 
@@ -30,13 +31,19 @@ describe('ConfirmModal', () => {
 
         const confirmButton = getByRole('button', {name: props.confirmButtonText});
 
-        await userEvent.click(confirmButton);
+        await act(async () => {
+            await userEvent.click(confirmButton);
+        });
         expect(props.onConfirm).toHaveBeenCalledWith(false);
 
-        await userEvent.click(checkbox);
+        await act(async () => {
+            await userEvent.click(checkbox);
+        });
         expect(checkbox).toBeChecked();
 
-        await userEvent.click(confirmButton);
+        await act(async () => {
+            await userEvent.click(confirmButton);
+        });
         expect(props.onConfirm).toHaveBeenCalledWith(true);
     });
 
@@ -56,13 +63,19 @@ describe('ConfirmModal', () => {
 
         const cancelButton = getByRole('button', {name: props.cancelButtonText});
 
-        await userEvent.click(cancelButton);
+        await act(async () => {
+            await userEvent.click(cancelButton);
+        });
         expect(props.onCancel).toHaveBeenCalledWith(false);
 
-        await userEvent.click(checkbox);
+        await act(async () => {
+            await userEvent.click(checkbox);
+        });
         expect(checkbox).toBeChecked();
 
-        await userEvent.click(cancelButton);
+        await act(async () => {
+            await userEvent.click(cancelButton);
+        });
         expect(props.onCancel).toHaveBeenCalledWith(true);
     });
 
@@ -116,7 +129,9 @@ describe('ConfirmModal', () => {
         const {getByRole} = renderWithContext(<ConfirmModal {...props}/>);
         const checkbox = getByRole('checkbox');
 
-        await userEvent.click(checkbox);
+        await act(async () => {
+            await userEvent.click(checkbox);
+        });
 
         expect(mockOnCheckboxChange).toHaveBeenCalledWith(true);
     });
