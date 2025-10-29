@@ -143,11 +143,6 @@ func (a *App) ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, so
 		UserAgent: r.UserAgent(),
 	}
 
-	// Set Mattermost-Plugin-ID to source plugin
-	if sourcePluginId != "" {
-		r.Header.Set("Mattermost-Plugin-ID", sourcePluginId)
-	}
-
 	hooks.ServeHTTP(context, w, r)
 }
 
