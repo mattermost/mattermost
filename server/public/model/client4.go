@@ -5092,11 +5092,7 @@ func (c *Client4) RegenerateOAuthAppSecret(ctx context.Context, appId string) (*
 
 // RegisterOAuthClient registers a new OAuth 2.0 client using Dynamic Client Registration (DCR).
 func (c *Client4) RegisterOAuthClient(ctx context.Context, request *ClientRegistrationRequest) (*ClientRegistrationResponse, *Response, error) {
-	buf, err := json.Marshal(request)
-	if err != nil {
-		return nil, nil, NewAppError("RegisterOAuthClient", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	r, err := c.DoAPIPostJSON(ctx, c.oAuthRegisterRoute(), buf)
+	r, err := c.DoAPIPostJSON(ctx, c.oAuthRegisterRoute(), request)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
