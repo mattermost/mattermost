@@ -41,8 +41,6 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         createAccessControlSyncJob: jest.fn(),
         updateAccessControlPolicyActive: jest.fn(),
         validateExpressionAgainstRequester: jest.fn(),
-        getChannelActivityWarning: jest.fn(),
-        dismissChannelActivityWarning: jest.fn(),
     };
 
     const mockUserAttributes: UserPropertyField[] = [
@@ -138,6 +136,12 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                         roles: 'channel_admin',
                         mention_count: 0,
                         msg_count: 0,
+                    },
+                },
+                messageCounts: {
+                    channel_id: {
+                        root: 0,
+                        total: 0,
                     },
                 },
             },
@@ -1593,12 +1597,26 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         });
     });
 
-    test('should show activity warning when API fails (fail-closed security)', async () => {
+    test('should show activity warning when channel has message history and rules change', async () => {
         const user = userEvent.setup();
 
-        // Mock API failure
-        mockActions.getChannelActivityWarning.mockRejectedValue(new Error('Network error'));
-        
+        // Create state with message history
+        const stateWithMessages = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                channels: {
+                    ...initialState.entities.channels,
+                    messageCounts: {
+                        channel_id: {
+                            root: 10,
+                            total: 15, // Channel has 15 messages
+                        },
+                    },
+                },
+            },
+        };
+
         // Mock searchUsers to return users that would be added
         mockActions.searchUsers.mockResolvedValue({
             data: {
@@ -1611,11 +1629,25 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
         renderWithContext(
             <ChannelSettingsAccessRulesTab {...baseProps}/>,
-            initialState,
+            stateWithMessages,
         );
 
+        await waitFor(() => {
+            expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+        });
+
+        // Change the expression (simulate rule modification)
+        const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+        act(() => {
+            onChangeCallback('user.department == "engineering"');
+        });
+
         // Trigger save
-        const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
+        await waitFor(() => {
+            expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
+        });
+
+        const saveButton = screen.getByText('Save');
         await user.click(saveButton);
 
         // Wait for confirmation modal
@@ -1627,9 +1659,58 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         const continueButton = screen.getByText('Continue');
         await user.click(continueButton);
 
-        // Activity warning should appear even though API failed
+        // Activity warning should appear because channel has history and rules changed
         await waitFor(() => {
             expect(screen.getByText('Exposing channel history')).toBeInTheDocument();
         });
+    });
+
+    test('should NOT show activity warning when channel has no message history', async () => {
+        const user = userEvent.setup();
+
+        // Mock searchUsers to return users that would be added
+        mockActions.searchUsers.mockResolvedValue({
+            data: {
+                users: [
+                    {id: 'user1', username: 'user1', email: 'user1@test.com'},
+                ],
+                total_count: 1,
+            },
+        });
+
+        // Mock getChannelMembers to return empty (no current members)
+        mockActions.getChannelMembers.mockResolvedValue({data: []});
+
+        renderWithContext(
+            <ChannelSettingsAccessRulesTab {...baseProps}/>,
+            initialState, // Uses default state with 0 messages
+        );
+
+        await waitFor(() => {
+            expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+        });
+
+        // Change the expression (simulate rule modification)
+        const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+        act(() => {
+            onChangeCallback('user.department == "engineering"');
+        });
+
+        // Trigger save
+        await waitFor(() => {
+            expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
+        });
+
+        const saveButton = screen.getByText('Save');
+        await user.click(saveButton);
+
+        // Should save successfully (either with or without modal)
+        await waitFor(() => {
+            expect(mockActions.saveChannelPolicy).toHaveBeenCalled();
+        });
+
+        // The key assertion: Activity warning modal should NOT appear because channel has no history
+        // This verifies the decision matrix: hasChannelHistory (0) && rulesAreChanging (true) = NO WARNING
+        expect(screen.queryByText('Exposing channel history')).not.toBeInTheDocument();
     });
 });

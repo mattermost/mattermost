@@ -70,24 +70,26 @@ describe('ConfirmModal', () => {
         const props = {
             ...baseProps,
             confirmDisabled: true,
+            confirmButtonText: 'Confirm',
         };
 
-        const wrapper = shallow(<ConfirmModal {...props}/>);
-        const confirmButton = wrapper.find('#confirmModalButton');
+        const {getByRole} = renderWithContext(<ConfirmModal {...props}/>);
+        const confirmButton = getByRole('button', {name: 'Confirm'});
 
-        expect(confirmButton.prop('disabled')).toBe(true);
+        expect(confirmButton).toBeDisabled();
     });
 
     test('should enable confirm button when confirmDisabled is false', () => {
         const props = {
             ...baseProps,
             confirmDisabled: false,
+            confirmButtonText: 'Confirm',
         };
 
-        const wrapper = shallow(<ConfirmModal {...props}/>);
-        const confirmButton = wrapper.find('#confirmModalButton');
+        const {getByRole} = renderWithContext(<ConfirmModal {...props}/>);
+        const confirmButton = getByRole('button', {name: 'Confirm'});
 
-        expect(confirmButton.prop('disabled')).toBe(false);
+        expect(confirmButton).not.toBeDisabled();
     });
 
     test('should use custom checkbox class when provided', () => {
@@ -97,13 +99,13 @@ describe('ConfirmModal', () => {
             checkboxClass: 'custom-checkbox-class',
         };
 
-        const wrapper = shallow(<ConfirmModal {...props}/>);
-        const checkboxContainer = wrapper.find('.custom-checkbox-class');
+        renderWithContext(<ConfirmModal {...props}/>);
+        const checkboxContainer = document.querySelector('.custom-checkbox-class');
 
-        expect(checkboxContainer.exists()).toBe(true);
+        expect(checkboxContainer).toBeInTheDocument();
     });
 
-    test('should call onCheckboxChange when checkbox is changed', () => {
+    test('should call onCheckboxChange when checkbox is changed', async () => {
         const mockOnCheckboxChange = jest.fn();
         const props = {
             ...baseProps,
@@ -111,12 +113,11 @@ describe('ConfirmModal', () => {
             onCheckboxChange: mockOnCheckboxChange,
         };
 
-        const wrapper = shallow(<ConfirmModal {...props}/>);
-        const checkbox = wrapper.find('input[type="checkbox"]');
+        const {getByRole} = renderWithContext(<ConfirmModal {...props}/>);
+        const checkbox = getByRole('checkbox');
 
-        checkbox.simulate('change', {target: {checked: true}});
+        await userEvent.click(checkbox);
 
         expect(mockOnCheckboxChange).toHaveBeenCalledWith(true);
-        expect(wrapper.state('checked')).toBe(true);
     });
 });

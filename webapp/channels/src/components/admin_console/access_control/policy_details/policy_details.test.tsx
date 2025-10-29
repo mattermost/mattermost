@@ -96,7 +96,6 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
             createAccessControlSyncJob: jest.fn(),
             updateAccessControlPolicyActive: jest.fn(),
             validateExpressionAgainstRequester: jest.fn(),
-            getChannelActivityWarning: jest.fn(),
         });
 
         mockCreatePolicy.mockReset();

@@ -33,9 +33,6 @@ func (api *API) InitAccessControlPolicy() {
 	api.BaseRoutes.AccessControlPolicy.Handle("/unassign", api.APISessionRequired(unassignAccessPolicy)).Methods(http.MethodDelete)
 	api.BaseRoutes.AccessControlPolicy.Handle("/resources/channels", api.APISessionRequired(getChannelsForAccessControlPolicy)).Methods(http.MethodGet)
 	api.BaseRoutes.AccessControlPolicy.Handle("/resources/channels/search", api.APISessionRequired(searchChannelsForAccessControlPolicy)).Methods(http.MethodPost)
-
-	// Activity warning endpoint
-	api.BaseRoutes.AccessControlPolicy.Handle("/activity", api.APISessionRequired(getChannelActivityWarning)).Methods(http.MethodGet)
 }
 
 func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -718,79 +715,6 @@ func convertToVisualAST(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("convertToVisualAST", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
 	}
-	if _, err := w.Write(b); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
-	}
-}
-
-type ActivityWarningResponse struct {
-	ShouldShowWarning bool `json:"should_show_warning"`
-}
-
-func getChannelActivityWarning(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequirePolicyId()
-	if c.Err != nil {
-		return
-	}
-
-	// Check license and feature flag
-	if !model.MinimumEnterpriseAdvancedLicense(c.App.License()) {
-		c.Err = model.NewAppError("getChannelActivityWarning", "api.access_control.license_required", nil, "", http.StatusNotImplemented)
-		return
-	}
-
-	if !*c.App.Config().AccessControlSettings.EnableAttributeBasedAccessControl {
-		c.Err = model.NewAppError("getChannelActivityWarning", "api.access_control.feature_disabled", nil, "", http.StatusNotImplemented)
-		return
-	}
-
-	policyID := c.Params.PolicyId
-	c.Logger.Debug("Activity warning check requested", mlog.String("policy_id", policyID))
-
-	// Validate permissions
-	if appErr := c.App.ValidateAccessControlPolicyPermissionWithMode(c.AppContext, c.AppContext.Session().UserId, policyID, true); appErr != nil {
-		c.Logger.Debug("Activity warning permission check failed", mlog.Err(appErr))
-		c.Err = appErr
-		return
-	}
-
-	// Get the policy to ensure it's a channel-type policy
-	policy, appErr := c.App.GetAccessControlPolicy(c.AppContext, policyID)
-	if appErr != nil {
-		c.Logger.Debug("Failed to get policy for activity warning", mlog.Err(appErr))
-		c.Err = appErr
-		return
-	}
-
-	if policy.Type != model.AccessControlPolicyTypeChannel {
-		c.Logger.Debug("Policy is not channel type for activity warning", mlog.String("policy_type", policy.Type))
-		c.SetInvalidParam("policy_type")
-		return
-	}
-
-	c.Logger.Debug("Checking channel activity", mlog.String("channel_id", policy.ID))
-
-	// Check if warning should be shown - for channel policies, the policy ID IS the channel ID
-	shouldWarn, appErr := c.App.ShouldShowChannelActivityWarning(c.AppContext, policy.ID)
-	if appErr != nil {
-		c.Logger.Debug("Activity check failed", mlog.Err(appErr))
-		c.Err = appErr
-		return
-	}
-
-	c.Logger.Debug("Activity check completed",
-		mlog.Bool("should_warn", shouldWarn))
-
-	response := ActivityWarningResponse{
-		ShouldShowWarning: shouldWarn,
-	}
-
-	b, err := json.Marshal(response)
-	if err != nil {
-		c.Err = model.NewAppError("getChannelActivityWarning", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		return
-	}
-
 	if _, err := w.Write(b); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}

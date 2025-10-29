@@ -19,7 +19,6 @@ import {
     deleteAccessControlPolicy,
     validateExpressionAgainstRequester,
     createAccessControlSyncJob,
-    getChannelActivityWarning,
 } from 'mattermost-redux/actions/access_control';
 import {getChannelMembers} from 'mattermost-redux/actions/channels';
 import {createJob} from 'mattermost-redux/actions/jobs';
@@ -37,9 +36,6 @@ export interface ChannelAccessControlActions {
     updateAccessControlPolicyActive: (policyId: string, active: boolean) => Promise<ActionResult>;
     validateExpressionAgainstRequester: (expression: string) => Promise<ActionResult<{requester_matches: boolean}>>;
     createAccessControlSyncJob: (jobData: {policy_id: string}) => Promise<ActionResult>;
-    getChannelActivityWarning: (policyId: string) => Promise<ActionResult<{
-        should_show_warning: boolean;
-    }>>;
 }
 
 /**
@@ -136,13 +132,6 @@ export const useChannelAccessControlActions = (channelId?: string): ChannelAcces
          */
         createAccessControlSyncJob: (jobData: {policy_id: string}) => {
             return dispatch(createAccessControlSyncJob(jobData));
-        },
-
-        /**
-         * Get channel activity warning for a policy
-         */
-        getChannelActivityWarning: (policyId: string) => {
-            return dispatch(getChannelActivityWarning(policyId));
         },
     }), [dispatch, channelId]);
 };

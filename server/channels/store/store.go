@@ -1139,7 +1139,6 @@ type AccessControlPolicyStore interface {
 	SetActiveStatus(rctx request.CTX, id string, active bool) (*model.AccessControlPolicy, error)
 	Get(rctx request.CTX, id string) (*model.AccessControlPolicy, error)
 	SearchPolicies(rctx request.CTX, opts model.AccessControlPolicySearch) ([]*model.AccessControlPolicy, int64, error)
-	GetPolicyHistory(rctx request.CTX, id string, limit int) ([]*model.AccessControlPolicy, error)
 }
 
 type AttributesStore interface {

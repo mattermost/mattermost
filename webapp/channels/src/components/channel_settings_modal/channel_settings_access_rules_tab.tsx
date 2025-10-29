@@ -9,6 +9,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
 import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';
+import {getChannelMessageCount} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
@@ -42,6 +43,7 @@ function ChannelSettingsAccessRulesTab({
     // Get access control settings and current user from Redux state
     const accessControlSettings = useSelector((state: GlobalState) => getAccessControlSettings(state));
     const currentUser = useSelector(getCurrentUser);
+    const channelMessageCount = useSelector((state: GlobalState) => getChannelMessageCount(state, channel.id));
 
     // Check if current user is system admin (system admins should never be restricted)
     const isSystemAdmin = useSelector(isCurrentUserSystemAdmin);
@@ -459,30 +461,16 @@ function ChannelSettingsAccessRulesTab({
             // Calculate membership changes
             const changes = await calculateMembershipChanges(expression);
 
-            // Check for activity warning ONLY when adding users (risk of leaking chat history)
-            // Only check if: there are users being added + there's channel activity
-            let shouldShowWarning = false;
-            if (channel.id && changes.toAdd.length > 0) {
-                try {
-                    // Check for channel activity before adding users
-                    const warningResult = await actions.getChannelActivityWarning(channel.id);
-                    shouldShowWarning = warningResult.data?.should_show_warning || false;
-                } catch (error) {
-                    // If warning check fails, assume there IS activity and show warning
-                    // Just to asure we never bypass the security warning due to technical issues
-                    // eslint-disable-next-line no-console
-                    console.warn('Failed to check activity warning, showing warning as precaution:', error);
-                    shouldShowWarning = true; // Fail-closed: Show warning on error
+            // Determine if we should show activity warning
+            // Show warning if:
+            // 1. Channel has message history (channelMessageCount.total > 0)
+            // 2. Rules are being changed (expression differs from original)
+            // This covers: users being added now, users who might be added later, any rule relaxation
+            const hasChannelHistory = (channelMessageCount?.total ?? 0) > 0;
+            const rulesAreChanging = expression.trim() !== originalExpression.trim();
+            const shouldShowWarning = hasChannelHistory && rulesAreChanging;
 
-                    // Show error message to inform admin about the technical issue
-                    setFormError(formatMessage({
-                        id: 'channel_settings.access_rules.warning_check_failed',
-                        defaultMessage: 'Unable to verify channel activity. Proceeding with security warning as precaution.',
-                    }));
-                }
-            }
-
-            // If there are changes, show confirmation modal FIRST
+            // If there are membership changes, show confirmation modal
             if (changes.toAdd.length > 0 || changes.toRemove.length > 0) {
                 setUsersToAdd(changes.toAdd);
                 setUsersToRemove(changes.toRemove);
@@ -491,7 +479,14 @@ function ChannelSettingsAccessRulesTab({
                 return 'confirmation_required';
             }
 
-            // No changes, save directly
+            // No immediate membership changes, but if warning needed, show it before saving
+            if (shouldShowWarning) {
+                setShouldShowActivityWarning(true);
+                setShowActivityWarningModal(true);
+                return 'confirmation_required';
+            }
+
+            // No changes and no warning needed, save directly
             const success = await performSave();
             const finalResult = success ? 'saved' : 'error';
             return finalResult;
@@ -504,7 +499,7 @@ function ChannelSettingsAccessRulesTab({
             }));
             return 'error';
         }
-    }, [expression, autoSyncMembers, formatMessage, validateSelfExclusion, calculateMembershipChanges, performSave, isEmptyRulesState, channel.id, actions]);
+    }, [expression, originalExpression, autoSyncMembers, formatMessage, validateSelfExclusion, calculateMembershipChanges, performSave, isEmptyRulesState, channel.id, channelMessageCount]);
 
     // Prevent duplicate saves with immediate response
     const saveInProgressRef = useRef(false);

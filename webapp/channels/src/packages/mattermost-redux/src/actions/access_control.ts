@@ -185,19 +185,3 @@ export function createAccessControlSyncJob(jobData: {policy_id: string}): Action
         return {data};
     };
 }
-
-export function getChannelActivityWarning(policyId: string): ActionFuncAsync<{
-    should_show_warning: boolean;
-}> {
-    return async (dispatch, getState) => {
-        let data;
-        try {
-            data = await Client4.getChannelActivityWarning(policyId);
-        } catch (error) {
-            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
-            return {error};
-        }
-        return {data};
-    };
-}
-
