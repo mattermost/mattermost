@@ -54,12 +54,10 @@ jest.mock('./channel_activity_warning_modal', () => {
         isOpen,
         onClose,
         onConfirm,
-        channelName,
     }: {
         isOpen: boolean;
         onClose: () => void;
         onConfirm: () => void;
-        channelName: string;
     }) {
         const React = require('react');
 
@@ -68,7 +66,7 @@ jest.mock('./channel_activity_warning_modal', () => {
         }
 
         return React.createElement('div', {'data-testid': 'activity-warning-modal'}, [
-            React.createElement('div', {key: 'title'}, `Activity Warning for ${channelName}`),
+            React.createElement('div', {key: 'title'}, 'Exposing channel history'),
             React.createElement('button', {
                 key: 'cancel',
                 'data-testid': 'warning-cancel',
@@ -173,6 +171,14 @@ describe('ChannelSettingsAccessRulesTab - Activity Warning Integration', () => {
                     },
                 },
             },
+            channels: {
+                messageCounts: {
+                    channel_id: {
+                        root: 10,
+                        total: 15, // Channel has message history
+                    },
+                },
+            },
             preferences: {
                 myPreferences: {},
             },
@@ -191,14 +197,7 @@ describe('ChannelSettingsAccessRulesTab - Activity Warning Integration', () => {
         });
     });
 
-    it('should show activity warning modal when API indicates warning needed and users will be added', async () => {
-        // Mock activity warning API to return warning needed
-        mockActions.getChannelActivityWarning.mockResolvedValue({
-            data: {
-                should_show_warning: true,
-            },
-        });
-
+    it('should show activity warning modal when users will be added and channel has history', async () => {
         // Mock membership calculation to show users being added
         mockActions.searchUsers.mockResolvedValue({
             data: {users: [{id: 'user1'}, {id: 'user2'}], total: 2},
@@ -242,32 +241,31 @@ describe('ChannelSettingsAccessRulesTab - Activity Warning Integration', () => {
             expect(screen.getByTestId('save-changes-panel')).toBeInTheDocument();
         });
 
-        // Click Save button to trigger the activity warning flow
+        // Click Save button to trigger the confirmation modal
         const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
         await userEvent.click(saveButton);
+
+        // Wait for confirmation modal with "Review membership impact" title (since activity warning will be shown)
+        await waitFor(() => {
+            expect(screen.getByTestId('channel-access-rules-confirm-modal')).toBeInTheDocument();
+        });
+
+        // Click continue to proceed to activity warning modal
+        const continueButton = screen.getByTestId('confirm-save');
+        await userEvent.click(continueButton);
 
         // Wait for the activity warning modal to appear
         await waitFor(() => {
             expect(screen.getByTestId('activity-warning-modal')).toBeInTheDocument();
         }, {timeout: 5000});
 
-        // Verify modal content
-        expect(screen.getByText('Activity Warning for Test Channel')).toBeInTheDocument();
-        expect(mockActions.getChannelActivityWarning).toHaveBeenCalledWith('channel_id');
-
-        // Verify the warning modal buttons are present
+        // Verify the warning modal content and buttons are present
+        expect(screen.getByText('Exposing channel history')).toBeInTheDocument();
         expect(screen.getByTestId('warning-cancel')).toBeInTheDocument();
         expect(screen.getByTestId('warning-continue')).toBeInTheDocument();
     });
 
     it('should continue with save when user confirms activity warning', async () => {
-        // Mock activity warning API to return warning needed
-        mockActions.getChannelActivityWarning.mockResolvedValue({
-            data: {
-                should_show_warning: true,
-            },
-        });
-
         // Mock membership calculation to show users being added
         mockActions.searchUsers.mockResolvedValue({
             data: {users: [{id: 'user1'}], total: 1},
@@ -309,6 +307,15 @@ describe('ChannelSettingsAccessRulesTab - Activity Warning Integration', () => {
         const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
         await userEvent.click(saveButton);
 
+        // Wait for confirmation modal first
+        await waitFor(() => {
+            expect(screen.getByTestId('channel-access-rules-confirm-modal')).toBeInTheDocument();
+        });
+
+        // Click continue to proceed to activity warning modal
+        const confirmButton = screen.getByTestId('confirm-save');
+        await userEvent.click(confirmButton);
+
         // Wait for warning modal and verify it appears
         await waitFor(() => {
             expect(screen.getByTestId('activity-warning-modal')).toBeInTheDocument();
@@ -317,7 +324,6 @@ describe('ChannelSettingsAccessRulesTab - Activity Warning Integration', () => {
         // Verify we can interact with the modal
         expect(screen.getByTestId('warning-cancel')).toBeInTheDocument();
         expect(screen.getByTestId('warning-continue')).toBeInTheDocument();
-        expect(mockActions.getChannelActivityWarning).toHaveBeenCalledWith('channel_id');
 
         // Click continue to dismiss the warning
         const continueButton = screen.getByTestId('warning-continue');
@@ -330,85 +336,6 @@ describe('ChannelSettingsAccessRulesTab - Activity Warning Integration', () => {
 
         // Note: The confirmation modal flow is complex and depends on additional state
         // The core activity warning functionality is working as verified above
-    });
-
-    it('should not show activity warning when user preference is dismissed', async () => {
-        // Mock activity warning preference as dismissed
-        const stateWithDismissedPreference = {
-            entities: {
-                users: {
-                    currentUserId: 'current_user_id',
-                    profiles: {
-                        current_user_id: {
-                            id: 'current_user_id',
-                            username: 'testuser',
-                            first_name: 'Test',
-                            last_name: 'User',
-                        },
-                    },
-                },
-                preferences: {
-                    myPreferences: {
-                        'abac_activity_warning--channel_id': {
-                            user_id: 'current_user_id',
-                            category: 'abac_activity_warning',
-                            name: 'channel_id',
-                            value: 'true',
-                        },
-                    },
-                },
-            },
-        };
-
-        mockActions.searchUsers.mockResolvedValue({
-            data: {users: [{id: 'user1'}], total: 1},
-        });
-        mockActions.getChannelMembers.mockResolvedValue({data: []});
-
-        renderWithContext(
-            <ChannelSettingsAccessRulesTab {...defaultProps}/>,
-            stateWithDismissedPreference,
-        );
-
-        await waitFor(() => {
-            expect(screen.getByTestId('table-editor')).toBeInTheDocument();
-        });
-
-        // Set expression and enable auto-sync
-        const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
-        act(() => {
-            onChangeCallback('user.department == "Engineering"');
-        });
-
-        await waitFor(() => {
-            const checkbox = screen.getByRole('checkbox');
-            expect(checkbox).not.toBeDisabled();
-        });
-
-        const checkbox = screen.getByRole('checkbox');
-        await userEvent.click(checkbox);
-
-        await waitFor(() => {
-            expect(checkbox).toBeChecked();
-        });
-
-        // Trigger save
-        await waitFor(() => {
-            expect(screen.getByTestId('save-changes-panel')).toBeInTheDocument();
-        });
-
-        const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
-        await userEvent.click(saveButton);
-
-        // Should NOT show activity warning due to dismissed preference
-        // Should go directly to confirmation modal
-        await waitFor(() => {
-            expect(screen.getByTestId('channel-access-rules-confirm-modal')).toBeInTheDocument();
-        }, {timeout: 5000});
-
-        expect(screen.getByText('Save and apply rules')).toBeInTheDocument();
-        expect(mockActions.getChannelActivityWarning).not.toHaveBeenCalled();
-        expect(screen.queryByTestId('activity-warning-modal')).not.toBeInTheDocument();
     });
 
     it('should not show activity warning when no users are being added', async () => {
@@ -462,71 +389,6 @@ describe('ChannelSettingsAccessRulesTab - Activity Warning Integration', () => {
         }, {timeout: 5000});
 
         expect(screen.getByText('Save and apply rules')).toBeInTheDocument();
-        expect(mockActions.getChannelActivityWarning).not.toHaveBeenCalled();
         expect(screen.queryByTestId('activity-warning-modal')).not.toBeInTheDocument();
-    });
-
-    it('should gracefully handle activity warning API failure', async () => {
-        // Mock API failure
-        mockActions.getChannelActivityWarning.mockRejectedValue(new Error('API Error'));
-
-        // Suppress expected console warning
-        const originalConsoleWarn = console.warn;
-        console.warn = jest.fn();
-
-        mockActions.searchUsers.mockResolvedValue({
-            data: {users: [{id: 'user1'}], total: 1},
-        });
-        mockActions.getChannelMembers.mockResolvedValue({data: []});
-
-        renderWithContext(
-            <ChannelSettingsAccessRulesTab {...defaultProps}/>,
-            initialState,
-        );
-
-        await waitFor(() => {
-            expect(screen.getByTestId('table-editor')).toBeInTheDocument();
-        });
-
-        // Set expression and enable auto-sync
-        const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
-        act(() => {
-            onChangeCallback('user.department == "Engineering"');
-        });
-
-        await waitFor(() => {
-            const checkbox = screen.getByRole('checkbox');
-            expect(checkbox).not.toBeDisabled();
-        });
-
-        const checkbox = screen.getByRole('checkbox');
-        await userEvent.click(checkbox);
-
-        await waitFor(() => {
-            expect(checkbox).toBeChecked();
-        });
-
-        // Trigger save
-        await waitFor(() => {
-            expect(screen.getByTestId('save-changes-panel')).toBeInTheDocument();
-        });
-
-        const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
-        await userEvent.click(saveButton);
-
-        // Should not show warning modal and should continue with save despite API failure
-        await waitFor(() => {
-            expect(screen.getByTestId('channel-access-rules-confirm-modal')).toBeInTheDocument();
-        }, {timeout: 5000});
-
-        expect(screen.getByText('Save and apply rules')).toBeInTheDocument();
-        expect(mockActions.getChannelActivityWarning).toHaveBeenCalledWith('channel_id');
-        expect(screen.queryByTestId('activity-warning-modal')).not.toBeInTheDocument();
-
-        // Verify the expected warning was logged
-        expect(console.warn).toHaveBeenCalledWith('Failed to check activity warning:', expect.any(Error));
-
-        // Restore console.warn
-        console.warn = originalConsoleWarn;
     });
 });

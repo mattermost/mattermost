@@ -69,6 +69,7 @@ function ChannelSettingsAccessRulesTab({
     // Activity warning modal state
     const [showActivityWarningModal, setShowActivityWarningModal] = useState(false);
     const [shouldShowActivityWarning, setShouldShowActivityWarning] = useState(false);
+    const [activityWarningModalKey, setActivityWarningModalKey] = useState(0);
 
     // Confirmation modal state
     const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -464,11 +465,11 @@ function ChannelSettingsAccessRulesTab({
             // Determine if we should show activity warning
             // Show warning if:
             // 1. Channel has message history (channelMessageCount.total > 0)
-            // 2. Rules are being changed (expression differs from original)
-            // This covers: users being added now, users who might be added later, any rule relaxation
+            // 2. MORE people will get access (users are being added)
+            //    Only show when users are actually being added, not when rules become more restrictive
             const hasChannelHistory = (channelMessageCount?.total ?? 0) > 0;
-            const rulesAreChanging = expression.trim() !== originalExpression.trim();
-            const shouldShowWarning = hasChannelHistory && rulesAreChanging;
+            const morePeopleWillGetAccess = changes.toAdd.length > 0;
+            const shouldShowWarning = hasChannelHistory && morePeopleWillGetAccess;
 
             // If there are membership changes, show confirmation modal
             if (changes.toAdd.length > 0 || changes.toRemove.length > 0) {
@@ -482,6 +483,7 @@ function ChannelSettingsAccessRulesTab({
             // No immediate membership changes, but if warning needed, show it before saving
             if (shouldShowWarning) {
                 setShouldShowActivityWarning(true);
+                setActivityWarningModalKey(prev => prev + 1);
                 setShowActivityWarningModal(true);
                 return 'confirmation_required';
             }
@@ -516,6 +518,7 @@ function ChannelSettingsAccessRulesTab({
 
         // If activity warning should be shown, show it instead of saving directly
         if (shouldShowActivityWarning) {
+            setActivityWarningModalKey(prev => prev + 1);
             setShowActivityWarningModal(true);
             return;
         }
@@ -827,10 +830,10 @@ function ChannelSettingsAccessRulesTab({
 
             {/* Activity warning modal */}
             <ChannelActivityWarningModal
+                key={activityWarningModalKey}
                 isOpen={showActivityWarningModal}
                 onClose={handleActivityWarningClose}
                 onConfirm={handleActivityWarningContinue}
-                channelName={channel.display_name}
             />
         </div>
     );

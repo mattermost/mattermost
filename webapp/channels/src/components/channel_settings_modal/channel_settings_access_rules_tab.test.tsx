@@ -1627,6 +1627,9 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             },
         });
 
+        // Mock getChannelMembers to return empty (no current members, so user1 will be added)
+        mockActions.getChannelMembers.mockResolvedValue({data: []});
+
         renderWithContext(
             <ChannelSettingsAccessRulesTab {...baseProps}/>,
             stateWithMessages,
@@ -1640,6 +1643,19 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
         act(() => {
             onChangeCallback('user.department == "engineering"');
+        });
+
+        // Enable auto-sync so users will be added
+        await waitFor(() => {
+            const checkbox = screen.getByRole('checkbox');
+            expect(checkbox).not.toBeDisabled();
+        });
+
+        const checkbox = screen.getByRole('checkbox');
+        await user.click(checkbox);
+
+        await waitFor(() => {
+            expect(checkbox).toBeChecked();
         });
 
         // Trigger save
@@ -1673,17 +1689,18 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             data: {
                 users: [
                     {id: 'user1', username: 'user1', email: 'user1@test.com'},
+                    {id: 'user2', username: 'user2', email: 'user2@test.com'},
                 ],
-                total_count: 1,
+                total_count: 2,
             },
         });
 
-        // Mock getChannelMembers to return empty (no current members)
+        // Mock getChannelMembers to return empty (no current members, so all matching users will be added)
         mockActions.getChannelMembers.mockResolvedValue({data: []});
 
         renderWithContext(
             <ChannelSettingsAccessRulesTab {...baseProps}/>,
-            initialState, // Uses default state with 0 messages
+            initialState, // Use state with NO message history
         );
 
         await waitFor(() => {
@@ -1696,6 +1713,19 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             onChangeCallback('user.department == "engineering"');
         });
 
+        // Enable auto-sync so users will be added
+        await waitFor(() => {
+            const checkbox = screen.getByRole('checkbox');
+            expect(checkbox).not.toBeDisabled();
+        });
+
+        const checkbox = screen.getByRole('checkbox');
+        await user.click(checkbox);
+
+        await waitFor(() => {
+            expect(checkbox).toBeChecked();
+        });
+
         // Trigger save
         await waitFor(() => {
             expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
@@ -1704,13 +1734,16 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         const saveButton = screen.getByText('Save');
         await user.click(saveButton);
 
-        // Should save successfully (either with or without modal)
+        // Wait for confirmation modal with normal title (no activity warning because no message history)
         await waitFor(() => {
-            expect(mockActions.saveChannelPolicy).toHaveBeenCalled();
+            expect(screen.getByText('Save and apply rules')).toBeInTheDocument();
         });
 
-        // The key assertion: Activity warning modal should NOT appear because channel has no history
-        // This verifies the decision matrix: hasChannelHistory (0) && rulesAreChanging (true) = NO WARNING
+        // Click save to complete the action
+        const confirmButton = screen.getByText('Save and apply');
+        await user.click(confirmButton);
+
+        // Verify NO activity warning modal appears
         expect(screen.queryByText('Exposing channel history')).not.toBeInTheDocument();
     });
 });

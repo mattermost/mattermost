@@ -18,9 +18,6 @@ type Props = {
 
     /** Callback when user confirms the action */
     onConfirm: () => void;
-
-    /** Name of the channel for display purposes */
-    channelName: string;
 };
 
 /**
@@ -34,19 +31,20 @@ const ChannelActivityWarningModal: React.FC<Props> = ({
 }) => {
     const [acknowledgeRisk, setAcknowledgeRisk] = useState(false);
 
-    const handleConfirm = useCallback((checked: boolean) => {
+    const handleConfirm = useCallback(() => {
         // Only proceed if user has acknowledged the risk
-        if (!checked) {
+        if (!acknowledgeRisk) {
             return;
         }
 
         try {
+            setAcknowledgeRisk(false); // Reset checkbox after confirmation
             onConfirm();
         } catch (error) {
             // eslint-disable-next-line no-console
             console.error('Error confirming activity warning:', error);
         }
-    }, [onConfirm]);
+    }, [acknowledgeRisk, onConfirm]);
 
     const handleCancel = useCallback(() => {
         setAcknowledgeRisk(false); // Reset checkbox when modal is closed
@@ -57,11 +55,9 @@ const ChannelActivityWarningModal: React.FC<Props> = ({
         setAcknowledgeRisk(checked);
     }, []);
 
-    // Reset checkbox when modal opens
+    // Reset checkbox whenever modal opens (force reset every time)
     useEffect(() => {
-        if (isOpen) {
-            setAcknowledgeRisk(false);
-        }
+        setAcknowledgeRisk(false);
     }, [isOpen]);
 
     return (

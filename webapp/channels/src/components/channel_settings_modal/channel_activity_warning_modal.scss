@@ -3,7 +3,9 @@
 
 .channel-activity-warning-content {
     .warning-description {
-        margin-bottom: 0;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--center-channel-color-16);
+        margin-bottom: 20px;
         color: var(--center-channel-color);
         font-family: 'Open Sans', sans-serif;
         font-size: 14px;
@@ -13,12 +15,16 @@
 }
 
 // Style the activity warning checkbox specifically
+.ConfirmModal .activity-warning-checkbox {
+    margin-top: 20px !important;
+}
+
 .ConfirmModal .activity-warning-checkbox label {
     display: flex !important;
     align-items: flex-start !important;
     margin-bottom: 0 !important;
     color: var(--center-channel-color) !important;
-    font-size: 12px !important;
+    font-size: 14px !important;
     font-weight: 600 !important;
     gap: 8px !important;
     line-height: 16px !important;
