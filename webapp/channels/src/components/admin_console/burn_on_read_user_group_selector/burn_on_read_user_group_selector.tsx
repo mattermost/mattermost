@@ -57,8 +57,9 @@ const BurnOnReadUserGroupSelector: React.FC<Props> = ({
                 isMulti={true}
                 multiSelectInitialValue={parsedValue}
                 multiSelectOnChange={handleChange}
-                placeholder='Start typing to search for users and groups...'
+                placeholder='Start typing to search for users, groups, and teams...'
                 enableGroups={true}
+                enableTeams={true}
                 disabled={disabled}
             />
         </Setting>

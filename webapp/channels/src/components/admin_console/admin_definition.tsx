@@ -3232,8 +3232,8 @@ const AdminDefinition: AdminDefinitionType = {
                                 {
                                     type: 'custom',
                                     key: 'ServiceSettings.BurnOnReadAllowedUsersList',
-                                    label: defineMessage({id: 'admin.posts.burnOnRead.usersList.title', defaultMessage: 'Allow list'}),
-                                    help_text: defineMessage({id: 'admin.posts.burnOnRead.usersList.desc', defaultMessage: 'Add users, groups or teams that will be allowed to send burn-on-read messages. Restricts which users can send Burn-on-Read messages. You may limit this feature to specific individuals, groups, or teams.'}),
+                                    label: defineMessage({id: 'admin.posts.burnOnRead.usersList.title', defaultMessage: 'Selected users and groups'}),
+                                    help_text: defineMessage({id: 'admin.posts.burnOnRead.usersList.desc', defaultMessage: 'Choose users or groups that will be allowed or blocked from sending burn-on-read messages, depending on your selection above.'}),
                                     component: BurnOnReadUserGroupSelector,
                                     isDisabled: it.any(
                                         it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
