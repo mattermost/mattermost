@@ -7,6 +7,7 @@ import type {ReactNode} from 'react';
 import * as Menu from 'components/menu';
 
 export type RecapMenuAction = {
+
     /**
      * Unique identifier for the action
      */
@@ -39,6 +40,7 @@ export type RecapMenuAction = {
 };
 
 interface RecapMenuProps {
+
     /**
      * Array of action objects to display in the menu
      */

@@ -3,11 +3,11 @@
 
 import type {Recap} from '@mattermost/types/recaps';
 
-import {Client4} from 'mattermost-redux/client';
 import {RecapTypes} from 'mattermost-redux/action_types';
 import {logError} from 'mattermost-redux/actions/errors';
-
+import {Client4} from 'mattermost-redux/client';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
+
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
 
 export function createRecap(title: string, channelIds: string[], agentId: string): ActionFuncAsync<Recap> {

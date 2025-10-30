@@ -24,7 +24,7 @@ const StepOne = ({recapName, setRecapName, recapType, setRecapType, unreadChanne
     const allUnreadsButton = (
         <button
             type='button'
-            className={`recap-type-card ${recapType === 'all_unreads' ? 'selected' : ''} ${!hasUnreadChannels ? 'disabled' : ''}`}
+            className={`recap-type-card ${recapType === 'all_unreads' ? 'selected' : ''} ${hasUnreadChannels ? '' : 'disabled'}`}
             onClick={() => hasUnreadChannels && setRecapType('all_unreads')}
             disabled={!hasUnreadChannels}
         >
@@ -85,14 +85,14 @@ const StepOne = ({recapName, setRecapName, recapType, setRecapType, unreadChanne
                         {recapType === 'selected' && <i className='icon icon-check-circle selected-icon'/>}
                     </button>
 
-                    {!hasUnreadChannels ? (
+                    {hasUnreadChannels ? allUnreadsButton : (
                         <WithTooltip
                             title={formatMessage({id: 'recaps.modal.noUnreadsAvailable', defaultMessage: 'No unread channels available'})}
                             hint={formatMessage({id: 'recaps.modal.noUnreadsAvailableHint', defaultMessage: 'You currently have no unread messages in any channels'})}
                         >
                             {allUnreadsButton}
                         </WithTooltip>
-                    ) : allUnreadsButton}
+                    )}
                 </div>
             </div>
         </div>

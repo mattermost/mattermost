@@ -118,6 +118,7 @@ describe('CreateRecapModal', () => {
 
         // The default bot (Copilot) should be displayed
         expect(screen.getByText('Copilot')).toBeInTheDocument();
+
         // Label should be shown
         expect(screen.getByText('GENERATE WITH:')).toBeInTheDocument();
     });
@@ -215,7 +216,13 @@ describe('CreateRecapModal', () => {
 
     test('should call onExited when Cancel is clicked', async () => {
         const onExited = jest.fn();
-        renderWithContext(<CreateRecapModal {...defaultProps} onExited={onExited}/>, initialState);
+        renderWithContext(
+            <CreateRecapModal
+                {...defaultProps}
+                onExited={onExited}
+            />,
+            initialState,
+        );
 
         const cancelButton = screen.getByRole('button', {name: /cancel/i});
         await userEvent.click(cancelButton);

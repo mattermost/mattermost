@@ -3,10 +3,10 @@
 
 import {combineReducers} from 'redux';
 
-import type {AIAgent} from '../../actions/ai';
-import {AITypes} from '../../action_types';
-
 import type {GenericAction} from 'mattermost-redux/types/actions';
+
+import {AITypes} from '../../action_types';
+import type {AIAgent} from '../../actions/ai';
 
 export interface AIState {
     agents: AIAgent[];

@@ -17,8 +17,8 @@
                 left: 0;
                 width: 2px;
                 height: 100%;
-                background-color: var(--sidebar-text-active-border);
                 border-radius: 0 2px 2px 0;
+                background-color: var(--sidebar-text-active-border);
                 content: '';
             }
         }
@@ -40,15 +40,15 @@
         .icon {
             display: flex;
             align-items: center;
-            margin-right: 4px;
             padding: 3px;
-            opacity: 0.64;
+            margin-right: 4px;
             font-size: 18px;
+            opacity: 0.64;
         }
 
         .SidebarChannelLinkLabel_wrapper {
-            flex: 1;
             min-width: 0;
+            flex: 1;
             padding: 2px 4px;
         }
 

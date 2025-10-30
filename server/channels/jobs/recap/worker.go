@@ -42,7 +42,7 @@ func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, appInstanc
 			mlog.Int("channel_count", len(channelIDs)))
 
 		// Update status to processing
-		storeInstance.Recap().UpdateRecapStatus(recapID, model.RecapStatusProcessing)
+		_ = storeInstance.Recap().UpdateRecapStatus(recapID, model.RecapStatusProcessing)
 		publishRecapUpdate(appInstance, recapID, userID)
 
 		totalMessages := 0
@@ -52,7 +52,7 @@ func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, appInstanc
 		for i, channelID := range channelIDs {
 			// Update progress
 			progress := int64((i * 100) / len(channelIDs))
-			jobServer.SetJobProgress(job, progress)
+			_ = jobServer.SetJobProgress(job, progress)
 
 			// Get channel info
 			channel, err := appInstance.GetChannel(request.EmptyContext(logger), channelID)
@@ -128,18 +128,30 @@ func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, appInstanc
 
 		if len(failedChannels) > 0 && len(successfulChannels) == 0 {
 			recap.Status = model.RecapStatusFailed
-			storeInstance.Recap().UpdateRecap(recap)
+			_, err := storeInstance.Recap().UpdateRecap(recap)
+			if err != nil {
+				logger.Error("Failed to update recap", mlog.Err(err))
+				return fmt.Errorf("failed to update recap: %w", err)
+			}
 			publishRecapUpdate(appInstance, recapID, userID)
 			return fmt.Errorf("all channels failed to process")
 		} else if len(failedChannels) > 0 {
 			recap.Status = model.RecapStatusCompleted
-			storeInstance.Recap().UpdateRecap(recap)
+			_, err := storeInstance.Recap().UpdateRecap(recap)
+			if err != nil {
+				logger.Error("Failed to update recap", mlog.Err(err))
+				return fmt.Errorf("failed to update recap: %w", err)
+			}
 			publishRecapUpdate(appInstance, recapID, userID)
 			logger.Warn("Some channels failed", mlog.Int("failed_count", len(failedChannels)))
 			// Job succeeds with warning
 		} else {
 			recap.Status = model.RecapStatusCompleted
-			storeInstance.Recap().UpdateRecap(recap)
+			_, err := storeInstance.Recap().UpdateRecap(recap)
+			if err != nil {
+				logger.Error("Failed to update recap", mlog.Err(err))
+				return fmt.Errorf("failed to update recap: %w", err)
+			}
 			publishRecapUpdate(appInstance, recapID, userID)
 		}
 

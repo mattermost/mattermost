@@ -1,10 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AITypes} from '../../action_types';
-
 import aiReducer from './ai';
 
+import {AITypes} from '../../action_types';
 import type {AIAgent} from '../../actions/ai';
 
 describe('AI Reducer', () => {

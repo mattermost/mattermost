@@ -19,7 +19,7 @@ func TestCreateRecap(t *testing.T) {
 		channel2 := th.CreateChannel(th.Context, th.BasicTeam)
 		channelIds := []string{th.BasicChannel.Id, channel2.Id}
 
-		recap, err := th.App.CreateRecap(th.Context, th.BasicUser.Id, "My Test Recap", channelIds)
+		recap, err := th.App.CreateRecap(th.Context, th.BasicUser.Id, "My Test Recap", channelIds, "test-agent-id")
 		require.Nil(t, err)
 		require.NotNil(t, recap)
 		assert.Equal(t, th.BasicUser.Id, recap.UserId)
@@ -31,13 +31,13 @@ func TestCreateRecap(t *testing.T) {
 		// Create a private channel and add only BasicUser2
 		privateChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
 		// Remove BasicUser if they were added automatically
-		th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, "", privateChannel)
+		_ = th.App.RemoveUserFromChannel(th.Context, th.BasicUser.Id, "", privateChannel)
 		// Ensure BasicUser2 is a member instead
 		th.AddUserToChannel(th.BasicUser2, privateChannel)
 
 		// Try to create recap as BasicUser who is not a member
 		channelIds := []string{privateChannel.Id}
-		recap, err := th.App.CreateRecap(th.Context, th.BasicUser.Id, "Test Recap", channelIds)
+		recap, err := th.App.CreateRecap(th.Context, th.BasicUser.Id, "Test Recap", channelIds, "test-agent-id")
 		require.NotNil(t, err)
 		assert.Nil(t, recap)
 		assert.Equal(t, "app.recap.create.permission_denied", err.Id)
@@ -117,7 +117,7 @@ func TestGetRecapsForUser(t *testing.T) {
 
 	t.Run("get recaps for user", func(t *testing.T) {
 		// Create multiple recaps for the user
-		for i := 0; i < 5; i++ {
+		for range 5 {
 			recap := &model.Recap{
 				Id:                model.NewId(),
 				UserId:            th.BasicUser.Id,
@@ -143,7 +143,7 @@ func TestGetRecapsForUser(t *testing.T) {
 		userId := model.NewId()
 
 		// Create 15 recaps
-		for i := 0; i < 15; i++ {
+		for range 15 {
 			recap := &model.Recap{
 				Id:                model.NewId(),
 				UserId:            userId,

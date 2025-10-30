@@ -12,16 +12,16 @@
     }
 
     .create-recap-modal-body {
+        max-height: 500px;
         padding: 0px 0px;
         overflow-y: auto;
-        max-height: 500px;
     }
 
     .create-recap-modal-header {
         display: flex;
+        width: 100%;
         align-items: center;
         justify-content: space-between;
-        width: 100%;
 
         .create-recap-modal-header-actions {
             display: flex;
@@ -32,51 +32,51 @@
     .create-recap-modal-error {
         display: flex;
         align-items: center;
-        gap: 8px;
         padding: 12px 16px;
-        margin-bottom: 16px;
-        background-color: rgba(var(--error-text-rgb), 0.08);
         border: 1px solid rgba(var(--error-text-rgb), 0.24);
         border-radius: 4px;
+        margin-bottom: 16px;
+        background-color: rgba(var(--error-text-rgb), 0.08);
         color: var(--error-text);
         font-size: 14px;
+        gap: 8px;
 
         .icon {
-            font-size: 16px;
             flex-shrink: 0;
+            font-size: 16px;
         }
     }
 
     .create-recap-modal-footer {
         display: flex;
+        width: 100%;
         align-items: center;
         justify-content: space-between;
-        width: 100%;
 
         &-left {
             display: flex;
+            flex: 1;
             align-items: center;
             gap: 12px;
-            flex: 1;
 
             .btn-link {
                 display: flex;
                 align-items: center;
-                gap: 6px;
-                background: transparent;
-                color: var(--button-bg);
                 padding: 0;
                 border: none;
+                background: transparent;
+                color: var(--button-bg);
                 font-size: 14px;
                 font-weight: 600;
+                gap: 6px;
 
                 &:hover:not(:disabled) {
                     text-decoration: underline;
                 }
 
                 &:disabled {
-                    opacity: 0.4;
                     cursor: not-allowed;
+                    opacity: 0.4;
                 }
 
                 .icon {
@@ -87,8 +87,8 @@
 
         &-actions {
             display: flex;
-            gap: 8px;
             align-items: center;
+            gap: 8px;
 
             .btn {
                 display: flex;
@@ -113,10 +113,10 @@
             flex-direction: column;
 
             .form-label {
+                margin-bottom: 0;
+                color: var(--center-channel-color);
                 font-size: 14px;
                 font-weight: 600;
-                color: var(--center-channel-color);
-                margin-bottom: 0;
             }
 
             &.name-input-group {
@@ -141,8 +141,8 @@
                 .icon {
                     position: absolute;
                     left: 16px;
-                    font-size: 16px;
                     color: rgba(var(--center-channel-color-rgb), 0.64);
+                    font-size: 16px;
                 }
 
                 .form-control {
@@ -165,15 +165,15 @@
             .recap-type-card {
                 position: relative;
                 display: flex;
-                gap: 12px;
                 align-items: center;
                 padding: 12px 20px 12px 12px;
-                background-color: var(--center-channel-bg);
                 border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
                 border-radius: 4px;
+                background-color: var(--center-channel-bg);
                 cursor: pointer;
-                transition: all 0.2s;
+                gap: 12px;
                 text-align: left;
+                transition: all 0.2s;
 
                 &:hover {
                     background-color: rgba(var(--center-channel-color-rgb), 0.04);
@@ -203,44 +203,44 @@
 
                 .recap-type-card-icon {
                     display: flex;
-                    align-items: center;
-                    justify-content: center;
                     width: 40px;
                     height: 40px;
-                    background-color: rgba(var(--center-channel-color-rgb), 0.08);
-                    border-radius: 20px;
                     flex-shrink: 0;
+                    align-items: center;
+                    justify-content: center;
+                    border-radius: 20px;
+                    background-color: rgba(var(--center-channel-color-rgb), 0.08);
 
                     .icon {
-                        font-size: 24px;
                         color: rgba(var(--center-channel-color-rgb), 0.56);
+                        font-size: 24px;
                     }
                 }
 
                 .recap-type-card-content {
-                    flex: 1;
                     display: flex;
+                    flex: 1;
                     flex-direction: column;
-                    gap: 2px;
                     padding: 1px 0 3px;
+                    gap: 2px;
 
                     .recap-type-card-title {
+                        color: var(--center-channel-color);
                         font-size: 14px;
                         font-weight: 600;
-                        color: var(--center-channel-color);
                         line-height: 20px;
                     }
 
                     .recap-type-card-description {
-                        font-size: 12px;
                         color: rgba(var(--center-channel-color-rgb), 0.72);
+                        font-size: 12px;
                         line-height: 16px;
                     }
                 }
 
                 .selected-icon {
-                    font-size: 20px;
                     color: var(--button-bg);
+                    font-size: 20px;
                 }
             }
         }
@@ -253,39 +253,39 @@
         gap: 16px;
 
         .form-label {
+            margin-bottom: 0;
+            color: var(--center-channel-color);
             font-size: 14px;
             font-weight: 600;
-            color: var(--center-channel-color);
-            margin-bottom: 0;
         }
 
         .channel-selector-container {
-            border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
-            border-radius: 4px;
+            display: flex;
             overflow: hidden;
             max-height: 400px;
-            display: flex;
             flex-direction: column;
+            border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+            border-radius: 4px;
         }
 
         .channel-selector-search {
-            padding: 8px 12px 12px;
-            background-color: var(--center-channel-bg);
-            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
             position: relative;
             display: flex;
             align-items: center;
+            padding: 8px 12px 12px;
+            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+            background-color: var(--center-channel-bg);
 
             .icon {
                 position: absolute;
                 left: 28px;
-                font-size: 16px;
                 color: rgba(var(--center-channel-color-rgb), 0.64);
+                font-size: 16px;
             }
 
             .form-control {
-                padding-left: 48px;
                 height: 40px;
+                padding-left: 48px;
                 border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
                 border-radius: 4px;
             }
@@ -293,29 +293,29 @@
 
         .channel-selector-list {
             flex: 1;
-            overflow-y: auto;
             background-color: var(--center-channel-bg);
+            overflow-y: auto;
         }
 
         .channel-group {
             .channel-group-title {
                 padding: 6px 20px;
+                background-color: var(--center-channel-bg);
+                color: rgba(var(--center-channel-color-rgb), 0.56);
                 font-size: 12px;
                 font-weight: 600;
-                color: rgba(var(--center-channel-color-rgb), 0.56);
-                text-transform: uppercase;
                 letter-spacing: 0.24px;
-                background-color: var(--center-channel-bg);
+                text-transform: uppercase;
             }
         }
 
         .channel-selector-item {
             display: flex;
             align-items: center;
-            gap: 8px;
             padding: 6px 20px 6px 16px;
-            cursor: pointer;
             background-color: var(--center-channel-bg);
+            cursor: pointer;
+            gap: 8px;
 
             &:hover {
                 background-color: rgba(var(--center-channel-color-rgb), 0.04);
@@ -332,20 +332,20 @@
             }
 
             .channel-selector-channel-info {
-                flex: 1;
                 display: flex;
+                flex: 1;
                 align-items: center;
-                gap: 8px;
                 padding: 2px 4px;
+                gap: 8px;
 
                 .icon {
-                    font-size: 16px;
                     color: rgba(var(--center-channel-color-rgb), 0.56);
+                    font-size: 16px;
                 }
 
                 .channel-name {
-                    font-size: 14px;
                     color: var(--center-channel-color);
+                    font-size: 14px;
                     line-height: 20px;
                 }
             }
@@ -353,9 +353,9 @@
 
         .channel-selector-empty {
             padding: 40px 20px;
-            text-align: center;
             color: rgba(var(--center-channel-color-rgb), 0.64);
             font-size: 14px;
+            text-align: center;
         }
     }
 
@@ -366,10 +366,10 @@
         gap: 16px;
 
         .form-label {
+            margin-bottom: 0;
+            color: var(--center-channel-color);
             font-size: 14px;
             font-weight: 600;
-            color: var(--center-channel-color);
-            margin-bottom: 0;
         }
 
         .summary-channels-list {
@@ -380,18 +380,18 @@
         .summary-channel-item {
             display: flex;
             align-items: center;
-            gap: 8px;
             padding: 6px 16px;
             margin-left: -16px;
+            gap: 8px;
 
             .icon {
-                font-size: 16px;
                 color: rgba(var(--center-channel-color-rgb), 0.56);
+                font-size: 16px;
             }
 
             .channel-name {
-                font-size: 14px;
                 color: var(--center-channel-color);
+                font-size: 14px;
                 line-height: 20px;
             }
         }

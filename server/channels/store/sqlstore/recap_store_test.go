@@ -50,7 +50,7 @@ func TestRecapStore(t *testing.T) {
 			userId := model.NewId()
 
 			// Create multiple recaps for the same user
-			for i := 0; i < 3; i++ {
+			for range 3 {
 				recap := &model.Recap{
 					Id:                model.NewId(),
 					UserId:            userId,

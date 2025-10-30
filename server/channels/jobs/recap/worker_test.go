@@ -31,4 +31,3 @@ func TestExtractPostIDs(t *testing.T) {
 		assert.Len(t, ids, 0)
 	})
 }
-

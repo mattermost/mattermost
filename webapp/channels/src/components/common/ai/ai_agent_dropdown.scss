@@ -7,24 +7,24 @@
     gap: 8px;
 
     .ai-agent-dropdown-label {
+        color: rgba(var(--center-channel-color-rgb), 0.56);
         font-family: 'Open Sans', sans-serif;
         font-size: 11px;
         font-weight: 600;
-        line-height: 16px;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
         letter-spacing: 0.48px;
+        line-height: 16px;
         text-transform: uppercase;
     }
 
     .ai-agent-dropdown-button {
         display: flex;
         align-items: center;
-        gap: 4px;
         padding: 2px 4px 2px 6px;
-        background-color: rgba(var(--center-channel-color-rgb), 0.08);
         border: none;
         border-radius: 4px;
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
         cursor: pointer;
+        gap: 4px;
         transition: background-color 0.15s ease;
 
         &:hover:not(:disabled) {
@@ -41,11 +41,11 @@
         }
 
         .ai-agent-dropdown-button-text {
+            color: var(--center-channel-color);
             font-family: 'Open Sans', sans-serif;
             font-size: 11px;
             font-weight: 600;
             line-height: 16px;
-            color: var(--center-channel-color);
             white-space: nowrap;
         }
 
@@ -58,14 +58,14 @@
 // Menu header - rendered in MUI Popover, needs global scope
 .ai-agent-dropdown-menu-header {
     padding: 6px 20px;
+    background-color: var(--center-channel-bg);
+    color: rgba(var(--center-channel-color-rgb), 0.56);
     font-family: 'Open Sans', sans-serif;
     font-size: 12px;
     font-weight: 600;
-    line-height: 16px;
-    color: rgba(var(--center-channel-color-rgb), 0.56);
     letter-spacing: 0.48px;
+    line-height: 16px;
     text-transform: uppercase;
-    background-color: var(--center-channel-bg);
 }
 
 // Menu items - rendered in MUI Popover, needs global scope targeting menu ID
@@ -73,14 +73,14 @@
     padding: 8px 0;
 
     .MuiMenuItem-root {
-        padding: 8px 16px !important;
         min-height: 40px;
+        padding: 8px 16px !important;
 
         .leading-element {
             width: 24px;
             height: 24px;
-            margin-inline-end: 8px !important;
             padding: 0 4px;
+            margin-inline-end: 8px !important;
         }
 
         .label-elements {
@@ -88,11 +88,11 @@
             gap: 0 !important;
 
             span {
+                color: var(--center-channel-color) !important;
                 font-family: 'Open Sans', sans-serif;
                 font-size: 14px !important;
                 font-weight: 400;
                 line-height: 20px;
-                color: var(--center-channel-color) !important;
             }
         }
 
