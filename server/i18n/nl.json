@@ -4608,15 +4608,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Versie 128+"
+    "translation": "Versie 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Versie 138+"
+    "translation": "Versie 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Versie 138+"
+    "translation": "Versie 140+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -11026,5 +11026,65 @@
   {
     "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
     "translation": "Ongeldige melding timeout voor automatische vertalingen. Moet een positief getal zijn. Moet een positief getal zijn."
+  },
+  {
+    "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
+    "translation": "Kanaal ID komt niet overeen met het kanaal ID van het gemarkeerde bericht."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations_for_channel.restricted_permission.app_error",
+    "translation": "Kan geen rechten toevoegen die beperkt zijn door het machtigingsschema van het team of het systeem."
+  },
+  {
+    "id": "api.content_flagging.error.user_not_reviewer",
+    "translation": "De gebruiker is geen inhoudsbeoordelaar."
+  },
+  {
+    "id": "api.team.get_team.flagged_post_mismatch.app_error",
+    "translation": "TeamID komt niet overeen met de teamID van het gemarkeerde bericht."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.no_reviewer_field.app_error",
+    "translation": "Geen eigenschapveld ReviewerID gevonden."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.update_status_property_value.app_error",
+    "translation": "Fout bij het bijwerken van de waarde van de Status-eigenschap bij het instellen van reviewer."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.upsert_property_value.app_error",
+    "translation": "Fout bij het instellen van een beoordelaar voor een gemarkeerd bericht."
+  },
+  {
+    "id": "app.content_flagging.missing_flagged_post_id_field.app_error",
+    "translation": "Kan het eigenschapveld Flagged Post ID niet vinden."
+  },
+  {
+    "id": "app.content_flagging.missing_reporting_user_id_field.app_error",
+    "translation": "Kan het reporting user veld niet vinden."
+  },
+  {
+    "id": "app.content_flagging.missing_reporting_user_id_property_value.app_error",
+    "translation": "Kan de waarde voor het reporting user veld niet vinden."
+  },
+  {
+    "id": "app.content_flagging.search_common_reviewers.app_error",
+    "translation": "Kan de term niet vinden in Common Reviewers."
+  },
+  {
+    "id": "app.content_flagging.search_reviewer_posts.app_error",
+    "translation": "Kan reviewer berichten niet vinden het gemarkeerde bericht."
+  },
+  {
+    "id": "app.content_flagging.search_sysadmin_reviewers.app_error",
+    "translation": "Kan de zoekterm niet vinden in System Admin Reviewers."
+  },
+  {
+    "id": "app.content_flagging.search_team_admin_reviewers.app_error",
+    "translation": "Kan de zoekterm niet vinden in Team Admin Reviewers."
+  },
+  {
+    "id": "app.content_flagging.search_team_reviewers.app_error",
+    "translation": "Kan de zoekterm niet vinden in Team Reviewers."
   }
 ]

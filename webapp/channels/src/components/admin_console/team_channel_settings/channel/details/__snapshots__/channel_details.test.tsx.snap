@@ -68,8 +68,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
           }
         }
       />
-      <ConfirmModal
-        confirmButtonClass="btn btn-primary"
+      <Memo(ConfirmModal)
         confirmButtonText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save and Archive Channel"
@@ -82,7 +81,6 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
             id="admin.channel_settings.channel_detail.archive_confirm.message"
           />
         }
-        modalClass=""
         onCancel={[Function]}
         onConfirm={[Function]}
         show={false}
@@ -263,8 +261,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         isDisabled={false}
         onToggleArchive={[Function]}
       />
-      <ConfirmModal
-        confirmButtonClass="btn btn-primary"
+      <Memo(ConfirmModal)
         confirmButtonText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save and Archive Channel"
@@ -277,7 +274,6 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
             id="admin.channel_settings.channel_detail.archive_confirm.message"
           />
         }
-        modalClass=""
         onCancel={[Function]}
         onConfirm={[Function]}
         show={false}
@@ -477,8 +473,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
           }
         }
       />
-      <ConfirmModal
-        confirmButtonClass="btn btn-primary"
+      <Memo(ConfirmModal)
         confirmButtonText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save and Archive Channel"
@@ -491,7 +486,6 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
             id="admin.channel_settings.channel_detail.archive_confirm.message"
           />
         }
-        modalClass=""
         onCancel={[Function]}
         onConfirm={[Function]}
         show={false}
@@ -624,8 +618,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         isDisabled={false}
         onToggleArchive={[Function]}
       />
-      <ConfirmModal
-        confirmButtonClass="btn btn-primary"
+      <Memo(ConfirmModal)
         confirmButtonText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save and Archive Channel"
@@ -638,7 +631,6 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
             id="admin.channel_settings.channel_detail.archive_confirm.message"
           />
         }
-        modalClass=""
         onCancel={[Function]}
         onConfirm={[Function]}
         show={false}
@@ -790,8 +782,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
           }
         }
       />
-      <ConfirmModal
-        confirmButtonClass="btn btn-primary"
+      <Memo(ConfirmModal)
         confirmButtonText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save and Archive Channel"
@@ -804,7 +795,6 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
             id="admin.channel_settings.channel_detail.archive_confirm.message"
           />
         }
-        modalClass=""
         onCancel={[Function]}
         onConfirm={[Function]}
         show={false}
@@ -937,8 +927,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
         isDisabled={false}
         onToggleArchive={[Function]}
       />
-      <ConfirmModal
-        confirmButtonClass="btn btn-primary"
+      <Memo(ConfirmModal)
         confirmButtonText={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save and Archive Channel"
@@ -951,7 +940,6 @@ exports[`admin_console/team_channel_settings/channel/ChannelDetails should match
             id="admin.channel_settings.channel_detail.archive_confirm.message"
           />
         }
-        modalClass=""
         onCancel={[Function]}
         onConfirm={[Function]}
         show={false}
