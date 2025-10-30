@@ -2379,6 +2379,7 @@ func TestPatchChannelModerationsForChannel(t *testing.T) {
 			moderations, appErr := th.App.PatchChannelModerationsForChannel(th.Context, channel, tc.ChannelModerationsPatch)
 			if tc.ShouldError {
 				require.NotNil(t, appErr)
+				require.Equal(t, http.StatusForbidden, appErr.StatusCode)
 				return
 			}
 			require.Nil(t, appErr)
@@ -2862,69 +2863,61 @@ func TestIsCRTEnabledForUser(t *testing.T) {
 
 func TestGetDirectOrGroupMessageMembersCommonTeams(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := SetupWithStoreMock(t)
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	mockStore := th.App.Srv().Store().(*mocks.Store)
-
-	mockChannelStore := mocks.ChannelStore{}
-	mockStore.On("Channel").Return(&mockChannelStore)
-	mockChannelStore.On("Get", "gm_channel_id", true).Return(&model.Channel{Type: model.ChannelTypeGroup}, nil)
-
-	mockTeamStore := mocks.TeamStore{}
-	mockStore.On("Team").Return(&mockTeamStore)
-
-	th.App.Srv().Store().Team()
-
-	mockTeamStore.On("GetCommonTeamIDsForMultipleUsers", []string{"user_id_1", "user_id_2"}).Return([]string{"team_id_1", "team_id_2", "team_id_3"}, nil).Times(1)
-	mockTeamStore.On("GetMany", []string{"team_id_1", "team_id_2", "team_id_3"}).Return(
-		[]*model.Team{
-			{DisplayName: "Team 1"},
-			{DisplayName: "Team 2"},
-			{DisplayName: "Team 3"},
-		},
-		nil,
-	)
-
-	mockUserStore := mocks.UserStore{}
-	mockStore.On("User").Return(&mockUserStore)
-	options := &model.UserGetOptions{
-		PerPage:     model.ChannelGroupMaxUsers,
-		Page:        0,
-		InChannelId: "gm_channel_id",
-		Inactive:    false,
-		Active:      true,
+	teamsToCreate := 2
+	usersToCreate := 4 // at least 3 users to create a GM channel, last user is not in any team
+	teams := make([]string, 0, teamsToCreate)
+	for i := 0; i < cap(teams); i++ {
+		team := th.CreateTeam()
+		defer func(team *model.Team) {
+			appErr := th.App.PermanentDeleteTeam(th.Context, team)
+			require.Nil(t, appErr)
+		}(team)
+		teams = append(teams, team.Id)
 	}
-	mockUserStore.On("GetProfilesInChannel", options).Return([]*model.User{
-		{
-			Id: "user_id_1",
-		},
-		{
-			Id: "user_id_2",
-		},
-	}, nil)
 
-	var err error
-	th.App.ch.srv.teamService, err = teams.New(teams.ServiceConfig{
-		TeamStore:    &mockTeamStore,
-		ChannelStore: &mockChannelStore,
-		GroupStore:   &mocks.GroupStore{},
-		Users:        th.App.ch.srv.userService,
-		WebHub:       th.App.ch.srv.platform,
-		ConfigFn:     th.App.ch.srv.platform.Config,
-		LicenseFn:    th.App.ch.srv.License,
+	users := make([]string, 0, usersToCreate)
+	for i := 0; i < cap(users); i++ {
+		user := th.CreateUser()
+		defer func(user *model.User) {
+			appErr := th.App.PermanentDeleteUser(th.Context, user)
+			require.Nil(t, appErr)
+		}(user)
+		users = append(users, user.Id)
+	}
+
+	for _, teamId := range teams {
+		// add first 3 users to each team, last user is not in any team
+		for i := range 3 {
+			_, _, appErr := th.App.AddUserToTeam(th.Context, teamId, users[i], "")
+			require.Nil(t, appErr)
+		}
+	}
+
+	// create GM channel with first 3 users who share common teams
+	gmChannel, appErr := th.App.createGroupChannel(th.Context, users[:3], users[0])
+	require.Nil(t, appErr)
+	require.NotNil(t, gmChannel)
+
+	// normally you can't create a GM channel with users that don't share any teams, but we do it here to test the edge case
+	// create GM channel with last 3 users, where last member is not in any team
+	otherGMChannel, appErr := th.App.createGroupChannel(th.Context, users[1:], users[0])
+	require.Nil(t, appErr)
+	require.NotNil(t, otherGMChannel)
+
+	t.Run("Get teams for GM channel", func(t *testing.T) {
+		commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeams(th.Context, gmChannel.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, 2, len(commonTeams))
 	})
-	require.NoError(t, err)
 
-	commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeams(th.Context, "gm_channel_id")
-	require.Nil(t, appErr)
-	require.Equal(t, 3, len(commonTeams))
-
-	// case of no common teams
-	mockTeamStore.On("GetCommonTeamIDsForMultipleUsers", []string{"user_id_1", "user_id_2"}).Return([]string{}, nil)
-	commonTeams, appErr = th.App.GetDirectOrGroupMessageMembersCommonTeams(th.Context, "gm_channel_id")
-	require.Nil(t, appErr)
-	require.Equal(t, 0, len(commonTeams))
+	t.Run("No common teams", func(t *testing.T) {
+		commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeams(th.Context, otherGMChannel.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, 0, len(commonTeams))
+	})
 }
 
 func TestConvertGroupMessageToChannel(t *testing.T) {
