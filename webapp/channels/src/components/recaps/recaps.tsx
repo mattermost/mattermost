@@ -12,8 +12,8 @@ import {getUnreadRecaps, getReadRecaps} from 'mattermost-redux/selectors/entitie
 
 import {openModal} from 'actions/views/modals';
 
-import CreateRecapModal from 'components/create_recap_modal';
 import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
+import CreateRecapModal from 'components/create_recap_modal';
 
 import {ModalIdentifiers} from 'utils/constants';
 
