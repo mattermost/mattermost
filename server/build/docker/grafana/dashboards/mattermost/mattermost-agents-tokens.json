@@ -406,7 +406,7 @@
                         "uid": "Prometheus"
                     },
                     "editorMode": "code",
-                    "expr": "sum(rate(agents_llm_input_tokens_total{bot_name=~\"$bot_name\",team_id=~\"$team_id\"}[$__rate_interval]))",
+                    "expr": "sum(increase(agents_llm_input_tokens_total{bot_name=~\"$bot_name\",team_id=~\"$team_id\"}[$__interval])) or sum(agents_llm_input_tokens_total{bot_name=~\"$bot_name\",team_id=~\"$team_id\"})",
                     "legendFormat": "Input Tokens",
                     "range": true,
                     "refId": "A"
@@ -417,13 +417,13 @@
                         "uid": "Prometheus"
                     },
                     "editorMode": "code",
-                    "expr": "sum(rate(agents_llm_output_tokens_total{bot_name=~\"$bot_name\",team_id=~\"$team_id\"}[$__rate_interval]))",
+                    "expr": "sum(increase(agents_llm_output_tokens_total{bot_name=~\"$bot_name\",team_id=~\"$team_id\"}[$__interval])) or sum(agents_llm_output_tokens_total{bot_name=~\"$bot_name\",team_id=~\"$team_id\"})",
                     "legendFormat": "Output Tokens",
                     "range": true,
                     "refId": "B"
                 }
             ],
-            "title": "Token Consumption Rate Over Time",
+            "title": "Token Consumption Over Time",
             "type": "timeseries"
         },
         {
@@ -511,7 +511,7 @@
                         "uid": "Prometheus"
                     },
                     "editorMode": "code",
-                    "expr": "sum by (bot_name) (rate(agents_llm_input_tokens_total{bot_name=~\"$bot_name\",team_id=~\"$team_id\"}[$__rate_interval]) + rate(agents_llm_output_tokens_total{bot_name=~\"$bot_name\",team_id=~\"$team_id\"}[$__rate_interval]))",
+                    "expr": "sum by (bot_name) (increase(agents_llm_input_tokens_total{bot_name=~\"$bot_name\",team_id=~\"$team_id\"}[$__interval]) + increase(agents_llm_output_tokens_total{bot_name=~\"$bot_name\",team_id=~\"$team_id\"}[$__interval])) or sum by (bot_name) (agents_llm_input_tokens_total{bot_name=~\"$bot_name\",team_id=~\"$team_id\"} + agents_llm_output_tokens_total{bot_name=~\"$bot_name\",team_id=~\"$team_id\"})",
                     "legendFormat": "{{bot_name}}",
                     "range": true,
                     "refId": "A"
@@ -605,7 +605,7 @@
                         "uid": "Prometheus"
                     },
                     "editorMode": "code",
-                    "expr": "sum by (team_id) (rate(agents_llm_input_tokens_total{bot_name=~\"$bot_name\",team_id=~\"$team_id\"}[$__rate_interval]) + rate(agents_llm_output_tokens_total{bot_name=~\"$bot_name\",team_id=~\"$team_id\"}[$__rate_interval]))",
+                    "expr": "sum by (team_id) (increase(agents_llm_input_tokens_total{bot_name=~\"$bot_name\",team_id=~\"$team_id\"}[$__interval]) + increase(agents_llm_output_tokens_total{bot_name=~\"$bot_name\",team_id=~\"$team_id\"}[$__interval])) or sum by (team_id) (agents_llm_input_tokens_total{bot_name=~\"$bot_name\",team_id=~\"$team_id\"} + agents_llm_output_tokens_total{bot_name=~\"$bot_name\",team_id=~\"$team_id\"})",
                     "legendFormat": "{{team_id}}",
                     "range": true,
                     "refId": "A"
@@ -710,8 +710,8 @@
                     "editorMode": "code",
                     "expr": "sum by (bot_name) (agents_llm_input_tokens_total{bot_name=~\"$bot_name\",team_id=~\"$team_id\"} + agents_llm_output_tokens_total{bot_name=~\"$bot_name\",team_id=~\"$team_id\"})",
                     "format": "table",
+                    "instant": true,
                     "legendFormat": "__auto",
-                    "range": true,
                     "refId": "A"
                 },
                 {
@@ -723,8 +723,8 @@
                     "expr": "sum by (bot_name) ((agents_llm_input_tokens_total{bot_name=~\"$bot_name\",team_id=~\"$team_id\"} * 0.003 / 1000) + (agents_llm_output_tokens_total{bot_name=~\"$bot_name\",team_id=~\"$team_id\"} * 0.015 / 1000))",
                     "format": "table",
                     "hide": false,
+                    "instant": true,
                     "legendFormat": "__auto",
-                    "range": true,
                     "refId": "B"
                 }
             ],
@@ -852,8 +852,8 @@
                     "editorMode": "code",
                     "expr": "sum by (team_id) (agents_llm_input_tokens_total{bot_name=~\"$bot_name\",team_id=~\"$team_id\"} + agents_llm_output_tokens_total{bot_name=~\"$bot_name\",team_id=~\"$team_id\"})",
                     "format": "table",
+                    "instant": true,
                     "legendFormat": "__auto",
-                    "range": true,
                     "refId": "A"
                 },
                 {
@@ -865,8 +865,8 @@
                     "expr": "sum by (team_id) ((agents_llm_input_tokens_total{bot_name=~\"$bot_name\",team_id=~\"$team_id\"} * 0.003 / 1000) + (agents_llm_output_tokens_total{bot_name=~\"$bot_name\",team_id=~\"$team_id\"} * 0.015 / 1000))",
                     "format": "table",
                     "hide": false,
+                    "instant": true,
                     "legendFormat": "__auto",
-                    "range": true,
                     "refId": "B"
                 }
             ],
