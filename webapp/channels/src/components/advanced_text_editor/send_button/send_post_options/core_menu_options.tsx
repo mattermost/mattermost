@@ -20,6 +20,17 @@ type Props = {
     channelId: string;
 }
 
+/**
+ * Formats a timestamp in the teammate's timezone using the current user's locale.
+ * @param userCurrentTimestamp - Timestamp in milliseconds (UTC)
+ * @param teammateTimezoneString - IANA timezone string (e.g., "America/New_York")
+ * @param userLocale - User's locale code (e.g., "fr", "en", "de")
+ * @returns Formatted time string respecting the user's locale
+ * @example
+ * // US locale: "8:00 AM"
+ * // French locale: "08:00"
+ * getScheduledTimeInTeammateTimezone(1635768000000, 'Europe/Paris', 'fr')
+ */
 function getScheduledTimeInTeammateTimezone(userCurrentTimestamp: number, teammateTimezoneString: string, userLocale: string): string {
     const scheduledTimeUTC = DateTime.fromMillis(userCurrentTimestamp, {zone: 'utc'});
     const teammateScheduledTime = scheduledTimeUTC.setZone(teammateTimezoneString);
