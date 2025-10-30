@@ -4742,7 +4742,7 @@
   "sidebar_right_menu.console": "Systemkonsoll",
   "sidebar_right_menu.flagged": "Lagrede meldinger",
   "sidebar_right_menu.recentMentions": "Nylige omtaler",
-  "signup.agreement": "Ved å fortsette å opprette kontoen din og bruke {siteName} godtar du våre <a1>vilkår for bruk</a1> og <a2>personvernregler</a2>. Hvis du ikke godtar, kan du ikke bruke {siteName}.",
+  "signup.agreement": "Ved å fortsette å opprette kontoen din og bruke {siteName} godtar du våre <termsOfUseLink>vilkår for bruk</termsOfUseLink> og <privacyPolicyLink>personvernregler</privacyPolicyLink>. Hvis du ikke godtar, kan du ikke bruke {siteName}.",
   "signup.ldap": "AD/LDAP-legitimasjon",
   "signup.title": "Opprett konto {siteName}",
   "signup_team.guest_without_channels": "Gjestekontoen din har ingen kanaler tilordnet. Vennligst kontakt en administrator.",

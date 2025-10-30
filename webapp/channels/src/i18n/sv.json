@@ -5710,7 +5710,7 @@
   "sidebar_right_menu.console": "Systemkonsol",
   "sidebar_right_menu.flagged": "Sparade meddelanden",
   "sidebar_right_menu.recentMentions": "Nyligen omnämnd",
-  "signup.agreement": "Genom att fortsätta att skapa ditt konto och använda {siteName} godkänner du våra <a1>Användarvillkor</a1> och <a2>Integritetspolicy</a2>.  Om du inte samtycker kan du inte använda {siteName}.",
+  "signup.agreement": "Genom att fortsätta att skapa ditt konto och använda {siteName} godkänner du våra <termsOfUseLink>Användarvillkor</termsOfUseLink> och <privacyPolicyLink>Integritetspolicy</privacyPolicyLink>.  Om du inte samtycker kan du inte använda {siteName}.",
   "signup.ldap": "AD/LDAP autentiseringsuppgifter",
   "signup.title": "Skapa konto | {siteName}",
   "signup_team.guest_without_channels": "Ditt gästkonto har inga kanaler tilldelade. Kontakta en administratör.",

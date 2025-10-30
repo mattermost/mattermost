@@ -4991,7 +4991,7 @@
   "sidebar_right_menu.console": "系統控制台",
   "sidebar_right_menu.flagged": "已儲存的訊息",
   "sidebar_right_menu.recentMentions": "最近提及",
-  "signup.agreement": "在繼續創建帳戶並使用 {siteName} 之前，您同意我們的<a1>使用條款</a1>和<a2>隱私政策</a2>。  如果您不同意，則無法使用 {siteName}。",
+  "signup.agreement": "在繼續創建帳戶並使用 {siteName} 之前，您同意我們的<termsOfUseLink>使用條款</termsOfUseLink>和<privacyPolicyLink>隱私政策</privacyPolicyLink>。  如果您不同意，則無法使用 {siteName}。",
   "signup.ldap": "AD/LDAP 驗證",
   "signup_team.guest_without_channels": "此訪客帳號沒有被指派頻道。請聯絡管理員。",
   "signup_team.join_open": "您能加入的團隊： ",

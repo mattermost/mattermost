@@ -5706,7 +5706,7 @@
   "sidebar_right_menu.console": "Systemkonsole",
   "sidebar_right_menu.flagged": "Gespeicherte Nachrichten",
   "sidebar_right_menu.recentMentions": "Letzte Erwähnungen",
-  "signup.agreement": "Wenn du fortfährst, dein Konto zu erstellen und {siteName} zu nutzen, erklärst du dich mit unseren <a1>Nutzungsbedingungen</a1> und <a2>Datenschutzbestimmungen</a2> einverstanden.  Wenn du nicht einverstanden bist, kannst du {siteName} nicht nutzen.",
+  "signup.agreement": "Wenn du fortfährst, dein Konto zu erstellen und {siteName} zu nutzen, erklärst du dich mit unseren <termsOfUseLink>Nutzungsbedingungen</termsOfUseLink> und <privacyPolicyLink>Datenschutzbestimmungen</privacyPolicyLink> einverstanden.  Wenn du nicht einverstanden bist, kannst du {siteName} nicht nutzen.",
   "signup.ldap": "AD/LDAP-Zugangsdaten",
   "signup.title": "Konto erstellen | {siteName}",
   "signup_team.guest_without_channels": "Dein Gastkonto ist keinem Kanal zugeordnet. Bitte kontaktiere einen Administrator.",
