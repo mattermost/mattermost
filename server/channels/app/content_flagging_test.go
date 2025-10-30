@@ -1008,7 +1008,7 @@ func TestCanFlagPost(t *testing.T) {
 		// Can't fleg when post already flagged in pending status
 		appErr = th.App.canFlagPost(groupId, post.Id, "en")
 		require.NotNil(t, appErr)
-		require.Equal(t, "Cannot flag this post as is already flagged.", appErr.Id)
+		require.Equal(t, "Cannot flag this post as it is already flagged.", appErr.Id)
 
 		// Can't fleg when post already flagged in assigned status
 		propertyValue.Value = json.RawMessage(`"` + model.ContentFlaggingStatusAssigned + `"`)
@@ -1166,7 +1166,7 @@ func TestFlagPost(t *testing.T) {
 		// Try to flag the same post again
 		appErr = th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
 		require.NotNil(t, appErr)
-		require.Equal(t, "Cannot flag this post as is already flagged.", appErr.Id)
+		require.Equal(t, "Cannot flag this post as it is already flagged.", appErr.Id)
 	})
 
 	t.Run("should hide flagged content when configured", func(t *testing.T) {
