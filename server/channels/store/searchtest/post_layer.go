@@ -293,8 +293,6 @@ var searchPostStoreTests = []searchTest{
 }
 
 func TestSearchPostStore(t *testing.T, s store.Store, testEngine *SearchTestEngine) {
-	t.Setenv("MM_SERVICEENVIRONMENT", "test")
-
 	th := &SearchTestHelper{
 		Context: request.TestContext(t),
 		Store:   s,

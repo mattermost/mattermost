@@ -68,7 +68,10 @@ func runTestSearch(t *testing.T, testEngine *SearchTestEngine, tests []searchTes
 		}
 		testName := test.Name
 		testFn := test.Fn
-		t.Run(testName, func(t *testing.T) { testFn(t, th) })
+		t.Run(testName, func(t *testing.T) {
+			t.Setenv("MM_SERVICEENVIRONMENT", "test")
+			testFn(t, th)
+		})
 		if testEngine.AfterTest != nil {
 			testEngine.AfterTest(t, th.Store)
 		}
