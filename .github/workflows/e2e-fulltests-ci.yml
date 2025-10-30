@@ -225,7 +225,7 @@ jobs:
           done
           # BUILD_ID format: $pipelineID-$imageTag-$testType-$serverType-$serverEdition
           # Reference on BUILD_ID parsing: https://github.com/saturninoabril/automation-dashboard/blob/175891781bf1072c162c58c6ec0abfc5bcb3520e/lib/common_utils.ts#L3-L23
-          BUILD_ID="${{ github.run_id }}_${{ github.run_attempt }}-${FIPS_ENABLED:+fips_}${SERVER_IMAGE_TAG}-${BUILD_ID_SUFFIX}"
+          BUILD_ID="${{ github.run_id }}_${{ github.run_attempt }}-$([ "$FIPS_ENABLED" = "true" ] && echo "fips_")${SERVER_IMAGE_TAG}-${BUILD_ID_SUFFIX}"
           # Determine server image name based on FIPS_ENABLED parameter
           if [ "$FIPS_ENABLED" = "true" ]; then
             SERVER_IMAGE_NAME="mattermost-enterprise-fips-edition"
@@ -238,7 +238,7 @@ jobs:
           echo "SERVER=${SERVER}" >> $GITHUB_OUTPUT
           echo "server_uppercase=${SERVER@U}" >> $GITHUB_OUTPUT
           echo "ENABLED_DOCKER_SERVICES=${ENABLED_DOCKER_SERVICES}" >> $GITHUB_OUTPUT
-          echo "status_check_context=E2E Tests${BUILD_ID_SUFFIX_IN_STATUS_CHECK:+-$BUILD_ID_SUFFIX}${SAFE_MM_ENV:+/$MM_ENV_HASH}" >> $GITHUB_OUTPUT
+          echo "status_check_context=E2E Tests$([ "$FIPS_ENABLED" = "true" ] && echo "/fips")${BUILD_ID_SUFFIX_IN_STATUS_CHECK:+-$BUILD_ID_SUFFIX}${SAFE_MM_ENV:+/$MM_ENV_HASH}" >> $GITHUB_OUTPUT
           echo "MM_ENV=${SAFE_MM_ENV}" >> $GITHUB_OUTPUT
           echo "MM_SERVICE_OVERRIDES=${SAFE_MM_SERVICE_OVERRIDES}" >> $GITHUB_OUTPUT
           echo "workers_number=${WORKERS_NUMBER}" >> $GITHUB_OUTPUT
@@ -269,7 +269,7 @@ jobs:
           if [ -n "$PR_NUMBER" ]; then
             COMMENT_URL=$(gh issue -R "${{ github.repository }}" comment "$PR_NUMBER" --body-file - <<EOF
           <details>
-          <summary><b>${FIPS_ENABLED:+(FIPS) }E2E tests starting with \`${SERVER_IMAGE}\`</b></summary>
+          <summary><b>$([ "$FIPS_ENABLED" = "true" ] && echo "(FIPS) ")E2E tests starting with \`${SERVER_IMAGE}\`</b></summary>
 
           ${MM_ENV:+- with \`MM_ENV=${MM_ENV}\`}
           ${MM_SERVICE_OVERRIDES:+- Cypress service overrides \`${MM_SERVICE_OVERRIDES}\`}
@@ -416,7 +416,7 @@ jobs:
           if [ -n "$PR_NUMBER" ]; then
             COMMENT_BODY=$(cat <<EOF
           <details>
-          <summary><b>${STATUS_ICON} ${FIPS_ENABLED:+(FIPS) }E2E test ${STATUS_TEXT,,} with \`${SERVER_IMAGE}\`</b></summary>
+          <summary><b>${STATUS_ICON} $([ "$FIPS_ENABLED" = "true" ] && echo "(FIPS) ")E2E test ${STATUS_TEXT,,} with \`${SERVER_IMAGE}\`</b></summary>
 
           ${MM_ENV:+- with \`MM_ENV=${MM_ENV}\`}
           ${MM_SERVICE_OVERRIDES:+- Cypress service overrides \`${MM_SERVICE_OVERRIDES}\`}
