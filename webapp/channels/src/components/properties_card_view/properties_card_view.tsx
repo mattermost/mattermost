@@ -2,55 +2,163 @@
 // See LICENSE.txt for license information.
 
 import React, {useMemo} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {defineMessages, FormattedMessage} from 'react-intl';
 
-import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
+import type {Channel} from '@mattermost/types/channels';
+import type {Post} from '@mattermost/types/posts';
+import type {
+    NameMappedPropertyFields,
+    PropertyField,
+    PropertyValue,
+} from '@mattermost/types/properties';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 import PropertyValueRenderer from './propertyValueRenderer/propertyValueRenderer';
 
 import './properties_card_view.scss';
 
+export type PostPreviewFieldMetadata = {
+    getPost?: (postId: string) => Promise<Post>;
+    fetchDeletedPost?: boolean;
+    getChannel?: (channelId: string) => Promise<Channel>;
+    getTeam?: (teamId: string) => Promise<Team>;
+};
+
+export type UserPropertyMetadata = {
+    searchUsers?: (term: string) => Promise<UserProfile[]>;
+    setUser?: (userId: string) => void;
+}
+
+export type TextFieldMetadata = {
+    placeholder?: string;
+};
+
+export type ChannelFieldMetadata = {
+    getChannel?: (channelId: string) => Promise<Channel>;
+};
+
+export type TeamFieldMetadata = {
+    getTeam?: (teamId: string) => Promise<Team>;
+};
+
+export type FieldMetadata = PostPreviewFieldMetadata | TextFieldMetadata | UserPropertyMetadata | ChannelFieldMetadata | TeamFieldMetadata;
+
+export type PropertiesCardViewMetadata = {
+    [key: string]: FieldMetadata;
+}
+
+type OrderedRow = {
+    field: PropertyField;
+    value: PropertyValue<unknown>;
+};
+
+const fieldNameMessages = defineMessages({
+    status: {
+        id: 'property_card.field.status.label',
+        defaultMessage: 'Status',
+    },
+    reporting_reason: {
+        id: 'property_card.field.reporting_reason.label',
+        defaultMessage: 'Reason',
+    },
+    post_preview: {
+        id: 'property_card.field.post_preview.label',
+        defaultMessage: 'Message',
+    },
+    post_id: {
+        id: 'property_card.field.post_id.label',
+        defaultMessage: 'Post ID',
+    },
+    reviewer_user_id: {
+        id: 'property_card.field.reviewer_user_id.label',
+        defaultMessage: 'Reviewer',
+    },
+    reporting_user_id: {
+        id: 'property_card.field.reporting_user_id.label',
+        defaultMessage: 'Flagged by',
+    },
+    reporting_comment: {
+        id: 'property_card.field.reporting_comment.label',
+        defaultMessage: 'Comment',
+    },
+    channel: {
+        id: 'property_card.field.channel.label',
+        defaultMessage: 'Channel',
+    },
+    team: {
+        id: 'property_card.field.team.label',
+        defaultMessage: 'Team',
+    },
+    post_author: {
+        id: 'property_card.field.post_author.label',
+        defaultMessage: 'Posted by',
+    },
+    post_creation_time: {
+        id: 'property_card.field.post_creation_time.label',
+        defaultMessage: 'Posted at',
+    },
+    reporting_time: {
+        id: 'property_card.field.reporting_time.label',
+        defaultMessage: 'Flagged at',
+    },
+    actor_user_id: {
+        id: 'property_card.field.actor_user_id.label',
+        defaultMessage: 'Reviewed by',
+    },
+    action_time: {
+        id: 'property_card.field.action_time.label',
+        defaultMessage: 'Reviewed at',
+    },
+    actor_comment: {
+        id: 'property_card.field.actor_comment.label',
+        defaultMessage: 'Reviewer\'s comment',
+    },
+});
+
 type Props = {
     title: React.ReactNode;
-    propertyFields: PropertyField[];
+    propertyFields: NameMappedPropertyFields;
     fieldOrder: Array<PropertyField['id']>;
     shortModeFieldOrder: Array<PropertyField['id']>;
     propertyValues: Array<PropertyValue<unknown>>;
     mode?: 'short' | 'full';
     actionsRow?: React.ReactNode;
+    metadata?: PropertiesCardViewMetadata;
+    footer?: React.ReactNode;
 }
 
-export default function PropertiesCardView({title, propertyFields, fieldOrder, shortModeFieldOrder, propertyValues, mode, actionsRow}: Props) {
-    const orderedRows = useMemo<Array<{field: PropertyField; value: PropertyValue<unknown>}>>(() => {
-        if (!propertyFields.length || !fieldOrder.length || !propertyValues.length) {
+export default function PropertiesCardView({title, propertyFields, fieldOrder, shortModeFieldOrder, propertyValues, mode, actionsRow, metadata, footer}: Props) {
+    const orderedRows = useMemo<OrderedRow[]>(() => {
+        const hasRequiredData =
+            Object.keys(propertyFields).length > 0 &&
+            fieldOrder.length > 0 &&
+            propertyValues.length > 0;
+
+        if (!hasRequiredData) {
             return [];
         }
 
-        const fieldsById = propertyFields.reduce((acc, field) => {
-            acc[field.id] = field;
-            return acc;
-        }, {} as {[key: string]: PropertyField});
+        // Create lookup map for efficient value retrieval
+        const valuesByFieldId = new Map(
+            propertyValues.map((value) => [value.field_id, value]),
+        );
 
-        const valuesByFieldId = propertyValues.reduce((acc, value) => {
-            acc[value.field_id] = value;
-            return acc;
-        }, {} as {[key: string]: PropertyValue<unknown>});
+        // Determine which field order to use
+        const currentFieldOrder = mode === 'short' ? shortModeFieldOrder : fieldOrder;
 
-        const fieldOrderToUse = mode === 'short' ? shortModeFieldOrder : fieldOrder;
-        return fieldOrderToUse.map((fieldId) => {
-            const field = fieldsById[fieldId];
-            const value = valuesByFieldId[fieldId];
+        // Build ordered rows, filtering out incomplete entries
+        return currentFieldOrder.
+            map((fieldName) => {
+                const field = propertyFields[fieldName];
+                const value = field ? valuesByFieldId.get(field.id) : undefined;
 
-            return {
-                field,
-                value,
-            };
-        }).filter((entry) => Boolean(entry.value));
+                const allowEmptyValue = field?.attrs?.editable;
+
+                return field && (value || allowEmptyValue) ? {field, value} : null;
+            }).
+            filter((row): row is OrderedRow => row !== null);
     }, [fieldOrder, mode, propertyFields, propertyValues, shortModeFieldOrder]);
-
-    if (orderedRows.length === 0) {
-        return null;
-    }
 
     return (
         <div
@@ -67,6 +175,8 @@ export default function PropertiesCardView({title, propertyFields, fieldOrder, s
             <div className='PropertyCardView_fields'>
                 {
                     orderedRows.map(({field, value}) => {
+                        const translation = fieldNameMessages[field.name as keyof typeof fieldNameMessages];
+
                         return (
                             <div
                                 key={field.id}
@@ -74,13 +184,14 @@ export default function PropertiesCardView({title, propertyFields, fieldOrder, s
                                 data-testid='property-card-row'
                             >
                                 <div className='field'>
-                                    {field.name}
+                                    {translation ? <FormattedMessage {...translation}/> : field.name}
                                 </div>
 
                                 <div className='value'>
                                     <PropertyValueRenderer
                                         field={field}
                                         value={value}
+                                        metadata={metadata ? metadata[field.name] : undefined}
                                     />
                                 </div>
                             </div>
@@ -103,6 +214,8 @@ export default function PropertiesCardView({title, propertyFields, fieldOrder, s
                         </div>
                     </div>
                 }
+
+                {footer}
             </div>
         </div>
     );

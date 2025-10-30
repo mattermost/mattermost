@@ -26,7 +26,6 @@ import TextSetting from 'components/widgets/settings/text_setting';
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
 import {getHistory} from 'utils/browser_history';
-import {JobTypes} from 'utils/constants';
 
 import ChannelList from './channel_list';
 
@@ -177,6 +176,7 @@ function PolicyDetails({
         }).then((result) => {
             if (result.error) {
                 setServerError(result.error.message);
+                setShowConfirmationModal(false);
                 success = false;
                 return;
             }
@@ -187,6 +187,7 @@ function PolicyDetails({
         });
 
         if (!currentPolicyId || !success) {
+            setShowConfirmationModal(false);
             return;
         }
 
@@ -198,6 +199,7 @@ function PolicyDetails({
                 id: 'admin.access_control.policy.edit_policy.error.update_active_status',
                 defaultMessage: 'Error updating policy active status: {error}',
             }, {error: error.message}));
+            setShowConfirmationModal(false);
             success = false;
             return;
         }
@@ -218,6 +220,7 @@ function PolicyDetails({
                     id: 'admin.access_control.policy.edit_policy.error.assign_channels',
                     defaultMessage: 'Error assigning channels: {error}',
                 }, {error: error.message}));
+                setShowConfirmationModal(false);
                 success = false;
                 return;
             }
@@ -226,16 +229,15 @@ function PolicyDetails({
         // --- Step 4: Create Job if necessary ---
         if (apply) {
             try {
-                const job: JobTypeBase & { data: any } = {
-                    type: JobTypes.ACCESS_CONTROL_SYNC,
-                    data: {policy_id: currentPolicyId},
-                };
-                await actions.createJob(job);
+                await abacActions.createAccessControlSyncJob({
+                    policy_id: currentPolicyId,
+                });
             } catch (error) {
                 setServerError(formatMessage({
                     id: 'admin.access_control.policy.edit_policy.error.create_job',
                     defaultMessage: 'Error creating job: {error}',
                 }, {error: error.message}));
+                setShowConfirmationModal(false);
                 success = false;
                 return;
             }
