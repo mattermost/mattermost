@@ -49,10 +49,10 @@ on:
       FIPS_ENABLED:
         type: string
         description: When true, use mattermost-enterprise-fips-edition image for testing instead of standard enterprise edition
-        default: "true"
+        default: "false"
 
 concurrency:
-  group: "${{ github.workflow }}-${{ inputs.REPORT_TYPE }}-${{ inputs.PR_NUMBER || inputs.ref }}-${{ inputs.MM_ENV }}"
+  group: "${{ github.workflow }}-${{ inputs.REPORT_TYPE }}-${{ inputs.FIPS_ENABLED }}-${{ inputs.PR_NUMBER || inputs.ref }}-${{ inputs.MM_ENV }}"
   cancel-in-progress: true
 
 jobs:
@@ -84,6 +84,8 @@ jobs:
       WORKFLOW_RUN_URL: "${{steps.generate.outputs.WORKFLOW_RUN_URL}}"
       CYCLE_URL: "${{steps.generate.outputs.CYCLE_URL}}"
       comment_id: "${{ steps.notify.outputs.comment_id }}"
+      MM_ENV: "${{ steps.generate.outputs.MM_ENV }}"
+      MM_SERVICE_OVERRIDES: "${{ steps.generate.outputs.MM_SERVICE_OVERRIDES }}"
     env:
       GH_TOKEN: "${{ github.token }}"
       REF: "${{ inputs.ref || github.sha }}"
@@ -119,7 +121,26 @@ jobs:
       - name: ci/generate-test-variables
         id: generate
         run: |
-          MM_ENV_HASH=$(md5sum -z <<<"$MM_ENV" | cut -c-8)
+          # Sanitize MM_ENV - only allow alphanumeric, underscore, equals, comma, and dash
+          if [ -n "$MM_ENV" ] && ! grep -qE '^[a-zA-Z0-9_=,.-]+$' <<<"$MM_ENV"; then
+            echo "Warning: MM_ENV contains invalid characters. Setting to empty string."
+            echo "Only alphanumeric, underscore, equals, comma, period, and dash are allowed."
+            MM_ENV=""
+          fi
+
+          # Validate MM_SERVICE_OVERRIDES - only allow specific overridable services
+          # Allowed services: minio, openldap, elasticsearch, keycloak, redis, opensearch
+          if [ -n "$MM_SERVICE_OVERRIDES" ] && ! grep -qE '^[+-](minio|openldap|elasticsearch|keycloak|redis|opensearch)([,][+-](minio|openldap|elasticsearch|keycloak|redis|opensearch))*$' <<<"$MM_SERVICE_OVERRIDES"; then
+            echo "Error: MM_SERVICE_OVERRIDES has invalid format or contains invalid services."
+            echo "Expected format: +service1,-service2,+service3"
+            echo "Allowed services: minio, openldap, elasticsearch, keycloak, redis, opensearch"
+            exit 1
+          fi
+
+          # Escape special characters in MM_ENV and MM_SERVICE_OVERRIDES before using in outputs
+          SAFE_MM_ENV=$(printf '%s' "$MM_ENV" | sed 's/[`$\\]/\\&/g')
+          SAFE_MM_SERVICE_OVERRIDES=$(printf '%s' "$MM_SERVICE_OVERRIDES" | sed 's/[`$\\]/\\&/g')
+          MM_ENV_HASH=$(md5sum -z <<<"$SAFE_MM_ENV" | cut -c-8)
           TESTCASE_FAILURE_FATAL="true"
           if grep -q CLOUD <<<"$REPORT_TYPE"; then
             SERVER=cloud
@@ -217,7 +238,9 @@ jobs:
           echo "SERVER=${SERVER}" >> $GITHUB_OUTPUT
           echo "server_uppercase=${SERVER@U}" >> $GITHUB_OUTPUT
           echo "ENABLED_DOCKER_SERVICES=${ENABLED_DOCKER_SERVICES}" >> $GITHUB_OUTPUT
-          echo "status_check_context=E2E Tests${BUILD_ID_SUFFIX_IN_STATUS_CHECK:+-$BUILD_ID_SUFFIX}${MM_ENV:+/$MM_ENV_HASH}" >> $GITHUB_OUTPUT
+          echo "status_check_context=E2E Tests${BUILD_ID_SUFFIX_IN_STATUS_CHECK:+-$BUILD_ID_SUFFIX}${SAFE_MM_ENV:+/$MM_ENV_HASH}" >> $GITHUB_OUTPUT
+          echo "MM_ENV=${SAFE_MM_ENV}" >> $GITHUB_OUTPUT
+          echo "MM_SERVICE_OVERRIDES=${SAFE_MM_SERVICE_OVERRIDES}" >> $GITHUB_OUTPUT
           echo "workers_number=${WORKERS_NUMBER}" >> $GITHUB_OUTPUT
           echo "TEST_FILTER_CYPRESS=${TEST_FILTER_CYPRESS}" >> $GITHUB_OUTPUT
           echo "TESTCASE_FAILURE_FATAL=${TESTCASE_FAILURE_FATAL}" >> $GITHUB_OUTPUT
@@ -240,14 +263,16 @@ jobs:
           RUN_CYPRESS: "${{inputs.RUN_CYPRESS == 'true' || ''}}"
           RUN_PLAYWRIGHT: "${{inputs.RUN_PLAYWRIGHT == 'true' || ''}}"
           FIPS_ENABLED: "${{inputs.FIPS_ENABLED}}"
+          MM_ENV: "${{steps.generate.outputs.MM_ENV}}"
+          MM_SERVICE_OVERRIDES: "${{steps.generate.outputs.MM_SERVICE_OVERRIDES}}"
         run: |
           if [ -n "$PR_NUMBER" ]; then
             COMMENT_URL=$(gh issue -R "${{ github.repository }}" comment "$PR_NUMBER" --body-file - <<EOF
           <details>
-          <summary><b>${FIPS_ENABLED:+\(FIPS\) }E2E tests starting with \`${SERVER_IMAGE}\`</b></summary>
+          <summary><b>${FIPS_ENABLED:+(FIPS) }E2E tests starting with \`${SERVER_IMAGE}\`</b></summary>
 
-          ${MM_ENV:+- with \`MM_ENV=$MM_ENV\`}
-          ${MM_SERVICE_OVERRIDES:+- Cypress service overrides \`$MM_SERVICE_OVERRIDES\`}
+          ${MM_ENV:+- with \`MM_ENV=${MM_ENV}\`}
+          ${MM_SERVICE_OVERRIDES:+- Cypress service overrides \`${MM_SERVICE_OVERRIDES}\`}
 
           **Progress:**
           - Cypress: ${RUN_CYPRESS:+look for commit status \`$STATUS_CHECK_CONTEXT/cypress\` or the access the [Automation Dashboard Cycle URL]($CYCLE_URL)}$([ -n "${RUN_CYPRESS:-}" ] || echo -n "will not run").
@@ -279,7 +304,7 @@ jobs:
       ENABLED_DOCKER_SERVICES: "${{ needs.generate-test-variables.outputs.ENABLED_DOCKER_SERVICES }}"
       TEST: "cypress"
       TEST_FILTER: "${{ needs.generate-test-variables.outputs.TEST_FILTER_CYPRESS }}"
-      MM_ENV: "${{ inputs.MM_ENV || '' }}"
+      MM_ENV: "${{ needs.generate-test-variables.outputs.MM_ENV }}"
       BRANCH: "${{ needs.generate-test-variables.outputs.BRANCH }}"
       BUILD_ID: "${{ needs.generate-test-variables.outputs.BUILD_ID }}"
       REPORT_TYPE: "${{ needs.generate-test-variables.outputs.REPORT_TYPE }}"
@@ -315,7 +340,7 @@ jobs:
       SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.SERVER_IMAGE }}"
       TEST: "playwright"
       TEST_FILTER: "${{ needs.generate-test-variables.outputs.TEST_FILTER_PLAYWRIGHT }}"
-      MM_ENV: "${{ inputs.MM_ENV || '' }}"
+      MM_ENV: "${{ needs.generate-test-variables.outputs.MM_ENV }}"
       BRANCH: "${{ needs.generate-test-variables.outputs.BRANCH }}"
       BUILD_ID: "${{ needs.generate-test-variables.outputs.BUILD_ID }}"
       REPORT_TYPE: "${{ needs.generate-test-variables.outputs.REPORT_TYPE }}"
@@ -347,7 +372,8 @@ jobs:
     env:
       GH_TOKEN: "${{ github.token }}"
       PR_NUMBER: "${{ inputs.PR_NUMBER || '' }}"
-      MM_ENV: "${{ inputs.MM_ENV || '' }}"
+      MM_ENV: "${{ needs.generate-test-variables.outputs.MM_ENV }}"
+      MM_SERVICE_OVERRIDES: "${{ needs.generate-test-variables.outputs.MM_SERVICE_OVERRIDES }}"
       COMMIT_SHA: "${{ needs.generate-test-variables.outputs.commit_sha }}"
       SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.SERVER_IMAGE }}"
       STATUS_CHECK_CONTEXT: "${{ needs.generate-test-variables.outputs.status_check_context }}"
@@ -390,10 +416,10 @@ jobs:
           if [ -n "$PR_NUMBER" ]; then
             COMMENT_BODY=$(cat <<EOF
           <details>
-          <summary><b>${STATUS_ICON} ${FIPS_ENABLED:+\(FIPS\) }E2E test ${STATUS_TEXT,,} with \`${SERVER_IMAGE}\`</b></summary>
+          <summary><b>${STATUS_ICON} ${FIPS_ENABLED:+(FIPS) }E2E test ${STATUS_TEXT,,} with \`${SERVER_IMAGE}\`</b></summary>
 
-          ${MM_ENV:+- with \`MM_ENV=$MM_ENV\`}
-          ${MM_SERVICE_OVERRIDES:+- Cypress service overrides \`$MM_SERVICE_OVERRIDES\`}
+          ${MM_ENV:+- with \`MM_ENV=${MM_ENV}\`}
+          ${MM_SERVICE_OVERRIDES:+- Cypress service overrides \`${MM_SERVICE_OVERRIDES}\`}
 
           **Results summary:**
           - Cypress: ${RUN_CYPRESS:+pass rate is \`${{ needs.e2e-fulltest-cypress.outputs.pass_rate || 'unknown' }}\` (see [Automation Dashboard]($CYCLE_URL) and commit status check \`$STATUS_CHECK_CONTEXT/cypress\`)}$([ -n "${RUN_CYPRESS:-}" ] || echo -n "did not run").
