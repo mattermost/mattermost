@@ -4,7 +4,7 @@
 import {useMemo} from 'react';
 import {useDispatch} from 'react-redux';
 
-import type {AccessControlVisualAST, AccessControlTestResult, AccessControlPolicy} from '@mattermost/types/access_control';
+import type {AccessControlVisualAST, AccessControlTestResult, AccessControlPolicy, AccessControlPolicyActiveUpdate} from '@mattermost/types/access_control';
 import type {ChannelMembership} from '@mattermost/types/channels';
 import type {JobTypeBase} from '@mattermost/types/jobs';
 import type {UserPropertyField} from '@mattermost/types/properties';
@@ -15,10 +15,10 @@ import {
     searchUsersForExpression,
     getAccessControlPolicy,
     createAccessControlPolicy,
-    updateAccessControlPolicyActive,
     deleteAccessControlPolicy,
     validateExpressionAgainstRequester,
     createAccessControlSyncJob,
+    updateAccessControlPoliciesActive,
 } from 'mattermost-redux/actions/access_control';
 import {getChannelMembers} from 'mattermost-redux/actions/channels';
 import {createJob} from 'mattermost-redux/actions/jobs';
@@ -33,7 +33,7 @@ export interface ChannelAccessControlActions {
     deleteChannelPolicy: (policyId: string) => Promise<ActionResult>;
     getChannelMembers: (channelId: string, page?: number, perPage?: number) => Promise<ActionResult<ChannelMembership[]>>;
     createJob: (job: JobTypeBase & { data: any }) => Promise<ActionResult>;
-    updateAccessControlPolicyActive: (policyId: string, active: boolean) => Promise<ActionResult>;
+    updateAccessControlPoliciesActive: (statuses: AccessControlPolicyActiveUpdate[]) => Promise<ActionResult>;
     validateExpressionAgainstRequester: (expression: string) => Promise<ActionResult<{requester_matches: boolean}>>;
     createAccessControlSyncJob: (jobData: {policy_id: string}) => Promise<ActionResult>;
 }
@@ -114,13 +114,6 @@ export const useChannelAccessControlActions = (channelId?: string): ChannelAcces
         },
 
         /**
-         * Update the active status of an access control policy
-         */
-        updateAccessControlPolicyActive: (policyId: string, active: boolean) => {
-            return dispatch(updateAccessControlPolicyActive(policyId, active));
-        },
-
-        /**
          * Validate if the current user (requester) matches an access control expression
          */
         validateExpressionAgainstRequester: (expression: string) => {
@@ -132,6 +125,13 @@ export const useChannelAccessControlActions = (channelId?: string): ChannelAcces
          */
         createAccessControlSyncJob: (jobData: {policy_id: string}) => {
             return dispatch(createAccessControlSyncJob(jobData));
+        },
+
+        /**
+         * Update the active status of an access control policy
+         */
+        updateAccessControlPoliciesActive: (statuses: AccessControlPolicyActiveUpdate[]) => {
+            return dispatch(updateAccessControlPoliciesActive(statuses));
         },
     }), [dispatch, channelId]);
 };

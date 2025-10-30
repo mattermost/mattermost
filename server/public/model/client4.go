@@ -7757,3 +7757,23 @@ func (c *Client4) SearchChannelsForAccessControlPolicy(ctx context.Context, poli
 	defer closeBody(r)
 	return DecodeJSONFromResponse[*ChannelsWithCount](r)
 }
+
+func (c *Client4) SetAccessControlPolicyActive(ctx context.Context, update AccessControlPolicyActiveUpdateRequest) ([]*AccessControlPolicy, *Response, error) {
+	b, err := json.Marshal(update)
+	if err != nil {
+		return nil, nil, NewAppError("SetAccessControlPolicyActive", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPutBytes(ctx, c.accessControlPoliciesRoute()+"/activate", b)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var policies []*AccessControlPolicy
+	if err := json.NewDecoder(r.Body).Decode(&policies); err != nil {
+		return nil, nil, NewAppError("SetAccessControlPolicyActive", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return policies, BuildResponse(r), nil
+}

@@ -25,6 +25,30 @@ exports[`components/admin_console/access_control/channel_list should match snaps
           />,
         },
         Object {
+          "field": "autoAdd",
+          "fixed": true,
+          "name": <div
+            className="ChannelList__autoAddHeader"
+          >
+            <input
+              checked={false}
+              className="header-checkbox"
+              id="auto-add-header-checkbox"
+              onChange={[Function]}
+              type="checkbox"
+            />
+            <span
+              className="header-text"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Auto-add members"
+                id="admin.access_control.policy.channel_list.autoAddHeader"
+              />
+            </span>
+          </div>,
+          "textAlign": "center",
+        },
+        Object {
           "field": "remove",
           "fixed": true,
           "name": "",
@@ -102,6 +126,30 @@ exports[`components/admin_console/access_control/channel_list should match snaps
           />,
         },
         Object {
+          "field": "autoAdd",
+          "fixed": true,
+          "name": <div
+            className="ChannelList__autoAddHeader"
+          >
+            <input
+              checked={true}
+              className="header-checkbox"
+              id="auto-add-header-checkbox"
+              onChange={[Function]}
+              type="checkbox"
+            />
+            <span
+              className="header-text"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Auto-add members"
+                id="admin.access_control.policy.channel_list.autoAddHeader"
+              />
+            </span>
+          </div>,
+          "textAlign": "center",
+        },
+        Object {
           "field": "remove",
           "fixed": true,
           "name": "",
@@ -150,6 +198,25 @@ exports[`components/admin_console/access_control/channel_list should match snaps
       Array [
         Object {
           "cells": Object {
+            "autoAdd": <div
+              className="ChannelList__autoAddColumn"
+            >
+              <input
+                checked={true}
+                className="channel-checkbox"
+                id="auto-add-checkbox-channel3"
+                onChange={[Function]}
+                type="checkbox"
+              />
+              <span
+                className="checkbox-label"
+              >
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="On"
+                  id="admin.access_control.policy.channel_list.on"
+                />
+              </span>
+            </div>,
             "id": "channel3",
             "name": <div
               className="ChannelList__nameColumn"
@@ -215,6 +282,30 @@ exports[`components/admin_console/access_control/channel_list should match snaps
             defaultMessage="Team"
             id="admin.channel_settings.channel_list.teamHeader"
           />,
+        },
+        Object {
+          "field": "autoAdd",
+          "fixed": true,
+          "name": <div
+            className="ChannelList__autoAddHeader"
+          >
+            <input
+              checked={false}
+              className="header-checkbox"
+              id="auto-add-header-checkbox"
+              onChange={[Function]}
+              type="checkbox"
+            />
+            <span
+              className="header-text"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Auto-add members"
+                id="admin.access_control.policy.channel_list.autoAddHeader"
+              />
+            </span>
+          </div>,
+          "textAlign": "center",
         },
         Object {
           "field": "remove",
@@ -292,6 +383,30 @@ exports[`components/admin_console/access_control/channel_list should match snaps
             defaultMessage="Team"
             id="admin.channel_settings.channel_list.teamHeader"
           />,
+        },
+        Object {
+          "field": "autoAdd",
+          "fixed": true,
+          "name": <div
+            className="ChannelList__autoAddHeader"
+          >
+            <input
+              checked={false}
+              className="header-checkbox"
+              id="auto-add-header-checkbox"
+              onChange={[Function]}
+              type="checkbox"
+            />
+            <span
+              className="header-text"
+            >
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Auto-add members"
+                id="admin.access_control.policy.channel_list.autoAddHeader"
+              />
+            </span>
+          </div>,
+          "textAlign": "center",
         },
         Object {
           "field": "remove",
