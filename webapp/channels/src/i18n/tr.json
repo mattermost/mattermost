@@ -5710,7 +5710,7 @@
   "sidebar_right_menu.console": "Sistem panosu",
   "sidebar_right_menu.flagged": "Kaydedilmiş iletiler",
   "sidebar_right_menu.recentMentions": "Son anmalar",
-  "signup.agreement": "Hesap açarak ve {siteName} kullanmayı sürdürerek <termsOfUseLink>Kullanım Koşullarımızı</termsOfUseLink> ve <privacyPolicyLink>Gizlilik İlkemizi</privacyPolicyLink> kabul etmiş olursunuz.  Kabul etmiyorsanız, {siteName} kullanamazsınız.",
+  "signup.agreement": "Hesap açarak ve {siteName} kullanmayı sürdürerek <a1>Kullanım Koşullarımızı</a1> ve <a2>Gizlilik İlkemizi</a2> kabul etmiş olursunuz.  Kabul etmiyorsanız, {siteName} kullanamazsınız.",
   "signup.ldap": "AD/LDAP kimlik bilgileri",
   "signup.title": "Hesap aç | {siteName}",
   "signup_team.guest_without_channels": "Konuk hesabınız herhangi bir kanal ile ilişkilendirilmemiş. Lütfen bir yönetici ile görüşün.",
