@@ -1,8 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/integrations/EditOAuthApp should have match renderExtra 1`] = `
-<ConfirmModal
-  confirmButtonClass="btn btn-primary"
+<Memo(ConfirmModal)
   confirmButtonText={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Update"
@@ -68,8 +67,7 @@ exports[`components/integrations/EditOAuthApp should match snapshot 1`] = `
     }
   }
   renderExtra={
-    <ConfirmModal
-      confirmButtonClass="btn btn-primary"
+    <Memo(ConfirmModal)
       confirmButtonText={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Update"
@@ -144,8 +142,7 @@ exports[`components/integrations/EditOAuthApp should match snapshot when EnableO
     }
   }
   renderExtra={
-    <ConfirmModal
-      confirmButtonClass="btn btn-primary"
+    <Memo(ConfirmModal)
       confirmButtonText={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Update"
@@ -220,8 +217,7 @@ exports[`components/integrations/EditOAuthApp should match snapshot, loading 1`]
     }
   }
   renderExtra={
-    <ConfirmModal
-      confirmButtonClass="btn btn-primary"
+    <Memo(ConfirmModal)
       confirmButtonText={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Update"

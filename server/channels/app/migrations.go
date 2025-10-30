@@ -28,7 +28,7 @@ const (
 	remainingSchemaMigrationsKey                   = "RemainingSchemaMigrations"
 	postPriorityConfigDefaultTrueMigrationKey      = "PostPriorityConfigDefaultTrueMigrationComplete"
 	contentFlaggingSetupDoneKey                    = "content_flagging_setup_done"
-	contentFlaggingMigrationVersion                = "v1"
+	contentFlaggingMigrationVersion                = "v4"
 
 	contentFlaggingPropertyNameFlaggedPostId    = "flagged_post_id"
 	contentFlaggingPropertyNameStatus           = "status"
@@ -40,6 +40,8 @@ const (
 	contentFlaggingPropertyNameActorUserID      = "actor_user_id"
 	contentFlaggingPropertyNameActorComment     = "actor_comment"
 	contentFlaggingPropertyNameActionTime       = "action_time"
+
+	contentFlaggingPropertySubTypeTimestamp = "timestamp"
 )
 
 // This function migrates the default built in roles from code/config to the database.
@@ -641,6 +643,14 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 			GroupID: group.ID,
 			Name:    contentFlaggingPropertyNameStatus,
 			Type:    model.PropertyFieldTypeSelect,
+			Attrs: map[string]any{
+				"options": []map[string]string{
+					{"name": model.ContentFlaggingStatusPending, "color": "light_grey"},
+					{"name": model.ContentFlaggingStatusAssigned, "color": "dark_blue"},
+					{"name": model.ContentFlaggingStatusRemoved, "color": "dark_red"},
+					{"name": model.ContentFlaggingStatusRetained, "color": "light_blue"},
+				},
+			},
 		},
 		contentFlaggingPropertyNameReportingUserID: {
 			GroupID: group.ID,
@@ -661,11 +671,13 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 			GroupID: group.ID,
 			Name:    contentFlaggingPropertyNameReportingTime,
 			Type:    model.PropertyFieldTypeText,
+			Attrs:   map[string]any{"subType": contentFlaggingPropertySubTypeTimestamp},
 		},
 		contentFlaggingPropertyNameReviewerUserID: {
 			GroupID: group.ID,
 			Name:    contentFlaggingPropertyNameReviewerUserID,
 			Type:    model.PropertyFieldTypeUser,
+			Attrs:   map[string]any{"editable": true},
 		},
 		contentFlaggingPropertyNameActorUserID: {
 			GroupID: group.ID,
@@ -681,6 +693,7 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 			GroupID: group.ID,
 			Name:    contentFlaggingPropertyNameActionTime,
 			Type:    model.PropertyFieldTypeText,
+			Attrs:   map[string]any{"subType": contentFlaggingPropertySubTypeTimestamp},
 		},
 	}
 
@@ -691,6 +704,7 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 		if _, exists := existingPropertiesMap[name]; exists {
 			property := existingPropertiesMap[name]
 			property.Type = expectedProperty.Type
+			property.Attrs = expectedProperty.Attrs
 			propertiesToUpdate = append(propertiesToUpdate, property)
 		} else {
 			propertiesToCreate = append(propertiesToCreate, expectedProperty)

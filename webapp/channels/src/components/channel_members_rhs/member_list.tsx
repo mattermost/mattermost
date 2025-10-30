@@ -26,10 +26,10 @@ export enum ListItemType {
     Separator = 'separator',
 }
 
-export interface ListItem {
+export type ListItem = {
     type: ListItemType;
     data: ChannelMember | JSX.Element;
-}
+};
 export interface Props {
     channel: Channel;
     members: ListItem[];
@@ -120,7 +120,7 @@ const MemberList = ({
                         key={index}
                         style={style}
                     >
-                        {members[index].data}
+                        {members[index].data as JSX.Element}
                     </div>
                 );
             default:
