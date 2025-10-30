@@ -156,7 +156,7 @@ PLUGIN_PACKAGES += mattermost-plugin-boards-v9.1.7
 PLUGIN_PACKAGES += mattermost-plugin-msteams-v2.2.2
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.3.4
-PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.2.0
+PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.3.0
 PLUGIN_PACKAGES += mattermost-plugin-metrics-v0.7.0
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.2.1
 
