@@ -2233,7 +2233,7 @@ func TestGetPostsForChannel(t *testing.T) {
 	post5 := th.CreatePost()
 
 	th.TestForAllClients(t, func(t *testing.T, c *model.Client4) {
-		posts, _, err := c.GetPostsSince(context.Background(), th.BasicChannel.Id, since, false)
+		posts, resp, err := c.GetPostsSince(context.Background(), th.BasicChannel.Id, since, "", false)
 		require.NoError(t, err)
 		require.Len(t, posts.Posts, 2, "should return 2 posts")
 
@@ -2255,7 +2255,11 @@ func TestGetPostsForChannel(t *testing.T) {
 			require.True(t, f, "missing post")
 		}
 
-		_, resp, err := c.GetPostsForChannel(context.Background(), "", 0, 60, "", false, false)
+		posts, resp, err = c.GetPostsSince(context.Background(), th.BasicChannel.Id, since, resp.Etag, false)
+		require.NoError(t, err)
+		CheckEtag(t, posts, resp)
+
+		_, resp, err = c.GetPostsForChannel(context.Background(), "", 0, 60, "", false, false)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
