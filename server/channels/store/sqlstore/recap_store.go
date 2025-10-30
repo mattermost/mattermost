@@ -24,8 +24,8 @@ func NewSqlRecapStore(sqlStore *SqlStore) store.RecapStore {
 func (s *SqlRecapStore) SaveRecap(recap *model.Recap) (*model.Recap, error) {
 	query := `
 		INSERT INTO Recaps
-		(Id, UserId, Title, CreateAt, UpdateAt, DeleteAt, ReadAt, TotalMessageCount, Status)
-		VALUES (:Id, :UserId, :Title, :CreateAt, :UpdateAt, :DeleteAt, :ReadAt, :TotalMessageCount, :Status)
+		(Id, UserId, Title, CreateAt, UpdateAt, DeleteAt, ReadAt, TotalMessageCount, Status, BotID)
+		VALUES (:Id, :UserId, :Title, :CreateAt, :UpdateAt, :DeleteAt, :ReadAt, :TotalMessageCount, :Status, :BotID)
 	`
 
 	if _, err := s.GetMaster().NamedExec(query, recap); err != nil {
@@ -38,7 +38,7 @@ func (s *SqlRecapStore) SaveRecap(recap *model.Recap) (*model.Recap, error) {
 func (s *SqlRecapStore) GetRecap(id string) (*model.Recap, error) {
 	var recap model.Recap
 	query := `
-		SELECT Id, UserId, Title, CreateAt, UpdateAt, DeleteAt, ReadAt, TotalMessageCount, Status
+		SELECT Id, UserId, Title, CreateAt, UpdateAt, DeleteAt, ReadAt, TotalMessageCount, Status, BotID
 		FROM Recaps
 		WHERE Id = ?
 	`
@@ -58,7 +58,7 @@ func (s *SqlRecapStore) GetRecapsForUser(userId string, page, perPage int) ([]*m
 	var recaps []*model.Recap
 
 	query := `
-		SELECT Id, UserId, Title, CreateAt, UpdateAt, DeleteAt, ReadAt, TotalMessageCount, Status
+		SELECT Id, UserId, Title, CreateAt, UpdateAt, DeleteAt, ReadAt, TotalMessageCount, Status, BotID
 		FROM Recaps
 		WHERE UserId = ? AND DeleteAt = 0
 		ORDER BY CreateAt DESC
@@ -126,6 +126,19 @@ func (s *SqlRecapStore) DeleteRecap(id string) error {
 	deleteAt := model.GetMillis()
 	if _, err := s.GetMaster().Exec(query, deleteAt, id); err != nil {
 		return errors.Wrapf(err, "failed to delete Recap with id=%s", id)
+	}
+
+	return nil
+}
+
+func (s *SqlRecapStore) DeleteRecapChannels(recapId string) error {
+	query := `
+		DELETE FROM RecapChannels
+		WHERE RecapId = ?
+	`
+
+	if _, err := s.GetMaster().Exec(query, recapId); err != nil {
+		return errors.Wrapf(err, "failed to delete RecapChannels for recapId=%s", recapId)
 	}
 
 	return nil

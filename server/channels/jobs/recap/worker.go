@@ -19,7 +19,8 @@ type AppIface interface {
 	GetTeam(teamID string) (*model.Team, *model.AppError)
 	GetUser(userID string) (*model.User, *model.AppError)
 	GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions) (*model.PostList, *model.AppError)
-	SummarizePosts(rctx request.CTX, userID string, posts []*model.Post, channelName, teamName string) (*model.AISummaryResponse, *model.AppError)
+	SummarizePosts(rctx request.CTX, userID string, posts []*model.Post, channelName, teamName string, agentID string) (*model.AISummaryResponse, *model.AppError)
+	Publish(message *model.WebSocketEvent)
 }
 
 func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, appInstance AppIface) *jobs.SimpleWorker {
@@ -33,13 +34,16 @@ func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, appInstanc
 		recapID := job.Data["recap_id"]
 		userID := job.Data["user_id"]
 		channelIDs := strings.Split(job.Data["channel_ids"], ",")
+		agentID := job.Data["agent_id"]
 
 		logger.Info("Starting recap job",
 			mlog.String("recap_id", recapID),
+			mlog.String("agent_id", agentID),
 			mlog.Int("channel_count", len(channelIDs)))
 
 		// Update status to processing
 		storeInstance.Recap().UpdateRecapStatus(recapID, model.RecapStatusProcessing)
+		publishRecapUpdate(appInstance, recapID, userID)
 
 		totalMessages := 0
 		successfulChannels := []string{}
@@ -88,7 +92,7 @@ func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, appInstanc
 			}
 
 			// Summarize posts
-			summary, err := appInstance.SummarizePosts(request.EmptyContext(logger), userID, posts, channel.DisplayName, team.Name)
+			summary, err := appInstance.SummarizePosts(request.EmptyContext(logger), userID, posts, channel.DisplayName, team.Name, agentID)
 			if err != nil {
 				logger.Error("Failed to summarize posts", mlog.Err(err))
 				failedChannels = append(failedChannels, channelID)
@@ -125,15 +129,18 @@ func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, appInstanc
 		if len(failedChannels) > 0 && len(successfulChannels) == 0 {
 			recap.Status = model.RecapStatusFailed
 			storeInstance.Recap().UpdateRecap(recap)
+			publishRecapUpdate(appInstance, recapID, userID)
 			return fmt.Errorf("all channels failed to process")
 		} else if len(failedChannels) > 0 {
 			recap.Status = model.RecapStatusCompleted
 			storeInstance.Recap().UpdateRecap(recap)
+			publishRecapUpdate(appInstance, recapID, userID)
 			logger.Warn("Some channels failed", mlog.Int("failed_count", len(failedChannels)))
 			// Job succeeds with warning
 		} else {
 			recap.Status = model.RecapStatusCompleted
 			storeInstance.Recap().UpdateRecap(recap)
+			publishRecapUpdate(appInstance, recapID, userID)
 		}
 
 		logger.Info("Recap job completed",
@@ -190,4 +197,10 @@ func extractPostIDs(posts []*model.Post) []string {
 		ids[i] = post.Id
 	}
 	return ids
+}
+
+func publishRecapUpdate(appInstance AppIface, recapID, userID string) {
+	message := model.NewWebSocketEvent(model.WebsocketEventRecapUpdated, "", "", userID, nil, "")
+	message.Add("recap_id", recapID)
+	appInstance.Publish(message)
 }

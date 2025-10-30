@@ -4,6 +4,11 @@
 .create-recap-modal {
     .modal-content {
         width: 600px;
+        min-height: 560px; // Prevents height shifting between steps (matches channel selector step)
+    }
+
+    .modal-body {
+        min-height: 440px; // Ensures footer stays at bottom (560px modal - 60px header - 60px footer)
     }
 
     .create-recap-modal-body {
@@ -21,31 +26,6 @@
         .create-recap-modal-header-actions {
             display: flex;
             align-items: center;
-            gap: 8px;
-
-            .bot-label {
-                font-size: 12px;
-                font-weight: 600;
-                color: rgba(var(--center-channel-color-rgb), 0.56);
-                text-transform: uppercase;
-                letter-spacing: 0.24px;
-            }
-
-            .bot-dropdown {
-                display: flex;
-                align-items: center;
-                gap: 4px;
-                padding: 2px 4px 2px 6px;
-                background-color: rgba(var(--center-channel-color-rgb), 0.08);
-                border-radius: 4px;
-                font-size: 11px;
-                font-weight: 600;
-                color: var(--center-channel-color);
-
-                .icon {
-                    font-size: 12px;
-                }
-            }
         }
     }
 
@@ -67,21 +47,42 @@
         }
     }
 
-    .create-recap-modal-footer-content {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
     .create-recap-modal-footer {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 24px 32px;
-        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        width: 100%;
 
         &-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
             flex: 1;
+
+            .btn-link {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                background: transparent;
+                color: var(--button-bg);
+                padding: 0;
+                border: none;
+                font-size: 14px;
+                font-weight: 600;
+
+                &:hover:not(:disabled) {
+                    text-decoration: underline;
+                }
+
+                &:disabled {
+                    opacity: 0.4;
+                    cursor: not-allowed;
+                }
+
+                .icon {
+                    font-size: 16px;
+                }
+            }
         }
 
         &-actions {
@@ -89,22 +90,13 @@
             gap: 8px;
             align-items: center;
 
-            .btn-link {
-                background-color: rgba(var(--button-bg-rgb), 0.08);
-                color: var(--button-bg);
-                padding: 10px 20px;
-                border-radius: 4px;
+            .btn {
+                display: flex;
+                align-items: center;
+                gap: 6px;
 
                 .icon {
                     font-size: 16px;
-                    margin-right: 8px;
-                }
-            }
-
-            .btn-primary {
-                .icon {
-                    font-size: 16px;
-                    margin-left: 8px;
                 }
             }
         }
@@ -197,6 +189,15 @@
                         .icon {
                             color: var(--button-bg);
                         }
+                    }
+                }
+
+                &.disabled {
+                    cursor: not-allowed;
+                    opacity: 0.5;
+
+                    &:hover {
+                        background-color: var(--center-channel-bg);
                     }
                 }
 
@@ -396,36 +397,20 @@
         }
     }
 
-    // Pagination Dots
+    // Pagination Dots (using same pattern as cloud_preview_modal)
     .pagination-dots {
         display: flex;
-        align-items: center;
-        gap: 2px;
+        gap: 8px;
 
         .pagination-dot {
-            width: 6px;
-            height: 6px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
-            background-color: rgba(var(--center-channel-color-rgb), 0.24);
-            transition: all 0.2s;
+            background: rgba(var(--center-channel-color-rgb), 0.16);
+            transition: background 0.2s ease;
 
             &.active {
-                width: 14px;
-                height: 14px;
-                background-color: var(--button-bg);
-                position: relative;
-
-                &::after {
-                    content: '';
-                    position: absolute;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                    width: 6px;
-                    height: 6px;
-                    border-radius: 50%;
-                    background-color: var(--center-channel-bg);
-                }
+                background: var(--button-bg);
             }
         }
     }

@@ -26,5 +26,9 @@ export default keyMirror({
     DELETE_RECAP_REQUEST: null,
     DELETE_RECAP_SUCCESS: null,
     DELETE_RECAP_FAILURE: null,
+
+    REGENERATE_RECAP_REQUEST: null,
+    REGENERATE_RECAP_SUCCESS: null,
+    REGENERATE_RECAP_FAILURE: null,
 });
 

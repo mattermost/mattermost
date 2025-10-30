@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
@@ -19,25 +19,33 @@ const RecapsList = ({recaps}: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const [expandedRecapIds, setExpandedRecapIds] = useState<Set<string>>(new Set());
+    const previousRecapStatuses = useRef<Map<string, string>>(new Map());
 
-    // Poll for processing recaps
+    // Auto-expand recaps when they finish processing
     useEffect(() => {
-        const processingRecaps = recaps.filter((recap) =>
-            recap.status === 'pending' || recap.status === 'processing',
-        );
+        const newExpanded = new Set(expandedRecapIds);
+        let hasChanges = false;
 
-        if (processingRecaps.length === 0) {
-            return;
-        }
+        recaps.forEach((recap) => {
+            const previousStatus = previousRecapStatuses.current.get(recap.id);
+            const isProcessing = previousStatus === 'pending' || previousStatus === 'processing';
+            const isCompleted = recap.status === 'completed';
 
-        const pollInterval = setInterval(() => {
-            processingRecaps.forEach((recap) => {
+            // If recap just finished processing, expand it and fetch details
+            if (isProcessing && isCompleted && !expandedRecapIds.has(recap.id)) {
+                newExpanded.add(recap.id);
+                hasChanges = true;
                 dispatch(getRecap(recap.id));
-            });
-        }, 3000);
+            }
 
-        return () => clearInterval(pollInterval);
-    }, [recaps, dispatch]);
+            // Update the previous status
+            previousRecapStatuses.current.set(recap.id, recap.status);
+        });
+
+        if (hasChanges) {
+            setExpandedRecapIds(newExpanded);
+        }
+    }, [recaps, expandedRecapIds, dispatch]);
 
     const toggleRecap = (recapId: string) => {
         const newExpanded = new Set(expandedRecapIds);
@@ -45,6 +53,7 @@ const RecapsList = ({recaps}: Props) => {
             newExpanded.delete(recapId);
         } else {
             newExpanded.add(recapId);
+
             // Fetch full recap with channels if not already loaded
             dispatch(getRecap(recapId));
         }

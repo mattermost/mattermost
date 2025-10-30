@@ -21,7 +21,7 @@ func (a *App) getAIClient(userID string) *agentclient.Client {
 }
 
 // SummarizePosts generates an AI summary of posts with highlights and action items
-func (a *App) SummarizePosts(rctx request.CTX, userID string, posts []*model.Post, channelName, teamName string) (*model.AISummaryResponse, *model.AppError) {
+func (a *App) SummarizePosts(rctx request.CTX, userID string, posts []*model.Post, channelName, teamName string, agentID string) (*model.AISummaryResponse, *model.AppError) {
 	if len(posts) == 0 {
 		return &model.AISummaryResponse{Highlights: []string{}, ActionItems: []string{}}, nil
 	}
@@ -74,14 +74,16 @@ Your response must be compacted valid JSON only, with no additional text, format
 	rctx.Logger().Debug("Calling AI agent for post summarization",
 		mlog.String("channel_name", channelName),
 		mlog.String("user_id", userID),
+		mlog.String("agent_id", agentID),
 		mlog.Int("post_count", len(posts)),
 	)
 
-	completion, err := client.AgentCompletion("", completionRequest)
+	completion, err := client.AgentCompletion(agentID, completionRequest)
 	if err != nil {
 		rctx.Logger().Error("AI agent call failed for summarization",
 			mlog.Err(err),
 			mlog.String("channel_name", channelName),
+			mlog.String("agent_id", agentID),
 		)
 		return nil, model.NewAppError("SummarizePosts", "app.ai.summarize.agent_call_failed", nil, err.Error(), 500)
 	}
@@ -146,7 +148,7 @@ func buildConversationTextWithIDs(posts []*model.Post) (string, []string) {
 }
 
 // GenerateRecapTitle generates a short title for the recap
-func (a *App) GenerateRecapTitle(rctx request.CTX, userID string, channelNames []string) (string, *model.AppError) {
+func (a *App) GenerateRecapTitle(rctx request.CTX, userID string, channelNames []string, agentID string) (string, *model.AppError) {
 	systemPrompt := "You are an expert at creating concise, descriptive titles. Create a title that is at most 5 words and captures the essence of the channels being summarized. Return ONLY the title text with no quotes, formatting, or additional text."
 
 	userPrompt := fmt.Sprintf("Create a short title (max 5 words) for a recap that summarizes these channels: %s", strings.Join(channelNames, ", "))
@@ -165,7 +167,7 @@ func (a *App) GenerateRecapTitle(rctx request.CTX, userID string, channelNames [
 		},
 	}
 
-	completion, err := client.AgentCompletion("", completionRequest)
+	completion, err := client.AgentCompletion(agentID, completionRequest)
 	if err != nil {
 		return "", model.NewAppError("GenerateRecapTitle", "app.ai.title.agent_call_failed", nil, err.Error(), 500)
 	}
@@ -176,4 +178,46 @@ func (a *App) GenerateRecapTitle(rctx request.CTX, userID string, channelNames [
 	}
 
 	return title, nil
+}
+
+// GetAIAgents retrieves all available AI agents from the bridge API
+func (a *App) GetAIAgents(rctx request.CTX, userID string) (*agentclient.AgentsResponse, *model.AppError) {
+	// Create AI client
+	sessionUserID := ""
+	if session := rctx.Session(); session != nil {
+		sessionUserID = session.UserId
+	}
+	client := a.getAIClient(sessionUserID)
+
+	agents, err := client.GetAgents(userID)
+	if err != nil {
+		rctx.Logger().Error("Failed to get AI agents from bridge",
+			mlog.Err(err),
+			mlog.String("user_id", userID),
+		)
+		return nil, model.NewAppError("GetAIAgents", "app.ai.get_agents.bridge_call_failed", nil, err.Error(), 500)
+	}
+
+	return &agentclient.AgentsResponse{Agents: agents}, nil
+}
+
+// GetAIServices retrieves all available AI services from the bridge API
+func (a *App) GetAIServices(rctx request.CTX, userID string) (*agentclient.ServicesResponse, *model.AppError) {
+	// Create AI client
+	sessionUserID := ""
+	if session := rctx.Session(); session != nil {
+		sessionUserID = session.UserId
+	}
+	client := a.getAIClient(sessionUserID)
+
+	services, err := client.GetServices(userID)
+	if err != nil {
+		rctx.Logger().Error("Failed to get AI services from bridge",
+			mlog.Err(err),
+			mlog.String("user_id", userID),
+		)
+		return nil, model.NewAppError("GetAIServices", "app.ai.get_services.bridge_call_failed", nil, err.Error(), 500)
+	}
+
+	return &agentclient.ServicesResponse{Services: services}, nil
 }

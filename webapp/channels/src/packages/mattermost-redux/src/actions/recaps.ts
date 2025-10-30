@@ -10,9 +10,9 @@ import {logError} from 'mattermost-redux/actions/errors';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
 
-export function createRecap(title: string, channelIds: string[]): ActionFuncAsync<Recap> {
+export function createRecap(title: string, channelIds: string[], agentId: string): ActionFuncAsync<Recap> {
     return bindClientFunc({
-        clientFunc: () => Client4.createRecap({title, channel_ids: channelIds}),
+        clientFunc: () => Client4.createRecap({title, channel_ids: channelIds, agent_id: agentId}),
         onRequest: RecapTypes.CREATE_RECAP_REQUEST,
         onSuccess: [RecapTypes.CREATE_RECAP_SUCCESS, RecapTypes.RECEIVED_RECAP],
         onFailure: RecapTypes.CREATE_RECAP_FAILURE,
@@ -43,6 +43,15 @@ export function markRecapAsRead(recapId: string): ActionFuncAsync<Recap> {
         onRequest: RecapTypes.MARK_RECAP_READ_REQUEST,
         onSuccess: [RecapTypes.MARK_RECAP_READ_SUCCESS, RecapTypes.RECEIVED_RECAP],
         onFailure: RecapTypes.MARK_RECAP_READ_FAILURE,
+    });
+}
+
+export function regenerateRecap(recapId: string): ActionFuncAsync<Recap> {
+    return bindClientFunc({
+        clientFunc: () => Client4.regenerateRecap(recapId),
+        onRequest: RecapTypes.REGENERATE_RECAP_REQUEST,
+        onSuccess: [RecapTypes.REGENERATE_RECAP_SUCCESS, RecapTypes.RECEIVED_RECAP],
+        onFailure: RecapTypes.REGENERATE_RECAP_FAILURE,
     });
 }
 

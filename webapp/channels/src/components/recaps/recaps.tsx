@@ -5,6 +5,7 @@ import React, {useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {getAIAgents} from 'mattermost-redux/actions/ai';
 import {getRecaps} from 'mattermost-redux/actions/recaps';
 import {getUnreadRecaps, getReadRecaps} from 'mattermost-redux/selectors/entities/recaps';
 
@@ -28,6 +29,7 @@ const Recaps = () => {
 
     useEffect(() => {
         dispatch(getRecaps(0, 60));
+        dispatch(getAIAgents());
     }, [dispatch]);
 
     const handleAddRecap = () => {
@@ -46,7 +48,7 @@ const Recaps = () => {
                     <div className='recaps-title-container'>
                         <i className='icon icon-robot-outline'/>
                         <h1 className='recaps-title'>
-                            {formatMessage({id: 'recaps.title', defaultMessage: 'Copilot recaps'})}
+                            {formatMessage({id: 'recaps.title', defaultMessage: 'Recaps'})}
                         </h1>
                     </div>
                     <div className='recaps-tabs'>
@@ -65,7 +67,7 @@ const Recaps = () => {
                     </div>
                 </div>
                 <button
-                    className='btn btn-primary recap-add-button'
+                    className='btn btn-tertiary recap-add-button'
                     onClick={handleAddRecap}
                 >
                     <i className='icon icon-plus'/>

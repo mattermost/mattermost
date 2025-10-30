@@ -1,18 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState} from 'react';
+import React, {useState, useMemo, useCallback} from 'react';
 import {useIntl, FormattedDate, FormattedMessage} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import type {Recap} from '@mattermost/types/recaps';
 
-import {markRecapAsRead, deleteRecap} from 'mattermost-redux/actions/recaps';
+import {markRecapAsRead, deleteRecap, regenerateRecap} from 'mattermost-redux/actions/recaps';
+import {readMultipleChannels} from 'mattermost-redux/actions/channels';
+import {getAIAgents} from 'mattermost-redux/selectors/entities/ai';
 
 import ConfirmModal from 'components/confirm_modal';
 
 import RecapChannelCard from './recap_channel_card';
 import RecapProcessing from './recap_processing';
+import RecapMenu from './recap_menu';
+import type {RecapMenuAction} from './recap_menu';
 
 type Props = {
     recap: Recap;
@@ -24,9 +28,55 @@ const RecapItem = ({recap, isExpanded, onToggle}: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const agents = useSelector(getAIAgents);
+    console.log('agents', agents);
 
     const isProcessing = recap.status === 'pending' || recap.status === 'processing';
     const isFailed = recap.status === 'failed';
+
+    // Find the agent that generated this recap
+    const generatingAgent = agents.find((agent) => agent.id === recap.bot_id);
+    const agentDisplayName = generatingAgent?.displayName || formatMessage({id: 'recaps.defaultAgent', defaultMessage: 'Copilot'});
+
+    const handleMarkAllChannelsRead = useCallback(() => {
+        if (recap.channels && recap.channels.length > 0) {
+            const channelIds = recap.channels.map((channel) => channel.channel_id);
+            dispatch(readMultipleChannels(channelIds));
+        }
+    }, [dispatch, recap.channels]);
+
+    const handleRegenerateRecap = useCallback(() => {
+        dispatch(regenerateRecap(recap.id));
+    }, [dispatch, recap.id]);
+
+    const menuActions: RecapMenuAction[] = useMemo(() => {
+        const actions: RecapMenuAction[] = [];
+
+        // Only show "Mark all channels as read" for successful recaps
+        if (!isFailed) {
+            actions.push({
+                id: 'mark-all-channels-read',
+                icon: <i className='icon icon-check-all'/>,
+                label: formatMessage({
+                    id: 'recaps.menu.markAllChannelsRead',
+                    defaultMessage: 'Mark all channels as read',
+                }),
+                onClick: handleMarkAllChannelsRead,
+            });
+        }
+
+        actions.push({
+            id: 'regenerate-recap',
+            icon: <i className='icon icon-refresh'/>,
+            label: formatMessage({
+                id: 'recaps.menu.regenerateRecap',
+                defaultMessage: 'Regenerate this recap',
+            }),
+            onClick: handleRegenerateRecap,
+        });
+
+        return actions;
+    }, [formatMessage, handleMarkAllChannelsRead, handleRegenerateRecap, isFailed]);
 
     const getStatusText = () => {
         switch (recap.status) {
@@ -55,7 +105,7 @@ const RecapItem = ({recap, isExpanded, onToggle}: Props) => {
 
     if (isFailed) {
         return (
-            <div className='recap-item recap-item-failed'>
+            <div className='recap-item recap-item-failed collapsed'>
                 <div className='recap-item-header'>
                     <div className='recap-item-title-section'>
                         <h3 className='recap-item-title'>{recap.title}</h3>
@@ -81,9 +131,18 @@ const RecapItem = ({recap, isExpanded, onToggle}: Props) => {
                         >
                             <i className='icon icon-trash-can-outline'/>
                         </button>
-                        <button className='recap-icon-button' disabled>
-                            <i className='icon icon-dots-horizontal'/>
-                        </button>
+                        {recap.read_at === 0 && (
+                            <RecapMenu
+                                actions={menuActions}
+                                ariaLabel={formatMessage(
+                                    {
+                                        id: 'recaps.menu.ariaLabel',
+                                        defaultMessage: 'Options for {title}',
+                                    },
+                                    {title: recap.title},
+                                )}
+                            />
+                        )}
                     </div>
                 </div>
 
@@ -137,7 +196,10 @@ const RecapItem = ({recap, isExpanded, onToggle}: Props) => {
                         )}
                         <span className='metadata-separator'>•</span>
                         <span className='metadata-item'>
-                            {formatMessage({id: 'recaps.generatedBy', defaultMessage: 'Generated by Copilot'})}
+                            {formatMessage(
+                                {id: 'recaps.generatedBy', defaultMessage: 'Generated by {agentName}'},
+                                {agentName: agentDisplayName},
+                            )}
                         </span>
                     </div>
                 </div>
@@ -157,9 +219,18 @@ const RecapItem = ({recap, isExpanded, onToggle}: Props) => {
                     >
                         <i className='icon icon-trash-can-outline'/>
                     </button>
-                    <button className='recap-icon-button' disabled>
-                        <i className='icon icon-dots-horizontal'/>
-                    </button>
+                    {recap.read_at === 0 && (
+                        <RecapMenu
+                            actions={menuActions}
+                            ariaLabel={formatMessage(
+                                {
+                                    id: 'recaps.menu.ariaLabel',
+                                    defaultMessage: 'Options for {title}',
+                                },
+                                {title: recap.title},
+                            )}
+                        />
+                    )}
                 </div>
             </div>
 

@@ -5,16 +5,43 @@ import React from 'react';
 import {useIntl} from 'react-intl';
 
 import {ProductChannelsIcon, LightningBoltOutlineIcon} from '@mattermost/compass-icons/components';
+import type {Channel} from '@mattermost/types/channels';
+
+import WithTooltip from 'components/with_tooltip';
 
 type Props = {
     recapName: string;
     setRecapName: (name: string) => void;
     recapType: 'selected' | 'all_unreads' | null;
     setRecapType: (type: 'selected' | 'all_unreads') => void;
+    unreadChannels: Channel[];
 };
 
-const StepOne = ({recapName, setRecapName, recapType, setRecapType}: Props) => {
+const StepOne = ({recapName, setRecapName, recapType, setRecapType, unreadChannels}: Props) => {
     const {formatMessage} = useIntl();
+    const hasUnreadChannels = unreadChannels.length > 0;
+
+    const allUnreadsButton = (
+        <button
+            type='button'
+            className={`recap-type-card ${recapType === 'all_unreads' ? 'selected' : ''} ${!hasUnreadChannels ? 'disabled' : ''}`}
+            onClick={() => hasUnreadChannels && setRecapType('all_unreads')}
+            disabled={!hasUnreadChannels}
+        >
+            <div className='recap-type-card-icon'>
+                <LightningBoltOutlineIcon size={24}/>
+            </div>
+            <div className='recap-type-card-content'>
+                <div className='recap-type-card-title'>
+                    {formatMessage({id: 'recaps.modal.allUnreads', defaultMessage: 'Recap all my unreads'})}
+                </div>
+                <div className='recap-type-card-description'>
+                    {formatMessage({id: 'recaps.modal.allUnreadsDesc', defaultMessage: 'Copilot will create a recap of all unreads across your channels.'})}
+                </div>
+            </div>
+            {recapType === 'all_unreads' && <i className='icon icon-check-circle selected-icon'/>}
+        </button>
+    );
 
     return (
         <div className='step-one'>
@@ -58,24 +85,14 @@ const StepOne = ({recapName, setRecapName, recapType, setRecapType}: Props) => {
                         {recapType === 'selected' && <i className='icon icon-check-circle selected-icon'/>}
                     </button>
 
-                    <button
-                        type='button'
-                        className={`recap-type-card ${recapType === 'all_unreads' ? 'selected' : ''}`}
-                        onClick={() => setRecapType('all_unreads')}
-                    >
-                        <div className='recap-type-card-icon'>
-                            <LightningBoltOutlineIcon size={24}/>
-                        </div>
-                        <div className='recap-type-card-content'>
-                            <div className='recap-type-card-title'>
-                                {formatMessage({id: 'recaps.modal.allUnreads', defaultMessage: 'Recap all my unreads'})}
-                            </div>
-                            <div className='recap-type-card-description'>
-                                {formatMessage({id: 'recaps.modal.allUnreadsDesc', defaultMessage: 'Copilot will create a recap of all unreads across your channels.'})}
-                            </div>
-                        </div>
-                        {recapType === 'all_unreads' && <i className='icon icon-check-circle selected-icon'/>}
-                    </button>
+                    {!hasUnreadChannels ? (
+                        <WithTooltip
+                            title={formatMessage({id: 'recaps.modal.noUnreadsAvailable', defaultMessage: 'No unread channels available'})}
+                            hint={formatMessage({id: 'recaps.modal.noUnreadsAvailableHint', defaultMessage: 'You currently have no unread messages in any channels'})}
+                        >
+                            {allUnreadsButton}
+                        </WithTooltip>
+                    ) : allUnreadsButton}
                 </div>
             </div>
         </div>

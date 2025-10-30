@@ -4,6 +4,7 @@
 import {combineReducers} from 'redux';
 
 import admin from './admin';
+import ai from './ai';
 import apps from './apps';
 import bots from './bots';
 import channelBookmarks from './channel_bookmarks';
@@ -43,6 +44,7 @@ export default combineReducers({
     files,
     preferences,
     recaps,
+    ai,
     typing,
     integrations,
     emojis,

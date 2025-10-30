@@ -16,6 +16,7 @@ func (api *API) InitRecap() {
 	api.BaseRoutes.Recaps.Handle("", api.APISessionRequired(getRecaps)).Methods(http.MethodGet)
 	api.BaseRoutes.Recaps.Handle("/{recap_id:[A-Za-z0-9]+}", api.APISessionRequired(getRecap)).Methods(http.MethodGet)
 	api.BaseRoutes.Recaps.Handle("/{recap_id:[A-Za-z0-9]+}/read", api.APISessionRequired(markRecapAsRead)).Methods(http.MethodPost)
+	api.BaseRoutes.Recaps.Handle("/{recap_id:[A-Za-z0-9]+}/regenerate", api.APISessionRequired(regenerateRecap)).Methods(http.MethodPost)
 	api.BaseRoutes.Recaps.Handle("/{recap_id:[A-Za-z0-9]+}", api.APISessionRequired(deleteRecap)).Methods(http.MethodDelete)
 }
 
@@ -36,8 +37,13 @@ func createRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if req.AgentID == "" {
+		c.SetInvalidParam("agent_id")
+		return
+	}
+
 	userID := c.AppContext.Session().UserId
-	recap, err := c.App.CreateRecap(c.AppContext, userID, req.Title, req.ChannelIds)
+	recap, err := c.App.CreateRecap(c.AppContext, userID, req.Title, req.ChannelIds, req.AgentID)
 	if err != nil {
 		c.Err = err
 		return
@@ -87,6 +93,24 @@ func markRecapAsRead(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	userID := c.AppContext.Session().UserId
 	recap, err := c.App.MarkRecapAsRead(c.AppContext, userID, c.Params.RecapId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(recap); err != nil {
+		c.Logger.Warn("Error encoding response", mlog.Err(err))
+	}
+}
+
+func regenerateRecap(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireRecapId()
+	if c.Err != nil {
+		return
+	}
+
+	userID := c.AppContext.Session().UserId
+	recap, err := c.App.RegenerateRecap(c.AppContext, userID, c.Params.RecapId)
 	if err != nil {
 		c.Err = err
 		return

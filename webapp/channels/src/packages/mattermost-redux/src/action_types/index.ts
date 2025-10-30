@@ -4,6 +4,7 @@
 import type {AnyAction} from 'redux';
 
 import AdminTypes from './admin';
+import AITypes from './ai';
 import AppsTypes from './apps';
 import BotTypes from './bots';
 import ChannelBookmarkTypes from './channel_bookmarks';
@@ -45,6 +46,7 @@ export {
     FileTypes,
     PreferenceTypes,
     RecapTypes,
+    AITypes,
     IntegrationTypes,
     EmojiTypes,
     AdminTypes,

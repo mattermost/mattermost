@@ -32,6 +32,24 @@ func (_m *RecapStore) DeleteRecap(id string) error {
 	return r0
 }
 
+// DeleteRecapChannels provides a mock function with given fields: recapId
+func (_m *RecapStore) DeleteRecapChannels(recapId string) error {
+	ret := _m.Called(recapId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteRecapChannels")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(recapId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // GetRecap provides a mock function with given fields: id
 func (_m *RecapStore) GetRecap(id string) (*model.Recap, error) {
 	ret := _m.Called(id)

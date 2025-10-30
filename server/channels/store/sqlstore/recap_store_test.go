@@ -26,6 +26,7 @@ func TestRecapStore(t *testing.T) {
 				ReadAt:            0,
 				TotalMessageCount: 10,
 				Status:            model.RecapStatusPending,
+				BotID:             "test-bot-id",
 			}
 
 			savedRecap, err := ss.Recap().SaveRecap(recap)
@@ -33,6 +34,7 @@ func TestRecapStore(t *testing.T) {
 			assert.Equal(t, recap.Id, savedRecap.Id)
 			assert.Equal(t, recap.UserId, savedRecap.UserId)
 			assert.Equal(t, recap.Title, savedRecap.Title)
+			assert.Equal(t, recap.BotID, savedRecap.BotID)
 
 			retrievedRecap, err := ss.Recap().GetRecap(recap.Id)
 			require.NoError(t, err)
@@ -41,6 +43,7 @@ func TestRecapStore(t *testing.T) {
 			assert.Equal(t, recap.Title, retrievedRecap.Title)
 			assert.Equal(t, recap.TotalMessageCount, retrievedRecap.TotalMessageCount)
 			assert.Equal(t, recap.Status, retrievedRecap.Status)
+			assert.Equal(t, recap.BotID, retrievedRecap.BotID)
 		})
 
 		t.Run("GetRecapsForUser", func(t *testing.T) {
@@ -58,6 +61,7 @@ func TestRecapStore(t *testing.T) {
 					ReadAt:            0,
 					TotalMessageCount: 10,
 					Status:            model.RecapStatusCompleted,
+					BotID:             "test-bot-id",
 				}
 				_, err := ss.Recap().SaveRecap(recap)
 				require.NoError(t, err)
@@ -79,6 +83,7 @@ func TestRecapStore(t *testing.T) {
 				ReadAt:            0,
 				TotalMessageCount: 10,
 				Status:            model.RecapStatusPending,
+				BotID:             "test-bot-id",
 			}
 
 			_, err := ss.Recap().SaveRecap(recap)
@@ -106,6 +111,7 @@ func TestRecapStore(t *testing.T) {
 				ReadAt:            0,
 				TotalMessageCount: 10,
 				Status:            model.RecapStatusPending,
+				BotID:             "test-bot-id",
 			}
 			_, err := ss.Recap().SaveRecap(recap)
 			require.NoError(t, err)
@@ -171,6 +177,7 @@ func TestRecapStore(t *testing.T) {
 				ReadAt:            0,
 				TotalMessageCount: 10,
 				Status:            model.RecapStatusCompleted,
+				BotID:             "test-bot-id",
 			}
 
 			_, err := ss.Recap().SaveRecap(recap)

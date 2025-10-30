@@ -1251,6 +1251,7 @@ type RecapStore interface {
 	UpdateRecapStatus(id, status string) error
 	MarkRecapAsRead(id string) error
 	DeleteRecap(id string) error
+	DeleteRecapChannels(recapId string) error
 	SaveRecapChannel(recapChannel *model.RecapChannel) error
 	GetRecapChannelsByRecapId(recapId string) ([]*model.RecapChannel, error)
 }

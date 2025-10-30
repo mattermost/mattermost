@@ -1,20 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useCallback} from 'react';
+import React, {useState, useCallback, useMemo} from 'react';
 import {useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
-import {useHistory} from 'react-router-dom';
+import {useDispatch, useSelector} from 'react-redux';
 
 import type {RecapChannel} from '@mattermost/types/recaps';
 
+import {readMultipleChannels} from 'mattermost-redux/actions/channels';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
+
+import {switchToChannel} from 'actions/views/channel';
 
 import ExternalLink from 'components/external_link';
 
 import type {GlobalState} from 'types/store';
 
+import RecapMenu from './recap_menu';
+import type {RecapMenuAction} from './recap_menu';
 import RecapTextFormatter from './recap_text_formatter';
 
 type Props = {
@@ -47,11 +50,10 @@ const parsePermalink = (text: string): ParsedItem => {
 
 const RecapChannelCard = ({channel}: Props) => {
     const {formatMessage} = useIntl();
-    const history = useHistory();
+    const dispatch = useDispatch();
     const [isCollapsed, setIsCollapsed] = useState(false);
 
     const channelObject = useSelector((state: GlobalState) => getChannel(state, channel.channel_id));
-    const currentTeamUrl = useSelector(getCurrentRelativeTeamUrl);
 
     const hasHighlights = channel.highlights && channel.highlights.length > 0;
     const hasActionItems = channel.action_items && channel.action_items.length > 0;
@@ -59,9 +61,41 @@ const RecapChannelCard = ({channel}: Props) => {
     const handleChannelClick = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
         if (channelObject) {
-            history.push(`${currentTeamUrl}/channels/${channelObject.name}`);
+            dispatch(switchToChannel(channelObject));
         }
-    }, [channelObject, currentTeamUrl, history]);
+    }, [dispatch, channelObject]);
+
+    const handleMarkChannelRead = useCallback(() => {
+        dispatch(readMultipleChannels([channel.channel_id]));
+    }, [dispatch, channel.channel_id]);
+
+    const handleOpenChannel = useCallback(() => {
+        if (channelObject) {
+            dispatch(switchToChannel(channelObject));
+        }
+    }, [dispatch, channelObject]);
+
+    const menuActions: RecapMenuAction[] = useMemo(() => [
+
+        {
+            id: 'mark-channel-read',
+            icon: <i className='icon icon-check-all'/>,
+            label: formatMessage({
+                id: 'recaps.menu.markChannelRead',
+                defaultMessage: 'Mark this channel as read',
+            }),
+            onClick: handleMarkChannelRead,
+        },
+        {
+            id: 'open-channel',
+            icon: <i className='icon icon-arrow-expand'/>,
+            label: formatMessage({
+                id: 'recaps.menu.openChannel',
+                defaultMessage: 'Open channel',
+            }),
+            onClick: handleOpenChannel,
+        },
+    ], [formatMessage, handleMarkChannelRead, handleOpenChannel]);
 
     if (!hasHighlights && !hasActionItems) {
         return null;
@@ -77,12 +111,24 @@ const RecapChannelCard = ({channel}: Props) => {
                 >
                     {channel.channel_name}
                 </button>
-                <button
-                    className='recap-channel-collapse-button'
-                    onClick={() => setIsCollapsed(!isCollapsed)}
-                >
-                    <i className={`icon ${isCollapsed ? 'icon-chevron-down' : 'icon-chevron-up'}`}/>
-                </button>
+                <div className='recap-channel-header-actions'>
+                    <button
+                        className='recap-channel-collapse-button'
+                        onClick={() => setIsCollapsed(!isCollapsed)}
+                    >
+                        <i className={`icon ${isCollapsed ? 'icon-chevron-down' : 'icon-chevron-up'}`}/>
+                    </button>
+                    <RecapMenu
+                        actions={menuActions}
+                        ariaLabel={formatMessage(
+                            {
+                                id: 'recaps.channelMenu.ariaLabel',
+                                defaultMessage: 'Options for {channelName}',
+                            },
+                            {channelName: channel.channel_name},
+                        )}
+                    />
+                </div>
             </div>
 
             {!isCollapsed && (

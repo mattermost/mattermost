@@ -17,6 +17,7 @@ type Recap struct {
 	ReadAt            int64           `json:"read_at"`
 	TotalMessageCount int             `json:"total_message_count"`
 	Status            string          `json:"status"`
+	BotID             string          `json:"bot_id"`
 	Channels          []*RecapChannel `json:"channels,omitempty"`
 }
 
@@ -34,6 +35,7 @@ type RecapChannel struct {
 type CreateRecapRequest struct {
 	Title      string   `json:"title"`
 	ChannelIds []string `json:"channel_ids"`
+	AgentID    string   `json:"agent_id"`
 }
 
 type AISummaryResponse struct {

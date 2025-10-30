@@ -1,23 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useCallback} from 'react';
+import React, {useState, useCallback, useEffect} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useHistory, useRouteMatch} from 'react-router-dom';
 
+import {GenericModal} from '@mattermost/components';
+import type {Channel} from '@mattermost/types/channels';
+
+import {getAIAgents} from 'mattermost-redux/actions/ai';
 import {createRecap} from 'mattermost-redux/actions/recaps';
+import {getAIAgents as getAIAgentsSelector} from 'mattermost-redux/selectors/entities/ai';
 import {getMyChannels, getUnreadChannelIds} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import type {Channel} from '@mattermost/types/channels';
+import {AIAgentDropdown} from 'components/common/ai';
 
-import {GenericModal} from '@mattermost/components';
-
+import PaginationDots from './pagination_dots';
 import StepOne from './step_one';
 import StepTwoChannelSelector from './step_two_channel_selector';
 import StepTwoSummary from './step_two_summary';
-import PaginationDots from './pagination_dots';
 
 import './create_recap_modal.scss';
 
@@ -35,13 +38,27 @@ const CreateRecapModal = ({onExited}: Props) => {
     const currentUserId = useSelector(getCurrentUserId);
     const myChannels = useSelector(getMyChannels);
     const unreadChannelIds = useSelector(getUnreadChannelIds);
+    const agents = useSelector(getAIAgentsSelector);
 
     const [currentStep, setCurrentStep] = useState(1);
     const [recapName, setRecapName] = useState('');
     const [recapType, setRecapType] = useState<RecapType | null>(null);
     const [selectedChannelIds, setSelectedChannelIds] = useState<string[]>([]);
+    const [selectedBotId, setSelectedBotId] = useState<string>('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Fetch AI agents on mount
+    useEffect(() => {
+        dispatch(getAIAgents());
+    }, [dispatch]);
+
+    // Set default bot when agents are loaded
+    useEffect(() => {
+        if (agents.length > 0 && !selectedBotId) {
+            setSelectedBotId(agents[0].id);
+        }
+    }, [agents, selectedBotId]);
 
     // Get unread channels
     const unreadChannels = myChannels.filter((channel: Channel) =>
@@ -83,27 +100,31 @@ const CreateRecapModal = ({onExited}: Props) => {
             return;
         }
 
+        if (!selectedBotId) {
+            setError(formatMessage({id: 'recaps.modal.error.noBot', defaultMessage: 'Please select an AI agent.'}));
+            return;
+        }
+
         setIsSubmitting(true);
         setError(null);
 
         try {
-            await dispatch(createRecap(recapName, selectedChannelIds));
+            await dispatch(createRecap(recapName, selectedChannelIds, selectedBotId));
             onExited();
             history.push(`${url}/recaps`);
         } catch (err) {
-            console.error('Failed to create recap:', err);
             setError(formatMessage({id: 'recaps.modal.error.createFailed', defaultMessage: 'Failed to create recap. Please try again.'}));
             setIsSubmitting(false);
         }
-    }, [selectedChannelIds, currentUserId, dispatch, onExited, history, url, formatMessage]);
+    }, [selectedChannelIds, currentUserId, selectedBotId, dispatch, onExited, history, url, formatMessage, recapName]);
 
     const canProceed = () => {
         if (currentStep === 1) {
-            return recapName.trim().length > 0 && recapType !== null;
+            return recapName.trim().length > 0 && recapType !== null && selectedBotId.length > 0;
         } else if (currentStep === 2) {
             return selectedChannelIds.length > 0;
         } else if (currentStep === 3) {
-            return selectedChannelIds.length > 0;
+            return selectedChannelIds.length > 0 && selectedBotId.length > 0;
         }
         return false;
     };
@@ -128,6 +149,7 @@ const CreateRecapModal = ({onExited}: Props) => {
                     setRecapName={setRecapName}
                     recapType={recapType}
                     setRecapType={setRecapType}
+                    unreadChannels={unreadChannels}
                 />
             );
         case 2:
@@ -151,31 +173,78 @@ const CreateRecapModal = ({onExited}: Props) => {
         }
     };
 
-    const confirmButtonText = currentStep === 3 ?
-        formatMessage({id: 'recaps.modal.startRecap', defaultMessage: 'Start recap'}) :
-        formatMessage({id: 'generic_modal.next', defaultMessage: 'Next'});
+    const confirmButtonText = currentStep === 3 ? formatMessage({id: 'recaps.modal.startRecap', defaultMessage: 'Start recap'}) : formatMessage({id: 'generic_modal.next', defaultMessage: 'Next'});
+
+    const handleBotSelect = useCallback((botId: string) => {
+        setSelectedBotId(botId);
+    }, []);
 
     const headerText = (
         <div className='create-recap-modal-header'>
             <span>{formatMessage({id: 'recaps.modal.title', defaultMessage: 'Set up your recap'})}</span>
             <div className='create-recap-modal-header-actions'>
-                <span className='bot-label'>
-                    {formatMessage({id: 'recaps.modal.generateWith', defaultMessage: 'GENERATE WITH:'})}
-                </span>
-                <div className='bot-dropdown'>
-                    <span>{formatMessage({id: 'recaps.copilot', defaultMessage: 'Copilot'})}</span>
-                    <i className='icon icon-chevron-down'/>
-                </div>
+                <AIAgentDropdown
+                    showLabel={true}
+                    selectedBotId={selectedBotId}
+                    onBotSelect={handleBotSelect}
+                    bots={agents}
+                    defaultBotId={agents.length > 0 ? agents[0].id : undefined}
+                    disabled={isSubmitting}
+                />
             </div>
         </div>
     );
 
     const handleConfirmClick = useCallback(() => {
         if (currentStep === 3) {
-            return handleSubmit();
+            handleSubmit();
+            return;
         }
-        return handleNext();
+        handleNext();
     }, [currentStep, handleSubmit, handleNext]);
+
+    const handleCancelClick = useCallback(() => {
+        onExited();
+    }, [onExited]);
+
+    const footerContent = (
+        <div className='create-recap-modal-footer'>
+            <div className='create-recap-modal-footer-left'>
+                <PaginationDots
+                    totalSteps={getTotalSteps()}
+                    currentStep={getActualStep()}
+                />
+                {currentStep > 1 && (
+                    <button
+                        className='btn btn-link'
+                        onClick={handlePrevious}
+                        disabled={isSubmitting}
+                    >
+                        <i className='icon icon-chevron-left'/>
+                        {formatMessage({id: 'generic_modal.previous', defaultMessage: 'Previous'})}
+                    </button>
+                )}
+            </div>
+            <div className='create-recap-modal-footer-actions'>
+                <button
+                    type='button'
+                    className='GenericModal__button btn btn-tertiary'
+                    onClick={handleCancelClick}
+                    disabled={isSubmitting}
+                >
+                    {formatMessage({id: 'generic_modal.cancel', defaultMessage: 'Cancel'})}
+                </button>
+                <button
+                    type='submit'
+                    className='GenericModal__button btn btn-primary'
+                    onClick={handleConfirmClick}
+                    disabled={!canProceed() || isSubmitting}
+                >
+                    {confirmButtonText}
+                </button>
+            </div>
+        </div>
+    );
 
     return (
         <GenericModal
@@ -184,29 +253,8 @@ const CreateRecapModal = ({onExited}: Props) => {
             onExited={onExited}
             modalHeaderText={headerText}
             compassDesign={true}
-            handleCancel={onExited}
-            handleConfirm={handleConfirmClick}
-            confirmButtonText={confirmButtonText}
-            isConfirmDisabled={!canProceed() || isSubmitting}
-            autoCloseOnConfirmButton={currentStep === 3}
-            footerContent={(
-                <div className='create-recap-modal-footer-content'>
-                    <PaginationDots
-                        totalSteps={getTotalSteps()}
-                        currentStep={getActualStep()}
-                    />
-                    {currentStep > 1 && (
-                        <button
-                            className='btn btn-link'
-                            onClick={handlePrevious}
-                            disabled={isSubmitting}
-                        >
-                            <i className='icon icon-chevron-left'/>
-                            {formatMessage({id: 'generic_modal.previous', defaultMessage: 'Previous'})}
-                        </button>
-                    )}
-                </div>
-            )}
+            footerDivider={false}
+            footerContent={footerContent}
         >
             <div className='create-recap-modal-body'>
                 {error && (

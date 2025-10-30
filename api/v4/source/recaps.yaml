@@ -23,13 +23,21 @@
               type: object
               required:
                 - channel_ids
+                - title
+                - agent_id
               properties:
+                title:
+                  type: string
+                  description: Title for the recap
                 channel_ids:
                   type: array
                   items:
                     type: string
                   description: List of channel IDs to include in the recap
                   minItems: 1
+                agent_id:
+                  type: string
+                  description: ID of the AI agent to use for generating the recap
         description: Recap creation request
         required: true
       responses:

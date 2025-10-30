@@ -12,7 +12,7 @@ import (
 )
 
 // CreateRecap creates a new recap job for the specified channels
-func (a *App) CreateRecap(rctx request.CTX, userID string, title string, channelIDs []string) (*model.Recap, *model.AppError) {
+func (a *App) CreateRecap(rctx request.CTX, userID string, title string, channelIDs []string, agentID string) (*model.Recap, *model.AppError) {
 	// Validate user is member of all channels
 	for _, channelID := range channelIDs {
 		if !a.HasPermissionToChannel(rctx, userID, channelID, model.PermissionReadChannel) {
@@ -31,6 +31,7 @@ func (a *App) CreateRecap(rctx request.CTX, userID string, title string, channel
 		ReadAt:            0,
 		TotalMessageCount: 0,
 		Status:            model.RecapStatusPending,
+		BotID:             agentID,
 	}
 
 	savedRecap, err := a.Srv().Store().Recap().SaveRecap(recap)
@@ -43,6 +44,7 @@ func (a *App) CreateRecap(rctx request.CTX, userID string, title string, channel
 		"recap_id":    recap.Id,
 		"user_id":     userID,
 		"channel_ids": strings.Join(channelIDs, ","),
+		"agent_id":    agentID,
 	}
 
 	_, jobErr := a.CreateJob(rctx, &model.Job{
@@ -110,6 +112,72 @@ func (a *App) MarkRecapAsRead(rctx request.CTX, userID, recapID string) (*model.
 	updatedRecap, getErr := a.Srv().Store().Recap().GetRecap(recapID)
 	if getErr != nil {
 		return nil, model.NewAppError("MarkRecapAsRead", "app.recap.get.app_error", nil, "", http.StatusInternalServerError).Wrap(getErr)
+	}
+
+	return updatedRecap, nil
+}
+
+// RegenerateRecap regenerates an existing recap
+func (a *App) RegenerateRecap(rctx request.CTX, userID, recapID string) (*model.Recap, *model.AppError) {
+	// Get the recap first to check ownership
+	recap, err := a.Srv().Store().Recap().GetRecap(recapID)
+	if err != nil {
+		return nil, model.NewAppError("RegenerateRecap", "app.recap.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
+	}
+
+	// Only owner can regenerate
+	if recap.UserId != userID {
+		return nil, model.NewAppError("RegenerateRecap", "app.recap.regenerate.permission_denied", nil, "", http.StatusForbidden)
+	}
+
+	// Get existing recap channels to extract channel IDs
+	channels, err := a.Srv().Store().Recap().GetRecapChannelsByRecapId(recapID)
+	if err != nil {
+		return nil, model.NewAppError("RegenerateRecap", "app.recap.get_channels.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Extract channel IDs
+	channelIDs := make([]string, len(channels))
+	for i, channel := range channels {
+		channelIDs[i] = channel.ChannelId
+	}
+
+	// Delete existing recap channels
+	if deleteErr := a.Srv().Store().Recap().DeleteRecapChannels(recapID); deleteErr != nil {
+		return nil, model.NewAppError("RegenerateRecap", "app.recap.delete_channels.app_error", nil, "", http.StatusInternalServerError).Wrap(deleteErr)
+	}
+
+	// Update recap status to pending and reset read status
+	recap.Status = model.RecapStatusPending
+	recap.ReadAt = 0
+	recap.UpdateAt = model.GetMillis()
+	recap.TotalMessageCount = 0
+
+	if _, updateErr := a.Srv().Store().Recap().UpdateRecap(recap); updateErr != nil {
+		return nil, model.NewAppError("RegenerateRecap", "app.recap.update.app_error", nil, "", http.StatusInternalServerError).Wrap(updateErr)
+	}
+
+	// Create new job with same parameters
+	jobData := map[string]string{
+		"recap_id":    recapID,
+		"user_id":     userID,
+		"channel_ids": strings.Join(channelIDs, ","),
+		"agent_id":    recap.BotID,
+	}
+
+	_, jobErr := a.CreateJob(rctx, &model.Job{
+		Type: model.JobTypeRecap,
+		Data: jobData,
+	})
+
+	if jobErr != nil {
+		return nil, jobErr
+	}
+
+	// Return updated recap
+	updatedRecap, getErr := a.Srv().Store().Recap().GetRecap(recapID)
+	if getErr != nil {
+		return nil, model.NewAppError("RegenerateRecap", "app.recap.get.app_error", nil, "", http.StatusInternalServerError).Wrap(getErr)
 	}
 
 	return updatedRecap, nil

@@ -11,6 +11,7 @@ export type Recap = {
     read_at: number;
     total_message_count: number;
     status: RecapStatus;
+    bot_id: string;
     channels?: RecapChannel[];
 };
 
@@ -28,6 +29,7 @@ export type RecapChannel = {
 export type CreateRecapRequest = {
     title: string;
     channel_ids: string[];
+    agent_id: string;
 };
 
 export type RecapStatus = 'pending' | 'processing' | 'completed' | 'failed';

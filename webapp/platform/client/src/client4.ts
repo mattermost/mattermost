@@ -456,6 +456,10 @@ export default class Client4 {
         return `${this.getBaseRoute()}/recaps`;
     }
 
+    getAIRoute() {
+        return `${this.getBaseRoute()}/ai`;
+    }
+
     getPluginsRoute() {
         return `${this.getBaseRoute()}/plugins`;
     }
@@ -3266,10 +3270,25 @@ export default class Client4 {
         );
     };
 
+    regenerateRecap = (recapId: string) => {
+        return this.doFetch<Recap>(
+            `${this.getRecapsRoute()}/${recapId}/regenerate`,
+            {method: 'post'},
+        );
+    };
+
     deleteRecap = (recapId: string) => {
         return this.doFetch<StatusOK>(
             `${this.getRecapsRoute()}/${recapId}`,
             {method: 'delete'},
+        );
+    };
+
+    // AI Routes
+    getAIAgents = () => {
+        return this.doFetch<{agents: Array<{id: string; displayName: string; username: string; service_id: string; service_type: string}>}>(
+            `${this.getAIRoute()}/agents`,
+            {method: 'get'},
         );
     };
 
