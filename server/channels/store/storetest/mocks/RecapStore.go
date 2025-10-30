@@ -140,42 +140,30 @@ func (_m *RecapStore) GetRecapsForUser(userId string, page int, perPage int) ([]
 	return r0, r1
 }
 
+// MarkRecapAsRead provides a mock function with given fields: id
+func (_m *RecapStore) MarkRecapAsRead(id string) error {
+	ret := _m.Called(id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MarkRecapAsRead")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(id)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // SaveRecap provides a mock function with given fields: recap
 func (_m *RecapStore) SaveRecap(recap *model.Recap) (*model.Recap, error) {
 	ret := _m.Called(recap)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SaveRecap")
-	}
-
-	var r0 *model.Recap
-	var r1 error
-	if rf, ok := ret.Get(0).(func(*model.Recap) (*model.Recap, error)); ok {
-		return rf(recap)
-	}
-	if rf, ok := ret.Get(0).(func(*model.Recap) *model.Recap); ok {
-		r0 = rf(recap)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.Recap)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(*model.Recap) error); ok {
-		r1 = rf(recap)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// UpdateRecap provides a mock function with given fields: recap
-func (_m *RecapStore) UpdateRecap(recap *model.Recap) (*model.Recap, error) {
-	ret := _m.Called(recap)
-
-	if len(ret) == 0 {
-		panic("no return value specified for UpdateRecap")
 	}
 
 	var r0 *model.Recap
@@ -218,22 +206,34 @@ func (_m *RecapStore) SaveRecapChannel(recapChannel *model.RecapChannel) error {
 	return r0
 }
 
-// MarkRecapAsRead provides a mock function with given fields: id
-func (_m *RecapStore) MarkRecapAsRead(id string) error {
-	ret := _m.Called(id)
+// UpdateRecap provides a mock function with given fields: recap
+func (_m *RecapStore) UpdateRecap(recap *model.Recap) (*model.Recap, error) {
+	ret := _m.Called(recap)
 
 	if len(ret) == 0 {
-		panic("no return value specified for MarkRecapAsRead")
+		panic("no return value specified for UpdateRecap")
 	}
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(id)
+	var r0 *model.Recap
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.Recap) (*model.Recap, error)); ok {
+		return rf(recap)
+	}
+	if rf, ok := ret.Get(0).(func(*model.Recap) *model.Recap); ok {
+		r0 = rf(recap)
 	} else {
-		r0 = ret.Error(0)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Recap)
+		}
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(*model.Recap) error); ok {
+		r1 = rf(recap)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // UpdateRecapStatus provides a mock function with given fields: id, status
