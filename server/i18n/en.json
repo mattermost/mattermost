@@ -5192,7 +5192,7 @@
   },
   {
     "id": "app.content_flagging.can_flag_post.in_progress",
-    "translation": "Cannot flag this post as is already flagged."
+    "translation": "Cannot flag this post as it is already flagged."
   },
   {
     "id": "app.content_flagging.can_flag_post.removed",
