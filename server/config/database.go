@@ -426,11 +426,13 @@ func (ds *DatabaseStore) cleanUp(thresholdCreateAt int64) error {
 		WHERE CreateAt < :timestamp
 			AND (Active IS NULL OR Active = false)
 			AND ID NOT IN (
-				SELECT ID
-				FROM Configurations
-				ORDER BY CreateAt DESC
-				LIMIT 5
-			)
+				SELECT ID FROM (
+					SELECT ID
+					FROM Configurations
+					ORDER BY CreateAt DESC
+					LIMIT 5
+				) AS recent
+			);
 	`
 
 	if _, err := ds.db.NamedExec(query, map[string]any{"timestamp": thresholdCreateAt}); err != nil {
