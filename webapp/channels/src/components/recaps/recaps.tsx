@@ -4,6 +4,7 @@
 import React, {useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
+import {Redirect} from 'react-router-dom';
 
 import {getAIAgents} from 'mattermost-redux/actions/ai';
 import {getRecaps} from 'mattermost-redux/actions/recaps';
@@ -12,6 +13,7 @@ import {getUnreadRecaps, getReadRecaps} from 'mattermost-redux/selectors/entitie
 import {openModal} from 'actions/views/modals';
 
 import CreateRecapModal from 'components/create_recap_modal';
+import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
 
 import {ModalIdentifiers} from 'utils/constants';
 
@@ -23,6 +25,7 @@ const Recaps = () => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const [activeTab, setActiveTab] = useState<'unread' | 'read'>('unread');
+    const enableAIRecaps = useGetFeatureFlagValue('EnableAIRecaps');
 
     const unreadRecaps = useSelector(getUnreadRecaps);
     const readRecaps = useSelector(getReadRecaps);
@@ -31,6 +34,11 @@ const Recaps = () => {
         dispatch(getRecaps(0, 60));
         dispatch(getAIAgents());
     }, [dispatch]);
+
+    // Redirect if feature flag is disabled
+    if (enableAIRecaps !== 'true') {
+        return <Redirect to='/'/>;
+    }
 
     const handleAddRecap = () => {
         dispatch(openModal({

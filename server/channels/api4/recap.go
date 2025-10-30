@@ -20,7 +20,19 @@ func (api *API) InitRecap() {
 	api.BaseRoutes.Recaps.Handle("/{recap_id:[A-Za-z0-9]+}", api.APISessionRequired(deleteRecap)).Methods(http.MethodDelete)
 }
 
+func requireRecapsEnabled(c *Context) {
+	if !c.App.Config().FeatureFlags.EnableAIRecaps {
+		c.Err = model.NewAppError("requireRecapsEnabled", "api.recap.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+}
+
 func createRecap(c *Context, w http.ResponseWriter, r *http.Request) {
+	requireRecapsEnabled(c)
+	if c.Err != nil {
+		return
+	}
+
 	var req model.CreateRecapRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		c.SetInvalidParamWithErr("body", err)
@@ -56,6 +68,11 @@ func createRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getRecap(c *Context, w http.ResponseWriter, r *http.Request) {
+	requireRecapsEnabled(c)
+	if c.Err != nil {
+		return
+	}
+
 	c.RequireRecapId()
 	if c.Err != nil {
 		return
@@ -73,6 +90,11 @@ func getRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getRecaps(c *Context, w http.ResponseWriter, r *http.Request) {
+	requireRecapsEnabled(c)
+	if c.Err != nil {
+		return
+	}
+
 	userID := c.AppContext.Session().UserId
 	recaps, err := c.App.GetRecapsForUser(c.AppContext, userID, c.Params.Page, c.Params.PerPage)
 	if err != nil {
@@ -86,6 +108,11 @@ func getRecaps(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func markRecapAsRead(c *Context, w http.ResponseWriter, r *http.Request) {
+	requireRecapsEnabled(c)
+	if c.Err != nil {
+		return
+	}
+
 	c.RequireRecapId()
 	if c.Err != nil {
 		return
@@ -104,6 +131,11 @@ func markRecapAsRead(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func regenerateRecap(c *Context, w http.ResponseWriter, r *http.Request) {
+	requireRecapsEnabled(c)
+	if c.Err != nil {
+		return
+	}
+
 	c.RequireRecapId()
 	if c.Err != nil {
 		return
@@ -122,6 +154,11 @@ func regenerateRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteRecap(c *Context, w http.ResponseWriter, r *http.Request) {
+	requireRecapsEnabled(c)
+	if c.Err != nil {
+		return
+	}
+
 	c.RequireRecapId()
 	if c.Err != nil {
 		return

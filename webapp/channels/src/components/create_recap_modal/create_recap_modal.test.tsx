@@ -90,7 +90,15 @@ describe('CreateRecapModal', () => {
         },
         views: {
             channel: {
-                unreadChannelIds: ['channel1'],
+                postVisibility: {},
+                lastChannelViewTime: {},
+                loadingPost: {},
+                focusedPostId: '',
+                mobileView: false,
+                lastUnreadChannel: null,
+                lastGetPosts: {},
+                channelPrefetchStatus: {},
+                toastStatus: false,
             },
         },
     };

@@ -25,7 +25,7 @@ type AppIface interface {
 
 func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, appInstance AppIface) *jobs.SimpleWorker {
 	isEnabled := func(cfg *model.Config) bool {
-		return true // Always enabled
+		return cfg.FeatureFlags.EnableAIRecaps
 	}
 
 	execute := func(logger mlog.LoggerIFace, job *model.Job) error {

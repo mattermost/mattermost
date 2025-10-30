@@ -50,6 +50,15 @@ export type GlobalState = {
             byId: Record<string, Recap>;
             allIds: string[];
         };
+        ai: {
+            agents: Array<{
+                id: string;
+                displayName: string;
+                username: string;
+                service_id: string;
+                service_type: string;
+            }>;
+        };
         bots: {
             accounts: Record<string, Bot>;
         };

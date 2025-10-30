@@ -12,6 +12,8 @@ import {CreationOutlineIcon} from '@mattermost/compass-icons/components';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
+import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
+
 import './recaps_link.scss';
 
 const RecapsLink = () => {
@@ -20,10 +22,11 @@ const RecapsLink = () => {
     const {pathname} = useLocation();
     const currentTeamId = useSelector(getCurrentTeamId);
     const currentUserId = useSelector(getCurrentUserId);
+    const enableAIRecaps = useGetFeatureFlagValue('EnableAIRecaps');
 
     const inRecaps = matchPath(pathname, {path: '/:team/recaps/:recapId?'}) != null;
 
-    if (!currentTeamId || !currentUserId) {
+    if (!currentTeamId || !currentUserId || enableAIRecaps !== 'true') {
         return null;
     }
 

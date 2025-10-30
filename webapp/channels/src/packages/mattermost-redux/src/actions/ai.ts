@@ -3,7 +3,7 @@
 
 import {AITypes} from '../action_types';
 import {Client4} from '../client';
-import type {ActionFunc} from '../types/actions';
+import type {ActionFuncAsync} from '../types/actions';
 
 export interface AIAgent {
     id: string;
@@ -13,7 +13,7 @@ export interface AIAgent {
     service_type: string;
 }
 
-export function getAIAgents(): ActionFunc<AIAgent[]> {
+export function getAIAgents(): ActionFuncAsync<AIAgent[]> {
     return async (dispatch) => {
         dispatch({
             type: AITypes.AI_AGENTS_REQUEST,

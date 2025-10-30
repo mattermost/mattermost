@@ -4,6 +4,7 @@
 package app
 
 import (
+	"os"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -12,6 +13,9 @@ import (
 )
 
 func TestCreateRecap(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_ENABLEAIRECAPS")
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -45,6 +49,9 @@ func TestCreateRecap(t *testing.T) {
 }
 
 func TestGetRecap(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_ENABLEAIRECAPS")
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -112,6 +119,9 @@ func TestGetRecap(t *testing.T) {
 }
 
 func TestGetRecapsForUser(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_ENABLEAIRECAPS")
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -173,6 +183,9 @@ func TestGetRecapsForUser(t *testing.T) {
 }
 
 func TestMarkRecapAsRead(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_ENABLEAIRECAPS", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_ENABLEAIRECAPS")
+
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

@@ -129,4 +129,112 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+    delete:
+      tags:
+        - recaps
+        - ai
+      summary: Delete a recap
+      description: >
+        Delete a recap by its ID. Only the authenticated user who created the recap
+        can delete it.
+
+        ##### Permissions
+
+        Must be authenticated. Can only delete recaps created by the current user.
+
+        __Minimum server version__: 11.2
+      operationId: DeleteRecap
+      parameters:
+        - name: recap_id
+          in: path
+          description: Recap GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Recap deletion successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusOK"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  "/api/v4/recaps/{recap_id}/read":
+    post:
+      tags:
+        - recaps
+        - ai
+      summary: Mark a recap as read
+      description: >
+        Mark a recap as read by the authenticated user. This updates the recap's
+        read status and timestamp.
+
+        ##### Permissions
+
+        Must be authenticated. Can only mark recaps created by the current user as read.
+
+        __Minimum server version__: 11.2
+      operationId: MarkRecapAsRead
+      parameters:
+        - name: recap_id
+          in: path
+          description: Recap GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Recap marked as read successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Recap"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  "/api/v4/recaps/{recap_id}/regenerate":
+    post:
+      tags:
+        - recaps
+        - ai
+      summary: Regenerate a recap
+      description: >
+        Regenerate a recap by its ID. This creates a new background job to
+        regenerate the AI-powered recap with the latest messages from the
+        specified channels.
+
+        ##### Permissions
+
+        Must be authenticated. Can only regenerate recaps created by the current user.
+
+        __Minimum server version__: 11.2
+      operationId: RegenerateRecap
+      parameters:
+        - name: recap_id
+          in: path
+          description: Recap GUID
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Recap regeneration initiated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Recap"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
 
