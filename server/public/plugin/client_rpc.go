@@ -16,6 +16,7 @@ import (
 	"log"
 	"net/http"
 	"net/rpc"
+	"net/url"
 	"os"
 	"reflect"
 	"sync"
@@ -59,7 +60,8 @@ func (p *hooksPlugin) Server(b *plugin.MuxBroker) (any, error) {
 }
 
 func (p *hooksPlugin) Client(b *plugin.MuxBroker, client *rpc.Client) (any, error) {
-	return &hooksRPCClient{client: client,
+	return &hooksRPCClient{
+		client:    client,
 		log:       p.log,
 		muxBroker: b,
 		apiImpl:   p.apiImpl,
@@ -171,8 +173,10 @@ func init() {
 // These enforce compile time checks to make sure types implement the interface
 // If you are getting an error here, you probably need to run `make pluginapi` to
 // autogenerate RPC glue code
-var _ plugin.Plugin = &hooksPlugin{}
-var _ Hooks = &hooksRPCClient{}
+var (
+	_ plugin.Plugin = &hooksPlugin{}
+	_ Hooks         = &hooksRPCClient{}
+)
 
 //
 // Below are special cases for hooks or APIs that can not be auto generated
@@ -318,8 +322,7 @@ func (s *hooksRPCServer) OnActivate(args *Z_OnActivateArgs, returns *Z_OnActivat
 	return nil
 }
 
-type Z_LoadPluginConfigurationArgsArgs struct {
-}
+type Z_LoadPluginConfigurationArgsArgs struct{}
 
 type Z_LoadPluginConfigurationArgsReturns struct {
 	A []byte
@@ -358,9 +361,39 @@ func init() {
 	hookNameToId["ServeHTTP"] = ServeHTTPID
 }
 
+// Using a subset of http.Request prevents a known incompatibility when decoding Go v1.23+ gob-encoded x509.Certificate
+// structs from Go v1.22 compiled plugins. These come from http.Request.TLS field (*tls.ConnectionState).
+type HTTPRequestSubset struct {
+	Method     string
+	URL        *url.URL
+	Proto      string
+	ProtoMajor int
+	ProtoMinor int
+	Header     http.Header
+	Host       string
+	RemoteAddr string
+	RequestURI string
+	Body       io.ReadCloser
+}
+
+func (r *HTTPRequestSubset) GetHTTPRequest() *http.Request {
+	return &http.Request{
+		Method:     r.Method,
+		URL:        r.URL,
+		Proto:      r.Proto,
+		ProtoMajor: r.ProtoMajor,
+		ProtoMinor: r.ProtoMinor,
+		Header:     r.Header,
+		Host:       r.Host,
+		RemoteAddr: r.RemoteAddr,
+		RequestURI: r.RequestURI,
+		Body:       r.Body,
+	}
+}
+
 type Z_ServeHTTPArgs struct {
 	ResponseWriterStream uint32
-	Request              *http.Request
+	Request              *HTTPRequestSubset
 	Context              *Context
 	RequestBodyStream    uint32
 }
@@ -402,7 +435,7 @@ func (g *hooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Re
 		}()
 	}
 
-	forwardedRequest := &http.Request{
+	forwardedRequest := &HTTPRequestSubset{
 		Method:     r.Method,
 		URL:        r.URL,
 		Proto:      r.Proto,
@@ -447,19 +480,21 @@ func (s *hooksRPCServer) ServeHTTP(args *Z_ServeHTTPArgs, returns *struct{}) err
 	}
 	defer r.Body.Close()
 
+	httpReq := r.GetHTTPRequest()
+
 	if hook, ok := s.impl.(interface {
 		ServeHTTP(c *Context, w http.ResponseWriter, r *http.Request)
 	}); ok {
-		hook.ServeHTTP(args.Context, w, r)
+		hook.ServeHTTP(args.Context, w, httpReq)
 	} else {
-		http.NotFound(w, r)
+		http.NotFound(w, httpReq)
 	}
 
 	return nil
 }
 
 type Z_PluginHTTPArgs struct {
-	Request     *http.Request
+	Request     *HTTPRequestSubset
 	RequestBody []byte
 }
 
@@ -469,7 +504,7 @@ type Z_PluginHTTPReturns struct {
 }
 
 func (g *apiRPCClient) PluginHTTP(request *http.Request) *http.Response {
-	forwardedRequest := &http.Request{
+	forwardedRequest := &HTTPRequestSubset{
 		Method:     request.Method,
 		URL:        request.URL,
 		Proto:      request.Proto,
@@ -514,7 +549,7 @@ func (s *apiRPCServer) PluginHTTP(args *Z_PluginHTTPArgs, returns *Z_PluginHTTPR
 	if hook, ok := s.impl.(interface {
 		PluginHTTP(request *http.Request) *http.Response
 	}); ok {
-		response := hook.PluginHTTP(args.Request)
+		response := hook.PluginHTTP(args.Request.GetHTTPRequest())
 
 		responseBody, err := io.ReadAll(response.Body)
 		if err != nil {
@@ -743,8 +778,7 @@ type Z_LogDebugArgs struct {
 	B []any
 }
 
-type Z_LogDebugReturns struct {
-}
+type Z_LogDebugReturns struct{}
 
 func (g *apiRPCClient) LogDebug(msg string, keyValuePairs ...any) {
 	stringifiedPairs := stringifyToObjects(keyValuePairs)
@@ -771,8 +805,7 @@ type Z_LogInfoArgs struct {
 	B []any
 }
 
-type Z_LogInfoReturns struct {
-}
+type Z_LogInfoReturns struct{}
 
 func (g *apiRPCClient) LogInfo(msg string, keyValuePairs ...any) {
 	stringifiedPairs := stringifyToObjects(keyValuePairs)
@@ -799,8 +832,7 @@ type Z_LogWarnArgs struct {
 	B []any
 }
 
-type Z_LogWarnReturns struct {
-}
+type Z_LogWarnReturns struct{}
 
 func (g *apiRPCClient) LogWarn(msg string, keyValuePairs ...any) {
 	stringifiedPairs := stringifyToObjects(keyValuePairs)
@@ -827,8 +859,7 @@ type Z_LogErrorArgs struct {
 	B []any
 }
 
-type Z_LogErrorReturns struct {
-}
+type Z_LogErrorReturns struct{}
 
 func (g *apiRPCClient) LogError(msg string, keyValuePairs ...any) {
 	stringifiedPairs := stringifyToObjects(keyValuePairs)
@@ -960,7 +991,7 @@ func init() {
 
 type Z_ServeMetricsArgs struct {
 	ResponseWriterStream uint32
-	Request              *http.Request
+	Request              *HTTPRequestSubset
 	Context              *Context
 	RequestBodyStream    uint32
 }
@@ -1002,7 +1033,7 @@ func (g *hooksRPCClient) ServeMetrics(c *Context, w http.ResponseWriter, r *http
 		}()
 	}
 
-	forwardedRequest := &http.Request{
+	forwardedRequest := &HTTPRequestSubset{
 		Method:     r.Method,
 		URL:        r.URL,
 		Proto:      r.Proto,
@@ -1047,12 +1078,14 @@ func (s *hooksRPCServer) ServeMetrics(args *Z_ServeMetricsArgs, returns *struct{
 	}
 	defer r.Body.Close()
 
+	httpReq := r.GetHTTPRequest()
+
 	if hook, ok := s.impl.(interface {
 		ServeMetrics(c *Context, w http.ResponseWriter, r *http.Request)
 	}); ok {
-		hook.ServeMetrics(args.Context, w, r)
+		hook.ServeMetrics(args.Context, w, httpReq)
 	} else {
-		http.NotFound(w, r)
+		http.NotFound(w, httpReq)
 	}
 
 	return nil
