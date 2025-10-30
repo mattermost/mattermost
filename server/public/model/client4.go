@@ -3399,11 +3399,11 @@ func (c *Client4) GetFlaggedPostsForUserInChannel(ctx context.Context, userId st
 }
 
 // GetPostsSince gets posts created after a specified time as Unix time in milliseconds.
-func (c *Client4) GetPostsSince(ctx context.Context, channelId string, time int64, collapsedThreads bool) (*PostList, *Response, error) {
+func (c *Client4) GetPostsSince(ctx context.Context, channelId string, time int64, etag string, collapsedThreads bool) (*PostList, *Response, error) {
 	values := url.Values{}
 	values.Set("since", strconv.FormatInt(time, 10))
 	values.Set("collapsedThreads", c.boolString(collapsedThreads))
-	r, err := c.DoAPIGet(ctx, c.channelRoute(channelId)+"/posts?"+values.Encode(), "")
+	r, err := c.DoAPIGet(ctx, c.channelRoute(channelId)+"/posts?"+values.Encode(), etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}

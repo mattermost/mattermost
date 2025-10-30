@@ -241,7 +241,7 @@ func (s *MmctlUnitTestSuite) TestPostListCmdF() {
 
 		s.client.
 			EXPECT().
-			GetPostsSince(context.TODO(), channelID, sinceTimeMillis, false).
+			GetPostsSince(context.TODO(), channelID, sinceTimeMillis, "", false).
 			Return(mockPostList, &model.Response{}, nil).
 			Times(1)
 

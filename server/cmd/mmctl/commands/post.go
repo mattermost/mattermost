@@ -179,7 +179,7 @@ func getPostList(client client.Client, channelID, since string, perPage int) (*m
 	}
 
 	sinceTimeMillis := model.GetMillisForTime(sinceTime)
-	return client.GetPostsSince(context.TODO(), channelID, sinceTimeMillis, false)
+	return client.GetPostsSince(context.TODO(), channelID, sinceTimeMillis, "", false)
 }
 
 func postListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
