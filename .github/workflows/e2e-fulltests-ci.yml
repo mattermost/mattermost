@@ -83,6 +83,7 @@ jobs:
       ROLLING_RELEASE_SERVER_IMAGE: "${{ steps.generate.outputs.ROLLING_RELEASE_SERVER_IMAGE }}"
       WORKFLOW_RUN_URL: "${{steps.generate.outputs.WORKFLOW_RUN_URL}}"
       CYCLE_URL: "${{steps.generate.outputs.CYCLE_URL}}"
+      comment_id: "${{ steps.notify.outputs.comment_id }}"
     env:
       GH_TOKEN: "${{ github.token }}"
       REF: "${{ inputs.ref || github.sha }}"
@@ -131,12 +132,7 @@ jobs:
               _COMMIT_SHA_COMPUTED=$(git rev-parse --verify "$REF") # NB: not actually used for resolving the commit; it's only to double check the value of 'inputs.ref'
               ### For image tag generation: utilize 'inputs.ref', assume that it is a full commit SHA
               COMMIT_SHA="${REF}"
-              # For reference, the real branch name may be retrievable with command: 'jq -r .head.ref <pr.json'
-              if [ "$FIPS_ENABLED" = "true" ]; then
-                BRANCH="server-fips-pr-${PR_NUMBER}"
-              else
-                BRANCH="server-pr-${PR_NUMBER}"
-              fi
+              BRANCH="server-pr-${PR_NUMBER}"   # For reference, the real branch name may be retrievable with command: 'jq -r .head.ref <pr.json'
               SERVER_IMAGE_TAG="${COMMIT_SHA::7}"
               SERVER_IMAGE_ORG=mattermostdevelopment
               BUILD_ID_SUFFIX="${REPORT_TYPE@L}-${SERVER}-ent"
@@ -208,7 +204,7 @@ jobs:
           done
           # BUILD_ID format: $pipelineID-$imageTag-$testType-$serverType-$serverEdition
           # Reference on BUILD_ID parsing: https://github.com/saturninoabril/automation-dashboard/blob/175891781bf1072c162c58c6ec0abfc5bcb3520e/lib/common_utils.ts#L3-L23
-          BUILD_ID="${{ github.run_id }}_${{ github.run_attempt }}-${SERVER_IMAGE_TAG}-${BUILD_ID_SUFFIX}"
+          BUILD_ID="${{ github.run_id }}_${{ github.run_attempt }}-${FIPS_ENABLED:+fips_}${SERVER_IMAGE_TAG}-${BUILD_ID_SUFFIX}"
           # Determine server image name based on FIPS_ENABLED parameter
           if [ "$FIPS_ENABLED" = "true" ]; then
             SERVER_IMAGE_NAME="mattermost-enterprise-fips-edition"
@@ -221,7 +217,7 @@ jobs:
           echo "SERVER=${SERVER}" >> $GITHUB_OUTPUT
           echo "server_uppercase=${SERVER@U}" >> $GITHUB_OUTPUT
           echo "ENABLED_DOCKER_SERVICES=${ENABLED_DOCKER_SERVICES}" >> $GITHUB_OUTPUT
-          echo "status_check_context=E2E Tests/test${BUILD_ID_SUFFIX_IN_STATUS_CHECK:+-$BUILD_ID_SUFFIX}${MM_ENV:+/$MM_ENV_HASH}" >> $GITHUB_OUTPUT
+          echo "status_check_context=E2E Tests${BUILD_ID_SUFFIX_IN_STATUS_CHECK:+-$BUILD_ID_SUFFIX}${MM_ENV:+/$MM_ENV_HASH}" >> $GITHUB_OUTPUT
           echo "workers_number=${WORKERS_NUMBER}" >> $GITHUB_OUTPUT
           echo "TEST_FILTER_CYPRESS=${TEST_FILTER_CYPRESS}" >> $GITHUB_OUTPUT
           echo "TESTCASE_FAILURE_FATAL=${TESTCASE_FAILURE_FATAL}" >> $GITHUB_OUTPUT
@@ -234,6 +230,7 @@ jobs:
           echo "WORKFLOW_RUN_URL=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{github.run_id}}" >> $GITHUB_OUTPUT
           echo "CYCLE_URL=${AUTOMATION_DASHBOARD_URL%%/api}/cycle/${BUILD_ID}" >> $GITHUB_OUTPUT
       - name: ci/notify-user
+        id: notify
         env:
           COMMIT_SHA: "${{steps.generate.outputs.commit_sha}}"
           SERVER_IMAGE: "${{steps.generate.outputs.SERVER_IMAGE}}"
@@ -245,17 +242,24 @@ jobs:
           FIPS_ENABLED: "${{inputs.FIPS_ENABLED}}"
         run: |
           if [ -n "$PR_NUMBER" ]; then
-            gh issue -R "${{ github.repository }}" comment "$PR_NUMBER" --body-file - <<EOF
-          **${FIPS_ENABLED:+\(FIPS\) }E2E tests starting with \`${SERVER_IMAGE}\`**
+            COMMENT_URL=$(gh issue -R "${{ github.repository }}" comment "$PR_NUMBER" --body-file - <<EOF
+          <details>
+          <summary><b>${FIPS_ENABLED:+\(FIPS\) }E2E tests starting with \`${SERVER_IMAGE}\`</b></summary>
+
           ${MM_ENV:+- with \`MM_ENV=$MM_ENV\`}
           ${MM_SERVICE_OVERRIDES:+- Cypress service overrides \`$MM_SERVICE_OVERRIDES\`}
 
-          Progress:
-          - Cypress: ${RUN_CYPRESS:+look for commit status \`$STATUS_CHECK_CONTEXT\` or the access the [Automation Dashboard Cycle URL]($CYCLE_URL)}$([ -n "${RUN_CYPRESS:-}" ] || echo -n "will not run").
-          - Playwright: ${RUN_PLAYWRIGHT:+look for commit status \`$STATUS_CHECK_CONTEXT-playwright\`}$([ -n "${RUN_PLAYWRIGHT:-}" ] || echo -n "will not run").
-          
+          **Progress:**
+          - Cypress: ${RUN_CYPRESS:+look for commit status \`$STATUS_CHECK_CONTEXT/cypress\` or the access the [Automation Dashboard Cycle URL]($CYCLE_URL)}$([ -n "${RUN_CYPRESS:-}" ] || echo -n "will not run").
+          - Playwright: ${RUN_PLAYWRIGHT:+look for commit status \`$STATUS_CHECK_CONTEXT/playwright\`}$([ -n "${RUN_PLAYWRIGHT:-}" ] || echo -n "will not run").
+
           You can also look at the [E2E test's Workflow Run URL]($WORKFLOW_RUN_URL) (run ID \`${{ github.run_id }}\`).
+          </details>
           EOF
+          )
+            # Extract comment ID from the URL
+            COMMENT_ID=$(echo "$COMMENT_URL" | grep -oE '[0-9]+$')
+            echo "comment_id=$COMMENT_ID" >> $GITHUB_OUTPUT
           fi
 
   e2e-fulltest-cypress:
@@ -265,7 +269,7 @@ jobs:
     if: ${{ inputs.RUN_CYPRESS == 'true' }}
     with:
       commit_sha: "${{ needs.generate-test-variables.outputs.commit_sha }}"
-      status_check_context: "${{ needs.generate-test-variables.outputs.status_check_context }}"
+      status_check_context: "${{ needs.generate-test-variables.outputs.status_check_context }}/cypress"
       workers_number: "${{ needs.generate-test-variables.outputs.workers_number }}"
       testcase_failure_fatal: "${{ needs.generate-test-variables.outputs.TESTCASE_FAILURE_FATAL == 'true' }}"
       run_preflight_checks: false
@@ -302,7 +306,7 @@ jobs:
     if: ${{ inputs.RUN_PLAYWRIGHT == 'true' }}
     with:
       commit_sha: "${{ needs.generate-test-variables.outputs.commit_sha }}"
-      status_check_context: "${{ needs.generate-test-variables.outputs.status_check_context }}-playwright"
+      status_check_context: "${{ needs.generate-test-variables.outputs.status_check_context }}/playwright"
       workers_number: "1"
       testcase_failure_fatal: "${{ needs.generate-test-variables.outputs.TESTCASE_FAILURE_FATAL == 'true' }}"
       run_preflight_checks: false
@@ -355,6 +359,7 @@ jobs:
       FIPS_ENABLED: "${{inputs.FIPS_ENABLED}}"
       CYPRESS_PASS_RATE: "${{ needs.e2e-fulltest-cypress.outputs.pass_rate }}"
       PLAYWRIGHT_PASS_RATE: "${{ needs.e2e-fulltest-playwright.outputs.pass_rate }}"
+      COMMENT_ID: "${{ needs.generate-test-variables.outputs.comment_id }}"
     steps:
       - name: ci/notify-user-test-completion
         run: |
@@ -383,15 +388,25 @@ jobs:
           fi
 
           if [ -n "$PR_NUMBER" ]; then
-            gh issue -R "${{ github.repository }}" comment "$PR_NUMBER" --body-file - <<EOF
-          **${STATUS_ICON} ${FIPS_ENABLED:+\(FIPS\) }E2E test ${STATUS_TEXT} with \`${SERVER_IMAGE}\`**
+            COMMENT_BODY=$(cat <<EOF
+          <details>
+          <summary><b>${STATUS_ICON} ${FIPS_ENABLED:+\(FIPS\) }E2E test ${STATUS_TEXT,,} with \`${SERVER_IMAGE}\`</b></summary>
+
           ${MM_ENV:+- with \`MM_ENV=$MM_ENV\`}
           ${MM_SERVICE_OVERRIDES:+- Cypress service overrides \`$MM_SERVICE_OVERRIDES\`}
 
-          Results summary:
-          - Cypress: ${RUN_CYPRESS:+pass rate is \`${{ needs.e2e-fulltest-cypress.outputs.pass_rate || 'unknown' }}\` (see [Automation Dashboard]($CYCLE_URL) and commit status check \`$STATUS_CHECK_CONTEXT\`)}$([ -n "${RUN_CYPRESS:-}" ] || echo -n "did not run").
-          - Playwright: ${RUN_PLAYWRIGHT:+pass rate is \`${{ needs.e2e-fulltest-playwright.outputs.pass_rate || 'unknown' }}\` (see [Playwright Report URL]($PLAYWRIGHT_REPORT_URL) and commit status check \`$STATUS_CHECK_CONTEXT-playwright\`)}$([ -n "${RUN_PLAYWRIGHT:-}" ] || echo -n "did not run").
+          **Results summary:**
+          - Cypress: ${RUN_CYPRESS:+pass rate is \`${{ needs.e2e-fulltest-cypress.outputs.pass_rate || 'unknown' }}\` (see [Automation Dashboard]($CYCLE_URL) and commit status check \`$STATUS_CHECK_CONTEXT/cypress\`)}$([ -n "${RUN_CYPRESS:-}" ] || echo -n "did not run").
+          - Playwright: ${RUN_PLAYWRIGHT:+pass rate is \`${{ needs.e2e-fulltest-playwright.outputs.pass_rate || 'unknown' }}\` (see [Playwright Report URL]($PLAYWRIGHT_REPORT_URL) and commit status check \`$STATUS_CHECK_CONTEXT/playwright\`)}$([ -n "${RUN_PLAYWRIGHT:-}" ] || echo -n "did not run").
 
           The run summary artifacts are available in the corresponding [Workflow Run]($WORKFLOW_RUN_URL).
+          </details>
           EOF
+          )
+            # Update existing comment if available, otherwise create new comment
+            if [ -n "$COMMENT_ID" ]; then
+              gh api -X PATCH "/repos/${{ github.repository }}/issues/comments/$COMMENT_ID" -f body="$COMMENT_BODY"
+            else
+              gh issue -R "${{ github.repository }}" comment "$PR_NUMBER" --body "$COMMENT_BODY"
+            fi
           fi
