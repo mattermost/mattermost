@@ -17,7 +17,6 @@ import {getMissingProfilesByIds, searchProfiles} from 'mattermost-redux/actions/
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getAllGroups} from 'mattermost-redux/selectors/entities/groups';
 import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {makeGetUsersByIds} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
@@ -73,8 +72,7 @@ export function UserSelector({id, isMulti, className, multiSelectOnChange, multi
     const initialDataLoaded = useRef<boolean>(false);
 
     // Check if groups are enabled
-    const currentTeamId = useSelector((state: GlobalState) => getCurrentTeamId(state));
-    const currentLicense = useSelector((state: GlobalState) => getLicense(state));
+    const currentLicense = useSelector(getLicense);
     const isGroupsEnabled = useSelector((state: GlobalState) => {
         if (!enableGroups) {
             return false;
@@ -88,22 +86,11 @@ export function UserSelector({id, isMulti, className, multiSelectOnChange, multi
         return isMulti ? multiSelectInitialValue : [singleSelectInitialValue || ''];
     }, [isMulti, multiSelectInitialValue, singleSelectInitialValue]);
 
-    // Track which value was last loaded to avoid redundant fetches
-    const lastLoadedValue = useRef<string>('');
-
     useEffect(() => {
         const fetchInitialData = async () => {
             const param = isMulti ? multiSelectInitialValue : [singleSelectInitialValue || ''];
 
             if (!param || param.length === 0 || !param[0]) {
-                return;
-            }
-
-            // Create a string key from the current value to track what we've loaded
-            const valueKey = param.join(',');
-
-            // Skip if we already loaded this exact set of values
-            if (lastLoadedValue.current === valueKey) {
                 return;
             }
 
@@ -123,8 +110,6 @@ export function UserSelector({id, isMulti, className, multiSelectOnChange, multi
                 await Promise.allSettled(groupFetchPromises);
             }
 
-            // Mark this set of values as loaded
-            lastLoadedValue.current = valueKey;
             initialDataLoaded.current = true;
         };
 
@@ -193,15 +178,14 @@ export function UserSelector({id, isMulti, className, multiSelectOnChange, multi
     const generalSearchUsers = useMemo(() => debounce(async (searchTerm: string, callback) => {
         try {
             const userSearchOptions = {
-                team_id: currentTeamId,
                 page: 0,
             };
 
-            const promises: Array<Promise<ActionResult<UserProfile[] | Group[]>>> = [
-                dispatch(searchProfiles(searchTerm, userSearchOptions)),
-            ];
+            // Always search for users
+            const userResults: ActionResult<UserProfile[]> = await dispatch(searchProfiles(searchTerm, userSearchOptions));
 
             // Search for groups if enabled
+            let groupResults: ActionResult<Group[]> | undefined;
             if (isGroupsEnabled) {
                 const groupSearchOpts = {
                     q: searchTerm,
@@ -212,14 +196,8 @@ export function UserSelector({id, isMulti, className, multiSelectOnChange, multi
                     include_member_ids: false,
                 };
 
-                promises.push(
-                    dispatch(searchGroups(groupSearchOpts)),
-                );
+                groupResults = await dispatch(searchGroups(groupSearchOpts));
             }
-
-            const results = await Promise.all(promises);
-            const userResults = results[0] as ActionResult<UserProfile[]>;
-            const groupResults = results[1] as ActionResult<Group[]> | undefined;
 
             let options: Array<AutocompleteOptionType<UserProfile | Group>> = [];
 
@@ -272,7 +250,7 @@ export function UserSelector({id, isMulti, className, multiSelectOnChange, multi
             console.error(error);
             callback([]);
         }
-    }, 200), [dispatch, currentTeamId, isGroupsEnabled]);
+    }, 200), [dispatch, isGroupsEnabled]);
 
     const customSearchFunc = useMemo(() => debounce(async (searchTerm: string, callback) => {
         if (!searchFunc) {
