@@ -108,6 +108,7 @@ func StoreTestWithSearchTestEngine(t *testing.T, f func(*testing.T, store.Store,
 		}
 	}()
 
+	t.Setenv("MM_SERVICEENVIRONMENT", "test")
 	stores := storeTypes
 	if enableFullyParallelTests {
 		t.Parallel()
