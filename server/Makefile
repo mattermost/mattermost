@@ -159,7 +159,6 @@ PLUGIN_PACKAGES += mattermost-plugin-jira-v4.4.0
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.5.0
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.10.0
-PLUGIN_PACKAGES += mattermost-plugin-msteams-v2.2.2
 PLUGIN_PACKAGES += mattermost-plugin-agents-v1.4.0
 PLUGIN_PACKAGES += mattermost-plugin-boards-v9.1.7
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
