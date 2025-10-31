@@ -3311,12 +3311,14 @@ func (s *SqlPostStore) RestoreContentFlaggedPost(flaggedPost *model.Post, status
 		InnerJoin("PropertyValues as pv_managed ON pv_managed.TargetId = p.Id AND pv_managed.FieldId = ? AND pv_managed.DeleteAt = 0 AND pv_managed.Value = 'true'", contentFlaggingManagedFieldId).
 		LeftJoin("PropertyValues as pv_status ON pv_status.TargetId = p.Id AND pv_status.FieldId = ? AND pv_status.DeleteAt = 0", statusFieldId)
 
-	if err := s.restoreContentFlaggedRootPost(tx, baseSubQuery, flaggedPost.Id, contentFlaggingManagedFieldId); err != nil {
+	err = s.restoreContentFlaggedRootPost(tx, baseSubQuery, flaggedPost.Id, contentFlaggingManagedFieldId)
+	if err != nil {
 		return err
 	}
 
 	if flaggedPost.RootId == "" {
-		if err := s.restoreContentFlaggedPostReplies(tx, baseSubQuery, flaggedPost.Id, contentFlaggingManagedFieldId); err != nil {
+		err = s.restoreContentFlaggedPostReplies(tx, baseSubQuery, flaggedPost.Id, contentFlaggingManagedFieldId)
+		if err != nil {
 			return err
 		}
 	} else {
@@ -3326,7 +3328,8 @@ func (s *SqlPostStore) RestoreContentFlaggedPost(flaggedPost *model.Post, status
 		}
 	}
 
-	if err := s.removeContentFlaggingManagedPropertyValues(tx, baseSubQuery, flaggedPost.Id, contentFlaggingManagedFieldId); err != nil {
+	err = s.removeContentFlaggingManagedPropertyValues(tx, baseSubQuery, flaggedPost.Id, contentFlaggingManagedFieldId)
+	if err != nil {
 		return err
 	}
 
@@ -3351,11 +3354,8 @@ func (s *SqlPostStore) restoreContentFlaggedRootPost(tx *sqlxTxWrapper, baseSubQ
 		Set("DeleteAt", 0).
 		Where(sq.Expr("Id IN (?)", postIdSubQuery.Where(sq.NotEq{"p.DeleteAt": 0})))
 
-	if result, err := tx.ExecBuilder(queryBuilder); err != nil {
+	if _, err := tx.ExecBuilder(queryBuilder); err != nil {
 		return errors.Wrapf(err, "SqlPostStore.RestoreContentFlaggedPost: failed to restore post %s", postId)
-	} else {
-		rowsAffected, _ := result.RowsAffected()
-		fmt.Printf("AAA %d", rowsAffected)
 	}
 
 	return s.restoreFilesForSubQuery(tx, postIdSubQuery)
