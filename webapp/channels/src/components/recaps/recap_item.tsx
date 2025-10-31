@@ -87,80 +87,22 @@ const RecapItem = ({recap, isExpanded, onToggle}: Props) => {
         return <RecapProcessing recap={recap}/>;
     }
 
+    // Determine class names based on state
+    let itemClassName = 'recap-item';
     if (isFailed) {
-        return (
-            <div className='recap-item recap-item-failed collapsed'>
-                <div className='recap-item-header'>
-                    <div className='recap-item-title-section'>
-                        <h3 className='recap-item-title'>{recap.title}</h3>
-                        <div className='recap-item-metadata'>
-                            <span className='metadata-item'>
-                                <FormattedDate
-                                    value={new Date(recap.create_at)}
-                                    month='long'
-                                    day='numeric'
-                                    year='numeric'
-                                />
-                            </span>
-                            <span className='metadata-separator'>{'•'}</span>
-                            <span className='metadata-item error-text'>
-                                {formatMessage({id: 'recaps.status.failed', defaultMessage: 'Failed'})}
-                            </span>
-                        </div>
-                    </div>
-                    <div
-                        className='recap-item-actions'
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <button
-                            className='recap-icon-button recap-delete-button'
-                            onClick={() => setShowDeleteConfirm(true)}
-                        >
-                            <TrashCanOutlineIcon size={16}/>
-                        </button>
-                        {recap.read_at === 0 && (
-                            <RecapMenu
-                                actions={menuActions}
-                                ariaLabel={formatMessage(
-                                    {
-                                        id: 'recaps.menu.ariaLabel',
-                                        defaultMessage: 'Options for {title}',
-                                    },
-                                    {title: recap.title},
-                                )}
-                            />
-                        )}
-                    </div>
-                </div>
-
-                <ConfirmModal
-                    show={showDeleteConfirm}
-                    title={formatMessage({id: 'recaps.delete.confirm.title', defaultMessage: 'Delete recap?'})}
-                    message={
-                        <FormattedMessage
-                            id='recaps.delete.confirm.message'
-                            defaultMessage='Are you sure you want to delete <strong>{title}</strong>? This action cannot be undone.'
-                            values={{
-                                title: recap.title,
-                                strong: (chunks: React.ReactNode) => <strong>{chunks}</strong>,
-                            }}
-                        />
-                    }
-                    confirmButtonText={formatMessage({id: 'recaps.delete.confirm.button', defaultMessage: 'Delete'})}
-                    confirmButtonClass='btn btn-danger'
-                    onConfirm={handleDelete}
-                    onCancel={() => setShowDeleteConfirm(false)}
-                    onExited={() => setShowDeleteConfirm(false)}
-                />
-            </div>
-        );
+        itemClassName += ' recap-item-failed collapsed';
+    } else {
+        itemClassName += isExpanded ? ' expanded' : ' collapsed';
     }
 
+    // Only make header clickable for successful recaps
+    const headerProps = isFailed ? {} : {onClick: onToggle};
+
     return (
-        <div className={`recap-item ${isExpanded ? 'expanded' : 'collapsed'}`}>
+        <div className={itemClassName}>
             <div
                 className='recap-item-header'
-                onClick={onToggle}
+                {...headerProps}
             >
                 <div className='recap-item-title-section'>
                     <h3 className='recap-item-title'>{recap.title}</h3>
@@ -173,31 +115,42 @@ const RecapItem = ({recap, isExpanded, onToggle}: Props) => {
                                 year='numeric'
                             />
                         </span>
-                        {recap.total_message_count > 0 && (
+                        {isFailed ? (
                             <>
+                                <span className='metadata-separator'>{'•'}</span>
+                                <span className='metadata-item error-text'>
+                                    {formatMessage({id: 'recaps.status.failed', defaultMessage: 'Failed'})}
+                                </span>
+                            </>
+                        ) : (
+                            <>
+                                {recap.total_message_count > 0 && (
+                                    <>
+                                        <span className='metadata-separator'>{'•'}</span>
+                                        <span className='metadata-item'>
+                                            {formatMessage(
+                                                {id: 'recaps.messageCount', defaultMessage: 'Recapped {count} {count, plural, one {message} other {messages}}'},
+                                                {count: recap.total_message_count},
+                                            )}
+                                        </span>
+                                    </>
+                                )}
                                 <span className='metadata-separator'>{'•'}</span>
                                 <span className='metadata-item'>
                                     {formatMessage(
-                                        {id: 'recaps.messageCount', defaultMessage: 'Recapped {count} {count, plural, one {message} other {messages}}'},
-                                        {count: recap.total_message_count},
+                                        {id: 'recaps.generatedBy', defaultMessage: 'Generated by {agentName}'},
+                                        {agentName: agentDisplayName},
                                     )}
                                 </span>
                             </>
                         )}
-                        <span className='metadata-separator'>{'•'}</span>
-                        <span className='metadata-item'>
-                            {formatMessage(
-                                {id: 'recaps.generatedBy', defaultMessage: 'Generated by {agentName}'},
-                                {agentName: agentDisplayName},
-                            )}
-                        </span>
                     </div>
                 </div>
                 <div
                     className='recap-item-actions'
                     onClick={(e) => e.stopPropagation()}
                 >
-                    {recap.read_at === 0 && (
+                    {!isFailed && recap.read_at === 0 && (
                         <button
                             className='recap-action-button'
                             onClick={() => dispatch(markRecapAsRead(recap.id))}
@@ -227,7 +180,7 @@ const RecapItem = ({recap, isExpanded, onToggle}: Props) => {
                 </div>
             </div>
 
-            {isExpanded && recap.channels && recap.channels.length > 0 && (
+            {!isFailed && isExpanded && recap.channels && recap.channels.length > 0 && (
                 <div className='recap-item-content'>
                     <div className='recap-channels-list'>
                         {recap.channels.map((channel) => (

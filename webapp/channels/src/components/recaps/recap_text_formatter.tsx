@@ -33,6 +33,7 @@ const RecapTextFormatter = ({text, className}: Props) => {
             className={className}
             onClick={handleClick}
         >
+            {/* This component is leveraged so that @username's can be clicked, showing the user info popover */}
             <Markdown
                 message={cleanText}
                 channelNamesMap={channelNamesMap}

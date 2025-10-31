@@ -79,38 +79,3 @@ export function deleteRecap(recapId: string): ActionFuncAsync {
         }
     };
 }
-
-export function pollRecapStatus(recapId: string, maxAttempts = 60, interval = 3000): ActionFuncAsync<Recap | null> {
-    return async (dispatch, getState) => {
-        let attempts = 0;
-
-        const poll = async (): Promise<Recap | null> => {
-            try {
-                const {data: recap} = await dispatch(getRecap(recapId));
-
-                if (!recap) {
-                    return null;
-                }
-
-                if (recap.status === 'completed' || recap.status === 'failed') {
-                    return recap;
-                }
-
-                attempts++;
-                if (attempts >= maxAttempts) {
-                    return recap;
-                }
-
-                await new Promise((resolve) => setTimeout(resolve, interval));
-                return poll();
-            } catch (error) {
-                dispatch(logError(error));
-                forceLogoutIfNecessary(error, dispatch, getState);
-                return null;
-            }
-        };
-
-        return {data: await poll()};
-    };
-}
-
