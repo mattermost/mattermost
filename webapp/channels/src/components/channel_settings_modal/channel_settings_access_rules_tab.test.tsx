@@ -138,6 +138,12 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                         msg_count: 0,
                     },
                 },
+                messageCounts: {
+                    channel_id: {
+                        root: 0,
+                        total: 0,
+                    },
+                },
             },
             teams: {
                 currentTeamId: 'team_id',
@@ -1589,5 +1595,217 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 expect(checkbox).toBeDisabled();
             });
         });
+    });
+
+    test('should show activity warning when channel has message history and rules change', async () => {
+        const user = userEvent.setup();
+
+        // Create state with message history
+        const stateWithMessages = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                channels: {
+                    ...initialState.entities.channels,
+                    messageCounts: {
+                        channel_id: {
+                            root: 10,
+                            total: 15, // Channel has 15 messages
+                        },
+                    },
+                },
+            },
+        };
+
+        // Mock searchUsers to return users that would be added
+        mockActions.searchUsers.mockResolvedValue({
+            data: {
+                users: [
+                    {id: 'user1', username: 'user1', email: 'user1@test.com'},
+                ],
+                total_count: 1,
+            },
+        });
+
+        // Mock getChannelMembers to return empty (no current members, so user1 will be added)
+        mockActions.getChannelMembers.mockResolvedValue({data: []});
+
+        renderWithContext(
+            <ChannelSettingsAccessRulesTab {...baseProps}/>,
+            stateWithMessages,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+        });
+
+        // Change the expression (simulate rule modification)
+        const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+        act(() => {
+            onChangeCallback('user.department == "engineering"');
+        });
+
+        // Enable auto-sync so users will be added
+        await waitFor(() => {
+            const checkbox = screen.getByRole('checkbox');
+            expect(checkbox).not.toBeDisabled();
+        });
+
+        const checkbox = screen.getByRole('checkbox');
+        await user.click(checkbox);
+
+        await waitFor(() => {
+            expect(checkbox).toBeChecked();
+        });
+
+        // Trigger save
+        await waitFor(() => {
+            expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
+        });
+
+        const saveButton = screen.getByText('Save');
+        await user.click(saveButton);
+
+        // Wait for confirmation modal
+        await waitFor(() => {
+            expect(screen.getByText('Review membership impact')).toBeInTheDocument();
+        });
+
+        // Click continue
+        const continueButton = screen.getByText('Continue');
+        await user.click(continueButton);
+
+        // Activity warning should appear because channel has history and rules changed
+        await waitFor(() => {
+            expect(screen.getByText('Exposing channel history')).toBeInTheDocument();
+        });
+    });
+
+    test('should NOT show activity warning when channel has no message history', async () => {
+        const user = userEvent.setup();
+
+        // Mock searchUsers to return users that would be added
+        mockActions.searchUsers.mockResolvedValue({
+            data: {
+                users: [
+                    {id: 'user1', username: 'user1', email: 'user1@test.com'},
+                    {id: 'user2', username: 'user2', email: 'user2@test.com'},
+                ],
+                total_count: 2,
+            },
+        });
+
+        // Mock getChannelMembers to return empty (no current members, so all matching users will be added)
+        mockActions.getChannelMembers.mockResolvedValue({data: []});
+
+        renderWithContext(
+            <ChannelSettingsAccessRulesTab {...baseProps}/>,
+            initialState, // Use state with NO message history
+        );
+
+        await waitFor(() => {
+            expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+        });
+
+        // Change the expression (simulate rule modification)
+        const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+        act(() => {
+            onChangeCallback('user.department == "engineering"');
+        });
+
+        // Enable auto-sync so users will be added
+        await waitFor(() => {
+            const checkbox = screen.getByRole('checkbox');
+            expect(checkbox).not.toBeDisabled();
+        });
+
+        const checkbox = screen.getByRole('checkbox');
+        await user.click(checkbox);
+
+        await waitFor(() => {
+            expect(checkbox).toBeChecked();
+        });
+
+        // Trigger save
+        await waitFor(() => {
+            expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
+        });
+
+        const saveButton = screen.getByText('Save');
+        await user.click(saveButton);
+
+        // Wait for confirmation modal with normal title (no activity warning because no message history)
+        await waitFor(() => {
+            expect(screen.getByText('Save and apply rules')).toBeInTheDocument();
+        });
+
+        // Click save to complete the action
+        const confirmButton = screen.getByText('Save and apply');
+        await user.click(confirmButton);
+
+        // Verify NO activity warning modal appears
+        expect(screen.queryByText('Exposing channel history')).not.toBeInTheDocument();
+    });
+
+    test('should show activity warning when auto-sync is disabled but users could gain access', async () => {
+        const user = userEvent.setup();
+
+        // Mock state with message history
+        const stateWithMessages = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                channels: {
+                    ...initialState.entities.channels,
+                    messageCounts: {
+                        channel_id: {total: 100, root: 50}, // Channel has message history
+                    },
+                },
+            },
+        };
+
+        // Mock actions to simulate users who could gain access
+        mockActions.searchUsers.mockResolvedValue({
+            data: {users: [{id: 'user1', username: 'user1'}, {id: 'user2', username: 'user2'}]},
+        });
+        mockActions.getChannelMembers.mockResolvedValue({data: []}); // No current members
+
+        renderWithContext(
+            <ChannelSettingsAccessRulesTab {...baseProps}/>,
+            stateWithMessages,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+        });
+
+        // Set a channel expression (this will trigger potential access changes)
+        const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+        onChangeCallback('user.attributes.Department == "Engineering"');
+
+        // DO NOT enable auto-sync - keep it disabled
+        // This is the key difference from the previous test
+
+        // Trigger save
+        await waitFor(() => {
+            expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
+        });
+
+        const saveButton = screen.getByText('Save');
+        await user.click(saveButton);
+
+        // Should skip confirmation modal and go directly to activity warning
+        // because there are no actual membership changes (auto-sync disabled)
+        // but users could potentially gain access
+        await waitFor(() => {
+            expect(screen.getByText('Exposing channel history')).toBeInTheDocument();
+        });
+
+        // Verify the activity warning modal is shown
+        expect(screen.getByText('Everyone who gains access to this channel can view the entire message history, including messages that were sent under stricter access rules.')).toBeInTheDocument();
+        expect(screen.getByText('I acknowledge this change will expose all historical channel messages to more users')).toBeInTheDocument();
+
+        // Verify NO confirmation modal is shown (since no actual membership changes)
+        expect(screen.queryByText('Save and apply rules')).not.toBeInTheDocument();
     });
 });

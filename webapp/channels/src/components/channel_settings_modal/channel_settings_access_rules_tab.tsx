@@ -9,6 +9,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
 import {getAccessControlSettings} from 'mattermost-redux/selectors/entities/access_control';
+import {getChannelMessageCount} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
@@ -22,6 +23,7 @@ import {useChannelSystemPolicies} from 'hooks/useChannelSystemPolicies';
 import type {GlobalState} from 'types/store';
 
 import ChannelAccessRulesConfirmModal from './channel_access_rules_confirm_modal';
+import ChannelActivityWarningModal from './channel_activity_warning_modal';
 
 import './channel_settings_access_rules_tab.scss';
 
@@ -41,6 +43,7 @@ function ChannelSettingsAccessRulesTab({
     // Get access control settings and current user from Redux state
     const accessControlSettings = useSelector((state: GlobalState) => getAccessControlSettings(state));
     const currentUser = useSelector(getCurrentUser);
+    const channelMessageCount = useSelector((state: GlobalState) => getChannelMessageCount(state, channel.id));
 
     // Check if current user is system admin (system admins should never be restricted)
     const isSystemAdmin = useSelector(isCurrentUserSystemAdmin);
@@ -62,6 +65,11 @@ function ChannelSettingsAccessRulesTab({
 
     // Validation modal state
     const [showSelfExclusionModal, setShowSelfExclusionModal] = useState(false);
+
+    // Activity warning modal state
+    const [showActivityWarningModal, setShowActivityWarningModal] = useState(false);
+    const [shouldShowActivityWarning, setShouldShowActivityWarning] = useState(false);
+    const [activityWarningModalKey, setActivityWarningModalKey] = useState(0);
 
     // Confirmation modal state
     const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -291,11 +299,11 @@ function ChannelSettingsAccessRulesTab({
     }, [currentUser?.id]);
 
     // Calculate membership changes
-    const calculateMembershipChanges = useCallback(async (channelExpression: string): Promise<{toAdd: string[]; toRemove: string[]}> => {
+    const calculateMembershipChanges = useCallback(async (channelExpression: string): Promise<{toAdd: string[]; toRemove: string[]; potentialToAdd: string[]}> => {
         // Combine system and channel expressions (same logic as sync job)
         const combinedExpression = combineSystemAndChannelExpressions(channelExpression);
         if (!combinedExpression.trim()) {
-            return {toAdd: [], toRemove: []};
+            return {toAdd: [], toRemove: [], potentialToAdd: []};
         }
 
         try {
@@ -307,17 +315,20 @@ function ChannelSettingsAccessRulesTab({
             const membersResult = await actions.getChannelMembers(channel.id);
             const currentMemberIds = membersResult.data?.map((m: {user_id: string}) => m.user_id) || [];
 
+            // Calculate who COULD potentially be added (regardless of auto-sync)
+            const potentialToAdd = matchingUserIds.filter((id) => !currentMemberIds.includes(id));
+
             // Calculate who will be added (if auto-sync is enabled)
-            const toAdd = autoSyncMembers ? matchingUserIds.filter((id) => !currentMemberIds.includes(id)) : [];
+            const toAdd = autoSyncMembers ? potentialToAdd : [];
 
             // Calculate who will be removed (users who don't match the expression)
             const toRemove = currentMemberIds.filter((id) => !matchingUserIds.includes(id));
 
-            return {toAdd, toRemove};
+            return {toAdd, toRemove, potentialToAdd};
         } catch (error) {
             // eslint-disable-next-line no-console
             console.error('Failed to calculate membership changes:', error);
-            return {toAdd: [], toRemove: []};
+            return {toAdd: [], toRemove: [], potentialToAdd: []};
         }
     }, [channel.id, autoSyncMembers, actions, combineSystemAndChannelExpressions]);
 
@@ -430,7 +441,8 @@ function ChannelSettingsAccessRulesTab({
             if (isEmptyRulesState) {
                 // Just save directly - the performSave will handle empty state correctly
                 const success = await performSave();
-                return success ? 'saved' : 'error';
+                const result = success ? 'saved' : 'error';
+                return result;
             }
 
             // Validate expression if auto-sync is enabled
@@ -453,27 +465,45 @@ function ChannelSettingsAccessRulesTab({
             // Calculate membership changes
             const changes = await calculateMembershipChanges(expression);
 
-            // If there are changes, show confirmation modal
+            // Determine if we should show activity warning
+            // Show warning if:
+            // 1. Channel has message history (channelMessageCount.total > 0)
+            // 2. MORE people could potentially get access (regardless of auto-sync status)
+            const hasChannelHistory = (channelMessageCount?.total ?? 0) > 0;
+            const morePeopleCouldGetAccess = changes.potentialToAdd.length > 0;
+            const shouldShowWarning = hasChannelHistory && morePeopleCouldGetAccess;
+
+            // If there are membership changes, show confirmation modal
             if (changes.toAdd.length > 0 || changes.toRemove.length > 0) {
                 setUsersToAdd(changes.toAdd);
                 setUsersToRemove(changes.toRemove);
+                setShouldShowActivityWarning(shouldShowWarning);
                 setShowConfirmModal(true);
                 return 'confirmation_required';
             }
 
-            // No changes, save directly
+            // No immediate membership changes, but if warning needed, show it before saving
+            if (shouldShowWarning) {
+                setShouldShowActivityWarning(true);
+                setActivityWarningModalKey((prev) => prev + 1);
+                setShowActivityWarningModal(true);
+                return 'confirmation_required';
+            }
+
+            // No changes and no warning needed, save directly
             const success = await performSave();
-            return success ? 'saved' : 'error';
+            const finalResult = success ? 'saved' : 'error';
+            return finalResult;
         } catch (error) {
             // eslint-disable-next-line no-console
-            console.error('Failed to save access rules:', error);
+            console.error('handleSave: Caught error in save process:', error);
             setFormError(formatMessage({
                 id: 'channel_settings.access_rules.save_error',
                 defaultMessage: 'Failed to save access rules',
             }));
             return 'error';
         }
-    }, [expression, autoSyncMembers, formatMessage, validateSelfExclusion, calculateMembershipChanges, performSave, isEmptyRulesState]);
+    }, [expression, originalExpression, autoSyncMembers, formatMessage, validateSelfExclusion, calculateMembershipChanges, performSave, isEmptyRulesState, channel.id, channelMessageCount]);
 
     // Prevent duplicate saves with immediate response
     const saveInProgressRef = useRef(false);
@@ -485,6 +515,17 @@ function ChannelSettingsAccessRulesTab({
             return;
         }
 
+        // Close confirmation modal first
+        setShowConfirmModal(false);
+
+        // If activity warning should be shown, show it instead of saving directly
+        if (shouldShowActivityWarning) {
+            setActivityWarningModalKey((prev) => prev + 1);
+            setShowActivityWarningModal(true);
+            return;
+        }
+
+        // No activity warning needed, proceed with save
         saveInProgressRef.current = true;
 
         try {
@@ -497,7 +538,7 @@ function ChannelSettingsAccessRulesTab({
         } finally {
             saveInProgressRef.current = false;
         }
-    }, [performSave]);
+    }, [shouldShowActivityWarning, performSave]);
 
     // Handle save changes panel actions - immediate response, no debounce
     const handleSaveChanges = useCallback(async () => {
@@ -517,7 +558,8 @@ function ChannelSettingsAccessRulesTab({
                 setSaveChangesPanelState('error');
             }
 
-            // If result is 'confirmation_required', do nothing to the panel state
+            // When result === 'confirmation_required', no panel state change needed
+            // Modal workflows will handle the next steps
         } finally {
             saveInProgressRef.current = false;
         }
@@ -535,6 +577,29 @@ function ChannelSettingsAccessRulesTab({
 
     const handleClose = useCallback(() => {
         setSaveChangesPanelState(undefined);
+    }, []);
+
+    // Handle activity warning modal actions
+    const handleActivityWarningContinue = useCallback(async () => {
+        setShowActivityWarningModal(false);
+
+        // Proceed with save after activity warning acknowledgment
+        saveInProgressRef.current = true;
+
+        try {
+            const success = await performSave();
+            if (success) {
+                setSaveChangesPanelState('saved');
+            } else {
+                setSaveChangesPanelState('error');
+            }
+        } finally {
+            saveInProgressRef.current = false;
+        }
+    }, [performSave]);
+
+    const handleActivityWarningClose = useCallback(() => {
+        setShowActivityWarningModal(false);
     }, []);
 
     // Calculate if there are errors
@@ -762,6 +827,15 @@ function ChannelSettingsAccessRulesTab({
                 isProcessing={isProcessingSave}
                 autoSyncEnabled={autoSyncMembers}
                 isStacked={true}
+                willShowActivityWarning={shouldShowActivityWarning}
+            />
+
+            {/* Activity warning modal */}
+            <ChannelActivityWarningModal
+                key={activityWarningModalKey}
+                isOpen={showActivityWarningModal}
+                onClose={handleActivityWarningClose}
+                onConfirm={handleActivityWarningContinue}
             />
         </div>
     );
