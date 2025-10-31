@@ -4,6 +4,7 @@
 import React from 'react';
 import type {MultiValueProps} from 'react-select/dist/declarations/src/components/MultiValue';
 
+import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {fireEvent, renderWithContext} from 'tests/react_testing_utils';
@@ -24,7 +25,7 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
                 last_name: 'User',
                 email: 'test@example.com',
             }),
-        } as AutocompleteOptionType<UserProfile>,
+        } as AutocompleteOptionType<UserProfile | Group>,
         innerProps: {},
         selectProps: {},
         removeProps: {
@@ -44,13 +45,13 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
         isMulti: true,
         isRtl: false,
         theme: {} as any,
-    } as unknown as MultiValueProps<AutocompleteOptionType<UserProfile>, true>;
+    } as unknown as MultiValueProps<AutocompleteOptionType<UserProfile | Group>, true>;
 
     const initialState = {
         entities: {
             users: {
                 profiles: {
-                    'user-id-1': baseProps.data.raw,
+                    'user-id-1': baseProps.data.raw as UserProfile,
                 },
             },
             preferences: {
@@ -140,7 +141,7 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
                     username: undefined,
                 },
             },
-        } as unknown as MultiValueProps<AutocompleteOptionType<UserProfile>, true>;
+        } as unknown as MultiValueProps<AutocompleteOptionType<UserProfile | Group>, true>;
 
         const {container} = renderWithContext(
             <MultiUserProfilePill {...propsWithoutUsername}/>,
