@@ -3022,14 +3022,14 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	}
 
 	// Setting limit_after to zero should fail with a 400 BadRequest.
-	posts, resp, err := client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 20, 0, false)
+	posts, resp, err := client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 20, 0, "", false)
 	require.Error(t, err)
 	CheckErrorID(t, err, "api.context.invalid_url_param.app_error")
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	require.Nil(t, posts)
 
 	// All returned posts are all read by the user, since it's created by the user itself.
-	posts, _, err = client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 20, 20, false)
+	posts, _, err = client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 20, 20, "", false)
 	require.NoError(t, err)
 	require.Len(t, posts.Order, 12, "Should return 12 posts only since there's no unread post")
 
@@ -3042,7 +3042,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	require.NoError(t, err)
 	th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
 
-	posts, _, err = client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 20, 20, false)
+	posts, _, err = client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 20, 20, "", false)
 	require.NoError(t, err)
 
 	require.Len(t, posts.Order, 12, "Should return 12 posts only since there's no unread post")
@@ -3063,7 +3063,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	require.NoError(t, err)
 	th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
 
-	posts, _, err = client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 3, 3, false)
+	posts, _, err = client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 3, 3, "", false)
 	require.NoError(t, err)
 
 	assertPostList(t, &model.PostList{
@@ -3087,7 +3087,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	require.NoError(t, err)
 	th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
 
-	posts, _, err = client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 3, 3, false)
+	posts, _, err = client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 3, 3, "", false)
 	require.NoError(t, err)
 
 	assertPostList(t, &model.PostList{
@@ -3114,7 +3114,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	require.NoError(t, err)
 	th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
 
-	posts, _, err = client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 3, 3, false)
+	posts, _, err = client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 3, 3, "", false)
 	require.NoError(t, err)
 
 	assertPostList(t, &model.PostList{
@@ -3139,7 +3139,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	require.NoError(t, err)
 	th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
 
-	posts, _, err = client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 3, 3, false)
+	posts, _, err = client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 3, 3, "", false)
 	require.NoError(t, err)
 
 	assertPostList(t, &model.PostList{
@@ -3178,7 +3178,7 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	require.NoError(t, err)
 	th.App.Srv().Store().Post().InvalidateLastPostTimeCache(channelId)
 
-	posts, _, err = client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 1, 2, false)
+	posts, _, err = client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 1, 2, "", false)
 	require.NoError(t, err)
 
 	assertPostList(t, &model.PostList{
@@ -3197,6 +3197,93 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 		NextPostId: "",
 		PrevPostId: post10.Id,
 	}, posts)
+}
+
+func TestGetPostsForChannelAroundLastUnreadEtag(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+	userId := th.BasicUser.Id
+	teamId := th.BasicTeam.Id
+	channelId := th.BasicChannel.Id
+
+	// without collapsed threads
+	_, resp, err := client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 30, 30, "", false)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+
+	posts, resp, err := client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 30, 30, resp.Etag, false)
+	require.NoError(t, err)
+	CheckEtag(t, posts, resp)
+
+	post := th.CreatePost()
+
+	_, resp, err = client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 30, 30, resp.Etag, false)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+
+	_, err = client.UpdateThreadFollowForUser(context.Background(), userId, teamId, post.Id, true)
+	require.NoError(t, err)
+
+	_, resp, err = client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 30, 30, resp.Etag, false)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+
+	_, _, err = client.CreatePost(context.Background(), &model.Post{ChannelId: channelId, Message: model.NewId(), RootId: post.Id})
+	require.NoError(t, err)
+
+	_, resp, err = client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 30, 30, resp.Etag, false)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+
+	_, err = client.UpdateThreadFollowForUser(context.Background(), userId, channelId, post.Id, false)
+	require.NoError(t, err)
+
+	_, resp, err = client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 30, 30, resp.Etag, false)
+	require.NoError(t, err)
+	CheckOKStatus(t, resp)
+
+	// with collapsed threads
+	// Disabled because the require.NotEmpty is flaky
+	/*
+		_, resp, err = client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 30, 30, "", true)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotEmpty(t, resp.Etag)
+
+		posts, resp, err = client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 30, 30, resp.Etag, true)
+		require.NoError(t, err)
+		CheckEtag(t, posts, resp)
+
+		post = th.CreatePost()
+
+		_, resp, err = client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 30, 30, resp.Etag, true)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		_, err = client.UpdateThreadFollowForUser(context.Background(), userId, teamId, post.Id, true)
+		require.NoError(t, err)
+
+		_, resp, err = client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 30, 30, resp.Etag, true)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		_, _, err = client.CreatePost(context.Background(), &model.Post{ChannelId: channelId, Message: model.NewId(), RootId: post.Id})
+		require.NoError(t, err)
+
+		_, resp, err = client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 30, 30, resp.Etag, true)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		_, err = client.UpdateThreadFollowForUser(context.Background(), userId, channelId, post.Id, true)
+		require.NoError(t, err)
+
+		_, resp, err = client.GetPostsAroundLastUnread(context.Background(), userId, channelId, 30, 30, resp.Etag, true)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	*/
 }
 
 func TestGetPost(t *testing.T) {
