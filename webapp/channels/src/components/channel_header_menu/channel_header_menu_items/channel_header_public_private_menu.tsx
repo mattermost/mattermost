@@ -16,6 +16,7 @@ import * as Menu from 'components/menu';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
 
 import {Constants} from 'utils/constants';
+import {isOfficialTunagChannel} from 'utils/official_channel_utils';
 
 import MenuItemArchiveChannel from '../menu_items/archive_channel';
 import MenuItemChannelBookmarks from '../menu_items/channel_bookmarks_submenu';
@@ -157,10 +158,10 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isDefault, isMobile, i
             {!isMobile && (
                 <MenuItemPluginItems pluginItems={pluginItems}/>
             )}
-            {!isDefault && (
+            {!isDefault && !isOfficialTunagChannel(channel) && (!isGuest(user.roles) || !isArchived) && (
                 <Menu.Separator/>
             )}
-            {!isDefault && !isGuest(user.roles) && (
+            {!isDefault && !isGuest(user.roles) && !isOfficialTunagChannel(channel) && (
                 <MenuItemLeaveChannel
                     id='channelLeaveChannel'
                     channel={channel}
@@ -171,7 +172,7 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isDefault, isMobile, i
                 <MenuItemCloseChannel/>
             )}
 
-            {!isArchived && !isDefault && (
+            {!isArchived && !isDefault && !isOfficialTunagChannel(channel) && (
                 <ChannelPermissionGate
                     channelId={channel.id}
                     teamId={channel.team_id}

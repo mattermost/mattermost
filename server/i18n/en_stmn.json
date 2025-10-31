@@ -1,0 +1,38 @@
+[
+  {
+    "id": "api.channel.update_channel.official_channel_title.forbidden",
+    "translation": "Only the channel creator can modify the title of an official channel."
+  },
+  {
+    "id": "api.channel.patch_channel.official_channel_title.forbidden",
+    "translation": "Only the channel creator can modify the title of an official channel."
+  },
+  {
+    "id": "api.channel.delete_channel.official_channel.forbidden",
+    "translation": "Only the channel creator can archive an official channel."
+  },
+  {
+    "id": "api.channel.restore_channel.official_channel.forbidden",
+    "translation": "Only the channel creator can restore an official channel."
+  },
+  {
+    "id": "api.channel.add_member.official_channel.forbidden",
+    "translation": "Only the channel creator can add members to an official channel."
+  },
+  {
+    "id": "api.channel.remove_member.official_channel.forbidden",
+    "translation": "Only the channel creator can remove members from an official channel."
+  },
+  {
+    "id": "api.channel.leave.official_channel.forbidden",
+    "translation": "Only the channel creator can leave an official channel."
+  },
+  {
+    "id": "api.channel.update_member_roles.official_channel.forbidden",
+    "translation": "Only the channel creator can modify member roles in an official channel."
+  },
+  {
+    "id": "api.channel.update_member_scheme_roles.official_channel.forbidden",
+    "translation": "Only the channel creator can modify member roles in an official channel."
+  }
+]
