@@ -220,7 +220,7 @@ func (a *App) ProcessRecapChannel(rctx request.CTX, recapID, channelID, userID, 
 	}
 
 	// Fetch posts for recap
-	posts, postsErr := a.fetchPostsForRecap(rctx, channelID, lastViewedAt, 1000)
+	posts, postsErr := a.fetchPostsForRecap(rctx, channelID, lastViewedAt, 100)
 	if postsErr != nil {
 		return result, postsErr
 	}
@@ -275,6 +275,14 @@ func (a *App) fetchPostsForRecap(rctx request.CTX, channelID string, lastViewedA
 	postList, err := a.GetPostsSince(rctx, options)
 	if err != nil {
 		return nil, err
+	}
+
+	if len(postList.Posts) == 0 {
+		// If there are no unread posts, get the most recent 15 posts to include in the recap
+		postList, err = a.GetPosts(rctx, channelID, 0, 20)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Convert to slice and limit
