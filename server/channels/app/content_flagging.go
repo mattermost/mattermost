@@ -866,6 +866,7 @@ func (a *App) SearchReviewers(rctx request.CTX, term string, teamId string) ([]*
 
 	reviewersList := make([]*model.User, 0, len(reviewers))
 	for _, user := range reviewers {
+		a.SanitizeProfile(user, false)
 		reviewersList = append(reviewersList, user)
 	}
 
