@@ -56,11 +56,11 @@ const preview: Preview = {
         },
         backgrounds: {
             default: 'Center Channel',
-            options: [
-                {name: 'Center Channel', value: 'var(--center-channel-bg)'},
-                {name: 'Global Header', value: 'var(--sidebar-header-bg)'},
-                {name: 'Sidebar', value: 'var(--sidebar-bg)'},
-            ],
+            options: {
+                'center': {name: 'Center Channel', value: 'var(--center-channel-bg)'},
+                'header': {name: 'Global Header', value: 'var(--sidebar-header-bg)'},
+                'sidebar': {name: 'Sidebar', value: 'var(--sidebar-bg)'},
+            },
         },
         layout: 'centered',
     },
@@ -115,7 +115,7 @@ const preview: Preview = {
 
     initialGlobals: {
         backgrounds: {
-            value: 'Center Channel'
+            value: 'center'
         }
     }
 };
