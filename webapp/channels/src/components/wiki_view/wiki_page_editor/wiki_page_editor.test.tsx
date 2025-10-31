@@ -3,11 +3,13 @@
 
 // ZERO MOCKS - Uses real child components
 
-import React from 'react';
 import {screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import React from 'react';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
+
+import {PostTypes} from 'mattermost-redux/constants/posts';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 
@@ -156,7 +158,10 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
 
             expect(screen.getByDisplayValue('Test Page')).toBeInTheDocument();
 
-            rerender(<WikiPageEditor {...baseProps} title="New Title from Props"/>);
+            rerender(<WikiPageEditor
+                {...baseProps}
+                title='New Title from Props'
+                     />);
 
             expect(screen.getByDisplayValue('New Title from Props')).toBeInTheDocument();
         });
@@ -266,7 +271,7 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
         const mockPages = [
             {
                 id: 'page1',
-                type: 'page',
+                type: PostTypes.PAGE,
                 props: {title: 'Getting Started'},
                 create_at: 1000,
                 update_at: 1000,
@@ -281,11 +286,11 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
                 hashtags: '',
                 file_ids: [],
                 pending_post_id: '',
-                metadata: {},
+                metadata: {} as any,
             },
             {
                 id: 'page2',
-                type: 'page',
+                type: PostTypes.PAGE,
                 props: {title: 'API Documentation'},
                 create_at: 2000,
                 update_at: 2000,
@@ -300,7 +305,7 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
                 hashtags: '',
                 file_ids: [],
                 pending_post_id: '',
-                metadata: {},
+                metadata: {} as any,
             },
         ];
 
@@ -324,7 +329,7 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
             },
         };
 
-        test('retrieves pages from Redux using getWikiPages selector', () => {
+        test('retrieves pages from Redux using getPages selector', () => {
             renderWithContext(
                 <WikiPageEditor
                     {...baseProps}
@@ -399,7 +404,7 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
                 page2: mockPages[1],
                 post1: {
                     id: 'post1',
-                    type: 'post',
+                    type: 'post' as any,
                     props: {title: 'Regular Post'},
                     create_at: 3000,
                     update_at: 3000,
@@ -414,7 +419,7 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
                     hashtags: '',
                     file_ids: [],
                     pending_post_id: '',
-                    metadata: {},
+                    metadata: {} as any,
                 },
             };
 

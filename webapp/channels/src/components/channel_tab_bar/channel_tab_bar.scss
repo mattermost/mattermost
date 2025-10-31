@@ -1,0 +1,137 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.channel-tab-bar-container {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 16px;
+    border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+    background: var(--center-channel-bg);
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    &::-webkit-scrollbar {
+        height: 6px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: rgba(var(--center-channel-color-rgb), 0.24);
+        border-radius: 3px;
+    }
+}
+
+.wiki-tab {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    position: relative;
+    border-radius: 4px;
+    transition: background-color 0.15s ease;
+
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+    }
+
+    &--active {
+        background: rgba(var(--button-bg-rgb), 0.08);
+
+        .wiki-tab__button {
+            color: var(--button-bg);
+            font-weight: 600;
+        }
+    }
+
+    &__button {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        border: none;
+        background: none;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 14px;
+        line-height: 20px;
+        cursor: pointer;
+        transition: color 0.15s ease;
+
+        &:hover {
+            color: var(--center-channel-color);
+        }
+
+        &:focus {
+            outline: 2px solid var(--button-bg);
+            outline-offset: 2px;
+        }
+    }
+
+    &__title {
+        max-width: 150px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__menu {
+        display: flex;
+        align-items: center;
+        padding-right: 4px;
+    }
+
+    &__menu-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        border: none;
+        border-radius: 4px;
+        background: none;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        cursor: pointer;
+        transition: all 0.15s ease;
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.72);
+        }
+
+        &:active {
+            background: rgba(var(--center-channel-color-rgb), 0.16);
+        }
+
+        &:focus {
+            outline: 2px solid var(--button-bg);
+            outline-offset: 2px;
+        }
+    }
+}
+
+.wiki-create-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    margin-left: 4px;
+    border: none;
+    border-radius: 4px;
+    background: none;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+
+    &:active {
+        background: rgba(var(--center-channel-color-rgb), 0.16);
+    }
+
+    &:focus {
+        outline: 2px solid var(--button-bg);
+        outline-offset: 2px;
+    }
+}

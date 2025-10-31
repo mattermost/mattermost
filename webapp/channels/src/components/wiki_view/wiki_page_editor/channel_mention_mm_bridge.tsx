@@ -10,13 +10,13 @@ import {IntlProvider} from 'react-intl';
 import {Provider} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
+
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {getCurrentLocale, getTranslations} from 'selectors/i18n';
 import store from 'stores/redux_store';
 
-import ChannelMentionProvider from 'components/suggestion/channel_mention_provider';
-import {ChannelMentionSuggestion} from 'components/suggestion/channel_mention_provider';
+import ChannelMentionProvider, {ChannelMentionSuggestion} from 'components/suggestion/channel_mention_provider';
 
 import './mention_suggestion_list.scss';
 

@@ -27,9 +27,7 @@ const MovePageModal = (props: Props) => {
         return 'The page and all child pages will be moved to the selected wiki.';
     };
 
-    const childrenWarning = props.hasChildren
-        ? 'This page has child pages. All child pages will be moved with this page to maintain the hierarchy.'
-        : undefined;
+    const childrenWarning = props.hasChildren ? 'This page has child pages. All child pages will be moved with this page to maintain the hierarchy.' : undefined;
 
     return (
         <PageDestinationModal

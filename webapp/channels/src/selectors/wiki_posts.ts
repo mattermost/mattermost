@@ -4,7 +4,6 @@
 import type {Post} from '@mattermost/types/posts';
 
 import {PostTypes} from 'mattermost-redux/constants/posts';
-import {makeGetPostsForThread} from 'mattermost-redux/selectors/entities/posts';
 import {createIdsSelector} from 'mattermost-redux/utils/helpers';
 
 import type {GlobalState} from 'types/store';
@@ -22,6 +21,7 @@ export function makeGetFilteredPostIdsForWikiThread(): (
         (allPostsById, postIdsInThread, focusedInlineCommentId) => {
             // Only look at posts in this thread, not all posts in the system
             const posts = postIdsInThread.map((id) => allPostsById[id]).filter(Boolean);
+
             // Helper to check if a post is an inline comment
             const isInlineComment = (post: Post): boolean => {
                 return post.type === PostTypes.PAGE_COMMENT &&
@@ -36,7 +36,7 @@ export function makeGetFilteredPostIdsForWikiThread(): (
             // If no inline comment is focused, show only page-level comments
             // (exclude inline comments and their replies)
             if (!focusedInlineCommentId) {
-                return posts.
+                const filteredIds = posts.
                     filter((post: Post) => {
                         // Exclude inline comments themselves
                         if (isInlineComment(post)) {
@@ -56,10 +56,13 @@ export function makeGetFilteredPostIdsForWikiThread(): (
                         return true;
                     }).
                     map((p) => p.id);
+
+                // Reverse to match standard thread viewer order (newest to oldest)
+                return filteredIds.reverse();
             }
 
             // If an inline comment is focused, show ONLY that comment + its replies
-            return posts.
+            const focusedIds = posts.
                 filter((post: Post) => {
                     // Include the focused inline comment itself
                     if (post.id === focusedInlineCommentId) {
@@ -74,6 +77,9 @@ export function makeGetFilteredPostIdsForWikiThread(): (
                     return false;
                 }).
                 map((p) => p.id);
+
+            // Reverse to match standard thread viewer order (newest to oldest)
+            return focusedIds.reverse();
         },
     );
 }

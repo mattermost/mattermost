@@ -656,28 +656,13 @@ export function getPostThread(rootId: string, fetchThreads = true, lastUpdateAt 
             return {error};
         }
 
-        // DEBUG: Check posts received from API
-        console.log('[getPostThread DEBUG] Received posts for thread:', rootId);
-        console.log('[getPostThread DEBUG] Post count:', Object.keys(posts.posts).length);
-        Object.values(posts.posts).forEach((post: any) => {
-            console.log(`[getPostThread DEBUG] API Post ${post.id}:`, {
-                type: post.type,
-                user_id: post.user_id,
-                parent_comment_id: post.props?.parent_comment_id || 'none',
-                root_id: post.root_id,
-            });
-        });
-
         dispatch(batchActions([
             receivedPosts(posts),
             receivedPostsInThread(posts, rootId),
         ]));
 
         if (enabledUserStatuses) {
-            console.log('[getPostThread DEBUG] Fetching user profiles for', Object.keys(posts.posts).length, 'posts');
             dispatch(batchFetchStatusesProfilesGroupsFromPosts(posts.posts));
-        } else {
-            console.warn('[getPostThread DEBUG] User statuses NOT enabled - profiles may not load!');
         }
 
         return {data: posts};

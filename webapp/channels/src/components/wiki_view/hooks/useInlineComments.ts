@@ -22,7 +22,6 @@ export const useInlineComments = (pageId?: string, wikiId?: string, onCommentCre
     }, []);
 
     const handleSubmitComment = useCallback(async (message: string) => {
-
         if (!commentAnchor || !pageId || !wikiId) {
             return;
         }
@@ -34,7 +33,6 @@ export const useInlineComments = (pageId?: string, wikiId?: string, onCommentCre
             char_offset: commentAnchor.char_offset,
             node_path: [],
         };
-
 
         try {
             const result = await Client4.createPageComment(wikiId, pageId, message, payload);

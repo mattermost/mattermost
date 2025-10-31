@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, fillCreatePageModal} from './test_helpers';
 
 /**
  * @objective Verify breadcrumb navigation displays correct page hierarchy
  */
-test('displays breadcrumb navigation for nested pages', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('displays breadcrumb navigation for nested pages', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -59,8 +59,8 @@ test('displays breadcrumb navigation for nested pages', {tag: '@pages'}, async (
 /**
  * @objective Verify breadcrumb navigation displays correctly through full UI flow
  */
-test('displays page breadcrumbs', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('displays page breadcrumbs', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -91,8 +91,8 @@ test('displays page breadcrumbs', {tag: '@pages'}, async ({pw}) => {
 /**
  * @objective Verify clicking breadcrumb links navigates to correct pages through full UI flow
  */
-test('navigates using breadcrumbs', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('navigates using breadcrumbs', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -128,8 +128,8 @@ test('navigates using breadcrumbs', {tag: '@pages'}, async ({pw}) => {
 /**
  * @objective Verify breadcrumb navigation shows correct path for draft
  */
-test('displays breadcrumbs for draft of child page', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('displays breadcrumbs for draft of child page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -140,13 +140,10 @@ test('displays breadcrumbs for draft of child page', {tag: '@pages'}, async ({pw
     const parentPage = await createPageThroughUI(page, 'Parent Page', 'Parent content');
 
     // # Create child page draft
-    page.once('dialog', async (dialog) => {
-        await dialog.accept('Child Draft');
-    });
-
     const addChildButton = page.locator('[data-testid="add-child-button"]');
     if (await addChildButton.isVisible().catch(() => false)) {
         await addChildButton.click();
+        await fillCreatePageModal(page, 'Child Draft');
     } else {
         // Alternative: right-click parent in hierarchy
         const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
@@ -157,13 +154,11 @@ test('displays breadcrumbs for draft of child page', {tag: '@pages'}, async ({pw
         if (await contextMenu.isVisible({timeout: 2000}).catch(() => false)) {
             const createSubpageButton = contextMenu.locator('button:has-text("Create"), button:has-text("Subpage")').first();
             await createSubpageButton.click();
+            await fillCreatePageModal(page, 'Child Draft');
         }
     }
 
     await page.waitForTimeout(1000); // Wait for editor to load
-
-    const titleInput = page.locator('[data-testid="wiki-page-title-input"]');
-    await titleInput.fill('Child Draft');
 
     const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
     await editor.click();
@@ -173,18 +168,18 @@ test('displays breadcrumbs for draft of child page', {tag: '@pages'}, async ({pw
 
     // * Verify breadcrumb shows parent → draft
     const breadcrumb = page.locator('[data-testid="breadcrumb"]');
-    if (await breadcrumb.isVisible().catch(() => false)) {
-        const breadcrumbText = await breadcrumb.textContent();
-        expect(breadcrumbText).toContain('Parent Page');
-        expect(breadcrumbText).toMatch(/Child Draft|Untitled/);
-    }
+    await expect(breadcrumb).toBeVisible();
+
+    const breadcrumbText = await breadcrumb.textContent();
+    expect(breadcrumbText).toContain('Parent Page');
+    expect(breadcrumbText).toMatch(/Child Draft|Untitled/);
 });
 
 /**
  * @objective Verify URL routing correctly navigates to pages
  */
-test('navigates to correct page via URL routing', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('navigates to correct page via URL routing', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -207,16 +202,15 @@ test('navigates to correct page via URL routing', {tag: '@pages'}, async ({pw}) 
 
     // * Verify page title is displayed
     const pageTitle = page.locator('[data-testid="page-viewer-title"]');
-    if (await pageTitle.isVisible().catch(() => false)) {
-        await expect(pageTitle).toContainText('URL Test Page');
-    }
+    await expect(pageTitle).toBeVisible();
+    await expect(pageTitle).toContainText('URL Test Page');
 });
 
 /**
  * @objective Verify deep links to specific pages work correctly
  */
-test('opens page from deep link shared externally', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('opens page from deep link shared externally', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -252,8 +246,8 @@ test('opens page from deep link shared externally', {tag: '@pages'}, async ({pw}
 /**
  * @objective Verify browser back/forward navigation works correctly
  */
-test('maintains page state with browser back and forward buttons', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('maintains page state with browser back and forward buttons', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -273,9 +267,8 @@ test('maintains page state with browser back and forward buttons', {tag: '@pages
 
     // * Verify page1 content
     let pageContent = page.locator('[data-testid="page-viewer-content"]');
-    if (await pageContent.isVisible({timeout: 5000}).catch(() => false)) {
-        await expect(pageContent).toContainText('First page content');
-    }
+    await expect(pageContent).toBeVisible({timeout: 5000});
+    await expect(pageContent).toContainText('First page content');
 
     // # Navigate to page2 using hierarchy panel
     const page2Node = hierarchyPanel.locator('text="Second Page"').first();
@@ -283,9 +276,8 @@ test('maintains page state with browser back and forward buttons', {tag: '@pages
     await page.waitForLoadState('networkidle');
 
     // * Verify page2 content
-    if (await pageContent.isVisible().catch(() => false)) {
-        await expect(pageContent).toContainText('Second page content');
-    }
+    await expect(pageContent).toBeVisible();
+    await expect(pageContent).toContainText('Second page content');
 
     // # Navigate to page3 using hierarchy panel
     const page3Node = hierarchyPanel.locator('text="Third Page"').first();
@@ -293,9 +285,8 @@ test('maintains page state with browser back and forward buttons', {tag: '@pages
     await page.waitForLoadState('networkidle');
 
     // * Verify page3 content
-    if (await pageContent.isVisible().catch(() => false)) {
-        await expect(pageContent).toContainText('Third page content');
-    }
+    await expect(pageContent).toBeVisible();
+    await expect(pageContent).toContainText('Third page content');
 
     // # Click browser back button
     await page.goBack();
@@ -304,9 +295,8 @@ test('maintains page state with browser back and forward buttons', {tag: '@pages
     // * Verify back to page2
     let currentUrl = page.url();
     expect(currentUrl).toContain(page2.id);
-    if (await pageContent.isVisible().catch(() => false)) {
-        await expect(pageContent).toContainText('Second page content');
-    }
+    await expect(pageContent).toBeVisible();
+    await expect(pageContent).toContainText('Second page content');
 
     // # Click browser back button again
     await page.goBack();
@@ -315,9 +305,8 @@ test('maintains page state with browser back and forward buttons', {tag: '@pages
     // * Verify back to page1
     currentUrl = page.url();
     expect(currentUrl).toContain(page1.id);
-    if (await pageContent.isVisible().catch(() => false)) {
-        await expect(pageContent).toContainText('First page content');
-    }
+    await expect(pageContent).toBeVisible();
+    await expect(pageContent).toContainText('First page content');
 
     // # Click browser forward button
     await page.goForward();
@@ -326,16 +315,15 @@ test('maintains page state with browser back and forward buttons', {tag: '@pages
     // * Verify forward to page2
     currentUrl = page.url();
     expect(currentUrl).toContain(page2.id);
-    if (await pageContent.isVisible().catch(() => false)) {
-        await expect(pageContent).toContainText('Second page content');
-    }
+    await expect(pageContent).toBeVisible();
+    await expect(pageContent).toContainText('Second page content');
 });
 
 /**
  * @objective Verify 404 handling for non-existent pages
  */
-test('displays 404 error for non-existent page', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('displays 404 error for non-existent page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -349,27 +337,27 @@ test('displays 404 error for non-existent page', {tag: '@pages'}, async ({pw}) =
     await page.goto(`${pw.url}/${team.name}/channels/${channel.name}/wikis/${wiki.id}/pages/${nonExistentPageId}`);
     await page.waitForLoadState('networkidle');
 
-    // * Verify 404 error is shown
+    // * Verify either error message shown OR redirected away from nonexistent page
     const errorMessage = page.locator('text=/not found|page.*not.*exist|404/i').first();
-    const hasError = await errorMessage.isVisible({timeout: 5000}).catch(() => false);
+    const currentUrl = page.url();
 
-    if (hasError) {
-        expect(hasError).toBe(true);
-    } else {
-        // * Alternatively, verify redirect to wiki home or error page
-        const currentUrl = page.url();
-        const isOnErrorPage = !currentUrl.includes(nonExistentPageId) ||
-                             currentUrl.includes('error') ||
-                             currentUrl.includes('not-found');
-        expect(isOnErrorPage).toBe(true);
+    const hasErrorMessage = await errorMessage.isVisible({timeout: 5000}).catch(() => false);
+    const isRedirected = !currentUrl.includes(nonExistentPageId);
+
+    // At least one of these must be true - test fails if both false
+    expect(hasErrorMessage || isRedirected).toBe(true);
+
+    // * If error message shown, verify it's actually visible
+    if (hasErrorMessage) {
+        await expect(errorMessage).toBeVisible();
     }
 });
 
 /**
  * @objective Verify page refresh preserves current page state
  */
-test('preserves page content after browser refresh', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('preserves page content after browser refresh', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);

@@ -33,6 +33,28 @@ export function getNewPageButton(page: Page): Locator {
 }
 
 /**
+ * Fills in the create page modal with a title and clicks Create
+ * This is a reusable helper for any test that needs to create a page via the modal
+ * @param page - Playwright page object
+ * @param pageTitle - Title for the page
+ */
+export async function fillCreatePageModal(page: Page, pageTitle: string) {
+    // # Wait for create page modal to appear
+    const modalInput = page.locator('[data-testid="create-page-modal-title-input"]');
+    await modalInput.waitFor({state: 'visible', timeout: 5000});
+
+    // # Fill in page title
+    await modalInput.fill(pageTitle);
+
+    // # Click Create button in modal
+    const createButton = page.getByRole('button', {name: 'Create'});
+    await createButton.click();
+
+    // # Wait for modal to close
+    await modalInput.waitFor({state: 'hidden', timeout: 5000});
+}
+
+/**
  * Opens the page link modal using the keyboard shortcut (Ctrl+L or Cmd+L on Mac)
  * @param editor - The editor locator (ProseMirror element)
  * @returns The link modal locator
@@ -47,7 +69,25 @@ export async function openPageLinkModal(editor: Locator): Promise<Locator> {
 }
 
 /**
- * Creates a wiki through the UI using the bookmarks menu
+ * Opens the page link modal by clicking the link button in the editor toolbar
+ * @param page - Playwright page object
+ * @returns The link modal locator
+ */
+export async function openPageLinkModalViaButton(page: Page): Promise<Locator> {
+    // Wait for editor toolbar to be visible (only visible when editor is in edit mode)
+    const toolbar = page.locator('.tiptap-toolbar');
+    await toolbar.waitFor({state: 'visible', timeout: 10000});
+
+    // Wait for link button to be visible and clickable
+    const linkButton = page.locator('[data-testid="page-link-button"]');
+    await linkButton.waitFor({state: 'visible', timeout: 5000});
+    await linkButton.click();
+
+    return page.locator('[data-testid="page-link-modal"]').first();
+}
+
+/**
+ * Creates a wiki through the UI using the channel tab bar
  * @param page - Playwright page object
  * @param wikiName - Name for the wiki
  * @returns The created wiki (extracted from navigation URL)
@@ -57,66 +97,47 @@ export async function createWikiThroughUI(page: Page, wikiName: string) {
     await page.waitForLoadState('domcontentloaded');
     await page.waitForLoadState('networkidle');
 
-    // # Initialize bookmarks bar if not already initialized
-    const bookmarksPlusButton = page.locator('#channelBookmarksPlusMenuButton');
-    const isPlusButtonVisible = await bookmarksPlusButton.isVisible({timeout: 5000}).catch(() => false);
+    // # Ensure we're on the channel view (not wiki view)
+    // Wait for channel header to be visible
+    const channelHeader = page.locator('#channelHeaderDropdownButton, #channelHeaderTitle');
+    await channelHeader.first().waitFor({state: 'visible', timeout: 10000});
 
-    if (!isPlusButtonVisible) {
-        // # Ensure we're on the channel view (not wiki view or other)
-        // Wait for channel header to be visible
-        const channelHeader = page.locator('#channelHeaderDropdownButton, #channelHeaderTitle');
-        await channelHeader.first().waitFor({state: 'visible', timeout: 10000});
+    // # Click the wiki create button in the channel tab bar
+    // Note: The button may not be visible yet if there are no wikis
+    // Try to find it first, if not visible, navigate to channel first
+    const wikiCreateButton = page.locator('.wiki-create-button');
+    const isCreateButtonVisible = await wikiCreateButton.isVisible({timeout: 2000}).catch(() => false);
 
-        // # Click channel name dropdown to open menu (use reliable ID selector)
-        const channelNameButton = page.locator('#channelHeaderDropdownButton');
-        await channelNameButton.click({timeout: 10000});
-
-        // # Wait for menu to appear
-        await page.waitForTimeout(500);
-
-        // # Hover on "Bookmarks Bar" submenu to expand it
-        const bookmarksBarSubmenu = page.locator('[role="menuitem"]').filter({hasText: 'Bookmarks Bar'}).first();
-        await bookmarksBarSubmenu.hover();
-
-        // # Wait for submenu to expand
-        await page.waitForTimeout(500);
-
-        // # Click "Add a link" from the submenu
-        const addLinkOption = page.locator('[role="menuitem"]').filter({hasText: 'Add a link'}).first();
-        await addLinkOption.click();
-
-        // # Wait for "Add a bookmark" modal to appear
-        await page.getByRole('heading', {name: 'Add a bookmark'}).waitFor({state: 'visible', timeout: 5000});
-
-        // # Fill in link URL (first input in the modal)
-        const linkUrlInput = page.getByRole('dialog').locator('input').first();
-        await linkUrlInput.fill('https://www.mattermost.com');
-
-        // # Fill in title (second input in the modal)
-        const linkTitleInput = page.getByRole('dialog').locator('input').nth(1);
-        await linkTitleInput.fill('Mattermost');
-
-        // # Save the bookmark
-        const saveButton = page.getByRole('button', {name: /save|add/i}).first();
-        await saveButton.click();
-
-        // # Wait for bookmark to be created and bookmarks bar to appear
-        await page.waitForTimeout(1500);
+    if (!isCreateButtonVisible) {
+        // # Navigate to channel view first (might be in a wiki view)
+        const currentUrl = page.url();
+        const channelIdMatch = currentUrl.match(/\/channels\/([^/]+)/);
+        if (channelIdMatch) {
+            // Already in channel view, tab bar should appear when first wiki is created
+            // Click create button which will appear in the tab bar
+            await wikiCreateButton.waitFor({state: 'visible', timeout: 5000});
+        } else {
+            // In wiki view, need to go back to channel
+            const channelLinkMatch = currentUrl.match(/\/wiki\/([^/]+)/);
+            if (channelLinkMatch) {
+                const channelId = channelLinkMatch[1];
+                const teamMatch = currentUrl.match(/\/([^/]+)\/(?:channels|wiki)\//);
+                if (teamMatch) {
+                    const teamName = teamMatch[1];
+                    await page.goto(`/${teamName}/channels/${channelId}`);
+                    await page.waitForLoadState('networkidle');
+                }
+            }
+        }
     }
 
-    // # Click bookmarks "+" button
-    await bookmarksPlusButton.waitFor({state: 'visible', timeout: 5000});
-    await bookmarksPlusButton.click();
-
-    // # Wait for dropdown menu
-    await page.waitForTimeout(500);
-
-    // # Click "Create wiki (experiment)" menu item
-    const createWikiOption = page.locator('#channelBookmarksCreateWiki, [role="menuitem"]:has-text("Create wiki")').first();
-    await createWikiOption.click();
+    // # Click wiki create button
+    await wikiCreateButton.waitFor({state: 'visible', timeout: 5000});
+    await wikiCreateButton.click();
 
     // # Fill wiki name in modal
-    const wikiNameInput = page.locator('#wiki-name-input');
+    const wikiNameInput = page.locator('#text-input-modal-input');
+    await wikiNameInput.waitFor({state: 'visible', timeout: 5000});
     await wikiNameInput.fill(wikiName);
 
     // # Click Create button
@@ -162,15 +183,13 @@ export async function ensurePanelOpen(page: Page) {
  * @param pageContent - Content for the page (optional, defaults to empty string)
  */
 export async function createPageThroughUI(page: Page, pageTitle: string, pageContent: string = '') {
-    // # Handle native prompt dialog for page title
-    page.once('dialog', async (dialog) => {
-        await dialog.accept(pageTitle);
-    });
-
-    // # Click "New Page" button (will trigger the prompt)
+    // # Click "New Page" button to open modal
     const newPageButton = getNewPageButton(page);
     await newPageButton.waitFor({state: 'visible', timeout: 5000});
     await newPageButton.click();
+
+    // # Fill in modal and create page
+    await fillCreatePageModal(page, pageTitle);
 
     // # Wait for editor to appear (draft created and loaded)
     const editor = page.locator('.ProseMirror').first();
@@ -243,14 +262,12 @@ export async function createChildPageThroughContextMenu(
     const menuButton = parentNode.locator('[data-testid="page-tree-node-menu-button"]');
     await menuButton.click();
 
-    // # Handle native prompt dialog for page title
-    page.once('dialog', async (dialog) => {
-        await dialog.accept(pageTitle);
-    });
-
-    // # Click "New subpage" option (will trigger the prompt)
+    // # Click "New subpage" option to open modal
     const addChildButton = page.locator('[data-testid="page-context-menu-new-child"]').first();
     await addChildButton.click();
+
+    // # Fill in modal and create page
+    await fillCreatePageModal(page, pageTitle);
 
     // # Wait for editor to appear (draft created and loaded)
     const editor = page.locator('.ProseMirror').first();
@@ -312,15 +329,21 @@ export async function createChildPageThroughContextMenu(
  * @param addContentAfter - Optional content to add after the heading in a new paragraph
  */
 export async function addHeadingToEditor(page: Page, level: 1 | 2 | 3, text: string, addContentAfter?: string) {
-    // # Click the heading button in the toolbar (format button first, then type)
+    // # Type the heading text
+    await page.keyboard.type(text);
+
+    // # Select the text we just typed (from start to end of line)
+    await page.keyboard.press('Home');
+    await page.keyboard.press('Shift+End');
+    await page.waitForTimeout(100);
+
+    // # Click the heading button to format selected text as heading
     const headingButton = page.locator(`button[title="Heading ${level}"]`).first();
     await headingButton.click();
     await page.waitForTimeout(200);
 
-    // # Type the heading text
-    await page.keyboard.type(text);
-
-    // # Press Enter to exit heading and start new paragraph
+    // # Move cursor to end of line and press Enter to go to next line (which will be a paragraph)
+    await page.keyboard.press('End');
     await page.keyboard.press('Enter');
 
     // # Optionally add content after the heading
@@ -339,6 +362,93 @@ export async function addHeadingToEditor(page: Page, level: 1 | 2 | 3, text: str
  */
 export async function waitForPageInHierarchy(page: Page, pageTitle: string, timeout: number = 5000) {
     const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]').first();
-    const pageButton = hierarchyPanel.locator(`button:has-text("${pageTitle}")`);
+    const pageButton = hierarchyPanel.getByRole('button', {name: pageTitle, exact: true});
     await pageButton.waitFor({state: 'visible', timeout});
 }
+
+/**
+ * Renames a page via context menu using the rename modal
+ * @param page - Playwright page object
+ * @param currentTitle - Current title of the page to rename
+ * @param newTitle - New title for the page
+ */
+export async function renamePageViaContextMenu(page: Page, currentTitle: string, newTitle: string) {
+    // # Open pages hierarchy panel
+    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+
+    // # Right-click on page node to open context menu
+    const pageNode = hierarchyPanel.locator(`text="${currentTitle}"`).first();
+    await pageNode.click({button: 'right'});
+
+    // # Click rename option in context menu
+    const contextMenu = page.locator('[data-testid="page-context-menu"]');
+    await contextMenu.waitFor({state: 'visible', timeout: 2000});
+
+    const renameButton = contextMenu.locator('[data-testid="page-context-menu-rename"]');
+    await renameButton.click();
+
+    // # Wait for rename modal to appear
+    const renameModal = page.getByRole('dialog', {name: /Rename/i});
+    await renameModal.waitFor({state: 'visible', timeout: 3000});
+
+    // # Fill in new title
+    const titleInput = renameModal.locator('[data-testid="rename-page-modal-title-input"]');
+    await titleInput.waitFor({state: 'visible', timeout: 2000});
+    await titleInput.clear();
+    await titleInput.fill(newTitle);
+
+    // # Click Rename button
+    const confirmButton = renameModal.getByRole('button', {name: 'Rename'});
+    await confirmButton.click();
+
+    // # Wait for modal to close
+    await renameModal.waitFor({state: 'hidden', timeout: 3000});
+}
+
+/**
+ * Creates a draft (without publishing) through the UI
+ * @param page - Playwright page object
+ * @param draftTitle - Title for the draft
+ * @param draftContent - Content for the draft (optional, defaults to empty string)
+ */
+export async function createDraftThroughUI(page: Page, draftTitle: string, draftContent: string = '') {
+    // # Click "New Page" button to open modal
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.waitFor({state: 'visible', timeout: 5000});
+    await newPageButton.click();
+
+    // # Fill in modal and create draft
+    await fillCreatePageModal(page, draftTitle);
+
+    // # Wait for editor to appear (draft created and loaded)
+    const editor = page.locator('.ProseMirror').first();
+    await editor.waitFor({state: 'visible', timeout: 5000});
+
+    // # Fill draft content in TipTap editor
+    await editor.click();
+
+    // Clear any existing content first
+    await page.keyboard.press('Control+A');
+    await page.keyboard.press('Backspace');
+    await page.waitForTimeout(200);
+
+    // Type content directly into editor element
+    if (draftContent) {
+        await editor.type(draftContent);
+    }
+
+    // Wait for auto-save to complete
+    await page.waitForTimeout(2000);
+
+    // Extract draft ID from URL pattern: /:teamName/wiki/:channelId/:wikiId/drafts/:draftId
+    const url = page.url();
+    const draftIdMatch = url.match(/\/drafts\/([^/?]+)/);
+    const draftId = draftIdMatch ? draftIdMatch[1] : null;
+
+    if (!draftId) {
+        throw new Error(`Failed to extract draft ID from URL: ${url}`);
+    }
+
+    return {id: draftId, title: draftTitle};
+}
+

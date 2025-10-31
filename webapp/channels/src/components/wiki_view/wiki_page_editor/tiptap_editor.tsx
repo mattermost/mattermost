@@ -8,9 +8,9 @@ import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import {Mention} from '@tiptap/extension-mention';
 import {Table} from '@tiptap/extension-table';
-import {TableRow} from '@tiptap/extension-table-row';
 import {TableCell} from '@tiptap/extension-table-cell';
 import {TableHeader} from '@tiptap/extension-table-header';
+import {TableRow} from '@tiptap/extension-table-row';
 import {Plugin, PluginKey} from '@tiptap/pm/state';
 import {useEditor, EditorContent, type Editor} from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -18,16 +18,19 @@ import React, {useEffect, useState, useMemo, useCallback} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch, shallowEqual} from 'react-redux';
 
+import type {Post} from '@mattermost/types/posts';
+
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getAssociatedGroupsForReference} from 'mattermost-redux/selectors/entities/groups';
-import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {autocompleteChannels} from 'actions/channel_actions';
-import store from 'stores/redux_store';
 import {autocompleteUsersInChannel} from 'actions/views/channel';
 import {searchAssociatedGroupsForReference} from 'actions/views/group';
+import store from 'stores/redux_store';
 
+import TextInputModal from 'components/text_input_modal';
 import WithTooltip from 'components/with_tooltip';
 
 import {getHistory} from 'utils/browser_history';
@@ -36,7 +39,6 @@ import {canUploadFiles} from 'utils/file_utils';
 import {slugifyHeading} from 'utils/slugify_heading';
 
 import type {GlobalState} from 'types/store';
-import type {Post} from '@mattermost/types/posts';
 
 import {createChannelMentionSuggestion} from './channel_mention_mm_bridge';
 import {uploadImageForEditor, validateImageFile} from './file_upload_helper';
@@ -186,6 +188,7 @@ const TipTapEditor = ({
 
     const [showLinkModal, setShowLinkModal] = useState(false);
     const [selectedText, setSelectedText] = useState('');
+    const [showImageUrlModal, setShowImageUrlModal] = useState(false);
 
     const autocompleteGroups = useSelector((state: GlobalState) => {
         if (!teamId || !channelId) {
@@ -352,8 +355,9 @@ const TipTapEditor = ({
                 Mention.extend({
                     name: 'channelMention',
                     addAttributes() {
+                        const parentAttrs = (this as any).parent?.() || {};
                         return {
-                            ...this.parent?.(),
+                            ...parentAttrs,
                             'data-channel-id': {
                                 default: null,
                                 parseHTML: (element: HTMLElement) => element.getAttribute('data-channel-id'),
@@ -389,7 +393,7 @@ const TipTapEditor = ({
                                 {
                                     'data-channel-id': channelId,
                                     style: 'cursor: pointer; text-decoration: underline;',
-                                }
+                                },
                             ),
                             `~${channelName}`,
                         ];
@@ -410,6 +414,7 @@ const TipTapEditor = ({
 
         return exts;
     }, [
+
         // NOTE: inlineComments is NOT in dependencies - we update them via useEffect below
         // This prevents extensions from recreating on every inline comment change
         onCreateInlineComment,
@@ -485,6 +490,7 @@ const TipTapEditor = ({
     useEffect(() => {
         if (editor && (editor.storage as any).inlineComment) {
             (editor.storage as any).inlineComment.comments = inlineComments;
+
             // Force decorations to update
             editor.view.updateState(editor.state);
         }
@@ -531,14 +537,6 @@ const TipTapEditor = ({
         };
     }, [editor, teamId]);
 
-    if (!editor) {
-        return null;
-    }
-
-    const isActive = (name: string, attrs?: Record<string, any>) => {
-        return editor.isActive(name, attrs);
-    };
-
     const handlePageSelect = useCallback((pageId: string, pageTitle: string, pageWikiId: string, linkText?: string) => {
         if (!editor) {
             return;
@@ -570,6 +568,29 @@ const TipTapEditor = ({
             run();
     }, [editor, currentTeam, channelId]);
 
+    const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+        // Intercept Ctrl+L (or Cmd+L on Mac) to prevent global handler
+        if ((e.ctrlKey || e.metaKey) && e.key === 'l') {
+            if (editor && pages) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const {from, to} = editor.state.selection;
+                const text = editor.state.doc.textBetween(from, to, '');
+                setSelectedText(text);
+                setShowLinkModal(true);
+            }
+        }
+    }, [editor, pages]);
+
+    if (!editor) {
+        return null;
+    }
+
+    const isActive = (name: string, attrs?: Record<string, any>) => {
+        return editor.isActive(name, attrs);
+    };
+
     const setLink = () => {
         const {from, to} = editor.state.selection;
         const text = editor.state.doc.textBetween(from, to, '');
@@ -579,10 +600,7 @@ const TipTapEditor = ({
 
     const addImage = () => {
         if (!channelId || !uploadsEnabled) {
-            const url = window.prompt('Enter image URL:'); // eslint-disable-line no-alert
-            if (url) {
-                editor.chain().focus().setImage({src: url}).run();
-            }
+            setShowImageUrlModal(true);
             return;
         }
 
@@ -604,7 +622,6 @@ const TipTapEditor = ({
     };
 
     const handleCreateComment = (selection: {text: string; from: number; to: number}) => {
-
         if (!editor || !onCreateInlineComment) {
             return;
         }
@@ -624,21 +641,6 @@ const TipTapEditor = ({
 
         onCreateInlineComment(anchor);
     };
-
-    const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-        // Intercept Ctrl+L (or Cmd+L on Mac) to prevent global handler
-        if ((e.ctrlKey || e.metaKey) && e.key === 'l') {
-            if (editor && pages) {
-                e.preventDefault();
-                e.stopPropagation();
-
-                const {from, to} = editor.state.selection;
-                const text = editor.state.doc.textBetween(from, to, '');
-                setSelectedText(text);
-                setShowLinkModal(true);
-            }
-        }
-    }, [editor, pages]);
 
     return (
         <div
@@ -666,6 +668,23 @@ const TipTapEditor = ({
                     onSelect={handlePageSelect}
                     onCancel={() => setShowLinkModal(false)}
                     initialLinkText={selectedText}
+                />
+            )}
+
+            {showImageUrlModal && (
+                <TextInputModal
+                    show={showImageUrlModal}
+                    title='Insert Image'
+                    placeholder='https://example.com/image.png'
+                    helpText='Enter the URL of the image to insert'
+                    confirmButtonText='Insert'
+                    cancelButtonText='Cancel'
+                    maxLength={2048}
+                    onConfirm={(url) => {
+                        editor.chain().focus().setImage({src: url}).run();
+                        setShowImageUrlModal(false);
+                    }}
+                    onCancel={() => setShowImageUrlModal(false)}
                 />
             )}
 
@@ -795,6 +814,7 @@ const TipTapEditor = ({
                             onClick={setLink}
                             className={`btn btn-sm btn-icon ${isActive('link') ? 'is-active' : ''}`}
                             title='Add Link'
+                            data-testid='page-link-button'
                         >
                             <i className='icon icon-link-variant'/>
                         </button>

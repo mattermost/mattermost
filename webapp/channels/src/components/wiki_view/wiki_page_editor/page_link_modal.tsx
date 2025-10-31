@@ -31,7 +31,7 @@ const PageLinkModal = ({
 
     const filteredPages = useMemo(() => {
         return pages.filter((page) => {
-            const title = page.props?.title || 'Untitled';
+            const title = (page.props?.title as string) || 'Untitled';
             return title.toLowerCase().includes(searchQuery.toLowerCase());
         }).slice(0, 10);
     }, [pages, searchQuery]);
@@ -40,8 +40,8 @@ const PageLinkModal = ({
         const idx = indexOverride !== undefined ? indexOverride : selectedIndex;
         const selectedPage = filteredPages[idx];
         if (selectedPage) {
-            const title = selectedPage.props?.title || 'Untitled';
-            const pageWikiId = selectedPage.wiki_id || wikiId; // Use selected page's wiki_id, fallback to current
+            const title = (selectedPage.props?.title as string) || 'Untitled';
+            const pageWikiId = (selectedPage as any).wiki_id || wikiId;
             onSelect(selectedPage.id, title, pageWikiId, linkText || title);
         }
     }, [filteredPages, selectedIndex, linkText, wikiId, onSelect]);
@@ -177,7 +177,7 @@ const PageLinkModal = ({
                                     }}
                                 />
                                 <span style={{flex: 1}}>
-                                    {page.props?.title || 'Untitled'}
+                                    {(page.props?.title as string) || 'Untitled'}
                                 </span>
                                 {index === selectedIndex && (
                                     <i
@@ -207,7 +207,7 @@ const PageLinkModal = ({
                     id='link-text-input'
                     type='text'
                     className='form-control'
-                    placeholder={filteredPages[selectedIndex]?.props?.title || 'Leave empty to use page title'}
+                    placeholder={(filteredPages[selectedIndex]?.props?.title as string) || 'Leave empty to use page title'}
                     value={linkText}
                     onChange={(e) => setLinkText(e.target.value)}
                     onKeyDown={handleKeyDown}

@@ -179,12 +179,22 @@ func (a *App) GetWikiPages(rctx request.CTX, wikiId string, offset, limit int) (
 }
 
 func (a *App) AddPageToWiki(rctx request.CTX, pageId, wikiId string) *model.AppError {
-	rctx.Logger().Debug("Adding page to wiki", mlog.String("page_id", pageId), mlog.String("wiki_id", wikiId))
-
 	post, err := a.GetSinglePost(rctx, pageId, false)
 	if err != nil {
 		return err
 	}
+
+	pageTitle := ""
+	if title, ok := post.Props["title"].(string); ok {
+		pageTitle = title
+	}
+
+	rctx.Logger().Debug("Adding page to wiki",
+		mlog.String("page_id", pageId),
+		mlog.String("wiki_id", wikiId),
+		mlog.String("page_title", pageTitle),
+		mlog.String("page_parent_id", post.PageParentId))
+
 	if post.Type != model.PostTypePage {
 		return model.NewAppError("AddPageToWiki", "api.wiki.add.not_a_page", nil, "", http.StatusBadRequest)
 	}
@@ -202,11 +212,17 @@ func (a *App) AddPageToWiki(rctx request.CTX, pageId, wikiId string) *model.AppE
 	if wikiErr != nil {
 		var nfErr *model.AppError
 		if errors.As(wikiErr, &nfErr) && nfErr.StatusCode == http.StatusNotFound {
+			rctx.Logger().Debug("No existing wiki association found for page - will create new",
+				mlog.String("page_id", pageId),
+				mlog.String("wiki_id", wikiId))
 		} else {
 			return wikiErr
 		}
 	} else {
 		if existingWikiId == wikiId {
+			rctx.Logger().Debug("Page already associated with this wiki",
+				mlog.String("page_id", pageId),
+				mlog.String("wiki_id", wikiId))
 			return nil
 		}
 		return model.NewAppError("AddPageToWiki", "api.wiki.add.already_attached", nil, "", http.StatusConflict)
@@ -221,29 +237,47 @@ func (a *App) AddPageToWiki(rctx request.CTX, pageId, wikiId string) *model.AppE
 		Value:      valueJSON,
 	}
 
+	rctx.Logger().Debug("Creating PropertyValue",
+		mlog.String("page_id", pageId),
+		mlog.String("wiki_id", wikiId),
+		mlog.String("group_id", model.WikiPropertyGroupID),
+		mlog.String("field_id", model.WikiPropertyFieldID),
+		mlog.String("value_json", string(valueJSON)))
+
 	_, createErr := a.Srv().Store().PropertyValue().Create(value)
 	if createErr != nil {
-		rctx.Logger().Error("Failed to create PropertyValue", mlog.Err(createErr), mlog.String("page_id", pageId), mlog.String("wiki_id", wikiId))
+		rctx.Logger().Error("Failed to create PropertyValue",
+			mlog.Err(createErr),
+			mlog.String("page_id", pageId),
+			mlog.String("wiki_id", wikiId),
+			mlog.String("page_title", pageTitle))
 		return model.NewAppError("AddPageToWiki", "app.wiki.add_page.app_error", nil, "", http.StatusInternalServerError).Wrap(createErr)
 	}
+
+	rctx.Logger().Info("PropertyValue created successfully",
+		mlog.String("page_id", pageId),
+		mlog.String("wiki_id", wikiId),
+		mlog.String("page_title", pageTitle),
+		mlog.String("page_parent_id", post.PageParentId))
+
 	return nil
 }
 
-func (a *App) DeletePageFromWiki(rctx request.CTX, pageId, wikiId string) *model.AppError {
-	rctx.Logger().Debug("Deleting page from wiki", mlog.String("page_id", pageId), mlog.String("wiki_id", wikiId))
+func (a *App) DeleteWikiPage(rctx request.CTX, pageId, wikiId string) *model.AppError {
+	rctx.Logger().Debug("Deleting wiki page", mlog.String("page_id", pageId), mlog.String("wiki_id", wikiId))
 
 	wiki, wikiErr := a.GetWiki(rctx, wikiId)
 	if wikiErr != nil {
-		return model.NewAppError("DeletePageFromWiki", "app.wiki.delete_page.wiki_not_found.app_error", nil, "", http.StatusNotFound).Wrap(wikiErr)
+		return model.NewAppError("DeleteWikiPage", "app.wiki.delete_page.wiki_not_found.app_error", nil, "", http.StatusNotFound).Wrap(wikiErr)
 	}
 
 	channel, chanErr := a.GetChannel(rctx, wiki.ChannelId)
 	if chanErr != nil {
-		return model.NewAppError("DeletePageFromWiki", "app.wiki.delete_page.channel_not_found.app_error", nil, "", http.StatusNotFound).Wrap(chanErr)
+		return model.NewAppError("DeleteWikiPage", "app.wiki.delete_page.channel_not_found.app_error", nil, "", http.StatusNotFound).Wrap(chanErr)
 	}
 
 	if channel.DeleteAt != 0 {
-		return model.NewAppError("DeletePageFromWiki", "app.wiki.delete_page.deleted_channel.app_error", nil, "channel is archived", http.StatusBadRequest)
+		return model.NewAppError("DeleteWikiPage", "app.wiki.delete_page.deleted_channel.app_error", nil, "channel is archived", http.StatusBadRequest)
 	}
 
 	post, err := a.GetSinglePost(rctx, pageId, false)
@@ -252,26 +286,29 @@ func (a *App) DeletePageFromWiki(rctx request.CTX, pageId, wikiId string) *model
 	}
 
 	if post.Type != model.PostTypePage {
-		return model.NewAppError("DeletePageFromWiki", "api.wiki.delete.not_a_page", nil, "", http.StatusBadRequest)
+		return model.NewAppError("DeleteWikiPage", "api.wiki.delete.not_a_page", nil, "", http.StatusBadRequest)
 	}
 
 	if deleteErr := a.Srv().Store().PropertyValue().DeleteForTarget(model.WikiPropertyGroupID, "post", post.Id); deleteErr != nil {
-		return model.NewAppError("DeletePageFromWiki", "app.wiki.delete_page.app_error", nil, "", http.StatusInternalServerError).Wrap(deleteErr)
+		return model.NewAppError("DeleteWikiPage", "app.wiki.delete_page.app_error", nil, "", http.StatusInternalServerError).Wrap(deleteErr)
 	}
 
 	if deletePageErr := a.DeletePage(rctx, pageId); deletePageErr != nil {
 		return deletePageErr
 	}
 
-	rctx.Logger().Info("Page deleted from wiki", mlog.String("page_id", pageId), mlog.String("wiki_id", wikiId))
+	rctx.Logger().Info("Wiki page deleted", mlog.String("page_id", pageId), mlog.String("wiki_id", wikiId))
 
 	return nil
 }
 
 func (a *App) CreateWikiPage(rctx request.CTX, wikiId, parentId, title, content, userId, searchText string) (*model.Post, *model.AppError) {
+	isChild := parentId != ""
 	rctx.Logger().Debug("Creating wiki page",
 		mlog.String("wiki_id", wikiId),
-		mlog.String("parent_id", parentId))
+		mlog.String("parent_id", parentId),
+		mlog.String("title", title),
+		mlog.Bool("is_child_page", isChild))
 
 	wiki, err := a.GetWiki(rctx, wikiId)
 	if err != nil {
@@ -283,17 +320,29 @@ func (a *App) CreateWikiPage(rctx request.CTX, wikiId, parentId, title, content,
 		return nil, createErr
 	}
 
+	rctx.Logger().Debug("Page created, now linking to wiki",
+		mlog.String("page_id", createdPage.Id),
+		mlog.String("wiki_id", wikiId),
+		mlog.Bool("is_child_page", isChild))
+
 	if linkErr := a.AddPageToWiki(rctx, createdPage.Id, wikiId); linkErr != nil {
+		rctx.Logger().Error("Failed to link page to wiki",
+			mlog.String("page_id", createdPage.Id),
+			mlog.String("wiki_id", wikiId),
+			mlog.Bool("is_child_page", isChild),
+			mlog.Err(linkErr))
 		if deleteErr := a.DeletePage(rctx, createdPage.Id); deleteErr != nil {
 			rctx.Logger().Warn("Failed to delete page after wiki link failure", mlog.String("page_id", createdPage.Id), mlog.Err(deleteErr))
 		}
 		return nil, linkErr
 	}
 
-	rctx.Logger().Info("Wiki page created",
+	rctx.Logger().Info("Wiki page created and linked successfully",
 		mlog.String("page_id", createdPage.Id),
 		mlog.String("wiki_id", wikiId),
-		mlog.String("parent_id", parentId))
+		mlog.String("parent_id", parentId),
+		mlog.String("title", title),
+		mlog.Bool("is_child_page", isChild))
 
 	return createdPage, nil
 }
@@ -466,4 +515,118 @@ func (a *App) MovePageToWiki(rctx request.CTX, pageId, targetWikiId string, pare
 		mlog.String("user_id", session.UserId))
 
 	return nil
+}
+
+func (a *App) DuplicatePage(rctx request.CTX, sourcePageId, targetWikiId string, parentPageId, customTitle *string, userId string) (*model.Post, *model.AppError) {
+	sourcePage, err := a.GetSinglePost(rctx, sourcePageId, false)
+	if err != nil {
+		return nil, model.NewAppError("DuplicatePage", "app.page.duplicate.source_not_found", nil, "", http.StatusNotFound).Wrap(err)
+	}
+
+	if sourcePage.Type != model.PostTypePage {
+		return nil, model.NewAppError("DuplicatePage", "app.page.duplicate.not_a_page", nil, "", http.StatusBadRequest)
+	}
+
+	sourceContent, contentErr := a.Srv().Store().PageContent().Get(sourcePageId)
+	if contentErr != nil {
+		return nil, model.NewAppError("DuplicatePage", "app.page.duplicate.content_not_found", nil, "", http.StatusInternalServerError).Wrap(contentErr)
+	}
+
+	targetWiki, err := a.GetWiki(rctx, targetWikiId)
+	if err != nil {
+		return nil, model.NewAppError("DuplicatePage", "app.page.duplicate.target_wiki_not_found", nil, "", http.StatusNotFound).Wrap(err)
+	}
+
+	if targetWiki.ChannelId != sourcePage.ChannelId {
+		return nil, model.NewAppError("DuplicatePage", "app.page.duplicate.cross_channel_not_supported", nil, "", http.StatusBadRequest)
+	}
+
+	channel, chanErr := a.GetChannel(rctx, targetWiki.ChannelId)
+	if chanErr != nil {
+		return nil, chanErr
+	}
+
+	if channel.DeleteAt != 0 {
+		return nil, model.NewAppError("DuplicatePage", "app.page.duplicate.channel_deleted", nil, "", http.StatusBadRequest)
+	}
+
+	originalTitle, _ := sourcePage.Props["title"].(string)
+	var duplicateTitle string
+	if customTitle != nil && *customTitle != "" {
+		duplicateTitle = *customTitle
+	} else {
+		duplicateTitle = "Duplicate of " + originalTitle
+		if len(duplicateTitle) > model.MaxPageTitleLength {
+			duplicateTitle = duplicateTitle[:model.MaxPageTitleLength-3] + "..."
+		}
+	}
+
+	targetPages, pagesErr := a.Srv().Store().Wiki().GetPages(targetWikiId, 0, 10000)
+	if pagesErr != nil {
+		return nil, model.NewAppError("DuplicatePage", "app.page.duplicate.get_target_pages_failed", nil, "", http.StatusInternalServerError).Wrap(pagesErr)
+	}
+
+	for _, existingPage := range targetPages {
+		if existingTitle, ok := existingPage.Props["title"].(string); ok {
+			if existingTitle == duplicateTitle {
+				return nil, model.NewAppError("DuplicatePage", "app.page.duplicate.title_conflict", nil, "", http.StatusConflict)
+			}
+		}
+	}
+
+	var parentId string
+	if parentPageId != nil && *parentPageId != "" {
+		parentPage, err := a.GetSinglePost(rctx, *parentPageId, false)
+		if err != nil {
+			return nil, model.NewAppError("DuplicatePage", "app.page.duplicate.parent_not_found", nil, "", http.StatusNotFound).Wrap(err)
+		}
+
+		if parentPage.Type != model.PostTypePage {
+			return nil, model.NewAppError("DuplicatePage", "app.page.duplicate.parent_not_a_page", nil, "", http.StatusBadRequest)
+		}
+
+		if parentPage.ChannelId != targetWiki.ChannelId {
+			return nil, model.NewAppError("DuplicatePage", "app.page.duplicate.parent_wrong_channel", nil, "", http.StatusBadRequest)
+		}
+
+		parentDepth, depthErr := a.calculatePageDepth(rctx, *parentPageId)
+		if depthErr != nil {
+			return nil, depthErr
+		}
+
+		newPageDepth := parentDepth + 1
+		if newPageDepth >= model.PostPageMaxDepth {
+			return nil, model.NewAppError("DuplicatePage", "app.page.duplicate.max_depth_exceeded",
+				map[string]any{"MaxDepth": model.PostPageMaxDepth},
+				"", http.StatusBadRequest)
+		}
+
+		parentId = *parentPageId
+	}
+
+	contentJSON, jsonErr := sourceContent.GetDocumentJSON()
+	if jsonErr != nil {
+		return nil, model.NewAppError("DuplicatePage", "app.page.duplicate.serialize_content_failed", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+	}
+	duplicatedPage, createErr := a.CreatePage(rctx, targetWiki.ChannelId, duplicateTitle, parentId, contentJSON, userId, sourceContent.SearchText)
+	if createErr != nil {
+		return nil, createErr
+	}
+
+	if linkErr := a.AddPageToWiki(rctx, duplicatedPage.Id, targetWikiId); linkErr != nil {
+		if _, delErr := a.DeletePost(rctx, duplicatedPage.Id, userId); delErr != nil {
+			rctx.Logger().Error("Failed to delete page after AddPageToWiki failed",
+				mlog.String("page_id", duplicatedPage.Id),
+				mlog.Err(delErr))
+		}
+		return nil, linkErr
+	}
+
+	rctx.Logger().Info("Page duplicated",
+		mlog.String("source_page_id", sourcePageId),
+		mlog.String("duplicated_page_id", duplicatedPage.Id),
+		mlog.String("target_wiki_id", targetWikiId),
+		mlog.String("user_id", userId))
+
+	return duplicatedPage, nil
 }

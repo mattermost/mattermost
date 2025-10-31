@@ -32,6 +32,7 @@ import typing from './typing';
 import usage from './usage';
 import users from './users';
 import wikiPages from './wiki_pages';
+import wikis from './wikis';
 
 export default combineReducers({
     general,
@@ -63,4 +64,5 @@ export default combineReducers({
     sharedChannels,
     contentFlagging,
     wikiPages,
+    wikis,
 });

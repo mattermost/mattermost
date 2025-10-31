@@ -14,6 +14,7 @@ describe('wiki_pages reducer', () => {
         loading: {},
         error: {},
         pendingPublishes: {},
+        lastInvalidated: {},
     };
 
     const wikiId = 'wiki123';
@@ -44,10 +45,10 @@ describe('wiki_pages reducer', () => {
         },
     };
 
-    describe('GET_WIKI_PAGES_REQUEST', () => {
+    describe('GET_PAGES_REQUEST', () => {
         test('should set loading state', () => {
             const action = {
-                type: WikiTypes.GET_WIKI_PAGES_REQUEST,
+                type: WikiTypes.GET_PAGES_REQUEST,
                 data: {wikiId},
             };
 
@@ -58,11 +59,11 @@ describe('wiki_pages reducer', () => {
         });
     });
 
-    describe('GET_WIKI_PAGES_SUCCESS', () => {
+    describe('GET_PAGES_SUCCESS', () => {
         test('should store page IDs in byWiki', () => {
             const pages = [mockPage, {...mockPage, id: 'page456'}];
             const action = {
-                type: WikiTypes.GET_WIKI_PAGES_SUCCESS,
+                type: WikiTypes.GET_PAGES_SUCCESS,
                 data: {wikiId, pages},
             };
 
@@ -75,7 +76,7 @@ describe('wiki_pages reducer', () => {
         test('should not store page data (only IDs)', () => {
             const pages = [mockPage];
             const action = {
-                type: WikiTypes.GET_WIKI_PAGES_SUCCESS,
+                type: WikiTypes.GET_PAGES_SUCCESS,
                 data: {wikiId, pages},
             };
 
@@ -86,11 +87,11 @@ describe('wiki_pages reducer', () => {
         });
     });
 
-    describe('GET_WIKI_PAGES_FAILURE', () => {
+    describe('GET_PAGES_FAILURE', () => {
         test('should set error state', () => {
             const error = 'Failed to load pages';
             const action = {
-                type: WikiTypes.GET_WIKI_PAGES_FAILURE,
+                type: WikiTypes.GET_PAGES_FAILURE,
                 data: {wikiId, error},
             };
 
@@ -119,6 +120,7 @@ describe('wiki_pages reducer', () => {
                 byWiki: {
                     [wikiId]: [pageId],
                 },
+                lastInvalidated: {},
             };
 
             const action = {
@@ -139,6 +141,7 @@ describe('wiki_pages reducer', () => {
                 byWiki: {
                     [wikiId]: [existingPageId],
                 },
+                lastInvalidated: {},
             };
 
             const newPage = {...mockPage, id: 'new-page'};
@@ -172,6 +175,7 @@ describe('wiki_pages reducer', () => {
                 byWiki: {
                     [wikiId]: ['page123', 'page456', 'page789'],
                 },
+                lastInvalidated: {},
             };
 
             const action = {
@@ -192,6 +196,7 @@ describe('wiki_pages reducer', () => {
                     wiki1: ['page123', 'page456'],
                     wiki2: ['page456', 'page789'],
                 },
+                lastInvalidated: {},
             };
 
             const action = {
@@ -240,6 +245,7 @@ describe('wiki_pages reducer', () => {
                 pendingPublishes: {
                     [draftId]: true,
                 },
+                lastInvalidated: {},
             };
 
             const action = {
@@ -261,6 +267,7 @@ describe('wiki_pages reducer', () => {
                 pendingPublishes: {
                     [draftId]: true,
                 },
+                lastInvalidated: {},
             };
 
             const action = {
@@ -282,6 +289,7 @@ describe('wiki_pages reducer', () => {
                 pendingPublishes: {
                     [draftId]: true,
                 },
+                lastInvalidated: {},
             };
 
             const action = {

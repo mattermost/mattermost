@@ -5,15 +5,15 @@ import type {Post} from '@mattermost/types/posts';
 
 import {PostTypes} from 'mattermost-redux/constants/posts';
 
+import type {GlobalState} from 'types/store';
+
 import {
     getPage,
     getPageAncestors,
-    getWikiPages,
-    getWikiPagesLoading,
-    getWikiPagesError,
+    getPages,
+    getPagesLoading,
+    getPagesError,
 } from './pages';
-
-import type {GlobalState} from 'types/store';
 
 describe('pages selectors', () => {
     const wikiId = 'wiki123';
@@ -183,9 +183,9 @@ describe('pages selectors', () => {
         });
     });
 
-    describe('getWikiPages', () => {
+    describe('getPages', () => {
         test('should return pages for wiki from entities.posts', () => {
-            const pages = getWikiPages(initialState as GlobalState, wikiId);
+            const pages = getPages(initialState as GlobalState, wikiId);
 
             expect(pages).toHaveLength(3);
             expect(pages[0].id).toBe(pageId1);
@@ -211,14 +211,14 @@ describe('pages selectors', () => {
                 },
             } as any;
 
-            const pages = getWikiPages(stateWithNonPage as GlobalState, wikiId);
+            const pages = getPages(stateWithNonPage as GlobalState, wikiId);
 
             expect(pages).toHaveLength(1);
             expect(pages[0].id).toBe(pageId1);
         });
 
         test('should return empty array for non-existent wiki', () => {
-            const pages = getWikiPages(initialState as GlobalState, 'non-existent-wiki');
+            const pages = getPages(initialState as GlobalState, 'non-existent-wiki');
 
             expect(pages).toEqual([]);
         });
@@ -240,21 +240,21 @@ describe('pages selectors', () => {
                 },
             } as any;
 
-            const pages = getWikiPages(stateWithMissing as GlobalState, wikiId);
+            const pages = getPages(stateWithMissing as GlobalState, wikiId);
 
             expect(pages).toHaveLength(1);
             expect(pages[0].id).toBe(pageId1);
         });
 
         test('should use memoization (createSelector)', () => {
-            const pages1 = getWikiPages(initialState as GlobalState, wikiId);
-            const pages2 = getWikiPages(initialState as GlobalState, wikiId);
+            const pages1 = getPages(initialState as GlobalState, wikiId);
+            const pages2 = getPages(initialState as GlobalState, wikiId);
 
             expect(pages1).toBe(pages2);
         });
 
         test('should read from single source of truth', () => {
-            const pages = getWikiPages(initialState as GlobalState, wikiId);
+            const pages = getPages(initialState as GlobalState, wikiId);
 
             pages.forEach((page) => {
                 expect(page).toBe(initialState.entities!.posts.posts[page.id]);
@@ -262,7 +262,7 @@ describe('pages selectors', () => {
         });
     });
 
-    describe('getWikiPagesLoading', () => {
+    describe('getPagesLoading', () => {
         test('should return loading state for wiki', () => {
             const stateWithLoading: Partial<GlobalState> = {
                 ...initialState,
@@ -275,19 +275,19 @@ describe('pages selectors', () => {
                 },
             } as any;
 
-            const loading = getWikiPagesLoading(stateWithLoading as GlobalState, wikiId);
+            const loading = getPagesLoading(stateWithLoading as GlobalState, wikiId);
 
             expect(loading).toBe(true);
         });
 
         test('should return false if not loading', () => {
-            const loading = getWikiPagesLoading(initialState as GlobalState, wikiId);
+            const loading = getPagesLoading(initialState as GlobalState, wikiId);
 
             expect(loading).toBe(false);
         });
     });
 
-    describe('getWikiPagesError', () => {
+    describe('getPagesError', () => {
         test('should return error for wiki', () => {
             const error = 'Failed to load pages';
             const stateWithError: Partial<GlobalState> = {
@@ -301,13 +301,13 @@ describe('pages selectors', () => {
                 },
             } as any;
 
-            const errorResult = getWikiPagesError(stateWithError as GlobalState, wikiId);
+            const errorResult = getPagesError(stateWithError as GlobalState, wikiId);
 
             expect(errorResult).toBe(error);
         });
 
         test('should return null if no error', () => {
-            const error = getWikiPagesError(initialState as GlobalState, wikiId);
+            const error = getPagesError(initialState as GlobalState, wikiId);
 
             expect(error).toBeNull();
         });
@@ -320,7 +320,7 @@ describe('pages selectors', () => {
             const page = getPage(state, pageId1);
             expect(page).toBe(state.entities.posts.posts[pageId1]);
 
-            const pages = getWikiPages(state, wikiId);
+            const pages = getPages(state, wikiId);
             pages.forEach((p) => {
                 expect(p).toBe(state.entities.posts.posts[p.id]);
             });

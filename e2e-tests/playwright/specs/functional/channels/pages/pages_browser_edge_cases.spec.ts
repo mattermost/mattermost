@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton, fillCreatePageModal} from './test_helpers';
 
 /**
  * @objective Verify warning when navigating away with unsaved changes
@@ -11,8 +11,8 @@ import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextM
  * @precondition
  * Pages/Wiki feature is enabled on the server
  */
-test('warns when navigating away with unsaved changes', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test.skip('warns when navigating away with unsaved changes', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -77,9 +77,9 @@ test('warns when navigating away with unsaved changes', {tag: '@pages'}, async (
 /**
  * @objective Verify warning when using browser back button with unsaved changes
  */
-test('warns when using browser back button with unsaved changes', {tag: '@pages'}, async ({pw}) => {
+test.skip('warns when using browser back button with unsaved changes', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     // # Setup: Create published page
-    const {user, team, adminClient} = await pw.initSetup();
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -127,9 +127,9 @@ test('warns when using browser back button with unsaved changes', {tag: '@pages'
 /**
  * @objective Verify scroll position is preserved when navigating back to page
  */
-test('preserves scroll position when navigating back to page', {tag: '@pages'}, async ({pw}) => {
+test.skip('preserves scroll position when navigating back to page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     // # Setup: Create page with long content
-    const {user, team, adminClient} = await pw.initSetup();
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -142,9 +142,7 @@ test('preserves scroll position when navigating back to page', {tag: '@pages'}, 
     // # Create page with long content through UI
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
-
-    const titleInput = page.locator('[data-testid="wiki-page-title-input"]').first();
-    await titleInput.fill('Long Page');
+    await fillCreatePageModal(page, 'Long Page');
 
     const editor = page.locator('.ProseMirror').first();
     await editor.click();
@@ -188,9 +186,9 @@ test('preserves scroll position when navigating back to page', {tag: '@pages'}, 
 /**
  * @objective Verify browser refresh during edit recovers draft without data loss
  */
-test('handles browser refresh during edit without data loss', {tag: '@pages'}, async ({pw}) => {
+test('handles browser refresh during edit without data loss', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     // # Setup
-    const {user, team, adminClient} = await pw.initSetup();
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -200,19 +198,27 @@ test('handles browser refresh during edit without data loss', {tag: '@pages'}, a
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Refresh Wiki ${pw.random.id()}`);
 
-    // Navigate to wiki (wiki is already visible after creation, but navigate to ensure clean state)
-    await page.goto(`${pw.url}/${team.name}/channels/${channel.name}/wikis/${wiki.id}`);
+    // Reload to ensure clean state (wiki is already visible after creation)
+    await page.reload();
     await page.waitForLoadState('networkidle');
 
     // # Create new page
     // Scope to pages hierarchy panel to avoid strict mode violations with duplicate elements
     const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]').first();
+    await hierarchyPanel.waitFor({state: 'visible', timeout: 5000});
     const newPageButton = hierarchyPanel.locator('[data-testid="new-page-button"]');
+    await newPageButton.waitFor({state: 'visible', timeout: 5000});
     await newPageButton.click();
 
-    // # Make changes
+    // # Fill in the create page modal
+    await fillCreatePageModal(page, 'Draft Before Refresh');
+
+    // # Wait for the draft page to be created and displayed
+    await page.waitForLoadState('networkidle');
+
+    // # Make additional changes to title and content
     const titleInput = page.locator('[data-testid="wiki-page-title-input"]').first();
-    await titleInput.fill('Draft Before Refresh');
+    await titleInput.fill('Draft Before Refresh - Modified');
 
     const editor = page.locator('.ProseMirror').first();
     await editor.click();

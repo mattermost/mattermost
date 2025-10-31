@@ -3,8 +3,7 @@
 
 import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
-import {useHistory} from 'react-router-dom';
+import {useDispatch} from 'react-redux';
 
 import {
     DotsHorizontalIcon,
@@ -17,8 +16,6 @@ import {
 } from '@mattermost/compass-icons/components';
 import type {ChannelBookmark, ChannelBookmarkPatch} from '@mattermost/types/channel_bookmarks';
 
-import {Client4} from 'mattermost-redux/client';
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
 
@@ -43,8 +40,6 @@ const BookmarkItemDotMenu = ({
 }: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
-    const history = useHistory();
-    const currentTeam = useSelector(getCurrentTeam);
 
     const siteURL = getSiteURL();
     const openInNewTab = bookmark.type === 'link' && bookmark.link_url && shouldOpenInNewTab(bookmark.link_url, siteURL);
@@ -87,44 +82,15 @@ const BookmarkItemDotMenu = ({
     }, [bookmark.type, bookmark.link_url, bookmark.file_id]);
 
     const handleDelete = useCallback(() => {
-        // [THROWAWAY CODE - PAGES EXPERIMENT] Check if this is a wiki bookmark (has 🧪 emoji)
-        const isWikiBookmark = bookmark.emoji === '🧪';
-
         dispatch(openModal({
             modalId: ModalIdentifiers.CHANNEL_BOOKMARK_DELETE,
             dialogType: BookmarkDeleteModal,
             dialogProps: {
                 displayName: bookmark.display_name,
-                onConfirm: async () => {
-                    // [THROWAWAY CODE - PAGES EXPERIMENT] If this is a wiki bookmark, delete the wiki first
-                    if (isWikiBookmark && bookmark.link_url) {
-                        try {
-                            // Extract wikiId from URL like: /team/wiki/channelId/wikiId
-                            const urlMatch = bookmark.link_url.match(/\/wiki\/[^/]+\/([^/?]+)/);
-                            if (urlMatch && urlMatch[1]) {
-                                const wikiId = urlMatch[1];
-                                await Client4.deleteWiki(wikiId);
-                            }
-                        } catch (error) {
-                            console.error('[BOOKMARK DELETE] Failed to delete wiki:', error);
-                            // Continue to delete bookmark even if wiki deletion fails
-                        }
-                    }
-
-                    // Delete the bookmark
-                    const result = await dispatch(deleteBookmark(bookmark.channel_id, bookmark.id));
-
-                    // [THROWAWAY CODE - PAGES EXPERIMENT] Navigate to channel after deleting wiki bookmark
-                    if (isWikiBookmark && currentTeam) {
-                        const channelUrl = `/${currentTeam.name}/channels/${bookmark.channel_id}`;
-                        history.push(channelUrl);
-                    }
-
-                    return result;
-                },
+                onConfirm: () => dispatch(deleteBookmark(bookmark.channel_id, bookmark.id)),
             },
         }));
-    }, [deleteBookmark, dispatch, bookmark, currentTeam, history]);
+    }, [deleteBookmark, dispatch, bookmark]);
 
     const handleGetPublicLink = useCallback(() => {
         if (!bookmark.file_id) {

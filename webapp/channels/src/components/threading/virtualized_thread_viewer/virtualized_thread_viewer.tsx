@@ -35,7 +35,7 @@ type Props = {
     directTeammate: UserProfile | undefined;
     highlightedPostId?: Post['id'];
     selectedPostFocusedAt?: number;
-    lastPost: Post;
+    lastPost: Post | FakePost;
     onCardClick: (post: Post) => void;
     replyListIds: string[];
     selected: Post | FakePost;

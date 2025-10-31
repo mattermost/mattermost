@@ -2032,17 +2032,17 @@ export default class Client4 {
         );
     };
 
-    updateWiki = (wikiId: string, patch: WikiPatch) => {
+    updateWiki = (wiki: Wiki) => {
         return this.doFetch<Wiki>(
-            `${this.getWikiRoute(wikiId)}`,
-            {method: 'patch', body: JSON.stringify(patch)},
+            `${this.getWikiRoute(wiki.id)}`,
+            {method: 'PATCH', body: JSON.stringify(wiki)},
         );
     };
 
     deleteWiki = (wikiId: string) => {
         return this.doFetch<StatusOK>(
             `${this.getWikiRoute(wikiId)}`,
-            {method: 'delete'},
+            {method: 'DELETE'},
         );
     };
 
@@ -2053,14 +2053,14 @@ export default class Client4 {
         );
     };
 
-    getWikiPages = (wikiId: string, page = 0, perPage = 60) => {
+    getPages = (wikiId: string, page = 0, perPage = 60) => {
         return this.doFetch<Post[]>(
             `${this.getWikiPagesRoute(wikiId)}${buildQueryString({page, per_page: perPage})}`,
             {method: 'get'},
         );
     };
 
-    getWikiPage = (wikiId: string, pageId: string) => {
+    getPage = (wikiId: string, pageId: string) => {
         return this.doFetch<Post>(
             `${this.getWikiPageRoute(wikiId, pageId)}`,
             {method: 'get'},
@@ -2080,7 +2080,7 @@ export default class Client4 {
             throw new Error('No wiki found for channel');
         }
 
-        const pages = await this.getWikiPages(wikis[0].id, 0, 1);
+        const pages = await this.getPages(wikis[0].id, 0, 1);
         if (pages.length === 0) {
             throw new Error('No default page found for wiki');
         }
@@ -2095,24 +2095,17 @@ export default class Client4 {
         );
     };
 
-    attachPageToWiki = (wikiId: string, pageId: string) => {
+    deletePage = (wikiId: string, pageId: string) => {
         return this.doFetch<StatusOK>(
             `${this.getWikiPageRoute(wikiId, pageId)}`,
-            {method: 'post'},
-        );
-    };
-
-    detachPageFromWiki = (wikiId: string, pageId: string) => {
-        return this.doFetch<StatusOK>(
-            `${this.getWikiPageRoute(wikiId, pageId)}`,
-            {method: 'delete'},
+            {method: 'DELETE'},
         );
     };
 
     updatePageParent = (wikiId: string, pageId: string, newParentId: string) => {
         return this.doFetch<StatusOK>(
             `${this.getWikiPageRoute(wikiId, pageId)}/parent`,
-            {method: 'put', body: JSON.stringify({new_parent_id: newParentId})},
+            {method: 'PUT', body: JSON.stringify({new_parent_id: newParentId})},
         );
     };
 
@@ -2123,7 +2116,21 @@ export default class Client4 {
         }
         return this.doFetch<StatusOK>(
             `${this.getWikiPageRoute(sourceWikiId, pageId)}/move`,
-            {method: 'put', body: JSON.stringify(body)},
+            {method: 'PUT', body: JSON.stringify(body)},
+        );
+    };
+
+    duplicatePage = (sourceWikiId: string, pageId: string, targetWikiId: string, parentPageId?: string, customTitle?: string) => {
+        const body: {target_wiki_id: string; parent_page_id?: string; title?: string} = {target_wiki_id: targetWikiId};
+        if (parentPageId) {
+            body.parent_page_id = parentPageId;
+        }
+        if (customTitle) {
+            body.title = customTitle;
+        }
+        return this.doFetch<Post>(
+            `${this.getWikiPageRoute(sourceWikiId, pageId)}/duplicate`,
+            {method: 'post', body: JSON.stringify(body)},
         );
     };
 
@@ -4574,7 +4581,7 @@ export default class Client4 {
         return this.doFetch<Draft>(
             `${this.getWikiRoute(wikiId)}/drafts/${draftId}`,
             {
-                method: 'put',
+                method: 'PUT',
                 body: JSON.stringify({message, title, page_id: pageId, props}),
             },
         );
@@ -4583,7 +4590,7 @@ export default class Client4 {
     deletePageDraft = (wikiId: string, draftId: string) => {
         return this.doFetch<null>(
             `${this.getWikiRoute(wikiId)}/drafts/${draftId}`,
-            {method: 'delete'},
+            {method: 'DELETE'},
         );
     };
 

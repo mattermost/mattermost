@@ -7,12 +7,11 @@ import React from 'react';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {setupWikiTestContext, createTestPage, type WikiTestContext} from 'tests/api_test_helpers';
-
-import {buildTree} from './utils/tree_builder';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import PageTreeView from './page_tree_view';
+import {buildTree} from './utils/tree_builder';
 
 describe('components/pages_hierarchy_panel/PageTreeView', () => {
     let testContext: WikiTestContext;
@@ -33,7 +32,7 @@ describe('components/pages_hierarchy_panel/PageTreeView', () => {
     }, 30000);
 
     const getBaseProps = async () => {
-        const pages = await Client4.getWikiPages(testContext.wikiId);
+        const pages = await Client4.getPages(testContext.wikiId);
         const tree = buildTree(pages);
 
         return {

@@ -3,11 +3,12 @@
 
 // TRUE ZERO-MOCK VERSION - Uses real API and real channels
 
-import type {Channel} from '@mattermost/types/channels';
 import {Editor} from '@tiptap/core';
 import Document from '@tiptap/extension-document';
 import Paragraph from '@tiptap/extension-paragraph';
 import Text from '@tiptap/extension-text';
+
+import type {Channel} from '@mattermost/types/channels';
 
 import {Client4} from 'mattermost-redux/client';
 
@@ -33,11 +34,11 @@ describe('createChannelMentionSuggestion (Zero Mocks - Real API)', () => {
     // Real autocompleteChannels function using Client4
     const createRealAutocompleteChannels = (teamId: string) => {
         return (term: string, success: (channels: Channel[]) => void, error: () => void) => {
-            Client4.autocompleteChannels(teamId, term)
-                .then((channels) => {
+            Client4.autocompleteChannels(teamId, term).
+                then((channels) => {
                     success(channels);
-                })
-                .catch(() => {
+                }).
+                catch(() => {
                     error();
                 });
             return Promise.resolve({data: true});
@@ -211,5 +212,4 @@ describe('createChannelMentionSuggestion (Zero Mocks - Real API)', () => {
             expect(Array.isArray(result)).toBe(true);
         });
     });
-
 });

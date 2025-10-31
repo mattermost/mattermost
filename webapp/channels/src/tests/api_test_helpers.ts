@@ -4,11 +4,11 @@
 // Real API Test Helpers - No Mocks!
 // Uses actual Mattermost server running on localhost:8065
 
-import {Client4} from 'mattermost-redux/client';
-
-import type {Team} from '@mattermost/types/teams';
 import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
+
+import {Client4} from 'mattermost-redux/client';
 
 // Test configuration - uses same defaults as Cypress e2e tests
 // Note: Using username instead of email for login (works with any email)
@@ -326,12 +326,11 @@ export function trackResource(type: keyof typeof createdResources, id: string) {
 }
 
 export async function cleanupOrphanedTestResources(): Promise<void> {
-
     try {
         await Client4.login(TEST_CONFIG.adminUsername, TEST_CONFIG.adminPassword);
 
         const teams = await Client4.getMyTeams();
-        let orphanedCount = {channels: 0, wikis: 0};
+        const orphanedCount = {channels: 0, wikis: 0};
 
         for (const team of teams) {
             const channels = await Client4.getMyChannels(team.id);
@@ -347,7 +346,6 @@ export async function cleanupOrphanedTestResources(): Promise<void> {
                 }
             }
         }
-
     } catch (error) {
         console.warn('[Cleanup] Failed to cleanup orphaned resources:', error);
     }

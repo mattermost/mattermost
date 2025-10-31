@@ -82,7 +82,7 @@ export function buildTree(pages: PageOrDraft[]): TreeNode[] {
 /**
  * Get all ancestor IDs for a given page (for expanding path)
  */
-export function getAncestorIds(pages: Post[], pageId: string, pageMap?: Map<string, Post>): string[] {
+export function getAncestorIds(pages: PageOrDraft[], pageId: string, pageMap?: Map<string, PageOrDraft>): string[] {
     const ancestorIds: string[] = [];
     const map = pageMap || new Map(pages.map((p) => [p.id, p]));
 

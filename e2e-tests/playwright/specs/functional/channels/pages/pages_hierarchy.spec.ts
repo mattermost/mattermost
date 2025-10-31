@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, addHeadingToEditor} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, addHeadingToEditor, fillCreatePageModal, renamePageViaContextMenu, createDraftThroughUI} from './test_helpers';
 
 /**
  * @objective Verify page hierarchy expansion and collapse functionality
  */
-test('expands and collapses page nodes', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('expands and collapses page nodes', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -55,8 +55,8 @@ test('expands and collapses page nodes', {tag: '@pages'}, async ({pw}) => {
 /**
  * @objective Verify moving page to new parent within same wiki
  */
-test('moves page to new parent within same wiki', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('moves page to new parent within same wiki', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -132,8 +132,8 @@ test('moves page to new parent within same wiki', {tag: '@pages'}, async ({pw}) 
 /**
  * @objective Verify circular hierarchy prevention
  */
-test('prevents circular hierarchy - cannot move page to own descendant', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('prevents circular hierarchy - cannot move page to own descendant', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -181,8 +181,8 @@ test('prevents circular hierarchy - cannot move page to own descendant', {tag: '
 /**
  * @objective Verify moving page between different wikis
  */
-test('moves page between wikis', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('moves page between wikis', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -261,8 +261,8 @@ test('moves page between wikis', {tag: '@pages'}, async ({pw}) => {
 /**
  * @objective Verify moving page to become child of another page in same wiki
  */
-test('moves page to child of another page in same wiki', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('moves page to child of another page in same wiki', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -348,8 +348,8 @@ test('moves page to child of another page in same wiki', {tag: '@pages'}, async 
 /**
  * @objective Verify moving page to child of another page in different wiki
  */
-test('moves page to child of another page in different wiki', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('moves page to child of another page in different wiki', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -457,8 +457,8 @@ test('moves page to child of another page in different wiki', {tag: '@pages'}, a
 /**
  * @objective Verify renaming page via context menu
  */
-test('renames page via context menu', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('renames page via context menu', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -468,52 +468,27 @@ test('renames page via context menu', {tag: '@pages'}, async ({pw}) => {
     const wiki = await createWikiThroughUI(page, `Rename Wiki ${pw.random.id()}`);
     const testPage = await createPageThroughUI(page, 'Original Name', 'Content');
 
-    // # Right-click to rename
+    // # Rename page via context menu
+    await renamePageViaContextMenu(page, 'Original Name', 'Updated Name');
+
+    // # Wait for network to settle
+    await page.waitForLoadState('networkidle');
+
+    // * Verify page renamed in hierarchy
     const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
-    const pageNode = hierarchyPanel.locator('text="Original Name"').first();
+    const renamedNode = hierarchyPanel.locator('text="Updated Name"').first();
+    await expect(renamedNode).toBeVisible();
 
-    if (await pageNode.isVisible().catch(() => false)) {
-        await pageNode.click({button: 'right'});
-
-        const contextMenu = page.locator('[data-testid="page-context-menu"]');
-        if (await contextMenu.isVisible({timeout: 2000}).catch(() => false)) {
-            const renameButton = contextMenu.locator('[data-testid="page-context-menu-rename"]').first();
-
-            if (await renameButton.isVisible().catch(() => false)) {
-                await renameButton.click();
-
-                // * Verify rename modal appears
-                const renameModal = page.getByRole('dialog', {name: /Rename/i});
-                if (await renameModal.isVisible({timeout: 3000}).catch(() => false)) {
-                    const titleInput = renameModal.locator('[data-testid="wiki-page-title-input"]').first();
-                    await expect(titleInput).toHaveValue('Original Name');
-
-                    // # Enter new name
-                    await titleInput.fill('Updated Name');
-
-                    const confirmButton = renameModal.locator('[data-testid="page-context-menu-rename"], [data-testid="save-button"]').first();
-                    await confirmButton.click();
-
-                    await page.waitForLoadState('networkidle');
-
-                    // * Verify page renamed in hierarchy
-                    const renamedNode = hierarchyPanel.locator('text="Updated Name"').first();
-                    await expect(renamedNode).toBeVisible();
-
-                    // * Verify old name no longer visible
-                    const oldNode = hierarchyPanel.locator('text="Original Name"').first();
-                    await expect(oldNode).not.toBeVisible();
-                }
-            }
-        }
-    }
+    // * Verify old name no longer visible
+    const oldNode = hierarchyPanel.locator('text="Original Name"').first();
+    await expect(oldNode).not.toBeVisible();
 });
 
 /**
  * @objective Verify inline rename via double-click
  */
-test('renames page inline via double-click', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('renames page inline via double-click', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -553,8 +528,8 @@ test('renames page inline via double-click', {tag: '@pages'}, async ({pw}) => {
 /**
  * @objective Verify duplicate name validation during rename
  */
-test('validates duplicate page names during rename', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('validates duplicate page names during rename', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -581,12 +556,13 @@ test('validates duplicate page names during rename', {tag: '@pages'}, async ({pw
 
                 const renameModal = page.getByRole('dialog', {name: /Rename/i});
                 if (await renameModal.isVisible({timeout: 3000}).catch(() => false)) {
-                    const titleInput = renameModal.locator('[data-testid="wiki-page-title-input"]').first();
+                    const titleInput = renameModal.locator('[data-testid="rename-page-modal-title-input"]').first();
 
                     // # Try to use duplicate name
+                    await titleInput.clear();
                     await titleInput.fill('Page One');
 
-                    const confirmButton = renameModal.locator('[data-testid="page-context-menu-rename"], [data-testid="save-button"]').first();
+                    const confirmButton = renameModal.getByRole('button', {name: 'Rename'});
                     await confirmButton.click();
 
                     await page.waitForTimeout(500);
@@ -607,8 +583,8 @@ test('validates duplicate page names during rename', {tag: '@pages'}, async ({pw
 /**
  * @objective Verify special characters and Unicode in page names
  */
-test('handles special characters in page names', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('handles special characters in page names', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -634,12 +610,13 @@ test('handles special characters in page names', {tag: '@pages'}, async ({pw}) =
 
                 const renameModal = page.getByRole('dialog', {name: /Rename/i});
                 if (await renameModal.isVisible({timeout: 3000}).catch(() => false)) {
-                    const titleInput = renameModal.locator('[data-testid="wiki-page-title-input"]').first();
+                    const titleInput = renameModal.locator('[data-testid="rename-page-modal-title-input"]').first();
 
                     const specialName = 'Page 🚀 with 中文 and émojis';
+                    await titleInput.clear();
                     await titleInput.fill(specialName);
 
-                    const confirmButton = renameModal.locator('[data-testid="page-context-menu-rename"], [data-testid="save-button"]').first();
+                    const confirmButton = renameModal.getByRole('button', {name: 'Rename'});
                     await confirmButton.click();
 
                     await page.waitForLoadState('networkidle');
@@ -662,8 +639,8 @@ test('handles special characters in page names', {tag: '@pages'}, async ({pw}) =
 /**
  * @objective Verify show/hide outline toggle in hierarchy panel
  */
-test('toggles page outline visibility in hierarchy panel', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('toggles page outline visibility in hierarchy panel', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -675,9 +652,7 @@ test('toggles page outline visibility in hierarchy panel', {tag: '@pages'}, asyn
     // # Create a page with headings through UI
     const newPageButton = page.locator('[data-testid="new-page-button"]');
     await newPageButton.click();
-
-    const titleInput = page.locator('[data-testid="wiki-page-title-input"]');
-    await titleInput.fill('Feature Spec');
+    await fillCreatePageModal(page, 'Feature Spec');
 
     const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
     await editor.click();
@@ -747,8 +722,8 @@ test('toggles page outline visibility in hierarchy panel', {tag: '@pages'}, asyn
 /**
  * @objective Verify outline updates when page headings are modified
  */
-test('updates outline in hierarchy when page headings change', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('updates outline in hierarchy when page headings change', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -780,9 +755,17 @@ test('updates outline in hierarchy when page headings change', {tag: '@pages'}, 
         await page.keyboard.press('Control+A'); // Select all (or Command+A on Mac, but Control works cross-platform in Playwright)
         await page.keyboard.press('Backspace');
 
-        // # Add headings using helper
-        await addHeadingToEditor(page, 1, 'Heading 1', 'Some content under heading 1');
-        await addHeadingToEditor(page, 2, 'Heading 2', 'Some content under heading 2');
+        // # Add headings using helper (matching pattern of passing test)
+        await addHeadingToEditor(page, 1, 'Heading 1');
+        await page.keyboard.type('Some content under heading 1');
+        await page.keyboard.press('Enter');
+        await page.waitForTimeout(200);
+
+        await addHeadingToEditor(page, 2, 'Heading 2');
+        await page.keyboard.type('Some content under heading 2');
+        await page.keyboard.press('Enter');
+        await page.waitForTimeout(200);
+
         await addHeadingToEditor(page, 3, 'Heading 3');
 
         // # Publish the page
@@ -826,8 +809,8 @@ test('updates outline in hierarchy when page headings change', {tag: '@pages'}, 
 /**
  * @objective Verify clicking outline item navigates to heading in page
  */
-test('clicks outline item in hierarchy to navigate to heading', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('clicks outline item in hierarchy to navigate to heading', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -873,8 +856,10 @@ test('clicks outline item in hierarchy to navigate to heading', {tag: '@pages'},
             await page.keyboard.press('Enter');
         }
 
-        // # Add H2 heading "Conclusion"
+        // # Add H2 heading "Conclusion" with some content
         await addHeadingToEditor(page, 2, 'Conclusion');
+        await page.keyboard.type('Conclusion content.');
+        await page.keyboard.press('Enter');
 
         // # Publish the page
         const publishButton = page.getByRole('button', {name: 'Publish'});
@@ -923,8 +908,8 @@ test('clicks outline item in hierarchy to navigate to heading', {tag: '@pages'},
 /**
  * @objective Verify outline visibility persists across page navigation
  */
-test('preserves outline visibility setting when navigating between pages', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('preserves outline visibility setting when navigating between pages', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -1042,11 +1027,10 @@ test.skip('makes page a child via drag-drop', {tag: '@pages'}, async ({pw}) => {
     // 1. Test via context menu "Move To" modal (already tested)
     // 2. Use visual regression testing for drag behavior
     // 3. Implement custom CDP drag-and-drop for react-beautiful-dnd
-    const {user, team, adminClient} = await pw.initSetup();
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(sharedAdminClient, sharedTeam.id, `Test Channel ${pw.random.id()}`);
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
+    const {page, channelsPage} = await pw.testBrowser.login(sharedUser);
+    await channelsPage.goto(sharedTeam.name, channel.name);
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Drag Wiki ${pw.random.id()}`);
@@ -1126,11 +1110,10 @@ test.skip('promotes child page to root level via drag-drop', {tag: '@pages'}, as
     //
     // The UI functionality WORKS - dragging child between root nodes should promote it
     // The underlying API is tested via "moves page to new parent within same wiki" test (uses modal)
-    const {user, team, adminClient} = await pw.initSetup();
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(sharedAdminClient, sharedTeam.id, `Test Channel ${pw.random.id()}`);
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
+    const {page, channelsPage} = await pw.testBrowser.login(sharedUser);
+    await channelsPage.goto(sharedTeam.name, channel.name);
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Promote Wiki ${pw.random.id()}`);
@@ -1241,8 +1224,8 @@ test.skip('reorders pages at same level via drag-drop', {tag: '@pages'}, async (
 /**
  * @objective Verify navigation through a 10-level deep page hierarchy
  */
-test('navigates page hierarchy depth of 10 levels', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('navigates page hierarchy depth of 10 levels', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -1275,8 +1258,8 @@ test('navigates page hierarchy depth of 10 levels', {tag: '@pages'}, async ({pw}
 /**
  * @objective Verify that creating an 11th level page fails due to max depth limit
  */
-test('enforces max hierarchy depth - 11th level fails', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('enforces max hierarchy depth - 11th level fails', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -1302,13 +1285,9 @@ test('enforces max hierarchy depth - 11th level fails', {tag: '@pages'}, async (
     const menuButton = level10Node.locator('[data-testid="page-tree-node-menu-button"]');
     await menuButton.click();
 
-    // # Handle native prompt dialog for page title
-    page.once('dialog', async (dialog) => {
-        await dialog.accept('Level 11');
-    });
-
     const addChildButton = page.locator('[data-testid="page-context-menu-new-child"]').first();
     await addChildButton.click();
+    await fillCreatePageModal(page, 'Level 11');
 
     // # Wait for draft editor to appear
     const editor = page.locator('.ProseMirror').first();
@@ -1332,8 +1311,8 @@ test('enforces max hierarchy depth - 11th level fails', {tag: '@pages'}, async (
 /**
  * @objective Verify search functionality filters pages in hierarchy panel
  */
-test('searches and filters pages in hierarchy', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('searches and filters pages in hierarchy', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -1366,8 +1345,8 @@ test('searches and filters pages in hierarchy', {tag: '@pages'}, async ({pw}) =>
 /**
  * @objective Verify expansion state persists when navigating away and back to wiki
  */
-test('preserves expansion state across navigation', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('preserves expansion state across navigation', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -1424,8 +1403,8 @@ test('preserves expansion state across navigation', {tag: '@pages'}, async ({pw}
 /**
  * @objective Verify deleting a page with children using cascade option deletes all descendants
  */
-test('deletes page with children - cascade option', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('deletes page with children - cascade option', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -1471,8 +1450,8 @@ test('deletes page with children - cascade option', {tag: '@pages'}, async ({pw}
 /**
  * @objective Verify deleting a page with move-to-parent option preserves children
  */
-test('deletes page with children - move to root option', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('deletes page with children - move to root option', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -1516,8 +1495,8 @@ test('deletes page with children - move to root option', {tag: '@pages'}, async 
 /**
  * @objective Verify creating a child page via parent page context menu
  */
-test('creates child page via context menu', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('creates child page via context menu', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -1539,6 +1518,138 @@ test('creates child page via context menu', {tag: '@pages'}, async ({pw}) => {
     // * Verify child page is clickable and loads correctly
     const childNode = page.locator('[data-testid="page-tree-node"][data-page-id="' + childPage.id + '"]');
     await expect(childNode).toBeVisible();
+});
+
+/**
+ * @objective Verify hierarchy panel state persists after page refresh
+ */
+test('preserves node count and state after page refresh', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+
+    // Wait for channel to be fully loaded
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1000);
+
+    // # Create wiki through UI
+    const wiki = await createWikiThroughUI(page, `Persist State Wiki ${pw.random.id()}`);
+
+    // # Create published pages
+    const publishedPage1 = await createPageThroughUI(page, 'Published Page 1', 'Content 1');
+    const publishedPage2 = await createPageThroughUI(page, 'Published Page 2', 'Content 2');
+
+    // # Create child page under first published page
+    const childPage = await createChildPageThroughContextMenu(page, publishedPage1.id!, 'Child Page', 'Child content');
+
+    // # Create drafts
+    const draft1 = await createDraftThroughUI(page, 'Draft Page 1', 'Draft content 1');
+    const draft2 = await createDraftThroughUI(page, 'Draft Page 2', 'Draft content 2');
+
+    // # Navigate to one of the published pages to see full hierarchy with panel open
+    await page.goto(`/${team.name}/wiki/${channel.id}/${wiki.id}/${publishedPage1.id}`);
+    await page.waitForLoadState('networkidle');
+
+    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    await expect(hierarchyPanel).toBeVisible({timeout: 5000});
+
+    // # Expand parent node to make child visible
+    const parent1Node = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${publishedPage1.id}"]`);
+    const expandButton = parent1Node.locator('[data-testid="page-tree-node-expand-button"]');
+    if (await expandButton.isVisible().catch(() => false)) {
+        await expandButton.click();
+        await page.waitForTimeout(300);
+    }
+
+    // * Verify EXACT nodes we created are visible before refresh
+    const published1NodeBefore = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${publishedPage1.id}"]`);
+    const published2NodeBefore = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${publishedPage2.id}"]`);
+    const childNodeBefore = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${childPage.id}"]`);
+    const draft1NodeBefore = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${draft1.id}"]`);
+    const draft2NodeBefore = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${draft2.id}"]`);
+
+    await expect(published1NodeBefore).toBeVisible();
+    await expect(published2NodeBefore).toBeVisible();
+    await expect(childNodeBefore).toBeVisible();
+    await expect(draft1NodeBefore).toBeVisible();
+    await expect(draft2NodeBefore).toBeVisible();
+
+    // * Verify EXACT state of each node before refresh
+    await expect(published1NodeBefore).toHaveAttribute('data-is-draft', 'false');
+    await expect(published2NodeBefore).toHaveAttribute('data-is-draft', 'false');
+    await expect(childNodeBefore).toHaveAttribute('data-is-draft', 'false');
+    await expect(draft1NodeBefore).toHaveAttribute('data-is-draft', 'true');
+    await expect(draft2NodeBefore).toHaveAttribute('data-is-draft', 'true');
+
+    // * Get text content of each node to verify names match exactly
+    const published1TextBefore = await published1NodeBefore.textContent();
+    const published2TextBefore = await published2NodeBefore.textContent();
+    const childTextBefore = await childNodeBefore.textContent();
+    const draft1TextBefore = await draft1NodeBefore.textContent();
+    const draft2TextBefore = await draft2NodeBefore.textContent();
+
+    // # Refresh the page
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+
+    // * Verify hierarchy panel is still visible after refresh
+    await expect(hierarchyPanel).toBeVisible({timeout: 5000});
+
+    // # Expand parent node again after refresh to make child visible
+    const parent1NodeAfter = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${publishedPage1.id}"]`);
+    const expandButtonAfter = parent1NodeAfter.locator('[data-testid="page-tree-node-expand-button"]');
+    if (await expandButtonAfter.isVisible().catch(() => false)) {
+        await expandButtonAfter.click();
+        await page.waitForTimeout(300);
+    }
+
+    // * Verify EXACT same nodes are visible after refresh
+    const published1NodeAfter = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${publishedPage1.id}"]`);
+    const published2NodeAfter = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${publishedPage2.id}"]`);
+    const childNodeAfter = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${childPage.id}"]`);
+    const draft1NodeAfter = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${draft1.id}"]`);
+    const draft2NodeAfter = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${draft2.id}"]`);
+
+    await expect(published1NodeAfter).toBeVisible();
+    await expect(published2NodeAfter).toBeVisible();
+    await expect(childNodeAfter).toBeVisible();
+    await expect(draft1NodeAfter).toBeVisible();
+    await expect(draft2NodeAfter).toBeVisible();
+
+    // * Verify EXACT state of each node after refresh - must match exactly
+    await expect(published1NodeAfter).toHaveAttribute('data-is-draft', 'false');
+    await expect(published2NodeAfter).toHaveAttribute('data-is-draft', 'false');
+    await expect(childNodeAfter).toHaveAttribute('data-is-draft', 'false');
+    await expect(draft1NodeAfter).toHaveAttribute('data-is-draft', 'true');
+    await expect(draft2NodeAfter).toHaveAttribute('data-is-draft', 'true');
+
+    // * Verify text content matches EXACTLY after refresh
+    const published1TextAfter = await published1NodeAfter.textContent();
+    const published2TextAfter = await published2NodeAfter.textContent();
+    const childTextAfter = await childNodeAfter.textContent();
+    const draft1TextAfter = await draft1NodeAfter.textContent();
+    const draft2TextAfter = await draft2NodeAfter.textContent();
+
+    expect(published1TextAfter).toBe(published1TextBefore);
+    expect(published2TextAfter).toBe(published2TextBefore);
+    expect(childTextAfter).toBe(childTextBefore);
+    expect(draft1TextAfter).toBe(draft1TextBefore);
+    expect(draft2TextAfter).toBe(draft2TextBefore);
+
+    // Cleanup: Navigate away from the channel before deleting it
+    try {
+        // Navigate to town square to ensure we're not on the channel we're about to delete
+        await channelsPage.goto(team.name, 'town-square');
+        await page.waitForLoadState('networkidle');
+        await page.waitForTimeout(500);
+
+        // Now delete the channel
+        await adminClient.deleteChannel(channel.id);
+    } catch (error) {
+        // Ignore cleanup errors - test has already passed
+    }
 });
 
 test.skip('sorts pages alphabetically in hierarchy', {tag: '@pages'}, async ({pw}) => {

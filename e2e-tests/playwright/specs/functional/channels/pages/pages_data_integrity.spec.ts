@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, createPageViaDraft} from '@mattermost/playwright-lib';
+import {createPageViaDraft} from '@mattermost/playwright-lib';
+import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton, fillCreatePageModal} from './test_helpers';
 
 /**
  * @objective Verify XSS attempts in page content are sanitized
@@ -11,8 +12,8 @@ import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextM
  * @precondition
  * Pages/Wiki feature is enabled on the server
  */
-test('sanitizes XSS attempts in page content', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('sanitizes XSS attempts in page content', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -25,16 +26,15 @@ test('sanitizes XSS attempts in page content', {tag: '@pages'}, async ({pw}) => 
     // # Create new page
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
+    await fillCreatePageModal(page, 'XSS Test Page');
+
+    await page.waitForTimeout(1000); // Wait for editor to load
 
     // # Attempt to inject script tag
     const xssAttempt = '<script>alert("XSS")</script>';
     const editor = page.locator('.ProseMirror').first();
     await editor.click();
     await editor.type(xssAttempt);
-
-    // # Set title and publish
-    const titleInput = page.locator('[data-testid="wiki-page-title-input"]').first();
-    await titleInput.fill('XSS Test Page');
 
     const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
     await publishButton.click();
@@ -64,8 +64,8 @@ test('sanitizes XSS attempts in page content', {tag: '@pages'}, async ({pw}) => 
 /**
  * @objective Verify XSS attempts in page title are sanitized
  */
-test('sanitizes XSS in page title', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('sanitizes XSS in page title', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -75,14 +75,13 @@ test('sanitizes XSS in page title', {tag: '@pages'}, async ({pw}) => {
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `XSS Title Wiki ${pw.random.id()}`);
 
-    // # Create new page
+    // # Create new page with XSS attempt in title
+    const xssTitle = '<img src=x onerror=alert("XSS")>';
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
+    await fillCreatePageModal(page, xssTitle);
 
-    // # Attempt XSS in title
-    const xssTitle = '<img src=x onerror=alert("XSS")>';
-    const titleInput = page.locator('[data-testid="wiki-page-title-input"]').first();
-    await titleInput.fill(xssTitle);
+    await page.waitForTimeout(1000); // Wait for editor to load
 
     const editor = page.locator('.ProseMirror').first();
     await editor.click();
@@ -97,15 +96,16 @@ test('sanitizes XSS in page title', {tag: '@pages'}, async ({pw}) => {
     const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
     const hierarchyHTML = await hierarchyPanel.innerHTML();
 
-    // Should not contain actual onerror attribute
-    expect(hierarchyHTML).not.toContain('onerror=');
+    // * Verify the img tag is escaped (not an actual HTML element)
+    const hasActualImgTag = hierarchyHTML.includes('<img src=x');
+    expect(hasActualImgTag).toBe(false);
 
-    // Should be escaped
+    // * Verify content is escaped (< and > should be &lt; and &gt;)
     const hasEscapedImg = hierarchyHTML.includes('&lt;img') || hierarchyHTML.includes('&amp;lt;img');
-    expect(hasEscapedImg || !hierarchyHTML.includes('<img src=x')).toBe(true);
+    expect(hasEscapedImg).toBe(true);
 
     // * Verify no alert() executes (test would fail if XSS worked)
-    // * Verify no broken image in hierarchy
+    // * Verify no broken image in hierarchy (no actual img element was created)
     const brokenImages = hierarchyPanel.locator('img[src="x"]');
     await expect(brokenImages).toHaveCount(0);
 });
@@ -113,8 +113,8 @@ test('sanitizes XSS in page title', {tag: '@pages'}, async ({pw}) => {
 /**
  * @objective Verify SQL injection attempts in page search are prevented
  */
-test('prevents SQL injection in page search', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('prevents SQL injection in page search', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -154,8 +154,8 @@ test('prevents SQL injection in page search', {tag: '@pages'}, async ({pw}) => {
 /**
  * @objective Verify page title length and special characters are validated
  */
-test('validates page title length and special characters', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('validates page title length and special characters', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -168,6 +168,9 @@ test('validates page title length and special characters', {tag: '@pages'}, asyn
     // # Create new page
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
+    await fillCreatePageModal(page, 'Validation Test Page');
+
+    await page.waitForTimeout(1000); // Wait for editor to load
 
     // # Attempt very long title (>255 characters)
     const longTitle = 'A'.repeat(300);
@@ -218,8 +221,8 @@ test('validates page title length and special characters', {tag: '@pages'}, asyn
 /**
  * @objective Verify malformed TipTap JSON is handled gracefully
  */
-test('handles malformed TipTap JSON gracefully', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('handles malformed TipTap JSON gracefully', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);

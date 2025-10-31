@@ -4,8 +4,8 @@
 import React, {useState, useEffect} from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {getChannelPages} from 'selectors/pages';
 import {loadChannelPages} from 'actions/pages';
+import {getChannelPages} from 'selectors/pages';
 
 import type {GlobalState} from 'types/store';
 

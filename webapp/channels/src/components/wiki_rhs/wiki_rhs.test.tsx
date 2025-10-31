@@ -3,14 +3,14 @@
 
 // ZERO MOCKS - Uses real API data and real child components
 
-import React from 'react';
 import {screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import React from 'react';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithContext} from 'tests/react_testing_utils';
 import {setupWikiTestContext, createTestPage, type WikiTestContext} from 'tests/api_test_helpers';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
 

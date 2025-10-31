@@ -16,14 +16,17 @@ import type {UserThread} from '@mattermost/types/threads';
 import {getChannel as fetchChannel} from 'mattermost-redux/actions/channels';
 import {markLastPostInThreadAsUnread, updateThreadRead} from 'mattermost-redux/actions/threads';
 import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
-import {Posts} from 'mattermost-redux/constants';
+import {Posts, PostTypes} from 'mattermost-redux/constants';
 import {getInt} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {ensureString} from 'mattermost-redux/utils/post_utils';
 
+import {extractPlaintextFromTipTapJSON} from 'utils/tiptap_utils';
+
 import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
 import {getIsMobileView} from 'selectors/views/browser';
 
+import InlineCommentContext from 'components/inline_comment_context';
 import Markdown from 'components/markdown';
 import {makeGetMentionKeysForPost} from 'components/post_markdown';
 import PriorityBadge from 'components/post_priority/post_priority_badge';
@@ -35,6 +38,7 @@ import Avatars from 'components/widgets/users/avatars';
 import WithTooltip from 'components/with_tooltip';
 
 import {CrtTutorialSteps, Preferences} from 'utils/constants';
+import {getInlineCommentAnchorText} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -288,7 +292,27 @@ function ThreadItem({
                     onClick={handleFormattedTextClick}
                     onKeyDown={handleFormattedTextClick}
                 >
-                    {post.message ? (
+                    {post.type === PostTypes.PAGE ? (
+                        <div>
+                            <div>
+                                <i className='icon icon-file-document-outline'/>
+                                {' '}
+                                {(post.props?.title as string) || 'Untitled Page'}
+                            </div>
+                            {(() => {
+                                const anchorText = getInlineCommentAnchorText(postsInThread);
+                                if (anchorText) {
+                                    return (
+                                        <InlineCommentContext
+                                            anchorText={anchorText}
+                                            variant='compact'
+                                        />
+                                    );
+                                }
+                                return null;
+                            })()}
+                        </div>
+                    ) : post.message ? (
                         <Markdown
                             message={post.state === Posts.POST_DELETED ? msgDeleted : post.message}
                             options={markdownPreviewOptions}

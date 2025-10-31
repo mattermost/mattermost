@@ -229,6 +229,12 @@ const state: GlobalState = {
             byWiki: {},
             loading: {},
             error: {},
+            pendingPublishes: {},
+            lastInvalidated: {},
+        },
+        wikis: {
+            byChannel: {},
+            byId: {},
         },
     },
     errors: [],

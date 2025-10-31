@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useMemo, useCallback, useState} from 'react';
-import {useSelector, useDispatch} from 'react-redux';
+import React, {useMemo, useCallback} from 'react';
 import {DragDropContext, Droppable, Draggable, type DropResult} from 'react-beautiful-dnd';
+import {useSelector, useDispatch} from 'react-redux';
 
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
@@ -111,9 +111,7 @@ const PageTreeView = ({
     const currentTeam = useSelector(getCurrentTeam);
     const outlineExpandedNodes = useSelector((state: GlobalState) => state.views.pagesHierarchy.outlineExpandedNodes);
     const outlineCache = useSelector((state: GlobalState) => state.views.pagesHierarchy.outlineCache);
-
-    // Local state for drag operations
-    const [isDragging, setIsDragging] = useState(false);
+    const [isDragging, setIsDragging] = React.useState(false);
 
     // Flatten tree for rendering, respecting expanded state
     const visibleNodes = useMemo(
@@ -139,7 +137,6 @@ const PageTreeView = ({
     const handleDragEnd = useCallback((result: DropResult) => {
         const {draggableId, source, destination, combine} = result;
         setIsDragging(false);
-
 
         // Dropped outside valid drop zone
         if (!destination && !combine) {
@@ -167,12 +164,10 @@ const PageTreeView = ({
         const sourceNode = nodeMap.get(draggableId);
         const targetNode = newParentId ? nodeMap.get(newParentId) : null;
 
-
         // Prevent dropping on self or descendants
         if (sourceNode && targetNode && isDescendant(sourceNode, targetNode)) {
             return;
         }
-
 
         // Dispatch Redux action with optimistic update
         if (wikiId) {
@@ -228,43 +223,43 @@ const PageTreeView = ({
                                                 {...provided.dragHandleProps}
                                                 className={className}
                                             >
-                                            <PageTreeNodeWrapper
-                                                node={node}
-                                                isSelected={node.id === selectedPageId}
-                                                onNodeSelect={onNodeSelect}
-                                                onToggleExpand={onToggleExpand}
-                                                onCreateChild={onCreateChild}
-                                                onRename={onRename}
-                                                onDuplicate={onDuplicate}
-                                                onMove={onMove}
-                                                onDelete={onDelete}
-                                                isRenaming={renamingPageId === node.id}
-                                                isDeleting={deletingPageId === node.id}
-                                                wikiId={wikiId}
-                                                channelId={channelId}
-                                            />
-                                            {isOutlineExpanded && (
-                                                <div className='PageTreeView__outline'>
-                                                    {headings.length > 0 ? (
-                                                        <>
-                                                            {headings.map((heading) => (
-                                                                <HeadingNode
-                                                                    key={`${node.id}-${heading.id}`}
-                                                                    heading={heading}
-                                                                    pageId={node.id}
-                                                                    currentPageId={currentPageId}
-                                                                    teamName={currentTeam?.name || ''}
-                                                                />
-                                                            ))}
-                                                        </>
-                                                    ) : (
-                                                        <div className='PageTreeView__outline-empty'>
-                                                            {'No headings in this page'}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
+                                                <PageTreeNodeWrapper
+                                                    node={node}
+                                                    isSelected={node.id === selectedPageId}
+                                                    onNodeSelect={onNodeSelect}
+                                                    onToggleExpand={onToggleExpand}
+                                                    onCreateChild={onCreateChild}
+                                                    onRename={onRename}
+                                                    onDuplicate={onDuplicate}
+                                                    onMove={onMove}
+                                                    onDelete={onDelete}
+                                                    isRenaming={renamingPageId === node.id}
+                                                    isDeleting={deletingPageId === node.id}
+                                                    wikiId={wikiId}
+                                                    channelId={channelId}
+                                                />
+                                                {isOutlineExpanded && (
+                                                    <div className='PageTreeView__outline'>
+                                                        {headings.length > 0 ? (
+                                                            <>
+                                                                {headings.map((heading) => (
+                                                                    <HeadingNode
+                                                                        key={`${node.id}-${heading.id}`}
+                                                                        heading={heading}
+                                                                        pageId={node.id}
+                                                                        currentPageId={currentPageId}
+                                                                        teamName={currentTeam?.name || ''}
+                                                                    />
+                                                                ))}
+                                                            </>
+                                                        ) : (
+                                                            <div className='PageTreeView__outline-empty'>
+                                                                {'No headings in this page'}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
                                         );
                                     }}
                                 </Draggable>

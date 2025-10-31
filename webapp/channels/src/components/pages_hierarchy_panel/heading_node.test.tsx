@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {screen} from '@testing-library/react';
+import React from 'react';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {renderWithContext} from 'tests/react_testing_utils';
+import type {Heading} from 'utils/page_outline';
 
 import type {GlobalState} from 'types/store';
-import type {Heading} from 'utils/page_outline';
 
 import HeadingNode from './heading_node';
 
@@ -58,7 +58,6 @@ describe('HeadingNode', () => {
             },
         },
     };
-
 
     describe('Rendering', () => {
         test('should render heading node with correct text', () => {

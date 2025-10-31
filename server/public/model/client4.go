@@ -7593,8 +7593,8 @@ func (c *Client4) DeleteWiki(ctx context.Context, wikiId string) (*Response, err
 	return BuildResponse(r), nil
 }
 
-// GetWikiPages gets all pages for a wiki with pagination.
-func (c *Client4) GetWikiPages(ctx context.Context, wikiId string, page, perPage int) ([]*Post, *Response, error) {
+// GetPages gets all pages for a wiki with pagination.
+func (c *Client4) GetPages(ctx context.Context, wikiId string, page, perPage int) ([]*Post, *Response, error) {
 	values := url.Values{}
 	values.Set("page", strconv.Itoa(page))
 	values.Set("per_page", strconv.Itoa(perPage))
@@ -7620,8 +7620,8 @@ func (c *Client4) CreatePage(ctx context.Context, wikiId, pageParentId, title st
 	return DecodeJSONFromResponse[*Post](r)
 }
 
-// GetWikiPage gets a single page from a wiki.
-func (c *Client4) GetWikiPage(ctx context.Context, wikiId, pageId string) (*Post, *Response, error) {
+// GetPage gets a single page from a wiki.
+func (c *Client4) GetPage(ctx context.Context, wikiId, pageId string) (*Post, *Response, error) {
 	r, err := c.DoAPIGet(ctx, fmt.Sprintf("%s/%s", c.wikiPagesRoute(wikiId), pageId), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
@@ -7630,18 +7630,8 @@ func (c *Client4) GetWikiPage(ctx context.Context, wikiId, pageId string) (*Post
 	return DecodeJSONFromResponse[*Post](r)
 }
 
-// AddPageToWiki adds a page to a wiki.
-func (c *Client4) AddPageToWiki(ctx context.Context, wikiId, pageId string) (*Response, error) {
-	r, err := c.DoAPIPost(ctx, fmt.Sprintf("%s/%s", c.wikiPagesRoute(wikiId), pageId), "")
-	if err != nil {
-		return BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return BuildResponse(r), nil
-}
-
-// DeletePageFromWiki permanently deletes a page from a wiki. The page and all its comments are soft-deleted.
-func (c *Client4) DeletePageFromWiki(ctx context.Context, wikiId, pageId string) (*Response, error) {
+// DeletePage permanently deletes a page. The page and all its comments are soft-deleted.
+func (c *Client4) DeletePage(ctx context.Context, wikiId, pageId string) (*Response, error) {
 	r, err := c.DoAPIDelete(ctx, fmt.Sprintf("%s/%s", c.wikiPagesRoute(wikiId), pageId))
 	if err != nil {
 		return BuildResponse(r), err
@@ -7661,6 +7651,25 @@ func (c *Client4) MovePageToWiki(ctx context.Context, sourceWikiId, pageId, targ
 	}
 	defer closeBody(r)
 	return BuildResponse(r), nil
+}
+
+// DuplicatePage duplicates a page to a target wiki with optional parent and custom title.
+func (c *Client4) DuplicatePage(ctx context.Context, sourceWikiId, pageId, targetWikiId string, parentPageId, customTitle *string) (*Post, *Response, error) {
+	payload := map[string]any{
+		"target_wiki_id": targetWikiId,
+	}
+	if parentPageId != nil {
+		payload["parent_page_id"] = *parentPageId
+	}
+	if customTitle != nil {
+		payload["title"] = *customTitle
+	}
+	r, err := c.DoAPIPostJSON(ctx, fmt.Sprintf("%s/%s/duplicate", c.wikiPagesRoute(sourceWikiId), pageId), payload)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Post](r)
 }
 
 // GetPageBreadcrumb retrieves the breadcrumb navigation path for a page.

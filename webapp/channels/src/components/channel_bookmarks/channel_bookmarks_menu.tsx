@@ -4,20 +4,15 @@
 import classNames from 'classnames';
 import React, {memo, useCallback} from 'react';
 import {useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
-import {useHistory} from 'react-router-dom';
+import {useDispatch} from 'react-redux';
 import styled, {css} from 'styled-components';
 
 import {
-    BookOutlineIcon,
     LinkVariantIcon,
     PaperclipIcon,
     PlusIcon,
 } from '@mattermost/compass-icons/components';
 import type {ChannelBookmarkCreate} from '@mattermost/types/channel_bookmarks';
-
-import {Client4} from 'mattermost-redux/client';
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {createBookmark} from 'actions/channel_bookmarks';
 import {openModal} from 'actions/views/modals';
@@ -27,7 +22,6 @@ import * as Menu from 'components/menu';
 import {ModalIdentifiers} from 'utils/constants';
 
 import ChannelBookmarkCreateModal from './channel_bookmarks_create_modal';
-import CreateWikiModal from './create_wiki_modal'; // [THROWAWAY CODE - PAGES EXPERIMENT]
 import {MAX_BOOKMARKS_PER_CHANNEL, useChannelBookmarkPermission} from './utils';
 
 type BookmarksMenuProps = {
@@ -44,7 +38,7 @@ function BookmarksMenu({
     const {formatMessage} = useIntl();
     const showLabel = !hasBookmarks;
 
-    const {handleCreateLink, handleCreateFile, handleCreateWiki} = useBookmarkAddActions(channelId);
+    const {handleCreateLink, handleCreateFile} = useBookmarkAddActions(channelId);
     const canAdd = useChannelBookmarkPermission(channelId, 'add');
 
     const addBookmarkLabel = formatMessage({id: 'channel_bookmarks.addBookmark', defaultMessage: 'Add a bookmark'});
@@ -60,8 +54,6 @@ function BookmarksMenu({
 
     const addLinkLabel = formatMessage({id: 'channel_bookmarks.addLink', defaultMessage: 'Add a link'});
     const attachFileLabel = formatMessage({id: 'channel_bookmarks.attachFile', defaultMessage: 'Attach a file'});
-    // [THROWAWAY CODE - PAGES EXPERIMENT] Mark wiki creation with experiment emoji for easy identification
-    const createWikiLabel = formatMessage({id: 'channel_bookmarks.createWiki', defaultMessage: '🧪 Create wiki (experiment)'});
 
     if (!canAdd) {
         return null;
@@ -109,13 +101,6 @@ function BookmarksMenu({
                         labels={<span>{attachFileLabel}</span>}
                     />
                 )}
-                <Menu.Item
-                    key='channelBookmarksCreateWiki'
-                    id='channelBookmarksCreateWiki'
-                    onClick={handleCreateWiki}
-                    leadingElement={<BookOutlineIcon size={18}/>}
-                    labels={<span>{createWikiLabel}</span>}
-                />
             </Menu.Container>
         </MenuButtonContainer>
     );
@@ -132,8 +117,6 @@ const MenuButtonContainer = styled.div<{withLabel: boolean}>`
 
 export const useBookmarkAddActions = (channelId: string) => {
     const dispatch = useDispatch();
-    const history = useHistory();
-    const currentTeam = useSelector(getCurrentTeam);
 
     const handleCreate = useCallback((file?: File) => {
         dispatch(openModal({
@@ -172,48 +155,5 @@ export const useBookmarkAddActions = (channelId: string) => {
         input.click();
     }, [handleCreate]);
 
-    const handleCreateWiki = useCallback(() => {
-        dispatch(openModal({
-            modalId: ModalIdentifiers.CREATE_WIKI,
-            dialogType: CreateWikiModal,
-            dialogProps: {
-                onConfirm: async (wikiName: string) => {
-                    if (!currentTeam) {
-                        return;
-                    }
-
-                    try {
-                        // [THROWAWAY CODE - PAGES EXPERIMENT] Create wiki with user-provided name
-                        const wiki = await Client4.createWiki({
-                            channel_id: channelId,
-                            title: wikiName,
-                        });
-
-                        // [THROWAWAY CODE - PAGES EXPERIMENT] Auto-create bookmark for wiki with experiment marker
-                        try {
-                            const wikiUrl = `/${currentTeam.name}/wiki/${channelId}/${wiki.id}`;
-                            await dispatch(createBookmark(channelId, {
-                                display_name: wiki.title,
-                                link_url: window.location.origin + wikiUrl,
-                                type: 'link',
-                                emoji: '🧪', // Experiment marker - makes throwaway wikis easily identifiable
-                            }));
-                        } catch (bookmarkError) {
-                            // Continue even if bookmark creation fails
-                        }
-
-                        const targetUrl = `/${currentTeam.name}/wiki/${channelId}/${wiki.id}`;
-                        history.push(targetUrl);
-                    } catch (error) {
-                        // Error creating wiki
-                    }
-                },
-                onCancel: () => {
-                    // Modal dismissed
-                },
-            },
-        }));
-    }, [channelId, currentTeam, history, dispatch]);
-
-    return {handleCreateLink, handleCreateFile, handleCreateWiki};
+    return {handleCreateLink, handleCreateFile};
 };

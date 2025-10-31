@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, getNewPageButton} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, getNewPageButton, fillCreatePageModal} from './test_helpers';
 
 /**
  * @objective Verify inline comment creation on selected text
  */
-test('creates inline comment on selected text', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('creates inline comment on selected text', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -70,8 +70,8 @@ test('creates inline comment on selected text', {tag: '@pages'}, async ({pw}) =>
 /**
  * @objective Verify reply threading in inline comments
  */
-test('replies to inline comment thread', {tag: '@pages'}, async ({pw, context}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('replies to inline comment thread', {tag: '@pages'}, async ({pw, context, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -132,8 +132,8 @@ test('replies to inline comment thread', {tag: '@pages'}, async ({pw, context}) 
 /**
  * @objective Verify resolve/unresolve comment functionality
  */
-test('resolves and unresolves inline comment', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('resolves and unresolves inline comment', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -206,8 +206,8 @@ test('resolves and unresolves inline comment', {tag: '@pages'}, async ({pw}) => 
 /**
  * @objective Verify navigation between multiple comments
  */
-test('navigates between multiple inline comments', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('navigates between multiple inline comments', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -219,9 +219,7 @@ test('navigates between multiple inline comments', {tag: '@pages'}, async ({pw})
     // # Create page with multiple paragraphs through UI
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
-
-    const titleInput = page.locator('[data-testid="wiki-page-title-input"]');
-    await titleInput.fill('Multi-Comment Page');
+    await fillCreatePageModal(page, 'Multi-Comment Page');
 
     const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
     await editor.click();
@@ -265,8 +263,8 @@ test('navigates between multiple inline comments', {tag: '@pages'}, async ({pw})
 /**
  * @objective Verify multiple comment markers display correctly
  */
-test('displays multiple inline comment markers distinctly', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('displays multiple inline comment markers distinctly', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -302,8 +300,8 @@ test('displays multiple inline comment markers distinctly', {tag: '@pages'}, asy
 /**
  * @objective Verify inline comment position preservation after edits
  */
-test('preserves inline comment position after nearby text edits', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('preserves inline comment position after nearby text edits', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -344,8 +342,8 @@ test('preserves inline comment position after nearby text edits', {tag: '@pages'
 /**
  * @objective Verify inline comment deletion
  */
-test('deletes inline comment and removes marker', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('deletes inline comment and removes marker', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -389,8 +387,8 @@ test('deletes inline comment and removes marker', {tag: '@pages'}, async ({pw}) 
 /**
  * @objective Verify inline comment count badge in page header
  */
-test('shows inline comment count badge in page header', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('shows inline comment count badge in page header', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -402,9 +400,7 @@ test('shows inline comment count badge in page header', {tag: '@pages'}, async (
     // # Create page with multiple paragraphs through UI
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
-
-    const titleInput = page.locator('[data-testid="wiki-page-title-input"]');
-    await titleInput.fill('Page With Comments');
+    await fillCreatePageModal(page, 'Page With Comments');
 
     const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
     await editor.click();
@@ -443,8 +439,8 @@ test('shows inline comment count badge in page header', {tag: '@pages'}, async (
 /**
  * @objective Verify clicking comment marker opens RHS with comment thread
  */
-test('clicks inline comment marker to open RHS', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('clicks inline comment marker to open RHS', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -476,8 +472,8 @@ test('clicks inline comment marker to open RHS', {tag: '@pages'}, async ({pw}) =
 /**
  * @objective Verify clicking same comment marker again closes RHS (toggle)
  */
-test('clicks active comment marker to close RHS', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('clicks active comment marker to close RHS', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -506,8 +502,8 @@ test('clicks active comment marker to close RHS', {tag: '@pages'}, async ({pw}) 
 /**
  * @objective Verify closing RHS via close button
  */
-test('closes RHS via close button', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('closes RHS via close button', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -542,8 +538,8 @@ test('closes RHS via close button', {tag: '@pages'}, async ({pw}) => {
 /**
  * @objective Verify switching between multiple comment threads
  */
-test('switches between multiple comment threads in RHS', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('switches between multiple comment threads in RHS', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);

@@ -21,11 +21,11 @@ func (api *API) InitWiki() {
 	api.BaseRoutes.Wiki.Handle("/pages", api.APISessionRequired(getWikiPages)).Methods(http.MethodGet)
 	api.BaseRoutes.Wiki.Handle("/pages", api.APISessionRequired(createPage)).Methods(http.MethodPost)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}", api.APISessionRequired(getWikiPage)).Methods(http.MethodGet)
-	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}", api.APISessionRequired(addPageToWiki)).Methods(http.MethodPost)
-	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}", api.APISessionRequired(deletePageFromWiki)).Methods(http.MethodDelete)
+	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}", api.APISessionRequired(deletePage)).Methods(http.MethodDelete)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/breadcrumb", api.APISessionRequired(getPageBreadcrumb)).Methods(http.MethodGet)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/parent", api.APISessionRequired(updatePageParent)).Methods(http.MethodPut)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/move", api.APISessionRequired(movePageToWiki)).Methods(http.MethodPut)
+	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/duplicate", api.APISessionRequired(duplicatePage)).Methods(http.MethodPost)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/comments", api.APISessionRequired(createPageComment)).Methods(http.MethodPost)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/comments/{parent_comment_id:[A-Za-z0-9]+}/replies", api.APISessionRequired(createPageCommentReply)).Methods(http.MethodPost)
 	api.BaseRoutes.Channel.Handle("/pages", api.APISessionRequired(getChannelPages)).Methods(http.MethodGet)
@@ -258,6 +258,17 @@ func getWikiPage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	wiki, getWikiErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
+	if getWikiErr != nil {
+		c.Err = getWikiErr
+		return
+	}
+
+	if wiki.DeleteAt != 0 {
+		c.Err = model.NewAppError("getWikiPage", "api.wiki.get_page.wiki_deleted", nil, "wiki has been deleted", http.StatusNotFound)
+		return
+	}
+
 	page, appErr := c.App.GetPage(c.AppContext, c.Params.PageId)
 	if appErr != nil {
 		c.Err = appErr
@@ -274,19 +285,19 @@ func getWikiPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func addPageToWiki(c *Context, w http.ResponseWriter, r *http.Request) {
+func deletePage(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireWikiId()
 	c.RequirePageId()
 	if c.Err != nil {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("addPageToWiki", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord("deletePage", model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	auditRec.AddMeta("wiki_id", c.Params.WikiId)
 	auditRec.AddMeta("page_id", c.Params.PageId)
 
-	wiki, _, ok := c.RequireWikiModifyPermission(app.WikiOperationEdit, "addPageToWiki")
+	wiki, _, ok := c.RequireWikiModifyPermission(app.WikiOperationDelete, "deletePage")
 	if !ok {
 		return
 	}
@@ -297,61 +308,17 @@ func addPageToWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.HasPermissionToModifyPage(c.AppContext, c.AppContext.Session(), page, app.PageOperationEdit, "addPageToWiki"); err != nil {
+	if err := c.App.HasPermissionToModifyPage(c.AppContext, c.AppContext.Session(), page, app.PageOperationDelete, "deletePage"); err != nil {
 		c.Err = err
 		return
 	}
 
 	if page.ChannelId != wiki.ChannelId {
-		c.Err = model.NewAppError("addPageToWiki", "api.wiki.add.channel_mismatch", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("deletePage", "api.wiki.delete.channel_mismatch", nil, "", http.StatusBadRequest)
 		return
 	}
 
-	if appErr := c.App.AddPageToWiki(c.AppContext, c.Params.PageId, c.Params.WikiId); appErr != nil {
-		c.Err = appErr
-		return
-	}
-
-	auditRec.Success()
-	c.LogAudit("page_id=" + c.Params.PageId + " wiki_id=" + c.Params.WikiId + " wiki_title=" + wiki.Title)
-
-	ReturnStatusOK(w)
-}
-
-func deletePageFromWiki(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireWikiId()
-	c.RequirePageId()
-	if c.Err != nil {
-		return
-	}
-
-	auditRec := c.MakeAuditRecord("deletePageFromWiki", model.AuditStatusFail)
-	defer c.LogAuditRec(auditRec)
-	auditRec.AddMeta("wiki_id", c.Params.WikiId)
-	auditRec.AddMeta("page_id", c.Params.PageId)
-
-	wiki, _, ok := c.RequireWikiModifyPermission(app.WikiOperationDelete, "deletePageFromWiki")
-	if !ok {
-		return
-	}
-
-	page, pageErr := c.App.GetSinglePost(c.AppContext, c.Params.PageId, false)
-	if pageErr != nil {
-		c.Err = pageErr
-		return
-	}
-
-	if err := c.App.HasPermissionToModifyPage(c.AppContext, c.AppContext.Session(), page, app.PageOperationDelete, "deletePageFromWiki"); err != nil {
-		c.Err = err
-		return
-	}
-
-	if page.ChannelId != wiki.ChannelId {
-		c.Err = model.NewAppError("deletePageFromWiki", "api.wiki.delete.channel_mismatch", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	if appErr := c.App.DeletePageFromWiki(c.AppContext, c.Params.PageId, c.Params.WikiId); appErr != nil {
+	if appErr := c.App.DeleteWikiPage(c.AppContext, c.Params.PageId, c.Params.WikiId); appErr != nil {
 		c.Err = appErr
 		return
 	}
@@ -584,6 +551,115 @@ func movePageToWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("page_id=" + c.Params.PageId + " source_wiki_id=" + c.Params.WikiId + " target_wiki_id=" + req.TargetWikiId + " source_wiki_title=" + sourceWiki.Title)
 
 	ReturnStatusOK(w)
+}
+
+func duplicatePage(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireWikiId()
+	c.RequirePageId()
+	if c.Err != nil {
+		return
+	}
+
+	c.Logger.Info("duplicatePage called",
+		mlog.String("wiki_id", c.Params.WikiId),
+		mlog.String("page_id", c.Params.PageId),
+	)
+
+	type DuplicatePageRequest struct {
+		TargetWikiId string  `json:"target_wiki_id"`
+		ParentPageId *string `json:"parent_page_id,omitempty"`
+		Title        *string `json:"title,omitempty"`
+	}
+
+	var req DuplicatePageRequest
+	if jsonErr := json.NewDecoder(r.Body).Decode(&req); jsonErr != nil {
+		c.SetInvalidParamWithErr("request", jsonErr)
+		return
+	}
+
+	if !model.IsValidId(req.TargetWikiId) {
+		c.SetInvalidParam("target_wiki_id")
+		return
+	}
+
+	if req.ParentPageId != nil && *req.ParentPageId != "" && !model.IsValidId(*req.ParentPageId) {
+		c.SetInvalidParam("parent_page_id")
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("duplicatePage", model.AuditStatusFail)
+	model.AddEventParameterToAuditRec(auditRec, "page_id", c.Params.PageId)
+	model.AddEventParameterToAuditRec(auditRec, "source_wiki_id", c.Params.WikiId)
+	model.AddEventParameterToAuditRec(auditRec, "target_wiki_id", req.TargetWikiId)
+	if req.ParentPageId != nil && *req.ParentPageId != "" {
+		model.AddEventParameterToAuditRec(auditRec, "parent_page_id", *req.ParentPageId)
+	}
+	if req.Title != nil && *req.Title != "" {
+		model.AddEventParameterToAuditRec(auditRec, "custom_title", *req.Title)
+	}
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+
+	page, err := c.App.GetSinglePost(c.AppContext, c.Params.PageId, false)
+	if err != nil {
+		c.Logger.Error("GetSinglePost failed in duplicatePage",
+			mlog.String("page_id", c.Params.PageId),
+			mlog.Err(err),
+		)
+		c.Err = err
+		return
+	}
+	c.Logger.Info("GetSinglePost succeeded", mlog.String("page_id", page.Id))
+
+	if err = c.App.HasPermissionToModifyPage(c.AppContext, c.AppContext.Session(), page, app.PageOperationRead, "duplicatePage"); err != nil {
+		c.Err = err
+		return
+	}
+
+	targetWiki, err := c.App.GetWiki(c.AppContext, req.TargetWikiId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	channel, chanErr := c.App.GetChannel(c.AppContext, targetWiki.ChannelId)
+	if chanErr != nil {
+		c.Err = chanErr
+		return
+	}
+
+	var permission *model.Permission
+	switch channel.Type {
+	case model.ChannelTypeOpen:
+		permission = model.PermissionCreatePagePublicChannel
+	case model.ChannelTypePrivate:
+		permission = model.PermissionCreatePagePrivateChannel
+	case model.ChannelTypeGroup, model.ChannelTypeDirect:
+		permission = nil
+	default:
+		c.Err = model.NewAppError("duplicatePage", "api.page.duplicate.invalid_channel_type", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if permission != nil && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), targetWiki.ChannelId, permission) {
+		c.SetPermissionError(permission)
+		return
+	}
+
+	duplicatedPage, appErr := c.App.DuplicatePage(c.AppContext, c.Params.PageId, req.TargetWikiId, req.ParentPageId, req.Title, c.AppContext.Session().UserId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
+	auditRec.AddEventResultState(duplicatedPage)
+	auditRec.AddEventObjectType("page")
+	c.LogAudit("duplicated_page_id=" + duplicatedPage.Id + " target_wiki_id=" + req.TargetWikiId)
+
+	w.WriteHeader(http.StatusCreated)
+	if err := json.NewEncoder(w).Encode(duplicatedPage); err != nil {
+		c.Logger.Warn("Error writing response", mlog.Err(err))
+	}
 }
 
 func getChannelPages(c *Context, w http.ResponseWriter, r *http.Request) {

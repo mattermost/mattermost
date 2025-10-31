@@ -10,13 +10,16 @@ import {DotsVerticalIcon} from '@mattermost/compass-icons/components';
 import type {UserThread, UserThreadSynthetic} from '@mattermost/types/threads';
 
 import {setThreadFollow} from 'mattermost-redux/actions/threads';
+import {PostTypes} from 'mattermost-redux/constants';
 import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getPost, makeGetPostsForThread} from 'mattermost-redux/selectors/entities/posts';
 
+import InlineCommentContext from 'components/inline_comment_context';
 import PopoutButton from 'components/popout_button';
 import Header from 'components/widgets/header';
 import WithTooltip from 'components/with_tooltip';
 
+import {getInlineCommentAnchorText} from 'utils/post_utils';
 import {popoutThread} from 'utils/popouts/popout_windows';
 
 import type {GlobalState} from 'types/store';
@@ -144,6 +147,18 @@ const ThreadPane = ({
                     </>
                 )}
             />
+            {post.type === PostTypes.PAGE && (() => {
+                const anchorText = getInlineCommentAnchorText(postsInThread);
+                if (anchorText) {
+                    return (
+                        <InlineCommentContext
+                            anchorText={anchorText}
+                            variant='banner'
+                        />
+                    );
+                }
+                return null;
+            })()}
             {children}
         </div>
     );

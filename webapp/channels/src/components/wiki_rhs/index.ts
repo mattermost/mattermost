@@ -4,9 +4,9 @@
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
 
 import {publishPage} from 'actions/pages';
 import {closeRightHandSide} from 'actions/views/rhs';

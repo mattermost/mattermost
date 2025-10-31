@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test} from './pages_test_fixture';
 
 import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel} from './test_helpers';
 
@@ -11,8 +11,8 @@ import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextM
  * @precondition
  * This test verifies the TipTap editor rendering behavior during breadcrumb navigation
  */
-test('parent page content renders after breadcrumb navigation from child page', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('parent page content renders after breadcrumb navigation from child page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);

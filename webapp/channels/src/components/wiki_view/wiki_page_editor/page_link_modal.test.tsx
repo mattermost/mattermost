@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {screen, fireEvent} from '@testing-library/react';
+import React from 'react';
 import '@testing-library/jest-dom';
 
 import type {Post} from '@mattermost/types/posts';
 
 import {PostTypes} from 'mattermost-redux/constants/posts';
+
 import {renderWithContext} from 'tests/react_testing_utils';
 
 import PageLinkModal from './page_link_modal';
@@ -32,7 +33,9 @@ describe('PageLinkModal', () => {
             hashtags: '',
             file_ids: [],
             pending_post_id: '',
-            metadata: {},
+            metadata: {} as any,
+            is_pinned: false,
+            reply_count: 0,
         } as Post,
         {
             id: 'page2',
@@ -52,7 +55,9 @@ describe('PageLinkModal', () => {
             hashtags: '',
             file_ids: [],
             pending_post_id: '',
-            metadata: {},
+            metadata: {} as any,
+            is_pinned: false,
+            reply_count: 0,
         } as Post,
         {
             id: 'page3',
@@ -72,7 +77,9 @@ describe('PageLinkModal', () => {
             hashtags: '',
             file_ids: [],
             pending_post_id: '',
-            metadata: {},
+            metadata: {} as any,
+            is_pinned: false,
+            reply_count: 0,
         } as Post,
         {
             id: 'page4',
@@ -92,7 +99,9 @@ describe('PageLinkModal', () => {
             hashtags: '',
             file_ids: [],
             pending_post_id: '',
-            metadata: {},
+            metadata: {} as any,
+            is_pinned: false,
+            reply_count: 0,
         } as Post,
         {
             id: 'page5',
@@ -107,12 +116,14 @@ describe('PageLinkModal', () => {
             channel_id: 'channel1',
             root_id: '',
             parent_id: '',
+            is_pinned: false,
+            reply_count: 0,
             original_id: '',
             message: '',
             hashtags: '',
             file_ids: [],
             pending_post_id: '',
-            metadata: {},
+            metadata: {} as any,
         } as Post,
     ];
 
@@ -178,7 +189,10 @@ describe('PageLinkModal', () => {
     });
 
     test('shows empty state when no pages available', () => {
-        renderWithContext(<PageLinkModal {...baseProps} pages={[]}/>);
+        renderWithContext(<PageLinkModal
+            {...baseProps}
+            pages={[]}
+        />);
 
         expect(screen.getByText('No pages available')).toBeInTheDocument();
     });
@@ -211,7 +225,10 @@ describe('PageLinkModal', () => {
     });
 
     test('uses initial link text from props', () => {
-        renderWithContext(<PageLinkModal {...baseProps} initialLinkText='Pre-filled text'/>);
+        renderWithContext(<PageLinkModal
+            {...baseProps}
+            initialLinkText='Pre-filled text'
+        />);
 
         const linkTextInput = screen.getByLabelText('Link text (optional)') as HTMLInputElement;
         expect(linkTextInput.value).toBe('Pre-filled text');
@@ -332,19 +349,27 @@ describe('PageLinkModal', () => {
             original_id: '',
             message: '',
             hashtags: '',
+            is_pinned: false,
+            reply_count: 0,
             file_ids: [],
             pending_post_id: '',
-            metadata: {},
+            metadata: {} as any,
         } as Post));
 
-        renderWithContext(<PageLinkModal {...baseProps} pages={manyPages}/>);
+        renderWithContext(<PageLinkModal
+            {...baseProps}
+            pages={manyPages}
+        />);
 
         const displayedPages = screen.getAllByRole('option');
         expect(displayedPages).toHaveLength(10);
     });
 
     test('Insert Link button is disabled when no pages available', () => {
-        renderWithContext(<PageLinkModal {...baseProps} pages={[]}/>);
+        renderWithContext(<PageLinkModal
+            {...baseProps}
+            pages={[]}
+        />);
 
         const insertButton = screen.getByText('Insert Link');
         expect(insertButton).toBeDisabled();

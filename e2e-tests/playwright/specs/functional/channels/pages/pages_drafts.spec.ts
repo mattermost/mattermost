@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, ensurePanelOpen, getNewPageButton} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, ensurePanelOpen, getNewPageButton, fillCreatePageModal} from './test_helpers';
 
 /**
  * @objective Verify draft auto-save functionality and persistence
  */
-test('auto-saves draft while editing', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('auto-saves draft while editing', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -21,11 +21,13 @@ test('auto-saves draft while editing', {tag: '@pages'}, async ({pw}) => {
     // # Create draft
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
+    await fillCreatePageModal(page, 'Draft Page');
 
-    const titleInput = page.locator('[data-testid="wiki-page-title-input"]');
-    await titleInput.fill('Draft Page');
-
+    // # Wait for editor to appear (draft created and loaded)
     const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
+    await editor.waitFor({state: 'visible', timeout: 5000});
+
+    // # Fill content
     await editor.click();
     await editor.type('Draft content here');
 
@@ -46,17 +48,18 @@ test('auto-saves draft while editing', {tag: '@pages'}, async ({pw}) => {
     const titleAfterReload = page.locator('[data-testid="wiki-page-title-input"]');
     const editorAfterReload = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
 
-    if (await titleAfterReload.isVisible().catch(() => false)) {
-        await expect(titleAfterReload).toHaveValue('Draft Page');
-        await expect(editorAfterReload).toContainText('Draft content here');
-    }
+    await expect(titleAfterReload).toBeVisible();
+    await expect(titleAfterReload).toHaveValue('Draft Page');
+
+    await expect(editorAfterReload).toBeVisible();
+    await expect(editorAfterReload).toContainText('Draft content here');
 });
 
 /**
  * @objective Verify draft discard functionality
  */
-test('discards draft and removes from hierarchy', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('discards draft and removes from hierarchy', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -68,43 +71,48 @@ test('discards draft and removes from hierarchy', {tag: '@pages'}, async ({pw}) 
     // # Create draft
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
+    await fillCreatePageModal(page, 'Draft to Discard');
 
-    const titleInput = page.locator('[data-testid="wiki-page-title-input"]');
-    await titleInput.fill('Draft to Discard');
-
+    // # Wait for editor to appear (draft created and loaded)
     const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
+    await editor.waitFor({state: 'visible', timeout: 5000});
+
+    // # Fill content
     await editor.click();
     await editor.type('This will be discarded');
 
     // Wait for auto-save
     await page.waitForTimeout(2000);
 
-    // # Discard draft
-    const discardButton = page.locator('[data-testid="discard-button"]');
-    if (await discardButton.isVisible().catch(() => false)) {
-        await discardButton.click();
+    // # Delete draft via hierarchy panel context menu
+    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const draftNode = hierarchyPanel.locator('[data-testid="page-tree-node"]', {hasText: 'Draft to Discard'});
 
-        // Handle confirmation modal
-        const confirmModal = page.getByRole('dialog', {name: /Discard|Confirm/i});
-        if (await confirmModal.isVisible({timeout: 3000}).catch(() => false)) {
-            const confirmButton = confirmModal.locator('[data-testid="wiki-page-discard-button"], [data-testid="confirm-button"]').first();
-            await confirmButton.click();
-        }
+    const menuButton = draftNode.locator('[data-testid="page-tree-node-menu-button"]');
+    await menuButton.click();
 
-        await page.waitForLoadState('networkidle');
+    const deleteMenuItem = page.locator('[data-testid="page-context-menu-delete"]');
+    await deleteMenuItem.click();
 
-        // * Verify navigated away from draft URL
-        await page.waitForTimeout(500);
-        const currentUrl = page.url();
-        expect(currentUrl).not.toMatch(/\/drafts\//);
-    }
+    // # Confirm deletion in modal (MM modal for drafts, per our P0 fix)
+    const confirmDialog = page.getByRole('dialog', {name: /Delete|Confirm/i});
+    await expect(confirmDialog).toBeVisible({timeout: 3000});
+
+    const confirmButton = confirmDialog.getByRole('button', {name: /Delete|Confirm/i});
+    await confirmButton.click();
+
+    await page.waitForLoadState('networkidle');
+
+    // * Verify draft removed from hierarchy
+    await page.waitForTimeout(500);
+    await expect(draftNode).not.toBeVisible();
 });
 
 /**
  * @objective Verify multiple drafts display in hierarchy panel
  */
-test('shows multiple drafts in hierarchy section', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('shows multiple drafts in hierarchy section', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -114,12 +122,9 @@ test('shows multiple drafts in hierarchy section', {tag: '@pages'}, async ({pw})
     const wiki = await createWikiThroughUI(page, `Multi Draft Wiki ${pw.random.id()}`);
 
     // # Create first draft
-    page.once('dialog', async (dialog) => {
-        await dialog.accept('Draft 1');
-    });
-
     let newPageButton = getNewPageButton(page);
     await newPageButton.click();
+    await fillCreatePageModal(page, 'Draft 1');
 
     await page.waitForTimeout(1000); // Wait for editor to load
 
@@ -155,11 +160,8 @@ test('shows multiple drafts in hierarchy section', {tag: '@pages'}, async ({pw})
     await newPageButton.waitFor({state: 'visible', timeout: 10000});
 
     // # Create second draft
-    page.once('dialog', async (dialog) => {
-        await dialog.accept('Draft 2');
-    });
-
     await newPageButton.click();
+    await fillCreatePageModal(page, 'Draft 2');
 
     await page.waitForTimeout(1000); // Wait for editor to load
 
@@ -186,8 +188,8 @@ test('shows multiple drafts in hierarchy section', {tag: '@pages'}, async ({pw})
 /**
  * @objective Verify draft recovery after browser refresh
  */
-test('recovers draft after browser refresh', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('recovers draft after browser refresh', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -199,11 +201,13 @@ test('recovers draft after browser refresh', {tag: '@pages'}, async ({pw}) => {
     // # Create draft
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
+    await fillCreatePageModal(page, 'Draft Before Refresh');
 
-    const titleInput = page.locator('[data-testid="wiki-page-title-input"]');
-    await titleInput.fill('Draft Before Refresh');
-
+    // # Wait for editor to appear (draft created and loaded)
     const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
+    await editor.waitFor({state: 'visible', timeout: 5000});
+
+    // # Fill content
     await editor.click();
     await editor.type('Content that should survive refresh');
 
@@ -224,29 +228,25 @@ test('recovers draft after browser refresh', {tag: '@pages'}, async ({pw}) => {
     const titleVisible = await titleAfterRefresh.isVisible().catch(() => false);
 
     if (editorVisible && titleVisible) {
-        // Draft recovered in editor
+        // * Verify draft recovered in editor with both title AND content preserved
         const titleValue = await titleAfterRefresh.inputValue();
         const editorText = await editorAfterRefresh.textContent();
 
-        const titleMatches = titleValue === 'Draft Before Refresh';
-        const contentMatches = editorText?.includes('Content that should survive refresh');
-
-        expect(titleMatches || contentMatches).toBe(true);
+        expect(titleValue).toBe('Draft Before Refresh');
+        expect(editorText).toContain('Content that should survive refresh');
     } else {
-        // Draft should be in hierarchy tree (drafts are integrated in tree)
+        // * Verify draft appears in hierarchy tree (drafts are integrated in tree)
         const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
         const draftNode = hierarchyPanel.locator('[data-testid="page-tree-node"][data-is-draft="true"]', {hasText: 'Draft Before Refresh'});
-        if (await draftNode.isVisible().catch(() => false)) {
-            await expect(draftNode).toBeVisible();
-        }
+        await expect(draftNode).toBeVisible();
     }
 });
 
 /**
  * @objective Verify editing published page creates draft
  */
-test('converts published page to draft when editing', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('converts published page to draft when editing', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -283,8 +283,8 @@ test('converts published page to draft when editing', {tag: '@pages'}, async ({p
 /**
  * @objective Verify clicking draft node in hierarchy navigates to draft editor
  */
-test('navigates to draft editor when clicking draft node', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('navigates to draft editor when clicking draft node', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -296,10 +296,11 @@ test('navigates to draft editor when clicking draft node', {tag: '@pages'}, asyn
     // # Create draft
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
+    await fillCreatePageModal(page, 'Navigable Draft');
+
+    await page.waitForTimeout(1000); // Wait for editor to load
 
     const titleInput = page.locator('[data-testid="wiki-page-title-input"]');
-    await titleInput.fill('Navigable Draft');
-
     const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
     await editor.click();
     await editor.type('Draft content');
@@ -331,8 +332,8 @@ test('navigates to draft editor when clicking draft node', {tag: '@pages'}, asyn
 /**
  * @objective Verify draft node appears at correct hierarchy level
  */
-test('shows draft node as child of intended parent in tree', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('shows draft node as child of intended parent in tree', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -355,21 +356,15 @@ test('shows draft node as child of intended parent in tree', {tag: '@pages'}, as
     }
 
     // # Create child draft via right-click context menu
-    page.once('dialog', async (dialog) => {
-        await dialog.accept('Child Draft Node');
-    });
-
     await parentNode.click({button: 'right'});
 
     const contextMenu = page.locator('[data-testid="page-context-menu"]');
     if (await contextMenu.isVisible({timeout: 2000}).catch(() => false)) {
         const createSubpageButton = contextMenu.locator('button:has-text("Create"), button:has-text("Subpage")').first();
         await createSubpageButton.click();
+        await fillCreatePageModal(page, 'Child Draft Node');
 
         await page.waitForTimeout(1000); // Wait for editor to load
-
-        const titleInput = page.locator('[data-testid="wiki-page-title-input"]');
-        await titleInput.fill('Child Draft Node');
 
         const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
         await editor.click();
@@ -393,8 +388,8 @@ test('shows draft node as child of intended parent in tree', {tag: '@pages'}, as
 /**
  * @objective Verify switching between multiple drafts preserves content
  */
-test('switches between multiple drafts without losing content', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('switches between multiple drafts without losing content', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -404,12 +399,9 @@ test('switches between multiple drafts without losing content', {tag: '@pages'},
     const wiki = await createWikiThroughUI(page, `Multi Switch Wiki ${pw.random.id()}`);
 
     // # Create first draft
-    page.once('dialog', async (dialog) => {
-        await dialog.accept('First Draft');
-    });
-
     let newPageButton = getNewPageButton(page);
     await newPageButton.click();
+    await fillCreatePageModal(page, 'First Draft');
 
     await page.waitForTimeout(1000); // Wait for editor to load
 
@@ -444,11 +436,8 @@ test('switches between multiple drafts without losing content', {tag: '@pages'},
     newPageButton = getNewPageButton(page);
     await newPageButton.waitFor({state: 'visible', timeout: 10000});
 
-    page.once('dialog', async (dialog) => {
-        await dialog.accept('Second Draft');
-    });
-
     await newPageButton.click();
+    await fillCreatePageModal(page, 'Second Draft');
 
     await page.waitForTimeout(1000); // Wait for editor to load
 
@@ -491,8 +480,8 @@ test('switches between multiple drafts without losing content', {tag: '@pages'},
 /**
  * @objective Verify draft visual distinction in hierarchy panel
  */
-test('displays draft nodes with visual distinction from published pages', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('displays draft nodes with visual distinction from published pages', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -503,13 +492,9 @@ test('displays draft nodes with visual distinction from published pages', {tag: 
     const publishedPage = await createPageThroughUI(page, 'Published Page', 'Published content');
 
     // # Create draft
-    // Handle native prompt dialog for page title
-    page.once('dialog', async (dialog) => {
-        await dialog.accept('Draft Page');
-    });
-
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
+    await fillCreatePageModal(page, 'Draft Page');
 
     // Wait for editor to load
     await page.waitForTimeout(1000);
@@ -548,4 +533,60 @@ test('displays draft nodes with visual distinction from published pages', {tag: 
         const publishedIsDraft = await publishedContainer.getAttribute('data-is-draft');
         expect(publishedIsDraft).toBe('false');
     }
+});
+
+/**
+ * @objective Verify publishing default wiki page immediately removes draft entry from hierarchy without duplicate nodes
+ */
+test('removes draft from hierarchy after immediately publishing default wiki page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki through UI (creates default page as draft)
+    const wikiName = `Wiki ${pw.random.id()}`;
+    const wiki = await createWikiThroughUI(page, wikiName);
+
+    // # Ensure pages panel is open
+    await ensurePanelOpen(page);
+
+    // # Wait for wiki to load - but minimize waits to increase race condition likelihood
+    await page.waitForLoadState('networkidle');
+
+    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+
+    // # The default page should already be loaded in the editor after wiki creation
+    // Get the title to verify the page later (should be "Untitled page" or wiki name)
+    const titleInput = page.locator('[data-testid="wiki-page-title-input"]');
+    await titleInput.waitFor({state: 'visible', timeout: 5000});
+    const pageTitle = await titleInput.inputValue();
+
+    // # Publish IMMEDIATELY without delays (this increases race condition probability)
+    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]');
+    await publishButton.waitFor({state: 'visible', timeout: 5000});
+    await publishButton.click();
+
+    // # Wait for publish to complete and state to stabilize
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(500);
+
+    // * Verify only published page exists (no draft entry)
+    const publishedPageNode = hierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle}).first();
+    await expect(publishedPageNode).toBeVisible({timeout: 5000});
+
+    // * Verify the page is marked as published (not draft)
+    const isDraftAttribute = await publishedPageNode.getAttribute('data-is-draft');
+    expect(isDraftAttribute).toBe('false');
+
+    // * Verify there's no draft badge
+    const draftBadge = publishedPageNode.locator('[data-testid="draft-badge"]');
+    expect(await draftBadge.isVisible().catch(() => false)).toBe(false);
+
+    // * Verify there's only ONE page node with this title (not both published and draft)
+    const allNodesWithName = hierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});
+    const nodeCount = await allNodesWithName.count();
+    expect(nodeCount).toBe(1);
 });

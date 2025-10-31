@@ -84,18 +84,12 @@ function storage(state: Record<string, any> = {}, action: MMAction) {
 
     case WikiTypes.DELETED_DRAFT: {
         const {id, wikiId} = action.data;
-        console.log('[DEBUG] DELETED_DRAFT action received:', {id, wikiId, action});
         if (!id || !wikiId) {
-            console.log('[DEBUG] DELETED_DRAFT skipped - missing id or wikiId');
             return state;
         }
         const draftKey = `${StoragePrefixes.PAGE_DRAFT}${wikiId}_${id}`;
-        console.log('[DEBUG] DELETED_DRAFT removing key:', draftKey);
-        console.log('[DEBUG] Draft exists before delete?', draftKey in state);
         const nextState = {...state};
         Reflect.deleteProperty(nextState, draftKey);
-        console.log('[DEBUG] Draft exists after delete?', draftKey in nextState);
-        console.log('[DEBUG] All storage keys after delete:', Object.keys(nextState).filter((k) => k.startsWith(StoragePrefixes.PAGE_DRAFT)));
         return nextState;
     }
 

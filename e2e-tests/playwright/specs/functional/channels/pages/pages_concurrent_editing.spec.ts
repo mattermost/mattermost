@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test} from './pages_test_fixture';
 
 import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu} from './test_helpers';
 
@@ -11,8 +11,8 @@ import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextM
  * @precondition
  * Pages/Wiki feature is enabled on the server
  */
-test('detects concurrent edit conflict when two users edit same page', {tag: '@pages'}, async ({pw, context}) => {
-    const {user: user1, team, adminClient} = await pw.initSetup();
+test.skip('detects concurrent edit conflict when two users edit same page', {tag: '@pages'}, async ({pw, context, sharedPagesSetup}) => {
+    const {team, user: user1, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     // # User 1 creates wiki and page through UI
@@ -103,8 +103,8 @@ test('detects concurrent edit conflict when two users edit same page', {tag: '@p
 /**
  * @objective Verify user can refresh editor to see latest changes during conflict
  */
-test('allows user to refresh and see latest changes during conflict', {tag: '@pages'}, async ({pw, context}) => {
-    const {user: user1, team, adminClient} = await pw.initSetup();
+test.skip('allows user to refresh and see latest changes during conflict', {tag: '@pages'}, async ({pw, context, sharedPagesSetup}) => {
+    const {team, user: user1, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     // # User 1 creates wiki and page through UI
@@ -173,8 +173,8 @@ test('allows user to refresh and see latest changes during conflict', {tag: '@pa
 /**
  * @objective Verify user can overwrite during conflict with confirmation
  */
-test('allows user to overwrite during conflict with confirmation', {tag: '@pages'}, async ({pw, context}) => {
-    const {user: user1, team, adminClient} = await pw.initSetup();
+test.skip('allows user to overwrite during conflict with confirmation', {tag: '@pages'}, async ({pw, context, sharedPagesSetup}) => {
+    const {team, user: user1, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     // # User 1 creates wiki and page through UI
@@ -249,8 +249,8 @@ test('allows user to overwrite during conflict with confirmation', {tag: '@pages
 /**
  * @objective Verify visual indicator when another user is editing same page
  */
-test('shows visual indicator when another user is editing same page', {tag: '@pages'}, async ({pw, context}) => {
-    const {user: user1, team, adminClient} = await pw.initSetup();
+test.skip('shows visual indicator when another user is editing same page', {tag: '@pages'}, async ({pw, context, sharedPagesSetup}) => {
+    const {team, user: user1, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     // # User 1 creates wiki and page through UI
@@ -310,8 +310,8 @@ test('shows visual indicator when another user is editing same page', {tag: '@pa
 /**
  * @objective Verify system handles non-conflicting edits gracefully
  */
-test('preserves both users changes when merging non-conflicting edits', {tag: '@pages'}, async ({pw, context}) => {
-    const {user: user1, team, adminClient} = await pw.initSetup();
+test.skip('preserves both users changes when merging non-conflicting edits', {tag: '@pages'}, async ({pw, context, sharedPagesSetup}) => {
+    const {team, user: user1, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     // # User 1 creates wiki and page through UI

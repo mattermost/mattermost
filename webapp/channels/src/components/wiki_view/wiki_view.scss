@@ -539,3 +539,31 @@
         padding-left: 64px;
     }
 }
+
+body.fullscreen-mode {
+    overflow: hidden;
+
+    .team-sidebar,
+    .sidebar-left,
+    .sidebar-right,
+    .pages-hierarchy-panel,
+    .channel-header,
+    .channel-bookmarks {
+        display: none;
+    }
+
+    .WikiView {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 900;
+        background: var(--center-channel-bg);
+    }
+
+    .PagePane {
+        width: 100%;
+        height: 100%;
+    }
+}

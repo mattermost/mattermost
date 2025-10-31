@@ -35,6 +35,9 @@ import type {GlobalState} from 'types/store';
 
 type OwnProps = {
     rootPostId: string;
+    useRelativeTimestamp?: boolean;
+    isThreadView: boolean;
+    hideRootPost?: boolean;
 };
 
 function makeMapStateToProps() {
@@ -83,6 +86,9 @@ function makeMapStateToProps() {
             selectedPostFocusedAt,
             enableWebSocketEventScope,
             lastUpdateAt,
+            useRelativeTimestamp: ownProps.useRelativeTimestamp,
+            isThreadView: ownProps.isThreadView,
+            hideRootPost: ownProps.hideRootPost,
         };
 
         return result;

@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton, fillCreatePageModal} from './test_helpers';
 
 /**
  * @objective Verify pages can be found using title search
  */
-test('searches pages by title', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('searches pages by title', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -60,8 +60,8 @@ test('searches pages by title', {tag: '@pages'}, async ({pw}) => {
 /**
  * @objective Verify pages can be found using content search
  */
-test('searches pages by content', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('searches pages by content', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -74,9 +74,7 @@ test('searches pages by content', {tag: '@pages'}, async ({pw}) => {
     const uniqueContent = `UniqueSearchableContent${pw.random.id()}`;
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
-
-    const titleInput = page.locator('[data-testid="wiki-page-title-input"]');
-    await titleInput.fill('Page with Searchable Content');
+    await fillCreatePageModal(page, 'Page with Searchable Content');
 
     const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
     await editor.click();

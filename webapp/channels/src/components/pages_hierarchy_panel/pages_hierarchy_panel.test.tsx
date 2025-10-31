@@ -3,17 +3,18 @@
 
 // ZERO MOCKS - Uses real child components and real API data
 
-import React from 'react';
 import {screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import React from 'react';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {renderWithContext} from 'tests/react_testing_utils';
-import {setupWikiTestContext, createTestPage, type WikiTestContext} from 'tests/api_test_helpers';
 import {transformPageServerDraft} from 'actions/page_drafts';
+
+import {setupWikiTestContext, createTestPage, type WikiTestContext} from 'tests/api_test_helpers';
+import {renderWithContext} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
@@ -38,12 +39,12 @@ describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
     }, 30000);
 
     const getBaseProps = async () => {
-        const pages = await Client4.getWikiPages(testContext.wikiId);
+        const pages = await Client4.getPages(testContext.wikiId);
         const serverDrafts = await Client4.getPageDraftsForWiki(testContext.wikiId);
 
         // Transform server drafts to PostDraft format (matching what the component expects)
         const drafts: PostDraft[] = serverDrafts.map((draft) =>
-            transformPageServerDraft(draft, testContext.wikiId, draft.root_id).value
+            transformPageServerDraft(draft, testContext.wikiId, draft.root_id).value,
         );
 
         return {
@@ -56,18 +57,20 @@ describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
             expandedNodes: {},
             selectedPageId: null,
             isPanelCollapsed: false,
+            lastInvalidated: Date.now(),
             actions: {
-                loadWikiPages: jest.fn().mockResolvedValue({data: pages}),
+                loadPages: jest.fn().mockResolvedValue({data: pages}),
                 loadPageDraftsForWiki: jest.fn().mockResolvedValue({data: drafts}),
                 removePageDraft: jest.fn().mockResolvedValue({data: true}),
                 toggleNodeExpanded: jest.fn(),
                 setSelectedPage: jest.fn(),
                 expandAncestors: jest.fn(),
                 createPage: jest.fn().mockResolvedValue({data: 'draft-new'}),
-                renamePage: jest.fn().mockResolvedValue({data: pages[0]}),
+                updatePage: jest.fn().mockResolvedValue({data: pages[0]}),
                 deletePage: jest.fn().mockResolvedValue({data: true}),
                 movePage: jest.fn().mockResolvedValue({data: pages[0]}),
                 movePageToWiki: jest.fn().mockResolvedValue({data: true}),
+                duplicatePage: jest.fn().mockResolvedValue({data: pages[0]}),
                 closePagesPanel: jest.fn(),
             },
         };
@@ -163,7 +166,7 @@ describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
             const baseProps = await getBaseProps();
             renderWithContext(<PagesHierarchyPanel {...baseProps}/>, getInitialState());
 
-            expect(baseProps.actions.loadWikiPages).toHaveBeenCalledWith(testContext.wikiId);
+            expect(baseProps.actions.loadPages).toHaveBeenCalledWith(testContext.wikiId);
             expect(baseProps.actions.loadPageDraftsForWiki).toHaveBeenCalledWith(testContext.wikiId);
         });
 
@@ -171,7 +174,10 @@ describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
             const baseProps = await getBaseProps();
             const {rerender} = renderWithContext(<PagesHierarchyPanel {...baseProps}/>, getInitialState());
 
-            rerender(<PagesHierarchyPanel {...baseProps} currentPageId={testContext.pageIds[1]}/>);
+            rerender(<PagesHierarchyPanel
+                {...baseProps}
+                currentPageId={testContext.pageIds[1]}
+            />);
 
             expect(baseProps.actions.setSelectedPage).toHaveBeenCalledWith(testContext.pageIds[1]);
         });
@@ -195,7 +201,7 @@ describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
 
             const serverDrafts = await Client4.getPageDraftsForWiki(testContext.wikiId);
             const drafts: PostDraft[] = serverDrafts.map((draft) =>
-                transformPageServerDraft(draft, testContext.wikiId, draft.root_id).value
+                transformPageServerDraft(draft, testContext.wikiId, draft.root_id).value,
             );
             const props = {...baseProps, drafts};
             renderWithContext(<PagesHierarchyPanel {...props}/>, getInitialState());
@@ -214,22 +220,9 @@ describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
         });
     });
 
-
     describe('Page Creation', () => {
-        let originalPrompt: typeof window.prompt;
-
-        beforeEach(() => {
-            originalPrompt = window.prompt;
-            window.prompt = jest.fn();
-        });
-
-        afterEach(() => {
-            window.prompt = originalPrompt;
-        });
-
         test('should create new root page', async () => {
             const user = userEvent.setup();
-            (window.prompt as jest.Mock).mockReturnValue('New Page');
 
             const baseProps = await getBaseProps();
             renderWithContext(<PagesHierarchyPanel {...baseProps}/>, getInitialState());
@@ -237,14 +230,19 @@ describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
             const newPageButton = screen.getByRole('button', {name: /new page/i});
             await user.click(newPageButton);
 
+            const input = await screen.findByTestId('create-page-modal-title-input');
+            await user.type(input, 'New Page');
+
+            const confirmButton = screen.getByRole('button', {name: /create/i});
+            await user.click(confirmButton);
+
             await waitFor(() => {
-                expect(baseProps.actions.createPage).toHaveBeenCalledWith(testContext.wikiId, 'New Page');
+                expect(baseProps.actions.createPage).toHaveBeenCalledWith(testContext.wikiId, 'New Page', undefined);
             });
         });
 
         test('should not create page if title is empty', async () => {
             const user = userEvent.setup();
-            (window.prompt as jest.Mock).mockReturnValue('');
 
             const baseProps = await getBaseProps();
             renderWithContext(<PagesHierarchyPanel {...baseProps}/>, getInitialState());
@@ -252,14 +250,17 @@ describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
             const newPageButton = screen.getByRole('button', {name: /new page/i});
             await user.click(newPageButton);
 
-            await waitFor(() => {
-                expect(baseProps.actions.createPage).not.toHaveBeenCalled();
-            });
+            const input = await screen.findByTestId('create-page-modal-title-input');
+            await user.clear(input);
+
+            const confirmButton = screen.getByRole('button', {name: /create/i});
+            expect(confirmButton).toBeDisabled();
+
+            expect(baseProps.actions.createPage).not.toHaveBeenCalled();
         });
 
         test('should not create page if user cancels', async () => {
             const user = userEvent.setup();
-            (window.prompt as jest.Mock).mockReturnValue(null);
 
             const baseProps = await getBaseProps();
             renderWithContext(<PagesHierarchyPanel {...baseProps}/>, getInitialState());
@@ -267,14 +268,16 @@ describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
             const newPageButton = screen.getByRole('button', {name: /new page/i});
             await user.click(newPageButton);
 
-            await waitFor(() => {
-                expect(baseProps.actions.createPage).not.toHaveBeenCalled();
-            });
+            await screen.findByTestId('create-page-modal-title-input');
+
+            const cancelButton = screen.getByRole('button', {name: /cancel/i});
+            await user.click(cancelButton);
+
+            expect(baseProps.actions.createPage).not.toHaveBeenCalled();
         });
 
         test('should create child page from context menu', async () => {
             const user = userEvent.setup();
-            (window.prompt as jest.Mock).mockReturnValue('Child Page');
 
             const baseProps = await getBaseProps();
             const {container} = renderWithContext(<PagesHierarchyPanel {...baseProps}/>, getInitialState());
@@ -282,6 +285,16 @@ describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
             const dotMenuButton = container.querySelector('.tree-node-menu-button');
             if (dotMenuButton) {
                 await user.click(dotMenuButton);
+
+                const createChildButton = await screen.findByText(/create child/i);
+                await user.click(createChildButton);
+
+                const input = await screen.findByTestId('create-page-modal-title-input');
+                await user.type(input, 'Child Page');
+
+                const confirmButton = screen.getByRole('button', {name: /create/i});
+                await user.click(confirmButton);
+
                 await waitFor(() => {
                     expect(baseProps.actions.createPage).toHaveBeenCalledWith(testContext.wikiId, 'Child Page', testContext.pageIds[0]);
                 });
@@ -290,7 +303,6 @@ describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
 
         test('should select newly created page', async () => {
             const user = userEvent.setup();
-            (window.prompt as jest.Mock).mockReturnValue('New Page');
 
             const baseProps = await getBaseProps();
             baseProps.actions.createPage.mockResolvedValue({data: 'draft-new'});
@@ -300,6 +312,12 @@ describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
             const newPageButton = screen.getByRole('button', {name: /new page/i});
             await user.click(newPageButton);
 
+            const input = await screen.findByTestId('create-page-modal-title-input');
+            await user.type(input, 'New Page');
+
+            const confirmButton = screen.getByRole('button', {name: /create/i});
+            await user.click(confirmButton);
+
             await waitFor(() => {
                 expect(baseProps.actions.setSelectedPage).toHaveBeenCalledWith('draft-new');
                 expect(baseProps.onPageSelect).toHaveBeenCalledWith('draft-new');
@@ -308,7 +326,6 @@ describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
 
         test('should prevent multiple simultaneous page creations', async () => {
             const user = userEvent.setup();
-            (window.prompt as jest.Mock).mockReturnValue('New Page');
 
             const baseProps = await getBaseProps();
 
@@ -321,8 +338,15 @@ describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
             renderWithContext(<PagesHierarchyPanel {...baseProps}/>, getInitialState());
 
             const newPageButton = screen.getByRole('button', {name: /new page/i});
-            const click1 = user.click(newPageButton);
-            const click2 = user.click(newPageButton);
+            await user.click(newPageButton);
+
+            const input = await screen.findByTestId('create-page-modal-title-input');
+            await user.type(input, 'New Page');
+
+            const confirmButton = screen.getByRole('button', {name: /create/i});
+
+            const click1 = user.click(confirmButton);
+            const click2 = user.click(confirmButton);
 
             await Promise.all([click1, click2]);
 
@@ -351,7 +375,7 @@ describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
 
         test('should display drafts in tree', async () => {
             const draftId = `draft-${Date.now()}`;
-            await Client4.savePageDraft(testContext.wikiId, draftId, '{\"type\":\"doc\"}', 'Draft Page', undefined, {});
+            await Client4.savePageDraft(testContext.wikiId, draftId, '{"type":"doc"}', 'Draft Page', undefined, {});
 
             const baseProps = await getBaseProps();
             renderWithContext(<PagesHierarchyPanel {...baseProps}/>, getInitialState());
@@ -374,8 +398,6 @@ describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
     describe('Error Handling', () => {
         test('should handle page creation error gracefully', async () => {
             const user = userEvent.setup();
-            const originalPrompt = window.prompt;
-            window.prompt = jest.fn().mockReturnValue('New Page');
 
             const baseProps = await getBaseProps();
             baseProps.actions.createPage.mockResolvedValue({error: 'Creation failed'});
@@ -385,11 +407,15 @@ describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
             const newPageButton = screen.getByRole('button', {name: /new page/i});
             await user.click(newPageButton);
 
+            const input = await screen.findByTestId('create-page-modal-title-input');
+            await user.type(input, 'New Page');
+
+            const confirmButton = screen.getByRole('button', {name: /create/i});
+            await user.click(confirmButton);
+
             await waitFor(() => {
                 expect(baseProps.actions.setSelectedPage).not.toHaveBeenCalled();
             });
-
-            window.prompt = originalPrompt;
         });
     });
 });

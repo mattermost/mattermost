@@ -19,6 +19,7 @@ import type {PropsFromRedux} from './index';
 const ChannelHeader = makeAsyncComponent('ChannelHeader', lazy(() => import('components/channel_header')));
 const FileUploadOverlay = makeAsyncComponent('FileUploadOverlay', lazy(() => import('components/file_upload_overlay')));
 const ChannelBookmarks = makeAsyncComponent('ChannelBookmarks', lazy(() => import('components/channel_bookmarks')));
+const ChannelTabBar = makeAsyncComponent('ChannelTabBar', lazy(() => import('components/channel_tab_bar')));
 const AdvancedCreatePost = makeAsyncComponent('AdvancedCreatePost', lazy(() => import('components/advanced_create_post')));
 const ChannelBanner = makeAsyncComponent('ChannelBanner', lazy(() => import('components/channel_banner/channel_banner')));
 
@@ -223,6 +224,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                 />
                 <ChannelHeader/>
                 {this.props.isChannelBookmarksEnabled && <ChannelBookmarks channelId={this.props.channelId}/>}
+                <ChannelTabBar channelId={this.props.channelId}/>
                 <ChannelBanner channelId={this.props.channelId}/>
                 <DeferredPostView
                     channelId={this.props.channelId}

@@ -5,14 +5,18 @@ import classNames from 'classnames';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 
 import type {Post} from '@mattermost/types/posts';
+
 import {Client4} from 'mattermost-redux/client';
+
+import DuplicatePageModal from 'components/duplicate_page_modal';
+import MovePageModal from 'components/move_page_modal';
+import TextInputModal from 'components/text_input_modal';
 
 import {PageDisplayTypes} from 'utils/constants';
 
 import type {PostDraft} from 'types/store/draft';
 
 import DeletePageModal from './delete_page_modal';
-import MovePageModal from 'components/move_page_modal';
 import PageSearchBar from './page_search_bar';
 import PageTreeView from './page_tree_view';
 import PagesHeader from './pages_header';
@@ -35,18 +39,20 @@ type Props = {
     expandedNodes: {[pageId: string]: boolean};
     selectedPageId: string | null;
     isPanelCollapsed: boolean;
+    lastInvalidated: number;
     actions: {
-        loadWikiPages: (wikiId: string) => Promise<{data?: Post[]; error?: any}>;
+        loadPages: (wikiId: string) => Promise<{data?: Post[]; error?: any}>;
         loadPageDraftsForWiki: (wikiId: string) => Promise<{data?: PostDraft[]; error?: any}>;
         removePageDraft: (wikiId: string, draftId: string) => Promise<{data?: boolean; error?: any}>;
         toggleNodeExpanded: (wikiId: string, nodeId: string) => void;
         setSelectedPage: (pageId: string | null) => void;
         expandAncestors: (wikiId: string, ancestorIds: string[]) => void;
         createPage: (wikiId: string, title: string, pageParentId?: string) => Promise<{data?: any; error?: any}>;
-        renamePage: (pageId: string, newTitle: string, wikiId: string) => Promise<{data?: Post; error?: any}>;
+        updatePage: (pageId: string, newTitle: string, wikiId: string) => Promise<{data?: Post; error?: any}>;
         deletePage: (pageId: string, wikiId: string) => Promise<{data?: boolean; error?: any}>;
         movePage: (pageId: string, newParentId: string, wikiId: string) => Promise<{data?: Post; error?: any}>;
         movePageToWiki: (pageId: string, sourceWikiId: string, targetWikiId: string, parentPageId?: string) => Promise<{data?: boolean; error?: any}>;
+        duplicatePage: (pageId: string, sourceWikiId: string, targetWikiId: string, parentPageId?: string, customTitle?: string) => Promise<{data?: Post; error?: any}>;
         closePagesPanel: () => void;
     };
 };
@@ -62,6 +68,7 @@ const PagesHierarchyPanel = ({
     expandedNodes,
     selectedPageId,
     isPanelCollapsed,
+    lastInvalidated,
     actions,
 }: Props) => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -72,31 +79,20 @@ const PagesHierarchyPanel = ({
     const [pageToDelete, setPageToDelete] = useState<{page: Post; childCount: number} | null>(null);
     const [showMoveModal, setShowMoveModal] = useState(false);
     const [pageToMove, setPageToMove] = useState<{pageId: string; pageTitle: string; hasChildren: boolean} | null>(null);
+    const [showDuplicateModal, setShowDuplicateModal] = useState(false);
+    const [pageToDuplicate, setPageToDuplicate] = useState<{pageId: string; pageTitle: string; hasChildren: boolean} | null>(null);
     const [availableWikis, setAvailableWikis] = useState<any[]>([]);
+    const [showCreatePageModal, setShowCreatePageModal] = useState(false);
+    const [createPageParent, setCreatePageParent] = useState<{id: string; title: string} | null>(null);
+    const [showRenameModal, setShowRenameModal] = useState(false);
+    const [pageToRename, setPageToRename] = useState<{pageId: string; currentTitle: string} | null>(null);
 
-    // Load pages and drafts on mount or when wikiId changes
+    // Load pages and drafts on mount, when wikiId changes, or when pages are invalidated
+    // lastInvalidated timestamp changes when wiki is renamed/modified, triggering a reload
     useEffect(() => {
-        actions.loadWikiPages(wikiId);
+        actions.loadPages(wikiId);
         actions.loadPageDraftsForWiki(wikiId);
-    }, [wikiId]);
-
-    // Memoize pageMap to avoid recreating it on every render
-    const pageMap = useMemo(() => {
-        return new Map(pages.map((p) => [p.id, p]));
-    }, [pages]);
-
-    // Set selected page when currentPageId changes
-    useEffect(() => {
-        if (currentPageId && currentPageId !== selectedPageId) {
-            actions.setSelectedPage(currentPageId);
-
-            // Expand ancestors to show path to current page
-            const ancestorIds = getAncestorIds(pages, currentPageId, pageMap);
-            if (ancestorIds.length > 0) {
-                actions.expandAncestors(wikiId, ancestorIds);
-            }
-        }
-    }, [currentPageId, pages, wikiId, pageMap, selectedPageId, actions]);
+    }, [wikiId, lastInvalidated]);
 
     // Convert drafts to Post-like objects to include in tree
     const draftPosts: DraftPage[] = useMemo(() => {
@@ -134,20 +130,51 @@ const PagesHierarchyPanel = ({
         }));
     }, [drafts]);
 
+    // Memoize pageMap to avoid recreating it on every render
+    // Must include both pages and drafts since tree contains both
+    const pageMap = useMemo(() => {
+        return new Map([...pages, ...draftPosts].map((p) => [p.id, p]));
+    }, [pages, draftPosts]);
+
+    // Set selected page and expand ancestors when currentPageId changes
+    useEffect(() => {
+        if (currentPageId) {
+            // Update selected page if it changed
+            if (currentPageId !== selectedPageId) {
+                actions.setSelectedPage(currentPageId);
+            }
+
+            // Always expand ancestors to ensure navigation works after wiki operations
+            // This runs even if page is already selected to handle cases like:
+            // - Navigating back to wiki after rename
+            // - Reloading pages after wiki operations
+            const ancestorIds = getAncestorIds(pages, currentPageId, pageMap);
+            if (ancestorIds.length > 0) {
+                actions.expandAncestors(wikiId, ancestorIds);
+            }
+        }
+    }, [currentPageId, pages, wikiId, pageMap, selectedPageId, actions]);
+
     // Combine pages and drafts for tree building
     // But exclude published pages that have a draft (to avoid duplicates)
     const draftIds = useMemo(() => {
-        return new Set(drafts.map((d) => d.props?.page_id).filter(Boolean));
+        const ids = new Set(drafts.map((d) => d.props?.page_id).filter(Boolean));
+        return ids;
     }, [drafts]);
     const pagesWithoutDrafts = useMemo(() => {
-        return pages.filter((page) => !draftIds.has(page.id));
+        const filtered = pages.filter((page) => !draftIds.has(page.id));
+        return filtered;
     }, [pages, draftIds]);
     const allPages = useMemo(() => {
-        return [...pagesWithoutDrafts, ...draftPosts];
+        const combined = [...pagesWithoutDrafts, ...draftPosts];
+        return combined;
     }, [pagesWithoutDrafts, draftPosts]);
 
     // Build tree from flat pages (including drafts)
-    const tree = useMemo(() => buildTree(allPages), [allPages]);
+    const tree = useMemo(() => {
+        const builtTree = buildTree(allPages);
+        return builtTree;
+    }, [allPages]);
 
     // Filter tree by search query
     const filteredTree = useMemo(() => {
@@ -158,8 +185,6 @@ const PagesHierarchyPanel = ({
     }, [tree, searchQuery]);
 
     const handlePageSelect = (pageId: string) => {
-        const startTime = performance.now();
-
         actions.setSelectedPage(pageId);
 
         onPageSelect(pageId);
@@ -169,64 +194,57 @@ const PagesHierarchyPanel = ({
         actions.toggleNodeExpanded(wikiId, nodeId);
     };
 
-    const handleNewPage = async () => {
+    const handleNewPage = () => {
         if (creatingPage) {
             return;
         }
+        setCreatePageParent(null);
+        setShowCreatePageModal(true);
+    };
 
-        // TODO: Replace prompt with modal dialog
-        // eslint-disable-next-line no-alert
-        const title = window.prompt('Enter page title:', 'Untitled Page');
-        if (!title || title.trim() === '') {
-            return;
-        }
-
+    const handleConfirmCreatePage = async (title: string) => {
         setCreatingPage(true);
+
         try {
-            const result = await actions.createPage(wikiId, title);
+            const parentPageId = createPageParent?.id;
+            const result = await actions.createPage(wikiId, title, parentPageId);
             if (result.error) {
                 // TODO: Show error notification instead of alert
             } else if (result.data) {
                 const draftId = result.data;
+                if (parentPageId) {
+                    actions.expandAncestors(wikiId, [parentPageId]);
+                }
                 handlePageSelect(draftId);
             }
         } catch (error) {
             // TODO: Show error notification instead of alert
         } finally {
             setCreatingPage(false);
+            setCreatePageParent(null);
         }
     };
 
-    const handleCreateChild = async (pageId: string) => {
+    const handleCancelCreatePage = () => {
+        setCreatePageParent(null);
+    };
+
+    const handleCreateChild = (pageId: string) => {
         if (creatingPage) {
             return;
         }
 
-        // TODO: Replace prompt with modal dialog
-        // eslint-disable-next-line no-alert
-        const title = window.prompt('Enter page title:', 'Untitled Page');
-        if (!title || title.trim() === '') {
-            return;
-        }
+        const parentPage = pageMap.get(pageId);
+        const parentTitle = parentPage?.props?.title as string | undefined;
 
-        setCreatingPage(true);
-        try {
-            const result = await actions.createPage(wikiId, title, pageId);
-            if (result.error) {
-                // TODO: Show error notification instead of alert
-            } else if (result.data) {
-                const draftId = result.data;
-                actions.expandAncestors(wikiId, [pageId]);
-                handlePageSelect(draftId);
-            }
-        } catch (error) {
-            // TODO: Show error notification instead of alert
-        } finally {
-            setCreatingPage(false);
-        }
+        setCreatePageParent({
+            id: pageId,
+            title: parentTitle || 'Untitled',
+        });
+        setShowCreatePageModal(true);
     };
 
-    const handleRename = async (pageId: string) => {
+    const handleRename = (pageId: string) => {
         if (renamingPageId) {
             return;
         }
@@ -238,16 +256,25 @@ const PagesHierarchyPanel = ({
 
         const currentTitle = (page.props?.title as string | undefined) || page.message || 'Untitled';
 
-        // TODO: Replace prompt with modal dialog
-        // eslint-disable-next-line no-alert
-        const newTitle = window.prompt('Enter new title:', currentTitle);
-        if (!newTitle || newTitle.trim() === '' || newTitle === currentTitle) {
+        setPageToRename({pageId, currentTitle});
+        setShowRenameModal(true);
+    };
+
+    const handleRenameConfirm = async (newTitle: string) => {
+        if (!pageToRename) {
             return;
         }
 
-        setRenamingPageId(pageId);
+        const trimmedTitle = newTitle.trim();
+        if (!trimmedTitle || trimmedTitle === pageToRename.currentTitle) {
+            setPageToRename(null);
+            return;
+        }
+
+        setRenamingPageId(pageToRename.pageId);
+
         try {
-            const result = await actions.renamePage(pageId, newTitle, wikiId);
+            const result = await actions.updatePage(pageToRename.pageId, trimmedTitle, wikiId);
             if (result.error) {
                 // TODO: Show error notification instead of alert
             }
@@ -255,12 +282,50 @@ const PagesHierarchyPanel = ({
             // TODO: Show error notification instead of alert
         } finally {
             setRenamingPageId(null);
+            setPageToRename(null);
         }
     };
 
-    const handleDuplicate = () => {
-        // TODO: Implement duplicate functionality
-        // alert('Duplicate functionality coming soon!');
+    const handleRenameCancel = () => {
+        setPageToRename(null);
+    };
+
+    const handleDuplicate = async (pageId: string) => {
+        const page = allPages.find((p) => p.id === pageId);
+        if (!page) {
+            return;
+        }
+
+        const pageTitle = page.props?.title || page.message || 'Untitled';
+        const childCount = getDescendantCount(pageId, childrenMap);
+        const hasChildren = childCount > 0;
+
+        try {
+            const wikis = await Client4.getChannelWikis(channelId);
+            setAvailableWikis(wikis || []);
+            setPageToDuplicate({pageId, pageTitle: String(pageTitle), hasChildren});
+            setShowDuplicateModal(true);
+        } catch (error) {
+            // TODO: Show error notification instead of alert
+        }
+    };
+
+    const handleDuplicateConfirm = async (targetWikiId: string, parentPageId?: string, customTitle?: string) => {
+        if (!pageToDuplicate) {
+            return;
+        }
+
+        try {
+            await actions.duplicatePage(pageToDuplicate.pageId, wikiId, targetWikiId, parentPageId, customTitle);
+        } finally {
+            setShowDuplicateModal(false);
+            setPageToDuplicate(null);
+        }
+    };
+
+    const handleDuplicateCancel = () => {
+        setShowDuplicateModal(false);
+        setPageToDuplicate(null);
     };
 
     const handleMove = async (pageId: string) => {
@@ -285,7 +350,7 @@ const PagesHierarchyPanel = ({
 
     const fetchPagesForWiki = useCallback(async (wikiId: string): Promise<typeof pages> => {
         try {
-            const result = await actions.loadWikiPages(wikiId);
+            const result = await actions.loadPages(wikiId);
             return result.data || [];
         } catch (error) {
             return [];
@@ -361,62 +426,21 @@ const PagesHierarchyPanel = ({
             return;
         }
 
-        const isDraft = page.type === PageDisplayTypes.PAGE_DRAFT;
-        const title = page.props?.title || page.message || (isDraft ? 'this draft' : 'this page');
+        const isDraft = page.type === PageDisplayTypes.PAGE_DRAFT as any;
 
         if (isDraft) {
-            // TODO: Replace confirm with modal dialog
-            // eslint-disable-next-line no-alert
-            if (!window.confirm(`Are you sure you want to delete "${title}"? This action cannot be undone.`)) {
-                return;
-            }
-
-            setDeletingPageId(pageId);
-            try {
-                const result = await actions.removePageDraft(wikiId, pageId);
-
-                if (result.error) {
-                    // TODO: Show error notification instead of alert
-                }
-            } catch (error) {
-                // TODO: Show error notification instead of alert
-            } finally {
-                setDeletingPageId(null);
-            }
+            // Use modal dialog for drafts as well for consistency
+            const draftPage = page as any as Post;
+            setPageToDelete({page: draftPage, childCount: 0});
+            setShowDeleteModal(true);
             return;
         }
 
         const childCount = getDescendantCount(pageId, childrenMap);
 
-        if (childCount > 0) {
-            setPageToDelete({page, childCount});
-            setShowDeleteModal(true);
-        } else {
-            // TODO: Replace confirm with modal dialog
-            // eslint-disable-next-line no-alert
-            if (!window.confirm(`Are you sure you want to delete "${title}"? This action cannot be undone.`)) {
-                return;
-            }
-
-            setDeletingPageId(pageId);
-            try {
-                const result = await actions.deletePage(pageId, wikiId);
-
-                if (result.error) {
-                    // TODO: Show error notification instead of alert
-                } else {
-                    const isViewingDeletedPage = currentPageId && currentPageId === pageId;
-                    if (isViewingDeletedPage) {
-                        const parentId = page.page_parent_id || '';
-                        onPageSelect(parentId);
-                    }
-                }
-            } catch (error) {
-                // TODO: Show error notification instead of alert
-            } finally {
-                setDeletingPageId(null);
-            }
-        }
+        // Always use modal dialog for consistency and testability
+        setPageToDelete({page: page as Post, childCount});
+        setShowDeleteModal(true);
     };
 
     const handleDeleteConfirm = async (deleteChildren: boolean) => {
@@ -425,31 +449,42 @@ const PagesHierarchyPanel = ({
         }
 
         const {page} = pageToDelete;
+        const isDraft = page.type === PageDisplayTypes.PAGE_DRAFT as any;
 
         setShowDeleteModal(false);
         setDeletingPageId(page.id);
 
         try {
-            if (deleteChildren) {
-                const descendantIds = getAllDescendantIds(page.id, childrenMap);
+            if (isDraft) {
+                // Handle draft deletion
+                const result = await actions.removePageDraft(wikiId, page.id);
 
-                for (const descendantId of descendantIds.reverse()) {
-                    // eslint-disable-next-line no-await-in-loop
-                    await actions.deletePage(descendantId, wikiId);
+                if (result.error) {
+                    // TODO: Show error notification instead of alert
                 }
-            }
-
-            const result = await actions.deletePage(page.id, wikiId);
-
-            if (result.error) {
-                // TODO: Show error notification instead of alert
             } else {
-                const deletedPageIds = deleteChildren ? [page.id, ...getAllDescendantIds(page.id, childrenMap)] : [page.id];
-                const isViewingDeletedPage = currentPageId && deletedPageIds.includes(currentPageId);
+                // Handle regular page deletion
+                if (deleteChildren) {
+                    const descendantIds = getAllDescendantIds(page.id, childrenMap);
 
-                if (isViewingDeletedPage) {
-                    const parentId = page.page_parent_id || '';
-                    onPageSelect(parentId);
+                    for (const descendantId of descendantIds.reverse()) {
+                        // eslint-disable-next-line no-await-in-loop
+                        await actions.deletePage(descendantId, wikiId);
+                    }
+                }
+
+                const result = await actions.deletePage(page.id, wikiId);
+
+                if (result.error) {
+                    // TODO: Show error notification instead of alert
+                } else {
+                    const deletedPageIds = deleteChildren ? [page.id, ...getAllDescendantIds(page.id, childrenMap)] : [page.id];
+                    const isViewingDeletedPage = currentPageId && deletedPageIds.includes(currentPageId);
+
+                    if (isViewingDeletedPage) {
+                        const parentId = page.page_parent_id || '';
+                        onPageSelect(parentId);
+                    }
                 }
             }
         } catch (error) {
@@ -560,6 +595,52 @@ const PagesHierarchyPanel = ({
                     onCancel={handleMoveCancel}
                 />
             )}
+
+            {/* Duplicate page modal */}
+            {showDuplicateModal && pageToDuplicate && (
+                <DuplicatePageModal
+                    pageId={pageToDuplicate.pageId}
+                    pageTitle={pageToDuplicate.pageTitle}
+                    currentWikiId={wikiId}
+                    availableWikis={availableWikis}
+                    fetchPagesForWiki={fetchPagesForWiki}
+                    hasChildren={pageToDuplicate.hasChildren}
+                    onConfirm={handleDuplicateConfirm}
+                    onCancel={handleDuplicateCancel}
+                />
+            )}
+
+            {/* Rename page modal */}
+            {showRenameModal && pageToRename && (
+                <TextInputModal
+                    show={showRenameModal}
+                    title='Rename Page'
+                    placeholder='Enter new page title...'
+                    confirmButtonText='Rename'
+                    maxLength={255}
+                    initialValue={pageToRename.currentTitle}
+                    ariaLabel='Rename Page'
+                    inputTestId='rename-page-modal-title-input'
+                    onConfirm={handleRenameConfirm}
+                    onCancel={handleRenameCancel}
+                    onHide={() => setShowRenameModal(false)}
+                />
+            )}
+
+            {/* Create page modal */}
+            <TextInputModal
+                show={showCreatePageModal}
+                title={createPageParent ? `Create Child Page under "${createPageParent.title}"` : 'Create New Page'}
+                placeholder='Enter page title...'
+                helpText={createPageParent ? `This page will be created as a child of "${createPageParent.title}".` : 'A new draft will be created for you to edit.'}
+                confirmButtonText='Create'
+                maxLength={255}
+                ariaLabel='Create Page'
+                inputTestId='create-page-modal-title-input'
+                onConfirm={handleConfirmCreatePage}
+                onCancel={handleCancelCreatePage}
+                onHide={() => setShowCreatePageModal(false)}
+            />
         </div>
     );
 };

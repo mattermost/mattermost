@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test} from './pages_test_fixture';
 
 import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel} from './test_helpers';
 
 /**
  * @objective Verify full page creation flow: create wiki through bookmarks UI, then create page
  */
-test('creates wiki and root page through full UI flow', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('creates wiki and root page through full UI flow', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -33,8 +33,8 @@ test('creates wiki and root page through full UI flow', {tag: '@pages'}, async (
 /**
  * @objective Verify child page creation through full UI flow
  */
-test('creates child page under parent', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('creates child page under parent', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -57,8 +57,8 @@ test('creates child page under parent', {tag: '@pages'}, async ({pw}) => {
 /**
  * @objective Verify reading/viewing published page through full UI flow
  */
-test('views published page', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('views published page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -77,8 +77,8 @@ test('views published page', {tag: '@pages'}, async ({pw}) => {
 /**
  * @objective Verify page update flow through full UI
  */
-test('updates existing page content', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('updates existing page content', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -109,8 +109,8 @@ test('updates existing page content', {tag: '@pages'}, async ({pw}) => {
 /**
  * @objective Verify page deletion through full UI flow
  */
-test('deletes page', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('deletes page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -118,11 +118,11 @@ test('deletes page', {tag: '@pages'}, async ({pw}) => {
 
     // # Create wiki and page through UI
     await createWikiThroughUI(page, `Delete Wiki ${pw.random.id()}`);
-    await createPageThroughUI(page, 'Page to Delete', 'Content');
+    const testPage = await createPageThroughUI(page, 'Page to Delete', 'Content');
 
     // # Delete the page through sidebar context menu
-    // Find the page node in the sidebar by title
-    const pageNode = page.locator('[data-testid="page-tree-node"]', {hasText: 'Page to Delete'});
+    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const pageNode = hierarchyPanel.locator('[data-testid="page-tree-node"]', {hasText: 'Page to Delete'});
 
     // Click the menu button on the page node
     const menuButton = pageNode.locator('[data-testid="page-tree-node-menu-button"]');
@@ -132,14 +132,22 @@ test('deletes page', {tag: '@pages'}, async ({pw}) => {
     const deleteMenuItem = page.locator('[data-testid="page-context-menu-delete"]');
     await deleteMenuItem.click();
 
-    // Confirm deletion if modal appears
+    // # Confirm deletion in modal (now using MM modal instead of browser confirm)
     const confirmDialog = page.getByRole('dialog', {name: /Delete|Confirm/i});
-    if (await confirmDialog.isVisible({timeout: 3000}).catch(() => false)) {
-        const confirmButton = confirmDialog.getByRole('button', {name: /Delete|Confirm/i});
-        await confirmButton.click();
-    }
+    await expect(confirmDialog).toBeVisible({timeout: 3000});
+
+    const confirmButton = confirmDialog.getByRole('button', {name: /Delete|Confirm/i});
+    await confirmButton.click();
 
     await page.waitForLoadState('networkidle');
+
+    // * Verify navigated away from deleted page
+    await page.waitForTimeout(500);
+    const currentUrl = page.url();
+    expect(currentUrl).not.toMatch(new RegExp(`/pages/${testPage.id}`));
+
+    // * Verify page no longer appears in hierarchy panel
+    await expect(hierarchyPanel).not.toContainText('Page to Delete');
 });
 
 /**
@@ -152,11 +160,10 @@ test.skip('duplicates page', {tag: '@pages'}, async ({pw}) => {
     // Does not copy: comments, version history
     // New page named: "Duplicate of [originalItemName]"
 
-    const {user, team, adminClient} = await pw.initSetup();
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+    const channel = await createTestChannel(sharedAdminClient, sharedTeam.id, `Test Channel ${pw.random.id()}`);
 
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
+    const {page, channelsPage} = await pw.testBrowser.login(sharedUser);
+    await channelsPage.goto(sharedTeam.name, channel.name);
 
     // # Create wiki and page through UI
     await createWikiThroughUI(page, `Duplicate Wiki ${pw.random.id()}`);
@@ -176,8 +183,8 @@ test.skip('duplicates page', {tag: '@pages'}, async ({pw}) => {
 /**
  * @objective Verify wiki is created with a default draft page
  */
-test('wiki starts with default draft page', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('wiki starts with default draft page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -194,8 +201,8 @@ test('wiki starts with default draft page', {tag: '@pages'}, async ({pw}) => {
 /**
  * @objective Verify empty state appears after deleting the default draft
  */
-test('shows empty state after deleting default draft', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('shows empty state after deleting default draft', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -211,13 +218,13 @@ test('shows empty state after deleting default draft', {tag: '@pages'}, async ({
     const menuButton = draftNode.locator('[data-testid="page-tree-node-menu-button"]');
     await menuButton.click();
 
-    // # Handle native confirm dialog for draft deletion
-    page.once('dialog', async (dialog) => {
-        await dialog.accept();
-    });
-
     const deleteMenuItem = page.locator('[data-testid="page-context-menu-delete"]');
     await deleteMenuItem.click();
+
+    // # Confirm deletion in modal
+    const deleteButton = page.locator('[data-testid="delete-button"]');
+    await deleteButton.waitFor({state: 'visible', timeout: 5000});
+    await deleteButton.click();
 
     await page.waitForLoadState('networkidle');
 
@@ -230,8 +237,8 @@ test('shows empty state after deleting default draft', {tag: '@pages'}, async ({
 /**
  * @objective Verify page list rendering through full UI flow
  */
-test('displays multiple pages in hierarchy', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('displays multiple pages in hierarchy', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -255,8 +262,8 @@ test('displays multiple pages in hierarchy', {tag: '@pages'}, async ({pw}) => {
 /**
  * @objective Verify page metadata (author, status) is displayed correctly through full UI flow
  */
-test('displays page metadata', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('displays page metadata', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);

@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test} from './pages_test_fixture';
 
 import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton} from './test_helpers';
 
 /**
  * @objective Verify channel member can create page
  */
-test('allows channel member to create page', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('allows channel member to create page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -39,8 +39,8 @@ test('allows channel member to create page', {tag: '@pages'}, async ({pw}) => {
 /**
  * @objective Verify non-member cannot view wiki
  */
-test('prevents non-member from viewing wiki', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('prevents non-member from viewing wiki', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
 
     // # Create a private channel (non-members will not have access)
     const privateChannel = await adminClient.createChannel({
@@ -103,8 +103,8 @@ test('prevents non-member from viewing wiki', {tag: '@pages'}, async ({pw}) => {
 /**
  * @objective Verify channel member can edit page
  */
-test('allows channel member to edit page', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('allows channel member to edit page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -135,8 +135,8 @@ test('allows channel member to edit page', {tag: '@pages'}, async ({pw}) => {
 /**
  * @objective Verify channel admin can delete any page
  */
-test('allows channel admin to delete any page', {tag: '@pages'}, async ({pw}) => {
-    const {team, adminClient} = await pw.initSetup();
+test('allows channel admin to delete any page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     // # Create admin user
@@ -173,8 +173,8 @@ test('allows channel admin to delete any page', {tag: '@pages'}, async ({pw}) =>
 /**
  * @objective Verify permissions update when page moved to different wiki
  */
-test('inherits permissions when page moved to different wiki', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('inherits permissions when page moved to different wiki', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
 
     // # Create two channels
     const channel1 = await adminClient.createChannel({
@@ -245,8 +245,8 @@ test('inherits permissions when page moved to different wiki', {tag: '@pages'}, 
 /**
  * @objective Verify read-only permissions restrict editing
  */
-test('restricts page actions based on channel permissions', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('restricts page actions based on channel permissions', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     // # Create wiki and page as regular user first

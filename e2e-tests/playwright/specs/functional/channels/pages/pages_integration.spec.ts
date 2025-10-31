@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton, fillCreatePageModal} from './test_helpers';
 
 /**
  * @objective Verify complete workflow: create parent page, create child, add comment, edit content
  */
-test('completes full page lifecycle with hierarchy and comments', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('completes full page lifecycle with hierarchy and comments', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -22,9 +22,7 @@ test('completes full page lifecycle with hierarchy and comments', {tag: '@pages'
     const newPageButton = getNewPageButton(page);
     if (await newPageButton.isVisible({timeout: 3000}).catch(() => false)) {
         await newPageButton.click();
-
-        const titleInput = page.locator('[data-testid="wiki-page-title-input"]');
-        await titleInput.fill('Parent Integration Page');
+        await fillCreatePageModal(page, 'Parent Integration Page');
 
         const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
         await editor.click();
@@ -89,8 +87,8 @@ test('completes full page lifecycle with hierarchy and comments', {tag: '@pages'
 /**
  * @objective Verify draft save, navigate away, return, edit, publish workflow
  */
-test('saves draft, navigates away, returns to draft, then publishes', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('saves draft, navigates away, returns to draft, then publishes', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -103,9 +101,7 @@ test('saves draft, navigates away, returns to draft, then publishes', {tag: '@pa
     const newPageButton = getNewPageButton(page);
     if (await newPageButton.isVisible({timeout: 3000}).catch(() => false)) {
         await newPageButton.click();
-
-        const titleInput = page.locator('[data-testid="wiki-page-title-input"]');
-        await titleInput.fill('Draft Flow Test');
+        await fillCreatePageModal(page, 'Draft Flow Test');
 
         const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
         await editor.click();
@@ -154,8 +150,8 @@ test('saves draft, navigates away, returns to draft, then publishes', {tag: '@pa
 /**
  * @objective Verify move page to different wiki with permission inheritance
  */
-test('moves page between wikis and inherits new permissions', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('moves page between wikis and inherits new permissions', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
 
     // # Create two channels
     const channel1 = await adminClient.createChannel({
@@ -224,8 +220,8 @@ test('moves page between wikis and inherits new permissions', {tag: '@pages'}, a
 /**
  * @objective Verify concurrent editing follows last-write-wins behavior
  */
-test('applies last-write-wins when saving concurrent edits from multiple tabs', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('applies last-write-wins when saving concurrent edits from multiple tabs', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page: page1, channelsPage} = await pw.testBrowser.login(user);
@@ -291,8 +287,8 @@ test('applies last-write-wins when saving concurrent edits from multiple tabs', 
 /**
  * @objective Verify page with inline comments can be edited without losing comments
  */
-test('preserves inline comments when editing page content', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('preserves inline comments when editing page content', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -374,8 +370,8 @@ test('preserves inline comments when editing page content', {tag: '@pages'}, asy
 /**
  * @objective Verify search, navigate to result, add comment, navigate back
  */
-test('searches page, opens result, adds comment, returns to search', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('searches page, opens result, adds comment, returns to search', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -433,8 +429,8 @@ test('searches page, opens result, adds comment, returns to search', {tag: '@pag
 /**
  * @objective Verify create nested hierarchy, add comments at each level, navigate via breadcrumbs
  */
-test('creates multi-level hierarchy with comments and breadcrumb navigation', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('creates multi-level hierarchy with comments and breadcrumb navigation', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -531,8 +527,8 @@ test('creates multi-level hierarchy with comments and breadcrumb navigation', {t
 /**
  * @objective Verify page deletion with confirmation and hierarchy update
  */
-test('deletes page with children and updates hierarchy', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('deletes page with children and updates hierarchy', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -586,8 +582,8 @@ test('deletes page with children and updates hierarchy', {tag: '@pages'}, async 
 /**
  * @objective Verify page rename with breadcrumb and hierarchy updates
  */
-test('renames page and updates breadcrumbs and hierarchy', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('renames page and updates breadcrumbs and hierarchy', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -641,8 +637,8 @@ test('renames page and updates breadcrumbs and hierarchy', {tag: '@pages'}, asyn
 /**
  * @objective Verify deep link with multiple features: comments, editing, hierarchy
  */
-test('opens page via deep link, adds comment, edits, verifies hierarchy', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('opens page via deep link, adds comment, edits, verifies hierarchy', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -710,8 +706,8 @@ test('opens page via deep link, adds comment, edits, verifies hierarchy', {tag: 
 /**
  * @objective Verify version history navigation with restore functionality
  */
-test('views version history and restores previous version', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('views version history and restores previous version', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -789,8 +785,8 @@ test('views version history and restores previous version', {tag: '@pages'}, asy
 /**
  * @objective Verify outline navigation with RHS integration
  */
-test('navigates page sections via outline in RHS', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('navigates page sections via outline in RHS', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -802,9 +798,7 @@ test('navigates page sections via outline in RHS', {tag: '@pages'}, async ({pw})
     // # Create page with multiple headings through UI
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
-
-    const titleInput = page.locator('[data-testid="wiki-page-title-input"]');
-    await titleInput.fill('Page with Outline');
+    await fillCreatePageModal(page, 'Page with Outline');
 
     const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
     await editor.click();
@@ -877,8 +871,8 @@ test('navigates page sections via outline in RHS', {tag: '@pages'}, async ({pw})
 /**
  * @objective Verify complex workflow: multi-level hierarchy, comments, editing, permissions
  */
-test('executes complex multi-feature workflow end-to-end', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('executes complex multi-feature workflow end-to-end', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -984,8 +978,8 @@ test('executes complex multi-feature workflow end-to-end', {tag: '@pages'}, asyn
 /**
  * @objective Verify draft to publish workflow with auto-save and recovery
  */
-test('creates draft with auto-save, closes browser, recovers and publishes', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('creates draft with auto-save, closes browser, recovers and publishes', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -1056,8 +1050,8 @@ test('creates draft with auto-save, closes browser, recovers and publishes', {ta
 /**
  * @objective Verify page move affects breadcrumbs, hierarchy, and permissions
  */
-test('moves page to new parent and verifies UI updates', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('moves page to new parent and verifies UI updates', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
@@ -1127,8 +1121,8 @@ test('moves page to new parent and verifies UI updates', {tag: '@pages'}, async 
 /**
  * @objective Verify search filters (by type, date, author) with results
  */
-test('searches pages with filters and verifies results', {tag: '@pages'}, async ({pw}) => {
-    const {user, team, adminClient} = await pw.initSetup();
+test('searches pages with filters and verifies results', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);

@@ -13,13 +13,14 @@ import {openPagesPanel} from 'actions/views/pages_hierarchy';
 import {closeRightHandSide, openWikiRhs} from 'actions/views/rhs';
 import {setWikiRhsMode} from 'actions/views/wiki_rhs';
 import {getPageDraft, getPageDraftsForWiki} from 'selectors/page_drafts';
-import {getPage, getWikiPages} from 'selectors/pages';
+import {getPage, getPages} from 'selectors/pages';
 import {getIsPanesPanelCollapsed} from 'selectors/pages_hierarchy';
 import {getRhsState} from 'selectors/rhs';
 
 import {makeAsyncComponent} from 'components/async_load';
 import LoadingScreen from 'components/loading_screen';
 import PagesHierarchyPanel from 'components/pages_hierarchy_panel';
+
 import {getWikiUrl, getTeamNameFromPath} from 'utils/url';
 
 import type {GlobalState} from 'types/store';
@@ -33,6 +34,7 @@ import './wiki_view.scss';
 
 const ChannelHeader = makeAsyncComponent('ChannelHeader', lazy(() => import('components/channel_header')));
 const ChannelBookmarks = makeAsyncComponent('ChannelBookmarks', lazy(() => import('components/channel_bookmarks')));
+const ChannelTabBar = makeAsyncComponent('ChannelTabBar', lazy(() => import('components/channel_tab_bar')));
 
 const WikiView = () => {
     const dispatch = useDispatch();
@@ -47,6 +49,39 @@ const WikiView = () => {
     const rhsState = useSelector((state: GlobalState) => getRhsState(state));
     const isWikiRhsOpen = rhsState === 'wiki';
     const isPanesPanelCollapsed = useSelector((state: GlobalState) => getIsPanesPanelCollapsed(state));
+
+    // Fullscreen state
+    const [isFullscreen, setIsFullscreen] = React.useState(false);
+
+    // Toggle fullscreen
+    const toggleFullscreen = () => {
+        setIsFullscreen(!isFullscreen);
+    };
+
+    // Esc key handler
+    React.useEffect(() => {
+        const handleKeydown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape' && isFullscreen) {
+                setIsFullscreen(false);
+            }
+        };
+
+        window.addEventListener('keydown', handleKeydown);
+        return () => window.removeEventListener('keydown', handleKeydown);
+    }, [isFullscreen]);
+
+    // Body class management
+    React.useEffect(() => {
+        if (isFullscreen) {
+            document.body.classList.add('fullscreen-mode');
+        } else {
+            document.body.classList.remove('fullscreen-mode');
+        }
+
+        return () => {
+            document.body.classList.remove('fullscreen-mode');
+        };
+    }, [isFullscreen]);
 
     // Track if we're navigating to select a draft
     const isSelectingDraftRef = React.useRef(false);
@@ -83,7 +118,7 @@ const WikiView = () => {
         }
     }, [currentPage?.page_parent_id]);
     const allDrafts = useSelector((state: GlobalState) => (wikiId ? getPageDraftsForWiki(state, wikiId) : []));
-    const allPages = useSelector((state: GlobalState) => (wikiId ? getWikiPages(state, wikiId) : []));
+    const allPages = useSelector((state: GlobalState) => (wikiId ? getPages(state, wikiId) : []));
 
     // Get the actual channel ID from the page or draft (URL params may have wikiId in channelId position)
     const actualChannelId = currentPage?.channel_id || currentDraft?.channelId || allDrafts[0]?.channelId || channelId;
@@ -194,6 +229,7 @@ const WikiView = () => {
         >
             <ChannelHeader/>
             <ChannelBookmarks channelId={channelId}/>
+            <ChannelTabBar channelId={channelId}/>
             <div
                 className={classNames('WikiView', {
                     'page-selected': Boolean(pageId),
@@ -244,6 +280,8 @@ const WikiView = () => {
                                     onEdit={handleEdit}
                                     onPublish={handlePublish}
                                     onToggleComments={handleToggleComments}
+                                    isFullscreen={isFullscreen}
+                                    onToggleFullscreen={toggleFullscreen}
                                 />
                             )}
                             <div
@@ -269,7 +307,7 @@ const WikiView = () => {
                                         wikiId,
                                         showAuthor: false,
                                     };
-                                    return <WikiPageEditor {...editorProps} />;
+                                    return <WikiPageEditor {...editorProps}/>;
                                 })()}
                                 {pageId && (
                                     <PageViewer

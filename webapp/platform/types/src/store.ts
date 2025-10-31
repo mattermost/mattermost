@@ -88,6 +88,12 @@ export type GlobalState = {
             byWiki: Record<string, string[]>;
             loading: Record<string, boolean>;
             error: Record<string, string | null>;
+            pendingPublishes: Record<string, boolean>;
+            lastInvalidated: Record<string, number>;
+        };
+        wikis: {
+            byChannel: Record<string, string[]>;
+            byId: Record<string, any>;
         };
     };
     errors: any[];

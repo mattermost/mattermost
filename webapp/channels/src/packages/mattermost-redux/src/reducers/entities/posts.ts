@@ -1033,7 +1033,6 @@ export function postsInThread(state: RelationOneToMany<Post, Post> = {}, action:
         const nextPostsForThread = [...postsForThread];
 
         for (const post of newPosts) {
-
             // Include the root post itself (root_id === '') AND all replies (root_id === action.rootId)
             const isRootPost = post.id === action.rootId && post.root_id === '';
             const isReply = post.root_id === action.rootId;

@@ -8,13 +8,14 @@ import {useDispatch, useSelector} from 'react-redux';
 import type {Post} from '@mattermost/types/posts';
 
 import {getChannel, getChannelMember, selectChannel} from 'mattermost-redux/actions/channels';
+import {Client4} from 'mattermost-redux/client';
 import {getChannel as getChannelSelector} from 'mattermost-redux/selectors/entities/channels';
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {savePageDraft} from 'actions/page_drafts';
-import {loadChannelDefaultPage, loadWikiPages, publishPageDraft, loadPage} from 'actions/pages';
+import {loadChannelDefaultPage, loadPages, publishPageDraft, loadPage} from 'actions/pages';
+
 import {getWikiUrl, getTeamNameFromPath} from 'utils/url';
 
 import type {GlobalState} from 'types/store';
@@ -73,9 +74,15 @@ export function useWikiPageData(
                 return;
             }
 
+            // Track the loaded channel for redirects (may differ from channelRef if just loaded)
+            let loadedChannel = channel;
+
             try {
                 if (!channel) {
-                    await dispatch(getChannel(channelId));
+                    const channelResult = await dispatch(getChannel(channelId));
+                    if (channelResult.data) {
+                        loadedChannel = channelResult.data;
+                    }
                 }
 
                 if (!member) {
@@ -103,11 +110,12 @@ export function useWikiPageData(
                 if (wikiId) {
                     const result = await dispatch(loadPage(pageId, wikiId));
 
-                    // Check for permission error (403) when loading page
-                    if (result.error && result.error.status_code === 403) {
-                        const defaultChannel = 'town-square';
+                    // Check for permission error (403) or not found error (404) when loading page
+                    if (result.error && (result.error.status_code === 403 || result.error.status_code === 404)) {
                         const teamName = currentTeamRef.current?.name || '';
-                        historyRef.current.push(`/error?type=channel_not_found&returnTo=/${teamName}/channels/${defaultChannel}`);
+                        const channelName = loadedChannel?.name || channelId;
+                        historyRef.current.replace(`/${teamName}/channels/${channelName}`);
+                        setLoading(false);
                         return;
                     }
                 }
@@ -124,12 +132,22 @@ export function useWikiPageData(
 
             // Load pages list for the hierarchy panel
             if (wikiId) {
+                // First check if wiki exists by trying to fetch it
+                // This will return 404 if wiki was deleted
                 try {
-                    await dispatch(loadWikiPages(wikiId));
-                } catch (error) {
-                    // Error loading pages - continue anyway
+                    await Client4.getWiki(wikiId);
+                } catch (error: any) {
+                    // Wiki was deleted or user doesn't have permission - redirect to channel
+                    const teamName = currentTeamRef.current?.name || '';
+                    const channelName = loadedChannel?.name || channelId;
+                    setLoading(false);
+                    historyRef.current.replace(`/${teamName}/channels/${channelName}`);
+                    return;
                 }
-            } else {
+
+                // Wiki exists, now load pages
+                await dispatch(loadPages(wikiId));
+            } else{
                 // No wikiId - load default page if available (for channel wiki without explicit wikiId)
                 try {
                     await dispatch(loadChannelDefaultPage(channelId));

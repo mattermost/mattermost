@@ -6,10 +6,10 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {loadPageDraftsForWiki, removePageDraft} from 'actions/page_drafts';
-import {loadWikiPages, createPage, renamePage, deletePage, movePage, movePageToWiki} from 'actions/pages';
+import {loadPages, createPage, updatePage, deletePage, movePage, movePageToWiki, duplicatePage} from 'actions/pages';
 import {toggleNodeExpanded, setSelectedPage, expandAncestors, closePagesPanel} from 'actions/views/pages_hierarchy';
 import {getPageDraftsForWiki} from 'selectors/page_drafts';
-import {getWikiPages, getWikiPagesLoading} from 'selectors/pages';
+import {getPages, getPagesLoading, getPagesLastInvalidated} from 'selectors/pages';
 import {getExpandedNodes, getSelectedPageId, getIsPanesPanelCollapsed} from 'selectors/pages_hierarchy';
 
 import type {GlobalState} from 'types/store';
@@ -27,12 +27,13 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const {wikiId} = ownProps;
 
     return {
-        pages: getWikiPages(state, wikiId),
+        pages: getPages(state, wikiId),
         drafts: getPageDraftsForWiki(state, wikiId),
-        loading: getWikiPagesLoading(state, wikiId),
+        loading: getPagesLoading(state, wikiId),
         expandedNodes: getExpandedNodes(state, wikiId),
         selectedPageId: getSelectedPageId(state),
         isPanelCollapsed: getIsPanesPanelCollapsed(state),
+        lastInvalidated: getPagesLastInvalidated(state, wikiId),
     };
 }
 
@@ -40,17 +41,18 @@ function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators(
             {
-                loadWikiPages,
+                loadPages,
                 loadPageDraftsForWiki,
                 removePageDraft,
                 toggleNodeExpanded,
                 setSelectedPage,
                 expandAncestors,
                 createPage,
-                renamePage,
+                updatePage,
                 deletePage,
                 movePage,
                 movePageToWiki,
+                duplicatePage,
                 closePagesPanel,
             },
             dispatch,

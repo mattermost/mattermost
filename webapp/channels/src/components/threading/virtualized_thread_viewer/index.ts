@@ -40,7 +40,7 @@ function makeMapStateToProps() {
         const directTeammate = getDirectTeammate(state, channelId);
 
         // Handle empty postIds array (e.g., when filtering returns no results)
-        const lastPost = postIds.length > 0 ? getPost(state, postIds[0]) : selected;
+        const lastPost = postIds.length > 0 ? (getPost(state, postIds[0]) || selected) : selected;
 
         const replyListIds = getRepliesListWithSeparators(state, {
             postIds,

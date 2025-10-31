@@ -1,23 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import React from 'react';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {PostTypes} from 'mattermost-redux/constants/posts';
 
 import {renderWithContext} from 'tests/react_testing_utils';
+import {PageDisplayTypes} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
-import {PageDisplayTypes} from 'utils/constants';
-
-import type {FlatNode} from './utils/tree_flattener';
-
 import PageTreeNode from './page_tree_node';
+import type {FlatNode} from './utils/tree_flattener';
 
 describe('components/pages_hierarchy_panel/PageTreeNode', () => {
     const mockNode: FlatNode = {
@@ -210,7 +208,6 @@ describe('components/pages_hierarchy_panel/PageTreeNode', () => {
             expect(baseProps.onSelect).not.toHaveBeenCalled();
         });
     });
-
 
     describe('Accessibility', () => {
         test('should have correct aria-label for expand button', () => {

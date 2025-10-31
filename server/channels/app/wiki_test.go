@@ -577,3 +577,275 @@ func TestMovePageToWiki(t *testing.T) {
 		require.Contains(t, appErr.Id, "permission")
 	})
 }
+
+func TestDuplicatePage(t *testing.T) {
+	t.Run("successfully duplicates page to target wiki", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		th.SetupPagePermissions()
+
+		sourceWiki := &model.Wiki{
+			ChannelId:   th.BasicChannel.Id,
+			Title:       "Source Wiki",
+			Description: "Source",
+		}
+
+		targetWiki := &model.Wiki{
+			ChannelId:   th.BasicChannel.Id,
+			Title:       "Target Wiki",
+			Description: "Target",
+		}
+
+		createdSourceWiki, err := th.App.CreateWiki(th.Context, sourceWiki, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		createdTargetWiki, err := th.App.CreateWiki(th.Context, targetWiki, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		originalContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Original content"}]}]}`
+		page, err := th.App.CreateWikiPage(th.Context, createdSourceWiki.Id, "", "Original Page", originalContent, th.BasicUser.Id, "search text")
+		require.Nil(t, err)
+		require.NotNil(t, page)
+
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdTargetWiki.Id, nil, nil, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.NotNil(t, duplicatedPage)
+
+		require.NotEqual(t, page.Id, duplicatedPage.Id, "Duplicated page should have new ID")
+		require.Equal(t, "Duplicate of Original Page", duplicatedPage.Props["title"], "Should have default duplicate title")
+		require.Equal(t, th.BasicChannel.Id, duplicatedPage.ChannelId, "Should be in same channel")
+		require.Empty(t, duplicatedPage.PageParentId, "Should be root level")
+
+		duplicatedContent, contentErr := th.App.Srv().Store().PageContent().Get(duplicatedPage.Id)
+		require.NoError(t, contentErr)
+		duplicatedContentJSON, jsonErr := duplicatedContent.GetDocumentJSON()
+		require.NoError(t, jsonErr)
+		require.NotEmpty(t, duplicatedContentJSON, "Content should exist")
+		require.Contains(t, duplicatedContentJSON, "Original content", "Content should contain original text")
+		require.Contains(t, duplicatedContentJSON, "\"type\":\"doc\"", "Content should be TipTap document")
+
+		targetWikiId, wikiErr := th.App.GetWikiIdForPage(th.Context, duplicatedPage.Id)
+		require.Nil(t, wikiErr)
+		require.Equal(t, createdTargetWiki.Id, targetWikiId, "Should be in target wiki")
+	})
+
+	t.Run("successfully duplicates page within same wiki", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		th.SetupPagePermissions()
+
+		wiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Test Wiki",
+		}
+
+		createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		page, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Page to Duplicate", "", th.BasicUser.Id, "")
+		require.Nil(t, err)
+
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdWiki.Id, nil, nil, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.NotNil(t, duplicatedPage)
+
+		require.NotEqual(t, page.Id, duplicatedPage.Id)
+		require.Equal(t, "Duplicate of Page to Duplicate", duplicatedPage.Props["title"])
+
+		wikiId, wikiErr := th.App.GetWikiIdForPage(th.Context, duplicatedPage.Id)
+		require.Nil(t, wikiErr)
+		require.Equal(t, createdWiki.Id, wikiId, "Should remain in same wiki")
+	})
+
+	t.Run("successfully duplicates page with custom title", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		th.SetupPagePermissions()
+
+		wiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Test Wiki",
+		}
+
+		createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		page, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Original", "", th.BasicUser.Id, "")
+		require.Nil(t, err)
+
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		customTitle := "My Custom Title"
+		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdWiki.Id, nil, &customTitle, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, customTitle, duplicatedPage.Props["title"], "Should use custom title")
+	})
+
+	t.Run("successfully duplicates page with parent", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		th.SetupPagePermissions()
+
+		wiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Test Wiki",
+		}
+
+		createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		parentPage, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Parent Page", "", th.BasicUser.Id, "")
+		require.Nil(t, err)
+
+		page, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Page to Duplicate", "", th.BasicUser.Id, "")
+		require.Nil(t, err)
+
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdWiki.Id, &parentPage.Id, nil, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, parentPage.Id, duplicatedPage.PageParentId, "Should have specified parent")
+	})
+
+	t.Run("fails when title conflict exists", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		th.SetupPagePermissions()
+
+		wiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Test Wiki",
+		}
+
+		createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		page, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Original", "", th.BasicUser.Id, "")
+		require.Nil(t, err)
+
+		_, err = th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Duplicate of Original", "", th.BasicUser.Id, "")
+		require.Nil(t, err)
+
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdWiki.Id, nil, nil, th.BasicUser.Id)
+		require.NotNil(t, appErr)
+		require.Nil(t, duplicatedPage)
+		require.Contains(t, appErr.Id, "title_conflict")
+	})
+
+	t.Run("fails when duplicating across channels", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		th.SetupPagePermissions()
+
+		channel1 := th.BasicChannel
+		channel2 := th.CreateChannel(th.Context, th.BasicTeam)
+
+		sourceWiki := &model.Wiki{
+			ChannelId: channel1.Id,
+			Title:     "Source Wiki",
+		}
+
+		targetWiki := &model.Wiki{
+			ChannelId: channel2.Id,
+			Title:     "Target Wiki",
+		}
+
+		createdSourceWiki, err := th.App.CreateWiki(th.Context, sourceWiki, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		createdTargetWiki, err := th.App.CreateWiki(th.Context, targetWiki, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		page, err := th.App.CreateWikiPage(th.Context, createdSourceWiki.Id, "", "Page", "", th.BasicUser.Id, "")
+		require.Nil(t, err)
+
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdTargetWiki.Id, nil, nil, th.BasicUser.Id)
+		require.NotNil(t, appErr)
+		require.Nil(t, duplicatedPage)
+		require.Contains(t, appErr.Id, "cross_channel_not_supported")
+	})
+
+	t.Run("fails when source page not found", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		th.SetupPagePermissions()
+
+		wiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Test Wiki",
+		}
+
+		createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, "nonexistent", createdWiki.Id, nil, nil, th.BasicUser.Id)
+		require.NotNil(t, appErr)
+		require.Nil(t, duplicatedPage)
+		require.Contains(t, appErr.Id, "source_not_found")
+	})
+
+	t.Run("fails when target wiki not found", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		th.SetupPagePermissions()
+
+		wiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Source Wiki",
+		}
+
+		createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		page, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Page", "", th.BasicUser.Id, "")
+		require.Nil(t, err)
+
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, "nonexistent", nil, nil, th.BasicUser.Id)
+		require.NotNil(t, appErr)
+		require.Nil(t, duplicatedPage)
+		require.Contains(t, appErr.Id, "target_wiki_not_found")
+	})
+
+	t.Run("truncates title when exceeding max length", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		th.SetupPagePermissions()
+
+		wiki := &model.Wiki{
+			ChannelId: th.BasicChannel.Id,
+			Title:     "Test Wiki",
+		}
+
+		createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		var longTitle string
+		for range 300 {
+			longTitle += "A"
+		}
+
+		page, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", longTitle[:255], "", th.BasicUser.Id, "")
+		require.Nil(t, err)
+
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdWiki.Id, nil, nil, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		duplicateTitle := duplicatedPage.Props["title"].(string)
+		require.LessOrEqual(t, len(duplicateTitle), 255, "Title should not exceed max length")
+		require.True(t, len(duplicateTitle) <= 255)
+	})
+}

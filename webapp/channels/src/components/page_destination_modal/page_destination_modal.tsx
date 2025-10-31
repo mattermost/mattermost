@@ -38,11 +38,10 @@ const PageDestinationModal = ({
     onConfirm,
     onCancel,
 }: Props) => {
-    const [selectedWikiId, setSelectedWikiId] = useState('');
+    const [selectedWikiId, setSelectedWikiId] = useState(currentWikiId);
     const [parentPageId, setParentPageId] = useState<string | undefined>();
     const [searchQuery, setSearchQuery] = useState('');
     const [allPages, setAllPages] = useState<Post[]>([]);
-    const [loadingPages, setLoadingPages] = useState(false);
 
     // Fetch pages when selected wiki changes
     useEffect(() => {
@@ -52,14 +51,11 @@ const PageDestinationModal = ({
         }
 
         const fetchPages = async () => {
-            setLoadingPages(true);
             try {
                 const pages = await fetchPagesForWiki(selectedWikiId);
                 setAllPages(pages);
             } catch (error) {
                 setAllPages([]);
-            } finally {
-                setLoadingPages(false);
             }
         };
 

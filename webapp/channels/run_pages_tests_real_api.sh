@@ -6,4 +6,4 @@ unset MM_ADMIN_PASSWORD
 
 echo "Running pages tests with real API..."
 echo "Using sysadmin account (not LDAP)"
-npm run test -- src/actions/pages.test.ts src/components/wiki_view/wiki_page_editor/page_link_modal.test.tsx src/components/wiki_view/wiki_page_editor/tiptap_editor.test.tsx
+npm run test -- src/components/wiki_view/wiki_page_editor/page_link_modal.test.tsx src/components/wiki_view/wiki_page_editor/tiptap_editor.test.tsx

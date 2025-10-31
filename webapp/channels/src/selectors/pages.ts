@@ -52,8 +52,8 @@ export const getPageAncestors = createSelector(
 );
 
 // Get all pages for a wiki (for hierarchy panel)
-export const getWikiPages = createSelector(
-    'getWikiPages',
+export const getPages = createSelector(
+    'getPages',
     (state: GlobalState) => state.entities.posts.posts,
     (state: GlobalState, wikiId: string) => state.entities.wikiPages.byWiki[wikiId] || [],
     (posts, pageIds) => {
@@ -64,13 +64,18 @@ export const getWikiPages = createSelector(
 );
 
 // Get loading state for a wiki
-export const getWikiPagesLoading = (state: GlobalState, wikiId: string): boolean => {
+export const getPagesLoading = (state: GlobalState, wikiId: string): boolean => {
     return state.entities.wikiPages.loading[wikiId] || false;
 };
 
 // Get error state for a wiki
-export const getWikiPagesError = (state: GlobalState, wikiId: string): string | null => {
+export const getPagesError = (state: GlobalState, wikiId: string): string | null => {
     return state.entities.wikiPages.error[wikiId] || null;
+};
+
+// Get last invalidation timestamp for a wiki
+export const getPagesLastInvalidated = (state: GlobalState, wikiId: string): number => {
+    return state.entities.wikiPages?.lastInvalidated?.[wikiId] || 0;
 };
 
 // Get all pages from all wikis in a channel (for cross-wiki linking)
@@ -83,7 +88,19 @@ export const getChannelPages = createSelector(
         return Object.values(posts).filter((post) =>
             Boolean(post) &&
             post.type === PostTypes.PAGE &&
-            post.channel_id === channelId
+            post.channel_id === channelId,
         );
     },
 );
+
+// Wiki selectors
+export const getWiki = (state: GlobalState, wikiId: string) => {
+    return state.entities.wikis?.byId?.[wikiId];
+};
+
+// Simple non-memoized selector for channel wikis
+export const getChannelWikis = (state: GlobalState, channelId: string) => {
+    const wikisById = state.entities.wikis?.byId || {};
+    const wikiIds = state.entities.wikis?.byChannel?.[channelId] || [];
+    return wikiIds.map((id: string) => wikisById[id]).filter(Boolean);
+};

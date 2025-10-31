@@ -855,3 +855,27 @@ export function hasRequestedPersistentNotifications(priority?: PostPriorityMetad
         priority?.persistent_notifications
     );
 }
+
+export function getInlineCommentAnchorText(postsInThread?: Post[]): string | null {
+    if (!postsInThread || postsInThread.length === 0) {
+        return null;
+    }
+
+    // Debug: Log what we're checking
+    console.log('[getInlineCommentAnchorText] postsInThread:', postsInThread.length, 'posts');
+
+    // Check all posts in thread to find the first inline comment
+    for (let i = postsInThread.length - 1; i >= 0; i--) {
+        const post = postsInThread[i];
+        console.log('[getInlineCommentAnchorText] Checking post:', post.id, 'type:', post.type, 'comment_type:', post.props?.comment_type);
+
+        if (post?.props?.comment_type === 'inline' && post?.props?.inline_anchor) {
+            const anchorText = (post.props.inline_anchor as {text: string}).text;
+            console.log('[getInlineCommentAnchorText] Found inline comment anchor:', anchorText);
+            return anchorText;
+        }
+    }
+
+    console.log('[getInlineCommentAnchorText] No inline comment found');
+    return null;
+}

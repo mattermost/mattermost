@@ -86,17 +86,12 @@ const PageViewer = ({pageId, wikiId}: Props) => {
         }
     }, [pageId, wikiId, isPageContentMissing, dispatch]);
 
-    if (!page) {
-        return <LoadingScreen/>;
-    }
-
-    const pageTitle = (page.props?.title as string | undefined) || 'Untitled Page';
-    const pageStatus = (page.props?.status as string | undefined) || 'in_progress';
-    const authorName = author ? displayUsername(author, teammateNameDisplay) : 'Unknown';
-
     // Parse page content to JSON object for TipTap (not a string)
     // Include pageId in dependencies to force re-parse when navigating to different pages
     const pageContentJson = React.useMemo(() => {
+        if (!page) {
+            return {type: 'doc', content: []};
+        }
         const message = page.message || '';
         if (!message || message.trim() === '') {
             return {type: 'doc', content: []};
@@ -109,7 +104,17 @@ const PageViewer = ({pageId, wikiId}: Props) => {
                 content: [{type: 'paragraph', content: [{type: 'text', text: message}]}],
             };
         }
-    }, [pageId, page.message]);
+    }, [pageId, page?.message]);
+
+    const handleContentChange = useCallback(() => {}, []);
+
+    if (!page) {
+        return <LoadingScreen/>;
+    }
+
+    const pageTitle = (page.props?.title as string | undefined) || 'Untitled Page';
+    const pageStatus = (page.props?.status as string | undefined) || 'in_progress';
+    const authorName = author ? displayUsername(author, teammateNameDisplay) : 'Unknown';
 
     const statusLabels: Record<string, string> = {
         in_progress: 'In progress',
@@ -117,8 +122,6 @@ const PageViewer = ({pageId, wikiId}: Props) => {
         published: 'Published',
         archived: 'Archived',
     };
-
-    const handleContentChange = useCallback(() => {}, []);
 
     return (
         <div

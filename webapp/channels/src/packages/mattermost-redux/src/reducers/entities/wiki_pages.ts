@@ -12,6 +12,7 @@ type WikiPagesState = {
     loading: Record<string, boolean>;
     error: Record<string, string | null>;
     pendingPublishes: Record<string, boolean>;
+    lastInvalidated: Record<string, number>;
 };
 
 const initialState: WikiPagesState = {
@@ -19,11 +20,12 @@ const initialState: WikiPagesState = {
     loading: {},
     error: {},
     pendingPublishes: {},
+    lastInvalidated: {},
 };
 
 export default function wikiPagesReducer(state = initialState, action: AnyAction): WikiPagesState {
     switch (action.type) {
-    case WikiTypes.GET_WIKI_PAGES_REQUEST: {
+    case WikiTypes.GET_PAGES_REQUEST: {
         const {wikiId} = action.data;
         return {
             ...state,
@@ -37,7 +39,7 @@ export default function wikiPagesReducer(state = initialState, action: AnyAction
             },
         };
     }
-    case WikiTypes.GET_WIKI_PAGES_SUCCESS: {
+    case WikiTypes.GET_PAGES_SUCCESS: {
         const {wikiId, pages} = action.data;
         return {
             ...state,
@@ -51,7 +53,7 @@ export default function wikiPagesReducer(state = initialState, action: AnyAction
             },
         };
     }
-    case WikiTypes.GET_WIKI_PAGES_FAILURE: {
+    case WikiTypes.GET_PAGES_FAILURE: {
         const {wikiId, error} = action.data;
         return {
             ...state,
@@ -70,9 +72,7 @@ export default function wikiPagesReducer(state = initialState, action: AnyAction
         const wikiId = page.channel_id;
 
         const currentPageIds = state.byWiki[wikiId] || [];
-        const nextPageIds = currentPageIds.includes(page.id) ?
-            currentPageIds :
-            [...currentPageIds, page.id];
+        const nextPageIds = currentPageIds.includes(page.id) ? currentPageIds : [...currentPageIds, page.id];
 
         return {
             ...state,
@@ -93,6 +93,29 @@ export default function wikiPagesReducer(state = initialState, action: AnyAction
         return {
             ...state,
             byWiki: nextByWiki,
+        };
+    }
+    case WikiTypes.DELETED_WIKI: {
+        const {wikiId} = action.data;
+
+        const nextByWiki = {...state.byWiki};
+        delete nextByWiki[wikiId];
+
+        const nextLoading = {...state.loading};
+        delete nextLoading[wikiId];
+
+        const nextError = {...state.error};
+        delete nextError[wikiId];
+
+        const nextLastInvalidated = {...state.lastInvalidated};
+        delete nextLastInvalidated[wikiId];
+
+        return {
+            ...state,
+            byWiki: nextByWiki,
+            loading: nextLoading,
+            error: nextError,
+            lastInvalidated: nextLastInvalidated,
         };
     }
     case WikiTypes.PUBLISH_DRAFT_REQUEST: {
@@ -122,6 +145,16 @@ export default function wikiPagesReducer(state = initialState, action: AnyAction
         return {
             ...state,
             pendingPublishes: nextPendingPublishes,
+        };
+    }
+    case WikiTypes.INVALIDATE_PAGES: {
+        const {wikiId} = action.data;
+        return {
+            ...state,
+            lastInvalidated: {
+                ...state.lastInvalidated,
+                [wikiId]: Date.now(),
+            },
         };
     }
     default:

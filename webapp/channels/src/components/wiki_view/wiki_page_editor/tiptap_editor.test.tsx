@@ -3,31 +3,22 @@
 
 // TRUE ZERO-MOCK VERSION - Uses real API and real channels
 
-import React from 'react';
 import {render, fireEvent, waitFor} from '@testing-library/react';
-import {Provider} from 'react-redux';
-import {renderWithContext} from 'tests/react_testing_utils';
-import {EditorContent, useEditor} from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import {Mention} from '@tiptap/extension-mention';
 import {Table} from '@tiptap/extension-table';
-import {TableRow} from '@tiptap/extension-table-row';
 import {TableCell} from '@tiptap/extension-table-cell';
 import {TableHeader} from '@tiptap/extension-table-header';
-import {mergeAttributes} from '@tiptap/core';
+import {TableRow} from '@tiptap/extension-table-row';
+import {EditorContent, useEditor} from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import React from 'react';
 
-import type {Channel} from '@mattermost/types/channels';
 import type {DeepPartial} from '@mattermost/types/utilities';
+
+import {PostTypes} from 'mattermost-redux/constants/posts';
+
 import type {GlobalState} from 'types/store';
 
-import {Client4} from 'mattermost-redux/client';
-import mockStore from 'tests/test_store';
-import {setupTestContext, cleanupOrphanedTestResources, type TestContext} from 'tests/api_test_helpers';
-import * as BrowserHistory from 'utils/browser_history';
-
-import {createChannelMentionSuggestion} from './channel_mention_mm_bridge';
-import TipTapEditor from './tiptap_editor';
-
+/* eslint-disable react/jsx-no-literals */
 describe('TipTapEditor - Table Extension', () => {
     const TestTableEditor = ({initialContent}: {initialContent?: string}) => {
         const parsedContent = initialContent ? JSON.parse(initialContent) : '';
@@ -48,9 +39,9 @@ describe('TipTapEditor - Table Extension', () => {
 
         return (
             <div>
-                <div data-testid="toolbar">
+                <div data-testid='toolbar'>
                     <button
-                        data-testid="insert-table"
+                        data-testid='insert-table'
                         onClick={() =>
                             editor.chain().focus().insertTable({rows: 3, cols: 3, withHeaderRow: true}).run()
                         }
@@ -58,61 +49,64 @@ describe('TipTapEditor - Table Extension', () => {
                         Insert Table
                     </button>
                     <button
-                        data-testid="add-column-before"
+                        data-testid='add-column-before'
                         onClick={() => editor.chain().focus().addColumnBefore().run()}
                     >
                         Add Column Before
                     </button>
                     <button
-                        data-testid="add-column-after"
+                        data-testid='add-column-after'
                         onClick={() => editor.chain().focus().addColumnAfter().run()}
                     >
                         Add Column After
                     </button>
                     <button
-                        data-testid="delete-column"
+                        data-testid='delete-column'
                         onClick={() => editor.chain().focus().deleteColumn().run()}
                     >
                         Delete Column
                     </button>
                     <button
-                        data-testid="add-row-before"
+                        data-testid='add-row-before'
                         onClick={() => editor.chain().focus().addRowBefore().run()}
                     >
                         Add Row Before
                     </button>
                     <button
-                        data-testid="add-row-after"
+                        data-testid='add-row-after'
                         onClick={() => editor.chain().focus().addRowAfter().run()}
                     >
                         Add Row After
                     </button>
                     <button
-                        data-testid="delete-row"
+                        data-testid='delete-row'
                         onClick={() => editor.chain().focus().deleteRow().run()}
                     >
                         Delete Row
                     </button>
                     <button
-                        data-testid="delete-table"
+                        data-testid='delete-table'
                         onClick={() => editor.chain().focus().deleteTable().run()}
                     >
                         Delete Table
                     </button>
                     <button
-                        data-testid="merge-cells"
+                        data-testid='merge-cells'
                         onClick={() => editor.chain().focus().mergeCells().run()}
                     >
                         Merge Cells
                     </button>
                     <button
-                        data-testid="split-cell"
+                        data-testid='split-cell'
                         onClick={() => editor.chain().focus().splitCell().run()}
                     >
                         Split Cell
                     </button>
                 </div>
-                <EditorContent editor={editor} data-testid="tiptap-editor"/>
+                <EditorContent
+                    editor={editor}
+                    data-testid='tiptap-editor'
+                />
             </div>
         );
     };
@@ -410,7 +404,7 @@ describe('TipTapEditor - Page Linking (Ctrl+K and Modal)', () => {
     const mockPages = [
         {
             id: 'page1',
-            type: 'page',
+            type: PostTypes.PAGE,
             props: {title: 'Getting Started'},
             create_at: 1000,
             update_at: 1000,
@@ -429,7 +423,7 @@ describe('TipTapEditor - Page Linking (Ctrl+K and Modal)', () => {
         },
         {
             id: 'page2',
-            type: 'page',
+            type: PostTypes.PAGE,
             props: {title: 'API Documentation'},
             create_at: 2000,
             update_at: 2000,
@@ -457,7 +451,7 @@ describe('TipTapEditor - Page Linking (Ctrl+K and Modal)', () => {
         delete_at: 0,
         description: '',
         email: '',
-        type: 'O',
+        type: 'O' as const,
         company_name: '',
         allowed_domains: '',
         invite_id: '',
@@ -467,55 +461,9 @@ describe('TipTapEditor - Page Linking (Ctrl+K and Modal)', () => {
         policy_id: null,
     };
 
-    const initialState: DeepPartial<GlobalState> = {
-        entities: {
-            general: {
-                config: {
-                    MaxFileSize: '52428800',
-                    EnableFileAttachments: 'true',
-                },
-            },
-            teams: {
-                currentTeamId: 'team1',
-                teams: {
-                    team1: mockCurrentTeam,
-                },
-                groupsAssociatedToTeam: {},
-            },
-            channels: {
-                channels: {},
-                groupsAssociatedToChannel: {},
-            },
-            users: {
-                currentUserId: 'user1',
-                profiles: {},
-            },
-            groups: {
-                groups: {},
-                syncables: {},
-            },
-            posts: {
-                posts: {},
-            },
-        },
-    };
-
-    const baseProps = {
-        content: '{"type":"doc","content":[]}',
-        onContentChange: jest.fn(),
-        editable: true,
-        currentUserId: 'user1',
-        channelId: 'channel1',
-        teamId: 'team1',
-        pageId: 'currentPage',
-        wikiId: 'wiki1',
-        pages: mockPages,
-    };
-
     beforeEach(() => {
         jest.clearAllMocks();
     });
-
 
     test('generates correct URL format for page links', () => {
         const expectedUrl = '/engineering/wiki/channel1/wiki1/page1';

@@ -15,6 +15,8 @@ type Props = {
     onEdit: () => void;
     onPublish: () => void;
     onToggleComments: () => void;
+    isFullscreen?: boolean;
+    onToggleFullscreen?: () => void;
 };
 
 const WikiPageHeader = ({
@@ -27,8 +29,9 @@ const WikiPageHeader = ({
     onEdit,
     onPublish,
     onToggleComments,
+    isFullscreen,
+    onToggleFullscreen,
 }: Props) => {
-
     return (
         <div
             className='PagePane__header'
@@ -60,6 +63,17 @@ const WikiPageHeader = ({
                     >
                         <i className='icon-message-text-outline'/>
                     </button>
+                    {onToggleFullscreen && (
+                        <button
+                            className='PagePane__icon-button'
+                            aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+                            title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+                            onClick={onToggleFullscreen}
+                            data-testid='wiki-page-fullscreen-button'
+                        >
+                            <i className={isFullscreen ? 'icon-arrow-collapse' : 'icon-arrow-expand'}/>
+                        </button>
+                    )}
                     {isDraft ? (
                         <button
                             className='btn btn-primary'
