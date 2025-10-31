@@ -46,6 +46,7 @@ const CreateRecapModal = ({onExited}: Props) => {
     const [recapType, setRecapType] = useState<RecapType | null>(null);
     const [selectedChannelIds, setSelectedChannelIds] = useState<string[]>([]);
     const [selectedBotId, setSelectedBotId] = useState<string>('');
+    const [isAgentMenuOpen, setIsAgentMenuOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -180,6 +181,10 @@ const CreateRecapModal = ({onExited}: Props) => {
         setSelectedBotId(botId);
     }, []);
 
+    const handleAgentMenuToggle = useCallback((isOpen: boolean) => {
+        setIsAgentMenuOpen(isOpen);
+    }, []);
+
     const headerText = (
         <div className='create-recap-modal-header'>
             <span>{formatMessage({id: 'recaps.modal.title', defaultMessage: 'Set up your recap'})}</span>
@@ -191,6 +196,7 @@ const CreateRecapModal = ({onExited}: Props) => {
                     bots={agents}
                     defaultBotId={agents.length > 0 ? agents[0].id : undefined}
                     disabled={isSubmitting}
+                    onMenuToggle={handleAgentMenuToggle}
                 />
             </div>
         </div>
@@ -243,6 +249,7 @@ const CreateRecapModal = ({onExited}: Props) => {
             id='createRecapModal'
             onExited={onExited}
             modalHeaderText={headerText}
+            enforceFocus={!isAgentMenuOpen}
             compassDesign={true}
             footerDivider={false}
             footerContent={footerContent}

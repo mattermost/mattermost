@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {useIntl} from 'react-intl';
 
 import {CheckIcon, ChevronDownIcon} from '@mattermost/compass-icons/components';
@@ -21,6 +21,10 @@ type Props = {
     defaultBotId?: string;
     disabled?: boolean;
     showLabel?: boolean;
+
+    // When inside a GenericModal, we need to communicate with the parent to set enforceFocus off when this menu is open
+    // Otherwise the underlying mui popover and GenericModal will exhaust the call stack trying to set focus when this closes
+    onMenuToggle?: (isOpen: boolean) => void;
 };
 
 const AIAgentDropdown = ({
@@ -30,6 +34,7 @@ const AIAgentDropdown = ({
     defaultBotId,
     disabled = false,
     showLabel = false,
+    onMenuToggle,
 }: Props) => {
     const {formatMessage} = useIntl();
 
@@ -50,6 +55,32 @@ const AIAgentDropdown = ({
         return bot.username;
     };
 
+    const menuConfig = useMemo(() => ({
+        id: 'ai-agent-dropdown-menu',
+        'aria-label': formatMessage({id: 'ai.agent.menuAriaLabel', defaultMessage: 'Select AI agent'}),
+        width: '240px',
+        onToggle: onMenuToggle,
+    }), [formatMessage, onMenuToggle]);
+
+    const menuButtonConfig = useMemo(() => ({
+        id: 'ai-agent-dropdown-button',
+        'aria-label': formatMessage({id: 'ai.agent.buttonAriaLabel', defaultMessage: 'AI agent selector'}),
+        disabled,
+        class: 'ai-agent-dropdown-button',
+        children: (
+            <>
+                <span className='ai-agent-dropdown-button-text'>{displayName}</span>
+                <ChevronDownIcon size={12}/>
+            </>
+        ),
+    }), [formatMessage, disabled, displayName]);
+
+    const menuHeaderElement = useMemo(() => (
+        <div className='ai-agent-dropdown-menu-header'>
+            {formatMessage({id: 'ai.agent.chooseBot', defaultMessage: 'CHOOSE A BOT'})}
+        </div>
+    ), [formatMessage]);
+
     return (
         <div className='ai-agent-dropdown'>
             {showLabel && (
@@ -58,28 +89,9 @@ const AIAgentDropdown = ({
                 </span>
             )}
             <Menu.Container
-                menu={{
-                    id: 'ai-agent-dropdown-menu',
-                    'aria-label': formatMessage({id: 'ai.agent.menuAriaLabel', defaultMessage: 'Select AI agent'}),
-                    width: '240px',
-                }}
-                menuButton={{
-                    id: 'ai-agent-dropdown-button',
-                    'aria-label': formatMessage({id: 'ai.agent.buttonAriaLabel', defaultMessage: 'AI agent selector'}),
-                    disabled,
-                    class: 'ai-agent-dropdown-button',
-                    children: (
-                        <>
-                            <span className='ai-agent-dropdown-button-text'>{displayName}</span>
-                            <ChevronDownIcon size={12}/>
-                        </>
-                    ),
-                }}
-                menuHeader={
-                    <div className='ai-agent-dropdown-menu-header'>
-                        {formatMessage({id: 'ai.agent.chooseBot', defaultMessage: 'CHOOSE A BOT'})}
-                    </div>
-                }
+                menu={menuConfig}
+                menuButton={menuButtonConfig}
+                menuHeader={menuHeaderElement}
             >
                 {bots.map((bot) => {
                     const isDefault = bot.id === defaultBotId;

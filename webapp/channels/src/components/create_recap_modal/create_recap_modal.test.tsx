@@ -64,18 +64,30 @@ describe('CreateRecapModal', () => {
                     user1: {id: 'user1', username: 'testuser'},
                 },
             },
-            channels: {
-                channels: {
-                    channel1: {id: 'channel1', name: 'test-channel', display_name: 'Test Channel'},
-                    channel2: {id: 'channel2', name: 'another-channel', display_name: 'Another Channel'},
+            teams: {
+                currentTeamId: 'team1',
+                teams: {
+                    team1: {id: 'team1', name: 'test-team', display_name: 'Test Team'},
                 },
                 myMembers: {
-                    channel1: {channel_id: 'channel1'},
-                    channel2: {channel_id: 'channel2'},
+                    team1: {team_id: 'team1', user_id: 'user1'},
+                },
+            },
+            channels: {
+                channels: {
+                    channel1: {id: 'channel1', name: 'test-channel', display_name: 'Test Channel', team_id: 'team1'},
+                    channel2: {id: 'channel2', name: 'another-channel', display_name: 'Another Channel', team_id: 'team1'},
+                },
+                channelsInTeam: {
+                    team1: new Set(['channel1', 'channel2']),
+                },
+                myMembers: {
+                    channel1: {channel_id: 'channel1', msg_count: 5, mention_count: 0},
+                    channel2: {channel_id: 'channel2', msg_count: 3, mention_count: 0},
                 },
                 messageCounts: {
-                    channel1: {total: 10},
-                    channel2: {total: 5},
+                    channel1: {total: 10, root: 10},
+                    channel2: {total: 5, root: 5},
                 },
             },
             ai: {
@@ -201,11 +213,11 @@ describe('CreateRecapModal', () => {
         expect(paginationDots.length).toBeGreaterThan(0);
     });
 
-    test('should show Cancel and Next buttons', () => {
+    test('should show Next button on first step', () => {
         renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
 
-        expect(screen.getByRole('button', {name: /cancel/i})).toBeInTheDocument();
         expect(screen.getByRole('button', {name: /next/i})).toBeInTheDocument();
+        expect(screen.queryByRole('button', {name: /previous/i})).not.toBeInTheDocument();
     });
 
     test('should disable Next button when form is incomplete', () => {
@@ -234,20 +246,29 @@ describe('CreateRecapModal', () => {
         await waitFor(() => expect(nextButton).not.toBeDisabled());
     });
 
-    test('should call onExited when Cancel is clicked', async () => {
-        const onExited = jest.fn();
-        renderWithContext(
-            <CreateRecapModal
-                {...defaultProps}
-                onExited={onExited}
-            />,
-            initialState,
-        );
+    test('should show Previous button on later steps', async () => {
+        renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
 
-        const cancelButton = screen.getByRole('button', {name: /cancel/i});
-        await userEvent.click(cancelButton);
+        // Fill form to enable navigation
+        await waitFor(() => {
+            const dropdownButton = screen.getByLabelText('AI agent selector');
+            expect(dropdownButton).toHaveTextContent('Copilot');
+        });
 
-        expect(onExited).toHaveBeenCalledTimes(1);
+        const nameInput = screen.getByPlaceholderText('Give your recap a name');
+        await userEvent.type(nameInput, 'Test Recap');
+
+        // Select "Recap selected channels" to go to step 2
+        const selectedChannelsButton = screen.getByText('Recap selected channels');
+        await userEvent.click(selectedChannelsButton);
+
+        const nextButton = screen.getByRole('button', {name: /next/i});
+        await userEvent.click(nextButton);
+
+        // Now we should be on step 2 and see the Previous button
+        await waitFor(() => {
+            expect(screen.getByRole('button', {name: /previous/i})).toBeInTheDocument();
+        });
     });
 
     test('should maintain selected bot across step navigation', async () => {
