@@ -1420,6 +1420,11 @@ func (a *App) UpdateUser(rctx request.CTX, user *model.User, sendNotifications b
 	a.InvalidateCacheForUser(user.Id)
 	a.onUserProfileChange(user.Id)
 
+	// If user locale changed, invalidate auto-translation language caches
+	if newUser.Locale != userUpdate.Old.Locale {
+		a.Srv().Store().AutoTranslation().InvalidateUserLocaleCache(user.Id)
+	}
+
 	newUser.Sanitize(map[string]bool{})
 
 	return newUser, nil
