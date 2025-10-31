@@ -1,0 +1,1 @@
+DROP INDEX IF EXISTS idx_posts_update_at_id;

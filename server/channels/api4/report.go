@@ -5,6 +5,7 @@ package api4
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -18,6 +19,7 @@ func (api *API) InitReports() {
 	api.BaseRoutes.Reports.Handle("/users", api.APISessionRequired(getUsersForReporting)).Methods(http.MethodGet)
 	api.BaseRoutes.Reports.Handle("/users/count", api.APISessionRequired(getUserCountForReporting)).Methods(http.MethodGet)
 	api.BaseRoutes.Reports.Handle("/users/export", api.APISessionRequired(startUsersBatchExport)).Methods(http.MethodPost)
+	api.BaseRoutes.Reports.Handle("/posts", api.APISessionRequired(getPostsForReporting)).Methods(http.MethodPost)
 }
 
 func getUsersForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -152,4 +154,82 @@ func fillUserReportOptions(values url.Values) (*model.UserReportOptions, *model.
 		HideInactive: hideInactive,
 		SearchTerm:   values.Get("search_term"),
 	}, nil
+}
+
+func getPostsForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
+	// Require system admin permission for accessing posts reporting
+	if !c.IsSystemAdmin() {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+
+	// Request body contains both options and cursor
+	var request struct {
+		model.ReportPostOptions
+		model.ReportPostOptionsCursor
+	}
+	if jsonErr := json.NewDecoder(r.Body).Decode(&request); jsonErr != nil {
+		c.SetInvalidParamWithErr("body", jsonErr)
+		return
+	}
+
+	// Validate required parameters
+	if request.ChannelId == "" {
+		c.SetInvalidParam("channel_id")
+		return
+	}
+	if !model.IsValidId(request.ChannelId) {
+		c.SetInvalidParam("channel_id")
+		return
+	}
+	if request.CursorTime <= 0 {
+		c.SetInvalidParam("cursor_time")
+		return
+	}
+	// cursor_id can be empty for the first request
+
+	// Validate optional EndTime if provided
+	if request.EndTime > 0 && request.CursorTime > request.EndTime {
+		c.Err = model.NewAppError("getPostsForReporting", "api.post.get_posts_for_reporting.invalid_time_range", nil, "cursor_time cannot be greater than end_time", http.StatusBadRequest)
+		return
+	}
+
+	// Set defaults
+	if request.TimeField == "" {
+		request.TimeField = "create_at"
+	}
+	if request.TimeField != "create_at" && request.TimeField != "update_at" {
+		c.SetInvalidParam("time_field")
+		return
+	}
+
+	if request.SortDirection == "" {
+		request.SortDirection = "asc"
+	}
+	if request.SortDirection != "asc" && request.SortDirection != "desc" {
+		c.SetInvalidParam("sort_direction")
+		return
+	}
+
+	if request.PerPage <= 0 {
+		request.PerPage = 100
+	}
+	if request.PerPage > model.MaxReportingPerPage {
+		c.Err = model.NewAppError("getPostsForReporting", "api.post.get_posts_for_reporting.invalid_per_page", nil, fmt.Sprintf("Maximum per_page is %d", model.MaxReportingPerPage), http.StatusBadRequest)
+		return
+	}
+
+	// Split into options and cursor
+	options := request.ReportPostOptions
+	cursor := request.ReportPostOptionsCursor
+
+	response, appErr := c.App.GetPostsForReporting(c.AppContext, options, cursor)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if jsonErr := json.NewEncoder(w).Encode(response); jsonErr != nil {
+		c.Logger.Warn("Error writing response", mlog.Err(jsonErr))
+	}
 }
