@@ -150,7 +150,7 @@ describe('RecapConfiguration', () => {
             );
 
             const selectedButton = screen.getByText('Recap selected channels').closest('button');
-            const checkIcon = selectedButton?.querySelector('.icon-check-circle');
+            const checkIcon = selectedButton?.querySelector('.selected-icon');
             expect(checkIcon).toBeInTheDocument();
         });
 
@@ -163,7 +163,7 @@ describe('RecapConfiguration', () => {
             );
 
             const allUnreadsButton = screen.getByText('Recap all my unreads').closest('button');
-            const checkIcon = allUnreadsButton?.querySelector('.icon-check-circle');
+            const checkIcon = allUnreadsButton?.querySelector('.selected-icon');
             expect(checkIcon).toBeInTheDocument();
         });
     });

@@ -113,7 +113,7 @@ const RecapItem = ({recap, isExpanded, onToggle}: Props) => {
                         onClick={(e) => e.stopPropagation()}
                     >
                         <button
-                            className='recap-icon-button'
+                            className='recap-icon-button recap-delete-button'
                             onClick={() => setShowDeleteConfirm(true)}
                         >
                             <TrashCanOutlineIcon size={16}/>
@@ -207,7 +207,7 @@ const RecapItem = ({recap, isExpanded, onToggle}: Props) => {
                         </button>
                     )}
                     <button
-                        className='recap-icon-button'
+                        className='recap-icon-button recap-delete-button'
                         onClick={() => setShowDeleteConfirm(true)}
                     >
                         <TrashCanOutlineIcon size={16}/>

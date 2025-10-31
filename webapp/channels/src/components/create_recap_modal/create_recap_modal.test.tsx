@@ -146,6 +146,12 @@ describe('CreateRecapModal', () => {
     test('should change selected bot when clicking on a different bot', async () => {
         renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
 
+        // Wait for initial bot to be selected
+        await waitFor(() => {
+            const dropdownButton = screen.getByLabelText('AI agent selector');
+            expect(dropdownButton).toHaveTextContent('Copilot');
+        });
+
         // Open dropdown
         const dropdownButton = screen.getByLabelText('AI agent selector');
         await userEvent.click(dropdownButton);
@@ -212,6 +218,12 @@ describe('CreateRecapModal', () => {
     test('should enable Next button when form is complete', async () => {
         renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
 
+        // Wait for bot to be selected automatically
+        await waitFor(() => {
+            const dropdownButton = screen.getByLabelText('AI agent selector');
+            expect(dropdownButton).toHaveTextContent('Copilot');
+        });
+
         const nameInput = screen.getByPlaceholderText('Give your recap a name');
         await userEvent.type(nameInput, 'Test Recap');
 
@@ -240,6 +252,12 @@ describe('CreateRecapModal', () => {
 
     test('should maintain selected bot across step navigation', async () => {
         renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
+
+        // Wait for initial bot to be selected
+        await waitFor(() => {
+            const dropdownButton = screen.getByLabelText('AI agent selector');
+            expect(dropdownButton).toHaveTextContent('Copilot');
+        });
 
         // Change bot to OpenAI
         const dropdownButton = screen.getByLabelText('AI agent selector');

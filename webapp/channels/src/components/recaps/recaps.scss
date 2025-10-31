@@ -231,7 +231,7 @@
                     }
 
                     // Trash icon should be red
-                    &:has(.icon-trash-can-outline) .icon {
+                    &.recap-delete-button {
                         color: var(--dnd-indicator);
                     }
                 }

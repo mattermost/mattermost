@@ -6,6 +6,7 @@ import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {useHistory, useRouteMatch} from 'react-router-dom';
 
+import {ChevronLeftIcon, ChevronRightIcon} from '@mattermost/compass-icons/components';
 import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
 
@@ -203,10 +204,6 @@ const CreateRecapModal = ({onExited}: Props) => {
         handleNext();
     }, [currentStep, handleSubmit, handleNext]);
 
-    const handleCancelClick = useCallback(() => {
-        onExited();
-    }, [onExited]);
-
     const footerContent = (
         <div className='create-recap-modal-footer'>
             <div className='create-recap-modal-footer-left'>
@@ -214,26 +211,19 @@ const CreateRecapModal = ({onExited}: Props) => {
                     totalSteps={getTotalSteps()}
                     currentStep={getActualStep()}
                 />
+            </div>
+            <div className='create-recap-modal-footer-actions'>
                 {currentStep > 1 && (
                     <button
-                        className='btn btn-link'
+                        type='button'
+                        className='GenericModal__button btn btn-tertiary'
                         onClick={handlePrevious}
                         disabled={isSubmitting}
                     >
-                        <i className='icon icon-chevron-left'/>
+                        <ChevronLeftIcon size={16}/>
                         {formatMessage({id: 'generic_modal.previous', defaultMessage: 'Previous'})}
                     </button>
                 )}
-            </div>
-            <div className='create-recap-modal-footer-actions'>
-                <button
-                    type='button'
-                    className='GenericModal__button btn btn-tertiary'
-                    onClick={handleCancelClick}
-                    disabled={isSubmitting}
-                >
-                    {formatMessage({id: 'generic_modal.cancel', defaultMessage: 'Cancel'})}
-                </button>
                 <button
                     type='submit'
                     className='GenericModal__button btn btn-primary'
@@ -241,6 +231,7 @@ const CreateRecapModal = ({onExited}: Props) => {
                     disabled={!canProceed() || isSubmitting}
                 >
                     {confirmButtonText}
+                    {currentStep < 3 && <ChevronRightIcon size={16}/>}
                 </button>
             </div>
         </div>
