@@ -1,8 +1,8 @@
 diff --git a/node_modules/dom-accessibility-api/dist/accessible-name-and-description.js b/node_modules/dom-accessibility-api/dist/accessible-name-and-description.js
-index 585aa65..bb4ec8a 100644
+index 94a27b7..3337e2a 100644
 --- a/node_modules/dom-accessibility-api/dist/accessible-name-and-description.js
 +++ b/node_modules/dom-accessibility-api/dist/accessible-name-and-description.js
-@@ -434,7 +434,14 @@ function computeTextAlternative(root) {
+@@ -442,7 +442,14 @@ function computeTextAlternative(root) {
      var skipToStep2E = context.recursion && isControl(current) && compute === "name";
      if (!skipToStep2E) {
        var ariaLabel = ((0, _util.isElement)(current) && current.getAttribute("aria-label") || "").trim();
@@ -19,10 +19,10 @@ index 585aa65..bb4ec8a 100644
          return ariaLabel;
        }
 diff --git a/node_modules/dom-accessibility-api/dist/accessible-name-and-description.mjs b/node_modules/dom-accessibility-api/dist/accessible-name-and-description.mjs
-index 8f905f1..aa3f1c5 100644
+index 05f9ca6..8d37d55 100644
 --- a/node_modules/dom-accessibility-api/dist/accessible-name-and-description.mjs
 +++ b/node_modules/dom-accessibility-api/dist/accessible-name-and-description.mjs
-@@ -433,7 +433,14 @@ export function computeTextAlternative(root) {
+@@ -437,7 +437,14 @@ export function computeTextAlternative(root) {
      var skipToStep2E = context.recursion && isControl(current) && compute === "name";
      if (!skipToStep2E) {
        var ariaLabel = (isElement(current) && current.getAttribute("aria-label") || "").trim();
