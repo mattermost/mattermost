@@ -3294,7 +3294,7 @@ func (s *SqlPostStore) RefreshPostStats() error {
 	return nil
 }
 
-// Restore restores a flagged post along with all its replies and associated files.
+// RestoreContentFlaggedPost restores a flagged post along with all its replies and associated files.
 // When restoring replies, it does not restore posts that were intentionally deleted by a user, and
 // it only restores posts deleted by the specified deletedBy user ID, which in case of Content Flagging is
 // the Content Reviewer bot.
@@ -3326,6 +3326,10 @@ func (s *SqlPostStore) RestoreContentFlaggedPost(flaggedPost *model.Post, status
 		}
 	}
 
+	if err := s.removeContentFlaggingManagedPropertyValues(tx, baseSubQuery, flaggedPost.Id, contentFlaggingManagedFieldId); err != nil {
+		return err
+	}
+
 	if err = tx.Commit(); err != nil {
 		return errors.Wrap(err, "commit_transaction")
 	}
@@ -3341,18 +3345,17 @@ func (s *SqlPostStore) restoreContentFlaggedRootPost(tx *sqlxTxWrapper, baseSubQ
 			sq.Eq{"pv_status.value": fmt.Sprintf("\"%s\"", model.ContentFlaggingStatusAssigned)},
 		})
 
-	if err := s.removeContentFlaggingManagedPropertyValues(tx, postIdSubQuery, contentFlaggingManagedFieldId); err != nil {
-		return err
-	}
-
 	// Restoring the post
 	queryBuilder := s.getQueryBuilder().
 		Update("Posts").
 		Set("DeleteAt", 0).
 		Where(sq.Expr("Id IN (?)", postIdSubQuery.Where(sq.NotEq{"p.DeleteAt": 0})))
 
-	if _, err := tx.ExecBuilder(queryBuilder); err != nil {
+	if result, err := tx.ExecBuilder(queryBuilder); err != nil {
 		return errors.Wrapf(err, "SqlPostStore.RestoreContentFlaggedPost: failed to restore post %s", postId)
+	} else {
+		rowsAffected, _ := result.RowsAffected()
+		fmt.Printf("AAA %d", rowsAffected)
 	}
 
 	return s.restoreFilesForSubQuery(tx, postIdSubQuery)
@@ -3366,10 +3369,6 @@ func (s *SqlPostStore) restoreContentFlaggedPostReplies(tx *sqlxTxWrapper, baseS
 			sq.Expr("pv_status.id IS NULL"),
 			sq.Eq{"pv_status.value": fmt.Sprintf("\"%s\"", model.ContentFlaggingStatusRetained)},
 		})
-
-	if err := s.removeContentFlaggingManagedPropertyValues(tx, postIdSubQuery, contentFlaggingManagedFieldId); err != nil {
-		return err
-	}
 
 	queryBuilder := s.getQueryBuilder().
 		Update("Posts").
@@ -3395,7 +3394,18 @@ func (s *SqlPostStore) restoreContentFlaggedPostReplies(tx *sqlxTxWrapper, baseS
 	return nil
 }
 
-func (s *SqlPostStore) removeContentFlaggingManagedPropertyValues(tx *sqlxTxWrapper, postIdSubQuery sq.SelectBuilder, contentFlaggingManagedFieldId string) error {
+func (s *SqlPostStore) removeContentFlaggingManagedPropertyValues(tx *sqlxTxWrapper, baseSubQuery sq.SelectBuilder, rootId, contentFlaggingManagedFieldId string) error {
+	postIdSubQuery := baseSubQuery.
+		Where(sq.Or{
+			sq.Eq{"p.Id": rootId},
+			sq.Eq{"p.RootId": rootId},
+		}).
+		Where(sq.Or{
+			sq.Eq{"p.Id": rootId},
+			sq.Expr("pv_status.value IS NULL"),
+		}).
+		Where(sq.Eq{"p.DeleteAt": 0})
+
 	queryBuilder := s.getQueryBuilder().
 		Update("PropertyValues").
 		Set("DeleteAt", model.GetMillis()).
