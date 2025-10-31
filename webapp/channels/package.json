@@ -101,6 +101,7 @@
     "@mattermost/eslint-plugin": "*",
     "@mattermost/mmjstool": "github:mattermost/mattermost-utilities#7b63833d208d482ba4a1c12230bb3e68dd9c5e5e",
     "@storybook/addon-a11y": "10.0.0",
+    "@storybook/addon-docs": "10.0.0",
     "@storybook/addon-webpack5-compiler-babel": "3.0.6",
     "@storybook/react-webpack5": "10.0.0",
     "@stylistic/stylelint-plugin": "3.1.2",
@@ -144,6 +145,7 @@
     "enzyme": "3.11.0",
     "enzyme-to-json": "3.6.2",
     "eslint-plugin-no-only-tests": "3.1.0",
+    "eslint-plugin-storybook": "10.0.0",
     "external-remotes-plugin": "1.0.0",
     "html-loader": "5.1.0",
     "html-webpack-plugin": "5.5.0",
@@ -170,9 +172,7 @@
     "stylelint-order": "6.0.4",
     "stylelint-scss": "6.8.1",
     "webpack-pwa-manifest": "4.3.0",
-    "yargs": "17.7.2",
-    "eslint-plugin-storybook": "10.0.0",
-    "@storybook/addon-docs": "10.0.0"
+    "yargs": "17.7.2"
   },
   "overrides": {
     "@mattermost/desktop-api": {
