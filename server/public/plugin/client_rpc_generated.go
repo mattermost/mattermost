@@ -513,8 +513,8 @@ type Z_FileWillBeDownloadedReturns struct {
 	A string
 }
 
-func (g *hooksRPCClient) FileWillBeDownloaded(c *Context, info *model.FileInfo, userID string) string {
-	_args := &Z_FileWillBeDownloadedArgs{c, info, userID}
+func (g *hooksRPCClient) FileWillBeDownloaded(c *Context, fileInfo *model.FileInfo, userID string) string {
+	_args := &Z_FileWillBeDownloadedArgs{c, fileInfo, userID}
 	_returns := &Z_FileWillBeDownloadedReturns{}
 	if g.implemented[FileWillBeDownloadedID] {
 		if err := g.client.Call("Plugin.FileWillBeDownloaded", _args, _returns); err != nil {
@@ -526,7 +526,7 @@ func (g *hooksRPCClient) FileWillBeDownloaded(c *Context, info *model.FileInfo, 
 
 func (s *hooksRPCServer) FileWillBeDownloaded(args *Z_FileWillBeDownloadedArgs, returns *Z_FileWillBeDownloadedReturns) error {
 	if hook, ok := s.impl.(interface {
-		FileWillBeDownloaded(c *Context, info *model.FileInfo, userID string) string
+		FileWillBeDownloaded(c *Context, fileInfo *model.FileInfo, userID string) string
 	}); ok {
 		returns.A = hook.FileWillBeDownloaded(args.A, args.B, args.C)
 	} else {
@@ -5023,6 +5023,36 @@ func (s *apiRPCServer) OpenInteractiveDialog(args *Z_OpenInteractiveDialogArgs, 
 		returns.A = hook.OpenInteractiveDialog(args.A)
 	} else {
 		return encodableError(fmt.Errorf("API OpenInteractiveDialog called but not implemented."))
+	}
+	return nil
+}
+
+type Z_SendToastMessageArgs struct {
+	A string
+	B string
+	C model.SendToastMessageOptions
+}
+
+type Z_SendToastMessageReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) SendToastMessage(userID string, message string, options model.SendToastMessageOptions) *model.AppError {
+	_args := &Z_SendToastMessageArgs{userID, message, options}
+	_returns := &Z_SendToastMessageReturns{}
+	if err := g.client.Call("Plugin.SendToastMessage", _args, _returns); err != nil {
+		log.Printf("RPC call to SendToastMessage API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) SendToastMessage(args *Z_SendToastMessageArgs, returns *Z_SendToastMessageReturns) error {
+	if hook, ok := s.impl.(interface {
+		SendToastMessage(userID string, message string, options model.SendToastMessageOptions) *model.AppError
+	}); ok {
+		returns.A = hook.SendToastMessage(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API SendToastMessage called but not implemented."))
 	}
 	return nil
 }

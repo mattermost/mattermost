@@ -6,7 +6,7 @@
 import {batchActions} from 'redux-batched-actions';
 import React from 'react';
 
-import {AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
+import {AlertCircleOutlineIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
 
 import {
     ChannelTypes,
@@ -658,6 +658,9 @@ export function handleEvent(msg) {
         break;
     case SocketEvents.FILE_DOWNLOAD_REJECTED:
         dispatch(handleFileDownloadRejected(msg));
+        break;
+    case SocketEvents.SHOW_TOAST:
+        dispatch(handleShowToast(msg));
         break;
     default:
     }
@@ -2060,4 +2063,24 @@ export function handleFileDownloadRejected(msg) {
             },
         }));
     };
+}
+
+function handleShowToast(msg) {
+    const {message, position} = msg.data;
+    if (message) {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.INFO_TOAST,
+            dialogType: InfoToast,
+            dialogProps: {
+                content: {
+                    message,
+                    icon: React.createElement(InformationOutlineIcon, {size: 18}),
+                },
+                position: position || 'bottom-right',
+                onExited: () => {
+                    dispatch(closeModal(ModalIdentifiers.INFO_TOAST));
+                },
+            },
+        }));
+    }
 }
