@@ -63,7 +63,7 @@ export default class AtMentionProvider extends Provider {
     public data: any;
     public lastCompletedWord: string;
     public lastPrefixWithNoResults: string;
-    public triggerCharacter: string;
+    public triggerCharacter: string = '@';
     public getProfilesInChannel: (state: GlobalState, channelId: string, filters?: Filters | undefined) => UserProfile[];
     public addLastViewAtToProfiles: (state: GlobalState, profiles: UserProfile[]) => UserProfileWithLastViewAt[];
 
@@ -359,7 +359,7 @@ export default class AtMentionProvider extends Provider {
     }
 
     // updateMatches invokes the resultCallback with the metadata for rendering at mentions
-    updateMatches(resultCallback: ResultsCallback<unknown>, groups: Array<ProviderResultsGroup<UserProfile | Group | SpecialMention | Loading>>) {
+    updateMatches(resultCallback: ResultsCallback<unknown>, groups: Array<ProviderResultsGroup<UserProfile | Group | SpecialMention | Loading>>, matchedPretext: string) {
         if (groups.length === 0) {
             this.lastPrefixWithNoResults = this.latestPrefix;
         } else if (this.lastPrefixWithNoResults === this.latestPrefix) {
@@ -367,7 +367,7 @@ export default class AtMentionProvider extends Provider {
         }
 
         resultCallback({
-            matchedPretext: `${this.triggerCharacter}${this.latestPrefix}`,
+            matchedPretext,
             groups,
         });
     }
@@ -378,34 +378,42 @@ export default class AtMentionProvider extends Provider {
             return false;
         }
 
-        this.triggerCharacter = pretext.match(/[@＠]/)?.[0] || '@';
+        // Extract the actual matched text including the trigger character from the ORIGINAL pretext
+        // Find the @ or ＠ position within the matched text
+        const fullMatchIndex = captured.index;
+        const fullMatch = captured[0];
+        const atSymbolMatch = fullMatch.match(/[@＠]/);
+        const atSymbolOffset = atSymbolMatch ? fullMatch.indexOf(atSymbolMatch[0]) : 0;
+        const matchedPretextStart = fullMatchIndex + atSymbolOffset;
+        const matchedPretext = pretext.substring(matchedPretextStart);
 
-        if (this.lastCompletedWord && captured[0].trim().startsWith(this.lastCompletedWord.trim())) {
-            // It appears we're still matching a channel handle that we already completed
+        const prefix = captured[1];
+
+        if (this.lastCompletedWord && prefix.trim().startsWith(this.lastCompletedWord.trim())) {
+        // Skip if we're still matching a mention that was already completed
             return false;
         }
 
-        const prefix = captured[1];
         if (this.lastPrefixWithNoResults && prefix.startsWith(this.lastPrefixWithNoResults)) {
-            // Just give up since we know it won't return any results
+        // Skip search when prefix extends a previous search with no results
             return false;
         }
 
         this.startNewRequest(prefix);
-        this.updateMatches(resultCallback, this.items());
+        this.updateMatches(resultCallback, this.items(), matchedPretext);
 
-        // If we haven't gotten server-side results in 500 ms, add the loading indicator.
+        // Display loading indicator if server response takes longer than 500ms
         let showLoadingIndicator: NodeJS.Timeout | null = setTimeout(() => {
             if (this.shouldCancelDispatch(prefix)) {
                 return;
             }
 
-            this.updateMatches(resultCallback, [...this.items(), ...[otherMembersGroup()]]);
+            this.updateMatches(resultCallback, [...this.items(), ...[otherMembersGroup()]], matchedPretext);
 
             showLoadingIndicator = null;
         }, 500);
 
-        // Query the server for remote results to add to the local results.
+        // Fetch server-side user results and merge with local results
         this.autocompleteUsersInChannel(prefix).then(({data}) => {
             if (showLoadingIndicator) {
                 clearTimeout(showLoadingIndicator);
@@ -418,18 +426,17 @@ export default class AtMentionProvider extends Provider {
                 if (this.data && groupsData && groupsData.data) {
                     this.data.groups = groupsData.data;
                 }
-                this.updateMatches(resultCallback, this.items());
+                this.updateMatches(resultCallback, this.items(), matchedPretext);
             });
         });
 
         return true;
     }
 
-    handleCompleteWord(term: string, matchedPretext: string) {
-        this.lastCompletedWord = term;
+    handleCompleteWord(term: string) {
+        const termWithoutAt = term.replace(/^[@＠]/, '');
+        this.lastCompletedWord = termWithoutAt;
         this.lastPrefixWithNoResults = '';
-
-        return matchedPretext.replace(/＠/g, '@');
     }
 
     createFromProfile(profile: UserProfile | UserProfileWithLastViewAt): CreatedProfile {

@@ -80,7 +80,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [groupid1, groupid2, groupid3],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -189,7 +189,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [groupid1, groupid2, groupid3],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
             priorityProfiles: [
                 userid11,
@@ -306,7 +306,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [groupid1, groupid2, groupid3],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
             priorityProfiles: [
                 userid11,
@@ -423,7 +423,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [groupid1, groupid2, groupid3],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
             priorityProfiles: [
                 userid11,
@@ -527,7 +527,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [groupid1, groupid2, groupid3],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall2)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall2, matchedPretext);
             })),
         };
 
@@ -589,7 +589,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -654,7 +654,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -714,7 +714,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -766,7 +766,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -818,7 +818,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -869,7 +869,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -903,7 +903,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
     it('should suggest for first_name match "@X"', async () => {
         const pretext = '@X';
-        const matchedPretext = '@x';
+        const matchedPretext = '@X';
         const itemsCall3 = [
             membersGroup([
                 userid3,
@@ -922,7 +922,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -963,7 +963,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
     it('should suggest for last_name match "@Y"', async () => {
         const pretext = '@Y';
-        const matchedPretext = '@y';
+        const matchedPretext = '@Y';
         const itemsCall3 = [
             membersGroup([
                 userid3,
@@ -982,7 +982,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -1023,7 +1023,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
     it('should suggest for nickname match "@Z"', async () => {
         const pretext = '@Z';
-        const matchedPretext = '@z';
+        const matchedPretext = '@Z';
         const itemsCall3 = [
             membersGroup([
                 userid10,
@@ -1043,7 +1043,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -1110,7 +1110,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -1173,7 +1173,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -1236,7 +1236,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -1295,7 +1295,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -1383,7 +1383,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 resolve({
                     data: [groupid3],
                 });
-                expect(provider.updateMatches(resultCallback, itemsCall3)).toEqual(true);
+                provider.updateMatches(resultCallback, itemsCall3, matchedPretext);
             })),
         };
 
@@ -1415,6 +1415,8 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                     nonMembersGroup([userid5, userid6]),
                 ];
 
+                const callback = jest.fn();
+
                 const testParams = {
                     ...baseParams,
                     autocompleteUsersInChannel: jest.fn().mockImplementation(() => new Promise((resolve) => {
@@ -1427,18 +1429,15 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                         resolve({
                             data: [groupid1, groupid2, groupid3],
                         });
-                        expect(mentionProvider.updateMatches(callback, finalGroups)).toEqual(true);
+                        mentionProvider.updateMatches(callback, finalGroups, expectedMatched);
                     })),
                 };
 
                 const mentionProvider = new AtMentionProvider(testParams);
                 jest.spyOn(mentionProvider, 'getProfilesWithLastViewAtInChannel').mockReturnValue([userid10, userid3, userid1, userid2]);
-
-                const callback = jest.fn();
                 const handled = mentionProvider.handlePretextChanged(inputText, callback);
 
                 expect(handled).toBe(true);
-                expect(mentionProvider.triggerCharacter).toBe('＠');
 
                 // First call: local profiles, groups and special mentions
                 expect(callback).toHaveBeenNthCalledWith(1, {
@@ -1491,77 +1490,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 mentionProvider.handlePretextChanged(inputText, callback);
 
                 expect(testParams.autocompleteUsersInChannel).toHaveBeenCalledWith('us');
-                expect(mentionProvider.triggerCharacter).toBe('＠');
-            });
-        });
-
-        describe('triggerCharacter state management', () => {
-            it('should store full-width symbol when typed', () => {
-                const mentionProvider = new AtMentionProvider(baseParams);
-                jest.spyOn(mentionProvider, 'getProfilesWithLastViewAtInChannel').mockReturnValue([]);
-
-                const callback = jest.fn();
-                mentionProvider.handlePretextChanged('message ＠', callback);
-
-                expect(mentionProvider.triggerCharacter).toBe('＠');
-            });
-
-            it('should store half-width symbol when typed', () => {
-                const mentionProvider = new AtMentionProvider(baseParams);
-                jest.spyOn(mentionProvider, 'getProfilesWithLastViewAtInChannel').mockReturnValue([]);
-
-                const callback = jest.fn();
-                mentionProvider.handlePretextChanged('message @', callback);
-
-                expect(mentionProvider.triggerCharacter).toBe('@');
-            });
-
-            it('should update correctly when alternating between symbols', () => {
-                const mentionProvider = new AtMentionProvider(baseParams);
-                jest.spyOn(mentionProvider, 'getProfilesWithLastViewAtInChannel').mockReturnValue([userid1, userid2]);
-
-                const callback = jest.fn();
-
-                mentionProvider.handlePretextChanged('@first', callback);
-                expect(mentionProvider.triggerCharacter).toBe('@');
-
-                mentionProvider.handlePretextChanged('＠second', callback);
-                expect(mentionProvider.triggerCharacter).toBe('＠');
-
-                mentionProvider.handlePretextChanged('@third', callback);
-                expect(mentionProvider.triggerCharacter).toBe('@');
-            });
-        });
-
-        describe('handleCompleteWord normalization', () => {
-            it('should convert full-width ＠ to half-width @ on completion', () => {
-                const mentionProvider = new AtMentionProvider(baseParams);
-                const normalized = mentionProvider.handleCompleteWord('user', '＠user');
-
-                expect(normalized).toBe('@user');
-                expect(mentionProvider.lastCompletedWord).toBe('user');
-            });
-
-            it('should preserve half-width @ symbol', () => {
-                const mentionProvider = new AtMentionProvider(baseParams);
-                const result = mentionProvider.handleCompleteWord('user2', '@user2');
-
-                expect(result).toBe('@user2');
-                expect(mentionProvider.lastCompletedWord).toBe('user2');
-            });
-
-            it('should normalize within text context', () => {
-                const mentionProvider = new AtMentionProvider(baseParams);
-                const result = mentionProvider.handleCompleteWord('channel', 'hello ＠channel');
-
-                expect(result).toBe('hello @channel');
-            });
-
-            it('should normalize multiple full-width symbols', () => {
-                const mentionProvider = new AtMentionProvider(baseParams);
-                const result = mentionProvider.handleCompleteWord('user', '＠one and ＠user');
-
-                expect(result).toBe('@one and @user');
             });
         });
 
@@ -1622,7 +1550,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 const handled = mentionProvider.handlePretextChanged('＠', callback);
 
                 expect(handled).toBe(true);
-                expect(mentionProvider.triggerCharacter).toBe('＠');
                 expect(callback).toHaveBeenCalled();
             });
 
@@ -1634,7 +1561,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 const handled = mentionProvider.handlePretextChanged('hello ＠user', callback);
 
                 expect(handled).toBe(true);
-                expect(mentionProvider.triggerCharacter).toBe('＠');
             });
 
             it('should not trigger when ＠ is within a word', () => {
@@ -1659,7 +1585,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
         });
 
         describe('complete workflow integration', () => {
-            it('should maintain consistency through type → suggest → select → normalize', async () => {
+            it('should maintain consistency through type → suggest → select', async () => {
                 const testParams = {
                     ...baseParams,
                     autocompleteUsersInChannel: jest.fn().mockResolvedValue({
@@ -1675,7 +1601,6 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
                 // User types full-width
                 mentionProvider.handlePretextChanged('＠use', callback);
-                expect(mentionProvider.triggerCharacter).toBe('＠');
 
                 await Promise.resolve();
 
@@ -1684,10 +1609,9 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
                 expect(firstCall.matchedPretext).toBe('＠use');
 
                 // User selects completion
-                const finalized = mentionProvider.handleCompleteWord('user', '＠user');
+                mentionProvider.handleCompleteWord('＠user');
 
-                // Verify normalization
-                expect(finalized).toBe('@user');
+                // Verify completion was recorded (without the @ symbol)
                 expect(mentionProvider.lastCompletedWord).toBe('user');
             });
         });
