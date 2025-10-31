@@ -133,6 +133,8 @@ import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
 import {getHistory} from 'utils/browser_history';
 import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
+import * as Utils from 'utils/utils';
+import {getIntl} from 'utils/i18n';
 
 import {temporarilySetPageLoadContext} from './telemetry_actions';
 
@@ -1999,30 +2001,47 @@ export function handleFileDownloadRejected(msg) {
     return (dispatch, getState) => {
         const {file_id, file_name, rejection_reason, channel_id, post_id, download_type} = msg.data;
         
+        // Close the file preview modal so the user can see the rejection toast
+        dispatch(closeModal(ModalIdentifiers.FILE_PREVIEW_MODAL));
+        
         // Build a user-friendly message based on download type and context
         let displayMessage;
         
+        const intl = getIntl();
         switch (download_type) {
         case 'thumbnail':
-            displayMessage = `Thumbnail download blocked: ${rejection_reason}`;
+            displayMessage = intl.formatMessage(
+                {id: 'file_download.rejected.thumbnail', defaultMessage: 'Thumbnail blocked: {reason}'},
+                {reason: rejection_reason},
+            );
             break;
         case 'preview':
-            displayMessage = `Preview download blocked: ${rejection_reason}`;
+            displayMessage = intl.formatMessage(
+                {id: 'file_download.rejected.preview', defaultMessage: 'Preview blocked: {reason}'},
+                {reason: rejection_reason},
+            );
             break;
         case 'public':
-            displayMessage = `Public file download blocked: ${rejection_reason}`;
+            displayMessage = intl.formatMessage(
+                {id: 'file_download.rejected.public', defaultMessage: 'Public file access blocked: {reason}'},
+                {reason: rejection_reason},
+            );
             break;
         case 'file':
         default:
             if (file_name) {
-                displayMessage = `Download of "${file_name}" blocked: ${rejection_reason}`;
+                displayMessage = intl.formatMessage(
+                    {id: 'file_download.rejected.file_with_name', defaultMessage: 'Access to "{fileName}" blocked: {reason}'},
+                    {fileName: file_name, reason: rejection_reason},
+                );
             } else {
-                displayMessage = `File download blocked: ${rejection_reason}`;
+                displayMessage = intl.formatMessage(
+                    {id: 'file_download.rejected.file', defaultMessage: 'File access blocked: {reason}'},
+                    {reason: rejection_reason},
+                );
             }
             break;
         }
-        
-        console.log('[FILE_DOWNLOAD_REJECTED] Displaying message:', displayMessage);
         
         // Show toast notification using the existing InfoToast system
         dispatch(openModal({

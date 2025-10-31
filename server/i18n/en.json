@@ -2149,20 +2149,36 @@
     "translation": "Unable to get the file size."
   },
   {
+    "id": "api.file.get_file.plugin_hook_timeout",
+    "translation": "Plugin hook timed out"
+  },
+  {
     "id": "api.file.get_file.public_invalid.app_error",
     "translation": "The public link does not appear to be valid."
+  },
+  {
+    "id": "api.file.get_file.rejected_by_plugin",
+    "translation": ""
   },
   {
     "id": "api.file.get_file_preview.no_preview.app_error",
     "translation": "File doesn't have a preview image."
   },
   {
+    "id": "api.file.get_file_preview.rejected_by_plugin",
+    "translation": ""
+  },
+  {
     "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
     "translation": "File doesn't have a thumbnail image."
   },
   {
-    "id": "api.file.get_file.plugin_hook_timeout",
-    "translation": "Plugin hook timed out"
+    "id": "api.file.get_file_thumbnail.rejected_by_plugin",
+    "translation": ""
+  },
+  {
+    "id": "api.file.get_public_file.rejected_by_plugin",
+    "translation": ""
   },
   {
     "id": "api.file.get_public_link.disabled.app_error",
