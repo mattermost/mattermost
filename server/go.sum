@@ -380,6 +380,12 @@ github.com/mattermost/ldap v0.0.0-20231116144001-0f480c025956 h1:Y1Tu/swM31pVwwb
 github.com/mattermost/ldap v0.0.0-20231116144001-0f480c025956/go.mod h1:SRl30Lb7/QoYyohYeVBuqYvvmXSZJxZgiV3Zf6VbxjI=
 github.com/mattermost/logr/v2 v2.0.22 h1:npFkXlkAWR9J8payh8ftPcCZvLbHSI125mAM5/r/lP4=
 github.com/mattermost/logr/v2 v2.0.22/go.mod h1:0sUKpO+XNMZApeumaid7PYaUZPBIydfuWZ0dqixXo+s=
+github.com/mattermost/mattermost-plugin-ai v1.4.1-0.20251021135930-4d1083cef23e h1:sl1hyq4YJMwefpi/AittJDxLbv5iuTZDcaqs+sgN6Ps=
+github.com/mattermost/mattermost-plugin-ai v1.4.1-0.20251021135930-4d1083cef23e/go.mod h1:sgR9+nLFCjYSE9vlqxLZxHZ+6Kz2NJw9Qko+ywVX2k0=
+github.com/mattermost/mattermost-plugin-ai v1.4.1-0.20251029144844-4c2eb7a5feb9 h1:d+ZdIU2saRH09BOnHGWXBjw9LbKOOqzcQJISQ6eOM8g=
+github.com/mattermost/mattermost-plugin-ai v1.4.1-0.20251029144844-4c2eb7a5feb9/go.mod h1:sgR9+nLFCjYSE9vlqxLZxHZ+6Kz2NJw9Qko+ywVX2k0=
+github.com/mattermost/mattermost-plugin-ai v1.5.0 h1:64P8CadbrglgiQMiYqE9kZngrvIb5Ze7Jv+iK832RbI=
+github.com/mattermost/mattermost-plugin-ai v1.5.0/go.mod h1:sgR9+nLFCjYSE9vlqxLZxHZ+6Kz2NJw9Qko+ywVX2k0=
 github.com/mattermost/mattermost/server/public v0.1.20 h1:N39ZOyYvCVZXABetpb0tVrm/08Od3q7d/D45QZjJ63s=
 github.com/mattermost/mattermost/server/public v0.1.20/go.mod h1:ZSdLCHIFYDTmX5FNCJ7LoI2CLZ1rQqZcfJ3ZF81QadY=
 github.com/mattermost/morph v1.1.0 h1:Q9vrJbeM3s2jfweGheq12EFIzdNp9a/6IovcbvOQ6Cw=
