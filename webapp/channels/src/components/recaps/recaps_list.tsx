@@ -26,7 +26,7 @@ const RecapsList = ({recaps}: Props) => {
     useEffect(() => {
         recaps.forEach((recap) => {
             const isProcessing = recap.status === 'pending' || recap.status === 'processing';
-            
+
             // If recap is processing and not already being polled
             if (isProcessing && !pollingRecaps.current.has(recap.id)) {
                 pollingRecaps.current.add(recap.id);

@@ -396,23 +396,5 @@
             }
         }
     }
-
-    // Pagination Dots (using same pattern as cloud_preview_modal)
-    .pagination-dots {
-        display: flex;
-        gap: 8px;
-
-        .pagination-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: rgba(var(--center-channel-color-rgb), 0.16);
-            transition: background 0.2s ease;
-
-            &.active {
-                background: var(--button-bg);
-            }
-        }
-    }
 }
 

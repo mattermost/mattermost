@@ -6,19 +6,18 @@ import {useIntl} from 'react-intl';
 
 import {CheckIcon, ChevronDownIcon} from '@mattermost/compass-icons/components';
 
+import type {AIAgent} from 'mattermost-redux/actions/ai';
 import {Client4} from 'mattermost-redux/client';
 
 import * as Menu from 'components/menu';
 import Avatar from 'components/widgets/users/avatar';
-
-import type {BridgeBotInfo} from './types';
 
 import './ai_agent_dropdown.scss';
 
 type Props = {
     selectedBotId: string | null;
     onBotSelect: (botId: string) => void;
-    bots: BridgeBotInfo[];
+    bots: AIAgent[];
     defaultBotId?: string;
     disabled?: boolean;
     showLabel?: boolean;
@@ -47,7 +46,7 @@ const AIAgentDropdown = ({
         return Client4.getProfilePictureUrl(botId, 0);
     };
 
-    const getBotUsername = (bot: BridgeBotInfo) => {
+    const getBotUsername = (bot: AIAgent) => {
         return bot.username;
     };
 

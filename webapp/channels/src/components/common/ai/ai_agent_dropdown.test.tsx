@@ -3,13 +3,14 @@
 
 import React from 'react';
 
+import type {AIAgent} from 'mattermost-redux/actions/ai';
+
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import AIAgentDropdown from './ai_agent_dropdown';
-import type {BridgeBotInfo} from './types';
 
 describe('AIAgentDropdown', () => {
-    const mockBots: BridgeBotInfo[] = [
+    const mockBots: AIAgent[] = [
         {
             id: 'bot1',
             displayName: 'Copilot',

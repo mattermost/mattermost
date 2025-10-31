@@ -16,11 +16,11 @@ import {getMyChannels, getUnreadChannelIds} from 'mattermost-redux/selectors/ent
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {AIAgentDropdown} from 'components/common/ai';
+import PaginationDots from 'components/common/pagination_dots';
 
-import PaginationDots from './pagination_dots';
-import StepOne from './step_one';
-import StepTwoChannelSelector from './step_two_channel_selector';
-import StepTwoSummary from './step_two_summary';
+import ChannelSelector from './channel_selector';
+import ChannelSummary from './channel_summary';
+import RecapConfiguration from './recap_configuration';
 
 import './create_recap_modal.scss';
 
@@ -144,7 +144,7 @@ const CreateRecapModal = ({onExited}: Props) => {
         switch (currentStep) {
         case 1:
             return (
-                <StepOne
+                <RecapConfiguration
                     recapName={recapName}
                     setRecapName={setRecapName}
                     recapType={recapType}
@@ -154,7 +154,7 @@ const CreateRecapModal = ({onExited}: Props) => {
             );
         case 2:
             return (
-                <StepTwoChannelSelector
+                <ChannelSelector
                     selectedChannelIds={selectedChannelIds}
                     setSelectedChannelIds={setSelectedChannelIds}
                     myChannels={myChannels}
@@ -163,7 +163,7 @@ const CreateRecapModal = ({onExited}: Props) => {
             );
         case 3:
             return (
-                <StepTwoSummary
+                <ChannelSummary
                     selectedChannelIds={selectedChannelIds}
                     myChannels={myChannels}
                 />

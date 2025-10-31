@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+import './pagination_dots.scss';
+
 type Props = {
     totalSteps: number;
     currentStep: number;
