@@ -120,7 +120,6 @@ func StoreTestWithSearchTestEngine(t *testing.T, f func(*testing.T, store.Store,
 		}
 
 		t.Run(st.Name, func(t *testing.T) {
-			t.Setenv("MM_SERVICEENVIRONMENT", "test")
 			f(t, st.Store, searchTestEngine)
 		})
 	}
