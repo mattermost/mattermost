@@ -2033,6 +2033,7 @@ export function handleFileDownloadRejected(msg) {
                     icon: React.createElement(AlertCircleOutlineIcon, { size: 18 }),
                     message: displayMessage,
                 },
+                position: 'bottom-center',
                 onExited: () => {
                     // Close the modal when the toast is dismissed
                     dispatch(closeModal(ModalIdentifiers.INFO_TOAST));
