@@ -483,7 +483,7 @@ function ChannelSettingsAccessRulesTab({
             // No immediate membership changes, but if warning needed, show it before saving
             if (shouldShowWarning) {
                 setShouldShowActivityWarning(true);
-                setActivityWarningModalKey(prev => prev + 1);
+                setActivityWarningModalKey((prev) => prev + 1);
                 setShowActivityWarningModal(true);
                 return 'confirmation_required';
             }
@@ -518,7 +518,7 @@ function ChannelSettingsAccessRulesTab({
 
         // If activity warning should be shown, show it instead of saving directly
         if (shouldShowActivityWarning) {
-            setActivityWarningModalKey(prev => prev + 1);
+            setActivityWarningModalKey((prev) => prev + 1);
             setShowActivityWarningModal(true);
             return;
         }
