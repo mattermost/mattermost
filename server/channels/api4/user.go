@@ -130,7 +130,7 @@ func loginSSOCodeExchange(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Consume one-time code atomically
-	token, appErr := c.App.ConsumeTokenOnce(loginCode)
+	token, appErr := c.App.ConsumeTokenOnce(model.TokenTypeSSOCodeExchange, loginCode)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -3089,6 +3089,7 @@ func verifyUserEmailWithoutToken(c *Context, w http.ResponseWriter, r *http.Requ
 	auditRec.Success()
 	c.LogAudit("user verified")
 
+	c.App.SanitizeProfile(user, true)
 	if err := json.NewEncoder(w).Encode(user); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}

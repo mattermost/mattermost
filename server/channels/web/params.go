@@ -109,6 +109,7 @@ type Params struct {
 	ExcludeRemote                      bool
 	AccessControlPolicyEnforced        bool
 	ExcludeAccessControlPolicyEnforced bool
+	ContentReviewerId                  string
 
 	//Bookmarks
 	ChannelBookmarkId string
@@ -285,6 +286,7 @@ func ParamsFromRequest(r *http.Request) *Params {
 	params.ExcludePolicyConstrained, _ = strconv.ParseBool(query.Get("exclude_policy_constrained"))
 	params.AccessControlPolicyEnforced, _ = strconv.ParseBool(query.Get("access_control_policy_enforced"))
 	params.ExcludeAccessControlPolicyEnforced, _ = strconv.ParseBool(query.Get("exclude_access_control_policy_enforced"))
+	params.ContentReviewerId = props["content_reviewer_id"]
 
 	if val := query.Get("group_source"); val != "" {
 		switch val {

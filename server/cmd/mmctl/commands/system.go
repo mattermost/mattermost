@@ -169,6 +169,17 @@ Ios Minimum Version: {{.IosMinVersion}}
 Database Status: {{.database_status}}
 Filestore Status: {{.filestore_status}}`, status)
 
+	// Check health status and return non-zero exit code if any component is unhealthy
+	if status["status"] != model.StatusOk {
+		return fmt.Errorf("server status is unhealthy: %s", status["status"])
+	}
+	if dbStatus, ok := status["database_status"]; ok && dbStatus != model.StatusOk {
+		return fmt.Errorf("database status is unhealthy: %s", dbStatus)
+	}
+	if filestoreStatus, ok := status["filestore_status"]; ok && filestoreStatus != model.StatusOk {
+		return fmt.Errorf("filestore status is unhealthy: %s", filestoreStatus)
+	}
+
 	return nil
 }
 
