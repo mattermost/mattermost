@@ -9,7 +9,7 @@ import BurnOnReadUserGroupSelector from './burn_on_read_user_group_selector';
 
 // Mock the UserSelector component from content_flagging
 jest.mock('../content_flagging/user_multiselector/user_multiselector', () => ({
-    UserSelector: ({id, isMulti, multiSelectInitialValue, multiSelectOnChange, placeholder, enableGroups, disabled}: any) => {
+    UserSelector: ({id, isMulti, multiSelectInitialValue, multiSelectOnChange, placeholder, enableGroups, enableTeams, disabled}: any) => {
         const handleClick = () => {
             // Simulate UserSelector onChange with array of IDs
             if (multiSelectOnChange && !disabled) {
@@ -24,6 +24,7 @@ jest.mock('../content_flagging/user_multiselector/user_multiselector', () => ({
                     data-is-multi={String(isMulti)}
                     data-initial-value={JSON.stringify(multiSelectInitialValue)}
                     data-enable-groups={String(enableGroups)}
+                    data-enable-teams={String(enableTeams)}
                     data-disabled={String(disabled)}
                     placeholder={placeholder}
                     disabled={Boolean(disabled)}
@@ -188,7 +189,7 @@ describe('components/admin_console/burn_on_read_user_group_selector/BurnOnReadUs
             <BurnOnReadUserGroupSelector {...baseProps}/>,
         );
 
-        expect(screen.getByPlaceholderText('Start typing to search for users and groups...')).toBeInTheDocument();
+        expect(screen.getByPlaceholderText('Start typing to search for users, groups, and teams...')).toBeInTheDocument();
     });
 
     test('should pass isMulti=true to UserSelector', () => {
@@ -199,5 +200,26 @@ describe('components/admin_console/burn_on_read_user_group_selector/BurnOnReadUs
         const inputs = screen.getAllByTestId(baseProps.id);
         const input = inputs[inputs.length - 1];
         expect(input.getAttribute('data-is-multi')).toBe('true');
+    });
+
+    // Team support tests
+    test('should enable teams in UserSelector', () => {
+        renderWithContext(
+            <BurnOnReadUserGroupSelector {...baseProps}/>,
+        );
+
+        const inputs = screen.getAllByTestId(baseProps.id);
+        const input = inputs[inputs.length - 1];
+        expect(input.getAttribute('data-enable-teams')).toBe('true');
+    });
+
+    test('should have placeholder mentioning teams', () => {
+        renderWithContext(
+            <BurnOnReadUserGroupSelector {...baseProps}/>,
+        );
+
+        const inputs = screen.getAllByTestId(baseProps.id);
+        const input = inputs[inputs.length - 1] as HTMLInputElement;
+        expect(input.placeholder).toContain('teams');
     });
 });

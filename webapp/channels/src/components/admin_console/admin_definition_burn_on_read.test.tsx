@@ -1,22 +1,34 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {LicenseSkus} from 'utils/constants';
+
 import AdminDefinition from './admin_definition';
 import type {AdminDefinitionSetting} from './types';
 
 describe('AdminDefinition - Burn-on-Read Settings', () => {
+    // Helper function to get all settings from all sections
+    const getAllSettings = () => {
+        const postsSection = AdminDefinition.site.subsections.posts;
+        const sections = 'sections' in postsSection.schema! ? postsSection.schema.sections : undefined;
+
+        // Flatten all settings from all sections
+        const allSettings = sections?.flatMap((section: any) => section.settings || []) || [];
+        return allSettings;
+    };
+
     test('should include Burn-on-Read settings in posts section', () => {
         const postsSection = AdminDefinition.site.subsections.posts;
         expect(postsSection).toBeDefined();
 
-        const postsSettings = 'settings' in postsSection.schema! ? postsSection.schema.settings : undefined;
-        expect(postsSettings).toBeDefined();
+        const allSettings = getAllSettings();
+        expect(allSettings.length).toBeGreaterThan(0);
 
         // Find Burn-on-Read settings
-        const enableSetting = postsSettings?.find((s: AdminDefinitionSetting) => s.key === 'ServiceSettings.EnableBurnOnRead');
-        const durationSetting = postsSettings?.find((s: AdminDefinitionSetting) => s.key === 'ServiceSettings.BurnOnReadDurationMinutes');
-        const allowedUsersSetting = postsSettings?.find((s: AdminDefinitionSetting) => s.key === 'ServiceSettings.BurnOnReadAllowedUsers');
-        const usersListSetting = postsSettings?.find((s: AdminDefinitionSetting) => s.key === 'ServiceSettings.BurnOnReadAllowedUsersList');
+        const enableSetting = allSettings.find((s: AdminDefinitionSetting) => s.key === 'ServiceSettings.EnableBurnOnRead');
+        const durationSetting = allSettings.find((s: AdminDefinitionSetting) => s.key === 'ServiceSettings.BurnOnReadDurationMinutes');
+        const allowedUsersSetting = allSettings.find((s: AdminDefinitionSetting) => s.key === 'ServiceSettings.BurnOnReadAllowedUsers');
+        const usersListSetting = allSettings.find((s: AdminDefinitionSetting) => s.key === 'ServiceSettings.BurnOnReadAllowedUsersList');
 
         expect(enableSetting).toBeDefined();
         expect(durationSetting).toBeDefined();
@@ -25,9 +37,8 @@ describe('AdminDefinition - Burn-on-Read Settings', () => {
     });
 
     test('EnableBurnOnRead setting should have correct configuration', () => {
-        const postsSection = AdminDefinition.site.subsections.posts;
-        const postsSettings = 'settings' in postsSection.schema! ? postsSection.schema.settings : undefined;
-        const enableSetting = postsSettings?.find((s: AdminDefinitionSetting) => s.key === 'ServiceSettings.EnableBurnOnRead');
+        const allSettings = getAllSettings();
+        const enableSetting = allSettings.find((s: AdminDefinitionSetting) => s.key === 'ServiceSettings.EnableBurnOnRead');
 
         expect(enableSetting?.type).toBe('bool');
         expect(enableSetting?.label).toBeDefined();
@@ -35,9 +46,8 @@ describe('AdminDefinition - Burn-on-Read Settings', () => {
     });
 
     test('BurnOnReadDurationMinutes setting should have correct options', () => {
-        const postsSection = AdminDefinition.site.subsections.posts;
-        const postsSettings = 'settings' in postsSection.schema! ? postsSection.schema.settings : undefined;
-        const durationSetting = postsSettings?.find((s: AdminDefinitionSetting) => s.key === 'ServiceSettings.BurnOnReadDurationMinutes');
+        const allSettings = getAllSettings();
+        const durationSetting = allSettings.find((s: AdminDefinitionSetting) => s.key === 'ServiceSettings.BurnOnReadDurationMinutes');
 
         expect(durationSetting?.type).toBe('dropdown');
         expect(durationSetting?.onConfigLoad).toBeDefined();
@@ -64,9 +74,8 @@ describe('AdminDefinition - Burn-on-Read Settings', () => {
     });
 
     test('BurnOnReadAllowedUsers setting should have correct radio options', () => {
-        const postsSection = AdminDefinition.site.subsections.posts;
-        const postsSettings = 'settings' in postsSection.schema! ? postsSection.schema.settings : undefined;
-        const allowedUsersSetting = postsSettings?.find((s: AdminDefinitionSetting) => s.key === 'ServiceSettings.BurnOnReadAllowedUsers');
+        const allSettings = getAllSettings();
+        const allowedUsersSetting = allSettings.find((s: AdminDefinitionSetting) => s.key === 'ServiceSettings.BurnOnReadAllowedUsers');
 
         expect(allowedUsersSetting?.type).toBe('radio');
         expect(allowedUsersSetting?.onConfigLoad).toBeDefined();
@@ -83,9 +92,8 @@ describe('AdminDefinition - Burn-on-Read Settings', () => {
     });
 
     test('BurnOnReadAllowedUsersList setting should be custom component', () => {
-        const postsSection = AdminDefinition.site.subsections.posts;
-        const postsSettings = 'settings' in postsSection.schema! ? postsSection.schema.settings : undefined;
-        const usersListSetting = postsSettings?.find((s: AdminDefinitionSetting) => s.key === 'ServiceSettings.BurnOnReadAllowedUsersList');
+        const allSettings = getAllSettings();
+        const usersListSetting = allSettings.find((s: AdminDefinitionSetting) => s.key === 'ServiceSettings.BurnOnReadAllowedUsersList');
 
         expect(usersListSetting?.type).toBe('custom');
         if (usersListSetting && 'component' in usersListSetting) {
@@ -96,15 +104,13 @@ describe('AdminDefinition - Burn-on-Read Settings', () => {
     });
 
     test('all Burn-on-Read settings should have proper permission checks', () => {
-        const postsSection = AdminDefinition.site.subsections.posts;
-        const postsSettings = 'settings' in postsSection.schema! ? postsSection.schema.settings : undefined;
-
-        const burnOnReadSettings = postsSettings?.filter((s: AdminDefinitionSetting) =>
+        const allSettings = getAllSettings();
+        const burnOnReadSettings = allSettings.filter((s: AdminDefinitionSetting) =>
             s.key?.includes('BurnOnRead'),
         );
 
         // All settings should check for posts write permission
-        burnOnReadSettings?.forEach((setting: AdminDefinitionSetting) => {
+        burnOnReadSettings.forEach((setting: AdminDefinitionSetting) => {
             expect(setting.isDisabled).toBeDefined();
 
             // The permission check should be a function that checks write permissions
@@ -113,14 +119,12 @@ describe('AdminDefinition - Burn-on-Read Settings', () => {
     });
 
     test('settings should have proper translation message descriptors', () => {
-        const postsSection = AdminDefinition.site.subsections.posts;
-        const postsSettings = 'settings' in postsSection.schema! ? postsSection.schema.settings : undefined;
-
-        const burnOnReadSettings = postsSettings?.filter((s: AdminDefinitionSetting) =>
+        const allSettings = getAllSettings();
+        const burnOnReadSettings = allSettings.filter((s: AdminDefinitionSetting) =>
             s.key?.includes('BurnOnRead'),
         );
 
-        burnOnReadSettings?.forEach((setting: AdminDefinitionSetting) => {
+        burnOnReadSettings.forEach((setting: AdminDefinitionSetting) => {
             if (setting.label && typeof setting.label === 'object') {
                 expect('id' in setting.label).toBe(true);
                 expect('defaultMessage' in setting.label).toBe(true);
@@ -133,32 +137,29 @@ describe('AdminDefinition - Burn-on-Read Settings', () => {
         });
     });
 
-    test('all Burn-on-Read settings should have proper feature flag checks', () => {
+    test('Burn-on-Read section should use LicensedSectionContainer with proper feature discovery', () => {
         const postsSection = AdminDefinition.site.subsections.posts;
-        const postsSettings = 'settings' in postsSection.schema! ? postsSection.schema.settings : undefined;
+        const sections = 'sections' in postsSection.schema! ? postsSection.schema.sections : undefined;
 
-        const mainBurnOnReadSettings = postsSettings?.filter((s: AdminDefinitionSetting) =>
-            s.key?.includes('BurnOnRead') && s.key !== 'ServiceSettings.BurnOnReadAllowedUsersList',
-        );
+        // Find the Burn-on-Read section
+        const burnOnReadSection = sections?.find((section: any) => section.key === 'PostSettings.BurnOnRead');
+        expect(burnOnReadSection).toBeDefined();
 
-        // Main settings should be hidden without feature flag
-        mainBurnOnReadSettings?.forEach((setting: AdminDefinitionSetting) => {
-            expect(setting.isHidden).toBeDefined();
-            expect(typeof setting.isHidden).toBe('function');
+        // Check that the section uses LicensedSectionContainer
+        expect(burnOnReadSection?.component).toBeDefined();
 
-            if (setting.isHidden && typeof setting.isHidden === 'function') {
-                // Test with feature flag disabled
-                const configDisabled = {FeatureFlags: {BurnOnRead: false}} as any;
-                expect(setting.isHidden(configDisabled, {}, {})).toBe(true);
+        // Check that it has proper license SKU requirement
+        expect(burnOnReadSection?.license_sku).toBe(LicenseSkus.EnterpriseAdvanced);
 
-                // Test with feature flag enabled
-                const configEnabled = {FeatureFlags: {BurnOnRead: true}} as any;
-                expect(setting.isHidden(configEnabled, {}, {})).toBe(false);
-            }
-        });
+        // Check that component props include feature discovery config
+        expect(burnOnReadSection?.componentProps).toBeDefined();
+        expect(burnOnReadSection?.componentProps?.requiredSku).toBe(LicenseSkus.EnterpriseAdvanced);
+        expect(burnOnReadSection?.componentProps?.featureDiscoveryConfig).toBeDefined();
+        expect(burnOnReadSection?.componentProps?.featureDiscoveryConfig?.featureName).toBe('burn_on_read');
 
-        // User selector should have complex visibility logic including feature flag
-        const usersListSetting = postsSettings?.find((s: AdminDefinitionSetting) => s.key === 'ServiceSettings.BurnOnReadAllowedUsersList');
+        // User selector should have visibility logic based on EnableBurnOnRead and AllowedUsers settings
+        const allSettings = getAllSettings();
+        const usersListSetting = allSettings.find((s: AdminDefinitionSetting) => s.key === 'ServiceSettings.BurnOnReadAllowedUsersList');
         expect(usersListSetting?.isHidden).toBeDefined();
         expect(typeof usersListSetting?.isHidden).toBe('function');
     });
