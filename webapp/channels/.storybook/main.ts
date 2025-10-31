@@ -16,11 +16,10 @@ const getAbsolutePath = (packageName: string): any =>
 
 const config: StorybookConfig = {
     stories: [
+        './docs/*.mdx',
         // Channels stories
         '../src/**/*.mdx',
         '../src/**/*.stories.@(js|jsx|mjs|ts|tsx)',
-        '../stories/**/*.mdx',
-        '../stories/**/*.stories.@(js|jsx|mjs|ts|tsx)',
         // Platform stories
         '../../platform/components/src/**/*.mdx',
         '../../platform/components/src/**/*.stories.@(js|jsx|mjs|ts|tsx)',
@@ -64,7 +63,7 @@ const config: StorybookConfig = {
 
             config.resolve.alias = {
                 ...config.resolve.alias,
-                
+
                 // CRITICAL: Ensure single React instance across all packages
                 // This prevents "Invalid hook call" errors in monorepo setup
                 react: path.resolve(__dirname, '../../node_modules/react'),

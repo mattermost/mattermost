@@ -1,0 +1,62 @@
+import {Meta} from '@storybook/blocks';
+
+<Meta title="Theming" />
+
+# Theming
+
+## Writing Themed Components
+
+### Using Theme Colors
+
+Theme colors are applied using CSS variables set on the root of the document. Every theme color has two corresponding CSS variables: one with the full color value (eg. `--button-bg`) and another that has an `-rgb` suffix which is split into its RGB components (eg. `--button-bg-rgb`). The regular version should be used for colors that are fully opaque, and the RGB version with the suffix should be used when for translucent colors.
+
+```css
+:root {
+    --button-bg: #1c58d9,
+    --button-color: #ffffff,
+
+    --button-bg-rgb: 28, 88, 217;
+    --button-color-rgb: 255, 255, 255;
+}
+
+.SomeButton {
+    background-color: var(--button-bg);
+    color: var(--button-color);
+}
+
+.SomeButton:disabled {
+    background-color: rgba(var(--button-bg-rgb), 0.7);
+    color: rgba(var(--button-color), 0.7);
+}
+```
+
+### Testing Themed Components
+
+When testing themed components, make sure to:
+
+1. **Test all themes**: Check your component with both light and dark themes to make sure it appears correctly in both.
+2. **Check contrast**: Ensure text is readable in all themes.
+3. **Check all interactive states**: Verify focus, hover, and active states appear correctly across all themes.
+
+### Troubleshooting
+
+#### Theme not applying?
+- Check that your component uses CSS variables instead of hardcoded colors
+- Verify SCSS is compiled correctly
+
+#### Theme applying where it shouldn't?
+- Ensure styles are properly scoped under `.app__body`
+
+#### Colors look wrong?
+- Check for hard-coded colors overriding theme variables
+- Verify opacity calculations use RGB variables
+- Test with browser DevTools to inspect CSS values to ensure that the correct colors are being applied and that they aren't being overridden
+
+## Using Themes in Storybook
+
+### Changing Themes
+
+You can change themes by clicking on the paintbrush icon (🖌️) in the toolbar at the top of Storybook. Your theme selection will persist as you switch stories or refresh Storybook.
+
+You can also change the background color by clicking on the picture icon (🖼️) in the toolbar at the top of Storybook to see how your component will look in different parts of the UI.
+
