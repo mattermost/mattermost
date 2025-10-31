@@ -452,6 +452,13 @@ func (th *TestHelper) TearDown() {
 	}
 }
 
+func (th *TestHelper) RemoveLicense() {
+	err := th.App.Srv().RemoveLicense()
+	if err != nil {
+		th.TestLogger.Warn("TestHelper.RemoveLicense: failed to remove license", mlog.Err(err))
+	}
+}
+
 func closeBody(r *http.Response) {
 	if r.Body != nil {
 		_, _ = io.Copy(io.Discard, r.Body)

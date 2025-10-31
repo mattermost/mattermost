@@ -6,11 +6,10 @@ import React from 'react';
 import type {UserPropertyField} from '@mattermost/types/properties';
 
 import TableEditor from 'components/admin_console/access_control/editors/table_editor/table_editor';
-import SaveChangesPanel from 'components/widgets/modals/components/save_changes_panel';
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
 import {useChannelSystemPolicies} from 'hooks/useChannelSystemPolicies';
-import {renderWithContext, screen, waitFor, userEvent} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, waitFor, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsAccessRulesTab from './channel_settings_access_rules_tab';
@@ -25,32 +24,9 @@ jest.mock('components/admin_console/access_control/editors/table_editor/table_ed
     return jest.fn(() => React.createElement('div', {'data-testid': 'table-editor'}, 'TableEditor'));
 });
 
-// Mock SaveChangesPanel
-jest.mock('components/widgets/modals/components/save_changes_panel', () => {
-    const React = require('react');
-    return jest.fn((props) => {
-        return React.createElement('div', {
-            'data-testid': 'save-changes-panel',
-            'data-state': props.state,
-        }, [
-            React.createElement('button', {
-                key: 'save',
-                'data-testid': 'SaveChangesPanel__save-btn',
-                onClick: props.handleSubmit,
-            }, 'Save'),
-            React.createElement('button', {
-                key: 'cancel',
-                'data-testid': 'SaveChangesPanel__cancel-btn',
-                onClick: props.handleCancel,
-            }, 'Reset'),
-        ]);
-    });
-});
-
 const mockUseChannelAccessControlActions = useChannelAccessControlActions as jest.MockedFunction<typeof useChannelAccessControlActions>;
 const mockUseChannelSystemPolicies = useChannelSystemPolicies as jest.MockedFunction<typeof useChannelSystemPolicies>;
 const MockedTableEditor = TableEditor as jest.MockedFunction<typeof TableEditor>;
-const MockedSaveChangesPanel = SaveChangesPanel as jest.MockedFunction<typeof SaveChangesPanel>;
 
 describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () => {
     const mockActions = {
@@ -131,8 +107,40 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                         first_name: 'Test',
                         last_name: 'User',
                         email: 'test@example.com',
+                        roles: 'channel_user', // Not system_admin
                     },
                 },
+            },
+            roles: {
+                roles: {
+                    channel_user: {
+                        id: 'channel_user',
+                        name: 'channel_user',
+                        permissions: [],
+                    },
+                    channel_admin: {
+                        id: 'channel_admin',
+                        name: 'channel_admin',
+                        permissions: ['manage_channel_access_rules'],
+                    },
+                },
+                myRoles: {
+                    channel_id: new Set(['channel_admin']),
+                },
+            },
+            channels: {
+                myMembers: {
+                    channel_id: {
+                        channel_id: 'channel_id',
+                        user_id: 'current_user_id',
+                        roles: 'channel_admin',
+                        mention_count: 0,
+                        msg_count: 0,
+                    },
+                },
+            },
+            teams: {
+                currentTeamId: 'team_id',
             },
         },
         plugins: {
@@ -181,9 +189,9 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             },
         });
 
-        // Suppress console methods for tests
-        jest.spyOn(console, 'error').mockImplementation(() => {});
-        jest.spyOn(console, 'warn').mockImplementation(() => {});
+        // Console methods are suppressed in these tests. They'll be restored by setup_jest.ts after the test.
+        console.error = jest.fn();
+        console.warn = jest.fn();
         jest.spyOn(console, 'log').mockImplementation(() => {});
         jest.spyOn(window, 'alert').mockImplementation(() => {});
     });
@@ -274,13 +282,15 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         expect(screen.getByText('Select user attributes and values as rules to restrict channel membership')).toBeInTheDocument();
     });
 
-    test('should call useChannelAccessControlActions hook', () => {
+    test('should call useChannelAccessControlActions hook', async () => {
         renderWithContext(
             <ChannelSettingsAccessRulesTab {...baseProps}/>,
             initialState,
         );
 
-        expect(mockUseChannelAccessControlActions).toHaveBeenCalledTimes(2); // Once for the hook call and once for the mock return
+        await waitFor(() => {
+            expect(mockUseChannelAccessControlActions).toHaveBeenCalledTimes(2); // Once for the hook call and once for the mock return
+        });
     });
 
     test('should load user attributes on mount', async () => {
@@ -338,9 +348,29 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 onChange: expect.any(Function),
                 onValidate: expect.any(Function),
                 onParseError: expect.any(Function),
+                isSystemAdmin: expect.any(Boolean),
+                validateExpressionAgainstRequester: mockActions.validateExpressionAgainstRequester,
             }),
             expect.anything(),
         );
+    });
+
+    test('should pass user self-exclusion props to TableEditor', async () => {
+        renderWithContext(
+            <ChannelSettingsAccessRulesTab {...baseProps}/>,
+            initialState,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+        });
+
+        // Verify the new props for user self-exclusion are passed
+        const call = MockedTableEditor.mock.calls[0][0];
+        expect(call).toHaveProperty('isSystemAdmin');
+        expect(call).toHaveProperty('validateExpressionAgainstRequester');
+        expect(typeof call.isSystemAdmin).toBe('boolean');
+        expect(typeof call.validateExpressionAgainstRequester).toBe('function');
     });
 
     test('should call setAreThereUnsavedChanges when expression changes', async () => {
@@ -363,7 +393,9 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
 
         // Simulate expression change
-        onChangeCallback('user.attributes.department == "Engineering"');
+        act(() => {
+            onChangeCallback('user.attributes.department == "Engineering"');
+        });
 
         expect(setAreThereUnsavedChanges).toHaveBeenCalledWith(true);
     });
@@ -808,7 +840,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 expect(screen.getByTestId('table-editor')).toBeInTheDocument();
             });
 
-            expect(screen.queryByTestId('save-changes-panel')).not.toBeInTheDocument();
+            expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
         });
 
         test('should show SaveChangesPanel when expression changes', async () => {
@@ -828,7 +860,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             onChangeCallback('user.attributes.department == "Engineering"');
 
             await waitFor(() => {
-                expect(screen.getByTestId('save-changes-panel')).toBeInTheDocument();
+                expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
             });
         });
 
@@ -856,7 +888,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             await userEvent.click(checkbox);
 
             await waitFor(() => {
-                expect(screen.getByTestId('save-changes-panel')).toBeInTheDocument();
+                expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
             });
         });
 
@@ -904,11 +936,11 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
             // Wait for SaveChangesPanel to appear
             await waitFor(() => {
-                expect(screen.getByTestId('save-changes-panel')).toBeInTheDocument();
+                expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
             });
 
             // Click Save button
-            const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
+            const saveButton = screen.getByText('Save');
             await userEvent.click(saveButton);
 
             // Wait for confirmation modal to appear
@@ -985,11 +1017,6 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             await userEvent.click(saveButton);
             await userEvent.click(saveButton);
 
-            // Wait for async operations to complete
-            await waitFor(() => {
-                expect(mockActions.saveChannelPolicy).toHaveBeenCalled();
-            });
-
             // Should only have been called once due to duplicate prevention
             expect(mockActions.saveChannelPolicy).toHaveBeenCalledTimes(1);
         });
@@ -1015,16 +1042,16 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
             // Wait for SaveChangesPanel to appear
             await waitFor(() => {
-                expect(screen.getByTestId('save-changes-panel')).toBeInTheDocument();
+                expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
             });
 
             // Click Reset button
-            const resetButton = screen.getByTestId('SaveChangesPanel__cancel-btn');
+            const resetButton = screen.getByText('Reset');
             await userEvent.click(resetButton);
 
             // Verify panel disappears
             await waitFor(() => {
-                expect(screen.queryByTestId('save-changes-panel')).not.toBeInTheDocument();
+                expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
             });
 
             // Verify checkbox is reset
@@ -1050,9 +1077,8 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             onChangeCallback('invalid expression');
 
             await waitFor(() => {
-                const panel = screen.getByTestId('save-changes-panel');
+                const panel = screen.getByText('Invalid expression format');
                 expect(panel).toBeInTheDocument();
-                expect(panel).toHaveAttribute('data-state', 'error');
             });
         });
 
@@ -1086,51 +1112,9 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             await userEvent.click(checkbox);
 
             await waitFor(() => {
-                const panel = screen.getByTestId('save-changes-panel');
-                expect(panel).toBeInTheDocument();
-                expect(panel).toHaveAttribute('data-state', 'error');
+                const panel = screen.getByText('You have unsaved changes');
+                expect(panel).toHaveClass('error');
             });
-        });
-
-        test('should pass correct props to SaveChangesPanel', async () => {
-            renderWithContext(
-                <ChannelSettingsAccessRulesTab {...baseProps}/>,
-                initialState,
-            );
-
-            // Wait for initial loading to complete
-            await waitFor(() => {
-                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
-            });
-
-            // Add an expression first to enable the checkbox
-            const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
-            onChangeCallback('user.attributes.department == "Engineering"');
-
-            await waitFor(() => {
-                const checkbox = screen.getByRole('checkbox');
-                expect(checkbox).not.toBeDisabled();
-            });
-
-            // Toggle auto-sync to show panel
-            const checkbox = screen.getByRole('checkbox');
-            await userEvent.click(checkbox);
-
-            await waitFor(() => {
-                expect(screen.getByTestId('save-changes-panel')).toBeInTheDocument();
-            });
-
-            expect(MockedSaveChangesPanel).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    handleSubmit: expect.any(Function),
-                    handleCancel: expect.any(Function),
-                    handleClose: expect.any(Function),
-                    tabChangeError: false,
-                    state: undefined,
-                    cancelButtonText: 'Reset',
-                }),
-                expect.anything(),
-            );
         });
 
         test('should update SaveChangesPanel state to saved after successful save', async () => {
@@ -1170,11 +1154,11 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             await userEvent.click(checkbox);
 
             await waitFor(() => {
-                expect(screen.getByTestId('save-changes-panel')).toBeInTheDocument();
+                expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
             });
 
             // Click Save button
-            const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
+            const saveButton = screen.getByText('Save');
             await userEvent.click(saveButton);
 
             // Wait for confirmation modal to appear
@@ -1189,8 +1173,8 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
             // Wait for save to complete and panel to show saved state
             await waitFor(() => {
-                const panel = screen.getByTestId('save-changes-panel');
-                expect(panel).toHaveAttribute('data-state', 'saved');
+                const panel = screen.getByText('Settings saved');
+                expect(panel).toBeVisible();
             });
         });
     });
@@ -1358,10 +1342,10 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
             // Click Save to trigger membership calculation
             await waitFor(() => {
-                expect(screen.getByTestId('save-changes-panel')).toBeInTheDocument();
+                expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
             });
 
-            const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
+            const saveButton = screen.getByText('Save');
             await userEvent.click(saveButton);
 
             // Wait for confirmation modal to appear
@@ -1392,6 +1376,9 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                                 id: 'current_user_id',
                                 username: 'current_user',
                                 email: 'current@test.com',
+                                roles: 'channel_user', // Add missing roles property
+                                first_name: 'Current',
+                                last_name: 'User',
                             },
                         },
                     },
@@ -1433,10 +1420,10 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
             // Click Save to trigger self-exclusion validation
             await waitFor(() => {
-                expect(screen.getByTestId('save-changes-panel')).toBeInTheDocument();
+                expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
             });
 
-            const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
+            const saveButton = screen.getByText('Save');
             await userEvent.click(saveButton);
 
             // Wait for confirmation modal to appear
@@ -1488,10 +1475,10 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
             // Click Save to trigger membership calculation
             await waitFor(() => {
-                expect(screen.getByTestId('save-changes-panel')).toBeInTheDocument();
+                expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
             });
 
-            const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
+            const saveButton = screen.getByText('Save');
             await userEvent.click(saveButton);
 
             // Wait for confirmation modal to appear
@@ -1559,10 +1546,10 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
             // Click Save to trigger membership calculation
             await waitFor(() => {
-                expect(screen.getByTestId('save-changes-panel')).toBeInTheDocument();
+                expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
             });
 
-            const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
+            const saveButton = screen.getByText('Save');
             await userEvent.click(saveButton);
 
             // Wait for confirmation modal to appear

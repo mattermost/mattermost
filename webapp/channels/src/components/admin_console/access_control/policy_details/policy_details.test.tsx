@@ -3,11 +3,11 @@
 
 import {shallow} from 'enzyme';
 import React from 'react';
-import {act} from 'react-dom/test-utils';
 
 import type {ChannelWithTeamData} from '@mattermost/types/channels';
 
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
+import {act} from 'tests/react_testing_utils';
 
 import PolicyDetails from './policy_details';
 
