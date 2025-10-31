@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {useIntl} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 import {Link, useLocation, matchPath, useRouteMatch} from 'react-router-dom';
 
@@ -17,7 +17,6 @@ import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagVal
 import './recaps_link.scss';
 
 const RecapsLink = () => {
-    const {formatMessage} = useIntl();
     const {url} = useRouteMatch();
     const {pathname} = useLocation();
     const currentTeamId = useSelector(getCurrentTeamId);
@@ -51,7 +50,10 @@ const RecapsLink = () => {
                     </span>
                     <div className='SidebarChannelLinkLabel_wrapper'>
                         <span className='SidebarChannelLinkLabel sidebar-item__name'>
-                            {formatMessage({id: 'recaps.sidebarLink', defaultMessage: 'Recaps'})}
+                            <FormattedMessage
+                                id='recaps.sidebarLink'
+                                defaultMessage='Recaps'
+                            />
                         </span>
                     </div>
                 </Link>

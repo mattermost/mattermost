@@ -17,7 +17,7 @@
                 left: 0;
                 width: 2px;
                 height: 100%;
-                border-radius: 0 2px 2px 0;
+                border-radius: 0 var(--radius-s) var(--radius-s) 0;
                 background-color: var(--sidebar-text-active-border);
                 content: '';
             }

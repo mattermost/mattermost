@@ -2,9 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useCallback, useMemo} from 'react';
-import {useIntl} from 'react-intl';
+import {useIntl, FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {CheckAllIcon, ArrowExpandIcon, ChevronDownIcon, ChevronUpIcon} from '@mattermost/compass-icons/components';
 import type {RecapChannel} from '@mattermost/types/recaps';
 
 import {readMultipleChannels} from 'mattermost-redux/actions/channels';
@@ -79,7 +80,7 @@ const RecapChannelCard = ({channel}: Props) => {
 
         {
             id: 'mark-channel-read',
-            icon: <i className='icon icon-check-all'/>,
+            icon: <CheckAllIcon size={18}/>,
             label: formatMessage({
                 id: 'recaps.menu.markChannelRead',
                 defaultMessage: 'Mark this channel as read',
@@ -88,7 +89,7 @@ const RecapChannelCard = ({channel}: Props) => {
         },
         {
             id: 'open-channel',
-            icon: <i className='icon icon-arrow-expand'/>,
+            icon: <ArrowExpandIcon size={18}/>,
             label: formatMessage({
                 id: 'recaps.menu.openChannel',
                 defaultMessage: 'Open channel',
@@ -116,7 +117,7 @@ const RecapChannelCard = ({channel}: Props) => {
                         className='recap-channel-collapse-button'
                         onClick={() => setIsCollapsed(!isCollapsed)}
                     >
-                        <i className={`icon ${isCollapsed ? 'icon-chevron-down' : 'icon-chevron-up'}`}/>
+                        {isCollapsed ? <ChevronDownIcon size={16}/> : <ChevronUpIcon size={16}/>}
                     </button>
                     <RecapMenu
                         actions={menuActions}
@@ -136,7 +137,10 @@ const RecapChannelCard = ({channel}: Props) => {
                     {hasHighlights && (
                         <div className='recap-section'>
                             <h4 className='recap-section-title'>
-                                {formatMessage({id: 'recaps.highlights', defaultMessage: 'Highlights'})}
+                                <FormattedMessage
+                                    id='recaps.highlights'
+                                    defaultMessage='Highlights'
+                                />
                             </h4>
                             <ul className='recap-list'>
                                 {channel.highlights.map((highlight, index) => {
@@ -172,7 +176,10 @@ const RecapChannelCard = ({channel}: Props) => {
                     {hasActionItems && (
                         <div className='recap-section'>
                             <h4 className='recap-section-title'>
-                                {formatMessage({id: 'recaps.actionItems', defaultMessage: 'Action items:'})}
+                                <FormattedMessage
+                                    id='recaps.actionItems'
+                                    defaultMessage='Action items:'
+                                />
                             </h4>
                             <ul className='recap-list'>
                                 {channel.action_items.map((actionItem, index) => {

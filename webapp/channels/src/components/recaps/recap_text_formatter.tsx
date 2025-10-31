@@ -28,19 +28,10 @@ const RecapTextFormatter = ({text, className}: Props) => {
         handleFormattedTextClick(e, currentRelativeTeamUrl);
     }, [currentRelativeTeamUrl]);
 
-    const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
-        // Allow keyboard interaction for links and mentions inside
-        if (e.key === 'Enter' || e.key === ' ') {
-            handleFormattedTextClick(e as unknown as React.UIEvent, currentRelativeTeamUrl);
-        }
-    }, [currentRelativeTeamUrl]);
-
     return (
         <div
             className={className}
             onClick={handleClick}
-            onKeyDown={handleKeyDown}
-            role='presentation'
         >
             <Markdown
                 message={cleanText}

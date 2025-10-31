@@ -5,6 +5,7 @@ import React, {useState, useMemo, useCallback} from 'react';
 import {useIntl, FormattedDate, FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {CheckAllIcon, RefreshIcon, TrashCanOutlineIcon, CheckCircleIcon} from '@mattermost/compass-icons/components';
 import type {Recap} from '@mattermost/types/recaps';
 
 import {readMultipleChannels} from 'mattermost-redux/actions/channels';
@@ -55,7 +56,7 @@ const RecapItem = ({recap, isExpanded, onToggle}: Props) => {
         if (!isFailed) {
             actions.push({
                 id: 'mark-all-channels-read',
-                icon: <i className='icon icon-check-all'/>,
+                icon: <CheckAllIcon size={18}/>,
                 label: formatMessage({
                     id: 'recaps.menu.markAllChannelsRead',
                     defaultMessage: 'Mark all channels as read',
@@ -66,7 +67,7 @@ const RecapItem = ({recap, isExpanded, onToggle}: Props) => {
 
         actions.push({
             id: 'regenerate-recap',
-            icon: <i className='icon icon-refresh'/>,
+            icon: <RefreshIcon size={18}/>,
             label: formatMessage({
                 id: 'recaps.menu.regenerateRecap',
                 defaultMessage: 'Regenerate this recap',
@@ -115,7 +116,7 @@ const RecapItem = ({recap, isExpanded, onToggle}: Props) => {
                             className='recap-icon-button'
                             onClick={() => setShowDeleteConfirm(true)}
                         >
-                            <i className='icon icon-trash-can-outline'/>
+                            <TrashCanOutlineIcon size={16}/>
                         </button>
                         {recap.read_at === 0 && (
                             <RecapMenu
@@ -201,7 +202,7 @@ const RecapItem = ({recap, isExpanded, onToggle}: Props) => {
                             className='recap-action-button'
                             onClick={() => dispatch(markRecapAsRead(recap.id))}
                         >
-                            <i className='icon icon-check-circle'/>
+                            <CheckCircleIcon size={12}/>
                             {formatMessage({id: 'recaps.markRead', defaultMessage: 'Mark read'})}
                         </button>
                     )}
@@ -209,7 +210,7 @@ const RecapItem = ({recap, isExpanded, onToggle}: Props) => {
                         className='recap-icon-button'
                         onClick={() => setShowDeleteConfirm(true)}
                     >
-                        <i className='icon icon-trash-can-outline'/>
+                        <TrashCanOutlineIcon size={16}/>
                     </button>
                     {recap.read_at === 0 && (
                         <RecapMenu

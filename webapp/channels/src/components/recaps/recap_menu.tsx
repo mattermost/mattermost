@@ -4,6 +4,8 @@
 import React from 'react';
 import type {ReactNode} from 'react';
 
+import {DotsHorizontalIcon} from '@mattermost/compass-icons/components';
+
 import * as Menu from 'components/menu';
 
 export type RecapMenuAction = {
@@ -95,7 +97,7 @@ export const RecapMenu: React.FC<RecapMenuProps> = ({
                 id: buttonId,
                 class: buttonClassName,
                 'aria-label': ariaLabel,
-                children: <i className='icon icon-dots-horizontal'/>,
+                children: <DotsHorizontalIcon size={16}/>,
             }}
             menu={{
                 id: menuId,

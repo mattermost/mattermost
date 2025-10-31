@@ -73,10 +73,8 @@
             display: flex;
             align-items: center;
             padding: 8px 16px;
-            // background-color: rgba(var(--button-bg-rgb), 0.08);
-            // color: var(--button-bg);
             border: none;
-            border-radius: 4px;
+            border-radius: var(--radius-s);
             font-size: 12px;
             font-weight: 600;
             gap: 6px;
@@ -111,7 +109,7 @@
     .recap-item {
         overflow: hidden;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
-        border-radius: 4px;
+        border-radius: var(--radius-s);
         background-color: var(--center-channel-bg);
         transition: all 0.2s;
 
@@ -194,7 +192,7 @@
                     align-items: center;
                     padding: 8px 12px;
                     border: none;
-                    border-radius: 4px;
+                    border-radius: var(--radius-s);
                     background-color: transparent;
                     color: var(--button-bg);
                     cursor: pointer;
@@ -214,7 +212,7 @@
                 .recap-icon-button {
                     padding: 6px;
                     border: none;
-                    border-radius: 4px;
+                    border-radius: var(--radius-s);
                     background: none;
                     cursor: pointer;
 
@@ -309,7 +307,7 @@
     .recap-channel-card {
         padding: 16px;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
-        border-radius: 4px;
+        border-radius: var(--radius-s);
         background-color: var(--center-channel-bg);
 
         .recap-channel-header {
@@ -321,7 +319,7 @@
             .recap-channel-name-tag {
                 padding: 2px 6px;
                 border: none;
-                border-radius: 4px;
+                border-radius: var(--radius-s);
                 background-color: rgba(var(--center-channel-color-rgb), 0.08);
                 color: var(--center-channel-color);
                 cursor: pointer;
@@ -349,7 +347,7 @@
                 .recap-channel-collapse-button {
                     padding: 6px;
                     border: none;
-                    border-radius: 4px;
+                    border-radius: var(--radius-s);
                     background: none;
                     cursor: pointer;
 
@@ -366,7 +364,7 @@
                 .recap-icon-button {
                     padding: 6px;
                     border: none;
-                    border-radius: 4px;
+                    border-radius: var(--radius-s);
                     background: none;
                     cursor: pointer;
 
@@ -438,7 +436,7 @@
                         .recap-item-badge {
                             flex-shrink: 0;
                             padding: 0 4px;
-                            border-radius: 4px;
+                            border-radius: var(--radius-s);
                             margin-top: 2px;
                             background-color: rgba(var(--button-bg-rgb), 0.08);
                             color: var(--button-bg);
@@ -472,7 +470,7 @@
     .recap-processing {
         overflow: hidden;
         border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
-        border-radius: 4px;
+        border-radius: var(--radius-s);
         background-color: var(--center-channel-bg);
         transition: all 0.2s;
 
@@ -513,7 +511,7 @@
                         width: 48px;
                         height: 48px;
                         border: 4px solid rgba(var(--center-channel-color-rgb), 0.12);
-                        border-radius: 50%;
+                        border-radius: var(--radius-full);
                         border-top-color: var(--button-bg);
                         animation: spin 1s linear infinite;
                     }

@@ -6,6 +6,8 @@ import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {Redirect} from 'react-router-dom';
 
+import {PlusIcon} from '@mattermost/compass-icons/components';
+
 import {getAIAgents} from 'mattermost-redux/actions/ai';
 import {getRecaps} from 'mattermost-redux/actions/recaps';
 import {getUnreadRecaps, getReadRecaps} from 'mattermost-redux/selectors/entities/recaps';
@@ -78,7 +80,7 @@ const Recaps = () => {
                     className='btn btn-tertiary recap-add-button'
                     onClick={handleAddRecap}
                 >
-                    <i className='icon icon-plus'/>
+                    <PlusIcon size={12}/>
                     {formatMessage({id: 'recaps.addRecap', defaultMessage: 'Add a recap'})}
                 </button>
             </div>

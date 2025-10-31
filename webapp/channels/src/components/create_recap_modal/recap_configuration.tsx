@@ -2,12 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {useIntl} from 'react-intl';
+import {useIntl, FormattedMessage} from 'react-intl';
 
-import {ProductChannelsIcon, LightningBoltOutlineIcon} from '@mattermost/compass-icons/components';
+import {ProductChannelsIcon, LightningBoltOutlineIcon, CheckCircleIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
 
 import WithTooltip from 'components/with_tooltip';
+
+const RECAP_NAME_MAX_LENGTH = 100;
 
 type Props = {
     recapName: string;
@@ -33,38 +35,57 @@ const RecapConfiguration = ({recapName, setRecapName, recapType, setRecapType, u
             </div>
             <div className='recap-type-card-content'>
                 <div className='recap-type-card-title'>
-                    {formatMessage({id: 'recaps.modal.allUnreads', defaultMessage: 'Recap all my unreads'})}
+                    <FormattedMessage
+                        id='recaps.modal.allUnreads'
+                        defaultMessage='Recap all my unreads'
+                    />
                 </div>
                 <div className='recap-type-card-description'>
-                    {formatMessage({id: 'recaps.modal.allUnreadsDesc', defaultMessage: 'Copilot will create a recap of all unreads across your channels.'})}
+                    <FormattedMessage
+                        id='recaps.modal.allUnreadsDesc'
+                        defaultMessage='Copilot will create a recap of all unreads across your channels.'
+                    />
                 </div>
             </div>
-            {recapType === 'all_unreads' && <i className='icon icon-check-circle selected-icon'/>}
+            {recapType === 'all_unreads' && <CheckCircleIcon className='selected-icon'/>}
         </button>
     );
 
     return (
         <div className='step-one'>
             <div className='form-group name-input-group'>
-                <label className='form-label'>
-                    {formatMessage({id: 'recaps.modal.nameLabel', defaultMessage: 'Give your recap a name'})}
+                <label
+                    className='form-label'
+                    htmlFor='recap-name-input'
+                >
+                    <FormattedMessage
+                        id='recaps.modal.nameLabel'
+                        defaultMessage='Give your recap a name'
+                    />
                 </label>
                 <div className='input-container'>
                     <input
+                        id='recap-name-input'
                         type='text'
                         className='form-control'
                         placeholder={formatMessage({id: 'recaps.modal.namePlaceholder', defaultMessage: 'Give your recap a name'})}
                         value={recapName}
                         onChange={(e) => setRecapName(e.target.value)}
-                        maxLength={100}
+                        maxLength={RECAP_NAME_MAX_LENGTH}
                     />
                 </div>
             </div>
 
             <div className='form-group type-selection-group'>
-                <label className='form-label'>
-                    {formatMessage({id: 'recaps.modal.typeLabel', defaultMessage: 'What type of recap would you like?'})}
-                </label>
+                <div
+                    className='form-label'
+                    id='recap-type-label'
+                >
+                    <FormattedMessage
+                        id='recaps.modal.typeLabel'
+                        defaultMessage='What type of recap would you like?'
+                    />
+                </div>
                 <div className='recap-type-options'>
                     <button
                         type='button'
@@ -76,13 +97,19 @@ const RecapConfiguration = ({recapName, setRecapName, recapType, setRecapType, u
                         </div>
                         <div className='recap-type-card-content'>
                             <div className='recap-type-card-title'>
-                                {formatMessage({id: 'recaps.modal.selectedChannels', defaultMessage: 'Recap selected channels'})}
+                                <FormattedMessage
+                                    id='recaps.modal.selectedChannels'
+                                    defaultMessage='Recap selected channels'
+                                />
                             </div>
                             <div className='recap-type-card-description'>
-                                {formatMessage({id: 'recaps.modal.selectedChannelsDesc', defaultMessage: 'Choose the channels you would like included in your recap'})}
+                                <FormattedMessage
+                                    id='recaps.modal.selectedChannelsDesc'
+                                    defaultMessage='Choose the channels you would like included in your recap'
+                                />
                             </div>
                         </div>
-                        {recapType === 'selected' && <i className='icon icon-check-circle selected-icon'/>}
+                        {recapType === 'selected' && <CheckCircleIcon className='selected-icon'/>}
                     </button>
 
                     {hasUnreadChannels ? allUnreadsButton : (
