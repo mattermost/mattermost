@@ -764,7 +764,7 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 	if receivedUpdatedPost.Metadata != nil {
 		newPost.Metadata = receivedUpdatedPost.Metadata.Copy()
 	} else {
-		// Restore the post metadata that was stripped by the plugin. Set it to
+		// RestoreContentFlaggedPost the post metadata that was stripped by the plugin. Set it to
 		// the last known good.
 		newPost.Metadata = oldPost.Metadata
 	}

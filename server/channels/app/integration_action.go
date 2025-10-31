@@ -266,7 +266,7 @@ func (a *App) DoPostActionWithCookie(rctx request.CTX, postID, actionId, userID,
 	if response.Update != nil {
 		response.Update.Id = postID
 
-		// Restore the post attributes and Props that need to be preserved
+		// RestoreContentFlaggedPost the post attributes and Props that need to be preserved
 		if response.Update.GetProps() == nil {
 			response.Update.SetProps(originalProps)
 		} else {

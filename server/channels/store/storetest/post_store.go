@@ -67,7 +67,7 @@ func TestPostStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetPostReminderMetadata", func(t *testing.T) { testGetPostReminderMetadata(t, rctx, ss, s) })
 	t.Run("GetNthRecentPostTime", func(t *testing.T) { testGetNthRecentPostTime(t, rctx, ss) })
 	t.Run("GetEditHistoryForPost", func(t *testing.T) { testGetEditHistoryForPost(t, rctx, ss) })
-	t.Run("Restore", func(t *testing.T) { testRestore(t, rctx, ss) })
+	t.Run("RestoreContentFlaggedPost", func(t *testing.T) { testRestore(t, rctx, ss) })
 }
 
 func testPostStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -5775,7 +5775,7 @@ func testRestore(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		require.Greater(t, fetchedPost.DeleteAt, int64(0))
 
-		err = ss.Post().Restore(post, botId, statusFieldId)
+		err = ss.Post().RestoreContentFlaggedPost(post, botId, statusFieldId)
 		require.NoError(t, err)
 
 		fetchedPost, err = ss.Post().GetSingle(rctx, post.Id, false)
@@ -5795,7 +5795,7 @@ func testRestore(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		post := setupFlaggedPost(rootPost.Id)
 
-		err = ss.Post().Restore(post, botId, statusFieldId)
+		err = ss.Post().RestoreContentFlaggedPost(post, botId, statusFieldId)
 		require.NoError(t, err)
 
 		fetchedPost, err := ss.Post().GetSingle(rctx, post.Id, false)
@@ -5872,7 +5872,7 @@ func testRestore(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Equal(t, 1, len(fetchedFileInfos))
 		require.Equal(t, fetchedFileInfos[0].DeleteAt, int64(0))
 
-		ss.Post().Restore(rootPost, botId, statusFieldId)
+		ss.Post().RestoreContentFlaggedPost(rootPost, botId, statusFieldId)
 		require.NoError(t, err)
 
 		// Now the root post and reply 2 should have been restored, but not reply 1

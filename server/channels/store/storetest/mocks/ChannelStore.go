@@ -2521,7 +2521,7 @@ func (_m *ChannelStore) Restore(channelID string, timestamp int64) error {
 	ret := _m.Called(channelID, timestamp)
 
 	if len(ret) == 0 {
-		panic("no return value specified for Restore")
+		panic("no return value specified for RestoreContentFlaggedPost")
 	}
 
 	var r0 error

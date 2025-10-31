@@ -2399,7 +2399,7 @@ func (s *TimerLayerChannelStore) Restore(channelID string, timestamp int64) erro
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.Restore", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.RestoreContentFlaggedPost", success, elapsed)
 	}
 	return err
 }
@@ -4971,7 +4971,7 @@ func (s *TimerLayerGroupStore) Restore(groupID string) (*model.Group, error) {
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.Restore", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.RestoreContentFlaggedPost", success, elapsed)
 	}
 	return result, err
 }
@@ -6814,10 +6814,10 @@ func (s *TimerLayerPostStore) RefreshPostStats() error {
 	return err
 }
 
-func (s *TimerLayerPostStore) Restore(post *model.Post, deletedBy string, statusFieldId string) error {
+func (s *TimerLayerPostStore) RestoreContentFlaggedPost(post *model.Post, deletedBy string, statusFieldId string) error {
 	start := time.Now()
 
-	err := s.PostStore.Restore(post, deletedBy, statusFieldId)
+	err := s.PostStore.RestoreContentFlaggedPost(post, deletedBy, statusFieldId)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -6825,7 +6825,7 @@ func (s *TimerLayerPostStore) Restore(post *model.Post, deletedBy string, status
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.Restore", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.RestoreContentFlaggedPost", success, elapsed)
 	}
 	return err
 }

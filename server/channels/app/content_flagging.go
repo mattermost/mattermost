@@ -145,11 +145,25 @@ func (a *App) FlagPost(rctx request.CTX, post *model.Post, teamId, reportingUser
 			FieldID:    mappedFields[contentFlaggingPropertyNameReportingTime].ID,
 			Value:      json.RawMessage(fmt.Sprintf("%d", model.GetMillis())),
 		},
+		{
+			TargetID:   post.Id,
+			TargetType: model.PropertyValueTargetTypePost,
+			GroupID:    groupId,
+			FieldID:    mappedFields[contentFlaggingPropertyManageByContentFlagging].ID,
+			Value:      json.RawMessage("true"),
+		},
 	}
 
 	_, err = a.Srv().propertyService.CreatePropertyValues(propertyValues)
 	if err != nil {
 		return model.NewAppError("FlagPost", "app.content_flagging.create_property_values.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if *a.Config().ContentFlaggingSettings.AdditionalSettings.HideFlaggedContent {
+		appErr = a.setContentFlaggingPropertiesForThreadReplies(post, groupId, mappedFields[contentFlaggingPropertyManageByContentFlagging].ID)
+		if appErr != nil {
+			return appErr
+		}
 	}
 
 	contentReviewBot, appErr := a.getContentReviewBot(rctx)
@@ -183,6 +197,36 @@ func (a *App) FlagPost(rctx request.CTX, post *model.Post, teamId, reportingUser
 	})
 
 	return a.sendContentFlaggingConfirmationMessage(rctx, reportingUserId, post.UserId, post.ChannelId)
+}
+
+func (a *App) setContentFlaggingPropertiesForThreadReplies(post *model.Post, contentFlaggingGroupId, contentFlaggingManagedFieldId string) *model.AppError {
+	if post.RootId != "" {
+		// Post is a reply, not a root post
+		return nil
+	}
+
+	replies, err := a.Srv().Store().Post().GetPostsByThread(post.Id, 0)
+	if err != nil {
+		return model.NewAppError("setContentFlaggingPropertiesForThreadReplies", "app.content_flagging.get_thread_replies.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	propertyValues := make([]*model.PropertyValue, 0, len(replies))
+	for _, reply := range replies {
+		propertyValues = append(propertyValues, &model.PropertyValue{
+			TargetID:   reply.Id,
+			TargetType: model.PropertyValueTargetTypePost,
+			GroupID:    contentFlaggingGroupId,
+			FieldID:    contentFlaggingManagedFieldId,
+			Value:      json.RawMessage("true"),
+		})
+	}
+
+	_, err = a.Srv().propertyService.CreatePropertyValues(propertyValues)
+	if err != nil {
+		return model.NewAppError("setContentFlaggingPropertiesForThreadReplies", "app.content_flagging.set_thread_replies_properties.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return nil
 }
 
 func (a *App) ContentFlaggingGroupId() (string, *model.AppError) {
@@ -638,18 +682,6 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 		return model.NewAppError("KeepFlaggedPost", "api.content_flagging.error.post_not_in_progress", nil, "", http.StatusBadRequest)
 	}
 
-	if flaggedPost.DeleteAt > 0 {
-		contentReviewBot, botErr := a.getContentReviewBot(rctx)
-		if botErr != nil {
-			return botErr
-		}
-
-		// Restore the post, its replies, and all associated files
-		if err := a.Srv().Store().Post().Restore(flaggedPost, contentReviewBot.UserId, status.FieldID); err != nil {
-			return model.NewAppError("KeepFlaggedPost", "app.content_flagging.keep_post.undelete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
-	}
-
 	groupId, appErr := a.ContentFlaggingGroupId()
 	if appErr != nil {
 		return appErr
@@ -658,6 +690,23 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 	mappedFields, appErr := a.GetContentFlaggingMappedFields(groupId)
 	if appErr != nil {
 		return appErr
+	}
+
+	if flaggedPost.DeleteAt > 0 {
+		statusField, ok := mappedFields[contentFlaggingPropertyNameStatus]
+		if !ok {
+			return model.NewAppError("KeepFlaggedPost", "app.content_flagging.missing_status_field.app_error", nil, "", http.StatusInternalServerError)
+		}
+
+		contentFlaggingManagedField, ok := mappedFields[contentFlaggingPropertyManageByContentFlagging]
+		if !ok {
+			return model.NewAppError("KeepFlaggedPost", "app.content_flagging.missing_manage_by_field.app_error", nil, "", http.StatusInternalServerError)
+		}
+
+		// RestoreContentFlaggedPost the post, its replies, and all associated files
+		if err := a.Srv().Store().Post().RestoreContentFlaggedPost(flaggedPost, statusField.ID, contentFlaggingManagedField.ID); err != nil {
+			return model.NewAppError("KeepFlaggedPost", "app.content_flagging.keep_post.undelete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
 	}
 
 	commentBytes, err := json.Marshal(actionRequest.Comment)
@@ -697,6 +746,14 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 		return model.NewAppError("KeepFlaggedPost", "app.content_flagging.create_property_values.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	status.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRetained))
+	_, err = a.Srv().propertyService.UpdatePropertyValue(groupId, status)
+	if err != nil {
+		return model.NewAppError("KeepFlaggedPost", "app.content_flagging.keep_post.status_update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Also need to remove the content flagging managed field value from root post and its replies (if any)
+
 	a.Srv().Go(func() {
 		channel, getChannelErr := a.GetChannel(rctx, flaggedPost.ChannelId)
 		if getChannelErr != nil {
@@ -709,12 +766,6 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 			rctx.Logger().Error("Failed to publish report change after permanently removing flagged flaggedPost", mlog.Err(err), mlog.String("post_id", flaggedPost.Id))
 		}
 	})
-
-	status.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRetained))
-	_, err = a.Srv().propertyService.UpdatePropertyValue(groupId, status)
-	if err != nil {
-		return model.NewAppError("KeepFlaggedPost", "app.content_flagging.keep_post.status_update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", flaggedPost.ChannelId, "", nil, "")
 	appErr = a.publishWebsocketEventForPost(rctx, flaggedPost, message)

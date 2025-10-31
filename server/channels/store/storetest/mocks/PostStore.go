@@ -1225,11 +1225,11 @@ func (_m *PostStore) RefreshPostStats() error {
 }
 
 // Restore provides a mock function with given fields: post, deletedBy, statusFieldId
-func (_m *PostStore) Restore(post *model.Post, deletedBy string, statusFieldId string) error {
+func (_m *PostStore) RestoreContentFlaggedPost(post *model.Post, deletedBy string, statusFieldId string) error {
 	ret := _m.Called(post, deletedBy, statusFieldId)
 
 	if len(ret) == 0 {
-		panic("no return value specified for Restore")
+		panic("no return value specified for RestoreContentFlaggedPost")
 	}
 
 	var r0 error

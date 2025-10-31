@@ -16,7 +16,7 @@ func TestEnvironmentVariableHandling(t *testing.T) {
 
 	originalConsoleLevel := os.Getenv("MM_LOGSETTINGS_CONSOLELEVEL")
 	defer func() {
-		// Restore original environment variables
+		// RestoreContentFlaggedPost original environment variables
 		if originalConsoleLevel != "" {
 			os.Setenv("MM_LOGSETTINGS_CONSOLELEVEL", originalConsoleLevel)
 		} else {

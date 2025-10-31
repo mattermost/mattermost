@@ -689,7 +689,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 					}
 				}
 
-				// Restore body and handle with sync handler
+				// RestoreContentFlaggedPost body and handle with sync handler
 				r.Body = io.NopCloser(bytes.NewReader(bodyBytes))
 				if selfCluster != nil {
 					syncHandler.selfCluster = selfCluster
@@ -1502,7 +1502,7 @@ func TestSharedChannelMembershipSyncSelfReferential(t *testing.T) {
 			if r.URL.Path == "/api/v4/remotecluster/msg" {
 				bodyBytes, pErr := io.ReadAll(r.Body)
 				if pErr == nil {
-					// Restore body for actual handler
+					// RestoreContentFlaggedPost body for actual handler
 					r.Body = io.NopCloser(bytes.NewReader(bodyBytes))
 
 					var frame model.RemoteClusterFrame
