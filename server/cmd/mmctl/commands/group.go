@@ -113,8 +113,8 @@ var UserGroupCmd = &cobra.Command{
 
 var UserGroupRestoreCmd = &cobra.Command{
 	Use:     "restore [groupname]",
-	Short:   "Restore user group",
-	Long:    "Restore deleted custom user group",
+	Short:   "RestoreContentFlaggedPost user group",
+	Long:    "RestoreContentFlaggedPost deleted custom user group",
 	Example: " group user restore examplegroup",
 	Args:    cobra.ExactArgs(1),
 	RunE:    withClient(userGroupRestoreCmdF),

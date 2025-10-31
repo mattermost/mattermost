@@ -80,7 +80,7 @@ func TestChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	t.Run("GetChannelsByIds", func(t *testing.T) { testChannelStoreGetChannelsByIds(t, rctx, ss) })
 	t.Run("GetChannelsWithTeamDataByIds", func(t *testing.T) { testGetChannelsWithTeamDataByIds(t, rctx, ss) })
 	t.Run("GetForPost", func(t *testing.T) { testChannelStoreGetForPost(t, rctx, ss) })
-	t.Run("Restore", func(t *testing.T) { testChannelStoreRestore(t, rctx, ss) })
+	t.Run("RestoreContentFlaggedPost", func(t *testing.T) { testChannelStoreRestore(t, rctx, ss) })
 	t.Run("Delete", func(t *testing.T) { testChannelStoreDelete(t, rctx, ss) })
 	t.Run("GetByName", func(t *testing.T) { testChannelStoreGetByName(t, rctx, ss) })
 	t.Run("GetByNames", func(t *testing.T) { testChannelStoreGetByNames(t, rctx, ss) })

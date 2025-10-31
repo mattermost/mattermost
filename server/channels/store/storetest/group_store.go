@@ -33,7 +33,7 @@ func TestGroupStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("GetByUser", func(t *testing.T) { testGroupStoreGetByUser(t, rctx, ss) })
 	t.Run("Update", func(t *testing.T) { testGroupStoreUpdate(t, rctx, ss) })
 	t.Run("Delete", func(t *testing.T) { testGroupStoreDelete(t, rctx, ss) })
-	t.Run("Restore", func(t *testing.T) { testGroupStoreRestore(t, rctx, ss) })
+	t.Run("RestoreContentFlaggedPost", func(t *testing.T) { testGroupStoreRestore(t, rctx, ss) })
 	t.Run("ToModelChannelAssociations", func(t *testing.T) { testGroupStoreToModelChannelAssociations(t, rctx, ss) })
 
 	t.Run("GetMemberUsers", func(t *testing.T) { testGroupGetMemberUsers(t, rctx, ss) })

@@ -54,7 +54,7 @@ Archives a team along with all related information including posts from the data
 
 var RestoreTeamsCmd = &cobra.Command{
 	Use:     "restore [teams]",
-	Short:   "Restore teams",
+	Short:   "RestoreContentFlaggedPost teams",
 	Long:    "Restores archived teams.",
 	Example: "  team restore myteam",
 	Args:    cobra.MinimumNArgs(1),

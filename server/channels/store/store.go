@@ -421,6 +421,7 @@ type PostStore interface {
 	GetNthRecentPostTime(n int64) (int64, error)
 	// RefreshPostStats refreshes the various materialized views for admin console post stats.
 	RefreshPostStats() error
+	RestoreContentFlaggedPost(post *model.Post, statusFieldId, contentFlaggingManagedFieldId string) error
 }
 
 type UserStore interface {
