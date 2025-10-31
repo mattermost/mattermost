@@ -85,6 +85,9 @@ type FeatureFlags struct {
 
 	// Enable burn-on-read messages that automatically delete after viewing
 	BurnOnRead bool
+
+	// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge
+	EnableAIPluginBridge bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -116,12 +119,16 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ContentFlagging = false
 	f.InteractiveDialogAppsForm = true
 	f.EnableMattermostEntry = true
+
 	f.MobileSSOCodeExchange = true
 
 	// FEATURE_FLAG_REMOVAL: AutoTranslation - Remove this default when MVP is to be released
 	f.AutoTranslation = false
 
 	f.BurnOnRead = false
+
+	// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge - Remove this default when MVP is to be released
+	f.EnableAIPluginBridge = false
 }
 
 // ToMap returns the feature flags as a map[string]string
