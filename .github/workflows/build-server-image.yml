@@ -13,6 +13,11 @@ on:
       - server/build/Dockerfile.buildenv
       - server/build/Dockerfile.buildenv-fips
       - .github/workflows/build-server-image.yml
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Git branch or PR ref to build"
+        required: true
 
 env:
   CHAINCTL_IDENTITY: ee399b4c72dd4e58e3d617f78fc47b74733c9557/922f2d48307d6f5f
