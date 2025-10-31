@@ -1,7 +1,8 @@
 {
   "root": true,
   "extends": [
-    "plugin:@mattermost/react"
+    "plugin:@mattermost/react",
+    "plugin:storybook/recommended"
   ],
   "plugins": [
     "formatjs",
@@ -29,31 +30,62 @@
         ]
       }
     ],
-    "react/style-prop-object": [2, {
-      "allow": ["Timestamp"]
-    }],
+    "react/style-prop-object": [
+      2,
+      {
+        "allow": [
+          "Timestamp"
+        ]
+      }
+    ],
     "formatjs/no-multiple-whitespaces": 2,
-    "react/jsx-fragments": ["error", "syntax"]
+    "react/jsx-fragments": [
+      "error",
+      "syntax"
+    ]
   },
   "overrides": [
     {
-      "files": ["*.test.*", "src/tests/**"],
+      "files": [
+        "*.test.*",
+        "src/tests/**"
+      ],
       "rules": {
-        "no-only-tests/no-only-tests": ["error", {"focus": ["only", "skip"]}]
+        "no-only-tests/no-only-tests": [
+          "error",
+          {
+            "focus": [
+              "only",
+              "skip"
+            ]
+          }
+        ]
       }
     },
     {
-      "files": ["*"],
-      "excludedFiles": ["src/packages/mattermost-redux/**"],
+      "files": [
+        "*"
+      ],
+      "excludedFiles": [
+        "src/packages/mattermost-redux/**"
+      ],
       "rules": {
         "@typescript-eslint/no-restricted-imports": [
           "error",
           {
-            "paths": [{
-              "name": "mattermost-redux/types/actions",
-              "importNames": ["DispatchFunc", "GetStateFunc", "ActionFunc", "ActionFuncAsync", "ThunkActionFunc"],
-              "message": "Use the web app version of it from types/store"
-            }]
+            "paths": [
+              {
+                "name": "mattermost-redux/types/actions",
+                "importNames": [
+                  "DispatchFunc",
+                  "GetStateFunc",
+                  "ActionFunc",
+                  "ActionFuncAsync",
+                  "ThunkActionFunc"
+                ],
+                "message": "Use the web app version of it from types/store"
+              }
+            ]
           }
         ]
       }

@@ -2,12 +2,12 @@
 // Note: @use 'sass:color' is imported in src/styles.scss
 // Colors
 
-@use 'sass:color';
+// TODO @use 'sass:color';
 
 $brand-primary: #2a9fd8;
 $gray: #6b7381;
-$gray-light: color.adjust($gray, $lightness: 15%);
-$gray-lighter: color.adjust($gray, $lightness: 30%);
+$gray-light: $gray; // TODO color.adjust($gray, $lightness: 15%);
+$gray-lighter: $gray; // TODO color.adjust($gray, $lightness: 30%);
 
 // Button Colors
 $btn-default-color: $gray;
