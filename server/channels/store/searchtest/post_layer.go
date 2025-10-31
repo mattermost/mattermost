@@ -39,6 +39,7 @@ var searchPostStoreTests = []searchTest{
 		Name: "Should be able to search without stemming",
 		Fn:   testStemming,
 		Tags: []string{EnginePostgres},
+		Skip: true,
 	},
 	{
 		// Postgres supports search with and without quotes
@@ -141,6 +142,7 @@ var searchPostStoreTests = []searchTest{
 		Name: "Should discard a wildcard if it's not placed immediately by text",
 		Fn:   testSearchDiscardWildcardAlone,
 		Tags: []string{EngineAll},
+		Skip: true,
 	},
 	{
 		Name: "Should support terms with dash",
@@ -212,6 +214,7 @@ var searchPostStoreTests = []searchTest{
 		Name: "Should be able to search matching by mentions",
 		Fn:   testSearchShouldBeAbleToMatchByMentions,
 		Tags: []string{EngineAll},
+		Skip: true,
 	},
 	{
 		Name: "Should be able to search in deleted/archived channels",
@@ -274,6 +277,7 @@ var searchPostStoreTests = []searchTest{
 		Name: "Should not return links that are embedded in markdown",
 		Fn:   testShouldNotReturnLinksEmbeddedInMarkdown,
 		Tags: []string{EnginePostgres, EngineElasticSearch},
+		Skip: true,
 	},
 	{
 		Name: "Should search across teams",

@@ -15,6 +15,5 @@ func TestPostStore(t *testing.T) {
 }
 
 func TestSearchPostStore(t *testing.T) {
-	t.Setenv("MM_SERVICEENVIRONMENT", "test")
 	StoreTestWithSearchTestEngine(t, searchtest.TestSearchPostStore)
 }
