@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {act, waitFor} from '@testing-library/react';
+import {waitFor} from '@testing-library/react';
 import React from 'react';
 
 import {renderWithContext, userEvent} from 'tests/react_testing_utils';
@@ -16,6 +16,7 @@ describe('ConfirmModal', () => {
     };
 
     test('should call onConfirm with correct checkbox value when confirm button is pressed', async () => {
+        const user = userEvent.setup();
         const props = {
             ...baseProps,
             showCheckbox: true,
@@ -35,26 +36,21 @@ describe('ConfirmModal', () => {
         expect(checkbox).toBeVisible();
         expect(checkbox).not.toBeChecked();
 
-        await act(async () => {
-            await userEvent.click(confirmButton);
-        });
+        await user.click(confirmButton);
         expect(props.onConfirm).toHaveBeenCalledWith(false);
 
-        await act(async () => {
-            await userEvent.click(checkbox);
-        });
+        await user.click(checkbox);
 
         await waitFor(() => {
             expect(checkbox).toBeChecked();
         });
 
-        await act(async () => {
-            await userEvent.click(confirmButton);
-        });
+        await user.click(confirmButton);
         expect(props.onConfirm).toHaveBeenCalledWith(true);
     });
 
     test('should call onCancel with correct checkbox value when cancel button is pressed', async () => {
+        const user = userEvent.setup();
         const props = {
             ...baseProps,
             showCheckbox: true,
@@ -74,22 +70,16 @@ describe('ConfirmModal', () => {
         expect(checkbox).toBeVisible();
         expect(checkbox).not.toBeChecked();
 
-        await act(async () => {
-            await userEvent.click(cancelButton);
-        });
+        await user.click(cancelButton);
         expect(props.onCancel).toHaveBeenCalledWith(false);
 
-        await act(async () => {
-            await userEvent.click(checkbox);
-        });
+        await user.click(checkbox);
 
         await waitFor(() => {
             expect(checkbox).toBeChecked();
         });
 
-        await act(async () => {
-            await userEvent.click(cancelButton);
-        });
+        await user.click(cancelButton);
         expect(props.onCancel).toHaveBeenCalledWith(true);
     });
 
@@ -133,6 +123,7 @@ describe('ConfirmModal', () => {
     });
 
     test('should call onCheckboxChange when checkbox is changed', async () => {
+        const user = userEvent.setup();
         const mockOnCheckboxChange = jest.fn();
         const props = {
             ...baseProps,
@@ -149,9 +140,7 @@ describe('ConfirmModal', () => {
 
         const checkbox = getByRole('checkbox');
 
-        await act(async () => {
-            await userEvent.click(checkbox);
-        });
+        await user.click(checkbox);
 
         expect(mockOnCheckboxChange).toHaveBeenCalledWith(true);
     });
