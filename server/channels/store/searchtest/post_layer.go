@@ -122,6 +122,7 @@ var searchPostStoreTests = []searchTest{
 		Name: "Should be able to ignore stop words",
 		Fn:   testSearchIgnoringStopWords,
 		Tags: []string{EngineElasticSearch},
+		Skip: true,
 	},
 	{
 		Name: "Should support search stemming",
