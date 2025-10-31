@@ -915,7 +915,6 @@ func (s *SqlPostStore) GetSingle(rctx request.CTX, id string, inclDeleted bool) 
 }
 
 type etagPosts struct {
-	Id       string
 	UpdateAt int64
 }
 
@@ -928,22 +927,18 @@ func (s *SqlPostStore) GetEtag(channelId string, userId string, allowFromCache, 
 	var q sq.SelectBuilder
 	if collapsedThreads {
 		q = s.getQueryBuilder().
-			Select("Posts.Id", "GREATEST(Posts.UpdateAt, COALESCE(Threads.LastReplyAt, 0), COALESCE(ThreadMemberships.LastUpdated, 0)) AS UpdateAt").
+			Select("MAX(GREATEST(Posts.UpdateAt, COALESCE(Threads.LastReplyAt, 0), COALESCE(ThreadMemberships.LastUpdated, 0))) AS UpdateAt").
 			From("Posts").
 			LeftJoin("Threads ON Threads.PostId = Posts.Id").
 			LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Posts.Id AND ThreadMemberships.UserId = ?", userId).
 			Where(sq.Eq{"Posts.ChannelId": channelId}).
-			Where(sq.Eq{"Posts.RootId": ""}).
-			OrderBy("GREATEST(Posts.UpdateAt, COALESCE(Threads.LastReplyAt, 0), COALESCE(ThreadMemberships.LastUpdated, 0)) DESC").
-			Limit(1)
+			Where(sq.Eq{"Posts.RootId": ""})
 	} else {
 		q = s.getQueryBuilder().
-			Select("Posts.Id", "GREATEST(Posts.UpdateAt, COALESCE(ThreadMemberships.LastUpdated, 0)) AS UpdateAt").
+			Select("MAX(GREATEST(Posts.UpdateAt, COALESCE(ThreadMemberships.LastUpdated, 0))) AS UpdateAt").
 			From("Posts").
 			LeftJoin("ThreadMemberships ON ThreadMemberships.PostId = Posts.Id AND ThreadMemberships.UserId = ?", userId).
-			Where(sq.Eq{"Posts.ChannelId": channelId}).
-			OrderBy("GREATEST(Posts.UpdateAt, COALESCE(ThreadMemberships.LastUpdated, 0)) DESC").
-			Limit(1)
+			Where(sq.Eq{"Posts.ChannelId": channelId})
 	}
 
 	sql, args := q.MustSql()
