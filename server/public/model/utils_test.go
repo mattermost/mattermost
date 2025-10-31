@@ -545,6 +545,21 @@ func TestParseHashtags(t *testing.T) {
 		o, _ := ParseHashtags(input)
 		require.Equal(t, o, output, "failed to parse hashtags from input="+input+" expected="+output+" actual="+o)
 	}
+
+	for _, tc := range stringWithHashtagsTestCases {
+		t.Run(tc.name, func(t *testing.T) {
+			text := tc.text
+			if text == "" {
+				text = generateTestString(tc.wordCount, tc.hashtagRatio)
+			}
+			hashtags, plain := ParseHashtags(text)
+
+			if tc.hashtagRatio != 0 {
+				assert.NotEmpty(t, hashtags)
+			}
+			assert.NotEmpty(t, plain)
+		})
+	}
 }
 
 func TestIsValidAlphaNum(t *testing.T) {
@@ -1382,4 +1397,87 @@ func TestStructFromJSONLimited(t *testing.T) {
 		err = StructFromJSONLimited(bytes.NewReader(testStructBytes), b)
 		require.NoError(t, err)
 	})
+}
+
+// Test cases with different sizes and characteristics
+var stringWithHashtagsTestCases = []struct {
+	name         string
+	text         string
+	wordCount    int
+	hashtagRatio float64
+}{
+	{
+		name: "Small_NoHashtags",
+		text: "Just a simple text without any hashtags",
+	},
+	{
+		name: "Small_WithHashtags",
+		text: "Post with #simple #hashtags here",
+	},
+	{
+		name:         "Medium_MixedContent",
+		wordCount:    100,
+		hashtagRatio: 0.3,
+	},
+	{
+		name:         "Medium_PureText",
+		wordCount:    100,
+		hashtagRatio: 0,
+	},
+	{
+		name:         "Large_MixedContent",
+		wordCount:    1000,
+		hashtagRatio: 0.3,
+	},
+	{
+		name:         "Large_PureText",
+		wordCount:    1000,
+		hashtagRatio: 0,
+	},
+	{
+		name:         "VeryLarge_MixedContent",
+		wordCount:    5000,
+		hashtagRatio: 0.3,
+	},
+	{
+		name:         "VeryLarge_PureText",
+		wordCount:    5000,
+		hashtagRatio: 0,
+	},
+}
+
+// Helper function to generate test strings with specified size and hashtag ratio
+func generateTestString(wordCount int, hashtagRatio float64) string {
+	var builder strings.Builder
+	hashtagWords := []string{"#golang", "#programming", "#testing", "#benchmark", "#performance"}
+	normalWords := []string{"the", "quick", "brown", "fox", "jumps", "over", "lazy", "dog"}
+
+	for i := 0; i < wordCount; i++ {
+		if float64(i)/float64(wordCount) < hashtagRatio {
+			// Add hashtag word
+			builder.WriteString(hashtagWords[i%len(hashtagWords)])
+		} else {
+			// Add normal word
+			builder.WriteString(normalWords[i%len(normalWords)])
+		}
+		builder.WriteString(" ")
+	}
+	return builder.String()
+}
+
+// Benchmark optimized implementation
+func BenchmarkOptimizedParseHashTags(b *testing.B) {
+	for _, bc := range stringWithHashtagsTestCases {
+		b.Run(bc.name, func(b *testing.B) {
+			b.ReportAllocs() // Report memory allocations
+			b.ResetTimer()   // Reset timer before the actual benchmark
+			text := bc.text
+			if text == "" {
+				text = generateTestString(bc.wordCount, bc.hashtagRatio)
+			}
+			for i := 0; i < b.N; i++ {
+				ParseHashtags(text)
+			}
+		})
+	}
 }
