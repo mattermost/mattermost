@@ -15,11 +15,7 @@ import (
 )
 
 type AppIface interface {
-	GetChannel(rctx request.CTX, channelID string) (*model.Channel, *model.AppError)
-	GetTeam(teamID string) (*model.Team, *model.AppError)
-	GetUser(userID string) (*model.User, *model.AppError)
-	GetPostsSince(rctx request.CTX, options model.GetPostsSinceOptions) (*model.PostList, *model.AppError)
-	SummarizePosts(rctx request.CTX, userID string, posts []*model.Post, channelName, teamName string, agentID string) (*model.AISummaryResponse, *model.AppError)
+	ProcessRecapChannel(rctx request.CTX, recapID, channelID, userID, agentID string) (*model.RecapChannelResult, *model.AppError)
 	Publish(message *model.WebSocketEvent)
 }
 
@@ -54,70 +50,28 @@ func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, appInstanc
 			progress := int64((i * 100) / len(channelIDs))
 			_ = jobServer.SetJobProgress(job, progress)
 
-			// Get channel info
-			channel, err := appInstance.GetChannel(request.EmptyContext(logger), channelID)
+			// Process the channel
+			result, err := appInstance.ProcessRecapChannel(request.EmptyContext(logger), recapID, channelID, userID, agentID)
 			if err != nil {
-				logger.Warn("Failed to get channel", mlog.String("channel_id", channelID), mlog.Err(err))
+				logger.Warn("Failed to process channel",
+					mlog.String("channel_id", channelID),
+					mlog.Err(err))
 				failedChannels = append(failedChannels, channelID)
 				continue
 			}
 
-			// Get user's last viewed timestamp
-			lastViewedAt, lastViewedErr := storeInstance.Channel().GetMemberLastViewedAt(request.EmptyContext(logger), channelID, userID)
-			if lastViewedErr != nil {
-				logger.Warn("Failed to get last viewed", mlog.Err(lastViewedErr))
+			if !result.Success {
+				logger.Warn("Channel processing unsuccessful", mlog.String("channel_id", channelID))
 				failedChannels = append(failedChannels, channelID)
 				continue
 			}
 
-			// Fetch last 15 unread posts + 5 context posts (20 total)
-			posts, postsErr := fetchPostsForRecap(appInstance, logger, channelID, lastViewedAt, 1000)
-			if postsErr != nil {
-				logger.Warn("Failed to fetch posts", mlog.Err(postsErr))
-				failedChannels = append(failedChannels, channelID)
-				continue
-			}
-
-			if len(posts) == 0 {
+			if result.MessageCount == 0 {
 				logger.Debug("No posts to summarize", mlog.String("channel_id", channelID))
 				continue
 			}
 
-			// Get team info for permalink generation
-			team, teamErr := appInstance.GetTeam(channel.TeamId)
-			if teamErr != nil {
-				logger.Warn("Failed to get team", mlog.String("team_id", channel.TeamId), mlog.Err(teamErr))
-				failedChannels = append(failedChannels, channelID)
-				continue
-			}
-
-			// Summarize posts
-			summary, err := appInstance.SummarizePosts(request.EmptyContext(logger), userID, posts, channel.DisplayName, team.Name, agentID)
-			if err != nil {
-				logger.Error("Failed to summarize posts", mlog.Err(err))
-				failedChannels = append(failedChannels, channelID)
-				continue
-			}
-
-			// Save recap channel
-			recapChannel := &model.RecapChannel{
-				Id:            model.NewId(),
-				RecapId:       recapID,
-				ChannelId:     channelID,
-				ChannelName:   channel.DisplayName,
-				Highlights:    summary.Highlights,
-				ActionItems:   summary.ActionItems,
-				SourcePostIds: extractPostIDs(posts),
-				CreateAt:      model.GetMillis(),
-			}
-
-			if err := storeInstance.Recap().SaveRecapChannel(recapChannel); err != nil {
-				logger.Error("Failed to save recap channel", mlog.Err(err))
-				failedChannels = append(failedChannels, channelID)
-				continue
-			}
-
-			totalMessages += len(posts)
+			totalMessages += result.MessageCount
 			successfulChannels = append(successfulChannels, channelID)
 		}
 
@@ -164,51 +118,6 @@ func MakeWorker(jobServer *jobs.JobServer, storeInstance store.Store, appInstanc
 	}
 
 	return jobs.NewSimpleWorker("Recap", jobServer, execute, isEnabled)
-}
-
-func fetchPostsForRecap(appInstance AppIface, logger mlog.LoggerIFace, channelID string, lastViewedAt int64, limit int) ([]*model.Post, error) {
-	// Get posts after lastViewedAt
-	options := model.GetPostsSinceOptions{
-		ChannelId: channelID,
-		Time:      lastViewedAt,
-	}
-
-	postList, err := appInstance.GetPostsSince(request.EmptyContext(logger), options)
-	if err != nil {
-		return nil, err
-	}
-
-	// Convert to slice and limit
-	posts := make([]*model.Post, 0, len(postList.Posts))
-	for _, postID := range postList.Order {
-		if post, ok := postList.Posts[postID]; ok {
-			posts = append(posts, post)
-			if len(posts) >= limit {
-				break
-			}
-		}
-	}
-
-	// Enrich with usernames
-	for _, post := range posts {
-		user, _ := appInstance.GetUser(post.UserId)
-		if user != nil {
-			if post.Props == nil {
-				post.Props = make(model.StringInterface)
-			}
-			post.AddProp("username", user.Username)
-		}
-	}
-
-	return posts, nil
-}
-
-func extractPostIDs(posts []*model.Post) []string {
-	ids := make([]string, len(posts))
-	for i, post := range posts {
-		ids[i] = post.Id
-	}
-	return ids
 }
 
 func publishRecapUpdate(appInstance AppIface, recapID, userID string) {

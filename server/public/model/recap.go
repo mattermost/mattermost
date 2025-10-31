@@ -38,9 +38,16 @@ type CreateRecapRequest struct {
 	AgentID    string   `json:"agent_id"`
 }
 
-type AISummaryResponse struct {
+type AIRecapSummaryResponse struct {
 	Highlights  []string `json:"highlights"`
 	ActionItems []string `json:"action_items"`
+}
+
+// RecapChannelResult represents the result of processing a single channel for a recap
+type RecapChannelResult struct {
+	ChannelID    string
+	MessageCount int
+	Success      bool
 }
 
 const (

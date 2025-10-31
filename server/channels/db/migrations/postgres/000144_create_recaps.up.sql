@@ -7,12 +7,16 @@ CREATE TABLE IF NOT EXISTS Recaps (
     UpdateAt BIGINT NOT NULL,
     DeleteAt BIGINT NOT NULL,
     TotalMessageCount INT NOT NULL,
-    Status VARCHAR(32) NOT NULL
+    Status VARCHAR(32) NOT NULL,
+    ReadAt BIGINT DEFAULT 0 NOT NULL,
+    BotID VARCHAR(26) DEFAULT '' NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_recaps_user_id ON Recaps(UserId);
 CREATE INDEX IF NOT EXISTS idx_recaps_create_at ON Recaps(CreateAt);
 CREATE INDEX IF NOT EXISTS idx_recaps_user_id_delete_at ON Recaps(UserId, DeleteAt);
+CREATE INDEX IF NOT EXISTS idx_recaps_user_id_read_at ON Recaps(UserId, ReadAt);
+CREATE INDEX IF NOT EXISTS idx_recaps_bot_id ON Recaps(BotID);
 
 -- RecapChannels table: stores per-channel summaries
 CREATE TABLE IF NOT EXISTS RecapChannels (

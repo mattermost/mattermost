@@ -264,7 +264,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.accessControlPolicy = newSqlAccessControlPolicyStore(store, metrics)
 	store.stores.Attributes = newSqlAttributesStore(store, metrics)
 	store.stores.ContentFlagging = newContentFlaggingStore(store)
-	store.stores.recap = NewSqlRecapStore(store)
+	store.stores.recap = newSqlRecapStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 

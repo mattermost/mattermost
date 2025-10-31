@@ -21,9 +21,9 @@ func (a *App) getAIClient(userID string) *agentclient.Client {
 }
 
 // SummarizePosts generates an AI summary of posts with highlights and action items
-func (a *App) SummarizePosts(rctx request.CTX, userID string, posts []*model.Post, channelName, teamName string, agentID string) (*model.AISummaryResponse, *model.AppError) {
+func (a *App) SummarizePosts(rctx request.CTX, userID string, posts []*model.Post, channelName, teamName string, agentID string) (*model.AIRecapSummaryResponse, *model.AppError) {
 	if len(posts) == 0 {
-		return &model.AISummaryResponse{Highlights: []string{}, ActionItems: []string{}}, nil
+		return &model.AIRecapSummaryResponse{Highlights: []string{}, ActionItems: []string{}}, nil
 	}
 
 	// Get site URL for permalink generation
@@ -88,7 +88,7 @@ Your response must be compacted valid JSON only, with no additional text, format
 		return nil, model.NewAppError("SummarizePosts", "app.ai.summarize.agent_call_failed", nil, err.Error(), 500)
 	}
 
-	var summary model.AISummaryResponse
+	var summary model.AIRecapSummaryResponse
 	if err := json.Unmarshal([]byte(completion), &summary); err != nil {
 		rctx.Logger().Error("Failed to parse AI summarization response",
 			mlog.Err(err),
