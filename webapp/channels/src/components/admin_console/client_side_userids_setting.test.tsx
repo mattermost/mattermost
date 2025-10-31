@@ -73,7 +73,7 @@ describe('components/AdminConsole/ClientSideUserIdsSetting', () => {
 
             wrapper.find('input').simulate('change', {target: {value: ''}});
 
-            expect(props.onChange).toBeCalledWith(baseProps.id, []);
+            expect(props.onChange).toHaveBeenCalledWith(baseProps.id, []);
         });
 
         test('called on change to one item', () => {
@@ -88,7 +88,7 @@ describe('components/AdminConsole/ClientSideUserIdsSetting', () => {
 
             wrapper.find('input').simulate('change', {target: {value: '  id2  '}});
 
-            expect(props.onChange).toBeCalledWith(baseProps.id, ['id2']);
+            expect(props.onChange).toHaveBeenCalledWith(baseProps.id, ['id2']);
         });
 
         test('called on change to two items', () => {
@@ -103,7 +103,7 @@ describe('components/AdminConsole/ClientSideUserIdsSetting', () => {
 
             wrapper.find('input').simulate('change', {target: {value: 'id1, id99'}});
 
-            expect(props.onChange).toBeCalledWith(baseProps.id, ['id1', 'id99']);
+            expect(props.onChange).toHaveBeenCalledWith(baseProps.id, ['id1', 'id99']);
         });
     });
 

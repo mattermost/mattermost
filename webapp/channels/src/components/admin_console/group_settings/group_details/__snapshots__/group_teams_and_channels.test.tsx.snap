@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChannels should match snapshot, with teams, with channels and loaded 1`] = `
 <div

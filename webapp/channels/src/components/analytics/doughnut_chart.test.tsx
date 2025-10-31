@@ -37,7 +37,7 @@ describe('components/analytics/doughnut_chart.tsx', () => {
             />,
         );
 
-        expect(Chart).not.toBeCalled();
+        expect(Chart).not.toHaveBeenCalled();
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -58,7 +58,7 @@ describe('components/analytics/doughnut_chart.tsx', () => {
             />,
         );
 
-        expect(Chart).toBeCalledWith(expect.anything(), {data, options: {}, type: 'doughnut'});
+        expect(Chart).toHaveBeenCalledWith(expect.anything(), {data, options: {}, type: 'doughnut'});
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -81,7 +81,7 @@ describe('components/analytics/doughnut_chart.tsx', () => {
             />,
         );
 
-        expect(Chart).toBeCalled();
+        expect(Chart).toHaveBeenCalled();
         wrapper.unmount();
     });
 
@@ -111,13 +111,13 @@ describe('components/analytics/doughnut_chart.tsx', () => {
             />,
         );
 
-        expect(Chart).toBeCalled();
-        expect(Chart.mock.instances[0].update).not.toBeCalled();
+        expect(Chart).toHaveBeenCalled();
+        expect(Chart.mock.instances[0].update).not.toHaveBeenCalled();
 
         wrapper.setProps({title: 'new title'});
-        expect(Chart.mock.instances[0].update).not.toBeCalled();
+        expect(Chart.mock.instances[0].update).not.toHaveBeenCalled();
 
         wrapper.setProps({data: newData});
-        expect(Chart.mock.instances[0].update).toBeCalled();
+        expect(Chart.mock.instances[0].update).toHaveBeenCalled();
     });
 });

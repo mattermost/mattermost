@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/ProductBranding should show correct icon glyph when we are on Boards 1`] = `
 <ProductBrandingContainer

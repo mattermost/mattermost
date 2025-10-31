@@ -88,7 +88,7 @@ describe('components/widgets/tag/Tag', () => {
         expect(wrapper.props()).toEqual(expect.objectContaining({className: classNameProp, onClick: click}));
         expect(wrapper.text()).toEqual('Test text');
         wrapper.simulate('click');
-        expect(click).toBeCalled();
+        expect(click).toHaveBeenCalled();
         expect(wrapper).toMatchSnapshot();
     });
 });

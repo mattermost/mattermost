@@ -144,7 +144,7 @@ describe('component/user_group_popover/group_member_list', () => {
         await actImmediate(wrapper);
 
         wrapper.find('.group-member-list_dm-button').first().simulate('click');
-        expect(baseProps.actions.openDirectChannelToUserId).toBeCalledTimes(0);
+        expect(baseProps.actions.openDirectChannelToUserId).toHaveBeenCalledTimes(0);
     });
 
     test('should show user overlay and hide', async () => {
@@ -161,7 +161,7 @@ describe('component/user_group_popover/group_member_list', () => {
         await actImmediate(wrapper);
 
         wrapper.find('.group-member-list_item').first().simulate('click');
-        expect(baseProps.showUserOverlay).toBeCalledTimes(0);
-        expect(baseProps.hide).toBeCalledTimes(0);
+        expect(baseProps.showUserOverlay).toHaveBeenCalledTimes(0);
+        expect(baseProps.hide).toHaveBeenCalledTimes(0);
     });
 });
