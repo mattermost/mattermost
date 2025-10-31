@@ -144,6 +144,7 @@ type Server struct {
 	Cloud                   einterfaces.CloudInterface
 	IPFiltering             einterfaces.IPFilteringInterface
 	OutgoingOAuthConnection einterfaces.OutgoingOAuthConnectionInterface
+	PushProxy               einterfaces.PushProxyInterface
 
 	ch *Channels
 }
@@ -1451,6 +1452,11 @@ func (s *Server) initJobs() {
 	if jobsAccessControlSyncJobInterface != nil {
 		builder := jobsAccessControlSyncJobInterface(s)
 		s.Jobs.RegisterJobType(model.JobTypeAccessControlSync, builder.MakeWorker(), builder.MakeScheduler())
+	}
+
+	if pushProxyInterface != nil {
+		builder := pushProxyInterface(New(ServerConnector(s.Channels())))
+		s.Jobs.RegisterJobType(model.JobTypePushProxyAuth, builder.MakeWorker(), builder.MakeScheduler())
 	}
 
 	s.Jobs.RegisterJobType(
