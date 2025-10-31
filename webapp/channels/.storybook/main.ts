@@ -15,6 +15,9 @@ const getAbsolutePath = (packageName: string): any =>
     path.dirname(require.resolve(path.join(packageName, 'package.json'))).replace(/^file:\/\//, '');
 
 const config: StorybookConfig = {
+    core: {
+        disableTelemetry: true,
+    },
     stories: [
         './docs/*.mdx',
         // Channels stories
