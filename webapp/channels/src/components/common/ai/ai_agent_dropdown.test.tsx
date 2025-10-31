@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
 import AIAgentDropdown from './ai_agent_dropdown';
 import type {BridgeBotInfo} from './types';
@@ -122,11 +122,12 @@ describe('AIAgentDropdown', () => {
         const button = screen.getByLabelText('AI agent selector');
         await userEvent.click(button);
 
-        const openAIOption = screen.getByText('OpenAI');
+        const openAIOption = screen.getByTestId('ai-agent-option-bot2');
         await userEvent.click(openAIOption);
 
+        // Wait for callback to be called after menu closes
+        await waitFor(() => expect(onBotSelect).toHaveBeenCalledTimes(1));
         expect(onBotSelect).toHaveBeenCalledWith('bot2');
-        expect(onBotSelect).toHaveBeenCalledTimes(1);
     });
 
     test('should show checkmark for selected bot', async () => {
@@ -233,7 +234,8 @@ describe('AIAgentDropdown', () => {
         await userEvent.click(button);
 
         // All bots should be rendered without "(default)" label
-        expect(screen.getByText('Copilot')).toBeInTheDocument();
+        const copilotOption = screen.getByTestId('ai-agent-option-bot1');
+        expect(copilotOption).toHaveTextContent('Copilot');
         expect(screen.queryByText('Copilot (default)')).not.toBeInTheDocument();
     });
 
@@ -243,6 +245,7 @@ describe('AIAgentDropdown', () => {
                 {...defaultProps}
                 bots={[]}
                 selectedBotId={null}
+                showLabel={true}
             />,
         );
 

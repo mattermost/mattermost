@@ -12,7 +12,7 @@ import {renderWithContext, screen} from 'tests/react_testing_utils';
 import RecapsList from './recaps_list';
 
 jest.mock('mattermost-redux/actions/recaps', () => ({
-    pollRecapStatus: jest.fn(() => Promise.resolve({data: {}})),
+    pollRecapStatus: jest.fn(() => ({type: 'POLL_RECAP_STATUS'})),
 }));
 
 describe('RecapsList', () => {

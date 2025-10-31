@@ -5,7 +5,7 @@ import React from 'react';
 
 import {getAIAgents} from 'mattermost-redux/actions/ai';
 
-import {renderWithContext, screen, userEvent, waitForElementToBeRemoved} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor, waitForElementToBeRemoved} from 'tests/react_testing_utils';
 
 import CreateRecapModal from './create_recap_modal';
 
@@ -92,7 +92,7 @@ describe('CreateRecapModal', () => {
             channel: {
                 postVisibility: {},
                 lastChannelViewTime: {},
-                loadingPost: {},
+                loadingPosts: {},
                 focusedPostId: '',
                 mobileView: false,
                 lastUnreadChannel: null,
@@ -169,7 +169,7 @@ describe('CreateRecapModal', () => {
         await userEvent.type(nameInput, 'Test Recap');
 
         // Select all unreads option
-        const allUnreadsButton = screen.getByText('All unreads');
+        const allUnreadsButton = screen.getByText('Recap all my unreads');
         await userEvent.click(allUnreadsButton);
 
         // Go to next step
@@ -184,8 +184,8 @@ describe('CreateRecapModal', () => {
     test('should render step one initially', () => {
         renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
 
-        expect(screen.getByText('Recap name')).toBeInTheDocument();
-        expect(screen.getByText('What would you like to recap?')).toBeInTheDocument();
+        expect(screen.getByText('Give your recap a name')).toBeInTheDocument();
+        expect(screen.getByText('What type of recap would you like?')).toBeInTheDocument();
     });
 
     test('should show pagination dots', () => {
@@ -215,11 +215,11 @@ describe('CreateRecapModal', () => {
         const nameInput = screen.getByPlaceholderText('Give your recap a name');
         await userEvent.type(nameInput, 'Test Recap');
 
-        const allUnreadsButton = screen.getByText('All unreads');
+        const allUnreadsButton = screen.getByText('Recap all my unreads');
         await userEvent.click(allUnreadsButton);
 
         const nextButton = screen.getByRole('button', {name: /next/i});
-        expect(nextButton).not.toBeDisabled();
+        await waitFor(() => expect(nextButton).not.toBeDisabled());
     });
 
     test('should call onExited when Cancel is clicked', async () => {
@@ -254,7 +254,7 @@ describe('CreateRecapModal', () => {
         const nameInput = screen.getByPlaceholderText('Give your recap a name');
         await userEvent.type(nameInput, 'Test Recap');
 
-        const allUnreadsButton = screen.getByText('All unreads');
+        const allUnreadsButton = screen.getByText('Recap all my unreads');
         await userEvent.click(allUnreadsButton);
 
         const nextButton = screen.getByRole('button', {name: /next/i});

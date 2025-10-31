@@ -5369,7 +5369,7 @@
   "recaps.modal.error.noBot": "Please select an AI agent.",
   "recaps.modal.error.noChannels": "Please select at least one channel.",
   "recaps.modal.nameLabel": "Give your recap a name",
-  "recaps.modal.namePlaceholder": "Daily Design Digest",
+  "recaps.modal.namePlaceholder": "Give your recap a name",
   "recaps.modal.noChannels": "No channels found",
   "recaps.modal.noUnreadsAvailable": "No unread channels available",
   "recaps.modal.noUnreadsAvailableHint": "You currently have no unread messages in any channels",

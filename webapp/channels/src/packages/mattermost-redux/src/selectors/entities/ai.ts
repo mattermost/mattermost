@@ -6,7 +6,7 @@ import type {GlobalState} from '@mattermost/types/store';
 import type {AIAgent} from '../../actions/ai';
 
 export function getAIAgents(state: GlobalState): AIAgent[] {
-    return state.entities.ai.agents || [];
+    return state.entities.ai?.agents || [];
 }
 
 export function getAIAgent(state: GlobalState, agentId: string): AIAgent | null {

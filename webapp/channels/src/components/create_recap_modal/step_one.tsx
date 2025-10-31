@@ -53,7 +53,7 @@ const StepOne = ({recapName, setRecapName, recapType, setRecapType, unreadChanne
                     <input
                         type='text'
                         className='form-control'
-                        placeholder={formatMessage({id: 'recaps.modal.namePlaceholder', defaultMessage: 'Daily Design Digest'})}
+                        placeholder={formatMessage({id: 'recaps.modal.namePlaceholder', defaultMessage: 'Give your recap a name'})}
                         value={recapName}
                         onChange={(e) => setRecapName(e.target.value)}
                         maxLength={100}

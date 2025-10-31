@@ -7,7 +7,7 @@ import {useDispatch} from 'react-redux';
 
 import type {Recap} from '@mattermost/types/recaps';
 
-import {getRecap} from 'mattermost-redux/actions/recaps';
+import {getRecap, pollRecapStatus} from 'mattermost-redux/actions/recaps';
 
 import RecapItem from './recap_item';
 
@@ -20,6 +20,20 @@ const RecapsList = ({recaps}: Props) => {
     const dispatch = useDispatch();
     const [expandedRecapIds, setExpandedRecapIds] = useState<Set<string>>(new Set());
     const previousRecapStatuses = useRef<Map<string, string>>(new Map());
+    const pollingRecaps = useRef<Set<string>>(new Set());
+
+    // Start polling for processing recaps
+    useEffect(() => {
+        recaps.forEach((recap) => {
+            const isProcessing = recap.status === 'pending' || recap.status === 'processing';
+            
+            // If recap is processing and not already being polled
+            if (isProcessing && !pollingRecaps.current.has(recap.id)) {
+                pollingRecaps.current.add(recap.id);
+                dispatch(pollRecapStatus(recap.id, 60, 3000));
+            }
+        });
+    }, [recaps, dispatch]);
 
     // Auto-expand recaps when they finish processing
     useEffect(() => {

@@ -147,39 +147,6 @@ func buildConversationTextWithIDs(posts []*model.Post) (string, []string) {
 	return sb.String(), postIDs
 }
 
-// GenerateRecapTitle generates a short title for the recap
-func (a *App) GenerateRecapTitle(rctx request.CTX, userID string, channelNames []string, agentID string) (string, *model.AppError) {
-	systemPrompt := "You are an expert at creating concise, descriptive titles. Create a title that is at most 5 words and captures the essence of the channels being summarized. Return ONLY the title text with no quotes, formatting, or additional text."
-
-	userPrompt := fmt.Sprintf("Create a short title (max 5 words) for a recap that summarizes these channels: %s", strings.Join(channelNames, ", "))
-
-	// Create AI client
-	sessionUserID := ""
-	if session := rctx.Session(); session != nil {
-		sessionUserID = session.UserId
-	}
-	client := a.getAIClient(sessionUserID)
-
-	completionRequest := agentclient.CompletionRequest{
-		Posts: []agentclient.Post{
-			{Role: "system", Message: systemPrompt},
-			{Role: "user", Message: userPrompt},
-		},
-	}
-
-	completion, err := client.AgentCompletion(agentID, completionRequest)
-	if err != nil {
-		return "", model.NewAppError("GenerateRecapTitle", "app.ai.title.agent_call_failed", nil, err.Error(), 500)
-	}
-
-	title := strings.TrimSpace(completion)
-	if title == "" {
-		title = "Channel Recap"
-	}
-
-	return title, nil
-}
-
 // GetAIAgents retrieves all available AI agents from the bridge API
 func (a *App) GetAIAgents(rctx request.CTX, userID string) (*agentclient.AgentsResponse, *model.AppError) {
 	// Create AI client
