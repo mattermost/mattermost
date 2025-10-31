@@ -1746,4 +1746,66 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
         // Verify NO activity warning modal appears
         expect(screen.queryByText('Exposing channel history')).not.toBeInTheDocument();
     });
+
+    test('should show activity warning when auto-sync is disabled but users could gain access', async () => {
+        const user = userEvent.setup();
+
+        // Mock state with message history
+        const stateWithMessages = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                channels: {
+                    ...initialState.entities.channels,
+                    messageCounts: {
+                        channel_id: {total: 100, root: 50}, // Channel has message history
+                    },
+                },
+            },
+        };
+
+        // Mock actions to simulate users who could gain access
+        mockActions.searchUsers.mockResolvedValue({
+            data: {users: [{id: 'user1', username: 'user1'}, {id: 'user2', username: 'user2'}]},
+        });
+        mockActions.getChannelMembers.mockResolvedValue({data: []}); // No current members
+
+        renderWithContext(
+            <ChannelSettingsAccessRulesTab {...baseProps}/>,
+            stateWithMessages,
+        );
+
+        await waitFor(() => {
+            expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+        });
+
+        // Set a channel expression (this will trigger potential access changes)
+        const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
+        onChangeCallback('user.attributes.Department == "Engineering"');
+
+        // DO NOT enable auto-sync - keep it disabled
+        // This is the key difference from the previous test
+
+        // Trigger save
+        await waitFor(() => {
+            expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
+        });
+
+        const saveButton = screen.getByText('Save');
+        await user.click(saveButton);
+
+        // Should skip confirmation modal and go directly to activity warning
+        // because there are no actual membership changes (auto-sync disabled)
+        // but users could potentially gain access
+        await waitFor(() => {
+            expect(screen.getByText('Exposing channel history')).toBeInTheDocument();
+        });
+
+        // Verify the activity warning modal is shown
+        expect(screen.getByText('Everyone who gains access to this channel can view the entire message history, including messages that were sent under stricter access rules.')).toBeInTheDocument();
+        expect(screen.getByText('I acknowledge this change will expose all historical channel messages to more users')).toBeInTheDocument();
+
+        // Verify NO confirmation modal is shown (since no actual membership changes)
+        expect(screen.queryByText('Save and apply rules')).not.toBeInTheDocument();
+    });
 });

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {act} from '@testing-library/react';
+import {act, waitFor} from '@testing-library/react';
 import React from 'react';
 
 import {renderWithContext, userEvent} from 'tests/react_testing_utils';
@@ -24,12 +24,16 @@ describe('ConfirmModal', () => {
 
         const {getByRole} = renderWithContext(<ConfirmModal {...props}/>);
 
+        // Wait for component to be fully rendered
+        await waitFor(() => {
+            expect(getByRole('checkbox')).toBeInTheDocument();
+        });
+
         const checkbox = getByRole('checkbox');
+        const confirmButton = getByRole('button', {name: props.confirmButtonText});
 
         expect(checkbox).toBeVisible();
         expect(checkbox).not.toBeChecked();
-
-        const confirmButton = getByRole('button', {name: props.confirmButtonText});
 
         await act(async () => {
             await userEvent.click(confirmButton);
@@ -39,7 +43,10 @@ describe('ConfirmModal', () => {
         await act(async () => {
             await userEvent.click(checkbox);
         });
-        expect(checkbox).toBeChecked();
+
+        await waitFor(() => {
+            expect(checkbox).toBeChecked();
+        });
 
         await act(async () => {
             await userEvent.click(confirmButton);
@@ -56,12 +63,16 @@ describe('ConfirmModal', () => {
 
         const {getByRole} = renderWithContext(<ConfirmModal {...props}/>);
 
+        // Wait for component to be fully rendered
+        await waitFor(() => {
+            expect(getByRole('checkbox')).toBeInTheDocument();
+        });
+
         const checkbox = getByRole('checkbox');
+        const cancelButton = getByRole('button', {name: props.cancelButtonText});
 
         expect(checkbox).toBeVisible();
         expect(checkbox).not.toBeChecked();
-
-        const cancelButton = getByRole('button', {name: props.cancelButtonText});
 
         await act(async () => {
             await userEvent.click(cancelButton);
@@ -71,7 +82,10 @@ describe('ConfirmModal', () => {
         await act(async () => {
             await userEvent.click(checkbox);
         });
-        expect(checkbox).toBeChecked();
+
+        await waitFor(() => {
+            expect(checkbox).toBeChecked();
+        });
 
         await act(async () => {
             await userEvent.click(cancelButton);
@@ -127,6 +141,12 @@ describe('ConfirmModal', () => {
         };
 
         const {getByRole} = renderWithContext(<ConfirmModal {...props}/>);
+
+        // Wait for component to be fully rendered
+        await waitFor(() => {
+            expect(getByRole('checkbox')).toBeInTheDocument();
+        });
+
         const checkbox = getByRole('checkbox');
 
         await act(async () => {

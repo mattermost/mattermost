@@ -299,11 +299,11 @@ function ChannelSettingsAccessRulesTab({
     }, [currentUser?.id]);
 
     // Calculate membership changes
-    const calculateMembershipChanges = useCallback(async (channelExpression: string): Promise<{toAdd: string[]; toRemove: string[]}> => {
+    const calculateMembershipChanges = useCallback(async (channelExpression: string): Promise<{toAdd: string[]; toRemove: string[]; potentialToAdd: string[]}> => {
         // Combine system and channel expressions (same logic as sync job)
         const combinedExpression = combineSystemAndChannelExpressions(channelExpression);
         if (!combinedExpression.trim()) {
-            return {toAdd: [], toRemove: []};
+            return {toAdd: [], toRemove: [], potentialToAdd: []};
         }
 
         try {
@@ -315,17 +315,20 @@ function ChannelSettingsAccessRulesTab({
             const membersResult = await actions.getChannelMembers(channel.id);
             const currentMemberIds = membersResult.data?.map((m: {user_id: string}) => m.user_id) || [];
 
+            // Calculate who COULD potentially be added (regardless of auto-sync)
+            const potentialToAdd = matchingUserIds.filter((id) => !currentMemberIds.includes(id));
+
             // Calculate who will be added (if auto-sync is enabled)
-            const toAdd = autoSyncMembers ? matchingUserIds.filter((id) => !currentMemberIds.includes(id)) : [];
+            const toAdd = autoSyncMembers ? potentialToAdd : [];
 
             // Calculate who will be removed (users who don't match the expression)
             const toRemove = currentMemberIds.filter((id) => !matchingUserIds.includes(id));
 
-            return {toAdd, toRemove};
+            return {toAdd, toRemove, potentialToAdd};
         } catch (error) {
             // eslint-disable-next-line no-console
             console.error('Failed to calculate membership changes:', error);
-            return {toAdd: [], toRemove: []};
+            return {toAdd: [], toRemove: [], potentialToAdd: []};
         }
     }, [channel.id, autoSyncMembers, actions, combineSystemAndChannelExpressions]);
 
@@ -465,11 +468,10 @@ function ChannelSettingsAccessRulesTab({
             // Determine if we should show activity warning
             // Show warning if:
             // 1. Channel has message history (channelMessageCount.total > 0)
-            // 2. MORE people will get access (users are being added)
-            //    Only show when users are actually being added, not when rules become more restrictive
+            // 2. MORE people could potentially get access (regardless of auto-sync status)
             const hasChannelHistory = (channelMessageCount?.total ?? 0) > 0;
-            const morePeopleWillGetAccess = changes.toAdd.length > 0;
-            const shouldShowWarning = hasChannelHistory && morePeopleWillGetAccess;
+            const morePeopleCouldGetAccess = changes.potentialToAdd.length > 0;
+            const shouldShowWarning = hasChannelHistory && morePeopleCouldGetAccess;
 
             // If there are membership changes, show confirmation modal
             if (changes.toAdd.length > 0 || changes.toRemove.length > 0) {
