@@ -4,7 +4,6 @@
 import {screen} from '@testing-library/react';
 import React from 'react';
 import type {ComponentProps} from 'react';
-import {act} from 'react-dom/test-utils';
 
 import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
@@ -31,6 +30,7 @@ describe('components/TeamSettings', () => {
         hasChangeTabError: false,
         setHasChanges: jest.fn(),
         setHasChangeTabError: jest.fn(),
+        setJustSaved: jest.fn(),
         closeModal: jest.fn(),
         collapseModal: jest.fn(),
     };
@@ -39,23 +39,23 @@ describe('components/TeamSettings', () => {
         global.URL.createObjectURL = jest.fn();
     });
 
-    test('should show an error when pdf file is uploaded', () => {
+    test('should show an error when pdf file is uploaded', async () => {
         renderWithContext(<InfoTab {...defaultProps}/>);
         const file = new File(['pdf'], 'pdf.pdf', {type: 'application/pdf'});
         const input = screen.getByTestId('uploadPicture');
-        userEvent.upload(input, file);
+        await userEvent.upload(input, file, {applyAccept: false});
 
         const error = screen.getByTestId('mm-modal-generic-section-item__error');
         expect(error).toBeVisible();
         expect(error).toHaveTextContent('Only BMP, JPG or PNG images may be used for team icons');
     });
 
-    test('should show an error when too large file is uploaded with 40mb', () => {
+    test('should show an error when too large file is uploaded with 40mb', async () => {
         renderWithContext(<InfoTab {...defaultProps}/>);
         const file = new File(['test'], 'test.png', {type: 'image/png'});
         Object.defineProperty(file, 'size', {value: defaultProps.maxFileSize + 1});
         const input = screen.getByTestId('uploadPicture');
-        userEvent.upload(input, file);
+        await userEvent.upload(input, file);
 
         const error = screen.getByTestId('mm-modal-generic-section-item__error');
         expect(error).toBeVisible();
@@ -66,14 +66,10 @@ describe('components/TeamSettings', () => {
         renderWithContext(<InfoTab {...defaultProps}/>);
         const file = new File(['test'], 'test.png', {type: 'image/png'});
         const input = screen.getByTestId('uploadPicture');
-        await act(async () => {
-            userEvent.upload(input, file);
-        });
+        await userEvent.upload(input, file);
 
         const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
-        await act(async () => {
-            userEvent.click(saveButton);
-        });
+        await userEvent.click(saveButton);
 
         expect(setTeamIcon).toHaveBeenCalledTimes(1);
         expect(setTeamIcon).toHaveBeenCalledWith(defaultProps.team?.id, file);
@@ -83,19 +79,13 @@ describe('components/TeamSettings', () => {
         renderWithContext(<InfoTab {...defaultProps}/>);
         const file = new File(['test'], 'test.png', {type: 'image/png'});
         const input = screen.getByTestId('uploadPicture');
-        await act(async () => {
-            userEvent.upload(input, file);
-        });
+        await userEvent.upload(input, file);
 
         const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
-        await act(async () => {
-            userEvent.click(saveButton);
-        });
+        await userEvent.click(saveButton);
 
         const removeImageButton = screen.getByTestId('removeImageButton');
-        await act(async () => {
-            userEvent.click(removeImageButton);
-        });
+        await userEvent.click(removeImageButton);
 
         expect(removeTeamIcon).toHaveBeenCalledTimes(1);
         expect(removeTeamIcon).toHaveBeenCalledWith(defaultProps.team?.id);
@@ -104,13 +94,10 @@ describe('components/TeamSettings', () => {
     test('should show an error when team name is empty', async () => {
         renderWithContext(<InfoTab {...defaultProps}/>);
         const input = screen.getByTestId('teamNameInput');
-        act(() => {
-            userEvent.clear(input);
-        });
+
+        await userEvent.clear(input);
         const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
-        await act(async () => {
-            userEvent.click(saveButton);
-        });
+        await userEvent.click(saveButton);
 
         const error = screen.getByTestId('mm-modal-generic-section-item__error');
         expect(error).toBeVisible();
@@ -120,14 +107,10 @@ describe('components/TeamSettings', () => {
     test('should show an error when team name is too short', async () => {
         renderWithContext(<InfoTab {...defaultProps}/>);
         const input = screen.getByTestId('teamNameInput');
-        await act(async () => {
-            await userEvent.clear(input);
-            await userEvent.type(input, 'a');
-        });
+        await userEvent.clear(input);
+        await userEvent.type(input, 'a');
         const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
-        await act(async () => {
-            userEvent.click(saveButton);
-        });
+        await userEvent.click(saveButton);
 
         const error = screen.getByTestId('mm-modal-generic-section-item__error');
         expect(error).toBeVisible();
@@ -137,12 +120,10 @@ describe('components/TeamSettings', () => {
     test('should call patchTeam when team name is changed and clicked saved', async () => {
         renderWithContext(<InfoTab {...defaultProps}/>);
         const input = screen.getByTestId('teamNameInput');
-        userEvent.clear(input);
-        userEvent.type(input, 'new_team_name');
+        await userEvent.clear(input);
+        await userEvent.type(input, 'new_team_name');
         const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
-        await act(async () => {
-            userEvent.click(saveButton);
-        });
+        await userEvent.click(saveButton);
 
         expect(patchTeam).toHaveBeenCalledTimes(1);
         expect(patchTeam).toHaveBeenCalledWith({id: defaultProps.team?.id, display_name: 'new_team_name', description: defaultProps.team?.description});
@@ -151,14 +132,10 @@ describe('components/TeamSettings', () => {
     test('should call patchTeam when team description is changed and clicked saved', async () => {
         renderWithContext(<InfoTab {...defaultProps}/>);
         const input = screen.getByTestId('teamDescriptionInput');
-        await act(async () => {
-            await userEvent.clear(input);
-            await userEvent.type(input, 'new_team_description');
-        });
+        await userEvent.clear(input);
+        await userEvent.type(input, 'new_team_description');
         const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
-        await act(async () => {
-            userEvent.click(saveButton);
-        });
+        await userEvent.click(saveButton);
 
         expect(patchTeam).toHaveBeenCalledTimes(1);
         expect(patchTeam).toHaveBeenCalledWith({id: defaultProps.team?.id, display_name: defaultProps.team?.display_name, description: 'new_team_description'});
@@ -168,14 +145,12 @@ describe('components/TeamSettings', () => {
         renderWithContext(<InfoTab {...defaultProps}/>);
         const nameInput = screen.getByTestId('teamNameInput');
         const descriptionInput = screen.getByTestId('teamDescriptionInput');
-        userEvent.clear(nameInput);
-        userEvent.type(nameInput, 'new_team_name');
-        userEvent.clear(descriptionInput);
-        userEvent.type(descriptionInput, 'new_team_description');
+        await userEvent.clear(nameInput);
+        await userEvent.type(nameInput, 'new_team_name');
+        await userEvent.clear(descriptionInput);
+        await userEvent.type(descriptionInput, 'new_team_description');
         const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
-        await act(async () => {
-            userEvent.click(saveButton);
-        });
+        await userEvent.click(saveButton);
 
         expect(patchTeam).toHaveBeenCalledTimes(1);
         expect(patchTeam).toHaveBeenCalledWith({id: defaultProps.team?.id, display_name: 'new_team_name', description: 'new_team_description'});

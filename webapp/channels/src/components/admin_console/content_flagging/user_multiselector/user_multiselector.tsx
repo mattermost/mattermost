@@ -12,7 +12,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {debounce} from 'mattermost-redux/actions/helpers';
 import {getMissingProfilesByIds, searchProfiles} from 'mattermost-redux/actions/users';
-import {getUsersByIDs} from 'mattermost-redux/selectors/entities/users';
+import {makeGetUsersByIds} from 'mattermost-redux/selectors/entities/users';
 
 import type {GlobalState} from 'types/store';
 
@@ -75,7 +75,8 @@ export function UserSelector({id, isMulti, className, multiSelectOnChange, multi
         }
     }, [dispatch, initialValue, isMulti, multiSelectInitialValue, singleSelectInitialValue]);
 
-    const initialUsers = useSelector((state: GlobalState) => getUsersByIDs(state, initialValue || []));
+    const getUsersByIds = useMemo(makeGetUsersByIds, []);
+    const initialUsers = useSelector((state: GlobalState) => getUsersByIds(state, initialValue || []));
     const selectInitialValue = initialUsers.
         filter((userProfile) => Boolean(userProfile)).
         map((userProfile: UserProfile) => ({

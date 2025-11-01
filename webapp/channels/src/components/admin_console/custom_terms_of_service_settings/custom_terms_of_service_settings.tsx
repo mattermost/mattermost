@@ -205,7 +205,7 @@ export default class CustomTermsOfServiceSettings extends OLDAdminSettings<Props
                         <FormattedMessage
                             {...messages.enableTermsOfServiceHelp}
                             values={{
-                                a: (chunks: string) => <Link to='/admin_console/site_config/customization'>{chunks}</Link>,
+                                a: (chunks) => <Link to='/admin_console/site_config/customization'>{chunks}</Link>,
                             }}
                         />
                     }

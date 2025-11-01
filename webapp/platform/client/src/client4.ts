@@ -97,6 +97,7 @@ import type {
     SubmitDialogResponse,
 } from '@mattermost/types/integrations';
 import type {Job, JobType, JobTypeBase} from '@mattermost/types/jobs';
+import type {Job, JobType, JobTypeBase} from '@mattermost/types/jobs';
 import type {ServerLimits} from '@mattermost/types/limits';
 import type {
     MarketplaceApp,
@@ -114,8 +115,13 @@ import type {PreferenceType} from '@mattermost/types/preferences';
 import type {ProductNotices} from '@mattermost/types/product_notices';
 import type {
     NameMappedPropertyFields,
+    
+    NameMappedPropertyFields,
     UserPropertyField,
+   
     UserPropertyFieldPatch,
+    PropertyValue,
+,
     PropertyValue,
 } from '@mattermost/types/properties';
 import type {Reaction} from '@mattermost/types/reactions';
@@ -4707,34 +4713,6 @@ export default class Client4 {
     getFlaggedPost = (postId: string) => {
         return this.doFetch<Post>(
             `${this.getContentFlaggingRoute()}/post/${postId}`,
-            {method: 'get'},
-        );
-    };
-
-    searchContentFlaggingReviewers = (term: string, teamId: string) => {
-        return this.doFetch<UserProfile[]>(
-            `${this.getContentFlaggingRoute()}/team/${teamId}/reviewers/search${buildQueryString({term})}`,
-            {method: 'get'},
-        );
-    };
-
-    setContentFlaggingReviewer = (postId: string, reviewerId: string) => {
-        return this.doFetch(
-            `${this.getContentFlaggingRoute()}/post/${postId}/assign/${reviewerId}`,
-            {method: 'post'},
-        );
-    };
-
-    saveContentFlaggingConfig = (config: ContentFlaggingSettings) => {
-        return this.doFetch(
-            `${this.getContentFlaggingRoute()}/config`,
-            {method: 'put', body: JSON.stringify(config)},
-        );
-    };
-
-    getAdminContentFlaggingConfig = () => {
-        return this.doFetch<ContentFlaggingSettings>(
-            `${this.getContentFlaggingRoute()}/config`,
             {method: 'get'},
         );
     };

@@ -427,3 +427,11 @@ const (
 	AuditEventUpdateIncomingHook      = "updateIncomingHook"      // update incoming webhook
 	AuditEventUpdateOutgoingHook      = "updateOutgoingHook"      // update outgoing webhook
 )
+
+// Content Flagging
+const (
+	AuditEventFlagPost                     = "flagPost"                     // flag post for review
+	AuditEventGetFlaggedPost               = "getFlaggedPost"               // get flagged post details
+	AuditEventPermanentlyRemoveFlaggedPost = "permanentlyRemoveFlaggedPost" // permanently remove flagged post
+	AuditEventKeepFlaggedPost              = "keepFlaggedPost"              // keep flagged post
+)

@@ -84,7 +84,7 @@ type State = {
     [x: string]: unknown;
     saveNeeded: false | 'both' | 'permissions' | 'config';
     saving: boolean;
-    serverError: string | { message: string; id?: string } | null;
+    serverError: string | null;
     confirmNeededId: string;
     showConfirmId: string;
     clientWarning: string | boolean;

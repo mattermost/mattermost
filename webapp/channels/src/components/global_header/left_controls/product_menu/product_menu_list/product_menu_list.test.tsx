@@ -20,7 +20,7 @@ jest.mock('react-redux', () => ({
 }));
 
 describe('components/global/product_switcher_menu', () => {
-    let useSelectorMock: jest.Mock;
+    let useSelectorMock: jest.SpyInstance;
 
     const getMenuWrapper = (props: ProductMenuListProps) => {
         const wrapper = shallow(<ProductMenuList {...props}/>);
@@ -60,7 +60,7 @@ describe('components/global/product_switcher_menu', () => {
     };
 
     beforeEach(() => {
-        useSelectorMock = reactRedux.useSelector as jest.Mock;
+        useSelectorMock = jest.spyOn(reactRedux, 'useSelector');
         useSelectorMock.mockReturnValue(true);
     });
 
