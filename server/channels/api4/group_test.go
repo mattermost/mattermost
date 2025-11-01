@@ -2827,8 +2827,18 @@ func TestAddMembersToGroup(t *testing.T) {
 		members := &model.GroupModifyMembers{
 			UserIds: []string{users[0].Id, users[1].Id},
 		}
-
 		_, response, upsertErr := th.SystemAdminClient.UpsertGroupMembers(context.Background(), ldapGroup.Id, members)
+		require.Error(t, upsertErr)
+		CheckBadRequestStatus(t, response)
+	})
+
+	t.Run("duplicate userIDs", func(t *testing.T) {
+		group, users := setup(t)
+
+		membersWithDuplicate := &model.GroupModifyMembers{
+			UserIds: []string{users[0].Id, users[0].Id, users[1].Id},
+		}
+		_, response, upsertErr := th.SystemAdminClient.UpsertGroupMembers(context.Background(), group.Id, membersWithDuplicate)
 		require.Error(t, upsertErr)
 		CheckBadRequestStatus(t, response)
 	})
@@ -2934,7 +2944,7 @@ func TestDeleteMembersFromGroup(t *testing.T) {
 
 		_, response, err := th.SystemAdminClient.DeleteGroupMembers(context.Background(), group.Id, nonExistentMembers)
 		require.Error(t, err)
-		CheckBadRequestStatus(t, response)
+		CheckNotFoundStatus(t, response)
 		require.Contains(t, err.Error(), fmt.Sprintf(`User with username "%s" could not be found.`, nonExistentID))
 	})
 
@@ -2945,7 +2955,7 @@ func TestDeleteMembersFromGroup(t *testing.T) {
 
 		_, response, err := th.SystemAdminClient.DeleteGroupMembers(context.Background(), group.Id, validNonMemberMembers)
 		require.Error(t, err)
-		CheckBadRequestStatus(t, response)
+		CheckNotFoundStatus(t, response)
 		require.Contains(t, err.Error(), fmt.Sprintf(`User with username "%s" could not be found.`, user3.Id))
 	})
 
