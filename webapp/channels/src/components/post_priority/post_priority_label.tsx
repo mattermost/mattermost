@@ -6,8 +6,8 @@ import {useIntl} from 'react-intl';
 
 import {PostPriority} from '@mattermost/types/posts';
 
-import Tag from 'components/widgets/tag/tag';
-import type {TagSize} from 'components/widgets/tag/tag';
+import Tag from '@mattermost/design-system/src/components/primitives/tag';
+import type {TagSize} from '@mattermost/design-system/src/components/primitives/tag';
 
 type Props = {
     priority?: PostPriority|'';

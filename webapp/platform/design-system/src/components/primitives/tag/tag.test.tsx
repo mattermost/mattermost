@@ -8,9 +8,7 @@ import {AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
 
 import Tag from './tag';
 
-const classNameProp = 'Tag Tag--xs test';
-
-describe('components/widgets/tag/Tag', () => {
+describe('components/primitives/tag/Tag', () => {
     test('should match the snapshot on show', () => {
         const wrapper = shallow(
             <Tag
@@ -18,8 +16,11 @@ describe('components/widgets/tag/Tag', () => {
                 text={'Test text'}
             />,
         );
-        expect(wrapper.props()).toEqual(expect.objectContaining({className: classNameProp}));
-        expect(wrapper.text()).toEqual('Test text');
+        expect(wrapper.hasClass('Tag')).toBe(true);
+        expect(wrapper.hasClass('Tag--xs')).toBe(true);
+        expect(wrapper.hasClass('Tag--lowercase')).toBe(true);
+        expect(wrapper.hasClass('test')).toBe(true);
+        expect(wrapper.find('.Tag__text').text()).toEqual('Test text');
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -31,9 +32,10 @@ describe('components/widgets/tag/Tag', () => {
                 icon={'alert-circle-outline'}
             />,
         );
-        expect(wrapper.props()).toEqual(expect.objectContaining({className: classNameProp}));
+        expect(wrapper.hasClass('Tag')).toBe(true);
+        expect(wrapper.find('.Tag__icon').exists()).toBe(true);
         expect(wrapper.find(AlertCircleOutlineIcon).exists()).toEqual(true);
-        expect(wrapper.text()).toContain('Test text');
+        expect(wrapper.find('.Tag__text').text()).toEqual('Test text');
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -45,8 +47,9 @@ describe('components/widgets/tag/Tag', () => {
                 uppercase={true}
             />,
         );
-        expect(wrapper.props()).toEqual(expect.objectContaining({className: classNameProp, uppercase: true}));
-        expect(wrapper.text()).toEqual('Test text');
+        expect(wrapper.hasClass('Tag')).toBe(true);
+        expect(wrapper.hasClass('Tag--uppercase')).toBe(true);
+        expect(wrapper.find('.Tag__text').text()).toEqual('Test text');
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -58,8 +61,9 @@ describe('components/widgets/tag/Tag', () => {
                 size={'sm'}
             />,
         );
-        expect(wrapper.props()).toEqual(expect.objectContaining({className: 'Tag Tag--sm test'}));
-        expect(wrapper.text()).toEqual('Test text');
+        expect(wrapper.hasClass('Tag')).toBe(true);
+        expect(wrapper.hasClass('Tag--sm')).toBe(true);
+        expect(wrapper.find('.Tag__text').text()).toEqual('Test text');
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -71,8 +75,9 @@ describe('components/widgets/tag/Tag', () => {
                 variant={'success'}
             />,
         );
-        expect(wrapper.props()).toEqual(expect.objectContaining({className: 'Tag Tag--success Tag--xs test'}));
-        expect(wrapper.text()).toEqual('Test text');
+        expect(wrapper.hasClass('Tag')).toBe(true);
+        expect(wrapper.hasClass('Tag--success')).toBe(true);
+        expect(wrapper.find('.Tag__text').text()).toEqual('Test text');
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -85,10 +90,13 @@ describe('components/widgets/tag/Tag', () => {
                 onClick={click}
             />,
         );
-        expect(wrapper.props()).toEqual(expect.objectContaining({className: classNameProp, onClick: click}));
-        expect(wrapper.text()).toEqual('Test text');
+        expect(wrapper.type()).toBe('button');
+        expect(wrapper.hasClass('Tag')).toBe(true);
+        expect(wrapper.hasClass('Tag--clickable')).toBe(true);
+        expect(wrapper.find('.Tag__text').text()).toEqual('Test text');
         wrapper.simulate('click');
         expect(click).toBeCalled();
         expect(wrapper).toMatchSnapshot();
     });
 });
+

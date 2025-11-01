@@ -13,7 +13,7 @@ import {markLastPostInThreadAsUnread, updateThreadRead} from 'mattermost-redux/a
 
 import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
 
-import Tag from 'components/widgets/tag/tag';
+import Tag from '@mattermost/design-system/src/components/primitives/tag';
 
 import {WindowSizes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
