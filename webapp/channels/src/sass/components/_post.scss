@@ -56,13 +56,13 @@
             white-space: pre-wrap;
         }
 
-        ul+p,
-        ol+p {
+        ul + p,
+        ol + p {
             margin-top: 0.6em;
         }
 
-        p+ul,
-        p+ol {
+        p + ul,
+        p + ol {
             margin-top: 0.6em;
         }
     }
@@ -258,7 +258,7 @@
         top: 50px;
     }
 
-    >div {
+    > div {
         display: inline-block;
         padding: 0 8px;
         border: 1px solid rgba(var(--sidebar-header-text-color-rgb), 0.5);
@@ -381,7 +381,7 @@
     display: flex;
     margin: 0 1px 0 0;
 
-    >div {
+    > div {
         margin: 0 4px 0 0;
     }
 
@@ -412,7 +412,7 @@
             fill: functions.v(button-bg);
         }
 
-        &+input {
+        & + input {
             position: absolute;
             top: 0;
             right: 0;
@@ -459,7 +459,7 @@
     font-size: 12px;
     gap: 6px;
 
-    >button {
+    > button {
         @include mixins.button-small;
 
         padding: 10px 16px;
@@ -722,7 +722,7 @@
         white-space: nowrap;
     }
 
-    .post__message-top>.pending-post-actions--inline {
+    .post__message-top > .pending-post-actions--inline {
         align-self: center;
     }
 
@@ -748,8 +748,8 @@
                     align-items: center;
                 }
 
-                >.open,
-                >div {
+                > .open,
+                > div {
                     flex: 0 1 30px;
                     align-items: center;
 
@@ -865,7 +865,7 @@
                 visibility: hidden;
             }
 
-            >div {
+            > div {
                 margin-bottom: 0;
             }
         }
@@ -878,7 +878,7 @@
             overflow: inherit;
         }
 
-        .post-message--collapsed+.post-image__columns {
+        .post-message--collapsed + .post-image__columns {
             &::before {
                 position: absolute;
                 top: 0;
@@ -1106,7 +1106,7 @@
         }
     }
 
-    .post__img> :hover {
+    .post__img > :hover {
         cursor: pointer;
     }
 
@@ -1127,7 +1127,7 @@
         /* IE 10+ */
         user-select: none;
 
-        >i {
+        > i {
             margin-right: 2px;
         }
     }
@@ -1276,7 +1276,7 @@
             .popover {
                 margin-top: 84px;
 
-                >.arrow {
+                > .arrow {
                     top: 21px !important;
                 }
             }
@@ -1346,7 +1346,7 @@
             display: table-cell;
         }
 
-        >div {
+        > div {
             vertical-align: top;
         }
     }
@@ -1542,7 +1542,7 @@
             padding-right: 20px !important;
         }
 
-        p+p {
+        p + p {
             margin: 0.5em 0 0;
         }
 
@@ -1565,12 +1565,12 @@
             }
         }
 
-        ul+p,
-        ol+p {
+        ul + p,
+        ol + p {
             margin-top: 0.6em;
         }
 
-        post__message-top-content p+ol {
+        post__message-top-content p + ol {
             margin-top: 0.6em;
         }
 
@@ -2203,7 +2203,7 @@
     opacity: 0.73;
 }
 
-.post-message__text>ul,
+.post-message__text > ul,
 .post-code,
 .table-responsive {
     direction: ltr;
@@ -2419,7 +2419,7 @@
             margin-left: 8px;
             background: rgba(var(--center-channel-color-rgb), 0.08);
 
-            &-icon>svg {
+            &-icon > svg {
                 width: 12px;
                 height: 12px;
                 margin-right: 4px;
@@ -2435,7 +2435,7 @@
             }
 
             &:hover {
-                &-icon>svg {
+                &-icon > svg {
                     fill: rgba(var(--center-channel-color-rgb), 0.8);
                 }
 
@@ -2447,7 +2447,7 @@
             &:active {
                 background: rgba(var(--button-bg-rgb), 0.08);
 
-                &-icon>svg {
+                &-icon > svg {
                     fill: var(--button-bg);
                 }
 
