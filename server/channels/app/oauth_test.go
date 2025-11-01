@@ -697,6 +697,113 @@ func TestDeactivatedUserOAuthApp(t *testing.T) {
 	assert.Equal(t, "api.oauth.get_access_token.expired_code.app_error", appErr.Id)
 }
 
+func TestRegisterOAuthClient(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
+	})
+
+	t.Run("Valid DCR request with client_uri", func(t *testing.T) {
+		request := &model.ClientRegistrationRequest{
+			RedirectURIs: []string{"https://example.com/callback/" + model.NewId()},
+			ClientName:   model.NewPointer("Test Client"),
+			ClientURI:    model.NewPointer("https://example.com"),
+		}
+
+		app, appErr := th.App.RegisterOAuthClient(th.Context, request, th.BasicUser.Id)
+
+		require.Nil(t, appErr)
+		require.NotNil(t, app)
+		assert.Equal(t, request.RedirectURIs, []string(app.CallbackUrls))
+		assert.True(t, app.IsDynamicallyRegistered)
+		assert.Equal(t, th.BasicUser.Id, app.CreatorId)
+		assert.NotEmpty(t, app.Id)
+		assert.NotEmpty(t, app.ClientSecret)
+		assert.Equal(t, "https://example.com", app.Homepage) // client_uri is mapped to homepage
+	})
+
+	t.Run("Valid DCR request without client_uri", func(t *testing.T) {
+		request := &model.ClientRegistrationRequest{
+			RedirectURIs: []string{"https://example.com/callback/" + model.NewId()},
+			ClientName:   model.NewPointer("Test Client"),
+		}
+
+		app, appErr := th.App.RegisterOAuthClient(th.Context, request, th.BasicUser.Id)
+
+		require.Nil(t, appErr)
+		require.NotNil(t, app)
+		assert.Equal(t, request.RedirectURIs, []string(app.CallbackUrls))
+		assert.True(t, app.IsDynamicallyRegistered)
+		assert.Equal(t, th.BasicUser.Id, app.CreatorId)
+		assert.NotEmpty(t, app.Id)
+		assert.NotEmpty(t, app.ClientSecret)
+		assert.Equal(t, "", app.Homepage) // Homepage is empty when client_uri is not provided
+	})
+
+	t.Run("Invalid client_uri", func(t *testing.T) {
+		request := &model.ClientRegistrationRequest{
+			RedirectURIs: []string{"https://example.com/callback/" + model.NewId()},
+			ClientName:   model.NewPointer("Test Client"),
+			ClientURI:    model.NewPointer("invalid-url"),
+		}
+
+		_, appErr := th.App.RegisterOAuthClient(th.Context, request, th.BasicUser.Id)
+
+		require.NotNil(t, appErr)
+		assert.Equal(t, "model.oauth.is_valid.homepage.app_error", appErr.Id)
+	})
+}
+
+func TestGetAuthorizationServerMetadata_DCRConfig(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	// Enable OAuth service provider and set SiteURL
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.EnableOAuthServiceProvider = model.NewPointer(true)
+		cfg.ServiceSettings.SiteURL = model.NewPointer("https://example.com")
+	})
+
+	t.Run("DCR disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(false)
+		})
+
+		metadata, err := th.App.GetAuthorizationServerMetadata(th.Context)
+		require.Nil(t, err)
+		require.NotNil(t, metadata)
+
+		// Should not include registration endpoint when DCR is disabled
+		assert.Empty(t, metadata.RegistrationEndpoint)
+
+		// Should include basic OAuth endpoints
+		assert.Equal(t, "https://example.com", metadata.Issuer)
+		assert.Equal(t, "https://example.com/oauth/authorize", metadata.AuthorizationEndpoint)
+		assert.Equal(t, "https://example.com/oauth/access_token", metadata.TokenEndpoint)
+	})
+
+	t.Run("DCR enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(true)
+		})
+
+		metadata, err := th.App.GetAuthorizationServerMetadata(th.Context)
+		require.Nil(t, err)
+		require.NotNil(t, metadata)
+
+		// Should include registration endpoint when DCR is enabled
+		assert.Equal(t, "https://example.com/api/v4/oauth/apps/register", metadata.RegistrationEndpoint)
+
+		// Should include basic OAuth endpoints
+		assert.Equal(t, "https://example.com", metadata.Issuer)
+		assert.Equal(t, "https://example.com/oauth/authorize", metadata.AuthorizationEndpoint)
+		assert.Equal(t, "https://example.com/oauth/access_token", metadata.TokenEndpoint)
+	})
+}
+
 func TestParseOAuthStateTokenExtra(t *testing.T) {
 	t.Run("valid token with normal values", func(t *testing.T) {
 		email, action, cookie, err := parseOAuthStateTokenExtra("user@example.com:email_to_sso:randomcookie123")
