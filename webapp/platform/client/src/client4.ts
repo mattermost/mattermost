@@ -97,6 +97,7 @@ import type {
     SubmitDialogResponse,
 } from '@mattermost/types/integrations';
 import type {Job, JobType, JobTypeBase} from '@mattermost/types/jobs';
+import type {Job, JobType, JobTypeBase} from '@mattermost/types/jobs';
 import type {ServerLimits} from '@mattermost/types/limits';
 import type {
     MarketplaceApp,
@@ -114,8 +115,13 @@ import type {PreferenceType} from '@mattermost/types/preferences';
 import type {ProductNotices} from '@mattermost/types/product_notices';
 import type {
     NameMappedPropertyFields,
+    
+    NameMappedPropertyFields,
     UserPropertyField,
+   
     UserPropertyFieldPatch,
+    PropertyValue,
+,
     PropertyValue,
 } from '@mattermost/types/properties';
 import type {Reaction} from '@mattermost/types/reactions';
