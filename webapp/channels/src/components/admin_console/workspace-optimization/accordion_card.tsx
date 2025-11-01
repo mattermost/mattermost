@@ -7,8 +7,6 @@ import type {RefObject} from 'react';
 
 import type {AccordionItemType} from './accordion';
 
-import './accordion.scss';
-
 type Props = {
     data: AccordionItemType;
     isExpanded: boolean;

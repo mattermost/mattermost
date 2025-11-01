@@ -16,6 +16,7 @@ export type Props = {
     tooltip?: string;
     size?: 'regular' | 'small';
 }
+
 const MultiSelectCard = (props: Props) => {
     const buttonProps: {
         className: string;

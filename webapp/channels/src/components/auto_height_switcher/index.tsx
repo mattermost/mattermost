@@ -6,7 +6,7 @@ import type {CSSProperties} from 'react';
 import {Transition} from 'react-transition-group';
 import scrollIntoView from 'smooth-scroll-into-view-if-needed';
 
-import './auto_height_switcher.scss';
+import './index.scss';
 
 export enum AutoHeightSlots {
     SLOT1 = 1,

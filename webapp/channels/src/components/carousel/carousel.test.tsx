@@ -4,7 +4,7 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import Carousel from 'components/common/carousel/carousel';
+import Carousel from 'components/carousel';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 

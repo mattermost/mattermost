@@ -4,8 +4,6 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
-import './carousel.scss';
-
 export enum BtnStyle {
     BUTTON = 'button',
     CHEVRON = 'chevron',

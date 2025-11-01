@@ -4,7 +4,7 @@
 import React, {useEffect, useState} from 'react';
 
 import CarouselButton, {BtnStyle} from './carousel_button';
-import './carousel.scss';
+import './index.scss';
 
 type Props = {
     dataSlides: React.ReactNode[];
@@ -16,6 +16,7 @@ type Props = {
     btnsStyle?: BtnStyle; // chevron or bottom buttons
     actionButton?: JSX.Element;
 }
+
 const Carousel = ({
     dataSlides,
     id,

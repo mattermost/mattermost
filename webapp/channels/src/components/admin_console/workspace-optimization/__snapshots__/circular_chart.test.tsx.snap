@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`/components/common/CircularChart should match snapshot 1`] = `
+exports[`/components/admin_console/workspace-optimization/circular_chart should match snapshot 1`] = `
 <div
   className="CircularChart"
 >
