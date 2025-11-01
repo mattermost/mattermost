@@ -352,17 +352,15 @@ func (ss *SqlStore) specialSearchChars() []string {
 		"<",
 		">",
 		"+",
-		"-",
 		"(",
 		")",
 		"~",
-		":",
 	}
 
-	// Postgres can handle "@" without any errors
-	// Also helps postgres in enabling search for EmailAddresses
+	// Postgres can handle "@", ":", "-", ".", "/" without any errors
+	// This enables search for EmailAddresses and URLs
 	if ss.DriverName() != model.DatabaseDriverPostgres {
-		chars = append(chars, "@")
+		chars = append(chars, "@", ":", "-", ".", "/")
 	}
 
 	return chars
