@@ -17,6 +17,7 @@ import {get, getBool, getInt} from 'mattermost-redux/selectors/entities/preferen
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
 
+import {hasActiveUploads} from 'actions/file_actions';
 import * as GlobalActions from 'actions/global_actions';
 import type {CreatePostOptions} from 'actions/post_actions';
 import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
@@ -593,7 +594,15 @@ const AdvancedTextEditor = ({
     // Set the draft from store when changing post or channels, and store the previous one
     useEffect(() => {
         // Store the draft that existed when we opened the channel to know if it should be saved
-        const draftOnOpen = draftFromStore;
+
+        let draftOnOpen = draftFromStore;
+
+        // Detected a mismatch — the store still lists uploadsInProgress but there are no active XHR requests.
+        // This means the state is out of sync with the actual upload process.
+        // Resetting uploadsInProgress to recover from the broken draft state.
+        if (!hasActiveUploads() && draft.uploadsInProgress?.length > 0) {
+            draftOnOpen = {...draftOnOpen, uploadsInProgress: []};
+        }
 
         setDraft(draftOnOpen);
 
@@ -604,7 +613,7 @@ const AdvancedTextEditor = ({
         };
     }, [channelId, rootId]);
 
-    const disableSendButton = Boolean(isDisabled || (!draft.message.trim().length && !draft.fileInfos.length)) || !isValidPersistentNotifications;
+    const disableSendButton = Boolean(isDisabled || (!draft.message.trim().length && !draft.fileInfos.length)) || !isValidPersistentNotifications || draft.uploadsInProgress.length > 0;
     const sendButton = readOnlyChannel || isInEditMode ? null : (
         <SendButton
             disabled={disableSendButton}
