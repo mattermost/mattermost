@@ -90,7 +90,7 @@
     "styled-components": "5.3.7",
     "timezones.json": "1.7.1",
     "tinycolor2": "1.6.0",
-    "turndown": "7.2.0",
+    "turndown": "7.2.2",
     "web-vitals": "5.0.3",
     "zen-observable": "0.10.0"
   },
