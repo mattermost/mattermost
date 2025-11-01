@@ -3602,11 +3602,11 @@ func TestGetPostIfAuthorized(t *testing.T) {
 		require.NotNil(t, session2)
 
 		// User is not authorized to get post
-		_, err = th.App.GetPostIfAuthorized(th.Context, post.Id, session2, false)
+		_, err, _ = th.App.GetPostIfAuthorized(th.Context, post.Id, session2, false)
 		require.NotNil(t, err)
 
 		// User is authorized to get post
-		_, err = th.App.GetPostIfAuthorized(th.Context, post.Id, session1, false)
+		_, err, _ = th.App.GetPostIfAuthorized(th.Context, post.Id, session1, false)
 		require.Nil(t, err)
 	})
 
@@ -3625,11 +3625,11 @@ func TestGetPostIfAuthorized(t *testing.T) {
 		require.NotNil(t, session2)
 
 		// User is authorized to get post
-		_, err = th.App.GetPostIfAuthorized(th.Context, post.Id, session2, false)
+		_, err, _ = th.App.GetPostIfAuthorized(th.Context, post.Id, session2, false)
 		require.Nil(t, err)
 
 		// User is authorized to get post
-		_, err = th.App.GetPostIfAuthorized(th.Context, post.Id, session1, false)
+		_, err, _ = th.App.GetPostIfAuthorized(th.Context, post.Id, session1, false)
 		require.Nil(t, err)
 
 		th.App.UpdateConfig(func(c *model.Config) {
@@ -3638,11 +3638,11 @@ func TestGetPostIfAuthorized(t *testing.T) {
 		})
 
 		// User is not authorized to get post
-		_, err = th.App.GetPostIfAuthorized(th.Context, post.Id, session2, false)
+		_, err, _ = th.App.GetPostIfAuthorized(th.Context, post.Id, session2, false)
 		require.NotNil(t, err)
 
 		// User is authorized to get post
-		_, err = th.App.GetPostIfAuthorized(th.Context, post.Id, session1, false)
+		_, err, _ = th.App.GetPostIfAuthorized(th.Context, post.Id, session1, false)
 		require.Nil(t, err)
 	})
 }

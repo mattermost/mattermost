@@ -723,6 +723,7 @@ func TestHasPermissionToReadChannel(t *testing.T) {
 		channelIsOpen           bool
 		canReadPublicChannel    bool
 		expected                bool
+		isAdmin                 bool
 	}{
 		{
 			name:                    "Can read archived channels",
@@ -778,10 +779,25 @@ func TestHasPermissionToReadChannel(t *testing.T) {
 			canReadPublicChannel:    true,
 			expected:                true,
 		},
+		{
+			name:                    "Can read private channels if it is a sysadmin and it is not member of the channel",
+			configComplianceEnabled: false,
+			channelDeleted:          false,
+			canReadChannel:          false,
+			channelIsOpen:           false,
+			canReadPublicChannel:    false,
+			expected:                true,
+			isAdmin:                 true,
+		},
 	}
 
 	for _, tc := range ttcc {
 		t.Run(tc.name, func(t *testing.T) {
+			user := th.BasicUser2
+			if tc.isAdmin {
+				user = th.SystemAdminUser
+			}
+
 			th.App.UpdateConfig(func(cfg *model.Config) {
 				configComplianceEnabled := tc.configComplianceEnabled
 				cfg.ComplianceSettings.Enable = &configComplianceEnabled
@@ -789,7 +805,7 @@ func TestHasPermissionToReadChannel(t *testing.T) {
 
 			team := th.CreateTeam()
 			if tc.canReadPublicChannel {
-				th.LinkUserToTeam(th.BasicUser2, team)
+				th.LinkUserToTeam(user, team)
 			}
 
 			var channel *model.Channel
@@ -799,7 +815,7 @@ func TestHasPermissionToReadChannel(t *testing.T) {
 				channel = th.CreatePrivateChannel(th.Context, team)
 			}
 			if tc.canReadChannel {
-				_, err := th.App.AddUserToChannel(th.Context, th.BasicUser2, channel, false)
+				_, err := th.App.AddUserToChannel(th.Context, user, channel, false)
 				require.Nil(t, err)
 			}
 
@@ -810,8 +826,13 @@ func TestHasPermissionToReadChannel(t *testing.T) {
 				require.Nil(t, err)
 			}
 
-			result := th.App.HasPermissionToReadChannel(th.Context, th.BasicUser2.Id, channel)
+			result, isMember := th.App.HasPermissionToReadChannel(th.Context, user.Id, channel)
 			require.Equal(t, tc.expected, result)
+			if result {
+				require.Equal(t, tc.canReadChannel, isMember)
+			} else {
+				require.Equal(t, false, isMember)
+			}
 		})
 	}
 }
