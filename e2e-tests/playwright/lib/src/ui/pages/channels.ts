@@ -21,10 +21,13 @@ export default class ChannelsPage {
     readonly userProfilePopover;
     readonly messagePriority;
 
+    readonly channelIntro;
+
     readonly channelSettingsModal;
     readonly deletePostModal;
     readonly findChannelsModal;
     public invitePeopleModal: InvitePeopleModal | undefined;
+    readonly notificationPreferencesModal;
     readonly profileModal;
     readonly settingsModal;
     readonly teamSettingsModal;
@@ -53,10 +56,16 @@ export default class ChannelsPage {
         this.messagePriority = new components.MessagePriority(page.locator('body'));
         this.userAccountMenuButton = page.getByRole('button', {name: "User's account menu"});
 
+        // Channel intro
+        this.channelIntro = new components.ChannelIntro(page.locator('#channelIntro'));
+
         // Modals
         this.channelSettingsModal = new ChannelSettingsModal(page.getByRole('dialog', {name: 'Channel Settings'}));
         this.deletePostModal = new components.DeletePostModal(page.locator('#deletePostModal'));
         this.findChannelsModal = new components.FindChannelsModal(page.getByRole('dialog', {name: 'Find Channels'}));
+        this.notificationPreferencesModal = new components.NotificationPreferencesModal(
+            page.locator('#channelNotificationModal'),
+        );
         this.profileModal = new components.ProfileModal(page.getByRole('dialog', {name: 'Profile'}));
         this.settingsModal = new components.SettingsModal(page.getByRole('dialog', {name: 'Settings'}));
         this.teamSettingsModal = new components.TeamSettingsModal(page.getByRole('dialog', {name: 'Team Settings'}));
