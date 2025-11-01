@@ -99,6 +99,7 @@ const (
 	WebsocketEventCPAFieldDeleted                     WebsocketEventType = "custom_profile_attributes_field_deleted"
 	WebsocketEventCPAValuesUpdated                    WebsocketEventType = "custom_profile_attributes_values_updated"
 	WebsocketContentFlaggingReportValueUpdated        WebsocketEventType = "content_flagging_report_value_updated"
+	WebsocketEventFileDownloadRejected                WebsocketEventType = "file_download_rejected"
 
 	WebSocketMsgTypeResponse = "response"
 	WebSocketMsgTypeEvent    = "event"
