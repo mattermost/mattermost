@@ -6,6 +6,13 @@
     <mj-wrapper mj-class="email">
       <mj-include path="./partials/logo.mjml" />
       <mj-include path="./partials/header.mjml" />
+      <mj-raw>{{if .Props.AppButtonURL}}</mj-raw>
+      <mj-section padding="0px 24px 16px 24px">
+        <mj-column>
+          <mj-button href="{{.Props.AppButtonURL}}" padding="0px" css-class="button">Open in Mattermost app</mj-button>
+        </mj-column>
+      </mj-section>
+      <mj-raw>{{end}}</mj-raw>
       <mj-raw>{{if .Props.Message}}</mj-raw>
           <mj-raw>{{range .Props.Posts}}<div class="postCard"></mj-raw>
             <mj-section css-class="messageCard" padding="0px">

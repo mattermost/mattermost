@@ -3652,6 +3652,7 @@ type GuestAccountsSettings struct {
 	AllowEmailAccounts               *bool   `access:"authentication_guest_access"`
 	EnforceMultifactorAuthentication *bool   `access:"authentication_guest_access"`
 	RestrictCreationToDomains        *string `access:"authentication_guest_access"`
+	EnableEasyLogin                  *bool   `access:"authentication_guest_access"`
 }
 
 func (s *GuestAccountsSettings) SetDefaults() {
@@ -3673,6 +3674,10 @@ func (s *GuestAccountsSettings) SetDefaults() {
 
 	if s.RestrictCreationToDomains == nil {
 		s.RestrictCreationToDomains = NewPointer("")
+	}
+
+	if s.EnableEasyLogin == nil {
+		s.EnableEasyLogin = NewPointer(false)
 	}
 }
 

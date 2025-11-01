@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+/* eslint-disable max-lines */
+
 import classNames from 'classnames';
 import throttle from 'lodash/throttle';
 import React, {useState, useEffect, useRef, useCallback} from 'react';
@@ -21,7 +23,7 @@ import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {addUserToTeamFromInvite} from 'actions/team_actions';
-import {login} from 'actions/views/login';
+import {login, getUserLoginType} from 'actions/views/login';
 import LocalStorageStore from 'stores/local_storage_store';
 
 import AlertBanner from 'components/alert_banner';
@@ -55,6 +57,7 @@ import {setCSRFFromCookie} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
+import EasyLoginCard from './easy_login_card';
 import LoginMfa from './login_mfa';
 
 import './login.scss';
@@ -78,6 +81,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const {
         EnableLdap,
         EnableSaml,
+        EnableEasyLogin,
         EnableSignInWithEmail,
         EnableSignInWithUsername,
         EnableSignUpWithEmail,
@@ -121,8 +125,11 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const [alertBanner, setAlertBanner] = useState<AlertBannerProps | null>(null);
     const [hasError, setHasError] = useState(false);
     const [isMobileView, setIsMobileView] = useState(false);
+    const [easyLoginSuccessful, setEasyLoginSuccessful] = useState(false);
+    const [requiresPassword, setRequiresPassword] = useState(false);
 
     const enableCustomBrand = EnableCustomBrand === 'true';
+    const enableEasyLogin = EnableEasyLogin === 'true'; // Hardcoded for now
     const enableLdap = EnableLdap === 'true';
     const enableOpenServer = EnableOpenServer === 'true';
     const enableUserCreation = EnableUserCreation === 'true';
@@ -397,6 +404,16 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 });
                 break;
 
+            case 'login_error': {
+                mode = 'danger';
+                const messageParam = searchParam.get('message');
+                title = messageParam || formatMessage({
+                    id: 'easy_login.error',
+                    defaultMessage: 'We were unable to log you in. Please enter your details and try again.',
+                });
+                break;
+            }
+
             default:
                 break;
             }
@@ -611,6 +628,12 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             return;
         }
 
+        // Handle passwordless login - check user login type first
+        if (enableEasyLogin && !requiresPassword) {
+            checkUserLoginType(currentLoginId);
+            return;
+        }
+
         if (!password) {
             setAlertBanner({
                 mode: 'danger',
@@ -622,7 +645,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             return;
         }
 
-        submit({loginId, password});
+        submit({loginId: currentLoginId, password});
     };
 
     const submit = async ({loginId, password, token}: SubmitOptions) => {
@@ -683,6 +706,31 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         }
 
         await postSubmit();
+    };
+
+    const checkUserLoginType = async (loginId: string) => {
+        setIsWaiting(true);
+        const result = await dispatch(getUserLoginType(loginId));
+        setIsWaiting(false);
+
+        if (result.error) {
+            setAlertBanner({
+                mode: 'danger',
+                title: result.error.message || 'Failed to check login type',
+            });
+            setHasError(true);
+            return;
+        }
+
+        if (result.data === Constants.EASY_LOGIN_SERVICE) {
+            setEasyLoginSuccessful(true);
+        } else {
+            setRequiresPassword(true);
+
+            setTimeout(() => {
+                passwordInput.current?.focus();
+            }, 100);
+        }
     };
 
     const postSubmit = async () => {
@@ -746,6 +794,11 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         if (hasError) {
             setHasError(false);
             dismissAlert();
+        }
+
+        if (enableEasyLogin && requiresPassword) {
+            setRequiresPassword(false);
+            setPassword('');
         }
     };
 
@@ -891,78 +944,88 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                         <div
                             className='login-body-card-content'
                         >
-                            <p className='login-body-card-title'>
-                                {getCardTitle()}
-                            </p>
-                            {enableCustomBrand && getMessageSubtitle()}
-                            {alertBanner && (
-                                <AlertBanner
-                                    id='login-body-card-banner'
-                                    className='login-body-card-banner'
-                                    mode={alertBanner.mode}
-                                    title={alertBanner.title}
-                                    onDismiss={alertBanner.onDismiss ?? dismissAlert}
-                                />
-                            )}
-                            {enableBaseLogin && (
-                                <form
-                                    onSubmit={(event: FormEvent<HTMLFormElement>) => {
-                                        preSubmit(event as unknown as React.MouseEvent);
-                                    }}
-                                >
-                                    <div className='login-body-card-form'>
-                                        <Input
-                                            data-testid='login-id-input'
-                                            ref={loginIdInput}
-                                            name='loginId'
-                                            containerClassName='login-body-card-form-input'
-                                            type='text'
-                                            inputSize={SIZE.LARGE}
-                                            value={loginId}
-                                            onChange={handleInputOnChange}
-                                            hasError={hasError}
-                                            placeholder={getInputPlaceholder()}
-                                            disabled={isWaiting}
-                                            autoFocus={true}
-                                            aria-describedby={alertBanner ? 'login-body-card-banner' : undefined}
+                            {easyLoginSuccessful ? (
+                                <EasyLoginCard/>
+                            ) : (
+                                <>
+                                    <p className='login-body-card-title'>
+                                        {getCardTitle()}
+                                    </p>
+                                    {enableCustomBrand && getMessageSubtitle()}
+                                    {alertBanner && (
+                                        <AlertBanner
+                                            id='login-body-card-banner'
+                                            className='login-body-card-banner'
+                                            mode={alertBanner.mode}
+                                            title={alertBanner.title}
+                                            onDismiss={alertBanner.onDismiss ?? dismissAlert}
                                         />
-                                        <PasswordInput
-                                            ref={passwordInput}
-                                            className='login-body-card-form-password-input'
-                                            value={password}
-                                            inputSize={SIZE.LARGE}
-                                            onChange={handlePasswordInputOnChange}
-                                            hasError={hasError}
-                                            disabled={isWaiting}
-                                        />
-                                        {getResetPasswordLink()}
-                                        <SaveButton
-                                            extraClasses='login-body-card-form-button-submit large'
-                                            saving={isWaiting}
-                                            onClick={preSubmit}
-                                            defaultMessage={formatMessage({id: 'login.logIn', defaultMessage: 'Log in'})}
-                                            savingMessage={formatMessage({id: 'login.logingIn', defaultMessage: 'Logging in…'})}
-                                        />
-                                    </div>
-                                </form>
-                            )}
-                            {enableBaseLogin && enableExternalSignup && (
-                                <div className='login-body-card-form-divider'>
-                                    <span className='login-body-card-form-divider-label'>
-                                        {formatMessage({id: 'login.or', defaultMessage: 'or log in with'})}
-                                    </span>
-                                </div>
-                            )}
-                            {enableExternalSignup && (
-                                <div className={classNames('login-body-card-form-login-options', {column: !enableBaseLogin})}>
-                                    {getExternalLoginOptions().map((option) => (
-                                        <ExternalLoginButton
-                                            key={option.id}
-                                            direction={enableBaseLogin ? undefined : 'column'}
-                                            {...option}
-                                        />
-                                    ))}
-                                </div>
+                                    )}
+                                    {enableBaseLogin && (
+                                        <form
+                                            onSubmit={(event: FormEvent<HTMLFormElement>) => {
+                                                preSubmit(event as unknown as React.MouseEvent);
+                                            }}
+                                        >
+                                            <div className='login-body-card-form'>
+                                                <Input
+                                                    data-testid='login-id-input'
+                                                    ref={loginIdInput}
+                                                    name='loginId'
+                                                    containerClassName='login-body-card-form-input'
+                                                    type='text'
+                                                    inputSize={SIZE.LARGE}
+                                                    value={loginId}
+                                                    onChange={handleInputOnChange}
+                                                    hasError={hasError}
+                                                    placeholder={getInputPlaceholder()}
+                                                    disabled={isWaiting}
+                                                    autoFocus={true}
+                                                    aria-describedby={alertBanner ? 'login-body-card-banner' : undefined}
+                                                />
+                                                {(!enableEasyLogin || requiresPassword) && (
+                                                    <>
+                                                        <PasswordInput
+                                                            ref={passwordInput}
+                                                            className='login-body-card-form-password-input'
+                                                            value={password}
+                                                            inputSize={SIZE.LARGE}
+                                                            onChange={handlePasswordInputOnChange}
+                                                            hasError={hasError}
+                                                            disabled={isWaiting}
+                                                        />
+                                                        {getResetPasswordLink()}
+                                                    </>
+                                                )}
+                                                <SaveButton
+                                                    extraClasses='login-body-card-form-button-submit large'
+                                                    saving={isWaiting}
+                                                    onClick={preSubmit}
+                                                    defaultMessage={formatMessage({id: 'login.logIn', defaultMessage: 'Log in'})}
+                                                    savingMessage={formatMessage({id: 'login.logingIn', defaultMessage: 'Logging in…'})}
+                                                />
+                                            </div>
+                                        </form>
+                                    )}
+                                    {enableBaseLogin && enableExternalSignup && (
+                                        <div className='login-body-card-form-divider'>
+                                            <span className='login-body-card-form-divider-label'>
+                                                {formatMessage({id: 'login.or', defaultMessage: 'or log in with'})}
+                                            </span>
+                                        </div>
+                                    )}
+                                    {enableExternalSignup && (
+                                        <div className={classNames('login-body-card-form-login-options', {column: !enableBaseLogin})}>
+                                            {getExternalLoginOptions().map((option) => (
+                                                <ExternalLoginButton
+                                                    key={option.id}
+                                                    direction={enableBaseLogin ? undefined : 'column'}
+                                                    {...option}
+                                                />
+                                            ))}
+                                        </div>
+                                    )}
+                                </>
                             )}
                         </div>
                     </div>
