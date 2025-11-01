@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 //go:build !race
-// +build !race
 
 package api4
 

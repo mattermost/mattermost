@@ -3831,11 +3831,11 @@ func TestResetPassword(t *testing.T) {
 	resp, err = th.Client.ResetPassword(context.Background(), "junk", "newpwd")
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
-	code := ""
+	var code strings.Builder
 	for range model.TokenSize {
-		code += "a"
+		code.WriteString("a")
 	}
-	resp, err = th.Client.ResetPassword(context.Background(), code, "newpwd")
+	resp, err = th.Client.ResetPassword(context.Background(), code.String(), "newpwd")
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 	_, err = th.Client.ResetPassword(context.Background(), recoveryToken.Token, "newpwd")

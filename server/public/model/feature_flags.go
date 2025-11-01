@@ -130,7 +130,7 @@ func (f *FeatureFlags) SetDefaults() {
 // Supports boolean and string feature flags.
 func (f *FeatureFlags) ToMap() map[string]string {
 	refStructVal := reflect.ValueOf(*f)
-	refStructType := reflect.TypeOf(*f)
+	refStructType := reflect.TypeFor[FeatureFlags]()
 	ret := make(map[string]string)
 	for i := 0; i < refStructVal.NumField(); i++ {
 		refFieldVal := refStructVal.Field(i)

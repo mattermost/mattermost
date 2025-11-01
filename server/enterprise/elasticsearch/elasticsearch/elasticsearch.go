@@ -1350,7 +1350,8 @@ func (es *ElasticsearchInterfaceImpl) PurgeIndexes(rctx request.CTX) *model.AppE
 	}
 
 	indexPrefix := *es.Platform.Config().ElasticsearchSettings.IndexPrefix
-	indexesToDelete := indexPrefix + "*"
+	var indexesToDelete strings.Builder
+	indexesToDelete.WriteString(indexPrefix + "*")
 
 	if ignorePurgeIndexes := *es.Platform.Config().ElasticsearchSettings.IgnoredPurgeIndexes; ignorePurgeIndexes != "" {
 		// we are checking if provided indexes exist. If an index doesn't exist,
@@ -1365,14 +1366,14 @@ func (es *ElasticsearchInterfaceImpl) PurgeIndexes(rctx request.CTX) *model.AppE
 				rctx.Logger().Warn("Elasticsearch index get error", mlog.String("index", ignorePurgeIndex), mlog.Err(err))
 				continue
 			}
-			indexesToDelete += ",-" + strings.TrimSpace(ignorePurgeIndex)
+			indexesToDelete.WriteString(",-" + strings.TrimSpace(ignorePurgeIndex))
 		}
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*es.Platform.Config().ElasticsearchSettings.RequestTimeoutSeconds)*time.Second)
 	defer cancel()
 
-	_, err := es.client.Indices.Delete(indexesToDelete).Do(ctx)
+	_, err := es.client.Indices.Delete(indexesToDelete.String()).Do(ctx)
 	if err != nil {
 		rctx.Logger().Error("Elastic Search PurgeIndexes Error", mlog.Err(err))
 		return model.NewAppError("Elasticsearch.PurgeIndexes", "ent.elasticsearch.purge_index.delete_failed", nil, "", http.StatusInternalServerError).Wrap(err)

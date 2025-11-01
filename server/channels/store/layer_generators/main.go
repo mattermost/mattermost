@@ -149,8 +149,7 @@ func extractStoreMetadata() (*storeMetadata, error) {
 						metadata.Methods[methodName] = extractMethodMetadata(method, src)
 					}
 				}
-			} else if strings.HasSuffix(x.Name.Name, "Store") {
-				subStoreName := strings.TrimSuffix(x.Name.Name, "Store")
+			} else if subStoreName, ok := strings.CutSuffix(x.Name.Name, "Store"); ok {
 				metadata.SubStores[subStoreName] = subStore{Methods: map[string]methodData{}}
 				for _, method := range x.Type.(*ast.InterfaceType).Methods.List {
 					methodName := method.Names[0].Name

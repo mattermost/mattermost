@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 //go:build linux || darwin || freebsd
-// +build linux darwin freebsd
 
 package commands
 

@@ -46,11 +46,11 @@ type channelRolesPermissions struct {
 
 func NewRoleFromModel(role *model.Role) *Role {
 	permissionsMap := make(map[string]bool)
-	permissions := ""
+	var permissions strings.Builder
 
 	for _, permission := range role.Permissions {
 		if !permissionsMap[permission] {
-			permissions += fmt.Sprintf(" %v", permission)
+			permissions.WriteString(fmt.Sprintf(" %v", permission))
 			permissionsMap[permission] = true
 		}
 	}
@@ -63,7 +63,7 @@ func NewRoleFromModel(role *model.Role) *Role {
 		CreateAt:      role.CreateAt,
 		UpdateAt:      role.UpdateAt,
 		DeleteAt:      role.DeleteAt,
-		Permissions:   permissions,
+		Permissions:   permissions.String(),
 		SchemeManaged: role.SchemeManaged,
 		BuiltIn:       role.BuiltIn,
 	}

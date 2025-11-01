@@ -52,7 +52,7 @@ func TestHumanizeJsonError(t *testing.T) {
 			[]byte("line 1\nline 2\nline 3"),
 			&json.UnmarshalTypeError{
 				Value:  "bool",
-				Type:   reflect.TypeOf(testType{}),
+				Type:   reflect.TypeFor[testType](),
 				Offset: 17,
 				Struct: "struct",
 				Field:  "field",

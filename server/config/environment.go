@@ -73,7 +73,7 @@ func applyEnvKey(key, value string, rValueSubject reflect.Value) {
 			rFieldValue.Set(reflect.ValueOf(intVal))
 		}
 	case reflect.Slice:
-		if rFieldValue.Type() == reflect.TypeOf(json.RawMessage{}) {
+		if rFieldValue.Type() == reflect.TypeFor[json.RawMessage]() {
 			rFieldValue.Set(reflect.ValueOf([]byte(value)))
 			break
 		}
@@ -100,7 +100,7 @@ func applyEnvironmentMap(inputConfig *model.Config, env map[string]string) *mode
 // generateEnvironmentMap creates a map[string]any containing true at the leaves mirroring the
 // configuration structure so the client can know which env variables are overridden
 func generateEnvironmentMap(env map[string]string, filter func(reflect.StructField) bool) map[string]any {
-	rType := reflect.TypeOf(model.Config{})
+	rType := reflect.TypeFor[model.Config]()
 	return generateEnvironmentMapWithBaseKey(env, rType, "MM", filter)
 }
 
