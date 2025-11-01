@@ -57,7 +57,7 @@ const AddMembersButton: React.FC<AddMembersButtonProps> = ({totalUsers, usersLim
     );
 };
 
-const LessThanMaxFreeUsers = ({pluginButtons}: { pluginButtons: React.ReactNode }) => {
+const LessThanMaxFreeUsers = ({pluginButtons}: {pluginButtons: React.ReactNode}) => {
     const {formatMessage} = useIntl();
 
     return (
@@ -86,7 +86,7 @@ const LessThanMaxFreeUsers = ({pluginButtons}: { pluginButtons: React.ReactNode 
     );
 };
 
-const MoreThanMaxFreeUsers = ({channel, pluginButtons}: { channel: Channel; pluginButtons: React.ReactNode }) => {
+const MoreThanMaxFreeUsers = ({channel, pluginButtons}: {channel: Channel; pluginButtons: React.ReactNode}) => {
     const {formatMessage} = useIntl();
 
     const modalId = channel.group_constrained ? ModalIdentifiers.ADD_GROUPS_TO_CHANNEL : ModalIdentifiers.CHANNEL_INVITE;
