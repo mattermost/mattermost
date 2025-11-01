@@ -80,6 +80,18 @@ export default class FilePreview extends React.PureComponent<Props> {
                         }}
                     />
                 );
+            } else if (type === FileTypes.TEXT) {
+                previewImage = (
+                    <iframe
+                        src={getFileUrl(info.id)}
+                        className='post-image normal txt-preview'
+                        title='Text file Preview'
+                        style={{
+                            width: '100%',
+                            backgroundColor: '#f9f9f9',
+                        }}
+                    />
+                );
             } else {
                 className += ' custom-file';
                 previewImage = <div className={'file-icon ' + Utils.getIconClassName(type)}/>;

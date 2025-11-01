@@ -71,6 +71,9 @@ export function getFileTypeFromMime(mimetype: string) {
         return 'audio';
     } else if (mimeTypePrefix === 'image') {
         return 'image';
+    } else if (mimeTypePrefix === 'text' && mimeTypeSuffix === 'plain') {
+        // added this branch for text/plain mimetype since it is not covered below under 'other' category
+        return 'text';
     }
 
     if (mimeTypeSuffix) {
