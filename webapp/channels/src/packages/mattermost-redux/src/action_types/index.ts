@@ -4,6 +4,7 @@
 import type {AnyAction} from 'redux';
 
 import AdminTypes from './admin';
+import AITypes from './ai';
 import AppsTypes from './apps';
 import BotTypes from './bots';
 import ChannelBookmarkTypes from './channel_bookmarks';
@@ -25,6 +26,7 @@ import PlaybookType from './playbooks';
 import PluginTypes from './plugins';
 import PostTypes from './posts';
 import PreferenceTypes from './preferences';
+import RecapTypes from './recaps';
 import RoleTypes from './roles';
 import SchemeTypes from './schemes';
 import ScheduledPostTypes from './scheudled_posts';
@@ -43,6 +45,8 @@ export {
     PostTypes,
     FileTypes,
     PreferenceTypes,
+    RecapTypes,
+    AITypes,
     IntegrationTypes,
     EmojiTypes,
     AdminTypes,

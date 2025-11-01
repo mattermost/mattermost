@@ -46,7 +46,7 @@ const PreviewModalController: React.FC<Props> = ({show, onClose, contentData}) =
         return null;
     }
 
-    // Custom footer content with pagination and navigation buttons
+    // Custom footer content with pagination and navigation buttons.
     const footerContent = (
         <div className='preview-modal-controller__footer'>
             <div className='preview-modal-controller__pagination'>

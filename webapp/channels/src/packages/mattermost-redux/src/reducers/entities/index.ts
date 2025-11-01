@@ -4,6 +4,7 @@
 import {combineReducers} from 'redux';
 
 import admin from './admin';
+import ai from './ai';
 import apps from './apps';
 import bots from './bots';
 import channelBookmarks from './channel_bookmarks';
@@ -21,6 +22,7 @@ import jobs from './jobs';
 import limits from './limits';
 import posts from './posts';
 import preferences from './preferences';
+import recaps from './recaps';
 import roles from './roles';
 import scheduledPosts from './scheduled_posts';
 import schemes from './schemes';
@@ -41,6 +43,8 @@ export default combineReducers({
     posts,
     files,
     preferences,
+    recaps,
+    ai,
     typing,
     integrations,
     emojis,

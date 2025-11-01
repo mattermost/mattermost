@@ -99,6 +99,13 @@ const state: GlobalState = {
             counts: {},
             countsIncludingDirect: {},
         },
+        recaps: {
+            byId: {},
+            allIds: [],
+        },
+        ai: {
+            agents: [],
+        },
         preferences: {
             myPreferences: {},
             userPreferences: {},
