@@ -617,23 +617,23 @@ function PostComponent(props: Props) {
                         aria-hidden='true'
                     >
                         {(Boolean(isSearchResultItem) || props.isFlaggedPosts) &&
-                            <span className='search-channel__name'>
-                                {channelDisplayName}
-                            </span>
+                        <span className='search-channel__name'>
+                            {channelDisplayName}
+                        </span>
                         }
                         {props.channelIsArchived &&
-                            <span className='search-channel__archived'>
-                                <ArchiveIcon className='icon icon__archive channel-header-archived-icon svg-text-color'/>
-                                <FormattedMessage
-                                    id='search_item.channelArchived'
-                                    defaultMessage='Archived'
-                                />
-                            </span>
+                        <span className='search-channel__archived'>
+                            <ArchiveIcon className='icon icon__archive channel-header-archived-icon svg-text-color'/>
+                            <FormattedMessage
+                                id='search_item.channelArchived'
+                                defaultMessage='Archived'
+                            />
+                        </span>
                         }
                         {(Boolean(isSearchResultItem) || props.isFlaggedPosts) && Boolean(props.teamDisplayName) &&
-                            <span className='search-team__name'>
-                                {props.teamDisplayName}
-                            </span>
+                        <span className='search-team__name'>
+                            {props.teamDisplayName}
+                        </span>
                         }
                     </div>
                 }
@@ -701,16 +701,16 @@ function PostComponent(props: Props) {
                                 {failedActionsHeader}
                             </div>
                             {!props.isPostBeingEdited &&
-                                <PostOptions
-                                    {...props}
-                                    teamId={teamId}
-                                    handleDropdownOpened={handleDropdownOpened}
-                                    handleCommentClick={handleCommentClick}
-                                    hover={hover || a11yActive}
-                                    removePost={props.actions.removePost}
-                                    handleJumpClick={handleJumpClick}
-                                    isPostHeaderVisible={getPostHeaderVisible()}
-                                />
+                            <PostOptions
+                                {...props}
+                                teamId={teamId}
+                                handleDropdownOpened={handleDropdownOpened}
+                                handleCommentClick={handleCommentClick}
+                                hover={hover || a11yActive}
+                                removePost={props.actions.removePost}
+                                handleJumpClick={handleJumpClick}
+                                isPostHeaderVisible={getPostHeaderVisible()}
+                            />
                             }
                         </div>
                         {comment}
