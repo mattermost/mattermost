@@ -2234,7 +2234,6 @@
 
     &.top .post {
         padding-top: 16px; // this is based off of 8px padding for post + 1em
-
         &.same--root.same--user {
             padding-top: 1em;
         }
@@ -2396,7 +2395,6 @@
     background-color: rgb(var(--pinned-highlight-bg-mixed-rgb));
 
     .post-collapse {
-
         .post-collapse__show-more,
         .post-attachment-collapse__show-more {
             pointer-events: auto;
@@ -2409,7 +2407,6 @@
 }
 
 .post.current--user {
-
     &.other--root,
     &.post--root {
         .post__header-set-custom-status {
