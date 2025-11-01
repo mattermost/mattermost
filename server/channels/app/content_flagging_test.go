@@ -246,46 +246,6 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
 	})
 
-	t.Run("should fail when trying to assign reviewer to retained post", func(t *testing.T) {
-		require.Nil(t, setBaseConfig(th))
-
-		post, appErr := setupFlaggedPost(th)
-		require.Nil(t, appErr)
-
-		// First retain the post
-		actionRequest := &model.FlagContentActionRequest{
-			Comment: "Keeping this post",
-		}
-		appErr = th.App.KeepFlaggedPost(th.Context, actionRequest, th.BasicUser.Id, post)
-		require.Nil(t, appErr)
-
-		// Try to assign reviewer to retained post
-		appErr = th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicChannel.TeamId, th.BasicUser2.Id, th.SystemAdminUser.Id)
-		require.NotNil(t, appErr)
-		require.Equal(t, "api.content_flagging.error.post_not_in_progress", appErr.Id)
-		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
-	})
-
-	t.Run("should fail when trying to assign reviewer to removed post", func(t *testing.T) {
-		require.Nil(t, setBaseConfig(th))
-
-		post, appErr := setupFlaggedPost(th)
-		require.Nil(t, appErr)
-
-		// First remove the post
-		actionRequest := &model.FlagContentActionRequest{
-			Comment: "Removing this post",
-		}
-		appErr = th.App.PermanentDeleteFlaggedPost(th.Context, actionRequest, th.BasicUser.Id, post)
-		require.Nil(t, appErr)
-
-		// Try to assign reviewer to removed post
-		appErr = th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicChannel.TeamId, th.BasicUser2.Id, th.SystemAdminUser.Id)
-		require.NotNil(t, appErr)
-		require.Equal(t, "api.content_flagging.error.post_not_in_progress", appErr.Id)
-		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
-	})
-
 	t.Run("should handle assignment with same reviewer ID", func(t *testing.T) {
 		require.Nil(t, setBaseConfig(th))
 
@@ -358,6 +318,55 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 		appErr := th.App.AssignFlaggedPostReviewer(th.Context, "invalid_post_id", th.BasicChannel.TeamId, th.BasicUser.Id, th.SystemAdminUser.Id)
 		require.NotNil(t, appErr)
 		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+	})
+
+	t.Run("should allow assigning reviewer at all stages", func(t *testing.T) {
+		require.Nil(t, setBaseConfig(th))
+
+		post, appErr := setupFlaggedPost(th)
+		require.Nil(t, appErr)
+
+		groupId, appErr := th.App.ContentFlaggingGroupId()
+		require.Nil(t, appErr)
+
+		statusValue, appErr := th.App.GetPostContentFlaggingStatusValue(post.Id)
+		require.Nil(t, appErr)
+
+		// Set the status to Assigned
+		statusValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusAssigned))
+		_, err := th.App.Srv().propertyService.UpdatePropertyValue(groupId, statusValue)
+		require.NoError(t, err)
+
+		appErr = th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicChannel.TeamId, th.BasicUser.Id, th.SystemAdminUser.Id)
+		require.Nil(t, appErr)
+
+		statusValue, appErr = th.App.GetPostContentFlaggingStatusValue(post.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, `"`+model.ContentFlaggingStatusAssigned+`"`, string(statusValue.Value))
+
+		// Set the status to Removed
+		statusValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRemoved))
+		_, err = th.App.Srv().propertyService.UpdatePropertyValue(groupId, statusValue)
+		require.NoError(t, err)
+
+		appErr = th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicChannel.TeamId, th.BasicUser.Id, th.SystemAdminUser.Id)
+		require.Nil(t, appErr)
+
+		statusValue, appErr = th.App.GetPostContentFlaggingStatusValue(post.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, `"`+model.ContentFlaggingStatusRemoved+`"`, string(statusValue.Value))
+
+		// Set the status to Retained
+		statusValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRetained))
+		_, err = th.App.Srv().propertyService.UpdatePropertyValue(groupId, statusValue)
+		require.NoError(t, err)
+
+		appErr = th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicChannel.TeamId, th.BasicUser.Id, th.SystemAdminUser.Id)
+		require.Nil(t, appErr)
+
+		statusValue, appErr = th.App.GetPostContentFlaggingStatusValue(post.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, `"`+model.ContentFlaggingStatusRetained+`"`, string(statusValue.Value))
 	})
 }
 
