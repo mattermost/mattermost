@@ -2,14 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
-import type { SVGAttributes } from 'react';
+import type {SVGAttributes} from 'react';
 
 type Props = SVGAttributes<SVGElement> & {
     className?: string;
 };
 
-const ClockSendIcon = ({ className, ...props }: Props) => (
+const ClockSendIcon = ({className, ...props}: Props) => (
     <svg
         width='18px'
         height='18px'
@@ -25,8 +24,8 @@ const ClockSendIcon = ({ className, ...props }: Props) => (
             strokeLinecap='round'
             strokeLinejoin='round'
         >
-            <path d='M3 12a9 9 0 1 0 18 0a9 9 0 0 0-18 0' />
-            <path d='M12 7v5l3 3' />
+            <path d='M3 12a9 9 0 1 0 18 0a9 9 0 0 0-18 0'/>
+            <path d='M12 7v5l3 3'/>
         </g>
     </svg>
 );

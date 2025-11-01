@@ -2,12 +2,13 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, { memo, useCallback } from 'react';
-import { FormattedMessage } from 'react-intl';
+import React, {memo, useCallback} from 'react';
+import {FormattedMessage} from 'react-intl';
 
-import type { FileInfo } from '@mattermost/types/files';
-import type { Post } from '@mattermost/types/posts';
-import type { ExtendedPost } from 'mattermost-redux/actions/posts';
+import type {FileInfo} from '@mattermost/types/files';
+import type {Post} from '@mattermost/types/posts';
+
+import type {ExtendedPost} from 'mattermost-redux/actions/posts';
 
 type Props = {
     post: Post;
@@ -24,7 +25,7 @@ const FailedPostOptions = ({
     actions,
 }: Props) => {
     const retryPost = useCallback((): void => {
-        const postDetails = { ...post };
+        const postDetails = {...post};
         Reflect.deleteProperty(postDetails, 'id');
         actions.createPost(postDetails, []);
     }, [actions, post]);
