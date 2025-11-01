@@ -20,7 +20,7 @@ func (a *App) getRecapAndCheckOwnership(recapID, userID, callerName string) (*mo
 
 	// Only owner can access
 	if recap.UserId != userID {
-		return nil, model.NewAppError(callerName, "app.recap."+strings.ToLower(callerName)+".permission_denied", nil, "", http.StatusForbidden)
+		return nil, model.NewAppError(callerName, "app.recap.get.permission_denied", nil, "", http.StatusForbidden)
 	}
 
 	return recap, nil
