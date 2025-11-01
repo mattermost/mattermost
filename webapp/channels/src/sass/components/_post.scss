@@ -602,8 +602,8 @@
     .post__status {
         display: inline-flex;
         align-items: center;
-        gap: 2px;
         margin-left: 4px;
+        gap: 2px;
         font-size: 12px;
         white-space: nowrap;
 
@@ -620,10 +620,10 @@
         }
 
         &--body {
-            justify-content: flex-end;
-            margin-left: 0;
             flex-shrink: 0;
             align-self: flex-start;
+            justify-content: flex-end;
+            margin-left: 0;
         }
 
         .post__status-icon {
@@ -654,8 +654,8 @@
     }
 
     .post__header-actions .pending-post-actions--header {
-        margin-left: auto;
         display: inline-flex;
+        margin-left: auto;
         gap: 6px;
     }
 
@@ -670,16 +670,16 @@
         align-items: center;
         justify-content: center;
         padding: 4px 10px;
-        border-radius: 4px;
         border: 0;
+        border-radius: 4px;
         background: transparent;
         font-size: 12px;
         font-weight: 600;
     }
 
     .post__header-actions .pending-post-actions__button--delete {
-        color: var(--error-text);
         background-color: rgba(var(--error-text-color-rgb), 0.12);
+        color: var(--error-text);
     }
 
     .post__header-actions .pending-post-actions__button--delete:hover {
@@ -687,8 +687,8 @@
     }
 
     .post__header-actions .pending-post-actions__button--retry {
-        color: var(--button-bg);
         background-color: rgba(var(--button-bg-rgb), 0.12);
+        color: var(--button-bg);
     }
 
     .post__header-actions .pending-post-actions__button--retry:hover {
@@ -697,29 +697,29 @@
 
     .post__message-top {
         display: flex;
+        flex-wrap: nowrap;
         align-items: center;
         gap: 12px;
-        flex-wrap: nowrap;
     }
 
     .post__message-top-content {
         display: flex;
+        min-width: 0;
+        flex: 1 1 auto;
         align-items: center;
         gap: 6px;
-        flex: 1 1 auto;
-        min-width: 0;
     }
 
     .post__message-top-text {
-        flex: 1 1 auto;
         display: flex;
+        flex: 1 1 auto;
         align-items: center;
     }
 
     .post__message-top-content .post__status--body {
+        align-self: center;
         margin-left: auto;
         white-space: nowrap;
-        align-self: center;
     }
 
     .post__message-top>.pending-post-actions--inline {
@@ -1576,15 +1576,15 @@
 
         .pending-post-actions {
             display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 12px;
-            white-space: nowrap;
             flex-shrink: 0;
+            align-items: center;
+            font-size: 12px;
+            gap: 4px;
+            white-space: nowrap;
 
             &--header {
-                margin-left: auto;
                 justify-content: flex-end;
+                margin-left: auto;
                 gap: 6px;
             }
 
@@ -1595,8 +1595,8 @@
             &__status {
                 display: inline-flex;
                 align-items: center;
-                gap: 4px;
                 font-size: 12px;
+                gap: 4px;
             }
 
             &__buttons {
@@ -1612,10 +1612,10 @@
                 padding: 4px 10px;
                 border: 0;
                 border-radius: 4px;
+                background: transparent;
+                cursor: pointer;
                 font-size: 12px;
                 font-weight: 600;
-                cursor: pointer;
-                background: transparent;
 
                 &:focus-visible {
                     outline: 2px solid currentColor;
@@ -1623,8 +1623,8 @@
                 }
 
                 &--retry {
-                    color: var(--button-bg);
                     background-color: rgba(var(--button-bg-rgb), 0.12);
+                    color: var(--button-bg);
 
                     &:hover {
                         background-color: rgba(var(--button-bg-rgb), 0.2);
@@ -1632,8 +1632,8 @@
                 }
 
                 &--delete {
-                    color: var(--error-text);
                     background-color: rgba(var(--error-text-color-rgb), 0.12);
+                    color: var(--error-text);
 
                     &:hover {
                         background-color: rgba(var(--error-text-color-rgb), 0.2);
