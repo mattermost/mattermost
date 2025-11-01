@@ -146,7 +146,6 @@ function PostComponent(props: Props) {
     const isFailed = Boolean(post.failed);
     const isPending = !isFailed && post.id === post.pending_post_id;
 
-    // webapp/channels/src/components/post/post_component.tsx:150
     useEffect(() => {
         if (pendingIndicatorTimeoutRef.current) {
             clearTimeout(pendingIndicatorTimeoutRef.current);
@@ -366,8 +365,8 @@ function PostComponent(props: Props) {
         props.actions.selectPostCard(post);
     };
 
-    // When adding clickable targets within a root post to exclude from the post click handler,
-    // remember to update the selector below.
+    // When adding clickable targets within a root post to exclude from post's on click to open thread,
+    // please add to/maintain the selector below
     const isEligibleForClick = useMemo(() => makeIsEligibleForClick('.post-image__column, .embed-responsive-item, .attachment, .hljs, code'), []);
 
     const handlePostClick = useCallback((e: MouseEvent<HTMLDivElement>) => {
