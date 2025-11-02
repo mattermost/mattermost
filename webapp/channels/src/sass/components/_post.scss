@@ -1559,14 +1559,11 @@
             }
         }
 
-        ul + p,
-        ol + p {
+        p + ul,
+        p + ol  {
             margin-top: 0.6em;
         }
 
-        post__message-top-content p + ol {
-            margin-top: 0.6em;
-        }
 
         .pending-post-actions {
             display: inline-flex;
