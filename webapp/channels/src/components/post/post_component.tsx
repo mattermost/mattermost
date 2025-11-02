@@ -446,25 +446,18 @@ function PostComponent(props: Props) {
     const pendingStatusInHeader = shouldShowPendingStatus && !props.isConsecutivePost ? renderPendingStatus() : null;
     const pendingStatusInBody = shouldShowPendingStatus && props.isConsecutivePost ? renderPendingStatus('post__status--body') : null;
 
-    const failedLabelHeader = isFailed && !props.isConsecutivePost ? (
-        <span className='post__status post__status--failed post__status--message'>
+    const renderFailedStatus = useCallback((extraClass: string) => (
+        <span className={classNames('post__status', 'post__status--failed', extraClass)}>
             <AlertIcon className='post__status-icon post__status-icon--failed'/>
             <FormattedMessage
                 id='post.status.failed'
                 defaultMessage='Message failed'
             />
         </span>
-    ) : null;
+    ), []);
 
-    const failedLabelInline = isFailed && props.isConsecutivePost ? (
-        <span className='post__status post__status--failed post__status--body'>
-            <AlertIcon className='post__status-icon post__status-icon--failed'/>
-            <FormattedMessage
-                id='post.status.failed'
-                defaultMessage='Message failed'
-            />
-        </span>
-    ) : null;
+    const failedLabelHeader = isFailed && !props.isConsecutivePost ? renderFailedStatus('post__status--message') : null;
+    const failedLabelInline = isFailed && props.isConsecutivePost ? renderFailedStatus('post__status--body') : null;
 
     const failedActionsInline = isFailed && props.isConsecutivePost ? (
         <FailedPostOptions
