@@ -97,7 +97,6 @@ import type {
     SubmitDialogResponse,
 } from '@mattermost/types/integrations';
 import type {Job, JobType, JobTypeBase} from '@mattermost/types/jobs';
-import type {Job, JobType, JobTypeBase} from '@mattermost/types/jobs';
 import type {ServerLimits} from '@mattermost/types/limits';
 import type {
     MarketplaceApp,
@@ -115,13 +114,9 @@ import type {PreferenceType} from '@mattermost/types/preferences';
 import type {ProductNotices} from '@mattermost/types/product_notices';
 import type {
     NameMappedPropertyFields,
-    
-    NameMappedPropertyFields,
     UserPropertyField,
    
     UserPropertyFieldPatch,
-    PropertyValue,
-,
     PropertyValue,
 } from '@mattermost/types/properties';
 import type {Reaction} from '@mattermost/types/reactions';
@@ -182,6 +177,8 @@ const AUTOCOMPLETE_LIMIT_DEFAULT = 25;
 const PER_PAGE_DEFAULT = 60;
 export const DEFAULT_LIMIT_BEFORE = 30;
 export const DEFAULT_LIMIT_AFTER = 30;
+
+const FORCE_POST_FAILURE_TOKEN = '[FORCE_POST_FAILURE]';
 
 export default class Client4 {
     logToConsole = false;
@@ -2216,6 +2213,13 @@ export default class Client4 {
     // Post Routes
 
     createPost = async (post: PartialExcept<Post, 'channel_id' | 'message'>) => {
+        if (process.env.NODE_ENV !== 'production' && post.message?.includes(FORCE_POST_FAILURE_TOKEN)) {
+            throw new ClientError(this.getPostsRoute(), {
+                message: 'Forced failure for testing',
+                server_error_id: 'app.client_forced_failure',
+                status_code: 500,
+            });
+        }
         const result = await this.doFetch<Post>(
             `${this.getPostsRoute()}`,
             {method: 'post', body: JSON.stringify(post)},
