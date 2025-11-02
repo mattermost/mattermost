@@ -181,19 +181,33 @@ export default function TeamReviewers({teamReviewersSetting, onChange, disabled}
         setPage(0); // Reset to first page on new search
     }, []);
 
+    const handleDisableForAllTeams = useCallback(() => {
+        const updatedTeamSettings: Record<string, TeamReviewerSetting> = {};
+
+        Object.entries(teamReviewersSetting).forEach(([teamId, teamSettings]) => {
+            updatedTeamSettings[teamId] = {
+                ...teamSettings,
+                Enabled: false,
+            };
+        });
+
+        onChange(updatedTeamSettings);
+    }, [onChange, teamReviewersSetting]);
+
     const disableAllBtn = useMemo(() => (
         <div className='TeamReviewers__disable-all'>
             <button
-                data-testid='copyText'
+                data-testid='disableForAllTeamsButton'
                 className='btn btn-link icon-close'
                 aria-label={intl.formatMessage({id: 'admin.contentFlagging.reviewerSettings.disableAll', defaultMessage: 'Disable for all teams'})}
                 disabled={disabled}
                 aria-disabled={disabled}
+                onClick={handleDisableForAllTeams}
             >
                 {intl.formatMessage({id: 'admin.contentFlagging.reviewerSettings.disableAll', defaultMessage: 'Disable for all teams'})}
             </button>
         </div>
-    ), [disabled, intl]);
+    ), [disabled, intl, handleDisableForAllTeams]);
 
     return (
         <div className='TeamReviewers'>
