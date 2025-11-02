@@ -115,7 +115,6 @@ import type {ProductNotices} from '@mattermost/types/product_notices';
 import type {
     NameMappedPropertyFields,
     UserPropertyField,
-   
     UserPropertyFieldPatch,
     PropertyValue,
 } from '@mattermost/types/properties';
@@ -177,8 +176,6 @@ const AUTOCOMPLETE_LIMIT_DEFAULT = 25;
 const PER_PAGE_DEFAULT = 60;
 export const DEFAULT_LIMIT_BEFORE = 30;
 export const DEFAULT_LIMIT_AFTER = 30;
-
-const FORCE_POST_FAILURE_TOKEN = '[FORCE_POST_FAILURE]';
 
 export default class Client4 {
     logToConsole = false;
@@ -2213,13 +2210,6 @@ export default class Client4 {
     // Post Routes
 
     createPost = async (post: PartialExcept<Post, 'channel_id' | 'message'>) => {
-        if (process.env.NODE_ENV !== 'production' && post.message?.includes(FORCE_POST_FAILURE_TOKEN)) {
-            throw new ClientError(this.getPostsRoute(), {
-                message: 'Forced failure for testing',
-                server_error_id: 'app.client_forced_failure',
-                status_code: 500,
-            });
-        }
         const result = await this.doFetch<Post>(
             `${this.getPostsRoute()}`,
             {method: 'post', body: JSON.stringify(post)},
@@ -4717,6 +4707,34 @@ export default class Client4 {
     getFlaggedPost = (postId: string) => {
         return this.doFetch<Post>(
             `${this.getContentFlaggingRoute()}/post/${postId}`,
+            {method: 'get'},
+        );
+    };
+
+    searchContentFlaggingReviewers = (term: string, teamId: string) => {
+        return this.doFetch<UserProfile[]>(
+            `${this.getContentFlaggingRoute()}/team/${teamId}/reviewers/search${buildQueryString({term})}`,
+            {method: 'get'},
+        );
+    };
+
+    setContentFlaggingReviewer = (postId: string, reviewerId: string) => {
+        return this.doFetch(
+            `${this.getContentFlaggingRoute()}/post/${postId}/assign/${reviewerId}`,
+            {method: 'post'},
+        );
+    };
+
+    saveContentFlaggingConfig = (config: ContentFlaggingSettings) => {
+        return this.doFetch(
+            `${this.getContentFlaggingRoute()}/config`,
+            {method: 'put', body: JSON.stringify(config)},
+        );
+    };
+
+    getAdminContentFlaggingConfig = () => {
+        return this.doFetch<ContentFlaggingSettings>(
+            `${this.getContentFlaggingRoute()}/config`,
             {method: 'get'},
         );
     };
