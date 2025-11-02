@@ -18,6 +18,7 @@ import TeamFilterDropdown from 'components/admin_console/filter/team_filter_drop
 import ArchiveIcon from 'components/widgets/icons/archive_icon';
 import GlobeIcon from 'components/widgets/icons/globe_icon';
 import LockIcon from 'components/widgets/icons/lock_icon';
+import WithTooltip from 'components/with_tooltip';
 
 import {isArchivedChannel} from 'utils/channel_utils';
 import {Constants} from 'utils/constants';
@@ -340,6 +341,7 @@ class ChannelList extends React.PureComponent<Props, State> {
                 ),
                 field: 'name',
                 fixed: true,
+                width: 7,
             },
             {
                 name: (
@@ -350,6 +352,7 @@ class ChannelList extends React.PureComponent<Props, State> {
                 ),
                 field: 'team',
                 fixed: true,
+                width: 7,
             },
             {
                 name: (
@@ -378,17 +381,31 @@ class ChannelList extends React.PureComponent<Props, State> {
                                 defaultMessage='Auto-add members'
                             />
                         </span>
+                        <WithTooltip
+                            title={this.props.intl.formatMessage({
+                                id: 'admin.access_control.policy.channel_list.autoAddTooltip.line1',
+                                defaultMessage: 'Toggle to auto-add members who meet all access requirements',
+                            })}
+                            hint={this.props.intl.formatMessage({
+                                id: 'admin.access_control.policy.channel_list.autoAddTooltip.line2',
+                                defaultMessage: 'Channel administrators can modify this setting',
+                            })}
+                        >
+                            <i className='icon icon-information-outline ChannelList__autoAddInfoIcon'/>
+                        </WithTooltip>
                     </div>
                 ),
                 field: 'autoAdd',
                 textAlign: 'center',
                 fixed: true,
+                width: 8,
             },
             {
                 name: '',
                 field: 'remove',
                 textAlign: 'right',
                 fixed: true,
+                width: 3,
             },
         ];
     };

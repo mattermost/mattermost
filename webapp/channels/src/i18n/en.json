@@ -284,6 +284,8 @@
   "admin.access_control.policies.resources.none": "None",
   "admin.access_control.policies.title": "Access Control Policies",
   "admin.access_control.policy.channel_list.autoAddHeader": "Auto-add members",
+  "admin.access_control.policy.channel_list.autoAddTooltip.line1": "Toggle to auto-add members who meet all access requirements",
+  "admin.access_control.policy.channel_list.autoAddTooltip.line2": "Channel administrators can modify this setting",
   "admin.access_control.policy.channel_list.off": "Off",
   "admin.access_control.policy.channel_list.on": "On",
   "admin.access_control.policy.channels_affected": "Are you sure you want to save and apply the access control policy?",
