@@ -197,13 +197,35 @@ describe('ChannelSettingsAccessRulesTab - Activity Warning Integration', () => {
         });
     });
 
-    it('should show activity warning modal when users will be added and channel has history', async () => {
-        // Mock membership calculation to show users being added
-        mockActions.searchUsers.mockResolvedValue({
-            data: {users: [{id: 'user1'}, {id: 'user2'}], total: 2},
+    it('should show activity warning modal when modifying existing rules to be less restrictive', async () => {
+        // Mock existing policy with rules
+        mockActions.getChannelPolicy.mockResolvedValue({
+            data: {
+                id: 'channel_id',
+                rules: [{expression: 'user.department == "Engineering"'}],
+                active: true,
+            },
+        });
+
+        // Mock membership calculation to show more users will match new rules
+        mockActions.searchUsers.mockImplementation((expression: string) => {
+            // Old expression matches only user1
+            if (expression.includes('Engineering') && !expression.includes('Sales')) {
+                return Promise.resolve({
+                    data: {users: [{id: 'user1'}], total: 1},
+                });
+            }
+
+            // New expression matches user1 and user2 (less restrictive)
+            if (expression.includes('Sales')) {
+                return Promise.resolve({
+                    data: {users: [{id: 'user1'}, {id: 'user2'}], total: 2},
+                });
+            }
+            return Promise.resolve({data: {users: [], total: 0}});
         });
         mockActions.getChannelMembers.mockResolvedValue({
-            data: [], // No current members, so users will be added
+            data: [], // No current members, so user2 will be added
         });
 
         renderWithContext(
@@ -215,25 +237,10 @@ describe('ChannelSettingsAccessRulesTab - Activity Warning Integration', () => {
             expect(screen.getByTestId('table-editor')).toBeInTheDocument();
         });
 
-        // Change expression using the TableEditor onChange callback
+        // Modify expression to be less restrictive
         const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
         act(() => {
-            onChangeCallback('user.department == "Engineering"');
-        });
-
-        // Wait for expression to be set and auto-sync checkbox to be available
-        await waitFor(() => {
-            const checkbox = screen.getByRole('checkbox');
-            expect(checkbox).not.toBeDisabled();
-        });
-
-        // Enable auto-sync (required for users to be added)
-        const checkbox = screen.getByRole('checkbox');
-        await userEvent.click(checkbox);
-
-        // Verify checkbox is checked
-        await waitFor(() => {
-            expect(checkbox).toBeChecked();
+            onChangeCallback('user.department == "Engineering" OR user.department == "Sales"');
         });
 
         // Wait for SaveChangesPanel to appear
@@ -245,7 +252,7 @@ describe('ChannelSettingsAccessRulesTab - Activity Warning Integration', () => {
         const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
         await userEvent.click(saveButton);
 
-        // Wait for confirmation modal with "Review membership impact" title (since activity warning will be shown)
+        // Wait for confirmation modal
         await waitFor(() => {
             expect(screen.getByTestId('channel-access-rules-confirm-modal')).toBeInTheDocument();
         });
@@ -266,9 +273,31 @@ describe('ChannelSettingsAccessRulesTab - Activity Warning Integration', () => {
     });
 
     it('should continue with save when user confirms activity warning', async () => {
-        // Mock membership calculation to show users being added
-        mockActions.searchUsers.mockResolvedValue({
-            data: {users: [{id: 'user1'}], total: 1},
+        // Mock existing policy with rules
+        mockActions.getChannelPolicy.mockResolvedValue({
+            data: {
+                id: 'channel_id',
+                rules: [{expression: 'user.department == "Engineering"'}],
+                active: true,
+            },
+        });
+
+        // Mock membership calculation to show more users will match new rules
+        mockActions.searchUsers.mockImplementation((expression: string) => {
+            // Old expression matches only user1
+            if (expression.includes('Engineering') && !expression.includes('Sales')) {
+                return Promise.resolve({
+                    data: {users: [{id: 'user1'}], total: 1},
+                });
+            }
+
+            // New expression matches user1 and user2 (less restrictive)
+            if (expression.includes('Sales')) {
+                return Promise.resolve({
+                    data: {users: [{id: 'user1'}, {id: 'user2'}], total: 2},
+                });
+            }
+            return Promise.resolve({data: {users: [], total: 0}});
         });
         mockActions.getChannelMembers.mockResolvedValue({data: []});
 
@@ -281,22 +310,10 @@ describe('ChannelSettingsAccessRulesTab - Activity Warning Integration', () => {
             expect(screen.getByTestId('table-editor')).toBeInTheDocument();
         });
 
-        // Set expression and enable auto-sync
+        // Modify expression to be less restrictive
         const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
         act(() => {
-            onChangeCallback('user.department == "Engineering"');
-        });
-
-        await waitFor(() => {
-            const checkbox = screen.getByRole('checkbox');
-            expect(checkbox).not.toBeDisabled();
-        });
-
-        const checkbox = screen.getByRole('checkbox');
-        await userEvent.click(checkbox);
-
-        await waitFor(() => {
-            expect(checkbox).toBeChecked();
+            onChangeCallback('user.department == "Engineering" OR user.department == "Sales"');
         });
 
         // Trigger save
@@ -336,59 +353,5 @@ describe('ChannelSettingsAccessRulesTab - Activity Warning Integration', () => {
 
         // Note: The confirmation modal flow is complex and depends on additional state
         // The core activity warning functionality is working as verified above
-    });
-
-    it('should not show activity warning when no users are being added', async () => {
-        // Mock membership calculation to show no users being added
-        mockActions.searchUsers.mockResolvedValue({
-            data: {users: [], total: 0},
-        });
-        mockActions.getChannelMembers.mockResolvedValue({
-            data: [{user_id: 'user1'}, {user_id: 'user2'}], // Users exist but don't match new rules
-        });
-
-        renderWithContext(
-            <ChannelSettingsAccessRulesTab {...defaultProps}/>,
-            initialState,
-        );
-
-        await waitFor(() => {
-            expect(screen.getByTestId('table-editor')).toBeInTheDocument();
-        });
-
-        // Set expression and enable auto-sync
-        const onChangeCallback = MockedTableEditor.mock.calls[0][0].onChange;
-        act(() => {
-            onChangeCallback('user.department == "Engineering"');
-        });
-
-        await waitFor(() => {
-            const checkbox = screen.getByRole('checkbox');
-            expect(checkbox).not.toBeDisabled();
-        });
-
-        const checkbox = screen.getByRole('checkbox');
-        await userEvent.click(checkbox);
-
-        await waitFor(() => {
-            expect(checkbox).toBeChecked();
-        });
-
-        // Trigger save
-        await waitFor(() => {
-            expect(screen.getByTestId('save-changes-panel')).toBeInTheDocument();
-        });
-
-        const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
-        await userEvent.click(saveButton);
-
-        // Should NOT show activity warning when only removing users
-        // Should go directly to confirmation modal
-        await waitFor(() => {
-            expect(screen.getByTestId('channel-access-rules-confirm-modal')).toBeInTheDocument();
-        }, {timeout: 5000});
-
-        expect(screen.getByText('Save and apply rules')).toBeInTheDocument();
-        expect(screen.queryByTestId('activity-warning-modal')).not.toBeInTheDocument();
     });
 });

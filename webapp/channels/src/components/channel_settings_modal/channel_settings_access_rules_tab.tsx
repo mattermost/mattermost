@@ -27,6 +27,14 @@ import ChannelActivityWarningModal from './channel_activity_warning_modal';
 
 import './channel_settings_access_rules_tab.scss';
 
+// Constants
+const SAVE_RESULT_SAVED = 'saved' as const;
+const SAVE_RESULT_ERROR = 'error' as const;
+const SAVE_RESULT_CONFIRMATION_REQUIRED = 'confirmation_required' as const;
+const MAX_USERS_SEARCH_LIMIT = 1000;
+
+type SaveResult = typeof SAVE_RESULT_SAVED | typeof SAVE_RESULT_ERROR | typeof SAVE_RESULT_CONFIRMATION_REQUIRED;
+
 type ChannelSettingsAccessRulesTabProps = {
     channel: Channel;
     setAreThereUnsavedChanges?: (unsaved: boolean) => void;
@@ -298,6 +306,63 @@ function ChannelSettingsAccessRulesTab({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentUser?.id]);
 
+    // Check if rules are becoming less restrictive by comparing user matches
+    const isBecomingLessRestrictive = useCallback(async (oldExpression: string, newExpression: string): Promise<boolean> => {
+        try {
+            const hadRules = oldExpression.trim().length > 0;
+            const hasRules = newExpression.trim().length > 0;
+
+            // If there were no rules before, we can't be removing rules
+            if (!hadRules) {
+                return false;
+            }
+
+            // If removing all rules, definitely more permissive
+            if (!hasRules) {
+                return true;
+            }
+
+            // Compare the actual user matches between old and new expressions
+            const oldCombined = combineSystemAndChannelExpressions(oldExpression);
+            const newCombined = combineSystemAndChannelExpressions(newExpression);
+
+            // Search users matching old expression
+            const oldMatchResult = await actions.searchUsers(oldCombined, '', '', MAX_USERS_SEARCH_LIMIT);
+            const oldMatchingUserIds = oldMatchResult.data?.users.map((u) => u.id) || [];
+
+            // Search users matching new expression
+            const newMatchResult = await actions.searchUsers(newCombined, '', '', MAX_USERS_SEARCH_LIMIT);
+            const newMatchingUserIds = newMatchResult.data?.users.map((u) => u.id) || [];
+
+            // Check if there are users who match the new expression but not the old one
+            // If yes, the new rules are definitely less restrictive
+            const newlyMatchingUsers = newMatchingUserIds.filter((id) => !oldMatchingUserIds.includes(id));
+            if (newlyMatchingUsers.length > 0) {
+                return true;
+            }
+
+            // Check if there are users who match the old expression but not the new one
+            // If yes, the new rules are more restrictive
+            const removedUsers = oldMatchingUserIds.filter((id) => !newMatchingUserIds.includes(id));
+            if (removedUsers.length > 0) {
+                return false;
+            }
+
+            // If we reach here, the same users match both expressions
+            // This could mean:
+            // 1. The expressions are functionally equivalent, OR
+            // 2. There are no users in the system that would expose the difference
+            // To be safe, if the expressions are different, assume it could be less restrictive
+            return oldExpression.trim() !== newExpression.trim();
+        } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error('Failed to compare expression restrictiveness:', error);
+
+            // On error, be conservative and show warning
+            return true;
+        }
+    }, [actions, combineSystemAndChannelExpressions]);
+
     // Calculate membership changes
     const calculateMembershipChanges = useCallback(async (channelExpression: string): Promise<{toAdd: string[]; toRemove: string[]; potentialToAdd: string[]}> => {
         // Combine system and channel expressions (same logic as sync job)
@@ -308,7 +373,7 @@ function ChannelSettingsAccessRulesTab({
 
         try {
             // Get users who match the COMBINED expression (system + channel)
-            const matchResult = await actions.searchUsers(combinedExpression, '', '', 1000);
+            const matchResult = await actions.searchUsers(combinedExpression, '', '', MAX_USERS_SEARCH_LIMIT);
             const matchingUserIds = matchResult.data?.users.map((u) => u.id) || [];
 
             // Get current channel members
@@ -434,14 +499,28 @@ function ChannelSettingsAccessRulesTab({
         }
     }, [channel.id, channel.display_name, expression, autoSyncMembers, systemPolicies, actions, formatMessage, isEmptyRulesState]);
 
-    // Handle save action se queda
-    const handleSave = useCallback(async (): Promise<'saved' | 'error' | 'confirmation_required'> => {
+    // Handle save action
+    const handleSave = useCallback(async (): Promise<SaveResult> => {
         try {
-            // For empty rules state, auto-sync should be disabled - no validation needed
+            // Check if we're removing all rules (special case that requires warning)
+            const hasChannelHistory = (channelMessageCount?.total ?? 0) > 0;
+            const hadRulesBefore = originalExpression.trim().length > 0;
+            const hasRulesNow = expression.trim().length > 0;
+            const isRemovingAllRules = hadRulesBefore && !hasRulesNow;
+
+            // For empty rules state, check if we need to show warning for removing all rules
             if (isEmptyRulesState) {
-                // Just save directly - the performSave will handle empty state correctly
+                // If removing all rules and channel has history, show activity warning first
+                if (isRemovingAllRules && hasChannelHistory) {
+                    setShouldShowActivityWarning(true);
+                    setActivityWarningModalKey((prev) => prev + 1);
+                    setShowActivityWarningModal(true);
+                    return SAVE_RESULT_CONFIRMATION_REQUIRED;
+                }
+
+                // No warning needed, save directly
                 const success = await performSave();
-                const result = success ? 'saved' : 'error';
+                const result = success ? SAVE_RESULT_SAVED : SAVE_RESULT_ERROR;
                 return result;
             }
 
@@ -451,27 +530,36 @@ function ChannelSettingsAccessRulesTab({
                     id: 'channel_settings.access_rules.expression_required_for_autosync',
                     defaultMessage: 'Access rules are required when auto-add members is enabled',
                 }));
-                return 'error';
+                return SAVE_RESULT_ERROR;
             }
 
             // Validate self-exclusion
             if (expression.trim()) {
                 const isValid = await validateSelfExclusion(expression);
                 if (!isValid) {
-                    return 'error';
+                    return SAVE_RESULT_ERROR;
                 }
             }
 
             // Calculate membership changes
             const changes = await calculateMembershipChanges(expression);
 
-            // Determine if we should show activity warning
-            // Show warning if:
-            // 1. Channel has message history (channelMessageCount.total > 0)
-            // 2. MORE people could potentially get access (regardless of auto-sync status)
-            const hasChannelHistory = (channelMessageCount?.total ?? 0) > 0;
-            const morePeopleCouldGetAccess = changes.potentialToAdd.length > 0;
-            const shouldShowWarning = hasChannelHistory && morePeopleCouldGetAccess;
+            // Determine warning conditions
+            const becomingLessRestrictive = await isBecomingLessRestrictive(originalExpression, expression);
+            const willImmediatelyAddUsers = changes.toAdd.length > 0;
+
+            const isAddingFirstRules = !hadRulesBefore && hasRulesNow;
+            const rulesBecomingLessRestrictiveWithAutoAddDisabled = !autoSyncMembers && becomingLessRestrictive;
+            const rulesBecomingLessRestrictiveWithAutoAddEnabled = autoSyncMembers && becomingLessRestrictive;
+            const addingUsersWithAutoAddEnabled = autoSyncMembers && willImmediatelyAddUsers;
+
+            // Determine if warning should be shown
+            const shouldShowWarning = hasChannelHistory && (
+                isRemovingAllRules ||
+                rulesBecomingLessRestrictiveWithAutoAddDisabled ||
+                rulesBecomingLessRestrictiveWithAutoAddEnabled ||
+                addingUsersWithAutoAddEnabled
+            ) && !isAddingFirstRules;
 
             // If there are membership changes, show confirmation modal
             if (changes.toAdd.length > 0 || changes.toRemove.length > 0) {
@@ -479,7 +567,7 @@ function ChannelSettingsAccessRulesTab({
                 setUsersToRemove(changes.toRemove);
                 setShouldShowActivityWarning(shouldShowWarning);
                 setShowConfirmModal(true);
-                return 'confirmation_required';
+                return SAVE_RESULT_CONFIRMATION_REQUIRED;
             }
 
             // No immediate membership changes, but if warning needed, show it before saving
@@ -487,12 +575,12 @@ function ChannelSettingsAccessRulesTab({
                 setShouldShowActivityWarning(true);
                 setActivityWarningModalKey((prev) => prev + 1);
                 setShowActivityWarningModal(true);
-                return 'confirmation_required';
+                return SAVE_RESULT_CONFIRMATION_REQUIRED;
             }
 
             // No changes and no warning needed, save directly
             const success = await performSave();
-            const finalResult = success ? 'saved' : 'error';
+            const finalResult = success ? SAVE_RESULT_SAVED : SAVE_RESULT_ERROR;
             return finalResult;
         } catch (error) {
             // eslint-disable-next-line no-console
@@ -501,9 +589,9 @@ function ChannelSettingsAccessRulesTab({
                 id: 'channel_settings.access_rules.save_error',
                 defaultMessage: 'Failed to save access rules',
             }));
-            return 'error';
+            return SAVE_RESULT_ERROR;
         }
-    }, [expression, originalExpression, autoSyncMembers, formatMessage, validateSelfExclusion, calculateMembershipChanges, performSave, isEmptyRulesState, channel.id, channelMessageCount]);
+    }, [expression, originalExpression, autoSyncMembers, formatMessage, validateSelfExclusion, calculateMembershipChanges, performSave, isEmptyRulesState, channelMessageCount, isBecomingLessRestrictive]);
 
     // Prevent duplicate saves with immediate response
     const saveInProgressRef = useRef(false);
@@ -531,9 +619,9 @@ function ChannelSettingsAccessRulesTab({
         try {
             const success = await performSave();
             if (success) {
-                setSaveChangesPanelState('saved');
+                setSaveChangesPanelState(SAVE_RESULT_SAVED);
             } else {
-                setSaveChangesPanelState('error');
+                setSaveChangesPanelState(SAVE_RESULT_ERROR);
             }
         } finally {
             saveInProgressRef.current = false;
@@ -552,13 +640,13 @@ function ChannelSettingsAccessRulesTab({
         try {
             const result = await handleSave();
 
-            if (result === 'saved') {
-                setSaveChangesPanelState('saved');
-            } else if (result === 'error') {
-                setSaveChangesPanelState('error');
+            if (result === SAVE_RESULT_SAVED) {
+                setSaveChangesPanelState(SAVE_RESULT_SAVED);
+            } else if (result === SAVE_RESULT_ERROR) {
+                setSaveChangesPanelState(SAVE_RESULT_ERROR);
             }
 
-            // When result === 'confirmation_required', no panel state change needed
+            // When result === SAVE_RESULT_CONFIRMATION_REQUIRED, no panel state change needed
             // Modal workflows will handle the next steps
         } finally {
             saveInProgressRef.current = false;
@@ -589,9 +677,9 @@ function ChannelSettingsAccessRulesTab({
         try {
             const success = await performSave();
             if (success) {
-                setSaveChangesPanelState('saved');
+                setSaveChangesPanelState(SAVE_RESULT_SAVED);
             } else {
-                setSaveChangesPanelState('error');
+                setSaveChangesPanelState(SAVE_RESULT_ERROR);
             }
         } finally {
             saveInProgressRef.current = false;
@@ -611,7 +699,7 @@ function ChannelSettingsAccessRulesTab({
             expression !== originalExpression ||
             autoSyncMembers !== originalAutoSyncMembers;
 
-        return unsavedChanges || saveChangesPanelState === 'saved';
+        return unsavedChanges || saveChangesPanelState === SAVE_RESULT_SAVED;
     }, [expression, originalExpression, autoSyncMembers, originalAutoSyncMembers, saveChangesPanelState]);
 
     return (
@@ -767,7 +855,7 @@ function ChannelSettingsAccessRulesTab({
                     handleCancel={handleCancel}
                     handleClose={handleClose}
                     tabChangeError={hasErrors}
-                    state={hasErrors ? 'error' : saveChangesPanelState}
+                    state={hasErrors ? SAVE_RESULT_ERROR : saveChangesPanelState}
                     customErrorMessage={formError || (showTabSwitchError ? undefined : formatMessage({
                         id: 'channel_settings.access_rules.form_error',
                         defaultMessage: 'There are errors in the form above',
@@ -816,7 +904,7 @@ function ChannelSettingsAccessRulesTab({
                     setUsersToRemove([]);
 
                     // Clear any error state when canceling the modal
-                    if (saveChangesPanelState === 'error') {
+                    if (saveChangesPanelState === SAVE_RESULT_ERROR) {
                         setSaveChangesPanelState(undefined);
                     }
                 }}
