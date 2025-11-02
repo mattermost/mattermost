@@ -442,10 +442,6 @@ function PostComponent(props: Props) {
         </span>
     ), []);
 
-    const shouldShowPendingStatus = showPendingIndicator && isPending;
-    const pendingStatusInHeader = shouldShowPendingStatus && !props.isConsecutivePost ? renderPendingStatus() : null;
-    const pendingStatusInBody = shouldShowPendingStatus && props.isConsecutivePost ? renderPendingStatus('post__status--body') : null;
-
     const renderFailedStatus = useCallback((extraClass: string) => (
         <span className={classNames('post__status', 'post__status--failed', extraClass)}>
             <AlertIcon className='post__status-icon post__status-icon--failed'/>
@@ -456,24 +452,55 @@ function PostComponent(props: Props) {
         </span>
     ), []);
 
-    const failedLabelHeader = isFailed && !props.isConsecutivePost ? renderFailedStatus('post__status--message') : null;
-    const failedLabelInline = isFailed && props.isConsecutivePost ? renderFailedStatus('post__status--body') : null;
+    const {
+        headerStatus,
+        headerActions,
+        messageStatus,
+        messageActions,
+    } = useMemo(() => {
+        if (isFailed) {
+            return {
+                headerStatus: props.isConsecutivePost ? null : renderFailedStatus('post__status--message'),
+                headerActions: props.isConsecutivePost ? null : (
+                    <FailedPostOptions
+                        post={post}
+                        className='pending-post-actions--header'
+                    />
+                ),
+                messageStatus: props.isConsecutivePost ? renderFailedStatus('post__status--body') : null,
+                messageActions: props.isConsecutivePost ? (
+                    <FailedPostOptions
+                        post={post}
+                        className='pending-post-actions--inline'
+                    />
+                ) : null,
+            };
+        }
 
-    const failedActionsInline = isFailed && props.isConsecutivePost ? (
-        <FailedPostOptions
-            post={post}
-            className='pending-post-actions--inline'
-        />
-    ) : null;
-    const failedActionsHeader = isFailed && !props.isConsecutivePost ? (
-        <FailedPostOptions
-            post={post}
-            className='pending-post-actions--header'
-        />
-    ) : null;
+        if (showPendingIndicator && isPending) {
+            return {
+                headerStatus: props.isConsecutivePost ? null : renderPendingStatus(),
+                headerActions: null,
+                messageStatus: null,
+                messageActions: props.isConsecutivePost ? renderPendingStatus('post__status--body') : null,
+            };
+        }
 
-    const headerStatusInlineRight = isFailed ? null : pendingStatusInHeader;
-    const inlineStatusInBody = failedActionsInline ?? pendingStatusInBody;
+        return {
+            headerStatus: null,
+            headerActions: null,
+            messageStatus: null,
+            messageActions: null,
+        };
+    }, [
+        isFailed,
+        props.isConsecutivePost,
+        renderFailedStatus,
+        renderPendingStatus,
+        post,
+        showPendingIndicator,
+        isPending,
+    ]);
 
     let comment;
     if (props.isFirstReply && post.type !== Constants.PostTypes.EPHEMERAL) {
@@ -654,8 +681,7 @@ function PostComponent(props: Props) {
                                 isSystemMessage={isSystemMessage}
                             />
                             <div className='col d-flex align-items-center flex-wrap post__header-actions'>
-                                {failedLabelHeader}
-                                {headerStatusInlineRight}
+                                {headerStatus}
                                 {shouldShowPostTime &&
                                     <PostTime
                                         isPermalink={!(Posts.POST_DELETED === post.state || isPostPendingOrFailed(post))}
@@ -691,7 +717,7 @@ function PostComponent(props: Props) {
                                     </WithTooltip>
                                 }
                                 {visibleMessage}
-                                {failedActionsHeader}
+                                {headerActions}
                             </div>
                             {!props.isPostBeingEdited &&
                             <PostOptions
@@ -723,9 +749,9 @@ function PostComponent(props: Props) {
                                                 onTransitionEnd={() => document.dispatchEvent(new Event(AppEvents.FOCUS_EDIT_TEXTBOX))}
                                             />
                                         </div>
-                                        {failedLabelInline}
+                                        {messageStatus}
                                     </div>
-                                    {inlineStatusInBody}
+                                    {messageActions}
                                 </div>
                                 {
                                     showFileAttachments &&
