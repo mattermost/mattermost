@@ -738,6 +738,12 @@
         align-self: center;
     }
 
+    &:has(.post__status--pending) {
+        .post__message-top-text {
+            opacity: 0.56;
+        }
+    }
+
     .post__body-main {
         position: relative;
     }
