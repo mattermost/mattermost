@@ -157,7 +157,7 @@ function PostComponent(props: Props) {
         if (isPending) {
             pendingIndicatorTimeoutRef.current = setTimeout(() => {
                 setShowPendingIndicator(true);
-            }, 5000);
+            }, 3000);
         }
 
         return () => {
