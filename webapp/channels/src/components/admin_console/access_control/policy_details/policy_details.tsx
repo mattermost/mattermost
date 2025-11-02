@@ -86,6 +86,7 @@ function PolicyDetails({
     });
     const [policyActiveStatusChanges, setPolicyActiveStatusChanges] = useState<PolicyActiveStatus[]>([]);
     const [saveNeeded, setSaveNeeded] = useState(false);
+    const [saving, setSaving] = useState(false);
     const [channelsCount, setChannelsCount] = useState(0);
     const [autocompleteResult, setAutocompleteResult] = useState<UserPropertyField[]>([]);
     const [attributesLoaded, setAttributesLoaded] = useState(false);
@@ -172,93 +173,98 @@ function PolicyDetails({
     };
 
     const handleSubmit = async (apply = false) => {
-        let success = true;
-        let currentPolicyId = policyId;
+        setSaving(true);
+        try {
+            let success = true;
+            let currentPolicyId = policyId;
 
-        // --- Step 1: Create/Update Policy ---
-        await actions.createPolicy({
-            id: currentPolicyId || '',
-            name: policyName,
-            rules: [{expression, actions: ['*']}] as AccessControlPolicyRule[],
-            type: 'parent',
-            version: 'v0.2',
-        }).then((result) => {
-            if (result.error) {
-                setServerError(result.error.message);
+            // --- Step 1: Create/Update Policy ---
+            await actions.createPolicy({
+                id: currentPolicyId || '',
+                name: policyName,
+                rules: [{expression, actions: ['*']}] as AccessControlPolicyRule[],
+                type: 'parent',
+                version: 'v0.2',
+            }).then((result) => {
+                if (result.error) {
+                    setServerError(result.error.message);
+                    setShowConfirmationModal(false);
+                    success = false;
+                    return;
+                }
+                currentPolicyId = result.data?.id;
+                setPolicyName(result.data?.name || '');
+                setExpression(result.data?.rules?.[0]?.expression || '');
+                setAutoSyncMembership(result.data?.active || false);
+            });
+
+            if (!currentPolicyId || !success) {
                 setShowConfirmationModal(false);
-                success = false;
                 return;
             }
-            currentPolicyId = result.data?.id;
-            setPolicyName(result.data?.name || '');
-            setExpression(result.data?.rules?.[0]?.expression || '');
-            setAutoSyncMembership(result.data?.active || false);
-        });
 
-        if (!currentPolicyId || !success) {
+            // --- Step 2: Assign Channels ---
+            if (success) {
+                try {
+                    if (channelChanges.removedCount > 0) {
+                        await actions.unassignChannelsFromAccessControlPolicy(currentPolicyId, Object.keys(channelChanges.removed));
+                    }
+                    if (Object.keys(channelChanges.added).length > 0) {
+                        await actions.assignChannelsToAccessControlPolicy(currentPolicyId, Object.keys(channelChanges.added));
+                    }
+
+                    setChannelChanges({removed: {}, added: {}, removedCount: 0});
+                } catch (error) {
+                    setServerError(formatMessage({
+                        id: 'admin.access_control.policy.edit_policy.error.assign_channels',
+                        defaultMessage: 'Error assigning channels: {error}',
+                    }, {error: error.message}));
+                    setShowConfirmationModal(false);
+                    success = false;
+                    return;
+                }
+            }
+
+            // --- Step 3: Handle Policy Active Status Changes ---
+            if (success && policyActiveStatusChanges.length > 0) {
+                try {
+                    await actions.updateAccessControlPoliciesActive(policyActiveStatusChanges);
+                } catch (error) {
+                    setServerError(formatMessage({
+                        id: 'admin.access_control.policy.edit_policy.error.update_active_status',
+                        defaultMessage: 'Error updating policy active status: {error}',
+                    }, {error: error.message}));
+                    success = false;
+                    return;
+                }
+                setPolicyActiveStatusChanges([]);
+            }
+
+            // --- Step 4: Create Job if necessary ---
+            if (apply) {
+                try {
+                    await abacActions.createAccessControlSyncJob({
+                        policy_id: currentPolicyId,
+                    });
+                } catch (error) {
+                    setServerError(formatMessage({
+                        id: 'admin.access_control.policy.edit_policy.error.create_job',
+                        defaultMessage: 'Error creating job: {error}',
+                    }, {error: error.message}));
+                    setShowConfirmationModal(false);
+                    success = false;
+                    return;
+                }
+            }
+
+            // --- Step 5: Navigate lastly ---
+            setSaveNeeded(false);
             setShowConfirmationModal(false);
-            return;
+            actions.setNavigationBlocked(false);
+            getHistory().push('/admin_console/system_attributes/attribute_based_access_control');
+        } finally {
+            setSaving(false);
         }
-
-        // --- Step 2: Assign Channels ---
-        if (success) {
-            try {
-                if (channelChanges.removedCount > 0) {
-                    await actions.unassignChannelsFromAccessControlPolicy(currentPolicyId, Object.keys(channelChanges.removed));
-                }
-                if (Object.keys(channelChanges.added).length > 0) {
-                    await actions.assignChannelsToAccessControlPolicy(currentPolicyId, Object.keys(channelChanges.added));
-                }
-
-                setChannelChanges({removed: {}, added: {}, removedCount: 0});
-            } catch (error) {
-                setServerError(formatMessage({
-                    id: 'admin.access_control.policy.edit_policy.error.assign_channels',
-                    defaultMessage: 'Error assigning channels: {error}',
-                }, {error: error.message}));
-                setShowConfirmationModal(false);
-                success = false;
-                return;
-            }
-        }
-
-        // --- Step 3: Handle Policy Active Status Changes ---
-        if (success && policyActiveStatusChanges.length > 0) {
-            try {
-                await actions.updateAccessControlPoliciesActive(policyActiveStatusChanges);
-            } catch (error) {
-                setServerError(formatMessage({
-                    id: 'admin.access_control.policy.edit_policy.error.update_active_status',
-                    defaultMessage: 'Error updating policy active status: {error}',
-                }, {error: error.message}));
-                success = false;
-                return;
-            }
-            setPolicyActiveStatusChanges([]);
-        }
-
-        // --- Step 4: Create Job if necessary ---
-        if (apply) {
-            try {
-                await abacActions.createAccessControlSyncJob({
-                    policy_id: currentPolicyId,
-                });
-            } catch (error) {
-                setServerError(formatMessage({
-                    id: 'admin.access_control.policy.edit_policy.error.create_job',
-                    defaultMessage: 'Error creating job: {error}',
-                }, {error: error.message}));
-                setShowConfirmationModal(false);
-                success = false;
-                return;
-            }
-        }
-
-        // --- Step 5: Navigate lastly ---
-        setSaveNeeded(false);
-        setShowConfirmationModal(false);
-        actions.setNavigationBlocked(false);
-        getHistory().push('/admin_console/system_attributes/attribute_based_access_control');
     };
 
     const handleDelete = async () => {
@@ -539,6 +545,7 @@ function PolicyDetails({
                                 policyId={policyId}
                                 policyActiveStatusChanges={policyActiveStatusChanges}
                                 onPolicyActiveStatusChange={handlePolicyActiveStatusChange}
+                                saving={saving}
                             />
                         </Card.Body>
                     </Card>
@@ -638,6 +645,7 @@ function PolicyDetails({
             <div className='admin-console-save'>
                 <SaveButton
                     disabled={!saveNeeded}
+                    saving={saving}
                     onClick={() => {
                         if (!preSaveCheck()) {
                             return;

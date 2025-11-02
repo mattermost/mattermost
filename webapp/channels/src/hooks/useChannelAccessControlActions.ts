@@ -128,7 +128,7 @@ export const useChannelAccessControlActions = (channelId?: string): ChannelAcces
         },
 
         /**
-         * Update the active status of an access control policy
+         * Update the active statuses of access control policies
          */
         updateAccessControlPoliciesActive: (statuses: AccessControlPolicyActiveUpdate[]) => {
             return dispatch(updateAccessControlPoliciesActive(statuses));

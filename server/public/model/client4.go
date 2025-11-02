@@ -7759,12 +7759,7 @@ func (c *Client4) SearchChannelsForAccessControlPolicy(ctx context.Context, poli
 }
 
 func (c *Client4) SetAccessControlPolicyActive(ctx context.Context, update AccessControlPolicyActiveUpdateRequest) ([]*AccessControlPolicy, *Response, error) {
-	b, err := json.Marshal(update)
-	if err != nil {
-		return nil, nil, NewAppError("SetAccessControlPolicyActive", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	r, err := c.DoAPIPutBytes(ctx, c.accessControlPoliciesRoute()+"/activate", b)
+	r, err := c.DoAPIPutJSON(ctx, c.accessControlPoliciesRoute()+"/activate", update)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}

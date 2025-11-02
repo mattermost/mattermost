@@ -4,7 +4,8 @@
 import debounce from 'lodash/debounce';
 import isEqual from 'lodash/isEqual';
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
 
 import type {ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
 
@@ -28,7 +29,7 @@ type PolicyActiveStatus = {
     active: boolean;
 }
 
-type Props = {
+type Props = WrappedComponentProps & {
     channels: ChannelWithTeamData[];
     totalCount: number;
     searchTerm: string;
@@ -39,6 +40,7 @@ type Props = {
     channelsToAdd: Record<string, ChannelWithTeamData>;
     policyActiveStatusChanges?: PolicyActiveStatus[];
     onPolicyActiveStatusChange?: (changes: PolicyActiveStatus[]) => void;
+    saving?: boolean;
     actions: {
         searchChannels: (id: string, term: string, opts: ChannelSearchOpts) => Promise<ActionResult>;
         setChannelListSearch: (term: string) => void;
@@ -55,7 +57,7 @@ type State = {
 
 const PAGE_SIZE = 10;
 
-export default class ChannelList extends React.PureComponent<Props, State> {
+class ChannelList extends React.PureComponent<Props, State> {
     private mounted = false;
     private searchDebounced;
 
@@ -215,9 +217,9 @@ export default class ChannelList extends React.PureComponent<Props, State> {
     };
 
     private handleAutoAddToggle = (channelId: string, currentStatus: boolean) => {
-        const {policyActiveStatusChanges = [], onPolicyActiveStatusChange} = this.props;
+        const {policyActiveStatusChanges = [], onPolicyActiveStatusChange, saving} = this.props;
 
-        if (!onPolicyActiveStatusChange) {
+        if (!onPolicyActiveStatusChange || saving) {
             return;
         }
 
@@ -255,8 +257,8 @@ export default class ChannelList extends React.PureComponent<Props, State> {
         const allChannels = [...channels, ...Object.values(channelsToAdd)];
         const channel = allChannels.find((ch) => ch.id === channelId);
 
-        // Use the channel's policy_is_active value, defaulting to true if undefined
-        return channel?.policy_is_active ?? true;
+        // Use the channel's policy_is_active value, defaulting to false if undefined
+        return channel?.policy_is_active ?? false;
     };
 
     private getAllChannelsAutoAddStatus = (): {allActive: boolean; allInactive: boolean; mixed: boolean} => {
@@ -288,10 +290,10 @@ export default class ChannelList extends React.PureComponent<Props, State> {
     };
 
     private handleBulkAutoAddToggle = () => {
-        const {channels, channelsToAdd, channelsToRemove, policyActiveStatusChanges = [], onPolicyActiveStatusChange} = this.props;
+        const {channels, channelsToAdd, channelsToRemove, policyActiveStatusChanges = [], onPolicyActiveStatusChange, saving} = this.props;
         const {startCount, endCount} = this.getPaginationProps();
 
-        if (!onPolicyActiveStatusChange) {
+        if (!onPolicyActiveStatusChange || saving) {
             return;
         }
 
@@ -356,7 +358,12 @@ export default class ChannelList extends React.PureComponent<Props, State> {
                             type='checkbox'
                             id='auto-add-header-checkbox'
                             className='header-checkbox'
+                            aria-label={this.props.intl.formatMessage({
+                                id: 'admin.access_control.policy.channel_list.autoAddHeader',
+                                defaultMessage: 'Auto-add members',
+                            })}
                             checked={this.getAllChannelsAutoAddStatus().allActive}
+                            disabled={this.props.saving}
                             ref={(input) => {
                                 if (input) {
                                     const {mixed} = this.getAllChannelsAutoAddStatus();
@@ -445,6 +452,7 @@ export default class ChannelList extends React.PureComponent<Props, State> {
                                 id={`auto-add-checkbox-${channel.id}`}
                                 className='channel-checkbox'
                                 checked={autoAddStatus}
+                                disabled={this.props.saving}
                                 onChange={() => this.handleAutoAddToggle(channel.id, autoAddStatus)}
                             />
                             <span className='checkbox-label'>
@@ -544,3 +552,5 @@ export default class ChannelList extends React.PureComponent<Props, State> {
         );
     }
 }
+
+export default injectIntl(ChannelList);
