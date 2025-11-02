@@ -698,15 +698,15 @@
     .post__message-top {
         display: flex;
         flex-wrap: nowrap;
-        align-items: center;
-        gap: 12px;
+        align-items: flex-start;
+        gap: 6px;
     }
 
     .post__message-top-content {
         display: flex;
         min-width: 0;
         flex: 1 1 auto;
-        align-items: center;
+        align-items: flex-start;
         gap: 6px;
     }
 
@@ -717,9 +717,21 @@
     }
 
     .post__message-top-content .post__status--body {
-        align-self: center;
+        align-self: flex-start;
         margin-left: auto;
         white-space: nowrap;
+    }
+
+    .post__message-top:has(>.pending-post-actions--inline) {
+        align-items: center;
+    }
+
+    .post__message-top-content:has(+ .pending-post-actions--inline) {
+        align-items: center;
+
+        .post__status--body {
+            align-self: center;
+        }
     }
 
     .post__message-top > .pending-post-actions--inline {
