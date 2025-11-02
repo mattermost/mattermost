@@ -1119,12 +1119,9 @@
         color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 11px;
         font-style: italic;
-        -webkit-user-select: none;
-        /* Chrome all / Safari all */
-        -moz-user-select: none;
-        /* Firefox all */
-        -ms-user-select: none;
-        /* IE 10+ */
+        -webkit-user-select: none; /* Chrome all / Safari all */
+        -moz-user-select: none; /* Firefox all */
+        -ms-user-select: none; /* IE 10+ */
         user-select: none;
 
         > i {
@@ -1455,12 +1452,9 @@
                     min-width: 28px;
                     height: 28px;
                     border-radius: unset;
-                    -webkit-user-select: none;
-                    /* Chrome all / Safari all */
-                    -moz-user-select: none;
-                    /* Firefox all */
-                    -ms-user-select: none;
-                    /* IE 10+ */
+                    -webkit-user-select: none; /* Chrome all / Safari all */
+                    -moz-user-select: none; /* Firefox all */
+                    -ms-user-select: none; /* IE 10+ */
                     user-select: none;
                 }
             }
