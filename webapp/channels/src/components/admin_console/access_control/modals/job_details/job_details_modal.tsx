@@ -15,6 +15,7 @@ import * as ChannelActions from 'mattermost-redux/actions/channels';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 
+import AlertBanner from 'components/alert_banner';
 import CodeBlock from 'components/code_block/code_block';
 
 import type {GlobalState} from 'types/store';
@@ -184,19 +185,29 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
             }
             modalSubheaderText={
                 <div className='modal-subheader-text'>
-                    <FormattedMessage
-                        id='admin.access_control.jobTable.details.subheader'
-                        defaultMessage='Finished at {finishedAt}'
-                        values={{
-                            finishedAt: new Date(job.last_activity_at).toLocaleString(),
-                        }}
-                    />
+                    {job.status === 'canceled' && job.type.includes('access_control_sync') ? (
+                        <FormattedMessage
+                            id='admin.access_control.jobTable.details.subheader.canceled'
+                            defaultMessage='Canceled at {canceledAt}'
+                            values={{
+                                canceledAt: new Date(job.last_activity_at).toLocaleString(),
+                            }}
+                        />
+                    ) : (
+                        <FormattedMessage
+                            id='admin.access_control.jobTable.details.subheader'
+                            defaultMessage='Finished at {finishedAt}'
+                            values={{
+                                finishedAt: new Date(job.last_activity_at).toLocaleString(),
+                            }}
+                        />
+                    )}
                 </div>
             }
             show={true}
             bodyPadding={false}
         >
-            {job.status === 'error' ? (
+            {job.status === 'error' && (
                 <div className='error-status-content'>
                     <div className='error-status-content__title'>
                         <FormattedMessage
@@ -209,20 +220,39 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
                         language='json'
                     />
                 </div>
-            ) : (
-                job.type.includes('access_control_sync') && syncResults && (
-                    <SearchableSyncJobChannelList
-                        channels={filteredChannels}
-                        teams={teamLookup}
-                        channelsPerPage={pageSize}
-                        nextPage={() => {}}
-                        isSearch={Boolean(searchTerm)}
-                        search={setSearchTerm}
-                        onViewDetails={handleViewDetails}
-                        noResultsText={noResultsText}
-                        syncResults={syncResults}
+            )}
+            {job.status === 'canceled' && job.type.includes('access_control_sync') && (
+                <div className='canceled-status-content'>
+                    <AlertBanner
+                        mode='warning'
+                        variant='app'
+                        title={
+                            <FormattedMessage
+                                id='admin.access_control.jobTable.syncResults.canceled.title'
+                                defaultMessage='Job Canceled'
+                            />
+                        }
+                        message={
+                            <FormattedMessage
+                                id='admin.access_control.jobTable.syncResults.canceled.message'
+                                defaultMessage='This sync job was canceled, likely because a newer sync job was started for the same channel. Channel members were not updated.'
+                            />
+                        }
                     />
-                )
+                </div>
+            )}
+            {job.status !== 'error' && !(job.status === 'canceled' && job.type.includes('access_control_sync')) && job.type.includes('access_control_sync') && syncResults && (
+                <SearchableSyncJobChannelList
+                    channels={filteredChannels}
+                    teams={teamLookup}
+                    channelsPerPage={pageSize}
+                    nextPage={() => {}}
+                    isSearch={Boolean(searchTerm)}
+                    search={setSearchTerm}
+                    onViewDetails={handleViewDetails}
+                    noResultsText={noResultsText}
+                    syncResults={syncResults}
+                />
             )}
 
             {selectedChannel && selectedChannelResults && (

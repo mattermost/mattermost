@@ -22,6 +22,7 @@ type Props = {
     userId: string;
     currentDate: Date;
     locale: string;
+    timezone?: string;
 
     actions: {
         setStatus: (status: UserStatus) => void;
@@ -135,7 +136,7 @@ export default injectIntl(class DndCustomTimePicker extends React.PureComponent<
                     <DateTimeInput
                         time={selectedDateTime}
                         handleChange={this.handleDateTimeChange}
-                        timezone={this.props.locale}
+                        timezone={this.props.timezone}
                         relativeDate={true}
                     />
                 </div>

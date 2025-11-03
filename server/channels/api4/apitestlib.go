@@ -449,6 +449,11 @@ func (th *TestHelper) ShutdownApp() {
 	}
 }
 
+func (th *TestHelper) RemoveLicense(tb testing.TB) {
+	err := th.App.Srv().RemoveLicense()
+	require.NoError(tb, err)
+}
+
 func closeBody(r *http.Response) {
 	if r.Body != nil {
 		_, _ = io.Copy(io.Discard, r.Body)

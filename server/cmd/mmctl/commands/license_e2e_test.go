@@ -39,7 +39,16 @@ func (s *MmctlE2ETestSuite) TestRemoveLicenseCmd() {
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], "Removed license")
 		s.Require().Len(printer.GetErrorLines(), 0)
-		s.Require().Nil(s.th.App.Srv().License())
+
+		license := s.th.App.Srv().License()
+		if model.BuildEnterpriseReady == "true" {
+			// If an enterprise build is used,
+			// the server resets to an Entry License.
+			s.Require().NotNil(license)
+			s.Require().True(license.IsMattermostEntry())
+		} else {
+			s.Require().Nil(license)
+		}
 	})
 }
 

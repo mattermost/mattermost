@@ -228,7 +228,7 @@ export function openAppsModal(form: AppForm, context: AppContext): AnyAction {
         dialogType: AppsForm,
         dialogProps: {
             form,
-            context,
+            appContext: context,
         },
     });
 }

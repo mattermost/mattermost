@@ -11,6 +11,7 @@ linters:
     - revive
     - staticcheck
     - unconvert
+    - unqueryvet
     - unused
     - whitespace
   settings:
@@ -18,6 +19,8 @@ linters:
       disable:
         - fieldalignment
       enable-all: true
+    unqueryvet:
+      check-sql-builders: true
   exclusions:
     generated: lax
     presets:
@@ -37,6 +40,9 @@ linters:
       - linters:
           - misspell
         path: platform/shared/markdown/html_entities.go
+      - linters:
+          - unqueryvet
+        path: channels/store/sqlstore/post_store.go
       - linters:
           - staticcheck
         text: SA1019

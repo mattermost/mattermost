@@ -625,7 +625,7 @@
   },
   {
     "id": "model.config.is_valid.sql_driver.app_error",
-    "translation": "Neplatný název ovladače pro SQL windows. Musí být 'mysql' nebo 'postgres'."
+    "translation": "Neplatný název ovladače pro SQL. Musí být 'postgres'."
   },
   {
     "id": "model.config.is_valid.sql_data_src.app_error",
@@ -1733,15 +1733,15 @@
   },
   {
     "id": "api.user.update_user.accepted_guest_domain.app_error",
-    "translation": "Zadaný e-mail nepatří do zvolené domény. Obraťte se prosím na správce nebo zaregistrujte jiný e-mail."
+    "translation": "Zadaný e-mail nepatří do povolené domény pro hosty. Obraťte se prosím na správce nebo zaregistrujte jiný e-mail."
   },
   {
     "id": "api.user.update_user.accepted_domain.app_error",
-    "translation": "Zadaný e-mail nepatří do zvolené domény. Obraťte se prosím na správce nebo zaregistrujte jiný e-mail."
+    "translation": "Zadaný e-mail nepatří do povolené domény. Obraťte se prosím na správce nebo zaregistrujte jiný e-mail."
   },
   {
     "id": "api.user.update_password.valid_account.app_error",
-    "translation": "Aktualizační heslo se nezdařilo, protože příslušný platný účet nebyl nalezen."
+    "translation": "Aktualizace hesla se nezdařila, protože příslušný účet nebyl nalezen."
   },
   {
     "id": "api.user.update_password.oauth.app_error",
@@ -1761,7 +1761,7 @@
   },
   {
     "id": "api.user.update_password.context.app_error",
-    "translation": "Změna hesla není možná, protože hodnota user_id se neshoduje s user_id."
+    "translation": "Změna hesla není možná, protože hodnota user_id kontextu se neshoduje s user_id ve vlastnostech."
   },
   {
     "id": "api.user.update_oauth_user_attrs.get_user.app_error",
@@ -2621,7 +2621,7 @@
   },
   {
     "id": "api.user.complete_switch_with_oauth.parse.app_error",
-    "translation": "Nelze zpracovat data z uživatelského objektu {{.Service}}."
+    "translation": "Nelze zpracovat autentizační data z uživatelského objektu {{.Service}}."
   },
   {
     "id": "api.user.complete_switch_with_oauth.blank_email.app_error",
@@ -5705,7 +5705,7 @@
   },
   {
     "id": "model.user.is_valid.auth_data_type.app_error",
-    "translation": "Nevalidní uživatel - „auth data“ musí být zadána s „auth type\"."
+    "translation": "Neplatný uživatel: Autentizační data mohou být nastavena pouze pokud uživatel používá externí autentizační službu, nikoliv email/heslo."
   },
   {
     "id": "model.user.is_valid.password_limit.app_error",
@@ -10430,5 +10430,453 @@
   {
     "id": "api.channel.update_channel_member_roles.unset_user_scheme.app_error",
     "translation": "Neplatná aktualizace člena kanálu: Člen kanálu vždy musí mít uživatelský plán."
+  },
+  {
+    "id": "api.command_share.service_inactive",
+    "translation": "Služba sdílených kanálů je zapnuta, ale neaktivní."
+  },
+  {
+    "id": "api.content_flagging.error.disabled",
+    "translation": "Označování obsahu je vypnuto."
+  },
+  {
+    "id": "api.content_flagging.error.license",
+    "translation": "Vaše licence nepodporuje označování obsahu."
+  },
+  {
+    "id": "api.ldap.invalid_test_type.app_error",
+    "translation": "Neplatný typ testu: {{.TestType}}"
+  },
+  {
+    "id": "api.remote_cluster.import_not_allowed.app_error",
+    "translation": "Import vzdáleného clusteru není povolen"
+  },
+  {
+    "id": "api.team.invite_guests.policy_enforced_channel.app_error",
+    "translation": "Pozvání hostů do tohoto kanálu není umožněno, protože má nastavené omezení na základě uživatelských vlastností."
+  },
+  {
+    "id": "api.team.update_team_member_roles.unset_user_scheme.app_error",
+    "translation": "Neplatná aktualizace člena týmu: Člen týmu musí mít vždy uživatelské schéma."
+  },
+  {
+    "id": "api.upload.invalid_type_for_shared_channel.app_error",
+    "translation": "Nepodařilo se nahrát soubor. Kanál pro nahrávání není sdílen."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.saml_hook_error.app_error",
+    "translation": "Došlo k chybě v hooku OnSamlLogin. Kontaktujte, prosím, systémového administrátora."
+  },
+  {
+    "id": "api.user.check_user_password.invalid_hash.app_error",
+    "translation": "Formát zahashovaného hesla je neplatný a nelze jej zpracovat."
+  },
+  {
+    "id": "api.user.create_user.license_user_limits.exceeded",
+    "translation": "Nelze vytvořit uživatele. Server překročil maximální počet licencovaných uživatelů. Kontaktujte administrátora s informací: ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
+    "id": "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error",
+    "translation": "Služba řízení přístupu není dostupná. Nelze filtrovat uživatele pro kanál s povoleným ABAC."
+  },
+  {
+    "id": "app.access_control.insufficient_permissions",
+    "translation": "Nemáte oprávnění spravovat toto pravidlo řízení přístupu."
+  },
+  {
+    "id": "app.acknowledgement.batch_save.app_error",
+    "translation": "Nepodařilo se uložit dávku potvrzovacích objektů"
+  },
+  {
+    "id": "app.acknowledgement.delete.missing_post.app_error",
+    "translation": "Nelze smazat potvrzení pro chybějící příspěvek"
+  },
+  {
+    "id": "app.acknowledgement.save.missing_post.app_error",
+    "translation": "Nelze uložit potvrzení pro chybějící příspěvek"
+  },
+  {
+    "id": "app.channel.get.app_error",
+    "translation": "Nepodařilo se získat kanál."
+  },
+  {
+    "id": "app.cloud.preview_modal_bucket_url_not_configured",
+    "translation": "URL náhledu bucketu není nakonfigurováno"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_fetch_error",
+    "translation": "Nepodařilo se načíst data pro náhledové okno"
+  },
+  {
+    "id": "app.cloud.preview_modal_data_parse_error",
+    "translation": "Nepodařilo se zpracovat data pro náhledové okno"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
+    "translation": "Nelze upravit hodnotu pole Custom Profile spravovaného administrátorem"
+  },
+  {
+    "id": "app.group.create_syncable_memberships.error",
+    "translation": "Nelze vytvořit synchronizovaná členství."
+  },
+  {
+    "id": "app.group.delete_invalid_syncable_memberships.error",
+    "translation": "Nelze smazat neplatná synchronizovaná členství."
+  },
+  {
+    "id": "app.group.user_not_found",
+    "translation": "Chyba při aktualizaci skupiny. Uživatel s uživatelským jménem \"{{.Username}}\" nebyl nalezen."
+  },
+  {
+    "id": "app.import.validate_attachment_import_data.invalid_path.error",
+    "translation": "Nepodařilo se ověřit data importu přílohy. Neplatná cesta: \"{{.Path}}\""
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.attachment.error",
+    "translation": "Nepodařilo se ověřit data přílohy přímého příspěvku."
+  },
+  {
+    "id": "app.import.validate_direct_post_import_data.thread_follower.error",
+    "translation": "Nepodařilo se ověřit data sledujícího vlákna přímého příspěvku."
+  },
+  {
+    "id": "app.import.validate_emoji_import_data.invalid_image_path.error",
+    "translation": "Pole pro import emoji má neplatnou cestu: \"{{.Path}}\""
+  },
+  {
+    "id": "app.import.validate_post_import_data.attachment.error",
+    "translation": "Nepodařilo se ověřit data přílohy příspěvku."
+  },
+  {
+    "id": "app.import.validate_post_import_data.thread_follower.error",
+    "translation": "Nepodařilo se ověřit data sledujícího vlákna příspěvku."
+  },
+  {
+    "id": "app.import.validate_reply_import_data.attachment.error",
+    "translation": "Nepodařilo se ověřit data přílohy odpovědi."
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.empty.error",
+    "translation": "Data sledujících v importu jsou prázdná."
+  },
+  {
+    "id": "app.import.validate_thread_follower_data.user_missing.error",
+    "translation": "Chybí požadovaná vlastnost sledujícího: uživatel."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.decode_json_error",
+    "translation": "Při dekódování JSON odpovědi z interaktivního dialogového vyhledávání došlo k chybě."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.json_error",
+    "translation": "Při zpracování JSON odpovědi z interaktivního dialogového vyhledávání došlo k chybě."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.read_body_error",
+    "translation": "Při čtení odpovědi z interaktivního dialogového vyhledávání došlo k chybě."
+  },
+  {
+    "id": "app.pap.access_control.channel_group_constrained",
+    "translation": "Kanál je omezen skupinou a nelze na něj použít pravidla řízení přístupu."
+  },
+  {
+    "id": "app.pap.access_control.channel_not_private",
+    "translation": "Pravidla řízení přístupu lze použít pouze na soukromé kanály."
+  },
+  {
+    "id": "app.pap.access_control.channel_shared",
+    "translation": "Na sdílené kanály nelze použít pravidla řízení přístupu."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_channel_permissions",
+    "translation": "Nemáte oprávnění spravovat řízení přístupu pro tento kanál."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_permissions",
+    "translation": "Nemáte oprávnění spravovat toto pravidlo řízení přístupu."
+  },
+  {
+    "id": "app.pap.assign_access_control_policy_to_channels.app_error",
+    "translation": "Nelze přiřadit pravidlo řízení přístupu ke kanálům."
+  },
+  {
+    "id": "app.pap.check_expression.app_error",
+    "translation": "Nepodařilo se ověřit výraz."
+  },
+  {
+    "id": "app.pap.create_access_control_policy.app_error",
+    "translation": "Nepodařilo se vytvořit pravidlo řízení přístupu."
+  },
+  {
+    "id": "app.pap.delete_access_control_policy.app_error",
+    "translation": "Nepodařilo se odstranit pravidlo řízení přístupu."
+  },
+  {
+    "id": "app.pap.delete_policy.app_error",
+    "translation": "Nelze odstranit pravidlo řízení přístupu."
+  },
+  {
+    "id": "app.pap.expression_to_visual_ast.app_error",
+    "translation": "Nepodařilo se vygenerovat vizuální AST z výrazu."
+  },
+  {
+    "id": "app.pap.get_access_control_auto_complete.app_error",
+    "translation": "Nepodařilo se získat automatické doplňování pro řízení přístupu."
+  },
+  {
+    "id": "app.pap.get_all_access_control_policies.app_error",
+    "translation": "Nepodařilo se získat pravidla řízení přístupu."
+  },
+  {
+    "id": "app.pap.get_channel_access_control_attributes.app_error",
+    "translation": "Nepodařilo se získat atributy pro kanál."
+  },
+  {
+    "id": "app.pap.get_channel_members_to_remove.app_error",
+    "translation": "Nepodařilo se získat členy kanálu k odebrání."
+  },
+  {
+    "id": "app.pap.get_policy.app_error",
+    "translation": "Nelze načíst pravidlo řízení přístupu."
+  },
+  {
+    "id": "app.pap.get_policy_attributes.app_error",
+    "translation": "Nepodařilo se získat atributy pro pravidlo."
+  },
+  {
+    "id": "app.pap.init.app_error",
+    "translation": "Nelze inicializovat službu řízení přístupu."
+  },
+  {
+    "id": "app.pap.is_ready.app_error",
+    "translation": "Služba řízení přístupu není připravena."
+  },
+  {
+    "id": "app.pap.missing_attribute.app_error",
+    "translation": "Ve výrazu chybí atribut."
+  },
+  {
+    "id": "app.pap.normalize_policy.app_error",
+    "translation": "Nepodařilo se normalizovat výraz pravidla."
+  },
+  {
+    "id": "app.pap.query_expression.app_error",
+    "translation": "Nepodařilo se provést dotaz pro daný výraz."
+  },
+  {
+    "id": "app.pap.save_policy.app_error",
+    "translation": "Nelze uložit pravidlo řízení přístupu."
+  },
+  {
+    "id": "app.pap.search_access_control_policies.app_error",
+    "translation": "Nepodařilo se vyhledat pravidla řízení přístupu."
+  },
+  {
+    "id": "app.pap.unassign_access_control_policy_from_channels.app_error",
+    "translation": "Nepodařilo se odebrat přiřazení pravidla řízení přístupu z kanálů."
+  },
+  {
+    "id": "app.pap.update_access_control_policy_active.app_error",
+    "translation": "Nepodařilo se změnit aktivní stav pravidla řízení přístupu."
+  },
+  {
+    "id": "app.pdp.access_evaluation.app_error",
+    "translation": "Nepodařilo se vyhodnotit pravidlo řízení přístupu."
+  },
+  {
+    "id": "app.user.check_user_password.failed_migration",
+    "translation": "Nepodařilo se migrovat uživatelovo heslo na nejnovější metodu hashování."
+  },
+  {
+    "id": "app.user.check_user_password.failed_update",
+    "translation": "Nepodařilo se aktualizovat uživatelovo heslo."
+  },
+  {
+    "id": "app.user.update_active.license_user_limit.exceeded",
+    "translation": "Nelze aktivovat uživatele. Server překročil maximální počet licencovaných uživatelů. ERROR_LICENSED_USERS_LIMIT_EXCEEDED."
+  },
+  {
+    "id": "ent.access_control.job_data_conversion.app_error",
+    "translation": "Nepodařilo se získat data z předchozí úlohy."
+  },
+  {
+    "id": "ent.access_control.sync_job.app_error",
+    "translation": "Nepodařilo se spustit synchronizační úlohu řízení přístupu."
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.bulk_processor_create_failed",
+    "translation": "Nepodařilo se vytvořit hromadný procesor pro Elasticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.sync_bulk_processor_create_failed",
+    "translation": "Nepodařilo se vytvořit synchronizační hromadný procesor pro Elasticsearch"
+  },
+  {
+    "id": "ent.ldap.connection.test_failed",
+    "translation": "Test připojení k LDAP selhal. Server: {{.Server}}:{{.Port}}, Zabezpečení připojení: {{.ConnectionType}}, Soubor soukromého klíče: {{.PrivateKeyFilename}}, Soubor veřejného certifikátu: {{.PublicCertFilename}}, Uživatelské jméno pro bind: {{.BindUsername}}. Chyba: {{.Error}}"
+  },
+  {
+    "id": "model.access_policy.inherit.already_imported.app_error",
+    "translation": "Nadřazený objekt je již importován."
+  },
+  {
+    "id": "model.access_policy.inherit.version.app_error",
+    "translation": "Nepodařilo se zdědit pravidlo řízení přístupu."
+  },
+  {
+    "id": "model.acknowledgement.is_valid.channel_id.app_error",
+    "translation": "Neplatné ID kanálu."
+  },
+  {
+    "id": "model.channel.is_valid.banner_info.background_color.invalid.app_error",
+    "translation": "Barva banneru kanálu musí být platná hexadecimální barva (např. #FF0000 nebo #F00)"
+  },
+  {
+    "id": "model.config.is_valid.client_side_cert_enable.app_error",
+    "translation": "Ověřování pomocí certifikátu bylo odstraněno. Pro pokračování prosím zakažte ClientSideCertEnable."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.common_reviewers_not_set.app_error",
+    "translation": "Společní nebo dodateční kontroloři musí být nastaveni, pokud je povolena volba \"Stejní kontroloři pro všechny týmy\"."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.reasons_not_set.app_error",
+    "translation": "Důvody pro označení nesmí být prázdné."
+  },
+  {
+    "id": "model.config.is_valid.content_flagging.team_reviewers_not_set.app_error",
+    "translation": "Týmoví nebo dodateční kontroloři musí být nastaveni, pokud je pro tým zapnuta volba \"Povoleno\"."
+  },
+  {
+    "id": "model.config.is_valid.directory_whitespace.app_error",
+    "translation": "Byly zjištěny počáteční nebo koncové mezery u {{.Setting}}. Nalezeno \"{{.Value}}\"."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_age_invalid",
+    "translation": "Maximální stáří souboru v nastavení auditních logů nesmí být záporné."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_backups_invalid",
+    "translation": "Maximální počet záloh souborů v nastavení auditních logů nesmí být záporný."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_queue_size_invalid",
+    "translation": "Maximální fronta souborů v nastavení auditních logů musí být větší než nula."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_max_size_invalid",
+    "translation": "Maximální velikost souboru v nastavení auditních logů musí být větší než nula."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_empty",
+    "translation": "Pokud je povoleno ukládání auditních logů do souboru, musí být zadán název souboru."
+  },
+  {
+    "id": "model.config.is_valid.experimental_audit_settings.file_name_is_directory",
+    "translation": "Název souboru nesmí být adresář."
+  },
+  {
+    "id": "model.config.is_valid.experimental_view_archived_channels.app_error",
+    "translation": "Skrývání archivovaných kanálů již není podporováno. Místo toho tyto kanály nastavte jako soukromé a odeberte z nich členy."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_event",
+    "translation": "Byla zadána neplatná událost pro označení."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.invalid_target",
+    "translation": "Byl zadán neplatný cíl události pro označení."
+  },
+  {
+    "id": "model.config.is_valid.notification_settings.reviewer_flagged_notification_disabled",
+    "translation": "Oznámení o novém označeném příspěvku nelze pro kontrolory vypnout."
+  },
+  {
+    "id": "app.import.validate_user_import_data.invalid_image_path.error",
+    "translation": "Cesta k profilovému obrázku uživatele je neplatná: \"{{.Path}}\""
+  },
+  {
+    "id": "app.job.get_existing_jobs.error",
+    "translation": "Nelze získat existující úlohy."
+  },
+  {
+    "id": "app.submit_interactive_dialog.invalid_response",
+    "translation": "Obdržena neplatná odpověď při odeslání interaktivního dialogu."
+  },
+  {
+    "id": "api.channel.patch_update_channel.restricted_dm.app_error",
+    "translation": "Nelze změnit chráněný kanál přímých zpráv."
+  },
+  {
+    "id": "api.command.execute_command.restricted_dm.error",
+    "translation": "Nelze psát do chráněných přímých zpráv"
+  },
+  {
+    "id": "api.content_flagging.error.comment_required",
+    "translation": "Přidejte prosím komentář vysvětlující, proč označujete tuto zprávu."
+  },
+  {
+    "id": "api.content_flagging.error.comment_too_long",
+    "translation": "Důvod označení zprávy nesmí být delší než {{.MaxLength}} znaků."
+  },
+  {
+    "id": "api.content_flagging.error.not_available_on_team",
+    "translation": "Funkce označování obsahu není v tomto týmu povolena."
+  },
+  {
+    "id": "api.content_flagging.error.post_not_in_progress",
+    "translation": "Označený příspěvek musí být ve stavu „čeká“ nebo „přiřazen“, aby mohl být ponechán nebo odstraněn."
+  },
+  {
+    "id": "api.content_flagging.error.reason_invalid",
+    "translation": "Byl uveden neznámý důvod pro označení zprávy."
+  },
+  {
+    "id": "api.content_flagging.error.reason_required",
+    "translation": "Vyberte prosím důvod pro označení této zprávy."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
+    "translation": "Nelze uložit koncept do chráněného kanálu přímých zpráv"
+  },
+  {
+    "id": "api.file.upload_file.get_channel.app_error",
+    "translation": "Nelze nahrát soubor do chráněného kanálu přímé zprávy"
+  },
+  {
+    "id": "api.file.upload_file.restricted_dm.error",
+    "translation": "Nelze nahrát soubor do kanálu přímých zpráv"
+  },
+  {
+    "id": "api.post.create_post.can_not_post_in_restricted_dm.error",
+    "translation": "Nelze odeslat zprávu do chráněného kanálu přímých zpráv."
+  },
+  {
+    "id": "api.post.delete_post.can_not_delete_from_restricted_dm.error",
+    "translation": "Nelze smazat zprávu v chráněném kanálu přímých zpráv."
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "Nelze upravit zprávu v chráněném kanálu přímých zpráv."
+  },
+  {
+    "id": "api.post.update_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "Nelze upravit zprávu v chráněném kanálu přímých zpráv."
+  },
+  {
+    "id": "api.reaction.delete.restricted_dm.error",
+    "translation": "Nelze reagovat na chráněnou přímou zprávu"
+  },
+  {
+    "id": "api.reaction.save.restricted_dm.error",
+    "translation": "Nelze reagovat v chráněných přímých zprávách"
+  },
+  {
+    "id": "app.channel.get_common_teams.app_error",
+    "translation": "Chyba při získávání společných týmů pro kanál"
+  },
+  {
+    "id": "api.encoding_error",
+    "translation": "Došlo k chybě při zpracování JSON pro odpověď API"
   }
 ]

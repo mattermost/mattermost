@@ -102,10 +102,10 @@ func (th *TestHelper) InitBasic(tb testing.TB) *TestHelper {
 
 	th.BasicTeam = th.CreateTeam(tb)
 
-	// th.LinkUserToTeam(th.BasicUser, th.BasicTeam)
-	// th.LinkUserToTeam(th.BasicUser2, th.BasicTeam)
+	// th.LinkUserToTeam(t, th.BasicUser, th.BasicTeam)
+	// th.LinkUserToTeam(t, th.BasicUser2, th.BasicTeam)
 	th.BasicChannel = th.CreateChannel(tb, th.BasicTeam)
-	// th.BasicPost = th.CreatePost(th.BasicChannel)
+	// th.BasicPost = th.CreatePost(t, th.BasicChannel)
 	return th
 }
 

@@ -1,31 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {History} from 'history';
 import React from 'react';
+import type {match} from 'react-router-dom';
 
 import ChannelView from 'components/channel_view/index';
 
 import {getHistory} from 'utils/browser_history';
 import Constants from 'utils/constants';
 
-export interface Match {
-    params: {
-        identifier: string;
-        team: string;
-        postid?: string;
-        path: string;
-    };
-    url: string;
-}
+export type Match = match<{
+    identifier: string;
+    team: string;
+    postid?: string;
+    path: string;
+}>;
 
 export type MatchAndHistory = Pick<Props, 'match' | 'history'>
 
 type Props = {
     match: Match;
     actions: {
-        onChannelByIdentifierEnter: (props: MatchAndHistory) => any;
+        onChannelByIdentifierEnter: (props: MatchAndHistory) => void;
     };
-    history: any;
+    history: History;
 };
 
 export default class ChannelIdentifierRouter extends React.PureComponent<Props> {

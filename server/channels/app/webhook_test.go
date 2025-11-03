@@ -423,7 +423,7 @@ func TestCreateWebhookPostWithOverriddenIcon(t *testing.T) {
 		require.Nil(t, appErr)
 		assert.Equal(t, "https://example.com/icon.png", post.GetProp(model.PostPropsOverrideIconURL))
 
-		clientPost := th.App.PreparePostForClient(th.Context, post, true, false, false)
+		clientPost := th.App.PreparePostForClient(th.Context, post, &model.PreparePostForClientOpts{IsNewPost: true})
 
 		assert.Equal(t, "https://example.com/icon.png", clientPost.GetProp(model.PostPropsOverrideIconURL))
 	})
@@ -446,7 +446,7 @@ func TestCreateWebhookPostWithOverriddenIcon(t *testing.T) {
 		require.Nil(t, appErr)
 		assert.Equal(t, "smile", post.GetProp(model.PostPropsOverrideIconEmoji))
 
-		clientPost := th.App.PreparePostForClient(th.Context, post, true, false, false)
+		clientPost := th.App.PreparePostForClient(th.Context, post, &model.PreparePostForClientOpts{IsNewPost: true})
 
 		assert.Equal(t, "/static/emoji/1f604.png", clientPost.GetProp(model.PostPropsOverrideIconURL))
 	})
@@ -471,7 +471,7 @@ func TestCreateWebhookPostWithOverriddenIcon(t *testing.T) {
 		require.Nil(t, appErr)
 		assert.Equal(t, emoji.Name, post.GetProp(model.PostPropsOverrideIconEmoji))
 
-		clientPost := th.App.PreparePostForClient(th.Context, post, true, false, false)
+		clientPost := th.App.PreparePostForClient(th.Context, post, &model.PreparePostForClientOpts{IsNewPost: true})
 
 		assert.Equal(t, fmt.Sprintf("/api/v4/emoji/%s/image", emoji.Id), clientPost.GetProp(model.PostPropsOverrideIconURL))
 	})
@@ -494,7 +494,7 @@ func TestCreateWebhookPostWithOverriddenIcon(t *testing.T) {
 		require.Nil(t, appErr)
 		assert.Equal(t, ":smile:", post.GetProp(model.PostPropsOverrideIconEmoji))
 
-		clientPost := th.App.PreparePostForClient(th.Context, post, true, false, false)
+		clientPost := th.App.PreparePostForClient(th.Context, post, &model.PreparePostForClientOpts{IsNewPost: true})
 
 		assert.Equal(t, "/static/emoji/1f604.png", clientPost.GetProp(model.PostPropsOverrideIconURL))
 	})

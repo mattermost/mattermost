@@ -5,7 +5,7 @@ import React from 'react';
 
 import SettingItemMax from 'components/setting_item_max';
 
-import {fireEvent, renderWithContext, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 
 describe('components/SettingItemMax', () => {
     const baseProps = {
@@ -49,19 +49,19 @@ describe('components/SettingItemMax', () => {
         expect(asFragment()).toMatchSnapshot();
     });
 
-    test('should have called updateSection on handleUpdateSection with section after clicking cancel button', () => {
+    test('should have called updateSection on handleUpdateSection with section after clicking cancel button', async () => {
         const {getByTestId} = renderWithContext(<SettingItemMax {...baseProps}/>);
 
-        userEvent.click(getByTestId('cancelButton'));
+        await userEvent.click(getByTestId('cancelButton'));
 
         expect(baseProps.updateSection).toHaveBeenCalled();
         expect(baseProps.updateSection).toHaveBeenCalledWith(baseProps.section);
     });
 
-    test('should have called submit on handleSubmit with setting after clicking save button', () => {
+    test('should have called submit on handleSubmit with setting after clicking save button', async () => {
         const {getByTestId} = renderWithContext(<SettingItemMax {...baseProps}/>);
 
-        userEvent.click(getByTestId('saveSetting'));
+        await userEvent.click(getByTestId('saveSetting'));
 
         expect(baseProps.submit).toHaveBeenCalled();
         expect(baseProps.submit).toHaveBeenCalledWith(baseProps.setting);
@@ -74,7 +74,7 @@ describe('components/SettingItemMax', () => {
         expect(asFragment()).toMatchSnapshot();
     });
 
-    test('should have called submit on handleSubmit onKeyDown ENTER', () => {
+    test('should have called submit on handleSubmit onKeyDown ENTER', async () => {
         const props = {
             ...baseProps,
             inputs: [
@@ -91,18 +91,14 @@ describe('components/SettingItemMax', () => {
 
         const {getByRole, getByTestId} = renderWithContext(<SettingItemMax {...props}/>);
 
-        getByTestId('select').focus();
+        await userEvent.click(getByTestId('select'));
 
-        /**
-         * RTL recommends to use this approach to test keydown events.
-         * https://testing-library.com/docs/guide-events/#keydown
-         */
-        fireEvent.keyDown(document.activeElement!, {key: 'Enter', code: 'Enter'});
+        await userEvent.keyboard('{enter}');
         expect(baseProps.submit).toHaveBeenCalledTimes(0);
 
-        getByRole('radio').focus();
+        await userEvent.click(getByRole('radio'));
 
-        fireEvent.keyDown(document.activeElement!, {key: 'Enter', code: 'Enter'});
+        await userEvent.keyboard('{enter}');
         expect(baseProps.submit).toHaveBeenCalledTimes(1);
     });
 });
