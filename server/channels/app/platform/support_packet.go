@@ -9,6 +9,7 @@ import (
 	"os"
 	"runtime"
 	rpprof "runtime/pprof"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-multierror"
@@ -176,6 +177,11 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		d.LDAP.ServerVersion = serverVersion
 	}
 
+	/* SAML */
+	if IdpDescriptorURL := model.SafeDereference(ps.Config().SamlSettings.IdpDescriptorURL); IdpDescriptorURL != "" {
+		d.SAML.ProviderType = detectSAMLProviderType(IdpDescriptorURL)
+	}
+
 	/* Elastic Search */
 	if se := ps.SearchEngine.ElasticsearchEngine; se != nil {
 		d.ElasticSearch.ServerVersion = se.GetFullVersion()
@@ -265,4 +271,34 @@ func (ps *PlatformService) getGoroutineProfile(_ request.CTX) (*model.FileData, 
 		Body:     b.Bytes(),
 	}
 	return fileData, nil
+}
+
+// detectSAMLProviderType attempts to identify the SAML provider type based on the IdpDescriptorURL.
+// It returns "unknown" if the provider cannot be identified.
+func detectSAMLProviderType(idpDescriptorURL string) string {
+	if idpDescriptorURL == "" {
+		return unknownDataPoint
+	}
+
+	// Check for common SAML provider patterns in the EntityID/IdpDescriptorURL
+	switch {
+	case strings.Contains(idpDescriptorURL, "/realms/"):
+		return "Keycloak"
+	case strings.Contains(idpDescriptorURL, "/adfs/"):
+		return "ADFS"
+	case strings.Contains(idpDescriptorURL, "login.microsoftonline.com") || strings.Contains(idpDescriptorURL, "sts.windows.net"):
+		return "Azure AD"
+	case strings.Contains(idpDescriptorURL, ".okta.com") || strings.Contains(idpDescriptorURL, ".oktapreview.com"):
+		return "Okta"
+	case strings.Contains(idpDescriptorURL, ".auth0.com"):
+		return "Auth0"
+	case strings.Contains(idpDescriptorURL, ".onelogin.com"):
+		return "OneLogin"
+	case strings.Contains(idpDescriptorURL, "/idp/") || strings.Contains(idpDescriptorURL, "pingfederate"):
+		return "PingFederate"
+	case strings.Contains(idpDescriptorURL, "accounts.google.com"):
+		return "Google"
+	default:
+		return unknownDataPoint
+	}
 }
