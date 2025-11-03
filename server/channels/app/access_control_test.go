@@ -436,8 +436,6 @@ func TestUnassignPoliciesFromChannels(t *testing.T) {
 		mockAccessControl := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockAccessControl
 
-		//mockAccessControl.On("DeletePolicy", th.Context, ch1.Id).Return(expectedErr).Once()
-		//mockAccessControl.On("DeletePolicy", th.Context, ch2.Id).Return(nil).Maybe()
 		mockAccessControl.On("SearchPolicies", th.Context, model.AccessControlPolicySearch{
 			Type:     model.AccessControlPolicyTypeChannel,
 			ParentID: parentPolicy.ID,
