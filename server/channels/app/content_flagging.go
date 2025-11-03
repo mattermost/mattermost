@@ -880,9 +880,6 @@ func (a *App) AssignFlaggedPostReviewer(rctx request.CTX, flaggedPostId, flagged
 	}
 
 	status := strings.Trim(string(statusPropertyValue.Value), `"`)
-	if status != model.ContentFlaggingStatusPending && status != model.ContentFlaggingStatusAssigned {
-		return model.NewAppError("AssignFlaggedPostReviewer", "api.content_flagging.error.post_not_in_progress", nil, "", http.StatusBadRequest)
-	}
 
 	groupId, appErr := a.ContentFlaggingGroupId()
 	if appErr != nil {
