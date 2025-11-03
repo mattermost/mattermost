@@ -157,23 +157,23 @@
         }
 
         table {
-            border-collapse: collapse;
-            table-layout: fixed;
-            width: 100%;
-            margin: 1em 0;
             overflow: hidden;
+            width: 100%;
             border: 1px solid var(--center-channel-color-16);
             border-radius: 4px;
+            margin: 1em 0;
+            border-collapse: collapse;
+            table-layout: fixed;
 
             td,
             th {
-                min-width: 1em;
-                border: 1px solid var(--center-channel-color-16);
-                padding: 8px 12px;
-                vertical-align: top;
-                box-sizing: border-box;
                 position: relative;
+                min-width: 1em;
+                box-sizing: border-box;
+                padding: 8px 12px;
+                border: 1px solid var(--center-channel-color-16);
                 background-color: var(--center-channel-bg);
+                vertical-align: top;
 
                 > * {
                     margin-bottom: 0;
@@ -181,10 +181,10 @@
             }
 
             th {
-                font-weight: 600;
-                text-align: left;
                 background-color: var(--center-channel-color-04);
                 color: var(--center-channel-color);
+                font-weight: 600;
+                text-align: left;
             }
 
             .selectedCell {
@@ -193,8 +193,8 @@
 
             .column-resize-handle {
                 position: absolute;
-                right: -2px;
                 top: 0;
+                right: -2px;
                 bottom: -2px;
                 width: 4px;
                 background-color: var(--button-bg);
@@ -277,18 +277,18 @@
 .tiptap-toolbar {
     // Visual styles only - positioning handled in wiki_view.scss
     position: sticky;
-    bottom: 0px;
     z-index: 1000;
+    bottom: 0px;
     display: flex;
     width: max-content;
     max-width: 90%;
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
-    margin: 0 auto;
     padding: 8px;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
     border-radius: var(--radius-m);
+    margin: 0 auto;
     background: var(--center-channel-bg);
     box-shadow: var(--elevation-4);
     gap: 4px;
@@ -322,15 +322,15 @@
 
 // Inline comment highlight styles
 .inline-comment-highlight {
-    background-color: rgba(255, 235, 59, 0.3);
-    border-bottom: 2px solid rgba(255, 193, 7, 0.6);
-    cursor: pointer;
-    transition: background-color 0.2s ease;
     padding: 2px 0;
     border-radius: 2px;
+    border-bottom: 2px solid rgba(255, 193, 7, 0.6);
+    background-color: rgba(255, 235, 59, 0.3);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
 
     &:hover {
-        background-color: rgba(255, 235, 59, 0.5);
         border-bottom-color: rgba(255, 193, 7, 0.9);
+        background-color: rgba(255, 235, 59, 0.5);
     }
 }

@@ -17,7 +17,7 @@ import type {HostedCustomerState} from './hosted_customer';
 import type {IntegrationsState} from './integrations';
 import type {JobsState} from './jobs';
 import type {LimitsState} from './limits';
-import type {Post, PostsState} from './posts';
+import type {PostsState} from './posts';
 import type {PreferenceType} from './preferences';
 import type {
     AdminRequestsStatuses, ChannelsRequestsStatuses,

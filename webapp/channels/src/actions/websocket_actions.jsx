@@ -108,12 +108,13 @@ import {
 import {loadCustomEmojisIfNeeded} from 'actions/emoji_actions';
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {sendDesktopNotification} from 'actions/notification_actions';
+import {transformPageServerDraft} from 'actions/page_drafts';
 import {handleNewPost} from 'actions/post_actions';
 import * as StatusActions from 'actions/status_actions';
 import {setGlobalItem} from 'actions/storage';
 import {loadProfilesForDM, loadProfilesForGM, loadProfilesForSidebar} from 'actions/user_actions';
 import {syncPostsInChannel} from 'actions/views/channel';
-import {setGlobalDraft, transformServerDraft} from 'actions/views/drafts';
+import {setGlobalDraft, setGlobalDraftSource, transformServerDraft} from 'actions/views/drafts';
 import {openModal} from 'actions/views/modals';
 import {closeRightHandSide} from 'actions/views/rhs';
 import {incrementWsErrorCount, resetWsErrorCount} from 'actions/views/system';
@@ -899,7 +900,7 @@ export function handlePagePublishedEvent(msg) {
     }
 
     dispatch(batchActions([
-        {type: WikiTypes.RECEIVED_PAGE, data: page},
+        {type: WikiTypes.RECEIVED_PAGE_IN_WIKI, data: page},
         {type: WikiTypes.DELETED_DRAFT, data: {id: draftId, wikiId}},
     ]));
 }
@@ -1837,10 +1838,22 @@ function handlePostAcknowledgementRemoved(msg) {
 function handleUpsertDraftEvent(msg) {
     return async (doDispatch) => {
         const draft = JSON.parse(msg.data.draft);
-        const {key, value} = transformServerDraft(draft);
-        value.show = true;
 
-        doDispatch(setGlobalDraft(key, value, true));
+        // Check if this is a page draft (has wiki_id field)
+        if (draft.wiki_id) {
+            // Handle page draft
+            const transformedDraft = transformPageServerDraft(draft, draft.wiki_id, draft.root_id);
+            transformedDraft.value.show = true;
+
+            doDispatch(setGlobalItem(transformedDraft.key, transformedDraft.value));
+            doDispatch(setGlobalDraftSource(transformedDraft.key, true));
+        } else {
+            // Handle channel draft
+            const {key, value} = transformServerDraft(draft);
+            value.show = true;
+
+            doDispatch(setGlobalDraft(key, value, true));
+        }
     };
 }
 

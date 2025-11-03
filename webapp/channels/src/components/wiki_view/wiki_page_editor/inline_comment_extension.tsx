@@ -45,6 +45,7 @@ const InlineCommentExtension = Extension.create<InlineCommentConfig>({
     },
 
     addProseMirrorPlugins() {
+        // eslint-disable-next-line @typescript-eslint/no-this-alias, consistent-this
         const extension = this;
 
         return [
@@ -57,6 +58,7 @@ const InlineCommentExtension = Extension.create<InlineCommentConfig>({
                             selectedRange: null as {from: number; to: number} | null,
                         };
                     },
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     apply(tr, value) {
                         const {selection} = tr;
                         if (!selection.empty) {
@@ -120,7 +122,6 @@ const InlineCommentExtension = Extension.create<InlineCommentConfig>({
                         if (target.classList.contains('inline-comment-highlight')) {
                             const commentId = target.getAttribute('data-comment-id');
                             if (commentId && extension.options.onCommentClick) {
-                                const clickTime = performance.now();
                                 extension.options.onCommentClick(commentId);
                                 return true;
                             }

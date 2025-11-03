@@ -126,7 +126,8 @@ export function createChannelMentionSuggestion(props: ChannelMentionBridgeProps)
             let currentItems: Channel[] = [];
             let currentSelectedIndex = 0;
             let commandFunction: ((attrs: any) => void) | null = null;
-            let savedEditor: any = null;
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            let savedEditor: Editor | null = null;
 
             const scrollSelectedIntoView = (index: number) => {
                 setTimeout(() => {

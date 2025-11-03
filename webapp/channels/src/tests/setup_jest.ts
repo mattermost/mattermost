@@ -90,6 +90,11 @@ afterEach(() => {
             continue;
         }
 
+        // Ignore Redux DevTools selector tracking warnings
+        if (typeof call[0] === 'string' && call[0].includes('Selector unknown returned a different result')) {
+            continue;
+        }
+
         warns.push(call);
     }
 

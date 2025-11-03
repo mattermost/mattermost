@@ -573,6 +573,42 @@ func TestPublishPageDraft(t *testing.T) {
 		assert.Equal(t, model.PostTypePage, retrievedPage.Type)
 		assert.JSONEq(t, content, retrievedPage.Message)
 	})
+
+	t.Run("publish parent draft updates child draft references", func(t *testing.T) {
+		parentDraftId := model.NewId()
+		parentTitle := "Parent Draft"
+		parentContent := createTipTapContent("This is the parent page content")
+
+		_, err := th.App.SavePageDraftWithMetadata(th.Context, user.Id, createdWiki.Id, parentDraftId, parentContent, parentTitle, "", nil)
+		require.Nil(t, err)
+
+		childDraftId := model.NewId()
+		childTitle := "Child Draft"
+		childContent := createTipTapContent("This is the child page content")
+
+		_, err = th.App.SavePageDraftWithMetadata(th.Context, user.Id, createdWiki.Id, childDraftId, childContent, childTitle, "", map[string]any{
+			"page_parent_id": parentDraftId,
+		})
+		require.Nil(t, err)
+
+		childDraft, err := th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, childDraftId)
+		require.Nil(t, err)
+		assert.Equal(t, parentDraftId, childDraft.Props["page_parent_id"], "Child draft should reference parent draft ID")
+
+		publishedParent, appErr := th.App.PublishPageDraft(th.Context, user.Id, createdWiki.Id, parentDraftId, "", parentTitle, "", "")
+		require.Nil(t, appErr)
+		require.NotNil(t, publishedParent)
+
+		updatedChildDraft, err := th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, childDraftId)
+		require.Nil(t, err)
+		assert.Equal(t, publishedParent.Id, updatedChildDraft.Props["page_parent_id"], "Child draft should now reference published parent page ID")
+		assert.NotEqual(t, parentDraftId, updatedChildDraft.Props["page_parent_id"], "Child draft should no longer reference draft ID")
+
+		publishedChild, appErr := th.App.PublishPageDraft(th.Context, user.Id, createdWiki.Id, childDraftId, publishedParent.Id, childTitle, "", "")
+		require.Nil(t, appErr)
+		require.NotNil(t, publishedChild)
+		assert.Equal(t, publishedParent.Id, publishedChild.PageParentId, "Published child page should have correct parent")
+	})
 }
 
 // TestPageDraftWhenPageDeleted tests concurrent editing conflict scenarios where users

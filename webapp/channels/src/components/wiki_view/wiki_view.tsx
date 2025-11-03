@@ -18,8 +18,13 @@ import {getIsPanesPanelCollapsed} from 'selectors/pages_hierarchy';
 import {getRhsState} from 'selectors/rhs';
 
 import {makeAsyncComponent} from 'components/async_load';
+import DuplicatePageModal from 'components/duplicate_page_modal';
 import LoadingScreen from 'components/loading_screen';
+import MovePageModal from 'components/move_page_modal';
 import PagesHierarchyPanel from 'components/pages_hierarchy_panel';
+import DeletePageModal from 'components/pages_hierarchy_panel/delete_page_modal';
+import {usePageMenuHandlers} from 'components/pages_hierarchy_panel/hooks/use_page_menu_handlers';
+import TextInputModal from 'components/text_input_modal';
 
 import {getWikiUrl, getTeamNameFromPath} from 'utils/url';
 
@@ -31,10 +36,6 @@ import WikiPageEditor from './wiki_page_editor';
 import WikiPageHeader from './wiki_page_header';
 
 import './wiki_view.scss';
-
-const ChannelHeader = makeAsyncComponent('ChannelHeader', lazy(() => import('components/channel_header')));
-const ChannelBookmarks = makeAsyncComponent('ChannelBookmarks', lazy(() => import('components/channel_bookmarks')));
-const ChannelTabBar = makeAsyncComponent('ChannelTabBar', lazy(() => import('components/channel_tab_bar')));
 
 const WikiView = () => {
     const dispatch = useDispatch();
@@ -117,6 +118,19 @@ const WikiView = () => {
             pageParentIdRef.current = currentPage.page_parent_id;
         }
     }, [currentPage?.page_parent_id]);
+
+    // Preserve draft's parent ID and title across renders to avoid breadcrumb flickering
+    const draftParentIdRef = React.useRef<string | undefined>(undefined);
+    const draftTitleRef = React.useRef<string | undefined>(undefined);
+    React.useEffect(() => {
+        if (currentDraft?.props?.page_parent_id) {
+            draftParentIdRef.current = currentDraft.props.page_parent_id;
+        }
+        if (currentDraft?.props?.title) {
+            draftTitleRef.current = currentDraft.props.title;
+        }
+    }, [currentDraft?.props?.page_parent_id, currentDraft?.props?.title]);
+
     const allDrafts = useSelector((state: GlobalState) => (wikiId ? getPageDraftsForWiki(state, wikiId) : []));
     const allPages = useSelector((state: GlobalState) => (wikiId ? getPages(state, wikiId) : []));
 
@@ -182,8 +196,6 @@ const WikiView = () => {
     };
 
     const handlePageSelect = (selectedPageId: string) => {
-        const startTime = performance.now();
-
         const isSelectedIdDraft = selectedPageId.startsWith('draft-') || allDrafts.some((draft) => draft.rootId === selectedPageId);
         const teamName = getTeamNameFromPath(location.pathname);
         const url = getWikiUrl(teamName, channelId, wikiId, selectedPageId, isSelectedIdDraft);
@@ -195,6 +207,15 @@ const WikiView = () => {
             dispatch(openWikiRhs(selectedPageId, wikiId || ''));
         }
     };
+
+    // Use shared menu handlers hook - it will combine pages and drafts internally
+    const menuHandlers = usePageMenuHandlers({
+        wikiId: wikiId || '',
+        channelId,
+        pages: allPages,
+        drafts: allDrafts,
+        onPageSelect: handlePageSelect,
+    });
 
     const handleOpenPagesPanel = () => {
         dispatch(openPagesPanel());
@@ -224,22 +245,15 @@ const WikiView = () => {
 
     return (
         <div
-            className='app__content'
-            data-testid='wiki-view-app-content'
+            className={classNames('WikiView', {
+                'page-selected': Boolean(pageId),
+            })}
+            data-testid='wiki-view'
         >
-            <ChannelHeader/>
-            <ChannelBookmarks channelId={channelId}/>
-            <ChannelTabBar channelId={channelId}/>
-            <div
-                className={classNames('WikiView', {
-                    'page-selected': Boolean(pageId),
-                })}
-                data-testid='wiki-view'
-            >
-                {isLoading ? (
-                    <div
-                        className='no-results__holder'
-                        data-testid='wiki-view-loading'
+            {isLoading ? (
+                <div
+                    className='no-results__holder'
+                    data-testid='wiki-view-loading'
                     >
                         <LoadingScreen/>
                     </div>
@@ -260,7 +274,7 @@ const WikiView = () => {
                             <PagesHierarchyPanel
                                 wikiId={wikiId}
                                 channelId={channelId}
-                                currentPageId={pageId}
+                                currentPageId={pageId || draftId}
                                 onPageSelect={handlePageSelect}
                             />
                         )}
@@ -269,21 +283,41 @@ const WikiView = () => {
                             className={classNames('PagePane', {'PagePane--sidebarCollapsed': isPanesPanelCollapsed})}
                             data-testid='wiki-page-pane'
                         >
-                            {!isEmptyState && (
-                                <WikiPageHeader
-                                    wikiId={wikiId || ''}
-                                    pageId={currentDraft ? '' : (pageId || '')}
-                                    channelId={actualChannelId}
-                                    isDraft={isDraft}
-                                    parentPageId={currentDraft?.props?.page_parent_id}
-                                    draftTitle={currentDraft?.props?.title}
-                                    onEdit={handleEdit}
-                                    onPublish={handlePublish}
-                                    onToggleComments={handleToggleComments}
-                                    isFullscreen={isFullscreen}
-                                    onToggleFullscreen={toggleFullscreen}
-                                />
-                            )}
+                            {!isEmptyState && (() => {
+                                const currentPageIdForHeader = currentDraft ? draftId : (pageId || '');
+                                const pageLink = currentPageIdForHeader && wikiId && channelId ? `/${currentTeam?.name || 'team'}/wiki/${channelId}/${wikiId}/${currentPageIdForHeader}` : undefined;
+
+                                // For drafts, wait until currentDraft is loaded to avoid breadcrumb issues
+                                if (isDraft && draftId && !currentDraft) {
+                                    return null;
+                                }
+
+                                // Use refs to preserve draft parent ID and title across renders
+                                const effectiveParentId = isDraft ? (currentDraft?.props?.page_parent_id || draftParentIdRef.current) : undefined;
+                                const effectiveTitle = isDraft ? (currentDraft?.props?.title || draftTitleRef.current) : undefined;
+
+                                return (
+                                    <WikiPageHeader
+                                        wikiId={wikiId || ''}
+                                        pageId={currentPageIdForHeader || ''}
+                                        channelId={actualChannelId}
+                                        isDraft={isDraft}
+                                        parentPageId={effectiveParentId}
+                                        draftTitle={effectiveTitle}
+                                        onEdit={handleEdit}
+                                        onPublish={handlePublish}
+                                        onToggleComments={handleToggleComments}
+                                        isFullscreen={isFullscreen}
+                                        onToggleFullscreen={toggleFullscreen}
+                                        onCreateChild={() => currentPageIdForHeader && menuHandlers.handleCreateChild(currentPageIdForHeader)}
+                                        onRename={() => currentPageIdForHeader && menuHandlers.handleRename(currentPageIdForHeader)}
+                                        onDuplicate={() => currentPageIdForHeader && menuHandlers.handleDuplicate(currentPageIdForHeader)}
+                                        onMove={() => currentPageIdForHeader && menuHandlers.handleMove(currentPageIdForHeader)}
+                                        onDelete={() => currentPageIdForHeader && menuHandlers.handleDelete(currentPageIdForHeader)}
+                                        pageLink={pageLink}
+                                    />
+                                );
+                            })()}
                             <div
                                 className='PagePane__content'
                                 data-testid='wiki-page-content'
@@ -305,7 +339,7 @@ const WikiView = () => {
                                         teamId,
                                         pageId: draftId,
                                         wikiId,
-                                        showAuthor: false,
+                                        showAuthor: true,
                                     };
                                     return <WikiPageEditor {...editorProps}/>;
                                 })()}
@@ -331,9 +365,76 @@ const WikiView = () => {
                                 )}
                             </div>
                         </div>
+
+                        {/* Menu action modals */}
+                        {menuHandlers.showDeleteModal && menuHandlers.pageToDelete && (
+                            <DeletePageModal
+                                pageTitle={(menuHandlers.pageToDelete.page.props?.title as string | undefined) || menuHandlers.pageToDelete.page.message || 'Untitled'}
+                                childCount={menuHandlers.pageToDelete.childCount}
+                                onConfirm={menuHandlers.handleDeleteConfirm}
+                                onCancel={menuHandlers.handleDeleteCancel}
+                            />
+                        )}
+
+                        {menuHandlers.showMoveModal && menuHandlers.pageToMove && (
+                            <MovePageModal
+                                pageId={menuHandlers.pageToMove.pageId}
+                                pageTitle={menuHandlers.pageToMove.pageTitle}
+                                currentWikiId={wikiId || ''}
+                                availableWikis={menuHandlers.availableWikis}
+                                fetchPagesForWiki={menuHandlers.fetchPagesForWiki}
+                                hasChildren={menuHandlers.pageToMove.hasChildren}
+                                onConfirm={menuHandlers.handleMoveConfirm}
+                                onCancel={menuHandlers.handleMoveCancel}
+                            />
+                        )}
+
+                        {menuHandlers.showDuplicateModal && menuHandlers.pageToDuplicate && (
+                            <DuplicatePageModal
+                                pageId={menuHandlers.pageToDuplicate.pageId}
+                                pageTitle={menuHandlers.pageToDuplicate.pageTitle}
+                                currentWikiId={wikiId || ''}
+                                availableWikis={menuHandlers.availableWikis}
+                                fetchPagesForWiki={menuHandlers.fetchPagesForWiki}
+                                hasChildren={menuHandlers.pageToDuplicate.hasChildren}
+                                onConfirm={menuHandlers.handleDuplicateConfirm}
+                                onCancel={menuHandlers.handleDuplicateCancel}
+                            />
+                        )}
+
+                        {menuHandlers.showRenameModal && menuHandlers.pageToRename && (
+                            <TextInputModal
+                                show={menuHandlers.showRenameModal}
+                                title='Rename Page'
+                                placeholder='Enter new page title...'
+                                confirmButtonText='Rename'
+                                maxLength={255}
+                                initialValue={menuHandlers.pageToRename.currentTitle}
+                                ariaLabel='Rename Page'
+                                inputTestId='rename-page-modal-title-input'
+                                onConfirm={menuHandlers.handleRenameConfirm}
+                                onCancel={menuHandlers.handleRenameCancel}
+                                onHide={() => menuHandlers.setShowRenameModal(false)}
+                            />
+                        )}
+
+                        {menuHandlers.showCreatePageModal && (
+                            <TextInputModal
+                                show={menuHandlers.showCreatePageModal}
+                                title={menuHandlers.createPageParent ? `Create Child Page under "${menuHandlers.createPageParent.title}"` : 'Create New Page'}
+                                placeholder='Enter page title...'
+                                helpText={menuHandlers.createPageParent ? `This page will be created as a child of "${menuHandlers.createPageParent.title}".` : 'A new draft will be created for you to edit.'}
+                                confirmButtonText='Create'
+                                maxLength={255}
+                                ariaLabel='Create Page'
+                                inputTestId='create-page-modal-title-input'
+                                onConfirm={menuHandlers.handleConfirmCreatePage}
+                                onCancel={menuHandlers.handleCancelCreatePage}
+                                onHide={() => menuHandlers.setShowCreatePageModal(false)}
+                            />
+                        )}
                     </>
                 )}
-            </div>
         </div>
     );
 };

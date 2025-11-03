@@ -33,6 +33,7 @@ import {
     getSearchTeam,
 } from 'selectors/rhs';
 import {getSelectedPageId} from 'selectors/wiki_rhs';
+import {getPageDraft} from 'selectors/page_drafts';
 
 import {SidebarSize} from 'components/resizable_sidebar/constants';
 
@@ -497,9 +498,15 @@ export function openWikiRhs(pageId: string, wikiId?: string, focusedInlineCommen
         let page = getPost(state, pageId);
 
         if (!page) {
-            // Fetch the page if not in Redux
-            await dispatch(getPostThread(pageId, false, 0));
-            page = getPost(getState(), pageId);
+            // Check if this is a draft before trying to fetch as a post
+            const isDraft = wikiId ? getPageDraft(state, wikiId, pageId) : null;
+
+            if (!isDraft) {
+                // Not a draft - fetch the page if not in Redux
+                await dispatch(getPostThread(pageId, false, 0));
+                page = getPost(getState(), pageId);
+            }
+            // If it's a draft, we don't need to fetch it as a post
         }
 
         // Ensure the channel is loaded

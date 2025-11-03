@@ -102,10 +102,10 @@ describe('wiki_pages reducer', () => {
         });
     });
 
-    describe('RECEIVED_PAGE', () => {
+    describe('RECEIVED_PAGE_IN_WIKI', () => {
         test('should add page ID to byWiki', () => {
             const action = {
-                type: WikiTypes.RECEIVED_PAGE,
+                type: WikiTypes.RECEIVED_PAGE_IN_WIKI,
                 data: mockPage,
             };
 
@@ -124,7 +124,7 @@ describe('wiki_pages reducer', () => {
             };
 
             const action = {
-                type: WikiTypes.RECEIVED_PAGE,
+                type: WikiTypes.RECEIVED_PAGE_IN_WIKI,
                 data: mockPage,
             };
 
@@ -146,7 +146,7 @@ describe('wiki_pages reducer', () => {
 
             const newPage = {...mockPage, id: 'new-page'};
             const action = {
-                type: WikiTypes.RECEIVED_PAGE,
+                type: WikiTypes.RECEIVED_PAGE_IN_WIKI,
                 data: newPage,
             };
 
@@ -157,7 +157,7 @@ describe('wiki_pages reducer', () => {
 
         test('should not store page content', () => {
             const action = {
-                type: WikiTypes.RECEIVED_PAGE,
+                type: WikiTypes.RECEIVED_PAGE_IN_WIKI,
                 data: mockPage,
             };
 

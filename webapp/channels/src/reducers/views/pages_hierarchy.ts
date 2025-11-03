@@ -133,9 +133,13 @@ export default function pagesHierarchyReducer(state = initialState, action: AnyA
         const restCache = {...state.outlineCache};
         delete restCache[pageId];
 
+        const newExpandedNodes = {...state.outlineExpandedNodes};
+        delete newExpandedNodes[pageId];
+
         return {
             ...state,
             outlineCache: restCache,
+            outlineExpandedNodes: newExpandedNodes,
         };
     }
 

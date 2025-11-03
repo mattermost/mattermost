@@ -159,22 +159,33 @@
             flex-shrink: 0;
             align-items: center;
             gap: 8px;
+
+            .btn {
+                height: 32px;
+                padding: 0 12px;
+                font-size: 14px;
+                font-weight: 600;
+
+                i {
+                    margin-right: 6px;
+                    font-size: 16px;
+                }
+            }
         }
 
         &__icon-button {
             position: relative;
             display: flex;
-            min-width: 32px;
+            width: 32px;
             height: 32px;
             align-items: center;
             justify-content: center;
-            padding: 0 8px;
+            padding: 0;
             border: none;
             border-radius: 4px;
             background: transparent;
             color: rgba(var(--center-channel-color-rgb), 0.56);
             cursor: pointer;
-            gap: 4px;
             transition: all 0.15s ease;
 
             &:hover {
@@ -220,6 +231,7 @@
         &__content {
             display: flex;
             overflow: hidden;
+            min-width: 0;
             flex: 1;
             flex-direction: column;
             background: #FFFFFF;
@@ -365,10 +377,45 @@
                 font-size: 14px;
                 gap: 12px;
 
-                .page-author {
+                .WikiPageEditor__author {
+                    display: flex;
+                    min-width: 0;
+                    align-items: center;
+                    gap: 8px;
+
+                    .WikiPageEditor__authorText {
+                        overflow: hidden;
+                        max-width: 200px;
+                        color: rgba(var(--center-channel-color-rgb), 0.72);
+                        font-size: 14px;
+                        text-overflow: ellipsis;
+                        white-space: nowrap;
+                    }
+                }
+
+                .WikiPageEditor__authorLoading {
                     display: flex;
                     align-items: center;
-                    color: rgba(var(--center-channel-color-rgb), 0.64);
+                    gap: 8px;
+
+                    .skeleton-loader {
+                        width: 20px;
+                        height: 20px;
+                        border-radius: 50%;
+                        animation: skeleton-loading 1.5s infinite;
+                        background: linear-gradient(
+                            90deg,
+                            rgba(var(--center-channel-color-rgb), 0.08) 0%,
+                            rgba(var(--center-channel-color-rgb), 0.12) 50%,
+                            rgba(var(--center-channel-color-rgb), 0.08) 100%
+                        );
+                    }
+                }
+
+                @keyframes skeleton-loading {
+                    0% { opacity: 0.6; }
+                    50% { opacity: 1; }
+                    100% { opacity: 0.6; }
                 }
 
                 .page-status {
@@ -554,11 +601,11 @@ body.fullscreen-mode {
 
     .WikiView {
         position: fixed;
+        z-index: 900;
         top: 0;
         left: 0;
         width: 100vw;
         height: 100vh;
-        z-index: 900;
         background: var(--center-channel-bg);
     }
 

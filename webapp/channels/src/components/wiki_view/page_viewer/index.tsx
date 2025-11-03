@@ -29,21 +29,15 @@ type Props = {
 };
 
 const PageViewer = ({pageId, wikiId}: Props) => {
-    const renderStartTime = React.useRef(performance.now());
     const renderCount = React.useRef(0);
     const contentRef = React.useRef<HTMLDivElement>(null);
     renderCount.current += 1;
 
     // Track when content is actually painted to DOM
     React.useLayoutEffect(() => {
-        const paintTime = performance.now() - renderStartTime.current;
-
         if (contentRef.current) {
+            // Content is painted, layout complete
         }
-    });
-
-    React.useEffect(() => {
-        const commitTime = performance.now() - renderStartTime.current;
     });
 
     const dispatch = useDispatch();

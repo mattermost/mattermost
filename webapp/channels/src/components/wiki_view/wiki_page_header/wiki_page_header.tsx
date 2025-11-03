@@ -3,6 +3,7 @@
 
 import React from 'react';
 
+import PageActionsMenu from '../../pages_hierarchy_panel/page_actions_menu';
 import PageBreadcrumb from '../page_breadcrumb';
 
 type Props = {
@@ -17,6 +18,12 @@ type Props = {
     onToggleComments: () => void;
     isFullscreen?: boolean;
     onToggleFullscreen?: () => void;
+    onCreateChild?: () => void;
+    onRename?: () => void;
+    onDuplicate?: () => void;
+    onMove?: () => void;
+    onDelete?: () => void;
+    pageLink?: string;
 };
 
 const WikiPageHeader = ({
@@ -31,6 +38,12 @@ const WikiPageHeader = ({
     onToggleComments,
     isFullscreen,
     onToggleFullscreen,
+    onCreateChild,
+    onRename,
+    onDuplicate,
+    onMove,
+    onDelete,
+    pageLink,
 }: Props) => {
     return (
         <div
@@ -63,17 +76,6 @@ const WikiPageHeader = ({
                     >
                         <i className='icon-message-text-outline'/>
                     </button>
-                    {onToggleFullscreen && (
-                        <button
-                            className='PagePane__icon-button'
-                            aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
-                            title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
-                            onClick={onToggleFullscreen}
-                            data-testid='wiki-page-fullscreen-button'
-                        >
-                            <i className={isFullscreen ? 'icon-arrow-collapse' : 'icon-arrow-expand'}/>
-                        </button>
-                    )}
                     {isDraft ? (
                         <button
                             className='btn btn-primary'
@@ -87,7 +89,7 @@ const WikiPageHeader = ({
                         </button>
                     ) : (
                         <button
-                            className='btn btn-primary'
+                            className='btn btn-tertiary'
                             aria-label='Edit'
                             title='Edit'
                             onClick={onEdit}
@@ -97,14 +99,30 @@ const WikiPageHeader = ({
                             {'Edit'}
                         </button>
                     )}
-                    <button
-                        className='PagePane__icon-button'
-                        aria-label='More actions'
-                        title='More actions'
-                        data-testid='wiki-page-more-actions'
-                    >
-                        <i className='icon-dots-vertical'/>
-                    </button>
+                    {pageId && (
+                        <PageActionsMenu
+                            pageId={pageId}
+                            onCreateChild={onCreateChild}
+                            onRename={onRename}
+                            onDuplicate={onDuplicate}
+                            onMove={onMove}
+                            onDelete={onDelete}
+                            isDraft={isDraft}
+                            pageLink={pageLink}
+                            buttonTestId='wiki-page-more-actions'
+                        />
+                    )}
+                    {onToggleFullscreen && (
+                        <button
+                            className='PagePane__icon-button'
+                            aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+                            title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+                            onClick={onToggleFullscreen}
+                            data-testid='wiki-page-fullscreen-button'
+                        >
+                            <i className={isFullscreen ? 'icon-arrow-collapse' : 'icon-arrow-expand'}/>
+                        </button>
+                    )}
                 </div>
             </div>
         </div>

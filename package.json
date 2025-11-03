@@ -1,0 +1,12 @@
+{
+  "name": "mattermost-pages-debug-tools",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Debug tools for comparing Redux state with database",
+  "scripts": {
+    "dump-redux": "node dump_redux_state.mjs"
+  },
+  "dependencies": {
+    "chrome-remote-interface": "^0.33.3"
+  }
+}

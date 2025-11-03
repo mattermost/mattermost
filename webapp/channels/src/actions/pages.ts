@@ -14,7 +14,10 @@ import {Client4} from 'mattermost-redux/client';
 import {PostTypes} from 'mattermost-redux/constants/posts';
 import {isCollapsedThreadsEnabled, syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
-import {setGlobalItem} from 'actions/storage';
+import {makePageDraftKey, loadPageDraftsForWiki} from 'actions/page_drafts';
+import {setGlobalItem, removeGlobalItem} from 'actions/storage';
+import {clearOutlineCache} from 'actions/views/pages_hierarchy';
+import {getGlobalItem} from 'selectors/storage';
 
 import {getHistory} from 'utils/browser_history';
 import {PageConstants} from 'utils/constants';
@@ -51,8 +54,8 @@ export function loadPages(wikiId: string): ActionFuncAsync<Post[]> {
                     const existingPost = existingPosts[page.id];
 
                     // If page already exists in Redux with content, preserve the content
-                    // getPages returns pages without content (for performance)
-                    // Only full getPage loads content from PageContents table
+                    // GetWikiPages returns pages without content (for performance)
+                    // Only full GetPage loads content from PageContents table
                     if (existingPost && existingPost.message && existingPost.message.trim() !== '') {
                         acc[page.id] = {
                             ...page,
@@ -233,10 +236,6 @@ export function loadChannelDefaultPage(channelId: string): ActionFuncAsync<Page>
 // Publish a page draft
 export function publishPageDraft(wikiId: string, draftId: string, pageParentId: string, title: string, searchText?: string, message?: string): ActionFuncAsync<Page> {
     return async (dispatch, getState) => {
-        const {makePageDraftKey} = await import('./page_drafts');
-        const {getGlobalItem} = await import('selectors/storage');
-        const {removeGlobalItem} = await import('actions/storage');
-
         const state = getState();
         const draftKey = makePageDraftKey(wikiId, draftId);
         const draft = getGlobalItem<PostDraft | null>(state, draftKey, null);
@@ -280,11 +279,11 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
 
         // Remove draft from storage simultaneously with dispatching optimistic page
         // This prevents the race condition where both draft and optimistic page appear in tree
-        const removeDraftAction = setGlobalItem(draftKey, {message: '', fileInfos: [], uploadsInProgress: [], metadata: {}});
+        const removeDraftAction = removeGlobalItem(draftKey);
 
         dispatch(batchActions([
             {type: WikiTypes.PUBLISH_DRAFT_REQUEST, data: {draftId}},
-            {type: WikiTypes.RECEIVED_PAGE, data: optimisticPage},
+            {type: WikiTypes.RECEIVED_PAGE_IN_WIKI, data: optimisticPage},
             {type: PostActionTypes.RECEIVED_POST, data: optimisticPage},
             removeDraftAction,
         ]));
@@ -300,7 +299,7 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
                 {type: WikiTypes.PUBLISH_DRAFT_SUCCESS, data: {draftId, pageId: data.id, optimisticId: pendingPageId}},
                 {type: PostActionTypes.POST_REMOVED, data: {id: pendingPageId}},
                 {type: PostActionTypes.RECEIVED_POST, data},
-                {type: WikiTypes.RECEIVED_PAGE, data},
+                {type: WikiTypes.RECEIVED_PAGE_IN_WIKI, data},
                 {type: WikiTypes.DELETED_DRAFT, data: {id: draftId, wikiId}},
             ]));
 
@@ -315,19 +314,15 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
                 history.replace(`/wikis/${wikiId}/pages/${data.id}`);
             }
 
+            // Clear outline cache for the published page so fresh headings are extracted
+            dispatch(clearOutlineCache(data.id));
+
             // Reload hierarchy to show the newly published page
             // loadPages now preserves existing content in Redux, so this is safe
             await dispatch(loadPages(wikiId));
 
-            // Clear outline cache for the published page so fresh headings are extracted
-            // This must happen after loadPages to ensure Redux has the latest content
-            const {clearOutlineCache} = await import('actions/views/pages_hierarchy');
-            dispatch(clearOutlineCache(data.id));
-
             return {data};
         } catch (error) {
-            const {setGlobalItem} = await import('actions/storage');
-            const {LogErrorBarMode} = await import('mattermost-redux/actions/errors');
             dispatch(batchActions([
                 {type: WikiTypes.PUBLISH_DRAFT_FAILURE, data: {draftId, error}},
                 {type: PostActionTypes.POST_REMOVED, data: {id: pendingPageId}},
@@ -353,7 +348,6 @@ export function createPage(wikiId: string, title: string, pageParentId?: string)
 
             await Client4.savePageDraft(wikiId, draftId, placeholderContent, title, undefined, {page_parent_id: pageParentId});
 
-            const {loadPageDraftsForWiki} = await import('./page_drafts');
             await dispatch(loadPageDraftsForWiki(wikiId));
 
             return {data: draftId};
@@ -444,7 +438,7 @@ export function deletePage(pageId: string, wikiId: string): ActionFuncAsync {
                         data: originalPost,
                     },
                     {
-                        type: WikiTypes.RECEIVED_PAGE,
+                        type: WikiTypes.RECEIVED_PAGE_IN_WIKI,
                         data: originalPost,
                     },
                 ]));
@@ -508,9 +502,6 @@ export function movePage(pageId: string, newParentId: string, wikiId: string): A
 // Move a draft in hierarchy (used for drag-and-drop on drafts)
 function moveDraftInHierarchy(draftId: string, newParentId: string | null, wikiId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
-        const {makePageDraftKey} = await import('./page_drafts');
-        const {getGlobalItem} = await import('selectors/storage');
-
         const state = getState();
         const draftKey = makePageDraftKey(wikiId, draftId);
         const draft = getGlobalItem<PostDraft | null>(state, draftKey, null);

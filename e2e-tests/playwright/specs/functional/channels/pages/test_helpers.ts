@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {Page, Locator} from '@playwright/test';
+import {expect} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 import type {Channel} from '@mattermost/types/channels';
 
@@ -97,51 +98,43 @@ export async function createWikiThroughUI(page: Page, wikiName: string) {
     await page.waitForLoadState('domcontentloaded');
     await page.waitForLoadState('networkidle');
 
-    // # Ensure we're on the channel view (not wiki view)
-    // Wait for channel header to be visible
-    const channelHeader = page.locator('#channelHeaderDropdownButton, #channelHeaderTitle');
-    await channelHeader.first().waitFor({state: 'visible', timeout: 10000});
+    // # Click the add content button in the unified channel tabs bar
+    // First, check if we need to navigate to channel view
+    const currentUrl = page.url();
+    const isInWikiView = currentUrl.includes('/wiki/');
 
-    // # Click the wiki create button in the channel tab bar
-    // Note: The button may not be visible yet if there are no wikis
-    // Try to find it first, if not visible, navigate to channel first
-    const wikiCreateButton = page.locator('.wiki-create-button');
-    const isCreateButtonVisible = await wikiCreateButton.isVisible({timeout: 2000}).catch(() => false);
-
-    if (!isCreateButtonVisible) {
-        // # Navigate to channel view first (might be in a wiki view)
-        const currentUrl = page.url();
-        const channelIdMatch = currentUrl.match(/\/channels\/([^/]+)/);
+    if (isInWikiView) {
+        // # Navigate to channel view first
+        const channelIdMatch = currentUrl.match(/\/wiki\/([^/]+)/);
         if (channelIdMatch) {
-            // Already in channel view, tab bar should appear when first wiki is created
-            // Click create button which will appear in the tab bar
-            await wikiCreateButton.waitFor({state: 'visible', timeout: 5000});
-        } else {
-            // In wiki view, need to go back to channel
-            const channelLinkMatch = currentUrl.match(/\/wiki\/([^/]+)/);
-            if (channelLinkMatch) {
-                const channelId = channelLinkMatch[1];
-                const teamMatch = currentUrl.match(/\/([^/]+)\/(?:channels|wiki)\//);
-                if (teamMatch) {
-                    const teamName = teamMatch[1];
-                    await page.goto(`/${teamName}/channels/${channelId}`);
-                    await page.waitForLoadState('networkidle');
-                }
+            const channelId = channelIdMatch[1];
+            const teamMatch = currentUrl.match(/\/([^/]+)\/wiki\//);
+            if (teamMatch) {
+                const teamName = teamMatch[1];
+                await page.goto(`/${teamName}/channels/${channelId}`);
+                await page.waitForLoadState('networkidle');
             }
         }
     }
 
-    // # Click wiki create button
-    await wikiCreateButton.waitFor({state: 'visible', timeout: 5000});
-    await wikiCreateButton.click();
+    // # Click the "+" button in the channel tabs to open the add content menu
+    const addContentButton = page.locator('#add-tab-content');
+    await addContentButton.waitFor({state: 'visible', timeout: 5000});
+    await addContentButton.click();
+
+    // # Click "Wiki" option from the dropdown menu
+    const addWikiMenuItem = page.getByText('Wiki', {exact: true});
+    await addWikiMenuItem.waitFor({state: 'visible', timeout: 5000});
+    await addWikiMenuItem.click();
 
     // # Fill wiki name in modal
     const wikiNameInput = page.locator('#text-input-modal-input');
     await wikiNameInput.waitFor({state: 'visible', timeout: 5000});
     await wikiNameInput.fill(wikiName);
 
-    // # Click Create button
+    // # Click Create button - wait for it to be enabled after input fills
     const createButton = page.getByRole('button', {name: 'Create'});
+    await expect(createButton).toBeEnabled({timeout: 5000});
     await createButton.click();
 
     // # Wait for navigation to wiki page (not just network idle)
@@ -164,15 +157,63 @@ export async function createWikiThroughUI(page: Page, wikiName: string) {
 }
 
 /**
+ * Waits for a wiki view to be fully loaded
+ * @param page - Playwright page object
+ */
+/**
+ * Waits for the wiki view React component to be mounted and rendered.
+ *
+ * The original implementation only waited for the wrapper element with
+ * `data-testId="wiki-view"` to become visible. On slower CI runners, the
+ * element might be attached to the DOM quickly, but stay hidden while the
+ * lazy-loaded bundle for the wiki view is still downloading. This resulted in
+ * sporadic timeouts – especially after a wiki rename when the client needs to
+ * reload the pages hierarchy and other data.
+ *
+ * The function now:
+ *   1. Waits for the element to be attached (present in DOM) – this is fast.
+ *   2. Waits for the element to become visible – allowing a longer timeout so
+ *      that slower environments are covered.
+ *   3. If the temporary loading screen (`data-testid="wiki-view-loading"`) is
+ *      rendered, it waits for that element to disappear which signals that the
+ *      wiki data finished loading and the main UI is ready.
+ */
+export async function waitForWikiViewLoad(page: Page, timeout = 30000) {
+    const wikiView = page.locator('[data-testid="wiki-view"]');
+
+    // 1. Wait for the component to be added to the DOM
+    await wikiView.waitFor({state: 'attached', timeout});
+
+    // 2. Wait until it is actually visible to the user
+    await wikiView.waitFor({state: 'visible', timeout});
+
+    // 3. If a loading indicator is present, wait until it disappears
+    const loadingLocator = page.locator('[data-testid="wiki-view-loading"]');
+    const isLoadingVisible = await loadingLocator.isVisible({timeout: 1000}).catch(() => false);
+    if (isLoadingVisible) {
+        await loadingLocator.waitFor({state: 'hidden', timeout});
+    }
+
+    // Small extra delay to give the hierarchy panel and other async tasks time
+    // to settle before the caller continues with more specific assertions.
+    await page.waitForTimeout(500);
+}
+
+/**
  * Opens the pages hierarchy panel if it's collapsed
  * @param page - Playwright page object
  */
 export async function ensurePanelOpen(page: Page) {
+    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
     const hamburgerButton = page.locator('[data-testid="wiki-view-hamburger-button"]');
-    const isHamburgerVisible = await hamburgerButton.isVisible().catch(() => false);
-    if (isHamburgerVisible) {
+
+    const isPanelVisible = await hierarchyPanel.isVisible().catch(() => false);
+
+    if (!isPanelVisible) {
+        await hamburgerButton.waitFor({state: 'visible', timeout: 10000});
         await hamburgerButton.click();
-        await page.waitForTimeout(300); // Wait for panel expansion animation
+        await hierarchyPanel.waitFor({state: 'visible', timeout: 10000});
+        await page.waitForTimeout(500);
     }
 }
 
@@ -183,6 +224,9 @@ export async function ensurePanelOpen(page: Page) {
  * @param pageContent - Content for the page (optional, defaults to empty string)
  */
 export async function createPageThroughUI(page: Page, pageTitle: string, pageContent: string = '') {
+    // # Ensure pages panel is open first
+    await ensurePanelOpen(page);
+
     // # Click "New Page" button to open modal
     const newPageButton = getNewPageButton(page);
     await newPageButton.waitFor({state: 'visible', timeout: 5000});
@@ -230,7 +274,7 @@ export async function createPageThroughUI(page: Page, pageTitle: string, pageCon
 
     // # Wait for page viewer to appear (means publish succeeded and page loaded)
     const pageViewer = page.locator('[data-testid="page-viewer-content"]');
-    await pageViewer.waitFor({state: 'visible', timeout: 15000});
+    await pageViewer.waitFor({state: 'visible', timeout: 30000});
 
     // Extract page ID from URL pattern: /:teamName/wiki/:channelId/:wikiId/:pageId
     const url = page.url();
@@ -308,7 +352,7 @@ export async function createChildPageThroughContextMenu(
 
     // # Wait for page viewer to appear (means publish succeeded and page loaded)
     const pageViewer = page.locator('[data-testid="page-viewer-content"]');
-    await pageViewer.waitFor({state: 'visible', timeout: 15000});
+    await pageViewer.waitFor({state: 'visible', timeout: 30000});
 
     // Extract page ID from URL pattern: /:teamName/wiki/:channelId/:wikiId/:pageId
     const url = page.url();
@@ -331,23 +375,33 @@ export async function createChildPageThroughContextMenu(
 export async function addHeadingToEditor(page: Page, level: 1 | 2 | 3, text: string, addContentAfter?: string) {
     // # Type the heading text
     await page.keyboard.type(text);
+    await page.waitForTimeout(100);
 
     // # Select the text we just typed (from start to end of line)
     await page.keyboard.press('Home');
     await page.keyboard.press('Shift+End');
-    await page.waitForTimeout(100);
-
-    // # Click the heading button to format selected text as heading
-    const headingButton = page.locator(`button[title="Heading ${level}"]`).first();
-    await headingButton.click();
     await page.waitForTimeout(200);
 
-    // # Move cursor to end of line and press Enter to go to next line (which will be a paragraph)
-    await page.keyboard.press('End');
-    await page.keyboard.press('Enter');
+    // # Wait for the formatting bubble menu to appear
+    // The bubble menu contains both FormattingBarBubble and InlineCommentButton
+    const formattingBubble = page.locator('.formatting-bar-bubble').first();
+    await formattingBubble.waitFor({state: 'visible', timeout: 5000});
 
-    // # Optionally add content after the heading
+    // # Find and click the heading button
+    const headingButton = formattingBubble.locator(`button[title="Heading ${level}"]`).first();
+    await headingButton.waitFor({state: 'visible', timeout: 3000});
+    // Use force:true to click through the inline-comment-bubble overlay
+    await headingButton.click({force: true});
+    await page.waitForTimeout(200);
+
+    // # Press Right arrow to deselect and move cursor to end of heading
+    await page.keyboard.press('ArrowRight');
+    await page.waitForTimeout(50);
+
+    // # Only press Enter and add content if we have content - this prevents creating empty heading nodes
     if (addContentAfter) {
+        await page.keyboard.press('Enter');
+        await page.waitForTimeout(100);
         await page.keyboard.type(addContentAfter);
         await page.keyboard.press('Enter');
     }
@@ -452,3 +506,148 @@ export async function createDraftThroughUI(page: Page, draftTitle: string, draft
     return {id: draftId, title: draftTitle};
 }
 
+/**
+ * Adds an inline comment to selected text in the editor
+ * @param page - Playwright page object
+ * @param textToSelect - Text content to find (optional - if not provided, selects all text)
+ * @param commentText - Comment to add
+ * @param publishAfter - Whether to publish the page after adding the comment (default: true)
+ * @returns True if comment was added successfully, false otherwise
+ */
+export async function addInlineCommentAndPublish(
+    page: Page,
+    textToSelect: string,
+    commentText: string,
+    publishAfter: boolean = true,
+): Promise<boolean> {
+    // # Click on the editor first
+    const editor = page.locator('.ProseMirror').first();
+    await editor.click();
+
+    // # Select all text using Control+A (matches the pattern from working tests)
+    await page.keyboard.down('Control');
+    await page.keyboard.press('a');
+    await page.keyboard.up('Control');
+    await page.waitForTimeout(200);
+
+    // # Wait for and click the inline comment button
+    const commentButton = page.locator('button[aria-label*="comment"], [data-testid="inline-comment-submit"]').first();
+    const buttonVisible = await commentButton.isVisible({timeout: 2000}).catch(() => false);
+
+    if (!buttonVisible) {
+        console.log('Inline comment button not visible');
+        return false;
+    }
+
+    await commentButton.click();
+    await page.waitForTimeout(500);
+
+    // # Fill in the comment modal - try different selectors
+    let modal = page.getByRole('dialog', {name: /Comment|Add/i});
+    let modalVisible = await modal.isVisible({timeout: 2000}).catch(() => false);
+
+    if (!modalVisible) {
+        // Try without name filter
+        modal = page.getByRole('dialog');
+        modalVisible = await modal.isVisible({timeout: 2000}).catch(() => false);
+    }
+
+    if (!modalVisible) {
+        console.log('Comment modal did not appear');
+        return false;
+    }
+
+    const textarea = modal.locator('textarea').first();
+    await textarea.fill(commentText);
+
+    const addButton = modal.locator('button:has-text("Add"), button:has-text("Submit"), button:has-text("Comment")').first();
+    await addButton.click();
+    await page.waitForTimeout(500);
+
+    // # Publish if requested
+    if (publishAfter) {
+        const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
+        await publishButton.click();
+        await page.waitForLoadState('networkidle');
+    }
+
+    return true;
+}
+
+/**
+ * Gets a wiki tab by title from the unified channel tabs bar
+ * @param page - Playwright page object
+ * @param wikiTitle - Title of the wiki
+ * @returns The wiki tab locator
+ */
+export function getWikiTab(page: Page, wikiTitle: string): Locator {
+    return page.locator('.channel-tab').filter({hasText: wikiTitle}).first();
+}
+
+/**
+ * Opens the wiki tab menu (three-dot menu)
+ * @param page - Playwright page object
+ * @param wikiTitle - Title of the wiki
+ */
+export async function openWikiTabMenu(page: Page, wikiTitle: string) {
+    const wikiTabWrapper = page.locator('.channel-tabs-container__tab-wrapper--wiki').filter({hasText: wikiTitle});
+    const menuButton = wikiTabWrapper.locator('[id^="wiki-tab-menu-"]').first();
+    await menuButton.waitFor({state: 'visible', timeout: 5000});
+    await menuButton.click();
+}
+
+/**
+ * Clicks a menu item in the wiki tab menu
+ * @param page - Playwright page object
+ * @param menuItemId - ID of the menu item (e.g., 'wiki-tab-rename', 'wiki-tab-delete')
+ */
+export async function clickWikiTabMenuItem(page: Page, menuItemId: string) {
+    const menuItem = page.locator(`#${menuItemId}`);
+    await menuItem.waitFor({state: 'visible', timeout: 5000});
+    await menuItem.click();
+}
+
+/**
+ * Renames a wiki through the tab menu
+ * @param page - Playwright page object
+ * @param oldTitle - Current title of the wiki
+ * @param newTitle - New title for the wiki
+ */
+export async function renameWikiThroughTabMenu(page: Page, oldTitle: string, newTitle: string) {
+    await openWikiTabMenu(page, oldTitle);
+    await clickWikiTabMenuItem(page, 'wiki-tab-rename');
+
+    const input = page.locator('input[type="text"]').first();
+    await input.waitFor({state: 'visible', timeout: 5000});
+    await input.fill(newTitle);
+
+    const confirmButton = page.getByRole('button', {name: 'Save'});
+    await confirmButton.click();
+    await page.waitForLoadState('networkidle');
+}
+
+/**
+ * Deletes a wiki through the tab menu
+ * @param page - Playwright page object
+ * @param wikiTitle - Title of the wiki to delete
+ */
+export async function deleteWikiThroughTabMenu(page: Page, wikiTitle: string) {
+    await openWikiTabMenu(page, wikiTitle);
+    await clickWikiTabMenuItem(page, 'wiki-tab-delete');
+
+    const confirmButton = page.getByRole('button', {name: 'Delete'});
+    await confirmButton.waitFor({state: 'visible', timeout: 5000});
+    await confirmButton.click();
+    await page.waitForLoadState('networkidle');
+}
+
+/**
+ * Verifies that a wiki tab exists with the given title
+ * @param page - Playwright page object
+ * @param wikiTitle - Title of the wiki to verify
+ * @returns True if the tab exists
+ */
+export async function verifyWikiTabExists(page: Page, wikiTitle: string): Promise<boolean> {
+    const wikiTab = getWikiTab(page, wikiTitle);
+    return wikiTab.isVisible();
+}

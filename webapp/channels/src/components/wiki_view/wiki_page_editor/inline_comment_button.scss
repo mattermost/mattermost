@@ -2,48 +2,44 @@
 // See LICENSE.txt for license information.
 
 .inline-comment-bubble {
+    z-index: 1000;
     display: flex;
     align-items: center;
-    padding: 6px 8px;
-    background: var(--center-channel-bg);
+    gap: 4px;
+    padding: 4px;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
     border-radius: 4px;
+    background: var(--center-channel-bg);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12), 0 0 1px rgba(0, 0, 0, 0.08);
-    z-index: 1000;
 
     .inline-comment-btn {
         display: flex;
         align-items: center;
-        gap: 8px;
-        padding: 4px 8px;
-        background: transparent;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        padding: 4px;
         border: none;
-        color: rgba(var(--center-channel-color-rgb), 0.72);
-        font-size: 14px;
-        font-weight: 600;
-        line-height: 20px;
+        border-radius: 4px;
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
         cursor: pointer;
         transition: all 0.15s ease;
-        border-radius: 4px;
 
         &:hover {
-            background: rgba(var(--button-bg-rgb), 0.08);
-            color: var(--button-bg);
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.72);
         }
 
         &:active {
-            background: rgba(var(--button-bg-rgb), 0.12);
+            background: rgba(var(--center-channel-color-rgb), 0.16);
         }
 
         .icon {
-            font-size: 18px;
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-
-        span {
-            white-space: nowrap;
+            font-size: 16px;
         }
     }
 }

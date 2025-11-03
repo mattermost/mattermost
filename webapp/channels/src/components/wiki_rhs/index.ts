@@ -4,46 +4,42 @@
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
 import {publishPage} from 'actions/pages';
-import {closeRightHandSide} from 'actions/views/rhs';
-import {getSelectedPageId, getWikiRhsWikiId} from 'selectors/wiki_rhs';
+import {closeRightHandSide, openWikiRhs} from 'actions/views/rhs';
+import {setWikiRhsActiveTab} from 'actions/views/wiki_rhs';
+import {getSelectedPageId, getWikiRhsWikiId, getWikiRhsActiveTab} from 'selectors/wiki_rhs';
 
 import type {GlobalState} from 'types/store';
 
 import WikiRHS from './wiki_rhs';
 
-// Memoized selector to prevent unnecessary re-renders
-const makeMapStateToProps = () => {
-    const getWikiRhsProps = createSelector(
-        'getWikiRhsProps',
-        getSelectedPageId,
-        (state: GlobalState) => state,
-        (pageId, state) => {
-            const page = pageId ? getPost(state, pageId) : null;
-            const pageTitle = (typeof page?.props?.title === 'string' ? page.props.title : 'Page');
-            const channel = page?.channel_id ? getChannel(state, page.channel_id) : null;
+function makeMapStateToProps() {
+    return (state: GlobalState) => {
+        const pageId = getSelectedPageId(state);
+        const page = pageId ? getPost(state, pageId) : null;
+        const pageTitle = (typeof page?.props?.title === 'string' ? page.props.title : 'Page');
+        const channel = page?.channel_id ? getChannel(state, page.channel_id) : null;
 
-            return {
-                pageId,
-                wikiId: getWikiRhsWikiId(state),
-                pageTitle,
-                channelLoaded: Boolean(channel),
-            };
-        },
-    );
-
-    return (state: GlobalState) => getWikiRhsProps(state);
-};
+        return {
+            pageId,
+            wikiId: getWikiRhsWikiId(state),
+            pageTitle,
+            channelLoaded: Boolean(channel),
+            activeTab: getWikiRhsActiveTab(state),
+        };
+    };
+}
 
 function mapDispatchToProps(dispatch: any) {
     return {
         actions: bindActionCreators({
             publishPage,
             closeRightHandSide,
+            setWikiRhsActiveTab,
+            openWikiRhs,
         }, dispatch),
     };
 }

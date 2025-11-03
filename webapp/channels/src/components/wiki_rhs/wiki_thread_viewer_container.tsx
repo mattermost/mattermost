@@ -21,17 +21,17 @@ import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getThread} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {selectPostCard} from 'actions/views/rhs';
+import {selectPostCard, openWikiRhs} from 'actions/views/rhs';
 import {updateThreadLastOpened, updateThreadLastUpdateAt} from 'actions/views/threads';
 import {getHighlightedPostId, getSelectedPostFocussedAt} from 'selectors/rhs';
 import {getThreadLastUpdateAt} from 'selectors/views/threads';
 import {getSocketStatus} from 'selectors/views/websocket';
 import {makeGetFilteredPostIdsForWikiThread} from 'selectors/wiki_posts';
-import {getFocusedInlineCommentId} from 'selectors/wiki_rhs';
-
-import ThreadViewer from 'components/threading/thread_viewer/thread_viewer';
+import {getFocusedInlineCommentId, getWikiRhsWikiId} from 'selectors/wiki_rhs';
 
 import type {GlobalState} from 'types/store';
+
+import WikiPageThreadViewer from './wiki_page_thread_viewer';
 
 type OwnProps = {
     rootPostId: string;
@@ -46,7 +46,6 @@ function makeMapStateToProps() {
     const getChannel = makeGetChannel();
 
     return function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
-        const start = performance.now();
         const currentUserId = getCurrentUserId(state);
         const currentTeamId = getCurrentTeamId(state);
         const selected = getPost(state, ownProps.rootPostId);
@@ -55,6 +54,8 @@ function makeMapStateToProps() {
         const selectedPostFocusedAt = getSelectedPostFocussedAt(state);
         const config: Partial<ClientConfig> = getConfig(state);
         const enableWebSocketEventScope = config.FeatureFlagWebSocketEventScope === 'true';
+        const wikiId = getWikiRhsWikiId(state);
+        const focusedInlineCommentId = getFocusedInlineCommentId(state);
 
         let postIds: string[] = [];
         let userThread: UserThread | null = null;
@@ -62,9 +63,6 @@ function makeMapStateToProps() {
         let lastUpdateAt = 0;
 
         if (selected) {
-            // Get focused inline comment ID from Redux state
-            const focusedInlineCommentId = getFocusedInlineCommentId(state);
-
             // Use our filtering selector with focusedInlineCommentId
             postIds = getFilteredPostIds(state, selected.id, focusedInlineCommentId);
             userThread = getThread(state, selected.id);
@@ -89,6 +87,8 @@ function makeMapStateToProps() {
             useRelativeTimestamp: ownProps.useRelativeTimestamp,
             isThreadView: ownProps.isThreadView,
             hideRootPost: ownProps.hideRootPost,
+            focusedInlineCommentId: focusedInlineCommentId || null,
+            wikiId: wikiId || null,
         };
 
         return result;
@@ -106,8 +106,9 @@ function mapDispatchToProps(dispatch: Dispatch) {
             updateThreadLastOpened,
             updateThreadRead,
             updateThreadLastUpdateAt,
+            openWikiRhs,
         }, dispatch),
     };
 }
 
-export default connect(makeMapStateToProps, mapDispatchToProps)(ThreadViewer);
+export default connect(makeMapStateToProps, mapDispatchToProps)(WikiPageThreadViewer);

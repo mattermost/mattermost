@@ -14,9 +14,11 @@ interface HeadingNodeProps {
     pageId: string;
     currentPageId?: string;
     teamName: string;
+    wikiId?: string;
+    channelId?: string;
 }
 
-const HeadingNode: React.FC<HeadingNodeProps> = ({heading, pageId, currentPageId, teamName}) => {
+const HeadingNode: React.FC<HeadingNodeProps> = ({heading, pageId, currentPageId, teamName, wikiId, channelId}) => {
     const history = useHistory();
 
     const paddingLeft = ((heading.level - 1) * 16) + 16;
@@ -28,12 +30,13 @@ const HeadingNode: React.FC<HeadingNodeProps> = ({heading, pageId, currentPageId
         if (currentPageId === pageId) {
             scrollToHeading(heading.id);
         } else {
-            history.push(`/${teamName}/pl/${pageId}`);
+            const wikiUrl = wikiId && channelId ? `/${teamName}/wiki/${channelId}/${wikiId}/${pageId}` : `/${teamName}/pl/${pageId}`;
+            history.push(wikiUrl);
             setTimeout(() => {
                 scrollToHeading(heading.id);
             }, 500);
         }
-    }, [currentPageId, pageId, teamName, heading.id, history]);
+    }, [currentPageId, pageId, teamName, wikiId, channelId, heading.id, history]);
 
     return (
         <div

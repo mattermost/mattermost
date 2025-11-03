@@ -6,6 +6,7 @@ import {FormattedMessage} from 'react-intl';
 
 import {isMessageAttachmentArray} from '@mattermost/types/message_attachments';
 
+import {PostTypes} from 'mattermost-redux/constants';
 import {ensureString} from 'mattermost-redux/utils/post_utils';
 
 import {usePost} from 'components/common/hooks/usePost';
@@ -26,6 +27,9 @@ type Props = {
 function CommentedOn({onCommentClick, rootId, enablePostUsernameOverride}: Props) {
     const rootPost = usePost(rootId);
     const rootPostUser = useUser(rootPost?.user_id ?? '');
+
+    const isPageComment = rootPost?.props?.comment_type === 'inline';
+    const pagePost = usePost(isPageComment && rootPost?.root_id ? rootPost.root_id : '');
 
     const rootPostOverriddenUsername = useMemo((): string => {
         if (!rootPost) {
@@ -67,6 +71,54 @@ function CommentedOn({onCommentClick, rootId, enablePostUsernameOverride}: Props
             overwriteName={rootPostOverriddenUsername}
         />
     );
+
+    if (isPageComment && pagePost) {
+        const pageTitle = (pagePost.props?.title as string) || 'Untitled Page';
+        return (
+            <div
+                data-testid='post-link'
+                className='post__link'
+            >
+                <span>
+                    <FormattedMessage
+                        id='threading.pageComment.context'
+                        defaultMessage='Commented on the page:'
+                    />
+                    {' '}
+                    <a
+                        className='theme'
+                        onClick={onCommentClick}
+                    >
+                        {pageTitle}
+                    </a>
+                </span>
+            </div>
+        );
+    }
+
+    if (rootPost?.type === PostTypes.PAGE) {
+        const pageTitle = (rootPost.props?.title as string) || 'Untitled Page';
+        return (
+            <div
+                data-testid='post-link'
+                className='post__link'
+            >
+                <span>
+                    <FormattedMessage
+                        id='threading.pageComment.context'
+                        defaultMessage='Commented on the page:'
+                    />
+                    {' '}
+                    <a
+                        className='theme'
+                        onClick={onCommentClick}
+                    >
+                        {pageTitle}
+                    </a>
+                </span>
+            </div>
+        );
+    }
 
     return (
         <div

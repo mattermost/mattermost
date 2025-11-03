@@ -240,5 +240,6 @@ export type ViewsState = {
         wikiId: string | null;
         selectedPageId: string;
         focusedInlineCommentId: string | null;
+        activeTab: 'page_comments' | 'all_threads';
     };
 };

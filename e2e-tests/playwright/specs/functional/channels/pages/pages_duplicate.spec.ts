@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createTestChannel, ensurePanelOpen, waitForPageInHierarchy, fillCreatePageModal} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, createTestChannel, ensurePanelOpen, waitForPageInHierarchy, fillCreatePageModal, getWikiTab, waitForWikiViewLoad} from './test_helpers';
 
 /**
  * @objective Verify page duplication creates a copy with default "Duplicate of [title]" naming
@@ -158,10 +158,13 @@ test('duplicates page to different wiki in same channel', {tag: '@pages'}, async
     await channelsPage.goto(team.name, channel.name);
 
     // # Navigate back to source wiki by clicking its tab
-    const sourceWikiTab = page.locator('.wiki-tab').filter({hasText: sourceWiki.title}).first();
+    const sourceWikiTab = getWikiTab(page, sourceWiki.title);
     await sourceWikiTab.waitFor({state: 'visible', timeout: 15000});
     await sourceWikiTab.click();
     await page.waitForLoadState('networkidle');
+
+    // # Wait for wiki view to load
+    await waitForWikiViewLoad(page);
 
     // # Ensure panel is open
     await ensurePanelOpen(page);
@@ -205,7 +208,7 @@ test('duplicates page to different wiki in same channel', {tag: '@pages'}, async
     await channelsPage.goto(team.name, channel.name);
 
     // # Navigate to Target Wiki by clicking its tab to verify the duplicated page
-    const targetWikiTab = page.locator('.wiki-tab').filter({hasText: targetWiki.title}).first();
+    const targetWikiTab = getWikiTab(page, targetWiki.title);
     await targetWikiTab.waitFor({state: 'visible', timeout: 15000});
     await targetWikiTab.click();
     await page.waitForLoadState('networkidle');

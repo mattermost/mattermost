@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState} from 'react';
+import React, {useState, useCallback} from 'react';
 import {useSelector} from 'react-redux';
 
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
@@ -29,6 +29,7 @@ type Props = {
     isDeleting?: boolean;
     wikiId?: string;
     channelId?: string;
+    dragHandleProps?: any;
 };
 
 const PageTreeNode = ({
@@ -45,24 +46,14 @@ const PageTreeNode = ({
     isDeleting,
     wikiId,
     channelId,
+    dragHandleProps,
 }: Props) => {
-    const [showMenu, setShowMenu] = useState(false);
-    const [menuPosition, setMenuPosition] = useState({x: 0, y: 0});
     const currentTeam = useSelector((state: GlobalState) => getCurrentTeam(state));
 
+    const [showMenu, setShowMenu] = useState(false);
+    const [menuPosition, setMenuPosition] = useState({x: 0, y: 0});
+
     const isLoading = isRenaming || isDeleting;
-
-    const handleContextMenu = (e: React.MouseEvent) => {
-        e.preventDefault();
-        setMenuPosition({x: e.clientX, y: e.clientY});
-        setShowMenu(true);
-    };
-
-    const handleMenuButtonClick = (e: React.MouseEvent) => {
-        const rect = (e.target as HTMLElement).getBoundingClientRect();
-        setMenuPosition({x: rect.left, y: rect.bottom});
-        setShowMenu(true);
-    };
 
     const paddingLeft = (node.depth * 20) + 8;
 
@@ -77,21 +68,46 @@ const PageTreeNode = ({
         return node.isExpanded ? 'Collapse' : 'Expand';
     };
 
+    const handleContextMenu = useCallback((e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setMenuPosition({x: e.clientX, y: e.clientY});
+        setShowMenu(true);
+    }, []);
+
+    const handleMenuButtonClick = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+        setMenuPosition({x: rect.left, y: rect.bottom});
+        setShowMenu(true);
+    }, []);
+
     return (
         <div
             className={`PageTreeNode ${isSelected ? 'PageTreeNode--selected' : ''} ${isLoading ? 'PageTreeNode--loading' : ''}`}
             style={{paddingLeft: `${paddingLeft}px`, opacity: isLoading ? 0.6 : 1}}
-            onContextMenu={isLoading ? undefined : handleContextMenu}
             data-testid='page-tree-node'
             data-page-id={node.id}
             data-is-draft={node.page.type === PageDisplayTypes.PAGE_DRAFT}
+            onContextMenu={handleContextMenu}
         >
-            {/* Page icon with expand functionality on hover */}
+            {/* Drag handle - separate from selection */}
+            {!isLoading && (
+                <div
+                    className='PageTreeNode__dragHandle'
+                    {...dragHandleProps}
+                    title='Drag to move'
+                >
+                    <i className='icon-drag-vertical'/>
+                </div>
+            )}
+
+            {/* Page icon for leaf nodes, chevron for nodes with children */}
             {isLoading ? (
                 <i className='PageTreeNode__icon icon-loading icon-spin'/>
             ) : (
                 <button
-                    className={`PageTreeNode__iconButton ${node.hasChildren ? 'PageTreeNode__iconButton--expandable' : ''}`}
+                    className='PageTreeNode__iconButton'
                     onClick={(e) => {
                         e.stopPropagation();
                         if (node.hasChildren) {
@@ -104,9 +120,10 @@ const PageTreeNode = ({
                     disabled={isLoading}
                     data-testid='page-tree-node-expand-button'
                 >
-                    <i className='PageTreeNode__icon PageTreeNode__icon--page icon-file-generic-outline'/>
-                    {node.hasChildren && (
-                        <i className={`PageTreeNode__icon PageTreeNode__icon--expand icon-chevron-${node.isExpanded ? 'down' : 'right'}`}/>
+                    {node.hasChildren ? (
+                        <i className={`PageTreeNode__icon icon-chevron-${node.isExpanded ? 'down' : 'right'}`}/>
+                    ) : (
+                        <i className='PageTreeNode__icon icon-file-generic-outline'/>
                     )}
                 </button>
             )}
@@ -140,11 +157,9 @@ const PageTreeNode = ({
             {!isLoading && (
                 <button
                     className='PageTreeNode__menuButton'
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        handleMenuButtonClick(e);
-                    }}
                     aria-label='Page menu'
+                    title='Page menu'
+                    onClick={handleMenuButtonClick}
                     data-testid='page-tree-node-menu-button'
                 >
                     <i className='icon-dots-vertical'/>
@@ -155,6 +170,7 @@ const PageTreeNode = ({
             {showMenu && (
                 <PageContextMenu
                     pageId={node.id}
+                    wikiId={wikiId}
                     position={menuPosition}
                     onClose={() => setShowMenu(false)}
                     onCreateChild={() => onCreateChild?.(node.id)}

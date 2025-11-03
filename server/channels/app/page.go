@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"net/http"
 	"strings"
 	"sync"
@@ -1026,6 +1027,18 @@ func (a *App) PublishPageDraft(rctx request.CTX, userId, wikiId, draftId, parent
 			mlog.String("draft_id", draftId),
 			mlog.String("page_id", savedPost.Id),
 			mlog.Err(deleteErr))
+	} else {
+		rctx.Logger().Info("Draft deleted successfully, now updating child draft references",
+			mlog.String("deleted_draft_id", draftId),
+			mlog.String("published_page_id", savedPost.Id))
+	}
+
+	if updateErr := a.updateChildDraftParentReferences(rctx, userId, wikiId, draftId, savedPost.Id); updateErr != nil {
+		rctx.Logger().Error("Failed to update child draft parent references after publish",
+			mlog.String("wiki_id", wikiId),
+			mlog.String("published_draft_id", draftId),
+			mlog.String("new_page_id", savedPost.Id),
+			mlog.Err(updateErr))
 	}
 
 	pageWithContent, getErr := a.GetPage(rctx, savedPost.Id)
@@ -1044,6 +1057,121 @@ func (a *App) PublishPageDraft(rctx request.CTX, userId, wikiId, draftId, parent
 	a.broadcastPagePublished(pageWithContent, wikiId, wiki.ChannelId, draftId, userId)
 
 	return pageWithContent, nil
+}
+
+func (a *App) updateChildDraftParentReferences(rctx request.CTX, userId, wikiId, oldDraftId, newPageId string) *model.AppError {
+	rctx.Logger().Info("=== updateChildDraftParentReferences CALLED ===",
+		mlog.String("user_id", userId),
+		mlog.String("wiki_id", wikiId),
+		mlog.String("old_draft_id", oldDraftId),
+		mlog.String("new_page_id", newPageId))
+
+	drafts, err := a.Srv().Store().Draft().GetPageDraftsForWiki(userId, wikiId)
+	if err != nil {
+		rctx.Logger().Error("Failed to get drafts for wiki", mlog.Err(err))
+		return model.NewAppError("updateChildDraftParentReferences", "app.draft.get_drafts.app_error",
+			nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	rctx.Logger().Info("Found drafts in wiki", mlog.Int("draft_count", len(drafts)))
+
+	for _, childDraft := range drafts {
+		draftId := extractDraftIdFromRootId(childDraft.RootId)
+		rctx.Logger().Info("Checking draft",
+			mlog.String("draft_id", draftId),
+			mlog.String("root_id", childDraft.RootId),
+			mlog.Any("props", childDraft.GetProps()))
+
+		parentIdProp, hasParent := childDraft.GetProps()["page_parent_id"]
+		if !hasParent {
+			rctx.Logger().Info("Draft has NO page_parent_id prop", mlog.String("draft_id", draftId))
+			continue
+		}
+
+		rctx.Logger().Info("Draft HAS page_parent_id prop",
+			mlog.String("draft_id", draftId),
+			mlog.Any("parent_id_prop", parentIdProp),
+			mlog.String("parent_id_type", fmt.Sprintf("%T", parentIdProp)))
+
+		parentId, ok := parentIdProp.(string)
+		if !ok {
+			rctx.Logger().Info("page_parent_id is NOT a string",
+				mlog.String("draft_id", draftId),
+				mlog.Any("parent_id_prop", parentIdProp))
+			continue
+		}
+
+		rctx.Logger().Info("Comparing parent IDs",
+			mlog.String("draft_id", draftId),
+			mlog.String("draft_parent_id", parentId),
+			mlog.String("looking_for_draft_id", oldDraftId),
+			mlog.Bool("match", parentId == oldDraftId))
+
+		if parentId != oldDraftId {
+			continue
+		}
+
+		rctx.Logger().Info("=== FOUND CHILD DRAFT TO UPDATE ===",
+			mlog.String("child_draft_id", draftId),
+			mlog.String("old_parent_draft_id", oldDraftId),
+			mlog.String("new_parent_page_id", newPageId))
+
+		updatedProps := maps.Clone(childDraft.GetProps())
+		updatedProps["page_parent_id"] = newPageId
+
+		childDraftId := extractDraftIdFromRootId(childDraft.RootId)
+		title, _ := childDraft.GetProps()["title"].(string)
+		pageId, _ := childDraft.GetProps()["page_id"].(string)
+
+		rctx.Logger().Info("About to update draft",
+			mlog.String("child_draft_id", childDraftId),
+			mlog.String("title", title),
+			mlog.String("page_id", pageId),
+			mlog.Any("updated_props", updatedProps))
+
+		updatedDraft, updateErr := a.Srv().Store().Draft().UpsertPageDraftWithMetadata(
+			userId,
+			wikiId,
+			childDraftId,
+			childDraft.Message,
+			title,
+			pageId,
+			updatedProps,
+		)
+		if updateErr != nil {
+			rctx.Logger().Error("Failed to update child draft parent reference",
+				mlog.String("child_draft_id", childDraftId),
+				mlog.Err(updateErr))
+		} else {
+			rctx.Logger().Info("=== SUCCESSFULLY UPDATED CHILD DRAFT ===",
+				mlog.String("child_draft_id", childDraftId),
+				mlog.String("new_parent_id", newPageId))
+
+			wiki, wikiErr := a.GetWiki(rctx, wikiId)
+			if wikiErr == nil {
+				message := model.NewWebSocketEvent(model.WebsocketEventDraftUpdated, "", wiki.ChannelId, userId, nil, "")
+				draftJSON, jsonErr := json.Marshal(updatedDraft)
+				if jsonErr != nil {
+					rctx.Logger().Warn("Failed to encode updated draft to JSON", mlog.Err(jsonErr))
+				} else {
+					message.Add("draft", string(draftJSON))
+					a.Publish(message)
+					rctx.Logger().Info("Sent websocket event for updated child draft", mlog.String("child_draft_id", childDraftId))
+				}
+			}
+		}
+	}
+
+	rctx.Logger().Info("=== updateChildDraftParentReferences COMPLETED ===")
+	return nil
+}
+
+func extractDraftIdFromRootId(rootId string) string {
+	parts := strings.Split(rootId, ":")
+	if len(parts) == 2 {
+		return parts[1]
+	}
+	return rootId
 }
 
 func (a *App) sendPageMentionNotifications(rctx request.CTX, page *model.Post, channel *model.Channel, authorUserID string, mentionedUserIDs []string) {

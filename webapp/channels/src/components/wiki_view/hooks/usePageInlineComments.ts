@@ -8,9 +8,12 @@ import type {Post} from '@mattermost/types/posts';
 
 import {Client4} from 'mattermost-redux/client';
 import {PostTypes} from 'mattermost-redux/constants/posts';
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
 import {openWikiRhs, closeRightHandSide} from 'actions/views/rhs';
 import {getRhsState} from 'selectors/rhs';
+
+import {isDraftPageId} from 'utils/page_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -23,6 +26,7 @@ import {useInlineComments} from './useInlineComments';
 export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
     const dispatch = useDispatch();
     const rhsState = useSelector((state: GlobalState) => getRhsState(state));
+    const page = useSelector((state: GlobalState) => pageId ? getPost(state, pageId) : undefined);
     const [inlineComments, setInlineComments] = useState<Post[]>([]);
     const [lastClickedCommentId, setLastClickedCommentId] = useState<string | null>(null);
 
@@ -31,7 +35,7 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
     // Store fetch logic in a ref to avoid recreating callbacks
     const fetchInlineCommentsRef = useRef<() => Promise<void>>();
     fetchInlineCommentsRef.current = async () => {
-        if (!pageId) {
+        if (!pageId || isDraftPageId(pageId) || !page) {
             return;
         }
 
@@ -109,8 +113,6 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
     // Update the ref on every render with the latest values
     useEffect(() => {
         handleCommentClickRef.current = (commentId: string) => {
-            const startTime = performance.now();
-
             if (isWikiRhsOpen && lastClickedCommentId === commentId) {
                 dispatch(closeRightHandSide());
                 setLastClickedCommentId(null);
@@ -131,6 +133,7 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
                         commentElement.classList.remove('highlight-animation');
                     }, 2000);
                 } else {
+                    // Comment element not found yet, may still be loading
                 }
             }, 300);
         };

@@ -526,6 +526,76 @@ func testGetPages(t *testing.T, rctx request.CTX, ss store.Store) {
 			assert.NotEqual(t, deletedPage.Id, p.Id)
 		}
 	})
+
+	t.Run("pages maintain stable ordering across multiple fetches", func(t *testing.T) {
+		// Create multiple pages with the same CreateAt timestamp to test secondary sort by Id
+		baseTime := model.GetMillis()
+
+		for i := range 5 {
+			page := &model.Post{
+				ChannelId: channel.Id,
+				UserId:    user.Id,
+				Message:   "Test page " + string(rune('A'+i)),
+				Type:      model.PostTypePage,
+				CreateAt:  baseTime, // Same timestamp for all
+			}
+			savedPage, saveErr := ss.Post().Save(rctx, page)
+			require.NoError(t, saveErr)
+
+			// Associate with wiki
+			valueJSON := []byte(`"` + wiki.Id + `"`)
+			prop := &model.PropertyValue{
+				TargetType: "post",
+				TargetID:   savedPage.Id,
+				GroupID:    model.WikiPropertyGroupID,
+				FieldID:    model.WikiPropertyFieldID,
+				Value:      valueJSON,
+			}
+			_, createErr := ss.PropertyValue().Create(prop)
+			require.NoError(t, createErr)
+		}
+
+		// Fetch pages multiple times and verify order is consistent
+		var firstFetchIds []string
+		for attempt := range 3 {
+			pages, pagesErr := ss.Wiki().GetPages(wiki.Id, 0, 100)
+			require.NoError(t, pagesErr)
+			require.GreaterOrEqual(t, len(pages), 5, "Should have at least 5 test pages")
+
+			// Extract IDs from this fetch
+			var currentIds []string
+			for _, p := range pages {
+				currentIds = append(currentIds, p.Id)
+			}
+
+			if attempt == 0 {
+				firstFetchIds = currentIds
+			} else {
+				// Verify order matches first fetch
+				assert.Equal(t, firstFetchIds, currentIds, "Page order should be stable across fetches (attempt %d)", attempt)
+			}
+		}
+
+		// Verify pages are sorted by CreateAt DESC, then by Id ASC
+		pages, _ := ss.Wiki().GetPages(wiki.Id, 0, 100)
+		for i := 1; i < len(pages); i++ {
+			prev := pages[i-1]
+			curr := pages[i]
+
+			// If CreateAt is the same, Id should be ascending
+			if prev.CreateAt == curr.CreateAt {
+				assert.True(t, prev.Id < curr.Id,
+					"Pages with same CreateAt should be sorted by Id ASC: %s should come before %s",
+					prev.Id, curr.Id)
+			}
+			// Otherwise, CreateAt should be descending
+			if prev.CreateAt != curr.CreateAt {
+				assert.True(t, prev.CreateAt > curr.CreateAt,
+					"Pages should be sorted by CreateAt DESC: %d should be greater than %d",
+					prev.CreateAt, curr.CreateAt)
+			}
+		}
+	})
 }
 
 func testMovePageToWiki(t *testing.T, rctx request.CTX, ss store.Store) {

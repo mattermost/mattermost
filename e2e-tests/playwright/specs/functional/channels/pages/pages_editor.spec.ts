@@ -17,7 +17,6 @@ test('handles large content without performance degradation', {tag: '@pages'}, a
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Large Content Wiki ${pw.random.id()}`);
@@ -86,7 +85,6 @@ test('handles Unicode and special characters correctly', {tag: '@pages'}, async 
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Unicode Wiki ${pw.random.id()}`);

@@ -17,8 +17,8 @@ $radius-sm: 4px;
     align-items: center;
     padding: 0 4px;
     border-radius: $radius-sm;
-    cursor: pointer;
     gap: 4px;
+    pointer-events: auto; // Re-enable pointer events for children
     transition: background-color 150ms ease;
 
     // Hover state - from Figma
@@ -27,18 +27,6 @@ $radius-sm: 4px;
 
         .PageTreeNode__menuButton {
             opacity: 1; // Show menu on hover
-        }
-
-        // Show expand icon on hover for expandable nodes
-        .PageTreeNode__iconButton--expandable {
-            .PageTreeNode__icon--page {
-                opacity: 0;
-            }
-
-            .PageTreeNode__icon--expand {
-                color: $node-text;
-                opacity: 1;
-            }
         }
     }
 
@@ -57,7 +45,6 @@ $radius-sm: 4px;
 }
 
 .PageTreeNode__iconButton {
-    position: relative;
     display: flex;
     width: 20px;
     height: 20px;
@@ -69,27 +56,10 @@ $radius-sm: 4px;
     border-radius: $radius-sm;
     background: transparent;
     cursor: pointer;
+    pointer-events: auto;
 
     &:hover {
         background: rgba(var(--center-channel-text-rgb), 0.08);
-    }
-
-    // For expandable pages, show expand icon on hover of the whole node
-    &--expandable {
-        .PageTreeNode__icon--page {
-            opacity: 1;
-            transition: opacity 150ms ease;
-        }
-
-        .PageTreeNode__icon--expand {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            color: $node-text-muted;
-            opacity: 0;
-            transform: translate(-50%, -50%);
-            transition: opacity 150ms ease;
-        }
     }
 }
 
@@ -112,6 +82,8 @@ $radius-sm: 4px;
         border: unset;
         background: unset;
         color: $node-text;
+        cursor: pointer;
+        pointer-events: auto;
     }
 }
 
@@ -124,6 +96,33 @@ $radius-sm: 4px;
     font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
+}
+
+.PageTreeNode__dragHandle {
+    display: flex;
+    width: 16px;
+    height: 20px;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    color: $node-text-muted;
+    cursor: grab;
+    opacity: 0 !important; // Hidden by default
+    pointer-events: auto;
+    transition: opacity 150ms ease;
+
+    &:active {
+        cursor: grabbing;
+    }
+
+    i {
+        font-size: 16px;
+    }
+}
+
+// Show drag handle on hover
+.PageTreeNode:hover .PageTreeNode__dragHandle {
+    opacity: 1 !important;
 }
 
 .PageTreeNode__menuButton {

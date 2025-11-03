@@ -2,11 +2,9 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 
 import type {Post} from '@mattermost/types/posts';
-
-import {Client4} from 'mattermost-redux/client';
 
 import DuplicatePageModal from 'components/duplicate_page_modal';
 import MovePageModal from 'components/move_page_modal';
@@ -17,10 +15,11 @@ import {PageDisplayTypes} from 'utils/constants';
 import type {PostDraft} from 'types/store/draft';
 
 import DeletePageModal from './delete_page_modal';
+import {usePageMenuHandlers} from './hooks/use_page_menu_handlers';
 import PageSearchBar from './page_search_bar';
 import PageTreeView from './page_tree_view';
 import PagesHeader from './pages_header';
-import type {DraftPage, PageOrDraft} from './utils/tree_builder';
+import type {DraftPage} from './utils/tree_builder';
 import {buildTree, getAncestorIds} from './utils/tree_builder';
 import {filterTreeBySearch} from './utils/tree_flattener';
 
@@ -72,20 +71,6 @@ const PagesHierarchyPanel = ({
     actions,
 }: Props) => {
     const [searchQuery, setSearchQuery] = useState('');
-    const [creatingPage, setCreatingPage] = useState(false);
-    const [renamingPageId, setRenamingPageId] = useState<string | null>(null);
-    const [deletingPageId, setDeletingPageId] = useState<string | null>(null);
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [pageToDelete, setPageToDelete] = useState<{page: Post; childCount: number} | null>(null);
-    const [showMoveModal, setShowMoveModal] = useState(false);
-    const [pageToMove, setPageToMove] = useState<{pageId: string; pageTitle: string; hasChildren: boolean} | null>(null);
-    const [showDuplicateModal, setShowDuplicateModal] = useState(false);
-    const [pageToDuplicate, setPageToDuplicate] = useState<{pageId: string; pageTitle: string; hasChildren: boolean} | null>(null);
-    const [availableWikis, setAvailableWikis] = useState<any[]>([]);
-    const [showCreatePageModal, setShowCreatePageModal] = useState(false);
-    const [createPageParent, setCreatePageParent] = useState<{id: string; title: string} | null>(null);
-    const [showRenameModal, setShowRenameModal] = useState(false);
-    const [pageToRename, setPageToRename] = useState<{pageId: string; currentTitle: string} | null>(null);
 
     // Load pages and drafts on mount, when wikiId changes, or when pages are invalidated
     // lastInvalidated timestamp changes when wiki is renamed/modified, triggering a reload
@@ -93,6 +78,15 @@ const PagesHierarchyPanel = ({
         actions.loadPages(wikiId);
         actions.loadPageDraftsForWiki(wikiId);
     }, [wikiId, lastInvalidated]);
+
+    // Use menu handlers hook - it will combine pages and drafts internally
+    const menuHandlers = usePageMenuHandlers({
+        wikiId,
+        channelId,
+        pages,
+        drafts,
+        onPageSelect,
+    });
 
     // Convert drafts to Post-like objects to include in tree
     const draftPosts: DraftPage[] = useMemo(() => {
@@ -130,11 +124,16 @@ const PagesHierarchyPanel = ({
         }));
     }, [drafts]);
 
+    // Combine pages and drafts for tree display
+    const allPagesAndDrafts = useMemo(() => {
+        return [...pages, ...draftPosts];
+    }, [pages, draftPosts]);
+
     // Memoize pageMap to avoid recreating it on every render
     // Must include both pages and drafts since tree contains both
     const pageMap = useMemo(() => {
-        return new Map([...pages, ...draftPosts].map((p) => [p.id, p]));
-    }, [pages, draftPosts]);
+        return new Map(allPagesAndDrafts.map((p) => [p.id, p]));
+    }, [allPagesAndDrafts]);
 
     // Set selected page and expand ancestors when currentPageId changes
     useEffect(() => {
@@ -186,7 +185,6 @@ const PagesHierarchyPanel = ({
 
     const handlePageSelect = (pageId: string) => {
         actions.setSelectedPage(pageId);
-
         onPageSelect(pageId);
     };
 
@@ -195,309 +193,10 @@ const PagesHierarchyPanel = ({
     };
 
     const handleNewPage = () => {
-        if (creatingPage) {
+        if (menuHandlers.creatingPage) {
             return;
         }
-        setCreatePageParent(null);
-        setShowCreatePageModal(true);
-    };
-
-    const handleConfirmCreatePage = async (title: string) => {
-        setCreatingPage(true);
-
-        try {
-            const parentPageId = createPageParent?.id;
-            const result = await actions.createPage(wikiId, title, parentPageId);
-            if (result.error) {
-                // TODO: Show error notification instead of alert
-            } else if (result.data) {
-                const draftId = result.data;
-                if (parentPageId) {
-                    actions.expandAncestors(wikiId, [parentPageId]);
-                }
-                handlePageSelect(draftId);
-            }
-        } catch (error) {
-            // TODO: Show error notification instead of alert
-        } finally {
-            setCreatingPage(false);
-            setCreatePageParent(null);
-        }
-    };
-
-    const handleCancelCreatePage = () => {
-        setCreatePageParent(null);
-    };
-
-    const handleCreateChild = (pageId: string) => {
-        if (creatingPage) {
-            return;
-        }
-
-        const parentPage = pageMap.get(pageId);
-        const parentTitle = parentPage?.props?.title as string | undefined;
-
-        setCreatePageParent({
-            id: pageId,
-            title: parentTitle || 'Untitled',
-        });
-        setShowCreatePageModal(true);
-    };
-
-    const handleRename = (pageId: string) => {
-        if (renamingPageId) {
-            return;
-        }
-
-        const page = pages.find((p) => p.id === pageId);
-        if (!page) {
-            return;
-        }
-
-        const currentTitle = (page.props?.title as string | undefined) || page.message || 'Untitled';
-
-        setPageToRename({pageId, currentTitle});
-        setShowRenameModal(true);
-    };
-
-    const handleRenameConfirm = async (newTitle: string) => {
-        if (!pageToRename) {
-            return;
-        }
-
-        const trimmedTitle = newTitle.trim();
-        if (!trimmedTitle || trimmedTitle === pageToRename.currentTitle) {
-            setPageToRename(null);
-            return;
-        }
-
-        setRenamingPageId(pageToRename.pageId);
-
-        try {
-            const result = await actions.updatePage(pageToRename.pageId, trimmedTitle, wikiId);
-            if (result.error) {
-                // TODO: Show error notification instead of alert
-            }
-        } catch (error) {
-            // TODO: Show error notification instead of alert
-        } finally {
-            setRenamingPageId(null);
-            setPageToRename(null);
-        }
-    };
-
-    const handleRenameCancel = () => {
-        setPageToRename(null);
-    };
-
-    const handleDuplicate = async (pageId: string) => {
-        const page = allPages.find((p) => p.id === pageId);
-        if (!page) {
-            return;
-        }
-
-        const pageTitle = page.props?.title || page.message || 'Untitled';
-        const childCount = getDescendantCount(pageId, childrenMap);
-        const hasChildren = childCount > 0;
-
-        try {
-            const wikis = await Client4.getChannelWikis(channelId);
-            setAvailableWikis(wikis || []);
-            setPageToDuplicate({pageId, pageTitle: String(pageTitle), hasChildren});
-            setShowDuplicateModal(true);
-        } catch (error) {
-            // TODO: Show error notification instead of alert
-        }
-    };
-
-    const handleDuplicateConfirm = async (targetWikiId: string, parentPageId?: string, customTitle?: string) => {
-        if (!pageToDuplicate) {
-            return;
-        }
-
-        try {
-            await actions.duplicatePage(pageToDuplicate.pageId, wikiId, targetWikiId, parentPageId, customTitle);
-        } finally {
-            setShowDuplicateModal(false);
-            setPageToDuplicate(null);
-        }
-    };
-
-    const handleDuplicateCancel = () => {
-        setShowDuplicateModal(false);
-        setPageToDuplicate(null);
-    };
-
-    const handleMove = async (pageId: string) => {
-        const page = allPages.find((p) => p.id === pageId);
-        if (!page) {
-            return;
-        }
-
-        const pageTitle = page.props?.title || page.message || 'Untitled';
-        const childCount = getDescendantCount(pageId, childrenMap);
-        const hasChildren = childCount > 0;
-
-        try {
-            const wikis = await Client4.getChannelWikis(channelId);
-            setAvailableWikis(wikis || []);
-            setPageToMove({pageId, pageTitle: String(pageTitle), hasChildren});
-            setShowMoveModal(true);
-        } catch (error) {
-            // TODO: Show error notification instead of alert
-        }
-    };
-
-    const fetchPagesForWiki = useCallback(async (wikiId: string): Promise<typeof pages> => {
-        try {
-            const result = await actions.loadPages(wikiId);
-            return result.data || [];
-        } catch (error) {
-            return [];
-        }
-    }, [actions]);
-
-    const handleMoveConfirm = async (targetWikiId: string, parentPageId?: string) => {
-        if (!pageToMove) {
-            return;
-        }
-
-        try {
-            const result = await actions.movePageToWiki(pageToMove.pageId, wikiId, targetWikiId, parentPageId);
-            if (result.error) {
-                // TODO: Show error notification instead of alert
-            }
-        } catch (error) {
-            // TODO: Show error notification instead of alert
-        } finally {
-            setShowMoveModal(false);
-            setPageToMove(null);
-        }
-    };
-
-    const handleMoveCancel = () => {
-        setShowMoveModal(false);
-        setPageToMove(null);
-    };
-
-    // Memoize children map for efficient descendant lookups
-    const childrenMap = useMemo(() => {
-        const map = new Map<string, PageOrDraft[]>();
-        allPages.forEach((page) => {
-            const parentId = page.page_parent_id || '';
-            if (!map.has(parentId)) {
-                map.set(parentId, []);
-            }
-            map.get(parentId)!.push(page);
-        });
-        return map;
-    }, [allPages]);
-
-    const getDescendantCount = useCallback((pageId: string, childrenMap: Map<string, PageOrDraft[]>): number => {
-        const children = childrenMap.get(pageId) || [];
-        let count = children.length;
-
-        children.forEach((child) => {
-            count += getDescendantCount(child.id, childrenMap);
-        });
-
-        return count;
-    }, []);
-
-    const getAllDescendantIds = useCallback((pageId: string, childrenMap: Map<string, PageOrDraft[]>): string[] => {
-        const children = childrenMap.get(pageId) || [];
-        const descendantIds: string[] = [];
-
-        children.forEach((child) => {
-            descendantIds.push(child.id);
-            descendantIds.push(...getAllDescendantIds(child.id, childrenMap));
-        });
-
-        return descendantIds;
-    }, []);
-
-    const handleDelete = async (pageId: string) => {
-        if (deletingPageId) {
-            return;
-        }
-
-        const page = allPages.find((p) => p.id === pageId);
-        if (!page) {
-            return;
-        }
-
-        const isDraft = page.type === PageDisplayTypes.PAGE_DRAFT as any;
-
-        if (isDraft) {
-            // Use modal dialog for drafts as well for consistency
-            const draftPage = page as any as Post;
-            setPageToDelete({page: draftPage, childCount: 0});
-            setShowDeleteModal(true);
-            return;
-        }
-
-        const childCount = getDescendantCount(pageId, childrenMap);
-
-        // Always use modal dialog for consistency and testability
-        setPageToDelete({page: page as Post, childCount});
-        setShowDeleteModal(true);
-    };
-
-    const handleDeleteConfirm = async (deleteChildren: boolean) => {
-        if (!pageToDelete) {
-            return;
-        }
-
-        const {page} = pageToDelete;
-        const isDraft = page.type === PageDisplayTypes.PAGE_DRAFT as any;
-
-        setShowDeleteModal(false);
-        setDeletingPageId(page.id);
-
-        try {
-            if (isDraft) {
-                // Handle draft deletion
-                const result = await actions.removePageDraft(wikiId, page.id);
-
-                if (result.error) {
-                    // TODO: Show error notification instead of alert
-                }
-            } else {
-                // Handle regular page deletion
-                if (deleteChildren) {
-                    const descendantIds = getAllDescendantIds(page.id, childrenMap);
-
-                    for (const descendantId of descendantIds.reverse()) {
-                        // eslint-disable-next-line no-await-in-loop
-                        await actions.deletePage(descendantId, wikiId);
-                    }
-                }
-
-                const result = await actions.deletePage(page.id, wikiId);
-
-                if (result.error) {
-                    // TODO: Show error notification instead of alert
-                } else {
-                    const deletedPageIds = deleteChildren ? [page.id, ...getAllDescendantIds(page.id, childrenMap)] : [page.id];
-                    const isViewingDeletedPage = currentPageId && deletedPageIds.includes(currentPageId);
-
-                    if (isViewingDeletedPage) {
-                        const parentId = page.page_parent_id || '';
-                        onPageSelect(parentId);
-                    }
-                }
-            }
-        } catch (error) {
-            // TODO: Show error notification instead of alert
-        } finally {
-            setDeletingPageId(null);
-            setPageToDelete(null);
-        }
-    };
-
-    const handleDeleteCancel = () => {
-        setShowDeleteModal(false);
-        setPageToDelete(null);
+        menuHandlers.setShowCreatePageModal(true);
     };
 
     if (loading && pages.length === 0) {
@@ -530,7 +229,7 @@ const PagesHierarchyPanel = ({
                 title='Pages'
                 onNewPage={handleNewPage}
                 onCollapse={actions.closePagesPanel}
-                isCreating={creatingPage}
+                isCreating={menuHandlers.creatingPage}
             />
 
             {/* Search */}
@@ -559,13 +258,13 @@ const PagesHierarchyPanel = ({
                         currentPageId={currentPageId}
                         onNodeSelect={handlePageSelect}
                         onToggleExpand={handleToggleExpanded}
-                        onCreateChild={handleCreateChild}
-                        onRename={handleRename}
-                        onDuplicate={handleDuplicate}
-                        onMove={handleMove}
-                        onDelete={handleDelete}
-                        renamingPageId={renamingPageId}
-                        deletingPageId={deletingPageId}
+                        onCreateChild={menuHandlers.handleCreateChild}
+                        onRename={menuHandlers.handleRename}
+                        onDuplicate={menuHandlers.handleDuplicate}
+                        onMove={menuHandlers.handleMove}
+                        onDelete={menuHandlers.handleDelete}
+                        renamingPageId={menuHandlers.renamingPageId}
+                        deletingPageId={menuHandlers.deletingPageId}
                         wikiId={wikiId}
                         channelId={channelId}
                     />
@@ -573,73 +272,73 @@ const PagesHierarchyPanel = ({
             </div>
 
             {/* Delete confirmation modal */}
-            {showDeleteModal && pageToDelete && (
+            {menuHandlers.showDeleteModal && menuHandlers.pageToDelete && (
                 <DeletePageModal
-                    pageTitle={(pageToDelete.page.props?.title as string | undefined) || pageToDelete.page.message || 'Untitled'}
-                    childCount={pageToDelete.childCount}
-                    onConfirm={handleDeleteConfirm}
-                    onCancel={handleDeleteCancel}
+                    pageTitle={(menuHandlers.pageToDelete.page.props?.title as string | undefined) || menuHandlers.pageToDelete.page.message || 'Untitled'}
+                    childCount={menuHandlers.pageToDelete.childCount}
+                    onConfirm={menuHandlers.handleDeleteConfirm}
+                    onCancel={menuHandlers.handleDeleteCancel}
                 />
             )}
 
             {/* Move page to wiki modal */}
-            {showMoveModal && pageToMove && (
+            {menuHandlers.showMoveModal && menuHandlers.pageToMove && (
                 <MovePageModal
-                    pageId={pageToMove.pageId}
-                    pageTitle={pageToMove.pageTitle}
+                    pageId={menuHandlers.pageToMove.pageId}
+                    pageTitle={menuHandlers.pageToMove.pageTitle}
                     currentWikiId={wikiId}
-                    availableWikis={availableWikis}
-                    fetchPagesForWiki={fetchPagesForWiki}
-                    hasChildren={pageToMove.hasChildren}
-                    onConfirm={handleMoveConfirm}
-                    onCancel={handleMoveCancel}
+                    availableWikis={menuHandlers.availableWikis}
+                    fetchPagesForWiki={menuHandlers.fetchPagesForWiki}
+                    hasChildren={menuHandlers.pageToMove.hasChildren}
+                    onConfirm={menuHandlers.handleMoveConfirm}
+                    onCancel={menuHandlers.handleMoveCancel}
                 />
             )}
 
             {/* Duplicate page modal */}
-            {showDuplicateModal && pageToDuplicate && (
+            {menuHandlers.showDuplicateModal && menuHandlers.pageToDuplicate && (
                 <DuplicatePageModal
-                    pageId={pageToDuplicate.pageId}
-                    pageTitle={pageToDuplicate.pageTitle}
+                    pageId={menuHandlers.pageToDuplicate.pageId}
+                    pageTitle={menuHandlers.pageToDuplicate.pageTitle}
                     currentWikiId={wikiId}
-                    availableWikis={availableWikis}
-                    fetchPagesForWiki={fetchPagesForWiki}
-                    hasChildren={pageToDuplicate.hasChildren}
-                    onConfirm={handleDuplicateConfirm}
-                    onCancel={handleDuplicateCancel}
+                    availableWikis={menuHandlers.availableWikis}
+                    fetchPagesForWiki={menuHandlers.fetchPagesForWiki}
+                    hasChildren={menuHandlers.pageToDuplicate.hasChildren}
+                    onConfirm={menuHandlers.handleDuplicateConfirm}
+                    onCancel={menuHandlers.handleDuplicateCancel}
                 />
             )}
 
             {/* Rename page modal */}
-            {showRenameModal && pageToRename && (
+            {menuHandlers.showRenameModal && menuHandlers.pageToRename && (
                 <TextInputModal
-                    show={showRenameModal}
+                    show={menuHandlers.showRenameModal}
                     title='Rename Page'
                     placeholder='Enter new page title...'
                     confirmButtonText='Rename'
                     maxLength={255}
-                    initialValue={pageToRename.currentTitle}
+                    initialValue={menuHandlers.pageToRename.currentTitle}
                     ariaLabel='Rename Page'
                     inputTestId='rename-page-modal-title-input'
-                    onConfirm={handleRenameConfirm}
-                    onCancel={handleRenameCancel}
-                    onHide={() => setShowRenameModal(false)}
+                    onConfirm={menuHandlers.handleRenameConfirm}
+                    onCancel={menuHandlers.handleRenameCancel}
+                    onHide={() => menuHandlers.setShowRenameModal(false)}
                 />
             )}
 
             {/* Create page modal */}
             <TextInputModal
-                show={showCreatePageModal}
-                title={createPageParent ? `Create Child Page under "${createPageParent.title}"` : 'Create New Page'}
+                show={menuHandlers.showCreatePageModal}
+                title={menuHandlers.createPageParent ? `Create Child Page under "${menuHandlers.createPageParent.title}"` : 'Create New Page'}
                 placeholder='Enter page title...'
-                helpText={createPageParent ? `This page will be created as a child of "${createPageParent.title}".` : 'A new draft will be created for you to edit.'}
+                helpText={menuHandlers.createPageParent ? `This page will be created as a child of "${menuHandlers.createPageParent.title}".` : 'A new draft will be created for you to edit.'}
                 confirmButtonText='Create'
                 maxLength={255}
                 ariaLabel='Create Page'
                 inputTestId='create-page-modal-title-input'
-                onConfirm={handleConfirmCreatePage}
-                onCancel={handleCancelCreatePage}
-                onHide={() => setShowCreatePageModal(false)}
+                onConfirm={menuHandlers.handleConfirmCreatePage}
+                onCancel={menuHandlers.handleCancelCreatePage}
+                onHide={() => menuHandlers.setShowCreatePageModal(false)}
             />
         </div>
     );

@@ -52,50 +52,60 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 wikiId: testContext.wikiId,
                 pageTitle: 'Test Page',
                 channelLoaded: true,
+                activeTab: 'page_comments' as const,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
+                    setWikiRhsActiveTab: jest.fn(),
+                    openWikiRhs: jest.fn(),
                 },
             };
 
             renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
 
-            expect(screen.getByText('Thread')).toBeInTheDocument();
+            expect(screen.getByText('Comments')).toBeInTheDocument();
             expect(screen.getByText('Test Page')).toBeInTheDocument();
         });
 
-        test('should render header title', () => {
+        test('should render header title as Comments', () => {
             const baseProps = {
                 pageId,
                 wikiId: testContext.wikiId,
                 pageTitle: 'Test Page',
                 channelLoaded: true,
+                activeTab: 'page_comments' as const,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
+                    setWikiRhsActiveTab: jest.fn(),
+                    openWikiRhs: jest.fn(),
                 },
             };
 
             renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
 
-            expect(screen.getByRole('heading', {name: 'Thread'})).toBeInTheDocument();
+            expect(screen.getByRole('heading', {name: 'Comments'})).toBeInTheDocument();
         });
 
-        test('should render page title', () => {
+        test('should render tabs', () => {
             const baseProps = {
                 pageId,
                 wikiId: testContext.wikiId,
                 pageTitle: 'Test Page',
                 channelLoaded: true,
+                activeTab: 'page_comments' as const,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
+                    setWikiRhsActiveTab: jest.fn(),
+                    openWikiRhs: jest.fn(),
                 },
             };
 
             renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
 
-            expect(screen.getByText('Test Page')).toBeInTheDocument();
+            expect(screen.getByText('Page Comments')).toBeInTheDocument();
+            expect(screen.getByText('All Threads')).toBeInTheDocument();
         });
 
         test('should render header action buttons', () => {
@@ -104,9 +114,12 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 wikiId: testContext.wikiId,
                 pageTitle: 'Test Page',
                 channelLoaded: true,
+                activeTab: 'page_comments' as const,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
+                    setWikiRhsActiveTab: jest.fn(),
+                    openWikiRhs: jest.fn(),
                 },
             };
 
@@ -122,9 +135,12 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 wikiId: testContext.wikiId,
                 pageTitle: 'Test Page',
                 channelLoaded: true,
+                activeTab: 'page_comments' as const,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
+                    setWikiRhsActiveTab: jest.fn(),
+                    openWikiRhs: jest.fn(),
                 },
             };
 
@@ -140,9 +156,12 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 wikiId: testContext.wikiId,
                 pageTitle: 'Test Page',
                 channelLoaded: true,
+                activeTab: 'page_comments' as const,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
+                    setWikiRhsActiveTab: jest.fn(),
+                    openWikiRhs: jest.fn(),
                 },
             };
 
@@ -153,16 +172,128 @@ describe('components/wiki_rhs/WikiRHS', () => {
         });
     });
 
-    describe('Thread Viewer', () => {
+    describe('Tab Switching', () => {
+        test('should show page comments tab by default', () => {
+            const baseProps = {
+                pageId,
+                wikiId: testContext.wikiId,
+                pageTitle: 'Test Page',
+                channelLoaded: true,
+                activeTab: 'page_comments' as const,
+                actions: {
+                    publishPage: jest.fn(),
+                    closeRightHandSide: jest.fn(),
+                    setWikiRhsActiveTab: jest.fn(),
+                    openWikiRhs: jest.fn(),
+                },
+            };
+
+            const {container} = renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
+
+            const commentsContent = container.querySelector('.WikiRHS__comments-content');
+            expect(commentsContent).toBeInTheDocument();
+        });
+
+        test('should show all threads tab when activeTab is all_threads', () => {
+            const baseProps = {
+                pageId,
+                wikiId: testContext.wikiId,
+                pageTitle: 'Test Page',
+                channelLoaded: true,
+                activeTab: 'all_threads' as const,
+                actions: {
+                    publishPage: jest.fn(),
+                    closeRightHandSide: jest.fn(),
+                    setWikiRhsActiveTab: jest.fn(),
+                    openWikiRhs: jest.fn(),
+                },
+            };
+
+            const {container} = renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
+
+            const allThreadsContent = container.querySelector('.WikiRHS__all-threads-content');
+            expect(allThreadsContent).toBeInTheDocument();
+        });
+
+        test('should call setWikiRhsActiveTab when switching tabs', async () => {
+            const user = userEvent.setup();
+            const setWikiRhsActiveTab = jest.fn();
+            const baseProps = {
+                pageId,
+                wikiId: testContext.wikiId,
+                pageTitle: 'Test Page',
+                channelLoaded: true,
+                activeTab: 'page_comments' as const,
+                actions: {
+                    publishPage: jest.fn(),
+                    closeRightHandSide: jest.fn(),
+                    setWikiRhsActiveTab,
+                    openWikiRhs: jest.fn(),
+                },
+            };
+
+            renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
+
+            const allThreadsTab = screen.getByText('All Threads');
+            await user.click(allThreadsTab);
+
+            expect(setWikiRhsActiveTab).toHaveBeenCalledWith('all_threads');
+        });
+
+        test('should not show page title on all threads tab', () => {
+            const baseProps = {
+                pageId,
+                wikiId: testContext.wikiId,
+                pageTitle: 'Test Page',
+                channelLoaded: true,
+                activeTab: 'all_threads' as const,
+                actions: {
+                    publishPage: jest.fn(),
+                    closeRightHandSide: jest.fn(),
+                    setWikiRhsActiveTab: jest.fn(),
+                    openWikiRhs: jest.fn(),
+                },
+            };
+
+            renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
+
+            expect(screen.queryByTestId('wiki-rhs-page-title')).not.toBeInTheDocument();
+        });
+
+        test('should show page title on page comments tab', () => {
+            const baseProps = {
+                pageId,
+                wikiId: testContext.wikiId,
+                pageTitle: 'Test Page',
+                channelLoaded: true,
+                activeTab: 'page_comments' as const,
+                actions: {
+                    publishPage: jest.fn(),
+                    closeRightHandSide: jest.fn(),
+                    setWikiRhsActiveTab: jest.fn(),
+                    openWikiRhs: jest.fn(),
+                },
+            };
+
+            renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
+
+            expect(screen.getByText('Test Page')).toBeInTheDocument();
+        });
+    });
+
+    describe('Page Comments Tab', () => {
         test('should render comments content when pageId and channelLoaded', () => {
             const baseProps = {
                 pageId,
                 wikiId: testContext.wikiId,
                 pageTitle: 'Test Page',
                 channelLoaded: true,
+                activeTab: 'page_comments' as const,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
+                    setWikiRhsActiveTab: jest.fn(),
+                    openWikiRhs: jest.fn(),
                 },
             };
 
@@ -180,9 +311,12 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 wikiId: testContext.wikiId,
                 pageTitle: 'Test Page',
                 channelLoaded: true,
+                activeTab: 'page_comments' as const,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
+                    setWikiRhsActiveTab: jest.fn(),
+                    openWikiRhs: jest.fn(),
                 },
             };
 
@@ -197,9 +331,12 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 wikiId: testContext.wikiId,
                 pageTitle: 'Test Page',
                 channelLoaded: false,
+                activeTab: 'page_comments' as const,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
+                    setWikiRhsActiveTab: jest.fn(),
+                    openWikiRhs: jest.fn(),
                 },
             };
 
@@ -209,56 +346,46 @@ describe('components/wiki_rhs/WikiRHS', () => {
         });
     });
 
-    describe('Empty States', () => {
-        test('should show loading state when pageId exists but channel not loaded', () => {
-            const baseProps = {
-                pageId,
-                wikiId: testContext.wikiId,
-                pageTitle: 'Test Page',
-                channelLoaded: false,
-                actions: {
-                    publishPage: jest.fn(),
-                    closeRightHandSide: jest.fn(),
-                },
-            };
-
-            renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
-
-            expect(screen.getByText('Loading...')).toBeInTheDocument();
-        });
-
-        test('should show save message when pageId is null', () => {
-            const baseProps = {
-                pageId: null,
-                wikiId: testContext.wikiId,
-                pageTitle: 'Test Page',
-                channelLoaded: true,
-                actions: {
-                    publishPage: jest.fn(),
-                    closeRightHandSide: jest.fn(),
-                },
-            };
-
-            renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
-
-            expect(screen.getByText('Save page to enable comments')).toBeInTheDocument();
-        });
-
-        test('should not show loading state when channel is loaded', () => {
+    describe('All Threads Tab', () => {
+        test('should render all threads content when wikiId is provided', () => {
             const baseProps = {
                 pageId,
                 wikiId: testContext.wikiId,
                 pageTitle: 'Test Page',
                 channelLoaded: true,
+                activeTab: 'all_threads' as const,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
+                    setWikiRhsActiveTab: jest.fn(),
+                    openWikiRhs: jest.fn(),
+                },
+            };
+
+            const {container} = renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
+
+            const allThreadsContent = container.querySelector('.WikiRHS__all-threads-content');
+            expect(allThreadsContent).toBeInTheDocument();
+        });
+
+        test('should show no wiki message when wikiId is null', () => {
+            const baseProps = {
+                pageId,
+                wikiId: null,
+                pageTitle: 'Test Page',
+                channelLoaded: true,
+                activeTab: 'all_threads' as const,
+                actions: {
+                    publishPage: jest.fn(),
+                    closeRightHandSide: jest.fn(),
+                    setWikiRhsActiveTab: jest.fn(),
+                    openWikiRhs: jest.fn(),
                 },
             };
 
             renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
 
-            expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
+            expect(screen.getByText('No wiki selected')).toBeInTheDocument();
         });
     });
 
@@ -271,9 +398,12 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 wikiId: testContext.wikiId,
                 pageTitle: 'Test Page',
                 channelLoaded: true,
+                activeTab: 'page_comments' as const,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide,
+                    setWikiRhsActiveTab: jest.fn(),
+                    openWikiRhs: jest.fn(),
                 },
             };
 
@@ -287,15 +417,18 @@ describe('components/wiki_rhs/WikiRHS', () => {
     });
 
     describe('Page Title Display', () => {
-        test('should display provided page title', () => {
+        test('should display provided page title on page comments tab', () => {
             const baseProps = {
                 pageId,
                 wikiId: testContext.wikiId,
                 pageTitle: 'Custom Page Title',
                 channelLoaded: true,
+                activeTab: 'page_comments' as const,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
+                    setWikiRhsActiveTab: jest.fn(),
+                    openWikiRhs: jest.fn(),
                 },
             };
 
@@ -311,9 +444,12 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 wikiId: testContext.wikiId,
                 pageTitle: longTitle,
                 channelLoaded: true,
+                activeTab: 'page_comments' as const,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
+                    setWikiRhsActiveTab: jest.fn(),
+                    openWikiRhs: jest.fn(),
                 },
             };
 
@@ -321,74 +457,26 @@ describe('components/wiki_rhs/WikiRHS', () => {
 
             expect(screen.getByText(longTitle)).toBeInTheDocument();
         });
-    });
 
-    describe('Conditional Rendering Logic', () => {
-        test('should render comments content for valid page with loaded channel', () => {
+        test('should handle special characters in page title', () => {
+            const specialTitle = '<script>alert("xss")</script>';
             const baseProps = {
                 pageId,
                 wikiId: testContext.wikiId,
-                pageTitle: 'Test Page',
+                pageTitle: specialTitle,
                 channelLoaded: true,
+                activeTab: 'page_comments' as const,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
-                },
-            };
-
-            const {container} = renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
-
-            const commentsContent = container.querySelector('.WikiRHS__comments-content');
-            expect(commentsContent).toBeInTheDocument();
-            expect(screen.queryByText('Loading...')).not.toBeInTheDocument();
-            expect(screen.queryByText('Save page to enable comments')).not.toBeInTheDocument();
-        });
-
-        test('should render loading state for valid page with unloaded channel', () => {
-            const baseProps = {
-                pageId,
-                wikiId: testContext.wikiId,
-                pageTitle: 'Test Page',
-                channelLoaded: false,
-                actions: {
-                    publishPage: jest.fn(),
-                    closeRightHandSide: jest.fn(),
+                    setWikiRhsActiveTab: jest.fn(),
+                    openWikiRhs: jest.fn(),
                 },
             };
 
             renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
 
-            expect(screen.getByText('Loading...')).toBeInTheDocument();
-        });
-
-        test('should render save message for null pageId regardless of channelLoaded', () => {
-            const baseProps1 = {
-                pageId: null,
-                wikiId: testContext.wikiId,
-                pageTitle: 'Test Page',
-                channelLoaded: true,
-                actions: {
-                    publishPage: jest.fn(),
-                    closeRightHandSide: jest.fn(),
-                },
-            };
-
-            const {rerender} = renderWithContext(<WikiRHS {...baseProps1}/>, getInitialState());
-            expect(screen.getByText('Save page to enable comments')).toBeInTheDocument();
-
-            const baseProps2 = {
-                pageId: null,
-                wikiId: testContext.wikiId,
-                pageTitle: 'Test Page',
-                channelLoaded: false,
-                actions: {
-                    publishPage: jest.fn(),
-                    closeRightHandSide: jest.fn(),
-                },
-            };
-
-            rerender(<WikiRHS {...baseProps2}/>);
-            expect(screen.getByText('Save page to enable comments')).toBeInTheDocument();
+            expect(screen.getByText(specialTitle)).toBeInTheDocument();
         });
     });
 
@@ -399,9 +487,12 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 wikiId: testContext.wikiId,
                 pageTitle: 'Test Page',
                 channelLoaded: true,
+                activeTab: 'page_comments' as const,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
+                    setWikiRhsActiveTab: jest.fn(),
+                    openWikiRhs: jest.fn(),
                 },
             };
 
@@ -417,9 +508,12 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 wikiId: testContext.wikiId,
                 pageTitle: 'Test Page',
                 channelLoaded: true,
+                activeTab: 'page_comments' as const,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
+                    setWikiRhsActiveTab: jest.fn(),
+                    openWikiRhs: jest.fn(),
                 },
             };
 
@@ -429,60 +523,25 @@ describe('components/wiki_rhs/WikiRHS', () => {
             expect(header).toBeInTheDocument();
         });
 
-        test('should contain comments content element', () => {
+        test('should contain tabs element', () => {
             const baseProps = {
                 pageId,
                 wikiId: testContext.wikiId,
                 pageTitle: 'Test Page',
                 channelLoaded: true,
+                activeTab: 'page_comments' as const,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
+                    setWikiRhsActiveTab: jest.fn(),
+                    openWikiRhs: jest.fn(),
                 },
             };
 
             const {container} = renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
 
-            const commentsContent = container.querySelector('.WikiRHS__comments-content');
-            expect(commentsContent).toBeInTheDocument();
-        });
-    });
-
-    describe('Edge Cases', () => {
-        test('should handle all required props present', () => {
-            const baseProps = {
-                pageId,
-                wikiId: testContext.wikiId,
-                pageTitle: 'Test Page',
-                channelLoaded: true,
-                actions: {
-                    publishPage: jest.fn(),
-                    closeRightHandSide: jest.fn(),
-                },
-            };
-
-            renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
-
-            expect(screen.getByText('Thread')).toBeInTheDocument();
-            expect(screen.getByLabelText('Close')).toBeInTheDocument();
-        });
-
-        test('should handle special characters in page title', () => {
-            const specialTitle = '<script>alert("xss")</script>';
-            const baseProps = {
-                pageId,
-                wikiId: testContext.wikiId,
-                pageTitle: specialTitle,
-                channelLoaded: true,
-                actions: {
-                    publishPage: jest.fn(),
-                    closeRightHandSide: jest.fn(),
-                },
-            };
-
-            renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
-
-            expect(screen.getByText(specialTitle)).toBeInTheDocument();
+            const tabs = container.querySelector('.WikiRHS__tabs');
+            expect(tabs).toBeInTheDocument();
         });
     });
 });

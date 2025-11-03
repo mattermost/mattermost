@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton, fillCreatePageModal} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton, fillCreatePageModal, addHeadingToEditor, waitForPageInHierarchy} from './test_helpers';
 
 /**
  * @objective Verify complete workflow: create parent page, create child, add comment, edit content
@@ -440,87 +440,130 @@ test('creates multi-level hierarchy with comments and breadcrumb navigation', {t
     const wiki = await createWikiThroughUI(page, `Hierarchy Flow Wiki ${pw.random.id()}`);
 
     const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
-    const titleInput = page.locator('[data-testid="wiki-page-title-input"]');
     const publishButton = page.locator('[data-testid="wiki-page-publish-button"]');
 
     // # Create level 1 page
     const newPageButton = getNewPageButton(page);
-    if (await newPageButton.isVisible({timeout: 3000}).catch(() => false)) {
-        await newPageButton.click();
-        await titleInput.fill('Level 1 Page');
-        await editor.click();
-        await editor.type('Level 1 content');
-        await publishButton.click();
-        await page.waitForLoadState('networkidle');
+    await newPageButton.waitFor({state: 'visible', timeout: 5000});
+    await newPageButton.click();
 
-        // # Add comment to level 1
-        await page.keyboard.down('Control');
-        await page.keyboard.press('a');
-        await page.keyboard.up('Control');
+    // # Fill modal and create page
+    await fillCreatePageModal(page, 'Level 1 Page');
 
-        const commentButton = page.locator('button[aria-label*="comment"]').first();
-        if (await commentButton.isVisible({timeout: 2000}).catch(() => false)) {
-            await commentButton.click();
-            const commentModal = page.getByRole('dialog', {name: /Comment|Add/i});
-            const textarea = commentModal.locator('textarea').first();
-            await textarea.fill('Level 1 comment');
-            const addButton = commentModal.locator('button:has-text("Add")').first();
-            await addButton.click();
-            await page.waitForTimeout(500);
+    // # Edit page content
+    await editor.waitFor({state: 'visible', timeout: 5000});
+    await editor.click();
+    await editor.type('Level 1 content');
+    await publishButton.click();
+    await page.waitForLoadState('networkidle');
+    await waitForPageInHierarchy(page, 'Level 1 Page', 10000);
+
+    // # Add comment to level 1 - enter edit mode first
+    const editButton = page.locator('[data-testid="wiki-page-edit-button"]').first();
+    await editButton.waitFor({state: 'visible', timeout: 5000});
+    await editButton.click();
+    await page.waitForTimeout(500);
+
+    // # Select text in editor
+    await editor.waitFor({state: 'visible', timeout: 5000});
+    await editor.click();
+    await page.keyboard.down('Control');
+    await page.keyboard.press('a');
+    await page.keyboard.up('Control');
+    await page.waitForTimeout(200);
+
+    const commentButton = page.locator('button[aria-label*="comment"], [data-testid="inline-comment-submit"]').first();
+    if (await commentButton.isVisible({timeout: 5000}).catch(() => false)) {
+        await commentButton.click();
+        await page.waitForTimeout(500);
+
+        const commentModal = page.getByRole('dialog');
+        if (await commentModal.isVisible({timeout: 5000}).catch(() => false)) {
+            await commentModal.locator('textarea').fill('Level 1 comment');
+            await commentModal.locator('button:has-text("Add"), button:has-text("Submit")').first().click();
+            await page.waitForTimeout(1000);
         }
+    }
 
-        // # Create level 2 page (child)
-        const addChildButton = page.locator('[data-testid="page-context-menu-new-child"]').first();
-        if (await addChildButton.isVisible({timeout: 3000}).catch(() => false)) {
-            await addChildButton.click();
-            await titleInput.fill('Level 2 Page');
-            await editor.click();
-            await editor.clear();
-            await editor.type('Level 2 content');
-            await publishButton.click();
-            await page.waitForLoadState('networkidle');
+    // # Publish after adding comment
+    await publishButton.click();
+    await page.waitForLoadState('networkidle');
 
-            // # Add comment to level 2
-            await page.keyboard.down('Control');
-            await page.keyboard.press('a');
-            await page.keyboard.up('Control');
+    // # Create level 2 page (child) - open context menu first
+    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const level1Node = hierarchyPanel.locator(`text="Level 1 Page"`).first();
+    await level1Node.waitFor({state: 'visible', timeout: 5000});
 
-            if (await commentButton.isVisible({timeout: 2000}).catch(() => false)) {
-                await commentButton.click();
-                const commentModal = page.getByRole('dialog', {name: /Comment|Add/i});
-                const textarea = commentModal.locator('textarea').first();
-                await textarea.fill('Level 2 comment');
-                const addButton = commentModal.locator('button:has-text("Add")').first();
-                await addButton.click();
-                await page.waitForTimeout(500);
-            }
+    // # Right-click to open context menu
+    await level1Node.click({button: 'right'});
+    await page.waitForTimeout(300);
 
-            // # Navigate back to level 1 via breadcrumb
-            const breadcrumb = page.locator('[data-testid="breadcrumb"], .breadcrumb').first();
-            if (await breadcrumb.isVisible({timeout: 3000}).catch(() => false)) {
-                const level1Link = breadcrumb.locator('text="Level 1 Page"').first();
-                if (await level1Link.isVisible().catch(() => false)) {
-                    await level1Link.click();
-                    await page.waitForLoadState('networkidle');
+    const addChildButton = page.locator('[data-testid="page-context-menu-new-child"]').first();
+    await addChildButton.waitFor({state: 'visible', timeout: 5000});
+    await addChildButton.click();
 
-                    // * Verify on level 1 page
-                    const pageContent = page.locator('[data-testid="page-viewer-content"]');
-                    if (await pageContent.isVisible().catch(() => false)) {
-                        await expect(pageContent).toContainText('Level 1 content');
-                    }
+    // # Fill modal and create child page
+    await fillCreatePageModal(page, 'Level 2 Page');
 
-                    // * Verify level 1 comment still accessible
-                    const commentMarker = page.locator('[data-inline-comment-marker]').first();
-                    if (await commentMarker.isVisible({timeout: 2000}).catch(() => false)) {
-                        await commentMarker.click();
-                        const rhs = page.locator('[data-testid="rhs"]').first();
-                        if (await rhs.isVisible({timeout: 3000}).catch(() => false)) {
-                            await expect(rhs).toContainText('Level 1 comment');
-                        }
-                    }
-                }
-            }
+    // # Edit page content
+    await editor.waitFor({state: 'visible', timeout: 5000});
+    await editor.click();
+    await editor.clear();
+    await editor.type('Level 2 content');
+    await publishButton.click();
+    await page.waitForLoadState('networkidle');
+    await waitForPageInHierarchy(page, 'Level 2 Page', 10000);
+
+    // # Add comment to level 2 - enter edit mode first
+    await editButton.waitFor({state: 'visible', timeout: 5000});
+    await editButton.click();
+    await page.waitForTimeout(500);
+
+    // # Select text in editor
+    await editor.waitFor({state: 'visible', timeout: 5000});
+    await editor.click();
+    await page.keyboard.down('Control');
+    await page.keyboard.press('a');
+    await page.keyboard.up('Control');
+    await page.waitForTimeout(200);
+
+    const commentButton2 = page.locator('button[aria-label*="comment"], [data-testid="inline-comment-submit"]').first();
+    if (await commentButton2.isVisible({timeout: 5000}).catch(() => false)) {
+        await commentButton2.click();
+        await page.waitForTimeout(500);
+
+        const commentModal2 = page.getByRole('dialog');
+        if (await commentModal2.isVisible({timeout: 5000}).catch(() => false)) {
+            await commentModal2.locator('textarea').fill('Level 2 comment');
+            await commentModal2.locator('button:has-text("Add"), button:has-text("Submit")').first().click();
+            await page.waitForTimeout(1000);
         }
+    }
+
+    // # Publish after adding comment
+    await publishButton.click();
+    await page.waitForLoadState('networkidle');
+
+    // # Navigate back to level 1 via breadcrumb
+    const breadcrumb = page.locator('[data-testid="breadcrumb"], .breadcrumb').first();
+    await breadcrumb.waitFor({state: 'visible', timeout: 5000});
+    const level1Link = breadcrumb.locator('text="Level 1 Page"').first();
+    await level1Link.waitFor({state: 'visible', timeout: 5000});
+    await level1Link.click();
+    await page.waitForLoadState('networkidle');
+
+    // * Verify on level 1 page
+    const pageContent = page.locator('[data-testid="page-viewer-content"]');
+    await pageContent.waitFor({state: 'visible', timeout: 5000});
+    await expect(pageContent).toContainText('Level 1 content');
+
+    // * Verify level 1 comment still accessible
+    const commentMarker = page.locator('[data-inline-comment-marker]').first();
+    if (await commentMarker.isVisible({timeout: 5000}).catch(() => false)) {
+        await commentMarker.click();
+        const rhs = page.locator('[data-testid="rhs"]').first();
+        await rhs.waitFor({state: 'visible', timeout: 5000});
+        await expect(rhs).toContainText('Level 1 comment');
     }
 });
 
@@ -802,34 +845,17 @@ test('navigates page sections via outline in RHS', {tag: '@pages'}, async ({pw, 
 
     const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
     await editor.click();
-    const h1Button = page.getByTitle('Heading 1').first();
-    const h2Button = page.getByTitle('Heading 2').first();
 
     // # Create "Section 1" as H1
-    await editor.type('Section 1');
-    await page.keyboard.press('Control+A');
-    await h1Button.click();
-    await editor.press('End');
-    await editor.press('Enter');
-    await editor.type('Section 1 content');
+    await addHeadingToEditor(page, 1, 'Section 1', 'Section 1 content');
 
     // # Create "Section 1.1" as H2
-    await editor.press('Enter');
-    await editor.type('Section 1.1');
-    await page.keyboard.press('Control+A');
-    await h2Button.click();
-    await editor.press('End');
-    await editor.press('Enter');
-    await editor.type('Section 1.1 content');
+    await page.keyboard.press('Enter');
+    await addHeadingToEditor(page, 2, 'Section 1.1', 'Section 1.1 content');
 
     // # Create "Section 2" as H1
-    await editor.press('Enter');
-    await editor.type('Section 2');
-    await page.keyboard.press('Control+A');
-    await h1Button.click();
-    await editor.press('End');
-    await editor.press('Enter');
-    await editor.type('Section 2 content');
+    await page.keyboard.press('Enter');
+    await addHeadingToEditor(page, 1, 'Section 2', 'Section 2 content');
 
     // # Publish the page
     const publishButton = page.locator('[data-testid="wiki-page-publish-button"]');
@@ -882,97 +908,121 @@ test('executes complex multi-feature workflow end-to-end', {tag: '@pages'}, asyn
     const wiki = await createWikiThroughUI(page, `Complex Workflow Wiki ${pw.random.id()}`);
 
     const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
-    const titleInput = page.locator('[data-testid="wiki-page-title-input"]');
     const publishButton = page.locator('[data-testid="wiki-page-publish-button"]');
 
     // # Step 1: Create root page
     const newPageButton = getNewPageButton(page);
-    if (await newPageButton.isVisible({timeout: 3000}).catch(() => false)) {
-        await newPageButton.click();
-        await titleInput.fill('Root Project Page');
-        await editor.click();
-        await editor.type('Root project documentation');
-        await publishButton.click();
-        await page.waitForLoadState('networkidle');
+    await newPageButton.waitFor({state: 'visible', timeout: 5000});
+    await newPageButton.click();
 
-        // # Step 2: Create child pages
-        const addChildButton = page.locator('[data-testid="page-context-menu-new-child"]').first();
-        if (await addChildButton.isVisible({timeout: 3000}).catch(() => false)) {
-            await addChildButton.click();
-            await titleInput.fill('Requirements');
-            await editor.click();
-            await editor.clear();
-            await editor.type('Project requirements');
-            await publishButton.click();
-            await page.waitForLoadState('networkidle');
+    // # Fill modal and create page
+    await fillCreatePageModal(page, 'Root Project Page');
 
-            // # Step 3: Add comment to requirements
-            await page.keyboard.down('Control');
-            await page.keyboard.press('a');
-            await page.keyboard.up('Control');
+    // # Edit page content
+    await editor.waitFor({state: 'visible', timeout: 5000});
+    await editor.click();
+    await editor.type('Root project documentation');
+    await publishButton.click();
+    await page.waitForLoadState('networkidle');
+    await waitForPageInHierarchy(page, 'Root Project Page', 10000);
 
-            const commentButton = page.locator('button[aria-label*="comment"]').first();
-            if (await commentButton.isVisible({timeout: 2000}).catch(() => false)) {
-                await commentButton.click();
-                const commentModal = page.getByRole('dialog', {name: /Comment|Add/i});
-                const textarea = commentModal.locator('textarea').first();
-                await textarea.fill('Need to review these requirements');
-                const addButton = commentModal.locator('button:has-text("Add")').first();
-                await addButton.click();
-                await page.waitForTimeout(1000);
+    // # Step 2: Create child pages - open context menu first
+    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const rootNode = hierarchyPanel.locator(`text="Root Project Page"`).first();
+    await rootNode.waitFor({state: 'visible', timeout: 5000});
 
-                // # Step 4: Reply to comment
-                const commentMarker = page.locator('[data-inline-comment-marker]').first();
-                if (await commentMarker.isVisible({timeout: 2000}).catch(() => false)) {
-                    await commentMarker.click();
-                    const rhs = page.locator('[data-testid="rhs"]').first();
-                    if (await rhs.isVisible({timeout: 3000}).catch(() => false)) {
-                        const replyButton = rhs.locator('button:has-text("Reply")').first();
-                        if (await replyButton.isVisible().catch(() => false)) {
-                            await replyButton.click();
-                            const replyTextarea = rhs.locator('textarea').last();
-                            await replyTextarea.fill('Requirements approved');
-                            const sendButton = rhs.locator('button:has-text("Send")').first();
-                            await sendButton.click();
-                            await page.waitForTimeout(500);
-                        }
+    // # Right-click to open context menu
+    await rootNode.click({button: 'right'});
+    await page.waitForTimeout(300);
 
-                        // # Step 5: Resolve comment
-                        const resolveButton = rhs.locator('button:has-text("Resolve")').first();
-                        if (await resolveButton.isVisible().catch(() => false)) {
-                            await resolveButton.click();
-                            await page.waitForTimeout(500);
-                        }
-                    }
-                }
+    const addChildButton = page.locator('[data-testid="page-context-menu-new-child"]').first();
+    await addChildButton.waitFor({state: 'visible', timeout: 5000});
+    await addChildButton.click();
 
-                // # Step 6: Navigate via breadcrumb
-                const breadcrumb = page.locator('[data-testid="breadcrumb"], .breadcrumb').first();
-                if (await breadcrumb.isVisible({timeout: 3000}).catch(() => false)) {
-                    const rootLink = breadcrumb.locator('text="Root Project Page"').first();
-                    if (await rootLink.isVisible().catch(() => false)) {
-                        await rootLink.click();
-                        await page.waitForLoadState('networkidle');
+    // # Fill modal and create child page
+    await fillCreatePageModal(page, 'Requirements');
 
-                        // * Verify on root page
-                        const pageContent = page.locator('[data-testid="page-viewer-content"]');
-                        if (await pageContent.isVisible().catch(() => false)) {
-                            await expect(pageContent).toContainText('Root project documentation');
-                        }
+    // # Edit page content
+    await editor.waitFor({state: 'visible', timeout: 5000});
+    await editor.click();
+    await editor.clear();
+    await editor.type('Project requirements');
+    await publishButton.click();
+    await page.waitForLoadState('networkidle');
+    await waitForPageInHierarchy(page, 'Requirements', 10000);
 
-                        // # Step 7: Verify hierarchy shows all pages
-                        const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
-                        if (await hierarchyPanel.isVisible({timeout: 3000}).catch(() => false)) {
-                            await expect(hierarchyPanel).toContainText('Root Project Page');
-                            await expect(hierarchyPanel).toContainText('Requirements');
-                        }
+    // # Step 3: Add comment to requirements - enter edit mode first
+    const editButton = page.locator('[data-testid="wiki-page-edit-button"]').first();
+    await editButton.waitFor({state: 'visible', timeout: 5000});
+    await editButton.click();
+    await page.waitForTimeout(500);
 
-                        // * Test complete - multi-feature workflow successful
-                    }
-                }
-            }
+    // # Select text in editor
+    await editor.waitFor({state: 'visible', timeout: 5000});
+    await editor.click();
+    await page.keyboard.down('Control');
+    await page.keyboard.press('a');
+    await page.keyboard.up('Control');
+    await page.waitForTimeout(200);
+
+    const commentButton = page.locator('button[aria-label*="comment"], [data-testid="inline-comment-submit"]').first();
+    if (await commentButton.isVisible({timeout: 5000}).catch(() => false)) {
+        await commentButton.click();
+        await page.waitForTimeout(500);
+
+        const commentModal = page.getByRole('dialog');
+        if (await commentModal.isVisible({timeout: 5000}).catch(() => false)) {
+            await commentModal.locator('textarea').fill('Need to review these requirements');
+            await commentModal.locator('button:has-text("Add"), button:has-text("Submit")').first().click();
+            await page.waitForTimeout(1000);
         }
     }
+
+    // # Publish after adding comment
+    await publishButton.click();
+    await page.waitForLoadState('networkidle');
+
+    // # Step 4: Reply to comment (if marker is visible)
+    const commentMarker = page.locator('[data-inline-comment-marker]').first();
+    if (await commentMarker.isVisible({timeout: 5000}).catch(() => false)) {
+        await commentMarker.click();
+        const rhs = page.locator('[data-testid="rhs"]').first();
+        await rhs.waitFor({state: 'visible', timeout: 5000});
+        const replyButton = rhs.locator('button:has-text("Reply")').first();
+        await replyButton.waitFor({state: 'visible', timeout: 5000});
+        await replyButton.click();
+        const replyTextarea = rhs.locator('textarea').last();
+        await replyTextarea.fill('Requirements approved');
+        const sendButton = rhs.locator('button:has-text("Send")').first();
+        await sendButton.click();
+        await page.waitForTimeout(1000);
+
+        // # Step 5: Resolve comment
+        const resolveButton = rhs.locator('button:has-text("Resolve")').first();
+        await resolveButton.waitFor({state: 'visible', timeout: 5000});
+        await resolveButton.click();
+        await page.waitForTimeout(1000);
+    }
+
+    // # Step 6: Navigate via breadcrumb
+    const breadcrumb = page.locator('[data-testid="breadcrumb"], .breadcrumb').first();
+    await breadcrumb.waitFor({state: 'visible', timeout: 5000});
+    const rootLink = breadcrumb.locator('text="Root Project Page"').first();
+    await rootLink.waitFor({state: 'visible', timeout: 5000});
+    await rootLink.click();
+    await page.waitForLoadState('networkidle');
+
+    // * Verify on root page
+    const pageContent = page.locator('[data-testid="page-viewer-content"]');
+    await pageContent.waitFor({state: 'visible', timeout: 5000});
+    await expect(pageContent).toContainText('Root project documentation');
+
+    // # Step 7: Verify hierarchy shows all pages
+    await hierarchyPanel.waitFor({state: 'visible', timeout: 5000});
+    await expect(hierarchyPanel).toContainText('Root Project Page');
+    await expect(hierarchyPanel).toContainText('Requirements');
+
+    // * Test complete - multi-feature workflow successful
 });
 
 /**
@@ -988,63 +1038,69 @@ test('creates draft with auto-save, closes browser, recovers and publishes', {ta
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Draft Recovery Wiki ${pw.random.id()}`);
 
-    // # Create draft
+    // # Create draft via modal
     const newPageButton = getNewPageButton(page);
-    if (await newPageButton.isVisible({timeout: 3000}).catch(() => false)) {
-        await newPageButton.click();
+    await newPageButton.waitFor({state: 'visible', timeout: 5000});
+    await newPageButton.click();
 
-        const titleInput = page.locator('[data-testid="wiki-page-title-input"]');
-        await titleInput.fill('Draft Recovery Test');
+    // # Fill modal and create page
+    await fillCreatePageModal(page, 'Draft Recovery Test');
 
-        const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
-        await editor.click();
-        await editor.type('Important draft content that must not be lost');
+    // # Edit draft content
+    const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
+    await editor.waitFor({state: 'visible', timeout: 5000});
+    await editor.click();
+    await editor.type('Important draft content that must not be lost');
 
-        // * Wait for auto-save
-        await page.waitForTimeout(3000);
+    // * Wait for auto-save
+    await page.waitForTimeout(3000);
 
-        // # Simulate browser close (navigate away)
-        await page.goto(`${pw.url}/${team.name}/channels/town-square`);
-        await page.waitForLoadState('networkidle');
+    // # Simulate browser close (navigate away)
+    await page.goto(`${pw.url}/${team.name}/channels/town-square`);
+    await page.waitForLoadState('networkidle');
 
-        // # Return to wiki
-        await page.goto(`${pw.url}/${team.name}/channels/${channel.name}/wikis/${wiki.id}`);
-        await page.waitForLoadState('networkidle');
+    // # Return to wiki (use correct wiki URL format)
+    await page.goto(`${pw.url}/${team.name}/wiki/${channel.id}/${wiki.id}`);
+    await page.waitForLoadState('networkidle');
 
-        // # Recover draft (drafts are integrated in tree with data-is-draft attribute)
-        const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
-        const draftNode = hierarchyPanel.locator('[data-testid="page-tree-node"][data-is-draft="true"]', {hasText: 'Draft Recovery Test'});
-        if (await draftNode.isVisible({timeout: 3000}).catch(() => false)) {
-            await draftNode.click();
-            await page.waitForLoadState('networkidle');
+    // # Wait for hierarchy panel to load
+    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    await hierarchyPanel.waitFor({state: 'visible', timeout: 10000});
 
-                // * Verify content recovered
-                const editorContent = await editor.textContent();
-                expect(editorContent).toContain('Important draft content that must not be lost');
+    // Wait for draft to appear in hierarchy
+    await page.waitForTimeout(2000);
 
-                // # Publish draft
-                const publishButton = page.locator('[data-testid="wiki-page-publish-button"]');
-                await publishButton.click();
-                await page.waitForLoadState('networkidle');
+    // # Recover draft (drafts are integrated in tree with data-is-draft attribute)
+    const draftNode = hierarchyPanel.locator('[data-testid="page-tree-node"][data-is-draft="true"]').filter({hasText: 'Draft Recovery Test'});
+    await draftNode.waitFor({state: 'visible', timeout: 10000});
+    await draftNode.click();
+    await page.waitForLoadState('networkidle');
 
-                // * Verify published successfully
-                const pageContent = page.locator('[data-testid="page-viewer-content"]');
-                if (await pageContent.isVisible().catch(() => false)) {
-                    await expect(pageContent).toContainText('Important draft content that must not be lost');
-                }
+    // * Verify content recovered
+    const editorContent = await editor.textContent();
+    expect(editorContent).toContain('Important draft content that must not be lost');
 
-                // * Verify draft no longer in drafts section
-                await page.goto(`${pw.url}/${team.name}/channels/${channel.name}/wikis/${wiki.id}`);
-                await page.waitForLoadState('networkidle');
+    // # Publish draft
+    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]');
+    await publishButton.click();
+    await page.waitForLoadState('networkidle');
 
-                const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
-                if (await hierarchyPanel.isVisible({timeout: 3000}).catch(() => false)) {
-                    const draftNode = hierarchyPanel.locator('[data-testid="page-tree-node"][data-is-draft="true"]', {hasText: 'Draft Recovery Test'});
-                    const draftStillVisible = await draftNode.isVisible({timeout: 2000}).catch(() => false);
-                    expect(draftStillVisible).toBe(false);
-                }
-            }
-        }
+    // * Verify published successfully
+    const pageContent = page.locator('[data-testid="page-viewer-content"]');
+    await pageContent.waitFor({state: 'visible', timeout: 5000});
+    await expect(pageContent).toContainText('Important draft content that must not be lost');
+
+    // * Verify draft no longer in drafts section (use correct wiki URL format)
+    await page.goto(`${pw.url}/${team.name}/wiki/${channel.id}/${wiki.id}`);
+    await page.waitForLoadState('networkidle');
+
+    const hierarchyPanel2 = page.locator('[data-testid="pages-hierarchy-panel"]');
+    await hierarchyPanel2.waitFor({state: 'visible', timeout: 5000});
+    await page.waitForTimeout(1000);
+
+    const draftNode2 = hierarchyPanel2.locator('[data-testid="page-tree-node"][data-is-draft="true"]').filter({hasText: 'Draft Recovery Test'});
+    const draftStillVisible = await draftNode2.isVisible({timeout: 2000}).catch(() => false);
+    expect(draftStillVisible).toBe(false);
 });
 
 /**

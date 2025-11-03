@@ -2,10 +2,18 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useEffect} from 'react';
+import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
+
+import {getUser as getUserAction} from 'mattermost-redux/actions/users';
+import {getUser} from 'mattermost-redux/selectors/entities/users';
 
 import {loadChannelPages} from 'actions/pages';
 import {getChannelPages} from 'selectors/pages';
+
+import ProfilePicture from 'components/profile_picture';
+
+import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -40,9 +48,22 @@ const WikiPageEditor = ({
     showAuthor = false,
 }: Props) => {
     const dispatch = useDispatch();
+    const {formatMessage} = useIntl();
     const [localTitle, setLocalTitle] = useState(title);
 
     const pages = useSelector((state: GlobalState) => getChannelPages(state, channelId || ''));
+
+    // Fetch author user data
+    const authorUser = useSelector((state: GlobalState) =>
+        (currentUserId ? getUser(state, currentUserId) : undefined),
+    );
+
+    // Load user data if not in store
+    useEffect(() => {
+        if (currentUserId && !authorUser) {
+            dispatch(getUserAction(currentUserId));
+        }
+    }, [currentUserId, authorUser, dispatch]);
 
     // Fetch all pages in the channel for cross-wiki linking
     useEffect(() => {
@@ -93,12 +114,42 @@ const WikiPageEditor = ({
                     data-testid='wiki-page-meta'
                 >
                     {showAuthor && currentUserId && (
-                        <span
-                            className='page-author'
-                            data-testid='wiki-page-author'
-                        >
-                            {`By ${currentUserId}`}
-                        </span>
+                        <>
+                            {authorUser ? (
+                                <div
+                                    className='WikiPageEditor__author'
+                                    data-testid='wiki-page-author'
+                                    aria-label={formatMessage(
+                                        {id: 'wiki.author.aria', defaultMessage: 'Author: {username}'},
+                                        {username: authorUser.username},
+                                    )}
+                                >
+                                    <ProfilePicture
+                                        src={Utils.imageURLForUser(currentUserId, authorUser.last_picture_update)}
+                                        userId={currentUserId}
+                                        username={authorUser.username}
+                                        size='xs'
+                                        channelId={channelId}
+                                    />
+                                    <span className='WikiPageEditor__authorText'>
+                                        {formatMessage(
+                                            {id: 'wiki.author.by', defaultMessage: 'By {username}'},
+                                            {username: authorUser.username},
+                                        )}
+                                    </span>
+                                </div>
+                            ) : (
+                                <div
+                                    className='WikiPageEditor__authorLoading'
+                                    data-testid='wiki-page-author-loading'
+                                >
+                                    <div
+                                        className='skeleton-loader'
+                                        aria-label='Loading author'
+                                    />
+                                </div>
+                            )}
+                        </>
                     )}
                     <span
                         className='page-status badge'

@@ -50,12 +50,11 @@ const InlineCommentButton = ({editor, onCreateComment}: Props) => {
                     type='button'
                     onClick={handleClick}
                     className='inline-comment-btn'
-                    aria-label='Add comment to selection'
-                    title='Add comment to selection'
+                    aria-label='Add comment'
+                    title='Add comment'
                     data-testid='inline-comment-submit'
                 >
-                    <i className='icon icon-plus'/>
-                    <span>{'Comment'}</span>
+                    <i className='icon icon-message-text-outline'/>
                 </button>
             </div>
         </BubbleMenu>

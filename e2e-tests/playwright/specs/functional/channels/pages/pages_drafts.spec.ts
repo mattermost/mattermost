@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, ensurePanelOpen, getNewPageButton, fillCreatePageModal} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, ensurePanelOpen, getNewPageButton, fillCreatePageModal, createDraftThroughUI} from './test_helpers';
 
 /**
  * @objective Verify draft auto-save functionality and persistence
@@ -589,4 +589,144 @@ test('removes draft from hierarchy after immediately publishing default wiki pag
     const allNodesWithName = hierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: pageTitle});
     const nodeCount = await allNodesWithName.count();
     expect(nodeCount).toBe(1);
+});
+
+/**
+ * @objective Verify publishing parent draft maintains child draft hierarchy without page refresh
+ *
+ * @precondition
+ * WebSocket connections are enabled for real-time draft updates
+ */
+test('publishes parent draft and child draft stays under published parent', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki through UI
+    const wiki = await createWikiThroughUI(page, `Parent Child Draft Wiki ${pw.random.id()}`);
+
+    // # Create parent draft (NOT published)
+    const parentDraft = await createDraftThroughUI(page, 'Parent Draft', 'Parent draft content');
+
+    // # Navigate back to wiki view to see hierarchy
+    await page.goto(`${pw.url}/${team.name}/wiki/${channel.id}/${wiki.id}`);
+    await page.waitForLoadState('networkidle');
+
+    // # Ensure pages panel is open
+    await ensurePanelOpen(page);
+
+    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+
+    // * Verify parent draft appears in hierarchy
+    const parentDraftNode = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-is-draft="true"]`).filter({hasText: 'Parent Draft'});
+    await expect(parentDraftNode).toBeVisible({timeout: 5000});
+
+    // # Create child draft under parent draft via right-click context menu
+    await parentDraftNode.click({button: 'right'});
+
+    const contextMenu = page.locator('[data-testid="page-context-menu"]');
+    await contextMenu.waitFor({state: 'visible', timeout: 5000});
+
+    const createSubpageButton = contextMenu.locator('[data-testid="page-context-menu-new-child"]').first();
+    await createSubpageButton.click();
+
+    // # Fill in modal and create child draft
+    await fillCreatePageModal(page, 'Child Draft');
+
+    // # Wait for editor to appear and add content
+    const editor = page.locator('.ProseMirror').first();
+    await editor.waitFor({state: 'visible', timeout: 5000});
+    await editor.click();
+    await editor.type('Child draft content');
+
+    // # Wait for auto-save to complete
+    await page.waitForTimeout(2000);
+
+    // # Navigate back to wiki view to see updated hierarchy
+    await page.goto(`${pw.url}/${team.name}/wiki/${channel.id}/${wiki.id}`);
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(500);
+
+    // # Ensure pages panel is open after navigation
+    await ensurePanelOpen(page);
+
+    // # Refind parent node after navigation (page reloaded)
+    const parentDraftNodeAfterChildCreate = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-is-draft="true"]`).filter({hasText: 'Parent Draft'});
+    await expect(parentDraftNodeAfterChildCreate).toBeVisible({timeout: 5000});
+
+    // # Expand parent node to see child
+    const expandButton = parentDraftNodeAfterChildCreate.locator('[data-testid="page-tree-node-expand-button"]');
+    if (await expandButton.isVisible({timeout: 2000}).catch(() => false)) {
+        await expandButton.click();
+        await page.waitForTimeout(500);
+    }
+
+    // * Verify child draft appears under parent draft in hierarchy
+    const childDraftNode = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-is-draft="true"]`).filter({hasText: 'Child Draft'});
+    await expect(childDraftNode).toBeVisible({timeout: 10000});
+
+    // * Verify child has greater indentation than parent (indicating hierarchy)
+    const parentPadding = await parentDraftNodeAfterChildCreate.evaluate((el) => window.getComputedStyle(el).paddingLeft);
+    const childPadding = await childDraftNode.evaluate((el) => window.getComputedStyle(el).paddingLeft);
+    expect(parseInt(childPadding)).toBeGreaterThan(parseInt(parentPadding));
+
+    // # Click on parent draft to edit it
+    await parentDraftNodeAfterChildCreate.click();
+    await page.waitForLoadState('networkidle');
+
+    // # Publish parent draft
+    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]');
+    await publishButton.waitFor({state: 'visible', timeout: 5000});
+    await publishButton.click();
+
+    // # Wait for publish to complete and websocket events to be processed
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(3000); // Give more time for websocket events
+
+    // # Navigate to wiki view to see hierarchy (page may still be on published page view)
+    await page.goto(`${pw.url}/${team.name}/wiki/${channel.id}/${wiki.id}/${parentDraft.id}`);
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1000);
+
+    // # Ensure pages panel is open
+    await ensurePanelOpen(page);
+
+    // * Verify parent is now published (no draft badge)
+    const publishedParentNode = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-is-draft="false"]`).filter({hasText: 'Parent Draft'});
+    await expect(publishedParentNode).toBeVisible({timeout: 5000});
+
+    // * Verify parent has no draft badge
+    const parentDraftBadge = publishedParentNode.locator('[data-testid="draft-badge"]');
+    expect(await parentDraftBadge.isVisible().catch(() => false)).toBe(false);
+
+    // # Expand published parent node to see child draft
+    const expandAfterPublish = publishedParentNode.locator('[data-testid="page-tree-node-expand-button"]');
+    if (await expandAfterPublish.isVisible({timeout: 2000}).catch(() => false)) {
+        await expandAfterPublish.click();
+        await page.waitForTimeout(1000);
+    }
+
+    // * Verify child draft is STILL under published parent (NOT moved to root)
+    // The child should still be visible and still be a draft
+    const childDraftAfterPublish = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-is-draft="true"]`).filter({hasText: 'Child Draft'});
+    await expect(childDraftAfterPublish).toBeVisible({timeout: 10000});
+
+    // * Verify child still has draft badge
+    const childDraftBadge = childDraftAfterPublish.locator('[data-testid="draft-badge"]');
+    await expect(childDraftBadge).toBeVisible();
+
+    // * Verify child still has greater indentation than parent (hierarchy maintained)
+    const publishedParentPadding = await publishedParentNode.evaluate((el) => window.getComputedStyle(el).paddingLeft);
+    const childAfterPublishPadding = await childDraftAfterPublish.evaluate((el) => window.getComputedStyle(el).paddingLeft);
+    expect(parseInt(childAfterPublishPadding)).toBeGreaterThan(parseInt(publishedParentPadding));
+
+    // * Verify there's only ONE parent node (no duplicate published + draft nodes)
+    const allParentNodes = hierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: 'Parent Draft'});
+    const parentNodeCount = await allParentNodes.count();
+    expect(parentNodeCount).toBe(1);
+
+    // * Test passes! Child draft stayed under published parent without page refresh
+    // This verifies the websocket event handling fix is working correctly
 });

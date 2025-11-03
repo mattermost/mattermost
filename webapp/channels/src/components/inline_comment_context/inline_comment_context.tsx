@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+import './inline_comment_context.scss';
+
 type Props = {
     anchorText: string;
     variant?: 'compact' | 'banner';
@@ -40,16 +42,10 @@ const InlineCommentContext = ({anchorText, variant = 'compact'}: Props) => {
     }
 
     return (
-        <div
-            style={{
-                fontSize: '12px',
-                color: 'rgba(var(--center-channel-color-rgb), 0.64)',
-                marginTop: '4px',
-            }}
-        >
-            {'On: "'}
-            <span style={{fontStyle: 'italic'}}>{anchorText}</span>
-            {'"'}
+        <div className='inline-comment-anchor-box'>
+            <div className='inline-comment-anchor-text'>
+                {anchorText || 'TEST TEXT'}
+            </div>
         </div>
     );
 };

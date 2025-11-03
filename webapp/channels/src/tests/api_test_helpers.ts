@@ -268,6 +268,7 @@ export async function cleanupTestResources(): Promise<void> {
 
     for (const pageId of createdResources.pages) {
         try {
+        // eslint-disable-next-line no-await-in-loop
             await Client4.deletePost(pageId);
         } catch (error) {
             errors.push(error as Error);
@@ -276,6 +277,7 @@ export async function cleanupTestResources(): Promise<void> {
 
     for (const wikiId of createdResources.wikis) {
         try {
+            // eslint-disable-next-line no-await-in-loop
             await Client4.deleteWiki(wikiId);
         } catch (error) {
             errors.push(error as Error);
@@ -284,6 +286,7 @@ export async function cleanupTestResources(): Promise<void> {
 
     for (const channelId of createdResources.channels) {
         try {
+            // eslint-disable-next-line no-await-in-loop
             await Client4.deleteChannel(channelId);
         } catch (error) {
             errors.push(error as Error);
@@ -292,20 +295,15 @@ export async function cleanupTestResources(): Promise<void> {
 
     for (const teamId of createdResources.teams) {
         try {
+            // eslint-disable-next-line no-await-in-loop
             await Client4.deleteTeam(teamId);
         } catch (error) {
             errors.push(error as Error);
         }
     }
 
-    for (const userId of createdResources.users) {
-        try {
-            // Note: deleteUser is not available in Client4, users will be cleaned up by server
-            // await Client4.deleteUser(userId);
-        } catch (error) {
-            errors.push(error as Error);
-        }
-    }
+    // Note: deleteUser is not available in Client4, users will be cleaned up by server
+    // No action needed for user cleanup
 
     createdResources = {
         teams: [],
@@ -317,7 +315,6 @@ export async function cleanupTestResources(): Promise<void> {
 
     if (errors.length > 0) {
         console.warn(`[Cleanup] Completed with ${errors.length} errors`);
-    } else {
     }
 }
 
@@ -333,11 +330,13 @@ export async function cleanupOrphanedTestResources(): Promise<void> {
         const orphanedCount = {channels: 0, wikis: 0};
 
         for (const team of teams) {
+            // eslint-disable-next-line no-await-in-loop
             const channels = await Client4.getMyChannels(team.id);
 
             for (const channel of channels) {
                 if (channel.name.startsWith(TEST_CONFIG.testPrefix)) {
                     try {
+                        // eslint-disable-next-line no-await-in-loop
                         await Client4.deleteChannel(channel.id);
                         orphanedCount.channels++;
                     } catch (error) {
@@ -364,12 +363,14 @@ export async function loginAsAdmin(): Promise<UserProfile> {
 export async function waitForServer(maxAttempts = 5, delayMs = 1000): Promise<boolean> {
     for (let i = 0; i < maxAttempts; i++) {
         try {
+            // eslint-disable-next-line no-await-in-loop
             const ping = await Client4.ping(false);
             if (ping.status === 'OK') {
                 return true;
             }
         } catch (error) {
             if (i < maxAttempts - 1) {
+                // eslint-disable-next-line no-await-in-loop
                 await new Promise((resolve) => setTimeout(resolve, delayMs));
             }
         }

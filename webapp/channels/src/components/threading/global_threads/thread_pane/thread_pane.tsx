@@ -14,12 +14,10 @@ import {PostTypes} from 'mattermost-redux/constants';
 import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getPost, makeGetPostsForThread} from 'mattermost-redux/selectors/entities/posts';
 
-import InlineCommentContext from 'components/inline_comment_context';
 import PopoutButton from 'components/popout_button';
 import Header from 'components/widgets/header';
 import WithTooltip from 'components/with_tooltip';
 
-import {getInlineCommentAnchorText} from 'utils/post_utils';
 import {popoutThread} from 'utils/popouts/popout_windows';
 
 import type {GlobalState} from 'types/store';
@@ -70,6 +68,9 @@ const ThreadPane = ({
     const selectHandler = useCallback(() => select(), []);
     let unreadTimestamp = post.edit_at || post.create_at;
 
+    const isPageComment = post?.props?.comment_type === 'inline';
+    const pagePost = useSelector((state: GlobalState) => (isPageComment && post?.root_id ? getPost(state, post.root_id) : null));
+
     // if we have the whole thread, get the posts in it, sorted from newest to oldest.
     // First post is latest reply. Use that timestamp
     if (postsInThread.length > 1) {
@@ -110,13 +111,33 @@ const ThreadPane = ({
                                     defaultMessage: 'Thread',
                                 })}
                             </span>
-                            <Button
-                                className='separated'
-                                allowTextOverflow={true}
-                                onClick={goToInChannelHandler}
-                            >
-                                {channel?.display_name}
-                            </Button>
+                            {(() => {
+                                if (isPageComment && pagePost) {
+                                    return (
+                                        <span className='separated'>
+                                            {(pagePost.props?.title as string) || 'Untitled Page'}
+                                        </span>
+                                    );
+                                }
+
+                                if (post.type === PostTypes.PAGE) {
+                                    return (
+                                        <span className='separated'>
+                                            {(post.props?.title as string) || 'Untitled Page'}
+                                        </span>
+                                    );
+                                }
+
+                                return (
+                                    <Button
+                                        className='separated'
+                                        allowTextOverflow={true}
+                                        onClick={goToInChannelHandler}
+                                    >
+                                        {channel?.display_name}
+                                    </Button>
+                                );
+                            })()}
                         </h3>
                     </>
                 )}
@@ -147,18 +168,6 @@ const ThreadPane = ({
                     </>
                 )}
             />
-            {post.type === PostTypes.PAGE && (() => {
-                const anchorText = getInlineCommentAnchorText(postsInThread);
-                if (anchorText) {
-                    return (
-                        <InlineCommentContext
-                            anchorText={anchorText}
-                            variant='banner'
-                        />
-                    );
-                }
-                return null;
-            })()}
             {children}
         </div>
     );

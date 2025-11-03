@@ -1,0 +1,220 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.channel-files-content {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+
+    &__header {
+        margin-bottom: 16px;
+    }
+
+    &__title {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 600;
+    }
+
+    &__table {
+        min-height: 0;
+        flex: 1;
+    }
+}
+
+.channel-files-table {
+    display: flex;
+    height: 100%;
+    min-height: 0;
+    flex-direction: column;
+
+    &__loading,
+    &__empty {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 32px;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 14px;
+    }
+
+    &__header {
+        display: flex;
+        border-radius: var(--radius-s);
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+    }
+
+    &__header-cell {
+        display: flex;
+        align-items: center;
+        padding: 8px 12px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+
+        &--clickable {
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+            user-select: none;
+
+            &:hover {
+                background-color: rgba(var(--center-channel-color-rgb), 0.04);
+            }
+        }
+        
+
+        &--name {
+            min-width: 0;
+            flex: 1;
+        }
+
+        &--user {
+            width: 160px;
+        }
+
+        &--date {
+            width: 140px;
+        }
+
+        &--size {
+            width: 120px;
+            justify-content: flex-end;
+        }
+    }
+
+    &__header-text {
+        min-width: 0;
+        white-space: nowrap;
+    }
+
+    &__sort-icon {
+        flex-shrink: 0;
+        margin-left: 8px;
+        font-size: 14px;
+        opacity: 0.56;
+        transition: opacity 0.15s ease;
+
+        &--active {
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+            opacity: 0.88;
+        }
+
+        .channel-files-table__header-cell--clickable:hover & {
+            opacity: 0.72;
+        }
+    }
+
+    &__body {
+        min-height: 0;
+        flex: 1;
+        overflow-y: auto;
+    }
+
+    &__row {
+        display: flex;
+        align-items: center;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+
+        &:last-child {
+            border-bottom: none;
+            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        }
+
+        &:hover {
+            background-color: rgba(var(--center-channel-color-rgb), 0.04);
+        }
+    }
+
+    &__cell {
+        display: flex;
+        min-height: 36px;
+        align-items: center;
+        padding: 12px;
+
+        &--name {
+            min-width: 0;
+            flex: 1;
+        }
+
+        &--user {
+            width: 160px;
+        }
+
+        &--date {
+            width: 140px;
+        }
+
+        &--size {
+            width: 120px;
+            justify-content: flex-end;
+        }
+    }
+
+    &__file-info {
+        display: flex;
+        min-width: 0;
+        align-items: center;
+        gap: 8px;
+
+        &--clickable {
+            cursor: pointer;
+        }
+    }
+
+    &__file-icon {
+        flex-shrink: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        font-size: 16px;
+    }
+
+    &__file-name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__user-info {
+        display: flex;
+        min-width: 0;
+        align-items: center;
+        gap: 8px;
+    }
+
+    &__user-avatar {
+        overflow: hidden;
+        width: 24px;
+        height: 24px;
+        flex-shrink: 0;
+        border-radius: 12px;
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    }
+
+    &__user-avatar-placeholder {
+        display: flex;
+        width: 24px;
+        height: 24px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+        background-color: rgba(var(--center-channel-color-rgb), 0.16);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    &__user-name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__size {
+        text-align: right;
+    }
+}

@@ -157,7 +157,7 @@ $radius-sm: 4px;
 .PagesHierarchyPanel__tree {
     flex: 1;
     padding: $spacing-sm 0;
-    overflow-x: hidden;
+    overflow-x: auto;
     overflow-y: auto;
 }
 

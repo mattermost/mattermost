@@ -17,11 +17,10 @@ import {getChannel as fetchChannel} from 'mattermost-redux/actions/channels';
 import {markLastPostInThreadAsUnread, updateThreadRead} from 'mattermost-redux/actions/threads';
 import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 import {Posts, PostTypes} from 'mattermost-redux/constants';
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getInt} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {ensureString} from 'mattermost-redux/utils/post_utils';
-
-import {extractPlaintextFromTipTapJSON} from 'utils/tiptap_utils';
 
 import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
 import {getIsMobileView} from 'selectors/views/browser';
@@ -38,7 +37,6 @@ import Avatars from 'components/widgets/users/avatars';
 import WithTooltip from 'components/with_tooltip';
 
 import {CrtTutorialSteps, Preferences} from 'utils/constants';
-import {getInlineCommentAnchorText} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -99,6 +97,9 @@ function ThreadItem({
     const getMentionKeysForPost = useMemo(() => makeGetMentionKeysForPost(), []);
     const mentionsKeys = useSelector((state: GlobalState) => getMentionKeysForPost(state, post, channel));
     const ref = useRef<HTMLDivElement>(null);
+
+    const isPageComment = post?.props?.comment_type === 'inline';
+    const pagePost = useSelector((state: GlobalState) => (isPageComment && post?.root_id ? getPost(state, post.root_id) : null));
 
     useEffect(() => {
         if (channel?.teammate_id) {
@@ -202,7 +203,7 @@ function ThreadItem({
     return (
         <>
             <div
-                style={style}
+                style={{...style, height: 'auto', minHeight: style?.height}}
                 className={classNames('ThreadItem', {
                     'has-unreads': newReplies,
                     'is-selected': isSelected,
@@ -291,38 +292,87 @@ function ThreadItem({
                     dir='auto'
                     onClick={handleFormattedTextClick}
                     onKeyDown={handleFormattedTextClick}
+                    style={{height: 'auto', maxHeight: 'none'}}
                 >
-                    {post.type === PostTypes.PAGE ? (
-                        <div>
-                            <div>
-                                <i className='icon icon-file-document-outline'/>
-                                {' '}
-                                {(post.props?.title as string) || 'Untitled Page'}
-                            </div>
-                            {(() => {
-                                const anchorText = getInlineCommentAnchorText(postsInThread);
-                                if (anchorText) {
-                                    return (
-                                        <InlineCommentContext
-                                            anchorText={anchorText}
-                                            variant='compact'
+                    {(() => {
+                        if (isPageComment && pagePost) {
+                            return (
+                                <div style={{height: 'auto', maxHeight: 'none'}}>
+                                    <div
+                                        style={{
+                                            fontSize: '12px',
+                                            color: 'rgba(var(--center-channel-color-rgb), 0.64)',
+                                            marginBottom: '4px',
+                                        }}
+                                    >
+                                        <FormattedMessage
+                                            id='threading.pageComment.context'
+                                            defaultMessage='Commented on the page:'
                                         />
-                                    );
-                                }
-                                return null;
-                            })()}
-                        </div>
-                    ) : post.message ? (
-                        <Markdown
-                            message={post.state === Posts.POST_DELETED ? msgDeleted : post.message}
-                            options={markdownPreviewOptions}
-                            imagesMetadata={post?.metadata && post?.metadata?.images}
-                            mentionKeys={mentionsKeys}
-                            imageProps={imageProps}
-                        />
-                    ) : (
-                        <Attachment post={post}/>
-                    )}
+                                        {' '}
+                                        <span style={{fontWeight: 600}}>
+                                            {(pagePost.props?.title as string) || 'Untitled Page'}
+                                        </span>
+                                    </div>
+                                    {(() => {
+                                        const anchorText = post.props?.inline_anchor ? (post.props.inline_anchor as {text: string}).text : null;
+                                        if (anchorText) {
+                                            return <InlineCommentContext anchorText={anchorText}/>;
+                                        }
+
+                                        if (post.message) {
+                                            return (
+                                                <div style={{marginTop: '4px'}}>
+                                                    <Markdown
+                                                        message={post.state === Posts.POST_DELETED ? msgDeleted : post.message}
+                                                        options={markdownPreviewOptions}
+                                                        imagesMetadata={post?.metadata && post?.metadata?.images}
+                                                        mentionKeys={mentionsKeys}
+                                                        imageProps={imageProps}
+                                                    />
+                                                </div>
+                                            );
+                                        }
+                                        return null;
+                                    })()}
+                                </div>
+                            );
+                        }
+
+                        if (post.type === PostTypes.PAGE && thread && thread.reply_count > 0) {
+                            return (
+                                <div style={{height: 'auto', maxHeight: 'none'}}>
+                                    <InlineCommentContext anchorText={(post.props?.title as string) || 'Untitled Page'}/>
+                                </div>
+                            );
+                        }
+
+                        if (post.type === PostTypes.PAGE) {
+                            return (
+                                <div style={{height: 'auto', maxHeight: 'none'}}>
+                                    <div>
+                                        <i className='icon icon-file-document-outline'/>
+                                        {' '}
+                                        {(post.props?.title as string) || 'Untitled Page'}
+                                    </div>
+                                </div>
+                            );
+                        }
+
+                        if (post.message) {
+                            return (
+                                <Markdown
+                                    message={post.state === Posts.POST_DELETED ? msgDeleted : post.message}
+                                    options={markdownPreviewOptions}
+                                    imagesMetadata={post?.metadata && post?.metadata?.images}
+                                    mentionKeys={mentionsKeys}
+                                    imageProps={imageProps}
+                                />
+                            );
+                        }
+
+                        return <Attachment post={post}/>;
+                    })()}
                 </div>
                 <div className='activity'>
                     {participantIds?.length ? (

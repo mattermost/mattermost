@@ -20,7 +20,6 @@ import {useSelector, useDispatch, shallowEqual} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
 
-import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getAssociatedGroupsForReference} from 'mattermost-redux/selectors/entities/groups';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
@@ -42,6 +41,7 @@ import type {GlobalState} from 'types/store';
 
 import {createChannelMentionSuggestion} from './channel_mention_mm_bridge';
 import {uploadImageForEditor, validateImageFile} from './file_upload_helper';
+import FormattingBarBubble from './formatting_bar_bubble';
 import InlineCommentButton from './inline_comment_button';
 import InlineCommentExtension from './inline_comment_extension';
 import {createMMentionSuggestion} from './mention_mm_bridge';
@@ -175,6 +175,7 @@ const TipTapEditor = ({
     currentUserId,
     channelId,
     teamId,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     pageId,
     wikiId,
     pages = [],
@@ -232,13 +233,13 @@ const TipTapEditor = ({
                         title: file.name,
                     };
 
-                    if (position !== undefined) {
+                    if (position === undefined) {
+                        currentEditor.chain().focus().setImage(imageAttrs).run();
+                    } else {
                         currentEditor.chain().insertContentAt(position, {
                             type: 'image',
                             attrs: imageAttrs,
                         }).focus().run();
-                    } else {
-                        currentEditor.chain().focus().setImage(imageAttrs).run();
                     }
                 },
             }, dispatch);
@@ -431,10 +432,6 @@ const TipTapEditor = ({
         handleAutocompleteChannels,
     ]);
 
-    const editorCreationStart = React.useRef(performance.now());
-    React.useEffect(() => {
-    }, []);
-
     const editor = useEditor({
         extensions,
         content: getInitialContent(content),
@@ -587,10 +584,6 @@ const TipTapEditor = ({
         return null;
     }
 
-    const isActive = (name: string, attrs?: Record<string, any>) => {
-        return editor.isActive(name, attrs);
-    };
-
     const setLink = () => {
         const {from, to} = editor.state.selection;
         const text = editor.state.doc.textBetween(from, to, '');
@@ -652,7 +645,16 @@ const TipTapEditor = ({
                 editor={editor}
                 data-testid='tiptap-editor-content'
             />
-            {editor && onCreateInlineComment && (
+            {editor && editable && (
+                <FormattingBarBubble
+                    editor={editor}
+                    uploadsEnabled={uploadsEnabled && Boolean(channelId)}
+                    onSetLink={setLink}
+                    onAddImage={addImage}
+                    onAddComment={onCreateInlineComment ? handleCreateComment : undefined}
+                />
+            )}
+            {editor && !editable && onCreateInlineComment && (
                 <InlineCommentButton
                     editor={editor}
                     onCreateComment={handleCreateComment}
@@ -690,144 +692,15 @@ const TipTapEditor = ({
 
             {editable && (
                 <div className='tiptap-toolbar'>
-                    <WithTooltip title='Bold'>
-                        <button
-                            type='button'
-                            onClick={() => editor.chain().focus().toggleBold().run()}
-                            className={`btn btn-sm btn-icon ${isActive('bold') ? 'is-active' : ''}`}
-                            title='Bold (Ctrl+B)'
-                        >
-                            <i className='icon icon-format-bold'/>
-                        </button>
-                    </WithTooltip>
-
-                    <WithTooltip title='Italic'>
-                        <button
-                            type='button'
-                            onClick={() => editor.chain().focus().toggleItalic().run()}
-                            className={`btn btn-sm btn-icon ${isActive('italic') ? 'is-active' : ''}`}
-                            title='Italic (Ctrl+I)'
-                        >
-                            <i className='icon icon-format-italic'/>
-                        </button>
-                    </WithTooltip>
-
-                    <WithTooltip title='Strikethrough'>
-                        <button
-                            type='button'
-                            onClick={() => editor.chain().focus().toggleStrike().run()}
-                            className={`btn btn-sm btn-icon ${isActive('strike') ? 'is-active' : ''}`}
-                            title='Strikethrough'
-                        >
-                            <i className='icon icon-format-strikethrough-variant'/>
-                        </button>
-                    </WithTooltip>
-
-                    <span className='toolbar-divider'/>
-
-                    <WithTooltip title='Heading 1'>
-                        <button
-                            type='button'
-                            onClick={() => editor.chain().focus().toggleHeading({level: 1}).run()}
-                            className={`btn btn-sm btn-icon ${isActive('heading', {level: 1}) ? 'is-active' : ''}`}
-                            title='Heading 1'
-                        >
-                            <i className='icon icon-format-header-1'/>
-                        </button>
-                    </WithTooltip>
-
-                    <WithTooltip title='Heading 2'>
-                        <button
-                            type='button'
-                            onClick={() => editor.chain().focus().toggleHeading({level: 2}).run()}
-                            className={`btn btn-sm btn-icon ${isActive('heading', {level: 2}) ? 'is-active' : ''}`}
-                            title='Heading 2'
-                        >
-                            <i className='icon icon-format-header-2'/>
-                        </button>
-                    </WithTooltip>
-
-                    <WithTooltip title='Heading 3'>
-                        <button
-                            type='button'
-                            onClick={() => editor.chain().focus().toggleHeading({level: 3}).run()}
-                            className={`btn btn-sm btn-icon ${isActive('heading', {level: 3}) ? 'is-active' : ''}`}
-                            title='Heading 3'
-                        >
-                            <i className='icon icon-format-header-3'/>
-                        </button>
-                    </WithTooltip>
-
-                    <span className='toolbar-divider'/>
-
-                    <WithTooltip title='Bullet List'>
-                        <button
-                            type='button'
-                            onClick={() => editor.chain().focus().toggleBulletList().run()}
-                            className={`btn btn-sm btn-icon ${isActive('bulletList') ? 'is-active' : ''}`}
-                            title='Bullet List'
-                        >
-                            <i className='icon icon-format-list-bulleted'/>
-                        </button>
-                    </WithTooltip>
-
-                    <WithTooltip title='Numbered List'>
-                        <button
-                            type='button'
-                            onClick={() => editor.chain().focus().toggleOrderedList().run()}
-                            className={`btn btn-sm btn-icon ${isActive('orderedList') ? 'is-active' : ''}`}
-                            title='Numbered List'
-                        >
-                            <i className='icon icon-format-list-numbered'/>
-                        </button>
-                    </WithTooltip>
-
-                    <span className='toolbar-divider'/>
-
-                    <WithTooltip title='Quote'>
-                        <button
-                            type='button'
-                            onClick={() => editor.chain().focus().toggleBlockquote().run()}
-                            className={`btn btn-sm btn-icon ${isActive('blockquote') ? 'is-active' : ''}`}
-                            title='Quote'
-                        >
-                            <i className='icon icon-format-quote-open'/>
-                        </button>
-                    </WithTooltip>
-
-                    <WithTooltip title='Code Block'>
-                        <button
-                            type='button'
-                            onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-                            className={`btn btn-sm btn-icon ${isActive('codeBlock') ? 'is-active' : ''}`}
-                            title='Code Block'
-                        >
-                            <i className='icon icon-code-tags'/>
-                        </button>
-                    </WithTooltip>
-
-                    <span className='toolbar-divider'/>
-
-                    <WithTooltip title='Add Link'>
+                    <WithTooltip title='Link to Page (Ctrl+L)'>
                         <button
                             type='button'
                             onClick={setLink}
-                            className={`btn btn-sm btn-icon ${isActive('link') ? 'is-active' : ''}`}
-                            title='Add Link'
+                            className='btn btn-sm btn-icon'
                             data-testid='page-link-button'
+                            title='Link to Page (Ctrl+L)'
                         >
                             <i className='icon icon-link-variant'/>
-                        </button>
-                    </WithTooltip>
-
-                    <WithTooltip title='Add Image'>
-                        <button
-                            type='button'
-                            onClick={addImage}
-                            className='btn btn-sm btn-icon'
-                            title='Add Image'
-                        >
-                            <i className='icon icon-image-outline'/>
                         </button>
                     </WithTooltip>
 
@@ -843,7 +716,7 @@ const TipTapEditor = ({
                             title='Insert Table (3x3)'
                             style={{fontSize: '18px', padding: '4px 8px'}}
                         >
-                            ⊞
+                            {'⊞'}
                         </button>
                     </WithTooltip>
 
@@ -858,7 +731,7 @@ const TipTapEditor = ({
                             title='Add Column Before'
                             style={{fontSize: '16px', padding: '4px 8px'}}
                         >
-                            ◀|
+                            {'◀|'}
                         </button>
                     </WithTooltip>
 
@@ -873,7 +746,7 @@ const TipTapEditor = ({
                             title='Add Column After'
                             style={{fontSize: '16px', padding: '4px 8px'}}
                         >
-                            |▶
+                            {'|▶'}
                         </button>
                     </WithTooltip>
 
@@ -888,7 +761,7 @@ const TipTapEditor = ({
                             title='Delete Column'
                             style={{fontSize: '16px', padding: '4px 8px'}}
                         >
-                            ⊟|
+                            {'⊟|'}
                         </button>
                     </WithTooltip>
 
@@ -903,7 +776,7 @@ const TipTapEditor = ({
                             title='Add Row Before'
                             style={{fontSize: '16px', padding: '4px 8px'}}
                         >
-                            ▲═
+                            {'▲═'}
                         </button>
                     </WithTooltip>
 
@@ -918,7 +791,7 @@ const TipTapEditor = ({
                             title='Add Row After'
                             style={{fontSize: '16px', padding: '4px 8px'}}
                         >
-                            ═▼
+                            {'═▼'}
                         </button>
                     </WithTooltip>
 
@@ -933,7 +806,7 @@ const TipTapEditor = ({
                             title='Delete Row'
                             style={{fontSize: '16px', padding: '4px 8px'}}
                         >
-                            ⊟═
+                            {'⊟═'}
                         </button>
                     </WithTooltip>
 
@@ -948,7 +821,7 @@ const TipTapEditor = ({
                             title='Delete Table'
                             style={{fontSize: '16px', padding: '4px 8px'}}
                         >
-                            🗑
+                            {'🗑'}
                         </button>
                     </WithTooltip>
 

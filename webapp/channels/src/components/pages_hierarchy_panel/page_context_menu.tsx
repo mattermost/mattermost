@@ -22,6 +22,7 @@ type MenuOption = {
 
 type Props = {
     pageId: string;
+    wikiId?: string;
     position: {x: number; y: number};
     onClose: () => void;
     onCreateChild?: () => void;
@@ -35,6 +36,7 @@ type Props = {
 
 const PageContextMenu = ({
     pageId,
+    wikiId,
     position,
     onClose,
     onCreateChild,
@@ -72,9 +74,9 @@ const PageContextMenu = ({
     }, [onClose]);
 
     const handleShowOutline = useCallback(() => {
-        dispatch(togglePageOutline(pageId));
+        dispatch(togglePageOutline(pageId, undefined, wikiId));
         onClose();
-    }, [dispatch, pageId, onClose]);
+    }, [dispatch, pageId, wikiId, onClose]);
 
     const handleCopyLink = useCallback(() => {
         if (pageLink && pageLink !== '#') {

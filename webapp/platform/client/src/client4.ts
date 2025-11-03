@@ -153,7 +153,7 @@ import type {
     UserCustomStatus,
 } from '@mattermost/types/users';
 import type {DeepPartial, PartialExcept, RelationOneToOne} from '@mattermost/types/utilities';
-import type {Wiki, WikiCreate, WikiPatch, BreadcrumbPath} from '@mattermost/types/wikis';
+import type {Wiki, WikiCreate, BreadcrumbPath} from '@mattermost/types/wikis';
 
 import {cleanUrlForLogging} from './errors';
 import {buildQueryString} from './helpers';

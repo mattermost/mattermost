@@ -167,12 +167,13 @@ test('displays breadcrumbs for draft of child page', {tag: '@pages'}, async ({pw
     await page.waitForTimeout(2000);
 
     // * Verify breadcrumb shows parent → draft
-    const breadcrumb = page.locator('[data-testid="breadcrumb"]');
-    await expect(breadcrumb).toBeVisible();
-
-    const breadcrumbText = await breadcrumb.textContent();
-    expect(breadcrumbText).toContain('Parent Page');
-    expect(breadcrumbText).toMatch(/Child Draft|Untitled/);
+    // Wait for draft to be fully saved and breadcrumb to update
+    await expect(async () => {
+        const breadcrumb = page.locator('[data-testid="breadcrumb"]');
+        const breadcrumbText = await breadcrumb.textContent();
+        expect(breadcrumbText).toContain('Parent Page');
+        expect(breadcrumbText).toMatch(/Child Draft|Untitled/);
+    }).toPass({timeout: 10000});
 });
 
 /**

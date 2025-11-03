@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createTestChannel, createPageThroughUI, createChildPageThroughContextMenu, waitForPageInHierarchy} from './test_helpers';
+import {createWikiThroughUI, createTestChannel, createPageThroughUI, createChildPageThroughContextMenu, waitForPageInHierarchy, getWikiTab, openWikiTabMenu, clickWikiTabMenuItem, waitForWikiViewLoad} from './test_helpers';
 
 /**
  * @objective Verify wiki can be renamed through channel tab bar menu
@@ -33,22 +33,14 @@ test('renames wiki through channel tab bar menu', {tag: '@pages'}, async ({pw, s
     await page.waitForLoadState('networkidle');
 
     // # Wait for wiki tab to be visible
-    const wikiTab = page.locator(`[data-testid="wiki-tab-${await getWikiIdFromTab(page, originalWikiName)}"]`).or(
-        page.locator('.wiki-tab').filter({hasText: originalWikiName}).first(),
-    );
+    const wikiTab = getWikiTab(page, originalWikiName);
     await wikiTab.waitFor({state: 'visible', timeout: 5000});
 
-    // # Hover over wiki tab to reveal menu button
-    await wikiTab.hover();
-
-    // # Click the dot menu (3 dots) button within the tab
-    const dotMenuButton = wikiTab.locator('.wiki-tab__menu-button').or(wikiTab.locator('[id^="wiki-tab-menu-"]'));
-    await dotMenuButton.click();
+    // # Open wiki tab menu
+    await openWikiTabMenu(page, originalWikiName);
 
     // # Click "Rename" in the dropdown menu
-    const renameMenuItem = page.locator('#wiki-tab-rename');
-    await renameMenuItem.waitFor({state: 'visible', timeout: 3000});
-    await renameMenuItem.click();
+    await clickWikiTabMenuItem(page, 'wiki-tab-rename');
 
     // # Wait for rename modal to appear
     const renameModal = page.getByRole('dialog');
@@ -72,7 +64,7 @@ test('renames wiki through channel tab bar menu', {tag: '@pages'}, async ({pw, s
     await page.waitForTimeout(1000);
 
     // * Verify wiki tab displays new name in channel tab bar
-    const updatedTab = page.locator('.wiki-tab').filter({hasText: newWikiName});
+    const updatedTab = getWikiTab(page, newWikiName);
     await expect(updatedTab).toBeVisible({timeout: 5000});
 
     // # Click on renamed wiki tab to open it
@@ -120,20 +112,12 @@ test('deletes wiki when wiki tab is deleted', {tag: '@pages'}, async ({pw, share
     await page.waitForLoadState('networkidle');
 
     // # Wait for wiki tab to be visible
-    const wikiTab = page.locator('.wiki-tab').filter({hasText: wikiName}).first();
+    const wikiTab = getWikiTab(page, wikiName);
     await wikiTab.waitFor({state: 'visible', timeout: 5000});
 
-    // # Hover over wiki tab to reveal menu button
-    await wikiTab.hover();
-
-    // # Click the dot menu (3 dots) button
-    const dotMenuButton = wikiTab.locator('.wiki-tab__menu-button').or(wikiTab.locator('[id^="wiki-tab-menu-"]'));
-    await dotMenuButton.click();
-
-    // # Click "Delete" in the dropdown menu
-    const deleteMenuItem = page.locator('#wiki-tab-delete');
-    await deleteMenuItem.waitFor({state: 'visible', timeout: 3000});
-    await deleteMenuItem.click();
+    // # Open wiki tab menu and click delete
+    await openWikiTabMenu(page, wikiName);
+    await clickWikiTabMenuItem(page, 'wiki-tab-delete');
 
     // # Wait for delete confirmation modal
     const confirmModal = page.getByRole('dialog');
@@ -197,12 +181,11 @@ test('updates both wiki tab and wiki title when renamed', {tag: '@pages'}, async
     await page.waitForLoadState('networkidle');
 
     // # Wait for wiki tab to be visible and rename through wiki tab menu
-    const wikiTab = page.locator('.wiki-tab').filter({hasText: originalName}).first();
+    const wikiTab = getWikiTab(page, originalName);
     await wikiTab.waitFor({state: 'visible', timeout: 5000});
-    await wikiTab.hover();
-    const dotMenuButton = wikiTab.locator('.wiki-tab__menu-button').or(wikiTab.locator('[id^="wiki-tab-menu-"]'));
-    await dotMenuButton.click();
-    await page.locator('#wiki-tab-rename').click();
+
+    await openWikiTabMenu(page, originalName);
+    await clickWikiTabMenuItem(page, 'wiki-tab-rename');
 
     const renameModal = page.getByRole('dialog');
     const titleInput = renameModal.locator('#text-input-modal-input');
@@ -212,7 +195,7 @@ test('updates both wiki tab and wiki title when renamed', {tag: '@pages'}, async
     await renameModal.waitFor({state: 'hidden', timeout: 5000});
 
     // * Verify wiki tab updated
-    const updatedTab = page.locator('.wiki-tab').filter({hasText: updatedName});
+    const updatedTab = getWikiTab(page, updatedName);
     await expect(updatedTab).toBeVisible();
 
     // # Click on renamed wiki tab to verify wiki title also updated
@@ -254,12 +237,11 @@ test('navigates to channel when deleting wiki tab while viewing wiki', {tag: '@p
     await page.waitForLoadState('networkidle');
 
     // # Wait for wiki tab to be visible
-    const wikiTab = page.locator('.wiki-tab').filter({hasText: wikiName}).first();
+    const wikiTab = getWikiTab(page, wikiName);
     await wikiTab.waitFor({state: 'visible', timeout: 5000});
-    await wikiTab.hover();
-    const dotMenuButton = wikiTab.locator('.wiki-tab__menu-button').or(wikiTab.locator('[id^="wiki-tab-menu-"]'));
-    await dotMenuButton.click();
-    await page.locator('#wiki-tab-delete').click();
+
+    await openWikiTabMenu(page, wikiName);
+    await clickWikiTabMenuItem(page, 'wiki-tab-delete');
 
     const confirmModal = page.getByRole('dialog');
     await confirmModal.getByRole('button', {name: /delete|yes/i}).click();
@@ -303,12 +285,11 @@ test('maintains breadcrumb navigation after wiki rename', {tag: '@pages'}, async
     await page.waitForLoadState('networkidle');
 
     // # Wait for wiki tab to be visible and rename wiki through wiki tab menu
-    const wikiTab = page.locator('.wiki-tab').filter({hasText: originalWikiName}).first();
+    const wikiTab = getWikiTab(page, originalWikiName);
     await wikiTab.waitFor({state: 'visible', timeout: 5000});
-    await wikiTab.hover();
-    const dotMenuButton = wikiTab.locator('.wiki-tab__menu-button').or(wikiTab.locator('[id^="wiki-tab-menu-"]'));
-    await dotMenuButton.click();
-    await page.locator('#wiki-tab-rename').click();
+
+    await openWikiTabMenu(page, originalWikiName);
+    await clickWikiTabMenuItem(page, 'wiki-tab-rename');
 
     const renameModal = page.getByRole('dialog');
     const titleInput = renameModal.locator('#text-input-modal-input');
@@ -318,18 +299,28 @@ test('maintains breadcrumb navigation after wiki rename', {tag: '@pages'}, async
     await renameModal.waitFor({state: 'hidden', timeout: 5000});
 
     // # Click on renamed wiki tab
-    const updatedTab = page.locator('.wiki-tab').filter({hasText: newWikiName});
+    const updatedTab = getWikiTab(page, newWikiName);
     await updatedTab.click();
+    await page.waitForLoadState('networkidle');
 
     // * Verify navigated to wiki
     await expect(page).toHaveURL(/\/wiki\/[^/]+\/[^/]+/);
+
+    // # Wait for component to mount before checking visibility
+    await page.waitForTimeout(2000);
+
+    // # Wait for wiki view to load
+    await waitForWikiViewLoad(page);
 
     // # Wait for auto-selection to complete (URL will include pageId or draftId)
     // Wiki view automatically selects first page/draft when navigating to wiki root
     await page.waitForURL(/\/wiki\/[^/]+\/[^/]+\/[^/]+/, {timeout: 10000});
 
+    // # Wait additional time for pages to fully load after rename
+    await page.waitForTimeout(2000);
+
     // # Wait for pages to load in hierarchy panel
-    await waitForPageInHierarchy(page, 'Parent Page', 10000);
+    await waitForPageInHierarchy(page, 'Parent Page', 15000);
 
     // # Expand parent node to make child visible
     const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
@@ -409,12 +400,11 @@ test('updates hierarchy panel after wiki rename', {tag: '@pages'}, async ({pw, s
     await page.waitForLoadState('networkidle');
 
     // # Wait for wiki tab to be visible
-    const wikiTab = page.locator('.wiki-tab').filter({hasText: originalWikiName}).first();
+    const wikiTab = getWikiTab(page, originalWikiName);
     await wikiTab.waitFor({state: 'visible', timeout: 5000});
-    await wikiTab.hover();
-    const dotMenuButton = wikiTab.locator('.wiki-tab__menu-button').or(wikiTab.locator('[id^="wiki-tab-menu-"]'));
-    await dotMenuButton.click();
-    await page.locator('#wiki-tab-rename').click();
+
+    await openWikiTabMenu(page, originalWikiName);
+    await clickWikiTabMenuItem(page, 'wiki-tab-rename');
 
     const renameModal = page.getByRole('dialog');
     const titleInput = renameModal.locator('#text-input-modal-input');
@@ -424,15 +414,24 @@ test('updates hierarchy panel after wiki rename', {tag: '@pages'}, async ({pw, s
     await renameModal.waitFor({state: 'hidden', timeout: 5000});
 
     // # Click on renamed wiki
-    const updatedTab = page.locator('.wiki-tab').filter({hasText: newWikiName});
+    const updatedTab = getWikiTab(page, newWikiName);
     await updatedTab.click();
     await page.waitForLoadState('networkidle');
     await expect(page).toHaveURL(/\/wiki\//);
 
-    // # Wait for pages to load in hierarchy panel
-    await waitForPageInHierarchy(page, 'Page A', 10000);
-    await waitForPageInHierarchy(page, 'Page B', 10000);
-    await waitForPageInHierarchy(page, 'Page C', 10000);
+    // # Wait for component to mount before checking visibility
+    await page.waitForTimeout(2000);
+
+    // # Wait for wiki view to load
+    await waitForWikiViewLoad(page);
+
+    // # Wait additional time for pages to fully load after rename
+    await page.waitForTimeout(2000);
+
+    // # Wait for pages to load in hierarchy panel with longer timeout
+    await waitForPageInHierarchy(page, 'Page A', 15000);
+    await waitForPageInHierarchy(page, 'Page B', 15000);
+    await waitForPageInHierarchy(page, 'Page C', 15000);
 
     // * Verify hierarchy panel still shows all pages
     await expect(hierarchyPanel.getByRole('button', {name: 'Page A'}).first()).toBeVisible();
@@ -485,12 +484,11 @@ test('makes all child pages inaccessible after wiki deletion', {tag: '@pages'}, 
     await page.waitForLoadState('networkidle');
 
     // # Wait for wiki tab to be visible
-    const wikiTab = page.locator('.wiki-tab').filter({hasText: wikiName}).first();
+    const wikiTab = getWikiTab(page, wikiName);
     await wikiTab.waitFor({state: 'visible', timeout: 5000});
-    await wikiTab.hover();
-    const dotMenuButton = wikiTab.locator('.wiki-tab__menu-button').or(wikiTab.locator('[id^="wiki-tab-menu-"]'));
-    await dotMenuButton.click();
-    await page.locator('#wiki-tab-delete').click();
+
+    await openWikiTabMenu(page, wikiName);
+    await clickWikiTabMenuItem(page, 'wiki-tab-delete');
 
     const confirmModal = page.getByRole('dialog');
     await confirmModal.getByRole('button', {name: /delete|yes/i}).click();
@@ -517,7 +515,7 @@ test('makes all child pages inaccessible after wiki deletion', {tag: '@pages'}, 
  * Helper function to extract wiki ID from a wiki tab
  */
 async function getWikiIdFromTab(page: any, wikiName: string): Promise<string | null> {
-    const wikiTab = page.locator('.wiki-tab').filter({hasText: wikiName}).first();
+    const wikiTab = getWikiTab(page, wikiName);
     const testId = await wikiTab.getAttribute('data-testid').catch(() => null);
     if (testId) {
         const match = testId.match(/wiki-tab-(.+)/);

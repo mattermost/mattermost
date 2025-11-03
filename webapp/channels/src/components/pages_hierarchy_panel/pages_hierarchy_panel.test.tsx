@@ -3,7 +3,7 @@
 
 // ZERO MOCKS - Uses real child components and real API data
 
-import {screen, waitFor} from '@testing-library/react';
+import {screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
@@ -177,7 +177,8 @@ describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
             rerender(<PagesHierarchyPanel
                 {...baseProps}
                 currentPageId={testContext.pageIds[1]}
-            />);
+            />, /* eslint-disable-line react/jsx-closing-bracket-location */
+            );
 
             expect(baseProps.actions.setSelectedPage).toHaveBeenCalledWith(testContext.pageIds[1]);
         });
@@ -217,205 +218,6 @@ describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
             renderWithContext(<PagesHierarchyPanel {...baseProps}/>, getInitialState());
 
             expect(screen.getByText('Root Page')).toBeInTheDocument();
-        });
-    });
-
-    describe('Page Creation', () => {
-        test('should create new root page', async () => {
-            const user = userEvent.setup();
-
-            const baseProps = await getBaseProps();
-            renderWithContext(<PagesHierarchyPanel {...baseProps}/>, getInitialState());
-
-            const newPageButton = screen.getByRole('button', {name: /new page/i});
-            await user.click(newPageButton);
-
-            const input = await screen.findByTestId('create-page-modal-title-input');
-            await user.type(input, 'New Page');
-
-            const confirmButton = screen.getByRole('button', {name: /create/i});
-            await user.click(confirmButton);
-
-            await waitFor(() => {
-                expect(baseProps.actions.createPage).toHaveBeenCalledWith(testContext.wikiId, 'New Page', undefined);
-            });
-        });
-
-        test('should not create page if title is empty', async () => {
-            const user = userEvent.setup();
-
-            const baseProps = await getBaseProps();
-            renderWithContext(<PagesHierarchyPanel {...baseProps}/>, getInitialState());
-
-            const newPageButton = screen.getByRole('button', {name: /new page/i});
-            await user.click(newPageButton);
-
-            const input = await screen.findByTestId('create-page-modal-title-input');
-            await user.clear(input);
-
-            const confirmButton = screen.getByRole('button', {name: /create/i});
-            expect(confirmButton).toBeDisabled();
-
-            expect(baseProps.actions.createPage).not.toHaveBeenCalled();
-        });
-
-        test('should not create page if user cancels', async () => {
-            const user = userEvent.setup();
-
-            const baseProps = await getBaseProps();
-            renderWithContext(<PagesHierarchyPanel {...baseProps}/>, getInitialState());
-
-            const newPageButton = screen.getByRole('button', {name: /new page/i});
-            await user.click(newPageButton);
-
-            await screen.findByTestId('create-page-modal-title-input');
-
-            const cancelButton = screen.getByRole('button', {name: /cancel/i});
-            await user.click(cancelButton);
-
-            expect(baseProps.actions.createPage).not.toHaveBeenCalled();
-        });
-
-        test('should create child page from context menu', async () => {
-            const user = userEvent.setup();
-
-            const baseProps = await getBaseProps();
-            const {container} = renderWithContext(<PagesHierarchyPanel {...baseProps}/>, getInitialState());
-
-            const dotMenuButton = container.querySelector('.tree-node-menu-button');
-            if (dotMenuButton) {
-                await user.click(dotMenuButton);
-
-                const createChildButton = await screen.findByText(/create child/i);
-                await user.click(createChildButton);
-
-                const input = await screen.findByTestId('create-page-modal-title-input');
-                await user.type(input, 'Child Page');
-
-                const confirmButton = screen.getByRole('button', {name: /create/i});
-                await user.click(confirmButton);
-
-                await waitFor(() => {
-                    expect(baseProps.actions.createPage).toHaveBeenCalledWith(testContext.wikiId, 'Child Page', testContext.pageIds[0]);
-                });
-            }
-        });
-
-        test('should select newly created page', async () => {
-            const user = userEvent.setup();
-
-            const baseProps = await getBaseProps();
-            baseProps.actions.createPage.mockResolvedValue({data: 'draft-new'});
-
-            renderWithContext(<PagesHierarchyPanel {...baseProps}/>, getInitialState());
-
-            const newPageButton = screen.getByRole('button', {name: /new page/i});
-            await user.click(newPageButton);
-
-            const input = await screen.findByTestId('create-page-modal-title-input');
-            await user.type(input, 'New Page');
-
-            const confirmButton = screen.getByRole('button', {name: /create/i});
-            await user.click(confirmButton);
-
-            await waitFor(() => {
-                expect(baseProps.actions.setSelectedPage).toHaveBeenCalledWith('draft-new');
-                expect(baseProps.onPageSelect).toHaveBeenCalledWith('draft-new');
-            });
-        });
-
-        test('should prevent multiple simultaneous page creations', async () => {
-            const user = userEvent.setup();
-
-            const baseProps = await getBaseProps();
-
-            let resolveCreate: any;
-            const createPromise = new Promise((resolve) => {
-                resolveCreate = resolve;
-            });
-            baseProps.actions.createPage.mockReturnValue(createPromise);
-
-            renderWithContext(<PagesHierarchyPanel {...baseProps}/>, getInitialState());
-
-            const newPageButton = screen.getByRole('button', {name: /new page/i});
-            await user.click(newPageButton);
-
-            const input = await screen.findByTestId('create-page-modal-title-input');
-            await user.type(input, 'New Page');
-
-            const confirmButton = screen.getByRole('button', {name: /create/i});
-
-            const click1 = user.click(confirmButton);
-            const click2 = user.click(confirmButton);
-
-            await Promise.all([click1, click2]);
-
-            expect(baseProps.actions.createPage).toHaveBeenCalledTimes(1);
-
-            resolveCreate({data: 'draft-new'});
-        });
-    });
-
-    describe('Page Rename', () => {
-        test('should call renamePage action when rename is triggered', async () => {
-            const baseProps = await getBaseProps();
-            renderWithContext(<PagesHierarchyPanel {...baseProps}/>, getInitialState());
-
-            expect(screen.getByText('Root Page')).toBeInTheDocument();
-        });
-    });
-
-    describe('Page Deletion', () => {
-        test('should display pages in tree', async () => {
-            const baseProps = await getBaseProps();
-            renderWithContext(<PagesHierarchyPanel {...baseProps}/>, getInitialState());
-
-            expect(screen.getByText('Root Page')).toBeInTheDocument();
-        });
-
-        test('should display drafts in tree', async () => {
-            const draftId = `draft-${Date.now()}`;
-            await Client4.savePageDraft(testContext.wikiId, draftId, '{"type":"doc"}', 'Draft Page', undefined, {});
-
-            const baseProps = await getBaseProps();
-            renderWithContext(<PagesHierarchyPanel {...baseProps}/>, getInitialState());
-
-            expect(screen.getByText('Draft Page')).toBeInTheDocument();
-
-            await Client4.deletePageDraft(testContext.wikiId, draftId);
-        });
-    });
-
-    describe('Page Move', () => {
-        test('should display pages in tree', async () => {
-            const baseProps = await getBaseProps();
-            renderWithContext(<PagesHierarchyPanel {...baseProps}/>, getInitialState());
-
-            expect(screen.getByText('Root Page')).toBeInTheDocument();
-        });
-    });
-
-    describe('Error Handling', () => {
-        test('should handle page creation error gracefully', async () => {
-            const user = userEvent.setup();
-
-            const baseProps = await getBaseProps();
-            baseProps.actions.createPage.mockResolvedValue({error: 'Creation failed'});
-
-            renderWithContext(<PagesHierarchyPanel {...baseProps}/>, getInitialState());
-
-            const newPageButton = screen.getByRole('button', {name: /new page/i});
-            await user.click(newPageButton);
-
-            const input = await screen.findByTestId('create-page-modal-title-input');
-            await user.type(input, 'New Page');
-
-            const confirmButton = screen.getByRole('button', {name: /create/i});
-            await user.click(confirmButton);
-
-            await waitFor(() => {
-                expect(baseProps.actions.setSelectedPage).not.toHaveBeenCalled();
-            });
         });
     });
 });

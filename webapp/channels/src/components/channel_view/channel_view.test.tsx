@@ -78,4 +78,34 @@ describe('components/channel_view', () => {
         wrapper.setProps({channelId: 'newChannelId'});
         expect(instance.props.fetchIsRestrictedDM).toHaveBeenCalledTimes(1);
     });
+
+    it('should have activeTab state defaulting to messages', () => {
+        const wrapper = shallow(<ChannelView {...baseProps}/>);
+        expect(wrapper.state('activeTab')).toEqual('messages');
+    });
+
+    it('should reset activeTab to messages on channel change', () => {
+        const wrapper = shallow(<ChannelView {...baseProps}/>);
+
+        // Change to a different tab
+        wrapper.setState({activeTab: 'files'});
+        expect(wrapper.state('activeTab')).toEqual('files');
+
+        // Change channel - should reset to messages
+        wrapper.setProps({channelId: 'newChannelId'});
+        expect(wrapper.state('activeTab')).toEqual('messages');
+    });
+
+    it('should update activeTab when onTabChange is called', () => {
+        const wrapper = shallow(<ChannelView {...baseProps}/>);
+        const instance = wrapper.instance() as ChannelView;
+
+        expect(wrapper.state('activeTab')).toEqual('messages');
+
+        instance.onTabChange('files');
+        expect(wrapper.state('activeTab')).toEqual('files');
+
+        instance.onTabChange('wiki-123');
+        expect(wrapper.state('activeTab')).toEqual('wiki-123');
+    });
 });

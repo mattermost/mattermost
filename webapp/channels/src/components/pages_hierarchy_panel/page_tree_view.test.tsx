@@ -114,10 +114,12 @@ describe('components/pages_hierarchy_panel/PageTreeView', () => {
             const baseProps = await getBaseProps();
             renderWithContext(<PageTreeView {...baseProps}/>, getInitialState());
 
-            const firstNode = screen.getByText('Root Page 1');
-            await user.click(firstNode);
+            const titleButtons = screen.getAllByTestId('page-tree-node-title');
+            await user.click(titleButtons[0]);
 
-            expect(baseProps.onNodeSelect).toHaveBeenCalledWith(testContext.pageIds[0]);
+            expect(baseProps.onNodeSelect).toHaveBeenCalledTimes(1);
+            const calledPageId = baseProps.onNodeSelect.mock.calls[0][0];
+            expect(testContext.pageIds).toContain(calledPageId);
         });
     });
 

@@ -363,9 +363,24 @@ function handlePostReceived(nextState: any, post: Post, nestedPermalinkLevel?: n
             }
         });
 
-        currentState[post.id] = post;
+        // Preserve existing message content if incoming post has no content
+        // This handles cases where GetWikiPages returns pages without content for performance
+        const existingPost = currentState[post.id];
+        if (existingPost && existingPost.message && existingPost.message.trim() !== '' &&
+            (!post.message || post.message.trim() === '')) {
+            currentState[post.id] = {...post, message: existingPost.message};
+        } else {
+            currentState[post.id] = post;
+        }
     } else {
-        currentState[post.id] = removeUnneededMetadata(post);
+        // Preserve existing message content if incoming post has no content
+        const existingPost = currentState[post.id];
+        if (existingPost && existingPost.message && existingPost.message.trim() !== '' &&
+            (!post.message || post.message.trim() === '')) {
+            currentState[post.id] = {...removeUnneededMetadata(post), message: existingPost.message};
+        } else {
+            currentState[post.id] = removeUnneededMetadata(post);
+        }
     }
 
     // Delete any pending post that existed for this post

@@ -8,6 +8,7 @@ export type WikiRhsState = {
     wikiId: string | null;
     selectedPageId: string;
     focusedInlineCommentId: string | null;
+    activeTab: 'page_comments' | 'all_threads';
 };
 
 const initialState: WikiRhsState = {
@@ -15,6 +16,7 @@ const initialState: WikiRhsState = {
     wikiId: null,
     selectedPageId: '',
     focusedInlineCommentId: null,
+    activeTab: 'page_comments',
 };
 
 export default function wikiRhsReducer(state = initialState, action: any): WikiRhsState {
@@ -25,6 +27,8 @@ export default function wikiRhsReducer(state = initialState, action: any): WikiR
         return {...state, wikiId: action.wikiId};
     case WikiRhsTypes.SET_FOCUSED_INLINE_COMMENT_ID:
         return {...state, focusedInlineCommentId: action.commentId};
+    case WikiRhsTypes.SET_ACTIVE_TAB:
+        return {...state, activeTab: action.tab};
     case 'UPDATE_RHS_STATE':
         if (action.state === 'wiki') {
             return {...state, selectedPageId: action.pageId || ''};

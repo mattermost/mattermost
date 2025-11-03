@@ -1,0 +1,76 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import React, {useState, useCallback} from 'react';
+
+import PageContextMenu from './page_context_menu';
+
+type Props = {
+    pageId: string;
+    onCreateChild?: () => void;
+    onRename?: () => void;
+    onDuplicate?: () => void;
+    onMove?: () => void;
+    onDelete?: () => void;
+    isDraft?: boolean;
+    pageLink?: string;
+    buttonClassName?: string;
+    buttonLabel?: string;
+    buttonIcon?: string;
+    buttonTestId?: string;
+};
+
+const PageActionsMenu = ({
+    pageId,
+    onCreateChild,
+    onRename,
+    onDuplicate,
+    onMove,
+    onDelete,
+    isDraft = false,
+    pageLink,
+    buttonClassName = 'PagePane__icon-button',
+    buttonLabel = 'More actions',
+    buttonIcon = 'icon-dots-vertical',
+    buttonTestId = 'page-actions-menu-button',
+}: Props) => {
+    const [showMenu, setShowMenu] = useState(false);
+    const [menuPosition, setMenuPosition] = useState({x: 0, y: 0});
+
+    const handleMenuButtonClick = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+        setMenuPosition({x: rect.left, y: rect.bottom});
+        setShowMenu(true);
+    }, []);
+
+    return (
+        <>
+            <button
+                className={buttonClassName}
+                aria-label={buttonLabel}
+                title={buttonLabel}
+                onClick={handleMenuButtonClick}
+                data-testid={buttonTestId}
+            >
+                <i className={buttonIcon}/>
+            </button>
+            {showMenu && (
+                <PageContextMenu
+                    pageId={pageId}
+                    position={menuPosition}
+                    onClose={() => setShowMenu(false)}
+                    onCreateChild={onCreateChild}
+                    onRename={onRename}
+                    onDuplicate={onDuplicate}
+                    onMove={onMove}
+                    onDelete={onDelete}
+                    isDraft={isDraft}
+                    pageLink={pageLink}
+                />
+            )}
+        </>
+    );
+};
+
+export default PageActionsMenu;

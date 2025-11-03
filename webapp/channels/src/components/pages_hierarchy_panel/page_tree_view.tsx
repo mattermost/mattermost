@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useMemo, useCallback} from 'react';
+import React, {useMemo, useCallback, useState} from 'react';
 import {DragDropContext, Droppable, Draggable, type DropResult} from 'react-beautiful-dnd';
 import {useSelector, useDispatch} from 'react-redux';
 
@@ -33,6 +33,7 @@ type NodeWrapperProps = {
     isDeleting?: boolean;
     wikiId?: string;
     channelId?: string;
+    dragHandleProps?: any;
 };
 
 const PageTreeNodeWrapper = React.memo(({
@@ -49,9 +50,14 @@ const PageTreeNodeWrapper = React.memo(({
     isDeleting,
     wikiId,
     channelId,
+    dragHandleProps,
 }: NodeWrapperProps) => {
-    const handleSelect = useCallback(() => onNodeSelect(node.id), [onNodeSelect, node.id]);
-    const handleToggleExpand = useCallback(() => onToggleExpand(node.id), [onToggleExpand, node.id]);
+    const handleSelect = useCallback(() => {
+        onNodeSelect(node.id);
+    }, [onNodeSelect, node.id]);
+    const handleToggleExpand = useCallback(() => {
+        onToggleExpand(node.id);
+    }, [onToggleExpand, node.id]);
 
     return (
         <PageTreeNode
@@ -68,6 +74,7 @@ const PageTreeNodeWrapper = React.memo(({
             isDeleting={isDeleting}
             wikiId={wikiId}
             channelId={channelId}
+            dragHandleProps={dragHandleProps}
         />
     );
 });
@@ -111,7 +118,8 @@ const PageTreeView = ({
     const currentTeam = useSelector(getCurrentTeam);
     const outlineExpandedNodes = useSelector((state: GlobalState) => state.views.pagesHierarchy.outlineExpandedNodes);
     const outlineCache = useSelector((state: GlobalState) => state.views.pagesHierarchy.outlineCache);
-    const [isDragging, setIsDragging] = React.useState(false);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [isDragging, setIsDragging] = useState(false);
 
     // Flatten tree for rendering, respecting expanded state
     const visibleNodes = useMemo(
@@ -136,6 +144,8 @@ const PageTreeView = ({
 
     const handleDragEnd = useCallback((result: DropResult) => {
         const {draggableId, source, destination, combine} = result;
+
+        // Always reset dragging state first
         setIsDragging(false);
 
         // Dropped outside valid drop zone
@@ -220,8 +230,11 @@ const PageTreeView = ({
                                             <div
                                                 ref={provided.innerRef}
                                                 {...provided.draggableProps}
-                                                {...provided.dragHandleProps}
                                                 className={className}
+                                                style={{
+                                                    ...provided.draggableProps.style,
+                                                    pointerEvents: snapshot.isDragging ? 'none' : 'auto',
+                                                }}
                                             >
                                                 <PageTreeNodeWrapper
                                                     node={node}
@@ -237,6 +250,7 @@ const PageTreeView = ({
                                                     isDeleting={deletingPageId === node.id}
                                                     wikiId={wikiId}
                                                     channelId={channelId}
+                                                    dragHandleProps={provided.dragHandleProps}
                                                 />
                                                 {isOutlineExpanded && (
                                                     <div className='PageTreeView__outline'>
@@ -249,6 +263,8 @@ const PageTreeView = ({
                                                                         pageId={node.id}
                                                                         currentPageId={currentPageId}
                                                                         teamName={currentTeam?.name || ''}
+                                                                        wikiId={wikiId}
+                                                                        channelId={channelId}
                                                                     />
                                                                 ))}
                                                             </>

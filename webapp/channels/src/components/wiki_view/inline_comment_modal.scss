@@ -4,9 +4,9 @@
 .InlineCommentModal {
     &__content {
         display: flex;
+        min-width: 500px;
         flex-direction: column;
         gap: 16px;
-        min-width: 500px;
     }
 
     &__selected-text {
@@ -15,21 +15,21 @@
         gap: 8px;
 
         label {
+            color: rgba(var(--center-channel-color-rgb), 0.72);
             font-size: 14px;
             font-weight: 600;
-            color: rgba(var(--center-channel-color-rgb), 0.72);
         }
 
         blockquote {
-            margin: 0;
             padding: 12px 16px;
-            background: rgba(var(--center-channel-color-rgb), 0.04);
-            border-left: 3px solid var(--button-bg);
             border-radius: 4px;
-            font-size: 14px;
-            line-height: 1.5;
+            border-left: 3px solid var(--button-bg);
+            margin: 0;
+            background: rgba(var(--center-channel-color-rgb), 0.04);
             color: rgba(var(--center-channel-color-rgb), 0.72);
+            font-size: 14px;
             font-style: italic;
+            line-height: 1.5;
         }
     }
 
@@ -39,9 +39,9 @@
         gap: 8px;
 
         label {
+            color: var(--center-channel-color);
             font-size: 14px;
             font-weight: 600;
-            color: var(--center-channel-color);
         }
 
         textarea {
@@ -49,15 +49,15 @@
             padding: 12px;
             border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
             border-radius: 4px;
+            font-family: inherit;
             font-size: 14px;
             line-height: 1.5;
             resize: vertical;
-            font-family: inherit;
 
             &:focus {
-                outline: none;
                 border-color: var(--button-bg);
                 box-shadow: 0 0 0 2px rgba(var(--button-bg-rgb), 0.1);
+                outline: none;
             }
 
             &::placeholder {

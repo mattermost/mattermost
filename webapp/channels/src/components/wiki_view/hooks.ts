@@ -8,6 +8,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import type {Post} from '@mattermost/types/posts';
 
 import {getChannel, getChannelMember, selectChannel} from 'mattermost-redux/actions/channels';
+import {logError, LogErrorBarMode} from 'mattermost-redux/actions/errors';
 import {Client4} from 'mattermost-redux/client';
 import {getChannel as getChannelSelector} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
@@ -35,10 +36,13 @@ export function useWikiPageData(
     draftId: string | undefined,
     channelId: string,
     wikiId: string | null,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _teamId: string,
     location: Location,
     history: any,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _path: string,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _isSelectingDraftRef: React.MutableRefObject<boolean>,
 ): UseWikiPageDataResult {
     const dispatch = useDispatch();
@@ -147,7 +151,7 @@ export function useWikiPageData(
 
                 // Wiki exists, now load pages
                 await dispatch(loadPages(wikiId));
-            } else{
+            } else {
                 // No wikiId - load default page if available (for channel wiki without explicit wikiId)
                 try {
                     await dispatch(loadChannelDefaultPage(channelId));
@@ -374,8 +378,17 @@ export function useWikiPageActions(
         }
 
         const draftRootId = currentDraft.rootId;
-        const pageIdFromDraft = currentDraft.props?.page_id as string | undefined;
         const pageParentIdFromDraft = currentDraft.props?.page_parent_id;
+
+        if (pageParentIdFromDraft && pageParentIdFromDraft.startsWith('draft-')) {
+            const error = {
+                message: 'Parent page must be published before publishing this page',
+                server_error_id: 'api.page.publish.parent_is_draft.app_error',
+                status_code: 400,
+            };
+            dispatch(logError(error, {errorBarMode: LogErrorBarMode.Always}));
+            return;
+        }
 
         try {
             // Cancel any pending autosave

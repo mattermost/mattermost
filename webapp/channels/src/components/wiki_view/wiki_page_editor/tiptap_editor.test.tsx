@@ -12,12 +12,6 @@ import {EditorContent, useEditor} from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import React from 'react';
 
-import type {DeepPartial} from '@mattermost/types/utilities';
-
-import {PostTypes} from 'mattermost-redux/constants/posts';
-
-import type {GlobalState} from 'types/store';
-
 /* eslint-disable react/jsx-no-literals */
 describe('TipTapEditor - Table Extension', () => {
     const TestTableEditor = ({initialContent}: {initialContent?: string}) => {
@@ -401,66 +395,6 @@ describe('TipTapEditor - Table Extension', () => {
 });
 
 describe('TipTapEditor - Page Linking (Ctrl+K and Modal)', () => {
-    const mockPages = [
-        {
-            id: 'page1',
-            type: PostTypes.PAGE,
-            props: {title: 'Getting Started'},
-            create_at: 1000,
-            update_at: 1000,
-            delete_at: 0,
-            edit_at: 0,
-            user_id: 'user1',
-            channel_id: 'channel1',
-            root_id: '',
-            parent_id: '',
-            original_id: '',
-            message: '',
-            hashtags: '',
-            file_ids: [],
-            pending_post_id: '',
-            metadata: {},
-        },
-        {
-            id: 'page2',
-            type: PostTypes.PAGE,
-            props: {title: 'API Documentation'},
-            create_at: 2000,
-            update_at: 2000,
-            delete_at: 0,
-            edit_at: 0,
-            user_id: 'user1',
-            channel_id: 'channel1',
-            root_id: '',
-            parent_id: '',
-            original_id: '',
-            message: '',
-            hashtags: '',
-            file_ids: [],
-            pending_post_id: '',
-            metadata: {},
-        },
-    ];
-
-    const mockCurrentTeam = {
-        id: 'team1',
-        name: 'engineering',
-        display_name: 'Engineering',
-        create_at: 0,
-        update_at: 0,
-        delete_at: 0,
-        description: '',
-        email: '',
-        type: 'O' as const,
-        company_name: '',
-        allowed_domains: '',
-        invite_id: '',
-        allow_open_invite: true,
-        scheme_id: '',
-        group_constrained: false,
-        policy_id: null,
-    };
-
     beforeEach(() => {
         jest.clearAllMocks();
     });

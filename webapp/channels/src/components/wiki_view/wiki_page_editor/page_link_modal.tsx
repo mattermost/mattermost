@@ -19,7 +19,9 @@ type Props = {
 const PageLinkModal = ({
     pages,
     wikiId,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     channelId,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     teamName,
     onSelect,
     onCancel,
@@ -37,7 +39,7 @@ const PageLinkModal = ({
     }, [pages, searchQuery]);
 
     const handleConfirm = useCallback((indexOverride?: number) => {
-        const idx = indexOverride !== undefined ? indexOverride : selectedIndex;
+        const idx = indexOverride === undefined ? selectedIndex : indexOverride;
         const selectedPage = filteredPages[idx];
         if (selectedPage) {
             const title = (selectedPage.props?.title as string) || 'Untitled';

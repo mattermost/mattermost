@@ -189,10 +189,12 @@ describe('PageLinkModal', () => {
     });
 
     test('shows empty state when no pages available', () => {
-        renderWithContext(<PageLinkModal
-            {...baseProps}
-            pages={[]}
-        />);
+        renderWithContext(
+            <PageLinkModal
+                {...baseProps}
+                pages={[]}
+            />,
+        );
 
         expect(screen.getByText('No pages available')).toBeInTheDocument();
     });
@@ -225,10 +227,12 @@ describe('PageLinkModal', () => {
     });
 
     test('uses initial link text from props', () => {
-        renderWithContext(<PageLinkModal
-            {...baseProps}
-            initialLinkText='Pre-filled text'
-        />);
+        renderWithContext(
+            <PageLinkModal
+                {...baseProps}
+                initialLinkText='Pre-filled text'
+            />,
+        );
 
         const linkTextInput = screen.getByLabelText('Link text (optional)') as HTMLInputElement;
         expect(linkTextInput.value).toBe('Pre-filled text');
@@ -356,10 +360,12 @@ describe('PageLinkModal', () => {
             metadata: {} as any,
         } as Post));
 
-        renderWithContext(<PageLinkModal
-            {...baseProps}
-            pages={manyPages}
-        />);
+        renderWithContext(
+            <PageLinkModal
+                {...baseProps}
+                pages={manyPages}
+            />,
+        );
 
         const displayedPages = screen.getAllByRole('option');
         expect(displayedPages).toHaveLength(10);
@@ -369,7 +375,8 @@ describe('PageLinkModal', () => {
         renderWithContext(<PageLinkModal
             {...baseProps}
             pages={[]}
-        />);
+        />, /* eslint-disable-line react/jsx-closing-bracket-location */
+        );
 
         const insertButton = screen.getByText('Insert Link');
         expect(insertButton).toBeDisabled();

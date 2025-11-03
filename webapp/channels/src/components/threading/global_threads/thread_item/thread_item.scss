@@ -128,11 +128,32 @@
     }
 
     div.preview {
-        height: 40px;
+        min-height: 40px;
+        max-height: none;
         margin: 0 0 10px;
         color: rgba(var(--center-channel-color-rgb), 1);
 
         @include mixins.text-clamp(2, 20);
+
+        .inline-comment-anchor-box {
+            display: block;
+            overflow: visible;
+            height: auto;
+            max-height: none;
+            -webkit-box-orient: unset;
+            -webkit-line-clamp: unset;
+            text-overflow: clip;
+            white-space: normal;
+
+            .inline-comment-anchor-text {
+                display: block;
+                overflow: visible;
+                opacity: 1;
+                text-overflow: clip;
+                visibility: visible;
+                white-space: normal;
+            }
+        }
     }
 
     .menu-anchor {

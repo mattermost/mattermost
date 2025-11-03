@@ -5,12 +5,16 @@ import React, {useEffect, useState} from 'react';
 import {useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 
-import type {GlobalState} from '@mattermost/types/store';
 import type {BreadcrumbPath} from '@mattermost/types/wikis';
 
 import {Client4} from 'mattermost-redux/client';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+
+import {getPageDraftsForWiki} from 'selectors/page_drafts';
+
+import type {GlobalState} from 'types/store';
+import type {PostDraft} from 'types/store/draft';
 
 import './page_breadcrumb.scss';
 
@@ -30,6 +34,17 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
     const [error, setError] = useState<string | null>(null);
     const currentTeam = useSelector((state: GlobalState) => getCurrentTeam(state));
     const currentPage = useSelector((state: GlobalState) => (pageId ? getPost(state, pageId) : null));
+    const allDrafts = useSelector((state: GlobalState) => (wikiId ? getPageDraftsForWiki(state, wikiId) : []));
+
+    // Helper to check if an ID is a draft
+    const isDraftId = (id: string): boolean => {
+        return allDrafts.some((draft: PostDraft) => draft.rootId === id);
+    };
+
+    // Helper to get draft by ID
+    const getDraftById = (id: string): PostDraft | undefined => {
+        return allDrafts.find((draft: PostDraft) => draft.rootId === id);
+    };
 
     // Helper to fix breadcrumb item paths - use /wiki/ route not /channels/
     const fixBreadcrumbPath = (item: BreadcrumbPath['items'][0]): BreadcrumbPath['items'][0] => ({
@@ -44,28 +59,83 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
             try {
                 if (isDraft) {
                     if (parentPageId) {
-                        // Draft with parent - fetch parent breadcrumb and add draft as current page
-                        const parentPath = await Client4.getPageBreadcrumb(wikiId, parentPageId);
-                        const fixedPath: BreadcrumbPath = {
-                            items: [
-                                ...parentPath.items.map(fixBreadcrumbPath),
-                                {
-                                    id: parentPageId,
-                                    title: parentPath.current_page.title,
+                        // Check if parent is also a draft
+                        if (isDraftId(parentPageId)) {
+                            // Parent is a draft - build breadcrumb recursively from draft data
+                            const parentDraft = getDraftById(parentPageId);
+                            const parentTitle = parentDraft?.props?.title || 'Untitled';
+                            const grandparentId = parentDraft?.props?.page_parent_id;
+
+                            // Recursively fetch grandparent breadcrumb if it exists and is published
+                            let items: BreadcrumbPath['items'] = [];
+                            if (grandparentId && !isDraftId(grandparentId)) {
+                                const grandparentPath = await Client4.getPageBreadcrumb(wikiId, grandparentId);
+                                items = [
+                                    ...grandparentPath.items.map(fixBreadcrumbPath),
+                                    {
+                                        id: grandparentId,
+                                        title: grandparentPath.current_page.title,
+                                        type: 'page',
+                                        path: `/${currentTeam?.name || 'team'}/wiki/${channelId}/${wikiId}/${grandparentId}`,
+                                        channel_id: channelId,
+                                    },
+                                ];
+                            } else if (!grandparentId) {
+                                // Parent draft is at wiki root
+                                const wiki = await Client4.getWiki(wikiId);
+                                items = [{
+                                    id: wikiId,
+                                    title: wiki.title,
+                                    type: 'wiki',
+                                    path: `/${currentTeam?.name || 'team'}/wiki/${channelId}/${wikiId}`,
+                                    channel_id: channelId,
+                                }];
+                            }
+
+                            // Add parent draft to breadcrumb
+                            items.push({
+                                id: parentPageId,
+                                title: parentTitle,
+                                type: 'page',
+                                path: `/${currentTeam?.name || 'team'}/drafts/${parentPageId}`,
+                                channel_id: channelId,
+                            });
+
+                            const fixedPath: BreadcrumbPath = {
+                                items,
+                                current_page: {
+                                    id: 'draft',
+                                    title: draftTitle || 'Untitled page',
                                     type: 'page',
-                                    path: `/${currentTeam?.name || 'team'}/wiki/${channelId}/${wikiId}/${parentPageId}`,
+                                    path: `/${currentTeam?.name || 'team'}/wiki/${channelId}/${wikiId}`,
                                     channel_id: channelId,
                                 },
-                            ],
-                            current_page: {
-                                id: 'draft',
-                                title: draftTitle || 'Untitled page',
-                                type: 'page',
-                                path: `/${currentTeam?.name || 'team'}/wiki/${channelId}/${wikiId}`,
-                                channel_id: channelId,
-                            },
-                        };
-                        setBreadcrumbPath(fixedPath);
+                            };
+                            setBreadcrumbPath(fixedPath);
+                        } else {
+                            // Parent is published - fetch parent breadcrumb and add draft as current page
+                            const parentPath = await Client4.getPageBreadcrumb(wikiId, parentPageId);
+                            const fixedPath: BreadcrumbPath = {
+                                items: [
+                                    ...parentPath.items.map(fixBreadcrumbPath),
+                                    {
+                                        id: parentPageId,
+                                        title: parentPath.current_page.title,
+                                        type: 'page',
+                                        path: `/${currentTeam?.name || 'team'}/wiki/${channelId}/${wikiId}/${parentPageId}`,
+                                        channel_id: channelId,
+                                    },
+                                ],
+                                current_page: {
+                                    id: 'draft',
+                                    title: draftTitle || 'Untitled page',
+                                    type: 'page',
+                                    path: `/${currentTeam?.name || 'team'}/wiki/${channelId}/${wikiId}`,
+                                    channel_id: channelId,
+                                },
+                            };
+                            setBreadcrumbPath(fixedPath);
+                        }
                     } else {
                         // Draft at wiki root - just show wiki + draft
                         const wiki = await Client4.getWiki(wikiId);
@@ -89,7 +159,9 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                     }
                 } else if (pageId) {
                     // Published page - get breadcrumb from server and fix paths
-                    const path = await Client4.getPageBreadcrumb(wikiId, pageId);
+                    // Use the page's actual wiki ID (from metadata) if available, otherwise use URL wiki ID
+                    const actualWikiId = currentPage?.props?.wiki_id || wikiId;
+                    const path = await Client4.getPageBreadcrumb(actualWikiId, pageId);
 
                     const fixedPath: BreadcrumbPath = {
                         items: path.items.map(fixBreadcrumbPath),
@@ -121,7 +193,7 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
         if (wikiId) {
             fetchBreadcrumb();
         }
-    }, [wikiId, pageId, channelId, isDraft, parentPageId, draftTitle, currentTeam?.name, currentPage?.update_at]);
+    }, [wikiId, pageId, channelId, isDraft, parentPageId, draftTitle, currentTeam?.name, currentPage?.update_at, allDrafts]);
 
     if (isLoading) {
         return (

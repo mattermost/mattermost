@@ -50,7 +50,7 @@ function extractHeadingsFromTipTapJSON(doc: any): Heading[] {
                 if (text && id) {
                     headings.push({
                         id,
-                        text,
+                        text: text.trim(),
                         level: node.attrs.level,
                     });
                 }
@@ -114,7 +114,7 @@ function extractHeadingsFromMarkdown(markdownContent: string): Heading[] {
             usedSlugs.set(slug, 1);
         }
 
-        headings.push({id: slug, text, level});
+        headings.push({id: slug, text: text.trim(), level});
     }
 
     return headings;

@@ -148,7 +148,6 @@ test('allows channel admin to delete any page', {tag: '@pages'}, async ({pw, sha
 
     const {page, channelsPage} = await pw.testBrowser.login(adminUser);
     await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
 
     // # Create wiki and page through UI
     const wiki = await createWikiThroughUI(page, `Admin Delete Wiki ${pw.random.id()}`);

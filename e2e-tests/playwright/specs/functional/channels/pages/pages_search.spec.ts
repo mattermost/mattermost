@@ -79,14 +79,8 @@ test('searches pages by content', {tag: '@pages'}, async ({pw, sharedPagesSetup}
     const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
     await editor.click();
 
-    // # Create "Document" as H1
-    await editor.type('Document');
-    await page.keyboard.press('Control+A');
-    const h1Button = page.getByTitle('Heading 1').first();
-    await h1Button.click();
-    await editor.press('End');
-    await editor.press('Enter');
-    await editor.type(uniqueContent);
+    // # Add searchable content to the page
+    await editor.type(`Document\n\n${uniqueContent}`);
 
     // # Publish the page
     const publishButton = page.locator('[data-testid="wiki-page-publish-button"]');

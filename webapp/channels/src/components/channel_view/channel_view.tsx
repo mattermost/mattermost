@@ -18,10 +18,10 @@ import type {PropsFromRedux} from './index';
 
 const ChannelHeader = makeAsyncComponent('ChannelHeader', lazy(() => import('components/channel_header')));
 const FileUploadOverlay = makeAsyncComponent('FileUploadOverlay', lazy(() => import('components/file_upload_overlay')));
-const ChannelBookmarks = makeAsyncComponent('ChannelBookmarks', lazy(() => import('components/channel_bookmarks')));
-const ChannelTabBar = makeAsyncComponent('ChannelTabBar', lazy(() => import('components/channel_tab_bar')));
 const AdvancedCreatePost = makeAsyncComponent('AdvancedCreatePost', lazy(() => import('components/advanced_create_post')));
 const ChannelBanner = makeAsyncComponent('ChannelBanner', lazy(() => import('components/channel_banner/channel_banner')));
+const ChannelTabs = makeAsyncComponent('ChannelTabs', lazy(() => import('components/channel_tabs')));
+const ChannelTabPanel = makeAsyncComponent('ChannelTabPanel', lazy(() => import('components/channel_tabs/channel_tab_panel')));
 
 export type Props = PropsFromRedux & RouteComponentProps<{
     postid?: string;
@@ -33,6 +33,7 @@ type State = {
     focusedPostId?: string;
     deferredPostView: any;
     waitForLoader: boolean;
+    activeTab: string;
 };
 
 export default class ChannelView extends React.PureComponent<Props, State> {
@@ -53,16 +54,21 @@ export default class ChannelView extends React.PureComponent<Props, State> {
         let updatedState = {};
         const focusedPostId = props.match.params.postid;
 
-        if (props.match.url !== state.url && props.channelId !== state.channelId) {
-            updatedState = {deferredPostView: ChannelView.createDeferredPostView(), url: props.match.url, focusedPostId};
-        }
+        // Detect wiki route and set active tab
+        const wikiMatch = props.match.path.match(/\/wiki\/:channelId\(.*?\)\/:wikiId\(/);
+        const wikiId = wikiMatch ? (props.match.params as any).wikiId : null;
+        const activeTab = wikiId ? `wiki-${wikiId}` : 'messages';
 
-        if (props.channelId !== state.channelId) {
-            updatedState = {...updatedState, channelId: props.channelId, focusedPostId};
+        if (props.match.url !== state.url || props.channelId !== state.channelId) {
+            updatedState = {deferredPostView: ChannelView.createDeferredPostView(), url: props.match.url, channelId: props.channelId, focusedPostId, activeTab};
         }
 
         if (focusedPostId && focusedPostId !== state.focusedPostId) {
             updatedState = {...updatedState, focusedPostId};
+        }
+
+        if (activeTab !== state.activeTab) {
+            updatedState = {...updatedState, activeTab};
         }
 
         if (Object.keys(updatedState).length) {
@@ -83,6 +89,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
             focusedPostId: props.match.params.postid,
             deferredPostView: ChannelView.createDeferredPostView(),
             waitForLoader: false,
+            activeTab: 'messages',
         };
 
         this.channelViewRef = React.createRef();
@@ -94,6 +101,10 @@ export default class ChannelView extends React.PureComponent<Props, State> {
 
     onUpdateInputShowLoader = (v: boolean) => {
         this.setState({waitForLoader: v});
+    };
+
+    onTabChange = (tabId: string) => {
+        this.setState({activeTab: tabId});
     };
 
     componentDidUpdate(prevProps: Props) {
@@ -210,8 +221,6 @@ export default class ChannelView extends React.PureComponent<Props, State> {
             );
         }
 
-        const DeferredPostView = this.state.deferredPostView;
-
         return (
             <div
                 ref={this.channelViewRef}
@@ -223,14 +232,18 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                     id={DropOverlayIdCenterChannel}
                 />
                 <ChannelHeader/>
-                {this.props.isChannelBookmarksEnabled && <ChannelBookmarks channelId={this.props.channelId}/>}
-                <ChannelTabBar channelId={this.props.channelId}/>
                 <ChannelBanner channelId={this.props.channelId}/>
-                <DeferredPostView
+                <ChannelTabs
+                    activeTab={this.state.activeTab}
+                    onTabChange={this.onTabChange}
+                    channelId={this.props.channelId}
+                />
+                <ChannelTabPanel
+                    activeTab={this.state.activeTab}
                     channelId={this.props.channelId}
                     focusedPostId={this.state.focusedPostId}
+                    createPost={createPost}
                 />
-                {createPost}
             </div>
         );
     }

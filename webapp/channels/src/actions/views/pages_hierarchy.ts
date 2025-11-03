@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {loadPage} from 'actions/pages';
 import {
     TOGGLE_NODE_EXPANDED,
     SET_SELECTED_PAGE,
@@ -91,7 +92,7 @@ export function setOutlineExpanded(pageId: string, expanded: boolean, headings?:
     };
 }
 
-export function togglePageOutline(pageId: string, pageContent?: string): ActionFuncAsync {
+export function togglePageOutline(pageId: string, pageContent?: string, wikiId?: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState() as GlobalState;
         const isExpanded = state.views.pagesHierarchy.outlineExpandedNodes[pageId];
@@ -106,6 +107,14 @@ export function togglePageOutline(pageId: string, pageContent?: string): ActionF
             if (!content) {
                 const page = state.entities.posts.posts[pageId];
                 content = page?.message || '';
+
+                // Only fetch from server if content is completely missing
+                if (!content && wikiId) {
+                    const result = await dispatch(loadPage(pageId, wikiId));
+                    if (result.data) {
+                        content = result.data.message || '';
+                    }
+                }
             }
 
             const headings = extractHeadingsFromContent(content || '');

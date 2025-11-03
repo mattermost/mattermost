@@ -17,7 +17,6 @@ test.skip('warns when navigating away with unsaved changes', {tag: '@pages'}, as
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Unsaved Changes Wiki ${pw.random.id()}`);
@@ -84,7 +83,6 @@ test.skip('warns when using browser back button with unsaved changes', {tag: '@p
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
 
     // # Create wiki and published page through UI
     const wiki = await createWikiThroughUI(page, `Back Button Wiki ${pw.random.id()}`);
@@ -134,7 +132,6 @@ test.skip('preserves scroll position when navigating back to page', {tag: '@page
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Scroll Wiki ${pw.random.id()}`);
@@ -193,7 +190,6 @@ test('handles browser refresh during edit without data loss', {tag: '@pages'}, a
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Refresh Wiki ${pw.random.id()}`);

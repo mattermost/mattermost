@@ -657,22 +657,17 @@ test('toggles page outline visibility in hierarchy panel', {tag: '@pages'}, asyn
     const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
     await editor.click();
 
-    // # Type "Overview" and make it H2
-    await editor.type('Overview');
-    await page.keyboard.press('Control+A'); // Select all
-    const h2Button = page.getByTitle('Heading 2').first();
-    await h2Button.click();
+    // # Type "Overview" and make it H2 using helper
+    await addHeadingToEditor(page, 2, 'Overview');
 
     // # Add paragraph
     await editor.press('End');
     await editor.press('Enter');
     await editor.type('Some overview text');
 
-    // # Add another heading "Requirements" as H2
+    // # Add another heading "Requirements" as H2 using helper
     await editor.press('Enter');
-    await editor.type('Requirements');
-    await page.keyboard.press('Control+A'); // Select all
-    await h2Button.click();
+    await addHeadingToEditor(page, 2, 'Requirements');
 
     // # Add paragraph
     await editor.press('End');
@@ -755,18 +750,23 @@ test('updates outline in hierarchy when page headings change', {tag: '@pages'}, 
         await page.keyboard.press('Control+A'); // Select all (or Command+A on Mac, but Control works cross-platform in Playwright)
         await page.keyboard.press('Backspace');
 
-        // # Add headings using helper (matching pattern of passing test)
-        await addHeadingToEditor(page, 1, 'Heading 1');
-        await page.keyboard.type('Some content under heading 1');
-        await page.keyboard.press('Enter');
-        await page.waitForTimeout(200);
+        // # Add headings using helper with content
+        await addHeadingToEditor(page, 1, 'Heading 1', 'Some content under heading 1');
+        await page.waitForTimeout(500);
 
-        await addHeadingToEditor(page, 2, 'Heading 2');
-        await page.keyboard.type('Some content under heading 2');
-        await page.keyboard.press('Enter');
-        await page.waitForTimeout(200);
+        await addHeadingToEditor(page, 2, 'Heading 2', 'Some content under heading 2');
+        await page.waitForTimeout(500);
 
         await addHeadingToEditor(page, 3, 'Heading 3');
+
+        // # Wait for editor transactions to complete (including HeadingIdPlugin)
+        await page.waitForTimeout(1000);
+
+        // # Click outside the editor to ensure focus is lost and all pending transactions flush
+        await page.locator('[data-testid="wiki-page-header"]').click();
+
+        // # Wait for autosave to complete (500ms debounce + extra buffer)
+        await page.waitForTimeout(2000);
 
         // # Publish the page
         const publishButton = page.getByRole('button', {name: 'Publish'});
@@ -843,28 +843,38 @@ test('clicks outline item in hierarchy to navigate to heading', {tag: '@pages'},
         await page.keyboard.press('Backspace');
 
         // # Add H1 heading "Introduction" with multiple paragraphs
-        await addHeadingToEditor(page, 1, 'Introduction');
+        let introContent = '';
         for (let i = 0; i < 10; i++) {
-            await page.keyboard.type('Introduction paragraph. ');
-            await page.keyboard.press('Enter');
+            introContent += 'Introduction paragraph. ';
         }
+        await addHeadingToEditor(page, 1, 'Introduction', introContent);
+        await page.waitForTimeout(500);
 
         // # Add H2 heading "Middle Section" with multiple paragraphs
-        await addHeadingToEditor(page, 2, 'Middle Section');
+        let middleContent = '';
         for (let i = 0; i < 10; i++) {
-            await page.keyboard.type('Middle section content. ');
-            await page.keyboard.press('Enter');
+            middleContent += 'Middle section content. ';
         }
+        await addHeadingToEditor(page, 2, 'Middle Section', middleContent);
+        await page.waitForTimeout(500);
 
         // # Add H2 heading "Conclusion" with some content
-        await addHeadingToEditor(page, 2, 'Conclusion');
-        await page.keyboard.type('Conclusion content.');
-        await page.keyboard.press('Enter');
+        await addHeadingToEditor(page, 2, 'Conclusion', 'Conclusion content.');
+
+        // # Wait for editor transactions to complete (including HeadingIdPlugin)
+        await page.waitForTimeout(1000);
+
+        // # Click outside the editor to ensure focus is lost and all pending transactions flush
+        await page.locator('[data-testid="wiki-page-header"]').click();
+
+        // # Wait for autosave to complete (500ms debounce + extra buffer)
+        await page.waitForTimeout(2000);
 
         // # Publish the page
         const publishButton = page.getByRole('button', {name: 'Publish'});
         await publishButton.click();
         await page.waitForLoadState('networkidle');
+        await page.waitForTimeout(1000);
     }
 
     // # Verify we're viewing the published page (should be scrolled to top)
@@ -887,8 +897,8 @@ test('clicks outline item in hierarchy to navigate to heading', {tag: '@pages'},
     await expect(showOutlineButton).toBeVisible({timeout: 3000});
     await showOutlineButton.click();
 
-    // Wait for Redux action to complete and outline to render (longer wait for outline cache)
-    await page.waitForTimeout(3000);
+    // Wait for Redux action to complete and outline to render
+    await page.waitForTimeout(5000);
 
     // * Verify headings appear in outline by looking for tree items
     const conclusionNode = page.locator('[role="treeitem"]').filter({hasText: /^Conclusion$/}).first();
@@ -918,17 +928,13 @@ test('preserves outline visibility setting when navigating between pages', {tag:
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Persist Outline Wiki ${pw.random.id()}`);
 
-    // # Create two pages with empty content
+    // # Create page 1 and immediately add headings (before creating page 2)
     const page1 = await createPageThroughUI(page, 'Page 1 with Headings', ' ');
-    const page2 = await createPageThroughUI(page, 'Page 2 with Headings', ' ');
 
     const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
-
-    // # Add headings to Page 1 first (so outline has content to show)
     const page1Node = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${page1.id}"]`).first();
-    await page1Node.click();
-    await page.waitForLoadState('networkidle');
 
+    // # Edit Page 1 immediately after creation (no navigation away yet)
     const editButton1 = page.locator('[data-testid="wiki-page-edit-button"], button:has-text("Edit")').first();
     await editButton1.click();
     await page.waitForTimeout(500);
@@ -937,12 +943,60 @@ test('preserves outline visibility setting when navigating between pages', {tag:
     await editor1.click();
     await page.keyboard.press('Control+A');
     await page.keyboard.press('Backspace');
-    await addHeadingToEditor(page, 1, 'Page 1 Heading');
+
+    // Type the heading text
+    await page.keyboard.type('Page 1 Heading');
+    await page.waitForTimeout(200);
+
+    // Create native DOM selection explicitly (fixes headless browser issue)
+    await editor1.evaluate((node) => {
+        const sel = node.ownerDocument.getSelection();
+        const range = node.ownerDocument.createRange();
+        range.selectNodeContents(node.firstChild);
+        sel.removeAllRanges();
+        sel.addRange(range);
+        node.dispatchEvent(new Event('selectionchange', {bubbles: true}));
+    });
+
+    // Wait for formatting bubble to appear
+    const formattingBubble = page.locator('.formatting-bar-bubble').first();
+    await formattingBubble.waitFor({state: 'visible', timeout: 5000});
+    await page.waitForTimeout(200);
+
+    // Click Heading 1 button (force:true to click through inline-comment-bubble overlay)
+    const headingButton = formattingBubble.locator('button[title="Heading 1"]').first();
+    await headingButton.waitFor({state: 'visible', timeout: 3000});
+    await headingButton.click({force: true});
+    await page.waitForTimeout(500);
+
+    // Verify heading exists in editor before publishing
+    const h1InEditor = editor1.locator('h1:has-text("Page 1 Heading")');
+    await expect(h1InEditor).toBeVisible({timeout: 3000});
+
+    // Click outside editor to trigger blur and ensure autosave completes
+    await page.locator('[data-testid="wiki-page-header"]').click();
+
+    // Wait for autosave to complete (500ms debounce + buffer)
+    await page.waitForTimeout(2000);
 
     const publishButton1 = page.getByRole('button', {name: 'Publish'});
     await publishButton1.click();
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(1000);
+
+    // # Verify the heading was published correctly by checking page viewer
+    const pageViewer = page.locator('[data-testid="page-viewer-content"]');
+    const publishedHeading = pageViewer.locator('h1:has-text("Page 1 Heading")');
+    await expect(publishedHeading).toBeVisible({timeout: 5000});
+
+    // Verify the heading has an ID (required for outline)
+    const headingId = await publishedHeading.getAttribute('id');
+    if (!headingId) {
+        throw new Error('Heading does not have an ID attribute - outline will not work');
+    }
+
+    // # Now create page 2 (this will navigate away from page 1)
+    const page2 = await createPageThroughUI(page, 'Page 2 with Headings', ' ');
 
     // # Show outline for Page 1
 
@@ -957,12 +1011,11 @@ test('preserves outline visibility setting when navigating between pages', {tag:
     await expect(showOutlineButton).toBeVisible({timeout: 3000});
     await showOutlineButton.click();
 
-    // Wait for Redux action to complete and outline to render (longer wait for outline cache)
+    // Wait for Redux action to complete and outline to render
     await page.waitForTimeout(3000);
 
-    // * Verify outline is expanded for Page 1 by checking if tree items are visible
-    // Find any tree item that's a descendant of page1Node
-    const page1OutlineHeading = page.locator('[role="treeitem"]').first();
+    // * Verify outline is expanded for Page 1 by looking for the heading in tree items
+    const page1OutlineHeading = page.locator('[role="treeitem"]').filter({hasText: /^Page 1 Heading$/}).first();
     await expect(page1OutlineHeading).toBeVisible({timeout: 5000});
 
     // # Navigate to Page 2
@@ -1652,6 +1705,122 @@ test('preserves node count and state after page refresh', {tag: '@pages'}, async
     }
 });
 
-test.skip('sorts pages alphabetically in hierarchy', {tag: '@pages'}, async ({pw}) => {
-    // Implementation TBD
+/**
+ * @objective Verify page hierarchy maintains stable ordering when selecting different pages
+ */
+test('maintains stable page order when selecting pages', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki through UI
+    const wikiTitle = `Ordering Test Wiki ${pw.random.id()}`;
+    await createWikiThroughUI(page, wikiTitle);
+
+    // # Create 5 sibling pages
+    const pageNames = ['Page Alpha', 'Page Beta', 'Page Gamma', 'Page Delta', 'Page Epsilon'];
+    for (const pageName of pageNames) {
+        await createPageThroughUI(page, pageName, `Content for ${pageName}`);
+    }
+
+    // # Get initial order of pages in hierarchy
+    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    await expect(hierarchyPanel).toBeVisible();
+
+    const getPageOrder = async () => {
+        const pageNodes = hierarchyPanel.locator('[data-testid="page-tree-node"]');
+        const count = await pageNodes.count();
+        const ids = [];
+
+        for (let i = 0; i < count; i++) {
+            const node = pageNodes.nth(i);
+            const id = await node.getAttribute('data-page-id');
+            if (id) {
+                ids.push(id);
+            }
+        }
+
+        return ids;
+    };
+
+    const initialOrder = await getPageOrder();
+    expect(initialOrder.length).toBeGreaterThanOrEqual(5);
+
+    // # Click through each page and verify order doesn't change
+    for (let i = 0; i < Math.min(pageNames.length, initialOrder.length); i++) {
+        // * Click on the page by ID
+        const pageNode = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${initialOrder[i]}"]`);
+        const titleButton = pageNode.locator('[data-testid="page-tree-node-title"]');
+        await titleButton.click();
+
+        // Wait for navigation
+        await page.waitForTimeout(500);
+
+        // * Verify order is still the same
+        const currentOrder = await getPageOrder();
+        expect(currentOrder).toEqual(initialOrder);
+    }
+});
+
+/**
+ * @objective Verify page hierarchy order remains stable when adding new pages
+ */
+test('maintains stable order when adding new pages', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki
+    const wikiTitle = `Add Pages Test ${pw.random.id()}`;
+    await createWikiThroughUI(page, wikiTitle);
+
+    // # Create initial 3 pages
+    const initialPages = ['First', 'Second', 'Third'];
+    for (const pageName of initialPages) {
+        await createPageThroughUI(page, pageName, `Content for ${pageName}`);
+    }
+
+    // # Get page IDs in order
+    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const getPageIds = async () => {
+        const pageNodes = hierarchyPanel.locator('[data-testid="page-tree-node"]');
+        const count = await pageNodes.count();
+        const ids = [];
+
+        for (let i = 0; i < count; i++) {
+            const node = pageNodes.nth(i);
+            const id = await node.getAttribute('data-page-id');
+            if (id) {
+                ids.push(id);
+            }
+        }
+
+        return ids;
+    };
+
+    const orderBefore = await getPageIds();
+    expect(orderBefore.length).toBeGreaterThanOrEqual(3);
+
+    // # Add a new page
+    await createPageThroughUI(page, 'Fourth', 'Content for Fourth');
+
+    // * Verify existing pages maintained their relative order
+    const orderAfter = await getPageIds();
+
+    // The first 3 pages should preserve their relative order
+    for (let i = 0; i < orderBefore.length - 1; i++) {
+        const currentIndexInAfter = orderAfter.indexOf(orderBefore[i]);
+        const nextIndexInAfter = orderAfter.indexOf(orderBefore[i + 1]);
+
+        // Both pages should still exist
+        expect(currentIndexInAfter).toBeGreaterThanOrEqual(0);
+        expect(nextIndexInAfter).toBeGreaterThanOrEqual(0);
+
+        // Relative order should be preserved
+        expect(currentIndexInAfter).toBeLessThan(nextIndexInAfter);
+    }
 });

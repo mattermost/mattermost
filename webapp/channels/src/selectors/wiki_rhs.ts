@@ -18,3 +18,7 @@ export function getSelectedPageId(state: GlobalState): string {
 export function getFocusedInlineCommentId(state: GlobalState): string | null {
     return state.views.wikiRhs?.focusedInlineCommentId || null;
 }
+
+export function getWikiRhsActiveTab(state: GlobalState): 'page_comments' | 'all_threads' {
+    return state.views.wikiRhs?.activeTab || 'page_comments';
+}

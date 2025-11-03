@@ -16,3 +16,10 @@ export function setWikiRhsWikiId(wikiId: string | null) {
         wikiId,
     };
 }
+
+export function setWikiRhsActiveTab(tab: 'page_comments' | 'all_threads') {
+    return {
+        type: WikiRhsTypes.SET_ACTIVE_TAB,
+        tab,
+    };
+}

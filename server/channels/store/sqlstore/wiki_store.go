@@ -230,7 +230,7 @@ func (s *SqlWikiStore) GetPages(wikiId string, offset, limit int) ([]*model.Post
 			"p.DeleteAt": 0,
 		}).
 		Where("v.Value = to_jsonb(?::text)", wikiId).
-		OrderBy("p.CreateAt DESC").
+		OrderBy("p.CreateAt DESC, p.Id ASC").
 		Offset(uint64(offset))
 
 	if limit > 0 {

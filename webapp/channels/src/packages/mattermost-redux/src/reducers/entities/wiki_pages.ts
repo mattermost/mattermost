@@ -67,7 +67,7 @@ export default function wikiPagesReducer(state = initialState, action: AnyAction
             },
         };
     }
-    case WikiTypes.RECEIVED_PAGE: {
+    case WikiTypes.RECEIVED_PAGE_IN_WIKI: {
         const page: Post = action.data;
         const wikiId = page.channel_id;
 
