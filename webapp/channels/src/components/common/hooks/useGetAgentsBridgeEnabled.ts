@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useCallback, useEffect, useState} from 'react';
+import {useCallback, useEffect, useRef} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {WebSocketMessage} from '@mattermost/client';
@@ -13,6 +13,7 @@ import {SocketEvents} from 'utils/constants';
 import {useWebSocket} from 'utils/use_websocket/hooks';
 
 const AI_PLUGIN_ID = 'mattermost-ai';
+const DEBOUNCE_DELAY_MS = 100; // Debounce refetches within 100ms
 
 /**
  * Hook to determine if the AI bridge is enabled by checking if there are available AI agents.
@@ -26,31 +27,51 @@ const AI_PLUGIN_ID = 'mattermost-ai';
 export default function useGetAgentsBridgeEnabled(): boolean {
     const dispatch = useDispatch();
     const agents = useSelector(getAIAgents);
-    const [hasFetched, setHasFetched] = useState(false);
+    const hasFetchedRef = useRef(false);
+    const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
     // Fetch AI agents on mount
     useEffect(() => {
-        if (!hasFetched) {
-            dispatch(getAIAgentsAction());
-            setHasFetched(true);
-        }
-    }, [dispatch, hasFetched]);
-
-    // Handle websocket events for plugin enabled/disabled and config changes
-    const handleWebSocketMessage = useCallback((msg: WebSocketMessage) => {
-        // Refetch on plugin enabled/disabled for mattermost-ai
-        if (msg.event === SocketEvents.PLUGIN_ENABLED || msg.event === SocketEvents.PLUGIN_DISABLED) {
-            const manifest = msg.data?.manifest;
-            if (manifest?.id === AI_PLUGIN_ID) {
-                dispatch(getAIAgentsAction());
-            }
-        }
-
-        // Refetch on config changes to account for new agents being added
-        if (msg.event === SocketEvents.CONFIG_CHANGED) {
+        if (!hasFetchedRef.current) {
+            hasFetchedRef.current = true;
             dispatch(getAIAgentsAction());
         }
     }, [dispatch]);
+
+    // Cleanup debounce timer on unmount
+    useEffect(() => {
+        return () => {
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current);
+            }
+        };
+    }, []);
+
+    // Debounced refetch to avoid duplicate fetches when multiple events fire in quick succession
+    const debouncedRefetch = useCallback(() => {
+        if (debounceTimerRef.current) {
+            clearTimeout(debounceTimerRef.current);
+        }
+        debounceTimerRef.current = setTimeout(() => {
+            dispatch(getAIAgentsAction());
+        }, DEBOUNCE_DELAY_MS);
+    }, [dispatch]);
+
+    // Handle websocket events for plugin enabled/disabled and config changes
+    const handleWebSocketMessage = useCallback((msg: WebSocketMessage) => {
+        // Refetch on plugin enabled/disabled for mattermost-ai, or on any config change
+        // Note: When a plugin is enabled/disabled, the backend fires CONFIG_CHANGED first,
+        // then PLUGIN_ENABLED/PLUGIN_DISABLED. We debounce to avoid duplicate fetches.
+        const isPluginEvent =
+            (msg.event === SocketEvents.PLUGIN_ENABLED || msg.event === SocketEvents.PLUGIN_DISABLED) &&
+            msg.data?.manifest?.id === AI_PLUGIN_ID;
+
+        const isConfigChange = msg.event === SocketEvents.CONFIG_CHANGED;
+
+        if (isPluginEvent || isConfigChange) {
+            debouncedRefetch();
+        }
+    }, [debouncedRefetch]);
 
     useWebSocket({handler: handleWebSocketMessage});
 
