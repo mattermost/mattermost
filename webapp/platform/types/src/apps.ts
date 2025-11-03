@@ -437,6 +437,30 @@ function isAppSelectOption(v: unknown): v is AppSelectOption {
 
 export type AppFieldType = string;
 
+// Time exclusion configuration for datetime fields
+// Times in HH:MM format (24-hour)
+// - start + end: exclude times from start (inclusive) to end (exclusive)
+//   Example: {start: "12:00", end: "13:00"} excludes 12:00 PM - 12:59 PM
+// - before: exclude all times before this time
+//   Example: {before: "09:00"} excludes everything before 9:00 AM
+// - after: exclude all times at and after this time
+//   Example: {after: "17:00"} excludes 5:00 PM onwards
+export type TimeExclusionRule = {
+    start?: string;
+    end?: string;
+    before?: string;
+    after?: string;
+};
+
+export type TimeExcludeConfig = {
+    timezone_reference: string; // Required: "UTC" or "local"
+
+    // Array of exclusion rules - if ANY rule matches, the time is excluded (OR operation)
+    // Multiple exclusions are useful for excluding multiple time windows (e.g., lunch breaks, meetings)
+    // Note: Multiple "only start" or "only end" exclusions will use the earliest/latest respectively
+    exclusions: TimeExclusionRule[];
+};
+
 // This should go in mattermost-redux
 export type AppField = {
 
@@ -471,7 +495,20 @@ export type AppField = {
     // Date props
     min_date?: string;
     max_date?: string;
+    disabled_days?: Array<{
+        date?: string;
+        from?: string;
+        to?: string;
+        before?: string;
+        after?: string;
+        days_of_week?: number[];
+    }>;
     time_interval?: number;
+    is_range?: boolean;
+    exclude_time?: TimeExcludeConfig;
+    allow_single_day_range?: boolean; // Allow start and end to be the same day in range mode
+    range_layout?: 'horizontal' | 'vertical'; // Layout for range fields: side-by-side or stacked
+    location_timezone?: string; // IANA timezone (e.g., "America/Denver") - overrides user's timezone for datetime fields only
 };
 
 /**
@@ -586,6 +623,40 @@ function isAppField(v: unknown): v is AppField {
         // Validate that max_date is a valid date format (ISO or relative)
         if (!isValidDateString(field.max_date)) {
             return false;
+        }
+    }
+
+    if (field.disabled_days !== undefined) {
+        if (!Array.isArray(field.disabled_days)) {
+            return false;
+        }
+
+        // Validate each disabled day rule
+        for (const rule of field.disabled_days) {
+            if (rule.date !== undefined && typeof rule.date !== 'string') {
+                return false;
+            }
+            if (rule.from !== undefined && typeof rule.from !== 'string') {
+                return false;
+            }
+            if (rule.to !== undefined && typeof rule.to !== 'string') {
+                return false;
+            }
+            if (rule.before !== undefined && typeof rule.before !== 'string') {
+                return false;
+            }
+            if (rule.after !== undefined && typeof rule.after !== 'string') {
+                return false;
+            }
+            if (rule.days_of_week !== undefined) {
+                if (!Array.isArray(rule.days_of_week)) {
+                    return false;
+                }
+                // Validate each day is 0-6
+                if (!rule.days_of_week.every((day) => typeof day === 'number' && day >= 0 && day <= 6)) {
+                    return false;
+                }
+            }
         }
     }
 

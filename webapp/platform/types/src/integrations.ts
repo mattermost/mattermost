@@ -196,7 +196,28 @@ export type DialogElement = {
     refresh?: boolean;
     min_date?: string;
     max_date?: string;
+    disabled_days?: Array<{
+        date?: string;
+        from?: string;
+        to?: string;
+        before?: string;
+        after?: string;
+        days_of_week?: number[];
+    }>;
     time_interval?: number;
+    is_range?: boolean;
+    exclude_time?: {
+        timezone_reference: string;
+        exclusions: Array<{
+            start?: string;
+            end?: string;
+            before?: string;
+            after?: string;
+        }>;
+    };
+    allow_single_day_range?: boolean;
+    range_layout?: 'horizontal' | 'vertical';
+    location_timezone?: string;
 };
 
 export type SubmitDialogResponse = {

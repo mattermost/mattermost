@@ -3,6 +3,7 @@
 
 import {parseISO, isValid, format} from 'date-fns';
 import type {Moment} from 'moment-timezone';
+import type {Matcher} from 'react-day-picker';
 
 import {getCurrentMomentForTimezone, parseDateInTimezone} from './timezone';
 
@@ -60,7 +61,10 @@ export function momentToString(momentValue: Moment | null, isDateTime: boolean):
     }
 
     if (isDateTime) {
-        return momentValue.utc().format(MOMENT_DATETIME_FORMAT);
+        console.log('momentToString - input:', momentValue.format(), 'tz:', momentValue.tz(), 'utcOffset:', momentValue.utcOffset());
+        const utcString = momentValue.clone().utc().format(MOMENT_DATETIME_FORMAT);
+        console.log('momentToString - output:', utcString);
+        return utcString;
     }
 
     // Store date only: "2025-01-14"
@@ -163,5 +167,81 @@ export function dateToString(date: Date | null): string | null {
         return null;
     }
     return format(date, DATE_FORMAT);
+}
+
+type DisabledDayRule = {
+    date?: string;
+    from?: string;
+    to?: string;
+    before?: string;
+    after?: string;
+    days_of_week?: number[];
+};
+
+/**
+ * Parse disabled_days rules from Dialog/Apps fields into react-day-picker matchers
+ * Supports all react-day-picker matcher types: specific dates, ranges, before/after, and days of week
+ */
+export function parseDisabledDays(rules?: DisabledDayRule[]): Matcher[] | undefined {
+    if (!rules || rules.length === 0) {
+        return undefined;
+    }
+
+    console.log('parseDisabledDays - input rules:', rules);
+
+    const matchers: Matcher[] = [];
+
+    for (const rule of rules) {
+        // Single date matcher
+        if (rule.date) {
+            const resolved = resolveRelativeDate(rule.date);
+            const date = stringToDate(resolved);
+            console.log('parseDisabledDays - date rule:', rule.date, '→', resolved, '→', date);
+            if (date) {
+                matchers.push(date);
+            }
+        }
+
+        // Range matcher (from + to)
+        if (rule.from || rule.to) {
+            const fromResolved = rule.from ? resolveRelativeDate(rule.from) : null;
+            const toResolved = rule.to ? resolveRelativeDate(rule.to) : null;
+            const from = fromResolved ? stringToDate(fromResolved) ?? undefined : undefined;
+            const to = toResolved ? stringToDate(toResolved) ?? undefined : undefined;
+
+            if (from || to) {
+                matchers.push({from, to});
+            }
+        }
+
+        // Before matcher
+        if (rule.before) {
+            const resolved = resolveRelativeDate(rule.before);
+            const date = stringToDate(resolved);
+            console.log('parseDisabledDays - before rule:', rule.before, '→', resolved, '→', date);
+            if (date) {
+                matchers.push({before: date});
+            }
+        }
+
+        // After matcher
+        if (rule.after) {
+            const resolved = resolveRelativeDate(rule.after);
+            const date = stringToDate(resolved);
+            console.log('parseDisabledDays - after rule:', rule.after, '→', resolved, '→', date);
+            if (date) {
+                matchers.push({after: date});
+            }
+        }
+
+        // Days of week matcher (0=Sunday, 6=Saturday)
+        if (rule.days_of_week && rule.days_of_week.length > 0) {
+            console.log('parseDisabledDays - dayOfWeek rule:', rule.days_of_week);
+            matchers.push({dayOfWeek: rule.days_of_week});
+        }
+    }
+
+    console.log('parseDisabledDays - output matchers:', matchers);
+    return matchers.length > 0 ? matchers : undefined;
 }
 

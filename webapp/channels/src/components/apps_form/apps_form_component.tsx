@@ -15,6 +15,7 @@ import {
     checkDialogElementForError, checkIfErrorsMatchElements,
 } from 'mattermost-redux/utils/integration_utils';
 
+import {getNextAvailableTime} from 'components/datetime_input/datetime_input';
 import Markdown from 'components/markdown';
 import SpinnerButton from 'components/spinner_button';
 import ModalSuggestionList from 'components/suggestion/modal_suggestion_list';
@@ -202,20 +203,8 @@ const initFormValues = (form: AppForm, timezone?: string): AppFormValues => {
             let defaultValue: AppFormValue = null;
             if (field.type === AppFieldTypes.BOOL) {
                 defaultValue = false;
-            } else if (field.type === AppFieldTypes.DATETIME && field.is_required && !field.value) {
-                // Set default to current time for required datetime fields
-                const currentTime = timezone ? moment.tz(timezone) : moment();
-
-                // Use sanitized time_interval (guaranteed to be valid)
-                const timePickerInterval = field.time_interval || DEFAULT_TIME_INTERVAL_MINUTES;
-
-                // Round up to next time interval
-                const minutesMod = currentTime.minutes() % timePickerInterval;
-                const defaultMoment = minutesMod === 0 ?
-                    currentTime.clone().seconds(0).milliseconds(0) :
-                    currentTime.clone().add(timePickerInterval - minutesMod, 'minutes').seconds(0).milliseconds(0);
-                defaultValue = momentToString(defaultMoment, true);
             }
+            // No automatic defaults for datetime fields - apps should set field.value if they want a default
 
             values[field.name] = field.value || defaultValue;
         });

@@ -335,6 +335,47 @@ type Dialog struct {
 	SourceURL        string          `json:"source_url,omitempty"`
 }
 
+// DialogTimeExclusionRule defines a time range to exclude from datetime pickers
+// Use Start+End for a specific range, Before for excluding before a time, or After for excluding after a time
+type DialogTimeExclusionRule struct {
+	// Start time in HH:MM format (24-hour) - used with End to define a range
+	// Excludes times from Start (inclusive) to End (exclusive)
+	Start string `json:"start,omitempty"`
+	// End time in HH:MM format (24-hour) - used with Start to define a range
+	End string `json:"end,omitempty"`
+	// Before time in HH:MM format (24-hour) - excludes all times before this time
+	Before string `json:"before,omitempty"`
+	// After time in HH:MM format (24-hour) - excludes all times at and after this time
+	After string `json:"after,omitempty"`
+}
+
+// DialogTimeExcludeConfig defines time exclusion configuration for datetime fields
+type DialogTimeExcludeConfig struct {
+	// TimezoneReference indicates whether exclusion times are in "UTC" or "local" timezone
+	TimezoneReference string `json:"timezone_reference"`
+	// Exclusions is an array of time ranges to exclude
+	// If ANY rule matches, the time is excluded (OR operation)
+	Exclusions []DialogTimeExclusionRule `json:"exclusions"`
+}
+
+// DialogDisabledDayRule defines a day or range of days to disable in date/datetime pickers
+// Supports all react-day-picker matcher types: specific dates, ranges, before/after, and days of week
+// Multiple rules can be combined - if ANY rule matches, the day is disabled (OR operation)
+type DialogDisabledDayRule struct {
+	// Date disables a specific date in YYYY-MM-DD format or relative format (e.g., "today", "tomorrow", "+7d")
+	Date *string `json:"date,omitempty"`
+	// From and To define a date range (inclusive). Both use YYYY-MM-DD or relative format
+	From *string `json:"from,omitempty"`
+	To   *string `json:"to,omitempty"`
+	// Before disables all dates before this date (exclusive). Uses YYYY-MM-DD or relative format
+	Before *string `json:"before,omitempty"`
+	// After disables all dates after this date (exclusive). Uses YYYY-MM-DD or relative format
+	After *string `json:"after,omitempty"`
+	// DaysOfWeek disables specific days of the week (0=Sunday, 1=Monday, ..., 6=Saturday)
+	// Example: [0, 6] disables weekends, [1, 2, 3, 4, 5] disables weekdays
+	DaysOfWeek []int `json:"days_of_week,omitempty"`
+}
+
 type DialogElement struct {
 	DisplayName   string               `json:"display_name"`
 	Name          string               `json:"name"`
@@ -352,9 +393,15 @@ type DialogElement struct {
 	MultiSelect   bool                 `json:"multiselect"`
 	Refresh       bool                 `json:"refresh,omitempty"`
 	// Date/datetime field specific properties
-	MinDate      string `json:"min_date,omitempty"`
-	MaxDate      string `json:"max_date,omitempty"`
-	TimeInterval int    `json:"time_interval,omitempty"`
+	MinDate             string                   `json:"min_date,omitempty"`
+	MaxDate             string                   `json:"max_date,omitempty"`
+	DisabledDays        []DialogDisabledDayRule  `json:"disabled_days,omitempty"` // Rules for disabling specific days (dates, ranges, weekends, etc.)
+	TimeInterval        int                      `json:"time_interval,omitempty"`
+	IsRange             bool                     `json:"is_range,omitempty"`
+	ExcludeTime         *DialogTimeExcludeConfig `json:"exclude_time,omitempty"`
+	AllowSingleDayRange bool                     `json:"allow_single_day_range,omitempty"`
+	RangeLayout         string                   `json:"range_layout,omitempty"`       // "horizontal" or "vertical"
+	LocationTimezone    string                   `json:"location_timezone,omitempty"` // IANA timezone (e.g., "America/Denver") - overrides user's timezone for datetime fields only
 }
 
 type OpenDialogRequest struct {

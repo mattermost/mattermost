@@ -446,8 +446,26 @@ export function convertElement(element: DialogElement, options: ConversionOption
         if (element.max_date !== undefined) {
             appField.max_date = String(element.max_date);
         }
+        if (element.disabled_days !== undefined) {
+            appField.disabled_days = element.disabled_days;
+        }
         if (element.time_interval !== undefined && element.type === DialogElementTypes.DATETIME) {
             appField.time_interval = Number(element.time_interval);
+        }
+        if (element.is_range !== undefined) {
+            appField.is_range = Boolean(element.is_range);
+        }
+        if (element.exclude_time !== undefined) {
+            appField.exclude_time = element.exclude_time;
+        }
+        if (element.allow_single_day_range !== undefined) {
+            appField.allow_single_day_range = Boolean(element.allow_single_day_range);
+        }
+        if (element.range_layout !== undefined) {
+            appField.range_layout = element.range_layout;
+        }
+        if (element.location_timezone !== undefined && element.type === DialogElementTypes.DATETIME) {
+            appField.location_timezone = element.location_timezone;
         }
     }
 
@@ -572,14 +590,25 @@ export function extractPrimitiveValues(values: Record<string, any>): Record<stri
         }
 
         if (Array.isArray(value)) {
-            // Handle multiselect arrays - extract values from each option object
-            const extractedValues = value.
-                filter((item) => item && typeof item === 'object' && 'value' in item).
-                map((item) => item.value).
-                filter((val) => val !== null && val !== undefined && val !== '' && val !== '<nil>');
+            // Check if array contains objects with 'value' property (multiselect options)
+            const hasSelectObjects = value.some((item) => item && typeof item === 'object' && 'value' in item);
 
-            if (extractedValues.length > 0) {
-                normalized[key] = extractedValues;
+            if (hasSelectObjects) {
+                // Handle multiselect arrays - extract values from each option object
+                const extractedValues = value.
+                    filter((item) => item && typeof item === 'object' && 'value' in item).
+                    map((item) => item.value).
+                    filter((val) => val !== null && val !== undefined && val !== '' && val !== '<nil>');
+
+                if (extractedValues.length > 0) {
+                    normalized[key] = extractedValues;
+                }
+            } else {
+                // Handle arrays of primitives (e.g., date ranges, datetime ranges)
+                const primitiveValues = value.filter((val) => val !== null && val !== undefined && val !== '' && val !== '<nil>');
+                if (primitiveValues.length > 0) {
+                    normalized[key] = primitiveValues;
+                }
             }
         } else if (value && typeof value === 'object' && 'value' in value) {
             // Extract value from single select option object {label: "...", value: "..."}
