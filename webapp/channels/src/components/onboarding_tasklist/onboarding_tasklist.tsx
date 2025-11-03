@@ -9,7 +9,6 @@ import styled, {css} from 'styled-components';
 
 import {CloseIcon, PlaylistCheckIcon} from '@mattermost/compass-icons/components';
 
-import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
 import {getMyPreferences, savePreferences} from 'mattermost-redux/actions/preferences';
 import {getCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
@@ -37,6 +36,7 @@ import {CompletedAnimation} from './onboarding_tasklist_animations';
 import Completed from './onboarding_tasklist_completed';
 import {TaskListPopover} from './onboarding_tasklist_popover';
 import {Task} from './onboarding_tasklist_task';
+import {tryGetPrevTrialLicense} from 'actions/license';
 
 const TaskItems = styled.div`
     border-radius: var(--radius-m);
@@ -134,7 +134,7 @@ const OnBoardingTaskList = (): JSX.Element | null => {
     const isCloudPreview = subscription?.is_cloud_preview === true;
 
     useEffect(() => {
-        dispatch(getPrevTrialLicense());
+        dispatch(tryGetPrevTrialLicense());
         if (!hasPreferences) {
             dispatch(getMyPreferences());
         }
