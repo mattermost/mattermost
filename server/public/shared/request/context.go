@@ -112,7 +112,11 @@ func (c *Context) WithT(t i18n.TranslateFunc) CTX {
 
 func (c *Context) WithSession(s *model.Session) CTX {
 	rctx := c.clone()
-	rctx.session = *s
+	if s == nil {
+		rctx.session = model.Session{}
+	} else {
+		rctx.session = *s
+	}
 	return rctx
 }
 
