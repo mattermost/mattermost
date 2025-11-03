@@ -4665,7 +4665,7 @@
   {
     "id": "app.ai.get_services.bridge_call_failed",
     "translation": "AI bridge call failed."
-  },,
+  },
   {
     "id": "app.admin.test_site_url.failure",
     "translation": "This is not a valid live URL"

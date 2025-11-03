@@ -455,6 +455,10 @@ export default class Client4 {
         return `${this.getBaseRoute()}/plugins`;
     }
 
+    getAIRoute() {
+        return `${this.getBaseRoute()}/ai`;
+    }
+
     getPluginRoute(pluginId: string) {
         return `${this.getPluginsRoute()}/${pluginId}`;
     }
@@ -3280,6 +3284,14 @@ export default class Client4 {
         return this.doFetch<StatusOK>(
             `${this.getBaseRoute()}/config/reload`,
             {method: 'post'},
+        );
+    };
+
+    // AI Routes
+    getAIAgents = () => {
+        return this.doFetch<{agents: Array<{id: string; displayName: string; username: string; service_id: string; service_type: string}>}>(
+            `${this.getAIRoute()}/agents`,
+            {method: 'get'},
         );
     };
 
