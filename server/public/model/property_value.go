@@ -115,4 +115,5 @@ type PropertyValueSearchOpts struct {
 	IncludeDeleted bool
 	Cursor         PropertyValueSearchCursor
 	PerPage        int
+	Value          json.RawMessage
 }
