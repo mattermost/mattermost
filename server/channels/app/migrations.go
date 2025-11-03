@@ -694,6 +694,7 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 			GroupID: group.ID,
 			Name:    contentFlaggingPropertyNameActionTime,
 			Type:    model.PropertyFieldTypeText,
+			Attrs:   map[string]any{"subType": contentFlaggingPropertySubTypeTimestamp},
 		},
 		contentFlaggingPropertyManageByContentFlagging: {
 			GroupID: group.ID,
