@@ -7091,16 +7091,12 @@
     "translation": "Reaction limit has been reached for this post."
   },
   {
-    "id": "app.recap.create.permission_denied",
-    "translation": "Missing channel permissions"
+    "id": "app.recap.permission_denied",
+    "translation": "No permission for recap"
   },
   {
     "id": "app.recap.delete.app_error",
     "translation": "Failed to delete recap."
-  },
-  {
-    "id": "app.recap.delete.permission_denied",
-    "translation": "No permission to delete recap"
   },
   {
     "id": "app.recap.delete_channels.app_error",
@@ -7109,10 +7105,6 @@
   {
     "id": "app.recap.get.app_error",
     "translation": "Failed to get recap."
-  },
-  {
-    "id": "app.recap.get.permission_denied",
-    "translation": "No permission to get recap"
   },
   {
     "id": "app.recap.get_channels.app_error",
@@ -7125,14 +7117,6 @@
   {
     "id": "app.recap.mark_read.app_error",
     "translation": "Failed to mark recap as read."
-  },
-  {
-    "id": "app.recap.mark_read.permission_denied",
-    "translation": "No permission to mark recap as read"
-  },
-  {
-    "id": "app.recap.regenerate.permission_denied",
-    "translation": "No permission to regenerate recap"
   },
   {
     "id": "app.recap.save.app_error",

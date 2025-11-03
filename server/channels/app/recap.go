@@ -20,7 +20,7 @@ func (a *App) getRecapAndCheckOwnership(recapID, userID, callerName string) (*mo
 
 	// Only owner can access
 	if recap.UserId != userID {
-		return nil, model.NewAppError(callerName, "app.recap.get.permission_denied", nil, "", http.StatusForbidden)
+		return nil, model.NewAppError(callerName, "app.recap.permission_denied", nil, "", http.StatusForbidden)
 	}
 
 	return recap, nil
@@ -31,7 +31,7 @@ func (a *App) CreateRecap(rctx request.CTX, userID string, title string, channel
 	// Validate user is member of all channels
 	for _, channelID := range channelIDs {
 		if !a.HasPermissionToChannel(rctx, userID, channelID, model.PermissionReadChannel) {
-			return nil, model.NewAppError("CreateRecap", "app.recap.create.permission_denied", nil, "", http.StatusForbidden)
+			return nil, model.NewAppError("CreateRecap", "app.recap.permission_denied", nil, "", http.StatusForbidden)
 		}
 	}
 

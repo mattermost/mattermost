@@ -44,7 +44,7 @@ func TestCreateRecap(t *testing.T) {
 		recap, err := th.App.CreateRecap(th.Context, th.BasicUser.Id, "Test Recap", channelIds, "test-agent-id")
 		require.NotNil(t, err)
 		assert.Nil(t, recap)
-		assert.Equal(t, "app.recap.create.permission_denied", err.Id)
+		assert.Equal(t, "app.recap.permission_denied", err.Id)
 	})
 }
 
@@ -114,7 +114,7 @@ func TestGetRecap(t *testing.T) {
 		retrievedRecap, appErr := th.App.GetRecap(th.Context, th.BasicUser2.Id, recap.Id)
 		require.NotNil(t, appErr)
 		assert.Nil(t, retrievedRecap)
-		assert.Equal(t, "app.recap.get.permission_denied", appErr.Id)
+		assert.Equal(t, "app.recap.permission_denied", appErr.Id)
 	})
 }
 
@@ -232,7 +232,7 @@ func TestMarkRecapAsRead(t *testing.T) {
 		updatedRecap, appErr := th.App.MarkRecapAsRead(th.Context, th.BasicUser2.Id, recap.Id)
 		require.NotNil(t, appErr)
 		assert.Nil(t, updatedRecap)
-		assert.Equal(t, "app.recap.mark_read.permission_denied", appErr.Id)
+		assert.Equal(t, "app.recap.permission_denied", appErr.Id)
 	})
 }
 
