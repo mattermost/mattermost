@@ -525,7 +525,7 @@
   "admin.billing.subscriptions.billing_summary.noBillingHistory.title": "No billing history yet",
   "admin.billing.subscriptions.billing_summary.upcomingInvoice.has_more_line_items": "And {count} more items",
   "admin.burn_on_read_feature_discovery.description": "With Mattermost Enterprise Advanced, users can send transient messages that are automatically deleted a fixed time after they are read by a recipient.",
-  "admin.burn_on_read_feature_discovery.title": "Send burn-on-read messages with an auto-delete timer",
+  "admin.burn_on_read_feature_discovery.title": "Send burn-on-read messages that are automatically deleted after being read",
   "admin.cacheSettings.cacheType.lru": "LRU",
   "admin.cacheSettings.cacheType.redis": "Redis",
   "admin.cacheSettings.cacheTypeDesc": "The type of the cache backend. E.g.: \"redis\" or \"lru\"",

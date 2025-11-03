@@ -22,9 +22,17 @@
     justify-content: center;
     border-radius: 50%;
     background-color: rgba(var(--center-channel-color-rgb), 0.16);
-    color: var(--center-channel-color);
+    color: rgba(var(--center-channel-color-rgb), 0.56);
     font-size: 10px;
     font-weight: 600;
+
+    // Chip variant: no background, uses solid color for icon
+    &--chip {
+        width: 16px;
+        height: 16px;
+        background-color: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+    }
 }
 
 .GroupLabel {

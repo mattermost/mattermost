@@ -3142,7 +3142,7 @@ const AdminDefinition: AdminDefinitionType = {
                                 requiredSku: LicenseSkus.EnterpriseAdvanced,
                                 featureDiscoveryConfig: {
                                     featureName: 'burn_on_read',
-                                    title: defineMessage({id: 'admin.burn_on_read_feature_discovery.title', defaultMessage: 'Send burn-on-read messages with an auto-delete timer'}),
+                                    title: defineMessage({id: 'admin.burn_on_read_feature_discovery.title', defaultMessage: 'Send burn-on-read messages that are automatically deleted after being read'}),
                                     description: defineMessage({id: 'admin.burn_on_read_feature_discovery.description', defaultMessage: 'With Mattermost Enterprise Advanced, users can send transient messages that are automatically deleted a fixed time after they are read by a recipient.'}),
                                     learnMoreURL: 'https://docs.mattermost.com/deployment/burn-on-read-messages.html',
                                     svgImage: BurnOnReadSVG,

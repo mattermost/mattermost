@@ -126,6 +126,7 @@ function BaseUserProfilePill({data, innerProps, selectProps, removeProps}: Props
                 <GroupTeamDisplay
                     item={item}
                     variant='team'
+                    displayMode='chip'
                 />
                 {
                     removeProps &&
@@ -150,6 +151,7 @@ function BaseUserProfilePill({data, innerProps, selectProps, removeProps}: Props
             <GroupTeamDisplay
                 item={group}
                 variant='group'
+                displayMode='chip'
             />
             {
                 removeProps &&
