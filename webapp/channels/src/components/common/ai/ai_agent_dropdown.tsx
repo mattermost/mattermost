@@ -5,8 +5,8 @@ import React, {useCallback, useMemo} from 'react';
 import {useIntl} from 'react-intl';
 
 import {CheckIcon, ChevronDownIcon} from '@mattermost/compass-icons/components';
+import type {AIAgent} from '@mattermost/types/ai';
 
-import type {AIAgent} from 'mattermost-redux/actions/ai';
 import {Client4} from 'mattermost-redux/client';
 
 import * as Menu from 'components/menu';

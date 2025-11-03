@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import type {AIAgent} from 'mattermost-redux/actions/ai';
+import type {AIAgent} from '@mattermost/types/ai';
 
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
