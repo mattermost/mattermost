@@ -516,8 +516,14 @@ type Z_PluginHTTPStreamReturns struct {
 
 func (g *apiRPCClient) PluginHTTP(request *http.Request) *http.Response {
 	// Try to use the streaming version first (if server supports it)
-	// Fall back to buffered version if not available
-	response := g.pluginHTTPStream(request)
+	// Fall back to buffered version if not available (signaled by nil)
+	response, err := g.pluginHTTPStream(request)
+	if err != nil {
+		// If we error for some other reason other than stream not being
+		// implmented just report and fail
+		log.Print(err.Error())
+		return nil
+	}
 	if response != nil {
 		return response
 	}
@@ -527,7 +533,7 @@ func (g *apiRPCClient) PluginHTTP(request *http.Request) *http.Response {
 }
 
 // pluginHTTPStream attempts to use the new streaming endpoint
-func (g *apiRPCClient) pluginHTTPStream(request *http.Request) *http.Response {
+func (g *apiRPCClient) pluginHTTPStream(request *http.Request) (*http.Response, error) {
 	// Set up request body stream
 	requestBodyStreamId := uint32(0)
 	if request.Body != nil {
@@ -580,17 +586,15 @@ func (g *apiRPCClient) pluginHTTPStream(request *http.Request) *http.Response {
 	if err := g.client.Call("Plugin.PluginHTTPStream", _args, _returns); err != nil {
 		// If the method doesn't exist, return nil to trigger fallback
 		if err.Error() == "rpc: can't find method Plugin.PluginHTTPStream" {
-			return nil
+			return nil, nil
 		}
-		log.Printf("RPC call to PluginHTTPStream API failed: %s", err.Error())
-		return nil
+		return nil, fmt.Errorf("RPC call to PluginHTTPStream API failed: %w", err.Error())
 	}
 
 	// Wait for response body reader
 	responseBody := <-responsePipe
 	if responseBody == nil {
-		log.Printf("Failed to get response body stream for PluginHTTPStream")
-		return nil
+		return nil, fmt.Errorf("Failed to get response body stream for PluginHTTPStream")
 	}
 
 	// Create response with streamed body
@@ -603,7 +607,7 @@ func (g *apiRPCClient) pluginHTTPStream(request *http.Request) *http.Response {
 		ProtoMinor: request.ProtoMinor,
 	}
 
-	return response
+	return response, nil
 }
 
 // pluginHTTPBuffered is the original buffered implementation
