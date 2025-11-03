@@ -410,6 +410,50 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 		assert.Equal(t, []string{"plugin1", "plugin2"}, packet.ElasticSearch.ServerPlugins)
 		assert.Equal(t, "TestConfig: ent.elasticsearch.test_config.connection_failed, connection refused", packet.ElasticSearch.Error)
 	})
+
+	t.Run("Elasticsearch backend type is included", func(t *testing.T) {
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.ElasticsearchSettings.Backend = model.NewPointer(model.ElasticsearchSettingsESBackend)
+			cfg.ElasticsearchSettings.EnableIndexing = model.NewPointer(false)
+		})
+
+		esMock := &semocks.SearchEngineInterface{}
+		esMock.On("GetFullVersion").Return("7.10.0")
+		esMock.On("GetPlugins").Return([]string{"plugin1"})
+		originalES := th.Service.SearchEngine.ElasticsearchEngine
+		t.Cleanup(func() {
+			th.Service.SearchEngine.ElasticsearchEngine = originalES
+		})
+		th.Service.SearchEngine.ElasticsearchEngine = esMock
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.ElasticsearchSettingsESBackend, packet.ElasticSearch.Backend)
+		assert.Equal(t, "7.10.0", packet.ElasticSearch.ServerVersion)
+		assert.Equal(t, []string{"plugin1"}, packet.ElasticSearch.ServerPlugins)
+	})
+
+	t.Run("OpenSearch backend type is included", func(t *testing.T) {
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.ElasticsearchSettings.Backend = model.NewPointer(model.ElasticsearchSettingsOSBackend)
+			cfg.ElasticsearchSettings.EnableIndexing = model.NewPointer(false)
+		})
+
+		esMock := &semocks.SearchEngineInterface{}
+		esMock.On("GetFullVersion").Return("2.5.0")
+		esMock.On("GetPlugins").Return([]string{"opensearch-plugin"})
+		originalES := th.Service.SearchEngine.ElasticsearchEngine
+		t.Cleanup(func() {
+			th.Service.SearchEngine.ElasticsearchEngine = originalES
+		})
+		th.Service.SearchEngine.ElasticsearchEngine = esMock
+
+		packet := getDiagnostics(t)
+
+		assert.Equal(t, model.ElasticsearchSettingsOSBackend, packet.ElasticSearch.Backend)
+		assert.Equal(t, "2.5.0", packet.ElasticSearch.ServerVersion)
+		assert.Equal(t, []string{"opensearch-plugin"}, packet.ElasticSearch.ServerPlugins)
+	})
 }
 
 func TestGetSanitizedConfigFile(t *testing.T) {
