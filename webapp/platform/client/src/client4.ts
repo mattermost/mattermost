@@ -5,6 +5,7 @@
 
 import type {AccessControlPolicy, CELExpressionError, AccessControlTestResult, AccessControlPoliciesResult, AccessControlPolicyChannelsResult, AccessControlVisualAST, AccessControlAttributes} from '@mattermost/types/access_control';
 import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery} from '@mattermost/types/admin';
+import type {AgentsResponse} from '@mattermost/types/ai';
 import type {AppBinding, AppCallRequest, AppCallResponse} from '@mattermost/types/apps';
 import type {Audit} from '@mattermost/types/audits';
 import type {UserAutocomplete, AutocompleteSuggestion} from '@mattermost/types/autocomplete';
@@ -3289,7 +3290,7 @@ export default class Client4 {
 
     // AI Routes
     getAIAgents = () => {
-        return this.doFetch<{agents: Array<{id: string; displayName: string; username: string; service_id: string; service_type: string}>}>(
+        return this.doFetch<AgentsResponse>(
             `${this.getAIRoute()}/agents`,
             {method: 'get'},
         );
