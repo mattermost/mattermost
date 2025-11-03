@@ -1211,10 +1211,15 @@ func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
 	go func() {
 		defer func() {
 			// Ensure pipe is closed when request completes
+			var closeErr error
 			if err := recover(); err != nil {
-				responseTransfer.CloseWithError(fmt.Errorf("panic in plugin request: %v", err))
+				closeErr = responseTransfer.CloseWithError(fmt.Errorf("panic in plugin request: %v", err))
 			} else {
-				responseTransfer.Close()
+				closeErr = responseTransfer.Close()
+			}
+
+			if closeErr != nil {
+				api.logger.Errorw("Failed to close plugin response pipe", "error", closeErr)
 			}
 		}()
 		api.app.ServeInterPluginRequest(responseTransfer, request, api.id, destinationPluginId)
