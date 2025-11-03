@@ -82,7 +82,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
 };
 
 // Should be based only from the generated default config from ./server via "make config-reset"
-// Based on v10.11 server
+// Based on v11.0 server
 const defaultServerConfig: AdminConfig = {
     ServiceSettings: {
         SiteURL: '',
@@ -170,7 +170,7 @@ const defaultServerConfig: AdminConfig = {
         EnableAPIPostDeletion: false,
         EnableDesktopLandingPage: true,
         ExperimentalEnableHardenedMode: false,
-        StrictCSRFEnforcement: true,
+        ExperimentalStrictCSRFEnforcement: false,
         EnableEmailInvitations: false,
         DisableBotsWhenOwnerIsDeactivated: true,
         EnableBotAccountCreation: false,
@@ -223,7 +223,6 @@ const defaultServerConfig: AdminConfig = {
         MaxNotificationsPerChannel: 1000,
         EnableConfirmNotificationsToChannel: true,
         TeammateNameDisplay: 'username',
-        ExperimentalViewArchivedChannels: true,
         ExperimentalEnableAutomaticReplies: false,
         LockTeammateNameDisplay: false,
         ExperimentalPrimaryTeam: '',
@@ -241,10 +240,10 @@ const defaultServerConfig: AdminConfig = {
             'postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable\u0026connect_timeout=10\u0026binary_parameters=yes',
         DataSourceReplicas: [],
         DataSourceSearchReplicas: [],
-        MaxIdleConns: 20,
+        MaxIdleConns: 50,
         ConnMaxLifetimeMilliseconds: 3600000,
         ConnMaxIdleTimeMilliseconds: 300000,
-        MaxOpenConns: 300,
+        MaxOpenConns: 100,
         Trace: false,
         AtRestEncryptKey: '',
         QueryTimeout: 30,
@@ -264,7 +263,6 @@ const defaultServerConfig: AdminConfig = {
         FileLocation: '',
         EnableWebhookDebugging: true,
         EnableDiagnostics: true,
-        VerboseDiagnostics: false,
         EnableSentry: true,
         AdvancedLoggingJSON: {},
         MaxFieldSize: 2048,
@@ -279,17 +277,6 @@ const defaultServerConfig: AdminConfig = {
         FileMaxQueueSize: 1000,
         AdvancedLoggingJSON: {},
         Certificate: '',
-    },
-    NotificationLogSettings: {
-        EnableConsole: true,
-        ConsoleLevel: 'DEBUG',
-        ConsoleJson: true,
-        EnableColor: false,
-        EnableFile: true,
-        FileLevel: 'INFO',
-        FileJson: true,
-        FileLocation: '',
-        AdvancedLoggingJSON: {},
     },
     PasswordSettings: {
         MinimumLength: 8,
@@ -600,8 +587,6 @@ const defaultServerConfig: AdminConfig = {
         ClientSideUserIds: [],
     },
     ExperimentalSettings: {
-        ClientSideCertEnable: false,
-        ClientSideCertCheck: 'secondary',
         LinkMetadataTimeoutMilliseconds: 5000,
         RestrictSystemAdmin: false,
         EnableSharedChannels: false,
@@ -768,6 +753,11 @@ const defaultServerConfig: AdminConfig = {
         CustomProfileAttributes: true,
         AttributeBasedAccessControl: true,
         ContentFlagging: false,
+        InteractiveDialogAppsForm: true,
+        EnableMattermostEntry: true,
+        ChannelAdminManageABACRules: false,
+        MobileSSOCodeExchange: true,
+        AutoTranslation: false,
     },
     ImportSettings: {
         Directory: './import',
@@ -797,18 +787,11 @@ const defaultServerConfig: AdminConfig = {
     },
     AccessControlSettings: {
         EnableAttributeBasedAccessControl: false,
-        EnableChannelScopeAccessControl: false,
+        EnableChannelScopeAccessControl: true,
         EnableUserManagedAttributes: false,
     },
     ContentFlaggingSettings: {
         EnableContentFlagging: false,
-        ReviewerSettings: {
-            CommonReviewers: true,
-            CommonReviewerIds: [],
-            TeamReviewersSetting: {},
-            SystemAdminsAsReviewers: false,
-            TeamAdminsAsReviewers: true,
-        },
         NotificationSettings: {
             EventTargetMapping: {
                 assigned: ['reviewers'],
@@ -828,6 +811,26 @@ const defaultServerConfig: AdminConfig = {
             ReporterCommentRequired: true,
             ReviewerCommentRequired: true,
             HideFlaggedContent: true,
+        },
+        ReviewerSettings: {
+            CommonReviewers: true,
+            CommonReviewerIds: [],
+            TeamReviewersSetting: {},
+            SystemAdminsAsReviewers: false,
+            TeamAdminsAsReviewers: true,
+        },
+    },
+    AutoTranslationSettings: {
+        Enable: false,
+        Provider: '',
+        LibreTranslate: {
+            URL: '',
+            APIKey: '',
+        },
+        TimeoutMs: {
+            NewPost: 800,
+            Fetch: 2000,
+            Notification: 300,
         },
     },
 };

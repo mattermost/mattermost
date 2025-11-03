@@ -400,6 +400,10 @@
     "translation": "Unable to delete direct or group message channels"
   },
   {
+    "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
+    "translation": "Channel ID does not match the channel ID of the flagged post."
+  },
+  {
     "id": "api.channel.get_channel_moderations.license.error",
     "translation": "Your license does not support channel moderation"
   },
@@ -448,8 +452,16 @@
     "translation": "Your license does not support channel moderation"
   },
   {
+    "id": "api.channel.patch_channel_moderations_for_channel.restricted_permission.app_error",
+    "translation": "Cannot add a permission that is restricted by the team or system permission scheme."
+  },
+  {
     "id": "api.channel.patch_update_channel.forbidden.app_error",
     "translation": "Failed to update the channel."
+  },
+  {
+    "id": "api.channel.patch_update_channel.restricted_dm.app_error",
+    "translation": "Cannot update a restricted direct message channel."
   },
   {
     "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
@@ -674,6 +686,10 @@
   {
     "id": "api.command.execute_command.not_found.app_error",
     "translation": "Command with a trigger of '{{.Trigger}}' not found. To send a message beginning with \"/\", try adding an empty space at the beginning of the message."
+  },
+  {
+    "id": "api.command.execute_command.restricted_dm.error",
+    "translation": "Cannot post in a restricted DM"
   },
   {
     "id": "api.command.execute_command.start.app_error",
@@ -1690,10 +1706,6 @@
     "translation": "shrug"
   },
   {
-    "id": "api.config.client.old_format.app_error",
-    "translation": "New format for the client configuration is not supported yet. Please specify format=old in the query string."
-  },
-  {
     "id": "api.config.get_config.restricted_merge.app_error",
     "translation": "Failed to merge given config."
   },
@@ -1738,12 +1750,40 @@
     "translation": "Failed to update server translations."
   },
   {
+    "id": "api.content_flagging.error.comment_required",
+    "translation": "Please add a comment explaining why you’re flagging this message."
+  },
+  {
+    "id": "api.content_flagging.error.comment_too_long",
+    "translation": "Message flagging reason cannot be longer than {{.MaxLength}} characters."
+  },
+  {
     "id": "api.content_flagging.error.disabled",
     "translation": "Content flagging feature is disabled."
   },
   {
     "id": "api.content_flagging.error.license",
     "translation": "Your license does not support content flagging."
+  },
+  {
+    "id": "api.content_flagging.error.not_available_on_team",
+    "translation": "Content flagging feature is not enabled on this team."
+  },
+  {
+    "id": "api.content_flagging.error.post_not_in_progress",
+    "translation": "The flagged post must be in pending or assigned status to be kept or removed."
+  },
+  {
+    "id": "api.content_flagging.error.reason_invalid",
+    "translation": "Unknown reason specified for flagging message."
+  },
+  {
+    "id": "api.content_flagging.error.reason_required",
+    "translation": "Please select a reason for flagging this message."
+  },
+  {
+    "id": "api.content_flagging.error.user_not_reviewer",
+    "translation": "The user is not a content reviewer."
   },
   {
     "id": "api.context.404.app_error",
@@ -1934,6 +1974,10 @@
     "translation": "Can not save draft to deleted channel"
   },
   {
+    "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
+    "translation": "Cannot save draft to restricted direct message channel"
+  },
+  {
     "id": "api.drafts.disabled.app_error",
     "translation": "Drafts feature is disabled."
   },
@@ -2047,6 +2091,10 @@
   {
     "id": "api.emoji.upload.seek.app_error",
     "translation": "Unable to seek to file start."
+  },
+  {
+    "id": "api.encoding_error",
+    "translation": "Encountered an error encoding JSON for the API response"
   },
   {
     "id": "api.error_get_first_admin_complete_setup",
@@ -2169,6 +2217,10 @@
     "translation": "File storage settings has unset values."
   },
   {
+    "id": "api.file.upload_file.get_channel.app_error",
+    "translation": "Cannot upload file to restricted DM"
+  },
+  {
     "id": "api.file.upload_file.incorrect_channelId.app_error",
     "translation": "Unable to upload the file. Incorrect channel ID: {{.channelId}}"
   },
@@ -2195,6 +2247,10 @@
   {
     "id": "api.file.upload_file.read_request.app_error",
     "translation": "Unable to upload file(s). Error reading or parsing request data."
+  },
+  {
+    "id": "api.file.upload_file.restricted_dm.error",
+    "translation": "Cannot upload file to restricted DM"
   },
   {
     "id": "api.file.upload_file.storage.app_error",
@@ -2597,6 +2653,10 @@
     "translation": "@{{.Username}} didn't get notified by this mention because they aren't a member of this team."
   },
   {
+    "id": "api.post.create_post.can_not_post_in_restricted_dm.error",
+    "translation": "Cannot post to restricted direct message channel."
+  },
+  {
     "id": "api.post.create_post.can_not_post_to_deleted.error",
     "translation": "Can not post to deleted channel."
   },
@@ -2623,6 +2683,10 @@
   {
     "id": "api.post.deduplicate_create_post.pending",
     "translation": "Rejected post since another client is making the same request."
+  },
+  {
+    "id": "api.post.delete_post.can_not_delete_from_restricted_dm.error",
+    "translation": "Cannot delete a post in a restricted direct message channel."
   },
   {
     "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
@@ -2681,6 +2745,10 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Can not update a post in a deleted channel."
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "Cannot update post in restricted direct message channel."
   },
   {
     "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
@@ -2757,6 +2825,10 @@
   {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
     "translation": "Can not update a post in a deleted channel."
+  },
+  {
+    "id": "api.post.update_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "Cannot update post in restricted direct message channel."
   },
   {
     "id": "api.post.update_post.find.app_error",
@@ -2839,8 +2911,16 @@
     "translation": "You cannot remove a reaction in an archived channel."
   },
   {
+    "id": "api.reaction.delete.restricted_dm.error",
+    "translation": "Cannot react in restricted DM"
+  },
+  {
     "id": "api.reaction.save.archived_channel.app_error",
     "translation": "You cannot react in an archived channel."
+  },
+  {
+    "id": "api.reaction.save.restricted_dm.error",
+    "translation": "Cannot react in restricted DM"
   },
   {
     "id": "api.reaction.save_reaction.invalid.app_error",
@@ -3189,6 +3269,10 @@
   {
     "id": "api.team.get_invite_info.not_open_team",
     "translation": "Invite is invalid because this is not an open team."
+  },
+  {
+    "id": "api.team.get_team.flagged_post_mismatch.app_error",
+    "translation": "Team ID does not match the flagged post's team ID."
   },
   {
     "id": "api.team.get_team_icon.filesettings_no_driver.app_error",
@@ -4007,6 +4091,10 @@
     "translation": "Login failed because of invalid password."
   },
   {
+    "id": "api.user.check_user_password.invalid_hash.app_error",
+    "translation": "The format of the hashed password is invalid and could not be parsed."
+  },
+  {
     "id": "api.user.complete_switch_with_oauth.blank_email.app_error",
     "translation": "Blank email."
   },
@@ -4177,14 +4265,6 @@
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
     "translation": "Bot login is forbidden."
-  },
-  {
-    "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Attempted to sign in using the experimental feature ClientSideCert without providing a valid certificate."
-  },
-  {
-    "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Attempt to use the experimental feature ClientSideCertEnable without a valid enterprise license."
   },
   {
     "id": "api.user.login.guest_accounts.disabled.error",
@@ -4467,18 +4547,6 @@
     "translation": "Failed to parse token data from email verification"
   },
   {
-    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
-    "translation": "Cannot retrieve posts for an archived channel"
-  },
-  {
-    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "Cannot retrieve users for an archived channel"
-  },
-  {
-    "id": "api.user.view_archived_channels.list_channel_bookmarks_for_channel.app_error",
-    "translation": "Cannot retrieve bookmarks for an archived channel"
-  },
-  {
     "id": "api.web_socket.connect.upgrade.app_error",
     "translation": "URL Blocked because of CORS. Url: {{.BlockedOrigin}}"
   },
@@ -4533,6 +4601,10 @@
   {
     "id": "api4.plugin.reattachPlugin.invalid_request",
     "translation": "Failed to parse request"
+  },
+  {
+    "id": "app.access_control.insufficient_permissions",
+    "translation": "You do not have permission to manage this access control policy."
   },
   {
     "id": "app.acknowledgement.batch_save.app_error",
@@ -4789,6 +4861,10 @@
   {
     "id": "app.channel.get_channels_with_unreads_and_with_mentions.app_error",
     "translation": "Unable to check unreads and mentions"
+  },
+  {
+    "id": "app.channel.get_common_teams.app_error",
+    "translation": "Error get common teams for channel"
   },
   {
     "id": "app.channel.get_common_teams.incorrect_channel_type",
@@ -5107,6 +5183,150 @@
     "translation": "We encountered an error saving the compliance report."
   },
   {
+    "id": "app.content_flagging.assign_reviewer.no_reviewer_field.app_error",
+    "translation": "No Reviewer ID property field found."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.update_status_property_value.app_error",
+    "translation": "Failed to update Status property value on setting reviewer."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.upsert_property_value.app_error",
+    "translation": "Failed to set flagged post reviewer."
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.in_progress",
+    "translation": "Cannot flag this post as it is already flagged."
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.removed",
+    "translation": "Cannot flag this post it was removed in a previous flagging request."
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.retained",
+    "translation": "Cannot flag this post as it was retained in a previous flagging request."
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.unknown",
+    "translation": "Cannot flag this post as it is in unknown status."
+  },
+  {
+    "id": "app.content_flagging.create_property_values.app_error",
+    "translation": "Unable to save property values for the flagged post."
+  },
+  {
+    "id": "app.content_flagging.flag_post.marshal_comment.app_error",
+    "translation": "Failed to marshal flagging user's comment"
+  },
+  {
+    "id": "app.content_flagging.flag_post.marshal_reason.app_error",
+    "translation": "Failed to marshal flagging user's reason"
+  },
+  {
+    "id": "app.content_flagging.flag_post_confirmation.message",
+    "translation": "The message from @{{.username}} has been flagged for review. You will be notified once it is reviewed by a Content Reviewer. "
+  },
+  {
+    "id": "app.content_flagging.get_group.error",
+    "translation": "Failed to get Content Flagging bot."
+  },
+  {
+    "id": "app.content_flagging.get_reviewer_settings.app_error",
+    "translation": "Failed to fetch content reviewer settings from the database"
+  },
+  {
+    "id": "app.content_flagging.get_status_property.app_error",
+    "translation": "Failed to get Status property field."
+  },
+  {
+    "id": "app.content_flagging.get_users_in_team.app_error",
+    "translation": "Failed to search reviewers in team."
+  },
+  {
+    "id": "app.content_flagging.keep_flag_post.marshal_comment.app_error",
+    "translation": "Failed to marshal reviewer comment"
+  },
+  {
+    "id": "app.content_flagging.keep_post.status_update.app_error",
+    "translation": "Failed to update flagged post status when undeleting flagged post "
+  },
+  {
+    "id": "app.content_flagging.keep_post.undelete.app_error",
+    "translation": "Failed to update post in database when attempting to undelete the flagged post."
+  },
+  {
+    "id": "app.content_flagging.marshal_property_values.app_error",
+    "translation": "Failed to marshal Content Flagging property values to send in WebSocket event."
+  },
+  {
+    "id": "app.content_flagging.missing_flagged_post_id_field.app_error",
+    "translation": "Unable to find Flagged Post ID property field."
+  },
+  {
+    "id": "app.content_flagging.missing_reporting_user_id_field.app_error",
+    "translation": "Unable to find reporting user field."
+  },
+  {
+    "id": "app.content_flagging.missing_reporting_user_id_property_value.app_error",
+    "translation": "Unable to find value for reporting user field."
+  },
+  {
+    "id": "app.content_flagging.no_status_property.app_error",
+    "translation": "Cannot fetch flagged post as the post is not flagged."
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.app_error",
+    "translation": "Failed to overwrite post with scrubbed post when permanently deleting flagged post."
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.marshal_comment.app_error",
+    "translation": "Failed to marshal reviewer comment"
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.update_property_value.app_error",
+    "translation": "Failed to update flagged post status when permanently deleting flagged post."
+  },
+  {
+    "id": "app.content_flagging.restore_file_info.app_error",
+    "translation": "Failed to restore file info for the flagged post."
+  },
+  {
+    "id": "app.content_flagging.save_reviewer_settings.app_error",
+    "translation": "Failed to save content reviewer settings to the database."
+  },
+  {
+    "id": "app.content_flagging.search_common_reviewers.app_error",
+    "translation": "Failed to search the term in Common Reviewers."
+  },
+  {
+    "id": "app.content_flagging.search_property_fields.app_error",
+    "translation": "Failed to search Content Flagging property fields."
+  },
+  {
+    "id": "app.content_flagging.search_property_values.app_error",
+    "translation": "Failed to fetch post's content flagging property values from the database."
+  },
+  {
+    "id": "app.content_flagging.search_reviewer_posts.app_error",
+    "translation": "Failed to search reviewer posts for the flagged post."
+  },
+  {
+    "id": "app.content_flagging.search_status_property.app_error",
+    "translation": "Failed to search Property Values for the flagged post."
+  },
+  {
+    "id": "app.content_flagging.search_sysadmin_reviewers.app_error",
+    "translation": "Failed to search the search term in System Admin Reviewers."
+  },
+  {
+    "id": "app.content_flagging.search_team_admin_reviewers.app_error",
+    "translation": "Failed to search the search term in Team Admin Reviewers."
+  },
+  {
+    "id": "app.content_flagging.search_team_reviewers.app_error",
+    "translation": "Failed to search the search term in Team Reviewers."
+  },
+  {
     "id": "app.create_basic_user.save_member.app_error",
     "translation": "Unable to create default team memberships"
   },
@@ -5157,6 +5377,10 @@
   {
     "id": "app.custom_profile_attributes.property_field_delete.app_error",
     "translation": "Unable to delete Custom Profile Attribute field"
+  },
+  {
+    "id": "app.custom_profile_attributes.property_field_is_managed.app_error",
+    "translation": "Cannot update value for an admin-managed Custom Profile Attribute field"
   },
   {
     "id": "app.custom_profile_attributes.property_field_is_synced.app_error",
@@ -6143,6 +6367,10 @@
     "translation": "Unable to get the job count by status and type."
   },
   {
+    "id": "app.job.get_existing_jobs.error",
+    "translation": "Unable to get existing jobs."
+  },
+  {
     "id": "app.job.get_newest_job_by_status_and_type.app_error",
     "translation": "Unable to get the newest job by status and type."
   },
@@ -6173,6 +6401,18 @@
   {
     "id": "app.login.doLogin.updateLastLogin.error",
     "translation": "Could not update last login timestamp"
+  },
+  {
+    "id": "app.lookup_interactive_dialog.decode_json_error",
+    "translation": "Encountered an error decoding JSON response from interactive dialog lookup."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.json_error",
+    "translation": "Encountered an error processing JSON response from interactive dialog lookup."
+  },
+  {
+    "id": "app.lookup_interactive_dialog.read_body_error",
+    "translation": "Encountered an error reading response body from interactive dialog lookup."
   },
   {
     "id": "app.member_count",
@@ -6333,6 +6573,26 @@
   {
     "id": "app.oauth.update_app.updating.app_error",
     "translation": "We encountered an error updating the app."
+  },
+  {
+    "id": "app.pap.access_control.channel_group_constrained",
+    "translation": "Channel is group constrained and cannot have access control policies applied."
+  },
+  {
+    "id": "app.pap.access_control.channel_not_private",
+    "translation": "Access control policies can only be applied to private channels."
+  },
+  {
+    "id": "app.pap.access_control.channel_shared",
+    "translation": "Shared channels cannot have access control policy applied."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_channel_permissions",
+    "translation": "You do not have permission to manage access control for this channel."
+  },
+  {
+    "id": "app.pap.access_control.insufficient_permissions",
+    "translation": "You do not have permission to manage this access control policy."
   },
   {
     "id": "app.pap.assign_access_control_policy_to_channels.app_error",
@@ -6775,6 +7035,10 @@
     "translation": "Unable to delete the persistent notifications by team."
   },
   {
+    "id": "app.post_priority.delete_for_post.app_error",
+    "translation": "Failed to permanently delete post priority data from database for post."
+  },
+  {
     "id": "app.post_priority.delete_persistent_notification_post.app_error",
     "translation": "Failed to delete persistent notification post"
   },
@@ -6955,6 +7219,10 @@
     "translation": "Cannot schedule post in an archived channel."
   },
   {
+    "id": "app.save_scheduled_post.restricted_dm.error",
+    "translation": "Cannot schedule post in a restricted DM"
+  },
+  {
     "id": "app.save_scheduled_post.save.app_error",
     "translation": "Error occurred saving the scheduled post."
   },
@@ -7117,6 +7385,10 @@
     "translation": "Encountered an error decoding JSON response from interactive dialog submission."
   },
   {
+    "id": "app.submit_interactive_dialog.invalid_response",
+    "translation": "Encountered an invalid response from interactive dialog submission."
+  },
+  {
     "id": "app.submit_interactive_dialog.json_error",
     "translation": "Encountered an error encoding JSON for the interactive dialog."
   },
@@ -7131,6 +7403,10 @@
   {
     "id": "app.system.complete_onboarding_request.no_first_user",
     "translation": "Onboarding can only be completed by a System Administrator."
+  },
+  {
+    "id": "app.system.content_review_bot.bot_displayname",
+    "translation": "Content Review"
   },
   {
     "id": "app.system.get_by_name.app_error",
@@ -7377,6 +7653,10 @@
     "translation": "Cannot upload to a deleted channel."
   },
   {
+    "id": "app.upload.create.cannot_upload_to_restricted_dm.error",
+    "translation": "Cannot upload file to a restricted direct message."
+  },
+  {
     "id": "app.upload.create.incorrect_channel_id.app_error",
     "translation": "Cannot upload to the specified channel."
   },
@@ -7443,6 +7723,14 @@
   {
     "id": "app.user.analytics_get_inactive_users_count.app_error",
     "translation": "We could not count the inactive users."
+  },
+  {
+    "id": "app.user.check_user_password.failed_migration",
+    "translation": "Failed to migrate the user's password to the newest hashing method."
+  },
+  {
+    "id": "app.user.check_user_password.failed_update",
+    "translation": "Failed to update the user's password."
   },
   {
     "id": "app.user.clear_all_custom_role_assignments.select.app_error",
@@ -7907,6 +8195,14 @@
   {
     "id": "ent.elasticsearch.create_client.connect_failed",
     "translation": "Setting up {{.Backend}} Client Failed"
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.bulk_processor_create_failed",
+    "translation": "Failed to create Elasticsearch bulk processor"
+  },
+  {
+    "id": "ent.elasticsearch.create_processor.sync_bulk_processor_create_failed",
+    "translation": "Failed to create Elasticsearch sync bulk processor"
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
@@ -8597,6 +8893,10 @@
     "translation": "Invalid user id."
   },
   {
+    "id": "model.access_policy.inherit.already_imported.app_error",
+    "translation": "The parent is already imported."
+  },
+  {
     "id": "model.access_policy.inherit.version.app_error",
     "translation": "Could not inherit access control policy."
   },
@@ -9001,8 +9301,36 @@
     "translation": "Invalid RemoteImageProxyURL for atmos/camo. Must be set to your shared key."
   },
   {
+    "id": "model.config.is_valid.autotranslation.libretranslate.url.app_error",
+    "translation": "LibreTranslate URL must be a valid URL and start with http:// or https://."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.provider.app_error",
+    "translation": "Invalid autotranslation provider, must not be empty."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.provider.unsupported.app_error",
+    "translation": "Unsupported autotranslation provider."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.fetch.app_error",
+    "translation": "Invalid fetch timeout for autotranslation settings. Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.new_post.app_error",
+    "translation": "Invalid new post timeout for autotranslation settings. Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
+    "translation": "Invalid notification timeout for autotranslation settings. Must be a positive number."
+  },
+  {
     "id": "model.config.is_valid.cache_type.app_error",
     "translation": "Cache type must be either lru or redis."
+  },
+  {
+    "id": "model.config.is_valid.client_side_cert_enable.app_error",
+    "translation": "Certificate-based authentication has been removed. Please disable ClientSideCertEnable to continue."
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
@@ -9171,6 +9499,10 @@
   {
     "id": "model.config.is_valid.experimental_audit_settings.file_name_is_directory",
     "translation": "The file name must not be a directory."
+  },
+  {
+    "id": "model.config.is_valid.experimental_view_archived_channels.app_error",
+    "translation": "Hiding archived channels is no longer supported. Make these channels private and remove members instead."
   },
   {
     "id": "model.config.is_valid.export.directory.app_error",
@@ -10638,15 +10970,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 138+"
+    "translation": "Version 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 138+"
+    "translation": "Version 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 128+"
+    "translation": "Version 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -10658,7 +10990,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 10+"
+    "translation": "Windows 11+"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support",

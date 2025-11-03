@@ -35,6 +35,7 @@ const (
 	CustomProfileAttributesPropertyAttrsVisibility = "visibility"
 	CustomProfileAttributesPropertyAttrsLDAP       = "ldap"
 	CustomProfileAttributesPropertyAttrsSAML       = "saml"
+	CustomProfileAttributesPropertyAttrsManaged    = "managed"
 
 	// Value Types
 	CustomProfileAttributesValueTypeEmail = "email"
@@ -131,10 +132,15 @@ type CPAAttrs struct {
 	ValueType  string                                                `json:"value_type"`
 	LDAP       string                                                `json:"ldap"`
 	SAML       string                                                `json:"saml"`
+	Managed    string                                                `json:"managed"`
 }
 
 func (c *CPAField) IsSynced() bool {
 	return c.Attrs.LDAP != "" || c.Attrs.SAML != ""
+}
+
+func (c *CPAField) IsAdminManaged() bool {
+	return c.Attrs.Managed == "admin"
 }
 
 func (c *CPAField) ToPropertyField() *PropertyField {
@@ -147,6 +153,7 @@ func (c *CPAField) ToPropertyField() *PropertyField {
 		PropertyFieldAttributeOptions:                  c.Attrs.Options,
 		CustomProfileAttributesPropertyAttrsLDAP:       c.Attrs.LDAP,
 		CustomProfileAttributesPropertyAttrsSAML:       c.Attrs.SAML,
+		CustomProfileAttributesPropertyAttrsManaged:    c.Attrs.Managed,
 	}
 
 	return &pf
@@ -170,6 +177,12 @@ func (c *CPAField) SanitizeAndValidate() *AppError {
 		c.Attrs.Options = nil
 	}
 	if !c.SupportsSyncing() {
+		c.Attrs.LDAP = ""
+		c.Attrs.SAML = ""
+	}
+
+	// Clear sync properties if managed is set (mutual exclusivity)
+	if c.IsAdminManaged() {
 		c.Attrs.LDAP = ""
 		c.Attrs.SAML = ""
 	}
@@ -216,6 +229,17 @@ func (c *CPAField) SanitizeAndValidate() *AppError {
 		visibility = visibilityAttr
 	}
 	c.Attrs.Visibility = visibility
+
+	// Validate managed field
+	if managed := strings.TrimSpace(c.Attrs.Managed); managed != "" {
+		if managed != "admin" {
+			return NewAppError("SanitizeAndValidate", "app.custom_profile_attributes.sanitize_and_validate.app_error", map[string]any{
+				"AttributeName": CustomProfileAttributesPropertyAttrsManaged,
+				"Reason":        "unknown managed type",
+			}, "", http.StatusBadRequest)
+		}
+		c.Attrs.Managed = managed
+	}
 
 	return nil
 }

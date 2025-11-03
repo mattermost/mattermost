@@ -3,9 +3,11 @@
 
 import {shallow} from 'enzyme';
 import React from 'react';
-import {act} from 'react-dom/test-utils';
 
 import type {ChannelWithTeamData} from '@mattermost/types/channels';
+
+import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
+import {act} from 'tests/react_testing_utils';
 
 import PolicyDetails from './policy_details';
 
@@ -14,6 +16,13 @@ jest.mock('utils/browser_history', () => ({
         push: jest.fn(),
     }),
 }));
+
+// Mock the useChannelAccessControlActions hook
+jest.mock('hooks/useChannelAccessControlActions', () => ({
+    useChannelAccessControlActions: jest.fn(),
+}));
+
+const mockUseChannelAccessControlActions = useChannelAccessControlActions as jest.MockedFunction<typeof useChannelAccessControlActions>;
 
 describe('components/admin_console/access_control/policy_details/PolicyDetails', () => {
     const mockCreatePolicy = jest.fn();
@@ -74,6 +83,21 @@ describe('components/admin_console/access_control/policy_details/PolicyDetails',
     };
 
     beforeEach(() => {
+        // Mock the hook to return the actions that PolicyDetails expects
+        mockUseChannelAccessControlActions.mockReturnValue({
+            getAccessControlFields: mockGetAccessControlFields,
+            getVisualAST: mockGetVisualAST,
+            searchUsers: jest.fn(),
+            getChannelPolicy: jest.fn(),
+            saveChannelPolicy: jest.fn(),
+            deleteChannelPolicy: jest.fn(),
+            getChannelMembers: jest.fn(),
+            createJob: jest.fn(),
+            createAccessControlSyncJob: jest.fn(),
+            updateAccessControlPolicyActive: jest.fn(),
+            validateExpressionAgainstRequester: jest.fn(),
+        });
+
         mockCreatePolicy.mockReset();
         mockUpdatePolicy.mockReset();
         mockDeletePolicy.mockReset();

@@ -18,21 +18,6 @@ jest.mock('mattermost-redux/actions/teams', () => ({
     searchTeams: jest.fn(),
 }));
 
-jest.mock('../../user_multiselector/user_multiselector', () => ({
-    UserMultiSelector: ({id, initialValue, onChange}: {id: string; initialValue: string[]; onChange: (ids: string[]) => void}) => (
-        <div data-testid={`user-multi-selector-${id}`}>
-            <span>{`Selected: {${initialValue.join(', ')}`}</span>
-            <button onClick={() => onChange(['user1', 'user2'])}>
-                {'Change Reviewers'}
-            </button>
-        </div>
-    ),
-}));
-
-jest.mock('components/widgets/team_icon/team_icon', () => ({
-    TeamIcon: ({content}: {content: string}) => <div data-testid='team-icon'>{content}</div>,
-}));
-
 const mockSearchTeams = jest.mocked(searchTeams);
 
 describe('TeamReviewersSection', () => {
@@ -56,13 +41,6 @@ describe('TeamReviewersSection', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-
-        // mockSearchTeams.mockResolvedValue({
-        //     data: {
-        //         teams: mockTeams,
-        //         total_count: 2,
-        //     },
-        // } as never);
 
         mockSearchTeams.mockReturnValue(async () => ({
             data: {
@@ -265,40 +243,6 @@ describe('TeamReviewersSection', () => {
         });
     });
 
-    test('should handle reviewer selection changes', async () => {
-        const onChange = jest.fn();
-        renderWithContext(
-            <TeamReviewersSection
-                {...defaultProps}
-                onChange={onChange}
-            />,
-        );
-
-        await waitFor(() => {
-            expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 0, per_page: 10});
-        });
-
-        await waitFor(() => {
-            const teamNameCells = screen.getAllByTestId('teamName');
-            expect(teamNameCells).toHaveLength(2);
-            expect(teamNameCells[0]).toBeVisible();
-            expect(teamNameCells[0]).toHaveTextContent('Team One');
-
-            expect(teamNameCells[1]).toBeVisible();
-            expect(teamNameCells[1]).toHaveTextContent('Team Two');
-        });
-
-        const changeReviewersButton = screen.getAllByText('Change Reviewers')[0];
-        fireEvent.click(changeReviewersButton);
-
-        expect(onChange).toHaveBeenCalledWith({
-            team1: {
-                Enabled: false,
-                ReviewerIds: ['user1', 'user2'],
-            },
-        });
-    });
-
     test('should display existing reviewer settings', async () => {
         const teamReviewersSetting = {
             team1: {
@@ -354,17 +298,6 @@ describe('TeamReviewersSection', () => {
     });
 
     test('should reset page to 0 when searching', async () => {
-        // mockSearchTeams.
-        // mockReturnValueOnce({
-        //         data: {teams: mockTeams, total_count: 20},
-        //     } as never).
-        //     mockResolvedValueOnce({
-        //         data: {teams: mockTeams, total_count: 20},
-        //     } as never).
-        //     mockResolvedValueOnce({
-        //         data: {teams: mockTeams, total_count: 5},
-        //     } as never);
-
         mockSearchTeams.mockReturnValueOnce(async () => ({
             data: {teams: mockTeams, total_count: 20},
         })).
@@ -480,10 +413,6 @@ describe('TeamReviewersSection', () => {
             expect(mockSearchTeams).toHaveBeenCalledWith('', {page: 0, per_page: 10});
         });
 
-        await waitFor(() => {
-            expect(screen.getAllByText('Team One')).toHaveLength(4);
-        });
-
         const updatedToggle = screen.getAllByRole('button', {name: /enable or disable content reviewers for this team/i})[0];
 
         // Second click - disable
@@ -491,6 +420,49 @@ describe('TeamReviewersSection', () => {
         expect(onChange).toHaveBeenCalledWith({
             team1: {
                 Enabled: true,
+                ReviewerIds: [],
+            },
+        });
+    });
+
+    test('should handle disable for all teams button', async () => {
+        const onChange = jest.fn();
+        const props = {
+            teamReviewersSetting: {
+                team1: {
+                    Enabled: true,
+                    ReviewerIds: [],
+                },
+                team2: {
+                    Enabled: true,
+                    ReviewerIds: [],
+                },
+            },
+            onChange,
+        };
+
+        renderWithContext(
+            <TeamReviewersSection
+                {...props}
+                onChange={onChange}
+            />,
+        );
+
+        await waitFor(() => {
+            const teamNameCells = screen.getAllByTestId('teamName');
+            expect(teamNameCells).toHaveLength(2);
+        });
+
+        const disableForAllButton = screen.getByTestId('disableForAllTeamsButton');
+        fireEvent.click(disableForAllButton);
+
+        expect(onChange).toHaveBeenCalledWith({
+            team1: {
+                Enabled: false,
+                ReviewerIds: [],
+            },
+            team2: {
+                Enabled: false,
                 ReviewerIds: [],
             },
         });

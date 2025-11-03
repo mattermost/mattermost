@@ -296,6 +296,16 @@ func (s *SqlGroupStore) GetByName(name string, opts model.GroupSearchOpts) (*mod
 	return &group, nil
 }
 
+func (s *SqlGroupStore) GetByNames(names []string, viewRestrictions *model.ViewUsersRestrictions) ([]*model.Group, error) {
+	groups := []*model.Group{}
+	query := s.userGroupsSelectQuery.Where(sq.Eq{"Name": names})
+	query = applyViewRestrictionsFilter(query, viewRestrictions, true)
+	if err := s.GetReplica().SelectBuilder(&groups, query); err != nil {
+		return nil, errors.Wrap(err, "failed to find Groups by names")
+	}
+	return groups, nil
+}
+
 func (s *SqlGroupStore) GetByIDs(groupIDs []string) ([]*model.Group, error) {
 	groups := []*model.Group{}
 	query := s.userGroupsSelectQuery.Where(sq.Eq{"Id": groupIDs})
@@ -1779,23 +1789,33 @@ func (s *SqlGroupStore) CountChannelMembersMinusGroupMembers(channelID string, g
 
 func (s *SqlGroupStore) AdminRoleGroupsForSyncableMember(userID, syncableID string, syncableType model.GroupSyncableType) ([]string, error) {
 	var groupIds []string
+	var joinTable string
+	var syncableIdCol string
 
-	query := fmt.Sprintf(`
-		SELECT
-			GroupMembers.GroupId
-		FROM
-			GroupMembers
-		INNER JOIN
-			Group%[1]ss ON Group%[1]ss.GroupId = GroupMembers.GroupId
-		WHERE
-			GroupMembers.UserId = ?
-			AND GroupMembers.DeleteAt = 0
-			AND %[1]sId = ?
-			AND Group%[1]ss.DeleteAt = 0
-			AND Group%[1]ss.SchemeAdmin = TRUE`, syncableType)
+	switch syncableType {
+	case model.GroupSyncableTypeChannel:
+		joinTable = "GroupChannels"
+		syncableIdCol = "ChannelId"
+	case model.GroupSyncableTypeTeam:
+		joinTable = "GroupTeams"
+		syncableIdCol = "TeamId"
+	default:
+		return nil, errors.New("invalid syncable type")
+	}
 
-	err := s.GetReplica().Select(&groupIds, query, userID, syncableID)
-	if err != nil {
+	query := s.getQueryBuilder().
+		Select("GroupMembers.GroupId").
+		From("GroupMembers").
+		InnerJoin(joinTable + " AS joinGroup ON joinGroup.GroupId = GroupMembers.GroupId").
+		Where(sq.Eq{
+			"GroupMembers.UserId":        userID,
+			"GroupMembers.DeleteAt":      0,
+			"joinGroup." + syncableIdCol: syncableID,
+			"joinGroup.DeleteAt":         0,
+			"joinGroup.SchemeAdmin":      true,
+		})
+
+	if err := s.GetReplica().SelectBuilder(&groupIds, query); err != nil {
 		return nil, errors.Wrap(err, "failed to find Group ids")
 	}
 

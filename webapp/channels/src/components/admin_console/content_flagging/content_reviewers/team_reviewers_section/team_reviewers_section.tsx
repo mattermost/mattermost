@@ -16,7 +16,7 @@ import {TeamIcon} from 'components/widgets/team_icon/team_icon';
 
 import * as Utils from 'utils/utils';
 
-import {UserMultiSelector} from '../../user_multiselector/user_multiselector';
+import {UserSelector} from '../../user_multiselector/user_multiselector';
 
 import './team_reviewers_section.scss';
 
@@ -141,10 +141,11 @@ export default function TeamReviewers({teamReviewersSetting, onChange}: Props): 
                     </div>
                 ),
                 reviewers: (
-                    <UserMultiSelector
+                    <UserSelector
+                        isMulti={true}
                         id={`team_content_reviewer_${team.id}`}
-                        initialValue={teamReviewersSetting[team.id]?.ReviewerIds || []}
-                        onChange={getHandleReviewersChange(team.id)}
+                        multiSelectInitialValue={teamReviewersSetting[team.id]?.ReviewerIds || []}
+                        multiSelectOnChange={getHandleReviewersChange(team.id)}
                     />
                 ),
                 enabled: (
@@ -177,17 +178,31 @@ export default function TeamReviewers({teamReviewersSetting, onChange}: Props): 
         setPage(0); // Reset to first page on new search
     }, []);
 
+    const handleDisableForAllTeams = useCallback(() => {
+        const updatedTeamSettings: Record<string, TeamReviewerSetting> = {};
+
+        Object.entries(teamReviewersSetting).forEach(([teamId, teamSettings]) => {
+            updatedTeamSettings[teamId] = {
+                ...teamSettings,
+                Enabled: false,
+            };
+        });
+
+        onChange(updatedTeamSettings);
+    }, [onChange, teamReviewersSetting]);
+
     const disableAllBtn = useMemo(() => (
         <div className='TeamReviewers__disable-all'>
             <button
-                data-testid='copyText'
+                data-testid='disableForAllTeamsButton'
                 className='btn btn-link icon-close'
                 aria-label={intl.formatMessage({id: 'admin.contentFlagging.reviewerSettings.disableAll', defaultMessage: 'Disable for all teams'})}
+                onClick={handleDisableForAllTeams}
             >
                 {intl.formatMessage({id: 'admin.contentFlagging.reviewerSettings.disableAll', defaultMessage: 'Disable for all teams'})}
             </button>
         </div>
-    ), [intl]);
+    ), [handleDisableForAllTeams, intl]);
 
     return (
         <div className='TeamReviewers'>

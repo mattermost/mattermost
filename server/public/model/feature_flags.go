@@ -73,6 +73,18 @@ type FeatureFlags struct {
 
 	// Enable AppsForm for Interactive Dialogs instead of legacy dialog implementation
 	InteractiveDialogAppsForm bool
+
+	EnableMattermostEntry bool
+
+	// Enable mobile SSO SAML code-exchange flow (no tokens in deep links)
+	MobileSSOCodeExchange bool
+
+	// FEATURE_FLAG_REMOVAL: AutoTranslation - Remove this when MVP is to be released
+	// Enable auto-translation feature for messages in channels
+	AutoTranslation bool
+
+	// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge
+	EnableAIPluginBridge bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -103,6 +115,15 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AttributeBasedAccessControl = true
 	f.ContentFlagging = false
 	f.InteractiveDialogAppsForm = true
+	f.EnableMattermostEntry = true
+
+	f.MobileSSOCodeExchange = true
+
+	// FEATURE_FLAG_REMOVAL: AutoTranslation - Remove this default when MVP is to be released
+	f.AutoTranslation = false
+
+	// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge - Remove this default when MVP is to be released
+	f.EnableAIPluginBridge = false
 }
 
 // ToMap returns the feature flags as a map[string]string

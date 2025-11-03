@@ -150,18 +150,59 @@ func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	isPublicTeam := team.AllowOpenInvite && team.Type == model.TeamOpen
-	hasPermissionViewTeam := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam)
+	isContentReviewer := false
+	asContentReviewer, _ := strconv.ParseBool(r.URL.Query().Get("as_content_reviewer"))
+	if asContentReviewer {
+		requireContentFlaggingEnabled(c)
+		if c.Err != nil {
+			return
+		}
 
-	if !isPublicTeam && !hasPermissionViewTeam {
-		c.SetPermissionError(model.PermissionViewTeam)
-		return
+		requireTeamContentReviewer(c, c.AppContext.Session().UserId, team.Id)
+		if c.Err != nil {
+			return
+		}
+
+		flaggedPostId := r.URL.Query().Get("flagged_post_id")
+		requireFlaggedPost(c, flaggedPostId)
+		if c.Err != nil {
+			return
+		}
+
+		post, appErr := c.App.GetSinglePost(c.AppContext, flaggedPostId, true)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+
+		channel, err := c.App.GetChannel(c.AppContext, post.ChannelId)
+		if err != nil {
+			c.Err = err
+			return
+		}
+
+		if channel.TeamId != team.Id {
+			c.Err = model.NewAppError("getTeam", "api.team.get_team.flagged_post_mismatch.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+
+		isContentReviewer = true
 	}
 
-	if isPublicTeam && !hasPermissionViewTeam && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionListPublicTeams) {
-		// Fail with PermissionViewTeam, not PermissionListPublicTeams.
-		c.SetPermissionError(model.PermissionViewTeam)
-		return
+	if !isContentReviewer {
+		isPublicTeam := team.AllowOpenInvite && team.Type == model.TeamOpen
+		hasPermissionViewTeam := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), team.Id, model.PermissionViewTeam)
+
+		if !isPublicTeam && !hasPermissionViewTeam {
+			c.SetPermissionError(model.PermissionViewTeam)
+			return
+		}
+
+		if isPublicTeam && !hasPermissionViewTeam && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionListPublicTeams) {
+			// Fail with PermissionViewTeam, not PermissionListPublicTeams.
+			c.SetPermissionError(model.PermissionViewTeam)
+			return
+		}
 	}
 
 	c.App.SanitizeTeam(*c.AppContext.Session(), team)
@@ -784,7 +825,7 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterAuditableToAuditRec(auditRec, "team", team)
 
 	if team.IsGroupConstrained() {
-		nonMembers, err := c.App.FilterNonGroupTeamMembers([]string{member.UserId}, team)
+		nonMembers, err := c.App.FilterNonGroupTeamMembers(c.AppContext, []string{member.UserId}, team)
 		if err != nil {
 			if v, ok := err.(*model.AppError); ok {
 				c.Err = v
@@ -900,7 +941,7 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterAuditableToAuditRec(auditRec, "team", team)
 
 	if team.IsGroupConstrained() {
-		nonMembers, err := c.App.FilterNonGroupTeamMembers(memberIDs, team)
+		nonMembers, err := c.App.FilterNonGroupTeamMembers(c.AppContext, memberIDs, team)
 		if err != nil {
 			if v, ok := err.(*model.AppError); ok {
 				c.Err = v

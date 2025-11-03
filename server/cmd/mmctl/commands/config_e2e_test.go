@@ -189,7 +189,7 @@ rm $1'old'`
 		s.Require().Nil(file.Close())
 		s.Require().Nil(os.Chmod(file.Name(), 0700))
 
-		os.Setenv("EDITOR", file.Name())
+		s.T().Setenv("EDITOR", file.Name())
 
 		// check the value after editing
 		err = configEditCmdF(c, nil, nil)
@@ -342,6 +342,62 @@ func (s *MmctlE2ETestSuite) TestConfigExportCmdF() {
 
 		err := configExportCmdF(s.th.Client, &cobra.Command{}, nil)
 		s.Require().NotNil(err)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+}
+
+func (s *MmctlE2ETestSuite) TestConfigMigrateCmdF() {
+	s.SetupTestHelper().InitBasic()
+
+	s.Run("Should fail without the --local flag", func() {
+		printer.Clean()
+		args := []string{"config.json", "output.json"}
+
+		err := configMigrateCmdF(s.th.Client, &cobra.Command{}, args)
+		s.Require().Error(err)
+		s.Require().Equal("this command is only available in local mode. Please set the --local flag", err.Error())
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Should be able to migrate config to file", func() {
+		printer.Clean()
+		args := []string{"config.json", "output.json"}
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("local", true, "")
+
+		err := configMigrateCmdF(s.th.LocalClient, cmd, args)
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Should be able to migrate config to database", func() {
+		printer.Clean()
+
+		// Get the current database DSN from the test configuration
+		currentDSN := *s.th.App.Config().SqlSettings.DataSource
+		args := []string{"config.json", currentDSN}
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("local", true, "")
+
+		err := configMigrateCmdF(s.th.LocalClient, cmd, args)
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Should fail on error when migrating config", func() {
+		printer.Clean()
+		args := []string{"from", "to"}
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("local", true, "")
+
+		err := configMigrateCmdF(s.th.LocalClient, cmd, args)
+		s.Require().Error(err)
+		s.Require().Equal("Failed to migrate config store.", err.Error())
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})

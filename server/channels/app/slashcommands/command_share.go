@@ -62,11 +62,11 @@ func (sp *ShareProvider) GetCommand(a *app.App, T i18n.TranslateFunc) *model.Com
 	}
 }
 
-func (sp *ShareProvider) GetAutoCompleteListItems(c request.CTX, a *app.App, commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error) {
+func (sp *ShareProvider) GetAutoCompleteListItems(rctx request.CTX, a *app.App, commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error) {
 	switch {
 	case strings.Contains(parsed, " share "):
 
-		return sp.getAutoCompleteShareChannel(c, a, commandArgs, arg)
+		return sp.getAutoCompleteShareChannel(rctx, a, commandArgs, arg)
 
 	case strings.Contains(parsed, " invite "):
 
@@ -79,8 +79,8 @@ func (sp *ShareProvider) GetAutoCompleteListItems(c request.CTX, a *app.App, com
 	return nil, errors.New("invalid action")
 }
 
-func (sp *ShareProvider) getAutoCompleteShareChannel(c request.CTX, a *app.App, commandArgs *model.CommandArgs, arg *model.AutocompleteArg) ([]model.AutocompleteListItem, error) {
-	channel, err := a.GetChannel(c, commandArgs.ChannelId)
+func (sp *ShareProvider) getAutoCompleteShareChannel(rctx request.CTX, a *app.App, commandArgs *model.CommandArgs, arg *model.AutocompleteArg) ([]model.AutocompleteListItem, error) {
+	channel, err := a.GetChannel(rctx, commandArgs.ChannelId)
 	if err != nil {
 		return nil, err
 	}
@@ -122,7 +122,7 @@ func (sp *ShareProvider) getAutoCompleteUnInviteRemote(a *app.App, _ *model.Comm
 	}
 }
 
-func (sp *ShareProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
+func (sp *ShareProvider) DoCommand(a *app.App, rctx request.CTX, args *model.CommandArgs, message string) *model.CommandResponse {
 	if !a.HasPermissionTo(args.UserId, model.PermissionManageSharedChannels) {
 		return response(args.T("api.command_share.permission_required", map[string]any{"Permission": "manage_shared_channels"}))
 	}
@@ -145,11 +145,11 @@ func (sp *ShareProvider) DoCommand(a *app.App, c request.CTX, args *model.Comman
 
 	switch action {
 	case "share":
-		return sp.doShareChannel(a, c, args, margs)
+		return sp.doShareChannel(a, rctx, args, margs)
 	case "unshare":
 		return sp.doUnshareChannel(a, args, margs)
 	case "invite":
-		return sp.doInviteRemote(a, c, args, margs)
+		return sp.doInviteRemote(a, rctx, args, margs)
 	case "uninvite":
 		return sp.doUninviteRemote(a, args, margs)
 	case "status":
@@ -158,9 +158,9 @@ func (sp *ShareProvider) DoCommand(a *app.App, c request.CTX, args *model.Comman
 	return response(args.T("api.command_share.unknown_action", map[string]any{"Action": action, "Actions": AvailableShareActions}))
 }
 
-func (sp *ShareProvider) doShareChannel(a *app.App, c request.CTX, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
+func (sp *ShareProvider) doShareChannel(a *app.App, rctx request.CTX, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
 	// fetch defaults for missing channel props
-	channel, errApp := a.GetChannel(c, args.ChannelId)
+	channel, errApp := a.GetChannel(rctx, args.ChannelId)
 	if errApp != nil {
 		return response(args.T("api.command_share.share_channel.error", map[string]any{"Error": errApp.Error()}))
 	}
@@ -198,7 +198,7 @@ func (sp *ShareProvider) doShareChannel(a *app.App, c request.CTX, args *model.C
 		CreatorId:        args.UserId,
 	}
 
-	if _, err := a.ShareChannel(c, sc); err != nil {
+	if _, err := a.ShareChannel(rctx, sc); err != nil {
 		return response(args.T("api.command_share.share_channel.error", map[string]any{"Error": err.Error()}))
 	}
 
@@ -217,7 +217,7 @@ func (sp *ShareProvider) doUnshareChannel(a *app.App, args *model.CommandArgs, m
 	return response("##### " + args.T("api.command_share.shared_channel_unavailable"))
 }
 
-func (sp *ShareProvider) doInviteRemote(a *app.App, c request.CTX, args *model.CommandArgs, margs map[string]string) (resp *model.CommandResponse) {
+func (sp *ShareProvider) doInviteRemote(a *app.App, rctx request.CTX, args *model.CommandArgs, margs map[string]string) (resp *model.CommandResponse) {
 	remoteID, ok := margs["connectionID"]
 	if !ok || remoteID == "" {
 		return response(args.T("api.command_share.must_specify_valid_remote"))
@@ -240,7 +240,7 @@ func (sp *ShareProvider) doInviteRemote(a *app.App, c request.CTX, args *model.C
 	}
 	if !hasChan {
 		// If it doesn't exist, then create it.
-		resp2 := sp.doShareChannel(a, c, args, margs)
+		resp2 := sp.doShareChannel(a, rctx, args, margs)
 		// We modify the outgoing response by prepending the text
 		// from the shareChannel response.
 		defer func() {

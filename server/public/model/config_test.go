@@ -2435,3 +2435,117 @@ func TestFilterConfig(t *testing.T) {
 		require.False(t, ok)
 	})
 }
+
+func TestAutoTranslationSettingsDefaults(t *testing.T) {
+	t.Run("should set default values", func(t *testing.T) {
+		c := Config{}
+		c.SetDefaults()
+
+		require.False(t, *c.AutoTranslationSettings.Enable)
+		require.Equal(t, "", *c.AutoTranslationSettings.Provider)
+		require.Equal(t, 800, *c.AutoTranslationSettings.TimeoutsMs.NewPost)
+		require.Equal(t, 2000, *c.AutoTranslationSettings.TimeoutsMs.Fetch)
+		require.Equal(t, 300, *c.AutoTranslationSettings.TimeoutsMs.Notification)
+		require.Equal(t, "", *c.AutoTranslationSettings.LibreTranslate.URL)
+		require.Equal(t, "", *c.AutoTranslationSettings.LibreTranslate.APIKey)
+		// TODO: Enable Agents provider in future release
+		// require.Equal(t, "", *c.AutoTranslationSettings.Agents.BotUserId)
+	})
+}
+
+func TestAutoTranslationSettingsIsValid(t *testing.T) {
+	testCases := []struct {
+		name        string
+		settings    AutoTranslationSettings
+		expectError bool
+		errorId     string
+	}{
+		{
+			name: "disabled settings should be valid",
+			settings: AutoTranslationSettings{
+				Enable: NewPointer(false),
+			},
+			expectError: false,
+		},
+		{
+			name: "enabled with no provider should fail",
+			settings: AutoTranslationSettings{
+				Enable:   NewPointer(true),
+				Provider: nil,
+			},
+			expectError: true,
+			errorId:     "model.config.is_valid.autotranslation.provider.app_error",
+		},
+		{
+			name: "enabled with unsupported provider should fail",
+			settings: AutoTranslationSettings{
+				Enable:   NewPointer(true),
+				Provider: NewPointer("unsupported"),
+			},
+			expectError: true,
+			errorId:     "model.config.is_valid.autotranslation.provider.unsupported.app_error",
+		},
+		{
+			name: "libretranslate without URL should fail",
+			settings: AutoTranslationSettings{
+				Enable:   NewPointer(true),
+				Provider: NewPointer("libretranslate"),
+				LibreTranslate: &LibreTranslateProviderSettings{
+					URL: NewPointer(""),
+				},
+			},
+			expectError: true,
+			errorId:     "model.config.is_valid.autotranslation.libretranslate.url.app_error",
+		},
+		// TODO: Enable Agents provider in future release
+		// {
+		// 	name: "agents without bot user ID should fail",
+		// 	settings: AutoTranslationSettings{
+		// 		Enable:   NewPointer(true),
+		// 		Provider: NewPointer("agents"),
+		// 		Agents: &AgentsProviderSettings{
+		// 			BotUserId: NewPointer(""),
+		// 		},
+		// 	},
+		// 	expectError: true,
+		// 	errorId:     "model.config.is_valid.autotranslation.agents.bot_user_id.app_error",
+		// },
+		{
+			name: "valid libretranslate settings",
+			settings: AutoTranslationSettings{
+				Enable:   NewPointer(true),
+				Provider: NewPointer("libretranslate"),
+				LibreTranslate: &LibreTranslateProviderSettings{
+					URL:    NewPointer("https://lt.example.com"),
+					APIKey: NewPointer("optional-key"),
+				},
+			},
+			expectError: false,
+		},
+		// TODO: Enable Agents provider in future release
+		// {
+		// 	name: "valid agents settings",
+		// 	settings: AutoTranslationSettings{
+		// 		Enable:   NewPointer(true),
+		// 		Provider: NewPointer("agents"),
+		// 		Agents: &AgentsProviderSettings{
+		// 			BotUserId: NewPointer("bot123"),
+		// 		},
+		// 	},
+		// 	expectError: false,
+		// },
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.settings.SetDefaults()
+			err := tc.settings.isValid()
+			if tc.expectError {
+				require.NotNil(t, err)
+				require.Equal(t, tc.errorId, err.Id)
+			} else {
+				require.Nil(t, err)
+			}
+		})
+	}
+}

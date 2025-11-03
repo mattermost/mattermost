@@ -214,6 +214,34 @@ func TestCreateCPAField(t *testing.T) {
 		require.Equal(t, fetchedField.CreateAt, fetchedField.UpdateAt)
 	})
 
+	t.Run("should create CPA field with DeleteAt set to 0 even if input has non-zero DeleteAt", func(t *testing.T) {
+		// Create a CPAField with DeleteAt != 0
+		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    model.NewId(),
+			Type:    model.PropertyFieldTypeText,
+			Attrs:   model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityHidden},
+		})
+		require.NoError(t, err)
+
+		// Set DeleteAt to non-zero value before creation
+		field.DeleteAt = time.Now().UnixMilli()
+		require.NotZero(t, field.DeleteAt, "Pre-condition: field should have non-zero DeleteAt")
+
+		createdField, appErr := th.App.CreateCPAField(field)
+		require.Nil(t, appErr)
+		require.NotZero(t, createdField.ID)
+		require.Equal(t, cpaGroupID, createdField.GroupID)
+
+		// Verify that DeleteAt has been reset to 0
+		require.Zero(t, createdField.DeleteAt, "DeleteAt should be 0 after creation")
+
+		// Double-check by fetching the field from the database
+		fetchedField, gErr := th.App.Srv().propertyService.GetPropertyField("", createdField.ID)
+		require.NoError(t, gErr)
+		require.Zero(t, fetchedField.DeleteAt, "DeleteAt should be 0 in database")
+	})
+
 	// reset the server at this point to avoid polluting the state
 	th.TearDown()
 
@@ -555,7 +583,7 @@ func TestDeleteCPAField(t *testing.T) {
 	for i := range 3 {
 		newValue := &model.PropertyValue{
 			TargetID:   model.NewId(),
-			TargetType: "user",
+			TargetType: model.PropertyValueTargetTypeUser,
 			GroupID:    cpaGroupID,
 			FieldID:    createdField.ID,
 			Value:      json.RawMessage(fmt.Sprintf(`"Value %d"`, i)),
@@ -588,7 +616,7 @@ func TestDeleteCPAField(t *testing.T) {
 	t.Run("should correctly delete the field", func(t *testing.T) {
 		// check that we have the associated values to the field prior deletion
 		opts := model.PropertyValueSearchOpts{PerPage: 10, FieldID: createdField.ID}
-		values, err := th.App.Srv().propertyService.SearchPropertyValues(cpaGroupID, "", opts)
+		values, err := th.App.Srv().propertyService.SearchPropertyValues(cpaGroupID, opts)
 		require.NoError(t, err)
 		require.Len(t, values, 3)
 
@@ -601,12 +629,12 @@ func TestDeleteCPAField(t *testing.T) {
 		require.NotZero(t, fetchedField.DeleteAt)
 
 		// ensure that the associated fields have been marked as deleted too
-		values, err = th.App.Srv().propertyService.SearchPropertyValues(cpaGroupID, "", opts)
+		values, err = th.App.Srv().propertyService.SearchPropertyValues(cpaGroupID, opts)
 		require.NoError(t, err)
 		require.Len(t, values, 0)
 
 		opts.IncludeDeleted = true
-		values, err = th.App.Srv().propertyService.SearchPropertyValues(cpaGroupID, "", opts)
+		values, err = th.App.Srv().propertyService.SearchPropertyValues(cpaGroupID, opts)
 		require.NoError(t, err)
 		require.Len(t, values, 3)
 		for _, value := range values {
@@ -634,7 +662,7 @@ func TestGetCPAValue(t *testing.T) {
 	t.Run("should fail if the group id is invalid", func(t *testing.T) {
 		propertyValue := &model.PropertyValue{
 			TargetID:   model.NewId(),
-			TargetType: "user",
+			TargetType: model.PropertyValueTargetTypeUser,
 			GroupID:    model.NewId(),
 			FieldID:    fieldID,
 			Value:      json.RawMessage(`"Value"`),
@@ -650,7 +678,7 @@ func TestGetCPAValue(t *testing.T) {
 	t.Run("should succeed if id exists", func(t *testing.T) {
 		propertyValue := &model.PropertyValue{
 			TargetID:   model.NewId(),
-			TargetType: "user",
+			TargetType: model.PropertyValueTargetTypeUser,
 			GroupID:    cpaGroupID,
 			FieldID:    fieldID,
 			Value:      json.RawMessage(`"Value"`),
@@ -674,7 +702,7 @@ func TestGetCPAValue(t *testing.T) {
 
 		propertyValue := &model.PropertyValue{
 			TargetID:   model.NewId(),
-			TargetType: "user",
+			TargetType: model.PropertyValueTargetTypeUser,
 			GroupID:    cpaGroupID,
 			FieldID:    createdField.ID,
 			Value:      json.RawMessage(`["option1", "option2", "option3"]`),
@@ -723,7 +751,7 @@ func TestListCPAValues(t *testing.T) {
 
 			value := &model.PropertyValue{
 				TargetID:   userID,
-				TargetType: "user",
+				TargetType: model.PropertyValueTargetTypeUser,
 				GroupID:    cpaGroupID,
 				FieldID:    field.ID,
 				Value:      json.RawMessage(fmt.Sprintf(`"Value %d"`, i)),

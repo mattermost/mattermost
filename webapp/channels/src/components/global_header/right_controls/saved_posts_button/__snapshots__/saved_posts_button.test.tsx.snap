@@ -9,15 +9,12 @@ exports[`components/global/AtMentionsButton should match snapshot 1`] = `
     />
   }
 >
-  <ForwardRef
+  <HeaderIconButton
     aria-controls="searchContainer"
     aria-expanded={false}
     aria-label="Saved messages"
-    compact={true}
     icon="bookmark-outline"
-    inverted={true}
     onClick={[Function]}
-    size="sm"
     toggled={false}
   />
 </WithTooltip>

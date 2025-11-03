@@ -43,7 +43,6 @@ interface Props extends WrappedComponentProps {
     closeModal: (modalId: string) => void;
     hideJoinedChannelsPreference: (shouldHideJoinedChannels: boolean) => void;
     rememberHideJoinedChannelsChecked: boolean;
-    canShowArchivedChannels?: boolean;
     loading?: boolean;
     channelsMemberCount?: Record<string, number>;
 }
@@ -424,7 +423,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
         }
 
         const input = (
-            <div className='filter-row filter-row--full'>
+            <div className='filter-row'>
                 <span
                     id='searchIcon'
                     aria-hidden='true'
@@ -496,25 +495,23 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             />,
         ];
 
-        if (this.props.canShowArchivedChannels) {
-            channelDropdownItems.push(
-                <Menu.Separator key='channelsMoreDropdownSeparator'/>,
-                <Menu.Item
-                    key='channelsMoreDropdownArchived'
-                    id='channelsMoreDropdownArchived'
-                    onClick={() => this.filterChange(Filter.Archived)}
-                    leadingElement={<ArchiveOutlineIcon size={16}/>}
-                    labels={
-                        <FormattedMessage
-                            id='suggestion.archive'
-                            defaultMessage='Archived channels'
-                        />
-                    }
-                    trailingElements={this.props.filter === Filter.Archived ? checkIcon : null}
-                    aria-label={this.props.intl.formatMessage({id: 'suggestion.archive', defaultMessage: 'Archived channels'})}
-                />,
-            );
-        }
+        channelDropdownItems.push(
+            <Menu.Separator key='channelsMoreDropdownSeparator'/>,
+            <Menu.Item
+                key='channelsMoreDropdownArchived'
+                id='channelsMoreDropdownArchived'
+                onClick={() => this.filterChange(Filter.Archived)}
+                leadingElement={<ArchiveOutlineIcon size={16}/>}
+                labels={
+                    <FormattedMessage
+                        id='suggestion.archive'
+                        defaultMessage='Archived channels'
+                    />
+                }
+                trailingElements={this.props.filter === Filter.Archived ? checkIcon : null}
+                aria-label={this.props.intl.formatMessage({id: 'suggestion.archive', defaultMessage: 'Archived channels'})}
+            />,
+        );
         const menuButton = (
             <>
                 {this.getFilterLabel()}
