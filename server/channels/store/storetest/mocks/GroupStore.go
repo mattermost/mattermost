@@ -1389,7 +1389,7 @@ func (_m *GroupStore) Restore(groupID string) (*model.Group, error) {
 	ret := _m.Called(groupID)
 
 	if len(ret) == 0 {
-		panic("no return value specified for RestoreContentFlaggedPost")
+		panic("no return value specified for Restore")
 	}
 
 	var r0 *model.Group

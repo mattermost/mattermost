@@ -438,7 +438,7 @@ func (s *MmctlE2ETestSuite) TestListTeamsCmdF() {
 func (s *MmctlE2ETestSuite) TestRestoreTeamsCmd() {
 	s.SetupTestHelper().InitBasic()
 
-	s.RunForAllClients("RestoreContentFlaggedPost team", func(c client.Client) {
+	s.RunForAllClients("Restore team", func(c client.Client) {
 		printer.Clean()
 
 		team := s.th.CreateTeam()
@@ -452,7 +452,7 @@ func (s *MmctlE2ETestSuite) TestRestoreTeamsCmd() {
 		s.Require().Zero(printer.GetLines()[0].(*model.Team).DeleteAt)
 	})
 
-	s.RunForAllClients("RestoreContentFlaggedPost non-existent team", func(c client.Client) {
+	s.RunForAllClients("Restore non-existent team", func(c client.Client) {
 		printer.Clean()
 
 		teamName := "non-existent-team"
@@ -466,7 +466,7 @@ func (s *MmctlE2ETestSuite) TestRestoreTeamsCmd() {
 		s.Require().Len(printer.GetErrorLines(), 1)
 	})
 
-	s.Run("RestoreContentFlaggedPost team without permissions", func() {
+	s.Run("Restore team without permissions", func() {
 		printer.Clean()
 
 		team := s.th.CreateTeamWithClient(s.th.SystemAdminClient)

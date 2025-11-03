@@ -2399,7 +2399,7 @@ func (s *TimerLayerChannelStore) Restore(channelID string, timestamp int64) erro
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.RestoreContentFlaggedPost", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.Restore", success, elapsed)
 	}
 	return err
 }
@@ -4971,7 +4971,7 @@ func (s *TimerLayerGroupStore) Restore(groupID string) (*model.Group, error) {
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.RestoreContentFlaggedPost", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("GroupStore.Restore", success, elapsed)
 	}
 	return result, err
 }

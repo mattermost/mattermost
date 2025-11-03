@@ -703,7 +703,7 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 			return model.NewAppError("KeepFlaggedPost", "app.content_flagging.missing_manage_by_field.app_error", nil, "", http.StatusInternalServerError)
 		}
 
-		// RestoreContentFlaggedPost the post, its replies, and all associated files
+		// Restore the post, its replies, and all associated files
 		if err := a.Srv().Store().Post().RestoreContentFlaggedPost(flaggedPost, statusField.ID, contentFlaggingManagedField.ID); err != nil {
 			return model.NewAppError("KeepFlaggedPost", "app.content_flagging.keep_post.undelete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}

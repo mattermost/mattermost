@@ -1650,7 +1650,7 @@ func (s *MmctlE2ETestSuite) TestUserEditUsernameCmd() {
 		s.Require().Nil(appErr)
 		s.Require().Equal(newUsername, updatedUser.Username)
 
-		// RestoreContentFlaggedPost original username for next test
+		// Restore original username for next test
 		user.Username = oldUsername
 		_, appErr = s.th.App.UpdateUser(s.th.Context, user, false)
 		s.Require().Nil(appErr)
@@ -1729,7 +1729,7 @@ func (s *MmctlE2ETestSuite) TestUserEditEmailCmd() {
 		s.Require().Nil(appErr)
 		s.Require().Equal(newEmail, updatedUser.Email)
 
-		// RestoreContentFlaggedPost original email for next test
+		// Restore original email for next test
 		user.Email = oldEmail
 		_, appErr = s.th.App.UpdateUser(s.th.Context, user, false)
 		s.Require().Nil(appErr)

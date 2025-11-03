@@ -838,7 +838,7 @@ func (s *MmctlUnitTestSuite) TestRestoreTeamsCmd() {
 	teamID := "teamId"
 	cmd := &cobra.Command{}
 
-	s.Run("RestoreContentFlaggedPost teams with team not exist in db returns an error", func() {
+	s.Run("Restore teams with team not exist in db returns an error", func() {
 		printer.Clean()
 
 		s.client.
@@ -860,7 +860,7 @@ func (s *MmctlUnitTestSuite) TestRestoreTeamsCmd() {
 		s.Require().EqualError(err, expected.Error())
 	})
 
-	s.Run("RestoreContentFlaggedPost team", func() {
+	s.Run("Restore team", func() {
 		printer.Clean()
 		mockTeam := model.Team{
 			Id:   teamID,
@@ -884,7 +884,7 @@ func (s *MmctlUnitTestSuite) TestRestoreTeamsCmd() {
 		s.Require().Equal(&mockTeam, printer.GetLines()[0])
 	})
 
-	s.Run("RestoreContentFlaggedPost team with error on RestoreTeam returns an error", func() {
+	s.Run("Restore team with error on RestoreTeam returns an error", func() {
 		printer.Clean()
 		mockTeam := model.Team{
 			Id:   teamID,
