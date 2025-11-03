@@ -4679,10 +4679,6 @@
     "translation": "Failed to parse AI summarization response."
   },
   {
-    "id": "app.ai.title.agent_call_failed",
-    "translation": "AI agent call failed."
-  },
-  {
     "id": "app.analytics.getanalytics.internal_error",
     "translation": "Unable to get the analytics."
   },
@@ -7091,10 +7087,6 @@
     "translation": "Reaction limit has been reached for this post."
   },
   {
-    "id": "app.recap.permission_denied",
-    "translation": "No permission for recap"
-  },
-  {
     "id": "app.recap.delete.app_error",
     "translation": "Failed to delete recap."
   },
@@ -7107,8 +7099,20 @@
     "translation": "Failed to get recap."
   },
   {
+    "id": "app.recap.get_channel.app_error",
+    "translation": ""
+  },
+  {
     "id": "app.recap.get_channels.app_error",
     "translation": "Failed to get recap channels."
+  },
+  {
+    "id": "app.recap.get_last_viewed.app_error",
+    "translation": ""
+  },
+  {
+    "id": "app.recap.get_team.app_error",
+    "translation": ""
   },
   {
     "id": "app.recap.list.app_error",
@@ -7119,8 +7123,16 @@
     "translation": "Failed to mark recap as read."
   },
   {
+    "id": "app.recap.permission_denied",
+    "translation": "No permission for recap"
+  },
+  {
     "id": "app.recap.save.app_error",
     "translation": "Failed to save recap."
+  },
+  {
+    "id": "app.recap.save_channel.app_error",
+    "translation": ""
   },
   {
     "id": "app.recap.update.app_error",
