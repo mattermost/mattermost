@@ -520,7 +520,7 @@ func (g *apiRPCClient) PluginHTTP(request *http.Request) *http.Response {
 	response, err := g.pluginHTTPStream(request)
 	if err != nil {
 		// If we error for some other reason other than stream not being
-		// implmented just report and fail
+		// implemented just report and fail
 		log.Print(err.Error())
 		return nil
 	}
@@ -588,7 +588,7 @@ func (g *apiRPCClient) pluginHTTPStream(request *http.Request) (*http.Response, 
 		if err.Error() == "rpc: can't find method Plugin.PluginHTTPStream" {
 			return nil, nil
 		}
-		return nil, fmt.Errorf("RPC call to PluginHTTPStream API failed: %w", err.Error())
+		return nil, fmt.Errorf("RPC call to PluginHTTPStream API failed: %w", err)
 	}
 
 	// Wait for response body reader
