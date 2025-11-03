@@ -16,7 +16,7 @@ export function useBrowserPopout() {
     const history = useHistory();
     useEffect(() => {
         if (!isDesktopApp()) {
-            const navigateListener = history.block((blockState) => {
+            const unblockHistory = history.block((blockState) => {
                 window.opener.postMessage({
                     channel: '_navigate',
                     args: [blockState.pathname],
@@ -32,7 +32,7 @@ export function useBrowserPopout() {
 
             window.addEventListener('beforeunload', closeListener);
             return () => {
-                navigateListener();
+                unblockHistory();
                 window.removeEventListener('beforeunload', closeListener);
             };
         }
@@ -53,15 +53,12 @@ export class BrowserPopouts {
 
         window.addEventListener('message', (event) => {
             const popout = event.source as Window;
-            if (!this.popoutWindows.has(popout)) {
-                return;
-            }
+            const target = this.popoutWindows.get(popout);
 
             if (event.origin !== window.location.origin) {
                 return;
             }
 
-            const target = this.popoutWindows.get(popout);
             if (!target) {
                 return;
             }

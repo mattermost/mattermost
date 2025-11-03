@@ -175,9 +175,7 @@ describe('BrowserPopouts', () => {
             mockWindowOpen.mockReturnValue(mockPopoutWindow);
 
             const result = browserPopouts.setupBrowserPopout('/_popout/test');
-            if (result.send) {
-                result.send('channel', 1, true, {nested: 'object'}, ['array']);
-            }
+            result.send!('channel', 1, true, {nested: 'object'}, ['array']);
 
             expect(mockPopoutWindow.postMessage).toHaveBeenCalledWith(
                 {
