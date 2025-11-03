@@ -7144,7 +7144,7 @@
   },
   {
     "id": "app.recap.get_channel.app_error",
-    "translation": ""
+    "translation": "Failed to get channel."
   },
   {
     "id": "app.recap.get_channels.app_error",
@@ -7152,11 +7152,11 @@
   },
   {
     "id": "app.recap.get_last_viewed.app_error",
-    "translation": ""
+    "translation": "Failed to get last viewed timestamp."
   },
   {
     "id": "app.recap.get_team.app_error",
-    "translation": ""
+    "translation": "Failed to get team."
   },
   {
     "id": "app.recap.list.app_error",
@@ -7176,7 +7176,7 @@
   },
   {
     "id": "app.recap.save_channel.app_error",
-    "translation": ""
+    "translation": "Failed to save recap channel."
   },
   {
     "id": "app.recap.update.app_error",
