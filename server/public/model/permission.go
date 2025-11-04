@@ -5,6 +5,7 @@ package model
 
 import (
 	"net/http"
+	"strings"
 )
 
 const (
@@ -2658,12 +2659,13 @@ func MakePermissionError(s *Session, permissions []*Permission) *AppError {
 }
 
 func MakePermissionErrorForUser(userId string, permissions []*Permission) *AppError {
-	permissionsStr := "permission="
+	var permissionsStr strings.Builder
+	permissionsStr.WriteString("permission=")
 	for i, permission := range permissions {
-		permissionsStr += permission.Id
+		permissionsStr.WriteString(permission.Id)
 		if i != len(permissions)-1 {
-			permissionsStr += ","
+			permissionsStr.WriteString(",")
 		}
 	}
-	return NewAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+userId+", "+permissionsStr, http.StatusForbidden)
+	return NewAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+userId+", "+permissionsStr.String(), http.StatusForbidden)
 }

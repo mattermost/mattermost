@@ -6,7 +6,6 @@ package api4
 import (
 	"context"
 	"net/http"
-	"os"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -33,12 +32,8 @@ func setBasicCommonReviewerConfig(th *TestHelper) *model.AppError {
 }
 
 func TestGetFlaggingConfiguration(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
 	th := Setup(t)
-	defer func() {
-		th.TearDown()
-		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
-	}()
+	defer th.TearDown()
 
 	client := th.Client
 
@@ -74,12 +69,8 @@ func TestGetFlaggingConfiguration(t *testing.T) {
 }
 
 func TestSaveContentFlaggingSettings(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
 	th := Setup(t).InitBasic()
-	defer func() {
-		th.TearDown()
-		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
-	}()
+	defer th.TearDown()
 
 	client := th.Client
 
@@ -158,12 +149,8 @@ func TestSaveContentFlaggingSettings(t *testing.T) {
 }
 
 func TestGetContentFlaggingSettings(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
 	th := Setup(t).InitBasic()
-	defer func() {
-		th.TearDown()
-		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
-	}()
+	defer th.TearDown()
 
 	t.Run("Should return 403 when user does not have manage system permission", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
@@ -201,12 +188,8 @@ func TestGetContentFlaggingSettings(t *testing.T) {
 }
 
 func TestGetPostPropertyValues(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
 	th := Setup(t).InitBasic()
-	defer func() {
-		th.TearDown()
-		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
-	}()
+	defer th.TearDown()
 
 	client := th.Client
 
@@ -283,17 +266,13 @@ func TestGetPostPropertyValues(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.NotNil(t, propertyValues)
-		require.Len(t, propertyValues, 5)
+		require.Len(t, propertyValues, 6)
 	})
 }
 
 func TestGetFlaggedPost(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
 	th := Setup(t).InitBasic()
-	defer func() {
-		th.TearDown()
-		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
-	}()
+	defer th.TearDown()
 
 	client := th.Client
 
@@ -442,12 +421,8 @@ func TestGetFlaggedPost(t *testing.T) {
 }
 
 func TestFlagPost(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
 	th := Setup(t).InitBasic()
-	defer func() {
-		th.TearDown()
-		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
-	}()
+	defer th.TearDown()
 
 	client := th.Client
 
@@ -588,12 +563,8 @@ func TestFlagPost(t *testing.T) {
 }
 
 func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
 	th := Setup(t)
-	defer func() {
-		th.TearDown()
-		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
-	}()
+	defer th.TearDown()
 
 	client := th.Client
 
@@ -671,12 +642,8 @@ func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
 }
 
 func TestSearchReviewers(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
 	th := Setup(t).InitBasic()
-	defer func() {
-		th.TearDown()
-		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
-	}()
+	defer th.TearDown()
 
 	client := th.Client
 
@@ -789,12 +756,8 @@ func TestSearchReviewers(t *testing.T) {
 }
 
 func TestAssignContentFlaggingReviewer(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
 	th := Setup(t).InitBasic()
-	defer func() {
-		th.TearDown()
-		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
-	}()
+	defer th.TearDown()
 
 	client := th.Client
 

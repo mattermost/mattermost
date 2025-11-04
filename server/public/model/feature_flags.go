@@ -82,6 +82,9 @@ type FeatureFlags struct {
 	// FEATURE_FLAG_REMOVAL: AutoTranslation - Remove this when MVP is to be released
 	// Enable auto-translation feature for messages in channels
 	AutoTranslation bool
+
+	// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge
+	EnableAIPluginBridge bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -110,7 +113,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ExperimentalAuditSettingsSystemConsoleUI = true
 	f.CustomProfileAttributes = true
 	f.AttributeBasedAccessControl = true
-	f.ContentFlagging = false
+	f.ContentFlagging = true
 	f.InteractiveDialogAppsForm = true
 	f.EnableMattermostEntry = true
 
@@ -118,13 +121,16 @@ func (f *FeatureFlags) SetDefaults() {
 
 	// FEATURE_FLAG_REMOVAL: AutoTranslation - Remove this default when MVP is to be released
 	f.AutoTranslation = false
+
+	// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge - Remove this default when MVP is to be released
+	f.EnableAIPluginBridge = false
 }
 
 // ToMap returns the feature flags as a map[string]string
 // Supports boolean and string feature flags.
 func (f *FeatureFlags) ToMap() map[string]string {
 	refStructVal := reflect.ValueOf(*f)
-	refStructType := reflect.TypeOf(*f)
+	refStructType := reflect.TypeFor[FeatureFlags]()
 	ret := make(map[string]string)
 	for i := 0; i < refStructVal.NumField(); i++ {
 		refFieldVal := refStructVal.Field(i)
