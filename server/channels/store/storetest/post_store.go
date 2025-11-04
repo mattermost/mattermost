@@ -5940,11 +5940,11 @@ func testGetPostsForReporting(t *testing.T, rctx request.CTX, ss store.Store, s 
 
 	t.Run("Exclude channel metadata system posts", func(t *testing.T) {
 		options := model.ReportPostOptions{
-			ChannelId:          channelID,
-			TimeField:          "create_at",
-			SortDirection:      "asc",
-			PerPage:            100,
-			ExcludeSystemPosts: true,
+			ChannelId:           channelID,
+			TimeField:           "create_at",
+			SortDirection:       "asc",
+			PerPage:             100,
+			ExcludeSystemPosts:  true,
 		}
 		cursor := model.ReportPostOptionsCursor{
 			Cursor: "", // Empty cursor for first page

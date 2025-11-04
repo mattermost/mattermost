@@ -66,11 +66,11 @@ const (
 	PostMessageMaxRunesV2 = PostMessageMaxBytesV2 / 4 // Assume a worst-case representation
 
 	// Reporting API constants
-	MaxReportingPerPage        = 1000 // Maximum number of posts that can be requested per page in reporting endpoints
-	ReportingTimeFieldCreateAt = "create_at"
-	ReportingTimeFieldUpdateAt = "update_at"
-	ReportingSortDirectionAsc  = "asc"
-	ReportingSortDirectionDesc = "desc"
+	MaxReportingPerPage          = 1000 // Maximum number of posts that can be requested per page in reporting endpoints
+	ReportingTimeFieldCreateAt   = "create_at"
+	ReportingTimeFieldUpdateAt   = "update_at"
+	ReportingSortDirectionAsc    = "asc"
+	ReportingSortDirectionDesc   = "desc"
 	PostPropsMaxRunes          = 800000
 	PostPropsMaxUserRunes      = PostPropsMaxRunes - 40000 // Leave some room for system / pre-save modifications
 
