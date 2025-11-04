@@ -322,20 +322,11 @@ golang-versions: ## Install Golang versions used for compatibility testing (e.g.
 	export GO_COMPATIBILITY_TEST_VERSIONS="${GO_COMPATIBILITY_TEST_VERSIONS}"
 
 golangci-lint: ## Run golangci-lint on codebase
-	$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.5.0
+	$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.6.0
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	$(GOBIN)/golangci-lint run ./... ./public/... $(BUILD_ENTERPRISE_DIR)/...
 else
 	$(GOBIN)/golangci-lint run ./... ./public/...
-endif
-
-modernize: ## Run modernize linter on codebase
-## https://pkg.go.dev/golang.org/x/tools/gopls/internal/analysis/modernize is not support in golangci-lint.
-## We need to invoke it directly.
-ifeq ($(BUILD_ENTERPRISE_READY),true)
-	go run golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize@v0.19.1 -test ./... ./public/... $(BUILD_ENTERPRISE_DIR)/...
-else
-	go run golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize@v0.19.1 -test ./... ./public/...
 endif
 
 i18n-extract: ## Extract strings for translation from the source code
@@ -431,7 +422,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 endif
 
-check-style: plugin-checker vet modernize golangci-lint ## Runs style/lint checks
+check-style: plugin-checker vet golangci-lint ## Runs style/lint checks
 
 gotestsum:
 	$(GO) install gotest.tools/gotestsum@v1.11.0
