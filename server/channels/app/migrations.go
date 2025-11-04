@@ -29,6 +29,7 @@ const (
 	postPriorityConfigDefaultTrueMigrationKey      = "PostPriorityConfigDefaultTrueMigrationComplete"
 	contentFlaggingSetupDoneKey                    = "content_flagging_setup_done"
 	contentFlaggingMigrationVersion                = "v3"
+	cpaFieldDefaultAttrsMigrationKey               = "cpa_field_default_attrs_migration_done"
 
 	contentFlaggingPropertyNameFlaggedPostId    = "flagged_post_id"
 	contentFlaggingPropertyNameStatus           = "status"
@@ -729,6 +730,112 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 	return nil
 }
 
+func (s *Server) doCPAFieldApplyDefaultAttrs() error {
+	// If the migration is already marked as completed, don't do it again.
+	var nfErr *store.ErrNotFound
+	if _, err := s.Store().System().GetByName(cpaFieldDefaultAttrsMigrationKey); err == nil {
+		return nil
+	} else if !errors.As(err, &nfErr) {
+		return fmt.Errorf("could not query migration: %w", err)
+	}
+
+	// Get CPA property group (RegisterPropertyGroup is idempotent)
+	group, err := s.propertyService.RegisterPropertyGroup(model.CustomProfileAttributesPropertyGroupName)
+	if err != nil {
+		return fmt.Errorf("failed to register CPA property group: %w", err)
+	}
+
+	// Search for all CPA fields using cursor-based pagination
+	const perPage = 100
+	var cursor model.PropertyFieldSearchCursor
+	totalUpdated := 0
+	totalProcessed := 0
+
+	for {
+		opts := model.PropertyFieldSearchOpts{
+			GroupID: group.ID,
+			PerPage: perPage,
+			Cursor:  cursor,
+		}
+
+		existingFields, appErr := s.propertyService.SearchPropertyFields(group.ID, opts)
+		if appErr != nil {
+			return fmt.Errorf("failed to search CPA fields: %w", appErr)
+		}
+
+		if len(existingFields) == 0 {
+			break
+		}
+
+		// Build list of fields that need default attrs applied
+		var fieldsToUpdate []*model.PropertyField
+		for _, field := range existingFields {
+			totalProcessed++
+			needsUpdate := false
+
+			if field.Attrs == nil {
+				field.Attrs = model.StringInterface{}
+				needsUpdate = true
+			}
+
+			// Ensure visibility has default value
+			if visibility, ok := field.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility]; !ok || visibility == "" {
+				field.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility] = model.CustomProfileAttributesVisibilityDefault
+				needsUpdate = true
+			}
+
+			// Ensure sort_order exists
+			if _, ok := field.Attrs[model.CustomProfileAttributesPropertyAttrsSortOrder]; !ok {
+				field.Attrs[model.CustomProfileAttributesPropertyAttrsSortOrder] = float64(0)
+				needsUpdate = true
+			}
+
+			if needsUpdate {
+				fieldsToUpdate = append(fieldsToUpdate, field)
+			}
+		}
+
+		// Update fields with missing attrs
+		if len(fieldsToUpdate) > 0 {
+			if _, err := s.propertyService.UpdatePropertyFields(group.ID, fieldsToUpdate); err != nil {
+				return fmt.Errorf("failed to update CPA fields with default attrs: %w", err)
+			}
+			totalUpdated += len(fieldsToUpdate)
+		}
+
+		// Check if we're done or need to fetch next page
+		if len(existingFields) < perPage {
+			break
+		}
+
+		// Update cursor to the last field in this batch
+		lastField := existingFields[len(existingFields)-1]
+		cursor = model.PropertyFieldSearchCursor{
+			PropertyFieldID: lastField.ID,
+			CreateAt:        lastField.CreateAt,
+		}
+	}
+
+	if totalUpdated > 0 {
+		mlog.Info("Updated CPA fields with default attrs",
+			mlog.Int("updated", totalUpdated),
+			mlog.Int("total_processed", totalProcessed))
+	} else {
+		mlog.Info("No CPA fields needed updating", mlog.Int("total_processed", totalProcessed))
+	}
+
+	// Mark migration as complete
+	system := model.System{
+		Name:  cpaFieldDefaultAttrsMigrationKey,
+		Value: "true",
+	}
+	if err := s.Store().System().Save(&system); err != nil {
+		return fmt.Errorf("failed to mark CPA default attrs migration as completed: %w", err)
+	}
+
+	return nil
+}
+
 func (s *Server) doCloudS3PathMigrations(rctx request.CTX) error {
 	// This migration is only applicable for cloud environments
 	if os.Getenv("MM_CLOUD_FILESTORE_BIFROST") == "" {
@@ -843,6 +950,7 @@ func (s *Server) doAppMigrations() {
 		{"Remaining Schema Migrations", s.doRemainingSchemaMigrations},
 		{"Post Priority Config Default True Migration", s.doPostPriorityConfigDefaultTrueMigration},
 		{"Content Flagging Properties Setup", s.doSetupContentFlaggingProperties},
+		{"CPA Field Default Attrs Migration", s.doCPAFieldApplyDefaultAttrs},
 	}
 
 	for i := range m1 {
