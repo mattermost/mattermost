@@ -1,5 +1,12 @@
+// This file has been automatically migrated to valid ESM format by Storybook.
+import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
 import type {StorybookConfig} from '@storybook/react-webpack5';
-import path from 'path';
+import path, { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const require = createRequire(import.meta.url);
 
 // Monorepo support: Helper to resolve absolute paths to Storybook packages
 // This ensures proper module resolution in monorepo environments (Yarn workspaces, Lerna, etc.)
@@ -8,6 +15,9 @@ const getAbsolutePath = (packageName: string): any =>
     path.dirname(require.resolve(path.join(packageName, 'package.json'))).replace(/^file:\/\//, '');
 
 const config: StorybookConfig = {
+    core: {
+        disableTelemetry: true,
+    },
     stories: [
         './docs/*.mdx',
         // Channels stories
@@ -21,19 +31,16 @@ const config: StorybookConfig = {
         '../../platform/design-system/src/**/*.stories.@(js|jsx|mjs|ts|tsx)',
     ],
     addons: [
-        // Use getAbsolutePath for monorepo compatibility
-        getAbsolutePath('@storybook/addon-essentials'),
-        getAbsolutePath('@storybook/addon-interactions'),
         getAbsolutePath('@storybook/addon-a11y'),
+        getAbsolutePath("@storybook/addon-webpack5-compiler-babel"),
+        getAbsolutePath("@storybook/addon-docs")
     ],
     framework: {
         // Use getAbsolutePath for monorepo compatibility
         name: getAbsolutePath('@storybook/react-webpack5'),
         options: {},
     },
-    docs: {
-        autodocs: false, // Disabled due to theme compatibility issues
-    },
+    docs: {},
     typescript: {
         reactDocgen: false, // Disable react-docgen to avoid Babel issues
         check: false, // Disable type-checking for faster builds

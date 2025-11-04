@@ -55,12 +55,12 @@ const preview: Preview = {
             },
         },
         backgrounds: {
-            default: 'Center Channel', // This gets moved to preview.initialGlobals.backgrounds.value in newer versions of Storybook
-            values: [ // This gets renamed to options and changed to an object in newer versions of Storybook
-                {name: 'Center Channel', value: 'var(--center-channel-bg)'},
-                {name: 'Global Header', value: 'var(--sidebar-header-bg)'},
-                {name: 'Sidebar', value: 'var(--sidebar-bg)'},
-            ],
+            default: 'Center Channel',
+            options: {
+                'center': {name: 'Center Channel', value: 'var(--center-channel-bg)'},
+                'header': {name: 'Global Header', value: 'var(--sidebar-header-bg)'},
+                'sidebar': {name: 'Sidebar', value: 'var(--sidebar-bg)'},
+            },
         },
         layout: 'centered',
     },
@@ -76,6 +76,7 @@ const preview: Preview = {
             },
         },
     },
+
     decorators: [
         (Story, context) => {
             const history = createMemoryHistory();
@@ -111,6 +112,12 @@ const preview: Preview = {
             );
         },
     ],
+
+    initialGlobals: {
+        backgrounds: {
+            value: 'center'
+        }
+    }
 };
 
 export default preview;
