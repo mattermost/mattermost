@@ -44,17 +44,14 @@ for further processing.`,
   # Get posts including deleted posts and metadata
   mmctl report posts myteam:mychannel --include-deleted --include-metadata
 
-  # Get posts excluding channel metadata system posts
-  mmctl report posts myteam:mychannel --exclude-channel-metadata-system-posts
+  # Get posts excluding ALL system posts
+  mmctl report posts myteam:mychannel --exclude-system-posts
 
   # Get more posts per page (max 1000)
   mmctl report posts myteam:mychannel --per-page 500
 
   # Resume pagination from a specific cursor (use next_cursor from previous response)
-  mmctl report posts myteam:mychannel --cursor-time 1735488123456 --cursor-id abc123xyz
-
-  # Get posts starting from a specific timestamp
-  mmctl report posts myteam:mychannel --cursor-time 1735488000000`,
+  mmctl report posts myteam:mychannel --cursor "MTphYmMxMjM6Y3JlYXRlX2F0OmZhbHNlOmZhbHNlOmFzYzoxNjQwMDAwMzAwMDAwOnBvc3Qz"`,
 	Args: cobra.ExactArgs(1),
 	RunE: withClient(reportPostsCmdF),
 }
@@ -63,11 +60,10 @@ func init() {
 	ReportPostsCmd.Flags().String("time-field", "create_at", "Time field to use for sorting (create_at or update_at)")
 	ReportPostsCmd.Flags().String("sort-direction", "asc", "Sort direction (asc or desc)")
 	ReportPostsCmd.Flags().Int64("end-time", 0, "End time filter in Unix milliseconds (optional)")
-	ReportPostsCmd.Flags().Int64("cursor-time", 0, "Cursor time in Unix milliseconds to start pagination from (0 for asc, current time for desc)")
-	ReportPostsCmd.Flags().String("cursor-id", "", "Cursor post ID for pagination tie-breaking")
+	ReportPostsCmd.Flags().String("cursor", "", "Opaque cursor for pagination (use next_cursor from previous response)")
 	ReportPostsCmd.Flags().Int("per-page", 100, "Number of posts per page (max 1000)")
 	ReportPostsCmd.Flags().Bool("include-deleted", false, "Include deleted posts")
-	ReportPostsCmd.Flags().Bool("exclude-channel-metadata-system-posts", false, "Exclude system posts for channel metadata changes")
+	ReportPostsCmd.Flags().Bool("exclude-system-posts", false, "Exclude ALL system posts (any type starting with 'system_')")
 	ReportPostsCmd.Flags().Bool("include-metadata", false, "Include file info, reactions, etc.")
 
 	ReportCmd.AddCommand(ReportPostsCmd)
@@ -84,18 +80,17 @@ func reportPostsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	timeField, _ := cmd.Flags().GetString("time-field")
 	sortDirection, _ := cmd.Flags().GetString("sort-direction")
 	endTime, _ := cmd.Flags().GetInt64("end-time")
-	cursorTime, _ := cmd.Flags().GetInt64("cursor-time")
-	cursorId, _ := cmd.Flags().GetString("cursor-id")
+	cursor, _ := cmd.Flags().GetString("cursor")
 	perPage, _ := cmd.Flags().GetInt("per-page")
 	includeDeleted, _ := cmd.Flags().GetBool("include-deleted")
-	excludeChannelMetadataSystemPosts, _ := cmd.Flags().GetBool("exclude-channel-metadata-system-posts")
+	excludeSystemPosts, _ := cmd.Flags().GetBool("exclude-system-posts")
 	includeMetadata, _ := cmd.Flags().GetBool("include-metadata")
 
-	// Validate flags
-	if timeField != "create_at" && timeField != "update_at" {
+	// Validate flags (only validated for first request; ignored when cursor is provided)
+	if timeField != model.ReportingTimeFieldCreateAt && timeField != model.ReportingTimeFieldUpdateAt {
 		return errors.New("time-field must be either 'create_at' or 'update_at'")
 	}
-	if sortDirection != "asc" && sortDirection != "desc" {
+	if sortDirection != model.ReportingSortDirectionAsc && sortDirection != model.ReportingSortDirectionDesc {
 		return errors.New("sort-direction must be either 'asc' or 'desc'")
 	}
 	if perPage <= 0 || perPage > model.MaxReportingPerPage {
@@ -104,35 +99,22 @@ func reportPostsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	// Set up options
 	options := model.ReportPostOptions{
-		ChannelId:                         channel.Id,
-		EndTime:                           endTime,
-		TimeField:                         timeField,
-		SortDirection:                     sortDirection,
-		PerPage:                           perPage,
-		IncludeDeleted:                    includeDeleted,
-		ExcludeChannelMetadataSystemPosts: excludeChannelMetadataSystemPosts,
-		IncludeMetadata:                   includeMetadata,
+		ChannelId:          channel.Id,
+		EndTime:            endTime,
+		TimeField:          timeField,
+		SortDirection:      sortDirection,
+		PerPage:            perPage,
+		IncludeDeleted:     includeDeleted,
+		ExcludeSystemPosts: excludeSystemPosts,
+		IncludeMetadata:    includeMetadata,
 	}
 
-	// Initialize cursor
-	cursor := model.ReportPostOptionsCursor{
-		CursorId: cursorId,
+	// Initialize cursor (opaque string)
+	cursorObj := model.ReportPostOptionsCursor{
+		Cursor: cursor,
 	}
 
-	// Set cursor time based on flags or defaults
-	if cursorTime != 0 {
-		// User explicitly provided cursor time
-		cursor.CursorTime = cursorTime
-	} else {
-		// Default behavior: asc starts from 0, desc starts from now
-		if sortDirection == "asc" {
-			cursor.CursorTime = 0
-		} else {
-			cursor.CursorTime = model.GetMillis()
-		}
-	}
-
-	response, _, err := c.GetPostsForReporting(context.TODO(), options, cursor)
+	response, _, err := c.GetPostsForReporting(context.TODO(), options, cursorObj)
 	if err != nil {
 		return fmt.Errorf("failed to get posts for reporting: %w", err)
 	}
@@ -150,9 +132,8 @@ func reportPostsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	// Show pagination info
 	printer.Print(fmt.Sprintf("\nShowing %d posts.", len(posts)))
-	if response.NextCursor != nil {
-		printer.Print(fmt.Sprintf("To get the next page, use: --cursor-time %d --cursor-id %s",
-			response.NextCursor.CursorTime, response.NextCursor.CursorId))
+	if response.NextCursor != nil && response.NextCursor.Cursor != "" {
+		printer.Print(fmt.Sprintf("To get the next page, use: --cursor \"%s\"", response.NextCursor.Cursor))
 	} else {
 		printer.Print("No more posts available.")
 	}

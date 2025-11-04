@@ -313,7 +313,13 @@ func (a *App) GetPostsForReporting(rctx request.CTX, options model.ReportPostOpt
 		return nil, model.NewAppError("GetPostsForReporting", "app.post.get_posts_for_reporting.license_error", nil, "", http.StatusBadRequest)
 	}
 
-	response, err := a.Srv().Store().Post().GetPostsForReporting(rctx, options, cursor)
+	// Resolve cursor and options into concrete query parameters
+	queryParams, err := model.ResolveReportPostQueryParams(options, cursor)
+	if err != nil {
+		return nil, err.(*model.AppError)
+	}
+
+	response, err := a.Srv().Store().Post().GetPostsForReporting(rctx, *queryParams)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {

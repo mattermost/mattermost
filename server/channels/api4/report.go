@@ -156,6 +156,19 @@ func fillUserReportOptions(values url.Values) (*model.UserReportOptions, *model.
 	}, nil
 }
 
+// getPostsForReporting retrieves posts for reporting purposes with cursor-based pagination.
+//
+// API Endpoint: POST /api/v4/reports/posts
+//
+// Cursor Behavior:
+//   - The cursor is opaque and self-contained (base64-encoded)
+//   - When a cursor is provided, it contains all query parameters from the initial request
+//   - Query parameters in the request body (time_field, sort_direction, include_deleted, exclude_system_posts)
+//     are IGNORED when a cursor is present - the cursor's parameters take precedence
+//   - This allows clients to keep sending the same parameters on every request without causing errors
+//   - For the first page or to start a new query, omit the cursor or send an empty string
+//
+// Required permissions: System Admin (PERMISSION_MANAGE_SYSTEM)
 func getPostsForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Require system admin permission for accessing posts reporting
 	if !c.IsSystemAdmin() {
@@ -182,15 +195,16 @@ func getPostsForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("channel_id")
 		return
 	}
-	if request.CursorTime <= 0 {
-		c.SetInvalidParam("cursor_time")
+
+	// Verify channel exists before querying posts
+	// This provides a better error message than returning an empty result set
+	channel, appErr := c.App.GetChannel(c.AppContext, request.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
-	// cursor_id can be empty for the first request
-
-	// Validate optional EndTime if provided
-	if request.EndTime > 0 && request.CursorTime > request.EndTime {
-		c.Err = model.NewAppError("getPostsForReporting", "api.post.get_posts_for_reporting.invalid_time_range", nil, "cursor_time cannot be greater than end_time", http.StatusBadRequest)
+	if channel == nil {
+		c.Err = model.NewAppError("getPostsForReporting", "api.post.get_posts_for_reporting.channel_not_found", nil, fmt.Sprintf("channel_id=%s", request.ChannelId), http.StatusNotFound)
 		return
 	}
 

@@ -862,9 +862,9 @@ func (_m *PostStore) GetPostsCreatedAt(channelID string, timestamp int64) ([]*mo
 	return r0, r1
 }
 
-// GetPostsForReporting provides a mock function with given fields: rctx, options, cursor
-func (_m *PostStore) GetPostsForReporting(rctx request.CTX, options model.ReportPostOptions, cursor model.ReportPostOptionsCursor) (*model.ReportPostListResponse, error) {
-	ret := _m.Called(rctx, options, cursor)
+// GetPostsForReporting provides a mock function with given fields: rctx, queryParams
+func (_m *PostStore) GetPostsForReporting(rctx request.CTX, queryParams model.ReportPostQueryParams) (*model.ReportPostListResponse, error) {
+	ret := _m.Called(rctx, queryParams)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetPostsForReporting")
@@ -872,19 +872,19 @@ func (_m *PostStore) GetPostsForReporting(rctx request.CTX, options model.Report
 
 	var r0 *model.ReportPostListResponse
 	var r1 error
-	if rf, ok := ret.Get(0).(func(request.CTX, model.ReportPostOptions, model.ReportPostOptionsCursor) (*model.ReportPostListResponse, error)); ok {
-		return rf(rctx, options, cursor)
+	if rf, ok := ret.Get(0).(func(request.CTX, model.ReportPostQueryParams) (*model.ReportPostListResponse, error)); ok {
+		return rf(rctx, queryParams)
 	}
-	if rf, ok := ret.Get(0).(func(request.CTX, model.ReportPostOptions, model.ReportPostOptionsCursor) *model.ReportPostListResponse); ok {
-		r0 = rf(rctx, options, cursor)
+	if rf, ok := ret.Get(0).(func(request.CTX, model.ReportPostQueryParams) *model.ReportPostListResponse); ok {
+		r0 = rf(rctx, queryParams)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.ReportPostListResponse)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, model.ReportPostOptions, model.ReportPostOptionsCursor) error); ok {
-		r1 = rf(rctx, options, cursor)
+	if rf, ok := ret.Get(1).(func(request.CTX, model.ReportPostQueryParams) error); ok {
+		r1 = rf(rctx, queryParams)
 	} else {
 		r1 = ret.Error(1)
 	}

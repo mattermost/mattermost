@@ -1503,81 +1503,70 @@ func (s *SqlPostStore) GetPostsAfter(rctx request.CTX, options model.GetPostsOpt
 	return s.getPostsAround(rctx, false, options, sanitizeOptions)
 }
 
-func (s *SqlPostStore) GetPostsForReporting(rctx request.CTX, options model.ReportPostOptions, cursor model.ReportPostOptionsCursor) (*model.ReportPostListResponse, error) {
+func (s *SqlPostStore) GetPostsForReporting(rctx request.CTX, queryParams model.ReportPostQueryParams) (*model.ReportPostListResponse, error) {
 	// Validate required parameters
-	if options.ChannelId == "" {
+	if queryParams.ChannelId == "" {
 		return nil, store.NewErrInvalidInput("Post", "ChannelId", "")
 	}
-	if cursor.CursorTime <= 0 {
-		return nil, store.NewErrInvalidInput("Post", "CursorTime", cursor.CursorTime)
-	}
-	// cursor_id can be empty for the first request (will get all posts with time >= cursor_time)
 
-	// Default to create_at if not specified or invalid
+	// Convert model field names to SQL column names
 	timeField := "CreateAt"
-	if options.TimeField == "update_at" {
+	if queryParams.TimeField == model.ReportingTimeFieldUpdateAt {
 		timeField = "UpdateAt"
 	}
 
-	// Default to ascending order
 	sortDirection := "ASC"
-	if options.SortDirection == "desc" {
+	if queryParams.SortDirection == model.ReportingSortDirectionDesc {
 		sortDirection = "DESC"
-	}
-
-	// Default to 100 per page, max MaxReportingPerPage
-	perPage := options.PerPage
-	if perPage <= 0 {
-		perPage = 100
-	}
-	if perPage > model.MaxReportingPerPage {
-		perPage = model.MaxReportingPerPage
 	}
 
 	// Build base query - request one extra to determine if there are more pages
 	query := s.getQueryBuilder().
 		Select("*").
 		From("Posts").
-		Where(sq.Eq{"ChannelId": options.ChannelId}).
+		Where(sq.Eq{"ChannelId": queryParams.ChannelId}).
 		OrderBy(fmt.Sprintf("%s %s", timeField, sortDirection), fmt.Sprintf("Id %s", sortDirection)).
-		Limit(uint64(perPage + 1))
+		Limit(uint64(queryParams.PerPage + 1))
 
 	// Apply cursor pagination: continue from where the last query left off using time + ID
 	if sortDirection == "ASC" {
 		query = query.Where(sq.Or{
-			sq.Gt{timeField: cursor.CursorTime},
+			sq.Gt{timeField: queryParams.CursorTime},
 			sq.And{
-				sq.Eq{timeField: cursor.CursorTime},
-				sq.Gt{"Id": cursor.CursorId},
+				sq.Eq{timeField: queryParams.CursorTime},
+				sq.Gt{"Id": queryParams.CursorId},
 			},
 		})
 	} else {
 		query = query.Where(sq.Or{
-			sq.Lt{timeField: cursor.CursorTime},
+			sq.Lt{timeField: queryParams.CursorTime},
 			sq.And{
-				sq.Eq{timeField: cursor.CursorTime},
-				sq.Lt{"Id": cursor.CursorId},
+				sq.Eq{timeField: queryParams.CursorTime},
+				sq.Lt{"Id": queryParams.CursorId},
 			},
 		})
 	}
 
-	// Apply EndTime as upper bound if provided
-	if options.EndTime > 0 {
-		query = query.Where(sq.LtOrEq{timeField: options.EndTime})
+	// Apply EndTime filter based on sort direction
+	if queryParams.EndTime > 0 {
+		if sortDirection == "ASC" {
+			// ASC: EndTime is upper bound (stop when we reach this time going forward)
+			query = query.Where(sq.LtOrEq{timeField: queryParams.EndTime})
+		} else {
+			// DESC: EndTime is lower bound (stop when we reach this time going backward)
+			query = query.Where(sq.GtOrEq{timeField: queryParams.EndTime})
+		}
 	}
 
-	// Add delete filter unless includeDeleted is true
-	if !options.IncludeDeleted {
+	// Add delete filter
+	if !queryParams.IncludeDeleted {
 		query = query.Where(sq.Eq{"DeleteAt": 0})
 	}
 
-	// Exclude channel metadata system posts if requested
-	if options.ExcludeChannelMetadataSystemPosts {
-		query = query.Where(sq.NotEq{"Type": []string{
-			model.PostTypeHeaderChange,
-			model.PostTypeDisplaynameChange,
-			model.PostTypePurposeChange,
-		}})
+	// Exclude all system posts
+	// System posts are any posts with Type starting with "system_"
+	if queryParams.ExcludeSystemPosts {
+		query = query.Where(sq.NotLike{"Type": model.PostSystemMessagePrefix + "%"})
 	}
 
 	// Execute query on replica
@@ -1587,22 +1576,40 @@ func (s *SqlPostStore) GetPostsForReporting(rctx request.CTX, options model.Repo
 	}
 
 	// Determine if there are more pages and calculate next cursor
+	// We request perPage+1 to detect if more results exist:
+	// - If we get exactly perPage posts: no more results, nextCursor = nil
+	// - If we get perPage+1 posts: more results exist, create cursor from last returned post
 	var nextCursor *model.ReportPostOptionsCursor
-	if len(posts) == perPage+1 {
-		// More results available - use the last post's time/id as the next cursor
-		lastPost := posts[perPage-1]
-		var cursorTime int64
-		if options.TimeField == "update_at" {
-			cursorTime = lastPost.UpdateAt
+	if len(posts) == queryParams.PerPage+1 {
+		// More results available beyond this page
+		// The cursor should point to the last post we're returning (posts[perPage-1]),
+		// so the next request continues from there
+		// Example: perPage=5, fetched 6 posts (indices 0-5)
+		//   - Return posts[0:5] to client
+		//   - Cursor points to posts[4] (last returned post)
+		//   - posts[5] is discarded (only used to detect "has more")
+		lastPostReturned := posts[queryParams.PerPage-1]
+		var nextCursorTime int64
+		if queryParams.TimeField == model.ReportingTimeFieldUpdateAt {
+			nextCursorTime = lastPostReturned.UpdateAt
 		} else {
-			cursorTime = lastPost.CreateAt
+			nextCursorTime = lastPostReturned.CreateAt
 		}
+
+		// Encode cursor with all query-affecting parameters
 		nextCursor = &model.ReportPostOptionsCursor{
-			CursorTime: cursorTime,
-			CursorId:   lastPost.Id,
+			Cursor: model.EncodeReportPostCursor(
+				queryParams.ChannelId,
+				queryParams.TimeField,
+				queryParams.IncludeDeleted,
+				queryParams.ExcludeSystemPosts,
+				queryParams.SortDirection,
+				nextCursorTime,
+				lastPostReturned.Id,
+			),
 		}
 		// Trim to the requested page size
-		posts = posts[:perPage]
+		posts = posts[:queryParams.PerPage]
 	}
 
 	// Build the posts map

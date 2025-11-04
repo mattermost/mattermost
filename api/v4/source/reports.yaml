@@ -196,8 +196,10 @@
         Get posts from a specific channel for reporting, compliance, and auditing purposes.
         This endpoint uses cursor-based pagination to efficiently retrieve large datasets.
 
-        The cursor is based on a compound key of time (create_at or update_at) and post ID,
-        ensuring consistent pagination even when new posts are added during iteration.
+        The cursor is an opaque, base64-encoded token that contains all pagination state.
+        Clients should treat the cursor as an opaque string and pass it back unchanged.
+        When a cursor is provided, query parameters from the initial request are embedded
+        in the cursor and take precedence over request body parameters.
 
         ##### Permissions
 
@@ -214,8 +216,8 @@
         - Ascending or descending sort order
         - Time range filtering with optional end_time
         - Include/exclude deleted posts
-        - Exclude channel metadata system posts (header changes, etc.)
-        - Optional metadata enrichment (file counts, reaction counts, etc.)
+        - Exclude all system posts (any type starting with "system_")
+        - Optional metadata enrichment (file info, reactions, emojis, priority, acknowledgements)
       operationId: GetPostsForReporting
       requestBody:
         required: true
@@ -225,32 +227,26 @@
               type: object
               required:
                 - channel_id
-                - cursor_time
               properties:
                 channel_id:
                   type: string
                   description: The ID of the channel to retrieve posts from
-                cursor_time:
-                  type: integer
-                  format: int64
-                  description: >
-                    The timestamp (in milliseconds) to start pagination from.
-                    For the first request, use 0 for ascending order or a future timestamp for descending.
-                    For subsequent requests, use the cursor_time from the previous response's next_cursor.
-                cursor_id:
+                cursor:
                   type: string
                   description: >
-                    The post ID for tie-breaking when multiple posts have the same timestamp.
-                    Leave empty for the first request. For subsequent requests, use the cursor_id
-                    from the previous response's next_cursor.
+                    Opaque cursor string for pagination. Omit or use empty string for the first request.
+                    For subsequent requests, use the exact cursor value from the previous response's next_cursor.
+                    The cursor is base64-encoded and contains all pagination state including time, post ID,
+                    and query parameters. Do not attempt to parse or modify the cursor value.
                   default: ""
                 end_time:
                   type: integer
                   format: int64
                   description: >
-                    Optional upper bound timestamp (in milliseconds). Only posts with timestamps
-                    less than or equal to this value will be returned. Useful for limiting
-                    the time range of the query.
+                    Optional time boundary in Unix milliseconds. Behavior depends on sort_direction:
+                    - For "asc" (ascending): acts as upper bound - stops when reaching this time going forward
+                    - For "desc" (descending): acts as lower bound - stops when reaching this time going backward
+                    Useful for limiting the time range of queries.
                 time_field:
                   type: string
                   enum: [create_at, update_at]
@@ -278,49 +274,43 @@
                   description: >
                     If true, include posts that have been deleted (DeleteAt > 0).
                     By default, only non-deleted posts are returned.
-                exclude_channel_metadata_system_posts:
+                exclude_system_posts:
                   type: boolean
                   default: false
                   description: >
-                    If true, exclude system posts related to channel metadata changes
-                    (header changes, display name changes, purpose changes). Useful for
-                    compliance exports that only need user-generated content.
+                    If true, exclude all system posts.
                 include_metadata:
                   type: boolean
                   default: false
                   description: >
-                    If true, enrich posts with additional metadata (file counts, reaction counts,
-                    emoji information, priority, acknowledgements). This adds processing overhead
-                    but provides more complete post information.
+                    If true, enrich posts with additional metadata including file information,
+                    reactions, custom emojis, priority, and acknowledgements. Note that this
+                    may increase response time for large result sets.
             examples:
               first_page_ascending:
                 summary: First page, ascending order
                 value:
                   channel_id: "4xp9fdt77pncbef59f4k1qe83o"
-                  cursor_time: 0
-                  cursor_id: ""
+                  cursor: ""
                   per_page: 100
               subsequent_page:
                 summary: Subsequent page using cursor
                 value:
                   channel_id: "4xp9fdt77pncbef59f4k1qe83o"
-                  cursor_time: 1635724800000
-                  cursor_id: "9f8k4qe83o4xp9fdt77pncbef5"
+                  cursor: "MTphYmMxMjM6Y3JlYXRlX2F0OmZhbHNlOmZhbHNlOmFzYzoxNjM1NzI0ODAwMDAwOnBvc3QxMjM"
                   per_page: 100
               time_range_query:
                 summary: Query with time range
                 value:
                   channel_id: "4xp9fdt77pncbef59f4k1qe83o"
-                  cursor_time: 1635638400000
-                  cursor_id: ""
+                  cursor: ""
                   end_time: 1635724800000
                   per_page: 100
               descending_order:
                 summary: Descending order from recent
                 value:
                   channel_id: "4xp9fdt77pncbef59f4k1qe83o"
-                  cursor_time: 9999999999999
-                  cursor_id: ""
+                  cursor: ""
                   sort_direction: "desc"
                   per_page: 100
       responses:
@@ -340,16 +330,12 @@
                     type: object
                     nullable: true
                     description: >
-                      Cursor for retrieving the next page. If null, there are no more pages.
-                      Pass these values as cursor_time and cursor_id in the next request.
+                      Opaque cursor for retrieving the next page. If null, there are no more pages.
+                      Pass the cursor string from this object in the next request.
                     properties:
-                      cursor_time:
-                        type: integer
-                        format: int64
-                        description: Timestamp of the last post in this page
-                      cursor_id:
+                      cursor:
                         type: string
-                        description: ID of the last post in this page
+                        description: Base64-encoded opaque cursor string containing pagination state
               examples:
                 with_more_pages:
                   summary: Response with more pages available
@@ -358,8 +344,7 @@
                       "post_id_1": { "id": "post_id_1", "message": "First post", "create_at": 1635638400000 }
                       "post_id_2": { "id": "post_id_2", "message": "Second post", "create_at": 1635638500000 }
                     next_cursor:
-                      cursor_time: 1635638500000
-                      cursor_id: "post_id_2"
+                      cursor: "MTphYmMxMjM6Y3JlYXRlX2F0OmZhbHNlOmZhbHNlOmFzYzoxNjM1NjM4NTAwMDAwOnBvc3RfaWRfMg"
                 last_page:
                   summary: Last page (no more results)
                   value:

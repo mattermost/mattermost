@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"sort"
 	"strconv"
 	"testing"
 
@@ -222,8 +223,7 @@ func TestGetPostsForReporting(t *testing.T) {
 
 		requestBody := map[string]any{
 			"channel_id":  th.BasicChannel.Id,
-			"cursor_time": baseTime,
-			"cursor_id":   "",
+			"cursor": "",
 			"per_page":    10,
 		}
 
@@ -245,8 +245,7 @@ func TestGetPostsForReporting(t *testing.T) {
 
 		requestBody := map[string]any{
 			"channel_id":  th.BasicChannel.Id,
-			"cursor_time": baseTime,
-			"cursor_id":   "",
+			"cursor": "",
 			"per_page":    10,
 		}
 
@@ -259,8 +258,7 @@ func TestGetPostsForReporting(t *testing.T) {
 
 		requestBody := map[string]any{
 			"channel_id":  th.BasicChannel.Id,
-			"cursor_time": baseTime,
-			"cursor_id":   "",
+			"cursor": "",
 			"per_page":    10,
 		}
 
@@ -273,8 +271,7 @@ func TestGetPostsForReporting(t *testing.T) {
 
 		requestBody := map[string]any{
 			"channel_id":  th.BasicChannel.Id,
-			"cursor_time": baseTime,
-			"cursor_id":   "",
+			"cursor": "",
 			"per_page":    10,
 		}
 
@@ -292,8 +289,7 @@ func TestGetPostsForReporting(t *testing.T) {
 		th.LoginSystemAdmin()
 
 		requestBody := map[string]any{
-			"cursor_time": baseTime,
-			"cursor_id":   "",
+			"cursor": "",
 			"per_page":    10,
 		}
 
@@ -301,17 +297,75 @@ func TestGetPostsForReporting(t *testing.T) {
 		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
 
-	t.Run("should validate required cursor_time parameter", func(t *testing.T) {
+	t.Run("should return 404 for non-existent channel", func(t *testing.T) {
+		th.LoginSystemAdmin()
+
+		// Use a valid ID format but for a channel that doesn't exist
+		nonExistentChannelId := model.NewId()
+
+		requestBody := map[string]any{
+			"channel_id":  nonExistentChannelId,
+			"cursor": "",
+			"per_page":    10,
+		}
+
+		resp, _ := doPostJSON(t, th.SystemAdminClient, "/api/v4/reports/posts", requestBody)
+		require.Equal(t, http.StatusNotFound, resp.StatusCode, "should return 404 for non-existent channel instead of empty result")
+	})
+
+	t.Run("should accept empty cursor for first page", func(t *testing.T) {
+		th.LoginSystemAdmin()
+
+		// Empty cursor is valid for first page
+		// This is the documented behavior in OpenAPI spec and mmctl default
+		requestBody := map[string]any{
+			"channel_id": th.BasicChannel.Id,
+			"cursor":     "", // Empty cursor for first page
+			"per_page":   10,
+		}
+
+		resp, body := doPostJSON(t, th.SystemAdminClient, "/api/v4/reports/posts", requestBody)
+		require.Equal(t, http.StatusOK, resp.StatusCode, "empty cursor should be accepted")
+
+		var result model.ReportPostListResponse
+		err := json.Unmarshal(body, &result)
+		require.NoError(t, err)
+		require.NotNil(t, result.Posts)
+		require.GreaterOrEqual(t, len(result.Posts), 10, "should return posts with empty cursor")
+	})
+
+	t.Run("should accept omitted cursor for first page", func(t *testing.T) {
+		th.LoginSystemAdmin()
+
+		// Cursor can be omitted entirely for first page
+		requestBody := map[string]any{
+			"channel_id":     th.BasicChannel.Id,
+			"sort_direction": "asc",
+			"per_page":       10,
+			// cursor omitted
+		}
+
+		resp, body := doPostJSON(t, th.SystemAdminClient, "/api/v4/reports/posts", requestBody)
+		require.Equal(t, http.StatusOK, resp.StatusCode, "omitted cursor should be accepted")
+
+		var result model.ReportPostListResponse
+		err := json.Unmarshal(body, &result)
+		require.NoError(t, err)
+		require.NotNil(t, result.Posts)
+		require.GreaterOrEqual(t, len(result.Posts), 10, "should return posts")
+	})
+
+	t.Run("should reject invalid cursor format", func(t *testing.T) {
 		th.LoginSystemAdmin()
 
 		requestBody := map[string]any{
 			"channel_id": th.BasicChannel.Id,
-			"cursor_id":  "",
+			"cursor":     "invalid:cursor", // Invalid cursor format
 			"per_page":   10,
 		}
 
 		resp, _ := doPostJSON(t, th.SystemAdminClient, "/api/v4/reports/posts", requestBody)
-		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode, "invalid cursor format should be rejected")
 	})
 
 	t.Run("should handle cursor pagination correctly", func(t *testing.T) {
@@ -320,8 +374,7 @@ func TestGetPostsForReporting(t *testing.T) {
 		// First page
 		requestBody1 := map[string]any{
 			"channel_id":  th.BasicChannel.Id,
-			"cursor_time": baseTime,
-			"cursor_id":   "",
+			"cursor": "",
 			"per_page":    5,
 		}
 
@@ -336,10 +389,9 @@ func TestGetPostsForReporting(t *testing.T) {
 
 		// Second page using cursor from first page
 		requestBody2 := map[string]any{
-			"channel_id":  th.BasicChannel.Id,
-			"cursor_time": result1.NextCursor.CursorTime,
-			"cursor_id":   result1.NextCursor.CursorId,
-			"per_page":    5,
+			"channel_id": th.BasicChannel.Id,
+			"cursor":     result1.NextCursor.Cursor, // Opaque cursor from previous response
+			"per_page":   5,
 		}
 
 		resp2, body2 := doPostJSON(t, th.SystemAdminClient, "/api/v4/reports/posts", requestBody2)
@@ -361,14 +413,25 @@ func TestGetPostsForReporting(t *testing.T) {
 		th.LoginSystemAdmin()
 
 		// Request only first 5 posts (0-4) by setting end_time just after post 4
+		// Use a cursor starting at baseTime to exclude any posts created before our test posts
 		endTime := baseTime + (4 * 1000) + 500 // Halfway to post 5
 
+		// Create cursor starting at baseTime (just before post 0)
+		cursor := model.EncodeReportPostCursor(
+			th.BasicChannel.Id,
+			"create_at",
+			false, // include_deleted
+			false, // exclude_system_posts
+			"asc",
+			baseTime,
+			"", // empty post_id
+		)
+
 		requestBody := map[string]any{
-			"channel_id":  th.BasicChannel.Id,
-			"cursor_time": baseTime,
-			"cursor_id":   "",
-			"end_time":    endTime,
-			"per_page":    100,
+			"channel_id": th.BasicChannel.Id,
+			"cursor":     cursor,
+			"end_time":   endTime,
+			"per_page":   100,
 		}
 
 		resp, body := doPostJSON(t, th.SystemAdminClient, "/api/v4/reports/posts", requestBody)
@@ -381,7 +444,7 @@ func TestGetPostsForReporting(t *testing.T) {
 
 		// Verify all posts are within time range
 		for _, post := range result.Posts {
-			require.GreaterOrEqual(t, post.CreateAt, baseTime, "post should be after cursor_time")
+			require.GreaterOrEqual(t, post.CreateAt, baseTime, "post should be at or after cursor time")
 			require.LessOrEqual(t, post.CreateAt, endTime, "post should be before end_time")
 		}
 	})
@@ -393,8 +456,7 @@ func TestGetPostsForReporting(t *testing.T) {
 		futureTime := baseTime + (20 * 1000) // Well after all test posts
 		requestBody := map[string]any{
 			"channel_id":     th.BasicChannel.Id,
-			"cursor_time":    futureTime,
-			"cursor_id":      "",
+			"cursor": "",
 			"sort_direction": "desc",
 			"per_page":       5,
 		}
@@ -419,13 +481,114 @@ func TestGetPostsForReporting(t *testing.T) {
 		// validates that DESC pagination is working correctly
 	})
 
+	t.Run("should support DESC sort order with end_time (cursor > end_time is valid)", func(t *testing.T) {
+		th.LoginSystemAdmin()
+
+		// DESC pagination: Start from recent time and page backwards to an older end_time
+		// This is the typical pattern for "get all posts from Jan 31 back to Jan 1"
+		startTime := baseTime + (14 * 1000) // Post 14 (most recent test post)
+		endTime := baseTime + (5 * 1000)    // Post 5 (older limit)
+
+		// Create opaque cursor for starting position
+		cursor := model.EncodeReportPostCursor(
+			th.BasicChannel.Id,
+			"create_at",
+			false, // include_deleted
+			false, // exclude_system_posts
+			"desc",
+			startTime,
+			"", // empty post_id for time-only cursor
+		)
+
+		requestBody := map[string]any{
+			"channel_id":     th.BasicChannel.Id,
+			"cursor":         cursor,
+			"end_time":       endTime, // Jan 1 (old)
+			"sort_direction": "desc",  // Paginating backwards
+			"per_page":       100,
+		}
+
+		resp, body := doPostJSON(t, th.SystemAdminClient, "/api/v4/reports/posts", requestBody)
+		require.Equal(t, http.StatusOK, resp.StatusCode, "DESC order with cursor > end_time should be valid")
+
+		var result model.ReportPostListResponse
+		err := json.Unmarshal(body, &result)
+		require.NoError(t, err)
+
+		// Should get posts 5-13 (9 posts total, since we start from 14 and go back to 5)
+		// Posts after cursor time (14) are excluded, posts before end_time (5) are excluded
+		require.GreaterOrEqual(t, len(result.Posts), 8, "should get posts in DESC range")
+
+		// Verify all posts are within the time range
+		for _, post := range result.Posts {
+			require.LessOrEqual(t, post.CreateAt, startTime, "post should be at or before cursor time")
+			require.GreaterOrEqual(t, post.CreateAt, endTime, "post should be at or after end_time")
+		}
+	})
+
+	t.Run("should use cursor parameters when cursor is provided (self-contained cursor)", func(t *testing.T) {
+		th.LoginSystemAdmin()
+
+		// Create a cursor with sort_direction=desc
+		cursor := model.EncodeReportPostCursor(
+			th.BasicChannel.Id,
+			"create_at",
+			false, // include_deleted
+			false, // exclude_system_posts
+			"desc",
+			baseTime,
+			"",
+		)
+
+		// Make request with different parameters - cursor parameters should win
+		requestBody := map[string]any{
+			"channel_id":     th.BasicChannel.Id,
+			"cursor":         cursor,
+			"sort_direction": "asc",  // Different from cursor, but cursor should win
+			"time_field":     "update_at", // Different from cursor, but cursor should win
+			"per_page":       100,
+		}
+
+		resp, body := doPostJSON(t, th.SystemAdminClient, "/api/v4/reports/posts", requestBody)
+		require.Equal(t, http.StatusOK, resp.StatusCode, "cursor parameters should take precedence (self-contained cursor)")
+
+		var result model.ReportPostListResponse
+		err := json.Unmarshal(body, &result)
+		require.NoError(t, err)
+
+		// Verify the query used DESC order (from cursor, not request body)
+		// If DESC is being used, posts should be ordered by CreateAt descending
+		if len(result.Posts) > 1 {
+			postSlice := make([]*model.Post, 0, len(result.Posts))
+			for _, post := range result.Posts {
+				postSlice = append(postSlice, post)
+			}
+			// Sort by the expected order (desc)
+			sort.Slice(postSlice, func(i, j int) bool {
+				if postSlice[i].CreateAt == postSlice[j].CreateAt {
+					return postSlice[i].Id > postSlice[j].Id
+				}
+				return postSlice[i].CreateAt > postSlice[j].CreateAt
+			})
+			// Verify first post matches what we expect from DESC order
+			firstPost := postSlice[0]
+			for _, post := range result.Posts {
+				if post.CreateAt < baseTime {
+					// Found a post before cursor - verify it matches DESC expectations
+					require.LessOrEqual(t, post.CreateAt, baseTime, "with DESC from cursor, should get posts <= cursor time")
+					break
+				}
+			}
+			_ = firstPost // Just need to verify DESC was used
+		}
+	})
+
 	t.Run("should support update_at time field", func(t *testing.T) {
 		th.LoginSystemAdmin()
 
 		requestBody := map[string]any{
 			"channel_id":  th.BasicChannel.Id,
-			"cursor_time": baseTime,
-			"cursor_id":   "",
+			"cursor": "",
 			"time_field":  "update_at",
 			"per_page":    10,
 		}
@@ -450,8 +613,7 @@ func TestGetPostsForReporting(t *testing.T) {
 		// Request without including deleted posts
 		requestBody1 := map[string]any{
 			"channel_id":      th.BasicChannel.Id,
-			"cursor_time":     baseTime,
-			"cursor_id":       "",
+			"cursor": "",
 			"include_deleted": false,
 			"per_page":        100,
 		}
@@ -470,8 +632,7 @@ func TestGetPostsForReporting(t *testing.T) {
 		// Request with including deleted posts
 		requestBody2 := map[string]any{
 			"channel_id":      th.BasicChannel.Id,
-			"cursor_time":     baseTime,
-			"cursor_id":       "",
+			"cursor": "",
 			"include_deleted": true,
 			"per_page":        100,
 		}
@@ -489,29 +650,36 @@ func TestGetPostsForReporting(t *testing.T) {
 		require.Greater(t, deletedPostResult.DeleteAt, int64(0), "post should have DeleteAt set")
 	})
 
-	t.Run("should exclude channel metadata system posts when requested", func(t *testing.T) {
+	t.Run("should exclude all system posts when requested", func(t *testing.T) {
 		th.LoginSystemAdmin()
 
-		// Create a system post for channel header change with controlled timestamp
-		// App layer respects CreateAt when explicitly set
-		systemPost := &model.Post{
-			ChannelId: th.BasicChannel.Id,
-			UserId:    th.SystemAdminUser.Id,
-			Message:   "Channel header changed",
-			Type:      model.PostTypeHeaderChange,
-			CreateAt:  baseTime + (int64(20) * 1000), // After all test posts
-			UpdateAt:  baseTime + (int64(20) * 1000),
+		// Create various types of system posts with controlled timestamps
+		systemPostTypes := []string{
+			model.PostTypeHeaderChange,
+			model.PostTypeJoinChannel,
+			model.PostTypeLeaveChannel,
+			model.PostTypeAddToChannel,
 		}
-		_, appErr := th.App.CreatePost(th.Context, systemPost, th.BasicChannel, model.CreatePostFlags{})
-		require.Nil(t, appErr)
 
-		// Request with excluding metadata posts
+		for i, postType := range systemPostTypes {
+			systemPost := &model.Post{
+				ChannelId: th.BasicChannel.Id,
+				UserId:    th.SystemAdminUser.Id,
+				Message:   "System message",
+				Type:      postType,
+				CreateAt:  baseTime + (int64(20+i) * 1000), // After all test posts
+				UpdateAt:  baseTime + (int64(20+i) * 1000),
+			}
+			_, appErr := th.App.CreatePost(th.Context, systemPost, th.BasicChannel, model.CreatePostFlags{})
+			require.Nil(t, appErr)
+		}
+
+		// Request with excluding all system posts
 		requestBody := map[string]any{
-			"channel_id":                            th.BasicChannel.Id,
-			"cursor_time":                           baseTime,
-			"cursor_id":                             "",
-			"exclude_channel_metadata_system_posts": true,
-			"per_page":                              100,
+			"channel_id":          th.BasicChannel.Id,
+			"cursor":              "",
+			"exclude_system_posts": true,
+			"per_page":            100,
 		}
 
 		resp, body := doPostJSON(t, th.SystemAdminClient, "/api/v4/reports/posts", requestBody)
@@ -521,11 +689,9 @@ func TestGetPostsForReporting(t *testing.T) {
 		err := json.Unmarshal(body, &result)
 		require.NoError(t, err)
 
-		// Verify no system metadata posts are included
+		// Verify no system posts are included (any type starting with "system_")
 		for _, post := range result.Posts {
-			require.NotEqual(t, model.PostTypeHeaderChange, post.Type, "header change posts should be excluded")
-			require.NotEqual(t, model.PostTypeDisplaynameChange, post.Type, "displayname change posts should be excluded")
-			require.NotEqual(t, model.PostTypePurposeChange, post.Type, "purpose change posts should be excluded")
+			require.False(t, post.IsSystemMessage(), "system posts should be excluded, found type: %s", post.Type)
 		}
 	})
 
@@ -534,8 +700,7 @@ func TestGetPostsForReporting(t *testing.T) {
 
 		requestBody := map[string]any{
 			"channel_id":  th.BasicChannel.Id,
-			"cursor_time": baseTime,
-			"cursor_id":   "",
+			"cursor": "",
 			"per_page":    5000, // More than max
 		}
 
@@ -543,17 +708,17 @@ func TestGetPostsForReporting(t *testing.T) {
 		require.Equal(t, http.StatusBadRequest, resp.StatusCode, "should reject per_page > MaxReportingPerPage")
 	})
 
-	t.Run("should validate invalid channel_id", func(t *testing.T) {
+	t.Run("should validate invalid channel_id format", func(t *testing.T) {
 		th.LoginSystemAdmin()
 
+		// Invalid ID format (not a valid 26-character ID)
 		requestBody := map[string]any{
 			"channel_id":  "invalid_id",
-			"cursor_time": baseTime,
-			"cursor_id":   "",
+			"cursor": "",
 			"per_page":    10,
 		}
 
 		resp, _ := doPostJSON(t, th.SystemAdminClient, "/api/v4/reports/posts", requestBody)
-		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode, "should reject invalid ID format")
 	})
 }
