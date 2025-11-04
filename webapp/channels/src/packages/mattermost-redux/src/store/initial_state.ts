@@ -106,9 +106,6 @@ const state: GlobalState = {
             byId: {},
             allIds: [],
         },
-        ai: {
-            agents: [],
-        },
         preferences: {
             myPreferences: {},
             userPreferences: {},
