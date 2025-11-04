@@ -7035,6 +7035,22 @@
     "translation": "The provided post history ID does not correspond to a post history item."
   },
   {
+    "id": "app.post.rewrite.agent_call_failed",
+    "translation": "Failed to call AI agent."
+  },
+  {
+    "id": "app.post.rewrite.empty_response",
+    "translation": "Empty response from AI."
+  },
+  {
+    "id": "app.post.rewrite.invalid_action",
+    "translation": "Invalid rewrite action."
+  },
+  {
+    "id": "app.post.rewrite.parse_response_failed",
+    "translation": "Failed to parse rewrite response from AI."
+  },
+  {
     "id": "app.post.save.app_error",
     "translation": "Unable to save the Post."
   },

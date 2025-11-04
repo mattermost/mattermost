@@ -1,0 +1,58 @@
+.ai-rewrite-menu-header {
+    padding: 8px 12px 0 12px;
+    margin-bottom: -4px;
+
+    .Input_wrapper {
+        padding-left: 8px;
+    }
+
+    .Input_legend {
+        display: none;
+    }
+
+    .Input_container .Input_wrapper > :not(:first-child) {
+        margin-left: 10px;
+    }
+
+    button {
+        margin-bottom: 12px;
+    }
+}
+
+.textarea-wrapper {
+    position: relative;
+}
+
+@keyframes ai-rewrite-gradient {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+.ai-rewrite-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        92deg,
+        rgba(var(--center-channel-bg-rgb), 0.32) 0%,
+        rgba(var(--center-channel-bg-rgb), 0.32) 40%,
+        var(--center-channel-bg) 50%,
+        rgba(var(--center-channel-bg-rgb), 0.32) 60%,
+        rgba(var(--center-channel-bg-rgb), 0.32) 100%
+    );
+    background-size: 300% 100%;
+    animation: ai-rewrite-gradient 3.5s linear infinite;
+    pointer-events: none;
+    z-index: 999;
+    border-radius: 4px;
+}
+
+#ai-rewrite-button {
+    pointer-events: auto;
+}
