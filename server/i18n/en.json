@@ -4655,6 +4655,22 @@
     "translation": "This is not a valid live URL"
   },
   {
+    "id": "app.agents.get_agents.app_error",
+    "translation": "Failed to get agents."
+  },
+  {
+    "id": "app.agents.get_agents.bridge_call_failed",
+    "translation": "Bridge call failed."
+  },
+  {
+    "id": "app.agents.get_services.app_error",
+    "translation": "Failed to get LLM services."
+  },
+  {
+    "id": "app.agents.get_services.bridge_call_failed",
+    "translation": "Bridge call failed."
+  },
+  {
     "id": "app.analytics.getanalytics.internal_error",
     "translation": "Unable to get the analytics."
   },
