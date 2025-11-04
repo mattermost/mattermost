@@ -507,14 +507,15 @@ type Z_FileWillBeDownloadedArgs struct {
 	A *Context
 	B *model.FileInfo
 	C string
+	D model.FileDownloadType
 }
 
 type Z_FileWillBeDownloadedReturns struct {
 	A string
 }
 
-func (g *hooksRPCClient) FileWillBeDownloaded(c *Context, fileInfo *model.FileInfo, userID string) string {
-	_args := &Z_FileWillBeDownloadedArgs{c, fileInfo, userID}
+func (g *hooksRPCClient) FileWillBeDownloaded(c *Context, fileInfo *model.FileInfo, userID string, downloadType model.FileDownloadType) string {
+	_args := &Z_FileWillBeDownloadedArgs{c, fileInfo, userID, downloadType}
 	_returns := &Z_FileWillBeDownloadedReturns{}
 	if g.implemented[FileWillBeDownloadedID] {
 		if err := g.client.Call("Plugin.FileWillBeDownloaded", _args, _returns); err != nil {
@@ -526,9 +527,9 @@ func (g *hooksRPCClient) FileWillBeDownloaded(c *Context, fileInfo *model.FileIn
 
 func (s *hooksRPCServer) FileWillBeDownloaded(args *Z_FileWillBeDownloadedArgs, returns *Z_FileWillBeDownloadedReturns) error {
 	if hook, ok := s.impl.(interface {
-		FileWillBeDownloaded(c *Context, fileInfo *model.FileInfo, userID string) string
+		FileWillBeDownloaded(c *Context, fileInfo *model.FileInfo, userID string, downloadType model.FileDownloadType) string
 	}); ok {
-		returns.A = hook.FileWillBeDownloaded(args.A, args.B, args.C)
+		returns.A = hook.FileWillBeDownloaded(args.A, args.B, args.C, args.D)
 	} else {
 		return encodableError(fmt.Errorf("Hook FileWillBeDownloaded called but not implemented."))
 	}

@@ -119,17 +119,17 @@ func (_m *Hooks) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	return r0, r1
 }
 
-// FileWillBeDownloaded provides a mock function with given fields: c, info, userID
-func (_m *Hooks) FileWillBeDownloaded(c *plugin.Context, info *model.FileInfo, userID string) string {
-	ret := _m.Called(c, info, userID)
+// FileWillBeDownloaded provides a mock function with given fields: c, fileInfo, userID, downloadType
+func (_m *Hooks) FileWillBeDownloaded(c *plugin.Context, fileInfo *model.FileInfo, userID string, downloadType model.FileDownloadType) string {
+	ret := _m.Called(c, fileInfo, userID, downloadType)
 
 	if len(ret) == 0 {
 		panic("no return value specified for FileWillBeDownloaded")
 	}
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.FileInfo, string) string); ok {
-		r0 = rf(c, info, userID)
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.FileInfo, string, model.FileDownloadType) string); ok {
+		r0 = rf(c, fileInfo, userID, downloadType)
 	} else {
 		r0 = ret.Get(0).(string)
 	}

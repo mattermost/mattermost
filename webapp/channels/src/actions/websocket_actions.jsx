@@ -7,10 +7,12 @@ import {batchActions} from 'redux-batched-actions';
 import React from 'react';
 
 import {AlertCircleOutlineIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
+import {FileDownloadTypes} from '@mattermost/types/files';
 
 import {
     ChannelTypes,
     EmojiTypes,
+    FileTypes,
     GroupTypes,
     PostTypes,
     TeamTypes,
@@ -2004,47 +2006,61 @@ export function handleFileDownloadRejected(msg) {
     return (dispatch, getState) => {
         const {file_id, file_name, rejection_reason, channel_id, post_id, download_type} = msg.data;
         
-        // Close the file preview modal so the user can see the rejection toast
+        // Store the rejected file ID in Redux state
+        dispatch({
+            type: FileTypes.FILE_DOWNLOAD_REJECTED,
+            data: {
+                file_id,
+                file_name,
+                rejection_reason,
+                channel_id,
+                post_id,
+                download_type,
+            },
+        });
+        
+        // Handle different download types appropriately:
+        // - Thumbnail: Small preview in message list, loaded automatically, no modal, no toast
+        // - Preview: Can be either:
+        //   a) Large image in channel list (SingleImageView) - loaded automatically, no modal, no toast
+        //   b) Full-screen modal view - user clicked, modal open, close it WITH toast
+        // - File: User clicked download button, close modal WITH toast
+        // - Public: User requested public link, close modal WITH toast
+        
+        if (download_type === FileDownloadTypes.THUMBNAIL) {
+            // Thumbnails are loaded automatically in the background
+            // No modal to close, no toast to show
+            return;
+        }
+        
+        if (download_type === FileDownloadTypes.PREVIEW) {
+            // Check if the file preview modal is actually open
+            const state = getState();
+            const isModalOpen = state.views?.modals?.modalState?.[ModalIdentifiers.FILE_PREVIEW_MODAL]?.open;
+            
+            if (!isModalOpen) {
+                // Preview was loaded in channel list (SingleImageView), not in modal
+                // This is an automatic background load, no toast needed
+                return;
+            }
+            
+            // Modal is open, so user clicked to view the preview
+            // Close the modal and show toast to explain why
+            // Continue to close modal and show toast below
+        }
+        
+        // Close the file preview modal for preview (when open), file, and public rejections
         dispatch(closeModal(ModalIdentifiers.FILE_PREVIEW_MODAL));
         
-        // Build a user-friendly message based on download type and context
+        // Show a toast notification to explain why the modal was closed
+        // Use normalized message format for all file types
+        const intl = getIntl();
         let displayMessage;
         
-        const intl = getIntl();
-        switch (download_type) {
-        case 'thumbnail':
-            displayMessage = intl.formatMessage(
-                {id: 'file_download.rejected.thumbnail', defaultMessage: 'Thumbnail blocked: {reason}'},
-                {reason: rejection_reason},
-            );
-            break;
-        case 'preview':
-            displayMessage = intl.formatMessage(
-                {id: 'file_download.rejected.preview', defaultMessage: 'Preview blocked: {reason}'},
-                {reason: rejection_reason},
-            );
-            break;
-        case 'public':
-            displayMessage = intl.formatMessage(
-                {id: 'file_download.rejected.public', defaultMessage: 'Public file access blocked: {reason}'},
-                {reason: rejection_reason},
-            );
-            break;
-        case 'file':
-        default:
-            if (file_name) {
-                displayMessage = intl.formatMessage(
-                    {id: 'file_download.rejected.file_with_name', defaultMessage: 'Access to "{fileName}" blocked: {reason}'},
-                    {fileName: file_name, reason: rejection_reason},
-                );
-            } else {
-                displayMessage = intl.formatMessage(
-                    {id: 'file_download.rejected.file', defaultMessage: 'File access blocked: {reason}'},
-                    {reason: rejection_reason},
-                );
-            }
-            break;
-        }
+        displayMessage = intl.formatMessage(
+            {id: 'file_download.rejected.file', defaultMessage: 'File access blocked: {reason}'},
+            {reason: rejection_reason},
+        );
         
         // Show toast notification using the existing InfoToast system
         dispatch(openModal({

@@ -15,6 +15,20 @@ const (
 	FileinfoSortBySize    = "Size"
 )
 
+// FileDownloadType represents the type of file download or access being performed.
+type FileDownloadType string
+
+const (
+	// FileDownloadTypeFile represents a full file download request.
+	FileDownloadTypeFile FileDownloadType = "file"
+	// FileDownloadTypeThumbnail represents a thumbnail image request.
+	FileDownloadTypeThumbnail FileDownloadType = "thumbnail"
+	// FileDownloadTypePreview represents a preview image request.
+	FileDownloadTypePreview FileDownloadType = "preview"
+	// FileDownloadTypePublic represents a public link access (unauthenticated).
+	FileDownloadTypePublic FileDownloadType = "public"
+)
+
 // GetFileInfosOptions contains options for getting FileInfos
 type GetFileInfosOptions struct {
 	// UserIds optionally limits the FileInfos to those created by the given users.

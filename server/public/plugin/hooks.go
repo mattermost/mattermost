@@ -245,10 +245,16 @@ type Hooks interface {
 	// To reject a file download, return an non-empty string describing why the file was rejected.
 	// To allow the download, return an empty string.
 	//
+	// The downloadType parameter indicates the type of file access and can be one of:
+	//   - model.FileDownloadTypeFile: Full file download
+	//   - model.FileDownloadTypeThumbnail: Thumbnail request
+	//   - model.FileDownloadTypePreview: Preview image request
+	//   - model.FileDownloadTypePublic: Public link access (userID will be empty string in this case)
+	//
 	// Note that this method will be called for files requested by users with appropriate permissions.
 	//
-	// Minimum server version: 11.1
-	FileWillBeDownloaded(c *Context, fileInfo *model.FileInfo, userID string) string
+	// Minimum server version: 11.3
+	FileWillBeDownloaded(c *Context, fileInfo *model.FileInfo, userID string, downloadType model.FileDownloadType) string
 
 	// ReactionHasBeenAdded is invoked after the reaction has been committed to the database.
 	//

@@ -164,9 +164,9 @@ func (hooks *hooksTimerLayer) FileWillBeUploaded(c *Context, info *model.FileInf
 	return _returnsA, _returnsB
 }
 
-func (hooks *hooksTimerLayer) FileWillBeDownloaded(c *Context, fileInfo *model.FileInfo, userID string) string {
+func (hooks *hooksTimerLayer) FileWillBeDownloaded(c *Context, fileInfo *model.FileInfo, userID string, downloadType model.FileDownloadType) string {
 	startTime := timePkg.Now()
-	_returnsA := hooks.hooksImpl.FileWillBeDownloaded(c, fileInfo, userID)
+	_returnsA := hooks.hooksImpl.FileWillBeDownloaded(c, fileInfo, userID, downloadType)
 	hooks.recordTime(startTime, "FileWillBeDownloaded", true)
 	return _returnsA
 }
