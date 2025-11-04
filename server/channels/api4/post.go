@@ -407,6 +407,7 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	pl := model.NewPostList()
 	channelReadPermission := make(map[string]bool)
+	isMemberForAllPosts := true
 
 	for _, post := range posts.Posts {
 		allowed, ok := channelReadPermission[post.ChannelId]
@@ -418,8 +419,11 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 			if !ok {
 				continue
 			}
-			if ok, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel); ok {
+
+			hasPermission, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
+			if hasPermission {
 				allowed = true
+				isMemberForAllPosts = isMemberForAllPosts && isMember
 			}
 
 			channelReadPermission[post.ChannelId] = allowed
@@ -440,6 +444,14 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 		c.Err = err
 		return
 	}
+
+	if !isMemberForAllPosts {
+		auditRec := c.App.MakeAuditRecord(c.AppContext, model.AuditEventViewedPostWithoutMembership, model.AuditStatusSuccess)
+		defer c.App.LogAuditRec(c.AppContext, auditRec, nil)
+		auditRec.AddMeta("reason", "get_flagged_posts")
+		auditRec.AddMeta("channel_id", channelId)
+	}
+
 	if err := clientPostList.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}

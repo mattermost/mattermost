@@ -150,16 +150,17 @@ const (
 
 // Files
 const (
-	AuditEventGetFile                            = "getFile"                            // get or download file
-	AuditEventGetFileLink                        = "getFileLink"                        // generate link for file sharing
-	AuditEventUploadFileMultipart                = "uploadFileMultipart"                // upload file using multipart form data
-	AuditEventUploadFileMultipartLegacy          = "uploadFileMultipartLegacy"          // upload file using legacy multipart method
-	AuditEventUploadFileSimple                   = "uploadFileSimple"                   // upload file using simple direct upload method
-	AuditEventViewedFileWithoutMembership        = "viewedFileWithoutMembership"        // view file without membership
-	AuditEventViewedPinnedPostsWithoutMembership = "viewedPinnedPostsWithoutMembership" // view pinned posts without membership
-	AuditEventViewedFilePreviewWithoutMembership = "viewedFilePreviewWithoutMembership" // view file preview without membership
-	AuditEventViewedFileInfoWithoutMembership    = "viewedFileInfoWithoutMembership"    // view file info without membership
-	AuditEventViewedThumbnailWithoutMembership   = "viewedThumbnailWithoutMembership"   // view thumbnail without membership
+	AuditEventGetFile                                 = "getFile"                                 // get or download file
+	AuditEventGetFileLink                             = "getFileLink"                             // generate link for file sharing
+	AuditEventUploadFileMultipart                     = "uploadFileMultipart"                     // upload file using multipart form data
+	AuditEventUploadFileMultipartLegacy               = "uploadFileMultipartLegacy"               // upload file using legacy multipart method
+	AuditEventUploadFileSimple                        = "uploadFileSimple"                        // upload file using simple direct upload method
+	AuditEventViewedFileWithoutMembership             = "viewedFileWithoutMembership"             // view file without membership
+	AuditEventViewedPinnedPostsWithoutMembership      = "viewedPinnedPostsWithoutMembership"      // view pinned posts without membership
+	AuditEventViewedFilePreviewWithoutMembership      = "viewedFilePreviewWithoutMembership"      // view file preview without membership
+	AuditEventViewedFileInfoWithoutMembership         = "viewedFileInfoWithoutMembership"         // view file info without membership
+	AuditEventViewedThumbnailWithoutMembership        = "viewedThumbnailWithoutMembership"        // view thumbnail without membership
+	AuditEventViewedChannelBookmarksWithoutMembership = "viewedChannelBookmarksWithoutMembership" // view channel bookmarks without membership
 )
 
 // Groups

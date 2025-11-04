@@ -416,7 +416,8 @@ func listChannelBookmarksForChannel(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	if ok, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel); !ok {
+	hasPermission, isMember := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
+	if !hasPermission {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
@@ -425,6 +426,13 @@ func listChannelBookmarksForChannel(c *Context, w http.ResponseWriter, r *http.R
 	if appErr != nil {
 		c.Err = appErr
 		return
+	}
+
+	if !isMember {
+		auditRec := c.MakeAuditRecord(model.AuditEventViewedChannelBookmarksWithoutMembership, model.AuditStatusSuccess)
+		defer c.LogAuditRec(auditRec)
+		auditRec.AddMeta("reason", "list_channel_bookmarks_for_channel")
+		auditRec.AddMeta("channel_id", c.Params.ChannelId)
 	}
 
 	if err := json.NewEncoder(w).Encode(bookmarks); err != nil {

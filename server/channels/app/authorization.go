@@ -287,6 +287,14 @@ func (a *App) HasPermissionToTeam(rctx request.CTX, askingUserId string, teamID 
 	return a.HasPermissionTo(askingUserId, permission)
 }
 
+// HasPermissionToChannel determines if the specified user has the given permission on the provided channel.
+//
+// Returns:
+//
+//	(hasPermission, isMember)
+//
+// hasPermission: true if the user has the specified permission for the channel, otherwise false.
+// isMember: used for auditing access without membership. True if the user is a member of the channel, otherwise false.
 func (a *App) HasPermissionToChannel(rctx request.CTX, askingUserId string, channelID string, permission *model.Permission) (bool, bool) {
 	if channelID == "" || askingUserId == "" {
 		return false, false
@@ -401,6 +409,15 @@ func (a *App) SessionHasPermissionToManageBot(rctx request.CTX, session model.Se
 	return nil
 }
 
+// SessionHasPermissionToReadChannel checks whether the given session has permission
+// to read the specified channel.
+//
+// Returns:
+//
+//	(hasPermission, isMember)
+//
+// hasPermission: true if the user has permission to read the channel, false otherwise
+// isMember: used for auditing access without membership. True if the user is a member of the channel, false otherwise
 func (a *App) SessionHasPermissionToReadChannel(rctx request.CTX, session model.Session, channel *model.Channel) (bool, bool) {
 	if session.IsUnrestricted() {
 		return true, false
@@ -409,6 +426,14 @@ func (a *App) SessionHasPermissionToReadChannel(rctx request.CTX, session model.
 	return a.HasPermissionToReadChannel(rctx, session.UserId, channel)
 }
 
+// HasPermissionToReadChannel determines if the specified user has permission to read the given channel.
+//
+// Returns:
+//
+//	(hasPermission, isMember)
+//
+// hasPermission: true if the user has permission to read the channel, false otherwise
+// isMember: used for auditing access without membership. True if the user is a member of the channel, false otherwise
 func (a *App) HasPermissionToReadChannel(rctx request.CTX, userID string, channel *model.Channel) (bool, bool) {
 	if ok, member := a.HasPermissionToChannel(rctx, userID, channel.Id, model.PermissionReadChannelContent); ok {
 		return true, member
