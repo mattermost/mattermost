@@ -15,6 +15,7 @@ export default class FlagPostConfirmationDialog {
     readonly postText;
     readonly flagReasonOption;
     readonly flagReasonMenuItems;
+    readonly cannotFlagAlreadyFlaggedPostMessage;
 
     constructor(container: Locator, page: Page) {
         this.container = container;
@@ -29,6 +30,7 @@ export default class FlagPostConfirmationDialog {
         this.flagReasonOption = page.locator('.react-select__menu-list');
         this.flagReasonMenuItems = (reason: string) =>
             this.flagReasonOption.locator(`div.react-select__option:has-text("${reason}")`);
+        this.cannotFlagAlreadyFlaggedPostMessage = container.locator('div.FlagPostModal__request-error span');
     }
 
     async fillFlagComment(comment: string) {
@@ -59,5 +61,10 @@ export default class FlagPostConfirmationDialog {
         await expect(this.container).not.toBeVisible();
         await expect(this.cancelButton).not.toBeVisible();
         await expect(this.submitButton).not.toBeVisible();
+    }
+
+    async cannotFlagAlreadyFlaggedPostToBeVisible() {
+        await expect(this.cannotFlagAlreadyFlaggedPostMessage).toBeVisible();
+        await expect(this.cannotFlagAlreadyFlaggedPostMessage).toHaveText('Cannot flag this post as is already flagged.');
     }
 }
