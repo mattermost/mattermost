@@ -1242,14 +1242,28 @@ func decodeReportPostCursorV1(cursor string) (*ReportPostQueryParams, error) {
 		return nil, NewAppError("decodeReportPostCursorV1", "model.post.decode_cursor.invalid_format", nil, fmt.Sprintf("expected 8 parts, got %d", len(parts)), 400)
 	}
 
-	version, _ := strconv.Atoi(parts[0])
+	version, err := strconv.Atoi(parts[0])
+	if err != nil {
+		return nil, NewAppError("decodeReportPostCursorV1", "model.post.decode_cursor.invalid_version", nil, fmt.Sprintf("version must be an integer: %s", err.Error()), 400)
+	}
 	if version != 1 {
 		return nil, NewAppError("decodeReportPostCursorV1", "model.post.decode_cursor.unsupported_version", nil, fmt.Sprintf("version %d", version), 400)
 	}
 
-	includeDeleted, _ := strconv.ParseBool(parts[3])
-	excludeSystemPosts, _ := strconv.ParseBool(parts[4])
-	timestamp, _ := strconv.ParseInt(parts[6], 10, 64)
+	includeDeleted, err := strconv.ParseBool(parts[3])
+	if err != nil {
+		return nil, NewAppError("decodeReportPostCursorV1", "model.post.decode_cursor.invalid_include_deleted", nil, fmt.Sprintf("include_deleted must be a boolean: %s", err.Error()), 400)
+	}
+
+	excludeSystemPosts, err := strconv.ParseBool(parts[4])
+	if err != nil {
+		return nil, NewAppError("decodeReportPostCursorV1", "model.post.decode_cursor.invalid_exclude_system_posts", nil, fmt.Sprintf("exclude_system_posts must be a boolean: %s", err.Error()), 400)
+	}
+
+	timestamp, err := strconv.ParseInt(parts[6], 10, 64)
+	if err != nil {
+		return nil, NewAppError("decodeReportPostCursorV1", "model.post.decode_cursor.invalid_timestamp", nil, fmt.Sprintf("timestamp must be an integer: %s", err.Error()), 400)
+	}
 
 	return &ReportPostQueryParams{
 		ChannelId:          parts[1],
