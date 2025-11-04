@@ -4655,20 +4655,20 @@
     "translation": "This is not a valid live URL"
   },
   {
-    "id": "app.ai.get_agents.app_error",
-    "translation": "Failed to get AI agents."
+    "id": "app.agents.get_agents.app_error",
+    "translation": "Failed to get agents."
   },
   {
-    "id": "app.ai.get_agents.bridge_call_failed",
-    "translation": "AI bridge call failed."
+    "id": "app.agents.get_agents.bridge_call_failed",
+    "translation": "Bridge call failed."
   },
   {
-    "id": "app.ai.get_services.app_error",
-    "translation": "Failed to get AI services."
+    "id": "app.agents.get_services.app_error",
+    "translation": "Failed to get LLM services."
   },
   {
-    "id": "app.ai.get_services.bridge_call_failed",
-    "translation": "AI bridge call failed."
+    "id": "app.agents.get_services.bridge_call_failed",
+    "translation": "Bridge call failed."
   },
   {
     "id": "app.analytics.getanalytics.internal_error",

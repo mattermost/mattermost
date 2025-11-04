@@ -6,8 +6,8 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import type {WebSocketMessage} from '@mattermost/client';
 
-import {getAIAgents as getAIAgentsAction} from 'mattermost-redux/actions/ai';
-import {getAIAgents} from 'mattermost-redux/selectors/entities/ai';
+import {getAgents as getAgentsAction} from 'mattermost-redux/actions/agents';
+import {getAgents} from 'mattermost-redux/selectors/entities/agents';
 
 import {SocketEvents} from 'utils/constants';
 import {useWebSocket} from 'utils/use_websocket/hooks';
@@ -16,9 +16,9 @@ const AI_PLUGIN_ID = 'mattermost-ai';
 const DEBOUNCE_DELAY_MS = 100; // Debounce refetches within 100ms
 
 /**
- * Hook to determine if the AI bridge is enabled by checking if there are available AI agents.
+ * Hook to determine if the bridge is enabled by checking if there are available agents.
  * This hook:
- * - Fetches AI agents on mount
+ * - Fetches agents on mount
  * - Returns true if agents are available, false otherwise
  * - Listens to plugin enabled/disabled websocket events for the mattermost-ai plugin
  * - Refetches agents when the mattermost-ai plugin is enabled or disabled
@@ -26,15 +26,15 @@ const DEBOUNCE_DELAY_MS = 100; // Debounce refetches within 100ms
  */
 export default function useGetAgentsBridgeEnabled(): boolean {
     const dispatch = useDispatch();
-    const agents = useSelector(getAIAgents);
+    const agents = useSelector(getAgents);
     const hasFetchedRef = useRef(false);
     const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-    // Fetch AI agents on mount
+    // Fetch agents on mount
     useEffect(() => {
         if (!hasFetchedRef.current) {
             hasFetchedRef.current = true;
-            dispatch(getAIAgentsAction());
+            dispatch(getAgentsAction());
         }
     }, [dispatch]);
 
@@ -53,7 +53,7 @@ export default function useGetAgentsBridgeEnabled(): boolean {
             clearTimeout(debounceTimerRef.current);
         }
         debounceTimerRef.current = setTimeout(() => {
-            dispatch(getAIAgentsAction());
+            dispatch(getAgentsAction());
         }, DEBOUNCE_DELAY_MS);
     }, [dispatch]);
 

@@ -5,7 +5,7 @@
 
 import type {AccessControlPolicy, CELExpressionError, AccessControlTestResult, AccessControlPoliciesResult, AccessControlPolicyChannelsResult, AccessControlVisualAST, AccessControlAttributes} from '@mattermost/types/access_control';
 import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery} from '@mattermost/types/admin';
-import type {AgentsResponse} from '@mattermost/types/ai';
+import type {AgentsResponse} from '@mattermost/types/agents';
 import type {AppBinding, AppCallRequest, AppCallResponse} from '@mattermost/types/apps';
 import type {Audit} from '@mattermost/types/audits';
 import type {UserAutocomplete, AutocompleteSuggestion} from '@mattermost/types/autocomplete';
@@ -456,8 +456,12 @@ export default class Client4 {
         return `${this.getBaseRoute()}/plugins`;
     }
 
-    getAIRoute() {
-        return `${this.getBaseRoute()}/ai`;
+    getAgentsRoute() {
+        return `${this.getBaseRoute()}/agents`;
+    }
+
+    getLLMServicesRoute() {
+        return `${this.getBaseRoute()}/llmservices`;
     }
 
     getPluginRoute(pluginId: string) {
@@ -3288,10 +3292,10 @@ export default class Client4 {
         );
     };
 
-    // AI Routes
-    getAIAgents = () => {
+    // Agent Routes
+    getAgents = () => {
         return this.doFetch<AgentsResponse>(
-            `${this.getAIRoute()}/agents`,
+            `${this.getAgentsRoute()}`,
             {method: 'get'},
         );
     };

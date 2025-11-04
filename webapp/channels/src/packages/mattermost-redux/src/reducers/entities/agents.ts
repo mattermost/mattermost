@@ -3,19 +3,19 @@
 
 import {combineReducers} from 'redux';
 
-import type {AIAgent} from '@mattermost/types/ai';
+import type {Agent} from '@mattermost/types/agents';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 
-import {AITypes} from '../../action_types';
+import {AgentTypes} from '../../action_types';
 
-export interface AIState {
-    agents: AIAgent[];
+export interface AgentsState {
+    agents: Agent[];
 }
 
-function agents(state: AIAgent[] = [], action: MMReduxAction): AIAgent[] {
+function agents(state: Agent[] = [], action: MMReduxAction): Agent[] {
     switch (action.type) {
-    case AITypes.RECEIVED_AI_AGENTS:
+    case AgentTypes.RECEIVED_AGENTS:
         return action.data || [];
     default:
         return state;

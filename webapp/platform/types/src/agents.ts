@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-export type AIAgent = {
+export type Agent = {
     id: string;
     displayName: string;
     username: string;
@@ -10,16 +10,16 @@ export type AIAgent = {
 };
 
 export type AgentsResponse = {
-    agents: AIAgent[];
+    agents: Agent[];
 };
 
-export type AIService = {
+export type LLMService = {
     id: string;
     name: string;
     type: string;
 };
 
 export type ServicesResponse = {
-    services: AIService[];
+    services: LLMService[];
 };
 

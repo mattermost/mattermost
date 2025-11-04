@@ -7,7 +7,7 @@ import {zeroStateLimitedViews} from '../reducers/entities/posts';
 
 const state: GlobalState = {
     entities: {
-        ai: {
+        agents: {
             agents: [],
         },
         general: {

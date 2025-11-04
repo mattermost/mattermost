@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-.ai-agent-dropdown {
+.agent-dropdown {
     display: flex;
     align-items: center;
     gap: 8px;
 
-    .ai-agent-dropdown-label {
+    .agent-dropdown-label {
         color: rgba(var(--center-channel-color-rgb), 0.56);
         font-family: 'Open Sans', sans-serif;
         font-size: 11px;
@@ -16,7 +16,7 @@
         text-transform: uppercase;
     }
 
-    .ai-agent-dropdown-button {
+    .agent-dropdown-button {
         display: flex;
         align-items: center;
         padding: 2px 4px 2px 6px;
@@ -40,7 +40,7 @@
             opacity: 0.5;
         }
 
-        .ai-agent-dropdown-button-text {
+        .agent-dropdown-button-text {
             color: var(--center-channel-color);
             font-family: 'Open Sans', sans-serif;
             font-size: 11px;
@@ -56,7 +56,7 @@
 }
 
 // Menu header - rendered in MUI Popover, needs global scope
-.ai-agent-dropdown-menu-header {
+.agent-dropdown-menu-header {
     padding: 6px 20px;
     background-color: var(--center-channel-bg);
     color: rgba(var(--center-channel-color-rgb), 0.56);
@@ -69,7 +69,7 @@
 }
 
 // Menu items - rendered in MUI Popover, needs global scope targeting menu ID
-#ai-agent-dropdown-menu {
+#agent-dropdown-menu {
     padding: 8px 0;
 
     .MuiMenuItem-root {
