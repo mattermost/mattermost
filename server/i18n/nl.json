@@ -10960,10 +10960,6 @@
     "translation": "Faalde in het bijwerken van de status van gemarkeerde berichten bij het permanent verwijderen van gemarkeerde berichten."
   },
   {
-    "id": "app.content_flagging.restore_file_info.app_error",
-    "translation": "Fout bij het herstellen van de bestandsinfo voor het gemarkeerde bericht."
-  },
-  {
     "id": "app.content_flagging.search_property_fields.app_error",
     "translation": "Fout bij het zoeken naar Content Flagging eigenschapsvelden."
   },

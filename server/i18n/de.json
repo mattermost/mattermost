@@ -10956,10 +10956,6 @@
     "translation": "Beim dauerhaften Löschen von markierten Beiträgen wurde der Status der markierten Beiträge nicht aktualisiert."
   },
   {
-    "id": "app.content_flagging.restore_file_info.app_error",
-    "translation": "Die Dateiinformationen für den markierten Beitrag konnten nicht wiederhergestellt werden."
-  },
-  {
     "id": "app.content_flagging.save_reviewer_settings.app_error",
     "translation": "Die Einstellungen des Inhaltsprüfers konnten nicht in der Datenbank gespeichert werden."
   },

@@ -10960,10 +10960,6 @@
     "translation": "Nie udało się zaktualizować statusu oflagowanego postu podczas trwałego usunięcia oflagowanego postu."
   },
   {
-    "id": "app.content_flagging.restore_file_info.app_error",
-    "translation": "Nie udało się przywrócić plików info dla oflagowanego posta."
-  },
-  {
     "id": "app.content_flagging.save_reviewer_settings.app_error",
     "translation": "Nie udało się zapisać ustawień weryfikatora treści w bazie danych."
   },
