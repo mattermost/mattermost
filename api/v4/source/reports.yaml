@@ -216,7 +216,7 @@
         - Ascending or descending sort order
         - Time range filtering with optional end_time
         - Include/exclude deleted posts
-        - Exclude all system posts (any type starting with "system_")
+        - Exclude system posts (any type starting with "system_")
         - Optional metadata enrichment (file info, reactions, emojis, priority, acknowledgements)
       operationId: GetPostsForReporting
       requestBody:
