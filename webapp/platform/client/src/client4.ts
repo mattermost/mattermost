@@ -3289,14 +3289,6 @@ export default class Client4 {
         );
     };
 
-    // AI Routes
-    getAgents = () => {
-        return this.doFetch<{agents: Array<{id: string; displayName: string; username: string; service_id: string; service_type: string}>}>(
-            `${this.getAgentsRoute()}`,
-            {method: 'get'},
-        );
-    };
-
     // Admin Routes
 
     getLogs = (logFilter: LogFilterQuery) => {
