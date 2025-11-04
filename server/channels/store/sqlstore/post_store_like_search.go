@@ -13,11 +13,10 @@ import (
 )
 
 func (s *SqlPostStore) generateLikeSearchQuery(baseQuery sq.SelectBuilder, params *model.SearchParams, phrases []string, terms string, excludedTerms string, searchType string) sq.SelectBuilder {
-	// 検索キーワードの処理
 	var searchClauses []string
 	var searchArgs []any
 
-	//フレーズ検索
+	// Phrase search
 	for _, phrase := range phrases {
 		cleanPhrase := strings.Trim(phrase, `"`)
 		if cleanPhrase != "" {
@@ -26,7 +25,7 @@ func (s *SqlPostStore) generateLikeSearchQuery(baseQuery sq.SelectBuilder, param
 		}
 	}
 
-	//前方検索
+	// Prefix search
 	termWords := strings.Fields(terms)
 	for _, word := range termWords {
 		if strings.HasPrefix(word, "#") {
@@ -50,7 +49,7 @@ func (s *SqlPostStore) generateLikeSearchQuery(baseQuery sq.SelectBuilder, param
 		baseQuery = baseQuery.Where("("+strings.Join(searchClauses, logicalOperator)+")", searchArgs...)
 	}
 
-	// 除外キーワードの処理
+	// Handle excluded words
 	excludedWords := strings.Fields(excludedTerms)
 	if len(excludedWords) > 0 {
 		var excludedClauses []string
