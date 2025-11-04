@@ -1,8 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/integrations/EditCommand should have match renderExtra 1`] = `
-<ConfirmModal
-  confirmButtonClass="btn btn-primary"
+<Memo(ConfirmModal)
   confirmButtonText={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Update"
@@ -71,8 +70,7 @@ exports[`components/integrations/EditCommand should match snapshot 1`] = `
     }
   }
   renderExtra={
-    <ConfirmModal
-      confirmButtonClass="btn btn-primary"
+    <Memo(ConfirmModal)
       confirmButtonText={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Update"

@@ -75,9 +75,6 @@ type FeatureFlags struct {
 	InteractiveDialogAppsForm bool
 
 	EnableMattermostEntry bool
-	// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this field when feature is GA
-	// Enable channel admins to manage ABAC rules for their channels
-	ChannelAdminManageABACRules bool
 
 	// Enable mobile SSO SAML code-exchange flow (no tokens in deep links)
 	MobileSSOCodeExchange bool
@@ -85,6 +82,9 @@ type FeatureFlags struct {
 	// FEATURE_FLAG_REMOVAL: AutoTranslation - Remove this when MVP is to be released
 	// Enable auto-translation feature for messages in channels
 	AutoTranslation bool
+
+	// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge
+	EnableAIPluginBridge bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -116,13 +116,14 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ContentFlagging = false
 	f.InteractiveDialogAppsForm = true
 	f.EnableMattermostEntry = true
-	// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this default when feature is GA
-	f.ChannelAdminManageABACRules = false // Default to false for safety
 
 	f.MobileSSOCodeExchange = true
 
 	// FEATURE_FLAG_REMOVAL: AutoTranslation - Remove this default when MVP is to be released
 	f.AutoTranslation = false
+
+	// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge - Remove this default when MVP is to be released
+	f.EnableAIPluginBridge = false
 }
 
 // ToMap returns the feature flags as a map[string]string

@@ -1953,6 +1953,21 @@ func (c *Client4) GetTeam(ctx context.Context, teamId, etag string) (*Team, *Res
 	return DecodeJSONFromResponse[*Team](r)
 }
 
+// GetTeamAsContentReviewer returns a team based on the provided team id string, fetching it as a Content Reviewer for a flagged post.
+func (c *Client4) GetTeamAsContentReviewer(ctx context.Context, teamId, etag, flaggedPostId string) (*Team, *Response, error) {
+	values := url.Values{}
+	values.Set("as_content_reviewer", c.boolString(true))
+	values.Set("flagged_post_id", flaggedPostId)
+
+	route := c.teamRoute(teamId) + "?" + values.Encode()
+	r, err := c.DoAPIGet(ctx, route, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Team](r)
+}
+
 // GetAllTeams returns all teams based on permissions.
 func (c *Client4) GetAllTeams(ctx context.Context, etag string, page int, perPage int) ([]*Team, *Response, error) {
 	values := url.Values{}
@@ -2615,6 +2630,21 @@ func (c *Client4) CreateGroupChannel(ctx context.Context, userIds []string) (*Ch
 // GetChannel returns a channel based on the provided channel id string.
 func (c *Client4) GetChannel(ctx context.Context, channelId, etag string) (*Channel, *Response, error) {
 	r, err := c.DoAPIGet(ctx, c.channelRoute(channelId), etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Channel](r)
+}
+
+// GetChannelAsContentReviewer returns a channel based on the provided channel id string, fetching it as a Content Reviewer for a flagged post.
+func (c *Client4) GetChannelAsContentReviewer(ctx context.Context, channelId, etag, flaggedPostId string) (*Channel, *Response, error) {
+	values := url.Values{}
+	values.Set("as_content_reviewer", c.boolString(true))
+	values.Set("flagged_post_id", flaggedPostId)
+
+	route := c.channelRoute(channelId) + "?" + values.Encode()
+	r, err := c.DoAPIGet(ctx, route, etag)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3512,6 +3542,46 @@ func (c *Client4) GetTeamPostFlaggingFeatureStatus(ctx context.Context, teamId s
 	}
 	defer closeBody(r)
 	return DecodeJSONFromResponse[map[string]bool](r)
+}
+
+func (c *Client4) SaveContentFlaggingSettings(ctx context.Context, config *ContentFlaggingSettingsRequest) (*Response, error) {
+	r, err := c.DoAPIPutJSON(ctx, c.contentFlaggingRoute()+"/config", config)
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) GetContentFlaggingSettings(ctx context.Context) (*ContentFlaggingSettingsRequest, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.contentFlaggingRoute()+"/config", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*ContentFlaggingSettingsRequest](r)
+}
+
+func (c *Client4) AssignContentFlaggingReviewer(ctx context.Context, postId, reviewerId string) (*Response, error) {
+	r, err := c.DoAPIPost(ctx, fmt.Sprintf("%s/post/%s/assign/%s", c.contentFlaggingRoute(), postId, reviewerId), "")
+	if err != nil {
+		return BuildResponse(r), err
+	}
+
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+func (c *Client4) SearchContentFlaggingReviewers(ctx context.Context, teamID, term string) ([]*User, *Response, error) {
+	values := url.Values{}
+	values.Set("term", term)
+	r, err := c.DoAPIGet(ctx, c.contentFlaggingRoute()+"/team/"+teamID+"/reviewers/search?"+values.Encode(), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*User](r)
 }
 
 // SearchFiles returns any posts with matching terms string.
