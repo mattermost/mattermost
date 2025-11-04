@@ -42,13 +42,6 @@ describe('TeamReviewersSection', () => {
     beforeEach(() => {
         jest.clearAllMocks();
 
-        // mockSearchTeams.mockResolvedValue({
-        //     data: {
-        //         teams: mockTeams,
-        //         total_count: 2,
-        //     },
-        // } as never);
-
         mockSearchTeams.mockReturnValue(async () => ({
             data: {
                 teams: mockTeams,
@@ -427,6 +420,49 @@ describe('TeamReviewersSection', () => {
         expect(onChange).toHaveBeenCalledWith({
             team1: {
                 Enabled: true,
+                ReviewerIds: [],
+            },
+        });
+    });
+
+    test('should handle disable for all teams button', async () => {
+        const onChange = jest.fn();
+        const props = {
+            teamReviewersSetting: {
+                team1: {
+                    Enabled: true,
+                    ReviewerIds: [],
+                },
+                team2: {
+                    Enabled: true,
+                    ReviewerIds: [],
+                },
+            },
+            onChange,
+        };
+
+        renderWithContext(
+            <TeamReviewersSection
+                {...props}
+                onChange={onChange}
+            />,
+        );
+
+        await waitFor(() => {
+            const teamNameCells = screen.getAllByTestId('teamName');
+            expect(teamNameCells).toHaveLength(2);
+        });
+
+        const disableForAllButton = screen.getByTestId('disableForAllTeamsButton');
+        fireEvent.click(disableForAllButton);
+
+        expect(onChange).toHaveBeenCalledWith({
+            team1: {
+                Enabled: false,
+                ReviewerIds: [],
+            },
+            team2: {
+                Enabled: false,
                 ReviewerIds: [],
             },
         });
