@@ -440,7 +440,7 @@ test('Verify message is removed from channel if the reviewer removed the message
     await channelsPage.toBeVisible();
 
     const contentModeratedMessage = 'Content deleted as part of Content Flagging review process';
-    const getLastPostId = await channelsPage.centerView.getLastPostID();
-    const post = await channelsPage.centerView.getPostById(getLastPostId);
+    const lastPostId = await channelsPage.centerView.getLastPostID();
+    const post = await channelsPage.centerView.getPostById(lastPostId);
     await expect(post.body).toContainText(contentModeratedMessage);
 });
