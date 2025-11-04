@@ -17,6 +17,7 @@ func TestAccessControlPolicyStore(t *testing.T, rctx request.CTX, ss store.Store
 	t.Run("Delete", func(t *testing.T) { testAccessControlPolicyStoreDelete(t, rctx, ss) })
 	t.Run("SetActive", func(t *testing.T) { testAccessControlPolicyStoreSetActive(t, rctx, ss) })
 	t.Run("GetAll", func(t *testing.T) { testAccessControlPolicyStoreGetAll(t, rctx, ss) })
+	t.Run("Search", func(t *testing.T) { testAccessControlPolicyStoreSearch(t, rctx, ss) })
 }
 
 func testAccessControlPolicyStoreSaveAndGet(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -307,7 +308,7 @@ func testAccessControlPolicyStoreGetAll(t *testing.T, rctx request.CTX, ss store
 		},
 	}
 	t.Cleanup(func() {
-		err = ss.AccessControlPolicy().Delete(rctx, id)
+		err = ss.AccessControlPolicy().Delete(rctx, id3)
 		require.NoError(t, err)
 	})
 
@@ -401,5 +402,69 @@ func testAccessControlPolicyStoreGetAll(t *testing.T, rctx request.CTX, ss store
 		require.NotNil(t, policies)
 		require.Len(t, policies, 1)
 		require.Equal(t, parentPolicy.ID, policies[0].ID)
+	})
+}
+
+func testAccessControlPolicyStoreSearch(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("ensure paging works fine", func(t *testing.T) {
+		ids := make([]string, 0, 15)
+		// Create 15 policies
+		for i := range 15 {
+			policy := &model.AccessControlPolicy{
+				ID:       model.NewId(),
+				Name:     "Policy " + string(rune('A'+i)),
+				Type:     model.AccessControlPolicyTypeChannel,
+				Active:   true,
+				Revision: 1,
+				Version:  model.AccessControlPolicyVersionV0_2,
+				Imports:  []string{},
+				Rules: []model.AccessControlPolicyRule{
+					{
+						Actions:    []string{"action"},
+						Expression: "user.properties.program == \"engineering\"",
+					},
+				},
+			}
+
+			policy, err := ss.AccessControlPolicy().Save(rctx, policy)
+			require.NoError(t, err)
+			require.NotNil(t, policy)
+			ids = append(ids, policy.ID)
+		}
+
+		t.Cleanup(func() {
+			// Clean up created policies
+			for _, id := range ids {
+				err := ss.AccessControlPolicy().Delete(rctx, id)
+				require.NoError(t, err)
+			}
+		})
+
+		// firt page should get 10
+		policies, _, err := ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+			Limit: 10,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, policies)
+		require.Len(t, policies, 10)
+
+		// second page should get only 5
+		policies, _, err = ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+			Limit: 10,
+			Cursor: model.AccessControlPolicyCursor{
+				ID: policies[len(policies)-1].ID,
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, policies)
+		require.Len(t, policies, 5)
+
+		// should get all 15 when no paging
+		policies, _, err = ss.AccessControlPolicy().SearchPolicies(rctx, model.AccessControlPolicySearch{
+			Limit: 20,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, policies)
+		require.Len(t, policies, 15)
 	})
 }

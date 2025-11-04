@@ -519,19 +519,11 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 	var query sq.SelectBuilder
 	if opts.IncludeChildren && opts.ParentID == "" {
 		columns := accessControlPolicySliceColumns("p")
-		if s.DriverName() == model.DatabaseDriverPostgres {
-			childIDs := `COALESCE((SELECT JSON_AGG(c.ID) 
+		childIDs := `COALESCE((SELECT JSON_AGG(c.ID) 
      FROM AccessControlPolicies c
 	 WHERE c.Type != 'parent' 
      AND c.Data->'imports' @> JSONB_BUILD_ARRAY(p.ID)), '[]'::json) AS ChildIDs`
-			columns = append(columns, childIDs)
-		} else {
-			childIDs := `COALESCE((SELECT JSON_ARRAYAGG(c.ID) 
-     FROM AccessControlPolicies c
-     WHERE c.Type != 'parent' 
-     AND JSON_SEARCH(c.Data->'$.imports', 'one', p.ID) IS NOT NULL), JSON_ARRAY()) AS ChildIDs`
-			columns = append(columns, childIDs)
-		}
+		columns = append(columns, childIDs)
 		query = s.getQueryBuilder().Select(columns...).From("AccessControlPolicies p")
 	} else {
 		query = s.selectQueryBuilder
@@ -552,15 +544,9 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 	}
 
 	if opts.ParentID != "" {
-		if s.DriverName() == model.DatabaseDriverPostgres {
-			condition := sq.Expr("Data->'imports' @> ?", fmt.Sprintf("%q", opts.ParentID))
-			query = query.Where(condition)
-			count = count.Where(condition)
-		} else {
-			condition := sq.Expr("JSON_CONTAINS(JSON_EXTRACT(Data, '$.imports'), ?)", fmt.Sprintf("%q", opts.ParentID))
-			query = query.Where(condition)
-			count = count.Where(condition)
-		}
+		condition := sq.Expr("Data->'imports' @> ?", fmt.Sprintf("%q", opts.ParentID))
+		query = query.Where(condition)
+		count = count.Where(condition)
 	}
 
 	if opts.Active {
@@ -588,6 +574,7 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 	}
 
 	query = query.Limit(limit)
+	query = query.OrderBy("Id ASC")
 
 	err := s.GetReplica().SelectBuilder(&p, query)
 	if err != nil {
