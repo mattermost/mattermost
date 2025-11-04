@@ -111,6 +111,7 @@ type SqlStoreStores struct {
 	propertyValue              store.PropertyValueStore
 	accessControlPolicy        store.AccessControlPolicyStore
 	Attributes                 store.AttributesStore
+	ContentFlagging            store.ContentFlaggingStore
 }
 
 type SqlStore struct {
@@ -261,6 +262,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.propertyValue = newPropertyValueStore(store)
 	store.stores.accessControlPolicy = newSqlAccessControlPolicyStore(store, metrics)
 	store.stores.Attributes = newSqlAttributesStore(store, metrics)
+	store.stores.ContentFlagging = newContentFlaggingStore(store)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -938,15 +940,15 @@ func (ss *SqlStore) hasLicense() bool {
 
 func convertMySQLFullTextColumnsToPostgres(columnNames string) string {
 	columns := strings.Split(columnNames, ", ")
-	concatenatedColumnNames := ""
+	var concatenatedColumnNames strings.Builder
 	for i, c := range columns {
-		concatenatedColumnNames += c
+		concatenatedColumnNames.WriteString(c)
 		if i < len(columns)-1 {
-			concatenatedColumnNames += " || ' ' || "
+			concatenatedColumnNames.WriteString(" || ' ' || ")
 		}
 	}
 
-	return concatenatedColumnNames
+	return concatenatedColumnNames.String()
 }
 
 // IsDuplicate checks whether an error is a duplicate key error, which comes when processes are competing on creating the same
@@ -1064,4 +1066,8 @@ func (ss *SqlStore) determineMaxColumnSize(tableName, columnName string) (int, e
 
 func (ss *SqlStore) ScheduledPost() store.ScheduledPostStore {
 	return ss.stores.scheduledPost
+}
+
+func (ss *SqlStore) ContentFlagging() store.ContentFlaggingStore {
+	return ss.stores.ContentFlagging
 }
