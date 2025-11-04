@@ -13,7 +13,7 @@ import MattermostLogo from 'components/widgets/icons/mattermost_logo';
 
 import Constants, {UserStatuses} from 'utils/constants';
 import * as PostUtils from 'utils/post_utils';
-import * as Utils from 'utils/utils';
+import {getProfilePictureURL} from 'utils/post_utils';
 
 type Props = {
     availabilityStatusOnPosts: string;
@@ -30,18 +30,6 @@ type Props = {
 export default class PostProfilePicture extends React.PureComponent<Props> {
     static defaultProps = {
         status: UserStatuses.OFFLINE,
-    };
-
-    getProfilePictureURL = (): string => {
-        const {post, user} = this.props;
-
-        if (user && user.id === post.user_id) {
-            return Utils.imageURLForUser(user.id, user.last_picture_update);
-        } else if (post.user_id) {
-            return Utils.imageURLForUser(post.user_id);
-        }
-
-        return '';
     };
 
     getStatus = (fromAutoResponder: boolean, fromWebhook: boolean, user: UserProfile): string | undefined => {
@@ -90,7 +78,7 @@ export default class PostProfilePicture extends React.PureComponent<Props> {
         }
         const fromAutoResponder = PostUtils.fromAutoResponder(post);
 
-        const profileSrc = this.getProfilePictureURL();
+        const profileSrc = getProfilePictureURL(post, user);
         const src = this.getPostIconURL(profileSrc, fromAutoResponder, fromWebhook);
 
         const overrideIconEmoji = ensureString(post.props.override_icon_emoji);
