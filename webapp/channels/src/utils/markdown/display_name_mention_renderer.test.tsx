@@ -24,11 +24,46 @@ describe('DisplayNameMentionRenderer', () => {
                         last_name: 'Smith',
                         nickname: '',
                     },
+                    user3: {
+                        id: 'user3',
+                        username: 'testuser',
+                        first_name: 'Test',
+                        last_name: 'User',
+                        nickname: 'Tester',
+                    },
+                    user4: {
+                        id: 'user4',
+                        username: 'testuser4_.',
+                        first_name: 'Number',
+                        last_name: 'Four',
+                        nickname: 'Fourth',
+                    },
+                    user5: {
+                        id: 'user5',
+                        username: 'testuser5.__',
+                        first_name: 'Number',
+                        last_name: 'Five',
+                        nickname: 'Fifth',
+                    },
                 },
                 profilesInChannel: {},
                 profilesNotInChannel: {},
                 profilesWithoutTeam: {},
                 profilesInTeam: {},
+            },
+            groups: {
+                groups: {
+                    group1: {
+                        id: 'group1',
+                        name: 'developers',
+                        display_name: 'Developers',
+                        member_count: 5,
+                        allow_reference: true,
+                    },
+                },
+                syncables: {},
+                myGroups: [],
+                stats: {},
             },
             preferences: {
                 myPreferences: {
@@ -103,6 +138,51 @@ describe('DisplayNameMentionRenderer', () => {
             description: 'strips markdown after replacing mentions',
             inputText: '**Hi** @john.doe',
             outputText: 'Hi @Johnny',
+        },
+        {
+            description: 'preserves punctuation after user mention',
+            inputText: 'Hi @john.doe.',
+            outputText: 'Hi @Johnny.',
+        },
+        {
+            description: 'preserves multiple punctuation after user mention',
+            inputText: 'Hello @jane.smith...',
+            outputText: 'Hello @Jane Smith...',
+        },
+        {
+            description: 'handles mention with trailing dash',
+            inputText: 'Contact @testuser-',
+            outputText: 'Contact @Tester-',
+        },
+        {
+            description: 'handles mention with trailing underscore',
+            inputText: 'Ping @testuser_',
+            outputText: 'Ping @Tester_',
+        },
+        {
+            description: 'handles group mention',
+            inputText: 'Hello @developers team',
+            outputText: 'Hello @developers team',
+        },
+        {
+            description: 'preserves punctuation after group mention',
+            inputText: 'Hello @developers.',
+            outputText: 'Hello @developers.',
+        },
+        {
+            description: 'handles restoration of mention suffixes "."',
+            inputText: 'Hello @testuser4_....',
+            outputText: 'Hello @Fourth...',
+        },
+        {
+            description: 'handles restoration of mention suffixes "_"',
+            inputText: 'Hello @testuser5.____.',
+            outputText: 'Hello @Fifth__.',
+        },
+        {
+            description: 'handles restoration of mention suffixes "-"',
+            inputText: 'Hello @testuser6.____.',
+            outputText: 'Hello @Fifth__.',
         },
     ];
 

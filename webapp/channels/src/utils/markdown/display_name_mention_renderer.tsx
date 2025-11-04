@@ -1,10 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {getUserByUsername} from 'mattermost-redux/selectors/entities/users';
+import {getAllGroupsForReferenceByName} from 'mattermost-redux/selectors/entities/groups';
+import {getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import Constants from 'utils/constants';
+import {getUserOrGroupFromMentionName} from 'utils/post_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -35,21 +37,30 @@ export default class DisplayNameMentionRenderer extends RemoveMarkdown {
             return super.text(text);
         }
 
+        const users = getUsersByUsername(this.state);
+        const groups = getAllGroupsForReferenceByName(this.state);
+
         const replacedText = text.replace(Constants.MENTIONS_REGEX, (username: string) => {
-            const raw = username.slice(1); // Remove the '@' prefix
-            const lower = raw.toLowerCase();
+            const mentionName = username.slice(1); // Remove the '@' prefix
 
-            if (Constants.SPECIAL_MENTIONS.includes(lower)) {
+            if (Constants.SPECIAL_MENTIONS.includes(mentionName.toLowerCase())) {
                 return username;
             }
 
-            const user = getUserByUsername(this.state, lower);
-            if (!user) {
-                return username;
+            const [user, group] = getUserOrGroupFromMentionName(mentionName, users, groups);
+
+            if (user) {
+                const userMentionNameSuffix = mentionName.substring(user.username.length);
+                const displayname = displayUsername(user, this.teammateNameDisplay, false);
+
+                return `@${displayname}${userMentionNameSuffix}`;
+            } else if (group) {
+                const groupMentionNameSuffix = mentionName.substring(group.name.length);
+
+                return `@${group.name}${groupMentionNameSuffix}`;
             }
 
-            const displayname = displayUsername(user, this.teammateNameDisplay, false);
-            return `@${displayname}`;
+            return username;
         });
 
         return super.text(replacedText);
