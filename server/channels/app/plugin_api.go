@@ -1226,7 +1226,7 @@ func (api *PluginAPI) PluginHTTP(request *http.Request) *http.Response {
 	}()
 
 	// Wait for headers to be ready before returning response
-	<-responseTransfer.HeadersReady
+	<-responseTransfer.ResponseReady
 
 	return responseTransfer.GenerateResponse(pr)
 }

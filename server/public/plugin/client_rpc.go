@@ -682,16 +682,16 @@ func (s *apiRPCServer) PluginHTTPStream(args *Z_PluginHTTPStreamArgs, returns *Z
 			returns.Header = response.Header
 
 			// Connect to response body stream and stream the response body
-			if response.Body != nil {
-				go func() {
+			go func() {
+				if response.Body != nil {
 					// Stream the response body through the connection
 					if _, err := io.Copy(responseConnection, response.Body); err != nil {
 						log.Printf("error streaming response body: %s", err.Error())
 					}
 					response.Body.Close()
-					responseConnection.Close()
-				}()
-			}
+				}
+				responseConnection.Close()
+			}()
 		}
 	} else {
 		return encodableError(fmt.Errorf("API PluginHTTP called but not implemented"))

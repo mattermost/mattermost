@@ -12,17 +12,17 @@ import (
 )
 
 type PluginResponseWriter struct {
-	pipeWriter   *io.PipeWriter
-	headers      http.Header
-	statusCode   int
-	HeadersReady chan struct{}
+	pipeWriter    *io.PipeWriter
+	headers       http.Header
+	statusCode    int
+	ResponseReady chan struct{}
 }
 
 func NewPluginResponseWriter(pw *io.PipeWriter) *PluginResponseWriter {
 	return &PluginResponseWriter{
-		pipeWriter:   pw,
-		headers:      make(http.Header),
-		HeadersReady: make(chan struct{}),
+		pipeWriter:    pw,
+		headers:       make(http.Header),
+		ResponseReady: make(chan struct{}),
 	}
 }
 
@@ -33,31 +33,31 @@ func (rt *PluginResponseWriter) Header() http.Header {
 	return rt.headers
 }
 
-func (rt *PluginResponseWriter) Write(data []byte) (int, error) {
-	// Signal that headers are ready on first write if not already done
+// markResponseReady safely closes the ResponseReady channel if not already closed
+func (rt *PluginResponseWriter) markResponseReady() {
 	select {
-	case <-rt.HeadersReady:
-		// Already closed
+	case <-rt.ResponseReady:
 	default:
-		close(rt.HeadersReady)
+		close(rt.ResponseReady)
 	}
+}
+
+func (rt *PluginResponseWriter) Write(data []byte) (int, error) {
+	// Signal that response are ready on first write if not already done
+	rt.markResponseReady()
 	return rt.pipeWriter.Write(data)
 }
 
 func (rt *PluginResponseWriter) WriteHeader(statusCode int) {
 	if rt.statusCode == 0 {
 		rt.statusCode = statusCode
-		close(rt.HeadersReady)
+		rt.markResponseReady()
 	}
 }
 
 func (rt *PluginResponseWriter) Flush() {
-	// Signal headers are ready if not already done
-	select {
-	case <-rt.HeadersReady:
-	default:
-		close(rt.HeadersReady)
-	}
+	// Signal response are ready if not already done
+	rt.markResponseReady()
 	// Pipe doesn't need explicit flushing, but we implement the interface
 }
 
@@ -96,23 +96,13 @@ func (rt *PluginResponseWriter) GenerateResponse(pr *io.PipeReader) *http.Respon
 }
 
 func (rt *PluginResponseWriter) CloseWithError(err error) error {
-	// Ensure HeadersReady is closed to prevent deadlock
-	select {
-	case <-rt.HeadersReady:
-		// Already closed
-	default:
-		close(rt.HeadersReady)
-	}
+	// Ensure ResponseReady is closed to prevent deadlock
+	rt.markResponseReady()
 	return rt.pipeWriter.CloseWithError(err)
 }
 
 func (rt *PluginResponseWriter) Close() error {
-	// Ensure HeadersReady is closed to prevent deadlock
-	select {
-	case <-rt.HeadersReady:
-		// Already closed
-	default:
-		close(rt.HeadersReady)
-	}
+	// Ensure ResponseReady is closed to prevent deadlock
+	rt.markResponseReady()
 	return rt.pipeWriter.Close()
 }
