@@ -3134,7 +3134,7 @@ func TestFillInPostProps(t *testing.T) {
 		assert.Equal(t, bot.Username, post1.GetProp(model.PostPropsAIGeneratedByUsername))
 	})
 
-	t.Run("should remove AI-generated prop when user ID is a different non-bot user", func(t *testing.T) {
+	t.Run("should return error when user ID is a different non-bot user", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
@@ -3153,10 +3153,10 @@ func TestFillInPostProps(t *testing.T) {
 
 		err := th.App.FillInPostProps(th.Context, post1, channel)
 
-		assert.Nil(t, err)
-		// The property should be removed since user2 is neither the post creator nor a bot
-		assert.Nil(t, post1.GetProp(model.PostPropsAIGeneratedByUserID))
-		assert.Nil(t, post1.GetProp(model.PostPropsAIGeneratedByUsername))
+		// Should return an error since user2 is neither the post creator nor a bot
+		assert.NotNil(t, err)
+		assert.Equal(t, "FillInPostProps", err.Where)
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
 	})
 
 	t.Run("should remove AI-generated prop when user ID does not exist", func(t *testing.T) {

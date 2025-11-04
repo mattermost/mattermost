@@ -527,12 +527,8 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 			if user.Id == post.UserId || user.IsBot {
 				post.AddProp(model.PostPropsAIGeneratedByUsername, user.Username)
 			} else {
-				// User ID cannot be a different non-bot user
-				rctx.Logger().Warn("AI-generated user ID must be post creator or bot, removing ai_generated_by prop",
-					mlog.String("ai_gen_user_id", aiGenUserID),
-					mlog.String("post_user_id", post.UserId),
-					mlog.Bool("is_bot", user.IsBot))
-				post.DelProp(model.PostPropsAIGeneratedByUserID)
+				// User ID cannot be a different non-bot user - return error
+				return model.NewAppError("FillInPostProps", "api.post.fill_in_post_props.invalid_ai_generated_user.app_error", nil, "", http.StatusBadRequest)
 			}
 		}
 	}
