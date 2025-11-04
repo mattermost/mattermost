@@ -3747,7 +3747,6 @@
   "channel_settings.access_rules.confirm_modal.question": "Bist du sicher, dass du die Zugriffsregeln speichern und anwenden willst?",
   "channel_settings.access_rules.confirm_modal.restricted_tab": "Eingeschränkt ({count})",
   "channel_settings.access_rules.confirm_modal.saving": "Speichern...",
-  "channel_settings.access_rules.confirm_modal.title": "Regeln speichern und anwenden",
   "channel_settings.access_rules.confirm_modal.view_users": "Benutzer ansehen",
   "channel_settings.access_rules.error.back_to_editing": "Zurück zum Bearbeiten",
   "channel_settings.access_rules.error.no_current_user": "Zugriffsregeln können nicht validiert werden: aktueller Benutzer nicht gefunden",

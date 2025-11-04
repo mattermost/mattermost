@@ -3027,7 +3027,6 @@
   "channel_settings.access_rules.confirm_modal.question": "Er du sikker på at du vil lagre og bruke tilgangsreglene?",
   "channel_settings.access_rules.confirm_modal.restricted_tab": "Begrenset ({count})",
   "channel_settings.access_rules.confirm_modal.saving": "Lagrer...",
-  "channel_settings.access_rules.confirm_modal.title": "Lagre og aktiver regler",
   "channel_settings.access_rules.confirm_modal.view_users": "Vis brukere",
   "channel_settings.access_rules.error.back_to_editing": "Tilbake til redigering",
   "channel_settings.access_rules.title": "Tilgangsregler",
