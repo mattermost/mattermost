@@ -222,9 +222,9 @@ func TestGetPostsForReporting(t *testing.T) {
 		th.LoginSystemAdmin()
 
 		requestBody := map[string]any{
-			"channel_id":  th.BasicChannel.Id,
-			"cursor": "",
-			"per_page":    10,
+			"channel_id": th.BasicChannel.Id,
+			"cursor":     "",
+			"per_page":   10,
 		}
 
 		resp, _ := doPostJSON(t, th.SystemAdminClient, "/api/v4/reports/posts", requestBody)
@@ -244,9 +244,9 @@ func TestGetPostsForReporting(t *testing.T) {
 		th.LoginSystemAdmin()
 
 		requestBody := map[string]any{
-			"channel_id":  th.BasicChannel.Id,
-			"cursor": "",
-			"per_page":    10,
+			"channel_id": th.BasicChannel.Id,
+			"cursor":     "",
+			"per_page":   10,
 		}
 
 		resp, _ := doPostJSON(t, th.SystemAdminClient, "/api/v4/reports/posts", requestBody)
@@ -257,9 +257,9 @@ func TestGetPostsForReporting(t *testing.T) {
 		th.LoginBasic()
 
 		requestBody := map[string]any{
-			"channel_id":  th.BasicChannel.Id,
-			"cursor": "",
-			"per_page":    10,
+			"channel_id": th.BasicChannel.Id,
+			"cursor":     "",
+			"per_page":   10,
 		}
 
 		resp, _ := doPostJSON(t, th.Client, "/api/v4/reports/posts", requestBody)
@@ -270,9 +270,9 @@ func TestGetPostsForReporting(t *testing.T) {
 		th.LoginSystemAdmin()
 
 		requestBody := map[string]any{
-			"channel_id":  th.BasicChannel.Id,
-			"cursor": "",
-			"per_page":    10,
+			"channel_id": th.BasicChannel.Id,
+			"cursor":     "",
+			"per_page":   10,
 		}
 
 		resp, body := doPostJSON(t, th.SystemAdminClient, "/api/v4/reports/posts", requestBody)
@@ -289,8 +289,8 @@ func TestGetPostsForReporting(t *testing.T) {
 		th.LoginSystemAdmin()
 
 		requestBody := map[string]any{
-			"cursor": "",
-			"per_page":    10,
+			"cursor":   "",
+			"per_page": 10,
 		}
 
 		resp, _ := doPostJSON(t, th.SystemAdminClient, "/api/v4/reports/posts", requestBody)
@@ -304,9 +304,9 @@ func TestGetPostsForReporting(t *testing.T) {
 		nonExistentChannelId := model.NewId()
 
 		requestBody := map[string]any{
-			"channel_id":  nonExistentChannelId,
-			"cursor": "",
-			"per_page":    10,
+			"channel_id": nonExistentChannelId,
+			"cursor":     "",
+			"per_page":   10,
 		}
 
 		resp, _ := doPostJSON(t, th.SystemAdminClient, "/api/v4/reports/posts", requestBody)
@@ -373,9 +373,9 @@ func TestGetPostsForReporting(t *testing.T) {
 
 		// First page
 		requestBody1 := map[string]any{
-			"channel_id":  th.BasicChannel.Id,
-			"cursor": "",
-			"per_page":    5,
+			"channel_id": th.BasicChannel.Id,
+			"cursor":     "",
+			"per_page":   5,
 		}
 
 		resp1, body1 := doPostJSON(t, th.SystemAdminClient, "/api/v4/reports/posts", requestBody1)
@@ -456,7 +456,7 @@ func TestGetPostsForReporting(t *testing.T) {
 		futureTime := baseTime + (20 * 1000) // Well after all test posts
 		requestBody := map[string]any{
 			"channel_id":     th.BasicChannel.Id,
-			"cursor": "",
+			"cursor":         "",
 			"sort_direction": "desc",
 			"per_page":       5,
 		}
@@ -544,7 +544,7 @@ func TestGetPostsForReporting(t *testing.T) {
 		requestBody := map[string]any{
 			"channel_id":     th.BasicChannel.Id,
 			"cursor":         cursor,
-			"sort_direction": "asc",  // Different from cursor, but cursor should win
+			"sort_direction": "asc",       // Different from cursor, but cursor should win
 			"time_field":     "update_at", // Different from cursor, but cursor should win
 			"per_page":       100,
 		}
@@ -587,10 +587,10 @@ func TestGetPostsForReporting(t *testing.T) {
 		th.LoginSystemAdmin()
 
 		requestBody := map[string]any{
-			"channel_id":  th.BasicChannel.Id,
-			"cursor": "",
-			"time_field":  "update_at",
-			"per_page":    10,
+			"channel_id": th.BasicChannel.Id,
+			"cursor":     "",
+			"time_field": "update_at",
+			"per_page":   10,
 		}
 
 		resp, body := doPostJSON(t, th.SystemAdminClient, "/api/v4/reports/posts", requestBody)
@@ -613,7 +613,7 @@ func TestGetPostsForReporting(t *testing.T) {
 		// Request without including deleted posts
 		requestBody1 := map[string]any{
 			"channel_id":      th.BasicChannel.Id,
-			"cursor": "",
+			"cursor":          "",
 			"include_deleted": false,
 			"per_page":        100,
 		}
@@ -632,7 +632,7 @@ func TestGetPostsForReporting(t *testing.T) {
 		// Request with including deleted posts
 		requestBody2 := map[string]any{
 			"channel_id":      th.BasicChannel.Id,
-			"cursor": "",
+			"cursor":          "",
 			"include_deleted": true,
 			"per_page":        100,
 		}
@@ -676,10 +676,10 @@ func TestGetPostsForReporting(t *testing.T) {
 
 		// Request with excluding all system posts
 		requestBody := map[string]any{
-			"channel_id":          th.BasicChannel.Id,
-			"cursor":              "",
+			"channel_id":           th.BasicChannel.Id,
+			"cursor":               "",
 			"exclude_system_posts": true,
-			"per_page":            100,
+			"per_page":             100,
 		}
 
 		resp, body := doPostJSON(t, th.SystemAdminClient, "/api/v4/reports/posts", requestBody)
@@ -699,9 +699,9 @@ func TestGetPostsForReporting(t *testing.T) {
 		th.LoginSystemAdmin()
 
 		requestBody := map[string]any{
-			"channel_id":  th.BasicChannel.Id,
-			"cursor": "",
-			"per_page":    5000, // More than max
+			"channel_id": th.BasicChannel.Id,
+			"cursor":     "",
+			"per_page":   5000, // More than max
 		}
 
 		resp, _ := doPostJSON(t, th.SystemAdminClient, "/api/v4/reports/posts", requestBody)
@@ -713,9 +713,9 @@ func TestGetPostsForReporting(t *testing.T) {
 
 		// Invalid ID format (not a valid 26-character ID)
 		requestBody := map[string]any{
-			"channel_id":  "invalid_id",
-			"cursor": "",
-			"per_page":    10,
+			"channel_id": "invalid_id",
+			"cursor":     "",
+			"per_page":   10,
 		}
 
 		resp, _ := doPostJSON(t, th.SystemAdminClient, "/api/v4/reports/posts", requestBody)

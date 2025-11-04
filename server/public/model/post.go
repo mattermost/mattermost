@@ -66,13 +66,13 @@ const (
 	PostMessageMaxRunesV2 = PostMessageMaxBytesV2 / 4 // Assume a worst-case representation
 
 	// Reporting API constants
-	MaxReportingPerPage          = 1000 // Maximum number of posts that can be requested per page in reporting endpoints
-	ReportingTimeFieldCreateAt   = "create_at"
-	ReportingTimeFieldUpdateAt   = "update_at"
-	ReportingSortDirectionAsc    = "asc"
-	ReportingSortDirectionDesc   = "desc"
-	PostPropsMaxRunes            = 800000
-	PostPropsMaxUserRunes        = PostPropsMaxRunes - 40000 // Leave some room for system / pre-save modifications
+	MaxReportingPerPage        = 1000 // Maximum number of posts that can be requested per page in reporting endpoints
+	ReportingTimeFieldCreateAt = "create_at"
+	ReportingTimeFieldUpdateAt = "update_at"
+	ReportingSortDirectionAsc  = "asc"
+	ReportingSortDirectionDesc = "desc"
+	PostPropsMaxRunes          = 800000
+	PostPropsMaxUserRunes      = PostPropsMaxRunes - 40000 // Leave some room for system / pre-save modifications
 
 	PropsAddChannelMember = "add_channel_member"
 
@@ -1136,14 +1136,14 @@ type PreparePostForClientOpts struct {
 
 // ReportPostOptions contains options for querying posts for reporting/compliance purposes
 type ReportPostOptions struct {
-	ChannelId                         string `json:"channel_id"`
-	EndTime                           int64  `json:"end_time,omitempty"`                              // Unix timestamp in milliseconds (optional upper bound)
-	TimeField                         string `json:"time_field,omitempty"`                            // "create_at" or "update_at" (default: "create_at")
-	SortDirection                     string `json:"sort_direction,omitempty"`                        // "asc" or "desc" (default: "asc")
-	PerPage                           int    `json:"per_page,omitempty"`                              // Number of posts per page (default: 100, max: MaxReportingPerPage)
-	IncludeDeleted                    bool   `json:"include_deleted,omitempty"`                       // Include deleted posts
-	ExcludeSystemPosts                bool   `json:"exclude_system_posts,omitempty"` // Exclude all system posts (any type starting with "system_")
-	IncludeMetadata                   bool   `json:"include_metadata,omitempty"`                      // Include file info, reactions, etc.
+	ChannelId          string `json:"channel_id"`
+	EndTime            int64  `json:"end_time,omitempty"`             // Unix timestamp in milliseconds (optional upper bound)
+	TimeField          string `json:"time_field,omitempty"`           // "create_at" or "update_at" (default: "create_at")
+	SortDirection      string `json:"sort_direction,omitempty"`       // "asc" or "desc" (default: "asc")
+	PerPage            int    `json:"per_page,omitempty"`             // Number of posts per page (default: 100, max: MaxReportingPerPage)
+	IncludeDeleted     bool   `json:"include_deleted,omitempty"`      // Include deleted posts
+	ExcludeSystemPosts bool   `json:"exclude_system_posts,omitempty"` // Exclude all system posts (any type starting with "system_")
+	IncludeMetadata    bool   `json:"include_metadata,omitempty"`     // Include file info, reactions, etc.
 }
 
 // ReportPostOptionsCursor contains cursor information for pagination.
@@ -1151,7 +1151,8 @@ type ReportPostOptions struct {
 // Clients should treat this as an opaque token and pass it back unchanged.
 //
 // Internal format (before base64 encoding):
-//   v1: "version:channel_id:time_field:include_deleted:exclude_system_posts:sort_direction:timestamp:post_id"
+//
+//	v1: "version:channel_id:time_field:include_deleted:exclude_system_posts:sort_direction:timestamp:post_id"
 //
 // Field order (general to specific):
 // - version: Allows format evolution
@@ -1196,19 +1197,6 @@ type ReportPostQueryParams struct {
 	ExcludeSystemPosts bool   // Resolved: exclude system posts
 	EndTime            int64  // Optional: upper/lower bound depending on sort direction
 	PerPage            int    // Number of posts per page (already validated)
-}
-
-// Internal cursor structure (not exposed to clients)
-// This struct documents the cursor format but is not used in encoding/decoding
-type reportPostCursorV1 struct {
-	Version                           int    // Always 1 for v1
-	ChannelId          string // Channel ID to query
-	TimeField          string // "create_at" or "update_at"
-	IncludeDeleted     bool   // Whether deleted posts are included
-	ExcludeSystemPosts bool   // Whether to exclude all system posts
-	SortDirection      string // "asc" or "desc"
-	Timestamp          int64  // Unix timestamp in milliseconds (pagination position)
-	PostId             string // Post ID for tie-breaking (pagination position)
 }
 
 // EncodeReportPostCursor creates an opaque cursor string from pagination state.

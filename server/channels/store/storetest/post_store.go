@@ -5940,10 +5940,10 @@ func testGetPostsForReporting(t *testing.T, rctx request.CTX, ss store.Store, s 
 
 	t.Run("Exclude channel metadata system posts", func(t *testing.T) {
 		options := model.ReportPostOptions{
-			ChannelId:                         channelID,
-			TimeField:                         "create_at",
-			SortDirection:                     "asc",
-			PerPage:                           100,
+			ChannelId:          channelID,
+			TimeField:          "create_at",
+			SortDirection:      "asc",
+			PerPage:            100,
 			ExcludeSystemPosts: true,
 		}
 		cursor := model.ReportPostOptionsCursor{
@@ -6223,9 +6223,7 @@ func testGetPostsForReporting(t *testing.T, rctx request.CTX, ss store.Store, s 
 			require.NoError(t, err)
 
 			// Add posts to collection
-			for id, post := range result.Posts {
-				allPosts[id] = post
-			}
+			maps.Copy(allPosts, result.Posts)
 
 			if result.NextCursor == nil {
 				break
@@ -6261,7 +6259,7 @@ func testGetPostsForReporting(t *testing.T, rctx request.CTX, ss store.Store, s 
 		largeBaseTime := model.GetMillis()
 		numPosts := 100
 
-		for i := 0; i < numPosts; i++ {
+		for i := range numPosts {
 			post := &model.Post{
 				ChannelId: largeChannelID,
 				UserId:    model.NewId(),
