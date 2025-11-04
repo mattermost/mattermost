@@ -260,7 +260,6 @@ test('Verify user cannot flag a message that was previously retained', async ({p
     });
 
     await adminClient.flagPost(postToBeflagged.id, 'Inappropriate content', 'This message is inappropriate');
-    await adminClient.setContentFlaggingReviewer(postToBeflagged.id, secondUserID);
     await adminClient.keepFlaggedPost(postToBeflagged.id, 'Retaining this post after review');
 
     // Login as the second user
@@ -279,7 +278,7 @@ test('Verify user cannot flag a message that was previously retained', async ({p
     await channelsPage.centerView.flagPostConfirmationDialog.fillFlagComment('This message is inappropriate');
     await channelsPage.centerView.flagPostConfirmationDialog.submitButton.click();
     await channelsPage.centerView.flagPostConfirmationDialog.toBeVisible();
-    await channelsPage.centerView.flagPostConfirmationDialog.cannotFlagAlreadyFlaggedPostToBeVisible();
+    await channelsPage.centerView.flagPostConfirmationDialog.cannotFlagPreviouslyRetainedPostToBeVisible();
 });
 
 /**
