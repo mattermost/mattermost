@@ -73,15 +73,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 128+"
+    "translation": "Version 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 138+"
+    "translation": "Version 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 138+"
+    "translation": "Version 140+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -10814,5 +10814,265 @@
   {
     "id": "api.draft.create_draft.can_not_draft_to_restricted_dm.error",
     "translation": "Det går inte att spara utkast i en begränsad kanal för direktmeddelanden"
+  },
+  {
+    "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
+    "translation": "Kanal-ID matchar inte kanal-ID för det flaggade inlägget."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations_for_channel.restricted_permission.app_error",
+    "translation": "Det går inte att lägga till en behörighet som är begränsad av teamets eller systemets behörighetsschema."
+  },
+  {
+    "id": "api.content_flagging.error.user_not_reviewer",
+    "translation": "Användaren är inte en innehållsgranskare."
+  },
+  {
+    "id": "api.encoding_error",
+    "translation": "Ett fel uppstod vid kodning av JSON för API-svaret"
+  },
+  {
+    "id": "api.file.upload_file.get_channel.app_error",
+    "translation": "Kan inte ladda upp fil till begränsad DM"
+  },
+  {
+    "id": "api.file.upload_file.restricted_dm.error",
+    "translation": "Kan inte ladda upp fil till begränsad DM"
+  },
+  {
+    "id": "api.post.create_post.can_not_post_in_restricted_dm.error",
+    "translation": "Det går inte att posta till en begränsad kanal för direktmeddelanden."
+  },
+  {
+    "id": "api.post.delete_post.can_not_delete_from_restricted_dm.error",
+    "translation": "Det går inte att radera ett inlägg i en begränsad kanal för direktmeddelanden."
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "Det går inte att uppdatera inlägg i en begränsad kanal för direktmeddelanden."
+  },
+  {
+    "id": "api.post.update_post.can_not_update_post_in_restricted_dm.error",
+    "translation": "Det går inte att uppdatera inlägg i en begränsad kanal för direktmeddelanden."
+  },
+  {
+    "id": "api.reaction.delete.restricted_dm.error",
+    "translation": "Kan inte reagera i begränsad DM"
+  },
+  {
+    "id": "api.reaction.save.restricted_dm.error",
+    "translation": "Kan inte reagera i begränsad DM"
+  },
+  {
+    "id": "api.team.get_team.flagged_post_mismatch.app_error",
+    "translation": "Team-ID stämmer inte överens med det flaggade inläggets team-ID."
+  },
+  {
+    "id": "api.user.check_user_password.invalid_hash.app_error",
+    "translation": "Formatet på det hashade lösenordet är ogiltigt och kunde inte tolkas."
+  },
+  {
+    "id": "app.channel.get_common_teams.app_error",
+    "translation": "Fel på \"get common teams for channel\""
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.no_reviewer_field.app_error",
+    "translation": "Inget egenskapsfält för Reviewer ID hittades."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.update_status_property_value.app_error",
+    "translation": "Misslyckades med att uppdatera Status-egenskapens värde vid inställning av granskare."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.upsert_property_value.app_error",
+    "translation": "Misslyckades med att sätta flaggad postgranskare."
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.in_progress",
+    "translation": "Det går inte att flagga detta inlägg eftersom det redan är flaggat."
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.removed",
+    "translation": "Det går inte att flagga det här inlägget, det togs bort i en tidigare flaggningsbegäran."
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.retained",
+    "translation": "Det går inte att flagga det här inlägget eftersom det behölls i en tidigare flaggningsbegäran."
+  },
+  {
+    "id": "app.content_flagging.can_flag_post.unknown",
+    "translation": "Det går inte att flagga det här inlägget eftersom det har okänd status."
+  },
+  {
+    "id": "app.content_flagging.create_property_values.app_error",
+    "translation": "Det går inte att spara egenskapsvärden för det flaggade inlägget."
+  },
+  {
+    "id": "app.content_flagging.flag_post.marshal_comment.app_error",
+    "translation": "Misslyckades med att samla in flaggning av användarens kommentar"
+  },
+  {
+    "id": "app.content_flagging.flag_post.marshal_reason.app_error",
+    "translation": "Misslyckades med att samla in den flaggande användarens anledning"
+  },
+  {
+    "id": "app.content_flagging.flag_post_confirmation.message",
+    "translation": "Meddelandet från @{{.username}} har flaggats för granskning. Du kommer att få ett meddelande när det har granskats av en innehållsgranskare. "
+  },
+  {
+    "id": "app.content_flagging.get_group.error",
+    "translation": "Misslyckades med att hämta bot för innehållsflaggning."
+  },
+  {
+    "id": "app.content_flagging.get_reviewer_settings.app_error",
+    "translation": "Misslyckades med att hämta inställningar för innehållsgranskare från databasen"
+  },
+  {
+    "id": "app.content_flagging.get_status_property.app_error",
+    "translation": "Misslyckades med att hämta egenskapsfältet Status."
+  },
+  {
+    "id": "app.content_flagging.get_users_in_team.app_error",
+    "translation": "Misslyckades med att söka granskare i teamet."
+  },
+  {
+    "id": "app.content_flagging.keep_flag_post.marshal_comment.app_error",
+    "translation": "Misslyckades med att samla in kommentaren från granskaren"
+  },
+  {
+    "id": "app.content_flagging.keep_post.status_update.app_error",
+    "translation": "Misslyckades med att uppdatera status för flaggat inlägg när flaggat inlägg återställdes "
+  },
+  {
+    "id": "app.content_flagging.keep_post.undelete.app_error",
+    "translation": "Misslyckades med att uppdatera inlägget i databasen när flaggningen skulle tas bort."
+  },
+  {
+    "id": "app.content_flagging.marshal_property_values.app_error",
+    "translation": "Misslyckades med att samla in värden för Content Flagging-egenskaper för att skicka i WebSocket-händelsen."
+  },
+  {
+    "id": "app.content_flagging.missing_flagged_post_id_field.app_error",
+    "translation": "Det går inte att hitta egenskapsfältet Flagged Post ID."
+  },
+  {
+    "id": "app.content_flagging.missing_reporting_user_id_field.app_error",
+    "translation": "Det går inte att hitta användarfältet för rapportering."
+  },
+  {
+    "id": "app.content_flagging.missing_reporting_user_id_property_value.app_error",
+    "translation": "Det går inte att hitta ett värde i användarfältet på rapporteringen."
+  },
+  {
+    "id": "app.content_flagging.no_status_property.app_error",
+    "translation": "Det går inte att hämta flaggade inlägg eftersom inlägget inte är flaggat."
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.app_error",
+    "translation": "Misslyckades med att skriva över inlägg med rensat inlägg när flaggat inlägg raderades permanent."
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.marshal_comment.app_error",
+    "translation": "Misslyckades med att samla in kommentaren från granskaren"
+  },
+  {
+    "id": "app.content_flagging.permanently_delete.update_property_value.app_error",
+    "translation": "Misslyckades med att uppdatera statusen för flaggade inlägg när flaggade inlägg raderades permanent."
+  },
+  {
+    "id": "app.content_flagging.restore_file_info.app_error",
+    "translation": "Misslyckades med att återställa filinformation för det flaggade inlägget."
+  },
+  {
+    "id": "app.content_flagging.save_reviewer_settings.app_error",
+    "translation": "Misslyckades med att spara inställningar för innehållsgranskare i databasen."
+  },
+  {
+    "id": "app.content_flagging.search_common_reviewers.app_error",
+    "translation": "Det gick inte att söka efter termen i Common Reviewers."
+  },
+  {
+    "id": "app.content_flagging.search_property_fields.app_error",
+    "translation": "Misslyckades med att söka i egenskapsfält för innehållsflaggning."
+  },
+  {
+    "id": "app.content_flagging.search_property_values.app_error",
+    "translation": "Misslyckades med att hämta inläggets värden från egenskapsfält content flagging från databasen."
+  },
+  {
+    "id": "app.content_flagging.search_reviewer_posts.app_error",
+    "translation": "Misslyckades med att söka efter det flaggade inlägget bland granskarna."
+  },
+  {
+    "id": "app.content_flagging.search_status_property.app_error",
+    "translation": "Misslyckades med att söka Property Values för det flaggade inlägget."
+  },
+  {
+    "id": "app.content_flagging.search_sysadmin_reviewers.app_error",
+    "translation": "Misslyckades med att söka efter sökordet i System Admin Reviewers."
+  },
+  {
+    "id": "app.content_flagging.search_team_admin_reviewers.app_error",
+    "translation": "Misslyckades med att söka efter sökordet i Team Admin Reviewers."
+  },
+  {
+    "id": "app.content_flagging.search_team_reviewers.app_error",
+    "translation": "Misslyckades med att söka efter sökordet i Team Reviewers."
+  },
+  {
+    "id": "app.job.get_existing_jobs.error",
+    "translation": "Kan inte hämta befintliga jobb."
+  },
+  {
+    "id": "app.post_priority.delete_for_post.app_error",
+    "translation": "Misslyckades med att permanent radera prioritetsdata från databasen för inlägget."
+  },
+  {
+    "id": "app.save_scheduled_post.restricted_dm.error",
+    "translation": "Det går inte att schemalägga inlägg i en begränsad DM"
+  },
+  {
+    "id": "app.submit_interactive_dialog.invalid_response",
+    "translation": "Fick ett ogiltigt svar från den interaktiva dialogrutan."
+  },
+  {
+    "id": "app.system.content_review_bot.bot_displayname",
+    "translation": "Granskning av innehåll"
+  },
+  {
+    "id": "app.upload.create.cannot_upload_to_restricted_dm.error",
+    "translation": "Det går inte att ladda upp fil till ett begränsat direktmeddelande."
+  },
+  {
+    "id": "app.user.check_user_password.failed_migration",
+    "translation": "Misslyckades med att migrera användarens lösenord till den senaste hashmetoden."
+  },
+  {
+    "id": "app.user.check_user_password.failed_update",
+    "translation": "Misslyckades med att uppdatera användarens lösenord."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.libretranslate.url.app_error",
+    "translation": "LibreTranslate URL måste vara en giltig URL och börja med http:// eller https://."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.provider.app_error",
+    "translation": "Ogiltig leverantör av autotranslation, får inte vara tom."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.provider.unsupported.app_error",
+    "translation": "Leverantören av autotranslation stöds inte."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.fetch.app_error",
+    "translation": "Tidsgränsen för hämtning av autotranslation är ogiltig. Måste vara ett positivt tal."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.new_post.app_error",
+    "translation": "Tidsgränsen för hämtning av autotranslation av nytt inlägg är ogiltig. Måste vara ett positivt tal."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
+    "translation": "Tidsgränsen för avisering av autotranslation är ogiltig. Måste vara ett positivt tal."
   }
 ]
