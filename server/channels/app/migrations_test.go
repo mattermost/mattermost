@@ -25,7 +25,7 @@ func TestDoSetupContentFlaggingProperties(t *testing.T) {
 
 		propertyFields, err := th.Server.propertyService.SearchPropertyFields(group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
 		require.NoError(t, err)
-		require.Len(t, propertyFields, 10)
+		require.Len(t, propertyFields, 11)
 	})
 
 	t.Run("the migration is idempotent", func(t *testing.T) {
@@ -45,6 +45,6 @@ func TestDoSetupContentFlaggingProperties(t *testing.T) {
 
 		propertyFields, err := th.Server.propertyService.SearchPropertyFields(group.ID, model.PropertyFieldSearchOpts{PerPage: 100})
 		require.NoError(t, err)
-		require.Len(t, propertyFields, 10)
+		require.Len(t, propertyFields, 11)
 	})
 }
