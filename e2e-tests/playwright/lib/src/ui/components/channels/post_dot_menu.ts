@@ -47,4 +47,8 @@ export default class PostDotMenu {
     async toBeVisible() {
         await expect(this.container).toBeVisible();
     }
+
+    async flagMessageMenuItemNotToBeVisible() {
+        await expect(this.flagMessageMenuItem).not.toBeVisible();
+    }
 }
