@@ -180,7 +180,7 @@ test('Verify user cannot flag already flagged message', async ({pw}) => {
         channel_id: townSquare.id,
         message,
         user_id: user.id,
-    });
+    }) as { id: string };
 
     await adminClient.flagPost(postToBeflagged.id, 'Inappropriate content', 'This message is inappropriate');
 
