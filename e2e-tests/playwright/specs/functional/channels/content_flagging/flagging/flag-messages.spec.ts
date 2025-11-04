@@ -41,7 +41,7 @@ test('Verify flagged message is hidden by default', async ({pw}) => {
 
     const post = await channelsPage.getLastPost();
     const postId = await channelsPage.centerView.getLastPostID();
-    
+
     // open the dot menu
     await openPostDotMenu(post, channelsPage);
     await channelsPage.postDotMenu.flagMessageMenuItem.click();
@@ -190,7 +190,7 @@ test('Verify user cannot flag already flagged message', async ({pw}) => {
     await channelsPage.toBeVisible();
 
     const post = await channelsPage.getLastPost();
-    
+
     // open the dot menu
     await openPostDotMenu(post, channelsPage);
     await channelsPage.postDotMenu.flagMessageMenuItem.click();
@@ -247,7 +247,7 @@ test('Verify user cannot flag a message that was previously retained', async ({p
                 CommonReviewers: true,
                 SystemAdminsAsReviewers: true,
                 TeamAdminsAsReviewers: true,
-                CommonReviewerIds: [ user.id, secondUserID],
+                CommonReviewerIds: [user.id, secondUserID],
             },
         },
     });
@@ -312,30 +312,33 @@ test('Verify the Flag message option is not available when feature is disabled',
     await channelsPage.postDotMenu.flagMessageMenuItemNotToBeVisible();
 });
 
+/**
+ * @objective: Verify Flagging reason dropdown options
+ * * @testcase
+ * 1. Login as a user
+ * 2. Post a message
+ * 3. Open flag message dialog
+ * 4. Verify the flagging reason dropdown options
+ */
 test('Verify Flagging reason dropdown', async ({pw}) => {
     const {user, adminClient, team} = await pw.initSetup();
     await adminClient.patchConfig({
         ContentFlaggingSettings: {
             EnableContentFlagging: true,
             AdditionalSettings: {
-                Reasons : [
-                    'Spam',
-                    'Inappropriate Content',
-                    'Harassment',
-                    'Hate Speech',
-                    'Other',
-                ]
-        }},
+                Reasons: ['Spam', 'Inappropriate Content', 'Harassment', 'Hate Speech', 'Other'],
+            },
+        },
     });
 
     // Login as the user
     const {channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
-    
+
     const message = 'This is a test message to be flagged';
     await channelsPage.postMessage(message);
-    
+
     const post = await channelsPage.getLastPost();
 
     // open the dot menu
@@ -346,31 +349,34 @@ test('Verify Flagging reason dropdown', async ({pw}) => {
     await channelsPage.centerView.flagPostConfirmationDialog.selectFlagReason('Spam');
 });
 
+/**
+ * @objective: Verify Comments are required for Flagging
+ * * @testcase
+ * 1. Login as a user
+ * 2. Post a message
+ * 3. Open flag message dialog
+ * 4. Verify that comments are required for flagging
+ */
 test('Verify Comments are required for Flagging', async ({pw}) => {
     const {user, adminClient, team} = await pw.initSetup();
     await adminClient.patchConfig({
         ContentFlaggingSettings: {
             EnableContentFlagging: true,
             AdditionalSettings: {
-                Reasons : [
-                    'Spam',
-                    'Inappropriate Content',
-                    'Harassment',
-                    'Hate Speech',
-                    'Other',
-                ],
+                Reasons: ['Spam', 'Inappropriate Content', 'Harassment', 'Hate Speech', 'Other'],
                 ReporterCommentRequired: true,
-        }},
+            },
+        },
     });
 
     // Login as the user
     const {channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
-    
+
     const message = 'This is a test message to be flagged';
     await channelsPage.postMessage(message);
-    
+
     const post = await channelsPage.getLastPost();
 
     // open the dot menu
@@ -382,4 +388,59 @@ test('Verify Comments are required for Flagging', async ({pw}) => {
     await channelsPage.centerView.flagPostConfirmationDialog.submitButton.click();
     await channelsPage.centerView.flagPostConfirmationDialog.toBeVisible();
     await channelsPage.centerView.flagPostConfirmationDialog.requireCommentsForFlaggingPost();
+});
+
+/**
+ * @objective: Verify message is removed from channel if the reviewer removed the message
+ *
+ * @testcase
+ * 1. Login as a user
+ * 2. Post a message
+ * 3. Flag the message
+ * 4. Login as a reviewer and remove the message
+ * 5. Verify the message is removed from the channel
+ */
+test('Verify message is removed from channel if the reviewer removed the message', async ({pw}) => {
+    const {user, adminClient, team} = await pw.initSetup();
+    await adminClient.patchConfig({
+        ContentFlaggingSettings: {
+            EnableContentFlagging: true,
+            ReviewerSettings: {
+                CommonReviewers: true,
+                SystemAdminsAsReviewers: true,
+                TeamAdminsAsReviewers: true,
+                CommonReviewerIds: [user.id],
+            },
+            AdditionalSettings: {
+                HideFlaggedContent: false,
+            },
+        },
+    });
+
+    const channels = await adminClient.getMyChannels(team.id);
+    const townSquare = channels.find((channel) => channel.name === 'town-square');
+
+    if (!townSquare) {
+        throw new Error('Town Square channel not found');
+    }
+
+    const message = `Post by @${user.username}, is flagged once`;
+    const postToBeflagged = await adminClient.createPost({
+        channel_id: townSquare.id,
+        message,
+        user_id: user.id,
+    });
+
+    await adminClient.flagPost(postToBeflagged.id, 'Inappropriate content', 'This message is inappropriate');
+    await adminClient.removeFlaggedPost(postToBeflagged.id, 'Removing this post after review');
+
+    // Login as the user
+    const {channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, 'town-square');
+    await channelsPage.toBeVisible();
+
+    const contentModeratedMessage = 'Content deleted as part of Content Flagging review process';
+    const getLastPostId = await channelsPage.centerView.getLastPostID();
+    const post = await channelsPage.centerView.getPostById(getLastPostId);
+    await expect(post.body).toContainText(contentModeratedMessage);
 });

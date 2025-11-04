@@ -15,7 +15,7 @@ export default class FlagPostConfirmationDialog {
     readonly postText;
     readonly flagReasonOption;
     readonly flagReasonMenuItems;
-    readonly cannotFlagAlreadyFlaggedPostMessage;
+    readonly cannotFlagPostErrorMessage;
     readonly requireCommentsErrorMessage;
 
     constructor(container: Locator, page: Page) {
@@ -31,7 +31,7 @@ export default class FlagPostConfirmationDialog {
         this.flagReasonOption = page.locator('.react-select__menu-list');
         this.flagReasonMenuItems = (reason: string) =>
             this.flagReasonOption.locator(`div.react-select__option:has-text("${reason}")`);
-        this.cannotFlagAlreadyFlaggedPostMessage = container.locator('div.FlagPostModal__request-error span');
+        this.cannotFlagPostErrorMessage = container.locator('div.FlagPostModal__request-error span');
         this.requireCommentsErrorMessage = container.locator('div.AdvancedTextbox__error-message span');
     }
 
@@ -66,16 +66,21 @@ export default class FlagPostConfirmationDialog {
     }
 
     async cannotFlagAlreadyFlaggedPostToBeVisible() {
-        await expect(this.cannotFlagAlreadyFlaggedPostMessage).toBeVisible();
-        await expect(this.cannotFlagAlreadyFlaggedPostMessage).toHaveText(
-            'Cannot flag this post as it is already flagged.',
-        );
+        await expect(this.cannotFlagPostErrorMessage).toBeVisible();
+        await expect(this.cannotFlagPostErrorMessage).toHaveText('Cannot flag this post as it is already flagged.');
     }
 
     async requireCommentsForFlaggingPost() {
         await expect(this.requireCommentsErrorMessage).toBeVisible();
         await expect(this.requireCommentsErrorMessage).toHaveText(
             'Please add a comment explaining why you’re flagging this message.',
+        );
+    }
+
+    async cannotFlagPreviouslyRetainedPostToBeVisible() {
+        await expect(this.cannotFlagPostErrorMessage).toBeVisible();
+        await expect(this.cannotFlagPostErrorMessage).toHaveText(
+            'Cannot flag this post as it was retained in a previous flagging request.',
         );
     }
 }
