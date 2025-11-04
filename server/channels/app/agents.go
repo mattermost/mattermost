@@ -10,48 +10,48 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-// getAIClient returns an AI client for making requests to the AI plugin
-func (a *App) getAIClient(userID string) *agentclient.Client {
+// getBridgeClient returns a bridge client for making requests to the plugin bridge API
+func (a *App) getBridgeClient(userID string) *agentclient.Client {
 	return agentclient.NewClientFromApp(a, userID)
 }
 
-// GetAIAgents retrieves all available AI agents from the bridge API
-func (a *App) GetAIAgents(rctx request.CTX, userID string) (*agentclient.AgentsResponse, *model.AppError) {
-	// Create AI client
+// GetAgents retrieves all available agents from the bridge API
+func (a *App) GetAgents(rctx request.CTX, userID string) (*agentclient.AgentsResponse, *model.AppError) {
+	// Create bridge client
 	sessionUserID := ""
 	if session := rctx.Session(); session != nil {
 		sessionUserID = session.UserId
 	}
-	client := a.getAIClient(sessionUserID)
+	client := a.getBridgeClient(sessionUserID)
 
 	agents, err := client.GetAgents(userID)
 	if err != nil {
-		rctx.Logger().Error("Failed to get AI agents from bridge",
+		rctx.Logger().Error("Failed to get agents from bridge",
 			mlog.Err(err),
 			mlog.String("user_id", userID),
 		)
-		return nil, model.NewAppError("GetAIAgents", "app.ai.get_agents.bridge_call_failed", nil, err.Error(), 500)
+		return nil, model.NewAppError("GetAgents", "app.agents.get_agents.bridge_call_failed", nil, err.Error(), 500)
 	}
 
 	return &agentclient.AgentsResponse{Agents: agents}, nil
 }
 
-// GetAIServices retrieves all available AI services from the bridge API
-func (a *App) GetAIServices(rctx request.CTX, userID string) (*agentclient.ServicesResponse, *model.AppError) {
-	// Create AI client
+// GetLLMServices retrieves all available LLM services from the bridge API
+func (a *App) GetLLMServices(rctx request.CTX, userID string) (*agentclient.ServicesResponse, *model.AppError) {
+	// Create bridge client
 	sessionUserID := ""
 	if session := rctx.Session(); session != nil {
 		sessionUserID = session.UserId
 	}
-	client := a.getAIClient(sessionUserID)
+	client := a.getBridgeClient(sessionUserID)
 
 	services, err := client.GetServices(userID)
 	if err != nil {
-		rctx.Logger().Error("Failed to get AI services from bridge",
+		rctx.Logger().Error("Failed to get LLM services from bridge",
 			mlog.Err(err),
 			mlog.String("user_id", userID),
 		)
-		return nil, model.NewAppError("GetAIServices", "app.ai.get_services.bridge_call_failed", nil, err.Error(), 500)
+		return nil, model.NewAppError("GetLLMServices", "app.agents.get_services.bridge_call_failed", nil, err.Error(), 500)
 	}
 
 	return &agentclient.ServicesResponse{Services: services}, nil

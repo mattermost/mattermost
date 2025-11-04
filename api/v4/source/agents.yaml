@@ -1,10 +1,10 @@
-  /api/v4/ai/agents:
+  /api/v4/agents:
     get:
       tags:
-        - ai
-      summary: Get available AI agents
+        - agents
+      summary: Get available agents
       description: >
-        Retrieve all available AI agents from the AI plugin's bridge API.
+        Retrieve all available agents from the plugin's bridge API.
         If a user ID is provided, only agents accessible to that user are returned.
 
         ##### Permissions
@@ -12,10 +12,10 @@
         Must be authenticated.
 
         __Minimum server version__: 11.2
-      operationId: GetAIAgents
+      operationId: GetAgents
       responses:
         "200":
-          description: AI agents retrieved successfully
+          description: Agents retrieved successfully
           content:
             application/json:
               schema:
@@ -24,13 +24,13 @@
           $ref: "#/components/responses/Unauthorized"
         "500":
           $ref: "#/components/responses/InternalServerError"
-  /api/v4/ai/services:
+  /api/v4/llmservices:
     get:
       tags:
-        - ai
-      summary: Get available AI services
+        - agents
+      summary: Get available LLM services
       description: >
-        Retrieve all available AI services from the AI plugin's bridge API.
+        Retrieve all available LLM services from the plugin's bridge API.
         If a user ID is provided, only services accessible to that user
         (via their permitted bots) are returned.
 
@@ -39,10 +39,10 @@
         Must be authenticated.
 
         __Minimum server version__: 11.2
-      operationId: GetAIServices
+      operationId: GetLLMServices
       responses:
         "200":
-          description: AI services retrieved successfully
+          description: LLM services retrieved successfully
           content:
             application/json:
               schema:

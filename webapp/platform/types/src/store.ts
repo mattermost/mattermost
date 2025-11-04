@@ -45,7 +45,7 @@ export type GlobalState = {
         channelBookmarks: ChannelBookmarksState;
         posts: PostsState;
         threads: ThreadsState;
-        ai: {
+        agents: {
             agents: Array<{
                 id: string;
                 displayName: string;

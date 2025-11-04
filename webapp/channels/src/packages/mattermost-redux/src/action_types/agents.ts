@@ -4,7 +4,7 @@
 import keyMirror from 'mattermost-redux/utils/key_mirror';
 
 export default keyMirror({
-    RECEIVED_AI_AGENTS: null,
-    AI_AGENTS_REQUEST: null,
-    AI_AGENTS_FAILURE: null,
+    RECEIVED_AGENTS: null,
+    AGENTS_REQUEST: null,
+    AGENTS_FAILURE: null,
 });
