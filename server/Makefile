@@ -156,7 +156,7 @@ PLUGIN_PACKAGES += mattermost-plugin-calls-v1.10.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.5.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.11.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v4.4.0
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.5.0
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.5.1
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.10.0
 PLUGIN_PACKAGES += mattermost-plugin-agents-v1.4.0
@@ -172,7 +172,7 @@ PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.2.1
 # download the package from to work. This will no longer be needed when we unify
 # the way we pre-package FIPS and non-FIPS plugins.
 ifeq ($(FIPS_ENABLED),true)
-	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.5.0%2Bc140653-fips
+	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.5.1%2Bfe08fbc-fips
 	PLUGIN_PACKAGES += mattermost-plugin-agents-v1.4.0%2B2f27b68-fips
 	PLUGIN_PACKAGES += mattermost-plugin-boards-v9.1.7%2Ba980cd2-fips
 endif
