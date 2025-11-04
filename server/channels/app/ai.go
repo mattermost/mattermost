@@ -15,11 +15,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-// getAIClient returns an AI client for making requests to the AI plugin
-func (a *App) getAIClient(userID string) *agentclient.Client {
-	return agentclient.NewClientFromApp(a, userID)
-}
-
 // SummarizePosts generates an AI summary of posts with highlights and action items
 func (a *App) SummarizePosts(rctx request.CTX, userID string, posts []*model.Post, channelName, teamName string, agentID string) (*model.AIRecapSummaryResponse, *model.AppError) {
 	if len(posts) == 0 {
@@ -57,12 +52,12 @@ Example format: "Team decided to migrate to microservices architecture [PERMALIN
 
 Your response must be compacted valid JSON only, with no additional text, formatting, nor code blocks.`, channelName, siteURL, teamName, conversationText, strings.Join(postIDs, ", "), siteURL, teamName, siteURL, teamName)
 
-	// Create AI client
+	// Create bridge client
 	sessionUserID := ""
 	if session := rctx.Session(); session != nil {
 		sessionUserID = session.UserId
 	}
-	client := a.getAIClient(sessionUserID)
+	client := a.getBridgeClient(sessionUserID)
 
 	completionRequest := agentclient.CompletionRequest{
 		Posts: []agentclient.Post{
@@ -145,46 +140,4 @@ func buildConversationTextWithIDs(posts []*model.Post) (string, []string) {
 			post.Message))
 	}
 	return sb.String(), postIDs
-}
-
-// GetAIAgents retrieves all available AI agents from the bridge API
-func (a *App) GetAIAgents(rctx request.CTX, userID string) (*agentclient.AgentsResponse, *model.AppError) {
-	// Create AI client
-	sessionUserID := ""
-	if session := rctx.Session(); session != nil {
-		sessionUserID = session.UserId
-	}
-	client := a.getAIClient(sessionUserID)
-
-	agents, err := client.GetAgents(userID)
-	if err != nil {
-		rctx.Logger().Error("Failed to get AI agents from bridge",
-			mlog.Err(err),
-			mlog.String("user_id", userID),
-		)
-		return nil, model.NewAppError("GetAIAgents", "app.ai.get_agents.bridge_call_failed", nil, err.Error(), 500)
-	}
-
-	return &agentclient.AgentsResponse{Agents: agents}, nil
-}
-
-// GetAIServices retrieves all available AI services from the bridge API
-func (a *App) GetAIServices(rctx request.CTX, userID string) (*agentclient.ServicesResponse, *model.AppError) {
-	// Create AI client
-	sessionUserID := ""
-	if session := rctx.Session(); session != nil {
-		sessionUserID = session.UserId
-	}
-	client := a.getAIClient(sessionUserID)
-
-	services, err := client.GetServices(userID)
-	if err != nil {
-		rctx.Logger().Error("Failed to get AI services from bridge",
-			mlog.Err(err),
-			mlog.String("user_id", userID),
-		)
-		return nil, model.NewAppError("GetAIServices", "app.ai.get_services.bridge_call_failed", nil, err.Error(), 500)
-	}
-
-	return &agentclient.ServicesResponse{Services: services}, nil
 }

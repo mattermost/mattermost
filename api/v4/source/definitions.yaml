@@ -3889,7 +3889,7 @@ components:
       properties:
         id:
           type: string
-          description: Unique identifier for the AI agent
+          description: Unique identifier for the agent
         displayName:
           type: string
           description: Human-readable name for the agent
@@ -3907,10 +3907,10 @@ components:
       properties:
         id:
           type: string
-          description: Unique identifier for the AI service
+          description: Unique identifier for the LLM service
         name:
           type: string
-          description: Name of the AI service
+          description: Name of the LLM service
         type:
           type: string
           description: Type of the service (e.g., openai, anthropic, azure)
@@ -3921,7 +3921,7 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/BridgeAgentInfo"
-          description: List of available AI agents
+          description: List of available agents
     ServicesResponse:
       type: object
       properties:
@@ -3929,7 +3929,7 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/BridgeServiceInfo"
-          description: List of available AI services
+          description: List of available LLM services
     PostAcknowledgement:
       type: object
       properties:

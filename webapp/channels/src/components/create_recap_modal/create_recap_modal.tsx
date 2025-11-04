@@ -10,13 +10,13 @@ import {ChevronLeftIcon, ChevronRightIcon} from '@mattermost/compass-icons/compo
 import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
 
-import {getAIAgents} from 'mattermost-redux/actions/ai';
+import {getAgents} from 'mattermost-redux/actions/agents';
 import {createRecap} from 'mattermost-redux/actions/recaps';
-import {getAIAgents as getAIAgentsSelector} from 'mattermost-redux/selectors/entities/ai';
+import {getAgents as getAgentsSelector} from 'mattermost-redux/selectors/entities/agents';
 import {getMyChannels, getUnreadChannelIds} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {AIAgentDropdown} from 'components/common/ai';
+import {AgentDropdown} from 'components/common/agents';
 import PaginationDots from 'components/common/pagination_dots';
 
 import ChannelSelector from './channel_selector';
@@ -39,7 +39,7 @@ const CreateRecapModal = ({onExited}: Props) => {
     const currentUserId = useSelector(getCurrentUserId);
     const myChannels = useSelector(getMyChannels);
     const unreadChannelIds = useSelector(getUnreadChannelIds);
-    const agents = useSelector(getAIAgentsSelector);
+    const agents = useSelector(getAgentsSelector);
 
     const [currentStep, setCurrentStep] = useState(1);
     const [recapName, setRecapName] = useState('');
@@ -52,7 +52,7 @@ const CreateRecapModal = ({onExited}: Props) => {
 
     // Fetch AI agents on mount
     useEffect(() => {
-        dispatch(getAIAgents());
+        dispatch(getAgents());
     }, [dispatch]);
 
     // Set default bot when agents are loaded
@@ -189,7 +189,7 @@ const CreateRecapModal = ({onExited}: Props) => {
         <div className='create-recap-modal-header'>
             <span>{formatMessage({id: 'recaps.modal.title', defaultMessage: 'Set up your recap'})}</span>
             <div className='create-recap-modal-header-actions'>
-                <AIAgentDropdown
+                <AgentDropdown
                     showLabel={true}
                     selectedBotId={selectedBotId}
                     onBotSelect={handleBotSelect}

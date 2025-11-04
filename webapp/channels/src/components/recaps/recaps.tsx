@@ -8,7 +8,7 @@ import {Redirect} from 'react-router-dom';
 
 import {PlusIcon} from '@mattermost/compass-icons/components';
 
-import {getAIAgents} from 'mattermost-redux/actions/ai';
+import {getAgents} from 'mattermost-redux/actions/agents';
 import {getRecaps} from 'mattermost-redux/actions/recaps';
 import {getUnreadRecaps, getReadRecaps} from 'mattermost-redux/selectors/entities/recaps';
 
@@ -34,7 +34,7 @@ const Recaps = () => {
 
     useEffect(() => {
         dispatch(getRecaps(0, 60));
-        dispatch(getAIAgents());
+        dispatch(getAgents());
     }, [dispatch]);
 
     // Redirect if feature flag is disabled

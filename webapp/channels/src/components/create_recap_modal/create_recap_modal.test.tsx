@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {getAIAgents} from 'mattermost-redux/actions/ai';
+import {getAgents} from 'mattermost-redux/actions/agents';
 
 import {renderWithContext, screen, userEvent, waitFor, waitForElementToBeRemoved} from 'tests/react_testing_utils';
 
@@ -13,8 +13,8 @@ jest.mock('mattermost-redux/actions/recaps', () => ({
     createRecap: jest.fn(() => ({type: 'CREATE_RECAP'})),
 }));
 
-jest.mock('mattermost-redux/actions/ai', () => ({
-    getAIAgents: jest.fn(() => ({type: 'GET_AI_AGENTS'})),
+jest.mock('mattermost-redux/actions/agents', () => ({
+    getAgents: jest.fn(() => ({type: 'GET_AGENTS'})),
 }));
 
 jest.mock('react-router-dom', () => ({
@@ -32,7 +32,7 @@ describe('CreateRecapModal', () => {
         onExited: jest.fn(),
     };
 
-    const mockAIAgents = [
+    const mockAgents = [
         {
             id: 'copilot-bot',
             displayName: 'Copilot',
@@ -90,8 +90,8 @@ describe('CreateRecapModal', () => {
                     channel2: {total: 5, root: 5},
                 },
             },
-            ai: {
-                agents: mockAIAgents,
+            agents: {
+                agents: mockAgents,
             },
             preferences: {
                 myPreferences: {},
@@ -130,7 +130,7 @@ describe('CreateRecapModal', () => {
     test('should fetch AI agents on mount', () => {
         renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
 
-        expect(getAIAgents).toHaveBeenCalledTimes(1);
+        expect(getAgents).toHaveBeenCalledTimes(1);
     });
 
     test('should show AI agent dropdown with default bot selected and label', () => {

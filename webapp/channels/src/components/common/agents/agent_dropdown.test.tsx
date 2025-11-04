@@ -3,14 +3,14 @@
 
 import React from 'react';
 
-import type {AIAgent} from 'mattermost-redux/actions/ai';
+import type {Agent} from '@mattermost/types/agents';
 
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 
-import AIAgentDropdown from './ai_agent_dropdown';
+import AgentDropdown from './agent_dropdown';
 
-describe('AIAgentDropdown', () => {
-    const mockBots: AIAgent[] = [
+describe('AgentDropdown', () => {
+    const mockBots: Agent[] = [
         {
             id: 'bot1',
             displayName: 'Copilot',
@@ -46,14 +46,14 @@ describe('AIAgentDropdown', () => {
     });
 
     test('should render with selected bot name', () => {
-        renderWithContext(<AIAgentDropdown {...defaultProps}/>);
+        renderWithContext(<AgentDropdown {...defaultProps}/>);
 
         expect(screen.getByText('Copilot')).toBeInTheDocument();
     });
 
     test('should show label when showLabel is true', () => {
         renderWithContext(
-            <AIAgentDropdown
+            <AgentDropdown
                 {...defaultProps}
                 showLabel={true}
             />,
@@ -64,14 +64,14 @@ describe('AIAgentDropdown', () => {
     });
 
     test('should not show label by default', () => {
-        renderWithContext(<AIAgentDropdown {...defaultProps}/>);
+        renderWithContext(<AgentDropdown {...defaultProps}/>);
 
         expect(screen.queryByText('GENERATE WITH:')).not.toBeInTheDocument();
     });
 
     test('should render placeholder when no bot is selected', () => {
         renderWithContext(
-            <AIAgentDropdown
+            <AgentDropdown
                 {...defaultProps}
                 selectedBotId={null}
             />,
@@ -81,9 +81,9 @@ describe('AIAgentDropdown', () => {
     });
 
     test('should open menu when button is clicked', async () => {
-        renderWithContext(<AIAgentDropdown {...defaultProps}/>);
+        renderWithContext(<AgentDropdown {...defaultProps}/>);
 
-        const button = screen.getByLabelText('AI agent selector');
+        const button = screen.getByLabelText('Agent selector');
         await userEvent.click(button);
 
         expect(screen.getByText('CHOOSE A BOT')).toBeInTheDocument();
@@ -93,18 +93,18 @@ describe('AIAgentDropdown', () => {
     });
 
     test('should display default label for default bot', async () => {
-        renderWithContext(<AIAgentDropdown {...defaultProps}/>);
+        renderWithContext(<AgentDropdown {...defaultProps}/>);
 
-        const button = screen.getByLabelText('AI agent selector');
+        const button = screen.getByLabelText('Agent selector');
         await userEvent.click(button);
 
         expect(screen.getByText('Copilot (default)')).toBeInTheDocument();
     });
 
     test('should not display default label for non-default bots', async () => {
-        renderWithContext(<AIAgentDropdown {...defaultProps}/>);
+        renderWithContext(<AgentDropdown {...defaultProps}/>);
 
-        const button = screen.getByLabelText('AI agent selector');
+        const button = screen.getByLabelText('Agent selector');
         await userEvent.click(button);
 
         expect(screen.getByText('OpenAI')).toBeInTheDocument();
@@ -114,16 +114,16 @@ describe('AIAgentDropdown', () => {
     test('should call onBotSelect when a bot is clicked', async () => {
         const onBotSelect = jest.fn();
         renderWithContext(
-            <AIAgentDropdown
+            <AgentDropdown
                 {...defaultProps}
                 onBotSelect={onBotSelect}
             />,
         );
 
-        const button = screen.getByLabelText('AI agent selector');
+        const button = screen.getByLabelText('Agent selector');
         await userEvent.click(button);
 
-        const openAIOption = screen.getByTestId('ai-agent-option-bot2');
+        const openAIOption = screen.getByTestId('agent-option-bot2');
         await userEvent.click(openAIOption);
 
         // Wait for callback to be called after menu closes
@@ -133,52 +133,52 @@ describe('AIAgentDropdown', () => {
 
     test('should show checkmark for selected bot', async () => {
         renderWithContext(
-            <AIAgentDropdown
+            <AgentDropdown
                 {...defaultProps}
                 selectedBotId='bot2'
             />,
         );
 
-        const button = screen.getByLabelText('AI agent selector');
+        const button = screen.getByLabelText('Agent selector');
         await userEvent.click(button);
 
-        const selectedOption = screen.getByTestId('ai-agent-option-bot2');
+        const selectedOption = screen.getByTestId('agent-option-bot2');
         const checkIcon = selectedOption.querySelector('svg');
         expect(checkIcon).toBeInTheDocument();
     });
 
     test('should not show checkmark for non-selected bots', async () => {
         renderWithContext(
-            <AIAgentDropdown
+            <AgentDropdown
                 {...defaultProps}
                 selectedBotId='bot1'
             />,
         );
 
-        const button = screen.getByLabelText('AI agent selector');
+        const button = screen.getByLabelText('Agent selector');
         await userEvent.click(button);
 
-        const nonSelectedOption = screen.getByTestId('ai-agent-option-bot2');
+        const nonSelectedOption = screen.getByTestId('agent-option-bot2');
         const trailingElements = nonSelectedOption.querySelector('.trailing-elements');
         expect(trailingElements).not.toBeInTheDocument();
     });
 
     test('should be disabled when disabled prop is true', () => {
         renderWithContext(
-            <AIAgentDropdown
+            <AgentDropdown
                 {...defaultProps}
                 disabled={true}
             />,
         );
 
-        const button = screen.getByLabelText('AI agent selector');
+        const button = screen.getByLabelText('Agent selector');
         expect(button).toBeDisabled();
     });
 
     test('should render all bots in the list', async () => {
-        renderWithContext(<AIAgentDropdown {...defaultProps}/>);
+        renderWithContext(<AgentDropdown {...defaultProps}/>);
 
-        const button = screen.getByLabelText('AI agent selector');
+        const button = screen.getByLabelText('Agent selector');
         await userEvent.click(button);
 
         mockBots.forEach((bot) => {
@@ -189,12 +189,12 @@ describe('AIAgentDropdown', () => {
     });
 
     test('should handle keyboard navigation', async () => {
-        renderWithContext(<AIAgentDropdown {...defaultProps}/>);
+        renderWithContext(<AgentDropdown {...defaultProps}/>);
 
         // Tab to the button
         await userEvent.tab();
 
-        const button = screen.getByLabelText('AI agent selector');
+        const button = screen.getByLabelText('Agent selector');
         expect(button).toHaveFocus();
 
         // Open menu with Enter key
@@ -205,7 +205,7 @@ describe('AIAgentDropdown', () => {
 
     test('should update displayed name when selectedBotId changes', () => {
         const {rerender} = renderWithContext(
-            <AIAgentDropdown
+            <AgentDropdown
                 {...defaultProps}
                 selectedBotId='bot1'
             />,
@@ -214,7 +214,7 @@ describe('AIAgentDropdown', () => {
         expect(screen.getByText('Copilot')).toBeInTheDocument();
 
         rerender(
-            <AIAgentDropdown
+            <AgentDropdown
                 {...defaultProps}
                 selectedBotId='bot2'
             />,
@@ -225,24 +225,24 @@ describe('AIAgentDropdown', () => {
 
     test('should render with no default bot', async () => {
         renderWithContext(
-            <AIAgentDropdown
+            <AgentDropdown
                 {...defaultProps}
                 defaultBotId={undefined}
             />,
         );
 
-        const button = screen.getByLabelText('AI agent selector');
+        const button = screen.getByLabelText('Agent selector');
         await userEvent.click(button);
 
         // All bots should be rendered without "(default)" label
-        const copilotOption = screen.getByTestId('ai-agent-option-bot1');
+        const copilotOption = screen.getByTestId('agent-option-bot1');
         expect(copilotOption).toHaveTextContent('Copilot');
         expect(screen.queryByText('Copilot (default)')).not.toBeInTheDocument();
     });
 
     test('should handle empty bots array', () => {
         renderWithContext(
-            <AIAgentDropdown
+            <AgentDropdown
                 {...defaultProps}
                 bots={[]}
                 selectedBotId={null}

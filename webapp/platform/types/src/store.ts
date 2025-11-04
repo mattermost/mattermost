@@ -50,7 +50,7 @@ export type GlobalState = {
             byId: Record<string, Recap>;
             allIds: string[];
         };
-        ai: {
+        agents: {
             agents: Array<{
                 id: string;
                 displayName: string;

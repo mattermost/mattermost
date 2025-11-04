@@ -10,7 +10,7 @@ import type {Recap} from '@mattermost/types/recaps';
 
 import {readMultipleChannels} from 'mattermost-redux/actions/channels';
 import {markRecapAsRead, deleteRecap, regenerateRecap} from 'mattermost-redux/actions/recaps';
-import {getAIAgents} from 'mattermost-redux/selectors/entities/ai';
+import {getAgents} from 'mattermost-redux/selectors/entities/agents';
 
 import ConfirmModal from 'components/confirm_modal';
 
@@ -29,7 +29,7 @@ const RecapItem = ({recap, isExpanded, onToggle}: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-    const agents = useSelector(getAIAgents);
+    const agents = useSelector(getAgents);
 
     const isProcessing = recap.status === 'pending' || recap.status === 'processing';
     const isFailed = recap.status === 'failed';

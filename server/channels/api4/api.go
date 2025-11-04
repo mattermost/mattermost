@@ -165,7 +165,8 @@ type Routes struct {
 
 	ContentFlagging *mux.Router // 'api/v4/content_flagging'
 
-	AI *mux.Router // 'api/v4/ai'
+	Agents      *mux.Router // 'api/v4/agents'
+	LLMServices *mux.Router // 'api/v4/llmservices'
 }
 
 type API struct {
@@ -316,7 +317,8 @@ func Init(srv *app.Server) (*API, error) {
 
 	api.BaseRoutes.ContentFlagging = api.BaseRoutes.APIRoot.PathPrefix("/content_flagging").Subrouter()
 
-	api.BaseRoutes.AI = api.BaseRoutes.APIRoot.PathPrefix("/ai").Subrouter()
+	api.BaseRoutes.Agents = api.BaseRoutes.APIRoot.PathPrefix("/agents").Subrouter()
+	api.BaseRoutes.LLMServices = api.BaseRoutes.APIRoot.PathPrefix("/llmservices").Subrouter()
 
 	api.InitUser()
 	api.InitBot()
@@ -372,7 +374,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitAuditLogging()
 	api.InitAccessControlPolicy()
 	api.InitContentFlagging()
-	api.InitAI()
+	api.InitAgents()
 
 	// If we allow testing then listen for manual testing URL hits
 	if *srv.Config().ServiceSettings.EnableTesting {
