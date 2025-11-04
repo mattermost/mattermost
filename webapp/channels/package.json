@@ -3,16 +3,16 @@
   "browser": {
     "./client/web_client.jsx": "./client/browser_web_client.jsx"
   },
-  "version": "10.12.0",
+  "version": "11.1.0",
   "private": true,
   "dependencies": {
     "@floating-ui/react": "0.26.6",
     "@giphy/js-fetch-api": "5.1.0",
     "@giphy/react-components": "8.1.0",
     "@guyplusplus/turndown-plugin-gfm": "1.0.7",
-    "@mattermost/client": "10.12.0",
+    "@mattermost/client": "11.1.0",
     "@mattermost/desktop-api": "6.0.0-1",
-    "@mattermost/types": "10.12.0",
+    "@mattermost/types": "11.1.0",
     "@mui/base": "5.0.0-alpha.127",
     "@mui/material": "5.11.16",
     "@mui/styled-engine-sc": "5.11.11",
@@ -185,7 +185,7 @@
     "test:watch": "cross-env TZ=Etc/UTC LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 jest --watch",
     "test:updatesnapshot": "cross-env TZ=Etc/UTC LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 jest --updateSnapshot",
     "test:debug": "cross-env TZ=Etc/UTC LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 jest --forceExit --detectOpenHandles --verbose",
-    "test-ci": "cross-env TZ=Etc/UTC LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 jest --ci --maxWorkers=100% --workerIdleMemoryLimit=4096MB --coverage",
+    "test-ci": "cross-env TZ=Etc/UTC LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 jest --ci --maxWorkers=100%",
     "clean": "rm -rf dist node_modules .eslintcache .stylelintcache tsconfig.tsbuildinfo",
     "stats": "cross-env NODE_ENV=production webpack --profile --json > webpack_stats.json",
     "mmjstool": "mmjstool",
