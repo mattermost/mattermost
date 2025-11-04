@@ -30,7 +30,7 @@ type Props = {
     disabled?: boolean;
 }
 
-export default function ContentFlaggingAdditionalSettingsSection({id, onChange, value, disabled}: Props) {
+export default function ContentFlaggingAdditionalSettingsSection({id, onChange, value, disabled = false}: Props) {
     const [additionalSettings, setAdditionalSettings] = React.useState<ContentFlaggingAdditionalSettings>(value as ContentFlaggingAdditionalSettings);
 
     const handleReasonsChange = useCallback((newValues: OnChangeValue<{ value: string }, true>) => {
@@ -138,7 +138,7 @@ export default function ContentFlaggingAdditionalSettingsSection({id, onChange, 
                         </div>
 
                         <div className='setting-content'>
-                            <Label isDisabled={disabled || false}>
+                            <Label isDisabled={disabled}>
                                 <input
                                     data-testid='requireReporterComment_true'
                                     id='requireReporterComment_true'
@@ -154,7 +154,7 @@ export default function ContentFlaggingAdditionalSettingsSection({id, onChange, 
                                 />
                             </Label>
 
-                            <Label isDisabled={disabled || false}>
+                            <Label isDisabled={disabled}>
                                 <input
                                     data-testid='requireReporterComment_false'
                                     id='requireReporterComment_false'
@@ -181,7 +181,7 @@ export default function ContentFlaggingAdditionalSettingsSection({id, onChange, 
                         </div>
 
                         <div className='setting-content'>
-                            <Label isDisabled={disabled || false}>
+                            <Label isDisabled={disabled}>
                                 <input
                                     data-testid='requireReviewerComment_true'
                                     id='requireReviewerComment_true'
@@ -197,7 +197,7 @@ export default function ContentFlaggingAdditionalSettingsSection({id, onChange, 
                                 />
                             </Label>
 
-                            <Label isDisabled={disabled || false}>
+                            <Label isDisabled={disabled}>
                                 <input
                                     data-testid='requireReviewerComment_false'
                                     id='requireReviewerComment_false'
@@ -224,7 +224,7 @@ export default function ContentFlaggingAdditionalSettingsSection({id, onChange, 
                         </div>
 
                         <div className='setting-content'>
-                            <Label isDisabled={disabled || false}>
+                            <Label isDisabled={disabled}>
                                 <input
                                     data-testid='hideFlaggedPosts_true'
                                     id='hideFlaggedPosts_true'
@@ -240,7 +240,7 @@ export default function ContentFlaggingAdditionalSettingsSection({id, onChange, 
                                 />
                             </Label>
 
-                            <Label isDisabled={disabled || false}>
+                            <Label isDisabled={disabled}>
                                 <input
                                     data-testid='setHideFlaggedPosts_false'
                                     id='setHideFlaggedPosts_false'
