@@ -180,10 +180,7 @@ test(
         `);
 
         // # Analyze the expanded section for accessibility issues
-        const accessibilityScanResults = await axe
-            .builder(page)
-            .include(advancedSettings.expandedSectionId)
-            .analyze();
+        const accessibilityScanResults = await axe.builder(page).include(advancedSettings.expandedSectionId).analyze();
 
         // * Should have no violation
         expect(accessibilityScanResults.violations).toHaveLength(0);
@@ -238,10 +235,7 @@ test(
         `);
 
         // # Analyze the expanded section for accessibility issues
-        const accessibilityScanResults = await axe
-            .builder(page)
-            .include(advancedSettings.expandedSectionId)
-            .analyze();
+        const accessibilityScanResults = await axe.builder(page).include(advancedSettings.expandedSectionId).analyze();
 
         // * Should have no violation
         expect(accessibilityScanResults.violations).toHaveLength(0);
@@ -299,10 +293,7 @@ test(
         `);
 
         // # Analyze the expanded section for accessibility issues
-        const accessibilityScanResults = await axe
-            .builder(page)
-            .include(advancedSettings.expandedSectionId)
-            .analyze();
+        const accessibilityScanResults = await axe.builder(page).include(advancedSettings.expandedSectionId).analyze();
 
         // * Should have no violation
         expect(accessibilityScanResults.violations).toHaveLength(0);
@@ -360,10 +351,7 @@ test(
         `);
 
         // # Analyze the expanded section for accessibility issues
-        const accessibilityScanResults = await axe
-            .builder(page)
-            .include(advancedSettings.expandedSectionId)
-            .analyze();
+        const accessibilityScanResults = await axe.builder(page).include(advancedSettings.expandedSectionId).analyze();
 
         // * Should have no violation
         expect(accessibilityScanResults.violations).toHaveLength(0);
@@ -421,10 +409,7 @@ test(
         `);
 
         // # Analyze the expanded section for accessibility issues
-        const accessibilityScanResults = await axe
-            .builder(page)
-            .include(advancedSettings.expandedSectionId)
-            .analyze();
+        const accessibilityScanResults = await axe.builder(page).include(advancedSettings.expandedSectionId).analyze();
 
         // * Should have no violation
         expect(accessibilityScanResults.violations).toHaveLength(0);
