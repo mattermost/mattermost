@@ -146,7 +146,7 @@ describe('CreateRecapModal', () => {
     test('should open AI agent dropdown and show bot options', async () => {
         renderWithContext(<CreateRecapModal {...defaultProps}/>, initialState);
 
-        const dropdownButton = screen.getByLabelText('AI agent selector');
+        const dropdownButton = screen.getByLabelText('Agent selector');
         await userEvent.click(dropdownButton);
 
         expect(screen.getByText('CHOOSE A BOT')).toBeInTheDocument();
@@ -160,12 +160,12 @@ describe('CreateRecapModal', () => {
 
         // Wait for initial bot to be selected
         await waitFor(() => {
-            const dropdownButton = screen.getByLabelText('AI agent selector');
+            const dropdownButton = screen.getByLabelText('Agent selector');
             expect(dropdownButton).toHaveTextContent('Copilot');
         });
 
         // Open dropdown
-        const dropdownButton = screen.getByLabelText('AI agent selector');
+        const dropdownButton = screen.getByLabelText('Agent selector');
         await userEvent.click(dropdownButton);
 
         // Click on OpenAI
@@ -195,7 +195,7 @@ describe('CreateRecapModal', () => {
         await userEvent.click(nextButton);
 
         // The dropdown button should still be enabled before submission
-        const dropdownButton = screen.getByLabelText('AI agent selector');
+        const dropdownButton = screen.getByLabelText('Agent selector');
         expect(dropdownButton).not.toBeDisabled();
     });
 
@@ -232,7 +232,7 @@ describe('CreateRecapModal', () => {
 
         // Wait for bot to be selected automatically
         await waitFor(() => {
-            const dropdownButton = screen.getByLabelText('AI agent selector');
+            const dropdownButton = screen.getByLabelText('Agent selector');
             expect(dropdownButton).toHaveTextContent('Copilot');
         });
 
@@ -251,7 +251,7 @@ describe('CreateRecapModal', () => {
 
         // Fill form to enable navigation
         await waitFor(() => {
-            const dropdownButton = screen.getByLabelText('AI agent selector');
+            const dropdownButton = screen.getByLabelText('Agent selector');
             expect(dropdownButton).toHaveTextContent('Copilot');
         });
 
@@ -276,12 +276,12 @@ describe('CreateRecapModal', () => {
 
         // Wait for initial bot to be selected
         await waitFor(() => {
-            const dropdownButton = screen.getByLabelText('AI agent selector');
+            const dropdownButton = screen.getByLabelText('Agent selector');
             expect(dropdownButton).toHaveTextContent('Copilot');
         });
 
         // Change bot to OpenAI
-        const dropdownButton = screen.getByLabelText('AI agent selector');
+        const dropdownButton = screen.getByLabelText('Agent selector');
         await userEvent.click(dropdownButton);
         const openAIOption = screen.getByText('OpenAI');
         await userEvent.click(openAIOption);
