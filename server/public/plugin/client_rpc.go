@@ -189,9 +189,9 @@ func (g *hooksRPCClient) Implemented() (impl []string, err error) {
 
 // Implemented replies with the names of the hooks that are implemented.
 func (s *hooksRPCServer) Implemented(args struct{}, reply *[]string) error {
-	ifaceType := reflect.TypeOf((*Hooks)(nil)).Elem()
+	ifaceType := reflect.TypeFor[Hooks]()
 	implType := reflect.TypeOf(s.impl)
-	selfType := reflect.TypeOf(s)
+	selfType := reflect.TypeFor[*hooksRPCServer]()
 	var methods []string
 	for i := 0; i < ifaceType.NumMethod(); i++ {
 		method := ifaceType.Method(i)
