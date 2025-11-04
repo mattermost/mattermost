@@ -16,28 +16,37 @@ func (s *SqlPostStore) generateLikeSearchQuery(baseQuery sq.SelectBuilder, param
 	var searchClauses []string
 	var searchArgs []any
 
-	// Phrase search
+	// Make both the index and query lowercase for case-insensitive searching.
+	searchType = fmt.Sprintf("LOWER(%s)", searchType)
+	terms = strings.ToLower(terms)
+	excludedTerms = strings.ToLower(excludedTerms)
+	for i, p := range phrases {
+		phrases[i] = strings.ToLower(p)
+	}
+
+	// Phrase search: search for strings enclosed in “” without splitting them.
 	for _, phrase := range phrases {
 		cleanPhrase := strings.Trim(phrase, `"`)
 		if cleanPhrase != "" {
-			searchClauses = append(searchClauses, fmt.Sprintf("LOWER(%s) LIKE ?", searchType))
-			searchArgs = append(searchArgs, "%"+strings.ToLower(cleanPhrase)+"%")
+			searchClauses = append(searchClauses, fmt.Sprintf("%s LIKE ?", searchType))
+			searchArgs = append(searchArgs, "%"+cleanPhrase+"%")
 		}
 	}
 
-	// Prefix search
 	termWords := strings.Fields(terms)
 	for _, word := range termWords {
-		if strings.HasPrefix(word, "#") {
-			searchClauses = append(searchClauses, fmt.Sprintf("(LOWER(%s) LIKE ? OR LOWER(%s) LIKE ?)", searchType, searchType))
-			searchArgs = append(searchArgs, "%"+strings.ToLower(word)+"%", "%"+strings.ToLower(strings.TrimPrefix(word, "#"))+"%")
+		// Hashtags and mentions are searched with or without the prefix (# or @).
+		// Since these are always searched from the front, wildcards are not checked.
+		if strings.HasPrefix(word, "#") || strings.HasPrefix(word, "@") {
+			searchClauses = append(searchClauses, fmt.Sprintf("(%s LIKE ? OR %s LIKE ?)", searchType, searchType))
+			searchArgs = append(searchArgs, "%"+word+"%", "%"+word[1:]+"%")
 		} else {
-			searchClauses = append(searchClauses, fmt.Sprintf("LOWER(%s) LIKE ?", searchType))
-			if strings.HasSuffix(word, "%") {
-				searchArgs = append(searchArgs, strings.ToLower(word))
-			} else {
-				searchArgs = append(searchArgs, "%"+strings.ToLower(word)+"%")
+			// Only accept prefix search, all others will be treated as middle matches.
+			if !strings.HasSuffix(word, "%") {
+				word = "%" + word + "%"
 			}
+			searchClauses = append(searchClauses, fmt.Sprintf("%s LIKE ?", searchType))
+			searchArgs = append(searchArgs, word)
 		}
 	}
 
@@ -59,17 +68,20 @@ func (s *SqlPostStore) generateLikeSearchQuery(baseQuery sq.SelectBuilder, param
 			if cleanWord == "" {
 				continue
 			}
-			excludedClauses = append(excludedClauses, fmt.Sprintf("LOWER(%s) NOT LIKE ?", searchType))
-			if strings.HasSuffix(cleanWord, "%") {
-				excludedArgs = append(excludedArgs, strings.ToLower(cleanWord))
+			if strings.HasPrefix(cleanWord, "#") || strings.HasPrefix(cleanWord, "@") {
+				excludedClauses = append(excludedClauses, fmt.Sprintf("(%s NOT LIKE ? AND %s NOT LIKE ?)", searchType, searchType))
+				excludedArgs = append(excludedArgs, "%"+cleanWord+"%", "%"+cleanWord[1:]+"%")
 			} else {
-				excludedArgs = append(excludedArgs, "%"+strings.ToLower(cleanWord)+"%")
+				if !strings.HasSuffix(cleanWord, "%") {
+					cleanWord = "%" + cleanWord + "%"
+				}
+				excludedClauses = append(excludedClauses, fmt.Sprintf("%s NOT LIKE ?", searchType))
+				excludedArgs = append(excludedArgs, cleanWord)
 			}
 		}
 		if len(excludedClauses) > 0 {
 			baseQuery = baseQuery.Where(strings.Join(excludedClauses, " AND "), excludedArgs...)
 		}
 	}
-
 	return baseQuery
 }

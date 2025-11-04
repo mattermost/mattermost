@@ -39,6 +39,7 @@ var searchPostStoreTests = []searchTest{
 		Name: "Should be able to search without stemming",
 		Fn:   testStemming,
 		Tags: []string{EnginePostgres},
+		// LIKE search for pg_bigm does not include the simple search option in this test.
 		Skip: true,
 	},
 	{
@@ -122,6 +123,7 @@ var searchPostStoreTests = []searchTest{
 		Name: "Should be able to ignore stop words",
 		Fn:   testSearchIgnoringStopWords,
 		Tags: []string{EngineElasticSearch},
+		// LIKE searches for pg_bigm do not consider stop words.
 		Skip: true,
 	},
 	{
@@ -143,6 +145,7 @@ var searchPostStoreTests = []searchTest{
 		Name: "Should discard a wildcard if it's not placed immediately by text",
 		Fn:   testSearchDiscardWildcardAlone,
 		Tags: []string{EngineAll},
+		// LIKE searches for pg_bigm does not distinguish between exact matches and partial matches in this test case.
 		Skip: true,
 	},
 	{
@@ -215,7 +218,6 @@ var searchPostStoreTests = []searchTest{
 		Name: "Should be able to search matching by mentions",
 		Fn:   testSearchShouldBeAbleToMatchByMentions,
 		Tags: []string{EngineAll},
-		Skip: true,
 	},
 	{
 		Name: "Should be able to search in deleted/archived channels",
@@ -278,6 +280,7 @@ var searchPostStoreTests = []searchTest{
 		Name: "Should not return links that are embedded in markdown",
 		Fn:   testShouldNotReturnLinksEmbeddedInMarkdown,
 		Tags: []string{EnginePostgres, EngineElasticSearch},
+		// LIKE search for pg_bigm does not exclude terms inside markdown links.
 		Skip: true,
 	},
 	{
