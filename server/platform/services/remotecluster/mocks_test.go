@@ -18,9 +18,10 @@ import (
 )
 
 type mockServer struct {
-	remotes []*model.RemoteCluster
-	logger  *mlog.Logger
-	user    *model.User
+	remotes     []*model.RemoteCluster
+	logger      *mlog.Logger
+	user        *model.User
+	customStore store.Store // if set, GetStore() returns this instead of creating default
 }
 
 func newMockServer(t *testing.T, remotes []*model.RemoteCluster) *mockServer {
@@ -29,6 +30,17 @@ func newMockServer(t *testing.T, remotes []*model.RemoteCluster) *mockServer {
 	return &mockServer{
 		remotes: remotes,
 		logger:  logger,
+	}
+}
+
+// newMockServerWithStore creates a mockServer with a custom store for fine-grained test control.
+// Use this when you need to mock specific store behaviors that aren't covered by the default.
+func newMockServerWithStore(t *testing.T, customStore store.Store) *mockServer {
+	logger := mlog.CreateConsoleTestLogger(t)
+
+	return &mockServer{
+		logger:      logger,
+		customStore: customStore,
 	}
 }
 
@@ -45,6 +57,12 @@ func (ms *mockServer) Log() *mlog.Logger {
 	return ms.logger
 }
 func (ms *mockServer) GetStore() store.Store {
+	// If a custom store was provided, use it (for unit tests with fine-grained control)
+	if ms.customStore != nil {
+		return ms.customStore
+	}
+
+	// Otherwise, return the default pre-configured store (for integration-style tests)
 	anyQueryFilter := mock.MatchedBy(func(filter model.RemoteClusterQueryFilter) bool {
 		return true
 	})

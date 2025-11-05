@@ -3288,3 +3288,135 @@ func (s *SqlPostStore) RefreshPostStats() error {
 
 	return nil
 }
+
+// RestoreContentFlaggedPost restores a flagged post along with all its replies and associated files.
+// When restoring replies, it does not restore posts that were intentionally deleted by a user, and
+// it only restores posts deleted by the specified deletedBy user ID, which in case of Content Flagging is
+// the Content Reviewer bot.
+func (s *SqlPostStore) RestoreContentFlaggedPost(flaggedPost *model.Post, statusFieldId, contentFlaggingManagedFieldId string) error {
+	tx, err := s.GetMaster().Beginx()
+	if err != nil {
+		return errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(tx, &err)
+
+	baseSubQuery := s.getSubQueryBuilder().
+		Select("p.Id as PostId").
+		From("Posts as p").
+		InnerJoin("PropertyValues as pv_managed ON pv_managed.TargetId = p.Id AND pv_managed.FieldId = ? AND pv_managed.DeleteAt = 0 AND pv_managed.Value = 'true'", contentFlaggingManagedFieldId).
+		LeftJoin("PropertyValues as pv_status ON pv_status.TargetId = p.Id AND pv_status.FieldId = ? AND pv_status.DeleteAt = 0", statusFieldId)
+
+	err = s.restoreContentFlaggedRootPost(tx, baseSubQuery, flaggedPost.Id, contentFlaggingManagedFieldId)
+	if err != nil {
+		return err
+	}
+
+	if flaggedPost.RootId == "" {
+		err = s.restoreContentFlaggedPostReplies(tx, baseSubQuery, flaggedPost.Id, contentFlaggingManagedFieldId)
+		if err != nil {
+			return err
+		}
+	} else {
+		err = s.updateThreadsFromPosts(tx, []*model.Post{flaggedPost})
+		if err != nil {
+			return errors.Wrapf(err, "SqlPostStore.RestoreContentFlaggedPost: failed to update thread for flaggedPost %s", flaggedPost.Id)
+		}
+	}
+
+	err = s.removeContentFlaggingManagedPropertyValues(tx, baseSubQuery, flaggedPost.Id, contentFlaggingManagedFieldId)
+	if err != nil {
+		return err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return errors.Wrap(err, "commit_transaction")
+	}
+
+	return nil
+}
+
+func (s *SqlPostStore) restoreContentFlaggedRootPost(tx *sqlxTxWrapper, baseSubQuery sq.SelectBuilder, postId, contentFlaggingManagedFieldId string) error {
+	postIdSubQuery := baseSubQuery.
+		Where(sq.Eq{"p.Id": postId}).
+		Where(sq.Or{
+			sq.Eq{"pv_status.value": fmt.Sprintf("\"%s\"", model.ContentFlaggingStatusPending)},
+			sq.Eq{"pv_status.value": fmt.Sprintf("\"%s\"", model.ContentFlaggingStatusAssigned)},
+		})
+
+	// Restoring the post
+	queryBuilder := s.getQueryBuilder().
+		Update("Posts").
+		Set("DeleteAt", 0).
+		Where(sq.Expr("Id IN (?)", postIdSubQuery.Where(sq.NotEq{"p.DeleteAt": 0})))
+
+	if _, err := tx.ExecBuilder(queryBuilder); err != nil {
+		return errors.Wrapf(err, "SqlPostStore.RestoreContentFlaggedPost: failed to restore post %s", postId)
+	}
+
+	return s.restoreFilesForSubQuery(tx, postIdSubQuery)
+}
+
+func (s *SqlPostStore) restoreContentFlaggedPostReplies(tx *sqlxTxWrapper, baseSubQuery sq.SelectBuilder, rootPostId, contentFlaggingManagedFieldId string) error {
+	postIdSubQuery := baseSubQuery.
+		Where(sq.Eq{"p.RootId": rootPostId}).
+		Where(sq.NotEq{"p.DeleteAt": 0}).
+		Where(sq.Or{
+			sq.Expr("pv_status.id IS NULL"),
+			sq.Eq{"pv_status.value": fmt.Sprintf("\"%s\"", model.ContentFlaggingStatusRetained)},
+		})
+
+	queryBuilder := s.getQueryBuilder().
+		Update("Posts").
+		Set("DeleteAt", 0).
+		Where(sq.Expr("Id IN (?)", postIdSubQuery))
+
+	result, err := tx.ExecBuilder(queryBuilder)
+	if err != nil {
+		return errors.Wrapf(err, "SqlPostStore.RestoreContentFlaggedPost: failed to restore flaggedPost replies %s", rootPostId)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return errors.Wrapf(err, "SqlPostStore.RestoreContentFlaggedPost: failed to get rows affected for restored flaggedPost replies %s", rootPostId)
+	}
+
+	if rowsAffected > 0 {
+		if err := s.restoreFilesForSubQuery(tx, postIdSubQuery); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (s *SqlPostStore) removeContentFlaggingManagedPropertyValues(tx *sqlxTxWrapper, baseSubQuery sq.SelectBuilder, rootId, contentFlaggingManagedFieldId string) error {
+	postIdSubQuery := baseSubQuery.
+		Where(sq.Or{
+			sq.Eq{"p.Id": rootId},
+			sq.Eq{"p.RootId": rootId},
+		}).
+		Where(sq.Or{
+			sq.Eq{"p.Id": rootId},
+			sq.Expr("pv_status.value IS NULL"),
+		}).
+		Where(sq.Eq{"p.DeleteAt": 0})
+
+	queryBuilder := s.getQueryBuilder().
+		Update("PropertyValues").
+		Set("DeleteAt", model.GetMillis()).
+		Where(sq.Eq{"FieldId": contentFlaggingManagedFieldId}).
+		Where(sq.Expr("TargetId IN (?)", postIdSubQuery))
+
+	_, err := tx.ExecBuilder(queryBuilder)
+	return err
+}
+
+func (s *SqlPostStore) restoreFilesForSubQuery(tx *sqlxTxWrapper, postIdSubQuery sq.SelectBuilder) error {
+	queryBuilder := s.getQueryBuilder().
+		Update("FileInfo").
+		Set("DeleteAt", 0).
+		Where(sq.Expr("FileInfo.PostId IN (?)", postIdSubQuery))
+
+	_, err := tx.ExecBuilder(queryBuilder)
+	return err
+}
