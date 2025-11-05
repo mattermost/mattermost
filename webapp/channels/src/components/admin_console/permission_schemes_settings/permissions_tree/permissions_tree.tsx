@@ -213,20 +213,57 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
         const sharedChannelsGroup = this.groups[9];
         const customGroupsGroup = this.groups[10];
 
-        if (config.EnableIncomingWebhooks === 'true' && !integrationsGroup.permissions.includes(Permissions.MANAGE_INCOMING_WEBHOOKS)) {
-            integrationsGroup.permissions.push(Permissions.MANAGE_INCOMING_WEBHOOKS);
+        if (config.EnableIncomingWebhooks === 'true') {
+            const incomingWebhookGroup = {
+                id: 'manage_incoming_webhooks_group',
+                permissions: [
+                    Permissions.MANAGE_OWN_INCOMING_WEBHOOKS,
+                    Permissions.MANAGE_INCOMING_WEBHOOKS,
+                    Permissions.BYPASS_INCOMING_WEBHOOK_CHANNEL_LOCK,
+                ],
+            };
+            if (!integrationsGroup.permissions.some((p: any) => p.id === 'manage_incoming_webhooks_group')) {
+                integrationsGroup.permissions.push(incomingWebhookGroup);
+            }
         }
-        if (config.EnableOutgoingWebhooks === 'true' && !integrationsGroup.permissions.includes(Permissions.MANAGE_OUTGOING_WEBHOOKS)) {
-            integrationsGroup.permissions.push(Permissions.MANAGE_OUTGOING_WEBHOOKS);
+        if (config.EnableOutgoingWebhooks === 'true') {
+            const outgoingWebhookGroup = {
+                id: 'manage_outgoing_webhooks_group',
+                permissions: [
+                    Permissions.MANAGE_OWN_OUTGOING_WEBHOOKS,
+                    Permissions.MANAGE_OUTGOING_WEBHOOKS,
+                ],
+            };
+            if (!integrationsGroup.permissions.some((p: any) => p.id === 'manage_outgoing_webhooks_group')) {
+                integrationsGroup.permissions.push(outgoingWebhookGroup);
+            }
         }
-        if (config.EnableOAuthServiceProvider === 'true' && !integrationsGroup.permissions.includes(Permissions.MANAGE_OAUTH)) {
-            integrationsGroup.permissions.push(Permissions.MANAGE_OAUTH);
+        if (config.EnableOAuthServiceProvider === 'true') {
+            const oauthGroup = {
+                id: 'manage_oauth_group',
+                permissions: [
+                    Permissions.MANAGE_OWN_OAUTH_APPS,
+                    Permissions.MANAGE_OAUTH,
+                ],
+            };
+            if (!integrationsGroup.permissions.some((p: any) => p.id === 'manage_oauth_group')) {
+                integrationsGroup.permissions.push(oauthGroup);
+            }
         }
         if (config.EnableOutgoingOAuthConnections === 'true' && !integrationsGroup.permissions.includes(Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS)) {
             integrationsGroup.permissions.push(Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS);
         }
-        if (config.EnableCommands === 'true' && !integrationsGroup.permissions.includes(Permissions.MANAGE_SLASH_COMMANDS)) {
-            integrationsGroup.permissions.push(Permissions.MANAGE_SLASH_COMMANDS);
+        if (config.EnableCommands === 'true') {
+            const slashCommandGroup = {
+                id: 'manage_slash_commands_group',
+                permissions: [
+                    Permissions.MANAGE_OWN_SLASH_COMMANDS,
+                    Permissions.MANAGE_SLASH_COMMANDS,
+                ],
+            };
+            if (!integrationsGroup.permissions.some((p: any) => p.id === 'manage_slash_commands_group')) {
+                integrationsGroup.permissions.push(slashCommandGroup);
+            }
         }
         if (config.EnableCustomEmoji === 'true' && !integrationsGroup.permissions.includes(Permissions.CREATE_EMOJIS)) {
             integrationsGroup.permissions.push(Permissions.CREATE_EMOJIS);

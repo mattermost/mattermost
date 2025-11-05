@@ -56,7 +56,7 @@ export default class BackstageSidebar extends React.PureComponent<Props> {
         if (this.props.enableIncomingWebhooks) {
             incomingWebhooks = (
                 <TeamPermissionGate
-                    permissions={[Permissions.MANAGE_INCOMING_WEBHOOKS]}
+                    permissions={[Permissions.MANAGE_INCOMING_WEBHOOKS, Permissions.MANAGE_OWN_INCOMING_WEBHOOKS]}
                     teamId={this.props.team.id}
                 >
                     <BackstageSection
@@ -78,7 +78,7 @@ export default class BackstageSidebar extends React.PureComponent<Props> {
         if (this.props.enableOutgoingWebhooks) {
             outgoingWebhooks = (
                 <TeamPermissionGate
-                    permissions={[Permissions.MANAGE_OUTGOING_WEBHOOKS]}
+                    permissions={[Permissions.MANAGE_OUTGOING_WEBHOOKS, Permissions.MANAGE_OWN_OUTGOING_WEBHOOKS]}
                     teamId={this.props.team.id}
                 >
                     <BackstageSection
@@ -100,7 +100,7 @@ export default class BackstageSidebar extends React.PureComponent<Props> {
         if (this.props.enableCommands) {
             commands = (
                 <TeamPermissionGate
-                    permissions={[Permissions.MANAGE_SLASH_COMMANDS]}
+                    permissions={[Permissions.MANAGE_SLASH_COMMANDS, Permissions.MANAGE_OWN_SLASH_COMMANDS]}
                     teamId={this.props.team.id}
                 >
                     <BackstageSection
@@ -121,7 +121,7 @@ export default class BackstageSidebar extends React.PureComponent<Props> {
         let oauthApps: JSX.Element | null = null;
         if (this.props.enableOAuthServiceProvider) {
             oauthApps = (
-                <SystemPermissionGate permissions={[Permissions.MANAGE_OAUTH]}>
+                <SystemPermissionGate permissions={[Permissions.MANAGE_OAUTH, Permissions.MANAGE_OWN_OAUTH_APPS]}>
                     <BackstageSection
                         name='oauth2-apps'
                         parentLink={'/' + this.props.team.name + '/integrations'}

@@ -796,7 +796,7 @@ func (th *TestHelper) SetupPluginAPI() *PluginAPI {
 	return NewPluginAPI(th.App, th.Context, manifest)
 }
 
-func (th *TestHelper) RemovePermissionFromRole(permission string, roleName string) {
+func (th *TestHelper) removePermissionFromRole(permission string, roleName string) {
 	role, err1 := th.App.GetRoleByName(th.Context, roleName)
 	if err1 != nil {
 		panic(err1)
@@ -821,7 +821,23 @@ func (th *TestHelper) RemovePermissionFromRole(permission string, roleName strin
 	}
 }
 
-func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
+func (th *TestHelper) RemovePermissionFromRole(permission string, roleName string) {
+	th.removePermissionFromRole(permission, roleName)
+
+	switch permission {
+	case model.PermissionManageIncomingWebhooks.Id:
+		th.removePermissionFromRole(model.PermissionManageOwnIncomingWebhooks.Id, roleName)
+		th.removePermissionFromRole(model.PermissionBypassIncomingWebhookChannelLock.Id, roleName)
+	case model.PermissionManageOutgoingWebhooks.Id:
+		th.removePermissionFromRole(model.PermissionManageOwnOutgoingWebhooks.Id, roleName)
+	case model.PermissionManageSlashCommands.Id:
+		th.removePermissionFromRole(model.PermissionManageOwnSlashCommands.Id, roleName)
+	case model.PermissionManageOAuth.Id:
+		th.removePermissionFromRole(model.PermissionManageOwnOAuthApps.Id, roleName)
+	}
+}
+
+func (th *TestHelper) addPermissionToRole(permission string, roleName string) {
 	role, err1 := th.App.GetRoleByName(th.Context, roleName)
 	if err1 != nil {
 		panic(err1)
@@ -836,6 +852,22 @@ func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
 	_, err2 := th.App.UpdateRole(role)
 	if err2 != nil {
 		panic(err2)
+	}
+}
+
+func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
+	th.addPermissionToRole(permission, roleName)
+
+	switch permission {
+	case model.PermissionManageIncomingWebhooks.Id:
+		th.addPermissionToRole(model.PermissionManageOwnIncomingWebhooks.Id, roleName)
+		th.addPermissionToRole(model.PermissionBypassIncomingWebhookChannelLock.Id, roleName)
+	case model.PermissionManageOutgoingWebhooks.Id:
+		th.addPermissionToRole(model.PermissionManageOwnOutgoingWebhooks.Id, roleName)
+	case model.PermissionManageSlashCommands.Id:
+		th.addPermissionToRole(model.PermissionManageOwnSlashCommands.Id, roleName)
+	case model.PermissionManageOAuth.Id:
+		th.addPermissionToRole(model.PermissionManageOwnOAuthApps.Id, roleName)
 	}
 }
 

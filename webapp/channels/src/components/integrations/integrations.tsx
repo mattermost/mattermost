@@ -49,7 +49,7 @@ export default class Integrations extends React.PureComponent <Props> {
             options.push(
                 <TeamPermissionGate
                     teamId={this.props.team.id}
-                    permissions={[Permissions.MANAGE_INCOMING_WEBHOOKS]}
+                    permissions={[Permissions.MANAGE_INCOMING_WEBHOOKS, Permissions.MANAGE_OWN_INCOMING_WEBHOOKS]}
                     key='incomingWebhookPermission'
                 >
                     <IntegrationOption
@@ -77,7 +77,7 @@ export default class Integrations extends React.PureComponent <Props> {
             options.push(
                 <TeamPermissionGate
                     teamId={this.props.team.id}
-                    permissions={[Permissions.MANAGE_OUTGOING_WEBHOOKS]}
+                    permissions={[Permissions.MANAGE_OUTGOING_WEBHOOKS, Permissions.MANAGE_OWN_OUTGOING_WEBHOOKS]}
                     key='outgoingWebhookPermission'
                 >
                     <IntegrationOption
@@ -105,7 +105,7 @@ export default class Integrations extends React.PureComponent <Props> {
             options.push(
                 <TeamPermissionGate
                     teamId={this.props.team.id}
-                    permissions={[Permissions.MANAGE_SLASH_COMMANDS]}
+                    permissions={[Permissions.MANAGE_SLASH_COMMANDS, Permissions.MANAGE_OWN_SLASH_COMMANDS]}
                     key='commandPermission'
                 >
                     <IntegrationOption
@@ -132,7 +132,7 @@ export default class Integrations extends React.PureComponent <Props> {
         if (this.props.enableOAuthServiceProvider) {
             options.push(
                 <SystemPermissionGate
-                    permissions={[Permissions.MANAGE_OAUTH]}
+                    permissions={[Permissions.MANAGE_OAUTH, Permissions.MANAGE_OWN_OAUTH_APPS]}
                     key='oauth2AppsPermission'
                 >
                     <IntegrationOption

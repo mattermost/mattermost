@@ -429,3 +429,43 @@ func (a *App) HasPermissionToChannelMemberCount(rctx request.CTX, userID string,
 
 	return false
 }
+
+// SessionHasAnyPermissionToTeam checks if the session has any of the provided team permissions.
+// It checks both team-specific permissions and falls back to system-level permissions.
+func (a *App) SessionHasAnyPermissionToTeam(session model.Session, teamID string, perms ...*model.Permission) bool {
+	for _, perm := range perms {
+		if perm == nil {
+			continue
+		}
+		if a.SessionHasPermissionToTeam(session, teamID, perm) {
+			return true
+		}
+	}
+	return false
+}
+
+// SessionHasAnyPermissionTo checks if the session has any of the provided system permissions.
+func (a *App) SessionHasAnyPermissionTo(session model.Session, perms ...*model.Permission) bool {
+	for _, perm := range perms {
+		if perm == nil {
+			continue
+		}
+		if a.SessionHasPermissionTo(session, perm) {
+			return true
+		}
+	}
+	return false
+}
+
+// SessionHasAnyPermissionToChannel checks if the session has any of the provided channel permissions.
+func (a *App) SessionHasAnyPermissionToChannel(rctx request.CTX, session model.Session, channelID string, perms ...*model.Permission) bool {
+	for _, perm := range perms {
+		if perm == nil {
+			continue
+		}
+		if a.SessionHasPermissionToChannel(rctx, session, channelID, perm) {
+			return true
+		}
+	}
+	return false
+}

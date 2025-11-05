@@ -69,11 +69,16 @@ var PermissionGetPublicLink *Permission
 var PermissionManageWebhooks *Permission
 var PermissionManageOthersWebhooks *Permission
 var PermissionManageIncomingWebhooks *Permission
+var PermissionManageOwnIncomingWebhooks *Permission
 var PermissionManageOutgoingWebhooks *Permission
+var PermissionManageOwnOutgoingWebhooks *Permission
 var PermissionManageOthersIncomingWebhooks *Permission
 var PermissionManageOthersOutgoingWebhooks *Permission
+var PermissionManageOwnSlashCommands *Permission
 var PermissionManageOAuth *Permission
+var PermissionManageOwnOAuthApps *Permission
 var PermissionManageSystemWideOAuth *Permission
+var PermissionBypassIncomingWebhookChannelLock *Permission
 var PermissionManageEmojis *Permission
 var PermissionManageOthersEmojis *Permission
 var PermissionCreateEmojis *Permission
@@ -437,6 +442,12 @@ func initializePermissions() {
 		"authentication.permissions.manage_slash_commands.description",
 		PermissionScopeTeam,
 	}
+	PermissionManageOwnSlashCommands = &Permission{
+		"manage_own_slash_commands",
+		"authentication.permissions.manage_own_slash_commands.name",
+		"authentication.permissions.manage_own_slash_commands.description",
+		PermissionScopeTeam,
+	}
 	PermissionManageOthersSlashCommands = &Permission{
 		"manage_others_slash_commands",
 		"authentication.permissions.manage_others_slash_commands.name",
@@ -674,10 +685,22 @@ func initializePermissions() {
 		"authentication.permissions.manage_incoming_webhooks.description",
 		PermissionScopeTeam,
 	}
+	PermissionManageOwnIncomingWebhooks = &Permission{
+		"manage_own_incoming_webhooks",
+		"authentication.permissions.manage_own_incoming_webhooks.name",
+		"authentication.permissions.manage_own_incoming_webhooks.description",
+		PermissionScopeTeam,
+	}
 	PermissionManageOutgoingWebhooks = &Permission{
 		"manage_outgoing_webhooks",
 		"authentication.permissions.manage_outgoing_webhooks.name",
 		"authentication.permissions.manage_outgoing_webhooks.description",
+		PermissionScopeTeam,
+	}
+	PermissionManageOwnOutgoingWebhooks = &Permission{
+		"manage_own_outgoing_webhooks",
+		"authentication.permissions.manage_own_outgoing_webhooks.name",
+		"authentication.permissions.manage_own_outgoing_webhooks.description",
 		PermissionScopeTeam,
 	}
 	PermissionManageOthersIncomingWebhooks = &Permission{
@@ -692,10 +715,22 @@ func initializePermissions() {
 		"authentication.permissions.manage_others_outgoing_webhooks.description",
 		PermissionScopeTeam,
 	}
+	PermissionBypassIncomingWebhookChannelLock = &Permission{
+		"bypass_incoming_webhook_channel_lock",
+		"authentication.permissions.bypass_incoming_webhook_channel_lock.name",
+		"authentication.permissions.bypass_incoming_webhook_channel_lock.description",
+		PermissionScopeTeam,
+	}
 	PermissionManageOAuth = &Permission{
 		"manage_oauth",
 		"authentication.permissions.manage_oauth.name",
 		"authentication.permissions.manage_oauth.description",
+		PermissionScopeSystem,
+	}
+	PermissionManageOwnOAuthApps = &Permission{
+		"manage_own_oauth_apps",
+		"authentication.permissions.manage_own_oauth_apps.name",
+		"authentication.permissions.manage_own_oauth_apps.description",
 		PermissionScopeSystem,
 	}
 	PermissionManageSystemWideOAuth = &Permission{
@@ -2415,6 +2450,7 @@ func initializePermissions() {
 		PermissionReadOtherUsersTeams,
 		PermissionGetPublicLink,
 		PermissionManageOAuth,
+		PermissionManageOwnOAuthApps,
 		PermissionManageSystemWideOAuth,
 		PermissionCreateTeam,
 		PermissionListUsersWithoutTeam,
@@ -2485,6 +2521,7 @@ func initializePermissions() {
 		PermissionInviteUser,
 		PermissionAddUserToTeam,
 		PermissionManageSlashCommands,
+		PermissionManageOwnSlashCommands,
 		PermissionManageOthersSlashCommands,
 		PermissionCreatePublicChannel,
 		PermissionCreatePrivateChannel,
@@ -2493,9 +2530,12 @@ func initializePermissions() {
 		PermissionJoinPublicChannels,
 		PermissionReadPublicChannel,
 		PermissionManageIncomingWebhooks,
+		PermissionManageOwnIncomingWebhooks,
 		PermissionManageOutgoingWebhooks,
+		PermissionManageOwnOutgoingWebhooks,
 		PermissionManageOthersIncomingWebhooks,
 		PermissionManageOthersOutgoingWebhooks,
+		PermissionBypassIncomingWebhookChannelLock,
 		PermissionCreateEmojis,
 		PermissionDeleteEmojis,
 		PermissionDeleteOthersEmojis,

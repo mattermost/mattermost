@@ -35,8 +35,8 @@ func createOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	defer c.LogAuditRec(auditRec)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOAuth) {
-		c.SetPermissionError(model.PermissionManageOAuth)
+	if !c.App.SessionHasAnyPermissionTo(*c.AppContext.Session(), model.PermissionManageOwnOAuthApps, model.PermissionManageOAuth) {
+		c.SetPermissionError(model.PermissionManageOwnOAuthApps)
 		return
 	}
 
@@ -74,8 +74,8 @@ func updateOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "oauth_app_id", c.Params.AppId)
 	c.LogAudit("attempt")
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOAuth) {
-		c.SetPermissionError(model.PermissionManageOAuth)
+	if !c.App.SessionHasAnyPermissionTo(*c.AppContext.Session(), model.PermissionManageOwnOAuthApps, model.PermissionManageOAuth) {
+		c.SetPermissionError(model.PermissionManageOwnOAuthApps)
 		return
 	}
 
@@ -125,19 +125,22 @@ func updateOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOAuth) {
+	if !c.App.SessionHasAnyPermissionTo(*c.AppContext.Session(), model.PermissionManageOwnOAuthApps, model.PermissionManageOAuth) {
 		c.Err = model.NewAppError("getOAuthApps", "api.command.admin_only.app_error", nil, "", http.StatusForbidden)
 		return
 	}
 
+	hasSystemWide := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystemWideOAuth)
+	hasOwn := c.App.SessionHasAnyPermissionTo(*c.AppContext.Session(), model.PermissionManageOwnOAuthApps, model.PermissionManageOAuth)
+
 	var apps []*model.OAuthApp
 	var appErr *model.AppError
-	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystemWideOAuth) {
+	if hasSystemWide {
 		apps, appErr = c.App.GetOAuthApps(c.Params.Page, c.Params.PerPage)
-	} else if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOAuth) {
+	} else if hasOwn {
 		apps, appErr = c.App.GetOAuthAppsByCreator(c.AppContext.Session().UserId, c.Params.Page, c.Params.PerPage)
 	} else {
-		c.SetPermissionError(model.PermissionManageOAuth)
+		c.SetPermissionError(model.PermissionManageOwnOAuthApps)
 		return
 	}
 
@@ -163,8 +166,8 @@ func getOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOAuth) {
-		c.SetPermissionError(model.PermissionManageOAuth)
+	if !c.App.SessionHasAnyPermissionTo(*c.AppContext.Session(), model.PermissionManageOwnOAuthApps, model.PermissionManageOAuth) {
+		c.SetPermissionError(model.PermissionManageOwnOAuthApps)
 		return
 	}
 
@@ -213,8 +216,8 @@ func deleteOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "oauth_app_id", c.Params.AppId)
 	c.LogAudit("attempt")
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOAuth) {
-		c.SetPermissionError(model.PermissionManageOAuth)
+	if !c.App.SessionHasAnyPermissionTo(*c.AppContext.Session(), model.PermissionManageOwnOAuthApps, model.PermissionManageOAuth) {
+		c.SetPermissionError(model.PermissionManageOwnOAuthApps)
 		return
 	}
 
@@ -253,8 +256,8 @@ func regenerateOAuthAppSecret(c *Context, w http.ResponseWriter, r *http.Request
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "oauth_app_id", c.Params.AppId)
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOAuth) {
-		c.SetPermissionError(model.PermissionManageOAuth)
+	if !c.App.SessionHasAnyPermissionTo(*c.AppContext.Session(), model.PermissionManageOwnOAuthApps, model.PermissionManageOAuth) {
+		c.SetPermissionError(model.PermissionManageOwnOAuthApps)
 		return
 	}
 
