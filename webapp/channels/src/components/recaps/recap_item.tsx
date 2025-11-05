@@ -12,6 +12,7 @@ import {readMultipleChannels} from 'mattermost-redux/actions/channels';
 import {markRecapAsRead, deleteRecap, regenerateRecap} from 'mattermost-redux/actions/recaps';
 import {getAgents} from 'mattermost-redux/selectors/entities/agents';
 
+import useGetAgentsBridgeEnabled from 'components/common/hooks/useGetAgentsBridgeEnabled';
 import ConfirmModal from 'components/confirm_modal';
 
 import RecapChannelCard from './recap_channel_card';
@@ -30,6 +31,7 @@ const RecapItem = ({recap, isExpanded, onToggle}: Props) => {
     const dispatch = useDispatch();
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const agents = useSelector(getAgents);
+    const agentsBridgeEnabled = useGetAgentsBridgeEnabled();
 
     const isProcessing = recap.status === 'pending' || recap.status === 'processing';
     const isFailed = recap.status === 'failed';
@@ -73,10 +75,11 @@ const RecapItem = ({recap, isExpanded, onToggle}: Props) => {
                 defaultMessage: 'Regenerate this recap',
             }),
             onClick: handleRegenerateRecap,
+            disabled: !agentsBridgeEnabled,
         });
 
         return actions;
-    }, [formatMessage, handleMarkAllChannelsRead, handleRegenerateRecap, isFailed]);
+    }, [formatMessage, handleMarkAllChannelsRead, handleRegenerateRecap, isFailed, agentsBridgeEnabled]);
 
     const handleDelete = () => {
         dispatch(deleteRecap(recap.id));

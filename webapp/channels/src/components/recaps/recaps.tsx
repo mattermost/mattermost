@@ -14,6 +14,7 @@ import {getUnreadRecaps, getReadRecaps} from 'mattermost-redux/selectors/entitie
 
 import {openModal} from 'actions/views/modals';
 
+import useGetAgentsBridgeEnabled from 'components/common/hooks/useGetAgentsBridgeEnabled';
 import useGetFeatureFlagValue from 'components/common/hooks/useGetFeatureFlagValue';
 import CreateRecapModal from 'components/create_recap_modal';
 
@@ -28,6 +29,7 @@ const Recaps = () => {
     const dispatch = useDispatch();
     const [activeTab, setActiveTab] = useState<'unread' | 'read'>('unread');
     const enableAIRecaps = useGetFeatureFlagValue('EnableAIRecaps');
+    const agentsBridgeEnabled = useGetAgentsBridgeEnabled();
 
     const unreadRecaps = useSelector(getUnreadRecaps);
     const readRecaps = useSelector(getReadRecaps);
@@ -79,6 +81,8 @@ const Recaps = () => {
                 <button
                     className='btn btn-tertiary recap-add-button'
                     onClick={handleAddRecap}
+                    disabled={agentsBridgeEnabled === false}
+                    title={agentsBridgeEnabled ? undefined : formatMessage({id: 'recaps.addRecap.disabled', defaultMessage: 'Agents Bridge is not enabled'})}
                 >
                     <PlusIcon size={12}/>
                     {formatMessage({id: 'recaps.addRecap', defaultMessage: 'Add a recap'})}
