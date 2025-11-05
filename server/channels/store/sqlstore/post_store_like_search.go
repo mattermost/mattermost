@@ -12,6 +12,13 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
+func addWildcardToWord(word string) string {
+	if !strings.HasSuffix(word, "%") {
+		word = "%" + word + "%"
+	}
+	return word
+}
+
 func (s *SqlPostStore) generateLikeSearchQuery(baseQuery sq.SelectBuilder, params *model.SearchParams, phrases []string, terms string, excludedTerms string, searchType string) sq.SelectBuilder {
 	var searchClauses []string
 	var searchArgs []any
@@ -42,9 +49,7 @@ func (s *SqlPostStore) generateLikeSearchQuery(baseQuery sq.SelectBuilder, param
 			searchArgs = append(searchArgs, "%"+word+"%", "%"+word[1:]+"%")
 		} else {
 			// Accept prefix search when wildcard are in the appropriate position, otherwise treat as middle match.
-			if !strings.HasSuffix(word, "%") {
-				word = "%" + word + "%"
-			}
+			word = addWildcardToWord(word)
 			searchClauses = append(searchClauses, fmt.Sprintf("%s LIKE ?", searchType))
 			searchArgs = append(searchArgs, word)
 		}
@@ -72,9 +77,7 @@ func (s *SqlPostStore) generateLikeSearchQuery(baseQuery sq.SelectBuilder, param
 				excludedClauses = append(excludedClauses, fmt.Sprintf("(%s NOT LIKE ? AND %s NOT LIKE ?)", searchType, searchType))
 				excludedArgs = append(excludedArgs, "%"+cleanWord+"%", "%"+cleanWord[1:]+"%")
 			} else {
-				if !strings.HasSuffix(cleanWord, "%") {
-					cleanWord = "%" + cleanWord + "%"
-				}
+				cleanWord = addWildcardToWord(cleanWord)
 				excludedClauses = append(excludedClauses, fmt.Sprintf("%s NOT LIKE ?", searchType))
 				excludedArgs = append(excludedArgs, cleanWord)
 			}
