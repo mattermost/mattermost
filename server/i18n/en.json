@@ -10466,7 +10466,7 @@
   },
   {
     "id": "model.post.resolve_query_params.missing_channel_id",
-    "translation": ""
+    "translation": "Missing channel id paramameter."
   },
   {
     "id": "model.preference.is_valid.category.app_error",

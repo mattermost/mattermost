@@ -342,8 +342,6 @@ func (a *App) GetPostsForReporting(rctx request.CTX, options model.ReportPostOpt
 		}
 	}
 
-	// Reporting endpoints don't need filtering for inaccessible posts since they require admin permissions
-	// and are used for compliance/auditing purposes
 	a.applyPostsWillBeConsumedHook(response.Posts)
 
 	return response, nil
