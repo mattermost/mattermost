@@ -119,7 +119,7 @@ func (s *MmctlE2ETestSuite) TestCPAFieldCreateCmd() {
 		s.Require().Len(fields, 1)
 		s.Require().Equal("Department", fields[0].Name)
 		s.Require().Equal(model.PropertyFieldTypeText, fields[0].Type)
-		s.Require().Equal("admin", fields[0].Attrs["managed"])
+		s.Require().Equal("admin", fields[0].Attrs.Managed)
 	})
 
 	s.RunForSystemAdminAndLocal("Create multiselect field with options", func(c client.Client) {
