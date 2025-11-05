@@ -88,9 +88,8 @@ describe('RecapChannelCard', () => {
         channel_name: 'test-channel',
         highlights: ['Important update from @john', 'New feature released'],
         action_items: ['Review PR #123', 'Schedule meeting'],
-        total_message_count: 10,
+        source_post_ids: ['post1', 'post2'],
         create_at: 1000,
-        update_at: 1000,
     };
 
     beforeEach(() => {
