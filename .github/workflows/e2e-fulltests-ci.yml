@@ -120,6 +120,7 @@ jobs:
       - name: ci/generate-test-variables
         id: generate
         run: |
+          MM_ENV_HASH=$(md5sum -z <<<"$MM_ENV" | cut -c-8)
           TESTCASE_FAILURE_FATAL="true"
           if grep -q CLOUD <<<"$REPORT_TYPE"; then
             SERVER=cloud
@@ -221,8 +222,6 @@ jobs:
           echo "server_uppercase=${SERVER@U}" >> $GITHUB_OUTPUT
           echo "ENABLED_DOCKER_SERVICES=${ENABLED_DOCKER_SERVICES}" >> $GITHUB_OUTPUT
           echo "status_check_context=E2E Tests/test${FIPS_SUFFIX}${BUILD_ID_SUFFIX_IN_STATUS_CHECK:+-$BUILD_ID_SUFFIX}${MM_ENV:+/$MM_ENV_HASH}" >> $GITHUB_OUTPUT
-          echo "MM_ENV=${SAFE_MM_ENV}" >> $GITHUB_OUTPUT
-          echo "MM_SERVICE_OVERRIDES=${SAFE_MM_SERVICE_OVERRIDES}" >> $GITHUB_OUTPUT
           echo "workers_number=${WORKERS_NUMBER}" >> $GITHUB_OUTPUT
           echo "TEST_FILTER_CYPRESS=${TEST_FILTER_CYPRESS}" >> $GITHUB_OUTPUT
           echo "TESTCASE_FAILURE_FATAL=${TESTCASE_FAILURE_FATAL}" >> $GITHUB_OUTPUT
@@ -235,10 +234,8 @@ jobs:
           echo "WORKFLOW_RUN_URL=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{github.run_id}}" >> $GITHUB_OUTPUT
           echo "CYCLE_URL=${AUTOMATION_DASHBOARD_URL%%/api}/cycle/${BUILD_ID}" >> $GITHUB_OUTPUT
       - name: ci/notify-user
-        id: notify
         env:
           COMMIT_SHA: "${{steps.generate.outputs.commit_sha}}"
-          SERVER_IMAGE: "${{steps.generate.outputs.SERVER_IMAGE}}"
           STATUS_CHECK_CONTEXT: "${{steps.generate.outputs.status_check_context}}"
           WORKFLOW_RUN_URL: "${{steps.generate.outputs.WORKFLOW_RUN_URL}}"
           CYCLE_URL: "${{steps.generate.outputs.CYCLE_URL}}"
