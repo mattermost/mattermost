@@ -50,6 +50,7 @@ on:
         type: string
         description: When true, use mattermost-enterprise-fips-edition image for testing instead of standard enterprise edition
         default: "false"
+        required: false
 
 concurrency:
   group: "${{ github.workflow }}-${{ inputs.REPORT_TYPE }}-${{ inputs.FIPS_ENABLED }}-${{ inputs.PR_NUMBER || inputs.ref }}-${{ inputs.MM_ENV }}"
@@ -83,9 +84,7 @@ jobs:
       ROLLING_RELEASE_SERVER_IMAGE: "${{ steps.generate.outputs.ROLLING_RELEASE_SERVER_IMAGE }}"
       WORKFLOW_RUN_URL: "${{steps.generate.outputs.WORKFLOW_RUN_URL}}"
       CYCLE_URL: "${{steps.generate.outputs.CYCLE_URL}}"
-      comment_id: "${{ steps.notify.outputs.comment_id }}"
-      MM_ENV: "${{ steps.generate.outputs.MM_ENV }}"
-      MM_SERVICE_OVERRIDES: "${{ steps.generate.outputs.MM_SERVICE_OVERRIDES }}"
+      FIPS_SUFFIX: "${{ steps.generate.outputs.FIPS_SUFFIX }}"
     env:
       GH_TOKEN: "${{ github.token }}"
       REF: "${{ inputs.ref || github.sha }}"
@@ -121,26 +120,6 @@ jobs:
       - name: ci/generate-test-variables
         id: generate
         run: |
-          # Sanitize MM_ENV - only allow alphanumeric, underscore, equals, comma, and dash
-          if [ -n "$MM_ENV" ] && ! grep -qE '^[a-zA-Z0-9_=,.-]+$' <<<"$MM_ENV"; then
-            echo "Warning: MM_ENV contains invalid characters. Setting to empty string."
-            echo "Only alphanumeric, underscore, equals, comma, period, and dash are allowed."
-            MM_ENV=""
-          fi
-
-          # Validate MM_SERVICE_OVERRIDES - only allow specific overridable services
-          # Allowed services: minio, openldap, elasticsearch, keycloak, redis, opensearch
-          if [ -n "$MM_SERVICE_OVERRIDES" ] && ! grep -qE '^[+-](minio|openldap|elasticsearch|keycloak|redis|opensearch)([,][+-](minio|openldap|elasticsearch|keycloak|redis|opensearch))*$' <<<"$MM_SERVICE_OVERRIDES"; then
-            echo "Error: MM_SERVICE_OVERRIDES has invalid format or contains invalid services."
-            echo "Expected format: +service1,-service2,+service3"
-            echo "Allowed services: minio, openldap, elasticsearch, keycloak, redis, opensearch"
-            exit 1
-          fi
-
-          # Escape special characters in MM_ENV and MM_SERVICE_OVERRIDES before using in outputs
-          SAFE_MM_ENV=$(printf '%s' "$MM_ENV" | sed 's/[`$\\]/\\&/g')
-          SAFE_MM_SERVICE_OVERRIDES=$(printf '%s' "$MM_SERVICE_OVERRIDES" | sed 's/[`$\\]/\\&/g')
-          MM_ENV_HASH=$(md5sum -z <<<"$SAFE_MM_ENV" | cut -c-8)
           TESTCASE_FAILURE_FATAL="true"
           if grep -q CLOUD <<<"$REPORT_TYPE"; then
             SERVER=cloud
@@ -223,22 +202,25 @@ jobs:
               *) echo "Invalid MM_SERVICE_OVERRIDE value: $SVC_OP"; exit 1 ;;
             esac
           done
-          # BUILD_ID format: $pipelineID-$imageTag-$testType-$serverType-$serverEdition
-          # Reference on BUILD_ID parsing: https://github.com/saturninoabril/automation-dashboard/blob/175891781bf1072c162c58c6ec0abfc5bcb3520e/lib/common_utils.ts#L3-L23
-          BUILD_ID="${{ github.run_id }}_${{ github.run_attempt }}-$([ "$FIPS_ENABLED" = "true" ] && echo "fips_" || true)${SERVER_IMAGE_TAG}-${BUILD_ID_SUFFIX}"
-          # Determine server image name based on FIPS_ENABLED parameter
+          # Determine server image name and FIPS suffix based on FIPS_ENABLED parameter
           if [ "$FIPS_ENABLED" = "true" ]; then
             SERVER_IMAGE_NAME="mattermost-enterprise-fips-edition"
+            FIPS_SUFFIX="_fips"
           else
             SERVER_IMAGE_NAME="mattermost-enterprise-edition"
+            FIPS_SUFFIX=""
           fi
+          # BUILD_ID format: $pipelineID-$imageTag-$testType-$serverType-$serverEdition
+          # Reference on BUILD_ID parsing: https://github.com/saturninoabril/automation-dashboard/blob/175891781bf1072c162c58c6ec0abfc5bcb3520e/lib/common_utils.ts#L3-L23
+          BUILD_ID="${{ github.run_id }}_${{ github.run_attempt }}-${SERVER_IMAGE_TAG}${FIPS_SUFFIX}-${BUILD_ID_SUFFIX}"
           echo "commit_sha=${COMMIT_SHA}" >> $GITHUB_OUTPUT
           echo "BRANCH=${BRANCH}" >> $GITHUB_OUTPUT
           echo "SERVER_IMAGE=${SERVER_IMAGE_ORG}/${SERVER_IMAGE_NAME}:${SERVER_IMAGE_TAG}" >> $GITHUB_OUTPUT
+          echo "FIPS_SUFFIX=${FIPS_SUFFIX}" >> $GITHUB_OUTPUT
           echo "SERVER=${SERVER}" >> $GITHUB_OUTPUT
           echo "server_uppercase=${SERVER@U}" >> $GITHUB_OUTPUT
           echo "ENABLED_DOCKER_SERVICES=${ENABLED_DOCKER_SERVICES}" >> $GITHUB_OUTPUT
-          echo "status_check_context=E2E Tests$([ "$FIPS_ENABLED" = "true" ] && echo "/fips" || true)${BUILD_ID_SUFFIX_IN_STATUS_CHECK:+-$BUILD_ID_SUFFIX}${SAFE_MM_ENV:+/$MM_ENV_HASH}" >> $GITHUB_OUTPUT
+          echo "status_check_context=E2E Tests/test${FIPS_SUFFIX}${BUILD_ID_SUFFIX_IN_STATUS_CHECK:+-$BUILD_ID_SUFFIX}${MM_ENV:+/$MM_ENV_HASH}" >> $GITHUB_OUTPUT
           echo "MM_ENV=${SAFE_MM_ENV}" >> $GITHUB_OUTPUT
           echo "MM_SERVICE_OVERRIDES=${SAFE_MM_SERVICE_OVERRIDES}" >> $GITHUB_OUTPUT
           echo "workers_number=${WORKERS_NUMBER}" >> $GITHUB_OUTPUT
@@ -262,29 +244,16 @@ jobs:
           CYCLE_URL: "${{steps.generate.outputs.CYCLE_URL}}"
           RUN_CYPRESS: "${{inputs.RUN_CYPRESS == 'true' || ''}}"
           RUN_PLAYWRIGHT: "${{inputs.RUN_PLAYWRIGHT == 'true' || ''}}"
-          FIPS_ENABLED: "${{inputs.FIPS_ENABLED}}"
-          MM_ENV: "${{steps.generate.outputs.MM_ENV}}"
-          MM_SERVICE_OVERRIDES: "${{steps.generate.outputs.MM_SERVICE_OVERRIDES}}"
         run: |
           if [ -n "$PR_NUMBER" ]; then
-            COMMENT_URL=$(gh issue -R "${{ github.repository }}" comment "$PR_NUMBER" --body-file - <<EOF
-          <details>
-          <summary><b>$([ "$FIPS_ENABLED" = "true" ] && echo "(FIPS) " || true)E2E tests starting with \`${SERVER_IMAGE}\`</b></summary>
-
-          ${MM_ENV:+- with \`MM_ENV=${MM_ENV}\`}
-          ${MM_SERVICE_OVERRIDES:+- Cypress service overrides \`${MM_SERVICE_OVERRIDES}\`}
-
-          **Progress:**
-          - Cypress: ${RUN_CYPRESS:+look for commit status \`$STATUS_CHECK_CONTEXT/cypress\` or the access the [Automation Dashboard Cycle URL]($CYCLE_URL)}$([ -n "${RUN_CYPRESS:-}" ] || echo -n "will not run").
-          - Playwright: ${RUN_PLAYWRIGHT:+look for commit status \`$STATUS_CHECK_CONTEXT/playwright\`}$([ -n "${RUN_PLAYWRIGHT:-}" ] || echo -n "will not run").
-
+            gh issue -R "${{ github.repository }}" comment "$PR_NUMBER" --body-file - <<EOF
+          E2E test run is starting for commit \`${COMMIT_SHA}\`${MM_ENV:+, with \`MM_ENV=$MM_ENV\`}${MM_SERVICE_OVERRIDES:+, Cypress service overrides \`$MM_SERVICE_OVERRIDES\`}.
+          To check the run progress:
+          - Cypress: ${RUN_CYPRESS:+look for commit status \`$STATUS_CHECK_CONTEXT\` or the access the [Automation Dashboard Cycle URL]($CYCLE_URL)}$([ -n "${RUN_CYPRESS:-}" ] || echo -n "will not run").
+          - Playwright: ${RUN_PLAYWRIGHT:+look for commit status \`$STATUS_CHECK_CONTEXT-playwright\`}$([ -n "${RUN_PLAYWRIGHT:-}" ] || echo -n "will not run").
+          
           You can also look at the [E2E test's Workflow Run URL]($WORKFLOW_RUN_URL) (run ID \`${{ github.run_id }}\`).
-          </details>
           EOF
-          )
-            # Extract comment ID from the URL
-            COMMENT_ID=$(echo "$COMMENT_URL" | grep -oE '[0-9]+$')
-            echo "comment_id=$COMMENT_ID" >> $GITHUB_OUTPUT
           fi
 
   e2e-fulltest-cypress:
@@ -294,7 +263,7 @@ jobs:
     if: ${{ inputs.RUN_CYPRESS == 'true' }}
     with:
       commit_sha: "${{ needs.generate-test-variables.outputs.commit_sha }}"
-      status_check_context: "${{ needs.generate-test-variables.outputs.status_check_context }}/cypress"
+      status_check_context: "${{ needs.generate-test-variables.outputs.status_check_context }}"
       workers_number: "${{ needs.generate-test-variables.outputs.workers_number }}"
       testcase_failure_fatal: "${{ needs.generate-test-variables.outputs.TESTCASE_FAILURE_FATAL == 'true' }}"
       run_preflight_checks: false
@@ -304,7 +273,7 @@ jobs:
       ENABLED_DOCKER_SERVICES: "${{ needs.generate-test-variables.outputs.ENABLED_DOCKER_SERVICES }}"
       TEST: "cypress"
       TEST_FILTER: "${{ needs.generate-test-variables.outputs.TEST_FILTER_CYPRESS }}"
-      MM_ENV: "${{ needs.generate-test-variables.outputs.MM_ENV }}"
+      MM_ENV: "${{ inputs.MM_ENV || '' }}"
       BRANCH: "${{ needs.generate-test-variables.outputs.BRANCH }}"
       BUILD_ID: "${{ needs.generate-test-variables.outputs.BUILD_ID }}"
       REPORT_TYPE: "${{ needs.generate-test-variables.outputs.REPORT_TYPE }}"
@@ -331,7 +300,7 @@ jobs:
     if: ${{ inputs.RUN_PLAYWRIGHT == 'true' }}
     with:
       commit_sha: "${{ needs.generate-test-variables.outputs.commit_sha }}"
-      status_check_context: "${{ needs.generate-test-variables.outputs.status_check_context }}/playwright"
+      status_check_context: "${{ needs.generate-test-variables.outputs.status_check_context }}-playwright"
       workers_number: "1"
       testcase_failure_fatal: "${{ needs.generate-test-variables.outputs.TESTCASE_FAILURE_FATAL == 'true' }}"
       run_preflight_checks: false
@@ -340,7 +309,7 @@ jobs:
       SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.SERVER_IMAGE }}"
       TEST: "playwright"
       TEST_FILTER: "${{ needs.generate-test-variables.outputs.TEST_FILTER_PLAYWRIGHT }}"
-      MM_ENV: "${{ needs.generate-test-variables.outputs.MM_ENV }}"
+      MM_ENV: "${{ inputs.MM_ENV || '' }}"
       BRANCH: "${{ needs.generate-test-variables.outputs.BRANCH }}"
       BUILD_ID: "${{ needs.generate-test-variables.outputs.BUILD_ID }}"
       REPORT_TYPE: "${{ needs.generate-test-variables.outputs.REPORT_TYPE }}"
@@ -372,67 +341,24 @@ jobs:
     env:
       GH_TOKEN: "${{ github.token }}"
       PR_NUMBER: "${{ inputs.PR_NUMBER || '' }}"
-      MM_ENV: "${{ needs.generate-test-variables.outputs.MM_ENV }}"
-      MM_SERVICE_OVERRIDES: "${{ needs.generate-test-variables.outputs.MM_SERVICE_OVERRIDES }}"
+      MM_ENV: "${{ inputs.MM_ENV || '' }}"
       COMMIT_SHA: "${{ needs.generate-test-variables.outputs.commit_sha }}"
-      SERVER_IMAGE: "${{ needs.generate-test-variables.outputs.SERVER_IMAGE }}"
       STATUS_CHECK_CONTEXT: "${{ needs.generate-test-variables.outputs.status_check_context }}"
       WORKFLOW_RUN_URL: "${{ needs.generate-test-variables.outputs.WORKFLOW_RUN_URL }}"
       CYCLE_URL: "${{ needs.generate-test-variables.outputs.CYCLE_URL }}"
       RUN_CYPRESS: "${{inputs.RUN_CYPRESS == 'true' || ''}}"
       RUN_PLAYWRIGHT: "${{inputs.RUN_PLAYWRIGHT == 'true' || ''}}"
       PLAYWRIGHT_REPORT_URL: "${{ needs.e2e-fulltest-playwright.outputs.playwright_report_url }}"
-      FIPS_ENABLED: "${{inputs.FIPS_ENABLED}}"
-      CYPRESS_PASS_RATE: "${{ needs.e2e-fulltest-cypress.outputs.pass_rate }}"
-      PLAYWRIGHT_PASS_RATE: "${{ needs.e2e-fulltest-playwright.outputs.pass_rate }}"
-      COMMENT_ID: "${{ needs.generate-test-variables.outputs.comment_id }}"
     steps:
       - name: ci/notify-user-test-completion
         run: |
-          # Determine overall test status based on pass rates
-          STATUS_ICON=""
-          STATUS_TEXT=""
-
-          ALL_PASSED=true
-          if [ -n "$RUN_CYPRESS" ]; then
-            if [ "$CYPRESS_PASS_RATE" != "100.00%" ]; then
-              ALL_PASSED=false
-            fi
-          fi
-          if [ -n "$RUN_PLAYWRIGHT" ]; then
-            if [ "$PLAYWRIGHT_PASS_RATE" != "100.00%" ]; then
-              ALL_PASSED=false
-            fi
-          fi
-
-          if [ "$ALL_PASSED" = "true" ]; then
-            STATUS_ICON="✅"
-            STATUS_TEXT="PASSED"
-          else
-            STATUS_ICON="❌"
-            STATUS_TEXT="FAILED"
-          fi
-
           if [ -n "$PR_NUMBER" ]; then
-            COMMENT_BODY=$(cat <<EOF
-          <details>
-          <summary><b>${STATUS_ICON} $([ "$FIPS_ENABLED" = "true" ] && echo "(FIPS) " || true)E2E test ${STATUS_TEXT,,} with \`${SERVER_IMAGE}\`</b></summary>
-
-          ${MM_ENV:+- with \`MM_ENV=${MM_ENV}\`}
-          ${MM_SERVICE_OVERRIDES:+- Cypress service overrides \`${MM_SERVICE_OVERRIDES}\`}
-
-          **Results summary:**
-          - Cypress: ${RUN_CYPRESS:+pass rate is \`${{ needs.e2e-fulltest-cypress.outputs.pass_rate || 'unknown' }}\` (see [Automation Dashboard]($CYCLE_URL) and commit status check \`$STATUS_CHECK_CONTEXT/cypress\`)}$([ -n "${RUN_CYPRESS:-}" ] || echo -n "did not run").
-          - Playwright: ${RUN_PLAYWRIGHT:+pass rate is \`${{ needs.e2e-fulltest-playwright.outputs.pass_rate || 'unknown' }}\` (see [Playwright Report URL]($PLAYWRIGHT_REPORT_URL) and commit status check \`$STATUS_CHECK_CONTEXT/playwright\`)}$([ -n "${RUN_PLAYWRIGHT:-}" ] || echo -n "did not run").
-
+            gh issue -R "${{ github.repository }}" comment "$PR_NUMBER" --body-file - <<EOF
+          E2E test has completed for commit \`${COMMIT_SHA}\`${MM_ENV:+, with \`MM_ENV=$MM_ENV\`}.
+          Results summary:
+          - Cypress: ${RUN_CYPRESS:+pass rate is \`${{ needs.e2e-fulltest-cypress.outputs.pass_rate || 'unknown' }}\` (see [Automation Dashboard]($CYCLE_URL) and commit status check \`$STATUS_CHECK_CONTEXT\`)}$([ -n "${RUN_CYPRESS:-}" ] || echo -n "did not run").
+          - Playwright: ${RUN_PLAYWRIGHT:+pass rate is \`${{ needs.e2e-fulltest-playwright.outputs.pass_rate || 'unknown' }}\` (see [Playwright Report URL]($PLAYWRIGHT_REPORT_URL) and commit status check \`$STATUS_CHECK_CONTEXT-playwright\`)}$([ -n "${RUN_PLAYWRIGHT:-}" ] || echo -n "did not run").
+          
           The run summary artifacts are available in the corresponding [Workflow Run]($WORKFLOW_RUN_URL).
-          </details>
           EOF
-          )
-            # Update existing comment if available, otherwise create new comment
-            if [ -n "$COMMENT_ID" ]; then
-              gh api -X PATCH "/repos/${{ github.repository }}/issues/comments/$COMMENT_ID" -f body="$COMMENT_BODY"
-            else
-              gh issue -R "${{ github.repository }}" comment "$PR_NUMBER" --body "$COMMENT_BODY"
-            fi
           fi
