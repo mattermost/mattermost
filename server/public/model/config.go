@@ -3435,7 +3435,7 @@ func (s *PluginSettings) Sanitize(pluginManifests []*Manifest) {
 
 		for key := range settings {
 			if manifest == nil {
-				// Don't return any stored plugin settings if the plugin is no longer installed.
+				// Don't return plugin settings for plugins that are not installed
 				delete(s.Plugins, id)
 				break
 			}
