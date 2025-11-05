@@ -727,13 +727,6 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 	a.invalidateCacheForChannelPosts(flaggedPost.ChannelId)
 
 	a.Srv().Go(func() {
-		_, postErr := a.postKeepPostReviewerMessage(rctx, flaggedPost.Id, reviewerId, actionRequest.Comment, groupId)
-		if postErr != nil {
-			rctx.Logger().Error("Failed to post keep post reviewer message after retaining flagged post", mlog.Err(postErr), mlog.String("post_id", flaggedPost.Id))
-		}
-	})
-
-	a.Srv().Go(func() {
 		a.sendKeepFlaggedPostNotification(rctx, flaggedPost, reviewerId, actionRequest.Comment, groupId)
 	})
 
@@ -1189,6 +1182,7 @@ func (a *App) sendFlagPostNotification(rctx request.CTX, flaggedPost *model.Post
 	return appErr
 }
 
+// sendFlaggedPostRemovalNotification handles the notifications when flagged post is removed for all audiences - reviewers, author, and reporter as per configuration
 func (a *App) sendFlaggedPostRemovalNotification(rctx request.CTX, flaggedPost *model.Post, actorUserId, comment, contentFlaggingGroupId string) []*model.Post {
 	notificationSettings := a.Config().ContentFlaggingSettings.NotificationSettings
 	deletePostNotifications := notificationSettings.EventTargetMapping[model.EventContentRemoved]
@@ -1230,6 +1224,7 @@ func (a *App) sendFlaggedPostRemovalNotification(rctx request.CTX, flaggedPost *
 	return createdPosts
 }
 
+// sendKeepFlaggedPostNotification handles the notifications when flagged post is retained for all audiences - reviewers, author, and reporter as per configuration
 func (a *App) sendKeepFlaggedPostNotification(rctx request.CTX, flaggedPost *model.Post, actorUserId, comment, contentFlaggingGroupId string) []*model.Post {
 	notificationSettings := a.Config().ContentFlaggingSettings.NotificationSettings
 	keepPostNotifications := notificationSettings.EventTargetMapping[model.EventContentDismissed]
