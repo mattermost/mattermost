@@ -399,9 +399,10 @@ type DialogElement struct {
 	TimeInterval        int                      `json:"time_interval,omitempty"`
 	IsRange             bool                     `json:"is_range,omitempty"`
 	ExcludeTime         *DialogTimeExcludeConfig `json:"exclude_time,omitempty"`
-	AllowSingleDayRange bool                     `json:"allow_single_day_range,omitempty"`
-	RangeLayout         string                   `json:"range_layout,omitempty"`       // "horizontal" or "vertical"
-	LocationTimezone    string                   `json:"location_timezone,omitempty"` // IANA timezone (e.g., "America/Denver") - overrides user's timezone for datetime fields only
+	AllowSingleDayRange   bool                     `json:"allow_single_day_range,omitempty"`
+	RangeLayout           string                   `json:"range_layout,omitempty"`           // "horizontal" or "vertical"
+	LocationTimezone      string                   `json:"location_timezone,omitempty"`      // IANA timezone (e.g., "America/Denver") - overrides user's timezone for datetime fields only
+	AllowManualTimeEntry  bool                     `json:"allow_manual_time_entry,omitempty"` // Allow manual text entry for time instead of dropdown (datetime fields only)
 }
 
 type OpenDialogRequest struct {

@@ -72,7 +72,13 @@ const AppsFormDateTimeField: React.FC<Props> = ({
         return field.is_range ? null : null;
     }, [value, timezone, field.is_range]);
 
-    const handleDateTimeChange = useCallback((date: moment.Moment) => {
+    const handleDateTimeChange = useCallback((date: moment.Moment | null) => {
+        if (!date) {
+            // Clear the value when null is passed (e.g., validation error)
+            console.log('handleDateTimeChange - clearing value due to null');
+            onChange(field.name, null);
+            return;
+        }
         console.log('handleDateTimeChange - moment:', date.format(), 'timezone:', date.tz(), 'utcOffset:', date.utcOffset());
         const newValue = momentToString(date, true);
         console.log('handleDateTimeChange - converted to UTC:', newValue);
@@ -175,7 +181,14 @@ const AppsFormDateTimeField: React.FC<Props> = ({
     }, [onChange, field.name, timezone, momentValue, field.time_interval, field.exclude_time]);
 
     // Handle start time change
-    const handleStartTimeChange = useCallback((newMoment: moment.Moment) => {
+    const handleStartTimeChange = useCallback((newMoment: moment.Moment | null) => {
+        if (!newMoment) {
+            // Clear the start time when null is passed (e.g., validation error)
+            console.log('handleStartTimeChange - clearing start time due to null');
+            onChange(field.name, null);
+            return;
+        }
+
         const startString = momentToString(newMoment, true);
 
         if (Array.isArray(momentValue) && momentValue.length > 1) {
@@ -191,7 +204,14 @@ const AppsFormDateTimeField: React.FC<Props> = ({
     }, [momentValue, onChange, field.name]);
 
     // Handle end time change
-    const handleEndTimeChange = useCallback((newMoment: moment.Moment) => {
+    const handleEndTimeChange = useCallback((newMoment: moment.Moment | null) => {
+        if (!newMoment) {
+            // Clear the end time when null is passed (e.g., validation error)
+            console.log('handleEndTimeChange - clearing end time due to null');
+            onChange(field.name, null);
+            return;
+        }
+
         if (Array.isArray(momentValue) && momentValue.length > 0) {
             const startString = momentToString(momentValue[0], true);
             const endString = momentToString(newMoment, true);
@@ -237,6 +257,7 @@ const AppsFormDateTimeField: React.FC<Props> = ({
                             onRangeChange={handleStartRangeChange}
                             allowSingleDayRange={field.allow_single_day_range}
                             additionalDisabledDays={disabledDays}
+                            allowManualTimeEntry={field.allow_manual_time_entry}
                         />
                     </div>
                     <div style={fieldStyle}>
@@ -254,6 +275,7 @@ const AppsFormDateTimeField: React.FC<Props> = ({
                             rangeMode={true}
                             rangeValue={rangeValueForCalendar}
                             isStartField={false}
+                            allowManualTimeEntry={field.allow_manual_time_entry}
                             onRangeChange={handleEndRangeChange}
                             allowSingleDayRange={field.allow_single_day_range}
                             additionalDisabledDays={disabledDays}
@@ -283,6 +305,7 @@ const AppsFormDateTimeField: React.FC<Props> = ({
                 allowPastDates={true}
                 excludeTime={field.exclude_time}
                 additionalDisabledDays={disabledDays}
+                allowManualTimeEntry={field.allow_manual_time_entry}
             />
         </div>
     );

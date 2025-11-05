@@ -12,6 +12,7 @@ import {useSelector} from 'react-redux';
 import type {TimeExcludeConfig} from '@mattermost/types/apps';
 
 import {getCurrentLocale} from 'selectors/i18n';
+import {isUseMilitaryTime} from 'selectors/preferences';
 
 import DatePicker from 'components/date_picker';
 import * as Menu from 'components/menu';
@@ -81,6 +82,65 @@ export const getTimeInIntervals = (startTime: Moment, interval = CUSTOM_STATUS_T
     }
 
     return intervals;
+};
+
+// Function to parse time string input into hours and minutes
+// Supports formats: "13:40", "1:40", "1:40 PM", "1:40PM", "1:40pm", "1:40p", "140pm", etc.
+export const parseTimeString = (input: string): {hours: number; minutes: number} | null => {
+    if (!input || typeof input !== 'string') {
+        return null;
+    }
+
+    const trimmed = input.trim().toLowerCase();
+
+    // Check for AM/PM
+    const hasAM = /am?$/.test(trimmed);
+    const hasPM = /pm?$/.test(trimmed);
+    const is12Hour = hasAM || hasPM;
+
+    // Remove AM/PM and extra spaces
+    const timeStr = trimmed.replace(/[ap]m?$/i, '').trim();
+
+    // Match various time formats
+    // HH:MM, H:MM, HMM, HHMM
+    const match = timeStr.match(/^(\d{1,2}):?(\d{2})?$/);
+
+    if (!match) {
+        return null;
+    }
+
+    let hours = parseInt(match[1], 10);
+    const minutes = match[2] ? parseInt(match[2], 10) : 0;
+
+    // Validate ranges
+    if (minutes < 0 || minutes > 59) {
+        return null;
+    }
+
+    if (is12Hour) {
+        // 12-hour format validation
+        if (hours < 1 || hours > 12) {
+            return null;
+        }
+
+        // Convert to 24-hour
+        if (hasAM) {
+            if (hours === 12) {
+                hours = 0; // 12 AM = 00:00
+            }
+        } else if (hasPM) {
+            if (hours !== 12) {
+                hours += 12; // 1 PM = 13:00, but 12 PM stays 12
+            }
+        }
+    } else {
+        // 24-hour format validation
+        if (hours < 0 || hours > 23) {
+            return null;
+        }
+    }
+
+    return {hours, minutes};
 };
 
 // Function to check if a time should be excluded
@@ -164,9 +224,215 @@ const isTimeExcluded = (timeDate: Date, excludeConfig: TimeExcludeConfig | undef
     return false;
 };
 
+// Icons used by time input components
+const clockIcon = (
+    <i className='icon-clock-outline'/>
+);
+
+// TimeInputManual - Manual text entry for time
+type TimeInputManualProps = {
+    time: Moment | null;
+    timezone?: string;
+    isMilitaryTime: boolean;
+    onTimeChange: (time: Moment | null) => void;
+    excludeTime?: TimeExcludeConfig;
+    onValidationError?: (hasError: boolean) => void;
+}
+
+const TimeInputManual: React.FC<TimeInputManualProps> = ({
+    time,
+    timezone,
+    isMilitaryTime,
+    onTimeChange,
+    excludeTime,
+    onValidationError,
+}) => {
+    const {formatMessage} = useIntl();
+    const [timeInputValue, setTimeInputValue] = useState<string>('');
+    const [timeInputError, setTimeInputError] = useState<boolean>(false);
+    const timeInputRef = useRef<HTMLInputElement>(null);
+
+    // Sync input value with time prop changes
+    useEffect(() => {
+        if (time) {
+            const formatted = time.format(isMilitaryTime ? 'HH:mm' : 'h:mm A');
+            setTimeInputValue(formatted);
+        } else {
+            setTimeInputValue('');
+        }
+    }, [time, isMilitaryTime]);
+
+    const handleTimeInputChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+        setTimeInputValue(event.target.value);
+        setTimeInputError(false); // Clear error as user types
+        onValidationError?.(false); // Clear error state in parent
+    }, [onValidationError]);
+
+    const handleTimeInputBlur = useCallback(() => {
+        const parsed = parseTimeString(timeInputValue);
+
+        if (!parsed) {
+            if (timeInputValue.trim() !== '') {
+                setTimeInputError(true);
+                onValidationError?.(true); // Notify parent of error
+                onTimeChange(null); // Clear the stored value
+            }
+            return;
+        }
+
+        // Create a moment with the parsed time
+        const baseMoment = time ? time.clone() : getCurrentMomentForTimezone(timezone);
+        let targetMoment: Moment;
+
+        if (timezone) {
+            targetMoment = moment.tz([
+                baseMoment.year(),
+                baseMoment.month(),
+                baseMoment.date(),
+                parsed.hours,
+                parsed.minutes,
+                0,
+                0,
+            ], timezone);
+        } else {
+            baseMoment.hour(parsed.hours);
+            baseMoment.minute(parsed.minutes);
+            baseMoment.second(0);
+            baseMoment.millisecond(0);
+            targetMoment = baseMoment;
+        }
+
+        // Check if the time is excluded
+        if (excludeTime && isTimeExcluded(targetMoment.toDate(), excludeTime, timezone)) {
+            setTimeInputError(true);
+            onValidationError?.(true); // Notify parent of error
+            // Clear both the input display AND the stored value
+            setTimeInputValue('');
+            onTimeChange(null); // Clear the stored value to prevent submission
+            return;
+        }
+
+        // Valid time - update and clear any errors
+        onTimeChange(targetMoment);
+        setTimeInputError(false);
+        onValidationError?.(false); // Clear error state in parent
+    }, [timeInputValue, time, timezone, onTimeChange, excludeTime, onValidationError]);
+
+    const handleTimeInputKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (isKeyPressed(event as any, Constants.KeyCodes.ENTER)) {
+            event.preventDefault();
+            timeInputRef.current?.blur(); // Trigger validation
+        }
+    }, []);
+
+    return (
+        <div className='date-time-input-manual'>
+            <label
+                htmlFor='time_input'
+                className='date-time-input__label'
+            >
+                {formatMessage({
+                    id: 'datetime.time',
+                    defaultMessage: 'Time',
+                })}
+            </label>
+            <input
+                ref={timeInputRef}
+                id='time_input'
+                type='text'
+                className={`date-time-input__text-input${timeInputError ? ' error' : ''}`}
+                value={timeInputValue}
+                onChange={handleTimeInputChange}
+                onBlur={handleTimeInputBlur}
+                onKeyDown={handleTimeInputKeyDown}
+                placeholder={isMilitaryTime ? '13:40' : '1:40 PM'}
+                aria-label={formatMessage({
+                    id: 'datetime.time',
+                    defaultMessage: 'Time',
+                })}
+            />
+        </div>
+    );
+};
+
+// TimeInputDropdown - Dropdown menu for time selection
+type TimeInputDropdownProps = {
+    time: Moment | null;
+    timezone?: string;
+    isMilitaryTime: boolean;
+    timeOptions: Moment[];
+    isTimeMenuOpen: boolean;
+    menuWidth: string;
+    onTimeChange: (time: Moment) => void;
+    onMenuToggle: (isOpen: boolean) => void;
+}
+
+const TimeInputDropdown: React.FC<TimeInputDropdownProps> = ({
+    time,
+    isMilitaryTime,
+    timeOptions,
+    isTimeMenuOpen,
+    menuWidth,
+    onTimeChange,
+    onMenuToggle,
+}) => {
+    const {formatMessage} = useIntl();
+
+    return (
+        <Menu.Container
+            menuButton={{
+                id: 'time_button',
+                dataTestId: 'time_button',
+                'aria-label': formatMessage({
+                    id: 'datetime.time',
+                    defaultMessage: 'Time',
+                }),
+                class: isTimeMenuOpen ? 'date-time-input date-time-input--open' : 'date-time-input',
+                children: (
+                    <>
+                        <span className='date-time-input__label'>{formatMessage({
+                            id: 'datetime.time',
+                            defaultMessage: 'Time',
+                        })}</span>
+                        <span className='date-time-input__icon'>{clockIcon}</span>
+                        <span className='date-time-input__value'>
+                            {time ? (
+                                <span>{time.format(isMilitaryTime ? 'HH:mm' : 'LT')}</span>
+                            ) : (
+                                <span>{'--:--'}</span>
+                            )}
+                        </span>
+                    </>
+                ),
+            }}
+            menu={{
+                id: 'expiryTimeMenu',
+                'aria-label': formatMessage({id: 'time_dropdown.choose_time', defaultMessage: 'Choose a time'}),
+                onToggle: onMenuToggle,
+                width: menuWidth,
+                className: 'time-menu-scrollable',
+            }}
+        >
+            {timeOptions.map((option, index) => (
+                <Menu.Item
+                    key={index}
+                    id={`time_option_${index}`}
+                    data-testid={`time_option_${index}`}
+                    labels={
+                        <span>
+                            {option.format(isMilitaryTime ? 'HH:mm' : 'LT')}
+                        </span>
+                    }
+                    onClick={() => onTimeChange(option)}
+                />
+            ))}
+        </Menu.Container>
+    );
+};
+
 type Props = {
     time: Moment | null;
-    handleChange: (date: Moment) => void;
+    handleChange: (date: Moment | null) => void;
     timezone?: string;
     setIsInteracting?: (interacting: boolean) => void;
     relativeDate?: boolean;
@@ -179,6 +445,7 @@ type Props = {
     onRangeChange?: (start: Date, end: Date | null) => void;
     allowSingleDayRange?: boolean;
     additionalDisabledDays?: Matcher[];
+    allowManualTimeEntry?: boolean;
 }
 
 const DateTimeInputContainer: React.FC<Props> = ({
@@ -196,10 +463,12 @@ const DateTimeInputContainer: React.FC<Props> = ({
     excludeTime,
     allowSingleDayRange = false,
     additionalDisabledDays,
+    allowManualTimeEntry = false,
 }: Props) => {
     const currentTime = getCurrentMomentForTimezone(timezone);
     const displayTime = time; // No automatic default - field stays null until user selects
     const locale = useSelector(getCurrentLocale);
+    const isMilitaryTime = useSelector(isUseMilitaryTime);
     const [timeOptions, setTimeOptions] = useState<Moment[]>([]);
     const [isPopperOpen, setIsPopperOpen] = useState(false);
     const [isTimeMenuOpen, setIsTimeMenuOpen] = useState(false);
@@ -435,10 +704,6 @@ const DateTimeInputContainer: React.FC<Props> = ({
         <i className='icon-calendar-outline'/>
     );
 
-    const clockIcon = (
-        <i className='icon-clock-outline'/>
-    );
-
     const handleRangeDayClick = useCallback((day: Date) => {
         const existingFrom = rangeValue?.from?.toDate();
         const existingTo = rangeValue?.to?.toDate();
@@ -647,54 +912,26 @@ const DateTimeInputContainer: React.FC<Props> = ({
                 className='dateTime__time'
                 ref={timeContainerRef}
             >
-                <Menu.Container
-                    menuButton={{
-                        id: 'time_button',
-                        dataTestId: 'time_button',
-                        'aria-label': formatMessage({
-                            id: 'datetime.time',
-                            defaultMessage: 'Time',
-                        }),
-                        class: isTimeMenuOpen ? 'date-time-input date-time-input--open' : 'date-time-input',
-                        children: (
-                            <>
-                                <span className='date-time-input__label'>{formatMessage({
-                                    id: 'datetime.time',
-                                    defaultMessage: 'Time',
-                                })}</span>
-                                <span className='date-time-input__icon'>{clockIcon}</span>
-                                <span className='date-time-input__value'>
-                                    {displayTime ? (
-                                        <span>{displayTime.format('LT')}</span>
-                                    ) : (
-                                        <span>{'--:--'}</span>
-                                    )}
-                                </span>
-                            </>
-                        ),
-                    }}
-                    menu={{
-                        id: 'expiryTimeMenu',
-                        'aria-label': formatMessage({id: 'time_dropdown.choose_time', defaultMessage: 'Choose a time'}),
-                        onToggle: handleTimeMenuToggle,
-                        width: menuWidth,
-                        className: 'time-menu-scrollable',
-                    }}
-                >
-                    {timeOptions.map((option, index) => (
-                        <Menu.Item
-                            key={index}
-                            id={`time_option_${index}`}
-                            data-testid={`time_option_${index}`}
-                            labels={
-                                <span>
-                                    {option.format('LT')}
-                                </span>
-                            }
-                            onClick={() => handleTimeChange(option)}
-                        />
-                    ))}
-                </Menu.Container>
+                {allowManualTimeEntry ? (
+                    <TimeInputManual
+                        time={displayTime}
+                        timezone={timezone}
+                        isMilitaryTime={isMilitaryTime}
+                        onTimeChange={handleChange}
+                        excludeTime={excludeTime}
+                    />
+                ) : (
+                    <TimeInputDropdown
+                        time={displayTime}
+                        timezone={timezone}
+                        isMilitaryTime={isMilitaryTime}
+                        timeOptions={timeOptions}
+                        isTimeMenuOpen={isTimeMenuOpen}
+                        menuWidth={menuWidth}
+                        onTimeChange={handleTimeChange}
+                        onMenuToggle={handleTimeMenuToggle}
+                    />
+                )}
             </div>
         </div>
     );

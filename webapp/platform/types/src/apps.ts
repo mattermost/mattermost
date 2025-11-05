@@ -509,6 +509,7 @@ export type AppField = {
     allow_single_day_range?: boolean; // Allow start and end to be the same day in range mode
     range_layout?: 'horizontal' | 'vertical'; // Layout for range fields: side-by-side or stacked
     location_timezone?: string; // IANA timezone (e.g., "America/Denver") - overrides user's timezone for datetime fields only
+    allow_manual_time_entry?: boolean; // Allow manual text entry for time instead of dropdown (datetime fields only)
 };
 
 /**

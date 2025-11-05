@@ -218,6 +218,7 @@ export type DialogElement = {
     allow_single_day_range?: boolean;
     range_layout?: 'horizontal' | 'vertical';
     location_timezone?: string;
+    allow_manual_time_entry?: boolean;
 };
 
 export type SubmitDialogResponse = {

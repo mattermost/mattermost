@@ -467,6 +467,9 @@ export function convertElement(element: DialogElement, options: ConversionOption
         if (element.location_timezone !== undefined && element.type === DialogElementTypes.DATETIME) {
             appField.location_timezone = element.location_timezone;
         }
+        if (element.allow_manual_time_entry !== undefined && element.type === DialogElementTypes.DATETIME) {
+            appField.allow_manual_time_entry = Boolean(element.allow_manual_time_entry);
+        }
     }
 
     return {field: appField, errors};
