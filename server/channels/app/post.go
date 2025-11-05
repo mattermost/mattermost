@@ -2829,19 +2829,11 @@ func (a *App) RewriteMessage(
 
 	completion, err := client.AgentCompletion(agentID, completionRequest)
 	if err != nil {
-		rctx.Logger().Error("AI agent call failed",
-			mlog.Err(err),
-			mlog.String("action", string(action)),
-		)
 		return nil, model.NewAppError("RewriteMessage", "app.post.rewrite.agent_call_failed", nil, err.Error(), 500)
 	}
 
 	var response model.RewriteResponse
 	if err := json.Unmarshal([]byte(completion), &response); err != nil {
-		rctx.Logger().Error("Failed to parse rewrite response from agent",
-			mlog.Err(err),
-			mlog.String("response", completion),
-		)
 		return nil, model.NewAppError("RewriteMessage", "app.post.rewrite.parse_response_failed", nil, err.Error(), 500)
 	}
 
