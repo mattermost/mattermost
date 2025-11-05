@@ -149,7 +149,6 @@ func (a *App) PatchCPAField(fieldID string, patch *model.PropertyFieldPatch) (*m
 		shouldDeleteValues = true
 	}
 
-	// Apply patch directly to CPAField (which also clears TargetID and TargetType)
 	if err := existingField.Patch(patch); err != nil {
 		return nil, model.NewAppError("PatchCPAField", "app.custom_profile_attributes.patch_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
