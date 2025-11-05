@@ -3,7 +3,4 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-test("Verify Reviewer can open flag details in RHS", async ({pw}) => {
-    
-});
-
+test('Verify Reviewer can open flag details in RHS', async ({pw}) => {});

@@ -176,11 +176,11 @@ test('Verify user cannot flag already flagged message', async ({pw}) => {
     }
 
     const message = `Post by @${user.username}, is flagged once`;
-    const postToBeflagged = await adminClient.createPost({
+    const postToBeflagged = (await adminClient.createPost({
         channel_id: townSquare.id,
         message,
         user_id: user.id,
-    }) as { id: string };
+    })) as {id: string};
 
     await adminClient.flagPost(postToBeflagged.id, 'Inappropriate content', 'This message is inappropriate');
 
