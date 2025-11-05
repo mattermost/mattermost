@@ -1,1 +1,0 @@
-CREATE INDEX IF NOT EXISTS idx_posts_update_at_id on posts(updateat, id);

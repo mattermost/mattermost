@@ -5640,7 +5640,7 @@ func testGetEditHistoryForPost(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 }
 
-// testGetPostsSinceForSyncExcludeMetadata tests the ExcludeSystemPosts option
+// testGetPostsSinceForSyncExcludeMetadata tests the ExcludeChannelMetadataSystemPosts option
 // in the GetPostsSinceForSync function to verify that database-level filtering works correctly
 func testGetPostsSinceForSyncExcludeMetadata(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	// Create a channel
@@ -5668,7 +5668,7 @@ func testGetPostsSinceForSyncExcludeMetadata(t *testing.T, rctx request.CTX, ss 
 		require.NoError(t, err, "couldn't save post")
 	}
 
-	t.Run("ExcludeSystemPosts=true should filter out metadata posts", func(t *testing.T) {
+	t.Run("ExcludeChannelMetadataSystemPosts=true should filter out metadata posts", func(t *testing.T) {
 		// Set options with ExcludeChannelMetadataSystemPosts = true
 		opt := model.GetPostsSinceForSyncOptions{
 			ChannelId:                         channelID,
@@ -5702,7 +5702,7 @@ func testGetPostsSinceForSyncExcludeMetadata(t *testing.T, rctx request.CTX, ss 
 		require.ElementsMatch(t, expectedIDs, postIDs, "returned posts should only be regular posts")
 	})
 
-	t.Run("ExcludeSystemPosts=false should include all posts", func(t *testing.T) {
+	t.Run("ExcludeChannelMetadataSystemPosts=false should include all posts", func(t *testing.T) {
 		// Set options with ExcludeChannelMetadataSystemPosts = false
 		opt := model.GetPostsSinceForSyncOptions{
 			ChannelId:                         channelID,
