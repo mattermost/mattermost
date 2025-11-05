@@ -2881,7 +2881,6 @@ func getRewritePromptForAction(action model.RewriteAction, message string, custo
 
 	case model.RewriteActionSummarize:
 		return fmt.Sprintf(`Summarize this, using Markdown if necessary: %s`, message)
-
 	}
 
 	return ""

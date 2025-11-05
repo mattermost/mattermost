@@ -1,45 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {
-    FormatLetterCaseIcon,
-    ArrowExpandIcon,
-    ArrowCollapseIcon,
-    TextBoxOutlineIcon,
-    CreationOutlineIcon,
-} from '@mattermost/compass-icons/components';
 import type {ServerError} from '@mattermost/types/errors';
 
 import {getAgents as getAgentsAction} from 'mattermost-redux/actions/agents';
 import {Client4} from 'mattermost-redux/client';
 import {getAgents} from 'mattermost-redux/selectors/entities/agents';
 
-import AgentDropdown from 'components/common/agents/agent_dropdown';
-import * as Menu from 'components/menu';
 import type TextboxClass from 'components/textbox/textbox';
-import Input from 'components/widgets/inputs/input/input';
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import type {PostDraft} from 'types/store/draft';
 
-import {IconContainer} from './formatting_bar/formatting_icon';
-
-import './use_rewrite.scss';
-
-enum RewriteAction {
-    SHORTEN = 'shorten',
-    ELABORATE = 'elaborate',
-    IMPROVE_WRITING = 'improve_writing',
-    FIX_SPELLING = 'fix_spelling',
-    SIMPLIFY = 'simplify',
-    SUMMARIZE = 'summarize',
-    CUSTOM = 'custom',
-}
+import {RewriteAction} from './rewrite_action';
+import RewriteMenu from './rewrite_menu';
 
 const useRewrite = (
     draft: PostDraft,
@@ -50,7 +26,6 @@ const useRewrite = (
         submittedMessage?: string;
     }) | null>>,
 ) => {
-    const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const agents = useSelector(getAgents);
 
@@ -189,7 +164,7 @@ const useRewrite = (
         }
 
         const overlay = document.createElement('div');
-        overlay.className = 'ai-rewrite-overlay';
+        overlay.className = 'rewrite-overlay';
         wrapper.appendChild(overlay);
 
         return () => {
@@ -207,257 +182,44 @@ const useRewrite = (
     }, [draft.message, isProcessing, resetState]);
 
     return {
-        additionalControl: useMemo(() => {
-            const showMenuItem = !isProcessing && draft.message.trim();
-
-            let placeholderText = formatMessage({
-                id: 'texteditor.rewrite.prompt',
-                defaultMessage: 'Ask AI to edit message...',
-            });
-
-            if (isProcessing) {
-                if (prompt) {
-                    placeholderText = prompt;
-                } else if (draft.message.trim()) {
-                    placeholderText = formatMessage({
-                        id: 'texteditor.rewrite.rewriting',
-                        defaultMessage: 'Rewriting...',
-                    });
-                }
-            } else if (!draft.message.trim()) {
-                placeholderText = formatMessage({
-                    id: 'texteditor.rewrite.create',
-                    defaultMessage: 'Create a new message...',
-                });
-            }
-
-            return (
-                <Menu.Container
-                    key='ai-rewrite-menu-key'
-                    menuHeader={(
-                        <div className='ai-rewrite-menu-header'>
-                            {agents && agents.length > 0 && (
-                                <AgentDropdown
-                                    selectedBotId={selectedAgentId}
-                                    onBotSelect={setSelectedAgentId}
-                                    bots={agents}
-                                    disabled={isProcessing}
-                                />
-                            )}
-                            {isProcessing &&
-                                <button
-                                    className='btn btn-danger btn-xs'
-                                    type='button'
-                                    onClick={cancelProcessing}
-                                >
-                                    <i className='icon icon-close'/>
-                                    <FormattedMessage
-                                        id='texteditor.rewrite.cancel'
-                                        defaultMessage='Cancel'
-                                    />
-                                </button>
-                            }
-                            {!isProcessing && originalMessage && lastAction && <>
-                                <button
-                                    className='btn btn-tertiary btn-xs'
-                                    type='button'
-                                    onClick={undoMessage}
-                                >
-                                    <i className='icon icon-arrow-left'/>
-                                    <FormattedMessage
-                                        id='texteditor.rewrite.undo'
-                                        defaultMessage='Undo'
-                                    />
-                                </button>
-                                <button
-                                    className='btn btn-xs'
-                                    type='button'
-                                    onClick={regenerateMessage}
-                                >
-                                    <i className='icon icon-content-copy'/>
-                                    <FormattedMessage
-                                        id='texteditor.rewrite.regenerate'
-                                        defaultMessage='Regenerate'
-                                    />
-                                </button>
-                            </>}
-                            <Input
-                                ref={customPromptRef}
-                                inputPrefix={isProcessing ? <LoadingSpinner/> : <CreationOutlineIcon size={18}/>}
-                                placeholder={placeholderText}
-                                disabled={isProcessing}
-                                value={prompt}
-                                onChange={(e) => setPrompt(e.target.value)}
-                                onKeyDown={handleCustomPromptKeyDown}
-                            />
-                        </div>
-                    )}
-                    menuButton={{
-                        id: 'ai-rewrite-button',
-                        as: 'div',
-                        children: (
-                            <IconContainer
-                                id='ai-rewrite'
-                                className={classNames('control', {active: isMenuOpen})}
-                                type='button'
-                                aria-label={formatMessage({
-                                    id: 'texteditor.rewrite',
-                                    defaultMessage: 'AI Rewrite',
-                                })}
-                            >
-                                <CreationOutlineIcon
-                                    size={18}
-                                    color='currentColor'
-                                />
-                            </IconContainer>
-                        ),
-                    }}
-                    menuButtonTooltip={{
-                        text: formatMessage({
-                            id: 'texteditor.rewrite',
-                            defaultMessage: 'AI Rewrite',
-                        }),
-                    }}
-                    menu={{
-                        id: 'ai-rewrite-menu',
-                        'aria-label': formatMessage({
-                            id: 'texteditor.rewrite.menu',
-                            defaultMessage: 'AI Rewrite Options',
-                        }),
-                        className: 'ai-rewrite-menu',
-                        onToggle: setIsMenuOpen,
-                        isMenuOpen,
-                    }}
-                    anchorOrigin={{
-                        vertical: 'top',
-                        horizontal: 'left',
-                    }}
-                    transformOrigin={{
-                        vertical: 'bottom',
-                        horizontal: 'left',
-                    }}
-                    closeMenuOnTab={false}
-                >
-                    {showMenuItem &&
-                        <Menu.Item
-                            key='ai-shorten'
-                            role='menuitemradio'
-                            aria-checked={false}
-                            labels={
-                                <span>
-                                    {formatMessage({
-                                        id: 'texteditor.rewrite.shorten',
-                                        defaultMessage: 'Shorten',
-                                    })}
-                                </span>
-                            }
-                            leadingElement={<ArrowCollapseIcon size={18}/>}
-                            onClick={handleMenuAction(RewriteAction.SHORTEN)}
-                        />
-                    }
-                    {showMenuItem &&
-                        <Menu.Item
-                            key='ai-elaborate'
-                            role='menuitemradio'
-                            aria-checked={false}
-                            labels={
-                                <span>
-                                    {formatMessage({
-                                        id: 'texteditor.rewrite.elaborate',
-                                        defaultMessage: 'Elaborate',
-                                    })}
-                                </span>
-                            }
-                            leadingElement={<ArrowExpandIcon size={18}/>}
-                            onClick={handleMenuAction(RewriteAction.ELABORATE)}
-                        />
-                    }
-                    {showMenuItem &&
-                        <Menu.Item
-                            key='ai-improve-writing'
-                            role='menuitemradio'
-                            aria-checked={false}
-                            labels={
-                                <span>
-                                    {formatMessage({
-                                        id: 'texteditor.rewrite.improveWriting',
-                                        defaultMessage: 'Improve writing',
-                                    })}
-                                </span>
-                            }
-                            leadingElement={<FormatLetterCaseIcon size={18}/>}
-                            onClick={handleMenuAction(RewriteAction.IMPROVE_WRITING)}
-                        />
-                    }
-                    {showMenuItem &&
-                        <Menu.Item
-                            key='ai-fix-spelling'
-                            role='menuitemradio'
-                            aria-checked={false}
-                            labels={
-                                <span>
-                                    {formatMessage({
-                                        id: 'texteditor.rewrite.fixSpelling',
-                                        defaultMessage: 'Fix spelling and grammar',
-                                    })}
-                                </span>
-                            }
-                            leadingElement={<FormatLetterCaseIcon size={18}/>}
-                            onClick={handleMenuAction(RewriteAction.FIX_SPELLING)}
-                        />
-                    }
-                    {showMenuItem &&
-                        <Menu.Item
-                            key='ai-simplify'
-                            role='menuitemradio'
-                            aria-checked={false}
-                            labels={
-                                <span>
-                                    {formatMessage({
-                                        id: 'texteditor.rewrite.simplify',
-                                        defaultMessage: 'Simplify',
-                                    })}
-                                </span>
-                            }
-                            leadingElement={<CreationOutlineIcon size={18}/>}
-                            onClick={handleMenuAction(RewriteAction.SIMPLIFY)}
-                        />
-                    }
-                    {showMenuItem &&
-                        <Menu.Item
-                            key='ai-summarize'
-                            role='menuitemradio'
-                            aria-checked={false}
-                            labels={
-                                <span>
-                                    {formatMessage({
-                                        id: 'texteditor.rewrite.summarize',
-                                        defaultMessage: 'Summarize',
-                                    })}
-                                </span>
-                            }
-                            leadingElement={<TextBoxOutlineIcon size={18}/>}
-                            onClick={handleMenuAction(RewriteAction.SUMMARIZE)}
-                        />
-                    }
-                </Menu.Container>
-            );
-        }, [
-            draft.message,
+        additionalControl: useMemo(() => (
+            <RewriteMenu
+                isProcessing={isProcessing}
+                isMenuOpen={isMenuOpen}
+                setIsMenuOpen={setIsMenuOpen}
+                draftMessage={draft.message}
+                prompt={prompt}
+                setPrompt={setPrompt}
+                selectedAgentId={selectedAgentId}
+                setSelectedAgentId={setSelectedAgentId}
+                agents={agents || []}
+                originalMessage={originalMessage}
+                lastAction={lastAction}
+                onMenuAction={handleMenuAction}
+                onCustomPromptKeyDown={handleCustomPromptKeyDown}
+                onCancelProcessing={cancelProcessing}
+                onUndoMessage={undoMessage}
+                onRegenerateMessage={regenerateMessage}
+                customPromptRef={customPromptRef}
+            />
+        ), [
             isProcessing,
-            formatMessage,
-            handleMenuAction,
             isMenuOpen,
             setIsMenuOpen,
+            draft.message,
             prompt,
+            setPrompt,
+            selectedAgentId,
+            setSelectedAgentId,
+            agents,
+            originalMessage,
+            lastAction,
+            handleMenuAction,
             handleCustomPromptKeyDown,
             cancelProcessing,
-            lastAction,
-            originalMessage,
-            regenerateMessage,
             undoMessage,
-            agents,
-            selectedAgentId,
+            regenerateMessage,
+            customPromptRef,
         ]),
         isProcessing,
     };

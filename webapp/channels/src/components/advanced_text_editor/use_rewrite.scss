@@ -1,4 +1,4 @@
-.ai-rewrite-menu-header {
+.rewrite-menu-header {
     padding: 8px 12px 0 12px;
     margin-bottom: -4px;
 
@@ -23,7 +23,7 @@
     position: relative;
 }
 
-@keyframes ai-rewrite-gradient {
+@keyframes rewrite-gradient {
     0% {
         background-position: 200% 0;
     }
@@ -32,12 +32,15 @@
     }
 }
 
-.ai-rewrite-overlay {
+.rewrite-overlay {
     position: absolute;
+    z-index: 999;
     top: 0;
-    left: 0;
     right: 0;
     bottom: 0;
+    left: 0;
+    border-radius: 4px;
+    animation: rewrite-gradient 3.5s linear infinite;
     background: linear-gradient(
         92deg,
         rgba(var(--center-channel-bg-rgb), 0.32) 0%,
@@ -47,12 +50,9 @@
         rgba(var(--center-channel-bg-rgb), 0.32) 100%
     );
     background-size: 300% 100%;
-    animation: ai-rewrite-gradient 3.5s linear infinite;
     pointer-events: none;
-    z-index: 999;
-    border-radius: 4px;
 }
 
-#ai-rewrite-button {
+#rewrite-button {
     pointer-events: auto;
 }
