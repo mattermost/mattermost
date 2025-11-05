@@ -3,7 +3,8 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
+import {defineMessage, FormattedMessage, useIntl} from 'react-intl';
 
 import {
     FormatLetterCaseIcon,
@@ -26,46 +27,39 @@ import './use_rewrite.scss';
 
 interface MenuItemConfig {
     action: RewriteAction;
-    messageId: string;
-    defaultMessage: string;
+    label: MessageDescriptor;
     icon: React.ReactElement;
 }
 
 const menuItems: MenuItemConfig[] = [
     {
         action: RewriteAction.SHORTEN,
-        messageId: 'texteditor.rewrite.shorten',
-        defaultMessage: 'Shorten',
+        label: defineMessage({id: 'texteditor.rewrite.shorten', defaultMessage: 'Shorten'}),
         icon: <ArrowCollapseIcon size={18}/>,
     },
     {
         action: RewriteAction.ELABORATE,
-        messageId: 'texteditor.rewrite.elaborate',
-        defaultMessage: 'Elaborate',
+        label: defineMessage({id: 'texteditor.rewrite.elaborate', defaultMessage: 'Elaborate'}),
         icon: <ArrowExpandIcon size={18}/>,
     },
     {
         action: RewriteAction.IMPROVE_WRITING,
-        messageId: 'texteditor.rewrite.improveWriting',
-        defaultMessage: 'Improve writing',
+        label: defineMessage({id: 'texteditor.rewrite.improveWriting', defaultMessage: 'Improve writing'}),
         icon: <FormatLetterCaseIcon size={18}/>,
     },
     {
         action: RewriteAction.FIX_SPELLING,
-        messageId: 'texteditor.rewrite.fixSpelling',
-        defaultMessage: 'Fix spelling and grammar',
+        label: defineMessage({id: 'texteditor.rewrite.fixSpelling', defaultMessage: 'Fix spelling and grammar'}),
         icon: <FormatLetterCaseIcon size={18}/>,
     },
     {
         action: RewriteAction.SIMPLIFY,
-        messageId: 'texteditor.rewrite.simplify',
-        defaultMessage: 'Simplify',
+        label: defineMessage({id: 'texteditor.rewrite.simplify', defaultMessage: 'Simplify'}),
         icon: <CreationOutlineIcon size={18}/>,
     },
     {
         action: RewriteAction.SUMMARIZE,
-        messageId: 'texteditor.rewrite.summarize',
-        defaultMessage: 'Summarize',
+        label: defineMessage({id: 'texteditor.rewrite.summarize', defaultMessage: 'Summarize'}),
         icon: <TextBoxOutlineIcon size={18}/>,
     },
 ];
@@ -245,14 +239,7 @@ export default function RewriteMenu({
                     key={`rewrite-${item.action}`}
                     role='menuitemradio'
                     aria-checked={false}
-                    labels={
-                        <span>
-                            {formatMessage({
-                                id: item.messageId,
-                                defaultMessage: item.defaultMessage,
-                            })}
-                        </span>
-                    }
+                    labels={<FormattedMessage {...item.label}/>}
                     leadingElement={item.icon}
                     onClick={onMenuAction(item.action)}
                 />
