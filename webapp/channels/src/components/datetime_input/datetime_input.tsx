@@ -97,38 +97,41 @@ const isTimeExcluded = (timeDate: Date, excludeConfig: TimeExcludeConfig | undef
         // Exclusion times are in UTC, convert them to local timezone for comparison
         // If timezone is undefined, use the browser's actual timezone
         const actualTimezone = timezone || new Intl.DateTimeFormat().resolvedOptions().timeZone;
-        const localTime = moment.tz(timeDate, actualTimezone);
-        timeStr = localTime.format('HH:mm');
+        const selectedDateTime = moment.tz(timeDate, actualTimezone);
+        timeStr = selectedDateTime.format('HH:mm');
 
         // Convert exclusion times from UTC to local timezone
+        // IMPORTANT: Use the actual date from selectedDateTime to get the correct UTC offset for that specific date
+        // This ensures DST transitions are handled correctly
         exclusionTimesInLocalTz = excludeConfig.exclusions.map((exclusion) => {
             const converted: {start?: string; end?: string; before?: string; after?: string} = {};
             if (exclusion.start) {
-                const utcTime = moment.utc(exclusion.start, 'HH:mm');
-                const localTime = utcTime.clone().tz(actualTimezone);
-                converted.start = localTime.format('HH:mm');
+                // Create UTC time on the same date as selectedDateTime to get correct DST offset
+                const utcTime = moment.utc([selectedDateTime.year(), selectedDateTime.month(), selectedDateTime.date()]).add(moment.duration(exclusion.start));
+                const convertedTime = utcTime.clone().tz(actualTimezone);
+                converted.start = convertedTime.format('HH:mm');
             }
             if (exclusion.end) {
-                const utcTime = moment.utc(exclusion.end, 'HH:mm');
-                const localTime = utcTime.clone().tz(actualTimezone);
-                converted.end = localTime.format('HH:mm');
+                const utcTime = moment.utc([selectedDateTime.year(), selectedDateTime.month(), selectedDateTime.date()]).add(moment.duration(exclusion.end));
+                const convertedTime = utcTime.clone().tz(actualTimezone);
+                converted.end = convertedTime.format('HH:mm');
             }
             if (exclusion.before) {
-                const utcTime = moment.utc(exclusion.before, 'HH:mm');
-                const localTime = utcTime.clone().tz(actualTimezone);
-                converted.before = localTime.format('HH:mm');
+                const utcTime = moment.utc([selectedDateTime.year(), selectedDateTime.month(), selectedDateTime.date()]).add(moment.duration(exclusion.before));
+                const convertedTime = utcTime.clone().tz(actualTimezone);
+                converted.before = convertedTime.format('HH:mm');
             }
             if (exclusion.after) {
-                const utcTime = moment.utc(exclusion.after, 'HH:mm');
-                const localTime = utcTime.clone().tz(actualTimezone);
-                converted.after = localTime.format('HH:mm');
+                const utcTime = moment.utc([selectedDateTime.year(), selectedDateTime.month(), selectedDateTime.date()]).add(moment.duration(exclusion.after));
+                const convertedTime = utcTime.clone().tz(actualTimezone);
+                converted.after = convertedTime.format('HH:mm');
             }
             return converted;
         });
     } else {
         // Exclusion times are in local timezone, use directly
-        const localTime = timezone ? moment.tz(timeDate, timezone) : moment(timeDate);
-        timeStr = localTime.format('HH:mm');
+        const selectedDateTime = timezone ? moment.tz(timeDate, timezone) : moment(timeDate);
+        timeStr = selectedDateTime.format('HH:mm');
         exclusionTimesInLocalTz = excludeConfig.exclusions;
     }
 
