@@ -4655,6 +4655,22 @@
     "translation": "This is not a valid live URL"
   },
   {
+    "id": "app.agents.get_agents.app_error",
+    "translation": "Failed to get agents."
+  },
+  {
+    "id": "app.agents.get_agents.bridge_call_failed",
+    "translation": "Bridge call failed."
+  },
+  {
+    "id": "app.agents.get_services.app_error",
+    "translation": "Failed to get LLM services."
+  },
+  {
+    "id": "app.agents.get_services.bridge_call_failed",
+    "translation": "Bridge call failed."
+  },
+  {
     "id": "app.analytics.getanalytics.internal_error",
     "translation": "Unable to get the analytics."
   },
@@ -5196,7 +5212,7 @@
   },
   {
     "id": "app.content_flagging.can_flag_post.in_progress",
-    "translation": "Cannot flag this post as is already flagged."
+    "translation": "Cannot flag this post as it is already flagged."
   },
   {
     "id": "app.content_flagging.can_flag_post.removed",
@@ -5239,6 +5255,10 @@
     "translation": "Failed to get Status property field."
   },
   {
+    "id": "app.content_flagging.get_thread_replies.app_error",
+    "translation": "Failed to fetch thread replies for the flagged post."
+  },
+  {
     "id": "app.content_flagging.get_users_in_team.app_error",
     "translation": "Failed to search reviewers in team."
   },
@@ -5252,7 +5272,7 @@
   },
   {
     "id": "app.content_flagging.keep_post.undelete.app_error",
-    "translation": "Failed to update post in database when attempting to undelete the flagged post."
+    "translation": "Failed to update post in database when attempting to undelete the flagged post and associated data."
   },
   {
     "id": "app.content_flagging.marshal_property_values.app_error",
@@ -5263,12 +5283,20 @@
     "translation": "Unable to find Flagged Post ID property field."
   },
   {
+    "id": "app.content_flagging.missing_manage_by_field.app_error",
+    "translation": "Failed to find Manage By property field."
+  },
+  {
     "id": "app.content_flagging.missing_reporting_user_id_field.app_error",
     "translation": "Unable to find reporting user field."
   },
   {
     "id": "app.content_flagging.missing_reporting_user_id_property_value.app_error",
     "translation": "Unable to find value for reporting user field."
+  },
+  {
+    "id": "app.content_flagging.missing_status_field.app_error",
+    "translation": "Failed to find Status property field."
   },
   {
     "id": "app.content_flagging.no_status_property.app_error",
@@ -5285,10 +5313,6 @@
   {
     "id": "app.content_flagging.permanently_delete.update_property_value.app_error",
     "translation": "Failed to update flagged post status when permanently deleting flagged post."
-  },
-  {
-    "id": "app.content_flagging.restore_file_info.app_error",
-    "translation": "Failed to restore file info for the flagged post."
   },
   {
     "id": "app.content_flagging.save_reviewer_settings.app_error",
@@ -5325,6 +5349,10 @@
   {
     "id": "app.content_flagging.search_team_reviewers.app_error",
     "translation": "Failed to search the search term in Team Reviewers."
+  },
+  {
+    "id": "app.content_flagging.set_thread_replies_properties.app_error",
+    "translation": "Failed to set property values on thread replies for the flagged post."
   },
   {
     "id": "app.create_basic_user.save_member.app_error",
@@ -10990,7 +11018,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 10+"
+    "translation": "Windows 11+"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support",
