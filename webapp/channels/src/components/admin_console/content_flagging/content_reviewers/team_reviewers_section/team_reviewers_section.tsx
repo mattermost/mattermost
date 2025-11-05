@@ -25,9 +25,10 @@ const GET_TEAMS_PAGE_SIZE = 10;
 type Props = {
     teamReviewersSetting: Record<string, TeamReviewerSetting>;
     onChange: (updatedTeamSettings: Record<string, TeamReviewerSetting>) => void;
+    disabled?: boolean;
 }
 
-export default function TeamReviewers({teamReviewersSetting, onChange}: Props): JSX.Element {
+export default function TeamReviewers({teamReviewersSetting, onChange, disabled}: Props): JSX.Element {
     const intl = useIntl();
     const dispatch = useDispatch();
 
@@ -146,6 +147,7 @@ export default function TeamReviewers({teamReviewersSetting, onChange}: Props): 
                         id={`team_content_reviewer_${team.id}`}
                         multiSelectInitialValue={teamReviewersSetting[team.id]?.ReviewerIds || []}
                         multiSelectOnChange={getHandleReviewersChange(team.id)}
+                        disabled={disabled}
                     />
                 ),
                 enabled: (
@@ -155,11 +157,12 @@ export default function TeamReviewers({teamReviewersSetting, onChange}: Props): 
                         size='btn-md'
                         onToggle={getHandleToggle(team.id)}
                         toggled={teamReviewersSetting[team.id]?.Enabled || false}
+                        disabled={disabled}
                     />
                 ),
             },
         }));
-    }, [getHandleReviewersChange, getHandleToggle, intl, teamReviewersSetting, teams]);
+    }, [disabled, getHandleReviewersChange, getHandleToggle, intl, teamReviewersSetting, teams]);
 
     const nextPage = useCallback(() => {
         if ((page * GET_TEAMS_PAGE_SIZE) + GET_TEAMS_PAGE_SIZE < total) {
@@ -197,12 +200,14 @@ export default function TeamReviewers({teamReviewersSetting, onChange}: Props): 
                 data-testid='disableForAllTeamsButton'
                 className='btn btn-link icon-close'
                 aria-label={intl.formatMessage({id: 'admin.contentFlagging.reviewerSettings.disableAll', defaultMessage: 'Disable for all teams'})}
+                disabled={disabled}
+                aria-disabled={disabled}
                 onClick={handleDisableForAllTeams}
             >
                 {intl.formatMessage({id: 'admin.contentFlagging.reviewerSettings.disableAll', defaultMessage: 'Disable for all teams'})}
             </button>
         </div>
-    ), [handleDisableForAllTeams, intl]);
+    ), [disabled, intl, handleDisableForAllTeams]);
 
     return (
         <div className='TeamReviewers'>
@@ -219,6 +224,7 @@ export default function TeamReviewers({teamReviewersSetting, onChange}: Props): 
                 onSearch={setSearchTerm}
                 extraComponent={disableAllBtn}
                 term={teamSearchTerm}
+                disabled={disabled}
             />
         </div>
     );
