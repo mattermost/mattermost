@@ -28,18 +28,19 @@ const (
 	remainingSchemaMigrationsKey                   = "RemainingSchemaMigrations"
 	postPriorityConfigDefaultTrueMigrationKey      = "PostPriorityConfigDefaultTrueMigrationComplete"
 	contentFlaggingSetupDoneKey                    = "content_flagging_setup_done"
-	contentFlaggingMigrationVersion                = "v3"
+	contentFlaggingMigrationVersion                = "v4"
 
-	contentFlaggingPropertyNameFlaggedPostId    = "flagged_post_id"
-	contentFlaggingPropertyNameStatus           = "status"
-	contentFlaggingPropertyNameReportingUserID  = "reporting_user_id"
-	contentFlaggingPropertyNameReportingReason  = "reporting_reason"
-	contentFlaggingPropertyNameReportingComment = "reporting_comment"
-	contentFlaggingPropertyNameReportingTime    = "reporting_time"
-	contentFlaggingPropertyNameReviewerUserID   = "reviewer_user_id"
-	contentFlaggingPropertyNameActorUserID      = "actor_user_id"
-	contentFlaggingPropertyNameActorComment     = "actor_comment"
-	contentFlaggingPropertyNameActionTime       = "action_time"
+	contentFlaggingPropertyNameFlaggedPostId       = "flagged_post_id"
+	contentFlaggingPropertyNameStatus              = "status"
+	contentFlaggingPropertyNameReportingUserID     = "reporting_user_id"
+	contentFlaggingPropertyNameReportingReason     = "reporting_reason"
+	contentFlaggingPropertyNameReportingComment    = "reporting_comment"
+	contentFlaggingPropertyNameReportingTime       = "reporting_time"
+	contentFlaggingPropertyNameReviewerUserID      = "reviewer_user_id"
+	contentFlaggingPropertyNameActorUserID         = "actor_user_id"
+	contentFlaggingPropertyNameActorComment        = "actor_comment"
+	contentFlaggingPropertyNameActionTime          = "action_time"
+	contentFlaggingPropertyManageByContentFlagging = "content_flagging_managed"
 
 	contentFlaggingPropertySubTypeTimestamp = "timestamp"
 )
@@ -692,6 +693,12 @@ func (s *Server) doSetupContentFlaggingProperties() error {
 		contentFlaggingPropertyNameActionTime: {
 			GroupID: group.ID,
 			Name:    contentFlaggingPropertyNameActionTime,
+			Type:    model.PropertyFieldTypeText,
+			Attrs:   map[string]any{"subType": contentFlaggingPropertySubTypeTimestamp},
+		},
+		contentFlaggingPropertyManageByContentFlagging: {
+			GroupID: group.ID,
+			Name:    contentFlaggingPropertyManageByContentFlagging,
 			Type:    model.PropertyFieldTypeText,
 		},
 	}
