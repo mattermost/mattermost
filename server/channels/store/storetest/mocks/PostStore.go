@@ -156,6 +156,24 @@ func (_m *PostStore) Delete(rctx request.CTX, postID string, timestamp int64, de
 	return r0
 }
 
+// DeleteAllPostRemindersForPost provides a mock function with given fields: postId
+func (_m *PostStore) DeleteAllPostRemindersForPost(postId string) error {
+	ret := _m.Called(postId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteAllPostRemindersForPost")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(postId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Get provides a mock function with given fields: rctx, id, opts, userID, sanitizeOptions
 func (_m *PostStore) Get(rctx request.CTX, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error) {
 	ret := _m.Called(rctx, id, opts, userID, sanitizeOptions)
@@ -1199,6 +1217,24 @@ func (_m *PostStore) RefreshPostStats() error {
 	var r0 error
 	if rf, ok := ret.Get(0).(func() error); ok {
 		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// Restore provides a mock function with given fields: post, deletedBy, statusFieldId
+func (_m *PostStore) RestoreContentFlaggedPost(post *model.Post, deletedBy string, statusFieldId string) error {
+	ret := _m.Called(post, deletedBy, statusFieldId)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RestoreContentFlaggedPost")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*model.Post, string, string) error); ok {
+		r0 = rf(post, deletedBy, statusFieldId)
 	} else {
 		r0 = ret.Error(0)
 	}

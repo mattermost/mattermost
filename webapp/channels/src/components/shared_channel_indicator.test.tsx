@@ -4,7 +4,7 @@
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
-import {renderWithContext, screen, waitFor, act} from 'tests/react_testing_utils';
+import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
 
 import SharedChannelIndicator from './shared_channel_indicator';
 
@@ -27,13 +27,10 @@ describe('components/SharedChannelIndicator', () => {
         const icon = screen.getByTestId('SharedChannelIcon');
         expect(icon).toHaveClass('icon-circle-multiple-outline');
 
-        await act(async () => {
-            userEvent.hover(icon);
-            jest.advanceTimersByTime(1000);
+        await userEvent.hover(icon, {advanceTimers: jest.advanceTimersByTime});
 
-            await waitFor(() => {
-                expect(screen.getByText('Shared with trusted organizations')).toBeInTheDocument();
-            });
+        await waitFor(() => {
+            expect(screen.getByText('Shared with trusted organizations')).toBeInTheDocument();
         });
     });
 
@@ -51,13 +48,10 @@ describe('components/SharedChannelIndicator', () => {
         const icon = screen.getByTestId('SharedChannelIcon');
         expect(icon).toHaveClass('icon-circle-multiple-outline');
 
-        await act(async () => {
-            userEvent.hover(icon);
-            jest.advanceTimersByTime(1000);
+        await userEvent.hover(icon, {advanceTimers: jest.advanceTimersByTime});
 
-            await waitFor(() => {
-                expect(screen.getByText('Shared with: Remote 1, Remote 2')).toBeInTheDocument();
-            });
+        await waitFor(() => {
+            expect(screen.getByText('Shared with: Remote 1, Remote 2')).toBeInTheDocument();
         });
     });
 
@@ -75,13 +69,10 @@ describe('components/SharedChannelIndicator', () => {
         const icon = screen.getByTestId('SharedChannelIcon');
         expect(icon).toHaveClass('icon-circle-multiple-outline');
 
-        await act(async () => {
-            userEvent.hover(icon);
-            jest.advanceTimersByTime(1000);
+        await userEvent.hover(icon, {advanceTimers: jest.advanceTimersByTime});
 
-            await waitFor(() => {
-                expect(screen.getByText('Shared with: Remote 1, Remote 2, Remote 3 and 2 others')).toBeInTheDocument();
-            });
+        await waitFor(() => {
+            expect(screen.getByText('Shared with: Remote 1, Remote 2, Remote 3 and 2 others')).toBeInTheDocument();
         });
     });
 
@@ -99,13 +90,10 @@ describe('components/SharedChannelIndicator', () => {
         const icon = screen.getByTestId('SharedChannelIcon');
         expect(icon).toHaveClass('icon-circle-multiple-outline');
 
-        await act(async () => {
-            userEvent.hover(icon);
-            jest.advanceTimersByTime(1000);
+        await userEvent.hover(icon, {advanceTimers: jest.advanceTimersByTime});
 
-            await waitFor(() => {
-                expect(screen.getByText('Shared with: A Very Very Very Very Very Lon..., Remote 2')).toBeInTheDocument();
-            });
+        await waitFor(() => {
+            expect(screen.getByText('Shared with: A Very Very Very Very Very Lon..., Remote 2')).toBeInTheDocument();
         });
     });
 
@@ -123,13 +111,10 @@ describe('components/SharedChannelIndicator', () => {
         const icon = screen.getByTestId('SharedChannelIcon');
         expect(icon).toHaveClass('icon-circle-multiple-outline');
 
-        await act(async () => {
-            userEvent.hover(icon);
-            jest.advanceTimersByTime(1000);
+        await userEvent.hover(icon, {advanceTimers: jest.advanceTimersByTime});
 
-            await waitFor(() => {
-                expect(screen.getByText('Shared with: Remote 1, Remote 2, Remote 3 and 1 other')).toBeInTheDocument();
-            });
+        await waitFor(() => {
+            expect(screen.getByText('Shared with: Remote 1, Remote 2, Remote 3 and 1 other')).toBeInTheDocument();
         });
     });
 
@@ -156,21 +141,18 @@ describe('components/SharedChannelIndicator', () => {
         const icon = screen.getByTestId('SharedChannelIcon');
         expect(icon).toHaveClass('icon-circle-multiple-outline');
 
-        await act(async () => {
-            userEvent.hover(icon);
-            jest.advanceTimersByTime(1000);
+        await userEvent.hover(icon, {advanceTimers: jest.advanceTimersByTime});
 
-            await waitFor(() => {
-                // Check that the tooltip contains text with ellipsis, indicating truncation
-                const tooltipText = screen.getByText(/Shared with:.*\.\.\./);
-                expect(tooltipText).toBeInTheDocument();
+        await waitFor(() => {
+            // Check that the tooltip contains text with ellipsis, indicating truncation
+            const tooltipText = screen.getByText(/Shared with:.*\.\.\./);
+            expect(tooltipText).toBeInTheDocument();
 
-                // Verify overall tooltip length doesn't exceed the maximum length (120)
-                // Add some extra characters to account for the "Shared with: " prefix
-                const tooltipContent = tooltipText.textContent || '';
-                const actualContent = tooltipContent.replace('Shared with: ', '');
-                expect(actualContent.length).toBeLessThanOrEqual(120);
-            });
+            // Verify overall tooltip length doesn't exceed the maximum length (120)
+            // Add some extra characters to account for the "Shared with: " prefix
+            const tooltipContent = tooltipText.textContent || '';
+            const actualContent = tooltipContent.replace('Shared with: ', '');
+            expect(actualContent.length).toBeLessThanOrEqual(120);
         });
     });
 

@@ -65,7 +65,7 @@ export type SystemConsoleCustomSettingsComponentProps = {
     showConfirm: boolean;
 }
 
-type Props = {
+export type SchemaAdminSettingsProps = {
     config: Partial<AdminConfig>;
     environmentConfig: Partial<EnvironmentConfig>;
     setNavigationBlocked: (blocked: boolean) => void;
@@ -113,12 +113,12 @@ export function descriptorOrStringToString(text: string | MessageDescriptor | un
     return typeof text === 'string' ? text : intl.formatMessage(text, values);
 }
 
-export class SchemaAdminSettings extends React.PureComponent<Props, State> {
+export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettingsProps, State> {
     private isPlugin: boolean;
     private saveActions: Array<() => Promise<{error?: {message?: string}}>>;
     private buildSettingFunctions: {[x: string]: (setting: any) => JSX.Element};
 
-    constructor(props: Props) {
+    constructor(props: SchemaAdminSettingsProps) {
         super(props);
         this.isPlugin = false;
 
@@ -154,7 +154,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
         };
     }
 
-    static getDerivedStateFromProps(props: Props, state: State) {
+    static getDerivedStateFromProps(props: SchemaAdminSettingsProps, state: State) {
         if (props.schema && props.schema.id !== state.prevSchemaId) {
             return {
                 prevSchemaId: props.schema.id,
@@ -968,9 +968,9 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
         if (setting.showTitle) {
             return (
                 <Setting
-                    label={setting.label}
+                    label={label}
                     inputId={setting.key}
-                    helpText={setting.help_text}
+                    helpText={helpText}
                 >
                     {componentInstance}
                 </Setting>

@@ -150,13 +150,13 @@ export function postPinnedChanged(postId: string, isPinned: boolean, updateAt = 
     };
 }
 
-export function getPost(postId: string): ActionFuncAsync<Post> {
+export function getPost(postId: string, includeDeleted?: boolean, retainContent?: boolean): ActionFuncAsync<Post> {
     return async (dispatch, getState) => {
         let post;
         const crtEnabled = isCollapsedThreadsEnabled(getState());
 
         try {
-            post = await Client4.getPost(postId);
+            post = await Client4.getPost(postId, includeDeleted, retainContent);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch({type: PostTypes.GET_POSTS_FAILURE, error});
@@ -1014,8 +1014,10 @@ export async function getMentionsAndStatusesForPosts(postsArrayOrMap: Post[]|Pos
         const loadedProfiles = new Set<string>((data || []).map((p) => p.username));
         const groupsToCheck = Array.from(usernamesAndGroupsToLoad).filter((name) => !loadedProfiles.has(name));
 
-        const getGroupsPromise = dispatch(getGroupsByNames(groupsToCheck));
-        promises.push(getGroupsPromise);
+        if (groupsToCheck.length > 0) {
+            const getGroupsPromise = dispatch(getGroupsByNames(groupsToCheck));
+            promises.push(getGroupsPromise);
+        }
     }
 
     return Promise.all(promises);
