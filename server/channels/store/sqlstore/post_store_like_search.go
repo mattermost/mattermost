@@ -41,7 +41,7 @@ func (s *SqlPostStore) generateLikeSearchQuery(baseQuery sq.SelectBuilder, param
 			searchClauses = append(searchClauses, fmt.Sprintf("(%s LIKE ? OR %s LIKE ?)", searchType, searchType))
 			searchArgs = append(searchArgs, "%"+word+"%", "%"+word[1:]+"%")
 		} else {
-			// Only accept prefix search, all others will be treated as middle matches.
+			// Accept prefix search when wildcard are in the appropriate position, otherwise treat as middle match.
 			if !strings.HasSuffix(word, "%") {
 				word = "%" + word + "%"
 			}
