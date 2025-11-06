@@ -431,6 +431,7 @@ export function UserSelector({id, isMulti, className, multiSelectOnChange, multi
                     onChange={multiSelectHandleOnChange}
                     value={selectInitialValue}
                     components={multiSelectComponents}
+                    isDisabled={disabled}
                 />
             </div>
         );
@@ -444,6 +445,7 @@ export function UserSelector({id, isMulti, className, multiSelectOnChange, multi
                 onChange={singleSelectHandleOnChange}
                 value={selectInitialValue ? selectInitialValue[0] : null}
                 components={singleSelectComponents}
+                isDisabled={disabled}
             />
         </div>
     );
