@@ -82,7 +82,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
 };
 
 // Should be based only from the generated default config from ./server via "make config-reset"
-// Based on v10.11 server
+// Based on v11.0 server
 const defaultServerConfig: AdminConfig = {
     ServiceSettings: {
         SiteURL: '',
@@ -754,6 +754,10 @@ const defaultServerConfig: AdminConfig = {
         AttributeBasedAccessControl: true,
         ContentFlagging: false,
         InteractiveDialogAppsForm: true,
+        EnableMattermostEntry: true,
+        ChannelAdminManageABACRules: false,
+        MobileSSOCodeExchange: true,
+        AutoTranslation: false,
     },
     ImportSettings: {
         Directory: './import',
@@ -783,18 +787,11 @@ const defaultServerConfig: AdminConfig = {
     },
     AccessControlSettings: {
         EnableAttributeBasedAccessControl: false,
-        EnableChannelScopeAccessControl: false,
+        EnableChannelScopeAccessControl: true,
         EnableUserManagedAttributes: false,
     },
     ContentFlaggingSettings: {
         EnableContentFlagging: false,
-        ReviewerSettings: {
-            CommonReviewers: true,
-            CommonReviewerIds: [],
-            TeamReviewersSetting: {},
-            SystemAdminsAsReviewers: false,
-            TeamAdminsAsReviewers: true,
-        },
         NotificationSettings: {
             EventTargetMapping: {
                 assigned: ['reviewers'],
@@ -814,6 +811,26 @@ const defaultServerConfig: AdminConfig = {
             ReporterCommentRequired: true,
             ReviewerCommentRequired: true,
             HideFlaggedContent: true,
+        },
+        ReviewerSettings: {
+            CommonReviewers: true,
+            CommonReviewerIds: [],
+            TeamReviewersSetting: {},
+            SystemAdminsAsReviewers: false,
+            TeamAdminsAsReviewers: true,
+        },
+    },
+    AutoTranslationSettings: {
+        Enable: false,
+        Provider: '',
+        LibreTranslate: {
+            URL: '',
+            APIKey: '',
+        },
+        TimeoutMs: {
+            NewPost: 800,
+            Fetch: 2000,
+            Notification: 300,
         },
     },
 };

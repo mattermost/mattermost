@@ -6,10 +6,10 @@ package api4
 import (
 	"context"
 	"net/http"
-	"os"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -32,12 +32,8 @@ func setBasicCommonReviewerConfig(th *TestHelper) *model.AppError {
 }
 
 func TestGetFlaggingConfiguration(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
 	th := Setup(t)
-	defer func() {
-		th.TearDown()
-		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
-	}()
+	defer th.TearDown()
 
 	client := th.Client
 
@@ -73,12 +69,8 @@ func TestGetFlaggingConfiguration(t *testing.T) {
 }
 
 func TestSaveContentFlaggingSettings(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
 	th := Setup(t).InitBasic()
-	defer func() {
-		th.TearDown()
-		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
-	}()
+	defer th.TearDown()
 
 	client := th.Client
 
@@ -157,12 +149,8 @@ func TestSaveContentFlaggingSettings(t *testing.T) {
 }
 
 func TestGetContentFlaggingSettings(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
 	th := Setup(t).InitBasic()
-	defer func() {
-		th.TearDown()
-		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
-	}()
+	defer th.TearDown()
 
 	t.Run("Should return 403 when user does not have manage system permission", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
@@ -200,12 +188,8 @@ func TestGetContentFlaggingSettings(t *testing.T) {
 }
 
 func TestGetPostPropertyValues(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
 	th := Setup(t).InitBasic()
-	defer func() {
-		th.TearDown()
-		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
-	}()
+	defer th.TearDown()
 
 	client := th.Client
 
@@ -282,17 +266,13 @@ func TestGetPostPropertyValues(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.NotNil(t, propertyValues)
-		require.Len(t, propertyValues, 5)
+		require.Len(t, propertyValues, 6)
 	})
 }
 
 func TestGetFlaggedPost(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
 	th := Setup(t).InitBasic()
-	defer func() {
-		th.TearDown()
-		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
-	}()
+	defer th.TearDown()
 
 	client := th.Client
 
@@ -406,15 +386,43 @@ func TestGetFlaggedPost(t *testing.T) {
 		require.NotNil(t, flaggedPost)
 		require.Equal(t, post.Id, flaggedPost.Id)
 	})
+
+	t.Run("Should return flagged post's file info", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		data, err2 := testutils.ReadTestFile("test.png")
+		require.NoError(t, err2)
+
+		fileResponse, _, err := client.UploadFile(context.Background(), data, th.BasicChannel.Id, "test.png")
+		require.NoError(t, err)
+		require.Equal(t, 1, len(fileResponse.FileInfos))
+		fileInfo := fileResponse.FileInfos[0]
+
+		post := th.CreatePostInChannelWithFiles(th.BasicChannel, fileInfo)
+
+		// First flag the post
+		flagRequest := &model.FlagContentRequest{
+			Reason:  "Sensitive data",
+			Comment: "This is sensitive content",
+		}
+		resp, err := client.FlagPostForContentReview(context.Background(), post.Id, flagRequest)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		flaggedPost, resp, err := client.GetContentFlaggedPost(context.Background(), post.Id)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		require.Equal(t, 1, len(flaggedPost.Metadata.Files))
+		require.Equal(t, fileInfo.Id, flaggedPost.Metadata.Files[0].Id)
+	})
 }
 
 func TestFlagPost(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
 	th := Setup(t).InitBasic()
-	defer func() {
-		th.TearDown()
-		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
-	}()
+	defer th.TearDown()
 
 	client := th.Client
 
@@ -555,12 +563,8 @@ func TestFlagPost(t *testing.T) {
 }
 
 func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
 	th := Setup(t)
-	defer func() {
-		th.TearDown()
-		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
-	}()
+	defer th.TearDown()
 
 	client := th.Client
 
@@ -638,12 +642,8 @@ func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
 }
 
 func TestSearchReviewers(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
 	th := Setup(t).InitBasic()
-	defer func() {
-		th.TearDown()
-		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
-	}()
+	defer th.TearDown()
 
 	client := th.Client
 
@@ -756,12 +756,8 @@ func TestSearchReviewers(t *testing.T) {
 }
 
 func TestAssignContentFlaggingReviewer(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
 	th := Setup(t).InitBasic()
-	defer func() {
-		th.TearDown()
-		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
-	}()
+	defer th.TearDown()
 
 	client := th.Client
 

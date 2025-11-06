@@ -1,6 +1,6 @@
 {
   "name": "@mattermost/types",
-  "version": "10.12.0",
+  "version": "11.1.0",
   "description": "Shared type definitions used by the Mattermost web app",
   "keywords": [
     "mattermost"
@@ -24,7 +24,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "github:mattermost/mattermost",
+    "url": "git+https://github.com/mattermost/mattermost.git",
     "directory": "webapp/platform/types"
   },
   "devDependencies": {
