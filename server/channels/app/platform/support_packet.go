@@ -145,7 +145,7 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 		if e != nil {
 			rErr = multierror.Append(rErr, errors.Wrap(e, "error while getting cluster infos"))
 		} else {
-			d.Cluster.NumberOfNodes = len(clusterInfo)
+			d.Cluster.NumberOfNodes = max(len(clusterInfo), 1) // clusterInfo is empty if the node is the only one in the cluster
 		}
 	}
 
