@@ -18,7 +18,7 @@ async function createPost(adminClient: any, userClient: any, team: any, user: an
 }
 
 /**
- * Helper: Verify flagged post card details in the Content Review DM
+ * Verify flagged post card details in the Content Review DM
  */
 async function verifyFlaggedPostCardDetails(
     postID: string,
@@ -39,7 +39,7 @@ async function verifyFlaggedPostCardDetails(
 }
 
 /**
- * Helper: Verify flagged post details inside the RHS view
+ * Verify flagged post details inside the RHS view
  */
 async function verifyRHSFlaggedPostDetails(
     postID: string,
@@ -70,6 +70,7 @@ async function verifyRHSFlaggedPostDetails(
  * 2. Setup content flagging with reviewers from both teams
  * 3. Create a post in team A and flag it
  * 4. Verify that a reviewer from team B receives a review request in Content Review channel
+ * 5. Verify the flagged post details in the reviewer's Content Review DM and RHS
  */
 test('Verify reviewer from another team can receive a review request for a flagged post', async ({pw}) => {
     const reasonToFlag = 'Inappropriate content';

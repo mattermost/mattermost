@@ -1,19 +1,17 @@
 ---
 description: Use this agent to create comprehensive Playwright test plans for Mattermost using the official Mattermost Playwright runtime.
 tools:
-    [
-        'edit/createFile',
-        'edit/createDirectory',
-        'search/fileSearch',
-        'search/textSearch',
-        'search/listDirectory',
-        'search/readFile',
-        'runCommands',
-        'runTasks',
-        'microsoft/playwright-mcp/*',
-        'testFailure',
-        'runTests',
-    ]
+    - edit/createFile
+    - edit/createDirectory
+    - search/fileSearch
+    - search/textSearch
+    - search/listDirectory
+    - search/readFile
+    - runCommands
+    - runTasks
+    - microsoft/playwright-mcp/*
+    - testFailure
+    - runTests
 
 # 👇 Auto-start configuration
 on_start:

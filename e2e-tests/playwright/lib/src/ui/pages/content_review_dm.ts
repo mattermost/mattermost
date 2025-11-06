@@ -9,11 +9,29 @@ export default class ContentReviewPage {
     private readonly cards: Locator;
     private readonly rhsCard: Locator;
     private reportCard?: Locator;
+    readonly keepMessageButton: Locator;
+    readonly removeMessageButton: Locator;
+    readonly postActionConformationModal: Locator;
+    readonly cancelButton: Locator;
+    readonly confirmRemoveMessageButton: Locator;
+    readonly confirmKeepMessageButton: Locator;
+    readonly confirmationModalComment: Locator;
 
     constructor(page: Page) {
         this.page = page;
         this.cards = page.locator('[data-testid="property-card-view"]');
         this.rhsCard = page.getByTestId('rhsPostView').getByTestId('property-card-view');
+        this.keepMessageButton = this.rhsCard.getByTestId('data-spillage-action-keep-message');
+        this.removeMessageButton = this.rhsCard.getByTestId('data-spillage-action-remove-message');
+        this.postActionConformationModal = page.locator('div.GenericModal__wrapper');
+        this.cancelButton = this.postActionConformationModal.getByRole('button', {name: 'Cancel'});
+        this.confirmRemoveMessageButton = this.postActionConformationModal.getByRole('button', {
+            name: 'Remove message',
+        });
+        this.confirmKeepMessageButton = this.postActionConformationModal.getByRole('button', {name: 'Keep message'});
+        this.confirmationModalComment = this.postActionConformationModal.getByTestId(
+            'RemoveFlaggedMessageConfirmationModal__comment',
+        );
     }
 
     async setReportCardByPostID(postID: string) {
@@ -86,10 +104,6 @@ export default class ContentReviewPage {
         await expect(this.field(fieldName).locator('.TextProperty')).toHaveText(expected);
     }
 
-    // async expectUser(fieldName: string, expected: string) {
-    //     await expect(this.field(fieldName).locator('.user-popover')).toHaveText(expected);
-    // }
-
     async expectUser(fieldName: string, expected: string) {
         await expect(this.rhsCard).toBeVisible({timeout: 10000});
 
@@ -138,5 +152,31 @@ export default class ContentReviewPage {
     async verifyFlaggedPostMessage(expected: string) {
         this.ensureReportCardSet();
         await expect(this.reportCard!.locator('.row:has-text("Message") .post-message__text')).toHaveText(expected);
+    }
+
+    async clickKeepMessage() {
+        await this.keepMessageButton.scrollIntoViewIfNeeded();
+        await this.keepMessageButton.click();
+        await this.postActionConformationModal.waitFor({state: 'visible'});
+    }
+
+    async clickRemoveMessage() {
+        await this.removeMessageButton.scrollIntoViewIfNeeded();
+        await this.removeMessageButton.click();
+        await this.postActionConformationModal.waitFor({state: 'visible'});
+    }
+
+    async enterConfirmationComment(comment: string) {
+        await this.confirmationModalComment.fill(comment);
+    }
+
+    async confirmRemove() {
+        await this.confirmRemoveMessageButton.click();
+        await this.postActionConformationModal.waitFor({state: 'hidden'});
+    }
+
+    async confirmKeep() {
+        await this.confirmKeepMessageButton.click();
+        await this.postActionConformationModal.waitFor({state: 'hidden'});
     }
 }
