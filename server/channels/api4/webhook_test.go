@@ -143,9 +143,9 @@ func TestCreateIncomingWebhook(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionManageOwnIncomingWebhooks.Id, model.TeamUserRoleId)
 
 		testHook := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, UserId: th.BasicUser2.Id}
-		_, resp, err2 := client.CreateIncomingWebhook(context.Background(), testHook)
+		_, response, err2 := client.CreateIncomingWebhook(context.Background(), testHook)
 		require.Error(t, err2)
-		CheckForbiddenStatus(t, resp)
+		CheckForbiddenStatus(t, response)
 
 		addIncomingWebhookPermissions(th, model.TeamUserRoleId)
 	})
