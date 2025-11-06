@@ -39,7 +39,7 @@ var searchPostStoreTests = []searchTest{
 		Name: "Should be able to search without stemming",
 		Fn:   testStemming,
 		Tags: []string{EnginePostgres},
-		// LIKE search for pg_bigm does not support simple search configuration and stemming proecssing in this test.
+		// LIKE search for pg_bigm does not support simple search configuration and stemming processing in this test.
 		Skip: true,
 	},
 	{
