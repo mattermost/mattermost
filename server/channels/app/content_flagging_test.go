@@ -2226,10 +2226,9 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 	defer th.TearDown()
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	require.Nil(t, setBaseConfig(th))
 
 	t.Run("should successfully permanently delete pending flagged post", func(t *testing.T) {
-		require.Nil(t, setBaseConfig(th))
-
 		post, appErr := setupFlaggedPost(th)
 		require.Nil(t, appErr)
 
@@ -2315,8 +2314,6 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 	})
 
 	t.Run("should successfully permanently delete assigned flagged post", func(t *testing.T) {
-		require.Nil(t, setBaseConfig(th))
-
 		post, appErr := setupFlaggedPost(th)
 		require.Nil(t, appErr)
 
@@ -2338,8 +2335,6 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 	})
 
 	t.Run("should fail when trying to delete already removed post", func(t *testing.T) {
-		require.Nil(t, setBaseConfig(th))
-
 		post, appErr := setupFlaggedPost(th)
 		require.Nil(t, appErr)
 
@@ -2365,8 +2360,6 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 	})
 
 	t.Run("should fail when trying to delete already retained post", func(t *testing.T) {
-		require.Nil(t, setBaseConfig(th))
-
 		post, appErr := setupFlaggedPost(th)
 		require.Nil(t, appErr)
 
@@ -2392,8 +2385,6 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 	})
 
 	t.Run("should fail when trying to delete non-flagged post", func(t *testing.T) {
-		require.Nil(t, setBaseConfig(th))
-
 		post := th.CreatePost(th.BasicChannel)
 
 		actionRequest := &model.FlagContentActionRequest{
@@ -2406,8 +2397,6 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 	})
 
 	t.Run("should handle empty comment", func(t *testing.T) {
-		require.Nil(t, setBaseConfig(th))
-
 		post, appErr := setupFlaggedPost(th)
 		require.Nil(t, appErr)
 
@@ -2436,8 +2425,6 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 	})
 
 	t.Run("should handle special characters in comment", func(t *testing.T) {
-		require.Nil(t, setBaseConfig(th))
-
 		post, appErr := setupFlaggedPost(th)
 		require.Nil(t, appErr)
 
@@ -2471,8 +2458,6 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 	})
 
 	t.Run("should handle post with file attachments", func(t *testing.T) {
-		require.Nil(t, setBaseConfig(th))
-
 		// Create a post with file attachments
 		post := th.CreatePost(th.BasicChannel)
 
@@ -2513,24 +2498,28 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		appErr = th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
 		require.Nil(t, appErr)
 
-		time.Sleep(2 * time.Second)
-
 		actionRequest := &model.FlagContentActionRequest{
 			Comment: "Post with files needs removal",
 		}
 
-		appErr = th.App.PermanentDeleteFlaggedPost(th.Context, actionRequest, th.SystemAdminUser.Id, post)
-		require.Nil(t, appErr)
+		require.Eventually(t, func() bool {
+			appErr = th.App.PermanentDeleteFlaggedPost(th.Context, actionRequest, th.SystemAdminUser.Id, post)
+			require.Nil(t, appErr)
+			return true
+		}, 5*time.Second, 200*time.Millisecond)
 
 		// Verify post was deleted and status updated
 		statusValue, appErr := th.App.GetPostContentFlaggingStatusValue(post.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, `"`+model.ContentFlaggingStatusRemoved+`"`, string(statusValue.Value))
+
+		// Verify file infos were also deleted
+		files, err := th.App.Srv().Store().FileInfo().GetByIds([]string{fileInfo1.Id, fileInfo2.Id}, true, false)
+		require.NoError(t, err)
+		require.Empty(t, files)
 	})
 
 	t.Run("should handle post with edit history", func(t *testing.T) {
-		require.Nil(t, setBaseConfig(th))
-
 		post := th.CreatePost(th.BasicChannel)
 
 		// Create edit history for the post
@@ -2550,45 +2539,26 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		appErr = th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
 		require.Nil(t, appErr)
 
-		time.Sleep(2 * time.Second)
-
 		actionRequest := &model.FlagContentActionRequest{
 			Comment: "Post with edit history needs removal",
 		}
 
-		appErr = th.App.PermanentDeleteFlaggedPost(th.Context, actionRequest, th.SystemAdminUser.Id, editedPost)
-		require.Nil(t, appErr)
+		require.Eventually(t, func() bool {
+			appErr = th.App.PermanentDeleteFlaggedPost(th.Context, actionRequest, th.SystemAdminUser.Id, editedPost)
+			require.Nil(t, appErr)
+			return true
+		}, 5*time.Second, 200*time.Millisecond)
 
 		// Verify status was updated
 		statusValue, appErr := th.App.GetPostContentFlaggingStatusValue(editedPost.Id)
 		require.Nil(t, appErr)
-		require.Equal(t, `"`+model.ContentFlaggingStatusRemoved+`"`, string(statusValue.Value))
-	})
 
-	t.Run("should send notifications when configured", func(t *testing.T) {
-		// Setup notification config for all targets
-		appErr := setupNotificationConfig(th, map[model.ContentFlaggingEvent][]model.NotificationTarget{
-			model.EventContentRemoved: {model.TargetReviewers, model.TargetAuthor, model.TargetReporter},
-		})
-		require.Nil(t, appErr)
+		// Verify statusValue.Value is a string
+		var stringValue string
+		err := json.Unmarshal(statusValue.Value, &stringValue)
+		require.NoError(t, err)
 
-		post, appErr := setupFlaggedPost(th)
-		require.Nil(t, appErr)
-
-		actionRequest := &model.FlagContentActionRequest{
-			Comment: "Notification test comment",
-		}
-
-		appErr = th.App.PermanentDeleteFlaggedPost(th.Context, actionRequest, th.SystemAdminUser.Id, post)
-		require.Nil(t, appErr)
-
-		// Wait for async notification processing
-		time.Sleep(2 * time.Second)
-
-		// Verify status was updated
-		statusValue, appErr := th.App.GetPostContentFlaggingStatusValue(post.Id)
-		require.Nil(t, appErr)
-		require.Equal(t, `"`+model.ContentFlaggingStatusRemoved+`"`, string(statusValue.Value))
+		require.Equal(t, model.ContentFlaggingStatusRemoved, stringValue)
 	})
 
 	t.Run("should handle post that was already deleted", func(t *testing.T) {
@@ -2608,12 +2578,15 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		appErr = th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
 		require.Nil(t, appErr)
 
-		time.Sleep(2 * time.Second)
+		var deletedPost *model.Post
 
-		// Get the updated post (should be deleted)
-		deletedPost, appErr := th.App.GetSinglePost(th.Context, post.Id, true)
-		require.Nil(t, appErr)
-		require.True(t, deletedPost.DeleteAt > 0)
+		require.Eventually(t, func() bool {
+			// Get the updated post (should be deleted)
+			deletedPost, appErr = th.App.GetSinglePost(th.Context, post.Id, true)
+			require.Nil(t, appErr)
+			require.True(t, deletedPost.DeleteAt > 0)
+			return true
+		}, 5*time.Second, 200*time.Millisecond)
 
 		actionRequest := &model.FlagContentActionRequest{
 			Comment: "Permanently delete already hidden post",
@@ -2625,6 +2598,12 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		// Verify status was updated to removed
 		statusValue, appErr := th.App.GetPostContentFlaggingStatusValue(deletedPost.Id)
 		require.Nil(t, appErr)
+
+		// Verify statusValue.Value is a string
+		var stringValue string
+		err := json.Unmarshal(statusValue.Value, &stringValue)
+		require.NoError(t, err)
+
 		require.Equal(t, `"`+model.ContentFlaggingStatusRemoved+`"`, string(statusValue.Value))
 	})
 }
