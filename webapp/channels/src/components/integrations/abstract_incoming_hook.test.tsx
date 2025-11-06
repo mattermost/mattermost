@@ -67,6 +67,7 @@ describe('components/integrations/AbstractIncomingWebhook', () => {
         enablePostUsernameOverride,
         enablePostIconOverride,
         action,
+        canBypassChannelLock: true,
     };
 
     test('should match snapshot', () => {
