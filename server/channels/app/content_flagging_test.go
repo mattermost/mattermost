@@ -246,46 +246,6 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
 	})
 
-	t.Run("should fail when trying to assign reviewer to retained post", func(t *testing.T) {
-		require.Nil(t, setBaseConfig(th))
-
-		post, appErr := setupFlaggedPost(th)
-		require.Nil(t, appErr)
-
-		// First retain the post
-		actionRequest := &model.FlagContentActionRequest{
-			Comment: "Keeping this post",
-		}
-		appErr = th.App.KeepFlaggedPost(th.Context, actionRequest, th.BasicUser.Id, post)
-		require.Nil(t, appErr)
-
-		// Try to assign reviewer to retained post
-		appErr = th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicChannel.TeamId, th.BasicUser2.Id, th.SystemAdminUser.Id)
-		require.NotNil(t, appErr)
-		require.Equal(t, "api.content_flagging.error.post_not_in_progress", appErr.Id)
-		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
-	})
-
-	t.Run("should fail when trying to assign reviewer to removed post", func(t *testing.T) {
-		require.Nil(t, setBaseConfig(th))
-
-		post, appErr := setupFlaggedPost(th)
-		require.Nil(t, appErr)
-
-		// First remove the post
-		actionRequest := &model.FlagContentActionRequest{
-			Comment: "Removing this post",
-		}
-		appErr = th.App.PermanentDeleteFlaggedPost(th.Context, actionRequest, th.BasicUser.Id, post)
-		require.Nil(t, appErr)
-
-		// Try to assign reviewer to removed post
-		appErr = th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicChannel.TeamId, th.BasicUser2.Id, th.SystemAdminUser.Id)
-		require.NotNil(t, appErr)
-		require.Equal(t, "api.content_flagging.error.post_not_in_progress", appErr.Id)
-		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
-	})
-
 	t.Run("should handle assignment with same reviewer ID", func(t *testing.T) {
 		require.Nil(t, setBaseConfig(th))
 
@@ -358,6 +318,55 @@ func TestAssignFlaggedPostReviewer(t *testing.T) {
 		appErr := th.App.AssignFlaggedPostReviewer(th.Context, "invalid_post_id", th.BasicChannel.TeamId, th.BasicUser.Id, th.SystemAdminUser.Id)
 		require.NotNil(t, appErr)
 		require.Equal(t, http.StatusNotFound, appErr.StatusCode)
+	})
+
+	t.Run("should allow assigning reviewer at all stages", func(t *testing.T) {
+		require.Nil(t, setBaseConfig(th))
+
+		post, appErr := setupFlaggedPost(th)
+		require.Nil(t, appErr)
+
+		groupId, appErr := th.App.ContentFlaggingGroupId()
+		require.Nil(t, appErr)
+
+		statusValue, appErr := th.App.GetPostContentFlaggingStatusValue(post.Id)
+		require.Nil(t, appErr)
+
+		// Set the status to Assigned
+		statusValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusAssigned))
+		_, err := th.App.Srv().propertyService.UpdatePropertyValue(groupId, statusValue)
+		require.NoError(t, err)
+
+		appErr = th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicChannel.TeamId, th.BasicUser.Id, th.SystemAdminUser.Id)
+		require.Nil(t, appErr)
+
+		statusValue, appErr = th.App.GetPostContentFlaggingStatusValue(post.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, `"`+model.ContentFlaggingStatusAssigned+`"`, string(statusValue.Value))
+
+		// Set the status to Removed
+		statusValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRemoved))
+		_, err = th.App.Srv().propertyService.UpdatePropertyValue(groupId, statusValue)
+		require.NoError(t, err)
+
+		appErr = th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicChannel.TeamId, th.BasicUser.Id, th.SystemAdminUser.Id)
+		require.Nil(t, appErr)
+
+		statusValue, appErr = th.App.GetPostContentFlaggingStatusValue(post.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, `"`+model.ContentFlaggingStatusRemoved+`"`, string(statusValue.Value))
+
+		// Set the status to Retained
+		statusValue.Value = json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusRetained))
+		_, err = th.App.Srv().propertyService.UpdatePropertyValue(groupId, statusValue)
+		require.NoError(t, err)
+
+		appErr = th.App.AssignFlaggedPostReviewer(th.Context, post.Id, th.BasicChannel.TeamId, th.BasicUser.Id, th.SystemAdminUser.Id)
+		require.Nil(t, appErr)
+
+		statusValue, appErr = th.App.GetPostContentFlaggingStatusValue(post.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, `"`+model.ContentFlaggingStatusRetained+`"`, string(statusValue.Value))
 	})
 }
 
@@ -1008,7 +1017,7 @@ func TestCanFlagPost(t *testing.T) {
 		// Can't fleg when post already flagged in pending status
 		appErr = th.App.canFlagPost(groupId, post.Id, "en")
 		require.NotNil(t, appErr)
-		require.Equal(t, "Cannot flag this post as is already flagged.", appErr.Id)
+		require.Equal(t, "Cannot flag this post as it is already flagged.", appErr.Id)
 
 		// Can't fleg when post already flagged in assigned status
 		propertyValue.Value = json.RawMessage(`"` + model.ContentFlaggingStatusAssigned + `"`)
@@ -1166,7 +1175,7 @@ func TestFlagPost(t *testing.T) {
 		// Try to flag the same post again
 		appErr = th.App.FlagPost(th.Context, post, th.BasicTeam.Id, th.BasicUser2.Id, flagData)
 		require.NotNil(t, appErr)
-		require.Equal(t, "Cannot flag this post as is already flagged.", appErr.Id)
+		require.Equal(t, "Cannot flag this post as it is already flagged.", appErr.Id)
 	})
 
 	t.Run("should hide flagged content when configured", func(t *testing.T) {
@@ -1321,6 +1330,13 @@ func TestSearchReviewers(t *testing.T) {
 		return config
 	}
 
+	allProfilesSanitized := func(reviewers []*model.User) {
+		for _, reviewer := range reviewers {
+			require.Empty(t, reviewer.LastPasswordUpdate)
+			require.Empty(t, reviewer.NotifyProps)
+		}
+	}
+
 	t.Run("should return common reviewers when searching", func(t *testing.T) {
 		config := getBaseConfig()
 		config.ReviewerSettings.CommonReviewers = model.NewPointer(true)
@@ -1341,6 +1357,7 @@ func TestSearchReviewers(t *testing.T) {
 		reviewers, appErr = th.App.SearchReviewers(th.Context, th.BasicUser.Username[:3], th.BasicTeam.Id)
 		require.Nil(t, appErr)
 		require.True(t, len(reviewers) >= 1)
+		allProfilesSanitized(reviewers)
 
 		// Verify the basic user is in the results
 		found := false
@@ -1373,6 +1390,7 @@ func TestSearchReviewers(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Len(t, reviewers, 1)
 		require.Equal(t, th.BasicUser2.Id, reviewers[0].Id)
+		allProfilesSanitized(reviewers)
 
 		// Search should not return users not configured as team reviewers
 		reviewers, appErr = th.App.SearchReviewers(th.Context, th.BasicUser.Username, th.BasicTeam.Id)
@@ -1401,6 +1419,7 @@ func TestSearchReviewers(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Len(t, reviewers, 1)
 		require.Equal(t, th.SystemAdminUser.Id, reviewers[0].Id)
+		allProfilesSanitized(reviewers)
 	})
 
 	t.Run("should return team admins as additional reviewers", func(t *testing.T) {
@@ -1429,6 +1448,7 @@ func TestSearchReviewers(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Len(t, reviewers, 1)
 		require.Equal(t, teamAdmin.Id, reviewers[0].Id)
+		allProfilesSanitized(reviewers)
 	})
 
 	t.Run("should return combined reviewers from multiple sources", func(t *testing.T) {
@@ -1463,7 +1483,8 @@ func TestSearchReviewers(t *testing.T) {
 		// Search with empty term should return all reviewers
 		reviewers, appErr := th.App.SearchReviewers(th.Context, "", th.BasicTeam.Id)
 		require.Nil(t, appErr)
-		require.True(t, len(reviewers) >= 3)
+		require.Equal(t, 3, len(reviewers))
+		allProfilesSanitized(reviewers)
 
 		// Verify all expected reviewers are present
 		reviewerIds := make([]string, len(reviewers))
@@ -1497,6 +1518,7 @@ func TestSearchReviewers(t *testing.T) {
 		require.Nil(t, appErr)
 		require.Len(t, reviewers, 1)
 		require.Equal(t, th.SystemAdminUser.Id, reviewers[0].Id)
+		allProfilesSanitized(reviewers)
 	})
 
 	t.Run("should return empty results when no reviewers match search term", func(t *testing.T) {
@@ -1513,6 +1535,7 @@ func TestSearchReviewers(t *testing.T) {
 		reviewers, appErr := th.App.SearchReviewers(th.Context, "nonexistentuser", th.BasicTeam.Id)
 		require.Nil(t, appErr)
 		require.Len(t, reviewers, 0)
+		allProfilesSanitized(reviewers)
 	})
 
 	t.Run("should return empty results when no reviewers configured", func(t *testing.T) {
@@ -1528,6 +1551,7 @@ func TestSearchReviewers(t *testing.T) {
 		reviewers, appErr := th.App.SearchReviewers(th.Context, th.BasicUser.Username, th.BasicTeam.Id)
 		require.Nil(t, appErr)
 		require.Len(t, reviewers, 0)
+		allProfilesSanitized(reviewers)
 	})
 
 	t.Run("should work with team reviewers and additional reviewers combined", func(t *testing.T) {
@@ -1556,6 +1580,7 @@ func TestSearchReviewers(t *testing.T) {
 		reviewers, appErr := th.App.SearchReviewers(th.Context, "", th.BasicTeam.Id)
 		require.Nil(t, appErr)
 		require.True(t, len(reviewers) >= 2)
+		allProfilesSanitized(reviewers)
 
 		reviewerIds := make([]string, len(reviewers))
 		for i, reviewer := range reviewers {
