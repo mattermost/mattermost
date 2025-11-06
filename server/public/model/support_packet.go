@@ -73,6 +73,7 @@ type SupportPacketDiagnostics struct {
 	} `yaml:"saml"`
 
 	ElasticSearch struct {
+		Backend       string   `yaml:"backend,omitempty"`
 		ServerVersion string   `yaml:"server_version,omitempty"`
 		ServerPlugins []string `yaml:"server_plugins,omitempty"`
 		Error         string   `yaml:"error,omitempty"`

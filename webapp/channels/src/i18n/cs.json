@@ -6192,7 +6192,7 @@
   "userAccountMenu.dndSubMenuItem.doNotClear": "Nemazat",
   "userAccountMenu.dndSubMenuItem.tomorrow": "Zítra",
   "userAccountMenu.dndSubMenuItem.tomorrowsDateTime": "{shortDay}, {shortTime}",
-  "userAccountMenu.logoutMenuItem.label": "Odhlásit Se",
+  "userAccountMenu.logoutMenuItem.label": "Odhlásit",
   "userAccountMenu.menuButton.ariaDescription.away": "Stav je \"Pryč\".",
   "userAccountMenu.menuButton.ariaDescription.dnd": "Stav je \"Nerušit\".",
   "userAccountMenu.menuButton.ariaDescription.offline": "Stav je \"Offline\".",
