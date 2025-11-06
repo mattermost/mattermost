@@ -3884,6 +3884,52 @@ components:
         bytes:
           type: number
           description: Total file storage usage for the instance in bytes rounded down to the most significant digit
+    BridgeAgentInfo:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the agent
+        displayName:
+          type: string
+          description: Human-readable name for the agent
+        username:
+          type: string
+          description: Username associated with the agent bot
+        service_id:
+          type: string
+          description: ID of the service providing this agent
+        service_type:
+          type: string
+          description: Type of the service (e.g., openai, anthropic)
+    BridgeServiceInfo:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the LLM service
+        name:
+          type: string
+          description: Name of the LLM service
+        type:
+          type: string
+          description: Type of the service (e.g., openai, anthropic, azure)
+    AgentsResponse:
+      type: object
+      properties:
+        agents:
+          type: array
+          items:
+            $ref: "#/components/schemas/BridgeAgentInfo"
+          description: List of available agents
+    ServicesResponse:
+      type: object
+      properties:
+        services:
+          type: array
+          items:
+            $ref: "#/components/schemas/BridgeServiceInfo"
+          description: List of available LLM services
     PostAcknowledgement:
       type: object
       properties:
