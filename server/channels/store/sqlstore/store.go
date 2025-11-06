@@ -112,6 +112,7 @@ type SqlStoreStores struct {
 	Attributes                 store.AttributesStore
 	autotranslation            store.AutoTranslationStore
 	ContentFlagging            store.ContentFlaggingStore
+	readReceipt                store.ReadReceiptStore
 }
 
 type SqlStore struct {
@@ -263,6 +264,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.Attributes = newSqlAttributesStore(store, metrics)
 	store.stores.autotranslation = newSqlAutoTranslationStore(store)
 	store.stores.ContentFlagging = newContentFlaggingStore(store)
+	store.stores.readReceipt = newSqlReadReceiptStore(store, metrics)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -880,6 +882,10 @@ func (ss *SqlStore) Attributes() store.AttributesStore {
 
 func (ss *SqlStore) AutoTranslation() store.AutoTranslationStore {
 	return ss.stores.autotranslation
+}
+
+func (ss *SqlStore) ReadReceipt() store.ReadReceiptStore {
+	return ss.stores.readReceipt
 }
 
 func (ss *SqlStore) DropAllTables() {

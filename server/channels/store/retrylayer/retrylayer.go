@@ -55,6 +55,7 @@ type RetryLayer struct {
 	PropertyGroupStore              store.PropertyGroupStore
 	PropertyValueStore              store.PropertyValueStore
 	ReactionStore                   store.ReactionStore
+	ReadReceiptStore                store.ReadReceiptStore
 	RemoteClusterStore              store.RemoteClusterStore
 	RetentionPolicyStore            store.RetentionPolicyStore
 	RoleStore                       store.RoleStore
@@ -213,6 +214,10 @@ func (s *RetryLayer) PropertyValue() store.PropertyValueStore {
 
 func (s *RetryLayer) Reaction() store.ReactionStore {
 	return s.ReactionStore
+}
+
+func (s *RetryLayer) ReadReceipt() store.ReadReceiptStore {
+	return s.ReadReceiptStore
 }
 
 func (s *RetryLayer) RemoteCluster() store.RemoteClusterStore {
@@ -459,6 +464,11 @@ type RetryLayerPropertyValueStore struct {
 
 type RetryLayerReactionStore struct {
 	store.ReactionStore
+	Root *RetryLayer
+}
+
+type RetryLayerReadReceiptStore struct {
+	store.ReadReceiptStore
 	Root *RetryLayer
 }
 
@@ -10250,6 +10260,111 @@ func (s *RetryLayerReactionStore) Save(reaction *model.Reaction) (*model.Reactio
 
 }
 
+func (s *RetryLayerReadReceiptStore) Delete(rctx request.CTX, postID string, userID string) error {
+
+	tries := 0
+	for {
+		err := s.ReadReceiptStore.Delete(rctx, postID, userID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerReadReceiptStore) DeleteByPost(rctx request.CTX, postID string) error {
+
+	tries := 0
+	for {
+		err := s.ReadReceiptStore.DeleteByPost(rctx, postID)
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerReadReceiptStore) Get(rctx request.CTX, postID string, userID string) (*model.ReadReceipt, error) {
+
+	tries := 0
+	for {
+		result, err := s.ReadReceiptStore.Get(rctx, postID, userID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerReadReceiptStore) GetReadCountForPost(rctx request.CTX, postID string) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.ReadReceiptStore.GetReadCountForPost(rctx, postID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerReadReceiptStore) Save(rctx request.CTX, receipt *model.ReadReceipt) (*model.ReadReceipt, error) {
+
+	tries := 0
+	for {
+		result, err := s.ReadReceiptStore.Save(rctx, receipt)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerRemoteClusterStore) Delete(remoteClusterID string) (bool, error) {
 
 	tries := 0
@@ -17246,6 +17361,7 @@ func New(childStore store.Store) *RetryLayer {
 	newStore.PropertyGroupStore = &RetryLayerPropertyGroupStore{PropertyGroupStore: childStore.PropertyGroup(), Root: &newStore}
 	newStore.PropertyValueStore = &RetryLayerPropertyValueStore{PropertyValueStore: childStore.PropertyValue(), Root: &newStore}
 	newStore.ReactionStore = &RetryLayerReactionStore{ReactionStore: childStore.Reaction(), Root: &newStore}
+	newStore.ReadReceiptStore = &RetryLayerReadReceiptStore{ReadReceiptStore: childStore.ReadReceipt(), Root: &newStore}
 	newStore.RemoteClusterStore = &RetryLayerRemoteClusterStore{RemoteClusterStore: childStore.RemoteCluster(), Root: &newStore}
 	newStore.RetentionPolicyStore = &RetryLayerRetentionPolicyStore{RetentionPolicyStore: childStore.RetentionPolicy(), Root: &newStore}
 	newStore.RoleStore = &RetryLayerRoleStore{RoleStore: childStore.Role(), Root: &newStore}
