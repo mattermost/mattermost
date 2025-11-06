@@ -191,6 +191,9 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockContentFlaggingStore := mocks.ContentFlaggingStore{}
 	mockStore.On("ContentFlagging").Return(&mockContentFlaggingStore)
 
+	mockReadReceiptStore := &mocks.ReadReceiptStore{}
+	mockStore.On("ReadReceipt").Return(mockReadReceiptStore)
+
 	return &mockStore
 }
 
