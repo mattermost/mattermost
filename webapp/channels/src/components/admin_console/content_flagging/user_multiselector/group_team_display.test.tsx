@@ -47,7 +47,7 @@ describe('GroupTeamDisplay', () => {
     };
 
     describe('team rendering', () => {
-        it('should render team badge with "T"', () => {
+        it('should render team badge with icon', () => {
             const {container} = renderWithContext(
                 <GroupTeamDisplay
                     item={mockTeam}
@@ -57,7 +57,10 @@ describe('GroupTeamDisplay', () => {
 
             const badge = container.querySelector('.GroupIcon');
             expect(badge).toBeInTheDocument();
-            expect(badge).toHaveTextContent('T');
+
+            // Check that it contains an SVG icon
+            const icon = badge?.querySelector('svg');
+            expect(icon).toBeInTheDocument();
         });
 
         it('should render team display name', () => {
@@ -85,7 +88,7 @@ describe('GroupTeamDisplay', () => {
     });
 
     describe('group rendering', () => {
-        it('should render group badge with "G"', () => {
+        it('should render group badge with icon', () => {
             const {container} = renderWithContext(
                 <GroupTeamDisplay
                     item={mockGroup}
@@ -95,7 +98,10 @@ describe('GroupTeamDisplay', () => {
 
             const badge = container.querySelector('.GroupIcon');
             expect(badge).toBeInTheDocument();
-            expect(badge).toHaveTextContent('G');
+
+            // Check that it contains an SVG icon
+            const icon = badge?.querySelector('svg');
+            expect(icon).toBeInTheDocument();
         });
 
         it('should render group display name', () => {
