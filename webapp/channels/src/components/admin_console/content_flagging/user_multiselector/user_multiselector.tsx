@@ -9,14 +9,17 @@ import type {MultiValue, SingleValue} from 'react-select';
 import AsyncSelect from 'react-select/async';
 
 import type {Group} from '@mattermost/types/groups';
+import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {getGroup, searchGroups} from 'mattermost-redux/actions/groups';
 import {debounce} from 'mattermost-redux/actions/helpers';
+import {getTeam, searchTeams} from 'mattermost-redux/actions/teams';
 import {getMissingProfilesByIds, searchProfiles} from 'mattermost-redux/actions/users';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getAllGroups} from 'mattermost-redux/selectors/entities/groups';
 import {isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getTeams} from 'mattermost-redux/selectors/entities/teams';
 import {makeGetUsersByIds} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
@@ -63,10 +66,11 @@ type Props = MultiSelectProps & SingleSelectProps & {
     showDropdownIndicator?: boolean;
     searchFunc?: (term: string) => Promise<UserProfile[]>;
     enableGroups?: boolean;
+    enableTeams?: boolean;
     disabled?: boolean;
 };
 
-export function UserSelector({id, isMulti, className, multiSelectOnChange, multiSelectInitialValue, singleSelectOnChange, singleSelectInitialValue, hasError, placeholder, showDropdownIndicator, searchFunc, enableGroups = false, disabled = false}: Props) {
+export function UserSelector({id, isMulti, className, multiSelectOnChange, multiSelectInitialValue, singleSelectOnChange, singleSelectInitialValue, hasError, placeholder, showDropdownIndicator, searchFunc, enableGroups = false, enableTeams = false, disabled = false}: Props) {
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
     const initialDataLoaded = useRef<boolean>(false);
@@ -110,20 +114,34 @@ export function UserSelector({id, isMulti, className, multiSelectOnChange, multi
                 await Promise.allSettled(groupFetchPromises);
             }
 
+            // Fetch teams if enabled
+            // Note: We try to fetch all IDs as teams, but silently ignore errors since some might be user IDs
+            if (enableTeams) {
+                // Fetch each team individually, ignoring errors for non-team IDs
+                const teamFetchPromises = param.map((id) =>
+                    dispatch(getTeam(id)).catch(() => {
+                        // Silently ignore - this ID might be a user, not a team
+                        return {error: true};
+                    }),
+                );
+                await Promise.allSettled(teamFetchPromises);
+            }
+
             initialDataLoaded.current = true;
         };
 
         if (initialValue && initialValue.length > 0) {
             fetchInitialData();
         }
-    }, [dispatch, initialValue, isMulti, multiSelectInitialValue, singleSelectInitialValue, isGroupsEnabled]);
+    }, [dispatch, initialValue, isMulti, multiSelectInitialValue, singleSelectInitialValue, isGroupsEnabled, enableTeams]);
 
     const getUsersByIds = useMemo(makeGetUsersByIds, []);
     const initialUsers = useSelector((state: GlobalState) => getUsersByIds(state, initialValue || []));
     const allGroups = useSelector(getAllGroups);
+    const allTeams = useSelector(getTeams);
 
     const selectInitialValue = useMemo(() => {
-        const result: Array<AutocompleteOptionType<UserProfile | Group>> = [];
+        const result: Array<AutocompleteOptionType<UserProfile | Group | Team>> = [];
         const addedIds = new Set<string>();
 
         if (!initialValue) {
@@ -136,7 +154,7 @@ export function UserSelector({id, isMulti, className, multiSelectOnChange, multi
             userMap.set(user.id, user);
         });
 
-        // Iterate through initialValue once and add each ID as either user or group
+        // Iterate through initialValue once and add each ID as either user, group, or team
         initialValue.forEach((id) => {
             if (addedIds.has(id)) {
                 return; // Skip duplicates
@@ -164,15 +182,35 @@ export function UserSelector({id, isMulti, className, multiSelectOnChange, multi
                         raw: group,
                     });
                     addedIds.add(id);
+                    return;
+                }
+            }
+
+            // If not a user or group and teams are enabled, try to add as team
+            if (enableTeams) {
+                const team = allTeams[id];
+                if (team) {
+                    result.push({
+                        value: team.id,
+                        label: team.display_name || team.name,
+                        raw: team,
+                    });
+                    addedIds.add(id);
                 }
             }
         });
 
         return result;
-    }, [initialUsers, allGroups, initialValue, isGroupsEnabled]);
+    }, [initialUsers, allGroups, allTeams, initialValue, isGroupsEnabled, enableTeams]);
 
     const userLoadingMessage = useCallback(() => formatMessage({id: 'admin.userMultiSelector.loading', defaultMessage: 'Loading users'}), [formatMessage]);
-    const noUsersMessage = useCallback(() => formatMessage({id: 'admin.userMultiSelector.noUsers', defaultMessage: 'No users found'}), [formatMessage]);
+    const noUsersMessage = useCallback(({inputValue}: {inputValue: string}) => {
+        // Don't show "No users found" when input is empty
+        if (!inputValue || inputValue.trim() === '') {
+            return null;
+        }
+        return formatMessage({id: 'admin.userMultiSelector.noUsers', defaultMessage: 'No users found'});
+    }, [formatMessage]);
     const defaultPlaceholder = formatMessage({id: 'admin.userMultiSelector.placeholder', defaultMessage: 'Start typing to search for users...'});
 
     const generalSearchUsers = useMemo(() => debounce(async (searchTerm: string, callback) => {
@@ -199,7 +237,18 @@ export function UserSelector({id, isMulti, className, multiSelectOnChange, multi
                 groupResults = await dispatch(searchGroups(groupSearchOpts));
             }
 
-            let options: Array<AutocompleteOptionType<UserProfile | Group>> = [];
+            // Search for teams if enabled
+            let teamResults: ActionResult<{teams: Team[]; total_count: number} | Team[]> | undefined;
+            if (enableTeams) {
+                const teamSearchOpts = {
+                    page: 0,
+                    per_page: 100,
+                };
+
+                teamResults = await dispatch(searchTeams(searchTerm, teamSearchOpts));
+            }
+
+            let options: Array<AutocompleteOptionType<UserProfile | Group | Team>> = [];
 
             // Process user results
             if (userResults && userResults.data && userResults.data.length > 0) {
@@ -227,7 +276,24 @@ export function UserSelector({id, isMulti, className, multiSelectOnChange, multi
                 options = [...options, ...groupOptions];
             }
 
-            // Sort results (users and/or groups)
+            // Process team results
+            if (teamResults && teamResults.data) {
+                // Handle both response formats: {teams: Team[]} or Team[]
+                const teams = Array.isArray(teamResults.data) ? teamResults.data : teamResults.data.teams;
+                if (teams && teams.length > 0) {
+                    const teamOptions = teams.
+                        filter((team) => team.delete_at === 0).
+                        map((team) => ({
+                            value: team.id,
+                            label: team.display_name || team.name,
+                            raw: team,
+                        }));
+
+                    options = [...options, ...teamOptions];
+                }
+            }
+
+            // Sort results (users, groups, and/or teams)
             if (options.length > 0) {
                 options.sort((a, b) => {
                     if (!a.raw || !b.raw) {
@@ -239,8 +305,22 @@ export function UserSelector({id, isMulti, className, multiSelectOnChange, multi
                         return (a.raw.username || '').localeCompare(b.raw.username || '');
                     }
 
-                    // For mixed or groups, use the utility function
-                    return sortUsersAndGroups(a.raw, b.raw);
+                    // For teams, sort by display_name
+                    if ('type' in a.raw && 'type' in b.raw) {
+                        const aName = a.raw.display_name || a.raw.name || '';
+                        const bName = b.raw.display_name || b.raw.name || '';
+                        return aName.localeCompare(bName);
+                    }
+
+                    // For groups or mixed types with users
+                    if ('source' in a.raw || 'source' in b.raw) {
+                        return sortUsersAndGroups(a.raw as UserProfile | Group, b.raw as UserProfile | Group);
+                    }
+
+                    // Default: sort by display_name/name
+                    const aName = ('display_name' in a.raw ? a.raw.display_name : '') || ('name' in a.raw ? a.raw.name : '') || '';
+                    const bName = ('display_name' in b.raw ? b.raw.display_name : '') || ('name' in b.raw ? b.raw.name : '') || '';
+                    return aName.localeCompare(bName);
                 });
             }
 
@@ -250,7 +330,7 @@ export function UserSelector({id, isMulti, className, multiSelectOnChange, multi
             console.error(error);
             callback([]);
         }
-    }, 200), [dispatch, isGroupsEnabled]);
+    }, 200), [dispatch, isGroupsEnabled, enableTeams]);
 
     const customSearchFunc = useMemo(() => debounce(async (searchTerm: string, callback) => {
         if (!searchFunc) {
@@ -278,16 +358,18 @@ export function UserSelector({id, isMulti, className, multiSelectOnChange, multi
 
     const searchUsers = searchFunc ? customSearchFunc : generalSearchUsers;
 
-    const multiSelectHandleOnChange = useCallback((value: MultiValue<AutocompleteOptionType<UserProfile | Group>>) => {
+    const multiSelectHandleOnChange = useCallback((value: MultiValue<AutocompleteOptionType<UserProfile | Group | Team>>) => {
         const selectedUserIds = value.map((option) => option.value);
         multiSelectOnChange?.(selectedUserIds);
     }, [multiSelectOnChange]);
 
-    const singleSelectHandleOnChange = useCallback((value: SingleValue<AutocompleteOptionType<UserProfile | Group>>) => {
+    const singleSelectHandleOnChange = useCallback((value: SingleValue<AutocompleteOptionType<UserProfile | Group | Team>>) => {
         const selectedUserIds = value?.value || '';
         singleSelectOnChange?.(selectedUserIds);
     }, [singleSelectOnChange]);
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore - Complex ReactSelect types with Team support - AriaLiveMessages type mismatch unavoidable
     const multiSelectComponents = useMemo(() => {
         const componentObj = {
             ...BASE_SELECT_COMPONENTS,
@@ -303,6 +385,8 @@ export function UserSelector({id, isMulti, className, multiSelectOnChange, multi
         return componentObj;
     }, [showDropdownIndicator]);
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore - Complex ReactSelect types with Team support - AriaLiveMessages type mismatch unavoidable
     const singleSelectComponents = useMemo(() => {
         const componentObj = {
             ...BASE_SELECT_COMPONENTS,
@@ -341,7 +425,7 @@ export function UserSelector({id, isMulti, className, multiSelectOnChange, multi
     if (isMulti) {
         return (
             <div className={containerClassName}>
-                <AsyncSelect
+                <AsyncSelect<AutocompleteOptionType<UserProfile | Group | Team>, true>
                     {...baseProps}
                     isMulti={true}
                     onChange={multiSelectHandleOnChange}
@@ -354,7 +438,7 @@ export function UserSelector({id, isMulti, className, multiSelectOnChange, multi
 
     return (
         <div className={containerClassName}>
-            <AsyncSelect
+            <AsyncSelect<AutocompleteOptionType<UserProfile | Group | Team>, false>
                 {...baseProps}
                 isMulti={false}
                 onChange={singleSelectHandleOnChange}
