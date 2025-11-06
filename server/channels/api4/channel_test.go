@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"sort"
 	"strings"
 	"testing"
@@ -1632,6 +1633,10 @@ func TestDeleteGroupChannel(t *testing.T) {
 
 func TestGetChannel(t *testing.T) {
 	mainHelper.Parallel(t)
+	os.Setenv("MM_FEATUREFLAGS_ContentFlagging", "true")
+	defer func() {
+		os.Unsetenv("MM_FEATUREFLAGS_ContentFlagging")
+	}()
 
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

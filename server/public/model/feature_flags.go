@@ -113,7 +113,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ExperimentalAuditSettingsSystemConsoleUI = true
 	f.CustomProfileAttributes = true
 	f.AttributeBasedAccessControl = true
-	f.ContentFlagging = true
+	f.ContentFlagging = false
 	f.InteractiveDialogAppsForm = true
 	f.EnableMattermostEntry = true
 
