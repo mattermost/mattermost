@@ -930,11 +930,8 @@ func (th *TestHelper) CreateMessagePostNoClient(channel *model.Channel, message 
 }
 
 func (th *TestHelper) CreateDmChannel(tb testing.TB, user *model.User) *model.Channel {
-	var appErr *model.AppError
-	var channel *model.Channel
-	if channel, appErr = th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, user.Id); appErr != nil {
-		panic(appErr)
-	}
+	channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, user.Id)
+	require.Nil(tb, appErr)
 	return channel
 }
 
