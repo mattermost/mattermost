@@ -54,6 +54,10 @@ const (
 	PostTypeMe                   = "me"
 	PostTypePage                 = "page"
 	PostTypePageComment          = "page_comment"
+	PostTypePageMention          = "system_page_mention"
+	PostTypeWikiAdded            = "system_wiki_added"
+	PostTypePageAdded            = "system_page_added"
+	PostTypePageUpdated          = "system_page_updated"
 	PostCustomTypePrefix         = "custom_"
 	PostTypeReminder             = "reminder"
 
@@ -519,6 +523,10 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypeMe,
 		PostTypePage,
 		PostTypePageComment,
+		PostTypePageMention,
+		PostTypeWikiAdded,
+		PostTypePageAdded,
+		PostTypePageUpdated,
 		PostTypeWrangler,
 		PostTypeGMConvertedToChannel:
 	default:

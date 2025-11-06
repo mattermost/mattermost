@@ -488,6 +488,7 @@ export const ModalIdentifiers = {
     CREATE_WIKI: 'create_wiki',
     WIKI_RENAME: 'wiki_rename',
     WIKI_DELETE: 'wiki_delete',
+    WIKI_MOVE: 'wiki_move',
     CONFIRM_MANAGE_USER_SETTINGS_MODAL: 'confirm_switch_to_settings',
     SCHEDULED_POST_CUSTOM_TIME_MODAL: 'scheduled_post_custom_time',
     SECURE_CONNECTION_DELETE: 'secure_connection_delete',
@@ -501,6 +502,7 @@ export const ModalIdentifiers = {
     ATTRIBUTE_MODAL_SAML: 'attribute_modal_saml',
     FLAG_POST: 'flag_post',
     REMOVE_FLAGGED_POST: 'remove_flagged_post',
+    TEXT_INPUT_MODAL: 'text_input_modal',
 };
 
 export const UserStatuses = {

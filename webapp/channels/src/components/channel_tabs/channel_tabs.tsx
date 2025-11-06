@@ -12,7 +12,7 @@ import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
 import {Client4} from 'mattermost-redux/client';
 import {getChannelBookmarks} from 'mattermost-redux/selectors/entities/channel_bookmarks';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getFile} from 'mattermost-redux/selectors/entities/files';
+import type {getFile} from 'mattermost-redux/selectors/entities/files';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 
 import {fetchChannelBookmarks} from 'actions/channel_bookmarks';
@@ -214,16 +214,24 @@ function ChannelTabs({
         }
     }, [channelId, dispatch]);
 
+    // Get file IDs from bookmarks
+    const fileIds = useMemo(() => {
+        return bookmarks.
+            filter((b) => b.type === 'file' && b.file_id).
+            map((b) => b.file_id!);
+    }, [bookmarks]);
+
     // Get file info for file-type bookmarks
-    const fileInfos = useSelector((state: GlobalState) => {
+    const filesById = useSelector((state: GlobalState) => state.entities.files.files);
+    const fileInfos = useMemo(() => {
         const files: {[key: string]: ReturnType<typeof getFile>} = {};
-        bookmarks.forEach((bookmark) => {
-            if (bookmark.type === 'file' && bookmark.file_id) {
-                files[bookmark.file_id] = getFile(state, bookmark.file_id);
+        fileIds.forEach((fileId) => {
+            if (filesById[fileId]) {
+                files[fileId] = filesById[fileId];
             }
         });
         return files;
-    });
+    }, [fileIds, filesById]);
 
     const handleBookmarkClick = (bookmark: ChannelBookmark) => {
         if (bookmark.type === 'file' && bookmark.file_id) {
@@ -394,7 +402,7 @@ function ChannelTabs({
                                     <Tab
                                         id={wikiTabId}
                                         label={wiki.title}
-                                        icon='icon-file-multiple-outline'
+                                        icon='icon-file-multiple'
                                         isActive={isWikiActive}
                                         onClick={handleTabClick}
                                         onKeyDown={handleKeyDown}
@@ -445,17 +453,19 @@ function ChannelTabs({
                         id: 'add-tab-content-menu',
                     }}
                 >
-                    {/* Wiki creation */}
-                    <Menu.Item
-                        leadingElement={<FileMultipleOutlineIcon size={18}/>}
-                        labels={
-                            <FormattedMessage
-                                id='channel_tabs.wiki'
-                                defaultMessage='Wiki'
-                            />
-                        }
-                        onClick={handleCreateWiki}
-                    />
+                    {[
+                        <Menu.Item
+                            key='wiki'
+                            leadingElement={<FileMultipleOutlineIcon size={18}/>}
+                            labels={
+                                <FormattedMessage
+                                    id='channel_tabs.wiki'
+                                    defaultMessage='Wiki'
+                                />
+                            }
+                            onClick={handleCreateWiki}
+                        />,
+                    ]}
                 </Menu.Container>
             </div>
         </div>

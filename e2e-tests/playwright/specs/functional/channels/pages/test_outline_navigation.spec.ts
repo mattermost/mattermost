@@ -35,7 +35,7 @@ test('shows outline after navigating away and back', {tag: '@pages'}, async ({pw
     await page.keyboard.press('Backspace');
     await addHeadingToEditor(page, 1, 'Page 1 Heading');
 
-    const publishButton1 = page.getByRole('button', {name: 'Publish'});
+    const publishButton1 = page.locator('[data-testid="wiki-page-publish-button"]');
     await publishButton1.click();
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(500);

@@ -11,6 +11,7 @@ type Props = {
     pageId: string;
     channelId: string;
     isDraft: boolean;
+    isExistingPage?: boolean;
     parentPageId?: string;
     draftTitle?: string;
     onEdit: () => void;
@@ -31,6 +32,7 @@ const WikiPageHeader = ({
     pageId,
     channelId,
     isDraft,
+    isExistingPage = false,
     parentPageId,
     draftTitle,
     onEdit,
@@ -67,25 +69,27 @@ const WikiPageHeader = ({
                     className='PagePane__controls'
                     data-testid='wiki-page-controls'
                 >
-                    <button
-                        className='PagePane__icon-button'
-                        aria-label='Toggle comments'
-                        title='Toggle comments'
-                        onClick={onToggleComments}
-                        data-testid='wiki-page-toggle-comments'
-                    >
-                        <i className='icon-message-text-outline'/>
-                    </button>
+                    {(!isDraft || isExistingPage) && (
+                        <button
+                            className='PagePane__icon-button'
+                            aria-label='Toggle comments'
+                            title='Toggle comments'
+                            onClick={onToggleComments}
+                            data-testid='wiki-page-toggle-comments'
+                        >
+                            <i className='icon-message-text-outline'/>
+                        </button>
+                    )}
                     {isDraft ? (
                         <button
                             className='btn btn-primary'
-                            aria-label='Publish'
-                            title='Publish'
+                            aria-label={isExistingPage ? 'Update' : 'Publish'}
+                            title={isExistingPage ? 'Update' : 'Publish'}
                             onClick={onPublish}
                             data-testid='wiki-page-publish-button'
                         >
                             <i className='icon-check'/>
-                            {'Publish'}
+                            {isExistingPage ? 'Update' : 'Publish'}
                         </button>
                     ) : (
                         <button

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {lazy} from 'react';
+import React from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {useRouteMatch, useHistory, useLocation} from 'react-router-dom';
 
@@ -17,7 +17,6 @@ import {getPage, getPages} from 'selectors/pages';
 import {getIsPanesPanelCollapsed} from 'selectors/pages_hierarchy';
 import {getRhsState} from 'selectors/rhs';
 
-import {makeAsyncComponent} from 'components/async_load';
 import DuplicatePageModal from 'components/duplicate_page_modal';
 import LoadingScreen from 'components/loading_screen';
 import MovePageModal from 'components/move_page_modal';
@@ -26,6 +25,7 @@ import DeletePageModal from 'components/pages_hierarchy_panel/delete_page_modal'
 import {usePageMenuHandlers} from 'components/pages_hierarchy_panel/hooks/use_page_menu_handlers';
 import TextInputModal from 'components/text_input_modal';
 
+import {isEditingExistingPage, getPublishedPageIdFromDraft} from 'utils/page_utils';
 import {getWikiUrl, getTeamNameFromPath} from 'utils/url';
 
 import type {GlobalState} from 'types/store';
@@ -175,7 +175,7 @@ const WikiView = () => {
     // draft id in local state.
     // Phase 1 Refactor: Removed cleanup effect - no longer needed with route-based draft IDs
 
-    const {handleEdit, handlePublish, handleTitleChange, handleContentChange} = useWikiPageActions(
+    const {handleEdit, handlePublish, handleTitleChange, handleContentChange, handleDraftStatusChange} = useWikiPageActions(
         channelId,
         pageId,
         draftId,
@@ -189,9 +189,15 @@ const WikiView = () => {
     const handleToggleComments = () => {
         if (isWikiRhsOpen) {
             dispatch(closeRightHandSide());
-        } else if (pageId) {
-            dispatch(openWikiRhs(pageId, wikiId || ''));
-            dispatch(setWikiRhsMode('comments'));
+        } else {
+            // For published pages, use pageId directly
+            // For drafts of existing pages, use the published page ID from draft
+            const targetPageId = pageId || getPublishedPageIdFromDraft(currentDraft);
+
+            if (targetPageId) {
+                dispatch(openWikiRhs(targetPageId, wikiId || ''));
+                dispatch(setWikiRhsMode('comments'));
+            }
         }
     };
 
@@ -254,187 +260,195 @@ const WikiView = () => {
                 <div
                     className='no-results__holder'
                     data-testid='wiki-view-loading'
-                    >
-                        <LoadingScreen/>
-                    </div>
-                ) : (
-                    <>
-                        {isPanesPanelCollapsed && wikiId && (
-                            <button
-                                className='WikiView__hamburgerButton btn btn-icon btn-sm'
-                                onClick={handleOpenPagesPanel}
-                                aria-label='Open pages panel'
-                                data-testid='wiki-view-hamburger-button'
-                            >
-                                <i className='icon icon-menu-variant'/>
-                            </button>
-                        )}
-
-                        {wikiId && (
-                            <PagesHierarchyPanel
-                                wikiId={wikiId}
-                                channelId={channelId}
-                                currentPageId={pageId || draftId}
-                                onPageSelect={handlePageSelect}
-                            />
-                        )}
-
-                        <div
-                            className={classNames('PagePane', {'PagePane--sidebarCollapsed': isPanesPanelCollapsed})}
-                            data-testid='wiki-page-pane'
+                >
+                    <LoadingScreen/>
+                </div>
+            ) : (
+                <>
+                    {isPanesPanelCollapsed && wikiId && (
+                        <button
+                            className='WikiView__hamburgerButton btn btn-icon btn-sm'
+                            onClick={handleOpenPagesPanel}
+                            aria-label='Open pages panel'
+                            data-testid='wiki-view-hamburger-button'
                         >
-                            {!isEmptyState && (() => {
-                                const currentPageIdForHeader = currentDraft ? draftId : (pageId || '');
-                                const pageLink = currentPageIdForHeader && wikiId && channelId ? `/${currentTeam?.name || 'team'}/wiki/${channelId}/${wikiId}/${currentPageIdForHeader}` : undefined;
+                            <i className='icon icon-menu-variant'/>
+                        </button>
+                    )}
 
-                                // For drafts, wait until currentDraft is loaded to avoid breadcrumb issues
-                                if (isDraft && draftId && !currentDraft) {
-                                    return null;
-                                }
+                    {wikiId && (
+                        <PagesHierarchyPanel
+                            wikiId={wikiId}
+                            channelId={channelId}
+                            currentPageId={pageId || draftId}
+                            onPageSelect={handlePageSelect}
+                        />
+                    )}
 
-                                // Use refs to preserve draft parent ID and title across renders
-                                const effectiveParentId = isDraft ? (currentDraft?.props?.page_parent_id || draftParentIdRef.current) : undefined;
-                                const effectiveTitle = isDraft ? (currentDraft?.props?.title || draftTitleRef.current) : undefined;
+                    <div
+                        className={classNames('PagePane', {'PagePane--sidebarCollapsed': isPanesPanelCollapsed})}
+                        data-testid='wiki-page-pane'
+                    >
+                        {!isEmptyState && (() => {
+                            const currentPageIdForHeader = currentDraft ? draftId : (pageId || '');
+                            const pageLink = currentPageIdForHeader && wikiId && channelId ? `/${currentTeam?.name || 'team'}/wiki/${channelId}/${wikiId}/${currentPageIdForHeader}` : undefined;
 
-                                return (
-                                    <WikiPageHeader
-                                        wikiId={wikiId || ''}
-                                        pageId={currentPageIdForHeader || ''}
-                                        channelId={actualChannelId}
-                                        isDraft={isDraft}
-                                        parentPageId={effectiveParentId}
-                                        draftTitle={effectiveTitle}
-                                        onEdit={handleEdit}
-                                        onPublish={handlePublish}
-                                        onToggleComments={handleToggleComments}
-                                        isFullscreen={isFullscreen}
-                                        onToggleFullscreen={toggleFullscreen}
-                                        onCreateChild={() => currentPageIdForHeader && menuHandlers.handleCreateChild(currentPageIdForHeader)}
-                                        onRename={() => currentPageIdForHeader && menuHandlers.handleRename(currentPageIdForHeader)}
-                                        onDuplicate={() => currentPageIdForHeader && menuHandlers.handleDuplicate(currentPageIdForHeader)}
-                                        onMove={() => currentPageIdForHeader && menuHandlers.handleMove(currentPageIdForHeader)}
-                                        onDelete={() => currentPageIdForHeader && menuHandlers.handleDelete(currentPageIdForHeader)}
-                                        pageLink={pageLink}
-                                    />
-                                );
+                            // For drafts, wait until currentDraft is loaded to avoid breadcrumb issues
+                            if (isDraft && draftId && !currentDraft) {
+                                return null;
+                            }
+
+                            // Use refs to preserve draft parent ID and title across renders
+                            const effectiveParentId = isDraft ? (currentDraft?.props?.page_parent_id || draftParentIdRef.current) : undefined;
+                            const effectiveTitle = isDraft ? (currentDraft?.props?.title || draftTitleRef.current) : undefined;
+                            const isExistingPage = currentDraft ? isEditingExistingPage(currentDraft) : false;
+
+                            return (
+                                <WikiPageHeader
+                                    wikiId={wikiId || ''}
+                                    pageId={currentPageIdForHeader || ''}
+                                    channelId={actualChannelId}
+                                    isDraft={isDraft}
+                                    isExistingPage={isExistingPage}
+                                    parentPageId={effectiveParentId}
+                                    draftTitle={effectiveTitle}
+                                    onEdit={handleEdit}
+                                    onPublish={handlePublish}
+                                    onToggleComments={handleToggleComments}
+                                    isFullscreen={isFullscreen}
+                                    onToggleFullscreen={toggleFullscreen}
+                                    onCreateChild={() => currentPageIdForHeader && menuHandlers.handleCreateChild(currentPageIdForHeader)}
+                                    onRename={() => currentPageIdForHeader && menuHandlers.handleRename(currentPageIdForHeader)}
+                                    onDuplicate={() => currentPageIdForHeader && menuHandlers.handleDuplicate(currentPageIdForHeader)}
+                                    onMove={() => currentPageIdForHeader && menuHandlers.handleMove(currentPageIdForHeader)}
+                                    onDelete={() => currentPageIdForHeader && menuHandlers.handleDelete(currentPageIdForHeader)}
+                                    pageLink={pageLink}
+                                />
+                            );
+                        })()}
+                        <div
+                            className='PagePane__content'
+                            data-testid='wiki-page-content'
+                        >
+                            {draftId && (!currentDraft || currentDraft.rootId !== draftId) && (
+                                <div className='no-results__holder'>
+                                    <LoadingScreen/>
+                                </div>
+                            )}
+                            {draftId && currentDraft && currentDraft.rootId === draftId && (() => {
+                                const isExistingPage = isEditingExistingPage(currentDraft);
+                                const publishedPageId = getPublishedPageIdFromDraft(currentDraft);
+
+                                const editorProps = {
+                                    key: draftId,
+                                    title: currentDraft.props?.title || '',
+                                    content: currentDraft.message || '',
+                                    onTitleChange: handleTitleChange,
+                                    onContentChange: handleContentChange,
+                                    currentUserId,
+                                    channelId: actualChannelId,
+                                    teamId,
+                                    pageId: isExistingPage ? publishedPageId : draftId,
+                                    wikiId,
+                                    showAuthor: true,
+                                    isExistingPage,
+                                    draftStatus: currentDraft.props?.page_status as string | undefined,
+                                    onDraftStatusChange: handleDraftStatusChange,
+                                };
+                                return <WikiPageEditor {...editorProps}/>;
                             })()}
-                            <div
-                                className='PagePane__content'
-                                data-testid='wiki-page-content'
-                            >
-                                {draftId && !currentDraft && (
-                                    <div className='no-results__holder'>
-                                        <LoadingScreen/>
-                                    </div>
-                                )}
-                                {draftId && currentDraft && (() => {
-                                    const editorProps = {
-                                        key: draftId,
-                                        title: currentDraft.props?.title || '',
-                                        content: currentDraft.message || '',
-                                        onTitleChange: handleTitleChange,
-                                        onContentChange: handleContentChange,
-                                        currentUserId,
-                                        channelId: actualChannelId,
-                                        teamId,
-                                        pageId: draftId,
-                                        wikiId,
-                                        showAuthor: true,
-                                    };
-                                    return <WikiPageEditor {...editorProps}/>;
-                                })()}
-                                {pageId && (
-                                    <PageViewer
-                                        key={pageId}
-                                        pageId={pageId}
-                                        wikiId={wikiId}
-                                    />
-                                )}
-                                {isEmptyState && (
-                                    <div className='PagePane__emptyState'>
-                                        <i className='icon-file-document-outline'/>
-                                        <h3>{'No Pages Yet'}</h3>
-                                        <p>{'Create your first page to get started'}</p>
-                                    </div>
-                                )}
-                                {!draftId && !pageId && !isEmptyState && (
-                                    <div className='PagePane__emptyState'>
-                                        <i className='icon-file-document-outline'/>
-                                        <h3>{'Select a page or create a new one'}</h3>
-                                    </div>
-                                )}
-                            </div>
+                            {pageId && (
+                                <PageViewer
+                                    key={pageId}
+                                    pageId={pageId}
+                                    wikiId={wikiId}
+                                />
+                            )}
+                            {isEmptyState && (
+                                <div className='PagePane__emptyState'>
+                                    <i className='icon-file-document-outline'/>
+                                    <h3>{'No Pages Yet'}</h3>
+                                    <p>{'Create your first page to get started'}</p>
+                                </div>
+                            )}
+                            {!draftId && !pageId && !isEmptyState && (
+                                <div className='PagePane__emptyState'>
+                                    <i className='icon-file-document-outline'/>
+                                    <h3>{'Select a page or create a new one'}</h3>
+                                </div>
+                            )}
                         </div>
+                    </div>
 
-                        {/* Menu action modals */}
-                        {menuHandlers.showDeleteModal && menuHandlers.pageToDelete && (
-                            <DeletePageModal
-                                pageTitle={(menuHandlers.pageToDelete.page.props?.title as string | undefined) || menuHandlers.pageToDelete.page.message || 'Untitled'}
-                                childCount={menuHandlers.pageToDelete.childCount}
-                                onConfirm={menuHandlers.handleDeleteConfirm}
-                                onCancel={menuHandlers.handleDeleteCancel}
-                            />
-                        )}
+                    {/* Menu action modals */}
+                    {menuHandlers.showDeleteModal && menuHandlers.pageToDelete && (
+                        <DeletePageModal
+                            pageTitle={(menuHandlers.pageToDelete.page.props?.title as string | undefined) || menuHandlers.pageToDelete.page.message || 'Untitled'}
+                            childCount={menuHandlers.pageToDelete.childCount}
+                            onConfirm={menuHandlers.handleDeleteConfirm}
+                            onCancel={menuHandlers.handleDeleteCancel}
+                        />
+                    )}
 
-                        {menuHandlers.showMoveModal && menuHandlers.pageToMove && (
-                            <MovePageModal
-                                pageId={menuHandlers.pageToMove.pageId}
-                                pageTitle={menuHandlers.pageToMove.pageTitle}
-                                currentWikiId={wikiId || ''}
-                                availableWikis={menuHandlers.availableWikis}
-                                fetchPagesForWiki={menuHandlers.fetchPagesForWiki}
-                                hasChildren={menuHandlers.pageToMove.hasChildren}
-                                onConfirm={menuHandlers.handleMoveConfirm}
-                                onCancel={menuHandlers.handleMoveCancel}
-                            />
-                        )}
+                    {menuHandlers.showMoveModal && menuHandlers.pageToMove && (
+                        <MovePageModal
+                            pageId={menuHandlers.pageToMove.pageId}
+                            pageTitle={menuHandlers.pageToMove.pageTitle}
+                            currentWikiId={wikiId || ''}
+                            availableWikis={menuHandlers.availableWikis}
+                            fetchPagesForWiki={menuHandlers.fetchPagesForWiki}
+                            hasChildren={menuHandlers.pageToMove.hasChildren}
+                            onConfirm={menuHandlers.handleMoveConfirm}
+                            onCancel={menuHandlers.handleMoveCancel}
+                        />
+                    )}
 
-                        {menuHandlers.showDuplicateModal && menuHandlers.pageToDuplicate && (
-                            <DuplicatePageModal
-                                pageId={menuHandlers.pageToDuplicate.pageId}
-                                pageTitle={menuHandlers.pageToDuplicate.pageTitle}
-                                currentWikiId={wikiId || ''}
-                                availableWikis={menuHandlers.availableWikis}
-                                fetchPagesForWiki={menuHandlers.fetchPagesForWiki}
-                                hasChildren={menuHandlers.pageToDuplicate.hasChildren}
-                                onConfirm={menuHandlers.handleDuplicateConfirm}
-                                onCancel={menuHandlers.handleDuplicateCancel}
-                            />
-                        )}
+                    {menuHandlers.showDuplicateModal && menuHandlers.pageToDuplicate && (
+                        <DuplicatePageModal
+                            pageId={menuHandlers.pageToDuplicate.pageId}
+                            pageTitle={menuHandlers.pageToDuplicate.pageTitle}
+                            currentWikiId={wikiId || ''}
+                            availableWikis={menuHandlers.availableWikis}
+                            fetchPagesForWiki={menuHandlers.fetchPagesForWiki}
+                            hasChildren={menuHandlers.pageToDuplicate.hasChildren}
+                            onConfirm={menuHandlers.handleDuplicateConfirm}
+                            onCancel={menuHandlers.handleDuplicateCancel}
+                        />
+                    )}
 
-                        {menuHandlers.showRenameModal && menuHandlers.pageToRename && (
-                            <TextInputModal
-                                show={menuHandlers.showRenameModal}
-                                title='Rename Page'
-                                placeholder='Enter new page title...'
-                                confirmButtonText='Rename'
-                                maxLength={255}
-                                initialValue={menuHandlers.pageToRename.currentTitle}
-                                ariaLabel='Rename Page'
-                                inputTestId='rename-page-modal-title-input'
-                                onConfirm={menuHandlers.handleRenameConfirm}
-                                onCancel={menuHandlers.handleRenameCancel}
-                                onHide={() => menuHandlers.setShowRenameModal(false)}
-                            />
-                        )}
+                    {menuHandlers.showRenameModal && menuHandlers.pageToRename && (
+                        <TextInputModal
+                            show={menuHandlers.showRenameModal}
+                            title='Rename Page'
+                            placeholder='Enter new page title...'
+                            confirmButtonText='Rename'
+                            maxLength={255}
+                            initialValue={menuHandlers.pageToRename.currentTitle}
+                            ariaLabel='Rename Page'
+                            inputTestId='rename-page-modal-title-input'
+                            onConfirm={menuHandlers.handleRenameConfirm}
+                            onCancel={menuHandlers.handleRenameCancel}
+                            onHide={() => menuHandlers.setShowRenameModal(false)}
+                        />
+                    )}
 
-                        {menuHandlers.showCreatePageModal && (
-                            <TextInputModal
-                                show={menuHandlers.showCreatePageModal}
-                                title={menuHandlers.createPageParent ? `Create Child Page under "${menuHandlers.createPageParent.title}"` : 'Create New Page'}
-                                placeholder='Enter page title...'
-                                helpText={menuHandlers.createPageParent ? `This page will be created as a child of "${menuHandlers.createPageParent.title}".` : 'A new draft will be created for you to edit.'}
-                                confirmButtonText='Create'
-                                maxLength={255}
-                                ariaLabel='Create Page'
-                                inputTestId='create-page-modal-title-input'
-                                onConfirm={menuHandlers.handleConfirmCreatePage}
-                                onCancel={menuHandlers.handleCancelCreatePage}
-                                onHide={() => menuHandlers.setShowCreatePageModal(false)}
-                            />
-                        )}
-                    </>
-                )}
+                    {menuHandlers.showCreatePageModal && (
+                        <TextInputModal
+                            show={menuHandlers.showCreatePageModal}
+                            title={menuHandlers.createPageParent ? `Create Child Page under "${menuHandlers.createPageParent.title}"` : 'Create New Page'}
+                            placeholder='Enter page title...'
+                            helpText={menuHandlers.createPageParent ? `This page will be created as a child of "${menuHandlers.createPageParent.title}".` : 'A new draft will be created for you to edit.'}
+                            confirmButtonText='Create'
+                            maxLength={255}
+                            ariaLabel='Create Page'
+                            inputTestId='create-page-modal-title-input'
+                            onConfirm={menuHandlers.handleConfirmCreatePage}
+                            onCancel={menuHandlers.handleCancelCreatePage}
+                            onHide={() => menuHandlers.setShowCreatePageModal(false)}
+                        />
+                    )}
+                </>
+            )}
         </div>
     );
 };

@@ -94,6 +94,8 @@ func (a *App) CreateWiki(rctx request.CTX, wiki *model.Wiki, userId string) (*mo
 		mlog.String("wiki_id", savedWiki.Id),
 		mlog.String("channel_id", wiki.ChannelId))
 
+	a.sendWikiAddedNotification(rctx, savedWiki, channel, userId)
+
 	return savedWiki, nil
 }
 
@@ -175,6 +177,22 @@ func (a *App) GetWikiPages(rctx request.CTX, wikiId string, offset, limit int) (
 	if err != nil {
 		return nil, model.NewAppError("GetWikiPages", "app.wiki.get_pages.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	// Enrich pages with property values (status, etc.)
+	if len(pages) > 0 {
+		postList := &model.PostList{
+			Posts: make(map[string]*model.Post),
+			Order: make([]string, 0, len(pages)),
+		}
+		for _, page := range pages {
+			postList.Posts[page.Id] = page
+			postList.Order = append(postList.Order, page.Id)
+		}
+		if enrichErr := a.EnrichPagesWithProperties(rctx, postList); enrichErr != nil {
+			return nil, enrichErr
+		}
+	}
+
 	return pages, nil
 }
 
@@ -228,20 +246,30 @@ func (a *App) AddPageToWiki(rctx request.CTX, pageId, wikiId string) *model.AppE
 		return model.NewAppError("AddPageToWiki", "api.wiki.add.already_attached", nil, "", http.StatusConflict)
 	}
 
+	group, grpErr := a.GetPagePropertyGroup()
+	if grpErr != nil {
+		return model.NewAppError("AddPageToWiki", "app.wiki.get_group.app_error", nil, "", http.StatusInternalServerError).Wrap(grpErr)
+	}
+
+	wikiField, fldErr := a.GetPagePropertyFieldByName("wiki")
+	if fldErr != nil {
+		return fldErr
+	}
+
 	valueJSON, _ := json.Marshal(wikiId)
 	value := &model.PropertyValue{
 		TargetType: "post",
 		TargetID:   pageId,
-		GroupID:    model.WikiPropertyGroupID,
-		FieldID:    model.WikiPropertyFieldID,
+		GroupID:    group.ID,
+		FieldID:    wikiField.ID,
 		Value:      valueJSON,
 	}
 
 	rctx.Logger().Debug("Creating PropertyValue",
 		mlog.String("page_id", pageId),
 		mlog.String("wiki_id", wikiId),
-		mlog.String("group_id", model.WikiPropertyGroupID),
-		mlog.String("field_id", model.WikiPropertyFieldID),
+		mlog.String("group_id", group.ID),
+		mlog.String("field_id", wikiField.ID),
 		mlog.String("value_json", string(valueJSON)))
 
 	_, createErr := a.Srv().Store().PropertyValue().Create(value)
@@ -289,7 +317,12 @@ func (a *App) DeleteWikiPage(rctx request.CTX, pageId, wikiId string) *model.App
 		return model.NewAppError("DeleteWikiPage", "api.wiki.delete.not_a_page", nil, "", http.StatusBadRequest)
 	}
 
-	if deleteErr := a.Srv().Store().PropertyValue().DeleteForTarget(model.WikiPropertyGroupID, "post", post.Id); deleteErr != nil {
+	group, grpErr := a.GetPagePropertyGroup()
+	if grpErr != nil {
+		return model.NewAppError("DeleteWikiPage", "app.wiki.get_group.app_error", nil, "", http.StatusInternalServerError).Wrap(grpErr)
+	}
+
+	if deleteErr := a.Srv().Store().PropertyValue().DeleteForTarget(group.ID, "post", post.Id); deleteErr != nil {
 		return model.NewAppError("DeleteWikiPage", "app.wiki.delete_page.app_error", nil, "", http.StatusInternalServerError).Wrap(deleteErr)
 	}
 
@@ -344,15 +377,36 @@ func (a *App) CreateWikiPage(rctx request.CTX, wikiId, parentId, title, content,
 		mlog.String("title", title),
 		mlog.Bool("is_child_page", isChild))
 
+	a.handlePageMentions(rctx, createdPage, wiki.ChannelId, content, userId)
+
+	channel, chanErr := a.GetChannel(rctx, wiki.ChannelId)
+	if chanErr == nil {
+		a.sendPageAddedNotification(rctx, createdPage, wiki, channel, userId)
+	} else {
+		rctx.Logger().Warn("Failed to get channel for page added notification",
+			mlog.String("channel_id", wiki.ChannelId),
+			mlog.Err(chanErr))
+	}
+
 	return createdPage, nil
 }
 
 func (a *App) GetWikiIdForPage(rctx request.CTX, pageId string) (string, *model.AppError) {
+	group, err := a.GetPagePropertyGroup()
+	if err != nil {
+		return "", model.NewAppError("GetWikiIdForPage", "app.wiki.get_group.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	wikiField, appErr := a.GetPagePropertyFieldByName("wiki")
+	if appErr != nil {
+		return "", appErr
+	}
+
 	opts := model.PropertyValueSearchOpts{
 		TargetType: "post",
 		TargetIDs:  []string{pageId},
-		FieldID:    model.WikiPropertyFieldID,
-		GroupID:    model.WikiPropertyGroupID,
+		FieldID:    wikiField.ID,
+		GroupID:    group.ID,
 		PerPage:    1,
 	}
 	propertyValues, err := a.Srv().Store().PropertyValue().SearchPropertyValues(opts)
@@ -629,4 +683,121 @@ func (a *App) DuplicatePage(rctx request.CTX, sourcePageId, targetWikiId string,
 		mlog.String("user_id", userId))
 
 	return duplicatedPage, nil
+}
+
+func (a *App) sendWikiAddedNotification(rctx request.CTX, wiki *model.Wiki, channel *model.Channel, userId string) {
+	systemPost := &model.Post{
+		ChannelId: channel.Id,
+		UserId:    userId,
+		Type:      model.PostTypeWikiAdded,
+		Props: map[string]any{
+			"wiki_id":       wiki.Id,
+			"wiki_title":    wiki.Title,
+			"channel_id":    channel.Id,
+			"channel_name":  channel.Name,
+			"added_user_id": userId,
+		},
+	}
+
+	if _, err := a.CreatePost(rctx, systemPost, channel, model.CreatePostFlags{}); err != nil {
+		rctx.Logger().Warn("Failed to create wiki added system message",
+			mlog.String("wiki_id", wiki.Id),
+			mlog.String("channel_id", channel.Id),
+			mlog.Err(err))
+	}
+}
+
+func (a *App) sendPageAddedNotification(rctx request.CTX, page *model.Post, wiki *model.Wiki, channel *model.Channel, userId string) {
+	systemPost := &model.Post{
+		ChannelId: channel.Id,
+		UserId:    userId,
+		Type:      model.PostTypePageAdded,
+		Props: map[string]any{
+			"page_id":       page.Id,
+			"page_title":    page.GetProp("page_title"),
+			"wiki_id":       wiki.Id,
+			"wiki_title":    wiki.Title,
+			"channel_id":    channel.Id,
+			"channel_name":  channel.Name,
+			"added_user_id": userId,
+		},
+	}
+
+	if _, err := a.CreatePost(rctx, systemPost, channel, model.CreatePostFlags{}); err != nil {
+		rctx.Logger().Warn("Failed to create page added system message",
+			mlog.String("page_id", page.Id),
+			mlog.String("wiki_id", wiki.Id),
+			mlog.String("channel_id", channel.Id),
+			mlog.Err(err))
+	}
+}
+
+func (a *App) MoveWikiToChannel(rctx request.CTX, wiki *model.Wiki, targetChannel *model.Channel, userId string) (*model.Wiki, *model.AppError) {
+	if wiki.ChannelId == targetChannel.Id {
+		return nil, model.NewAppError(
+			"App.MoveWikiToChannel",
+			"app.wiki.move_wiki_to_channel.same_channel.app_error",
+			nil,
+			"",
+			http.StatusBadRequest,
+		)
+	}
+
+	sourceChannel, err := a.GetChannel(rctx, wiki.ChannelId)
+	if err != nil {
+		return nil, err
+	}
+
+	if sourceChannel.TeamId != targetChannel.TeamId {
+		return nil, model.NewAppError(
+			"App.MoveWikiToChannel",
+			"app.wiki.move_wiki_to_channel.cross_team_not_supported.app_error",
+			nil,
+			"cross-team moves not supported",
+			http.StatusBadRequest,
+		)
+	}
+
+	existingWikis, err := a.GetWikisForChannel(rctx, targetChannel.Id, false)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, existing := range existingWikis {
+		if existing.Title == wiki.Title && existing.Id != wiki.Id {
+			return nil, model.NewAppError(
+				"App.MoveWikiToChannel",
+				"app.wiki.move_wiki_to_channel.title_conflict.app_error",
+				map[string]any{"Title": wiki.Title},
+				"",
+				http.StatusConflict,
+			)
+		}
+	}
+
+	movedWiki, storeErr := a.Srv().Store().Wiki().MoveWikiToChannel(
+		wiki.Id,
+		targetChannel.Id,
+		model.GetMillis(),
+	)
+	if storeErr != nil {
+		return nil, model.NewAppError(
+			"App.MoveWikiToChannel",
+			"app.wiki.move_wiki.store_error.app_error",
+			nil,
+			"",
+			http.StatusInternalServerError,
+		).Wrap(storeErr)
+	}
+
+	rctx.Logger().Info(
+		"Wiki moved to channel",
+		mlog.String("wiki_id", wiki.Id),
+		mlog.String("wiki_title", wiki.Title),
+		mlog.String("source_channel_id", sourceChannel.Id),
+		mlog.String("target_channel_id", targetChannel.Id),
+		mlog.String("user_id", userId),
+	)
+
+	return movedWiki, nil
 }

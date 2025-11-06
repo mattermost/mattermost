@@ -61,6 +61,26 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
                     },
                 },
             },
+            wikiPages: {
+                byWiki: {},
+                loading: {},
+                error: {},
+                pendingPublishes: {},
+                lastInvalidated: {},
+                statusField: {
+                    id: 'status_field_id',
+                    name: 'status',
+                    type: 'select',
+                    attrs: {
+                        options: [
+                            {id: 'rough_draft', name: 'rough_draft', color: 'light_grey'},
+                            {id: 'in_progress', name: 'in_progress', color: 'light_blue'},
+                            {id: 'in_review', name: 'in_review', color: 'dark_blue'},
+                            {id: 'done', name: 'done', color: 'green'},
+                        ],
+                    },
+                },
+            } as any,
         },
     };
 
@@ -97,10 +117,15 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
             expect(statusBadge?.textContent).toBe('Draft');
         });
 
-        test('should render add attributes button', () => {
-            renderWithContext(<WikiPageEditor {...baseProps}/>, initialState);
+        test('should render page status selector with label', () => {
+            const props = {
+                ...baseProps,
+                pageId: 'test_page_id',
+            };
+            renderWithContext(<WikiPageEditor {...props}/>, initialState);
 
-            expect(screen.getByRole('button', {name: 'Add Attributes'})).toBeInTheDocument();
+            expect(screen.getByText('Status')).toBeInTheDocument();
+            expect(screen.getByText('Select...')).toBeInTheDocument();
         });
 
         test('should render author when showAuthor is true', () => {
@@ -444,12 +469,14 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
             const props = {
                 ...baseProps,
                 showAuthor: true,
+                pageId: 'test_page_id',
             };
             const {container} = renderWithContext(<WikiPageEditor {...props}/>, initialState);
 
             const meta = container.querySelector('.page-meta');
             expect(meta?.querySelector('.page-status')).toBeInTheDocument();
-            expect(screen.getByRole('button', {name: 'Add Attributes'})).toBeInTheDocument();
+            expect(screen.getByText('Status')).toBeInTheDocument();
+            expect(screen.getByText('Select...')).toBeInTheDocument();
         });
     });
 

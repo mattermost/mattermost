@@ -178,6 +178,7 @@ type UseWikiPageActionsResult = {
     handlePublish: () => Promise<void>;
     handleTitleChange: (title: string) => void;
     handleContentChange: (content: string) => void;
+    handleDraftStatusChange: (status: string) => void;
 };
 
 /**
@@ -198,6 +199,7 @@ export function useWikiPageActions(
     const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const latestContentRef = useRef<string>('');
     const latestTitleRef = useRef<string>('');
+    const latestStatusRef = useRef<string | null>(null);
     const previousDraftRef = useRef<PostDraft | null>(null);
     const draftGenerationRef = useRef(0);
     const currentDraftIdRef = useRef<string | null>(null);
@@ -218,7 +220,9 @@ export function useWikiPageActions(
     useLayoutEffect(() => {
         // Increment generation counter ONLY when switching to a different draft (different rootId)
         const newDraftId = currentDraft?.rootId || null;
-        if (newDraftId !== currentDraftIdRef.current) {
+        const isDifferentDraft = newDraftId !== currentDraftIdRef.current;
+
+        if (isDifferentDraft) {
             draftGenerationRef.current += 1;
             currentDraftIdRef.current = newDraftId;
         }
@@ -235,6 +239,15 @@ export function useWikiPageActions(
             const prevTitle = latestTitleRef.current;
             const pageIdFromDraft = prevDraft.props?.page_id as string | undefined;
             const pageParentIdFromDraft = prevDraft.props?.page_parent_id;
+            const pageStatusFromDraft = prevDraft.props?.page_status as string | undefined;
+
+            const additionalProps: Record<string, any> = {};
+            if (pageParentIdFromDraft) {
+                additionalProps.page_parent_id = pageParentIdFromDraft;
+            }
+            if (pageStatusFromDraft) {
+                additionalProps.page_status = pageStatusFromDraft;
+            }
 
             dispatch(savePageDraft(
                 channelId,
@@ -243,7 +256,7 @@ export function useWikiPageActions(
                 prevContent,
                 prevTitle,
                 pageIdFromDraft,
-                pageParentIdFromDraft ? {page_parent_id: pageParentIdFromDraft} : undefined,
+                Object.keys(additionalProps).length > 0 ? additionalProps : undefined,
             ));
         } else if (autosaveTimeoutRef.current && !currentDraft) {
             // Transitioning to null (draft deleted/published) - just cancel the timeout
@@ -254,11 +267,19 @@ export function useWikiPageActions(
         if (currentDraft) {
             latestContentRef.current = currentDraft.message || '';
             latestTitleRef.current = currentDraft.props?.title || '';
+
+            // Only reset latestStatusRef if we're switching to a different draft
+            // If it's the same draft (just re-rendered), keep the latestStatusRef value
+            if (isDifferentDraft) {
+                // Initialize from draft props instead of resetting to null
+                latestStatusRef.current = (currentDraft.props?.page_status as string | undefined) || null;
+            }
             previousDraftRef.current = currentDraft;
         } else {
             // Clear refs when no draft
             latestContentRef.current = '';
             latestTitleRef.current = '';
+            latestStatusRef.current = null;
             previousDraftRef.current = null;
         }
     }, [currentDraft?.rootId, channelId, wikiId, dispatch]); // Include channelId, wikiId and dispatch for flush save
@@ -271,16 +292,32 @@ export function useWikiPageActions(
         try {
             const pageTitle = (currentPage.props?.title as string | undefined) || 'Untitled page';
             const pageParentId = currentPage.page_parent_id;
+            const pageStatusFromProps = currentPage.props?.page_status as string | undefined;
 
-            await dispatch(savePageDraft(channelId, wikiId, pageId, currentPage.message, pageTitle, pageId, pageParentId ? {page_parent_id: pageParentId} : undefined));
+            const additionalProps: Record<string, any> = {};
+            if (pageParentId) {
+                additionalProps.page_parent_id = pageParentId;
+            }
+            if (pageStatusFromProps) {
+                additionalProps.page_status = pageStatusFromProps;
+            }
 
-            // Phase 1 Refactor: Navigate to draft route instead of setting local state
+            await dispatch(savePageDraft(
+                channelId,
+                wikiId,
+                pageId,
+                currentPage.message,
+                pageTitle,
+                pageId,
+                Object.keys(additionalProps).length > 0 ? additionalProps : undefined,
+            ));
+
             const currentPath = location.pathname;
             const basePath = currentPath.substring(0, currentPath.lastIndexOf('/'));
-            history.replace(`${basePath}/drafts/${pageId}`);
+            const draftPath = `${basePath}/drafts/${pageId}`;
+            history.replace(draftPath);
         } catch (error) {
             // TODO: Show error notification instead of alert
-            // alert('Failed to start editing. Please try again.');
         }
     }, [channelId, pageId, wikiId, currentPage, dispatch, location.pathname, history]);
 
@@ -301,6 +338,7 @@ export function useWikiPageActions(
         const content = latestContentRef.current || currentDraft.message || '';
         const pageIdFromDraft = currentDraft.props?.page_id as string | undefined;
         const pageParentIdFromDraft = currentDraft.props?.page_parent_id;
+        const pageStatusFromDraft = currentDraft.props?.page_status as string | undefined;
         const capturedTitle = newTitle;
         const capturedGeneration = draftGenerationRef.current;
 
@@ -310,7 +348,23 @@ export function useWikiPageActions(
                 return;
             }
 
-            dispatch(savePageDraft(channelId, wikiId, draftId, content, capturedTitle, pageIdFromDraft, pageParentIdFromDraft ? {page_parent_id: pageParentIdFromDraft} : undefined));
+            const additionalProps: Record<string, any> = {};
+            if (pageParentIdFromDraft) {
+                additionalProps.page_parent_id = pageParentIdFromDraft;
+            }
+            if (pageStatusFromDraft) {
+                additionalProps.page_status = pageStatusFromDraft;
+            }
+
+            dispatch(savePageDraft(
+                channelId,
+                wikiId,
+                draftId,
+                content,
+                capturedTitle,
+                pageIdFromDraft,
+                Object.keys(additionalProps).length > 0 ? additionalProps : undefined,
+            ));
         }, 500);
     }, [channelId, wikiId, currentDraft, dispatch]);
 
@@ -345,6 +399,7 @@ export function useWikiPageActions(
         const title = latestTitleRef.current || capturedDraft.props?.title || '';
         const pageIdFromDraft = capturedDraft.props?.page_id as string | undefined;
         const pageParentIdFromDraft = capturedDraft.props?.page_parent_id;
+        const pageStatusFromDraft = capturedDraft.props?.page_status as string | undefined;
         const capturedContent = newContent;
         const capturedChannelId = channelIdRef.current;
         const capturedWikiId = wikiIdRef.current;
@@ -356,7 +411,23 @@ export function useWikiPageActions(
                 return;
             }
 
-            dispatchRef.current(savePageDraft(capturedChannelId, capturedWikiId, draftId ?? '', capturedContent, title, pageIdFromDraft, pageParentIdFromDraft ? {page_parent_id: pageParentIdFromDraft} : undefined));
+            const additionalProps: Record<string, any> = {};
+            if (pageParentIdFromDraft) {
+                additionalProps.page_parent_id = pageParentIdFromDraft;
+            }
+            if (pageStatusFromDraft) {
+                additionalProps.page_status = pageStatusFromDraft;
+            }
+
+            dispatchRef.current(savePageDraft(
+                capturedChannelId,
+                capturedWikiId,
+                draftId ?? '',
+                capturedContent,
+                title,
+                pageIdFromDraft,
+                Object.keys(additionalProps).length > 0 ? additionalProps : undefined,
+            ));
         }, 500);
     }, []); // Empty deps - stable function reference
 
@@ -372,6 +443,7 @@ export function useWikiPageActions(
         // Use the latest content and title from refs (may not be saved yet due to debounce)
         const content = latestContentRef.current || currentDraft.message || '';
         const title = latestTitleRef.current || currentDraft.props?.title || '';
+        const pageStatus = latestStatusRef.current === null ? (currentDraft.props?.page_status as string | undefined) : latestStatusRef.current;
 
         if (!content || content.trim() === '') {
             return;
@@ -408,6 +480,7 @@ export function useWikiPageActions(
                 title,
                 '',
                 content,
+                pageStatus,
             ));
 
             if (result.error) {
@@ -424,10 +497,43 @@ export function useWikiPageActions(
         }
     }, [channelId, wikiId, currentDraft, draftId, location.pathname, history, dispatch]);
 
+    const handleDraftStatusChange = useCallback((newStatus: string) => {
+        if (!wikiId || !draftId || !currentDraft) {
+            return;
+        }
+
+        // Update the ref immediately so handlePublish can use the latest value
+        latestStatusRef.current = newStatus;
+
+        // Clear any pending autosave timeout since we're about to save immediately with correct props
+        if (autosaveTimeoutRef.current) {
+            clearTimeout(autosaveTimeoutRef.current);
+            autosaveTimeoutRef.current = null;
+        }
+
+        const pageIdFromDraft = currentDraft.props?.page_id as string | undefined;
+        const pageParentIdFromDraft = currentDraft.props?.page_parent_id;
+        const title = latestTitleRef.current || currentDraft.props?.title || '';
+        const content = latestContentRef.current || currentDraft.message || '';
+        dispatch(savePageDraft(
+            channelId,
+            wikiId,
+            draftId,
+            content,
+            title,
+            pageIdFromDraft,
+            {
+                ...(pageParentIdFromDraft ? {page_parent_id: pageParentIdFromDraft} : {}),
+                page_status: newStatus,
+            },
+        ));
+    }, [channelId, wikiId, draftId, currentDraft, dispatch]);
+
     return {
         handleEdit,
         handlePublish,
         handleTitleChange,
         handleContentChange,
+        handleDraftStatusChange,
     };
 }

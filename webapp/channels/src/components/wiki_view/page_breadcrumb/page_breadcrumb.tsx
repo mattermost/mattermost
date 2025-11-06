@@ -160,7 +160,7 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                 } else if (pageId) {
                     // Published page - get breadcrumb from server and fix paths
                     // Use the page's actual wiki ID (from metadata) if available, otherwise use URL wiki ID
-                    const actualWikiId = currentPage?.props?.wiki_id || wikiId;
+                    const actualWikiId = (currentPage?.props?.wiki_id as string | undefined) || wikiId;
                     const path = await Client4.getPageBreadcrumb(actualWikiId, pageId);
 
                     const fixedPath: BreadcrumbPath = {

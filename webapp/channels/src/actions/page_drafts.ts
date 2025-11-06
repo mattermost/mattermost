@@ -3,8 +3,7 @@
 
 import {batchActions} from 'redux-batched-actions';
 
-import type {Draft as ServerDraft} from '@mattermost/types/drafts';
-import type {FileInfo} from '@mattermost/types/files';
+import type {PageDraft as ServerPageDraft} from '@mattermost/types/drafts';
 
 import {Client4} from 'mattermost-redux/client';
 import {syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
@@ -28,23 +27,22 @@ export function makePageDraftKey(wikiId: string, draftId: string): string {
     return `${StoragePrefixes.PAGE_DRAFT}${wikiId}_${draftId}`;
 }
 
-export function transformPageServerDraft(serverDraft: ServerDraft, wikiId: string, draftId: string): PageDraft {
-    let fileInfos: FileInfo[] = [];
-    if (serverDraft.metadata?.files) {
-        fileInfos = serverDraft.metadata.files;
-    }
-
+export function transformPageServerDraft(serverDraft: ServerPageDraft, wikiId: string, draftId: string): PageDraft {
     const key = makePageDraftKey(wikiId, draftId);
 
     return {
         key,
         timestamp: new Date(serverDraft.update_at),
         value: {
-            message: serverDraft.message,
-            fileInfos,
-            props: serverDraft.props,
+            message: JSON.stringify(serverDraft.content),
+            fileInfos: [],
+            props: {
+                ...serverDraft.props,
+                title: serverDraft.title,
+                ...(serverDraft.file_ids && {file_ids: serverDraft.file_ids}),
+            },
             uploadsInProgress: [],
-            channelId: serverDraft.channel_id,
+            channelId: '',
             wikiId: serverDraft.wiki_id || wikiId,
             rootId: draftId,
             createAt: serverDraft.create_at,
@@ -129,7 +127,7 @@ export function loadPageDraftsForWiki(wikiId: string): ActionFuncAsync<PostDraft
         if (syncedDraftsAreAllowedAndEnabled(state)) {
             try {
                 const serverDraftsRaw = await Client4.getPageDraftsForWiki(wikiId);
-                serverDrafts = serverDraftsRaw.map((draft) => transformPageServerDraft(draft, wikiId, draft.root_id));
+                serverDrafts = serverDraftsRaw.map((draft) => transformPageServerDraft(draft, wikiId, draft.draft_id));
             } catch (error) {
                 // Handle error silently
             }

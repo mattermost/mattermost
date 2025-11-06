@@ -21,6 +21,7 @@ import TipTapEditor from './tiptap_editor';
 
 import {usePageInlineComments} from '../hooks/usePageInlineComments';
 import InlineCommentModal from '../inline_comment_modal';
+import PageStatusSelector from '../page_status_selector';
 
 type Props = {
     title: string;
@@ -33,6 +34,9 @@ type Props = {
     pageId?: string;
     wikiId?: string;
     showAuthor?: boolean;
+    isExistingPage?: boolean;
+    draftStatus?: string;
+    onDraftStatusChange?: (status: string) => void;
 };
 
 const WikiPageEditor = ({
@@ -46,6 +50,9 @@ const WikiPageEditor = ({
     pageId,
     wikiId,
     showAuthor = false,
+    isExistingPage = false,
+    draftStatus,
+    onDraftStatusChange,
 }: Props) => {
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
@@ -72,7 +79,7 @@ const WikiPageEditor = ({
         }
     }, [dispatch, channelId]);
 
-    // Use shared inline comments hook
+    // Use shared inline comments hook - only for existing pages (not new drafts)
     const {
         inlineComments,
         handleCommentClick,
@@ -81,7 +88,10 @@ const WikiPageEditor = ({
         commentAnchor,
         handleSubmitComment,
         handleCloseModal,
-    } = usePageInlineComments(pageId, wikiId);
+    } = usePageInlineComments(
+        isExistingPage ? pageId : undefined,
+        wikiId,
+    );
 
     useEffect(() => {
         setLocalTitle(title);
@@ -151,18 +161,22 @@ const WikiPageEditor = ({
                             )}
                         </>
                     )}
-                    <span
-                        className='page-status badge'
-                        data-testid='wiki-page-draft-badge'
-                    >
-                        {'Draft'}
-                    </span>
-                    <button
-                        className='add-attributes-btn'
-                        data-testid='wiki-page-add-attributes'
-                    >
-                        {'Add Attributes'}
-                    </button>
+                    {!isExistingPage && (
+                        <span
+                            className='page-status badge'
+                            data-testid='wiki-page-draft-badge'
+                        >
+                            {'Draft'}
+                        </span>
+                    )}
+                    <div className='page-status-wrapper'>
+                        <PageStatusSelector
+                            pageId={pageId || ''}
+                            isDraft={true}
+                            draftStatus={draftStatus}
+                            onDraftStatusChange={onDraftStatusChange}
+                        />
+                    </div>
                 </div>
             </div>
             <div className='draft-content'>
@@ -179,7 +193,7 @@ const WikiPageEditor = ({
                     pages={pages}
                     inlineComments={inlineComments}
                     onCommentClick={handleCommentClick}
-                    onCreateInlineComment={handleCreateInlineComment}
+                    onCreateInlineComment={isExistingPage ? handleCreateInlineComment : undefined}
                 />
             </div>
             {showCommentModal && commentAnchor && (

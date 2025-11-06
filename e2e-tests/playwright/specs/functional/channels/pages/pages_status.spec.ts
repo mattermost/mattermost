@@ -1,0 +1,681 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import {expect, test} from './pages_test_fixture';
+
+import {createWikiThroughUI, createPageThroughUI, createTestChannel, getNewPageButton, fillCreatePageModal} from './test_helpers';
+
+/**
+ * Page status display names
+ * These are stored directly in the backend as human-readable values
+ * Source: server/public/model/wiki.go (PageStatus constants)
+ */
+const PAGE_STATUSES = [
+    'Rough draft',
+    'In progress',
+    'In review',
+    'Done',
+] as const;
+
+/**
+ * @objective Verify default page status is set to 'in_progress' when creating a new page without selecting status
+ */
+test('displays default in_progress status for newly published pages', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki through UI
+    const wiki = await createWikiThroughUI(page, `Status Wiki ${pw.random.id()}`);
+
+    // # Create and publish a page
+    const pageName = 'Test Page';
+    await createPageThroughUI(page, pageName, 'Test content');
+
+    // # Wait for page to load
+    await page.waitForLoadState('networkidle');
+
+    // * Verify status is visible in page viewer
+    const statusDisplay = page.locator('[data-testid="page-viewer-status"]');
+    await expect(statusDisplay).toBeVisible();
+
+    // * Verify default status is 'In progress'
+    const statusText = await statusDisplay.textContent();
+    expect(statusText?.trim()).toBe('In progress');
+});
+
+/**
+ * @objective Verify user can change page status in draft mode and it persists after publishing
+ */
+test('changes page status from in_progress to in_review', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+
+    // Capture console logs
+    const logs: string[] = [];
+    page.on('console', (msg) => {
+        const text = msg.text();
+        if (text.includes('[publishPageDraft]') || text.includes('[Client4.publishPageDraft]') || text.includes('[handlePublish]') || text.includes('[handleDraftStatusChange]') || text.includes('[useLayoutEffect]') || text.includes('[handlePagePublishedEvent]')) {
+            logs.push(`[CONSOLE ${msg.type()}] ${text}`);
+            console.log(`[BROWSER] ${text}`);
+        }
+    });
+
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki and page through UI
+    const wiki = await createWikiThroughUI(page, `Status Change Wiki ${pw.random.id()}`);
+    const pageName = 'Test Page';
+    await createPageThroughUI(page, pageName, 'Test content');
+
+    await page.waitForLoadState('networkidle');
+
+    // # Click Edit button to enter draft mode
+    const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
+    await editButton.click();
+    await page.waitForLoadState('networkidle');
+
+    // # Change status to 'in_review' in draft mode
+    const statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
+    await expect(statusSelector).toBeVisible();
+    await statusSelector.click();
+
+    const statusMenu = page.locator('.selectable-select-property__menu');
+    await expect(statusMenu).toBeVisible();
+
+    const inReviewOption = page.locator('.selectable-select-property__option', {hasText: 'In review'});
+    await inReviewOption.click();
+
+    // # Wait for autosave
+    await page.waitForTimeout(1500);
+
+    // # Click Update button
+    const updateButton = page.locator('[data-testid="wiki-page-publish-button"]');
+    await updateButton.click();
+    await page.waitForLoadState('networkidle');
+
+    // * Verify status changed to 'In review' in view mode
+    const statusDisplay = page.locator('[data-testid="page-viewer-status"]');
+    await expect(statusDisplay).toBeVisible();
+    const statusText = await statusDisplay.textContent();
+
+    // Dump console logs if test fails
+    if (statusText?.trim() !== 'In review') {
+        console.log('\n=== CAPTURED CONSOLE LOGS ===');
+        logs.forEach((log) => console.log(log));
+        console.log('=== END CONSOLE LOGS ===\n');
+    }
+
+    expect(statusText?.trim()).toBe('In review');
+});
+
+/**
+ * @objective Verify page status persists after browser refresh
+ */
+test('persists page status after browser refresh', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki and page through UI
+    const wiki = await createWikiThroughUI(page, `Persist Wiki ${pw.random.id()}`);
+    const pageName = 'Test Page';
+    await createPageThroughUI(page, pageName, 'Test content');
+
+    await page.waitForLoadState('networkidle');
+
+    // # Edit page to change status
+    const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
+    await editButton.click();
+    await page.waitForLoadState('networkidle');
+
+    // # Change status to 'done'
+    const statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
+    await statusSelector.click();
+
+    const statusMenu = page.locator('.selectable-select-property__menu');
+    await expect(statusMenu).toBeVisible();
+
+    const doneOption = page.locator('.selectable-select-property__option', {hasText: 'Done'});
+    await doneOption.click();
+
+    // # Wait for autosave
+    await page.waitForTimeout(1500);
+
+    // # Update page
+    const updateButton = page.locator('[data-testid="wiki-page-publish-button"]');
+    await updateButton.click();
+    await page.waitForLoadState('networkidle');
+
+    // * Verify status is 'Done'
+    let statusDisplay = page.locator('[data-testid="page-viewer-status"]');
+    await expect(statusDisplay).toBeVisible();
+    let statusText = await statusDisplay.textContent();
+    expect(statusText?.trim()).toBe('Done');
+
+    // # Refresh browser
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+
+    // * Verify status is still 'Done' after refresh
+    statusDisplay = page.locator('[data-testid="page-viewer-status"]');
+    await expect(statusDisplay).toBeVisible();
+    statusText = await statusDisplay.textContent();
+    expect(statusText?.trim()).toBe('Done');
+});
+
+/**
+ * @objective Verify all valid status values can be selected
+ */
+test('allows selection of all valid status values', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki and page through UI
+    const wiki = await createWikiThroughUI(page, `All Status Wiki ${pw.random.id()}`);
+    const pageName = 'Test Page';
+    await createPageThroughUI(page, pageName, 'Test content');
+
+    await page.waitForLoadState('networkidle');
+
+    for (const status of PAGE_STATUSES) {
+        // # Edit page
+        const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
+        await editButton.click();
+        await page.waitForLoadState('networkidle');
+
+        // # Click status selector to open dropdown
+        const statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
+        await statusSelector.click();
+
+        // # Wait for dropdown menu to appear
+        const statusMenu = page.locator('.selectable-select-property__menu');
+        await expect(statusMenu).toBeVisible();
+
+        // # Select the status
+        const statusOption = page.locator('.selectable-select-property__option', {hasText: status});
+        await expect(statusOption).toBeVisible();
+        await statusOption.click();
+
+        // # Wait for autosave
+        await page.waitForTimeout(1500);
+
+        // # Update page
+        const updateButton = page.locator('[data-testid="wiki-page-publish-button"]');
+        await updateButton.click();
+        await page.waitForLoadState('networkidle');
+
+        // * Verify status changed to expected value
+        const statusDisplay = page.locator('[data-testid="page-viewer-status"]');
+        await expect(statusDisplay).toBeVisible();
+        const statusText = await statusDisplay.textContent();
+        expect(statusText?.trim()).toBe(status);
+    }
+});
+
+/**
+ * @objective Verify status selector is visible in draft mode but not in view mode
+ */
+test('shows status selector in draft mode and status badge in view mode', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki through UI
+    const wiki = await createWikiThroughUI(page, `Draft Status Wiki ${pw.random.id()}`);
+
+    // # Click "New Page" to create a new draft
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Test Page');
+    await page.waitForLoadState('networkidle');
+
+    // * Verify status selector IS visible in draft mode
+    const statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
+    await expect(statusSelector).toBeVisible();
+
+    // # Fill in page content and publish
+
+    const editor = page.locator('.ProseMirror');
+    await editor.click();
+    await editor.fill('Test content');
+
+    await page.waitForTimeout(1500);
+
+    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]');
+    await publishButton.click();
+    await page.waitForLoadState('networkidle');
+
+    // * Verify status is visible in view mode as a read-only display
+    const statusDisplay = page.locator('[data-testid="page-viewer-status"]');
+    await expect(statusDisplay).toBeVisible();
+
+    // * Verify the editable selector is no longer visible
+    const statusSelectorAfter = page.locator('.page-status-wrapper .selectable-select-property__control');
+    await expect(statusSelectorAfter).not.toBeVisible();
+});
+
+/**
+ * @objective Verify status transitions in typical workflow (rough_draft → in_progress → in_review → done)
+ */
+test('transitions through workflow states from rough_draft to done', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki and page through UI
+    const wiki = await createWikiThroughUI(page, `Workflow Wiki ${pw.random.id()}`);
+    const pageName = 'Workflow Test Page';
+    await createPageThroughUI(page, pageName, 'Test content');
+
+    await page.waitForLoadState('networkidle');
+
+    for (const status of PAGE_STATUSES) {
+        // # Edit page
+        const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
+        await editButton.click();
+        await page.waitForLoadState('networkidle');
+
+        // # Click status selector to open dropdown
+        const statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
+        await statusSelector.click();
+
+        // # Wait for dropdown menu to appear
+        const statusMenu = page.locator('.selectable-select-property__menu');
+        await expect(statusMenu).toBeVisible();
+
+        // # Select the status
+        const statusOption = page.locator('.selectable-select-property__option', {hasText: status});
+        await statusOption.click();
+
+        // # Wait for autosave
+        await page.waitForTimeout(1500);
+
+        // # Update page
+        const updateButton = page.locator('[data-testid="wiki-page-publish-button"]');
+        await updateButton.click();
+        await page.waitForLoadState('networkidle');
+
+        // * Verify status changed to expected value
+        const statusDisplay = page.locator('[data-testid="page-viewer-status"]');
+        await expect(statusDisplay).toBeVisible();
+        const statusText = await statusDisplay.textContent();
+        expect(statusText?.trim()).toBe(status);
+    }
+
+    // * Final verification: status is 'Done'
+    const finalStatusDisplay = page.locator('[data-testid="page-viewer-status"]');
+    const finalStatusText = await finalStatusDisplay.textContent();
+    expect(finalStatusText?.trim()).toBe('Done');
+});
+
+/**
+ * @objective Verify status display appears in page viewer for published pages
+ */
+test('displays status in page viewer for published pages', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki and page through UI
+    const wiki = await createWikiThroughUI(page, `Status Display Wiki ${pw.random.id()}`);
+    const pageName = 'Test Page';
+    await createPageThroughUI(page, pageName, 'Test content');
+
+    await page.waitForLoadState('networkidle');
+
+    // * Verify status display is visible in page viewer
+    const statusDisplay = page.locator('[data-testid="page-viewer-status"]');
+    await expect(statusDisplay).toBeVisible();
+
+    // * Verify status shows default 'In progress' label
+    const statusText = await statusDisplay.textContent();
+    expect(statusText?.trim()).toBe('In progress');
+});
+
+/**
+ * @objective Verify multiple pages can have different status values independently
+ */
+test('maintains independent status for multiple pages', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki through UI
+    const wiki = await createWikiThroughUI(page, `Multi Page Wiki ${pw.random.id()}`);
+
+    // # Create first page
+    const page1 = await createPageThroughUI(page, 'Page 1', 'Content 1');
+    await page.waitForLoadState('networkidle');
+
+    // # Edit and set status to 'rough_draft'
+    let editButton = page.locator('[data-testid="wiki-page-edit-button"]');
+    await editButton.click();
+    await page.waitForLoadState('networkidle');
+
+    let statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
+    await statusSelector.click();
+    let statusMenu = page.locator('.selectable-select-property__menu');
+    await expect(statusMenu).toBeVisible();
+    let roughDraftOption = page.locator('.selectable-select-property__option', {hasText: 'Rough draft'});
+    await roughDraftOption.click();
+    await page.waitForTimeout(1500);
+
+    let updateButton = page.locator('[data-testid="wiki-page-publish-button"]');
+    await updateButton.click();
+    await page.waitForLoadState('networkidle');
+
+    // # Navigate back to wiki root
+    await page.goto(`${pw.url}/${team.name}/wiki/${channel.id}/${wiki.id}`);
+    await page.waitForLoadState('networkidle');
+
+    // # Create second page
+    const page2 = await createPageThroughUI(page, 'Page 2', 'Content 2');
+    await page.waitForLoadState('networkidle');
+
+    // # Edit and set status to 'done'
+    editButton = page.locator('[data-testid="wiki-page-edit-button"]');
+    await editButton.click();
+    await page.waitForLoadState('networkidle');
+
+    statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
+    await statusSelector.click();
+    statusMenu = page.locator('.selectable-select-property__menu');
+    await expect(statusMenu).toBeVisible();
+    const doneOption = page.locator('.selectable-select-property__option', {hasText: 'Done'});
+    await doneOption.click();
+    await page.waitForTimeout(1500);
+
+    updateButton = page.locator('[data-testid="wiki-page-publish-button"]');
+    await updateButton.click();
+    await page.waitForLoadState('networkidle');
+
+    // * Verify page 2 has status 'Done'
+    let statusDisplay = page.locator('[data-testid="page-viewer-status"]');
+    let statusText = await statusDisplay.textContent();
+    expect(statusText?.trim()).toBe('Done');
+
+    // # Navigate back to page 1
+    await page.goto(`${pw.url}/${team.name}/wiki/${channel.id}/${wiki.id}/${page1.id}`);
+    await page.waitForLoadState('networkidle');
+
+    // * Verify page 1 still has status 'Rough draft'
+    statusDisplay = page.locator('[data-testid="page-viewer-status"]');
+    await expect(statusDisplay).toBeVisible();
+    statusText = await statusDisplay.textContent();
+    expect(statusText?.trim()).toBe('Rough draft');
+});
+
+/**
+ * @objective Verify status change is saved and reflected after edit/update cycle
+ */
+test('updates status display after edit and update', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki and page through UI
+    const wiki = await createWikiThroughUI(page, `Update Wiki ${pw.random.id()}`);
+    const pageName = 'Test Page';
+    await createPageThroughUI(page, pageName, 'Test content');
+
+    await page.waitForLoadState('networkidle');
+
+    // # Get initial status
+    let statusDisplay = page.locator('[data-testid="page-viewer-status"]');
+    await expect(statusDisplay).toBeVisible();
+    const initialStatus = await statusDisplay.textContent();
+    const initialLabel = initialStatus?.trim();
+
+    // # Edit page
+    const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
+    await editButton.click();
+    await page.waitForLoadState('networkidle');
+
+    // # Change status to a different value
+    const targetStatusValue = initialLabel === 'In progress' ? 'done' : 'in_progress';
+    const targetStatusLabel = initialLabel === 'In progress' ? 'Done' : 'In progress';
+
+    const statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
+    await statusSelector.click();
+
+    const statusMenu = page.locator('.selectable-select-property__menu');
+    await expect(statusMenu).toBeVisible();
+
+    const targetOption = page.locator('.selectable-select-property__option', {hasText: targetStatusValue});
+    await targetOption.click();
+
+    // # Wait for autosave
+    await page.waitForTimeout(1500);
+
+    // # Update page
+    const updateButton = page.locator('[data-testid="wiki-page-publish-button"]');
+    await updateButton.click();
+    await page.waitForLoadState('networkidle');
+
+    // * Verify status changed
+    statusDisplay = page.locator('[data-testid="page-viewer-status"]');
+    const newStatus = await statusDisplay.textContent();
+    expect(newStatus?.trim()).toBe(targetStatusLabel);
+    expect(newStatus?.trim()).not.toBe(initialLabel);
+});
+
+/**
+ * @objective Verify status selected in draft mode persists after publishing
+ */
+test('persists status selected in draft mode after publishing', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki through UI
+    const wiki = await createWikiThroughUI(page, `Draft Status Wiki ${pw.random.id()}`);
+
+    // # Click "New Page" to create a new draft
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Draft with Status');
+    await page.waitForLoadState('networkidle');
+
+    // # Enter page content
+
+    const editor = page.locator('.ProseMirror');
+    await editor.click();
+    await editor.fill('This is draft content');
+
+    // # Wait for autosave
+    await page.waitForTimeout(1500);
+
+    // # Select status 'done' in draft mode
+    const statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
+    await expect(statusSelector).toBeVisible();
+    await statusSelector.click();
+
+    const statusMenu = page.locator('.selectable-select-property__menu');
+    await expect(statusMenu).toBeVisible();
+
+    const doneOption = page.locator('.selectable-select-property__option', {hasText: 'Done'});
+    await doneOption.click();
+
+    // # Wait for autosave to persist status
+    await page.waitForTimeout(1500);
+
+    // # Publish the page
+    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]');
+    await publishButton.click();
+    await page.waitForLoadState('networkidle');
+
+    // * Verify status is 'Done' in the published page viewer
+    const publishedStatus = page.locator('[data-testid="page-viewer-status"]');
+    await expect(publishedStatus).toBeVisible();
+    const statusText = await publishedStatus.textContent();
+    expect(statusText?.trim()).toBe('Done');
+});
+
+/**
+ * @objective Verify status persists through draft autosave and browser refresh
+ */
+test('persists status through draft autosave and browser refresh', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki through UI
+    const wiki = await createWikiThroughUI(page, `Autosave Status Wiki ${pw.random.id()}`);
+
+    // # Click "New Page" to create a new draft
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Autosave Status Test');
+    await page.waitForLoadState('networkidle');
+
+    // # Enter content
+    const editor = page.locator('.ProseMirror');
+    await editor.click();
+    await editor.fill('Content with status');
+
+    // # Wait for autosave
+    await page.waitForTimeout(1500);
+
+    // # Select status 'in_review'
+    const statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
+    await statusSelector.click();
+
+    const statusMenu = page.locator('.selectable-select-property__menu');
+    await expect(statusMenu).toBeVisible();
+
+    const inReviewOption = page.locator('.selectable-select-property__option', {hasText: 'In review'});
+    await inReviewOption.click();
+
+    // # Wait for autosave to persist status
+    await page.waitForTimeout(1500);
+
+    // # Capture current URL before refresh
+    const currentUrl = page.url();
+
+    // # Refresh browser (simulating crash/reload scenario)
+    await page.reload();
+    await page.waitForLoadState('networkidle');
+
+    // * Verify we're still on the same draft
+    expect(page.url()).toBe(currentUrl);
+
+    // * Verify status selector still shows 'In review'
+    const statusValue = page.locator('.page-status-wrapper .selectable-select-property__single-value');
+    await expect(statusValue).toBeVisible();
+    const statusText = await statusValue.textContent();
+    expect(statusText).toBe('In review');
+
+    // # Now publish to verify status transfers correctly
+    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]');
+    await publishButton.click();
+    await page.waitForLoadState('networkidle');
+
+    // * Verify published page shows 'In review' status
+    const publishedStatus = page.locator('[data-testid="page-viewer-status"]');
+    await expect(publishedStatus).toBeVisible();
+    const publishedStatusText = await publishedStatus.textContent();
+    expect(publishedStatusText?.trim()).toBe('In review');
+});
+
+/**
+ * @objective Verify status selected in draft mode for existing page update persists after update
+ */
+test('persists status when updating existing page through draft', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+
+    // Capture console logs
+    const logs: string[] = [];
+    page.on('console', (msg) => {
+        const text = msg.text();
+        // Capture all logs that contain our debug markers
+        if (text.includes('[savePageDraft]') || text.includes('[hooks.ts]') || text.includes('[publishPageDraft]') || text.includes('[PageStatusSelector]')) {
+            logs.push(`[CONSOLE ${msg.type()}] ${text}`);
+            console.log(`[BROWSER] ${text}`);
+        }
+    });
+
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki and initial page
+    const wiki = await createWikiThroughUI(page, `Update Status Wiki ${pw.random.id()}`);
+    const createdPage = await createPageThroughUI(page, 'Page to Update', 'Initial content');
+    await page.waitForLoadState('networkidle');
+
+    // # Click Edit button to enter draft mode
+    const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
+    await editButton.click();
+    await page.waitForLoadState('networkidle');
+
+    // # Wait for editor to fully load (including status selector)
+    await page.waitForSelector('[data-testid="wiki-page-editor"]', {state: 'visible', timeout: 10000});
+
+    // # Change status to 'rough_draft' in draft mode
+    const statusSelector = page.locator('.page-status-wrapper .selectable-select-property__control');
+    await expect(statusSelector).toBeVisible({timeout: 15000});
+    await statusSelector.click();
+
+    const statusMenu = page.locator('.selectable-select-property__menu');
+    await expect(statusMenu).toBeVisible();
+
+    const roughDraftOption = page.locator('.selectable-select-property__option', {hasText: 'Rough draft'});
+    await roughDraftOption.click();
+
+    // # Wait for autosave
+    await page.waitForTimeout(1500);
+
+    // # Update the content
+    const editor = page.locator('.ProseMirror');
+    await editor.click();
+    await page.keyboard.press('End');
+    await editor.type(' Updated content');
+
+    // # Wait for autosave
+    await page.waitForTimeout(1500);
+
+    // # Click Update button
+    const updateButton = page.locator('[data-testid="wiki-page-publish-button"]');
+    await updateButton.click();
+    await page.waitForLoadState('networkidle');
+
+    // * Verify updated page shows 'Rough draft' status
+    const publishedStatus = page.locator('[data-testid="page-viewer-status"]');
+    await expect(publishedStatus).toBeVisible();
+    const statusText = await publishedStatus.textContent();
+    const statusLabel = statusText?.trim();
+
+    // Dump console logs if test fails
+    if (statusLabel !== 'Rough draft') {
+        console.log('\n=== CAPTURED CONSOLE LOGS ===');
+        logs.forEach((log) => console.log(log));
+        console.log('=== END CONSOLE LOGS ===\n');
+    }
+
+    expect(statusLabel).toBe('Rough draft');
+});

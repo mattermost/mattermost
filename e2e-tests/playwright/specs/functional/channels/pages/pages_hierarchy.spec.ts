@@ -736,44 +736,55 @@ test('updates outline in hierarchy when page headings change', {tag: '@pages'}, 
     await pageNode.click();
     await page.waitForLoadState('networkidle');
 
-    // # Click edit button in page header
+    // # Click edit button in page header (if it exists - page might already be in edit mode)
     const editButton = page.locator('[data-testid="wiki-page-edit-button"], button:has-text("Edit")').first();
     if (await editButton.isVisible({timeout: 2000}).catch(() => false)) {
         await editButton.click();
-        await page.waitForTimeout(500);
-
-        const editor = page.locator('.ProseMirror').first();
-        await editor.waitFor({state: 'visible', timeout: 5000});
-        await editor.click();
-
-        // # Clear existing content
-        await page.keyboard.press('Control+A'); // Select all (or Command+A on Mac, but Control works cross-platform in Playwright)
-        await page.keyboard.press('Backspace');
-
-        // # Add headings using helper with content
-        await addHeadingToEditor(page, 1, 'Heading 1', 'Some content under heading 1');
-        await page.waitForTimeout(500);
-
-        await addHeadingToEditor(page, 2, 'Heading 2', 'Some content under heading 2');
-        await page.waitForTimeout(500);
-
-        await addHeadingToEditor(page, 3, 'Heading 3');
-
-        // # Wait for editor transactions to complete (including HeadingIdPlugin)
-        await page.waitForTimeout(1000);
-
-        // # Click outside the editor to ensure focus is lost and all pending transactions flush
-        await page.locator('[data-testid="wiki-page-header"]').click();
-
-        // # Wait for autosave to complete (500ms debounce + extra buffer)
-        await page.waitForTimeout(2000);
-
-        // # Publish the page
-        const publishButton = page.getByRole('button', {name: 'Publish'});
-        await publishButton.click();
-        await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(1000); // Wait for page to fully render after publish
+        await page.waitForTimeout(1000); // Wait for any navigation/state change
     }
+
+    // # Wait for editor to be ready and editable
+    const editor = page.locator('.ProseMirror').first();
+    await editor.waitFor({state: 'visible', timeout: 5000});
+
+    // # Wait for editor to become editable
+    await page.waitForFunction(
+        () => {
+            const el = document.querySelector('.ProseMirror') as HTMLElement;
+            return el && el.contentEditable === 'true';
+        },
+        {timeout: 5000},
+    );
+
+    await editor.click();
+
+    // # Clear existing content
+    await page.keyboard.press('Control+A'); // Select all (or Command+A on Mac, but Control works cross-platform in Playwright)
+    await page.keyboard.press('Backspace');
+
+    // # Add headings using helper with content
+    await addHeadingToEditor(page, 1, 'Heading 1', 'Some content under heading 1');
+    await page.waitForTimeout(500);
+
+    await addHeadingToEditor(page, 2, 'Heading 2', 'Some content under heading 2');
+    await page.waitForTimeout(500);
+
+    await addHeadingToEditor(page, 3, 'Heading 3');
+
+    // # Wait for editor transactions to complete (including HeadingIdPlugin)
+    await page.waitForTimeout(1000);
+
+    // # Click outside the editor to ensure focus is lost and all pending transactions flush
+    await page.locator('[data-testid="wiki-page-header"]').click();
+
+    // # Wait for autosave to complete (500ms debounce + extra buffer)
+    await page.waitForTimeout(2000);
+
+    // # Publish the page
+    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]');
+    await publishButton.click();
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1000); // Wait for page to fully render after publish
 
     // # The hierarchy panel should still be visible after publishing
     // Find page node in hierarchy
@@ -827,55 +838,69 @@ test('clicks outline item in hierarchy to navigate to heading', {tag: '@pages'},
     const pageNode = hierarchyPanel.locator(`text="Navigate to Headings"`).first();
     await pageNode.click();
     await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(500);
 
-    // # Click edit button in page header
-    const editButton = page.locator('[data-testid="wiki-page-edit-button"], button:has-text("Edit")').first();
-    if (await editButton.isVisible({timeout: 2000}).catch(() => false)) {
-        await editButton.click();
-        await page.waitForTimeout(500);
+    // # Wait for page viewer to be visible (confirms we're in view mode)
+    await page.locator('[data-testid="page-viewer-content"]').waitFor({state: 'visible', timeout: 5000});
 
-        const editor = page.locator('.ProseMirror').first();
-        await editor.waitFor({state: 'visible', timeout: 5000});
-        await editor.click();
+    // # Click edit button in page header - this triggers a route navigation to /drafts/pageId
+    const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
+    await editButton.waitFor({state: 'visible', timeout: 5000});
+    await editButton.click({force: true});
+    await page.waitForTimeout(2000);
 
-        // # Clear existing content
-        await page.keyboard.press('Control+A');
-        await page.keyboard.press('Backspace');
+    // # Wait for URL to change to draft route
+    await page.waitForURL(url => url.toString().includes('/drafts/'), {timeout: 10000});
+    await page.waitForLoadState('networkidle');
 
-        // # Add H1 heading "Introduction" with multiple paragraphs
-        let introContent = '';
-        for (let i = 0; i < 10; i++) {
-            introContent += 'Introduction paragraph. ';
-        }
-        await addHeadingToEditor(page, 1, 'Introduction', introContent);
-        await page.waitForTimeout(500);
+    // # Wait for page viewer to disappear (confirms we left view mode)
+    await page.locator('[data-testid="page-viewer-content"]').waitFor({state: 'hidden', timeout: 5000});
 
-        // # Add H2 heading "Middle Section" with multiple paragraphs
-        let middleContent = '';
-        for (let i = 0; i < 10; i++) {
-            middleContent += 'Middle section content. ';
-        }
-        await addHeadingToEditor(page, 2, 'Middle Section', middleContent);
-        await page.waitForTimeout(500);
+    // # Wait for editor to be visible and ready
+    const editor = page.locator('.ProseMirror').first();
+    await editor.waitFor({state: 'visible', timeout: 5000});
+    await page.waitForTimeout(500);
+    await editor.click();
+    await page.waitForTimeout(200);
 
-        // # Add H2 heading "Conclusion" with some content
-        await addHeadingToEditor(page, 2, 'Conclusion', 'Conclusion content.');
+    // # Clear existing content
+    await page.keyboard.press('Control+A');
+    await page.keyboard.press('Backspace');
+    await page.waitForTimeout(200);
 
-        // # Wait for editor transactions to complete (including HeadingIdPlugin)
-        await page.waitForTimeout(1000);
-
-        // # Click outside the editor to ensure focus is lost and all pending transactions flush
-        await page.locator('[data-testid="wiki-page-header"]').click();
-
-        // # Wait for autosave to complete (500ms debounce + extra buffer)
-        await page.waitForTimeout(2000);
-
-        // # Publish the page
-        const publishButton = page.getByRole('button', {name: 'Publish'});
-        await publishButton.click();
-        await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(1000);
+    // # Add H1 heading "Introduction" with multiple paragraphs
+    let introContent = '';
+    for (let i = 0; i < 10; i++) {
+        introContent += 'Introduction paragraph. ';
     }
+    await addHeadingToEditor(page, 1, 'Introduction', introContent);
+    await page.waitForTimeout(500);
+
+    // # Add H2 heading "Middle Section" with multiple paragraphs
+    let middleContent = '';
+    for (let i = 0; i < 10; i++) {
+        middleContent += 'Middle section content. ';
+    }
+    await addHeadingToEditor(page, 2, 'Middle Section', middleContent);
+    await page.waitForTimeout(500);
+
+    // # Add H2 heading "Conclusion" with some content
+    await addHeadingToEditor(page, 2, 'Conclusion', 'Conclusion content.');
+
+    // # Wait for editor transactions to complete (including HeadingIdPlugin)
+    await page.waitForTimeout(1000);
+
+    // # Click outside the editor to ensure focus is lost and all pending transactions flush
+    await page.locator('[data-testid="wiki-page-header"]').click();
+
+    // # Wait for autosave to complete (500ms debounce + extra buffer)
+    await page.waitForTimeout(2000);
+
+    // # Publish the page
+    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]');
+    await publishButton.click();
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1000);
 
     // # Verify we're viewing the published page (should be scrolled to top)
     await page.waitForTimeout(1000);
@@ -979,7 +1004,7 @@ test('preserves outline visibility setting when navigating between pages', {tag:
     // Wait for autosave to complete (500ms debounce + buffer)
     await page.waitForTimeout(2000);
 
-    const publishButton1 = page.getByRole('button', {name: 'Publish'});
+    const publishButton1 = page.locator('[data-testid="wiki-page-publish-button"]');
     await publishButton1.click();
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1000);
@@ -1349,7 +1374,7 @@ test('enforces max hierarchy depth - 11th level fails', {tag: '@pages'}, async (
     await page.keyboard.type('Level 11 content');
 
     // # Attempt to publish (server should reject due to max depth)
-    const publishButton = page.getByRole('button', {name: 'Publish'});
+    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]');
     await publishButton.click();
 
     // * Verify error bar is displayed with max depth message

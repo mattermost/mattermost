@@ -808,6 +808,105 @@ test('displays correct anchor text for each inline comment in wiki RHS', {tag: '
 });
 
 /**
+ * @objective Verify inline comment from formatting bar displays correct anchor text during editing
+ */
+test('creates inline comment from formatting bar with correct anchor text', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki through UI
+    const wiki = await createWikiThroughUI(page, `Format Bar Wiki ${pw.random.id()}`);
+
+    // # Create a new page with specific content
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Test Page');
+
+    // # Type content in the editor
+    const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
+    await editor.waitFor({state: 'visible', timeout: 5000});
+    await editor.click();
+    await editor.type('important information');
+    await page.waitForTimeout(300);
+
+    // # Publish the page first (inline comments only work on published pages, not new drafts)
+    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]');
+    await publishButton.click();
+    await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(1000);
+
+    // # Enter edit mode to add inline comment
+    const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
+    await editButton.click();
+    await page.waitForTimeout(500);
+
+    // # Wait for editor to be ready
+    await editor.waitFor({state: 'visible', timeout: 5000});
+
+    // # Select the text by triple-clicking on it (most reliable way to select text in contenteditable)
+    const paragraph = editor.locator('p').first();
+    await paragraph.click({clickCount: 3});
+    await page.waitForTimeout(500);
+
+    // # Wait for formatting bar bubble to appear (it should show for non-empty text selection in edit mode)
+    const formattingBarBubble = page.locator('.formatting-bar-bubble');
+    await expect(formattingBarBubble).toBeVisible({timeout: 3000});
+
+    // # Click the "Add Comment" button from formatting bar (NOT the inline-comment-submit button)
+    const addCommentButton = formattingBarBubble.locator('button[title="Add Comment"]');
+    await expect(addCommentButton).toBeVisible();
+    await addCommentButton.click();
+    await page.waitForTimeout(500);
+
+    // # Fill in the comment in the modal
+    const commentModal = page.getByRole('dialog', {name: 'Add Comment'});
+    await expect(commentModal).toBeVisible({timeout: 3000});
+
+    const textarea = commentModal.locator('textarea').first();
+    await textarea.fill('This section needs review');
+
+    const submitButton = commentModal.locator('button:has-text("Add"), button:has-text("Submit"), button:has-text("Comment")').first();
+    await submitButton.click();
+    await page.waitForTimeout(1000);
+
+    // * Verify RHS opened automatically after creating the comment
+    const rhs = page.locator('[data-testid="wiki-rhs"]');
+    await expect(rhs).toBeVisible({timeout: 5000});
+
+    // * Verify the anchor text is displayed correctly in the RHS header (should show "important information", NOT "Comment thread")
+    // The anchor text appears in the RHS header/title area
+    await expect(rhs).toContainText('important information', {timeout: 3000});
+
+    // * Verify it does NOT show the generic "Comment thread" text
+    const rhsText = await rhs.textContent();
+    expect(rhsText).not.toContain('Comment thread');
+
+    // * Verify the comment text appears in RHS
+    await expect(rhs).toContainText('This section needs review');
+
+    // # Publish the page again to save the comment
+    await publishButton.click();
+    await page.waitForLoadState('networkidle');
+
+    // * Verify comment marker is visible after publishing
+    const commentMarker = page.locator('[data-inline-comment-marker], .inline-comment-marker, [data-comment-id]').first();
+    await expect(commentMarker).toBeVisible({timeout: 5000});
+
+    // # Click marker to verify RHS still works
+    await commentMarker.click();
+    await page.waitForTimeout(500);
+
+    // * Verify RHS still shows the comment with correct anchor text after publishing
+    await expect(rhs).toBeVisible({timeout: 5000});
+    await expect(rhs).toContainText('important information', {timeout: 3000});
+    const rhsTextAfterPublish = await rhs.textContent();
+    expect(rhsTextAfterPublish).not.toContain('Comment thread');
+});
+
+/**
  * @objective Verify that when multiple inline comments exist on different parts of a page, each thread displays its correct anchor text in the global Threads view
  */
 test('displays correct anchor text for each thread in global Threads view', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {

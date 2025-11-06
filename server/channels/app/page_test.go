@@ -318,6 +318,105 @@ func TestDeletePage(t *testing.T) {
 	})
 }
 
+func TestRestorePage(t *testing.T) {
+	th := Setup(t).InitBasic()
+	setupPagePermissions(th)
+	defer th.TearDown()
+
+	sessionCtx := createSessionContext(th)
+
+	t.Run("successfully restores deleted page with content", func(t *testing.T) {
+		pageContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Test content that should be preserved"}]}]}`
+		createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", pageContent, th.BasicUser.Id, "searchable text")
+		require.Nil(t, err)
+
+		originalContent, getErr := th.App.Srv().Store().PageContent().Get(createdPage.Id)
+		require.NoError(t, getErr)
+		require.NotNil(t, originalContent)
+
+		err = th.App.DeletePage(sessionCtx, createdPage.Id)
+		require.Nil(t, err)
+
+		deletedPage, getErr := th.App.Srv().Store().Post().GetSingle(th.Context, createdPage.Id, true)
+		require.NoError(t, getErr)
+		require.NotEqual(t, int64(0), deletedPage.DeleteAt, "Post should be soft-deleted")
+
+		_, getContentErr := th.App.Srv().Store().PageContent().Get(createdPage.Id)
+		require.Error(t, getContentErr, "Get() should not return soft-deleted PageContent")
+
+		deletedContent, getErr := th.App.Srv().Store().PageContent().GetWithDeleted(createdPage.Id)
+		require.NoError(t, getErr, "GetWithDeleted() should return soft-deleted PageContent")
+		require.NotNil(t, deletedContent)
+		require.NotEqual(t, int64(0), deletedContent.DeleteAt, "PageContent should have DeleteAt set")
+
+		err = th.App.RestorePage(sessionCtx, createdPage.Id)
+		require.Nil(t, err, "RestorePage should not return an error")
+
+		restoredPost, getErr := th.App.Srv().Store().Post().GetSingle(th.Context, createdPage.Id, false)
+		require.NoError(t, getErr, "Direct store GetSingle should not return an error after restoration")
+		require.NotNil(t, restoredPost, "restoredPost should not be nil")
+		require.Equal(t, int64(0), restoredPost.DeleteAt, "Post should be restored (DeleteAt = 0)")
+
+		restoredContent, getErr := th.App.Srv().Store().PageContent().Get(createdPage.Id)
+		require.NoError(t, getErr, "PageContent should be accessible after restoration")
+		require.NotNil(t, restoredContent)
+		require.Equal(t, int64(0), restoredContent.DeleteAt, "PageContent DeleteAt should be cleared")
+
+		restoredJSON, jsonErr := restoredContent.GetDocumentJSON()
+		require.NoError(t, jsonErr)
+		require.JSONEq(t, pageContent, restoredJSON, "Page content should be preserved after restoration")
+		require.NotEmpty(t, restoredContent.SearchText, "SearchText should be populated after restoration")
+	})
+
+	t.Run("fails to restore non-existent page", func(t *testing.T) {
+		err := th.App.RestorePage(sessionCtx, model.NewId())
+		require.NotNil(t, err)
+	})
+
+	t.Run("fails to restore already active page", func(t *testing.T) {
+		activePage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Active Page", "", "", th.BasicUser.Id, "")
+		require.Nil(t, err)
+
+		err = th.App.RestorePage(sessionCtx, activePage.Id)
+		require.NotNil(t, err, "Should fail to restore page that is not deleted")
+	})
+}
+
+func TestPermanentDeletePage(t *testing.T) {
+	th := Setup(t).InitBasic()
+	setupPagePermissions(th)
+	defer th.TearDown()
+
+	sessionCtx := createSessionContext(th)
+
+	t.Run("permanently deletes page and content", func(t *testing.T) {
+		pageContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Content to be permanently deleted"}]}]}`
+		createdPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Page to Purge", "", pageContent, th.BasicUser.Id, "")
+		require.Nil(t, err)
+
+		err = th.App.DeletePage(sessionCtx, createdPage.Id)
+		require.Nil(t, err)
+
+		deletedContent, getErr := th.App.Srv().Store().PageContent().GetWithDeleted(createdPage.Id)
+		require.NoError(t, getErr, "Content should still exist after soft delete")
+		require.NotNil(t, deletedContent)
+
+		err = th.App.PermanentDeletePage(sessionCtx, createdPage.Id)
+		require.Nil(t, err)
+
+		_, getErr = th.App.Srv().Store().Post().GetSingle(th.Context, createdPage.Id, true)
+		require.Error(t, getErr, "Post should be permanently deleted")
+
+		_, getErr = th.App.Srv().Store().PageContent().GetWithDeleted(createdPage.Id)
+		require.Error(t, getErr, "PageContent should be permanently deleted")
+	})
+
+	t.Run("fails to permanently delete non-existent page", func(t *testing.T) {
+		err := th.App.PermanentDeletePage(sessionCtx, model.NewId())
+		require.NotNil(t, err)
+	})
+}
+
 func TestGetPageChildren(t *testing.T) {
 	th := Setup(t).InitBasic()
 	setupPagePermissions(th)
@@ -1319,5 +1418,310 @@ func TestCreatePageCommentReply(t *testing.T) {
 		require.Equal(t, page.Id, reply2.RootId)
 		require.Equal(t, topLevelComment.Id, reply1.Props["parent_comment_id"])
 		require.Equal(t, topLevelComment.Id, reply2.Props["parent_comment_id"])
+	})
+}
+
+func TestGetPageStatus(t *testing.T) {
+	th := Setup(t).InitBasic()
+	setupPagePermissions(th)
+	defer th.TearDown()
+
+	rctx := createSessionContext(th)
+
+	page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "")
+	require.Nil(t, err)
+	require.NotNil(t, page)
+
+	t.Run("returns default status when page has no status property", func(t *testing.T) {
+		status, appErr := th.App.GetPageStatus(rctx, page.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, model.PageStatusInProgress, status)
+	})
+
+	t.Run("returns actual status after setting", func(t *testing.T) {
+		appErr := th.App.SetPageStatus(rctx, page.Id, model.PageStatusDone)
+		require.Nil(t, appErr)
+
+		status, appErr := th.App.GetPageStatus(rctx, page.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, model.PageStatusDone, status)
+	})
+
+	t.Run("fails when page does not exist", func(t *testing.T) {
+		status, appErr := th.App.GetPageStatus(rctx, "invalid_page_id")
+		require.NotNil(t, appErr)
+		require.Empty(t, status)
+		require.Contains(t, appErr.Id, "page_not_found")
+	})
+
+	t.Run("fails when post is not a page", func(t *testing.T) {
+		regularPost, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "Regular post",
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, err)
+
+		status, appErr := th.App.GetPageStatus(rctx, regularPost.Id)
+		require.NotNil(t, appErr)
+		require.Empty(t, status)
+		require.Contains(t, appErr.Id, "not_a_page")
+	})
+}
+
+func TestSetPageStatus(t *testing.T) {
+	th := Setup(t).InitBasic()
+	setupPagePermissions(th)
+	defer th.TearDown()
+
+	rctx := createSessionContext(th)
+
+	page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "")
+	require.Nil(t, err)
+
+	t.Run("successfully sets page status", func(t *testing.T) {
+		appErr := th.App.SetPageStatus(rctx, page.Id, model.PageStatusInReview)
+		require.Nil(t, appErr)
+
+		status, appErr := th.App.GetPageStatus(rctx, page.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, model.PageStatusInReview, status)
+	})
+
+	t.Run("updates existing status", func(t *testing.T) {
+		appErr := th.App.SetPageStatus(rctx, page.Id, model.PageStatusRoughDraft)
+		require.Nil(t, appErr)
+
+		status, appErr := th.App.GetPageStatus(rctx, page.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, model.PageStatusRoughDraft, status)
+
+		appErr = th.App.SetPageStatus(rctx, page.Id, model.PageStatusDone)
+		require.Nil(t, appErr)
+
+		status, appErr = th.App.GetPageStatus(rctx, page.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, model.PageStatusDone, status)
+	})
+
+	t.Run("accepts all valid status values", func(t *testing.T) {
+		validStatuses := []string{model.PageStatusRoughDraft, model.PageStatusInProgress, model.PageStatusInReview, model.PageStatusDone}
+		for _, status := range validStatuses {
+			appErr := th.App.SetPageStatus(rctx, page.Id, status)
+			require.Nil(t, appErr, "Should accept status: %s", status)
+
+			retrievedStatus, appErr := th.App.GetPageStatus(rctx, page.Id)
+			require.Nil(t, appErr)
+			require.Equal(t, status, retrievedStatus)
+		}
+	})
+
+	t.Run("fails when page does not exist", func(t *testing.T) {
+		appErr := th.App.SetPageStatus(rctx, "invalid_page_id", model.PageStatusDone)
+		require.NotNil(t, appErr)
+		require.Contains(t, appErr.Id, "page_not_found")
+	})
+
+	t.Run("fails when post is not a page", func(t *testing.T) {
+		regularPost, err := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "Regular post",
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, err)
+
+		appErr := th.App.SetPageStatus(rctx, regularPost.Id, model.PageStatusDone)
+		require.NotNil(t, appErr)
+		require.Contains(t, appErr.Id, "not_a_page")
+	})
+}
+
+func TestGetPageStatusField(t *testing.T) {
+	th := Setup(t).InitBasic()
+	setupPagePermissions(th)
+	defer th.TearDown()
+
+	t.Run("successfully retrieves page status field definition", func(t *testing.T) {
+		field, appErr := th.App.GetPageStatusField()
+		require.Nil(t, appErr)
+		require.NotNil(t, field)
+
+		require.Equal(t, "status", field.Name)
+		require.Equal(t, model.PropertyFieldType("select"), field.Type)
+		require.NotNil(t, field.Attrs)
+
+		optionsRaw, exists := field.Attrs["options"]
+		require.True(t, exists, "field.Attrs should have 'options' key")
+
+		// After JSON unmarshaling, options is []any where each element is map[string]any
+		options, ok := optionsRaw.([]any)
+		require.True(t, ok, "field.Attrs[\"options\"] should be []any")
+		require.Len(t, options, 4)
+
+		expectedStatuses := map[string]bool{
+			model.PageStatusRoughDraft: false,
+			model.PageStatusInProgress: false,
+			model.PageStatusInReview:   false,
+			model.PageStatusDone:       false,
+		}
+
+		for _, optionRaw := range options {
+			option, ok := optionRaw.(map[string]any)
+			require.True(t, ok, "Each option should be map[string]any")
+			nameVal, ok := option["name"]
+			require.True(t, ok, "Option should have 'name' field")
+			name, ok := nameVal.(string)
+			require.True(t, ok, "Option name should be string")
+			_, exists := expectedStatuses[name]
+			require.True(t, exists, "Unexpected status option: %s", name)
+			expectedStatuses[name] = true
+		}
+
+		for status, found := range expectedStatuses {
+			require.True(t, found, "Missing expected status: %s", status)
+		}
+	})
+}
+
+func TestPageMentionSystemMessages(t *testing.T) {
+	th := Setup(t).InitBasic()
+	setupPagePermissions(th)
+	defer th.TearDown()
+
+	rctx := createSessionContext(th)
+
+	user2 := th.CreateUser()
+	th.LinkUserToTeam(user2, th.BasicTeam)
+	th.AddUserToChannel(user2, th.BasicChannel)
+
+	user3 := th.CreateUser()
+	th.LinkUserToTeam(user3, th.BasicTeam)
+	th.AddUserToChannel(user3, th.BasicChannel)
+
+	wiki := &model.Wiki{
+		ChannelId:   th.BasicChannel.Id,
+		Title:       "Test Wiki",
+		Description: "Test wiki for mentions",
+	}
+	createdWiki, wikiErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+	require.Nil(t, wikiErr)
+	require.NotNil(t, createdWiki)
+
+	t.Run("system messages created when wiki setting enabled", func(t *testing.T) {
+		createdWiki.SetShowMentionsInChannelFeed(true)
+		_, updateErr := th.App.UpdateWiki(rctx, createdWiki)
+		require.Nil(t, updateErr)
+
+		pageContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"mention","attrs":{"id":"` + user2.Id + `","label":"@` + user2.Username + `"}},{"type":"text","text":" please review"}]}]}`
+		page, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Test Page", pageContent, th.BasicUser.Id, "")
+		require.Nil(t, err)
+		require.NotNil(t, page)
+
+		allPosts, searchErr := th.App.Srv().Store().Post().GetPostsSince(th.Context, model.GetPostsSinceOptions{ChannelId: th.BasicChannel.Id, Time: 0}, true, map[string]bool{})
+		require.NoError(t, searchErr)
+
+		var mentionMessage *model.Post
+		for _, post := range allPosts.Posts {
+			if post.Type == model.PostTypePageMention && post.GetProp("page_id") == page.Id {
+				mentionMessage = post
+				break
+			}
+		}
+
+		require.NotNil(t, mentionMessage, "System message should be created")
+		require.Equal(t, model.PostTypePageMention, mentionMessage.Type)
+		require.Equal(t, th.BasicChannel.Id, mentionMessage.ChannelId)
+		require.Equal(t, th.BasicUser.Id, mentionMessage.UserId)
+		require.Contains(t, mentionMessage.Message, user2.Username)
+		require.Contains(t, mentionMessage.Message, "Test Page")
+
+		require.Equal(t, page.Id, mentionMessage.GetProp("page_id"))
+		require.Equal(t, user2.Id, mentionMessage.GetProp("mentioned_user_id"))
+		require.Equal(t, createdWiki.Id, mentionMessage.GetProp("wiki_id"))
+		require.Equal(t, "Test Page", mentionMessage.GetProp("page_title"))
+	})
+
+	t.Run("no system messages when wiki setting disabled", func(t *testing.T) {
+		createdWiki.SetShowMentionsInChannelFeed(false)
+		_, updateErr := th.App.UpdateWiki(rctx, createdWiki)
+		require.Nil(t, updateErr)
+
+		pageContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"mention","attrs":{"id":"` + user3.Id + `","label":"@` + user3.Username + `"}},{"type":"text","text":" check this"}]}]}`
+		page, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Another Page", pageContent, th.BasicUser.Id, "")
+		require.Nil(t, err)
+		require.NotNil(t, page)
+
+		systemMessages, searchErr := th.App.Srv().Store().Post().Search(th.BasicTeam.Id, user3.Id, &model.SearchParams{Terms: user3.Username})
+		require.NoError(t, searchErr)
+
+		var mentionMessage *model.Post
+		for _, post := range systemMessages.Posts {
+			if post.Type == model.PostTypePageMention && post.GetProp("page_id") == page.Id {
+				mentionMessage = post
+				break
+			}
+		}
+
+		require.Nil(t, mentionMessage, "System message should NOT be created when setting is disabled")
+	})
+
+	t.Run("system messages created for multiple mentions", func(t *testing.T) {
+		createdWiki.SetShowMentionsInChannelFeed(true)
+		_, updateErr := th.App.UpdateWiki(rctx, createdWiki)
+		require.Nil(t, updateErr)
+
+		pageContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"mention","attrs":{"id":"` + user2.Id + `","label":"@` + user2.Username + `"}},{"type":"text","text":" and "},{"type":"mention","attrs":{"id":"` + user3.Id + `","label":"@` + user3.Username + `"}},{"type":"text","text":" both review"}]}]}`
+		page, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Multi Mention Page", pageContent, th.BasicUser.Id, "")
+		require.Nil(t, err)
+		require.NotNil(t, page)
+
+		allPosts, searchErr := th.App.Srv().Store().Post().GetPostsSince(th.Context, model.GetPostsSinceOptions{ChannelId: th.BasicChannel.Id, Time: 0}, true, map[string]bool{})
+		require.NoError(t, searchErr)
+
+		systemMessagesForPage := []*model.Post{}
+		for _, post := range allPosts.Posts {
+			if post.Type == model.PostTypePageMention && post.GetProp("page_id") == page.Id {
+				systemMessagesForPage = append(systemMessagesForPage, post)
+			}
+		}
+
+		require.Len(t, systemMessagesForPage, 2, "Should create system message for each mentioned user")
+
+		mentionedUsers := make(map[string]bool)
+		for _, msg := range systemMessagesForPage {
+			mentionedUserId := msg.GetProp("mentioned_user_id").(string)
+			mentionedUsers[mentionedUserId] = true
+		}
+
+		require.True(t, mentionedUsers[user2.Id], "Should have system message for user2")
+		require.True(t, mentionedUsers[user3.Id], "Should have system message for user3")
+	})
+
+	t.Run("system messages work with page updates", func(t *testing.T) {
+		createdWiki.SetShowMentionsInChannelFeed(true)
+		_, updateErr := th.App.UpdateWiki(rctx, createdWiki)
+		require.Nil(t, updateErr)
+
+		initialContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"No mentions yet"}]}]}`
+		page, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Update Test Page", initialContent, th.BasicUser.Id, "")
+		require.Nil(t, err)
+
+		updatedContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"mention","attrs":{"id":"` + user2.Id + `","label":"@` + user2.Username + `"}},{"type":"text","text":" added in update"}]}]}`
+		_, updatePageErr := th.App.UpdatePage(rctx, page.Id, "Update Test Page", updatedContent, "")
+		require.Nil(t, updatePageErr)
+
+		allPosts, searchErr := th.App.Srv().Store().Post().GetPostsSince(th.Context, model.GetPostsSinceOptions{ChannelId: th.BasicChannel.Id, Time: 0}, true, map[string]bool{})
+		require.NoError(t, searchErr)
+
+		var mentionMessage *model.Post
+		for _, post := range allPosts.Posts {
+			if post.Type == model.PostTypePageMention && post.GetProp("page_id") == page.Id {
+				mentionMessage = post
+				break
+			}
+		}
+
+		require.NotNil(t, mentionMessage, "System message should be created when mention added via update")
+		require.Equal(t, user2.Id, mentionMessage.GetProp("mentioned_user_id"))
 	})
 }

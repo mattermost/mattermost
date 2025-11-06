@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createTestChannel, createPageThroughUI, createChildPageThroughContextMenu, waitForPageInHierarchy, getWikiTab, openWikiTabMenu, clickWikiTabMenuItem, waitForWikiViewLoad} from './test_helpers';
+import {createWikiThroughUI, createTestChannel, createPageThroughUI, createChildPageThroughContextMenu, waitForPageInHierarchy, getWikiTab, openWikiTabMenu, clickWikiTabMenuItem, waitForWikiViewLoad, getAllWikiTabs} from './test_helpers';
 
 /**
  * @objective Verify wiki can be renamed through channel tab bar menu
@@ -523,3 +523,105 @@ async function getWikiIdFromTab(page: any, wikiName: string): Promise<string | n
     }
     return null;
 }
+
+/**
+ * @objective Verify wiki can be moved to another channel in the same team
+ *
+ * @precondition
+ * Two channels must exist in the same team
+ */
+test('moves wiki to another channel through wiki tab menu', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const sourceChannel = await createTestChannel(adminClient, team.id, `Source Channel ${pw.random.id()}`);
+    const targetChannel = await createTestChannel(adminClient, team.id, `Target Channel ${pw.random.id()}`);
+
+    // # Add user to both channels so they appear in the move dropdown
+    await adminClient.addToChannel(user.id, sourceChannel.id);
+    await adminClient.addToChannel(user.id, targetChannel.id);
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+
+    // # Navigate to source channel
+    await channelsPage.goto(team.name, sourceChannel.name);
+
+    const wikiName = `Wiki to Move ${pw.random.id()}`;
+
+    // # Create wiki in source channel
+    await createWikiThroughUI(page, wikiName);
+
+    // * Verify wiki created
+    await expect(page).toHaveURL(/\/wiki\/[^/]+\/[^/]+/);
+
+    // # Navigate back to source channel
+    await channelsPage.goto(team.name, sourceChannel.name);
+    await page.waitForLoadState('networkidle');
+
+    // # Wait for wiki tab to be visible in source channel
+    const sourceWikiTab = getWikiTab(page, wikiName);
+    await sourceWikiTab.waitFor({state: 'visible', timeout: 5000});
+
+    // # Open wiki tab menu
+    await openWikiTabMenu(page, wikiName);
+
+    // # Click "Move wiki" in the dropdown menu
+    await clickWikiTabMenuItem(page, 'wiki-tab-move');
+
+    // # Wait for move modal to appear
+    const moveModal = page.getByRole('dialog');
+    await moveModal.waitFor({state: 'visible', timeout: 3000});
+
+    // # Wait for channel select to be populated with options
+    const channelSelect = moveModal.locator('#target-channel-select');
+    await channelSelect.waitFor({state: 'visible', timeout: 3000});
+
+    // # Wait for at least 2 options (placeholder + target channel)
+    await page.waitForFunction(
+        (selectId) => {
+            const select = document.querySelector(`#${selectId}`) as HTMLSelectElement;
+            return select && select.options.length > 1;
+        },
+        'target-channel-select',
+        {timeout: 5000},
+    );
+
+    // # Select target channel from dropdown by value
+    await channelSelect.selectOption({value: targetChannel.id});
+
+    // # Click Move Wiki button
+    const moveButton = moveModal.getByRole('button', {name: /move wiki/i});
+    await moveButton.click();
+
+    // # Wait for modal to close
+    await moveModal.waitFor({state: 'hidden', timeout: 5000});
+
+    // # Wait for network requests to complete after wiki move
+    await page.waitForLoadState('networkidle');
+
+    // * Verify wiki tab no longer exists in source channel
+    await expect(sourceWikiTab).not.toBeVisible({timeout: 5000});
+
+    // * Verify wiki tab count is zero in source channel (explicit count check)
+    const sourceWikiTabs = getAllWikiTabs(page);
+    await expect(sourceWikiTabs).toHaveCount(0, {timeout: 5000});
+
+    // # Navigate to target channel
+    await channelsPage.goto(team.name, targetChannel.name);
+    await page.waitForLoadState('networkidle');
+
+    // * Verify wiki tab now appears in target channel
+    const targetWikiTab = getWikiTab(page, wikiName);
+    await expect(targetWikiTab).toBeVisible({timeout: 5000});
+
+    // * Verify wiki tab count is exactly one in target channel (explicit count check)
+    const targetWikiTabs = getAllWikiTabs(page);
+    await expect(targetWikiTabs).toHaveCount(1, {timeout: 5000});
+
+    // # Click on wiki tab to open it
+    await targetWikiTab.click();
+
+    // * Verify navigated to wiki view
+    await expect(page).toHaveURL(/\/wiki\/[^/]+\/[^/]+/);
+
+    // * Verify wiki loads successfully
+    await waitForWikiViewLoad(page);
+});

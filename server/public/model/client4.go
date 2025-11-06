@@ -5455,18 +5455,19 @@ func (c *Client4) DeleteDraft(ctx context.Context, userId, channelId, rootId str
 	return DecodeJSONFromResponse[*Draft](r)
 }
 
-func (c *Client4) GetPageDraft(ctx context.Context, wikiId, draftId string) (*Draft, *Response, error) {
+func (c *Client4) GetPageDraft(ctx context.Context, wikiId, draftId string) (*PageDraft, *Response, error) {
 	r, err := c.DoAPIGet(ctx, fmt.Sprintf("%s/drafts/%s", c.wikiRoute(wikiId), draftId), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return DecodeJSONFromResponse[*Draft](r)
+	return DecodeJSONFromResponse[*PageDraft](r)
 }
 
-func (c *Client4) SavePageDraft(ctx context.Context, wikiId, draftId, message string) (*Draft, *Response, error) {
+func (c *Client4) SavePageDraft(ctx context.Context, wikiId, draftId, message string) (*PageDraft, *Response, error) {
+	tipTapContent := fmt.Sprintf(`{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"%s"}]}]}`, message)
 	payload := map[string]any{
-		"message": message,
+		"content": tipTapContent,
 		"title":   "",
 		"page_id": "",
 		"props":   nil,
@@ -5476,7 +5477,7 @@ func (c *Client4) SavePageDraft(ctx context.Context, wikiId, draftId, message st
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return DecodeJSONFromResponse[*Draft](r)
+	return DecodeJSONFromResponse[*PageDraft](r)
 }
 
 func (c *Client4) DeletePageDraft(ctx context.Context, wikiId, draftId string) (*Response, error) {
@@ -5488,13 +5489,13 @@ func (c *Client4) DeletePageDraft(ctx context.Context, wikiId, draftId string) (
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) GetPageDraftsForWiki(ctx context.Context, wikiId string) ([]*Draft, *Response, error) {
+func (c *Client4) GetPageDraftsForWiki(ctx context.Context, wikiId string) ([]*PageDraft, *Response, error) {
 	r, err := c.DoAPIGet(ctx, fmt.Sprintf("%s/drafts", c.wikiRoute(wikiId)), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return DecodeJSONFromResponse[[]*Draft](r)
+	return DecodeJSONFromResponse[[]*PageDraft](r)
 }
 
 // Commands Section
@@ -7591,6 +7592,16 @@ func (c *Client4) DeleteWiki(ctx context.Context, wikiId string) (*Response, err
 	}
 	defer closeBody(r)
 	return BuildResponse(r), nil
+}
+
+// MoveWikiToChannel moves a wiki and all its pages to another channel.
+func (c *Client4) MoveWikiToChannel(ctx context.Context, wikiId string, request map[string]string) (*Wiki, *Response, error) {
+	r, err := c.DoAPIPostJSON(ctx, c.wikiRoute(wikiId)+"/move", request)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Wiki](r)
 }
 
 // GetPages gets all pages for a wiki with pagination.

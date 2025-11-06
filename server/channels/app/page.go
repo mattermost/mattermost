@@ -251,6 +251,11 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 		mlog.String("channel_id", channelID),
 		mlog.String("parent_id", pageParentID))
 
+	// Enrich page with property values (status, etc.)
+	if enrichErr := a.EnrichPageWithProperties(rctx, createdPage); enrichErr != nil {
+		return nil, enrichErr
+	}
+
 	return createdPage, nil
 }
 
@@ -296,6 +301,11 @@ func (a *App) GetPage(rctx request.CTX, pageID string) (*model.Post, *model.AppE
 		}
 		rctx.Logger().Debug("GetPage: content retrieved", mlog.String("page_id", pageID), mlog.Int("content_length", len(contentJSON)))
 		post.Message = contentJSON
+	}
+
+	// Enrich page with property values (status, etc.)
+	if enrichErr := a.EnrichPageWithProperties(rctx, post); enrichErr != nil {
+		return nil, enrichErr
 	}
 
 	rctx.Logger().Debug("GetPage: returning post", mlog.String("page_id", pageID), mlog.Int("message_length", len(post.Message)))
@@ -407,12 +417,21 @@ func (a *App) UpdatePage(rctx request.CTX, pageID, title, content, searchText st
 				mlog.Err(contentErr))
 			return nil, model.NewAppError("UpdatePage", "app.page.update.save_content.app_error", nil, "", http.StatusInternalServerError).Wrap(contentErr)
 		}
+
+		a.handlePageMentions(rctx, updatedPost, updatedPost.ChannelId, content, session.UserId)
 	}
 
 	rctx.Logger().Info("Page updated successfully",
 		mlog.String("page_id", pageID),
 		mlog.Bool("title_updated", titleChanged),
 		mlog.Bool("content_updated", content != ""))
+
+	a.handlePageUpdateNotification(rctx, updatedPost, session.UserId)
+
+	// Enrich page with property values (status, etc.)
+	if enrichErr := a.EnrichPageWithProperties(rctx, updatedPost); enrichErr != nil {
+		return nil, enrichErr
+	}
 
 	return updatedPost, nil
 }
@@ -482,12 +501,16 @@ func (a *App) RestorePage(rctx request.CTX, pageID string) *model.AppError {
 		rctx.Logger().Warn("PageContent not found during restore", mlog.String("page_id", pageID))
 	}
 
-	post.DeleteAt = 0
-	post.UpdateAt = model.GetMillis()
-	if _, err := a.Srv().Store().Post().Update(rctx, post, post); err != nil {
+	restoredPost := post.Clone()
+	restoredPost.DeleteAt = 0
+	restoredPost.UpdateAt = model.GetMillis()
+	_, updateErr := a.Srv().Store().Post().Update(rctx, restoredPost, post)
+	if updateErr != nil {
 		return model.NewAppError("RestorePage",
-			"app.page.restore.post_error.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			"app.page.restore.post_error.app_error", nil, "", http.StatusInternalServerError).Wrap(updateErr)
 	}
+
+	a.invalidateCacheForChannelPosts(restoredPost.ChannelId)
 
 	rctx.Logger().Info("Restored page", mlog.String("page_id", pageID))
 	return nil
@@ -549,6 +572,11 @@ func (a *App) GetPageChildren(rctx request.CTX, postID string, options model.Get
 		}
 	}
 
+	// Enrich pages with property values (status, etc.)
+	if enrichErr := a.EnrichPagesWithProperties(rctx, postList); enrichErr != nil {
+		return nil, enrichErr
+	}
+
 	a.applyPostsWillBeConsumedHook(postList.Posts)
 
 	return postList, nil
@@ -565,6 +593,11 @@ func (a *App) GetPageAncestors(rctx request.CTX, postID string) (*model.PostList
 		default:
 			return nil, model.NewAppError("GetPageAncestors", "app.post.get_page_ancestors.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+	}
+
+	// Enrich pages with property values (status, etc.)
+	if enrichErr := a.EnrichPagesWithProperties(rctx, postList); enrichErr != nil {
+		return nil, enrichErr
 	}
 
 	a.applyPostsWillBeConsumedHook(postList.Posts)
@@ -585,6 +618,11 @@ func (a *App) GetPageDescendants(rctx request.CTX, postID string) (*model.PostLi
 		}
 	}
 
+	// Enrich pages with property values (status, etc.)
+	if enrichErr := a.EnrichPagesWithProperties(rctx, postList); enrichErr != nil {
+		return nil, enrichErr
+	}
+
 	a.applyPostsWillBeConsumedHook(postList.Posts)
 
 	return postList, nil
@@ -599,6 +637,11 @@ func (a *App) GetChannelPages(rctx request.CTX, channelID string) (*model.PostLi
 	postList, err := a.Srv().Store().Page().GetChannelPages(channelID)
 	if err != nil {
 		return nil, model.NewAppError("GetChannelPages", "app.post.get_channel_pages.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Enrich pages with property values (status, etc.)
+	if enrichErr := a.EnrichPagesWithProperties(rctx, postList); enrichErr != nil {
+		return nil, enrichErr
 	}
 
 	a.applyPostsWillBeConsumedHook(postList.Posts)
@@ -844,8 +887,8 @@ func (a *App) extractMentionsFromNodes(nodes []json.RawMessage, mentionIDs map[s
 	}
 }
 
-func (a *App) validatePageDraftForPublish(rctx request.CTX, userId, wikiId, draftId, parentId, message string) (*model.Draft, *model.Wiki, *model.Channel, *model.AppError) {
-	draft, err := a.Srv().Store().Draft().GetPageDraft(userId, wikiId, draftId)
+func (a *App) validatePageDraftForPublish(rctx request.CTX, userId, wikiId, draftId, parentId, message string) (*model.PageDraft, *model.Wiki, *model.Channel, *model.AppError) {
+	draft, err := a.Srv().Store().PageDraft().Get(userId, wikiId, draftId)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(err, &nfErr) {
@@ -856,25 +899,24 @@ func (a *App) validatePageDraftForPublish(rctx request.CTX, userId, wikiId, draf
 			nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	// Use provided message if available (from editor), otherwise use draft.Message from DB
+	// Use provided message if available (from editor), otherwise use draft content from DB
 	contentToValidate := message
 	if contentToValidate == "" {
-		contentToValidate = draft.Message
+		var contentErr error
+		contentToValidate, contentErr = draft.GetDocumentJSON()
+		if contentErr != nil {
+			return nil, nil, nil, model.NewAppError("validatePageDraftForPublish", "app.draft.publish_page.content_error",
+				nil, "", http.StatusInternalServerError).Wrap(contentErr)
+		}
 	}
 
 	rctx.Logger().Debug("Draft content before validation",
 		mlog.String("provided_message", message),
 		mlog.Int("provided_length", len(message)),
-		mlog.String("db_message", draft.Message),
-		mlog.Int("db_length", len(draft.Message)),
+		mlog.Int("db_content_length", len(contentToValidate)),
 		mlog.Int("trimmed_length", len(strings.TrimSpace(contentToValidate))),
-		mlog.Int("file_count", len(draft.FileIds)),
+		mlog.Int("file_ids_count", len(draft.FileIds)),
 		mlog.Any("props", draft.Props))
-
-	if strings.TrimSpace(contentToValidate) == "" && len(draft.FileIds) == 0 {
-		return nil, nil, nil, model.NewAppError("validatePageDraftForPublish", "app.draft.publish_page.empty",
-			nil, "cannot publish empty page draft", http.StatusBadRequest)
-	}
 
 	wiki, wikiErr := a.GetWiki(rctx, wikiId)
 	if wikiErr != nil {
@@ -909,8 +951,19 @@ func (a *App) validatePageDraftForPublish(rctx request.CTX, userId, wikiId, draf
 	return draft, wiki, channel, nil
 }
 
-func (a *App) applyDraftToPage(rctx request.CTX, draft *model.Draft, wikiId, parentId, title, searchText, userId string) (*model.Post, *model.AppError) {
-	pageId, isUpdate := draft.Props["page_id"].(string)
+func (a *App) applyDraftToPage(rctx request.CTX, draft *model.PageDraft, wikiId, parentId, title, searchText, message, userId string) (*model.Post, *model.AppError) {
+	pageId, isUpdate := draft.GetProps()["page_id"].(string)
+
+	// Use provided message if available (latest from editor), otherwise get from draft
+	contentToUse := message
+	if contentToUse == "" {
+		var contentErr error
+		contentToUse, contentErr = draft.GetDocumentJSON()
+		if contentErr != nil {
+			return nil, model.NewAppError("applyDraftToPage", "app.draft.publish_page.content_error",
+				nil, "", http.StatusInternalServerError).Wrap(contentErr)
+		}
+	}
 
 	if isUpdate && pageId != "" {
 		rctx.Logger().Debug("Updating existing page from draft",
@@ -935,7 +988,7 @@ func (a *App) applyDraftToPage(rctx request.CTX, draft *model.Draft, wikiId, par
 			}
 		}
 
-		updatedPost, updateErr := a.UpdatePage(rctx, pageId, title, draft.Message, searchText)
+		updatedPost, updateErr := a.UpdatePage(rctx, pageId, title, contentToUse, searchText)
 		if updateErr != nil {
 			return nil, updateErr
 		}
@@ -955,13 +1008,23 @@ func (a *App) applyDraftToPage(rctx request.CTX, draft *model.Draft, wikiId, par
 			mlog.String("wiki_id", wikiId),
 			mlog.String("parent_id", parentId))
 
+		// Apply page status from draft props if present
+		if statusValue, hasStatus := draft.GetProps()["page_status"].(string); hasStatus && statusValue != "" {
+			if statusErr := a.SetPageStatus(rctx, updatedPost.Id, statusValue); statusErr != nil {
+				rctx.Logger().Error("Failed to set page status from draft props",
+					mlog.String("page_id", updatedPost.Id),
+					mlog.String("status", statusValue),
+					mlog.Err(statusErr))
+			}
+		}
+
 		return updatedPost, nil
 	}
 
 	rctx.Logger().Debug("Creating new page from draft",
 		mlog.String("wiki_id", wikiId))
 
-	createdPost, createErr := a.CreateWikiPage(rctx, wikiId, parentId, title, draft.Message, userId, searchText)
+	createdPost, createErr := a.CreateWikiPage(rctx, wikiId, parentId, title, contentToUse, userId, searchText)
 	if createErr != nil {
 		return nil, createErr
 	}
@@ -971,10 +1034,27 @@ func (a *App) applyDraftToPage(rctx request.CTX, draft *model.Draft, wikiId, par
 		mlog.String("wiki_id", wikiId),
 		mlog.String("parent_id", parentId))
 
+	// Apply page status from draft props if present
+	if statusValue, hasStatus := draft.GetProps()["page_status"].(string); hasStatus && statusValue != "" {
+		if statusErr := a.SetPageStatus(rctx, createdPost.Id, statusValue); statusErr != nil {
+			rctx.Logger().Warn("Failed to set page status from draft props",
+				mlog.String("page_id", createdPost.Id),
+				mlog.String("status", statusValue),
+				mlog.Err(statusErr))
+		}
+	}
+
 	return createdPost, nil
 }
 
 func (a *App) broadcastPagePublished(page *model.Post, wikiId, channelId, draftId, userId string) {
+	mlog.Info("Broadcasting page published event",
+		mlog.String("page_id", page.Id),
+		mlog.String("wiki_id", wikiId),
+		mlog.String("channel_id", channelId),
+		mlog.String("draft_id", draftId),
+		mlog.String("user_id", userId))
+
 	pageJSON, jsonErr := page.ToJSON()
 	if jsonErr != nil {
 		mlog.Warn("Failed to encode page to JSON", mlog.Err(jsonErr))
@@ -990,37 +1070,55 @@ func (a *App) broadcastPagePublished(page *model.Post, wikiId, channelId, draftI
 	message.SetBroadcast(&model.WebsocketBroadcast{
 		ChannelId: channelId,
 	})
+
+	mlog.Info("Publishing message to websocket", mlog.String("event_type", string(model.WebsocketEventPagePublished)))
 	a.Publish(message)
+	mlog.Info("Message published to websocket")
 }
 
 // PublishPageDraft publishes a draft as a page
-func (a *App) PublishPageDraft(rctx request.CTX, userId, wikiId, draftId, parentId, title, searchText, message string) (*model.Post, *model.AppError) {
+func (a *App) PublishPageDraft(rctx request.CTX, userId, wikiId, draftId, parentId, title, searchText, message, pageStatus string) (*model.Post, *model.AppError) {
 	rctx.Logger().Debug("Publishing page draft",
 		mlog.String("user_id", userId),
 		mlog.String("wiki_id", wikiId),
 		mlog.String("draft_id", draftId),
 		mlog.Int("message_length", len(message)))
 
-	draft, wiki, channel, err := a.validatePageDraftForPublish(rctx, userId, wikiId, draftId, parentId, message)
+	draft, wiki, _, err := a.validatePageDraftForPublish(rctx, userId, wikiId, draftId, parentId, message)
 	if err != nil {
 		return nil, err
 	}
 
-	// If message is provided (latest content from editor), use it instead of draft.Message from database
-	// This prevents race condition where draft.Message might be stale
-	if message != "" {
-		rctx.Logger().Debug("Using provided message instead of draft.Message",
-			mlog.Int("provided_length", len(message)),
-			mlog.Int("draft_length", len(draft.Message)))
-		draft.Message = message
+	// If page_status is provided, merge it into draft.Props to ensure it's applied
+	if pageStatus != "" {
+		props := draft.GetProps()
+		if props == nil {
+			props = make(map[string]any)
+		}
+		props["page_status"] = pageStatus
+		draft.SetProps(props)
 	}
 
-	savedPost, err := a.applyDraftToPage(rctx, draft, wikiId, parentId, title, searchText, userId)
+	savedPost, err := a.applyDraftToPage(rctx, draft, wikiId, parentId, title, searchText, message, userId)
 	if err != nil {
 		return nil, err
 	}
 
-	if deleteErr := a.Srv().Store().Draft().DeletePageDraft(userId, wikiId, draftId); deleteErr != nil {
+	// Handle mentions in the published page content
+	contentToUse := message
+	if contentToUse == "" {
+		var contentErr error
+		contentToUse, contentErr = draft.GetDocumentJSON()
+		if contentErr != nil {
+			rctx.Logger().Warn("Failed to get content for mention handling", mlog.String("page_id", savedPost.Id), mlog.Err(contentErr))
+		} else {
+			a.handlePageMentions(rctx, savedPost, savedPost.ChannelId, contentToUse, userId)
+		}
+	} else {
+		a.handlePageMentions(rctx, savedPost, savedPost.ChannelId, contentToUse, userId)
+	}
+
+	if deleteErr := a.Srv().Store().PageDraft().Delete(userId, wikiId, draftId); deleteErr != nil {
 		rctx.Logger().Warn("Failed to delete draft after successful publish - orphaned draft will remain",
 			mlog.String("user_id", userId),
 			mlog.String("wiki_id", wikiId),
@@ -1041,17 +1139,13 @@ func (a *App) PublishPageDraft(rctx request.CTX, userId, wikiId, draftId, parent
 			mlog.Err(updateErr))
 	}
 
+	// Fetch the published page with content from PageContents table
 	pageWithContent, getErr := a.GetPage(rctx, savedPost.Id)
 	if getErr != nil {
 		rctx.Logger().Warn("Failed to fetch published page with content", mlog.String("page_id", savedPost.Id), mlog.Err(getErr))
+		// Fallback to savedPost without content if GetPage fails
+		a.broadcastPagePublished(savedPost, wikiId, wiki.ChannelId, draftId, userId)
 		return savedPost, nil
-	}
-
-	mentionedUserIDs, extractErr := a.ExtractMentionsFromTipTapContent(pageWithContent.Message)
-	if extractErr != nil {
-		rctx.Logger().Warn("Failed to extract mentions from page content", mlog.String("page_id", pageWithContent.Id), mlog.Err(extractErr))
-	} else {
-		a.sendPageMentionNotifications(rctx, pageWithContent, channel, userId, mentionedUserIDs)
 	}
 
 	a.broadcastPagePublished(pageWithContent, wikiId, wiki.ChannelId, draftId, userId)
@@ -1066,7 +1160,7 @@ func (a *App) updateChildDraftParentReferences(rctx request.CTX, userId, wikiId,
 		mlog.String("old_draft_id", oldDraftId),
 		mlog.String("new_page_id", newPageId))
 
-	drafts, err := a.Srv().Store().Draft().GetPageDraftsForWiki(userId, wikiId)
+	drafts, err := a.Srv().Store().PageDraft().GetForWiki(userId, wikiId)
 	if err != nil {
 		rctx.Logger().Error("Failed to get drafts for wiki", mlog.Err(err))
 		return model.NewAppError("updateChildDraftParentReferences", "app.draft.get_drafts.app_error",
@@ -1076,10 +1170,9 @@ func (a *App) updateChildDraftParentReferences(rctx request.CTX, userId, wikiId,
 	rctx.Logger().Info("Found drafts in wiki", mlog.Int("draft_count", len(drafts)))
 
 	for _, childDraft := range drafts {
-		draftId := extractDraftIdFromRootId(childDraft.RootId)
+		draftId := childDraft.DraftId
 		rctx.Logger().Info("Checking draft",
 			mlog.String("draft_id", draftId),
-			mlog.String("root_id", childDraft.RootId),
 			mlog.Any("props", childDraft.GetProps()))
 
 		parentIdProp, hasParent := childDraft.GetProps()["page_parent_id"]
@@ -1119,25 +1212,27 @@ func (a *App) updateChildDraftParentReferences(rctx request.CTX, userId, wikiId,
 		updatedProps := maps.Clone(childDraft.GetProps())
 		updatedProps["page_parent_id"] = newPageId
 
-		childDraftId := extractDraftIdFromRootId(childDraft.RootId)
-		title, _ := childDraft.GetProps()["title"].(string)
+		childDraftId := childDraft.DraftId
 		pageId, _ := childDraft.GetProps()["page_id"].(string)
 
 		rctx.Logger().Info("About to update draft",
 			mlog.String("child_draft_id", childDraftId),
-			mlog.String("title", title),
+			mlog.String("title", childDraft.Title),
 			mlog.String("page_id", pageId),
 			mlog.Any("updated_props", updatedProps))
 
-		updatedDraft, updateErr := a.Srv().Store().Draft().UpsertPageDraftWithMetadata(
-			userId,
-			wikiId,
-			childDraftId,
-			childDraft.Message,
-			title,
-			pageId,
-			updatedProps,
-		)
+		updatedDraft := &model.PageDraft{
+			UserId:   userId,
+			WikiId:   wikiId,
+			DraftId:  childDraftId,
+			Title:    childDraft.Title,
+			Content:  childDraft.Content,
+			CreateAt: childDraft.CreateAt,
+			UpdateAt: childDraft.UpdateAt,
+		}
+		updatedDraft.SetProps(updatedProps)
+
+		updatedDraft, updateErr := a.Srv().Store().PageDraft().Upsert(updatedDraft)
 		if updateErr != nil {
 			rctx.Logger().Error("Failed to update child draft parent reference",
 				mlog.String("child_draft_id", childDraftId),
@@ -1166,12 +1261,39 @@ func (a *App) updateChildDraftParentReferences(rctx request.CTX, userId, wikiId,
 	return nil
 }
 
-func extractDraftIdFromRootId(rootId string) string {
-	parts := strings.Split(rootId, ":")
-	if len(parts) == 2 {
-		return parts[1]
+// handlePageMentions extracts mentions from page content and sends notifications
+func (a *App) handlePageMentions(rctx request.CTX, page *model.Post, channelId, content, authorUserID string) {
+	rctx.Logger().Debug("handlePageMentions called",
+		mlog.String("page_id", page.Id),
+		mlog.String("channel_id", channelId),
+		mlog.Int("content_length", len(content)))
+
+	if content == "" {
+		rctx.Logger().Debug("handlePageMentions: empty content", mlog.String("page_id", page.Id))
+		return
 	}
-	return rootId
+
+	mentionedUserIDs, extractErr := a.ExtractMentionsFromTipTapContent(content)
+	if extractErr != nil {
+		rctx.Logger().Warn("Failed to extract mentions from page content", mlog.String("page_id", page.Id), mlog.Err(extractErr))
+		return
+	}
+
+	rctx.Logger().Debug("handlePageMentions: extracted mentions",
+		mlog.String("page_id", page.Id),
+		mlog.Int("mention_count", len(mentionedUserIDs)))
+
+	if len(mentionedUserIDs) == 0 {
+		return
+	}
+
+	channel, chanErr := a.GetChannel(rctx, channelId)
+	if chanErr != nil {
+		rctx.Logger().Warn("Failed to get channel for mention notifications", mlog.String("channel_id", channelId), mlog.Err(chanErr))
+		return
+	}
+
+	a.sendPageMentionNotifications(rctx, page, channel, authorUserID, mentionedUserIDs)
 }
 
 func (a *App) sendPageMentionNotifications(rctx request.CTX, page *model.Post, channel *model.Channel, authorUserID string, mentionedUserIDs []string) {
@@ -1204,6 +1326,78 @@ func (a *App) sendPageMentionNotifications(rctx request.CTX, page *model.Post, c
 		rctx.Logger().Debug("Successfully sent mention notifications for page",
 			mlog.String("page_id", page.Id),
 			mlog.Int("mention_count", len(mentionedUserIDs)))
+	}
+
+	rctx.Logger().Debug("Attempting to get wiki for page mention system messages", mlog.String("page_id", page.Id))
+	wikiId, wikiErr := a.GetWikiIdForPage(rctx, page.Id)
+	if wikiErr != nil {
+		rctx.Logger().Warn("Failed to get wiki for page mention system messages",
+			mlog.String("page_id", page.Id),
+			mlog.Err(wikiErr))
+		return
+	}
+	rctx.Logger().Debug("Got wiki ID for page", mlog.String("page_id", page.Id), mlog.String("wiki_id", wikiId))
+
+	wiki, wikiErr := a.GetWiki(rctx, wikiId)
+	if wikiErr != nil {
+		rctx.Logger().Warn("Failed to get wiki for page mention system messages",
+			mlog.String("wiki_id", wikiId),
+			mlog.Err(wikiErr))
+		return
+	}
+	rctx.Logger().Debug("Got wiki, checking ShowMentionsInChannelFeed",
+		mlog.String("wiki_id", wikiId),
+		mlog.Bool("show_mentions", wiki.ShowMentionsInChannelFeed()))
+
+	if !wiki.ShowMentionsInChannelFeed() {
+		rctx.Logger().Debug("Wiki has channel feed mentions disabled",
+			mlog.String("wiki_id", wikiId))
+		return
+	}
+	rctx.Logger().Debug("Creating system messages for mentions", mlog.String("wiki_id", wikiId), mlog.Int("mention_count", len(mentionedUserIDs)))
+
+	pageTitle := page.GetProp("title")
+	if pageTitle == "" {
+		pageTitle = "Untitled"
+	}
+
+	for _, mentionedUserID := range mentionedUserIDs {
+		mentionedUser, mentionErr := a.GetUser(mentionedUserID)
+		if mentionErr != nil {
+			rctx.Logger().Warn("Failed to get mentioned user for system message",
+				mlog.String("user_id", mentionedUserID),
+				mlog.Err(mentionErr))
+			continue
+		}
+
+		message := fmt.Sprintf("Mentioned @%s on the page: [%s](%s)",
+			mentionedUser.Username,
+			pageTitle,
+			fmt.Sprintf("/[team_name]/channels/[channel_name]/pages/%s", page.Id))
+
+		systemPost := &model.Post{
+			UserId:    authorUserID,
+			ChannelId: channel.Id,
+			Message:   message,
+			Type:      model.PostTypePageMention,
+			Props: model.StringInterface{
+				"page_id":           page.Id,
+				"mentioned_user_id": mentionedUserID,
+				"wiki_id":           wikiId,
+				"page_title":        pageTitle,
+			},
+		}
+
+		flags := model.CreatePostFlags{
+			TriggerWebhooks: false,
+			SetOnline:       true,
+		}
+		if _, createErr := a.CreatePost(rctx, systemPost, channel, flags); createErr != nil {
+			rctx.Logger().Warn("Failed to create page mention system message",
+				mlog.String("page_id", page.Id),
+				mlog.String("mentioned_user_id", mentionedUserID),
+				mlog.Err(createErr))
+		}
 	}
 }
 
@@ -1325,4 +1519,158 @@ func (a *App) CreatePageCommentReply(rctx request.CTX, pageID, parentCommentID, 
 		mlog.String("parent_comment_id", parentCommentID))
 
 	return createdReply, nil
+}
+
+// TransformPageCommentReply transforms a post structure when replying to a page comment
+// from the standard RHS interface. This allows users to reply to page comments using
+// the normal Mattermost reply UI without special handling.
+//
+// Page comments have RootId = pageID (not empty), so when a user tries to reply to a
+// comment with RootId = commentID, standard validation fails. This function detects
+// that case and transforms:
+//   - reply.RootId (commentID) -> reply.RootId (pageID)
+//   - Sets Props[parent_comment_id] = commentID
+//   - Sets Type = PostTypePageComment
+func (a *App) TransformPageCommentReply(rctx request.CTX, post *model.Post, parentComment *model.Post) bool {
+	// Only transform if parent is a page comment
+	if parentComment.Type != model.PostTypePageComment {
+		return false
+	}
+
+	// Page comments have RootId = pageID
+	parentCommentID := post.RootId
+	pageID := parentComment.RootId
+
+	// Validate that the parent comment only replies to a page (one level nesting)
+	if parentComment.Props["parent_comment_id"] != nil {
+		// This is a reply to a reply - not allowed
+		return false
+	}
+
+	// Update the post structure for page comment reply
+	post.RootId = pageID
+	post.Type = model.PostTypePageComment
+	if post.Props == nil {
+		post.Props = make(model.StringInterface)
+	}
+	post.Props["page_id"] = pageID
+	post.Props["parent_comment_id"] = parentCommentID
+
+	rctx.Logger().Debug("Transformed page comment reply structure",
+		mlog.String("original_root_id", parentCommentID),
+		mlog.String("new_root_id", pageID),
+		mlog.String("parent_comment_id", parentCommentID))
+
+	return true
+}
+
+const twoHoursInMilliseconds = int64(2 * 60 * 60 * 1000)
+
+func (a *App) handlePageUpdateNotification(rctx request.CTX, page *model.Post, userId string) {
+	wikiId, err := a.GetWikiIdForPage(rctx, page.Id)
+	if err != nil {
+		rctx.Logger().Warn("Failed to get wiki for page update notification",
+			mlog.String("page_id", page.Id),
+			mlog.Err(err))
+		return
+	}
+
+	wiki, wikiErr := a.GetWiki(rctx, wikiId)
+	if wikiErr != nil {
+		rctx.Logger().Warn("Failed to get wiki details for page update notification",
+			mlog.String("wiki_id", wikiId),
+			mlog.Err(wikiErr))
+		return
+	}
+
+	channel, chanErr := a.GetChannel(rctx, page.ChannelId)
+	if chanErr != nil {
+		rctx.Logger().Warn("Failed to get channel for page update notification",
+			mlog.String("channel_id", page.ChannelId),
+			mlog.Err(chanErr))
+		return
+	}
+
+	twoHoursAgo := model.GetMillis() - twoHoursInMilliseconds
+
+	existingPosts, searchErr := a.GetPostsSince(rctx, model.GetPostsSinceOptions{
+		ChannelId: page.ChannelId,
+		Time:      twoHoursAgo,
+	})
+
+	if searchErr != nil {
+		rctx.Logger().Warn("Failed to search for existing page update notifications",
+			mlog.String("page_id", page.Id),
+			mlog.Err(searchErr))
+		a.createNewPageUpdateNotification(rctx, page, wiki, channel, userId, 1)
+		return
+	}
+
+	var existingNotification *model.Post
+	for _, post := range existingPosts.Posts {
+		if post.Type == model.PostTypePageUpdated {
+			if pageIdProp, ok := post.Props["page_id"].(string); ok && pageIdProp == page.Id {
+				existingNotification = post
+				break
+			}
+		}
+	}
+
+	if existingNotification != nil {
+		updateCount := 1
+		if countProp, ok := existingNotification.Props["update_count"].(float64); ok {
+			updateCount = int(countProp) + 1
+		} else if countProp, ok := existingNotification.Props["update_count"].(int); ok {
+			updateCount = countProp + 1
+		}
+
+		existingNotification.Props["update_count"] = updateCount
+		existingNotification.Props["last_update_time"] = model.GetMillis()
+		existingNotification.Props["last_updater_id"] = userId
+
+		if _, updateErr := a.Srv().Store().Post().Overwrite(rctx, existingNotification); updateErr != nil {
+			rctx.Logger().Warn("Failed to update existing page update notification",
+				mlog.String("notification_id", existingNotification.Id),
+				mlog.String("page_id", page.Id),
+				mlog.Err(updateErr))
+		} else {
+			rctx.Logger().Debug("Updated existing page update notification",
+				mlog.String("notification_id", existingNotification.Id),
+				mlog.String("page_id", page.Id),
+				mlog.Int("update_count", updateCount))
+		}
+	} else {
+		a.createNewPageUpdateNotification(rctx, page, wiki, channel, userId, 1)
+	}
+}
+
+func (a *App) createNewPageUpdateNotification(rctx request.CTX, page *model.Post, wiki *model.Wiki, channel *model.Channel, userId string, updateCount int) {
+	systemPost := &model.Post{
+		ChannelId: channel.Id,
+		UserId:    userId,
+		Type:      model.PostTypePageUpdated,
+		Props: map[string]any{
+			"page_id":          page.Id,
+			"page_title":       page.GetProp("page_title"),
+			"wiki_id":          wiki.Id,
+			"wiki_title":       wiki.Title,
+			"channel_id":       channel.Id,
+			"channel_name":     channel.Name,
+			"update_count":     updateCount,
+			"last_update_time": model.GetMillis(),
+			"last_updater_id":  userId,
+		},
+	}
+
+	if _, err := a.CreatePost(rctx, systemPost, channel, model.CreatePostFlags{}); err != nil {
+		rctx.Logger().Warn("Failed to create page update system message",
+			mlog.String("page_id", page.Id),
+			mlog.String("wiki_id", wiki.Id),
+			mlog.String("channel_id", channel.Id),
+			mlog.Err(err))
+	} else {
+		rctx.Logger().Debug("Created new page update notification",
+			mlog.String("page_id", page.Id),
+			mlog.Int("update_count", updateCount))
+	}
 }

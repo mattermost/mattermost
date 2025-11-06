@@ -21,16 +21,24 @@ export default function wikisReducer(state = initialState, action: AnyAction): W
     switch (action.type) {
     case WikiTypes.RECEIVED_WIKI: {
         const wiki: Wiki = action.data;
+        const existingWiki = state.byId[wiki.id];
 
-        const currentWikiIds = state.byChannel[wiki.channel_id] || [];
+        let nextByChannel = {...state.byChannel};
+
+        // If wiki existed in a different channel, remove it from old channel
+        if (existingWiki && existingWiki.channel_id !== wiki.channel_id) {
+            const oldChannelWikis = nextByChannel[existingWiki.channel_id] || [];
+            nextByChannel[existingWiki.channel_id] = oldChannelWikis.filter((id) => id !== wiki.id);
+        }
+
+        // Add wiki to new channel if not already there
+        const currentWikiIds = nextByChannel[wiki.channel_id] || [];
         const nextWikiIds = currentWikiIds.includes(wiki.id) ? currentWikiIds : [...currentWikiIds, wiki.id];
+        nextByChannel[wiki.channel_id] = nextWikiIds;
 
         return {
             ...state,
-            byChannel: {
-                ...state.byChannel,
-                [wiki.channel_id]: nextWikiIds,
-            },
+            byChannel: nextByChannel,
             byId: {
                 ...state.byId,
                 [wiki.id]: wiki,

@@ -1,0 +1,302 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import {expect, test} from './pages_test_fixture';
+
+import {createWikiThroughUI, getNewPageButton, fillCreatePageModal, waitForPageInHierarchy} from './test_helpers';
+
+/**
+ * @objective Verify publishing page with Confluence-copied content doesn't cause draggableId errors
+ *
+ * @precondition
+ * Content pasted from Confluence often includes complex HTML structures with nested divs,
+ * tables, and inline styles that may cause issues during rendering
+ */
+test('publishes page with Confluence-like content without draggableId errors', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki through UI
+    const wiki = await createWikiThroughUI(page, `Confluence Test Wiki ${pw.random.id()}`);
+
+    // # Create new page
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Confluence Content Test');
+
+    // # Wait for editor to be visible
+    const editor = page.locator('.ProseMirror').first();
+    await editor.waitFor({state: 'visible', timeout: 5000});
+
+    // # Simulate pasting complex Confluence-like HTML content
+    // This mimics content copied from Confluence which includes:
+    // - Nested divs with data attributes
+    // - Complex table structures
+    // - Inline styles
+    // - Multiple paragraph tags
+    const confluenceHTML = `
+        <div data-confluence-id="some-id" class="confluence-content">
+            <h1>Heading from Confluence</h1>
+            <p style="margin-bottom: 10px;">This is a paragraph with <strong>bold</strong> and <em>italic</em> text.</p>
+            <table>
+                <tbody>
+                    <tr>
+                        <td><p>Cell 1</p></td>
+                        <td><p>Cell 2</p></td>
+                    </tr>
+                    <tr>
+                        <td><p>Cell 3</p></td>
+                        <td><p>Cell 4</p></td>
+                    </tr>
+                </tbody>
+            </table>
+            <p>Another paragraph after table.</p>
+            <ul>
+                <li><p>List item 1</p></li>
+                <li><p>List item 2 with <a href="https://example.com">link</a></p></li>
+            </ul>
+        </div>
+    `;
+
+    await editor.click();
+
+    // # Paste the Confluence-like HTML content
+    await page.evaluate((html) => {
+        const editorElement = document.querySelector('.ProseMirror');
+        if (editorElement) {
+            const dataTransfer = new DataTransfer();
+            dataTransfer.setData('text/html', html);
+            dataTransfer.setData('text/plain', 'Fallback text content');
+            const pasteEvent = new ClipboardEvent('paste', {
+                clipboardData: dataTransfer,
+                bubbles: true,
+                cancelable: true,
+            });
+            editorElement.dispatchEvent(pasteEvent);
+        }
+    }, confluenceHTML);
+
+    // # Wait for content to be processed
+    await page.waitForTimeout(1000);
+
+    // * Verify content appears in editor (check for heading text)
+    await expect(editor).toContainText('Heading from Confluence');
+
+    // # Listen for console errors before publishing
+    const consoleErrors: string[] = [];
+    page.on('console', (msg) => {
+        if (msg.type() === 'error') {
+            consoleErrors.push(msg.text());
+        }
+    });
+
+    // # Publish the page
+    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
+    await publishButton.click();
+
+    // # Wait for publish to complete
+    await page.waitForLoadState('networkidle', {timeout: 15000});
+
+    // * Verify no draggableId errors occurred
+    const draggableErrors = consoleErrors.filter((error) =>
+        error.includes('Invariant failed') && error.includes('draggableId'),
+    );
+    expect(draggableErrors).toHaveLength(0);
+
+    // * Verify no missing translation errors for draft.publish_page.not_found
+    const translationErrors = consoleErrors.filter((error) =>
+        error.includes('MISSING_TRANSLATION') && error.includes('app.draft.publish_page.not_found'),
+    );
+    expect(translationErrors).toHaveLength(0);
+
+    // * Verify page published successfully
+    const pageContent = page.locator('[data-testid="page-viewer-content"]');
+    await expect(pageContent).toBeVisible();
+    await expect(pageContent).toContainText('Heading from Confluence');
+
+    // * Verify hierarchy panel still works (no drag-and-drop errors)
+    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    await expect(hierarchyPanel).toBeVisible();
+
+    // * Verify the published page appears in hierarchy
+    await waitForPageInHierarchy(page, 'Confluence Content Test', 10000);
+
+    // * Verify no JavaScript errors were logged during the publish flow
+    expect(consoleErrors.filter((e) => !e.includes('404'))).toHaveLength(0);
+});
+
+/**
+ * @objective Verify translation keys exist for draft publishing errors
+ *
+ * @precondition
+ * Edge case where a draft might be missing during publish,
+ * which could trigger the "draft not found" error
+ */
+test('shows proper error message when draft not found during publish', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki through UI
+    const wiki = await createWikiThroughUI(page, `Invalid Draft Wiki ${pw.random.id()}`);
+
+    // # Create new page
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Test Page');
+
+    // # Wait for editor to be visible
+    const editor = page.locator('.ProseMirror').first();
+    await editor.waitFor({state: 'visible', timeout: 5000});
+
+    // # Add some content
+    await editor.click();
+    await editor.type('Test content');
+
+    // # Monitor for console errors
+    const consoleErrors: string[] = [];
+    const consoleWarnings: string[] = [];
+    page.on('console', (msg) => {
+        if (msg.type() === 'error') {
+            consoleErrors.push(msg.text());
+        } else if (msg.type() === 'warning') {
+            consoleWarnings.push(msg.text());
+        }
+    });
+
+    // # Try to manipulate Redux state to simulate a missing draft scenario
+    // (This tests the error handling path)
+    await page.evaluate(() => {
+        // Try to clear draft from storage (simulating race condition)
+        try {
+            const keys = Object.keys(localStorage);
+            keys.forEach((key) => {
+                if (key.includes('draft') || key.includes('_draft_')) {
+                    localStorage.removeItem(key);
+                }
+            });
+        } catch (e) {
+            // Ignore if localStorage manipulation fails
+        }
+    });
+
+    // # Wait a moment for state to sync
+    await page.waitForTimeout(500);
+
+    // # Attempt to publish
+    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
+    await publishButton.click();
+
+    // # Wait for network activity
+    await page.waitForTimeout(3000);
+
+    // * Verify no missing translation errors appear
+    const translationErrors = consoleErrors.filter((error) =>
+        error.includes('MISSING_TRANSLATION') && error.includes('app.draft.publish_page'),
+    );
+    expect(translationErrors).toHaveLength(0);
+
+    // * Verify no draggableId errors occur even if draft publish fails
+    const draggableErrors = consoleErrors.filter((error) =>
+        error.includes('Invariant failed') && error.includes('draggableId'),
+    );
+    expect(draggableErrors).toHaveLength(0);
+});
+
+/**
+ * @objective Verify hierarchy drag-and-drop still works after publishing a page
+ */
+test('hierarchy drag-and-drop works after publishing page with complex content', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki through UI
+    const wiki = await createWikiThroughUI(page, `Drag Drop Wiki ${pw.random.id()}`);
+
+    // # Create a parent page first
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Parent Page');
+
+    const editor = page.locator('.ProseMirror').first();
+    await editor.waitFor({state: 'visible', timeout: 5000});
+    await editor.click();
+    await editor.type('Parent content');
+
+    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
+    await publishButton.click();
+    await page.waitForLoadState('networkidle');
+
+    // # Wait for parent page to appear in hierarchy
+    await waitForPageInHierarchy(page, 'Parent Page', 10000);
+
+    // # Create a child page with Confluence-like content
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Child Page');
+
+    const childEditor = page.locator('.ProseMirror').first();
+    await childEditor.waitFor({state: 'visible', timeout: 5000});
+
+    // # Paste complex content
+    const complexHTML = '<div><h2>Child Heading</h2><p>Some <strong>formatted</strong> content</p></div>';
+    await childEditor.click();
+    await page.evaluate((html) => {
+        const editorElement = document.querySelector('.ProseMirror');
+        if (editorElement) {
+            const dataTransfer = new DataTransfer();
+            dataTransfer.setData('text/html', html);
+            const pasteEvent = new ClipboardEvent('paste', {
+                clipboardData: dataTransfer,
+                bubbles: true,
+                cancelable: true,
+            });
+            editorElement.dispatchEvent(pasteEvent);
+        }
+    }, complexHTML);
+
+    await page.waitForTimeout(1000);
+
+    // # Publish child page
+    await publishButton.click();
+    await page.waitForLoadState('networkidle');
+
+    // * Verify child page appears in hierarchy
+    await waitForPageInHierarchy(page, 'Child Page', 10000);
+
+    // # Monitor for draggableId errors
+    const consoleErrors: string[] = [];
+    page.on('console', (msg) => {
+        if (msg.type() === 'error') {
+            consoleErrors.push(msg.text());
+        }
+    });
+
+    // # Attempt to view the hierarchy panel (this triggers Draggable rendering)
+    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    await expect(hierarchyPanel).toBeVisible();
+
+    // # Try to interact with the page nodes in hierarchy
+    const childPageNode = hierarchyPanel.locator('text="Child Page"').first();
+    await expect(childPageNode).toBeVisible();
+
+    // # Wait a moment for any drag-and-drop initialization
+    await page.waitForTimeout(1000);
+
+    // * Verify no draggableId errors occurred
+    const draggableErrors = consoleErrors.filter((error) =>
+        error.includes('Invariant failed') && error.includes('draggableId'),
+    );
+    expect(draggableErrors).toHaveLength(0);
+
+    // * Verify both pages are visible in hierarchy
+    await expect(hierarchyPanel).toContainText('Parent Page');
+    await expect(hierarchyPanel).toContainText('Child Page');
+});

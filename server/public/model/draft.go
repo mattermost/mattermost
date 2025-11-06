@@ -28,9 +28,16 @@ type Draft struct {
 }
 
 func (o *Draft) IsValid(maxDraftSize int) *AppError {
-	if utf8.RuneCountInString(o.Message) > maxDraftSize {
+	// For page drafts, use PageContentMaxSize instead of post message limit
+	// Page drafts store TipTap JSON in Message field which can be much larger
+	maxSize := maxDraftSize
+	if o.IsPageDraft() {
+		maxSize = PageContentMaxSize
+	}
+
+	if utf8.RuneCountInString(o.Message) > maxSize {
 		return NewAppError("Drafts.IsValid", "model.draft.is_valid.message_length.app_error",
-			map[string]any{"Length": utf8.RuneCountInString(o.Message), "MaxLength": maxDraftSize}, "channelid="+o.ChannelId, http.StatusBadRequest)
+			map[string]any{"Length": utf8.RuneCountInString(o.Message), "MaxLength": maxSize}, "channelid="+o.ChannelId, http.StatusBadRequest)
 	}
 
 	return o.BaseIsValid()
@@ -129,4 +136,38 @@ func (o *Draft) IsPageDraft() bool {
 	_, hasTitle := props["title"]
 	_, hasPageId := props["page_id"]
 	return hasTitle || hasPageId
+}
+
+// IsEditingExistingPage determines if a draft is editing an existing published page
+// (vs creating a new page). When editing an existing page, the draft stores the
+// published page_id in props.
+func (o *Draft) IsEditingExistingPage() bool {
+	props := o.GetProps()
+	if props == nil {
+		return false
+	}
+	pageId, hasPageId := props["page_id"]
+	if !hasPageId {
+		return false
+	}
+	pageIdStr, ok := pageId.(string)
+	return ok && pageIdStr != ""
+}
+
+// GetPublishedPageId returns the published page ID if this draft is editing an
+// existing page. Returns empty string if this is a new page draft.
+func (o *Draft) GetPublishedPageId() string {
+	props := o.GetProps()
+	if props == nil {
+		return ""
+	}
+	pageId, ok := props["page_id"]
+	if !ok {
+		return ""
+	}
+	pageIdStr, ok := pageId.(string)
+	if !ok {
+		return ""
+	}
+	return pageIdStr
 }

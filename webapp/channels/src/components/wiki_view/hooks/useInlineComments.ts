@@ -41,7 +41,8 @@ export const useInlineComments = (pageId?: string, wikiId?: string, onCommentCre
                 onCommentCreated(result.id);
             }
         } catch (error) {
-            // Silently handle inline comment creation errors
+            // eslint-disable-next-line no-console
+            console.error('Failed to create inline comment:', error);
         }
 
         setShowCommentModal(false);

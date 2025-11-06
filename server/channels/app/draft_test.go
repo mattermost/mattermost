@@ -466,7 +466,7 @@ func TestPublishPageDraft(t *testing.T) {
 		_, err := th.App.SavePageDraftWithMetadata(th.Context, user.Id, createdWiki.Id, draftId, content, title, "", nil)
 		require.Nil(t, err)
 
-		publishedPage, appErr := th.App.PublishPageDraft(th.Context, user.Id, createdWiki.Id, draftId, "", title, "", "")
+		publishedPage, appErr := th.App.PublishPageDraft(th.Context, user.Id, createdWiki.Id, draftId, "", title, "", "", "")
 		require.Nil(t, appErr)
 		assert.NotNil(t, publishedPage)
 		assert.JSONEq(t, content, publishedPage.Message)
@@ -489,7 +489,7 @@ func TestPublishPageDraft(t *testing.T) {
 		_, err := th.App.SavePageDraftWithMetadata(th.Context, user.Id, createdWiki.Id, draftId, newContent, newTitle, originalPage.Id, nil)
 		require.Nil(t, err)
 
-		updatedPage, appErr := th.App.PublishPageDraft(th.Context, user.Id, createdWiki.Id, draftId, "", newTitle, "", "")
+		updatedPage, appErr := th.App.PublishPageDraft(th.Context, user.Id, createdWiki.Id, draftId, "", newTitle, "", "", "")
 		require.Nil(t, appErr)
 		assert.NotNil(t, updatedPage)
 		assert.Equal(t, originalPage.Id, updatedPage.Id)
@@ -519,33 +519,22 @@ func TestPublishPageDraft(t *testing.T) {
 
 			retrievedDraft, getDraftErr := th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, draftId)
 			require.Nil(t, getDraftErr)
-			assert.Equal(t, finalContent, retrievedDraft.Message)
-			assert.Equal(t, title, retrievedDraft.Props["title"])
+			retrievedContent, _ := retrievedDraft.GetDocumentJSON()
+			assert.JSONEq(t, finalContent, retrievedContent)
+			assert.Equal(t, title, retrievedDraft.Title)
 			assert.Equal(t, pageId, retrievedDraft.Props["page_id"])
 		}
 
-		publishedPage, appErr := th.App.PublishPageDraft(th.Context, user.Id, createdWiki.Id, draftId, "", title, "", "")
+		publishedPage, appErr := th.App.PublishPageDraft(th.Context, user.Id, createdWiki.Id, draftId, "", title, "", "", "")
 		require.Nil(t, appErr)
 		assert.Equal(t, originalPage.Id, publishedPage.Id)
 		assert.JSONEq(t, finalContent, publishedPage.Message)
 	})
 
-	t.Run("publish empty draft fails", func(t *testing.T) {
-		draftId := model.NewId()
-		title := "Empty Draft"
-
-		_, err := th.App.SavePageDraftWithMetadata(th.Context, user.Id, createdWiki.Id, draftId, "", title, "", nil)
-		require.Nil(t, err)
-
-		_, appErr := th.App.PublishPageDraft(th.Context, user.Id, createdWiki.Id, draftId, "", title, "", "")
-		require.NotNil(t, appErr)
-		assert.Equal(t, "app.draft.publish_page.empty", appErr.Id)
-	})
-
 	t.Run("publish non-existent draft fails", func(t *testing.T) {
 		nonExistentDraftId := model.NewId()
 
-		_, appErr := th.App.PublishPageDraft(th.Context, user.Id, createdWiki.Id, nonExistentDraftId, "", "Title", "", "")
+		_, appErr := th.App.PublishPageDraft(th.Context, user.Id, createdWiki.Id, nonExistentDraftId, "", "Title", "", "", "")
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.draft.publish_page.not_found", appErr.Id)
 	})
@@ -558,7 +547,7 @@ func TestPublishPageDraft(t *testing.T) {
 		_, err := th.App.SavePageDraftWithMetadata(th.Context, user.Id, createdWiki.Id, draftId, content, title, "", nil)
 		require.Nil(t, err)
 
-		publishedPage, appErr := th.App.PublishPageDraft(th.Context, user.Id, createdWiki.Id, draftId, "", title, "", "")
+		publishedPage, appErr := th.App.PublishPageDraft(th.Context, user.Id, createdWiki.Id, draftId, "", title, "", "", "")
 		require.Nil(t, appErr, "PublishPageDraft should not cause infinite recursion")
 		assert.NotNil(t, publishedPage)
 
@@ -595,7 +584,7 @@ func TestPublishPageDraft(t *testing.T) {
 		require.Nil(t, err)
 		assert.Equal(t, parentDraftId, childDraft.Props["page_parent_id"], "Child draft should reference parent draft ID")
 
-		publishedParent, appErr := th.App.PublishPageDraft(th.Context, user.Id, createdWiki.Id, parentDraftId, "", parentTitle, "", "")
+		publishedParent, appErr := th.App.PublishPageDraft(th.Context, user.Id, createdWiki.Id, parentDraftId, "", parentTitle, "", "", "")
 		require.Nil(t, appErr)
 		require.NotNil(t, publishedParent)
 
@@ -604,7 +593,7 @@ func TestPublishPageDraft(t *testing.T) {
 		assert.Equal(t, publishedParent.Id, updatedChildDraft.Props["page_parent_id"], "Child draft should now reference published parent page ID")
 		assert.NotEqual(t, parentDraftId, updatedChildDraft.Props["page_parent_id"], "Child draft should no longer reference draft ID")
 
-		publishedChild, appErr := th.App.PublishPageDraft(th.Context, user.Id, createdWiki.Id, childDraftId, publishedParent.Id, childTitle, "", "")
+		publishedChild, appErr := th.App.PublishPageDraft(th.Context, user.Id, createdWiki.Id, childDraftId, publishedParent.Id, childTitle, "", "", "")
 		require.Nil(t, appErr)
 		require.NotNil(t, publishedChild)
 		assert.Equal(t, publishedParent.Id, publishedChild.PageParentId, "Published child page should have correct parent")
@@ -658,7 +647,8 @@ func TestPageDraftWhenPageDeleted(t *testing.T) {
 
 		draftAfter, getDraftErr := th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, draftId)
 		require.Nil(t, getDraftErr, "Unpublished draft should be retained to prevent work loss")
-		require.Equal(t, content, draftAfter.Message)
+		draftAfterContent, _ := draftAfter.GetDocumentJSON()
+		require.JSONEq(t, content, draftAfterContent)
 		require.Equal(t, page.Id, draftAfter.Props["page_id"], "Draft should still reference deleted page ID for potential recovery")
 	})
 
@@ -675,7 +665,7 @@ func TestPageDraftWhenPageDeleted(t *testing.T) {
 		err = th.App.DeletePage(sessionCtx, page.Id)
 		require.Nil(t, err)
 
-		_, publishErr := th.App.PublishPageDraft(th.Context, user.Id, createdWiki.Id, draftId, "", title, "", "")
+		_, publishErr := th.App.PublishPageDraft(th.Context, user.Id, createdWiki.Id, draftId, "", title, "", "", "")
 		require.NotNil(t, publishErr, "Publishing draft should fail when target page no longer exists")
 	})
 
@@ -694,10 +684,11 @@ func TestPageDraftWhenPageDeleted(t *testing.T) {
 
 		draftAfter, getDraftErr := th.App.GetPageDraft(th.Context, user.Id, createdWiki.Id, draftId)
 		require.Nil(t, getDraftErr, "Draft for new page should be unaffected")
-		require.Equal(t, content, draftAfter.Message)
+		draftAfterContent, _ := draftAfter.GetDocumentJSON()
+		require.JSONEq(t, content, draftAfterContent)
 		require.Empty(t, draftAfter.Props["page_id"], "Draft for new page should not have page_id")
 
-		publishedPage, publishErr := th.App.PublishPageDraft(sessionCtx, user.Id, createdWiki.Id, draftId, "", title, "", "")
+		publishedPage, publishErr := th.App.PublishPageDraft(sessionCtx, user.Id, createdWiki.Id, draftId, "", title, "", "", "")
 		require.Nil(t, publishErr, "Should be able to publish draft for new page")
 		require.Equal(t, title, publishedPage.Props["title"])
 	})

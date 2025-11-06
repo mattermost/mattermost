@@ -18,6 +18,7 @@ func (api *API) InitWiki() {
 	api.BaseRoutes.Channels.Handle("/{channel_id:[A-Za-z0-9]+}/wikis", api.APISessionRequired(listChannelWikis)).Methods(http.MethodGet)
 	api.BaseRoutes.Wiki.Handle("", api.APISessionRequired(updateWiki)).Methods(http.MethodPatch)
 	api.BaseRoutes.Wiki.Handle("", api.APISessionRequired(deleteWiki)).Methods(http.MethodDelete)
+	api.BaseRoutes.Wiki.Handle("/move", api.APISessionRequired(moveWikiToChannel)).Methods(http.MethodPost)
 	api.BaseRoutes.Wiki.Handle("/pages", api.APISessionRequired(getWikiPages)).Methods(http.MethodGet)
 	api.BaseRoutes.Wiki.Handle("/pages", api.APISessionRequired(createPage)).Methods(http.MethodPost)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}", api.APISessionRequired(getWikiPage)).Methods(http.MethodGet)
@@ -909,5 +910,60 @@ func createPageCommentReply(c *Context, w http.ResponseWriter, r *http.Request) 
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(reply); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func moveWikiToChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireWikiId()
+	if c.Err != nil {
+		return
+	}
+
+	var req struct {
+		TargetChannelId string `json:"target_channel_id"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		c.SetInvalidParamWithErr("body", err)
+		return
+	}
+
+	if !model.IsValidId(req.TargetChannelId) {
+		c.SetInvalidParam("target_channel_id")
+		return
+	}
+
+	wiki, _, ok := c.RequireWikiModifyPermission(app.WikiOperationDelete, "moveWikiToChannel")
+	if !ok {
+		return
+	}
+
+	targetChannel, err := c.App.GetChannel(c.AppContext, req.TargetChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if err := c.App.HasPermissionToModifyWiki(c.AppContext, c.AppContext.Session(), targetChannel, app.WikiOperationCreate, "moveWikiToChannel"); err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("moveWikiToChannel", model.AuditStatusFail)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+	model.AddEventParameterToAuditRec(auditRec, "wiki_id", c.Params.WikiId)
+	model.AddEventParameterToAuditRec(auditRec, "source_channel_id", wiki.ChannelId)
+	model.AddEventParameterToAuditRec(auditRec, "target_channel_id", req.TargetChannelId)
+
+	movedWiki, appErr := c.App.MoveWikiToChannel(c.AppContext, wiki, targetChannel, c.AppContext.Session().UserId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
+	auditRec.AddEventResultState(movedWiki)
+
+	if err := json.NewEncoder(w).Encode(movedWiki); err != nil {
+		c.Logger.Warn("Error writing response", mlog.Err(err))
 	}
 }

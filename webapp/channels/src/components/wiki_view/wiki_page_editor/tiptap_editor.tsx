@@ -2,9 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {Extension, mergeAttributes} from '@tiptap/core';
-import FileHandler from '@tiptap/extension-file-handler';
 import Heading from '@tiptap/extension-heading';
-import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 import {Mention} from '@tiptap/extension-mention';
 import {Table} from '@tiptap/extension-table';
@@ -17,6 +15,7 @@ import StarterKit from '@tiptap/starter-kit';
 import React, {useEffect, useState, useMemo, useCallback} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch, shallowEqual} from 'react-redux';
+import ImageResize from 'tiptap-extension-resize-image';
 
 import type {Post} from '@mattermost/types/posts';
 
@@ -30,7 +29,6 @@ import {searchAssociatedGroupsForReference} from 'actions/views/group';
 import store from 'stores/redux_store';
 
 import TextInputModal from 'components/text_input_modal';
-import WithTooltip from 'components/with_tooltip';
 
 import {getHistory} from 'utils/browser_history';
 import {PageConstants} from 'utils/constants';
@@ -289,7 +287,7 @@ const TipTapEditor = ({
                 levels: [1, 2, 3],
             }),
             HeadingIdPlugin,
-            Image.configure({
+            ImageResize.configure({
                 HTMLAttributes: {
                     class: 'wiki-image',
                 },
@@ -307,26 +305,72 @@ const TipTapEditor = ({
             TableHeader,
         ];
 
-        // Add FileHandler extension for drag-drop and paste image uploads
+        // Add custom image paste handler to prevent duplicate images
         if (editable && uploadsEnabled && channelId) {
             exts.push(
-                FileHandler.configure({
-                    allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/svg+xml'],
-                    onDrop: (currentEditor, files, pos) => {
-                        files.forEach(async (file) => {
-                            await handleImageUpload(currentEditor, file, pos);
-                        });
-                    },
-                    onPaste: (currentEditor, files) => {
-                        if (files.length === 0) {
-                            return false;
-                        }
+                Extension.create({
+                    name: 'imagePasteHandler',
 
-                        files.forEach(async (file) => {
-                            await handleImageUpload(currentEditor, file);
-                        });
+                    addProseMirrorPlugins() {
+                        const editor = this.editor;
 
-                        return true;
+                        return [
+                            new Plugin({
+                                key: new PluginKey('imagePasteHandler'),
+                                props: {
+                                    handleDOMEvents: {
+                                        paste(view, event) {
+                                            const items = Array.from(event.clipboardData?.items || []);
+                                            const imageItems = items.filter((item) => item.type.startsWith('image/'));
+
+                                            if (imageItems.length === 0) {
+                                                return false;
+                                            }
+
+                                            event.preventDefault();
+                                            event.stopPropagation();
+
+                                            imageItems.forEach((item) => {
+                                                const file = item.getAsFile();
+                                                if (file) {
+                                                    handleImageUpload(editor, file);
+                                                }
+                                            });
+
+                                            return true;
+                                        },
+                                        drop(view, event) {
+                                            const files = Array.from(event.dataTransfer?.files || []);
+                                            const imageFiles = files.filter((file) =>
+                                                file.type.startsWith('image/'),
+                                            );
+
+                                            if (imageFiles.length === 0) {
+                                                return false;
+                                            }
+
+                                            event.preventDefault();
+                                            event.stopPropagation();
+
+                                            const pos = view.posAtCoords({
+                                                left: event.clientX,
+                                                top: event.clientY,
+                                            });
+
+                                            imageFiles.forEach((file) => {
+                                                handleImageUpload(
+                                                    editor,
+                                                    file,
+                                                    pos?.pos,
+                                                );
+                                            });
+
+                                            return true;
+                                        },
+                                    },
+                                },
+                            }),
+                        ];
                     },
                 }),
             );
@@ -562,6 +606,12 @@ const TipTapEditor = ({
                 text: finalLinkText,
                 marks: [{type: 'link', attrs: {href: url}}],
             }).
+
+            // Unset the link mark from the stored marks to prevent future typing from extending this link
+            command(({tr}) => {
+                tr.removeStoredMark(editor.schema.marks.link);
+                return true;
+            }).
             run();
     }, [editor, currentTeam, channelId]);
 
@@ -690,168 +740,6 @@ const TipTapEditor = ({
                 />
             )}
 
-            {editable && (
-                <div className='tiptap-toolbar'>
-                    <WithTooltip title='Link to Page (Ctrl+L)'>
-                        <button
-                            type='button'
-                            onClick={setLink}
-                            className='btn btn-sm btn-icon'
-                            data-testid='page-link-button'
-                            title='Link to Page (Ctrl+L)'
-                        >
-                            <i className='icon icon-link-variant'/>
-                        </button>
-                    </WithTooltip>
-
-                    <span className='toolbar-divider'/>
-
-                    <WithTooltip title='Insert Table (3x3)'>
-                        <button
-                            type='button'
-                            onClick={() => {
-                                editor.chain().focus().insertTable({rows: 3, cols: 3, withHeaderRow: true}).run();
-                            }}
-                            className='btn btn-sm'
-                            title='Insert Table (3x3)'
-                            style={{fontSize: '18px', padding: '4px 8px'}}
-                        >
-                            {'⊞'}
-                        </button>
-                    </WithTooltip>
-
-                    <WithTooltip title='Add Column Before'>
-                        <button
-                            type='button'
-                            onClick={() => {
-                                editor.chain().focus().addColumnBefore().run();
-                            }}
-                            disabled={!editor.can().addColumnBefore()}
-                            className='btn btn-sm'
-                            title='Add Column Before'
-                            style={{fontSize: '16px', padding: '4px 8px'}}
-                        >
-                            {'◀|'}
-                        </button>
-                    </WithTooltip>
-
-                    <WithTooltip title='Add Column After'>
-                        <button
-                            type='button'
-                            onClick={() => {
-                                editor.chain().focus().addColumnAfter().run();
-                            }}
-                            disabled={!editor.can().addColumnAfter()}
-                            className='btn btn-sm'
-                            title='Add Column After'
-                            style={{fontSize: '16px', padding: '4px 8px'}}
-                        >
-                            {'|▶'}
-                        </button>
-                    </WithTooltip>
-
-                    <WithTooltip title='Delete Column'>
-                        <button
-                            type='button'
-                            onClick={() => {
-                                editor.chain().focus().deleteColumn().run();
-                            }}
-                            disabled={!editor.can().deleteColumn()}
-                            className='btn btn-sm'
-                            title='Delete Column'
-                            style={{fontSize: '16px', padding: '4px 8px'}}
-                        >
-                            {'⊟|'}
-                        </button>
-                    </WithTooltip>
-
-                    <WithTooltip title='Add Row Before'>
-                        <button
-                            type='button'
-                            onClick={() => {
-                                editor.chain().focus().addRowBefore().run();
-                            }}
-                            disabled={!editor.can().addRowBefore()}
-                            className='btn btn-sm'
-                            title='Add Row Before'
-                            style={{fontSize: '16px', padding: '4px 8px'}}
-                        >
-                            {'▲═'}
-                        </button>
-                    </WithTooltip>
-
-                    <WithTooltip title='Add Row After'>
-                        <button
-                            type='button'
-                            onClick={() => {
-                                editor.chain().focus().addRowAfter().run();
-                            }}
-                            disabled={!editor.can().addRowAfter()}
-                            className='btn btn-sm'
-                            title='Add Row After'
-                            style={{fontSize: '16px', padding: '4px 8px'}}
-                        >
-                            {'═▼'}
-                        </button>
-                    </WithTooltip>
-
-                    <WithTooltip title='Delete Row'>
-                        <button
-                            type='button'
-                            onClick={() => {
-                                editor.chain().focus().deleteRow().run();
-                            }}
-                            disabled={!editor.can().deleteRow()}
-                            className='btn btn-sm'
-                            title='Delete Row'
-                            style={{fontSize: '16px', padding: '4px 8px'}}
-                        >
-                            {'⊟═'}
-                        </button>
-                    </WithTooltip>
-
-                    <WithTooltip title='Delete Table'>
-                        <button
-                            type='button'
-                            onClick={() => {
-                                editor.chain().focus().deleteTable().run();
-                            }}
-                            disabled={!editor.can().deleteTable()}
-                            className='btn btn-sm'
-                            title='Delete Table'
-                            style={{fontSize: '16px', padding: '4px 8px'}}
-                        >
-                            {'🗑'}
-                        </button>
-                    </WithTooltip>
-
-                    <span className='toolbar-divider'/>
-
-                    <WithTooltip title='Undo'>
-                        <button
-                            type='button'
-                            onClick={() => editor.chain().focus().undo().run()}
-                            disabled={!editor.can().undo()}
-                            className='btn btn-sm btn-icon'
-                            title='Undo'
-                        >
-                            <i className='icon icon-refresh'/>
-                        </button>
-                    </WithTooltip>
-
-                    <WithTooltip title='Redo'>
-                        <button
-                            type='button'
-                            onClick={() => editor.chain().focus().redo().run()}
-                            disabled={!editor.can().redo()}
-                            className='btn btn-sm btn-icon'
-                            title='Redo'
-                        >
-                            <i className='icon icon-redo-variant'/>
-                        </button>
-                    </WithTooltip>
-                </div>
-            )}
         </div>
     );
 };

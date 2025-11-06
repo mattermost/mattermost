@@ -49,6 +49,10 @@ func (api *API) InitPost() {
 	api.BaseRoutes.PostForUser.Handle("/ack", api.APISessionRequired(unacknowledgePost)).Methods(http.MethodDelete)
 
 	api.BaseRoutes.Post.Handle("/move", api.APISessionRequired(moveThread)).Methods(http.MethodPost)
+
+	api.BaseRoutes.Post.Handle("/status", api.APISessionRequired(updatePageStatus)).Methods(http.MethodPut)
+	api.BaseRoutes.Post.Handle("/status", api.APISessionRequired(getPageStatus)).Methods(http.MethodGet)
+	api.BaseRoutes.Posts.Handle("/status/field", api.APISessionRequired(getPageStatusField)).Methods(http.MethodGet)
 }
 
 func createPostChecks(where string, c *Context, post *model.Post) {
@@ -1394,4 +1398,56 @@ func hasPermittedWranglerRole(c *Context, user *model.User, channelMember *model
 	}
 
 	return false
+}
+
+// updatePageStatus updates the status attribute for a page (thin wrapper around App.SetPageStatus)
+func updatePageStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
+	var req struct {
+		Status string `json:"status"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Status == "" {
+		c.SetInvalidParam("status")
+		return
+	}
+
+	if err := c.App.SetPageStatus(c.AppContext, c.Params.PostId, req.Status); err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
+}
+
+// getPageStatus retrieves the status attribute for a page (thin wrapper around App.GetPageStatus)
+func getPageStatus(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
+	status, err := c.App.GetPageStatus(c.AppContext, c.Params.PostId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	fmt.Fprintf(w, `{"status":"%s"}`, status)
+}
+
+// getPageStatusField retrieves the status field definition (thin wrapper around App.GetPageStatusField)
+func getPageStatusField(c *Context, w http.ResponseWriter, r *http.Request) {
+	field, err := c.App.GetPageStatusField()
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(field); err != nil {
+		c.Logger.Warn("Error encoding response", mlog.Err(err))
+	}
 }

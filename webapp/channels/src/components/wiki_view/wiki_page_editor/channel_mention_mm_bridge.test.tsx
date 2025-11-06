@@ -24,11 +24,18 @@ describe('createChannelMentionSuggestion (Zero Mocks - Real API)', () => {
         await cleanupOrphanedTestResources();
 
         // Setup test context (creates new test channel)
-        testContext = await setupTestContext();
+        try {
+            testContext = await setupTestContext();
+        } catch (error) {
+            // eslint-disable-next-line no-console
+            console.warn('Failed to setup test context - skipping tests that require backend:', error);
+        }
     }, 30000);
 
     afterAll(async () => {
-        await testContext.cleanup();
+        if (testContext) {
+            await testContext.cleanup();
+        }
     }, 30000);
 
     // Real autocompleteChannels function using Client4
@@ -45,12 +52,17 @@ describe('createChannelMentionSuggestion (Zero Mocks - Real API)', () => {
         };
     };
 
-    const getDefaultProps = () => ({
-        channelId: testContext.channel.id,
-        teamId: testContext.team.id,
-        autocompleteChannels: createRealAutocompleteChannels(testContext.team.id),
-        delayChannelAutocomplete: false,
-    });
+    const getDefaultProps = () => {
+        if (!testContext) {
+            throw new Error('Test context not initialized - backend may not be running');
+        }
+        return {
+            channelId: testContext.channel.id,
+            teamId: testContext.team.id,
+            autocompleteChannels: createRealAutocompleteChannels(testContext.team.id),
+            delayChannelAutocomplete: false,
+        };
+    };
 
     const createTestEditor = () => {
         return new Editor({

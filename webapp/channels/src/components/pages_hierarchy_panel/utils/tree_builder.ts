@@ -67,16 +67,22 @@ export function buildTree(pages: PageOrDraft[]): TreeNode[] {
         }
     });
 
-    // Preserve the order from the database (already sorted by CreateAt DESC)
-    // Recursively process children to maintain their order as well
-    const processChildren = (nodes: TreeNode[]): TreeNode[] => {
-        return nodes.map((node) => ({
-            ...node,
-            children: processChildren(node.children),
-        }));
+    // Sort nodes by creation time (oldest first) for consistent ordering
+    // This ensures tree order remains stable across navigation and updates
+    const sortByCreateTime = (nodes: TreeNode[]): TreeNode[] => {
+        return nodes.
+            sort((a, b) => {
+                const aCreateAt = a.page.create_at || 0;
+                const bCreateAt = b.page.create_at || 0;
+                return aCreateAt - bCreateAt;
+            }).
+            map((node) => ({
+                ...node,
+                children: sortByCreateTime(node.children),
+            }));
     };
 
-    return processChildren(rootNodes);
+    return sortByCreateTime(rootNodes);
 }
 
 /**

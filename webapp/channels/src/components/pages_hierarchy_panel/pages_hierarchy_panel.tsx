@@ -90,39 +90,45 @@ const PagesHierarchyPanel = ({
 
     // Convert drafts to Post-like objects to include in tree
     const draftPosts: DraftPage[] = useMemo(() => {
-        return drafts.map((draft): DraftPage => ({
-            id: draft.rootId,
-            create_at: draft.createAt,
-            update_at: draft.updateAt,
-            delete_at: 0,
-            edit_at: 0,
-            is_pinned: false,
-            user_id: '',
-            channel_id: draft.channelId,
-            root_id: '',
-            original_id: '',
-            message: draft.message,
-            type: PageDisplayTypes.PAGE_DRAFT,
-            page_parent_id: draft.props?.page_parent_id || '',
-            props: {
-                ...draft.props,
-                title: draft.props?.title || 'Untitled',
-            },
-            hashtags: '',
-            filenames: [],
-            file_ids: [],
-            pending_post_id: '',
-            reply_count: 0,
-            last_reply_at: 0,
-            participants: null,
-            metadata: {
-                embeds: [],
-                emojis: [],
-                files: [],
-                images: {},
-            },
-        }));
-    }, [drafts]);
+        return drafts.map((draft): DraftPage => {
+            // If draft is editing an existing page, use that page's create_at for stable ordering
+            const originalPage = draft.props?.page_id ? pages.find((p) => p.id === draft.props.page_id) : null;
+            const createAt = originalPage?.create_at || draft.createAt;
+
+            return {
+                id: draft.rootId,
+                create_at: createAt,
+                update_at: draft.updateAt,
+                delete_at: 0,
+                edit_at: 0,
+                is_pinned: false,
+                user_id: '',
+                channel_id: draft.channelId,
+                root_id: '',
+                original_id: '',
+                message: draft.message,
+                type: PageDisplayTypes.PAGE_DRAFT,
+                page_parent_id: draft.props?.page_parent_id || '',
+                props: {
+                    ...draft.props,
+                    title: draft.props?.title || 'Untitled',
+                },
+                hashtags: '',
+                filenames: [],
+                file_ids: [],
+                pending_post_id: '',
+                reply_count: 0,
+                last_reply_at: 0,
+                participants: null,
+                metadata: {
+                    embeds: [],
+                    emojis: [],
+                    files: [],
+                    images: {},
+                },
+            };
+        });
+    }, [drafts, pages]);
 
     // Combine pages and drafts for tree display
     const allPagesAndDrafts = useMemo(() => {

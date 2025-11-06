@@ -55,7 +55,7 @@ export const getPageAncestors = createSelector(
 export const getPages = createSelector(
     'getPages',
     (state: GlobalState) => state.entities.posts.posts,
-    (state: GlobalState, wikiId: string) => state.entities.wikiPages.byWiki[wikiId] || [],
+    (state: GlobalState, wikiId: string) => state.entities.wikiPages?.byWiki?.[wikiId] || [],
     (posts, pageIds) => {
         return pageIds.
             map((id) => posts[id]).
@@ -65,12 +65,12 @@ export const getPages = createSelector(
 
 // Get loading state for a wiki
 export const getPagesLoading = (state: GlobalState, wikiId: string): boolean => {
-    return state.entities.wikiPages.loading[wikiId] || false;
+    return state.entities.wikiPages?.loading?.[wikiId] || false;
 };
 
 // Get error state for a wiki
 export const getPagesError = (state: GlobalState, wikiId: string): string | null => {
-    return state.entities.wikiPages.error[wikiId] || null;
+    return state.entities.wikiPages?.error?.[wikiId] || null;
 };
 
 // Get last invalidation timestamp for a wiki
@@ -98,9 +98,26 @@ export const getWiki = (state: GlobalState, wikiId: string) => {
     return state.entities.wikis?.byId?.[wikiId];
 };
 
-// Simple non-memoized selector for channel wikis
-export const getChannelWikis = (state: GlobalState, channelId: string) => {
-    const wikisById = state.entities.wikis?.byId || {};
-    const wikiIds = state.entities.wikis?.byChannel?.[channelId] || [];
-    return wikiIds.map((id: string) => wikisById[id]).filter(Boolean);
+// Memoized selector for channel wikis
+export const getChannelWikis = createSelector(
+    'getChannelWikis',
+    (state: GlobalState) => state.entities.wikis?.byId,
+    (_state: GlobalState, channelId: string) => _state.entities.wikis?.byChannel?.[channelId],
+    (wikisById, wikiIds) => {
+        if (!wikisById || !wikiIds) {
+            return [];
+        }
+        return wikiIds.map((id: string) => wikisById[id]).filter(Boolean);
+    },
+);
+
+// Get page status field definition
+export const getPageStatusField = (state: GlobalState) => {
+    return (state.entities.wikiPages as any)?.statusField;
+};
+
+// Get status for a specific page
+export const getPageStatus = (state: GlobalState, postId: string): string => {
+    const page = getPage(state, postId);
+    return (page?.props?.page_status as string) || 'In progress';
 };

@@ -140,8 +140,13 @@ export function createMMentionSuggestion(props: MentionBridgeProps): Partial<Sug
                 }
             };
 
+            let startTime = 0;
+            const MIN_DISPLAY_TIME = 100;
+
             return {
                 onStart: (mentionProps: any) => {
+                    startTime = Date.now();
+
                     const {items, command, clientRect} = mentionProps;
                     currentItems = items || [];
                     currentSelectedIndex = 0;
@@ -151,7 +156,6 @@ export function createMMentionSuggestion(props: MentionBridgeProps): Partial<Sug
                     popup.className = 'tiptap-mention-popup';
                     document.body.appendChild(popup);
 
-                    // Add click-outside handler to close the popup
                     clickOutsideHandler = (event: MouseEvent) => {
                         if (popup && !popup.contains(event.target as Node)) {
                             closePopup();
@@ -223,7 +227,6 @@ export function createMMentionSuggestion(props: MentionBridgeProps): Partial<Sug
                 },
 
                 onUpdate: (mentionProps: any) => {
-                    // Track current items and selection
                     if (mentionProps.items) {
                         currentItems = mentionProps.items;
                     }
@@ -286,6 +289,13 @@ export function createMMentionSuggestion(props: MentionBridgeProps): Partial<Sug
                 },
 
                 onExit: () => {
+                    const elapsedTime = Date.now() - startTime;
+
+                    // Prevent immediate closure due to race conditions
+                    if (elapsedTime < MIN_DISPLAY_TIME && popup && component) {
+                        return;
+                    }
+
                     closePopup();
                 },
             };

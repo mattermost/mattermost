@@ -267,7 +267,10 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 
 		rootPost := parentPostList.Posts[post.RootId]
 		if rootPost.RootId != "" {
-			return nil, model.NewAppError("createPost", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
+			// Allow page comment replies by transforming the structure
+			if !a.TransformPageCommentReply(rctx, post, rootPost) {
+				return nil, model.NewAppError("createPost", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
+			}
 		}
 	}
 

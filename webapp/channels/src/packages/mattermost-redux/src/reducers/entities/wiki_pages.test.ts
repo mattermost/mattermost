@@ -15,6 +15,7 @@ describe('wiki_pages reducer', () => {
         error: {},
         pendingPublishes: {},
         lastInvalidated: {},
+        statusField: null,
     };
 
     const wikiId = 'wiki123';
@@ -320,6 +321,89 @@ describe('wiki_pages reducer', () => {
             expect(stateKeys).toContain('pendingPublishes');
             expect(stateKeys).not.toContain('pageSummaries');
             expect(stateKeys).not.toContain('fullPages');
+        });
+    });
+
+    describe('Page Status', () => {
+        describe('RECEIVED_PAGE_STATUS_FIELD', () => {
+            test('should store status field definition', () => {
+                const statusField = {
+                    id: 'status_field_id',
+                    name: 'status',
+                    type: 'select',
+                    attrs: {
+                        options: [
+                            {id: 'rough_draft', name: 'rough_draft', color: 'light_grey'},
+                            {id: 'in_progress', name: 'in_progress', color: 'light_blue'},
+                            {id: 'in_review', name: 'in_review', color: 'dark_blue'},
+                            {id: 'done', name: 'done', color: 'green'},
+                        ],
+                    },
+                };
+
+                const nextState = wikiPagesReducer(initialState, {
+                    type: WikiTypes.RECEIVED_PAGE_STATUS_FIELD,
+                    data: statusField,
+                });
+
+                expect(nextState.statusField).toEqual(statusField);
+                expect(nextState.statusField?.attrs?.options).toHaveLength(4);
+            });
+
+            test('should replace existing status field', () => {
+                const oldField = {
+                    id: 'old_field_id',
+                    name: 'status',
+                    type: 'select',
+                    attrs: {
+                        options: [{id: 'draft', name: 'draft', color: 'grey'}],
+                    },
+                };
+
+                const newField = {
+                    id: 'new_field_id',
+                    name: 'status',
+                    type: 'select',
+                    attrs: {
+                        options: [
+                            {id: 'rough_draft', name: 'rough_draft', color: 'light_grey'},
+                            {id: 'done', name: 'done', color: 'green'},
+                        ],
+                    },
+                };
+
+                const stateWithOldField = {
+                    ...initialState,
+                    statusField: oldField as any,
+                };
+
+                const nextState = wikiPagesReducer(stateWithOldField as any, {
+                    type: WikiTypes.RECEIVED_PAGE_STATUS_FIELD,
+                    data: newField,
+                });
+
+                expect(nextState.statusField).toEqual(newField);
+                expect(nextState.statusField?.id).toBe('new_field_id');
+            });
+        });
+
+        describe('State immutability', () => {
+            test('RECEIVED_PAGE_STATUS_FIELD should not mutate original state', () => {
+                const statusField = {
+                    id: 'field_id',
+                    name: 'status',
+                    type: 'select',
+                    attrs: {options: [{id: 'draft', name: 'draft', color: 'grey'}]},
+                };
+
+                const nextState = wikiPagesReducer(initialState, {
+                    type: WikiTypes.RECEIVED_PAGE_STATUS_FIELD,
+                    data: statusField,
+                });
+
+                expect(nextState).not.toBe(initialState);
+                expect(initialState.statusField).toBeNull();
+            });
         });
     });
 });

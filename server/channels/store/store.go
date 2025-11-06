@@ -102,6 +102,7 @@ type Store interface {
 	Wiki() WikiStore
 	PageContent() PageContentStore
 	Page() PageStore
+	PageDraft() PageDraftStore
 }
 
 type RetentionPolicyStore interface {
@@ -1068,6 +1069,13 @@ type DraftStore interface {
 	GetPageDraftsForWiki(userId, wikiId string) ([]*model.Draft, error)
 }
 
+type PageDraftStore interface {
+	Upsert(pageDraft *model.PageDraft) (*model.PageDraft, error)
+	Get(userId, wikiId, draftId string) (*model.PageDraft, error)
+	Delete(userId, wikiId, draftId string) error
+	GetForWiki(userId, wikiId string) ([]*model.PageDraft, error)
+}
+
 type PostAcknowledgementStore interface {
 	Get(postID, userID string) (*model.PostAcknowledgement, error)
 	GetForPost(postID string) ([]*model.PostAcknowledgement, error)
@@ -1174,6 +1182,7 @@ type WikiStore interface {
 	GetAbandonedPages(cutoffTime int64) ([]*model.Post, error)
 	DeleteAllPagesForWiki(wikiId string) error
 	MovePageToWiki(pageId, targetWikiId string, parentPageId *string) error
+	MoveWikiToChannel(wikiId string, targetChannelId string, timestamp int64) (*model.Wiki, error)
 }
 
 type PageContentStore interface {

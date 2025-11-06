@@ -26,7 +26,7 @@ import {useInlineComments} from './useInlineComments';
 export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
     const dispatch = useDispatch();
     const rhsState = useSelector((state: GlobalState) => getRhsState(state));
-    const page = useSelector((state: GlobalState) => pageId ? getPost(state, pageId) : undefined);
+    const page = useSelector((state: GlobalState) => (pageId ? getPost(state, pageId) : undefined));
     const [inlineComments, setInlineComments] = useState<Post[]>([]);
     const [lastClickedCommentId, setLastClickedCommentId] = useState<string | null>(null);
 

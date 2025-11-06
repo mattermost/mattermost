@@ -162,15 +162,15 @@ func getPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	draft, appErr := c.App.GetPageDraft(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId, c.Params.DraftId)
+	pageDraft, appErr := c.App.GetPageDraft(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId, c.Params.DraftId)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(draft); err != nil {
-		c.Logger.Warn("Error encoding draft response", mlog.Err(err))
+	if err := json.NewEncoder(w).Encode(pageDraft); err != nil {
+		c.Logger.Warn("Error encoding page draft response", mlog.Err(err))
 	}
 }
 
@@ -183,7 +183,7 @@ func savePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var req struct {
-		Message string         `json:"message"`
+		Content string         `json:"content"`
 		Title   string         `json:"title"`
 		PageId  string         `json:"page_id"`
 		Props   map[string]any `json:"props"`
@@ -197,21 +197,20 @@ func savePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.Logger.Debug("Received page draft save request",
 		mlog.String("wiki_id", c.Params.WikiId),
 		mlog.String("draft_id", c.Params.DraftId),
-		mlog.String("message", req.Message),
-		mlog.Int("message_length", len(req.Message)),
+		mlog.Int("content_length", len(req.Content)),
 		mlog.String("title", req.Title),
 		mlog.String("page_id", req.PageId),
 		mlog.Any("props", req.Props))
 
-	draft, appErr := c.App.SavePageDraftWithMetadata(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId, c.Params.DraftId, req.Message, req.Title, req.PageId, req.Props)
+	pageDraft, appErr := c.App.SavePageDraftWithMetadata(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId, c.Params.DraftId, req.Content, req.Title, req.PageId, req.Props)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(draft); err != nil {
-		c.Logger.Warn("Error encoding draft response", mlog.Err(err))
+	if err := json.NewEncoder(w).Encode(pageDraft); err != nil {
+		c.Logger.Warn("Error encoding page draft response", mlog.Err(err))
 	}
 }
 
@@ -238,20 +237,20 @@ func getPageDraftsForWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	drafts, appErr := c.App.GetPageDraftsForWiki(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId)
+	pageDrafts, appErr := c.App.GetPageDraftsForWiki(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
 	// Return empty array instead of null when there are no drafts
-	if drafts == nil {
-		drafts = []*model.Draft{}
+	if pageDrafts == nil {
+		pageDrafts = []*model.PageDraft{}
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(drafts); err != nil {
-		c.Logger.Warn("Error encoding drafts response", mlog.Err(err))
+	if err := json.NewEncoder(w).Encode(pageDrafts); err != nil {
+		c.Logger.Warn("Error encoding page drafts response", mlog.Err(err))
 	}
 }
 
@@ -267,7 +266,8 @@ func publishPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		PageParentId string `json:"page_parent_id"`
 		Title        string `json:"title"`
 		SearchText   string `json:"search_text"`
-		Message      string `json:"message"` // Optional: latest content from editor (prevents race condition)
+		Content      string `json:"content"`     // Optional: latest content from editor (prevents race condition)
+		PageStatus   string `json:"page_status"` // Optional: page status from draft props
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -275,7 +275,15 @@ func publishPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	post, appErr := c.App.PublishPageDraft(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId, c.Params.DraftId, req.PageParentId, req.Title, req.SearchText, req.Message)
+	c.Logger.Info("[API] publishPageDraft request",
+		mlog.String("wiki_id", c.Params.WikiId),
+		mlog.String("draft_id", c.Params.DraftId),
+		mlog.String("page_parent_id", req.PageParentId),
+		mlog.String("title", req.Title),
+		mlog.String("page_status", req.PageStatus),
+		mlog.Int("content_length", len(req.Content)))
+
+	post, appErr := c.App.PublishPageDraft(c.AppContext, c.AppContext.Session().UserId, c.Params.WikiId, c.Params.DraftId, req.PageParentId, req.Title, req.SearchText, req.Content, req.PageStatus)
 	if appErr != nil {
 		c.Err = appErr
 		return

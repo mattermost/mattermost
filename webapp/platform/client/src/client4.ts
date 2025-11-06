@@ -62,7 +62,7 @@ import type {
     PatchDataRetentionCustomPolicy,
     GetDataRetentionCustomPoliciesRequest,
 } from '@mattermost/types/data_retention';
-import type {Draft} from '@mattermost/types/drafts';
+import type {Draft, PageDraft} from '@mattermost/types/drafts';
 import type {CustomEmoji} from '@mattermost/types/emojis';
 import type {ServerError} from '@mattermost/types/errors';
 import type {FileInfo, FileUploadResponse, FileSearchResults} from '@mattermost/types/files';
@@ -114,6 +114,7 @@ import type {PreferenceType} from '@mattermost/types/preferences';
 import type {ProductNotices} from '@mattermost/types/product_notices';
 import type {
     NameMappedPropertyFields,
+    SelectPropertyField,
     UserPropertyField,
     UserPropertyFieldPatch,
     PropertyValue,
@@ -2120,6 +2121,16 @@ export default class Client4 {
         );
     };
 
+    moveWikiToChannel = (wikiId: string, targetChannelId: string) => {
+        return this.doFetch<Wiki>(
+            `${this.getWikiRoute(wikiId)}/move`,
+            {
+                method: 'POST',
+                body: JSON.stringify({target_channel_id: targetChannelId}),
+            },
+        );
+    };
+
     duplicatePage = (sourceWikiId: string, pageId: string, targetWikiId: string, parentPageId?: string, customTitle?: string) => {
         const body: {target_wiki_id: string; parent_page_id?: string; title?: string} = {target_wiki_id: targetWikiId};
         if (parentPageId) {
@@ -2134,10 +2145,11 @@ export default class Client4 {
         );
     };
 
-    publishPageDraft = (wikiId: string, draftId: string, pageParentId: string, title: string, searchText?: string, message?: string) => {
+    publishPageDraft = (wikiId: string, draftId: string, pageParentId: string, title: string, searchText?: string, content?: string, pageStatus?: string) => {
+        const requestBody = {page_parent_id: pageParentId, title, search_text: searchText, content, page_status: pageStatus};
         return this.doFetch<Post>(
             `${this.getWikiRoute(wikiId)}/drafts/${draftId}/publish`,
-            {method: 'post', body: JSON.stringify({page_parent_id: pageParentId, title, search_text: searchText, message})},
+            {method: 'post', body: JSON.stringify(requestBody)},
         );
     };
 
@@ -2675,6 +2687,27 @@ export default class Client4 {
         return this.doFetch<PostActionResponse>(
             `${this.getPostRoute(postId)}/actions/${encodeURIComponent(actionId)}`,
             {method: 'post', body: JSON.stringify(msg)},
+        );
+    };
+
+    getPageStatusField = async () => {
+        return this.doFetch<SelectPropertyField>(
+            `${this.getPostsRoute()}/status/field`,
+            {method: 'get'},
+        );
+    };
+
+    getPageStatus = async (postId: string) => {
+        return this.doFetch<{status: string}>(
+            `${this.getPostRoute(postId)}/status`,
+            {method: 'get'},
+        );
+    };
+
+    updatePageStatus = async (postId: string, status: string) => {
+        return this.doFetch(
+            `${this.getPostRoute(postId)}/status`,
+            {method: 'put', body: JSON.stringify({status})},
         );
     };
 
@@ -4571,18 +4604,18 @@ export default class Client4 {
     };
 
     getPageDraft = (wikiId: string, draftId: string) => {
-        return this.doFetch<Draft>(
+        return this.doFetch<PageDraft>(
             `${this.getWikiRoute(wikiId)}/drafts/${draftId}`,
             {method: 'get'},
         );
     };
 
-    savePageDraft = (wikiId: string, draftId: string, message: string, title?: string, pageId?: string, props?: Record<string, any>) => {
-        return this.doFetch<Draft>(
+    savePageDraft = (wikiId: string, draftId: string, content: string, title?: string, pageId?: string, props?: Record<string, any>) => {
+        return this.doFetch<PageDraft>(
             `${this.getWikiRoute(wikiId)}/drafts/${draftId}`,
             {
                 method: 'PUT',
-                body: JSON.stringify({message, title, page_id: pageId, props}),
+                body: JSON.stringify({content, title, page_id: pageId, props}),
             },
         );
     };
@@ -4595,7 +4628,7 @@ export default class Client4 {
     };
 
     getPageDraftsForWiki = (wikiId: string) => {
-        return this.doFetch<Draft[]>(
+        return this.doFetch<PageDraft[]>(
             `${this.getWikiRoute(wikiId)}/drafts`,
             {method: 'get'},
         );

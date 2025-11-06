@@ -65,13 +65,9 @@ function ChannelTabContent({
         }
 
         if (activeTab.startsWith('wiki-')) {
-            const wikiId = activeTab.replace('wiki-', '');
             return (
                 <div className='channel-tab-panel-content channel-tab-panel-content--wiki'>
-                    <WikiView
-                        channelId={channelId}
-                        wikiId={wikiId}
-                    />
+                    <WikiView/>
                 </div>
             );
         }

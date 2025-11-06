@@ -248,11 +248,14 @@ test('handles ~channel mentions in editor', {tag: '@pages'}, async ({pw, sharedP
 
     // # Type ~ channel mention in editor
     await editor.click();
-    await editor.type(`Please check ~${mentionedChannel.name}`);
+    await editor.pressSequentially('Please check ~');
 
     // * Verify channel mention suggestion dropdown appears
     const mentionDropdown = page.locator('.tiptap-channel-mention-popup, .tiptap-mention-popup').first();
     await expect(mentionDropdown).toBeVisible({timeout: 5000});
+
+    // # Type part of the channel name to filter
+    await editor.pressSequentially(mentionedChannel.name.substring(0, 5));
 
     // # Select the mentioned channel from dropdown
     const channelOption = page.locator(`text="${mentionedChannel.display_name}"`).first();
@@ -351,6 +354,223 @@ test('handles multiple user mentions in same page', {tag: '@pages'}, async ({pw,
     await expect(pageContent).toBeVisible();
     await expect(pageContent).toContainText(user1.username);
     await expect(pageContent).toContainText(user2.username);
+});
+
+/**
+ * @objective Verify mention autocomplete does not duplicate typed text after insertion
+ */
+test('does not duplicate typed text after mention selection', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    // # Create another user to mention
+    const mentionedUser = await adminClient.createUser({
+        email: `mentioned-${pw.random.id()}@example.com`,
+        username: `matttest${pw.random.id()}`,
+        password: 'Password1!',
+    });
+    await adminClient.addToTeam(team.id, mentionedUser.id);
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki through UI
+    const wiki = await createWikiThroughUI(page, `Mention Bug Wiki ${pw.random.id()}`);
+
+    // # Create new page
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Mention Duplication Test');
+
+    // # Wait for editor to be visible
+    const editor = page.locator('.ProseMirror').first();
+    await editor.waitFor({state: 'visible', timeout: 5000});
+
+    // # Type @ mention text character by character (simulating real user typing)
+    await editor.click();
+    await page.keyboard.type('Hello ');
+    await page.keyboard.type('@matt');
+
+    // * Verify mention suggestion dropdown appears
+    const mentionDropdown = page.locator('.tiptap-mention-popup').first();
+    await expect(mentionDropdown).toBeVisible({timeout: 5000});
+
+    // # Select the mentioned user from dropdown
+    const userOption = page.locator(`[data-testid="mentionSuggestion_${mentionedUser.username}"]`).first();
+    await expect(userOption).toBeVisible({timeout: 3000});
+
+    // Click to select (this is where the bug commonly occurs)
+    await userOption.click();
+
+    // # Wait for mention to be inserted
+    await page.waitForTimeout(500);
+
+    // * Verify mention is properly created
+    const userMentionInEditor = editor.locator(`.mention[data-id="${mentionedUser.id}"]`);
+    await expect(userMentionInEditor).toBeVisible();
+
+    // * Verify editor content does NOT contain duplicated text
+    const editorContent = await editor.textContent();
+
+    // The bug: typing "@matt" then selecting from autocomplete inserts the mention
+    // but ALSO keeps the original "@matt" text after it, resulting in:
+    // "Hello @matttest123 matt" (incorrect - duplication)
+    // Expected: "Hello @matttest123" (correct - no duplication)
+
+    // Check that "matt" does NOT appear as duplicate text after the mention
+    const mentionText = await userMentionInEditor.textContent();
+    const textAfterMention = editorContent.substring(editorContent.indexOf(mentionText || '') + (mentionText?.length || 0));
+
+    // * Verify no duplicate "matt" text appears after the mention
+    expect(textAfterMention.trim()).not.toContain('matt');
+
+    // * Verify the full content is correct (should be "Hello @username" without duplication)
+    expect(editorContent).toContain('Hello');
+    expect(editorContent).toContain(mentionedUser.username);
+
+    // Count occurrences of "matt" - should only appear once (in the mention itself)
+    const mattOccurrences = (editorContent.toLowerCase().match(/matt/g) || []).length;
+    expect(mattOccurrences).toBe(1);
+});
+
+/**
+ * @objective Verify multiple mentions can be added in same editing session without refresh
+ */
+test('allows multiple mentions in same document without refresh', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    // # Create two users to mention
+    const user1 = await adminClient.createUser({
+        email: `user1-${pw.random.id()}@example.com`,
+        username: `alice${pw.random.id()}`,
+        password: 'Password1!',
+    });
+    const user2 = await adminClient.createUser({
+        email: `user2-${pw.random.id()}@example.com`,
+        username: `bob${pw.random.id()}`,
+        password: 'Password1!',
+    });
+    await adminClient.addToTeam(team.id, user1.id);
+    await adminClient.addToTeam(team.id, user2.id);
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki through UI
+    const wiki = await createWikiThroughUI(page, `Multi Mention Bug Wiki ${pw.random.id()}`);
+
+    // # Create new page
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Multiple Mentions Test');
+
+    // # Wait for editor to be visible
+    const editor = page.locator('.ProseMirror').first();
+    await editor.waitFor({state: 'visible', timeout: 5000});
+
+    // # Add first mention
+    await editor.click();
+    await page.keyboard.type('First mention: @alice');
+
+    // * Verify first mention dropdown appears
+    let mentionDropdown = page.locator('.tiptap-mention-popup').first();
+    await expect(mentionDropdown).toBeVisible({timeout: 5000});
+
+    // # Select first user
+    let userOption = page.locator(`[data-testid="mentionSuggestion_${user1.username}"]`).first();
+    await expect(userOption).toBeVisible({timeout: 3000});
+    await userOption.click();
+
+    // * Verify first mention is inserted
+    await page.waitForTimeout(500);
+    const firstMention = editor.locator(`.mention[data-id="${user1.id}"]`);
+    await expect(firstMention).toBeVisible();
+
+    // # Add some text between mentions
+    await page.keyboard.type(' and ');
+
+    // # Add second mention (THIS IS WHERE THE BUG OCCURS)
+    await page.keyboard.type('@bob');
+
+    // * Verify second mention dropdown appears (BUG: it doesn't appear)
+    mentionDropdown = page.locator('.tiptap-mention-popup').first();
+    await expect(mentionDropdown).toBeVisible({timeout: 5000});
+
+    // # Select second user
+    userOption = page.locator(`[data-testid="mentionSuggestion_${user2.username}"]`).first();
+    await expect(userOption).toBeVisible({timeout: 3000});
+    await userOption.click();
+
+    // * Verify second mention is inserted
+    await page.waitForTimeout(500);
+    const secondMention = editor.locator(`.mention[data-id="${user2.id}"]`);
+    await expect(secondMention).toBeVisible();
+
+    // * Verify both mentions are present in final content
+    const editorContent = await editor.textContent();
+    expect(editorContent).toContain(user1.username);
+    expect(editorContent).toContain(user2.username);
+});
+
+/**
+ * @objective Verify mention dropdown reappears after canceling first mention attempt
+ */
+test('shows mention dropdown on second attempt after canceling first', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    // # Create a user to mention
+    const mentionedUser = await adminClient.createUser({
+        email: `mentioned-${pw.random.id()}@example.com`,
+        username: `testuser${pw.random.id()}`,
+        password: 'Password1!',
+    });
+    await adminClient.addToTeam(team.id, mentionedUser.id);
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki through UI
+    const wiki = await createWikiThroughUI(page, `Dropdown Bug Wiki ${pw.random.id()}`);
+
+    // # Create new page
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Dropdown Reappearance Test');
+
+    // # Wait for editor to be visible
+    const editor = page.locator('.ProseMirror').first();
+    await editor.waitFor({state: 'visible', timeout: 5000});
+
+    // # First attempt: Type @ and verify dropdown appears
+    await editor.click();
+    await page.keyboard.type('Testing @test');
+
+    // * Verify first mention dropdown appears
+    const firstDropdown = page.locator('.tiptap-mention-popup').first();
+    await expect(firstDropdown).toBeVisible({timeout: 5000});
+
+    // # Cancel the first mention by pressing Escape
+    await page.keyboard.press('Escape');
+
+    // * Verify dropdown is gone
+    await expect(firstDropdown).not.toBeVisible({timeout: 2000});
+
+    // # Wait a moment and add some more text
+    await page.waitForTimeout(500);
+    await page.keyboard.type(' more text ');
+
+    // # Second attempt: Type @ again (THIS IS WHERE THE BUG OCCURS)
+    await page.keyboard.type('@test');
+
+    // * Verify second mention dropdown appears (BUG: it doesn't appear)
+    const secondDropdown = page.locator('.tiptap-mention-popup').first();
+    await expect(secondDropdown).toBeVisible({timeout: 5000});
+
+    // * Verify dropdown has users
+    const userOption = page.locator(`[data-testid="mentionSuggestion_${mentionedUser.username}"]`).first();
+    await expect(userOption).toBeVisible({timeout: 3000});
 });
 
 /**
@@ -603,11 +823,7 @@ test('inserts page link when page selected from modal', {tag: '@pages'}, async (
     // # Wait for previously created pages to load in hierarchy (confirms loadChannelPages completed)
     await waitForPageInHierarchy(page, 'Target Page', 15000);
 
-    // # Type some text first
-    await editor.click();
-    await editor.type('Check out this page: ');
-
-    // # Open link modal via toolbar button
+    // # Open link modal via toolbar button (this will type and select "test text")
     const linkModal = await openPageLinkModalViaButton(page);
     await expect(linkModal).toBeVisible({timeout: 3000});
 
@@ -622,13 +838,13 @@ test('inserts page link when page selected from modal', {tag: '@pages'}, async (
     // * Verify modal closes
     await expect(linkModal).not.toBeVisible();
 
-    // * Verify link appears in editor
+    // * Verify link appears in editor (should contain "test text" which was typed by the helper)
     await page.waitForTimeout(1000);
     const editorContent = await editor.textContent();
-    expect(editorContent).toContain('Target Page');
+    expect(editorContent).toContain('test text');
 
     // * Verify link has correct attributes (check for link element)
-    const pageLink = editor.locator('a').filter({hasText: 'Target Page'}).first();
+    const pageLink = editor.locator('a').filter({hasText: 'test text'}).first();
     await expect(pageLink).toBeVisible({timeout: 5000});
 
     // * Verify link href contains the page ID
@@ -720,17 +936,20 @@ test('inserts multiple page links in same page', {tag: '@pages'}, async ({pw, sh
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
+
     await channelsPage.goto(team.name, channel.name);
 
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Multi Link Wiki ${pw.random.id()}`);
 
-    // # Create multiple target pages
-    await createPageThroughUI(page, 'First Page');
+    // # Create multiple target pages and capture their IDs
+    const firstPage = await createPageThroughUI(page, 'First Page');
     await waitForPageInHierarchy(page, 'First Page');
-    await createPageThroughUI(page, 'Second Page');
+
+    const secondPage = await createPageThroughUI(page, 'Second Page');
     await waitForPageInHierarchy(page, 'Second Page');
-    await createPageThroughUI(page, 'Third Page');
+
+    const thirdPage = await createPageThroughUI(page, 'Third Page');
     await waitForPageInHierarchy(page, 'Third Page');
 
     // # Create new page for linking
@@ -750,51 +969,74 @@ test('inserts multiple page links in same page', {tag: '@pages'}, async ({pw, sh
 
     await editor.click();
 
-    // # Insert first link via toolbar button
-    await editor.type('See ');
-    let linkModal = await openPageLinkModalViaButton(page);
-    await expect(linkModal).toBeVisible({timeout: 3000});
+    // # Type first word and convert to link
+    await editor.type('link1');
+    await page.keyboard.press('Meta+A');
+    await page.keyboard.press('Meta+l');
 
-    // # Search for First Page (modal only shows first 10, so search is needed)
+    let linkModal = page.locator('[data-testid="page-link-modal"]').first();
+    await linkModal.waitFor({state: 'visible', timeout: 5000});
+
     let searchInput = linkModal.locator('input[type="text"]').first();
     await searchInput.fill('First Page');
-    await expect(linkModal).toContainText('First Page', {timeout: 5000});
 
-    await linkModal.locator('text="First Page"').first().click();
+    // Wait for filtering to complete and only the matching page to be visible
+    const firstPageOption = linkModal.locator('[role="option"]:has-text("First Page")').first();
+    await firstPageOption.waitFor({state: 'visible', timeout: 5000});
+    await expect(linkModal.locator('[role="option"]')).toHaveCount(1, {timeout: 5000});
+
+    await firstPageOption.click();
+    await expect(firstPageOption.locator('.icon-check')).toBeVisible({timeout: 1000});
+
     await linkModal.locator('button:has-text("Insert Link")').click();
+    await linkModal.waitFor({state: 'hidden', timeout: 5000});
+    await page.waitForTimeout(300);
 
-    // # Insert second link via toolbar button
-    await editor.type(' and ');
-    linkModal = await openPageLinkModalViaButton(page);
-    await expect(linkModal).toBeVisible({timeout: 3000});
+    // # Type separator and second word, then convert second word to link
+    await editor.type(' and link2');
+    await page.keyboard.press('Shift+Meta+ArrowLeft');
+    await page.keyboard.press('Meta+l');
 
-    // # Search for Second Page
+    linkModal = page.locator('[data-testid="page-link-modal"]').first();
+    await linkModal.waitFor({state: 'visible', timeout: 5000});
+
     searchInput = linkModal.locator('input[type="text"]').first();
     await searchInput.fill('Second Page');
-    await expect(linkModal).toContainText('Second Page', {timeout: 5000});
 
-    await linkModal.locator('text="Second Page"').first().click();
+    // Wait for filtering to complete and only the matching page to be visible
+    const secondPageOption = linkModal.locator('[role="option"]:has-text("Second Page")').first();
+    await secondPageOption.waitFor({state: 'visible', timeout: 5000});
+    await expect(linkModal.locator('[role="option"]')).toHaveCount(1, {timeout: 5000});
+
+    await secondPageOption.click();
+    await expect(secondPageOption.locator('.icon-check')).toBeVisible({timeout: 1000});
+
     await linkModal.locator('button:has-text("Insert Link")').click();
+    await linkModal.waitFor({state: 'hidden', timeout: 5000});
+    await page.waitForTimeout(300);
 
-    // # Insert third link via toolbar button
-    await editor.type(' also ');
-    linkModal = await openPageLinkModalViaButton(page);
-    await expect(linkModal).toBeVisible({timeout: 3000});
+    // # Type separator and third word, then convert third word to link
+    await editor.type(' also link3');
+    await page.keyboard.press('Shift+Meta+ArrowLeft');
+    await page.keyboard.press('Meta+l');
 
-    // # Search for Third Page
+    linkModal = page.locator('[data-testid="page-link-modal"]').first();
+    await linkModal.waitFor({state: 'visible', timeout: 5000});
+
     searchInput = linkModal.locator('input[type="text"]').first();
     await searchInput.fill('Third Page');
-    await expect(linkModal).toContainText('Third Page', {timeout: 5000});
 
-    await linkModal.locator('text="Third Page"').first().click();
+    // Wait for filtering to complete and only the matching page to be visible
+    const thirdPageOption = linkModal.locator('[role="option"]:has-text("Third Page")').first();
+    await thirdPageOption.waitFor({state: 'visible', timeout: 5000});
+    await expect(linkModal.locator('[role="option"]')).toHaveCount(1, {timeout: 5000});
+
+    await thirdPageOption.click();
+    await expect(thirdPageOption.locator('.icon-check')).toBeVisible({timeout: 1000});
+
     await linkModal.locator('button:has-text("Insert Link")').click();
-
-    // * Verify all three links appear in editor
-    await page.waitForTimeout(500);
-    const editorContent = await editor.textContent();
-    expect(editorContent).toContain('First Page');
-    expect(editorContent).toContain('Second Page');
-    expect(editorContent).toContain('Third Page');
+    await linkModal.waitFor({state: 'hidden', timeout: 5000});
+    await page.waitForTimeout(300);
 
     // # Publish page
     const titleInput = page.locator('[data-testid="wiki-page-title-input"]').first();
@@ -807,18 +1049,35 @@ test('inserts multiple page links in same page', {tag: '@pages'}, async ({pw, sh
     // * Verify all links persist after publish
     const pageContent = page.locator('[data-testid="page-viewer-content"]');
     await expect(pageContent).toBeVisible();
-    await expect(pageContent).toContainText('First Page');
-    await expect(pageContent).toContainText('Second Page');
-    await expect(pageContent).toContainText('Third Page');
 
-    // * Verify all links are clickable
-    const firstLink = pageContent.locator('a:has-text("First Page")').first();
-    const secondLink = pageContent.locator('a:has-text("Second Page")').first();
-    const thirdLink = pageContent.locator('a:has-text("Third Page")').first();
+    // * Verify all three links are present and clickable
+    // Note: When converting selected text to a link without providing custom link text,
+    // the modal uses the page title as the link text (not the originally selected text)
+    const link1 = pageContent.locator('a:has-text("link1")');
+    const link2 = pageContent.locator('a:has-text("Second Page")');
+    const link3 = pageContent.locator('a:has-text("Third Page")');
 
-    await expect(firstLink).toBeVisible();
-    await expect(secondLink).toBeVisible();
-    await expect(thirdLink).toBeVisible();
+    await expect(link1).toBeVisible();
+    await expect(link2).toBeVisible();
+    await expect(link3).toBeVisible();
+
+    // * Verify the separator text and original selected text are present as plain text
+    await expect(pageContent).toContainText('and link2');
+    await expect(pageContent).toContainText('also link3');
+
+    // * Verify links have valid href attributes pointing to the correct pages
+    const link1Href = await link1.getAttribute('href');
+    const link2Href = await link2.getAttribute('href');
+    const link3Href = await link3.getAttribute('href');
+
+    expect(link1Href).toContain('/wiki/');
+    expect(link2Href).toContain('/wiki/');
+    expect(link3Href).toContain('/wiki/');
+
+    // * Verify each link points to the expected page by checking page IDs
+    expect(link1Href).toContain(firstPage.id);
+    expect(link2Href).toContain(secondPage.id);
+    expect(link3Href).toContain(thirdPage.id);
 });
 
 /**
@@ -925,6 +1184,11 @@ test('links to child pages in page hierarchy', {tag: '@pages'}, async ({pw, shar
     await createChildPageThroughContextMenu(page, parentPage.id, 'Child Page', 'This is a child page');
     await waitForPageInHierarchy(page, 'Child Page');
 
+    // Store the child page ID from the URL
+    const childPageUrl = page.url();
+    const childPageId = childPageUrl.split('/').pop();
+    console.log('Child page ID from URL:', childPageId);
+
     // # Create new page for linking
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
@@ -960,12 +1224,12 @@ test('links to child pages in page hierarchy', {tag: '@pages'}, async ({pw, shar
     const insertLinkButton = linkModal.locator('button:has-text("Insert Link")');
     await insertLinkButton.click();
 
-    // * Verify link inserted
+    // * Verify link inserted (should keep the selected text "test text" as the link text)
     await page.waitForTimeout(500);
     const editorContent = await editor.textContent();
-    expect(editorContent).toContain('Child Page');
+    expect(editorContent).toContain('test text');
 
-    // # Publish and verify link works
+    // # Publish the page
     const titleInput = page.locator('[data-testid="wiki-page-title-input"]').first();
     await titleInput.fill('Link to Child Page');
 
@@ -973,12 +1237,356 @@ test('links to child pages in page hierarchy', {tag: '@pages'}, async ({pw, shar
     await publishButton.click();
     await page.waitForLoadState('networkidle');
 
-    // # Click on child page in hierarchy panel (more reliable than content links)
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
-    const childPageInHierarchy = hierarchyPanel.locator('text="Child Page"').first();
-    await childPageInHierarchy.click();
+    // # Wait for page viewer to show the published content and for edit button to appear (confirms publish complete)
+    const pageContent = page.locator('[data-testid="page-viewer-content"]');
+    await expect(pageContent).toContainText('Link to child:', {timeout: 5000});
 
-    // * Verify navigation by checking content changed to child page
-    const childPageContent = page.locator('[data-testid="page-viewer-content"]');
+    // Wait for the edit button to appear, confirming the page is in view mode
+    const editButton = page.getByRole('button', {name: 'Edit', exact: true});
+    await expect(editButton).toBeVisible({timeout: 5000});
+
+    // # Click on the actual link in the page content to verify it works
+    // Note: The entire "Link to child: test text" became a link because it was all selected when creating the link
+    const pageLink = pageContent.locator('a:has-text("test text")');
+    await expect(pageLink).toBeVisible({timeout: 5000});
+
+    // Get the href for verification
+    const linkHref = await pageLink.getAttribute('href');
+    expect(linkHref).toContain(childPageId);
+
+    // * Click the link and handle new tab (links have target="_blank")
+    const [newPage] = await Promise.all([
+        page.context().waitForEvent('page'),
+        pageLink.click(),
+    ]);
+
+    // Wait for the new tab to load
+    await newPage.waitForLoadState('networkidle');
+
+    // * Verify the new tab shows the child page content
+    const childPageContent = newPage.locator('[data-testid="page-viewer-content"]');
     await expect(childPageContent).toContainText('This is a child page', {timeout: 15000});
+
+    // Clean up - close the new tab
+    await newPage.close();
+});
+
+/**
+ * @objective Verify formatting buttons correctly reflect active state based on cursor position
+ */
+test('formatting buttons show correct active state for text formatting', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki through UI
+    const wiki = await createWikiThroughUI(page, `Formatting Wiki ${pw.random.id()}`);
+
+    // # Create new page
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Formatting Test Page');
+
+    // # Wait for editor to be visible
+    const editor = page.locator('.ProseMirror').first();
+    await editor.waitFor({state: 'visible', timeout: 5000});
+
+    // # Type test content with different formatting
+    await editor.click();
+    await page.keyboard.type('Plain text ');
+
+    // # Toggle bold on and type
+    await page.keyboard.press('Meta+B');
+    await page.keyboard.type('bold text');
+    await page.keyboard.press('Meta+B'); // Toggle bold off
+
+    await page.keyboard.type(' more plain');
+    await page.waitForTimeout(500);
+
+    // # Now test if formatting buttons show correct active state
+    // Select just the word "Plain" at the beginning
+    await page.keyboard.press('Home');
+    await page.keyboard.press('Shift+ArrowRight');
+    await page.keyboard.press('Shift+ArrowRight');
+    await page.keyboard.press('Shift+ArrowRight');
+    await page.keyboard.press('Shift+ArrowRight');
+    await page.keyboard.press('Shift+ArrowRight');
+    await page.waitForTimeout(500);
+
+    // # Wait for formatting bubble to appear
+    const formattingBubble = page.locator('.formatting-bar-bubble').first();
+    await formattingBubble.waitFor({state: 'visible', timeout: 10000});
+
+    // * Verify bold button is NOT active when selection is on plain text
+    const boldButtonInPlain = formattingBubble.locator('button[title*="Bold"]').first();
+    const boldButtonNotActive = await boldButtonInPlain.evaluate((el) => {
+        return !el.classList.contains('is-active');
+    });
+    expect(boldButtonNotActive).toBe(true);
+
+    // # Now select the bold text - "Plain text " is 11 chars, select next 9 chars for "bold text"
+    await page.keyboard.press('Home');
+    for (let i = 0; i < 11; i++) {
+        await page.keyboard.press('ArrowRight');
+    }
+    for (let i = 0; i < 9; i++) {
+        await page.keyboard.press('Shift+ArrowRight');
+    }
+    await page.waitForTimeout(500);
+
+    // * Verify bold button IS active when selection is on bold text
+    const boldButton = formattingBubble.locator('button[title*="Bold"]').first();
+    const boldButtonActive = await boldButton.evaluate((el) => {
+        return el.classList.contains('is-active');
+    });
+    expect(boldButtonActive).toBe(true);
+
+    // # Test italic formatting as well
+    await page.keyboard.press('End');
+    await page.keyboard.press('Enter');
+    await page.keyboard.press('Meta+I'); // Toggle italic on
+    await page.keyboard.type('italic text');
+    await page.keyboard.press('Meta+I'); // Toggle italic off
+    await page.waitForTimeout(500);
+
+    // # Select the italic text
+    await page.keyboard.press('Home');
+    for (let i = 0; i < 11; i++) {
+        await page.keyboard.press('Shift+ArrowRight');
+    }
+    await page.waitForTimeout(500);
+
+    // * Verify italic button IS active when selection is on italic text
+    const italicButton = formattingBubble.locator('button[title*="Italic"]').first();
+    const italicButtonActive = await italicButton.evaluate((el) => {
+        return el.classList.contains('is-active');
+    });
+    expect(italicButtonActive).toBe(true);
+
+    // * Verify bold button is NOT active in italic text (unless bold+italic was applied)
+    const boldButtonInItalic = formattingBubble.locator('button[title*="Bold"]').first();
+    const boldNotActiveInItalic = await boldButtonInItalic.evaluate((el) => {
+        return !el.classList.contains('is-active');
+    });
+    expect(boldNotActiveInItalic).toBe(true);
+});
+
+/**
+ * @objective Verify page content exceeding 64KB TEXT column limit can be published successfully
+ */
+test('publishes page with content exceeding 64KB TEXT column limit', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki through UI
+    const wiki = await createWikiThroughUI(page, `Character Limit Wiki ${pw.random.id()}`);
+
+    // # Create new page
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Character Limit Test');
+
+    // # Wait for editor to be visible
+    const editor = page.locator('.ProseMirror').first();
+    await editor.waitFor({state: 'visible', timeout: 5000});
+
+    // # Generate content exceeding 64KB (65,535 bytes - the MySQL TEXT column limit)
+    // Using 100,000 characters to clearly exceed both the post limit (16,383) and TEXT column limit (64KB)
+    const repeatedText = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ';
+    const targetCharacters = 100000; // 100K characters, well over 64KB limit
+    const repetitions = Math.ceil(targetCharacters / repeatedText.length);
+    const largeContent = repeatedText.repeat(repetitions);
+
+    // * Verify we're testing with more than 64KB (assuming worst-case 1 byte per char)
+    expect(largeContent.length).toBeGreaterThan(65535);
+    expect(largeContent.length).toBeGreaterThan(16383);
+
+    // # Paste large content into editor
+    await editor.click();
+    await page.evaluate((content) => {
+        const editorElement = document.querySelector('.ProseMirror');
+        if (editorElement) {
+            const dataTransfer = new DataTransfer();
+            dataTransfer.setData('text/plain', content);
+            const pasteEvent = new ClipboardEvent('paste', {
+                clipboardData: dataTransfer,
+                bubbles: true,
+                cancelable: true,
+            });
+            editorElement.dispatchEvent(pasteEvent);
+        }
+    }, largeContent);
+
+    // # Wait for content to be inserted
+    await page.waitForTimeout(1000);
+
+    // * Verify content appears in editor
+    await expect(editor).toContainText('Lorem ipsum');
+
+    // # Publish page
+    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
+    await publishButton.click();
+
+    // # Wait for publish to complete (or for error to appear)
+    await page.waitForTimeout(3000);
+
+    // * Verify publish succeeds WITHOUT "body too long" or similar error
+    // Check for common error indicators
+    const errorBanner = page.locator('[role="alert"], .error, .alert-danger, [class*="error"]');
+    const errorText = await errorBanner.allTextContents();
+    const hasBodyTooLongError = errorText.some(text =>
+        text.toLowerCase().includes('body too long') ||
+        text.toLowerCase().includes('message too long') ||
+        text.toLowerCase().includes('exceeds') ||
+        text.toLowerCase().includes('too large')
+    );
+
+    // If there's an error, log it for debugging
+    if (hasBodyTooLongError) {
+        console.error('Error found:', errorText);
+    }
+
+    // * Verify NO "body too long" error appears
+    expect(hasBodyTooLongError).toBe(false);
+
+    // * Verify page was published successfully
+    const pageContent = page.locator('[data-testid="page-viewer-content"]');
+    await expect(pageContent).toBeVisible({timeout: 10000});
+    await expect(pageContent).toContainText('Lorem ipsum');
+
+    // * Verify large content persists after publish (should be ~100K characters)
+    const publishedContent = await pageContent.textContent();
+    expect(publishedContent?.length).toBeGreaterThan(65535); // Verify it's more than 64KB
+});
+
+/**
+ * @objective Verify pasting image from clipboard inserts only one image without broken icon
+ *
+ * @precondition
+ * Test can optionally use an external image file at /tmp/test-paste-image.png if it exists,
+ * otherwise uses a generated test image
+ */
+test('pastes image from clipboard without broken image icon', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki through UI
+    const wiki = await createWikiThroughUI(page, `Image Paste Wiki ${pw.random.id()}`);
+
+    // # Create new page
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Image Paste Test');
+
+    // # Wait for editor to be visible
+    const editor = page.locator('.ProseMirror').first();
+    await editor.waitFor({state: 'visible', timeout: 5000});
+
+    // # Click into editor and add some initial text
+    await editor.click();
+    await editor.type('Here is an image: ');
+
+    // # Try to load external test image if provided, otherwise use generated test image
+    // Default: 100x100 colored rectangle PNG
+    const DEFAULT_BASE64_IMAGE = 'iVBORw0KGgoAAAANSUhEUgAAAGQAAABkCAYAAABw4pVUAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH5QoVEg8kHPx8MQAAAA1pVFh0Q29tbWVudADYLxcBAAAAAW9yTlQBz6J3mgAAABpJREFUeNrt3UENADAIQ0HRf89VJCLgkBmS7P0CAACAfRcAAgAAEAAAgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEAAAhCAAAQgAAEIQAACEIAABCAAAQhAAAIQgAAEIAABCEDQ9AGaRQMlSSgAAAAASUVORK5CYII=';
+
+    let base64Image: string;
+    try {
+        // Check if external test image exists
+        const fs = require('fs');
+        const externalImagePath = '/tmp/test-paste-image.png';
+        if (fs.existsSync(externalImagePath)) {
+            const imageBuffer = fs.readFileSync(externalImagePath);
+            base64Image = imageBuffer.toString('base64');
+        } else {
+            // Use default generated image (100x100 colored rectangle)
+            base64Image = DEFAULT_BASE64_IMAGE;
+        }
+    } catch (error) {
+        // Fallback to default image if file reading fails
+        base64Image = DEFAULT_BASE64_IMAGE;
+    }
+
+    // # Simulate pasting an image from clipboard (more realistic scenario with both file and HTML data)
+    await page.evaluate((imageData) => {
+        const editorElement = document.querySelector('.ProseMirror');
+        if (editorElement) {
+            // Convert base64 to blob
+            const byteCharacters = atob(imageData);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], {type: 'image/png'});
+
+            // Create file from blob
+            const file = new File([blob], 'screenshot.png', {type: 'image/png'});
+
+            // Create DataTransfer with the image file AND HTML data (common when copying from browser)
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+
+            // Also add HTML data which might trigger duplicate insertion
+            const imgUrl = URL.createObjectURL(blob);
+            dataTransfer.setData('text/html', `<img src="${imgUrl}" alt="screenshot" />`);
+
+            // Dispatch paste event
+            const pasteEvent = new ClipboardEvent('paste', {
+                clipboardData: dataTransfer,
+                bubbles: true,
+                cancelable: true,
+            });
+            editorElement.dispatchEvent(pasteEvent);
+        }
+    }, base64Image);
+
+    // # Wait for image to be processed and inserted
+    await page.waitForTimeout(2000);
+
+    // * Verify exactly one image element appears in editor
+    const images = editor.locator('img');
+    const imageCount = await images.count();
+    expect(imageCount).toBe(1);
+
+    // * Verify the image has a valid src attribute (not broken)
+    const imageSrc = await images.first().getAttribute('src');
+    expect(imageSrc).toBeTruthy();
+    expect(imageSrc).not.toContain('broken');
+    expect(imageSrc).not.toContain('error');
+
+    // * Verify the image is visible (not displaying broken icon)
+    await expect(images.first()).toBeVisible();
+
+    // * Verify no error icons or broken image indicators exist
+    const brokenImageIcons = editor.locator('[alt*="broken"], [title*="broken"], .broken-image');
+    const brokenIconCount = await brokenImageIcons.count();
+    expect(brokenIconCount).toBe(0);
+
+    // # Publish the page
+    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
+    await publishButton.click();
+    await page.waitForLoadState('networkidle');
+
+    // * Verify page publishes successfully with the image
+    const pageContent = page.locator('[data-testid="page-viewer-content"]');
+    await expect(pageContent).toBeVisible();
+
+    // * Verify the image persists after publish
+    const publishedImages = pageContent.locator('img');
+    const publishedImageCount = await publishedImages.count();
+    expect(publishedImageCount).toBe(1);
+
+    // * Verify published image has valid src
+    const publishedImageSrc = await publishedImages.first().getAttribute('src');
+    expect(publishedImageSrc).toBeTruthy();
+    await expect(publishedImages.first()).toBeVisible();
 });

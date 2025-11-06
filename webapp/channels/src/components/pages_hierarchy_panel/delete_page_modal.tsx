@@ -46,50 +46,62 @@ const DeletePageModal = ({
         >
             <div className='DeletePageModal__body'>
                 <p className='DeletePageModal__warning'>
-                    {'You are about to delete '}
-                    <strong>{'"'}{pageTitle}{'"'}</strong>
-                    {'. This page has '}
-                    <strong>{childText}</strong>
-                    {'.'}
+                    {childCount > 0 ? (
+                        <>
+                            {'You are about to delete '}
+                            <strong>{'"'}{pageTitle}{'"'}</strong>
+                            {'. This page has '}
+                            <strong>{childText}</strong>
+                            {'.'}
+                        </>
+                    ) : (
+                        <>
+                            {'Are you sure you want to delete '}
+                            <strong>{'"'}{pageTitle}{'"'}</strong>
+                            {'?'}
+                        </>
+                    )}
                 </p>
 
-                <div className='DeletePageModal__options'>
-                    <label className='DeletePageModal__option'>
-                        <input
-                            id='delete-option-page-only'
-                            type='radio'
-                            name='deleteOption'
-                            checked={!deleteChildren}
-                            onChange={() => setDeleteChildren(false)}
-                            aria-label='Delete this page only'
-                        />
-                        <div className='DeletePageModal__optionContent'>
-                            <strong>{'Delete this page only'}</strong>
-                            <span className='DeletePageModal__optionDescription'>
-                                {'Child pages will move to the parent page'}
-                            </span>
-                        </div>
-                    </label>
+                {childCount > 0 && (
+                    <div className='DeletePageModal__options'>
+                        <label className='DeletePageModal__option'>
+                            <input
+                                id='delete-option-page-only'
+                                type='radio'
+                                name='deleteOption'
+                                checked={!deleteChildren}
+                                onChange={() => setDeleteChildren(false)}
+                                aria-label='Delete this page only'
+                            />
+                            <div className='DeletePageModal__optionContent'>
+                                <strong>{'Delete this page only'}</strong>
+                                <span className='DeletePageModal__optionDescription'>
+                                    {'Child pages will move to the parent page'}
+                                </span>
+                            </div>
+                        </label>
 
-                    <label className='DeletePageModal__option'>
-                        <input
-                            id='delete-option-page-and-children'
-                            type='radio'
-                            name='deleteOption'
-                            checked={deleteChildren}
-                            onChange={() => setDeleteChildren(true)}
-                            aria-label='Delete this page and all child pages'
-                        />
-                        <div className='DeletePageModal__optionContent'>
-                            <strong>{'Delete this page and all child pages'}</strong>
-                            <span className='DeletePageModal__optionDescription'>
-                                {'All '}
-                                {childCount}
-                                {' child pages will be permanently deleted'}
-                            </span>
-                        </div>
-                    </label>
-                </div>
+                        <label className='DeletePageModal__option'>
+                            <input
+                                id='delete-option-page-and-children'
+                                type='radio'
+                                name='deleteOption'
+                                checked={deleteChildren}
+                                onChange={() => setDeleteChildren(true)}
+                                aria-label='Delete this page and all child pages'
+                            />
+                            <div className='DeletePageModal__optionContent'>
+                                <strong>{'Delete this page and all child pages'}</strong>
+                                <span className='DeletePageModal__optionDescription'>
+                                    {'All '}
+                                    {childCount}
+                                    {' child pages will be permanently deleted'}
+                                </span>
+                            </div>
+                        </label>
+                    </div>
+                )}
 
                 <p className='DeletePageModal__note'>
                     <i className='icon icon-alert-outline'/>

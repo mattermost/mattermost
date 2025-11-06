@@ -23,6 +23,7 @@ import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
 
+import {getPageDraft} from 'selectors/page_drafts';
 import {
     getSearchType,
     getSearchTerms,
@@ -33,7 +34,6 @@ import {
     getSearchTeam,
 } from 'selectors/rhs';
 import {getSelectedPageId} from 'selectors/wiki_rhs';
-import {getPageDraft} from 'selectors/page_drafts';
 
 import {SidebarSize} from 'components/resizable_sidebar/constants';
 
@@ -506,6 +506,7 @@ export function openWikiRhs(pageId: string, wikiId?: string, focusedInlineCommen
                 await dispatch(getPostThread(pageId, false, 0));
                 page = getPost(getState(), pageId);
             }
+
             // If it's a draft, we don't need to fetch it as a post
         }
 

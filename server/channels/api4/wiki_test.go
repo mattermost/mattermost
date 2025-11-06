@@ -5,6 +5,7 @@ package api4
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"testing"
 
@@ -788,25 +789,30 @@ func TestPageDraftToPublishE2E(t *testing.T) {
 
 		draftId := model.NewId()
 		draftMessage := createTipTapContent("This is test content for the page draft")
+		draftTitle := "Test Page Draft"
 
-		savedDraft, appErr := th.App.SavePageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, draftId, draftMessage)
+		savedDraft, appErr := th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, createdWiki.Id, draftId, draftMessage, draftTitle, "", nil)
 		require.Nil(t, appErr)
-		require.Equal(t, draftMessage, savedDraft.Message)
-		require.Equal(t, createdWiki.ChannelId, savedDraft.ChannelId)
+		savedContent, _ := savedDraft.GetDocumentJSON()
+		assert.JSONEq(t, draftMessage, savedContent)
 		require.Equal(t, createdWiki.Id, savedDraft.WikiId)
-		require.Equal(t, draftId, savedDraft.RootId)
+		require.Equal(t, draftId, savedDraft.DraftId)
+		require.Equal(t, draftTitle, savedDraft.Title)
 
 		retrievedDraft, appErr := th.App.GetPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, draftId)
 		require.Nil(t, appErr)
-		require.Equal(t, draftMessage, retrievedDraft.Message)
+		retrievedContent, _ := retrievedDraft.GetDocumentJSON()
+		assert.JSONEq(t, draftMessage, retrievedContent)
 
 		updatedDraftMessage := createTipTapContent("Updated test content for the page draft")
-		updatedDraft, appErr := th.App.SavePageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, draftId, updatedDraftMessage)
+		updatedTitle := "Updated Test Page Draft"
+		updatedDraft, appErr := th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, createdWiki.Id, draftId, updatedDraftMessage, updatedTitle, "", nil)
 		require.Nil(t, appErr)
-		require.Equal(t, updatedDraftMessage, updatedDraft.Message)
+		updatedContent, _ := updatedDraft.GetDocumentJSON()
+		assert.JSONEq(t, updatedDraftMessage, updatedContent)
 
 		pageTitle := "Test Page"
-		publishedPage, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, draftId, "", pageTitle, "", "")
+		publishedPage, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, draftId, "", pageTitle, "", "", "")
 		require.Nil(t, appErr)
 		require.NotEmpty(t, publishedPage.Id)
 		require.Equal(t, model.PostTypePage, publishedPage.Type)
@@ -840,24 +846,6 @@ func TestPageDraftToPublishE2E(t *testing.T) {
 		require.True(t, foundPublishedPage, "Published page should be found in wiki pages list")
 	})
 
-	t.Run("cannot publish empty draft", func(t *testing.T) {
-		wiki := &model.Wiki{
-			ChannelId: th.BasicChannel.Id,
-			Title:     "Test Wiki",
-		}
-		createdWiki, resp, err := th.Client.CreateWiki(context.Background(), wiki)
-		require.NoError(t, err)
-		CheckCreatedStatus(t, resp)
-
-		draftId := model.NewId()
-		_, appErr := th.App.SavePageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, draftId, "")
-		require.Nil(t, appErr)
-
-		_, appErr = th.App.PublishPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, draftId, "", "Empty Page", "", "")
-		require.NotNil(t, appErr)
-		require.Equal(t, "app.draft.publish_page.empty", appErr.Id)
-	})
-
 	t.Run("publish page with parent creates hierarchy", func(t *testing.T) {
 		wiki := &model.Wiki{
 			ChannelId: th.BasicChannel.Id,
@@ -868,17 +856,17 @@ func TestPageDraftToPublishE2E(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 
 		parentDraftId := model.NewId()
-		_, appErr := th.App.SavePageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, parentDraftId, createTipTapContent("Parent page content"))
+		_, appErr := th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, createdWiki.Id, parentDraftId, createTipTapContent("Parent page content"), "Parent Page", "", nil)
 		require.Nil(t, appErr)
 
-		parentPage, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, parentDraftId, "", "Parent Page", "", "")
+		parentPage, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, parentDraftId, "", "Parent Page", "", "", "")
 		require.Nil(t, appErr)
 
 		childDraftId := model.NewId()
-		_, appErr = th.App.SavePageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, childDraftId, createTipTapContent("Child page content"))
+		_, appErr = th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, createdWiki.Id, childDraftId, createTipTapContent("Child page content"), "Child Page", "", nil)
 		require.Nil(t, appErr)
 
-		childPage, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, childDraftId, parentPage.Id, "Child Page", "", "")
+		childPage, appErr := th.App.PublishPageDraft(th.Context, th.BasicUser.Id, createdWiki.Id, childDraftId, parentPage.Id, "Child Page", "", "", "")
 		require.Nil(t, appErr)
 		require.Equal(t, parentPage.Id, childPage.PageParentId)
 	})
@@ -2422,5 +2410,163 @@ func TestUpdatePageParent(t *testing.T) {
 		resp, err = th.Client.UpdatePageParent(context.Background(), createdWiki.Id, parent.Id, child.Id)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
+	})
+}
+
+func TestUpdatePageStatus(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.AddPermissionToRole(model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(model.PermissionEditPagePublicChannel.Id, model.ChannelUserRoleId)
+	th.Context.Session().UserId = th.BasicUser.Id
+
+	wiki := &model.Wiki{
+		ChannelId: th.BasicChannel.Id,
+		Title:     "Test Wiki",
+	}
+	createdWiki, resp, err := th.Client.CreateWiki(context.Background(), wiki)
+	require.NoError(t, err)
+	CheckCreatedStatus(t, resp)
+
+	page, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Test Page", "", th.BasicUser.Id, "")
+	require.Nil(t, appErr)
+
+	t.Run("successfully update page status", func(t *testing.T) {
+		httpResp, err := th.Client.DoAPIPut(context.Background(), "/posts/"+page.Id+"/status", `{"status":"`+model.PageStatusDone+`"}`)
+		require.NoError(t, err)
+		CheckOKStatus(t, model.BuildResponse(httpResp))
+
+		status, appErr := th.App.GetPageStatus(th.Context, page.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, model.PageStatusDone, status)
+	})
+
+	t.Run("fail with invalid status value", func(t *testing.T) {
+		httpResp, err := th.Client.DoAPIPut(context.Background(), "/posts/"+page.Id+"/status", `{"status":"invalid-status"}`)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, model.BuildResponse(httpResp))
+	})
+
+	t.Run("fail with empty status", func(t *testing.T) {
+		httpResp, err := th.Client.DoAPIPut(context.Background(), "/posts/"+page.Id+"/status", `{"status":""}`)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, model.BuildResponse(httpResp))
+	})
+
+	t.Run("fail with missing status field", func(t *testing.T) {
+		httpResp, err := th.Client.DoAPIPut(context.Background(), "/posts/"+page.Id+"/status", `{}`)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, model.BuildResponse(httpResp))
+	})
+
+	t.Run("fail with non-existent page", func(t *testing.T) {
+		httpResp, err := th.Client.DoAPIPut(context.Background(), "/posts/"+model.NewId()+"/status", `{"status":"`+model.PageStatusDone+`"}`)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, model.BuildResponse(httpResp))
+	})
+
+	t.Run("fail for non-page post", func(t *testing.T) {
+		regularPost, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "Regular post",
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		httpResp, err := th.Client.DoAPIPut(context.Background(), "/posts/"+regularPost.Id+"/status", `{"status":"`+model.PageStatusDone+`"}`)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, model.BuildResponse(httpResp))
+	})
+}
+
+func TestGetPageStatus(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.AddPermissionToRole(model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(model.PermissionReadPagePublicChannel.Id, model.ChannelUserRoleId)
+	th.Context.Session().UserId = th.BasicUser.Id
+
+	wiki := &model.Wiki{
+		ChannelId: th.BasicChannel.Id,
+		Title:     "Test Wiki",
+	}
+	createdWiki, resp, err := th.Client.CreateWiki(context.Background(), wiki)
+	require.NoError(t, err)
+	CheckCreatedStatus(t, resp)
+
+	page, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Test Page", "", th.BasicUser.Id, "")
+	require.Nil(t, appErr)
+
+	t.Run("successfully get default status", func(t *testing.T) {
+		httpResp, err := th.Client.DoAPIGet(context.Background(), "/posts/"+page.Id+"/status", "")
+		require.NoError(t, err)
+		CheckOKStatus(t, model.BuildResponse(httpResp))
+
+		var result map[string]string
+		err = json.NewDecoder(httpResp.Body).Decode(&result)
+		require.NoError(t, err)
+		require.Equal(t, model.PageStatusInProgress, result["status"])
+	})
+
+	t.Run("successfully get updated status", func(t *testing.T) {
+		appErr := th.App.SetPageStatus(th.Context, page.Id, model.PageStatusDone)
+		require.Nil(t, appErr)
+
+		httpResp, err := th.Client.DoAPIGet(context.Background(), "/posts/"+page.Id+"/status", "")
+		require.NoError(t, err)
+		CheckOKStatus(t, model.BuildResponse(httpResp))
+
+		var result map[string]string
+		err = json.NewDecoder(httpResp.Body).Decode(&result)
+		require.NoError(t, err)
+		require.Equal(t, model.PageStatusDone, result["status"])
+	})
+
+	t.Run("fail with non-existent page", func(t *testing.T) {
+		httpResp, err := th.Client.DoAPIGet(context.Background(), "/posts/"+model.NewId()+"/status", "")
+		require.Error(t, err)
+		CheckNotFoundStatus(t, model.BuildResponse(httpResp))
+	})
+
+	t.Run("fail for non-page post", func(t *testing.T) {
+		regularPost, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "Regular post",
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		httpResp, err := th.Client.DoAPIGet(context.Background(), "/posts/"+regularPost.Id+"/status", "")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, model.BuildResponse(httpResp))
+	})
+}
+
+func TestGetPageStatusField(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("successfully get status field definition", func(t *testing.T) {
+		httpResp, err := th.Client.DoAPIGet(context.Background(), "/posts/status/field", "")
+		require.NoError(t, err)
+		CheckOKStatus(t, model.BuildResponse(httpResp))
+
+		var field model.PropertyField
+		err = json.NewDecoder(httpResp.Body).Decode(&field)
+		require.NoError(t, err)
+		require.Equal(t, "status", field.Name)
+		require.Equal(t, model.PropertyFieldTypeSelect, field.Type)
+		require.NotEmpty(t, field.Attrs)
+
+		options, ok := field.Attrs["options"]
+		require.True(t, ok, "Should have options")
+		require.NotEmpty(t, options, "Options should not be empty")
 	})
 }

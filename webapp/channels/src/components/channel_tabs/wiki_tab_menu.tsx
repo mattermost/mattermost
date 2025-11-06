@@ -11,13 +11,14 @@ import {
     PencilOutlineIcon,
     TrashCanOutlineIcon,
     LinkVariantIcon,
+    ArrowRightIcon,
 } from '@mattermost/compass-icons/components';
 import type {Wiki} from '@mattermost/types/wikis';
 
 import {getCurrentTeam, getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 
-import {updateWiki, deleteWiki} from 'actions/pages';
-import {openModal} from 'actions/views/modals';
+import {updateWiki, deleteWiki, moveWikiToChannel} from 'actions/pages';
+import {openModal, closeModal} from 'actions/views/modals';
 
 import * as Menu from 'components/menu';
 import TextInputModal from 'components/text_input_modal';
@@ -27,6 +28,7 @@ import {copyToClipboard} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
+import MoveWikiModal from './move_wiki_modal';
 import WikiDeleteModal from './wiki_delete_modal';
 
 type Props = {
@@ -47,6 +49,7 @@ function WikiTabMenu({wiki, channelId}: Props) {
     const isViewingThisWiki = match?.params.wikiId === wiki.id;
 
     const renameLabel = formatMessage({id: 'wiki_tab.rename', defaultMessage: 'Rename'});
+    const moveLabel = formatMessage({id: 'wiki_tab.move', defaultMessage: 'Move wiki'});
     const deleteLabel = formatMessage({id: 'wiki_tab.delete', defaultMessage: 'Delete'});
     const copyLinkLabel = formatMessage({id: 'wiki_tab.copy_link', defaultMessage: 'Copy link'});
 
@@ -92,6 +95,26 @@ function WikiTabMenu({wiki, channelId}: Props) {
         }
     }, [currentTeam, teamUrl, channelId, wiki.id]);
 
+    const handleMove = useCallback(() => {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.WIKI_MOVE,
+            dialogType: MoveWikiModal,
+            dialogProps: {
+                wikiId: wiki.id,
+                wikiTitle: wiki.title,
+                currentChannelId: channelId,
+                onConfirm: async (targetChannelId: string) => {
+                    await dispatch(moveWikiToChannel(wiki.id, targetChannelId));
+                    dispatch(closeModal(ModalIdentifiers.WIKI_MOVE));
+
+                    if (isViewingThisWiki && currentTeam) {
+                        history.push(`${teamUrl}/channels/${channelId}`);
+                    }
+                },
+            },
+        }));
+    }, [dispatch, wiki.id, wiki.title, channelId, isViewingThisWiki, currentTeam, history, teamUrl]);
+
     return (
         <div
             className='wiki-tab__menu'
@@ -125,6 +148,14 @@ function WikiTabMenu({wiki, channelId}: Props) {
                     leadingElement={<LinkVariantIcon size={18}/>}
                     labels={<span>{copyLinkLabel}</span>}
                     aria-label={copyLinkLabel}
+                />
+                <Menu.Item
+                    key='wiki-tab-move'
+                    id='wiki-tab-move'
+                    onClick={handleMove}
+                    leadingElement={<ArrowRightIcon size={18}/>}
+                    labels={<span>{moveLabel}</span>}
+                    aria-label={moveLabel}
                 />
                 <Menu.Item
                     key='wiki-tab-delete'

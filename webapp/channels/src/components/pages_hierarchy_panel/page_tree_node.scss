@@ -37,10 +37,6 @@ $radius-sm: 4px;
         .PageTreeNode__title {
             font-weight: 600;
         }
-
-        .PageTreeNode__menuButton {
-            opacity: 1; // Always show menu on selected
-        }
     }
 }
 
@@ -133,6 +129,7 @@ $radius-sm: 4px;
     align-items: center;
     justify-content: center;
     padding: 0;
+    margin-left: auto;
     border: none;
     border-radius: $radius-sm;
     background: transparent;

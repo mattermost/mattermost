@@ -122,9 +122,9 @@ func TestCreateWikiWithDefaultPage(t *testing.T) {
 		require.Len(t, drafts, 1, "Wiki should have exactly one default draft")
 
 		defaultDraft := drafts[0]
-		require.Equal(t, th.BasicChannel.Id, defaultDraft.ChannelId, "Draft ChannelId should store the actual channel ID")
-		require.Empty(t, defaultDraft.Message, "Default draft should be empty")
-		require.Equal(t, "Untitled page", defaultDraft.Props["title"], "Default draft should have 'Untitled page' title")
+		draftContent, _ := defaultDraft.GetDocumentJSON()
+		require.JSONEq(t, `{"type":"doc","content":[]}`, draftContent, "Default draft should be empty")
+		require.Equal(t, "Untitled page", defaultDraft.Title, "Default draft should have 'Untitled page' title")
 		require.Equal(t, createdWiki.Id, defaultDraft.WikiId, "Draft WikiId should store wiki ID")
 	})
 }
@@ -847,5 +847,267 @@ func TestDuplicatePage(t *testing.T) {
 		duplicateTitle := duplicatedPage.Props["title"].(string)
 		require.LessOrEqual(t, len(duplicateTitle), 255, "Title should not exceed max length")
 		require.True(t, len(duplicateTitle) <= 255)
+	})
+}
+
+func TestSystemMessages_WikiAdded(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("creates system message when wiki is added to channel", func(t *testing.T) {
+		wiki := &model.Wiki{
+			ChannelId:   th.BasicChannel.Id,
+			Title:       "New Wiki",
+			Description: "Test wiki",
+		}
+
+		createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+		require.Nil(t, err)
+		require.NotNil(t, createdWiki)
+
+		postList, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
+			ChannelId: th.BasicChannel.Id,
+			Page:      0,
+			PerPage:   10,
+		})
+		require.Nil(t, appErr)
+		require.NotNil(t, postList)
+
+		var systemPost *model.Post
+		for _, post := range postList.Posts {
+			if post.Type == model.PostTypeWikiAdded {
+				systemPost = post
+				break
+			}
+		}
+
+		require.NotNil(t, systemPost, "Should have created a system_wiki_added post")
+		require.Equal(t, th.BasicChannel.Id, systemPost.ChannelId)
+		require.Equal(t, th.BasicUser.Id, systemPost.UserId)
+		require.Equal(t, createdWiki.Id, systemPost.Props["wiki_id"])
+		require.Equal(t, createdWiki.Title, systemPost.Props["wiki_title"])
+		require.Equal(t, th.BasicChannel.Id, systemPost.Props["channel_id"])
+		require.Equal(t, th.BasicUser.Id, systemPost.Props["added_user_id"])
+	})
+}
+
+func TestSystemMessages_PageAdded(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	th.SetupPagePermissions()
+
+	wiki := &model.Wiki{
+		ChannelId:   th.BasicChannel.Id,
+		Title:       "Test Wiki",
+		Description: "Test description",
+	}
+	createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+	require.Nil(t, err)
+
+	t.Run("creates system message when page is added to wiki", func(t *testing.T) {
+		page, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "New Page", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Hello"}]}]}`, th.BasicUser.Id, "Hello")
+		require.Nil(t, appErr)
+		require.NotNil(t, page)
+
+		postList, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
+			ChannelId: th.BasicChannel.Id,
+			Page:      0,
+			PerPage:   20,
+		})
+		require.Nil(t, appErr)
+		require.NotNil(t, postList)
+
+		var systemPost *model.Post
+		for _, post := range postList.Posts {
+			if post.Type == model.PostTypePageAdded {
+				systemPost = post
+				break
+			}
+		}
+
+		require.NotNil(t, systemPost, "Should have created a system_page_added post")
+		require.Equal(t, th.BasicChannel.Id, systemPost.ChannelId)
+		require.Equal(t, th.BasicUser.Id, systemPost.UserId)
+		require.Equal(t, page.Id, systemPost.Props["page_id"])
+		require.Equal(t, createdWiki.Id, systemPost.Props["wiki_id"])
+		require.Equal(t, createdWiki.Title, systemPost.Props["wiki_title"])
+		require.Equal(t, th.BasicUser.Id, systemPost.Props["added_user_id"])
+	})
+}
+
+func TestSystemMessages_PageUpdated(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	th.SetupPagePermissions()
+
+	wiki := &model.Wiki{
+		ChannelId:   th.BasicChannel.Id,
+		Title:       "Test Wiki",
+		Description: "Test description",
+	}
+	createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+	require.Nil(t, err)
+
+	page, appErr := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Test Page", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Original"}]}]}`, th.BasicUser.Id, "Original")
+	require.Nil(t, appErr)
+	require.NotNil(t, page)
+
+	t.Run("creates system message on first page update", func(t *testing.T) {
+		th.Context.Session().UserId = th.BasicUser.Id
+		_, appErr := th.App.UpdatePage(th.Context, page.Id, "Updated Title", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Updated"}]}]}`, "Updated")
+		require.Nil(t, appErr)
+
+		postList, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
+			ChannelId: th.BasicChannel.Id,
+			Page:      0,
+			PerPage:   20,
+		})
+		require.Nil(t, appErr)
+		require.NotNil(t, postList)
+
+		var systemPost *model.Post
+		for _, post := range postList.Posts {
+			if post.Type == model.PostTypePageUpdated {
+				systemPost = post
+				break
+			}
+		}
+
+		require.NotNil(t, systemPost, "Should have created a system_page_updated post")
+		require.Equal(t, th.BasicChannel.Id, systemPost.ChannelId)
+		require.Equal(t, th.BasicUser.Id, systemPost.UserId)
+		require.Equal(t, page.Id, systemPost.Props["page_id"])
+		require.Equal(t, createdWiki.Id, systemPost.Props["wiki_id"])
+		require.Equal(t, 1, int(systemPost.Props["update_count"].(float64)))
+	})
+
+	t.Run("consolidates multiple updates within 2 hours", func(t *testing.T) {
+		th.Context.Session().UserId = th.BasicUser.Id
+
+		_, appErr := th.App.UpdatePage(th.Context, page.Id, "First Update", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"First update"}]}]}`, "First update")
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.UpdatePage(th.Context, page.Id, "", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Second update"}]}]}`, "Second update")
+		require.Nil(t, appErr)
+
+		postList, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
+			ChannelId: th.BasicChannel.Id,
+			Page:      0,
+			PerPage:   20,
+		})
+		require.Nil(t, appErr)
+
+		updateNotificationCount := 0
+		var latestUpdatePost *model.Post
+		for _, post := range postList.Posts {
+			if post.Type == model.PostTypePageUpdated {
+				updateNotificationCount++
+				if latestUpdatePost == nil || post.CreateAt > latestUpdatePost.CreateAt {
+					latestUpdatePost = post
+				}
+			}
+		}
+
+		require.Equal(t, 1, updateNotificationCount, "Should only have one system_page_updated post (consolidated)")
+		require.NotNil(t, latestUpdatePost)
+		require.Equal(t, 3, int(latestUpdatePost.Props["update_count"].(float64)), "Update count should be 3 (first subtest + 2 updates)")
+
+		_, appErr = th.App.UpdatePage(th.Context, page.Id, "", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Third update"}]}]}`, "Third update")
+		require.Nil(t, appErr)
+
+		postList, appErr = th.App.GetPostsPage(th.Context, model.GetPostsOptions{
+			ChannelId: th.BasicChannel.Id,
+			Page:      0,
+			PerPage:   20,
+		})
+		require.Nil(t, appErr)
+
+		updateNotificationCount = 0
+		latestUpdatePost = nil
+		for _, post := range postList.Posts {
+			if post.Type == model.PostTypePageUpdated {
+				updateNotificationCount++
+				if latestUpdatePost == nil || post.CreateAt > latestUpdatePost.CreateAt {
+					latestUpdatePost = post
+				}
+			}
+		}
+
+		require.Equal(t, 1, updateNotificationCount, "Should still have only one system_page_updated post")
+		require.NotNil(t, latestUpdatePost)
+		require.Equal(t, 4, int(latestUpdatePost.Props["update_count"].(float64)), "Update count should be 4 (first subtest + 3 updates)")
+	})
+}
+
+func TestMoveWikiToChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	sourceChannel := th.CreateChannel(th.Context, th.BasicTeam)
+	targetChannel := th.CreateChannel(th.Context, th.BasicTeam)
+
+	wiki := &model.Wiki{
+		ChannelId:   sourceChannel.Id,
+		Title:       "Test Wiki",
+		Description: "Test wiki to move",
+	}
+
+	originalWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+	require.Nil(t, err)
+	require.NotNil(t, originalWiki)
+	require.Equal(t, sourceChannel.Id, originalWiki.ChannelId)
+
+	var movedWiki *model.Wiki
+
+	t.Run("successfully moves wiki to target channel", func(t *testing.T) {
+		var appErr *model.AppError
+		movedWiki, appErr = th.App.MoveWikiToChannel(th.Context, originalWiki, targetChannel, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.NotNil(t, movedWiki)
+		require.Equal(t, targetChannel.Id, movedWiki.ChannelId)
+
+		retrievedWiki, getErr := th.App.GetWiki(th.Context, originalWiki.Id)
+		require.Nil(t, getErr)
+		require.Equal(t, targetChannel.Id, retrievedWiki.ChannelId)
+
+		sourceWikis, appErr := th.App.GetWikisForChannel(th.Context, sourceChannel.Id, false)
+		require.Nil(t, appErr)
+		require.Empty(t, sourceWikis, "Wiki should be removed from source channel")
+
+		targetWikis, appErr := th.App.GetWikisForChannel(th.Context, targetChannel.Id, false)
+		require.Nil(t, appErr)
+		require.Len(t, targetWikis, 1, "Wiki should appear in target channel")
+		require.Equal(t, originalWiki.Id, targetWikis[0].Id)
+	})
+
+	t.Run("fails when moving to same channel", func(t *testing.T) {
+		_, appErr := th.App.MoveWikiToChannel(th.Context, movedWiki, targetChannel, th.BasicUser.Id)
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.wiki.move_wiki_to_channel.same_channel.app_error", appErr.Id)
+	})
+
+	t.Run("fails when moving to different team", func(t *testing.T) {
+		differentTeam := th.CreateTeam()
+		differentChannel := th.CreateChannel(th.Context, differentTeam)
+
+		_, appErr := th.App.MoveWikiToChannel(th.Context, movedWiki, differentChannel, th.BasicUser.Id)
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.wiki.move_wiki_to_channel.cross_team_not_supported.app_error", appErr.Id)
+	})
+
+	t.Run("fails when target channel already has wiki with same title", func(t *testing.T) {
+		conflictChannel := th.CreateChannel(th.Context, th.BasicTeam)
+
+		conflictWiki := &model.Wiki{
+			ChannelId:   conflictChannel.Id,
+			Title:       movedWiki.Title,
+			Description: "Conflict wiki",
+		}
+		_, err := th.App.CreateWiki(th.Context, conflictWiki, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		_, appErr := th.App.MoveWikiToChannel(th.Context, movedWiki, conflictChannel, th.BasicUser.Id)
+		require.NotNil(t, appErr)
+		require.Equal(t, "app.wiki.move_wiki_to_channel.title_conflict.app_error", appErr.Id)
 	})
 }

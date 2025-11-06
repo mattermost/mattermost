@@ -7,6 +7,7 @@ import {useSelector} from 'react-redux';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {PageDisplayTypes} from 'utils/constants';
+import {isEditingExistingPage} from 'utils/page_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -143,8 +144,8 @@ const PageTreeNode = ({
                 <span className='PageTreeNode__title'>{node.title}</span>
             </button>
 
-            {/* Draft badge */}
-            {node.page.type === PageDisplayTypes.PAGE_DRAFT && (
+            {/* Draft badge - only show for new drafts, not when editing existing pages */}
+            {node.page.type === PageDisplayTypes.PAGE_DRAFT && !isEditingExistingPage(node.page as any) && (
                 <span
                     className='PageTreeNode__draftBadge'
                     data-testid='draft-badge'
@@ -162,7 +163,7 @@ const PageTreeNode = ({
                     onClick={handleMenuButtonClick}
                     data-testid='page-tree-node-menu-button'
                 >
-                    <i className='icon-dots-vertical'/>
+                    <i className='icon-dots-horizontal'/>
                 </button>
             )}
 

@@ -53,6 +53,14 @@
         align-items: center;
     }
 
+    &__author {
+        gap: 8px;
+    }
+
+    &__authorText {
+        line-height: 1;
+    }
+
     &__status {
         gap: 6px;
     }

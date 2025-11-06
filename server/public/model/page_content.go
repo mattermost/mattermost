@@ -26,7 +26,7 @@ type PageContent struct {
 
 type TipTapDocument struct {
 	Type    string           `json:"type"`
-	Content []map[string]any `json:"content,omitempty"`
+	Content []map[string]any `json:"content"`
 }
 
 func (pc *PageContent) IsValid() *AppError {

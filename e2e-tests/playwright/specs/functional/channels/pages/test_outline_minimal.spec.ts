@@ -37,7 +37,7 @@ test('MINIMAL: shows outline after publishing page with heading', {tag: '@pages'
     await addHeadingToEditor(page, 1, 'Test Heading');
 
     // # Publish the page
-    const publishButton = page.getByRole('button', {name: 'Publish'});
+    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]');
     await publishButton.click();
     await page.waitForLoadState('networkidle');
     await page.waitForTimeout(1000); // Wait for Redux to update

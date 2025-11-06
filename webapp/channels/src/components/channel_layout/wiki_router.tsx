@@ -5,12 +5,12 @@ import React from 'react';
 import {connect} from 'react-redux';
 import type {RouteComponentProps} from 'react-router-dom';
 
-import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {selectChannel} from 'mattermost-redux/actions/channels';
-
-import type {GlobalState} from 'types/store';
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 
 import ChannelView from 'components/channel_view';
+
+import type {GlobalState} from 'types/store';
 
 type RouteParams = {
     team: string;
@@ -52,7 +52,7 @@ class WikiRouter extends React.PureComponent<Props> {
     }
 
     render() {
-        return <ChannelView {...this.props}/>;
+        return <ChannelView/>;
     }
 }
 

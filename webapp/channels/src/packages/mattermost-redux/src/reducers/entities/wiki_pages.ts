@@ -4,15 +4,17 @@
 import type {AnyAction} from 'redux';
 
 import type {Post} from '@mattermost/types/posts';
+import type {SelectPropertyField} from '@mattermost/types/properties';
 
 import {WikiTypes} from 'mattermost-redux/action_types';
 
-type WikiPagesState = {
+export type WikiPagesState = {
     byWiki: Record<string, string[]>;
     loading: Record<string, boolean>;
     error: Record<string, string | null>;
     pendingPublishes: Record<string, boolean>;
     lastInvalidated: Record<string, number>;
+    statusField: SelectPropertyField | null;
 };
 
 const initialState: WikiPagesState = {
@@ -21,6 +23,7 @@ const initialState: WikiPagesState = {
     error: {},
     pendingPublishes: {},
     lastInvalidated: {},
+    statusField: null,
 };
 
 export default function wikiPagesReducer(state = initialState, action: AnyAction): WikiPagesState {
@@ -155,6 +158,12 @@ export default function wikiPagesReducer(state = initialState, action: AnyAction
                 ...state.lastInvalidated,
                 [wikiId]: Date.now(),
             },
+        };
+    }
+    case WikiTypes.RECEIVED_PAGE_STATUS_FIELD: {
+        return {
+            ...state,
+            statusField: action.data,
         };
     }
     default:

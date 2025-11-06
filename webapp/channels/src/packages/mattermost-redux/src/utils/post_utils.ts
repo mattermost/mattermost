@@ -234,9 +234,19 @@ export function shouldUpdatePost(receivedPost: Post, storedPost?: Post): boolean
             return true;
         }
 
-        if (receivedPost.type === Posts.POST_TYPES.PAGE && storedPost.message !== receivedPost.message) {
+        // Page-specific checks (pages have special update requirements)
+        if (receivedPost.type === Posts.POST_TYPES.PAGE) {
             // Page content has changed (pages load content lazily from PageContents table)
-            return true;
+            if (storedPost.message !== receivedPost.message) {
+                return true;
+            }
+
+            // Page status has changed
+            const storedStatus = storedPost.props?.page_status;
+            const receivedStatus = receivedPost.props?.page_status;
+            if (storedStatus !== receivedStatus) {
+                return true;
+            }
         }
 
         // The stored post is the same as the one we've received

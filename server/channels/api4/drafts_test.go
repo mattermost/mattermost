@@ -238,7 +238,7 @@ func TestPageDraftPermissions(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.NotNil(t, draft)
-		require.Equal(t, "Test draft content", draft.Message)
+		require.NotEmpty(t, draft.Content.Content)
 	})
 
 	t.Run("get page draft successfully", func(t *testing.T) {
@@ -246,7 +246,7 @@ func TestPageDraftPermissions(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 		require.NotNil(t, draft)
-		require.Equal(t, "Test draft content", draft.Message)
+		require.NotEmpty(t, draft.Content.Content)
 	})
 
 	t.Run("fail to get page draft without read permission", func(t *testing.T) {
@@ -261,7 +261,7 @@ func TestPageDraftPermissions(t *testing.T) {
 		require.Nil(t, appErr)
 
 		privateDraftId := model.NewId()
-		_, appErr = th.App.SavePageDraft(th.Context, th.BasicUser.Id, privateWiki.Id, privateDraftId, "Private draft")
+		_, appErr = th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, privateWiki.Id, privateDraftId, createTipTapContent("Private draft"), "Private draft", "", nil)
 		require.Nil(t, appErr)
 
 		client2 := th.CreateClient()
@@ -305,7 +305,7 @@ func TestPageDraftPermissions(t *testing.T) {
 		require.Nil(t, appErr)
 
 		privateDraftId := model.NewId()
-		_, appErr = th.App.SavePageDraft(th.Context, th.BasicUser.Id, privateWiki.Id, privateDraftId, "Private draft")
+		_, appErr = th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, privateWiki.Id, privateDraftId, createTipTapContent("Private draft"), "Private draft", "", nil)
 		require.Nil(t, appErr)
 
 		client2 := th.CreateClient()

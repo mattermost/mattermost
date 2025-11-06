@@ -183,6 +183,25 @@ export function deleteWiki(wikiId: string): ActionFuncAsync {
     };
 }
 
+export function moveWikiToChannel(wikiId: string, targetChannelId: string): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        try {
+            const wiki = await Client4.moveWikiToChannel(wikiId, targetChannelId);
+
+            dispatch({
+                type: WikiTypes.RECEIVED_WIKI,
+                data: wiki,
+            });
+
+            return {data: wiki};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error, {errorBarMode: LogErrorBarMode.Always}));
+            return {error};
+        }
+    };
+}
+
 // Load single page
 export function loadPage(pageId: string, wikiId: string): ActionFuncAsync<Page> {
     return async (dispatch, getState) => {
@@ -203,10 +222,26 @@ export function loadPage(pageId: string, wikiId: string): ActionFuncAsync<Page> 
             return {error};
         }
 
-        dispatch({
-            type: PostActionTypes.RECEIVED_POST,
-            data,
-        });
+        const actions: any[] = [
+            {
+                type: PostActionTypes.RECEIVED_POST,
+                data,
+            },
+        ];
+
+        // Extract and store page status in Redux
+        const pageStatus = data.props?.page_status as string | undefined;
+        if (pageStatus) {
+            actions.push({
+                type: WikiTypes.RECEIVED_PAGE_STATUS,
+                data: {
+                    postId: data.id,
+                    status: pageStatus,
+                },
+            });
+        }
+
+        dispatch(batchActions(actions));
 
         return {data};
     };
@@ -234,7 +269,7 @@ export function loadChannelDefaultPage(channelId: string): ActionFuncAsync<Page>
 }
 
 // Publish a page draft
-export function publishPageDraft(wikiId: string, draftId: string, pageParentId: string, title: string, searchText?: string, message?: string): ActionFuncAsync<Page> {
+export function publishPageDraft(wikiId: string, draftId: string, pageParentId: string, title: string, searchText?: string, message?: string, pageStatus?: string): ActionFuncAsync<Page> {
     return async (dispatch, getState) => {
         const state = getState();
         const draftKey = makePageDraftKey(wikiId, draftId);
@@ -292,16 +327,33 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
         // Use passed searchText if provided, otherwise extract from message
         const finalSearchText = searchText === undefined ? extractPlaintextFromTipTapJSON(draftMessage) : searchText;
 
-        try {
-            const data = await Client4.publishPageDraft(wikiId, draftId, pageParentId, title, finalSearchText, draftMessage) as Page;
+        // Use passed pageStatus if provided, otherwise extract from draft props
+        const finalPageStatus = pageStatus || (draft.props?.page_status as string | undefined);
 
-            dispatch(batchActions([
+        try {
+            const data = await Client4.publishPageDraft(wikiId, draftId, pageParentId, title, finalSearchText, draftMessage, finalPageStatus) as Page;
+
+            const actions: any[] = [
                 {type: WikiTypes.PUBLISH_DRAFT_SUCCESS, data: {draftId, pageId: data.id, optimisticId: pendingPageId}},
                 {type: PostActionTypes.POST_REMOVED, data: {id: pendingPageId}},
                 {type: PostActionTypes.RECEIVED_POST, data},
                 {type: WikiTypes.RECEIVED_PAGE_IN_WIKI, data},
                 {type: WikiTypes.DELETED_DRAFT, data: {id: draftId, wikiId}},
-            ]));
+            ];
+
+            // Extract and store page status in Redux
+            const publishedPageStatus = data.props?.page_status as string | undefined;
+            if (publishedPageStatus) {
+                actions.push({
+                    type: WikiTypes.RECEIVED_PAGE_STATUS,
+                    data: {
+                        postId: data.id,
+                        status: publishedPageStatus,
+                    },
+                });
+            }
+
+            dispatch(batchActions(actions));
 
             dispatch(removeGlobalItem(draftKey));
 
@@ -344,7 +396,9 @@ export function createPage(wikiId: string, title: string, pageParentId?: string)
     return async (dispatch, getState) => {
         try {
             const draftId = `draft-${Date.now()}`;
-            const placeholderContent = '';
+
+            // Empty TipTap document JSON
+            const placeholderContent = JSON.stringify({type: 'doc', content: []});
 
             await Client4.savePageDraft(wikiId, draftId, placeholderContent, title, undefined, {page_parent_id: pageParentId});
 
@@ -695,6 +749,74 @@ export function createPageCommentReply(wikiId: string, pageId: string, parentCom
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
+export function fetchPageStatusField(): ActionFuncAsync {
+    return async (dispatch) => {
+        try {
+            const field = await Client4.getPageStatusField();
+
+            dispatch({
+                type: WikiTypes.RECEIVED_PAGE_STATUS_FIELD,
+                data: field,
+            });
+
+            return {data: field};
+        } catch (error) {
+            return {error};
+        }
+    };
+}
+
+export function fetchPageStatus(postId: string): ActionFuncAsync {
+    return async (dispatch) => {
+        try {
+            const data = await Client4.getPageStatus(postId);
+
+            dispatch({
+                type: WikiTypes.RECEIVED_PAGE_STATUS,
+                data: {
+                    postId,
+                    status: data.status,
+                },
+            });
+
+            return {data};
+        } catch (error) {
+            return {error};
+        }
+    };
+}
+
+export function updatePageStatus(postId: string, status: string): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        try {
+            await Client4.updatePageStatus(postId, status);
+
+            // Update the post in the posts store with new status in props
+            const state = getState();
+            const post = state.entities.posts.posts[postId];
+
+            if (post) {
+                const updatedPost = {
+                    ...post,
+                    props: {
+                        ...post.props,
+                        page_status: status,
+                    },
+                };
+
+                dispatch({
+                    type: PostActionTypes.RECEIVED_POST,
+                    data: updatedPost,
+                });
+            }
+
+            return {data: true};
+        } catch (error) {
             return {error};
         }
     };

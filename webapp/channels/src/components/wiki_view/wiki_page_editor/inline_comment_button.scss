@@ -5,8 +5,8 @@
     z-index: 1000;
     display: flex;
     align-items: center;
-    gap: 4px;
     padding: 4px;
+    gap: 4px;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
     border-radius: 4px;
     background: var(--center-channel-bg);
@@ -14,10 +14,10 @@
 
     .inline-comment-btn {
         display: flex;
-        align-items: center;
-        justify-content: center;
         width: 24px;
         height: 24px;
+        align-items: center;
+        justify-content: center;
         padding: 4px;
         border: none;
         border-radius: 4px;

@@ -1842,7 +1842,7 @@ function handleUpsertDraftEvent(msg) {
         // Check if this is a page draft (has wiki_id field)
         if (draft.wiki_id) {
             // Handle page draft
-            const transformedDraft = transformPageServerDraft(draft, draft.wiki_id, draft.root_id);
+            const transformedDraft = transformPageServerDraft(draft, draft.wiki_id, draft.draft_id);
             transformedDraft.value.show = true;
 
             doDispatch(setGlobalItem(transformedDraft.key, transformedDraft.value));

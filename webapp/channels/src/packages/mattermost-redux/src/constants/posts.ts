@@ -6,6 +6,10 @@ import type {PostType} from '@mattermost/types/posts';
 export const PostTypes = {
     PAGE: 'page' as PostType,
     PAGE_COMMENT: 'page_comment' as PostType,
+    PAGE_MENTION: 'system_page_mention' as PostType,
+    WIKI_ADDED: 'system_wiki_added' as PostType,
+    PAGE_ADDED: 'system_page_added' as PostType,
+    PAGE_UPDATED: 'system_page_updated' as PostType,
     CHANNEL_DELETED: 'system_channel_deleted' as PostType,
     CHANNEL_UNARCHIVED: 'system_channel_restored' as PostType,
     DISPLAYNAME_CHANGE: 'system_displayname_change' as PostType,
@@ -63,6 +67,8 @@ export default {
         PostTypes.LEAVE_TEAM,
         PostTypes.ADD_TO_TEAM,
         PostTypes.REMOVE_FROM_TEAM,
+        PostTypes.PAGE,
+        PostTypes.PAGE_COMMENT,
     ],
     USER_ACTIVITY_POST_TYPES: [
         PostTypes.ADD_TO_CHANNEL,

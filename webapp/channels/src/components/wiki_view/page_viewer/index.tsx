@@ -10,10 +10,13 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {loadPage} from 'actions/pages';
-import {getPage} from 'selectors/pages';
+import {getPage, getPageStatus} from 'selectors/pages';
 
 import {useUser} from 'components/common/hooks/useUser';
 import LoadingScreen from 'components/loading_screen';
+import ProfilePicture from 'components/profile_picture';
+
+import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -42,6 +45,7 @@ const PageViewer = ({pageId, wikiId}: Props) => {
 
     const dispatch = useDispatch();
     const page = useSelector((state: GlobalState) => getPage(state, pageId));
+    const pageStatus = useSelector((state: GlobalState) => getPageStatus(state, pageId));
     const currentUserId = useSelector(getCurrentUserId);
     const currentTeamId = useSelector(getCurrentTeamId);
     const teammateNameDisplay = useSelector(getTeammateNameDisplaySetting);
@@ -107,15 +111,7 @@ const PageViewer = ({pageId, wikiId}: Props) => {
     }
 
     const pageTitle = (page.props?.title as string | undefined) || 'Untitled Page';
-    const pageStatus = (page.props?.status as string | undefined) || 'in_progress';
     const authorName = author ? displayUsername(author, teammateNameDisplay) : 'Unknown';
-
-    const statusLabels: Record<string, string> = {
-        in_progress: 'In progress',
-        draft: 'Draft',
-        published: 'Published',
-        archived: 'Archived',
-    };
 
     return (
         <div
@@ -136,18 +132,29 @@ const PageViewer = ({pageId, wikiId}: Props) => {
                     className='PageViewer__meta'
                     data-testid='page-viewer-meta'
                 >
-                    <span
-                        className='PageViewer__author'
-                        data-testid='page-viewer-author'
-                    >
-                        {`By ${authorName}`}
-                    </span>
+                    {author && (
+                        <div
+                            className='PageViewer__author'
+                            data-testid='page-viewer-author'
+                        >
+                            <ProfilePicture
+                                src={Utils.imageURLForUser(page.user_id, author.last_picture_update)}
+                                userId={page.user_id}
+                                username={author.username}
+                                size='xs'
+                                channelId={page.channel_id}
+                            />
+                            <span className='PageViewer__authorText'>
+                                {`By ${authorName}`}
+                            </span>
+                        </div>
+                    )}
                     <span
                         className='PageViewer__status'
                         data-testid='page-viewer-status'
                     >
                         <span className='PageViewer__status-indicator'/>
-                        {statusLabels[pageStatus] || 'In progress'}
+                        {pageStatus || 'In progress'}
                     </span>
                 </div>
             </div>

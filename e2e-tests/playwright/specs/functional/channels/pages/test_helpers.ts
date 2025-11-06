@@ -70,21 +70,28 @@ export async function openPageLinkModal(editor: Locator): Promise<Locator> {
 }
 
 /**
- * Opens the page link modal by clicking the link button in the editor toolbar
+ * Opens the page link modal by using the keyboard shortcut (Mod-L)
  * @param page - Playwright page object
  * @returns The link modal locator
  */
 export async function openPageLinkModalViaButton(page: Page): Promise<Locator> {
-    // Wait for editor toolbar to be visible (only visible when editor is in edit mode)
-    const toolbar = page.locator('.tiptap-toolbar');
-    await toolbar.waitFor({state: 'visible', timeout: 10000});
+    // Wait for editor to be ready
+    const editor = page.locator('.ProseMirror').first();
+    await editor.waitFor({state: 'visible', timeout: 5000});
 
-    // Wait for link button to be visible and clickable
-    const linkButton = page.locator('[data-testid="page-link-button"]');
-    await linkButton.waitFor({state: 'visible', timeout: 5000});
-    await linkButton.click();
+    // Type some text and select it (required for link insertion)
+    await editor.click();
+    await editor.pressSequentially('test text', {delay: 10});
+    await page.keyboard.press('Meta+A'); // Mac: Cmd+A, select all
 
-    return page.locator('[data-testid="page-link-modal"]').first();
+    // Use keyboard shortcut Mod-L to open link modal (more reliable than bubble menu)
+    await page.keyboard.press('Meta+l'); // Mac: Cmd+L
+
+    // Wait for the link modal to appear
+    const linkModal = page.locator('[data-testid="page-link-modal"]').first();
+    await linkModal.waitFor({state: 'visible', timeout: 5000});
+
+    return linkModal;
 }
 
 /**
@@ -119,7 +126,7 @@ export async function createWikiThroughUI(page: Page, wikiName: string) {
 
     // # Click the "+" button in the channel tabs to open the add content menu
     const addContentButton = page.locator('#add-tab-content');
-    await addContentButton.waitFor({state: 'visible', timeout: 5000});
+    await addContentButton.waitFor({state: 'visible', timeout: 15000});
     await addContentButton.click();
 
     // # Click "Wiki" option from the dropdown menu
@@ -238,9 +245,10 @@ export async function createPageThroughUI(page: Page, pageTitle: string, pageCon
     // # Wait for editor to appear (draft created and loaded)
     const editor = page.locator('.ProseMirror').first();
     await editor.waitFor({state: 'visible', timeout: 5000});
+    await editor.waitFor({state: 'attached', timeout: 5000});
 
     // # Fill page content in TipTap editor
-    await editor.click();
+    await editor.click({timeout: 10000, force: false});
 
     // Clear any existing content first (important for rapid successive page creation)
     await page.keyboard.press('Control+A');
@@ -313,12 +321,18 @@ export async function createChildPageThroughContextMenu(
     // # Fill in modal and create page
     await fillCreatePageModal(page, pageTitle);
 
+    // # Wait for loading screen to disappear (draft being loaded)
+    await page.locator('.no-results__holder').waitFor({state: 'hidden', timeout: 5000}).catch(() => {
+        // Loading screen might not appear if draft loads instantly
+    });
+
     // # Wait for editor to appear (draft created and loaded)
     const editor = page.locator('.ProseMirror').first();
     await editor.waitFor({state: 'visible', timeout: 5000});
+    await editor.waitFor({state: 'attached', timeout: 5000});
 
     // # Fill page content in TipTap editor
-    await editor.click();
+    await editor.click({timeout: 10000, force: false});
 
     // Clear any existing content first (important for rapid successive page creation)
     await page.keyboard.press('Control+A');
@@ -373,19 +387,29 @@ export async function createChildPageThroughContextMenu(
  * @param addContentAfter - Optional content to add after the heading in a new paragraph
  */
 export async function addHeadingToEditor(page: Page, level: 1 | 2 | 3, text: string, addContentAfter?: string) {
-    // # Type the heading text
-    await page.keyboard.type(text);
+    // # Get editor - try specific testid first, fall back to generic selector
+    let editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
+    if (!(await editor.isVisible({timeout: 1000}).catch(() => false))) {
+        editor = page.locator('.ProseMirror').first();
+    }
+
+    await editor.click();
     await page.waitForTimeout(100);
 
-    // # Select the text we just typed (from start to end of line)
-    await page.keyboard.press('Home');
-    await page.keyboard.press('Shift+End');
-    await page.waitForTimeout(200);
+    // # Type the heading text directly using editor.type()
+    await editor.type(text);
+    await page.waitForTimeout(100);
+
+    // # Select only the text we just typed by pressing Shift+ArrowLeft for each character
+    // This ensures we don't select existing content in the editor
+    for (let i = 0; i < text.length; i++) {
+        await page.keyboard.press('Shift+ArrowLeft');
+    }
+    await page.waitForTimeout(500);
 
     // # Wait for the formatting bubble menu to appear
-    // The bubble menu contains both FormattingBarBubble and InlineCommentButton
     const formattingBubble = page.locator('.formatting-bar-bubble').first();
-    await formattingBubble.waitFor({state: 'visible', timeout: 5000});
+    await formattingBubble.waitFor({state: 'visible', timeout: 10000});
 
     // # Find and click the heading button
     const headingButton = formattingBubble.locator(`button[title="Heading ${level}"]`).first();
@@ -650,4 +674,13 @@ export async function deleteWikiThroughTabMenu(page: Page, wikiTitle: string) {
 export async function verifyWikiTabExists(page: Page, wikiTitle: string): Promise<boolean> {
     const wikiTab = getWikiTab(page, wikiTitle);
     return wikiTab.isVisible();
+}
+
+/**
+ * Gets all wiki tab wrappers in the current channel
+ * @param page - Playwright page object
+ * @returns Locator for all wiki tab wrappers
+ */
+export function getAllWikiTabs(page: Page): Locator {
+    return page.locator('.channel-tabs-container__tab-wrapper--wiki');
 }

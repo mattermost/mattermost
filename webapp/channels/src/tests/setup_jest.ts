@@ -99,20 +99,13 @@ afterEach(() => {
     }
 
     for (const call of errorSpy.mock.calls) {
+        const errorMessage = typeof call[0] === 'string' ? call[0] : '';
+
         if (
-            typeof call[0] === 'string' && (
-                call[0].includes('inside a test was not wrapped in act') ||
-                call[0].includes('A suspended resource finished loading inside a test, but the event was not wrapped in act')
-            )
+            errorMessage.includes('inside a test was not wrapped in act') ||
+            errorMessage.includes('A suspended resource finished loading inside a test, but the event was not wrapped in act') ||
+            errorMessage.includes('react-beautiful-dnd')
         ) {
-            // These warnings indicate that we're not using React Testing Library properly because we're not waiting
-            // for some async action to complete. Sometimes, these are side effects during the test which are missed
-            // which could lead our tests to be invalid, but more often than not, this warning is printed because of
-            // unhandled side effects from something that wasn't being tested (such as some data being loaded that we
-            // didn't care about in that test case).
-            //
-            // Ideally, we wouldn't ignore these, but so many of our existing tests are set up in a way that we can't
-            // fix this everywhere at the moment.
             continue;
         }
 
@@ -168,4 +161,12 @@ expect.extend({
 jest.mock('react-redux', () => ({
     __esModule: true,
     ...jest.requireActual('react-redux'),
+}));
+
+// Mock tiptap-extension-resize-image to avoid Image.extend errors in tests
+jest.mock('tiptap-extension-resize-image', () => ({
+    __esModule: true,
+    default: {
+        configure: jest.fn().mockReturnThis(),
+    },
 }));

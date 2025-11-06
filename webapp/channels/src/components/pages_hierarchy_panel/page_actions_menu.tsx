@@ -31,7 +31,7 @@ const PageActionsMenu = ({
     pageLink,
     buttonClassName = 'PagePane__icon-button',
     buttonLabel = 'More actions',
-    buttonIcon = 'icon-dots-vertical',
+    buttonIcon = 'icon-dots-horizontal',
     buttonTestId = 'page-actions-menu-button',
 }: Props) => {
     const [showMenu, setShowMenu] = useState(false);

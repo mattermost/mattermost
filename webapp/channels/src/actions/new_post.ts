@@ -112,7 +112,8 @@ export function setChannelReadAndViewed(dispatch: DispatchFunc, getState: GetSta
     const currentUserId = getCurrentUserId(state);
 
     // ignore system message posts, except when added to a team
-    if (shouldIgnorePost(post, currentUserId)) {
+    const shouldIgnore = shouldIgnorePost(post, currentUserId);
+    if (shouldIgnore) {
         return [];
     }
 

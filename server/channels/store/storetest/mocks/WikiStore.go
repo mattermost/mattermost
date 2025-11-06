@@ -218,6 +218,36 @@ func (_m *WikiStore) MovePageToWiki(pageId string, targetWikiId string, parentPa
 	return r0
 }
 
+// MoveWikiToChannel provides a mock function with given fields: wikiId, targetChannelId, timestamp
+func (_m *WikiStore) MoveWikiToChannel(wikiId string, targetChannelId string, timestamp int64) (*model.Wiki, error) {
+	ret := _m.Called(wikiId, targetChannelId, timestamp)
+
+	if len(ret) == 0 {
+		panic("no return value specified for MoveWikiToChannel")
+	}
+
+	var r0 *model.Wiki
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, int64) (*model.Wiki, error)); ok {
+		return rf(wikiId, targetChannelId, timestamp)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, int64) *model.Wiki); ok {
+		r0 = rf(wikiId, targetChannelId, timestamp)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Wiki)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, int64) error); ok {
+		r1 = rf(wikiId, targetChannelId, timestamp)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Save provides a mock function with given fields: wiki
 func (_m *WikiStore) Save(wiki *model.Wiki) (*model.Wiki, error) {
 	ret := _m.Called(wiki)

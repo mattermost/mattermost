@@ -44,7 +44,7 @@ describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
 
         // Transform server drafts to PostDraft format (matching what the component expects)
         const drafts: PostDraft[] = serverDrafts.map((draft) =>
-            transformPageServerDraft(draft, testContext.wikiId, draft.root_id).value,
+            transformPageServerDraft(draft, testContext.wikiId, draft.draft_id).value,
         );
 
         return {
@@ -198,11 +198,11 @@ describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
 
             // Create a draft
             const draftId = `draft-${Date.now()}`;
-            await Client4.savePageDraft(testContext.wikiId, draftId, '{"type":"doc"}', 'Draft Title', undefined, {});
+            await Client4.savePageDraft(testContext.wikiId, draftId, '{"type":"doc","content":[]}', 'Draft Title', undefined, {});
 
             const serverDrafts = await Client4.getPageDraftsForWiki(testContext.wikiId);
             const drafts: PostDraft[] = serverDrafts.map((draft) =>
-                transformPageServerDraft(draft, testContext.wikiId, draft.root_id).value,
+                transformPageServerDraft(draft, testContext.wikiId, draft.draft_id).value,
             );
             const props = {...baseProps, drafts};
             renderWithContext(<PagesHierarchyPanel {...props}/>, getInitialState());
