@@ -270,24 +270,13 @@
 
         .channel-selector-search {
             position: relative;
-            display: flex;
-            align-items: center;
             padding: 8px 12px 12px;
             border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
             background-color: var(--center-channel-bg);
 
-            .icon {
-                position: absolute;
-                left: 28px;
-                color: rgba(var(--center-channel-color-rgb), 0.64);
-                font-size: 16px;
-            }
 
-            .form-control {
-                height: 40px;
-                padding-left: 48px;
-                border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-                border-radius: 4px;
+            .Input {
+                border: none !important;
             }
         }
 

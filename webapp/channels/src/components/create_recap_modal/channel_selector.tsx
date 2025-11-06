@@ -96,12 +96,14 @@ const ChannelSelector = ({selectedChannelIds, setSelectedChannelIds, myChannels,
 
             <div className='channel-selector-container'>
                 <div className='channel-selector-search'>
-                    <i className='icon icon-magnify'/>
                     <Input
                         type='text'
                         placeholder={{id: 'recaps.modal.searchChannels', defaultMessage: 'Search and select channels'}}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
+                        useLegend={false}
+                        containerClassName='channel-selector-input-container'
+                        inputPrefix={<i className='icon icon-magnify'/>}
                     />
                 </div>
 

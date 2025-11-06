@@ -5379,7 +5379,6 @@
   "recaps.modal.noUnreadsAvailable": "No unread channels available",
   "recaps.modal.noUnreadsAvailableHint": "You currently have no unread messages in any channels",
   "recaps.modal.recommended": "RECOMMENDED",
-  "recaps.modal.searchChannels": "Search and select channels",
   "recaps.modal.selectChannels": "Select the channels you want to include",
   "recaps.modal.selectedChannels": "Recap selected channels",
   "recaps.modal.selectedChannelsDesc": "Choose the channels you would like included in your recap",
