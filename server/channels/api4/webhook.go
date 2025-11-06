@@ -72,7 +72,7 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		userId = hook.UserId
 	}
 
-	if !c.App.SessionHasAnyPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionBypassIncomingWebhookChannelLock) {
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionBypassIncomingWebhookChannelLock) {
 		hook.ChannelLocked = true
 		hook.ChannelId = channel.Id
 	}
@@ -165,7 +165,7 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasAnyPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionBypassIncomingWebhookChannelLock) {
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionBypassIncomingWebhookChannelLock) {
 		updatedHook.ChannelLocked = true
 		updatedHook.ChannelId = channel.Id
 	}
@@ -285,7 +285,7 @@ func getIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasAnyPermissionToTeam(*c.AppContext.Session(), hook.TeamId, model.PermissionManageOwnIncomingWebhooks, model.PermissionManageIncomingWebhooks) ||
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), hook.TeamId, model.PermissionManageOwnIncomingWebhooks) ||
 		(channel.Type != model.ChannelTypeOpen && !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)) {
 		c.LogAudit("fail - bad permissions")
 		c.SetPermissionError(model.PermissionManageOwnIncomingWebhooks)
@@ -339,7 +339,7 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("channel_name", channel.Name)
 	auditRec.AddMeta("team_id", hook.TeamId)
 
-	if !c.App.SessionHasAnyPermissionToTeam(*c.AppContext.Session(), hook.TeamId, model.PermissionManageOwnIncomingWebhooks, model.PermissionManageIncomingWebhooks) ||
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), hook.TeamId, model.PermissionManageOwnIncomingWebhooks) ||
 		(channel.Type != model.ChannelTypeOpen && !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)) {
 		c.LogAudit("fail - bad permissions")
 		c.SetPermissionError(model.PermissionManageOwnIncomingWebhooks)
@@ -491,13 +491,13 @@ func getOutgoingHooks(c *Context, w http.ResponseWriter, r *http.Request) {
 	)
 
 	if channelID != "" {
-		if !c.App.SessionHasAnyPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelID, model.PermissionManageOwnOutgoingWebhooks, model.PermissionManageOutgoingWebhooks) {
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelID, model.PermissionManageOwnOutgoingWebhooks) {
 			c.SetPermissionError(model.PermissionManageOwnOutgoingWebhooks)
 			return
 		}
 
 		// Remove userId as a filter if they have permission to manage others.
-		if c.App.SessionHasAnyPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelID, model.PermissionManageOthersOutgoingWebhooks, model.PermissionManageOutgoingWebhooks) {
+		if c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), channelID, model.PermissionManageOthersOutgoingWebhooks) {
 			userID = ""
 		}
 
