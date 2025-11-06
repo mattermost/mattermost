@@ -14,6 +14,61 @@ import (
 	"github.com/pkg/errors"
 )
 
+const (
+	recapColumns = "Id, UserId, Title, CreateAt, UpdateAt, DeleteAt, ReadAt, TotalMessageCount, Status, BotID"
+	recapChannelColumns = "Id, RecapId, ChannelId, ChannelName, Highlights, ActionItems, SourcePostIds, CreateAt"
+)
+
+var (
+	recapSelectColumns = []string{
+		"Id",
+		"UserId",
+		"Title",
+		"CreateAt",
+		"UpdateAt",
+		"DeleteAt",
+		"ReadAt",
+		"TotalMessageCount",
+		"Status",
+		"BotID",
+	}
+
+	recapChannelSelectColumns = []string{
+		"Id",
+		"RecapId",
+		"ChannelId",
+		"ChannelName",
+		"Highlights",
+		"ActionItems",
+		"SourcePostIds",
+		"CreateAt",
+	}
+
+	recapInsertColumns = []string{
+		"Id",
+		"UserId",
+		"Title",
+		"CreateAt",
+		"UpdateAt",
+		"DeleteAt",
+		"ReadAt",
+		"TotalMessageCount",
+		"Status",
+		"BotID",
+	}
+
+	recapChannelInsertColumns = []string{
+		"Id",
+		"RecapId",
+		"ChannelId",
+		"ChannelName",
+		"Highlights",
+		"ActionItems",
+		"SourcePostIds",
+		"CreateAt",
+	}
+)
+
 type SqlRecapStore struct {
 	*SqlStore
 
@@ -27,31 +82,11 @@ func newSqlRecapStore(sqlStore *SqlStore) store.RecapStore {
 	}
 
 	s.recapSelectQuery = s.getQueryBuilder().
-		Select(
-			"Id",
-			"UserId",
-			"Title",
-			"CreateAt",
-			"UpdateAt",
-			"DeleteAt",
-			"ReadAt",
-			"TotalMessageCount",
-			"Status",
-			"BotID",
-		).
+		Select(recapSelectColumns...).
 		From("Recaps")
 
 	s.recapChannelSelectQuery = s.getQueryBuilder().
-		Select(
-			"Id",
-			"RecapId",
-			"ChannelId",
-			"ChannelName",
-			"Highlights",
-			"ActionItems",
-			"SourcePostIds",
-			"CreateAt",
-		).
+		Select(recapChannelSelectColumns...).
 		From("RecapChannels")
 
 	return s
@@ -60,7 +95,7 @@ func newSqlRecapStore(sqlStore *SqlStore) store.RecapStore {
 func (s *SqlRecapStore) SaveRecap(recap *model.Recap) (*model.Recap, error) {
 	query := s.getQueryBuilder().
 		Insert("Recaps").
-		Columns("Id", "UserId", "Title", "CreateAt", "UpdateAt", "DeleteAt", "ReadAt", "TotalMessageCount", "Status", "BotID").
+		Columns(recapInsertColumns...).
 		Values(recap.Id, recap.UserId, recap.Title, recap.CreateAt, recap.UpdateAt, recap.DeleteAt, recap.ReadAt, recap.TotalMessageCount, recap.Status, recap.BotID)
 
 	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
@@ -195,7 +230,7 @@ func (s *SqlRecapStore) SaveRecapChannel(recapChannel *model.RecapChannel) error
 
 	query := s.getQueryBuilder().
 		Insert("RecapChannels").
-		Columns("Id", "RecapId", "ChannelId", "ChannelName", "Highlights", "ActionItems", "SourcePostIds", "CreateAt").
+		Columns(recapChannelInsertColumns...).
 		Values(recapChannel.Id, recapChannel.RecapId, recapChannel.ChannelId, recapChannel.ChannelName,
 			string(highlightsJSON), string(actionItemsJSON), string(sourcePostIdsJSON), recapChannel.CreateAt)
 

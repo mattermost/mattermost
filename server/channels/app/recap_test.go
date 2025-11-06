@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -23,7 +24,7 @@ func TestCreateRecap(t *testing.T) {
 		channel2 := th.CreateChannel(th.Context, th.BasicTeam)
 		channelIds := []string{th.BasicChannel.Id, channel2.Id}
 
-		recap, err := th.App.CreateRecap(th.Context, th.BasicUser.Id, "My Test Recap", channelIds, "test-agent-id")
+		recap, err := th.App.CreateRecap(th.Context, "My Test Recap", channelIds, "test-agent-id")
 		require.Nil(t, err)
 		require.NotNil(t, recap)
 		assert.Equal(t, th.BasicUser.Id, recap.UserId)
@@ -41,7 +42,7 @@ func TestCreateRecap(t *testing.T) {
 
 		// Try to create recap as BasicUser who is not a member
 		channelIds := []string{privateChannel.Id}
-		recap, err := th.App.CreateRecap(th.Context, th.BasicUser.Id, "Test Recap", channelIds, "test-agent-id")
+		recap, err := th.App.CreateRecap(th.Context, "Test Recap", channelIds, "test-agent-id")
 		require.NotNil(t, err)
 		assert.Nil(t, recap)
 		assert.Equal(t, "app.recap.permission_denied", err.Id)
@@ -86,7 +87,7 @@ func TestGetRecap(t *testing.T) {
 		err = th.App.Srv().Store().Recap().SaveRecapChannel(recapChannel)
 		require.NoError(t, err)
 
-		retrievedRecap, appErr := th.App.GetRecap(th.Context, th.BasicUser.Id, recap.Id)
+		retrievedRecap, appErr := th.App.GetRecap(th.Context, recap.Id)
 		require.Nil(t, appErr)
 		require.NotNil(t, retrievedRecap)
 		assert.Equal(t, recap.Id, retrievedRecap.Id)
@@ -110,8 +111,9 @@ func TestGetRecap(t *testing.T) {
 		_, err := th.App.Srv().Store().Recap().SaveRecap(recap)
 		require.NoError(t, err)
 
-		// Try to get as a different user
-		retrievedRecap, appErr := th.App.GetRecap(th.Context, th.BasicUser2.Id, recap.Id)
+		// Try to get as a different user - create context with BasicUser2's session
+		ctx := request.TestContext(t).WithSession(&model.Session{UserId: th.BasicUser2.Id})
+		retrievedRecap, appErr := th.App.GetRecap(ctx, recap.Id)
 		require.NotNil(t, appErr)
 		assert.Nil(t, retrievedRecap)
 		assert.Equal(t, "app.recap.permission_denied", appErr.Id)
@@ -144,13 +146,16 @@ func TestGetRecapsForUser(t *testing.T) {
 			require.NoError(t, err)
 		}
 
-		recaps, err := th.App.GetRecapsForUser(th.Context, th.BasicUser.Id, 0, 10)
+		recaps, err := th.App.GetRecapsForUser(th.Context, 0, 10)
 		require.Nil(t, err)
 		assert.Len(t, recaps, 5)
 	})
 
 	t.Run("pagination works correctly", func(t *testing.T) {
 		userId := model.NewId()
+
+		// Create context with the test user's session
+		ctx := request.TestContext(t).WithSession(&model.Session{UserId: userId})
 
 		// Create 15 recaps
 		for range 15 {
@@ -171,12 +176,12 @@ func TestGetRecapsForUser(t *testing.T) {
 		}
 
 		// Get first page
-		recapsPage1, err := th.App.GetRecapsForUser(th.Context, userId, 0, 10)
+		recapsPage1, err := th.App.GetRecapsForUser(ctx, 0, 10)
 		require.Nil(t, err)
 		assert.Len(t, recapsPage1, 10)
 
 		// Get second page
-		recapsPage2, err := th.App.GetRecapsForUser(th.Context, userId, 1, 10)
+		recapsPage2, err := th.App.GetRecapsForUser(ctx, 1, 10)
 		require.Nil(t, err)
 		assert.Len(t, recapsPage2, 5)
 	})
@@ -206,7 +211,7 @@ func TestMarkRecapAsRead(t *testing.T) {
 		require.NoError(t, err)
 
 		// Mark as read
-		updatedRecap, appErr := th.App.MarkRecapAsRead(th.Context, th.BasicUser.Id, recap.Id)
+		updatedRecap, appErr := th.App.MarkRecapAsRead(th.Context, recap.Id)
 		require.Nil(t, appErr)
 		require.NotNil(t, updatedRecap)
 		assert.Greater(t, updatedRecap.ReadAt, int64(0))
@@ -228,8 +233,9 @@ func TestMarkRecapAsRead(t *testing.T) {
 		_, err := th.App.Srv().Store().Recap().SaveRecap(recap)
 		require.NoError(t, err)
 
-		// Try to mark as read as a different user
-		updatedRecap, appErr := th.App.MarkRecapAsRead(th.Context, th.BasicUser2.Id, recap.Id)
+		// Try to mark as read as a different user - create context with BasicUser2's session
+		ctx := request.TestContext(t).WithSession(&model.Session{UserId: th.BasicUser2.Id})
+		updatedRecap, appErr := th.App.MarkRecapAsRead(ctx, recap.Id)
 		require.NotNil(t, appErr)
 		assert.Nil(t, updatedRecap)
 		assert.Equal(t, "app.recap.permission_denied", appErr.Id)

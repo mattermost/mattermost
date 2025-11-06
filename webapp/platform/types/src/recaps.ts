@@ -32,5 +32,10 @@ export type CreateRecapRequest = {
     agent_id: string;
 };
 
-export type RecapStatus = 'pending' | 'processing' | 'completed' | 'failed';
+export enum RecapStatus {
+    PENDING = 'pending',
+    PROCESSING = 'processing',
+    COMPLETED = 'completed',
+    FAILED = 'failed',
+}
 

@@ -4,6 +4,7 @@
 import React from 'react';
 
 import type {Recap} from '@mattermost/types/recaps';
+import {RecapStatus} from '@mattermost/types/recaps';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
@@ -20,7 +21,7 @@ describe('RecapsList', () => {
             title: 'Morning Standup',
             user_id: 'user1',
             bot_id: 'bot1',
-            status: 'completed',
+            status: RecapStatus.COMPLETED,
             create_at: 1000,
             update_at: 1000,
             delete_at: 0,
@@ -33,7 +34,7 @@ describe('RecapsList', () => {
             title: 'Weekly Review',
             user_id: 'user1',
             bot_id: 'bot1',
-            status: 'completed',
+            status: RecapStatus.COMPLETED,
             create_at: 2000,
             update_at: 2000,
             delete_at: 0,

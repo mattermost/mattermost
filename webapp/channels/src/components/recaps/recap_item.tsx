@@ -7,6 +7,7 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import {CheckAllIcon, RefreshIcon, TrashCanOutlineIcon, CheckCircleIcon} from '@mattermost/compass-icons/components';
 import type {Recap} from '@mattermost/types/recaps';
+import {RecapStatus} from '@mattermost/types/recaps';
 
 import {readMultipleChannels} from 'mattermost-redux/actions/channels';
 import {markRecapAsRead, deleteRecap, regenerateRecap} from 'mattermost-redux/actions/recaps';
@@ -33,8 +34,8 @@ const RecapItem = ({recap, isExpanded, onToggle}: Props) => {
     const agents = useSelector(getAgents);
     const agentsBridgeEnabled = useGetAgentsBridgeEnabled();
 
-    const isProcessing = recap.status === 'pending' || recap.status === 'processing';
-    const isFailed = recap.status === 'failed';
+    const isProcessing = recap.status === RecapStatus.PENDING || recap.status === RecapStatus.PROCESSING;
+    const isFailed = recap.status === RecapStatus.FAILED;
 
     // Find the agent that generated this recap
     const generatingAgent = agents.find((agent) => agent.id === recap.bot_id);

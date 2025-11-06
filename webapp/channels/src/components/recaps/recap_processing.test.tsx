@@ -4,6 +4,7 @@
 import React from 'react';
 
 import type {Recap} from '@mattermost/types/recaps';
+import {RecapStatus} from '@mattermost/types/recaps';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 
@@ -15,7 +16,7 @@ describe('RecapProcessing', () => {
         title: 'Daily Standup Recap',
         user_id: 'user1',
         bot_id: 'bot1',
-        status: 'processing',
+        status: RecapStatus.PROCESSING,
         create_at: 1000,
         update_at: 1000,
         delete_at: 0,

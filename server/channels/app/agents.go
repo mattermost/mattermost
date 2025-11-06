@@ -4,6 +4,8 @@
 package app
 
 import (
+	"net/http"
+
 	agentclient "github.com/mattermost/mattermost-plugin-ai/public/bridgeclient"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -30,7 +32,7 @@ func (a *App) GetAgents(rctx request.CTX, userID string) ([]agentclient.BridgeAg
 			mlog.Err(err),
 			mlog.String("user_id", userID),
 		)
-		return nil, model.NewAppError("GetAgents", "app.agents.get_agents.bridge_call_failed", nil, err.Error(), 500)
+		return nil, model.NewAppError("GetAgents", "app.agents.get_agents.bridge_call_failed", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return agents, nil
@@ -51,7 +53,7 @@ func (a *App) GetLLMServices(rctx request.CTX, userID string) ([]agentclient.Bri
 			mlog.Err(err),
 			mlog.String("user_id", userID),
 		)
-		return nil, model.NewAppError("GetLLMServices", "app.agents.get_services.bridge_call_failed", nil, err.Error(), 500)
+		return nil, model.NewAppError("GetLLMServices", "app.agents.get_services.bridge_call_failed", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return services, nil

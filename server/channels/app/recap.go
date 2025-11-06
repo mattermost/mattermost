@@ -27,7 +27,9 @@ func (a *App) getRecapAndCheckOwnership(recapID, userID, callerName string) (*mo
 }
 
 // CreateRecap creates a new recap job for the specified channels
-func (a *App) CreateRecap(rctx request.CTX, userID string, title string, channelIDs []string, agentID string) (*model.Recap, *model.AppError) {
+func (a *App) CreateRecap(rctx request.CTX, title string, channelIDs []string, agentID string) (*model.Recap, *model.AppError) {
+	userID := rctx.Session().UserId
+
 	// Validate user is member of all channels
 	for _, channelID := range channelIDs {
 		if !a.HasPermissionToChannel(rctx, userID, channelID, model.PermissionReadChannel) {
@@ -75,7 +77,8 @@ func (a *App) CreateRecap(rctx request.CTX, userID string, title string, channel
 }
 
 // GetRecap retrieves a recap by ID (with permission check)
-func (a *App) GetRecap(rctx request.CTX, userID, recapID string) (*model.Recap, *model.AppError) {
+func (a *App) GetRecap(rctx request.CTX, recapID string) (*model.Recap, *model.AppError) {
+	userID := rctx.Session().UserId
 	recap, appErr := a.getRecapAndCheckOwnership(recapID, userID, "GetRecap")
 	if appErr != nil {
 		return nil, appErr
@@ -92,7 +95,8 @@ func (a *App) GetRecap(rctx request.CTX, userID, recapID string) (*model.Recap, 
 }
 
 // GetRecapsForUser retrieves all recaps for a user
-func (a *App) GetRecapsForUser(rctx request.CTX, userID string, page, perPage int) ([]*model.Recap, *model.AppError) {
+func (a *App) GetRecapsForUser(rctx request.CTX, page, perPage int) ([]*model.Recap, *model.AppError) {
+	userID := rctx.Session().UserId
 	recaps, err := a.Srv().Store().Recap().GetRecapsForUser(userID, page, perPage)
 	if err != nil {
 		return nil, model.NewAppError("GetRecapsForUser", "app.recap.list.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -101,7 +105,9 @@ func (a *App) GetRecapsForUser(rctx request.CTX, userID string, page, perPage in
 }
 
 // MarkRecapAsRead marks a recap as read
-func (a *App) MarkRecapAsRead(rctx request.CTX, userID, recapID string) (*model.Recap, *model.AppError) {
+func (a *App) MarkRecapAsRead(rctx request.CTX, recapID string) (*model.Recap, *model.AppError) {
+	userID := rctx.Session().UserId
+
 	// Check ownership
 	_, appErr := a.getRecapAndCheckOwnership(recapID, userID, "MarkRecapAsRead")
 	if appErr != nil {
@@ -123,7 +129,9 @@ func (a *App) MarkRecapAsRead(rctx request.CTX, userID, recapID string) (*model.
 }
 
 // RegenerateRecap regenerates an existing recap
-func (a *App) RegenerateRecap(rctx request.CTX, userID, recapID string) (*model.Recap, *model.AppError) {
+func (a *App) RegenerateRecap(rctx request.CTX, recapID string) (*model.Recap, *model.AppError) {
+	userID := rctx.Session().UserId
+
 	// Check ownership
 	recap, appErr := a.getRecapAndCheckOwnership(recapID, userID, "RegenerateRecap")
 	if appErr != nil {
@@ -184,7 +192,9 @@ func (a *App) RegenerateRecap(rctx request.CTX, userID, recapID string) (*model.
 }
 
 // DeleteRecap deletes a recap (soft delete)
-func (a *App) DeleteRecap(rctx request.CTX, userID, recapID string) *model.AppError {
+func (a *App) DeleteRecap(rctx request.CTX, recapID string) *model.AppError {
+	userID := rctx.Session().UserId
+
 	// Check ownership
 	_, appErr := a.getRecapAndCheckOwnership(recapID, userID, "DeleteRecap")
 	if appErr != nil {

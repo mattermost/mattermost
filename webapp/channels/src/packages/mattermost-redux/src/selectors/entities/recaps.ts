@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Recap, RecapStatus} from '@mattermost/types/recaps';
+import type {Recap} from '@mattermost/types/recaps';
+import {RecapStatus} from '@mattermost/types/recaps';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
@@ -36,7 +37,7 @@ export const getCompletedRecaps = createSelector(
     'getCompletedRecaps',
     getAllRecaps,
     (recaps) => {
-        return recaps.filter((recap) => recap.status === 'completed').sort((a, b) => b.create_at - a.create_at);
+        return recaps.filter((recap) => recap.status === RecapStatus.COMPLETED).sort((a, b) => b.create_at - a.create_at);
     },
 );
 
@@ -44,7 +45,7 @@ export const getPendingRecaps = createSelector(
     'getPendingRecaps',
     getAllRecaps,
     (recaps) => {
-        return recaps.filter((recap) => recap.status === 'pending' || recap.status === 'processing');
+        return recaps.filter((recap) => recap.status === RecapStatus.PENDING || recap.status === RecapStatus.PROCESSING);
     },
 );
 

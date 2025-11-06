@@ -54,8 +54,7 @@ func createRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := c.AppContext.Session().UserId
-	recap, err := c.App.CreateRecap(c.AppContext, userID, req.Title, req.ChannelIds, req.AgentID)
+	recap, err := c.App.CreateRecap(c.AppContext, req.Title, req.ChannelIds, req.AgentID)
 	if err != nil {
 		c.Err = err
 		return
@@ -78,7 +77,7 @@ func getRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	recap, err := c.App.GetRecap(c.AppContext, c.AppContext.Session().UserId, c.Params.RecapId)
+	recap, err := c.App.GetRecap(c.AppContext, c.Params.RecapId)
 	if err != nil {
 		c.Err = err
 		return
@@ -95,8 +94,7 @@ func getRecaps(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := c.AppContext.Session().UserId
-	recaps, err := c.App.GetRecapsForUser(c.AppContext, userID, c.Params.Page, c.Params.PerPage)
+	recaps, err := c.App.GetRecapsForUser(c.AppContext, c.Params.Page, c.Params.PerPage)
 	if err != nil {
 		c.Err = err
 		return
@@ -118,8 +116,7 @@ func markRecapAsRead(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := c.AppContext.Session().UserId
-	recap, err := c.App.MarkRecapAsRead(c.AppContext, userID, c.Params.RecapId)
+	recap, err := c.App.MarkRecapAsRead(c.AppContext, c.Params.RecapId)
 	if err != nil {
 		c.Err = err
 		return
@@ -141,8 +138,7 @@ func regenerateRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := c.AppContext.Session().UserId
-	recap, err := c.App.RegenerateRecap(c.AppContext, userID, c.Params.RecapId)
+	recap, err := c.App.RegenerateRecap(c.AppContext, c.Params.RecapId)
 	if err != nil {
 		c.Err = err
 		return
@@ -164,8 +160,7 @@ func deleteRecap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := c.AppContext.Session().UserId
-	if err := c.App.DeleteRecap(c.AppContext, userID, c.Params.RecapId); err != nil {
+	if err := c.App.DeleteRecap(c.AppContext, c.Params.RecapId); err != nil {
 		c.Err = err
 		return
 	}

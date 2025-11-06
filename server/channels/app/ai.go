@@ -6,6 +6,7 @@ package app
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 
@@ -80,7 +81,7 @@ Your response must be compacted valid JSON only, with no additional text, format
 			mlog.String("channel_name", channelName),
 			mlog.String("agent_id", agentID),
 		)
-		return nil, model.NewAppError("SummarizePosts", "app.ai.summarize.agent_call_failed", nil, err.Error(), 500)
+		return nil, model.NewAppError("SummarizePosts", "app.ai.summarize.agent_call_failed", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	var summary model.AIRecapSummaryResponse
@@ -89,7 +90,7 @@ Your response must be compacted valid JSON only, with no additional text, format
 			mlog.Err(err),
 			mlog.String("response", completion),
 		)
-		return nil, model.NewAppError("SummarizePosts", "app.ai.summarize.parse_failed", nil, err.Error(), 500)
+		return nil, model.NewAppError("SummarizePosts", "app.ai.summarize.parse_failed", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	// Ensure arrays are never nil

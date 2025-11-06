@@ -6,6 +6,7 @@ import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import type {Recap} from '@mattermost/types/recaps';
+import {RecapStatus} from '@mattermost/types/recaps';
 
 import {getRecap} from 'mattermost-redux/actions/recaps';
 
@@ -28,8 +29,8 @@ const RecapsList = ({recaps}: Props) => {
 
         recaps.forEach((recap) => {
             const previousStatus = previousRecapStatuses.current.get(recap.id);
-            const isProcessing = previousStatus === 'pending' || previousStatus === 'processing';
-            const isCompleted = recap.status === 'completed';
+            const isProcessing = previousStatus === RecapStatus.PENDING || previousStatus === RecapStatus.PROCESSING;
+            const isCompleted = recap.status === RecapStatus.COMPLETED;
 
             // If recap just finished processing, expand it and fetch details
             if (isProcessing && isCompleted && !expandedRecapIds.has(recap.id)) {

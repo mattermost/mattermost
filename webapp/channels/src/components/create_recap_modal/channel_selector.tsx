@@ -6,6 +6,8 @@ import {useIntl} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 
+import Input from 'components/widgets/inputs/input/input';
+
 import {Constants} from 'utils/constants';
 
 type Props = {
@@ -95,10 +97,9 @@ const ChannelSelector = ({selectedChannelIds, setSelectedChannelIds, myChannels,
             <div className='channel-selector-container'>
                 <div className='channel-selector-search'>
                     <i className='icon icon-magnify'/>
-                    <input
+                    <Input
                         type='text'
-                        className='form-control'
-                        placeholder={formatMessage({id: 'recaps.modal.searchChannels', defaultMessage: 'Search and select channels'})}
+                        placeholder={{id: 'recaps.modal.searchChannels', defaultMessage: 'Search and select channels'}}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />

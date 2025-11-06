@@ -4,7 +4,7 @@
 import type {Recap} from '@mattermost/types/recaps';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
-import {RecapTypes} from 'mattermost-redux/action_types';
+import {RecapTypes, UserTypes} from 'mattermost-redux/action_types';
 
 export type RecapsState = {
     byId: Record<string, Recap>;
@@ -57,6 +57,9 @@ export default function recapsReducer(state = initialState, action: MMReduxActio
         nextState.allIds = state.allIds.filter((id) => id !== recapId);
         return nextState;
     }
+
+    case UserTypes.LOGOUT_SUCCESS:
+        return initialState;
 
     default:
         return state;
