@@ -46,7 +46,7 @@ func TestHookFileWillBeDownloaded(t *testing.T) {
 				plugin.MattermostPlugin
 			}
 
-			func (p *MyPlugin) FileWillBeDownloaded(c *plugin.Context, info *model.FileInfo, userID string) string {
+			func (p *MyPlugin) FileWillBeDownloaded(c *plugin.Context, info *model.FileInfo, userID string, downloadType model.FileDownloadType) string {
 				p.API.LogInfo("Rejecting file download", "file_id", info.Id, "user_id", userID)
 				return "Download blocked by security policy"
 			}
@@ -76,7 +76,7 @@ func TestHookFileWillBeDownloaded(t *testing.T) {
 		// Simulate calling the hook through RunMultiHook
 		var rejectionReason string
 		th.App.Channels().RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-			rejectionReason = hooks.FileWillBeDownloaded(pluginContext, info, th.BasicUser.Id)
+			rejectionReason = hooks.FileWillBeDownloaded(pluginContext, info, th.BasicUser.Id, model.FileDownloadTypeFile)
 			if rejectionReason != "" {
 				return false // Stop execution if hook rejects
 			}
@@ -114,7 +114,7 @@ func TestHookFileWillBeDownloaded(t *testing.T) {
 				plugin.MattermostPlugin
 			}
 
-			func (p *MyPlugin) FileWillBeDownloaded(c *plugin.Context, info *model.FileInfo, userID string) string {
+			func (p *MyPlugin) FileWillBeDownloaded(c *plugin.Context, info *model.FileInfo, userID string, downloadType model.FileDownloadType) string {
 				p.API.LogInfo("Allowing file download", "file_id", info.Id, "user_id", userID)
 				// Return empty string to allow download
 				return ""
@@ -145,7 +145,7 @@ func TestHookFileWillBeDownloaded(t *testing.T) {
 		// Call the hook
 		var rejectionReason string
 		th.App.Channels().RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-			rejectionReason = hooks.FileWillBeDownloaded(pluginContext, info, th.BasicUser.Id)
+			rejectionReason = hooks.FileWillBeDownloaded(pluginContext, info, th.BasicUser.Id, model.FileDownloadTypeFile)
 			return rejectionReason == ""
 		}, plugin.FileWillBeDownloadedID)
 
@@ -181,7 +181,7 @@ func TestHookFileWillBeDownloaded(t *testing.T) {
 			type MyPlugin struct {
 				plugin.MattermostPlugin
 			}
-			func (p *MyPlugin) FileWillBeDownloaded(c *plugin.Context, info *model.FileInfo, userID string) string {
+			func (p *MyPlugin) FileWillBeDownloaded(c *plugin.Context, info *model.FileInfo, userID string, downloadType model.FileDownloadType) string {
 				p.API.LogWarn("First plugin rejecting", "file_id", info.Id)
 				return "Rejected by first plugin"
 			}
@@ -199,7 +199,7 @@ func TestHookFileWillBeDownloaded(t *testing.T) {
 			type MyPlugin struct {
 				plugin.MattermostPlugin
 			}
-			func (p *MyPlugin) FileWillBeDownloaded(c *plugin.Context, info *model.FileInfo, userID string) string {
+			func (p *MyPlugin) FileWillBeDownloaded(c *plugin.Context, info *model.FileInfo, userID string, downloadType model.FileDownloadType) string {
 				p.API.LogInfo("Second plugin should not be called")
 				return ""
 			}
@@ -228,7 +228,7 @@ func TestHookFileWillBeDownloaded(t *testing.T) {
 		// Call hooks - first one should reject, second should not be called
 		var rejectionReason string
 		th.App.Channels().RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-			rejectionReason = hooks.FileWillBeDownloaded(pluginContext, info, th.BasicUser.Id)
+			rejectionReason = hooks.FileWillBeDownloaded(pluginContext, info, th.BasicUser.Id, model.FileDownloadTypeFile)
 			if rejectionReason != "" {
 				return false // Stop execution
 			}
@@ -263,7 +263,7 @@ func TestHookFileWillBeDownloaded(t *testing.T) {
 
 		var rejectionReason string
 		th.App.Channels().RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-			rejectionReason = hooks.FileWillBeDownloaded(pluginContext, info, th.BasicUser.Id)
+			rejectionReason = hooks.FileWillBeDownloaded(pluginContext, info, th.BasicUser.Id, model.FileDownloadTypeFile)
 			return rejectionReason == ""
 		}, plugin.FileWillBeDownloadedID)
 
