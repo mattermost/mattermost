@@ -296,13 +296,19 @@ func detectSAMLProviderType(idpDescriptorURL string) string {
 	case strings.Contains(normalizedURL, ".onelogin.com"):
 		return "OneLogin"
 	case strings.Contains(normalizedURL, "accounts.google.com"):
-		return "Google"
+		return "Google Workspace"
+	case strings.Contains(normalizedURL, "sso.jumpcloud.com"):
+		return "JumpCloud"
+	case strings.Contains(normalizedURL, "duo.com/saml2"):
+		return "Duo"
+	case strings.Contains(normalizedURL, ".centrify.com"):
+		return "Centrify"
 	case strings.Contains(normalizedURL, "/realms/"):
 		return "Keycloak"
-	case strings.Contains(normalizedURL, "/adfs/"):
+	case strings.Contains(normalizedURL, "/adfs/") || strings.Contains(normalizedURL, "/FederationMetadata/"):
 		return "ADFS"
-	case strings.Contains(normalizedURL, "pingfederate") || strings.Contains(normalizedURL, "/idp/"):
-		return "PingFederate"
+	case strings.Contains(normalizedURL, "shibboleth.net") || strings.Contains(normalizedURL, "/idp/shibboleth"):
+		return "Shibboleth"
 	default:
 		return unknownDataPoint
 	}

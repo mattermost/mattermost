@@ -598,19 +598,44 @@ func TestDetectSAMLProviderType(t *testing.T) {
 			expectedProvider: "OneLogin",
 		},
 		{
-			name:             "PingFederate provider with /idp/",
-			idpDescriptorURL: "https://sso.company.com/idp/entityId",
-			expectedProvider: "PingFederate",
-		},
-		{
-			name:             "PingFederate provider with pingfederate",
-			idpDescriptorURL: "https://pingfederate.company.com/sp/entityId",
-			expectedProvider: "PingFederate",
-		},
-		{
 			name:             "Google provider",
 			idpDescriptorURL: "https://accounts.google.com/o/saml2?idpid=12345",
-			expectedProvider: "Google",
+			expectedProvider: "Google Workspace",
+		},
+		{
+			name:             "JumpCloud provider",
+			idpDescriptorURL: "https://sso.jumpcloud.com/saml2/example",
+			expectedProvider: "JumpCloud",
+		},
+		{
+			name:             "Duo provider",
+			idpDescriptorURL: "https://sso.duo.com/saml2/sp/12345",
+			expectedProvider: "Duo",
+		},
+		{
+			name:             "Centrify provider",
+			idpDescriptorURL: "https://company.centrify.com/saml2",
+			expectedProvider: "Centrify",
+		},
+		{
+			name:             "Shibboleth provider with shibboleth.net",
+			idpDescriptorURL: "https://idp.shibboleth.net/idp/shibboleth",
+			expectedProvider: "Shibboleth",
+		},
+		{
+			name:             "Shibboleth provider with /idp/shibboleth path",
+			idpDescriptorURL: "https://university.edu/idp/shibboleth",
+			expectedProvider: "Shibboleth",
+		},
+		{
+			name:             "Case insensitive - Azure AD",
+			idpDescriptorURL: "https://LOGIN.MICROSOFTONLINE.COM/12345/saml2",
+			expectedProvider: "Azure AD",
+		},
+		{
+			name:             "Case insensitive - Okta",
+			idpDescriptorURL: "https://COMPANY.OKTA.COM/app/mattermost/saml",
+			expectedProvider: "Okta",
 		},
 		{
 			name:             "Unknown provider",
