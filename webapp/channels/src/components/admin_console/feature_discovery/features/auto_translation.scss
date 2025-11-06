@@ -1,0 +1,35 @@
+@use 'utils/variables';
+
+.AutoTranslationFeatureDiscovery .FeatureDiscovery {
+    all: unset; // removes all inheritable and non-inheritable properties (use with caution)
+    
+    display: grid;
+    align-items: center;
+    font-family: 'Open Sans', sans-serif;
+    font-style: normal;
+    font-weight: normal;
+    gap: 24px;
+    grid-template-columns: 1fr auto;
+
+    
+    .FeatureDiscovery_copyWrapper {
+        padding: 0;
+    }
+
+    .FeatureDiscovery_imageWrapper {
+        padding: 8px 32px;
+    }
+
+    .SkuTag.FeatureDiscovery_tag {
+        margin-bottom: 8px;
+    }
+
+    .FeatureDiscovery_title {
+        padding-bottom: 8px;
+    }
+}
+
+.AutoTranslationTag {
+    display: flex;
+    width: fit-content;
+}

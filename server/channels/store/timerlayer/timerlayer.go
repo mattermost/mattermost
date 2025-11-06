@@ -6814,6 +6814,22 @@ func (s *TimerLayerPostStore) RefreshPostStats() error {
 	return err
 }
 
+func (s *TimerLayerPostStore) RestoreContentFlaggedPost(post *model.Post, deletedBy string, statusFieldId string) error {
+	start := time.Now()
+
+	err := s.PostStore.RestoreContentFlaggedPost(post, deletedBy, statusFieldId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("PostStore.RestoreContentFlaggedPost", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerPostStore) Save(rctx request.CTX, post *model.Post) (*model.Post, error) {
 	start := time.Now()
 
@@ -11243,10 +11259,10 @@ func (s *TimerLayerTokenStore) Cleanup(expiryTime int64) {
 	}
 }
 
-func (s *TimerLayerTokenStore) ConsumeOnce(tokenStr string) (*model.Token, error) {
+func (s *TimerLayerTokenStore) ConsumeOnce(tokenType string, tokenStr string) (*model.Token, error) {
 	start := time.Now()
 
-	result, err := s.TokenStore.ConsumeOnce(tokenStr)
+	result, err := s.TokenStore.ConsumeOnce(tokenType, tokenStr)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

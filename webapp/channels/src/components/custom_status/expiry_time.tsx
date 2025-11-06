@@ -57,24 +57,21 @@ const ExpiryTime = ({
         timestampProps.year = 'numeric';
     }
 
-    const prefix = showPrefix && (
-        <>
+    let timestamp = <Timestamp {...timestampProps}/>;
+    if (showPrefix) {
+        timestamp = (
             <FormattedMessage
                 id='custom_status.expiry.until'
                 defaultMessage='Until {time}'
-                values={{time: ''}}
+                values={{time: timestamp}}
             />
-            {' '}
-        </>
-    );
+        );
+    }
 
     return (
         <span className={className}>
             {withinBrackets && '('}
-            {prefix}
-            <Timestamp
-                {...timestampProps}
-            />
+            {timestamp}
             {withinBrackets && ')'}
         </span>
     );
