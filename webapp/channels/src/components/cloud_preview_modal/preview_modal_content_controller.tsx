@@ -23,6 +23,7 @@ const PreviewModalController: React.FC<Props> = ({show, onClose, contentData}) =
     const intl = useIntl();
     const [currentIndex, setCurrentIndex] = useState(0);
 
+    // Use provided contentData or default to filtered modalContent
     // Use passed contentData if it's provided otherwise use the default mission ops content
     const activeContentData = contentData || modalContent.filter((content) => content.useCase === 'mission-ops');
 
@@ -45,7 +46,7 @@ const PreviewModalController: React.FC<Props> = ({show, onClose, contentData}) =
         return null;
     }
 
-    // Custom footer content with pagination and navigation buttons.
+    // Custom footer content with pagination and navigation buttons
     const footerContent = (
         <div className='preview-modal-controller__footer'>
             <div className='preview-modal-controller__pagination'>
