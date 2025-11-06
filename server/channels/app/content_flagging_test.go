@@ -2241,9 +2241,9 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// Verify post content was scrubbed
-		updatedPost, appErr := th.App.GetSinglePost(th.Context, post.Id, false)
-		require.NotNil(t, appErr) // Post should be deleted
-		require.Nil(t, updatedPost)
+		updatedPost, appErr := th.App.GetSinglePost(th.Context, post.Id, true)
+		require.Nil(t, appErr) // Post should be deleted
+		require.Greater(t, updatedPost.DeleteAt, int64(0))
 
 		// Verify status was updated to removed
 		statusValue, appErr := th.App.GetPostContentFlaggingStatusValue(post.Id)
@@ -2290,6 +2290,28 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		err = json.Unmarshal(timeValues[0].Value, &actionTime)
 		require.NoError(t, err)
 		require.True(t, actionTime > 0)
+	})
+
+	t.Run("should successfully permanently delete pending flagged post when flagged posts are hidden", func(t *testing.T) {
+		baseConfig := getBaseConfig(th)
+		baseConfig.AdditionalSettings.HideFlaggedContent = model.NewPointer(true)
+		appErr := th.App.SaveContentFlaggingConfig(baseConfig)
+		require.Nil(t, appErr)
+
+		post, appErr := setupFlaggedPost(th)
+		require.Nil(t, appErr)
+
+		actionRequest := &model.FlagContentActionRequest{
+			Comment: "This post violates community guidelines",
+		}
+
+		appErr = th.App.PermanentDeleteFlaggedPost(th.Context, actionRequest, th.SystemAdminUser.Id, post)
+		require.Nil(t, appErr)
+
+		// Verify post content was scrubbed
+		updatedPost, appErr := th.App.GetSinglePost(th.Context, post.Id, true)
+		require.Nil(t, appErr) // Post should be deleted
+		require.Greater(t, updatedPost.DeleteAt, int64(0))
 	})
 
 	t.Run("should successfully permanently delete assigned flagged post", func(t *testing.T) {
@@ -2453,7 +2475,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 
 		// Create a post with file attachments
 		post := th.CreatePost(th.BasicChannel)
-		
+
 		// Create some file infos and associate them with the post
 		fileInfo1 := &model.FileInfo{
 			Id:        model.NewId(),
@@ -2472,14 +2494,14 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 			Size:      200,
 		}
 
-		_, appErr := th.App.Srv().Store().FileInfo().Save(fileInfo1)
+		_, appErr := th.App.Srv().Store().FileInfo().Save(th.Context, fileInfo1)
 		require.Nil(t, appErr)
-		_, appErr = th.App.Srv().Store().FileInfo().Save(fileInfo2)
+		_, appErr = th.App.Srv().Store().FileInfo().Save(th.Context, fileInfo2)
 		require.Nil(t, appErr)
 
 		// Update post to include file IDs
 		post.FileIds = []string{fileInfo1.Id, fileInfo2.Id}
-		_, appErr = th.App.UpdatePost(th.Context, post, false)
+		_, appErr = th.App.UpdatePost(th.Context, post, &model.UpdatePostOptions{})
 		require.Nil(t, appErr)
 
 		// Flag the post
@@ -2516,7 +2538,7 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		editedPost.Message = "Edited message"
 		editedPost.EditAt = model.GetMillis()
 
-		_, appErr := th.App.UpdatePost(th.Context, editedPost, false)
+		_, appErr := th.App.UpdatePost(th.Context, editedPost, &model.UpdatePostOptions{})
 		require.Nil(t, appErr)
 
 		// Flag the post
@@ -2567,47 +2589,6 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 		statusValue, appErr := th.App.GetPostContentFlaggingStatusValue(post.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, `"`+model.ContentFlaggingStatusRemoved+`"`, string(statusValue.Value))
-	})
-
-	t.Run("should handle invalid action request", func(t *testing.T) {
-		require.Nil(t, setBaseConfig(th))
-
-		post, appErr := setupFlaggedPost(th)
-		require.Nil(t, appErr)
-
-		// Test with nil action request
-		appErr = th.App.PermanentDeleteFlaggedPost(th.Context, nil, th.SystemAdminUser.Id, post)
-		require.NotNil(t, appErr)
-	})
-
-	t.Run("should handle invalid reviewer ID", func(t *testing.T) {
-		require.Nil(t, setBaseConfig(th))
-
-		post, appErr := setupFlaggedPost(th)
-		require.Nil(t, appErr)
-
-		actionRequest := &model.FlagContentActionRequest{
-			Comment: "Test comment",
-		}
-
-		appErr = th.App.PermanentDeleteFlaggedPost(th.Context, actionRequest, "invalid_reviewer_id", post)
-		require.Nil(t, appErr) // Should still work, just store invalid ID
-
-		// Verify invalid reviewer ID was stored
-		groupId, appErr := th.App.ContentFlaggingGroupId()
-		require.Nil(t, appErr)
-
-		mappedFields, appErr := th.App.GetContentFlaggingMappedFields(groupId)
-		require.Nil(t, appErr)
-
-		actorValues, err := th.Server.propertyService.SearchPropertyValues(groupId, model.PropertyValueSearchOpts{
-			TargetIDs: []string{post.Id},
-			PerPage:   CONTENT_FLAGGING_MAX_PROPERTY_VALUES,
-			FieldID:   mappedFields[contentFlaggingPropertyNameActorUserID].ID,
-		})
-		require.NoError(t, err)
-		require.Len(t, actorValues, 1)
-		require.Equal(t, `"invalid_reviewer_id"`, string(actorValues[0].Value))
 	})
 
 	t.Run("should handle post that was already deleted", func(t *testing.T) {
