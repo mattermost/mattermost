@@ -281,24 +281,28 @@ func detectSAMLProviderType(idpDescriptorURL string) string {
 		return unknownDataPoint
 	}
 
+	// Normalize URL to lowercase for case-insensitive matching
+	normalizedURL := strings.ToLower(idpDescriptorURL)
+
 	// Check for common SAML provider patterns in the EntityID/IdpDescriptorURL
+	// Order matters: more specific patterns should come before generic ones
 	switch {
-	case strings.Contains(idpDescriptorURL, "/realms/"):
-		return "Keycloak"
-	case strings.Contains(idpDescriptorURL, "/adfs/"):
-		return "ADFS"
-	case strings.Contains(idpDescriptorURL, "login.microsoftonline.com") || strings.Contains(idpDescriptorURL, "sts.windows.net"):
+	case strings.Contains(normalizedURL, "login.microsoftonline.com") || strings.Contains(normalizedURL, "sts.windows.net"):
 		return "Azure AD"
-	case strings.Contains(idpDescriptorURL, ".okta.com") || strings.Contains(idpDescriptorURL, ".oktapreview.com"):
+	case strings.Contains(normalizedURL, ".okta.com") || strings.Contains(normalizedURL, ".oktapreview.com"):
 		return "Okta"
-	case strings.Contains(idpDescriptorURL, ".auth0.com"):
+	case strings.Contains(normalizedURL, ".auth0.com"):
 		return "Auth0"
-	case strings.Contains(idpDescriptorURL, ".onelogin.com"):
+	case strings.Contains(normalizedURL, ".onelogin.com"):
 		return "OneLogin"
-	case strings.Contains(idpDescriptorURL, "/idp/") || strings.Contains(idpDescriptorURL, "pingfederate"):
-		return "PingFederate"
-	case strings.Contains(idpDescriptorURL, "accounts.google.com"):
+	case strings.Contains(normalizedURL, "accounts.google.com"):
 		return "Google"
+	case strings.Contains(normalizedURL, "/realms/"):
+		return "Keycloak"
+	case strings.Contains(normalizedURL, "/adfs/"):
+		return "ADFS"
+	case strings.Contains(normalizedURL, "pingfederate") || strings.Contains(normalizedURL, "/idp/"):
+		return "PingFederate"
 	default:
 		return unknownDataPoint
 	}
