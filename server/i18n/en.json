@@ -4183,12 +4183,24 @@
     "translation": "Permanent channel deletion feature is not enabled. Please contact your System Administrator."
   },
   {
+    "id": "api.user.delete_channel.not_enabled.for_admin.app_error",
+    "translation": "Permanent channel deletion feature is not enabled. ServiceSettings.EnableAPIChannelDeletion must be set to true to use this command. See https://mattermost.com/pl/environment-configuration-settings for more information"
+  },
+  {
     "id": "api.user.delete_team.not_enabled.app_error",
     "translation": "Permanent team deletion feature is not enabled. Please contact your System Administrator."
   },
   {
+    "id": "api.user.delete_team.not_enabled.for_admin.app_error",
+    "translation": "Permanent team deletion feature is not enabled. ServiceSettings.EnableAPITeamDeletion must be set to true to use this command. See https://mattermost.com/pl/environment-configuration-settings for more information."
+  },
+  {
     "id": "api.user.delete_user.not_enabled.app_error",
     "translation": "Permanent user deletion feature is not enabled. Please contact your System Administrator."
+  },
+  {
+    "id": "api.user.delete_user.not_enabled.for_admin.app_error",
+    "translation": "Permanent user deletion feature is not enabled. ServiceSettings.EnableAPIUserDeletion must be set to true to use this command. See https://mattermost.com/pl/environment-configuration-settings for more information."
   },
   {
     "id": "api.user.demote_user_to_guest.already_guest.app_error",
