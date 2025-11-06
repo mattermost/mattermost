@@ -14,13 +14,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-const (
-	recapColumns = "Id, UserId, Title, CreateAt, UpdateAt, DeleteAt, ReadAt, TotalMessageCount, Status, BotID"
-	recapChannelColumns = "Id, RecapId, ChannelId, ChannelName, Highlights, ActionItems, SourcePostIds, CreateAt"
-)
-
 var (
-	recapSelectColumns = []string{
+	recapColumns = []string{
 		"Id",
 		"UserId",
 		"Title",
@@ -33,31 +28,7 @@ var (
 		"BotID",
 	}
 
-	recapChannelSelectColumns = []string{
-		"Id",
-		"RecapId",
-		"ChannelId",
-		"ChannelName",
-		"Highlights",
-		"ActionItems",
-		"SourcePostIds",
-		"CreateAt",
-	}
-
-	recapInsertColumns = []string{
-		"Id",
-		"UserId",
-		"Title",
-		"CreateAt",
-		"UpdateAt",
-		"DeleteAt",
-		"ReadAt",
-		"TotalMessageCount",
-		"Status",
-		"BotID",
-	}
-
-	recapChannelInsertColumns = []string{
+	recapChannelColumns = []string{
 		"Id",
 		"RecapId",
 		"ChannelId",
@@ -82,11 +53,11 @@ func newSqlRecapStore(sqlStore *SqlStore) store.RecapStore {
 	}
 
 	s.recapSelectQuery = s.getQueryBuilder().
-		Select(recapSelectColumns...).
+		Select(recapColumns...).
 		From("Recaps")
 
 	s.recapChannelSelectQuery = s.getQueryBuilder().
-		Select(recapChannelSelectColumns...).
+		Select(recapChannelColumns...).
 		From("RecapChannels")
 
 	return s
@@ -95,7 +66,7 @@ func newSqlRecapStore(sqlStore *SqlStore) store.RecapStore {
 func (s *SqlRecapStore) SaveRecap(recap *model.Recap) (*model.Recap, error) {
 	query := s.getQueryBuilder().
 		Insert("Recaps").
-		Columns(recapInsertColumns...).
+		Columns(recapColumns...).
 		Values(recap.Id, recap.UserId, recap.Title, recap.CreateAt, recap.UpdateAt, recap.DeleteAt, recap.ReadAt, recap.TotalMessageCount, recap.Status, recap.BotID)
 
 	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
@@ -230,7 +201,7 @@ func (s *SqlRecapStore) SaveRecapChannel(recapChannel *model.RecapChannel) error
 
 	query := s.getQueryBuilder().
 		Insert("RecapChannels").
-		Columns(recapChannelInsertColumns...).
+		Columns(recapChannelColumns...).
 		Values(recapChannel.Id, recapChannel.RecapId, recapChannel.ChannelId, recapChannel.ChannelName,
 			string(highlightsJSON), string(actionItemsJSON), string(sourcePostIdsJSON), recapChannel.CreateAt)
 

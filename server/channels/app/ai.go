@@ -76,20 +76,11 @@ Your response must be compacted valid JSON only, with no additional text, format
 
 	completion, err := client.AgentCompletion(agentID, completionRequest)
 	if err != nil {
-		rctx.Logger().Error("AI agent call failed for summarization",
-			mlog.Err(err),
-			mlog.String("channel_name", channelName),
-			mlog.String("agent_id", agentID),
-		)
 		return nil, model.NewAppError("SummarizePosts", "app.ai.summarize.agent_call_failed", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	var summary model.AIRecapSummaryResponse
 	if err := json.Unmarshal([]byte(completion), &summary); err != nil {
-		rctx.Logger().Error("Failed to parse AI summarization response",
-			mlog.Err(err),
-			mlog.String("response", completion),
-		)
 		return nil, model.NewAppError("SummarizePosts", "app.ai.summarize.parse_failed", nil, err.Error(), http.StatusInternalServerError)
 	}
 
