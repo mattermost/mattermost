@@ -53,6 +53,7 @@ type TimerLayer struct {
 	PropertyGroupStore              store.PropertyGroupStore
 	PropertyValueStore              store.PropertyValueStore
 	ReactionStore                   store.ReactionStore
+	ReadReceiptStore                store.ReadReceiptStore
 	RemoteClusterStore              store.RemoteClusterStore
 	RetentionPolicyStore            store.RetentionPolicyStore
 	RoleStore                       store.RoleStore
@@ -207,6 +208,10 @@ func (s *TimerLayer) PropertyValue() store.PropertyValueStore {
 
 func (s *TimerLayer) Reaction() store.ReactionStore {
 	return s.ReactionStore
+}
+
+func (s *TimerLayer) ReadReceipt() store.ReadReceiptStore {
+	return s.ReadReceiptStore
 }
 
 func (s *TimerLayer) RemoteCluster() store.RemoteClusterStore {
@@ -448,6 +453,11 @@ type TimerLayerPropertyValueStore struct {
 
 type TimerLayerReactionStore struct {
 	store.ReactionStore
+	Root *TimerLayer
+}
+
+type TimerLayerReadReceiptStore struct {
+	store.ReadReceiptStore
 	Root *TimerLayer
 }
 
@@ -6814,10 +6824,10 @@ func (s *TimerLayerPostStore) RefreshPostStats() error {
 	return err
 }
 
-func (s *TimerLayerPostStore) RestoreContentFlaggedPost(post *model.Post, deletedBy string, statusFieldId string) error {
+func (s *TimerLayerPostStore) RestoreContentFlaggedPost(post *model.Post, statusFieldId string, contentFlaggingManagedFieldId string) error {
 	start := time.Now()
 
-	err := s.PostStore.RestoreContentFlaggedPost(post, deletedBy, statusFieldId)
+	err := s.PostStore.RestoreContentFlaggedPost(post, statusFieldId, contentFlaggingManagedFieldId)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -8042,6 +8052,86 @@ func (s *TimerLayerReactionStore) Save(reaction *model.Reaction) (*model.Reactio
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ReactionStore.Save", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerReadReceiptStore) Delete(rctx request.CTX, postID string, userID string) error {
+	start := time.Now()
+
+	err := s.ReadReceiptStore.Delete(rctx, postID, userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ReadReceiptStore.Delete", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerReadReceiptStore) DeleteByPost(rctx request.CTX, postID string) error {
+	start := time.Now()
+
+	err := s.ReadReceiptStore.DeleteByPost(rctx, postID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ReadReceiptStore.DeleteByPost", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerReadReceiptStore) Get(rctx request.CTX, postID string, userID string) (*model.ReadReceipt, error) {
+	start := time.Now()
+
+	result, err := s.ReadReceiptStore.Get(rctx, postID, userID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ReadReceiptStore.Get", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerReadReceiptStore) GetReadCountForPost(rctx request.CTX, postID string) (int64, error) {
+	start := time.Now()
+
+	result, err := s.ReadReceiptStore.GetReadCountForPost(rctx, postID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ReadReceiptStore.GetReadCountForPost", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerReadReceiptStore) Save(rctx request.CTX, receipt *model.ReadReceipt) (*model.ReadReceipt, error) {
+	start := time.Now()
+
+	result, err := s.ReadReceiptStore.Save(rctx, receipt)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ReadReceiptStore.Save", success, elapsed)
 	}
 	return result, err
 }
@@ -13501,6 +13591,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.PropertyGroupStore = &TimerLayerPropertyGroupStore{PropertyGroupStore: childStore.PropertyGroup(), Root: &newStore}
 	newStore.PropertyValueStore = &TimerLayerPropertyValueStore{PropertyValueStore: childStore.PropertyValue(), Root: &newStore}
 	newStore.ReactionStore = &TimerLayerReactionStore{ReactionStore: childStore.Reaction(), Root: &newStore}
+	newStore.ReadReceiptStore = &TimerLayerReadReceiptStore{ReadReceiptStore: childStore.ReadReceipt(), Root: &newStore}
 	newStore.RemoteClusterStore = &TimerLayerRemoteClusterStore{RemoteClusterStore: childStore.RemoteCluster(), Root: &newStore}
 	newStore.RetentionPolicyStore = &TimerLayerRetentionPolicyStore{RetentionPolicyStore: childStore.RetentionPolicy(), Root: &newStore}
 	newStore.RoleStore = &TimerLayerRoleStore{RoleStore: childStore.Role(), Root: &newStore}
