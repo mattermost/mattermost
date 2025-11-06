@@ -12,8 +12,8 @@ export function getAllRecaps(state: GlobalState): Recap[] {
     return allIds.map((id) => byId[id]);
 }
 
-export function getRecap(state: GlobalState, recapId: string): Recap | null {
-    return state.entities.recaps.byId[recapId] || null;
+export function getRecap(state: GlobalState, recapId: string): Recap | undefined {
+    return state.entities.recaps.byId[recapId] || undefined;
 }
 
 export const getRecapsByStatus = createSelector(
