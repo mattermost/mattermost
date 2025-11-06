@@ -90,7 +90,7 @@ func (lc LoggerConfiguration) IsValid(validLevels []Level) error {
 	for _, c := range lc {
 		for _, l := range c.Levels {
 			if !slices.Contains(validLevelIDs, l.ID) {
-				return errors.Errorf("invalid log id %d", l.ID)
+				return errors.Errorf("invalid log level id %d", l.ID)
 			}
 		}
 	}
