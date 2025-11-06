@@ -16,6 +16,9 @@ type PushProxyInterface interface {
 	// GenerateAuthToken generates and stores an authentication token
 	GenerateAuthToken() *model.AppError
 
+	// DeleteAuthToken deletes the stored authentication token
+	DeleteAuthToken() *model.AppError
+
 	// MakeWorker creates a worker for the auth token generation job
 	MakeWorker() model.Worker
 

@@ -8673,6 +8673,10 @@
     "translation": "The provided audience is invalid: {{ .Error }}"
   },
   {
+    "id": "ent.push_proxy.delete.app_error",
+    "translation": "Failed to delete push proxy auth token."
+  },
+  {
     "id": "ent.push_proxy.generate.bad_status.app_error",
     "translation": "Failed to get auth token from push proxy server."
   },
