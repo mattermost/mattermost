@@ -946,6 +946,26 @@ func (_m *Store) Reaction() store.ReactionStore {
 	return r0
 }
 
+// ReadReceipt provides a mock function with no fields
+func (_m *Store) ReadReceipt() store.ReadReceiptStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for ReadReceipt")
+	}
+
+	var r0 store.ReadReceiptStore
+	if rf, ok := ret.Get(0).(func() store.ReadReceiptStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.ReadReceiptStore)
+		}
+	}
+
+	return r0
+}
+
 // RecycleDBConnections provides a mock function with given fields: d
 func (_m *Store) RecycleDBConnections(d time.Duration) {
 	_m.Called(d)

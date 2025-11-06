@@ -71,6 +71,8 @@ const (
 	ChannelCacheSec = 15 * 60 // 15 mins
 
 	ContentFlaggingCacheSize = 100
+
+	ReadReceiptCacheSize = 50000
 )
 
 var clearCacheMessageData = []byte("")
@@ -129,6 +131,9 @@ type LocalCacheStore struct {
 
 	contentFlagging      LocalCacheContentFlaggingStore
 	contentFlaggingCache cache.Cache
+
+	readReceipt      LocalCacheReadReceiptStore
+	readReceiptCache cache.Cache
 }
 
 func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface, cacheProvider cache.Provider, logger mlog.LoggerIFace) (localCacheStore LocalCacheStore, err error) {
@@ -380,6 +385,16 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	}
 	localCacheStore.contentFlagging = LocalCacheContentFlaggingStore{ContentFlaggingStore: baseStore.ContentFlagging(), rootStore: &localCacheStore}
 
+	// Read Receipts
+	if localCacheStore.readReceiptCache, err = cacheProvider.NewCache(&cache.CacheOptions{
+		Size:                   ReadReceiptCacheSize,
+		Name:                   "ReadReceipt",
+		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForReadReceipts,
+	}); err != nil {
+		return
+	}
+	localCacheStore.readReceipt = LocalCacheReadReceiptStore{ReadReceiptStore: baseStore.ReadReceipt(), rootStore: &localCacheStore}
+
 	if cluster != nil {
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForReactions, localCacheStore.reaction.handleClusterInvalidateReaction)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForRoles, localCacheStore.role.handleClusterInvalidateRole)
@@ -405,6 +420,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForAllProfiles, localCacheStore.user.handleClusterInvalidateAllProfiles)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForTeams, localCacheStore.team.handleClusterInvalidateTeam)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForContentFlagging, localCacheStore.contentFlagging.handleClusterInvalidateContentFlagging)
+		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForReadReceipts, localCacheStore.readReceipt.handleClusterInvalidateReadReceipts)
 	}
 	return
 }
@@ -455,6 +471,10 @@ func (s LocalCacheStore) Team() store.TeamStore {
 
 func (s LocalCacheStore) ContentFlagging() store.ContentFlaggingStore {
 	return s.contentFlagging
+}
+
+func (s LocalCacheStore) ReadReceipt() store.ReadReceiptStore {
+	return s.readReceipt
 }
 
 func (s LocalCacheStore) DropAllTables() {
@@ -590,6 +610,7 @@ func (s *LocalCacheStore) Invalidate() {
 	s.doClearCacheCluster(s.profilesInChannelCache)
 	s.doClearCacheCluster(s.teamAllTeamIdsForUserCache)
 	s.doClearCacheCluster(s.rolePermissionsCache)
+	s.doClearCacheCluster(s.readReceiptCache)
 }
 
 // allocateCacheTargets is used to fill target value types

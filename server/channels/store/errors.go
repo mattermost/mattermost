@@ -183,3 +183,8 @@ func (e *ErrUniqueConstraint) Error() string {
 	}
 	return fmt.Sprintf(tmpl, strings.Join(e.Columns, ","))
 }
+
+func IsErrNotFound(err error) bool {
+	_, ok := err.(*ErrNotFound)
+	return ok
+}
