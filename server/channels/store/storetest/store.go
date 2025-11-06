@@ -70,6 +70,7 @@ type Store struct {
 	AccessControlPolicyStore        mocks.AccessControlPolicyStore
 	AttributesStore                 mocks.AttributesStore
 	ContentFlaggingStore            mocks.ContentFlaggingStore
+	ReadReceiptStore                mocks.ReadReceiptStore
 }
 
 func (s *Store) Logger() mlog.LoggerIFace                      { return s.logger }
@@ -161,6 +162,9 @@ func (s *Store) Attributes() store.AttributesStore {
 }
 func (s *Store) ContentFlagging() store.ContentFlaggingStore {
 	return &s.ContentFlaggingStore
+}
+func (s *Store) ReadReceipt() store.ReadReceiptStore {
+	return &s.ReadReceiptStore
 }
 
 func (s *Store) GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error) {
