@@ -146,14 +146,8 @@ func NewChannels(s *Server) (*Channels, error) {
 				return
 			}
 
-			oldURL := ""
-			if oldCfg.EmailSettings.PushNotificationServer != nil {
-				oldURL = *oldCfg.EmailSettings.PushNotificationServer
-			}
-			newURL := ""
-			if newCfg.EmailSettings.PushNotificationServer != nil {
-				newURL = *newCfg.EmailSettings.PushNotificationServer
-			}
+			oldURL := model.SafeDereference(oldCfg.EmailSettings.PushNotificationServer)
+			newURL := model.SafeDereference(newCfg.EmailSettings.PushNotificationServer)
 
 			// If push proxy URL changed, regenerate token
 			if oldURL != newURL && newURL != "" {
