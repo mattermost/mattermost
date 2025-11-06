@@ -285,20 +285,24 @@ func (a *App) getWebhooksPermissionsSplitMigration() (permissionsMap, error) {
 func (a *App) getIntegrationsOwnPermissionsMigration() (permissionsMap, error) {
 	return permissionsMap{
 		permissionTransformation{
-			On:  permissionExists(PermissionManageIncomingWebhooks),
-			Add: []string{PermissionManageOwnIncomingWebhooks, PermissionBypassIncomingWebhookChannelLock},
+			On:     permissionExists(PermissionManageIncomingWebhooks),
+			Add:    []string{PermissionManageOwnIncomingWebhooks, PermissionBypassIncomingWebhookChannelLock},
+			Remove: []string{PermissionManageIncomingWebhooks},
 		},
 		permissionTransformation{
-			On:  permissionExists(PermissionManageOutgoingWebhooks),
-			Add: []string{PermissionManageOwnOutgoingWebhooks},
+			On:     permissionExists(PermissionManageOutgoingWebhooks),
+			Add:    []string{PermissionManageOwnOutgoingWebhooks},
+			Remove: []string{PermissionManageOutgoingWebhooks},
 		},
 		permissionTransformation{
-			On:  permissionExists(PermissionManageSlashCommands),
-			Add: []string{PermissionManageOwnSlashCommands},
+			On:     permissionExists(PermissionManageSlashCommands),
+			Add:    []string{PermissionManageOwnSlashCommands},
+			Remove: []string{PermissionManageSlashCommands},
 		},
 		permissionTransformation{
-			On:  permissionExists(PermissionManageOAuth),
-			Add: []string{PermissionManageOwnOAuthApps},
+			On:     permissionExists(PermissionManageOAuth),
+			Add:    []string{PermissionManageOwnOAuthApps},
+			Remove: []string{PermissionManageOAuth},
 		},
 	}, nil
 }

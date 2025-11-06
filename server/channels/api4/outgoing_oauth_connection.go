@@ -36,8 +36,8 @@ func (api *API) InitOutgoingOAuthConnection() {
 // other users can use them in their outgoing webhooks and slash commands if they have permissions to manage those.
 func checkOutgoingOAuthConnectionReadPermissions(c *Context, teamId string) bool {
 	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOutgoingOAuthConnections) ||
-		c.App.SessionHasAnyPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionManageOwnOutgoingWebhooks, model.PermissionManageOutgoingWebhooks) ||
-		c.App.SessionHasAnyPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionManageOwnSlashCommands, model.PermissionManageSlashCommands) {
+		c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionManageOwnOutgoingWebhooks) ||
+		c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionManageOwnSlashCommands) {
 		return true
 	}
 

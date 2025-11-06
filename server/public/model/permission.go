@@ -436,6 +436,7 @@ func initializePermissions() {
 		"authentication.permissions.team_use_slash_commands.description",
 		PermissionScopeChannel,
 	}
+	// DEPRECATED - use PermissionManageOwnSlashCommands instead
 	PermissionManageSlashCommands = &Permission{
 		"manage_slash_commands",
 		"authentication.permissions.manage_slash_commands.name",
@@ -679,6 +680,7 @@ func initializePermissions() {
 		"authentication.permissions.manage_others_webhooks.description",
 		PermissionScopeTeam,
 	}
+	// DEPRECATED - use PermissionManageOwnIncomingWebhooks instead
 	PermissionManageIncomingWebhooks = &Permission{
 		"manage_incoming_webhooks",
 		"authentication.permissions.manage_incoming_webhooks.name",
@@ -691,6 +693,7 @@ func initializePermissions() {
 		"authentication.permissions.manage_own_incoming_webhooks.description",
 		PermissionScopeTeam,
 	}
+	// DEPRECATED - use PermissionManageOwnOutgoingWebhooks instead
 	PermissionManageOutgoingWebhooks = &Permission{
 		"manage_outgoing_webhooks",
 		"authentication.permissions.manage_outgoing_webhooks.name",
@@ -721,6 +724,7 @@ func initializePermissions() {
 		"authentication.permissions.bypass_incoming_webhook_channel_lock.description",
 		PermissionScopeTeam,
 	}
+	// DEPRECATED - use PermissionManageOwnOAuthApps instead
 	PermissionManageOAuth = &Permission{
 		"manage_oauth",
 		"authentication.permissions.manage_oauth.name",
@@ -2449,7 +2453,6 @@ func initializePermissions() {
 		PermissionEditOtherUsers,
 		PermissionReadOtherUsersTeams,
 		PermissionGetPublicLink,
-		PermissionManageOAuth,
 		PermissionManageOwnOAuthApps,
 		PermissionManageSystemWideOAuth,
 		PermissionCreateTeam,
@@ -2520,7 +2523,6 @@ func initializePermissions() {
 	TeamScopedPermissions := []*Permission{
 		PermissionInviteUser,
 		PermissionAddUserToTeam,
-		PermissionManageSlashCommands,
 		PermissionManageOwnSlashCommands,
 		PermissionManageOthersSlashCommands,
 		PermissionCreatePublicChannel,
@@ -2529,9 +2531,7 @@ func initializePermissions() {
 		PermissionListTeamChannels,
 		PermissionJoinPublicChannels,
 		PermissionReadPublicChannel,
-		PermissionManageIncomingWebhooks,
 		PermissionManageOwnIncomingWebhooks,
-		PermissionManageOutgoingWebhooks,
 		PermissionManageOwnOutgoingWebhooks,
 		PermissionManageOthersIncomingWebhooks,
 		PermissionManageOthersOutgoingWebhooks,
@@ -2602,6 +2602,10 @@ func initializePermissions() {
 		PermissionPermanentDeleteUser,
 		PermissionManageWebhooks,
 		PermissionManageOthersWebhooks,
+		PermissionManageIncomingWebhooks,
+		PermissionManageOutgoingWebhooks,
+		PermissionManageSlashCommands,
+		PermissionManageOAuth,
 		PermissionManageEmojis,
 		PermissionManageOthersEmojis,
 		PermissionSysconsoleReadAuthentication,
