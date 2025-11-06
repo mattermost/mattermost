@@ -97,6 +97,7 @@ type Store interface {
 	Attributes() AttributesStore
 	GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error)
 	ContentFlagging() ContentFlaggingStore
+	ReadReceipt() ReadReceiptStore
 }
 
 type RetentionPolicyStore interface {
@@ -1152,6 +1153,14 @@ type ContentFlaggingStore interface {
 	SaveReviewerSettings(reviewerSettings model.ReviewerIDsSettings) error
 	GetReviewerSettings() (*model.ReviewerIDsSettings, error)
 	ClearCaches()
+}
+
+type ReadReceiptStore interface {
+	Save(rctx request.CTX, receipt *model.ReadReceipt) (*model.ReadReceipt, error)
+	Delete(rctx request.CTX, postID, userID string) error
+	DeleteByPost(rctx request.CTX, postID string) error
+	Get(rctx request.CTX, postID, userID string) (*model.ReadReceipt, error)
+	GetReadCountForPost(rctx request.CTX, postID string) (int64, error)
 }
 
 // ChannelSearchOpts contains options for searching channels.
