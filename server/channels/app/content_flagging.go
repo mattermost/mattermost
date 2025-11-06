@@ -609,7 +609,7 @@ func (a *App) PermanentDeleteFlaggedPost(rctx request.CTX, actionRequest *model.
 	}
 
 	// If the post is not already deleted, delete it now.
-	// This handles the case when "Hide message from channel while it is being reviewed" setting is set ot false when the post was flagged.
+	// This handles the case when "Hide message from channel while it is being reviewed" setting is set to false when the post was flagged.
 	if flaggedPost.DeleteAt == 0 {
 		// DeletePost is called to care of WebSocket events, cache invalidation, search index removal,
 		// persistent notification removal and other cleanup tasks that need to happen on post deletion.

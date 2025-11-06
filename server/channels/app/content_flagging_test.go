@@ -2494,14 +2494,14 @@ func TestPermanentDeleteFlaggedPost(t *testing.T) {
 			Size:      200,
 		}
 
-		_, appErr := th.App.Srv().Store().FileInfo().Save(th.Context, fileInfo1)
-		require.Nil(t, appErr)
-		_, appErr = th.App.Srv().Store().FileInfo().Save(th.Context, fileInfo2)
-		require.Nil(t, appErr)
+		_, err := th.App.Srv().Store().FileInfo().Save(th.Context, fileInfo1)
+		require.NoError(t, err)
+		_, err = th.App.Srv().Store().FileInfo().Save(th.Context, fileInfo2)
+		require.NoError(t, err)
 
 		// Update post to include file IDs
 		post.FileIds = []string{fileInfo1.Id, fileInfo2.Id}
-		_, appErr = th.App.UpdatePost(th.Context, post, &model.UpdatePostOptions{})
+		_, appErr := th.App.UpdatePost(th.Context, post, &model.UpdatePostOptions{})
 		require.Nil(t, appErr)
 
 		// Flag the post
