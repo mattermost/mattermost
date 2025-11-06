@@ -10937,7 +10937,7 @@
   },
   {
     "id": "app.content_flagging.keep_post.undelete.app_error",
-    "translation": "Nie udało się zaktualizować postu w bazie danych podczas próby usunięcia oflagowanego postu."
+    "translation": "Nie udało się zaktualizować posta w bazie danych podczas próby usunięcia oflagowanego posta i powiązanych z nim danych."
   },
   {
     "id": "app.content_flagging.marshal_property_values.app_error",
@@ -11074,5 +11074,21 @@
   {
     "id": "app.content_flagging.search_team_reviewers.app_error",
     "translation": "Nie udało się wyszukać szukanego hasła w Team Reviewers."
+  },
+  {
+    "id": "app.content_flagging.get_thread_replies.app_error",
+    "translation": "Nie udało się pobrać odpowiedzi wątku dla oflagowanego posta."
+  },
+  {
+    "id": "app.content_flagging.missing_manage_by_field.app_error",
+    "translation": "Nie udało się znaleźć pola właściwości Zarządzaj przez."
+  },
+  {
+    "id": "app.content_flagging.missing_status_field.app_error",
+    "translation": "Nie znaleziono pola właściwości Status."
+  },
+  {
+    "id": "app.content_flagging.set_thread_replies_properties.app_error",
+    "translation": "Nie udało się ustawić wartości właściwości w odpowiedziach wątku dla oflagowanego postu."
   }
 ]
