@@ -1054,9 +1054,12 @@ func TestUpdateIncomingHook(t *testing.T) {
 	addIncomingWebhookPermissionsWithOthers(th, model.TeamAdminRoleId)
 
 	t.Run("update cannot clear channel lock without bypass", func(t *testing.T) {
+		removeIncomingWebhookPermissions(th, model.TeamUserRoleId)
+		th.AddPermissionToRole(model.PermissionManageOwnIncomingWebhooks.Id, model.TeamUserRoleId)
 		hookWithoutBypass := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id}
 		hookWithoutBypass, _, err := th.Client.CreateIncomingWebhook(context.Background(), hookWithoutBypass)
 		require.NoError(t, err)
+		require.True(t, hookWithoutBypass.ChannelLocked)
 
 		hookWithoutBypass.ChannelLocked = false
 		removeIncomingWebhookPermissions(th, model.TeamUserRoleId)
