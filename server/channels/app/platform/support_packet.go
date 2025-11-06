@@ -178,8 +178,8 @@ func (ps *PlatformService) getSupportPacketDiagnostics(rctx request.CTX) (*model
 	}
 
 	/* SAML */
-	if IdpDescriptorURL := model.SafeDereference(ps.Config().SamlSettings.IdpDescriptorURL); IdpDescriptorURL != "" {
-		d.SAML.ProviderType = detectSAMLProviderType(IdpDescriptorURL)
+	if idpDescriptorURL := model.SafeDereference(ps.Config().SamlSettings.IdpDescriptorURL); idpDescriptorURL != "" {
+		d.SAML.ProviderType = detectSAMLProviderType(idpDescriptorURL)
 	}
 
 	/* Elastic Search */
