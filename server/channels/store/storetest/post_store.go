@@ -5861,55 +5861,6 @@ func testGetPostsForReporting(t *testing.T, rctx request.CTX, ss store.Store, s 
 		require.Len(t, postsByTime, 3, "should have 3 posts")
 	})
 
-	t.Run("DESC sort order with end_time filter", func(t *testing.T) {
-		// Test DESC pagination with end_time acting as lower bound
-		// Scenario: Get posts from most recent down to post 5 (going backwards in time)
-		// Posts: 0,1,2,3,4,5,6,7,8(deleted),9(deleted),10,11
-		// End time: post 5's timestamp (lower bound when going backwards)
-		// Expected: Should get posts 11,10,7,6,5 (DESC order, stopping at post 5)
-
-		endTime := data[5].CreateAt // Stop at post 5
-
-		options := model.ReportPostOptions{
-			ChannelId:     channelID,
-			TimeField:     "create_at",
-			SortDirection: "desc",
-			EndTime:       endTime,
-			PerPage:       10,
-		}
-		cursor := model.ReportPostOptionsCursor{
-			Cursor: "", // Start from most recent
-		}
-
-		queryParams, err := model.ResolveReportPostQueryParams(options, cursor)
-		require.NoError(t, err)
-		result, err := ss.Post().GetPostsForReporting(rctx, *queryParams)
-		require.NoError(t, err)
-
-		// Should get posts from 11 down to 5 (skipping 8,9 which are deleted)
-		// That's: 11, 10, 7, 6, 5 = 5 posts
-		require.Len(t, result.Posts, 5, "should get 5 posts (11,10,7,6,5)")
-		require.Nil(t, result.NextCursor, "should not have next cursor (reached end_time)")
-
-		// Verify we got the right posts
-		messages := make([]string, 0, len(result.Posts))
-		for _, post := range result.Posts {
-			messages = append(messages, post.Message)
-		}
-		require.Contains(t, messages, "name change")   // post 11
-		require.Contains(t, messages, "header change") // post 10
-		require.Contains(t, messages, "post 7")
-		require.Contains(t, messages, "post 6")
-		require.Contains(t, messages, "post 5")
-		require.NotContains(t, messages, "post 4", "should stop at end_time boundary")
-
-		// Verify all returned posts have CreateAt >= end_time (DESC lower bound)
-		for _, post := range result.Posts {
-			require.GreaterOrEqual(t, post.CreateAt, endTime,
-				"all posts should be >= end_time when using DESC (end_time is lower bound)")
-		}
-	})
-
 	t.Run("Include deleted posts", func(t *testing.T) {
 		options := model.ReportPostOptions{
 			ChannelId:      channelID,
@@ -5961,35 +5912,6 @@ func testGetPostsForReporting(t *testing.T, rctx request.CTX, ss store.Store, s 
 			require.NotEqual(t, model.PostTypeHeaderChange, post.Type)
 			require.NotEqual(t, model.PostTypeDisplaynameChange, post.Type)
 			require.NotEqual(t, model.PostTypePurposeChange, post.Type)
-		}
-	})
-
-	t.Run("Time range with end_time", func(t *testing.T) {
-		// Get posts only in first half of time range
-		// Post 4 has CreateAt = first + (4 * 300000)
-		// Post 5 has CreateAt = first + (5 * 300000)
-		// To get posts 0-4 only, end time must be < post 5's time
-		endTime := first + (4 * 300000) + 1 // Just after post 4, before post 5
-		options := model.ReportPostOptions{
-			ChannelId:     channelID,
-			TimeField:     "create_at",
-			SortDirection: "asc",
-			PerPage:       100,
-			EndTime:       endTime,
-		}
-		cursor := model.ReportPostOptionsCursor{
-			Cursor: "", // Empty cursor for first page
-		}
-
-		queryParams, err := model.ResolveReportPostQueryParams(options, cursor)
-		require.NoError(t, err)
-		result, err := ss.Post().GetPostsForReporting(rctx, *queryParams)
-		require.NoError(t, err)
-		require.Len(t, result.Posts, 5, "should get 5 posts (0-4)")
-
-		// Verify all posts are within time range
-		for _, post := range result.Posts {
-			require.LessOrEqual(t, post.CreateAt, endTime, "post CreateAt should be <= endTime")
 		}
 	})
 
@@ -6145,103 +6067,6 @@ func testGetPostsForReporting(t *testing.T, rctx request.CTX, ss store.Store, s 
 		require.NotNil(t, result, "should handle large per_page values")
 	})
 
-	t.Run("DESC order with end_time (typical use case: newest first until cutoff)", func(t *testing.T) {
-		// Common production use case: "Get all posts from last month, newest first"
-		// Start from most recent post and page backwards to an older end_time
-		//
-		// Posts 0-7 are non-deleted, posts 8-9 are deleted, posts 10-11 are system posts
-		// So non-deleted regular posts are: 0, 1, 2, 3, 4, 5, 6, 7
-		// Post 7 has CreateAt = first + (7 * 300000) - most recent regular post
-		// Post 2 has CreateAt = first + (2 * 300000) - middle post
-
-		endTime := first + (2 * 300000) // End at post 2 (older cutoff)
-
-		options := model.ReportPostOptions{
-			ChannelId:     channelID,
-			TimeField:     "create_at",
-			SortDirection: "desc",
-			PerPage:       100,
-			EndTime:       endTime, // Stop when we reach this older time
-		}
-		cursor := model.ReportPostOptionsCursor{
-			Cursor: "", // Empty cursor - starts from most recent
-		}
-
-		queryParams, err := model.ResolveReportPostQueryParams(options, cursor)
-		require.NoError(t, err)
-		result, err := ss.Post().GetPostsForReporting(rctx, *queryParams)
-		require.NoError(t, err)
-
-		// Should get posts from most recent down to endTime
-		// Non-deleted posts >= endTime: 2, 3, 4, 5, 6, 7, 10, 11 (8 posts)
-		require.GreaterOrEqual(t, len(result.Posts), 6, "should get posts from recent down to endTime")
-
-		// Verify all posts are at or after end_time
-		for _, post := range result.Posts {
-			require.GreaterOrEqual(t, post.CreateAt, endTime, "post should be at or after end_time")
-		}
-
-		// Verify post at end_time boundary is included
-		post2Time := first + (2 * 300000)
-		foundPost2 := false
-		for _, post := range result.Posts {
-			if post.CreateAt == post2Time {
-				foundPost2 = true
-				break
-			}
-		}
-		require.True(t, foundPost2, "should include post 2 (at end_time boundary)")
-	})
-
-	t.Run("DESC order with end_time pagination", func(t *testing.T) {
-		// Test that DESC pagination with end_time works correctly across pages
-		// Posts 0-7 are non-deleted, posts 8-9 are deleted, posts 10-11 are system posts
-		// Empty cursor starts from most recent and pages backwards to end_time
-
-		endTime := first + (4 * 300000) // Stop at post 4
-
-		options := model.ReportPostOptions{
-			ChannelId:     channelID,
-			TimeField:     "create_at",
-			SortDirection: "desc",
-			PerPage:       2, // Small pages to test pagination
-			EndTime:       endTime,
-		}
-		cursor := model.ReportPostOptionsCursor{
-			Cursor: "", // Empty cursor for first page
-		}
-
-		// Collect all posts across pages
-		allPosts := make(map[string]*model.Post)
-		iterations := 0
-		maxIterations := 10 // Safety limit
-
-		for iterations < maxIterations {
-			queryParams, err := model.ResolveReportPostQueryParams(options, cursor)
-			require.NoError(t, err)
-			result, err := ss.Post().GetPostsForReporting(rctx, *queryParams)
-			require.NoError(t, err)
-
-			// Add posts to collection
-			maps.Copy(allPosts, result.Posts)
-
-			if result.NextCursor == nil {
-				break
-			}
-			cursor = *result.NextCursor
-			iterations++
-		}
-
-		// Should get posts 4, 5, 6, 7, 10, 11 (6 posts: non-deleted from post 4 onwards)
-		// Posts 8-9 are deleted (excluded), so we get: 4, 5, 6, 7, 10, 11
-		require.GreaterOrEqual(t, len(allPosts), 6, "should get at least 6 posts (4-7, 10-11)")
-
-		// Verify all posts are within range (>= end_time)
-		for _, post := range allPosts {
-			require.GreaterOrEqual(t, post.CreateAt, endTime, "all posts should be >= end_time")
-		}
-	})
-
 	t.Run("Verify query uses indexes efficiently", func(t *testing.T) {
 		// This test verifies that the query plan uses the expected indexes
 		// The Posts table has these relevant indexes:
@@ -6271,13 +6096,12 @@ func testGetPostsForReporting(t *testing.T, rctx request.CTX, ss store.Store, s 
 			require.NoError(t, err)
 		}
 
-		// Query with time range - should use (ChannelId, CreateAt) index seek
+		// Query with ASC direction - should use (ChannelId, CreateAt) index seek
 		options := model.ReportPostOptions{
 			ChannelId:     largeChannelID,
 			TimeField:     "create_at",
 			SortDirection: "asc",
 			PerPage:       50,
-			EndTime:       largeBaseTime + 500000, // Middle of range
 		}
 		cursor := model.ReportPostOptionsCursor{
 			Cursor: "", // Empty cursor for first page
@@ -6297,7 +6121,6 @@ func testGetPostsForReporting(t *testing.T, rctx request.CTX, ss store.Store, s 
 			TimeField:     "create_at",
 			SortDirection: "desc",
 			PerPage:       50,
-			EndTime:       largeBaseTime + 500000, // Lower bound for DESC
 		}
 		cursorDesc := model.ReportPostOptionsCursor{
 			Cursor: "", // Empty cursor - starts from most recent

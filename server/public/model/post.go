@@ -1137,7 +1137,6 @@ type PreparePostForClientOpts struct {
 // ReportPostOptions contains options for querying posts for reporting/compliance purposes
 type ReportPostOptions struct {
 	ChannelId          string `json:"channel_id"`
-	EndTime            int64  `json:"end_time,omitempty"`             // Unix timestamp in milliseconds (optional upper bound)
 	TimeField          string `json:"time_field,omitempty"`           // "create_at" or "update_at" (default: "create_at")
 	SortDirection      string `json:"sort_direction,omitempty"`       // "asc" or "desc" (default: "asc")
 	PerPage            int    `json:"per_page,omitempty"`             // Number of posts per page (default: 100, max: MaxReportingPerPage)
@@ -1195,7 +1194,6 @@ type ReportPostQueryParams struct {
 	SortDirection      string // Resolved: "asc" or "desc"
 	IncludeDeleted     bool   // Resolved: include deleted posts
 	ExcludeSystemPosts bool   // Resolved: exclude system posts
-	EndTime            int64  // Optional: upper/lower bound depending on sort direction
 	PerPage            int    // Number of posts per page (already validated)
 }
 
@@ -1218,7 +1216,7 @@ func EncodeReportPostCursor(channelId string, timeField string, includeDeleted b
 }
 
 // decodeReportPostCursorV1 parses an opaque cursor string into query parameters.
-// Returns a partially populated ReportPostQueryParams (missing EndTime and PerPage which come from options).
+// Returns a partially populated ReportPostQueryParams (missing PerPage which comes from options).
 func decodeReportPostCursorV1(cursor string) (*ReportPostQueryParams, error) {
 	decoded, err := base64.URLEncoding.DecodeString(cursor)
 	if err != nil {
@@ -1261,7 +1259,7 @@ func decodeReportPostCursorV1(cursor string) (*ReportPostQueryParams, error) {
 		SortDirection:      parts[5],
 		IncludeDeleted:     includeDeleted,
 		ExcludeSystemPosts: excludeSystemPosts,
-		// EndTime and PerPage will be set by ResolveReportPostQueryParams
+		// PerPage will be set by ResolveReportPostQueryParams
 	}, nil
 }
 
@@ -1309,8 +1307,7 @@ func ResolveReportPostQueryParams(options ReportPostOptions, cursor ReportPostOp
 		}
 	}
 
-	// Apply EndTime and PerPage from options (not in cursor)
-	params.EndTime = options.EndTime
+	// Apply PerPage from options (not in cursor)
 	params.PerPage = options.PerPage
 	if params.PerPage <= 0 {
 		params.PerPage = 100

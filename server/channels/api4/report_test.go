@@ -409,46 +409,6 @@ func TestGetPostsForReporting(t *testing.T) {
 		}
 	})
 
-	t.Run("should filter by time range with end_time", func(t *testing.T) {
-		th.LoginSystemAdmin()
-
-		// Request only first 5 posts (0-4) by setting end_time just after post 4
-		// Use a cursor starting at baseTime to exclude any posts created before our test posts
-		endTime := baseTime + (4 * 1000) + 500 // Halfway to post 5
-
-		// Create cursor starting at baseTime (just before post 0)
-		cursor := model.EncodeReportPostCursor(
-			th.BasicChannel.Id,
-			"create_at",
-			false, // include_deleted
-			false, // exclude_system_posts
-			"asc",
-			baseTime,
-			"", // empty post_id
-		)
-
-		requestBody := map[string]any{
-			"channel_id": th.BasicChannel.Id,
-			"cursor":     cursor,
-			"end_time":   endTime,
-			"per_page":   100,
-		}
-
-		resp, body := doPostJSON(t, th.SystemAdminClient, "/api/v4/reports/posts", requestBody)
-		require.Equal(t, http.StatusOK, resp.StatusCode)
-
-		var result model.ReportPostListResponse
-		err := json.Unmarshal(body, &result)
-		require.NoError(t, err)
-		require.Len(t, result.Posts, 5, "should get only 5 posts (0-4) within time range")
-
-		// Verify all posts are within time range
-		for _, post := range result.Posts {
-			require.GreaterOrEqual(t, post.CreateAt, baseTime, "post should be at or after cursor time")
-			require.LessOrEqual(t, post.CreateAt, endTime, "post should be before end_time")
-		}
-	})
-
 	t.Run("should support DESC sort order", func(t *testing.T) {
 		th.LoginSystemAdmin()
 
@@ -479,51 +439,6 @@ func TestGetPostsForReporting(t *testing.T) {
 
 		// The fact that we got exactly 5 posts and they're all in range
 		// validates that DESC pagination is working correctly
-	})
-
-	t.Run("should support DESC sort order with end_time (cursor > end_time is valid)", func(t *testing.T) {
-		th.LoginSystemAdmin()
-
-		// DESC pagination: Start from recent time and page backwards to an older end_time
-		// This is the typical pattern for "get all posts from Jan 31 back to Jan 1"
-		startTime := baseTime + (14 * 1000) // Post 14 (most recent test post)
-		endTime := baseTime + (5 * 1000)    // Post 5 (older limit)
-
-		// Create opaque cursor for starting position
-		cursor := model.EncodeReportPostCursor(
-			th.BasicChannel.Id,
-			"create_at",
-			false, // include_deleted
-			false, // exclude_system_posts
-			"desc",
-			startTime,
-			"", // empty post_id for time-only cursor
-		)
-
-		requestBody := map[string]any{
-			"channel_id":     th.BasicChannel.Id,
-			"cursor":         cursor,
-			"end_time":       endTime, // Jan 1 (old)
-			"sort_direction": "desc",  // Paginating backwards
-			"per_page":       100,
-		}
-
-		resp, body := doPostJSON(t, th.SystemAdminClient, "/api/v4/reports/posts", requestBody)
-		require.Equal(t, http.StatusOK, resp.StatusCode, "DESC order with cursor > end_time should be valid")
-
-		var result model.ReportPostListResponse
-		err := json.Unmarshal(body, &result)
-		require.NoError(t, err)
-
-		// Should get posts 5-13 (9 posts total, since we start from 14 and go back to 5)
-		// Posts after cursor time (14) are excluded, posts before end_time (5) are excluded
-		require.GreaterOrEqual(t, len(result.Posts), 8, "should get posts in DESC range")
-
-		// Verify all posts are within the time range
-		for _, post := range result.Posts {
-			require.LessOrEqual(t, post.CreateAt, startTime, "post should be at or before cursor time")
-			require.GreaterOrEqual(t, post.CreateAt, endTime, "post should be at or after end_time")
-		}
 	})
 
 	t.Run("should use cursor parameters when cursor is provided (self-contained cursor)", func(t *testing.T) {

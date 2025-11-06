@@ -1547,17 +1547,6 @@ func (s *SqlPostStore) GetPostsForReporting(rctx request.CTX, queryParams model.
 		})
 	}
 
-	// Apply EndTime filter based on sort direction
-	if queryParams.EndTime > 0 {
-		if sortDirection == "ASC" {
-			// ASC: EndTime is upper bound (stop when we reach this time going forward)
-			query = query.Where(sq.LtOrEq{timeField: queryParams.EndTime})
-		} else {
-			// DESC: EndTime is lower bound (stop when we reach this time going backward)
-			query = query.Where(sq.GtOrEq{timeField: queryParams.EndTime})
-		}
-	}
-
 	// Add delete filter
 	if !queryParams.IncludeDeleted {
 		query = query.Where(sq.Eq{"DeleteAt": 0})

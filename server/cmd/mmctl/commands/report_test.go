@@ -22,7 +22,6 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 		cmd := &cobra.Command{}
 		cmd.Flags().String("time-field", "create_at", "")
 		cmd.Flags().String("sort-direction", "asc", "")
-		cmd.Flags().Int64("end-time", int64(0), "")
 		cmd.Flags().String("cursor", "", "")
 		cmd.Flags().Int("per-page", 100, "")
 		cmd.Flags().Bool("include-deleted", false, "")
@@ -46,7 +45,6 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 		cmd := &cobra.Command{}
 		cmd.Flags().String("time-field", "invalid_field", "")
 		cmd.Flags().String("sort-direction", "asc", "")
-		cmd.Flags().Int64("end-time", int64(0), "")
 		cmd.Flags().String("cursor", "", "")
 		cmd.Flags().Int("per-page", 100, "")
 		cmd.Flags().Bool("include-deleted", false, "")
@@ -70,7 +68,6 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 		cmd := &cobra.Command{}
 		cmd.Flags().String("time-field", "create_at", "")
 		cmd.Flags().String("sort-direction", "invalid", "")
-		cmd.Flags().Int64("end-time", int64(0), "")
 		cmd.Flags().String("cursor", "", "")
 		cmd.Flags().Int("per-page", 100, "")
 		cmd.Flags().Bool("include-deleted", false, "")
@@ -94,7 +91,6 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 		cmd := &cobra.Command{}
 		cmd.Flags().String("time-field", "create_at", "")
 		cmd.Flags().String("sort-direction", "asc", "")
-		cmd.Flags().Int64("end-time", int64(0), "")
 		cmd.Flags().String("cursor", "", "")
 		cmd.Flags().Int("per-page", 2000, "")
 		cmd.Flags().Bool("include-deleted", false, "")
@@ -118,7 +114,6 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 		cmd := &cobra.Command{}
 		cmd.Flags().String("time-field", "create_at", "")
 		cmd.Flags().String("sort-direction", "asc", "")
-		cmd.Flags().Int64("end-time", int64(0), "")
 		cmd.Flags().String("cursor", "", "")
 		cmd.Flags().Int("per-page", 0, "")
 		cmd.Flags().Bool("include-deleted", false, "")
@@ -144,7 +139,6 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 			EXPECT().
 			GetPostsForReporting(context.TODO(), model.ReportPostOptions{
 				ChannelId:          channelID,
-				EndTime:            int64(0),
 				TimeField:          "create_at",
 				SortDirection:      "asc",
 				PerPage:            100,
@@ -160,7 +154,6 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 		cmd := &cobra.Command{}
 		cmd.Flags().String("time-field", "create_at", "")
 		cmd.Flags().String("sort-direction", "asc", "")
-		cmd.Flags().Int64("end-time", int64(0), "")
 		cmd.Flags().String("cursor", "", "")
 		cmd.Flags().Int("per-page", 100, "")
 		cmd.Flags().Bool("include-deleted", false, "")
@@ -194,7 +187,6 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 			EXPECT().
 			GetPostsForReporting(context.TODO(), model.ReportPostOptions{
 				ChannelId:          channelID,
-				EndTime:            int64(0),
 				TimeField:          "create_at",
 				SortDirection:      "asc",
 				PerPage:            100,
@@ -210,7 +202,6 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 		cmd := &cobra.Command{}
 		cmd.Flags().String("time-field", "create_at", "")
 		cmd.Flags().String("sort-direction", "asc", "")
-		cmd.Flags().Int64("end-time", int64(0), "")
 		cmd.Flags().String("cursor", "", "")
 		cmd.Flags().Int("per-page", 100, "")
 		cmd.Flags().Bool("include-deleted", false, "")
@@ -246,7 +237,6 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 			EXPECT().
 			GetPostsForReporting(context.TODO(), model.ReportPostOptions{
 				ChannelId:          channelID,
-				EndTime:            int64(0),
 				TimeField:          "create_at",
 				SortDirection:      "asc",
 				PerPage:            100,
@@ -262,7 +252,6 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 		cmd := &cobra.Command{}
 		cmd.Flags().String("time-field", "create_at", "")
 		cmd.Flags().String("sort-direction", "asc", "")
-		cmd.Flags().Int64("end-time", int64(0), "")
 		cmd.Flags().String("cursor", "", "")
 		cmd.Flags().Int("per-page", 100, "")
 		cmd.Flags().Bool("include-deleted", false, "")
@@ -297,7 +286,6 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 			EXPECT().
 			GetPostsForReporting(context.TODO(), model.ReportPostOptions{
 				ChannelId:          channelID,
-				EndTime:            int64(0),
 				TimeField:          "create_at",
 				SortDirection:      "asc",
 				PerPage:            100,
@@ -348,7 +336,6 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 			EXPECT().
 			GetPostsForReporting(context.TODO(), model.ReportPostOptions{
 				ChannelId:          channelID,
-				EndTime:            int64(1735488000000),
 				TimeField:          "update_at",
 				SortDirection:      "desc",
 				PerPage:            500,
@@ -364,7 +351,6 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 		cmd := &cobra.Command{}
 		cmd.Flags().String("time-field", "update_at", "")
 		cmd.Flags().String("sort-direction", "desc", "")
-		cmd.Flags().Int64("end-time", int64(1735488000000), "")
 		cmd.Flags().String("cursor", customCursor, "")
 		cmd.Flags().Int("per-page", 500, "")
 		cmd.Flags().Bool("include-deleted", true, "")

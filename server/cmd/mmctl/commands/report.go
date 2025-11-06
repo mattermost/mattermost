@@ -38,9 +38,6 @@ for further processing.`,
   # Get posts sorted by update_at in descending order
   mmctl report posts myteam:mychannel --time-field update_at --sort-direction desc
 
-  # Get posts with end time filter (Unix timestamp in milliseconds)
-  mmctl report posts myteam:mychannel --end-time 1735488000000
-
   # Get posts including deleted posts and metadata
   mmctl report posts myteam:mychannel --include-deleted --include-metadata
 
@@ -59,7 +56,6 @@ for further processing.`,
 func init() {
 	ReportPostsCmd.Flags().String("time-field", "create_at", "Time field to use for sorting (create_at or update_at)")
 	ReportPostsCmd.Flags().String("sort-direction", "asc", "Sort direction (asc or desc)")
-	ReportPostsCmd.Flags().Int64("end-time", 0, "End time filter in Unix milliseconds (optional)")
 	ReportPostsCmd.Flags().String("cursor", "", "Opaque cursor for pagination (use next_cursor from previous response)")
 	ReportPostsCmd.Flags().Int("per-page", 100, "Number of posts per page (max 1000)")
 	ReportPostsCmd.Flags().Bool("include-deleted", false, "Include deleted posts")
@@ -79,7 +75,6 @@ func reportPostsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	// Get flags
 	timeField, _ := cmd.Flags().GetString("time-field")
 	sortDirection, _ := cmd.Flags().GetString("sort-direction")
-	endTime, _ := cmd.Flags().GetInt64("end-time")
 	cursor, _ := cmd.Flags().GetString("cursor")
 	perPage, _ := cmd.Flags().GetInt("per-page")
 	includeDeleted, _ := cmd.Flags().GetBool("include-deleted")
@@ -100,7 +95,6 @@ func reportPostsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	// Set up options
 	options := model.ReportPostOptions{
 		ChannelId:          channel.Id,
-		EndTime:            endTime,
 		TimeField:          timeField,
 		SortDirection:      sortDirection,
 		PerPage:            perPage,
