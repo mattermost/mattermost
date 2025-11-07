@@ -12,48 +12,95 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-func addWildcardToWord(word string) string {
-	if !strings.HasSuffix(word, "%") {
-		word = "%" + word + "%"
+func addWildcardToTerm(term string, alwaysMiddleMatch bool) string {
+	// Accept prefix search when wildcard are in the appropriate position, otherwise treat as middle match.
+	// Suffix is only considered when the alwaysMiddleMatch is true.
+	if !strings.HasSuffix(term, "%") || alwaysMiddleMatch {
+		term = "%" + term + "%"
 	}
-	return word
+	return term
 }
 
-func (s *SqlPostStore) generateLikeSearchQuery(baseQuery sq.SelectBuilder, params *model.SearchParams, phrases []string, terms string, excludedTerms string, searchType string) sq.SelectBuilder {
-	var searchClauses []string
-	var searchArgs []any
-
-	// Make both the index and query lowercase for case-insensitive searching.
-	searchType = fmt.Sprintf("LOWER(%s)", searchType)
-	terms = strings.ToLower(terms)
-	excludedTerms = strings.ToLower(excludedTerms)
+func toLowerSearchArgsForPosts(phrases []string, terms string, excludedTerms string, searchType string) ([]string, string, string, string) {
 	for i, p := range phrases {
 		phrases[i] = strings.ToLower(p)
 	}
+	terms = strings.ToLower(terms)
+	excludedTerms = strings.ToLower(excludedTerms)
 
-	// Phrase search: search for strings enclosed in “” without splitting them.
+	searchType = fmt.Sprintf("LOWER(%s)", searchType)
+
+	return phrases, terms, excludedTerms, searchType
+}
+
+func buildPhrasesQuery(phrases []string, searchType string, searchClauses []string, searchArgs []any) ([]string, []any) {
 	for _, phrase := range phrases {
 		cleanPhrase := strings.Trim(phrase, `"`)
-		if cleanPhrase != "" {
-			searchClauses = append(searchClauses, fmt.Sprintf("%s LIKE ?", searchType))
-			searchArgs = append(searchArgs, "%"+cleanPhrase+"%")
+		if cleanPhrase == "" {
+			continue
 		}
+		searchClauses = append(searchClauses, fmt.Sprintf("%s LIKE ? ESCAPE '\\'", searchType))
+		searchArgs = append(searchArgs, addWildcardToTerm(cleanPhrase, true))
 	}
+	return searchClauses, searchArgs
+}
 
-	termWords := strings.Fields(terms)
-	for _, word := range termWords {
+func buildTermsQuery(terms []string, searchType string, searchClauses []string, searchArgs []any) ([]string, []any) {
+	for _, term := range terms {
 		// Hashtags and mentions are searched with or without the prefix (# or @).
-		// Since these are always searched from the front, wildcards are not checked.
-		if strings.HasPrefix(word, "#") || strings.HasPrefix(word, "@") {
-			searchClauses = append(searchClauses, fmt.Sprintf("(%s LIKE ? OR %s LIKE ?)", searchType, searchType))
-			searchArgs = append(searchArgs, "%"+word+"%", "%"+word[1:]+"%")
+		if strings.HasPrefix(term, "#") || strings.HasPrefix(term, "@") {
+			searchClauses = append(searchClauses, fmt.Sprintf("(%[1]s LIKE ? ESCAPE '\\' OR %[1]s LIKE ? ESCAPE '\\')", searchType))
+			searchArgs = append(searchArgs, addWildcardToTerm(term, true), addWildcardToTerm(term[1:], true))
 		} else {
-			// Accept prefix search when wildcard are in the appropriate position, otherwise treat as middle match.
-			word = addWildcardToWord(word)
-			searchClauses = append(searchClauses, fmt.Sprintf("%s LIKE ?", searchType))
-			searchArgs = append(searchArgs, word)
+			searchClauses = append(searchClauses, fmt.Sprintf("%s LIKE ? ESCAPE '\\'", searchType))
+			searchArgs = append(searchArgs, addWildcardToTerm(term, false))
 		}
 	}
+	return searchClauses, searchArgs
+}
+
+func buildExcludedTermsQuery(excludedWords []string, searchType string, excludedClauses []string, excludedArgs []any) ([]string, []any) {
+	for _, word := range excludedWords {
+		cleanWord := strings.TrimPrefix(word, "-")
+		if cleanWord == "" {
+			continue
+		}
+		if strings.HasPrefix(cleanWord, "#") || strings.HasPrefix(cleanWord, "@") {
+			excludedClauses = append(excludedClauses, fmt.Sprintf("(%[1]s NOT LIKE ? ESCAPE '\\' AND %[1]s NOT LIKE ? ESCAPE '\\')", searchType))
+			excludedArgs = append(excludedArgs, addWildcardToTerm(cleanWord, true), addWildcardToTerm(cleanWord[1:], true))
+		} else {
+			excludedClauses = append(excludedClauses, fmt.Sprintf("%s NOT LIKE ? ESCAPE '\\'", searchType))
+			excludedArgs = append(excludedArgs, addWildcardToTerm(cleanWord, false))
+		}
+	}
+	return excludedClauses, excludedArgs
+}
+
+func buildExcludedPhrasesQuery(excludedPhrases []string, searchType string, excludedClauses []string, excludedArgs []any) ([]string, []any) {
+	for _, phrase := range excludedPhrases {
+		cleanPhrase := strings.Trim(phrase, `"`)
+		if cleanPhrase == "" {
+			continue
+		}
+		excludedClauses = append(excludedClauses, fmt.Sprintf("%s NOT LIKE ? ESCAPE '\\'", searchType))
+		excludedArgs = append(excludedArgs, addWildcardToTerm(cleanPhrase, true))
+	}
+	return excludedClauses, excludedArgs
+}
+
+func (s *SqlPostStore) generateLikeSearchQueryForPosts(baseQuery sq.SelectBuilder, params *model.SearchParams, phrases []string, terms string, excludedTerms string, excludedPhrases []string, searchType string) sq.SelectBuilder {
+	var searchClauses []string
+	var searchArgs []any
+
+	// Make both index and query lowercase for case-insensitive searching.
+	phrases, terms, excludedTerms, searchType = toLowerSearchArgsForPosts(phrases, terms, excludedTerms, searchType)
+
+	// Phrase search: search for strings enclosed in “” without splitting them.
+	searchClauses, searchArgs = buildPhrasesQuery(phrases, searchType, searchClauses, searchArgs)
+
+	// Normal search by word
+	termWords := strings.Fields(terms)
+	searchClauses, searchArgs = buildTermsQuery(termWords, searchType, searchClauses, searchArgs)
 
 	if len(searchClauses) > 0 {
 		logicalOperator := " AND "
@@ -63,28 +110,19 @@ func (s *SqlPostStore) generateLikeSearchQuery(baseQuery sq.SelectBuilder, param
 		baseQuery = baseQuery.Where("("+strings.Join(searchClauses, logicalOperator)+")", searchArgs...)
 	}
 
-	// Handle excluded words
+	// Excluded words
 	excludedWords := strings.Fields(excludedTerms)
-	if len(excludedWords) > 0 {
+	if (len(excludedWords) > 0 || len(excludedPhrases) > 0) {
 		var excludedClauses []string
 		var excludedArgs []any
-		for _, word := range excludedWords {
-			cleanWord := strings.TrimPrefix(strings.Trim(word, `"`), "-")
-			if cleanWord == "" {
-				continue
-			}
-			if strings.HasPrefix(cleanWord, "#") || strings.HasPrefix(cleanWord, "@") {
-				excludedClauses = append(excludedClauses, fmt.Sprintf("(%s NOT LIKE ? AND %s NOT LIKE ?)", searchType, searchType))
-				excludedArgs = append(excludedArgs, "%"+cleanWord+"%", "%"+cleanWord[1:]+"%")
-			} else {
-				cleanWord = addWildcardToWord(cleanWord)
-				excludedClauses = append(excludedClauses, fmt.Sprintf("%s NOT LIKE ?", searchType))
-				excludedArgs = append(excludedArgs, cleanWord)
-			}
-		}
+
+		excludedClauses, excludedArgs = buildExcludedTermsQuery(excludedWords, searchType, excludedClauses, excludedArgs)
+		excludedClauses, excludedArgs = buildExcludedPhrasesQuery(excludedPhrases, searchType, excludedClauses, excludedArgs)
+
 		if len(excludedClauses) > 0 {
 			baseQuery = baseQuery.Where(strings.Join(excludedClauses, " AND "), excludedArgs...)
 		}
 	}
+
 	return baseQuery
 }

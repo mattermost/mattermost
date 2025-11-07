@@ -2076,13 +2076,20 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 	} else if true {
 		// Query generation customized for Japanese by bypassing the original implementation
 		// build LIKE search query using pg_bigm index
+
+		// Escape wildcards used in LIKE searches within strings with a backslash("\").
+		terms = sanitizeSearchTerm(terms, "\\")
+
+		// Parse text for wildcards
 		terms = wildCardRegex.ReplaceAllLiteralString(terms, "%")
 		excludedTerms = wildCardRegex.ReplaceAllLiteralString(excludedTerms, "%")
 
 		phrases := quotedStringsRegex.FindAllString(terms, -1)
 		terms = quotedStringsRegex.ReplaceAllString(terms, " ")
+		excludedPhrases := quotedStringsRegex.FindAllString(excludedTerms, -1)	
+		excludedTerms = quotedStringsRegex.ReplaceAllLiteralString(excludedTerms, " ")
 
-		baseQuery = s.generateLikeSearchQuery(baseQuery, params, phrases, terms, excludedTerms, searchType)
+		baseQuery = s.generateLikeSearchQueryForPosts(baseQuery, params, phrases, terms, excludedTerms, excludedPhrases, searchType)
 	} else {
 		// Parse text for wildcards
 		terms = wildCardRegex.ReplaceAllLiteralString(terms, ":* ")

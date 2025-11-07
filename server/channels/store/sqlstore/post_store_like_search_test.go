@@ -27,9 +27,10 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		phrases := []string{}
 		terms := "hello"
 		excludedTerms := ""
+		excludedPhrases := []string{}
 		searchType := "Posts.Message"
 
-		result := s.generateLikeSearchQuery(baseQuery, params, phrases, terms, excludedTerms, searchType)
+		result := s.generateLikeSearchQueryForPosts(baseQuery, params, phrases, terms, excludedTerms, excludedPhrases, searchType)
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
@@ -44,9 +45,10 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		phrases := []string{}
 		terms := "hello world"
 		excludedTerms := ""
+		excludedPhrases := []string{}
 		searchType := "Posts.Message"
 
-		result := s.generateLikeSearchQuery(baseQuery, params, phrases, terms, excludedTerms, searchType)
+		result := s.generateLikeSearchQueryForPosts(baseQuery, params, phrases, terms, excludedTerms, excludedPhrases, searchType)
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
@@ -63,9 +65,10 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		phrases := []string{}
 		terms := "hello world"
 		excludedTerms := ""
+		excludedPhrases := []string{}
 		searchType := "Posts.Message"
 
-		result := s.generateLikeSearchQuery(baseQuery, params, phrases, terms, excludedTerms, searchType)
+		result := s.generateLikeSearchQueryForPosts(baseQuery, params, phrases, terms, excludedTerms, excludedPhrases, searchType)
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
@@ -81,10 +84,11 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		params := &model.SearchParams{OrTerms: false}
 		phrases := []string{`"hello world"`}
 		terms := ""
+		excludedPhrases := []string{}
 		excludedTerms := ""
 		searchType := "Posts.Message"
 
-		result := s.generateLikeSearchQuery(baseQuery, params, phrases, terms, excludedTerms, searchType)
+		result := s.generateLikeSearchQueryForPosts(baseQuery, params, phrases, terms, excludedTerms, excludedPhrases, searchType)
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
@@ -99,9 +103,10 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		phrases := []string{`"hello world"`, `"test phrase"`}
 		terms := ""
 		excludedTerms := ""
+		excludedPhrases := []string{}
 		searchType := "Posts.Message"
 
-		result := s.generateLikeSearchQuery(baseQuery, params, phrases, terms, excludedTerms, searchType)
+		result := s.generateLikeSearchQueryForPosts(baseQuery, params, phrases, terms, excludedTerms, excludedPhrases, searchType)
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
@@ -118,9 +123,10 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		phrases := []string{}
 		terms := "#hashtag"
 		excludedTerms := ""
+		excludedPhrases := []string{}
 		searchType := "Posts.Message"
 
-		result := s.generateLikeSearchQuery(baseQuery, params, phrases, terms, excludedTerms, searchType)
+		result := s.generateLikeSearchQueryForPosts(baseQuery, params, phrases, terms, excludedTerms, excludedPhrases, searchType)
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
@@ -136,9 +142,10 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		phrases := []string{}
 		terms := "@username"
 		excludedTerms := ""
+		excludedPhrases := []string{}
 		searchType := "Posts.Message"
 
-		result := s.generateLikeSearchQuery(baseQuery, params, phrases, terms, excludedTerms, searchType)
+		result := s.generateLikeSearchQueryForPosts(baseQuery, params, phrases, terms, excludedTerms, excludedPhrases, searchType)
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
@@ -154,9 +161,10 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		phrases := []string{}
 		terms := "#tag1 #tag2"
 		excludedTerms := ""
+		excludedPhrases := []string{}
 		searchType := "Posts.Message"
 
-		result := s.generateLikeSearchQuery(baseQuery, params, phrases, terms, excludedTerms, searchType)
+		result := s.generateLikeSearchQueryForPosts(baseQuery, params, phrases, terms, excludedTerms, excludedPhrases, searchType)
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
@@ -174,9 +182,10 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		phrases := []string{}
 		terms := "test%"
 		excludedTerms := ""
+		excludedPhrases := []string{}
 		searchType := "Posts.Message"
 
-		result := s.generateLikeSearchQuery(baseQuery, params, phrases, terms, excludedTerms, searchType)
+		result := s.generateLikeSearchQueryForPosts(baseQuery, params, phrases, terms, excludedTerms, excludedPhrases, searchType)
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
@@ -191,9 +200,10 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		phrases := []string{}
 		terms := "hello"
 		excludedTerms := "world"
+		excludedPhrases := []string{}
 		searchType := "Posts.Message"
 
-		result := s.generateLikeSearchQuery(baseQuery, params, phrases, terms, excludedTerms, searchType)
+		result := s.generateLikeSearchQueryForPosts(baseQuery, params, phrases, terms, excludedTerms, excludedPhrases, searchType)
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
@@ -210,9 +220,10 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		phrases := []string{}
 		terms := "hello"
 		excludedTerms := "world test"
+		excludedPhrases := []string{}
 		searchType := "Posts.Message"
 
-		result := s.generateLikeSearchQuery(baseQuery, params, phrases, terms, excludedTerms, searchType)
+		result := s.generateLikeSearchQueryForPosts(baseQuery, params, phrases, terms, excludedTerms, excludedPhrases, searchType)
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
@@ -233,9 +244,10 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		phrases := []string{}
 		terms := "hello"
 		excludedTerms := "#hashtag"
+		excludedPhrases := []string{}
 		searchType := "Posts.Message"
 
-		result := s.generateLikeSearchQuery(baseQuery, params, phrases, terms, excludedTerms, searchType)
+		result := s.generateLikeSearchQueryForPosts(baseQuery, params, phrases, terms, excludedTerms, excludedPhrases, searchType)
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
@@ -253,9 +265,10 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		phrases := []string{}
 		terms := "hello"
 		excludedTerms := "@username"
+		excludedPhrases := []string{}
 		searchType := "Posts.Message"
 
-		result := s.generateLikeSearchQuery(baseQuery, params, phrases, terms, excludedTerms, searchType)
+		result := s.generateLikeSearchQueryForPosts(baseQuery, params, phrases, terms, excludedTerms, excludedPhrases, searchType)
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
@@ -273,9 +286,10 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		phrases := []string{}
 		terms := "hello"
 		excludedTerms := "test%"
+		excludedPhrases := []string{}
 		searchType := "Posts.Message"
 
-		result := s.generateLikeSearchQuery(baseQuery, params, phrases, terms, excludedTerms, searchType)
+		result := s.generateLikeSearchQueryForPosts(baseQuery, params, phrases, terms, excludedTerms, excludedPhrases, searchType)
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
@@ -292,9 +306,10 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		phrases := []string{}
 		terms := "HELLO"
 		excludedTerms := ""
+		excludedPhrases := []string{}
 		searchType := "Posts.Message"
 
-		result := s.generateLikeSearchQuery(baseQuery, params, phrases, terms, excludedTerms, searchType)
+		result := s.generateLikeSearchQueryForPosts(baseQuery, params, phrases, terms, excludedTerms, excludedPhrases, searchType)
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
@@ -310,9 +325,10 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		phrases := []string{`"HELLO WORLD"`}
 		terms := ""
 		excludedTerms := ""
+		excludedPhrases := []string{}
 		searchType := "Posts.Message"
 
-		result := s.generateLikeSearchQuery(baseQuery, params, phrases, terms, excludedTerms, searchType)
+		result := s.generateLikeSearchQueryForPosts(baseQuery, params, phrases, terms, excludedTerms, excludedPhrases, searchType)
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
@@ -328,9 +344,10 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		phrases := []string{}
 		terms := "hello"
 		excludedTerms := "WORLD"
+		excludedPhrases := []string{}
 		searchType := "Posts.Message"
 
-		result := s.generateLikeSearchQuery(baseQuery, params, phrases, terms, excludedTerms, searchType)
+		result := s.generateLikeSearchQueryForPosts(baseQuery, params, phrases, terms, excludedTerms, excludedPhrases, searchType)
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
@@ -347,9 +364,10 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		phrases := []string{`"hello world"`}
 		terms := "test"
 		excludedTerms := ""
+		excludedPhrases := []string{}
 		searchType := "Posts.Message"
 
-		result := s.generateLikeSearchQuery(baseQuery, params, phrases, terms, excludedTerms, searchType)
+		result := s.generateLikeSearchQueryForPosts(baseQuery, params, phrases, terms, excludedTerms, excludedPhrases, searchType)
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
@@ -366,9 +384,10 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		phrases := []string{`""`, `"valid phrase"`}
 		terms := ""
 		excludedTerms := ""
+		excludedPhrases := []string{}
 		searchType := "Posts.Message"
 
-		result := s.generateLikeSearchQuery(baseQuery, params, phrases, terms, excludedTerms, searchType)
+		result := s.generateLikeSearchQueryForPosts(baseQuery, params, phrases, terms, excludedTerms, excludedPhrases, searchType)
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
@@ -384,9 +403,10 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		phrases := []string{}
 		terms := "hello"
 		excludedTerms := `"" -`
+		excludedPhrases := []string{}
 		searchType := "Posts.Message"
 
-		result := s.generateLikeSearchQuery(baseQuery, params, phrases, terms, excludedTerms, searchType)
+		result := s.generateLikeSearchQueryForPosts(baseQuery, params, phrases, terms, excludedTerms, excludedPhrases, searchType)
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
@@ -402,9 +422,10 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		phrases := []string{}
 		terms := ""
 		excludedTerms := ""
+		excludedPhrases := []string{}
 		searchType := "Posts.Message"
 
-		result := s.generateLikeSearchQuery(baseQuery, params, phrases, terms, excludedTerms, searchType)
+		result := s.generateLikeSearchQueryForPosts(baseQuery, params, phrases, terms, excludedTerms, excludedPhrases, searchType)
 		sql, _, err := result.ToSql()
 
 		require.NoError(t, err)
@@ -418,9 +439,10 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		phrases := []string{}
 		terms := ""
 		excludedTerms := "world"
+		excludedPhrases := []string{}
 		searchType := "Posts.Message"
 
-		result := s.generateLikeSearchQuery(baseQuery, params, phrases, terms, excludedTerms, searchType)
+		result := s.generateLikeSearchQueryForPosts(baseQuery, params, phrases, terms, excludedTerms, excludedPhrases, searchType)
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
@@ -435,9 +457,10 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		phrases := []string{}
 		terms := "#hashtag @username regular"
 		excludedTerms := ""
+		excludedPhrases := []string{}
 		searchType := "Posts.Message"
 
-		result := s.generateLikeSearchQuery(baseQuery, params, phrases, terms, excludedTerms, searchType)
+		result := s.generateLikeSearchQueryForPosts(baseQuery, params, phrases, terms, excludedTerms, excludedPhrases, searchType)
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
@@ -457,9 +480,10 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		phrases := []string{`"exact phrase"`}
 		terms := "#hashtag @mention word test%"
 		excludedTerms := "excluded #excludedtag"
+		excludedPhrases := []string{}
 		searchType := "Posts.Message"
 
-		result := s.generateLikeSearchQuery(baseQuery, params, phrases, terms, excludedTerms, searchType)
+		result := s.generateLikeSearchQueryForPosts(baseQuery, params, phrases, terms, excludedTerms, excludedPhrases, searchType)
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
