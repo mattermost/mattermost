@@ -566,10 +566,8 @@ func (es *Service) SendGuestInviteEmails(
 			}
 
 			if isEasyLogin {
-				// Easy login uses SSO-style authentication - clicking the link logs them in directly
-				data.Props["ButtonURL"] = fmt.Sprintf("%s/login/sso/easy?t=%s", siteURL, url.QueryEscape(token.Token))
-				// Add app deep link for easy login (wrapped in template.URL to mark it as safe)
-				data.Props["AppButtonURL"] = template.URL(fmt.Sprintf("mattermost://%s/login/sso/easy?t=%s", strings.TrimPrefix(strings.TrimPrefix(siteURL, "https://"), "http://"), url.QueryEscape(token.Token)))
+				// Easy login uses SSO-style authentication - clicking the link sends them to the landing page and logs them in directly
+				data.Props["ButtonURL"] = fmt.Sprintf("%s/landing#/login/sso/easy?t=%s", siteURL, url.QueryEscape(token.Token))
 			} else {
 				data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s&sbr=%s", siteURL, url.QueryEscape(tokenData), url.QueryEscape(token.Token), es.GetTrackFlowStartedByRole(isFirstAdmin, isSystemAdmin))
 			}
@@ -648,6 +646,8 @@ func (es *Service) SendGuestEasyLoginEmailSelfService(
 	data.Props["Title"] = i18n.T("api.templates.easy_login_body.title")
 	data.Props["SubTitle"] = i18n.T("api.templates.easy_login_body.subtitle")
 	data.Props["Button"] = i18n.T("api.templates.invite_body.button")
+	data.Props["InviteFooterTitle"] = i18n.T("api.templates.easy_login_body.footer.title")
+	data.Props["InviteFooterInfo"] = i18n.T("api.templates.easy_login_body.footer.info")
 
 	// Login-only token - no team or channel info needed
 	// TODO: re-use existing token if it hasn't expired
@@ -663,10 +663,8 @@ func (es *Service) SendGuestEasyLoginEmailSelfService(
 		return fmt.Errorf("%w: %v", SaveTokenError, saveErr)
 	}
 
-	// Easy login uses SSO-style authentication - clicking the link logs them in directly
-	data.Props["ButtonURL"] = fmt.Sprintf("%s/login/sso/easy?t=%s", siteURL, url.QueryEscape(token.Token))
-	// Add app deep link for easy login (wrapped in template.URL to mark it as safe)
-	data.Props["AppButtonURL"] = template.URL(fmt.Sprintf("mattermost://%s/login/sso/easy?t=%s", strings.TrimPrefix(strings.TrimPrefix(siteURL, "https://"), "http://"), url.QueryEscape(token.Token)))
+	// Easy login uses SSO-style authentication - clicking the link sends them to the landing page and logs them in directly
+	data.Props["ButtonURL"] = fmt.Sprintf("%s/landing#/login/sso/easy?t=%s", siteURL, url.QueryEscape(token.Token))
 
 	if !*es.config().EmailSettings.SendEmailNotifications {
 		mlog.Info("sending easy login link", mlog.String("to", invite))

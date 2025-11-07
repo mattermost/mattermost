@@ -3587,8 +3587,16 @@
     "translation": "[{{ .SiteName }}] Your account at {{ .ServerURL }} has been deactivated"
   },
   {
+    "id": "api.templates.easy_login_body.footer.info",
+    "translation": "This email was sent to you because someone requested a login link for Mattermost. If you did not request this, you can safely ignore this email."
+  },
+  {
+    "id": "api.templates.easy_login_body.footer.title",
+    "translation": "Didn't request this email?"
+  },
+  {
     "id": "api.templates.easy_login_body.subtitle",
-    "translation": "Click the button below to sign in to your account"
+    "translation": "Click the button below to sign in to your account. Remember not to share this link with anyone else."
   },
   {
     "id": "api.templates.easy_login_body.title",
