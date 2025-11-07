@@ -6,6 +6,8 @@ package model
 import (
 	"fmt"
 	"time"
+
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 type TaskFunc func()
@@ -69,8 +71,10 @@ func createTask(name string, function TaskFunc, interval time.Duration, recurrin
 			select {
 			case <-firstTick:
 				ticker = time.NewTicker(interval)
+				mlog.Debug("Executing scheduled task for first time", mlog.String("task", task.Name), mlog.String("interval", task.Interval.String()))
 				function()
 			case <-ticker.C:
+				mlog.Debug("Executing recurring task", mlog.String("task", task.Name), mlog.String("interval", task.Interval.String()))
 				function()
 			case <-task.cancel:
 				return
