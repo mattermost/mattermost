@@ -476,13 +476,33 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		assert.Equal(t, "%regular%", args[4])
 	})
 
+	t.Run("mixed hashtags, mentions and regular terms", func(t *testing.T) {
+		baseQuery := sq.Select("*").From("Posts")
+		params := &model.SearchParams{OrTerms: false}
+		phrases := []string{}
+		terms := "田中"
+		excludedTerms := ""
+		excludedPhrases := []string{"太郎 社長"}
+		searchType := "Posts.Message"
+
+		result := s.generateLikeSearchQueryForPosts(baseQuery, params, phrases, terms, excludedTerms, excludedPhrases, searchType)
+		sql, args, err := result.ToSql()
+
+		require.NoError(t, err)
+		assert.Contains(t, sql, "(LOWER(Posts.Message) LIKE ? ESCAPE '\\') AND LOWER(Posts.Message) NOT LIKE ? ESCAPE '\\'")
+		assert.Contains(t, sql, " AND ")
+		assert.Equal(t, 2, len(args))
+		assert.Equal(t, "%田中%", args[0])
+		assert.Equal(t, "%太郎 社長%", args[1])
+	})
+
 	t.Run("complex query with all features", func(t *testing.T) {
 		baseQuery := sq.Select("*").From("Posts")
 		params := &model.SearchParams{OrTerms: false}
 		phrases := []string{`"exact phrase"`}
 		terms := "#hashtag @mention word test%"
 		excludedTerms := "excluded #excludedtag"
-		excludedPhrases := []string{}
+		excludedPhrases := []string{"excluded phrase", "another excluded"}
 		searchType := "Posts.Message"
 
 		result := s.generateLikeSearchQueryForPosts(baseQuery, params, phrases, terms, excludedTerms, excludedPhrases, searchType)
@@ -493,6 +513,6 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		assert.Contains(t, sql, "LOWER(Posts.Message) NOT LIKE ? ESCAPE '\\'")
 		assert.Contains(t, sql, " AND ")
 		// phrase + hashtag (2) + mention (2) + word + test% + excluded + excludedtag (2)
-		assert.Equal(t, 10, len(args))
+		assert.Equal(t, 12, len(args))
 	})
 }
