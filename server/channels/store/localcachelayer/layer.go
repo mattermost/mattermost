@@ -77,6 +77,9 @@ const (
 	ContentFlaggingCacheSize = 100
 
 	ReadReceiptCacheSize = 50000
+
+	TemporaryPostCacheSize    = 10000
+	TemporaryPostCacheMinutes = 60
 )
 
 var clearCacheMessageData = []byte("")
@@ -141,6 +144,9 @@ type LocalCacheStore struct {
 
 	readReceipt      LocalCacheReadReceiptStore
 	readReceiptCache cache.Cache
+
+	temporaryPost      LocalCacheTemporaryPostStore
+	temporaryPostCache cache.Cache
 }
 
 func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface, cacheProvider cache.Provider, logger mlog.LoggerIFace) (localCacheStore LocalCacheStore, err error) {
@@ -412,6 +418,17 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	}
 	localCacheStore.readReceipt = LocalCacheReadReceiptStore{ReadReceiptStore: baseStore.ReadReceipt(), rootStore: &localCacheStore}
 
+	// Temporary Posts
+	if localCacheStore.temporaryPostCache, err = cacheProvider.NewCache(&cache.CacheOptions{
+		Size:                   TemporaryPostCacheSize,
+		Name:                   "TemporaryPost",
+		DefaultExpiry:          TemporaryPostCacheMinutes * time.Minute,
+		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForTemporaryPosts,
+	}); err != nil {
+		return
+	}
+	localCacheStore.temporaryPost = LocalCacheTemporaryPostStore{TemporaryPostStore: baseStore.TemporaryPost(), rootStore: &localCacheStore}
+
 	if cluster != nil {
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForReactions, localCacheStore.reaction.handleClusterInvalidateReaction)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForRoles, localCacheStore.role.handleClusterInvalidateRole)
@@ -439,6 +456,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForUserAutoTranslation, localCacheStore.autotranslation.handleClusterInvalidateUserAutoTranslation)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForContentFlagging, localCacheStore.contentFlagging.handleClusterInvalidateContentFlagging)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForReadReceipts, localCacheStore.readReceipt.handleClusterInvalidateReadReceipts)
+		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForTemporaryPosts, localCacheStore.temporaryPost.handleClusterInvalidateTemporaryPosts)
 	}
 	return
 }
@@ -497,6 +515,10 @@ func (s LocalCacheStore) ContentFlagging() store.ContentFlaggingStore {
 
 func (s LocalCacheStore) ReadReceipt() store.ReadReceiptStore {
 	return s.readReceipt
+}
+
+func (s LocalCacheStore) TemporaryPost() store.TemporaryPostStore {
+	return s.temporaryPost
 }
 
 func (s LocalCacheStore) DropAllTables() {
@@ -634,6 +656,7 @@ func (s *LocalCacheStore) Invalidate() {
 	s.doClearCacheCluster(s.rolePermissionsCache)
 	s.doClearCacheCluster(s.userAutoTranslationCache)
 	s.doClearCacheCluster(s.readReceiptCache)
+	s.doClearCacheCluster(s.temporaryPostCache)
 }
 
 // allocateCacheTargets is used to fill target value types
