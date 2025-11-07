@@ -31,6 +31,11 @@ jest.mock('utils/popouts/browser_popouts', () => ({
     useBrowserPopout: jest.fn(),
 }));
 
+jest.mock('components/logged_in', () => ({
+    __esModule: true,
+    default: ({children}: {children: React.ReactNode}) => <div data-testid='logged-in'>{children}</div>,
+}));
+
 const mockGetProfiles = getProfiles as jest.MockedFunction<typeof getProfiles>;
 
 // Base mock route props with meaningful route data

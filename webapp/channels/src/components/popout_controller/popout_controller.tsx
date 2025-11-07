@@ -8,6 +8,7 @@ import type {RouteComponentProps} from 'react-router-dom';
 
 import {getProfiles} from 'mattermost-redux/actions/users';
 
+import LoggedIn from 'components/logged_in';
 import ModalController from 'components/modal_controller';
 import ThreadPopout from 'components/thread_popout';
 
@@ -16,7 +17,7 @@ import {useBrowserPopout} from 'utils/popouts/browser_popouts';
 
 import './popout_controller.scss';
 
-const PopoutController: React.FC<RouteComponentProps> = () => {
+const PopoutController: React.FC<RouteComponentProps> = (routeProps) => {
     const dispatch = useDispatch();
     useBrowserPopout();
     useEffect(() => {
@@ -25,7 +26,7 @@ const PopoutController: React.FC<RouteComponentProps> = () => {
     }, []);
 
     return (
-        <>
+        <LoggedIn {...routeProps}>
             <ModalController/>
             <Switch>
                 <Route
@@ -33,7 +34,7 @@ const PopoutController: React.FC<RouteComponentProps> = () => {
                     component={ThreadPopout}
                 />
             </Switch>
-        </>
+        </LoggedIn>
     );
 };
 
