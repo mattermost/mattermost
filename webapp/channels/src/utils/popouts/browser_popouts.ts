@@ -1,45 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useEffect} from 'react';
-import {useHistory} from 'react-router-dom';
-
 import {getHistory} from 'utils/browser_history';
-import {isDesktopApp} from 'utils/user_agent';
 
 const POPOUT_WIDTH = 800;
 const POPOUT_HEIGHT_OFFSET = 100;
 const CLOSE_POLL_INTERVAL = 200;
 const CLOSE_POLL_MAX_TRIES = 10;
 
-export function useBrowserPopout() {
-    const history = useHistory();
-    useEffect(() => {
-        if (!isDesktopApp()) {
-            const unblockHistory = history.block((blockState) => {
-                window.opener.postMessage({
-                    channel: '_navigate',
-                    args: [blockState.pathname],
-                }, window.location.origin);
-                return false;
-            });
-            const closeListener = () => {
-                window.opener.postMessage({
-                    channel: '_close',
-                    args: [],
-                }, window.location.origin);
-            };
-
-            window.addEventListener('beforeunload', closeListener);
-            return () => {
-                unblockHistory();
-                window.removeEventListener('beforeunload', closeListener);
-            };
-        }
-
-        return () => {};
-    }, [history]);
-}
+export const NAVIGATE_CHANNEL = '_navigate';
+export const CLOSE_CHANNEL = '_close';
 
 export class BrowserPopouts {
     private popoutWindows: Map<Window, string>;
@@ -64,11 +34,11 @@ export class BrowserPopouts {
             }
 
             switch (event.data.channel) {
-            case '_navigate':
+            case NAVIGATE_CHANNEL:
                 window.focus();
                 getHistory().push(event.data.args[0]);
                 return;
-            case '_close': {
+            case CLOSE_CHANNEL: {
                 // Unfortunately, there is no way to know if the window is
                 // closed other than checking the beforeunload event
                 // so we need to poll until it is closed or we reach the max tries,
@@ -101,7 +71,8 @@ export class BrowserPopouts {
     }
 
     setupBrowserPopout = (path: string) => {
-        const target = path.replace(/\//g, '-').replace('-_popout-', '');
+        // Replace the popout prefix and all slashes with dashes to make a clearer target name
+        const target = path.replace('/_popout/', '').replace(/\//g, '-');
         const popoutWindow = window.open(
             path,
             target,
@@ -123,44 +94,25 @@ export class BrowserPopouts {
         this.closeListeners.set(target, new Set());
 
         return {
-            send: (channel: string, ...args: any[]) => {
+            sendToPopout: (channel: string, ...args: any[]) => {
                 popoutWindow.postMessage({
                     channel,
                     args,
                 }, window.location.origin);
             },
-            message: (listener: (channel: string, ...args: any[]) => void) => {
+            onMessageFromPopout: (listener: (channel: string, ...args: any[]) => void) => {
                 this.listeners.get(target)?.add(listener);
                 return () => {
                     this.listeners.get(target)?.delete(listener);
                 };
             },
-            closed: (listener: () => void) => {
+            onClosePopout: (listener: () => void) => {
                 this.closeListeners.get(target)?.add(listener);
                 return () => {
                     this.closeListeners.get(target)?.delete(listener);
                 };
             },
         };
-    };
-
-    sendToParent = (channel: string, ...args: any[]) => {
-        window.opener.postMessage({
-            channel,
-            args,
-        }, window.location.origin);
-    };
-
-    onMessageFromParent = (listener: (channel: string, ...args: any[]) => void) => {
-        window.addEventListener('message', (event) => {
-            if (event.origin !== window.location.origin) {
-                return;
-            }
-            if (event.source !== window.opener) {
-                return;
-            }
-            listener(event.data.channel, ...event.data.args);
-        });
     };
 }
 

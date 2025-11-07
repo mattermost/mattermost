@@ -13,7 +13,7 @@ import ModalController from 'components/modal_controller';
 import ThreadPopout from 'components/thread_popout';
 
 import {TEAM_NAME_PATH_PATTERN, ID_PATH_PATTERN} from 'utils/path';
-import {useBrowserPopout} from 'utils/popouts/browser_popouts';
+import {useBrowserPopout} from 'utils/popouts/use_browser_popout';
 
 import './popout_controller.scss';
 

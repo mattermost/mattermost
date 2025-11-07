@@ -80,9 +80,9 @@ describe('BrowserPopouts', () => {
                 'thread-team-1-thread-123',
                 'popup=true,left=1120,top=100,width=800,height=880',
             );
-            expect(result).toHaveProperty('send');
-            expect(result).toHaveProperty('message');
-            expect(result).toHaveProperty('closed');
+            expect(result).toHaveProperty('sendToPopout');
+            expect(result).toHaveProperty('onMessageFromPopout');
+            expect(result).toHaveProperty('onClosePopout');
         });
 
         it('should calculate correct window position', () => {
@@ -128,11 +128,11 @@ describe('BrowserPopouts', () => {
             const listener1 = jest.fn();
             const listener2 = jest.fn();
 
-            if (result1.message) {
-                result1.message(listener1);
+            if (result1.onMessageFromPopout) {
+                result1.onMessageFromPopout(listener1);
             }
-            if (result2.message) {
-                result2.message(listener2);
+            if (result2.onMessageFromPopout) {
+                result2.onMessageFromPopout(listener2);
             }
 
             const messageEvent1 = new MessageEvent('message', {
@@ -165,7 +165,7 @@ describe('BrowserPopouts', () => {
         });
     });
 
-    describe('send', () => {
+    describe('sendToPopout', () => {
         it('should handle multiple arguments', () => {
             const mockPopoutWindow = {
                 closed: false,
@@ -175,7 +175,7 @@ describe('BrowserPopouts', () => {
             mockWindowOpen.mockReturnValue(mockPopoutWindow);
 
             const result = browserPopouts.setupBrowserPopout('/_popout/test');
-            result.send!('channel', 1, true, {nested: 'object'}, ['array']);
+            result.sendToPopout!('channel', 1, true, {nested: 'object'}, ['array']);
 
             expect(mockPopoutWindow.postMessage).toHaveBeenCalledWith(
                 {
@@ -200,9 +200,9 @@ describe('BrowserPopouts', () => {
             const listener1 = jest.fn();
             const listener2 = jest.fn();
 
-            if (result.message) {
-                result.message(listener1);
-                result.message(listener2);
+            if (result.onMessageFromPopout) {
+                result.onMessageFromPopout(listener1);
+                result.onMessageFromPopout(listener2);
             }
 
             const messageEvent = new MessageEvent('message', {
@@ -231,8 +231,8 @@ describe('BrowserPopouts', () => {
             const result = browserPopouts.setupBrowserPopout('/_popout/test');
             const listener = jest.fn();
             let cleanup: (() => void) | undefined;
-            if (result.message) {
-                cleanup = result.message(listener);
+            if (result.onMessageFromPopout) {
+                cleanup = result.onMessageFromPopout(listener);
             }
 
             if (cleanup) {
@@ -263,8 +263,8 @@ describe('BrowserPopouts', () => {
 
             const result = browserPopouts.setupBrowserPopout('/_popout/test');
             const listener = jest.fn();
-            if (result.message) {
-                result.message(listener);
+            if (result.onMessageFromPopout) {
+                result.onMessageFromPopout(listener);
             }
 
             // Test unknown window
@@ -342,9 +342,9 @@ describe('BrowserPopouts', () => {
             const closeListener1 = jest.fn();
             const closeListener2 = jest.fn();
 
-            if (result.closed) {
-                result.closed(closeListener1);
-                result.closed(closeListener2);
+            if (result.onClosePopout) {
+                result.onClosePopout(closeListener1);
+                result.onClosePopout(closeListener2);
             }
 
             const messageEvent = new MessageEvent('message', {
@@ -379,8 +379,8 @@ describe('BrowserPopouts', () => {
 
             const result = browserPopouts.setupBrowserPopout('/_popout/test');
             const closeListener = jest.fn();
-            if (result.closed) {
-                result.closed(closeListener);
+            if (result.onClosePopout) {
+                result.onClosePopout(closeListener);
             }
 
             const messageEvent = new MessageEvent('message', {
@@ -411,11 +411,11 @@ describe('BrowserPopouts', () => {
             const messageListener = jest.fn();
             const closeListener = jest.fn();
 
-            if (result.message) {
-                result.message(messageListener);
+            if (result.onMessageFromPopout) {
+                result.onMessageFromPopout(messageListener);
             }
-            if (result.closed) {
-                result.closed(closeListener);
+            if (result.onClosePopout) {
+                result.onClosePopout(closeListener);
             }
 
             const closeMessageEvent = new MessageEvent('message', {
@@ -461,8 +461,8 @@ describe('BrowserPopouts', () => {
             const result = browserPopouts.setupBrowserPopout('/_popout/test');
             const closeListener = jest.fn();
             let cleanup: (() => void) | undefined;
-            if (result.closed) {
-                cleanup = result.closed(closeListener);
+            if (result.onClosePopout) {
+                cleanup = result.onClosePopout(closeListener);
             }
 
             if (cleanup) {
@@ -488,105 +488,6 @@ describe('BrowserPopouts', () => {
             jest.advanceTimersByTime(200);
 
             expect(closeListener).not.toHaveBeenCalled();
-        });
-    });
-
-    describe('sendToParent', () => {
-        it('should send message to parent window', () => {
-            const mockOpener = {
-                postMessage: jest.fn(),
-            } as unknown as Window;
-
-            Object.defineProperty(window, 'opener', {
-                value: mockOpener,
-                writable: true,
-            });
-
-            browserPopouts.sendToParent('test-channel', 'arg1', 'arg2');
-
-            expect(mockOpener.postMessage).toHaveBeenCalledWith(
-                {
-                    channel: 'test-channel',
-                    args: ['arg1', 'arg2'],
-                },
-                'https://example.com',
-            );
-        });
-    });
-
-    describe('onMessageFromParent', () => {
-        it('should register listener for messages from parent window', () => {
-            const mockOpener = {
-                postMessage: jest.fn(),
-            } as unknown as Window;
-
-            Object.defineProperty(window, 'opener', {
-                value: mockOpener,
-                writable: true,
-            });
-
-            const listener = jest.fn();
-            browserPopouts.onMessageFromParent(listener);
-
-            const messageEvent = new MessageEvent('message', {
-                data: {
-                    channel: 'parent-channel',
-                    args: ['data1', 'data2'],
-                },
-                origin: 'https://example.com',
-                source: mockOpener,
-            });
-
-            const parentListener = messageListeners[messageListeners.length - 1];
-            parentListener(messageEvent);
-
-            expect(listener).toHaveBeenCalledWith('parent-channel', 'data1', 'data2');
-        });
-
-        it('should ignore messages from parent with wrong origin or not from opener', () => {
-            const mockOpener = {
-                postMessage: jest.fn(),
-            } as unknown as Window;
-
-            const otherWindow = {
-                postMessage: jest.fn(),
-            } as unknown as Window;
-
-            Object.defineProperty(window, 'opener', {
-                value: mockOpener,
-                writable: true,
-            });
-
-            const listener = jest.fn();
-            browserPopouts.onMessageFromParent(listener);
-
-            const parentListener = messageListeners[messageListeners.length - 1];
-
-            // Test wrong origin
-            const wrongOriginEvent = new MessageEvent('message', {
-                data: {
-                    channel: 'parent-channel',
-                    args: [],
-                },
-                origin: 'https://evil.com',
-                source: mockOpener,
-            });
-
-            parentListener(wrongOriginEvent);
-            expect(listener).not.toHaveBeenCalled();
-
-            // Test not from opener
-            const wrongSourceEvent = new MessageEvent('message', {
-                data: {
-                    channel: 'parent-channel',
-                    args: [],
-                },
-                origin: 'https://example.com',
-                source: otherWindow,
-            });
-
-            parentListener(wrongSourceEvent);
-            expect(listener).not.toHaveBeenCalled();
         });
     });
 });

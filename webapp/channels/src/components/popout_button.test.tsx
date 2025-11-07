@@ -9,7 +9,6 @@ import {renderWithContext} from 'tests/react_testing_utils';
 
 import PopoutButton from './popout_button';
 
-// Mock dependencies - create a mutable mock object using a factory function
 let mockCanPopout = true;
 
 jest.mock('utils/popouts/popout_windows', () => ({
@@ -31,12 +30,10 @@ describe('PopoutButton', () => {
     beforeEach(() => {
         jest.clearAllMocks();
 
-        // Reset canPopout to true before each test
         mockCanPopout = true;
     });
 
     it('should not render when cannot popout', async () => {
-        // Change canPopout to false for this test
         mockCanPopout = false;
         const {container} = renderWithContext(
             <PopoutButton {...defaultProps}/>,

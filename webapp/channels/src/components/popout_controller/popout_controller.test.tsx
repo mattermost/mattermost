@@ -26,7 +26,7 @@ jest.mock('components/thread_popout', () => ({
     __esModule: true,
     default: () => <div data-testid='thread-popout'>{'Thread Popout'}</div>,
 }));
-jest.mock('utils/popouts/browser_popouts', () => ({
+jest.mock('utils/popouts/use_browser_popout', () => ({
     __esModule: true,
     useBrowserPopout: jest.fn(),
 }));

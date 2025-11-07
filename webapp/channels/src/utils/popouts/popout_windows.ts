@@ -9,6 +9,7 @@ import DesktopApp from 'utils/desktop_api';
 import {isDesktopApp} from 'utils/user_agent';
 
 import BrowserPopouts from './browser_popouts';
+import {sendToParent as sendToParentBrowser, onMessageFromParent as onMessageFromParentBrowser} from './use_browser_popout';
 
 export const canPopout = Boolean(!isDesktopApp() || DesktopApp.canPopout());
 
@@ -28,9 +29,9 @@ export function popoutThread(intl: IntlShape, threadId: string, teamName: string
  */
 
 type PopoutListeners = {
-    send: (channel: string, ...args: unknown[]) => void;
-    message: (listener: (channel: string, ...args: unknown[]) => void) => void;
-    closed: (listener: () => void) => void;
+    sendToPopout: (channel: string, ...args: unknown[]) => void;
+    onMessageFromPopout: (listener: (channel: string, ...args: unknown[]) => void) => void;
+    onClosePopout: (listener: () => void) => void;
 };
 
 async function popout(path: string, desktopProps?: PopoutViewProps): Promise<Partial<PopoutListeners>> {
@@ -46,7 +47,7 @@ export function sendToParent(channel: string, ...args: unknown[]) {
         return DesktopApp.sendToParentWindow(channel, ...args);
     }
 
-    return BrowserPopouts.sendToParent(channel, ...args);
+    return sendToParentBrowser(channel, ...args);
 }
 
 export function onMessageFromParent(listener: (channel: string, ...args: unknown[]) => void) {
@@ -54,6 +55,6 @@ export function onMessageFromParent(listener: (channel: string, ...args: unknown
         return DesktopApp.onMessageFromParentWindow(listener);
     }
 
-    return BrowserPopouts.onMessageFromParent(listener);
+    return onMessageFromParentBrowser(listener);
 }
 
