@@ -60,9 +60,20 @@ jobs:
         run: make setup-go-work
 
       - name: Build
+        env:
+          CUSTOM_JP_PLATFORM_NAME: ${{ vars.CUSTOM_JP_PLATFORM_NAME }}
+          CUSTOM_PLATFORM_NAME: ${{ vars.CUSTOM_PLATFORM_NAME }}
+          CUSTOM_SERVICE_NAME: ${{ vars.CUSTOM_SERVICE_NAME }}
         run: |
+          required_envs=( "CUSTOM_JP_PLATFORM_NAME" "CUSTOM_PLATFORM_NAME" "CUSTOM_SERVICE_NAME" )
+          for env_name in "${required_envs[@]}"; do
+            env_value="${!env_name}"
+            [ -z "$env_value" ] && { echo "::error title=Environment Variable Check Error::$env_name is not set."; exit 1; }
+          done
+
           make config-reset
           make build-cmd BUILD_NUMBER='${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}'
+          make customize-assets
           make package BUILD_NUMBER='${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}'
 
       # In server-ci-artifacts.yml, this step uploads the artifacts to S3.
