@@ -14,7 +14,7 @@ import (
 )
 
 func TestNewCPAFieldFromPropertyField(t *testing.T) {
-	tests := []struct {
+	testCases := []struct {
 		name          string
 		propertyField *PropertyField
 		wantAttrs     CPAAttrs
@@ -79,7 +79,7 @@ func TestNewCPAFieldFromPropertyField(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "property field with empty attributes returns empty values",
+			name: "property field with empty attributes returns default values",
 			propertyField: &PropertyField{
 				ID:       NewId(),
 				GroupID:  CustomProfileAttributesPropertyGroupName,
@@ -89,7 +89,7 @@ func TestNewCPAFieldFromPropertyField(t *testing.T) {
 				UpdateAt: GetMillis(),
 			},
 			wantAttrs: CPAAttrs{
-				Visibility: "", // Pure conversion, no defaults (defaults provided by app layer)
+				Visibility: CustomProfileAttributesVisibilityWhenSet, // Defaults are applied during conversion
 				SortOrder:  0,
 				ValueType:  "",
 				Options:    nil,
@@ -98,11 +98,11 @@ func TestNewCPAFieldFromPropertyField(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			cpaField, err := NewCPAFieldFromPropertyField(tt.propertyField)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			cpaField, err := NewCPAFieldFromPropertyField(tc.propertyField)
 
-			if tt.wantErr {
+			if tc.wantErr {
 				require.Error(t, err)
 				return
 			}
@@ -111,23 +111,23 @@ func TestNewCPAFieldFromPropertyField(t *testing.T) {
 			require.NotNil(t, cpaField)
 
 			// Check that the PropertyField was copied correctly
-			assert.Equal(t, tt.propertyField.ID, cpaField.ID)
-			assert.Equal(t, tt.propertyField.GroupID, cpaField.GroupID)
-			assert.Equal(t, tt.propertyField.Name, cpaField.Name)
-			assert.Equal(t, tt.propertyField.Type, cpaField.Type)
+			assert.Equal(t, tc.propertyField.ID, cpaField.ID)
+			assert.Equal(t, tc.propertyField.GroupID, cpaField.GroupID)
+			assert.Equal(t, tc.propertyField.Name, cpaField.Name)
+			assert.Equal(t, tc.propertyField.Type, cpaField.Type)
 
 			// Check that the attributes were parsed correctly
-			assert.Equal(t, tt.wantAttrs.Visibility, cpaField.Attrs.Visibility)
-			assert.Equal(t, tt.wantAttrs.SortOrder, cpaField.Attrs.SortOrder)
-			assert.Equal(t, tt.wantAttrs.ValueType, cpaField.Attrs.ValueType)
+			assert.Equal(t, tc.wantAttrs.Visibility, cpaField.Attrs.Visibility)
+			assert.Equal(t, tc.wantAttrs.SortOrder, cpaField.Attrs.SortOrder)
+			assert.Equal(t, tc.wantAttrs.ValueType, cpaField.Attrs.ValueType)
 
 			// For options, we need to check length since IDs will be different
-			if tt.wantAttrs.Options != nil {
+			if tc.wantAttrs.Options != nil {
 				require.NotNil(t, cpaField.Attrs.Options)
-				assert.Len(t, cpaField.Attrs.Options, len(tt.wantAttrs.Options))
-				if len(tt.wantAttrs.Options) > 0 {
-					assert.Equal(t, tt.wantAttrs.Options[0].Name, cpaField.Attrs.Options[0].Name)
-					assert.Equal(t, tt.wantAttrs.Options[0].Color, cpaField.Attrs.Options[0].Color)
+				assert.Len(t, cpaField.Attrs.Options, len(tc.wantAttrs.Options))
+				if len(tc.wantAttrs.Options) > 0 {
+					assert.Equal(t, tc.wantAttrs.Options[0].Name, cpaField.Attrs.Options[0].Name)
+					assert.Equal(t, tc.wantAttrs.Options[0].Color, cpaField.Attrs.Options[0].Color)
 				}
 			} else {
 				assert.Nil(t, cpaField.Attrs.Options)
@@ -1135,7 +1135,7 @@ func TestCPAField_IsAdminManaged(t *testing.T) {
 }
 
 func TestCPAField_SetDefaults(t *testing.T) {
-	tests := []struct {
+	testCases := []struct {
 		name          string
 		field         *CPAField
 		expectedAttrs CPAAttrs
@@ -1191,11 +1191,11 @@ func TestCPAField_SetDefaults(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tt.field.SetDefaults()
-			assert.Equal(t, tt.expectedAttrs.Visibility, tt.field.Attrs.Visibility)
-			assert.Equal(t, tt.expectedAttrs.SortOrder, tt.field.Attrs.SortOrder)
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			tc.field.SetDefaults()
+			assert.Equal(t, tc.expectedAttrs.Visibility, tc.field.Attrs.Visibility)
+			assert.Equal(t, tc.expectedAttrs.SortOrder, tc.field.Attrs.SortOrder)
 		})
 	}
 }
