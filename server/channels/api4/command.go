@@ -169,6 +169,12 @@ func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if c.AppContext.Session().UserId != cmd.CreatorId && !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), cmd.TeamId, model.PermissionManageOthersSlashCommands) {
+		c.LogAudit("fail - inappropriate permissions")
+		c.SetPermissionError(model.PermissionManageOthersSlashCommands)
+		return
+	}
+
 	if appErr = c.App.MoveCommand(newTeam, cmd); appErr != nil {
 		c.Err = appErr
 		return
