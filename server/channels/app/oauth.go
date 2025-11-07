@@ -35,11 +35,20 @@ const (
 )
 
 func (a *App) CreateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
+	// Public method for plugin API - always generates secrets for backward compatibility
+	return a.CreateOAuthAppInternal(app, true)
+}
+
+// CreateOAuthAppInternal creates an OAuth app with optional secret generation.
+// If generateSecret is true and ClientSecret is empty, a secret will be auto-generated.
+// If generateSecret is false, the ClientSecret is left as-is (empty for public clients).
+func (a *App) CreateOAuthAppInternal(app *model.OAuthApp, generateSecret bool) (*model.OAuthApp, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableOAuthServiceProvider {
 		return nil, model.NewAppError("CreateOAuthApp", "api.oauth.register_oauth_app.turn_off.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if app.ClientSecret == "" {
+	// Generate a client secret if requested and not already set
+	if generateSecret {
 		app.ClientSecret = model.NewId()
 	}
 
