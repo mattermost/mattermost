@@ -6,7 +6,7 @@ $node-height: 32px;
 $node-hover-bg: rgba(20, 93, 191, 0.08);
 $node-selected-bg: rgba(20, 93, 191, 0.16);
 $node-text: var(--center-channel-text);
-$node-text-muted: rgba(var(--center-channel-text-rgb), 0.64);
+$node-text-muted: rgba(var(--center-channel-text-rgb), 0.75);
 $radius-sm: 4px;
 
 .PageTreeNode {
@@ -70,8 +70,6 @@ $radius-sm: 4px;
     flex: 1;
     color: $node-text;
     font-size: 14px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 
     &-button {
         border: unset;
@@ -79,16 +77,22 @@ $radius-sm: 4px;
         color: $node-text;
         cursor: pointer;
         pointer-events: auto;
+        flex-grow: 1;
+        text-align: left;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 }
 
 .PageTreeNode__draftBadge {
     flex-shrink: 0;
-    padding: 2px 6px;
+    padding: 2px 4px;
     border-radius: 3px;
     background: rgba(var(--center-channel-text-rgb), 0.08);
     color: $node-text-muted;
-    font-size: 11px;
+    font-size: 10px;
+    line-height: 12px;
     font-weight: 600;
     text-transform: uppercase;
 }

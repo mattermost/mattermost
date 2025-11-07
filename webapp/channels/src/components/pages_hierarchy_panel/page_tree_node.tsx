@@ -1,10 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useCallback} from 'react';
+import React, {useState, useCallback, useEffect, useRef} from 'react';
 import {useSelector} from 'react-redux';
 
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+
+import WithTooltip from 'components/with_tooltip';
 
 import {PageDisplayTypes} from 'utils/constants';
 import {isEditingExistingPage} from 'utils/page_utils';
@@ -53,6 +55,8 @@ const PageTreeNode = ({
 
     const [showMenu, setShowMenu] = useState(false);
     const [menuPosition, setMenuPosition] = useState({x: 0, y: 0});
+    const [isTitleTruncated, setIsTitleTruncated] = useState(false);
+    const titleButtonRef = useRef<HTMLButtonElement>(null);
 
     const isLoading = isRenaming || isDeleting;
 
@@ -68,6 +72,22 @@ const PageTreeNode = ({
         }
         return node.isExpanded ? 'Collapse' : 'Expand';
     };
+
+    useEffect(() => {
+        const checkTruncation = () => {
+            const el = titleButtonRef.current;
+            if (!el) {
+                return;
+            }
+            setIsTitleTruncated(el.scrollWidth > el.clientWidth);
+        };
+
+        checkTruncation();
+        window.addEventListener('resize', checkTruncation);
+        return () => {
+            window.removeEventListener('resize', checkTruncation);
+        };
+    }, [node.title]);
 
     const handleContextMenu = useCallback((e: React.MouseEvent) => {
         e.preventDefault();
@@ -130,19 +150,27 @@ const PageTreeNode = ({
             )}
 
             {/* Page title */}
-            <button
-                className='PageTreeNode__title-button'
-                onClick={(e) => {
-                    e.stopPropagation();
-                    if (!isLoading) {
-                        onSelect();
-                    }
-                }}
-                disabled={isLoading}
-                data-testid='page-tree-node-title'
+            <WithTooltip
+                title={node.title}
+                disabled={!isTitleTruncated}
             >
-                <span className='PageTreeNode__title'>{node.title}</span>
-            </button>
+                <button
+                    ref={titleButtonRef}
+                    className='PageTreeNode__title-button'
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        if (!isLoading) {
+                            onSelect();
+                        }
+                    }}
+                    disabled={isLoading}
+                    data-testid='page-tree-node-title'
+                >
+                    <span className='PageTreeNode__title'>
+                        {node.title}
+                    </span>
+                </button>
+            </WithTooltip>
 
             {/* Draft badge - only show for new drafts, not when editing existing pages */}
             {node.page.type === PageDisplayTypes.PAGE_DRAFT && !isEditingExistingPage(node.page as any) && (

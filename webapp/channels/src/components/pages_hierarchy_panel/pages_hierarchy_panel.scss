@@ -111,6 +111,10 @@ $radius-sm: 4px;
     background: rgba(var(--center-channel-text-rgb), 0.08);
     gap: $spacing-sm;
 
+    &:hover {
+        background: rgba(var(--center-channel-text-rgb), 0.12);
+    }
+
     .icon-magnify {
         display: flex;
         width: 20px;
@@ -155,7 +159,7 @@ $radius-sm: 4px;
 // Tree container
 .PagesHierarchyPanel__tree {
     flex: 1;
-    padding: $spacing-sm 0;
+    padding: 0;
     overflow-x: auto;
     overflow-y: auto;
 }
