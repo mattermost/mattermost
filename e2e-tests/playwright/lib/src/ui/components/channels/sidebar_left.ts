@@ -54,12 +54,11 @@ export default class ChannelsSidebarLeft {
         await expect(channel).not.toBeVisible();
     }
 
-     /**
+    /**
      * Verifies if 'unreads' filter is applied to sidebar.
      */
     async isUnreadsFilterActive(): Promise<boolean> {
-        return await this.unreadChannelFilter.evaluate((el) => el.classList.contains('active')
-        );
+        return await this.unreadChannelFilter.evaluate((el) => el.classList.contains('active'));
     }
 
     /**
@@ -68,5 +67,12 @@ export default class ChannelsSidebarLeft {
     async toggleUnreadsFilter() {
         await this.unreadChannelFilter.waitFor();
         await this.unreadChannelFilter.click();
+    }
+
+    /**
+     * Gets all unread channel items in the sidebar.
+     */
+    getUnreadChannels(): Locator {
+        return this.container.locator('.SidebarLink.unread-title');
     }
 }
