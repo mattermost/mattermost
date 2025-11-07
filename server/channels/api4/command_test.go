@@ -228,6 +228,10 @@ func TestMoveCommand(t *testing.T) {
 	th.LinkUserToTeam(th.BasicUser, newTeam)
 	th.LinkUserToTeam(th.BasicUser2, newTeam)
 
+	// Give BasicUser permission to manage their own commands on both teams
+	th.AddPermissionToRole(model.PermissionManageOwnSlashCommands.Id, model.TeamUserRoleId)
+	defer th.RemovePermissionFromRole(model.PermissionManageOwnSlashCommands.Id, model.TeamUserRoleId)
+
 	t.Run("UserWithoutManageOthersPermissionCannotMoveOthersCommand", func(t *testing.T) {
 		// Create a command owned by BasicUser2
 		cmd := &model.Command{
@@ -242,7 +246,7 @@ func TestMoveCommand(t *testing.T) {
 		// BasicUser should not be able to move BasicUser2's command
 		resp, err := th.Client.MoveCommand(context.Background(), newTeam.Id, rcmd.Id)
 		require.Error(t, err)
-		CheckNotFoundStatus(t, resp)
+		CheckForbiddenStatus(t, resp)
 
 		// Verify the command was not moved
 		movedCmd, _ := th.App.GetCommand(rcmd.Id)
