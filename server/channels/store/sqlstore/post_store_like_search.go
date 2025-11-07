@@ -112,7 +112,7 @@ func (s *SqlPostStore) generateLikeSearchQueryForPosts(baseQuery sq.SelectBuilde
 
 	// Excluded words
 	excludedWords := strings.Fields(excludedTerms)
-	if (len(excludedWords) > 0 || len(excludedPhrases) > 0) {
+	if len(excludedWords) > 0 || len(excludedPhrases) > 0 {
 		var excludedClauses []string
 		var excludedArgs []any
 

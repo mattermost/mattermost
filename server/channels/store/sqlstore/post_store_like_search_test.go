@@ -34,7 +34,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
-		assert.Contains(t, sql, "LOWER(Posts.Message) LIKE ?")
+		assert.Contains(t, sql, "LOWER(Posts.Message) LIKE ? ESCAPE '\\'")
 		assert.Equal(t, 1, len(args))
 		assert.Equal(t, "%hello%", args[0])
 	})
@@ -52,7 +52,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
-		assert.Contains(t, sql, "LOWER(Posts.Message) LIKE ?")
+		assert.Contains(t, sql, "LOWER(Posts.Message) LIKE ? ESCAPE '\\'")
 		assert.Contains(t, sql, " AND ")
 		assert.Equal(t, 2, len(args))
 		assert.Equal(t, "%hello%", args[0])
@@ -72,7 +72,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
-		assert.Contains(t, sql, "LOWER(Posts.Message) LIKE ?")
+		assert.Contains(t, sql, "LOWER(Posts.Message) LIKE ? ESCAPE '\\'")
 		assert.Contains(t, sql, " OR ")
 		assert.Equal(t, 2, len(args))
 		assert.Equal(t, "%hello%", args[0])
@@ -92,7 +92,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
-		assert.Contains(t, sql, "LOWER(Posts.Message) LIKE ?")
+		assert.Contains(t, sql, "LOWER(Posts.Message) LIKE ? ESCAPE '\\'")
 		assert.Equal(t, 1, len(args))
 		assert.Equal(t, "%hello world%", args[0])
 	})
@@ -110,7 +110,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
-		assert.Contains(t, sql, "LOWER(Posts.Message) LIKE ?")
+		assert.Contains(t, sql, "LOWER(Posts.Message) LIKE ? ESCAPE '\\'")
 		assert.Contains(t, sql, " AND ")
 		assert.Equal(t, 2, len(args))
 		assert.Equal(t, "%hello world%", args[0])
@@ -130,7 +130,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
-		assert.Contains(t, sql, "(LOWER(Posts.Message) LIKE ? OR LOWER(Posts.Message) LIKE ?)")
+		assert.Contains(t, sql, "(LOWER(Posts.Message) LIKE ? ESCAPE '\\' OR LOWER(Posts.Message) LIKE ? ESCAPE '\\')")
 		assert.Equal(t, 2, len(args))
 		assert.Equal(t, "%#hashtag%", args[0])
 		assert.Equal(t, "%hashtag%", args[1])
@@ -149,7 +149,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
-		assert.Contains(t, sql, "(LOWER(Posts.Message) LIKE ? OR LOWER(Posts.Message) LIKE ?)")
+		assert.Contains(t, sql, "(LOWER(Posts.Message) LIKE ? ESCAPE '\\' OR LOWER(Posts.Message) LIKE ? ESCAPE '\\')")
 		assert.Equal(t, 2, len(args))
 		assert.Equal(t, "%@username%", args[0])
 		assert.Equal(t, "%username%", args[1])
@@ -189,7 +189,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
-		assert.Contains(t, sql, "LOWER(Posts.Message) LIKE ?")
+		assert.Contains(t, sql, "LOWER(Posts.Message) LIKE ? ESCAPE '\\'")
 		assert.Equal(t, 1, len(args))
 		assert.Equal(t, "test%", args[0])
 	})
@@ -207,8 +207,8 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
-		assert.Contains(t, sql, "LOWER(Posts.Message) LIKE ?")
-		assert.Contains(t, sql, "LOWER(Posts.Message) NOT LIKE ?")
+		assert.Contains(t, sql, "LOWER(Posts.Message) LIKE ? ESCAPE '\\'")
+		assert.Contains(t, sql, "LOWER(Posts.Message) NOT LIKE ? ESCAPE '\\'")
 		assert.Equal(t, 2, len(args))
 		assert.Equal(t, "%hello%", args[0])
 		assert.Equal(t, "%world%", args[1])
@@ -227,8 +227,8 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
-		assert.Contains(t, sql, "LOWER(Posts.Message) LIKE ?")
-		assert.Contains(t, sql, "LOWER(Posts.Message) NOT LIKE ?")
+		assert.Contains(t, sql, "LOWER(Posts.Message) LIKE ? ESCAPE '\\'")
+		assert.Contains(t, sql, "LOWER(Posts.Message) NOT LIKE ? ESCAPE '\\'")
 		// Count the number of AND operators for excluded terms
 		excludedAndCount := strings.Count(sql, "NOT LIKE")
 		assert.Equal(t, 2, excludedAndCount)
@@ -251,8 +251,8 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
-		assert.Contains(t, sql, "LOWER(Posts.Message) LIKE ?")
-		assert.Contains(t, sql, "(LOWER(Posts.Message) NOT LIKE ? AND LOWER(Posts.Message) NOT LIKE ?)")
+		assert.Contains(t, sql, "LOWER(Posts.Message) LIKE ? ESCAPE '\\'")
+		assert.Contains(t, sql, "(LOWER(Posts.Message) NOT LIKE ? ESCAPE '\\' AND LOWER(Posts.Message) NOT LIKE ? ESCAPE '\\')")
 		assert.Equal(t, 3, len(args))
 		assert.Equal(t, "%hello%", args[0])
 		assert.Equal(t, "%#hashtag%", args[1])
@@ -272,8 +272,8 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
-		assert.Contains(t, sql, "LOWER(Posts.Message) LIKE ?")
-		assert.Contains(t, sql, "(LOWER(Posts.Message) NOT LIKE ? AND LOWER(Posts.Message) NOT LIKE ?)")
+		assert.Contains(t, sql, "LOWER(Posts.Message) LIKE ? ESCAPE '\\'")
+		assert.Contains(t, sql, "(LOWER(Posts.Message) NOT LIKE ? ESCAPE '\\' AND LOWER(Posts.Message) NOT LIKE ? ESCAPE '\\')")
 		assert.Equal(t, 3, len(args))
 		assert.Equal(t, "%hello%", args[0])
 		assert.Equal(t, "%@username%", args[1])
@@ -293,8 +293,8 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
-		assert.Contains(t, sql, "LOWER(Posts.Message) LIKE ?")
-		assert.Contains(t, sql, "LOWER(Posts.Message) NOT LIKE ?")
+		assert.Contains(t, sql, "LOWER(Posts.Message) LIKE ? ESCAPE '\\'")
+		assert.Contains(t, sql, "LOWER(Posts.Message) NOT LIKE ? ESCAPE '\\'")
 		assert.Equal(t, 2, len(args))
 		assert.Equal(t, "%hello%", args[0])
 		assert.Equal(t, "test%", args[1])
@@ -313,7 +313,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
-		assert.Contains(t, sql, "LOWER(Posts.Message) LIKE ?")
+		assert.Contains(t, sql, "LOWER(Posts.Message) LIKE ? ESCAPE '\\'")
 		assert.Equal(t, 1, len(args))
 		// Should be converted to lowercase
 		assert.Equal(t, "%hello%", args[0])
@@ -332,7 +332,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
-		assert.Contains(t, sql, "LOWER(Posts.Message) LIKE ?")
+		assert.Contains(t, sql, "LOWER(Posts.Message) LIKE ? ESCAPE '\\'")
 		assert.Equal(t, 1, len(args))
 		// Should be converted to lowercase
 		assert.Equal(t, "%hello world%", args[0])
@@ -351,7 +351,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
-		assert.Contains(t, sql, "LOWER(Posts.Message) NOT LIKE ?")
+		assert.Contains(t, sql, "LOWER(Posts.Message) NOT LIKE ? ESCAPE '\\'")
 		assert.Equal(t, 2, len(args))
 		assert.Equal(t, "%hello%", args[0])
 		// Should be converted to lowercase
@@ -371,7 +371,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
-		assert.Contains(t, sql, "LOWER(Posts.Message) LIKE ?")
+		assert.Contains(t, sql, "LOWER(Posts.Message) LIKE ? ESCAPE '\\'")
 		assert.Contains(t, sql, " AND ")
 		assert.Equal(t, 2, len(args))
 		assert.Equal(t, "%hello world%", args[0])
@@ -391,7 +391,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
-		assert.Contains(t, sql, "LOWER(Posts.Message) LIKE ?")
+		assert.Contains(t, sql, "LOWER(Posts.Message) LIKE ? ESCAPE '\\'")
 		// Only one phrase should be included
 		assert.Equal(t, 1, len(args))
 		assert.Equal(t, "%valid phrase%", args[0])
@@ -410,10 +410,12 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
-		assert.Contains(t, sql, "LOWER(Posts.Message) LIKE ?")
-		// Only the term should be included, no excluded terms
-		assert.Equal(t, 1, len(args))
+		assert.Contains(t, sql, "LOWER(Posts.Message) LIKE ? ESCAPE '\\'")
+		assert.Contains(t, sql, "LOWER(Posts.Message) NOT LIKE ? ESCAPE '\\'")
+		// The term "hello" and the literal "" (two quotes) as excluded term, minus the standalone "-" which is empty after trimming
+		assert.Equal(t, 2, len(args))
 		assert.Equal(t, "%hello%", args[0])
+		assert.Equal(t, `%""%`, args[1])
 	})
 
 	t.Run("no search terms results in no WHERE clause", func(t *testing.T) {
@@ -446,7 +448,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
-		assert.Contains(t, sql, "LOWER(Posts.Message) NOT LIKE ?")
+		assert.Contains(t, sql, "LOWER(Posts.Message) NOT LIKE ? ESCAPE '\\'")
 		assert.Equal(t, 1, len(args))
 		assert.Equal(t, "%world%", args[0])
 	})
@@ -464,7 +466,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
-		assert.Contains(t, sql, "(LOWER(Posts.Message) LIKE ? OR LOWER(Posts.Message) LIKE ?)")
+		assert.Contains(t, sql, "(LOWER(Posts.Message) LIKE ? ESCAPE '\\' OR LOWER(Posts.Message) LIKE ? ESCAPE '\\')")
 		assert.Contains(t, sql, " AND ")
 		assert.Equal(t, 5, len(args))
 		assert.Equal(t, "%#hashtag%", args[0])
@@ -487,8 +489,8 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		sql, args, err := result.ToSql()
 
 		require.NoError(t, err)
-		assert.Contains(t, sql, "LOWER(Posts.Message) LIKE ?")
-		assert.Contains(t, sql, "LOWER(Posts.Message) NOT LIKE ?")
+		assert.Contains(t, sql, "LOWER(Posts.Message) LIKE ? ESCAPE '\\'")
+		assert.Contains(t, sql, "LOWER(Posts.Message) NOT LIKE ? ESCAPE '\\'")
 		assert.Contains(t, sql, " AND ")
 		// phrase + hashtag (2) + mention (2) + word + test% + excluded + excludedtag (2)
 		assert.Equal(t, 10, len(args))

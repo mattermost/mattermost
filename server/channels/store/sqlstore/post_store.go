@@ -2086,7 +2086,7 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 
 		phrases := quotedStringsRegex.FindAllString(terms, -1)
 		terms = quotedStringsRegex.ReplaceAllString(terms, " ")
-		excludedPhrases := quotedStringsRegex.FindAllString(excludedTerms, -1)	
+		excludedPhrases := quotedStringsRegex.FindAllString(excludedTerms, -1)
 		excludedTerms = quotedStringsRegex.ReplaceAllLiteralString(excludedTerms, " ")
 
 		baseQuery = s.generateLikeSearchQueryForPosts(baseQuery, params, phrases, terms, excludedTerms, excludedPhrases, searchType)
