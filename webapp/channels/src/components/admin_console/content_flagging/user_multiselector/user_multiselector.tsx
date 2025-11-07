@@ -53,9 +53,10 @@ type Props = MultiSelectProps & SingleSelectProps & {
     placeholder?: React.ReactNode;
     showDropdownIndicator?: boolean;
     searchFunc?: (term: string) => Promise<UserProfile[]>;
+    disabled?: boolean;
 };
 
-export function UserSelector({id, isMulti, className, multiSelectOnChange, multiSelectInitialValue, singleSelectOnChange, singleSelectInitialValue, hasError, placeholder, showDropdownIndicator, searchFunc}: Props) {
+export function UserSelector({id, isMulti, className, multiSelectOnChange, multiSelectInitialValue, singleSelectOnChange, singleSelectInitialValue, hasError, placeholder, showDropdownIndicator, searchFunc, disabled}: Props) {
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
     const initialDataLoaded = useRef<boolean>(false);
@@ -207,6 +208,7 @@ export function UserSelector({id, isMulti, className, multiSelectOnChange, multi
                     onChange={multiSelectHandleOnChange}
                     value={selectInitialValue}
                     components={multiSelectComponents}
+                    isDisabled={disabled}
                 />
             </div>
         );
@@ -220,6 +222,7 @@ export function UserSelector({id, isMulti, className, multiSelectOnChange, multi
                 onChange={singleSelectHandleOnChange}
                 value={selectInitialValue ? selectInitialValue[0] : null}
                 components={singleSelectComponents}
+                isDisabled={disabled}
             />
         </div>
     );
