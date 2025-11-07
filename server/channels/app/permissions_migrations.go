@@ -304,6 +304,16 @@ func (a *App) getIntegrationsOwnPermissionsMigration() (permissionsMap, error) {
 			Add:    []string{PermissionManageOwnOAuthApps},
 			Remove: []string{PermissionManageOAuth},
 		},
+		// Ensure system admin has the new "manage others" permissions
+		permissionTransformation{
+			On:  isExactRole(model.SystemAdminRoleId),
+			Add: []string{model.PermissionManageOthersIncomingWebhooks.Id, model.PermissionManageOthersOutgoingWebhooks.Id, model.PermissionManageOthersSlashCommands.Id},
+		},
+		// Ensure team admin (including scheme team admins) have the new "manage others" permissions
+		permissionTransformation{
+			On:  isRole(model.TeamAdminRoleId),
+			Add: []string{model.PermissionManageOthersIncomingWebhooks.Id, model.PermissionManageOthersOutgoingWebhooks.Id, model.PermissionManageOthersSlashCommands.Id},
+		},
 	}, nil
 }
 

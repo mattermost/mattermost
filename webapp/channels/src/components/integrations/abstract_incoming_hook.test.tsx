@@ -176,4 +176,10 @@ describe('components/integrations/AbstractIncomingWebhook', () => {
 
         expect(wrapper.state('iconURL')).toBe(newIconURL);
     });
+
+    test('should match snapshot when channelLocked is true', () => {
+        const props = {...requiredProps, channelLocked: true};
+        const wrapper = shallow(<AbstractIncomingWebhook {...props}/>);
+        expect(wrapper).toMatchSnapshot();
+    });
 });

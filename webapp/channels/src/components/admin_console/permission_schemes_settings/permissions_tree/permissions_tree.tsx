@@ -218,7 +218,7 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
                 id: 'manage_incoming_webhooks_group',
                 permissions: [
                     Permissions.MANAGE_OWN_INCOMING_WEBHOOKS,
-                    Permissions.MANAGE_INCOMING_WEBHOOKS,
+                    Permissions.MANAGE_OTHERS_INCOMING_WEBHOOKS,
                     Permissions.BYPASS_INCOMING_WEBHOOK_CHANNEL_LOCK,
                 ],
             };
@@ -231,7 +231,7 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
                 id: 'manage_outgoing_webhooks_group',
                 permissions: [
                     Permissions.MANAGE_OWN_OUTGOING_WEBHOOKS,
-                    Permissions.MANAGE_OUTGOING_WEBHOOKS,
+                    Permissions.MANAGE_OTHERS_OUTGOING_WEBHOOKS,
                 ],
             };
             if (!integrationsGroup.permissions.some((p: any) => p.id === 'manage_outgoing_webhooks_group')) {
@@ -243,7 +243,7 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
                 id: 'manage_oauth_group',
                 permissions: [
                     Permissions.MANAGE_OWN_OAUTH_APPS,
-                    Permissions.MANAGE_OAUTH,
+                    Permissions.MANAGE_SYSTEM_WIDE_OAUTH,
                 ],
             };
             if (!integrationsGroup.permissions.some((p: any) => p.id === 'manage_oauth_group')) {
@@ -258,7 +258,7 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
                 id: 'manage_slash_commands_group',
                 permissions: [
                     Permissions.MANAGE_OWN_SLASH_COMMANDS,
-                    Permissions.MANAGE_SLASH_COMMANDS,
+                    Permissions.MANAGE_OTHERS_SLASH_COMMANDS,
                 ],
             };
             if (!integrationsGroup.permissions.some((p: any) => p.id === 'manage_slash_commands_group')) {
