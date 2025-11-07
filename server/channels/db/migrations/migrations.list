@@ -291,3 +291,5 @@ channels/db/migrations/postgres/000146_add_audience_and_resource_to_oauth.down.s
 channels/db/migrations/postgres/000146_add_audience_and_resource_to_oauth.up.sql
 channels/db/migrations/postgres/000147_create_read_receipts.down.sql
 channels/db/migrations/postgres/000147_create_read_receipts.up.sql
+channels/db/migrations/postgres/000148_create_temporary_posts.down.sql
+channels/db/migrations/postgres/000148_create_temporary_posts.up.sql
