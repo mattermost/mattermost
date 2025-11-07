@@ -39,9 +39,7 @@ func (a *App) CreateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppEr
 		return nil, model.NewAppError("CreateOAuthApp", "api.oauth.register_oauth_app.turn_off.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if app.ClientSecret == "" {
-		app.ClientSecret = model.NewId()
-	}
+	app.ClientSecret = model.NewId()
 
 	oauthApp, err := a.Srv().Store().OAuth().SaveApp(app)
 	if err != nil {
