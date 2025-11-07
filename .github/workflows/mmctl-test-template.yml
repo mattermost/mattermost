@@ -95,7 +95,7 @@ jobs:
           docker compose --ansi never stop
 
       - name: Save mmctl test report to Zephyr Scale
-        if: ${{ always() && hashFiles('server/report.xml') != '' && github.event_name != 'pull_request' && (github.ref_name == 'master' || startsWith(github.ref_name, 'release-')) }}
+        # if: ${{ always() && hashFiles('server/report.xml') != '' && github.event_name != 'pull_request' && (github.ref_name == 'master' || startsWith(github.ref_name, 'release-')) }} # TODO: commented out to test while on PR
         uses: ./.github/actions/save-mmctl-test-report
         with:
           report-path: server/report.xml
