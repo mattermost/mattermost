@@ -10,3 +10,8 @@ export async function run() {
         core.setFailed(`Action failed with error ${err}`);
     }
 }
+
+// Run the action when executed directly (not when imported by local-action tool)
+if (process.env.GITHUB_ACTIONS === "true") {
+    run();
+}

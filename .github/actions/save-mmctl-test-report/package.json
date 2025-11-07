@@ -4,7 +4,7 @@
   "version": "0.1.0",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsup src/index.ts --format cjs",
+    "build": "tsup",
     "prettier": "npx prettier --write \"src/**/*.ts\"",
     "local-action": "local-action . src/index.ts .env"
   },
