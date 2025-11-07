@@ -1,0 +1,20 @@
+{
+  "name": "save-mmctl-test-report-action",
+  "private": true,
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs",
+    "prettier": "npx prettier --write \"src/**/*.ts\"",
+    "local-action": "local-action . src/index.ts .env"
+  },
+  "dependencies": {
+    "@actions/core": "1.11.1",
+    "fast-xml-parser": "4.5.0"
+  },
+  "devDependencies": {
+    "@github/local-action": "6.0.2",
+    "tsup": "8.5.0",
+    "typescript": "5.9.3"
+  }
+}

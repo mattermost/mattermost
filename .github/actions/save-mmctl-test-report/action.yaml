@@ -1,0 +1,50 @@
+name: Save mmctl Test Report
+description: Save mmctl test report to Zephyr Scale
+author: Mattermost
+
+# Define your inputs here.
+inputs:
+  report-path:
+    description: Path to the XML test report file (from artifact)
+    required: true
+  zephyr-api-key:
+    description: Zephyr Scale API key
+    required: true
+  build-image:
+    description: Docker build image used for testing
+    required: true
+  zephyr-folder-id:
+    description: Zephyr Scale folder ID
+    required: false
+    default: '27504432'
+  jira-project-key:
+    description: Jira project key
+    required: false
+    default: 'MM'
+
+# Define your outputs here.
+outputs:
+  test-cycle-key:
+    description: The created test cycle key in Zephyr Scale
+  test-cycle-success-count:
+    description: Number of successfully saved test executions
+  test-cycle-failure-count:
+    description: Number of failed test execution saves
+  xml-total-tests:
+    description: Total number of tests in the XML report
+  xml-total-passed:
+    description: Number of passed tests in the XML report
+  xml-total-failed:
+    description: Number of failed tests in the XML report
+  xml-pass-rate:
+    description: Pass rate percentage from the XML report
+  xml-duration:
+    description: Total test duration in seconds from the XML report
+  unique-saved-keys:
+    description: Number of unique test keys successfully saved to Zephyr
+  unique-failed-keys:
+    description: Number of unique test keys that failed to save to Zephyr
+
+runs:
+  using: node24
+  main: dist/index.js
