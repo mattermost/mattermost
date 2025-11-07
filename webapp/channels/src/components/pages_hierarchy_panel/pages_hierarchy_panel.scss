@@ -3,7 +3,7 @@
 
 // Figma Design Tokens
 $sidebar-width: 240px;
-$header-height: 56px;
+$header-height: 32px;
 $search-height: 28px;
 $node-height: 32px;
 $node-indent: 20px;
@@ -34,8 +34,7 @@ $radius-sm: 4px;
     width: $sidebar-width;
     height: 100%;
     flex-direction: column;
-    padding: $spacing-lg;
-    border-right: 1px solid $sidebar-border;
+    padding: $spacing-md;
     background: $sidebar-bg;
     box-shadow: $elevation-2;
     transition: width 0.2s ease-in-out;
@@ -108,7 +107,7 @@ $radius-sm: 4px;
     align-items: center;
     padding: 0 $spacing-md;
     border-radius: $radius-sm;
-    margin: $spacing-sm $spacing-lg;
+    margin: $spacing-sm 0;
     background: rgba(var(--center-channel-text-rgb), 0.08);
     gap: $spacing-sm;
 

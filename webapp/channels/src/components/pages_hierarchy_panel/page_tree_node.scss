@@ -6,7 +6,7 @@ $node-height: 32px;
 $node-hover-bg: rgba(20, 93, 191, 0.08);
 $node-selected-bg: rgba(20, 93, 191, 0.16);
 $node-text: var(--center-channel-text);
-$node-text-muted: rgba(var(--center-channel-text-rgb), 0.56);
+$node-text-muted: rgba(var(--center-channel-text-rgb), 0.64);
 $radius-sm: 4px;
 
 .PageTreeNode {
@@ -17,7 +17,6 @@ $radius-sm: 4px;
     align-items: center;
     padding: 0 4px;
     border-radius: $radius-sm;
-    gap: 4px;
     pointer-events: auto; // Re-enable pointer events for children
     transition: background-color 150ms ease;
 
@@ -96,8 +95,8 @@ $radius-sm: 4px;
 
 .PageTreeNode__dragHandle {
     display: flex;
-    width: 16px;
-    height: 20px;
+    width: 12px;
+    height: 28px;
     flex-shrink: 0;
     align-items: center;
     justify-content: center;

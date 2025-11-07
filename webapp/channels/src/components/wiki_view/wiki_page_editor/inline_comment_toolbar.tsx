@@ -51,7 +51,7 @@ const InlineCommentToolbar = ({editor, onCreateComment}: Props) => {
                     title='AI assistant'
                     data-testid='inline-comment-ai-button'
                 >
-                    <i className='icon icon-star-outline'/>
+                    <i className='icon icon-creation-outline'/>
                 </button>
                 <button
                     type='button'

@@ -56,7 +56,7 @@ const PageTreeNode = ({
 
     const isLoading = isRenaming || isDeleting;
 
-    const paddingLeft = (node.depth * 20) + 8;
+    const paddingLeft = (node.depth * 20);
 
     // Build the link path for the page
     const pageLink = wikiId && channelId ? `/${currentTeam?.name || 'team'}/wiki/${channelId}/${wikiId}/${node.id}` : '#';

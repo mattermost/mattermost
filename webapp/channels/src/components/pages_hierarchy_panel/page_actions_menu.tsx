@@ -16,7 +16,6 @@ type Props = {
     pageLink?: string;
     buttonClassName?: string;
     buttonLabel?: string;
-    buttonIcon?: string;
     buttonTestId?: string;
 };
 
@@ -29,9 +28,8 @@ const PageActionsMenu = ({
     onDelete,
     isDraft = false,
     pageLink,
-    buttonClassName = 'PagePane__icon-button',
+    buttonClassName = 'PagePane__icon-button btn btn-icon btn-sm',
     buttonLabel = 'More actions',
-    buttonIcon = 'icon-dots-horizontal',
     buttonTestId = 'page-actions-menu-button',
 }: Props) => {
     const [showMenu, setShowMenu] = useState(false);
@@ -40,7 +38,7 @@ const PageActionsMenu = ({
     const handleMenuButtonClick = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
         const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-        setMenuPosition({x: rect.left, y: rect.bottom});
+        setMenuPosition({x: rect.right, y: rect.bottom});
         setShowMenu(true);
     }, []);
 
@@ -53,11 +51,12 @@ const PageActionsMenu = ({
                 onClick={handleMenuButtonClick}
                 data-testid={buttonTestId}
             >
-                <i className={buttonIcon}/>
+                <i className='icon icon-dots-horizontal'/>
             </button>
             {showMenu && (
                 <PageContextMenu
                     pageId={pageId}
+                    alignRight={true}
                     position={menuPosition}
                     onClose={() => setShowMenu(false)}
                     onCreateChild={onCreateChild}

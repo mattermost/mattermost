@@ -71,18 +71,18 @@ const WikiPageHeader = ({
                 >
                     {(!isDraft || isExistingPage) && (
                         <button
-                            className='PagePane__icon-button'
+                            className='PagePane__icon-button btn btn-icon btn-sm'
                             aria-label='Toggle comments'
                             title='Toggle comments'
                             onClick={onToggleComments}
                             data-testid='wiki-page-toggle-comments'
                         >
-                            <i className='icon-message-text-outline'/>
+                            <i className='icon icon-message-text-outline'/>
                         </button>
                     )}
                     {isDraft ? (
                         <button
-                            className='btn btn-primary'
+                            className='PagePane__publish-button btn btn-primary'
                             aria-label={isExistingPage ? 'Update' : 'Publish'}
                             title={isExistingPage ? 'Update' : 'Publish'}
                             onClick={onPublish}
@@ -93,13 +93,13 @@ const WikiPageHeader = ({
                         </button>
                     ) : (
                         <button
-                            className='btn btn-tertiary'
+                            className='PagePane__edit-button btn btn-tertiary'
                             aria-label='Edit'
                             title='Edit'
                             onClick={onEdit}
                             data-testid='wiki-page-edit-button'
                         >
-                            <i className='icon-pencil-outline'/>
+                            <i className='icon icon-pencil-outline'/>
                             {'Edit'}
                         </button>
                     )}
@@ -118,13 +118,17 @@ const WikiPageHeader = ({
                     )}
                     {onToggleFullscreen && (
                         <button
-                            className='PagePane__icon-button'
+                            className='PagePane__icon-button btn btn-icon btn-sm'
                             aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
                             title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
                             onClick={onToggleFullscreen}
                             data-testid='wiki-page-fullscreen-button'
                         >
-                            <i className={isFullscreen ? 'icon-arrow-collapse' : 'icon-arrow-expand'}/>
+                            {isFullscreen ? (
+                                <i className='icon icon-arrow-collapse'/>
+                            ) : (
+                                <i className='icon icon-arrow-expand'/>
+                            )}
                         </button>
                     )}
                 </div>

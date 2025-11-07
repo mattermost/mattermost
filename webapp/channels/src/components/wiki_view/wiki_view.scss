@@ -7,8 +7,8 @@
 
     &__hamburgerButton {
         position: absolute;
-        top: 16px;
-        left: 16px;
+        top: 12px;
+        left: 12px;
     }
 
     .PagesList {
@@ -111,10 +111,9 @@
 
         &__header {
             display: flex;
-            min-height: 64px;
+            min-height: 56px;
             align-items: center;
-            padding: 16px 24px;
-            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+            padding: 12px 14px;
             background: var(--center-channel-bg);
         }
 
@@ -167,47 +166,23 @@
             align-items: center;
             gap: 8px;
 
-            .btn {
+            .btn-icon {
                 height: 32px;
-                padding: 0 12px;
-                font-size: 14px;
-                font-weight: 600;
+                width: 32px;
+                min-width: 32px;
+                margin:0;
+            }
 
-                i {
-                    margin-right: 6px;
-                    font-size: 16px;
-                }
+            .PagePane__publish-button,
+            .PagePane__edit-button {
+                height: 32px;
+                padding-left: 12px;
+                padding-right: 12px;
+                margin: 0;
             }
         }
 
         &__icon-button {
-            position: relative;
-            display: flex;
-            width: 32px;
-            height: 32px;
-            align-items: center;
-            justify-content: center;
-            padding: 0;
-            border: none;
-            border-radius: 4px;
-            background: transparent;
-            color: rgba(var(--center-channel-color-rgb), 0.56);
-            cursor: pointer;
-            transition: all 0.15s ease;
-
-            &:hover {
-                background: rgba(var(--center-channel-color-rgb), 0.08);
-                color: var(--center-channel-color);
-            }
-
-            &:active {
-                background: rgba(var(--center-channel-color-rgb), 0.16);
-            }
-
-            i {
-                font-size: 18px;
-            }
-
             .badge {
                 position: absolute;
                 top: -4px;
@@ -545,15 +520,6 @@
 
             &__controls {
                 gap: 4px;
-
-                button {
-                    width: 28px;
-                    height: 28px;
-
-                    i {
-                        font-size: 16px;
-                    }
-                }
             }
         }
 

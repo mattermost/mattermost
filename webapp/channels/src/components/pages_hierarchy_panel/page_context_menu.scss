@@ -12,6 +12,10 @@
     box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.12); // Elevation 4
 }
 
+.PageContextMenu--align-right {
+    transform: translateX(-100%);
+}
+
 .PageContextMenu__item {
     display: flex;
     width: 100%;
