@@ -1136,9 +1136,9 @@ func TestCPAField_IsAdminManaged(t *testing.T) {
 
 func TestCPAField_SetDefaults(t *testing.T) {
 	tests := []struct {
-		name           string
-		field          *CPAField
-		expectedAttrs  CPAAttrs
+		name          string
+		field         *CPAField
+		expectedAttrs CPAAttrs
 	}{
 		{
 			name: "field with empty visibility should set default",
