@@ -290,7 +290,7 @@ export default class InstalledOAuthApp extends React.PureComponent<InstalledOAut
                         id='installed_integrations.edit'
                         defaultMessage='Edit'
                     />
-                </Link>
+                </Link>,
             );
 
             actionParts.push(
@@ -303,7 +303,7 @@ export default class InstalledOAuthApp extends React.PureComponent<InstalledOAut
                         />
                     }
                     onDelete={this.handleDelete}
-                />
+                />,
             );
 
             actions = (
