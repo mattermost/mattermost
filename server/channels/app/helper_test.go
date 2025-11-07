@@ -796,7 +796,7 @@ func (th *TestHelper) SetupPluginAPI() *PluginAPI {
 	return NewPluginAPI(th.App, th.Context, manifest)
 }
 
-func (th *TestHelper) removePermissionFromRole(permission string, roleName string) {
+func (th *TestHelper) RemovePermissionFromRole(permission string, roleName string) {
 	role, err1 := th.App.GetRoleByName(th.Context, roleName)
 	if err1 != nil {
 		panic(err1)
@@ -821,11 +821,7 @@ func (th *TestHelper) removePermissionFromRole(permission string, roleName strin
 	}
 }
 
-func (th *TestHelper) RemovePermissionFromRole(permission string, roleName string) {
-	th.removePermissionFromRole(permission, roleName)
-}
-
-func (th *TestHelper) addPermissionToRole(permission string, roleName string) {
+func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
 	role, err1 := th.App.GetRoleByName(th.Context, roleName)
 	if err1 != nil {
 		panic(err1)
@@ -841,10 +837,6 @@ func (th *TestHelper) addPermissionToRole(permission string, roleName string) {
 	if err2 != nil {
 		panic(err2)
 	}
-}
-
-func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
-	th.addPermissionToRole(permission, roleName)
 }
 
 func (th *TestHelper) CreateFileInfo(userId, postId, channelId string) *model.FileInfo {
