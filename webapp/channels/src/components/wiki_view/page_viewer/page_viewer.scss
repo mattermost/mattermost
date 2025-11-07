@@ -33,9 +33,10 @@
     &__title {
         margin: 0 0 12px 0;
         color: var(--center-channel-color);
-        font-size: 32px;
+        font-size: 40px;
         font-weight: 600;
-        line-height: 1.3;
+        line-height: 1.2;
+        letter-spacing: -0.02em;
     }
 
     &__meta {
@@ -44,6 +45,7 @@
         color: var(--center-channel-color-64);
         font-size: 14px;
         gap: 16px;
+        height: 32px;
     }
 
     &__author,

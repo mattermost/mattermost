@@ -251,7 +251,7 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddImage, onA
                         title={editorState?.table ? 'Table Controls' : 'Insert Table (3x3)'}
                         style={{fontSize: '18px'}}
                     >
-                        {'⊞'}
+                        <i className='icon icon-table-large'/>
                     </button>
                 </WithTooltip>
 

@@ -4,7 +4,7 @@
 // Figma Design Tokens
 $sidebar-width: 240px;
 $header-height: 32px;
-$search-height: 28px;
+$search-height: 32px;
 $node-height: 32px;
 $node-indent: 20px;
 $node-base-padding: 16px;
@@ -31,16 +31,19 @@ $radius-sm: 4px;
 
 .PagesHierarchyPanel {
     display: flex;
+    position: absolute;
+    left: 0;
+    top: 0;
     width: $sidebar-width;
     height: 100%;
     flex-direction: column;
     padding: $spacing-md;
-    background: $sidebar-bg;
-    box-shadow: $elevation-2;
-    transition: width 0.2s ease-in-out;
+    transition: left 0.2s ease-in-out;
 
     &--collapsed {
-        width: 0;
+        // width: 0;
+        position: absolute;
+        left: calc(-1 * $sidebar-width);
         padding: 0;
         border-right: none;
         box-shadow: none;
@@ -107,7 +110,7 @@ $radius-sm: 4px;
     align-items: center;
     padding: 0 $spacing-md;
     border-radius: $radius-sm;
-    margin: $spacing-sm 0;
+    margin: $spacing-sm 0 $spacing-md 0;
     background: rgba(var(--center-channel-text-rgb), 0.08);
     gap: $spacing-sm;
 
