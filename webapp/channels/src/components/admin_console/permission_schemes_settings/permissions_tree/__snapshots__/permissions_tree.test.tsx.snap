@@ -355,7 +355,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
                 "id": "manage_incoming_webhooks_group",
                 "permissions": Array [
                   "manage_own_incoming_webhooks",
-                  "manage_incoming_webhooks",
+                  "manage_others_incoming_webhooks",
                   "bypass_incoming_webhook_channel_lock",
                 ],
               },
@@ -363,21 +363,21 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
                 "id": "manage_outgoing_webhooks_group",
                 "permissions": Array [
                   "manage_own_outgoing_webhooks",
-                  "manage_outgoing_webhooks",
+                  "manage_others_outgoing_webhooks",
                 ],
               },
               Object {
                 "id": "manage_oauth_group",
                 "permissions": Array [
                   "manage_own_oauth_apps",
-                  "manage_oauth",
+                  "manage_system_wide_oauth",
                 ],
               },
               Object {
                 "id": "manage_slash_commands_group",
                 "permissions": Array [
                   "manage_own_slash_commands",
-                  "manage_slash_commands",
+                  "manage_others_slash_commands",
                 ],
               },
               "create_emojis",
@@ -571,7 +571,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
                 "id": "manage_incoming_webhooks_group",
                 "permissions": Array [
                   "manage_own_incoming_webhooks",
-                  "manage_incoming_webhooks",
+                  "manage_others_incoming_webhooks",
                   "bypass_incoming_webhook_channel_lock",
                 ],
               },
@@ -579,21 +579,21 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
                 "id": "manage_outgoing_webhooks_group",
                 "permissions": Array [
                   "manage_own_outgoing_webhooks",
-                  "manage_outgoing_webhooks",
+                  "manage_others_outgoing_webhooks",
                 ],
               },
               Object {
                 "id": "manage_oauth_group",
                 "permissions": Array [
                   "manage_own_oauth_apps",
-                  "manage_oauth",
+                  "manage_system_wide_oauth",
                 ],
               },
               Object {
                 "id": "manage_slash_commands_group",
                 "permissions": Array [
                   "manage_own_slash_commands",
-                  "manage_slash_commands",
+                  "manage_others_slash_commands",
                 ],
               },
               "create_emojis",
@@ -798,7 +798,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
                 "id": "manage_incoming_webhooks_group",
                 "permissions": Array [
                   "manage_own_incoming_webhooks",
-                  "manage_incoming_webhooks",
+                  "manage_others_incoming_webhooks",
                   "bypass_incoming_webhook_channel_lock",
                 ],
               },
@@ -806,21 +806,21 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
                 "id": "manage_outgoing_webhooks_group",
                 "permissions": Array [
                   "manage_own_outgoing_webhooks",
-                  "manage_outgoing_webhooks",
+                  "manage_others_outgoing_webhooks",
                 ],
               },
               Object {
                 "id": "manage_oauth_group",
                 "permissions": Array [
                   "manage_own_oauth_apps",
-                  "manage_oauth",
+                  "manage_system_wide_oauth",
                 ],
               },
               Object {
                 "id": "manage_slash_commands_group",
                 "permissions": Array [
                   "manage_own_slash_commands",
-                  "manage_slash_commands",
+                  "manage_others_slash_commands",
                 ],
               },
               "create_emojis",
@@ -1025,7 +1025,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
                 "id": "manage_incoming_webhooks_group",
                 "permissions": Array [
                   "manage_own_incoming_webhooks",
-                  "manage_incoming_webhooks",
+                  "manage_others_incoming_webhooks",
                   "bypass_incoming_webhook_channel_lock",
                 ],
               },
@@ -1033,21 +1033,21 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
                 "id": "manage_outgoing_webhooks_group",
                 "permissions": Array [
                   "manage_own_outgoing_webhooks",
-                  "manage_outgoing_webhooks",
+                  "manage_others_outgoing_webhooks",
                 ],
               },
               Object {
                 "id": "manage_oauth_group",
                 "permissions": Array [
                   "manage_own_oauth_apps",
-                  "manage_oauth",
+                  "manage_system_wide_oauth",
                 ],
               },
               Object {
                 "id": "manage_slash_commands_group",
                 "permissions": Array [
                   "manage_own_slash_commands",
-                  "manage_slash_commands",
+                  "manage_others_slash_commands",
                 ],
               },
               "create_emojis",
@@ -1252,7 +1252,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
                 "id": "manage_incoming_webhooks_group",
                 "permissions": Array [
                   "manage_own_incoming_webhooks",
-                  "manage_incoming_webhooks",
+                  "manage_others_incoming_webhooks",
                   "bypass_incoming_webhook_channel_lock",
                 ],
               },
@@ -1260,21 +1260,21 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
                 "id": "manage_outgoing_webhooks_group",
                 "permissions": Array [
                   "manage_own_outgoing_webhooks",
-                  "manage_outgoing_webhooks",
+                  "manage_others_outgoing_webhooks",
                 ],
               },
               Object {
                 "id": "manage_oauth_group",
                 "permissions": Array [
                   "manage_own_oauth_apps",
-                  "manage_oauth",
+                  "manage_system_wide_oauth",
                 ],
               },
               Object {
                 "id": "manage_slash_commands_group",
                 "permissions": Array [
                   "manage_own_slash_commands",
-                  "manage_slash_commands",
+                  "manage_others_slash_commands",
                 ],
               },
               "create_emojis",
@@ -1486,7 +1486,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
                 "id": "manage_incoming_webhooks_group",
                 "permissions": Array [
                   "manage_own_incoming_webhooks",
-                  "manage_incoming_webhooks",
+                  "manage_others_incoming_webhooks",
                   "bypass_incoming_webhook_channel_lock",
                 ],
               },
@@ -1494,21 +1494,21 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
                 "id": "manage_outgoing_webhooks_group",
                 "permissions": Array [
                   "manage_own_outgoing_webhooks",
-                  "manage_outgoing_webhooks",
+                  "manage_others_outgoing_webhooks",
                 ],
               },
               Object {
                 "id": "manage_oauth_group",
                 "permissions": Array [
                   "manage_own_oauth_apps",
-                  "manage_oauth",
+                  "manage_system_wide_oauth",
                 ],
               },
               Object {
                 "id": "manage_slash_commands_group",
                 "permissions": Array [
                   "manage_own_slash_commands",
-                  "manage_slash_commands",
+                  "manage_others_slash_commands",
                 ],
               },
               "create_emojis",
