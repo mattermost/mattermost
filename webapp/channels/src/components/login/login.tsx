@@ -724,6 +724,15 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
 
         if (result.data === Constants.EASY_LOGIN_SERVICE) {
             setEasyLoginSuccessful(true);
+        } else if (result.data === Constants.LOGIN_TYPE_DEACTIVATED) {
+            setAlertBanner({
+                mode: 'danger',
+                title: formatMessage({
+                    id: 'login.deactivatedUser',
+                    defaultMessage: 'Your account has been deactivated.',
+                }),
+            });
+            setHasError(true);
         } else {
             setRequiresPassword(true);
 

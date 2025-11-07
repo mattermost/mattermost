@@ -1624,6 +1624,7 @@ export const Constants = {
     LDAP_SERVICE: 'ldap',
     SAML_SERVICE: 'saml',
     EASY_LOGIN_SERVICE: 'easy_login',
+    LOGIN_TYPE_DEACTIVATED: 'deactivated',
     USERNAME_SERVICE: 'username',
     SIGNIN_CHANGE: 'signin_change',
     PASSWORD_CHANGE: 'password_change',

@@ -44,8 +44,17 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
         // We assume the landing page path always ends with /landing
         url.pathname = url.pathname.slice(0, -'/landing'.length);
 
-        const locationUrl = new URL(url.hash.slice(1), new URL(url.pathname, url.origin).href);
-        const location = locationUrl.href;
+        const hash = url.hash.slice(1);
+        const baseUrl = new URL(url.pathname, url.origin);
+        const locationUrl = new URL(hash, baseUrl);
+        let location: string;
+        if (new URL(hash).origin === baseUrl.origin) {
+            // The hash is an absolute URL, which is not allowed
+            // We default to the base URL
+            location = baseUrl.href;
+        } else {
+            location = locationUrl.href;
+        }
         const nativeLocation = location.replace(/^(https|http)/, 'mattermost');
 
         this.state = {

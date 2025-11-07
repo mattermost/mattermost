@@ -2017,6 +2017,11 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		auditRec.AddMeta("login_method", "easy_login")
 		c.LogAudit("attempt - easy_login")
 
+		if !*c.App.Config().GuestAccountsSettings.EnableEasyLogin {
+			c.Err = model.NewAppError("login", "api.user.login.easy_login.disabled.error", nil, "", http.StatusUnauthorized)
+			return
+		}
+
 		user, err = c.App.AuthenticateUserForEasyLogin(c.AppContext, easyLoginToken)
 		if err != nil {
 			c.LogAudit("failure - easy_login")
@@ -2035,6 +2040,13 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	auditRec.AddEventResultState(user)
+
+	if user.IsEasyLoginEnabled() {
+		if !*c.App.Config().GuestAccountsSettings.EnableEasyLogin {
+			c.Err = model.NewAppError("login", "api.user.login.easy_login.disabled.error", nil, "", http.StatusUnauthorized)
+			return
+		}
+	}
 
 	if user.IsGuest() {
 		if c.App.Channels().License() == nil {
@@ -2205,6 +2217,16 @@ func getLoginType(c *Context, w http.ResponseWriter, r *http.Request) {
 	loginId := props["login_id"]
 	deviceId := props["device_id"]
 
+	// For the time being, we only support getting the login type when
+	// easy login is enabled. We cand consider adding support for other
+	// login methods in the future, and this check may be removed.
+	if !*c.App.Config().GuestAccountsSettings.EnableEasyLogin ||
+		!*c.App.Config().GuestAccountsSettings.Enable ||
+		!*c.App.Channels().License().Features.GuestAccounts {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
 	if loginId == "" {
 		c.SetInvalidParam("login_id")
 		return
@@ -2222,6 +2244,15 @@ func getLoginType(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Logger.Debug("Could not get user for login", mlog.Err(err))
 		if err := json.NewEncoder(w).Encode(model.LoginTypeResponse{
 			AuthService: "",
+		}); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
+		return
+	}
+
+	if user.DeleteAt > 0 {
+		if err := json.NewEncoder(w).Encode(model.LoginTypeResponse{
+			AuthService: "deactivated",
 		}); err != nil {
 			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
