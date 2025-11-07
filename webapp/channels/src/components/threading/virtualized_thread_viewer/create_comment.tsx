@@ -35,12 +35,12 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
     const rootPost = useSelector((state: GlobalState) => getPost(state, threadId));
     const threadIsLimited = useSelector(getLimitedViews).threads[threadId];
     const channel = useSelector((state: GlobalState) => {
-        if (threadIsLimited) {
+        if (threadIsLimited || !rootPost) {
             return null;
         }
         return getChannel(state, rootPost.channel_id);
     });
-    if (!channel || threadIsLimited) {
+    if (!channel || threadIsLimited || !rootPost) {
         return null;
     }
     const isFakeDeletedPost = rootPost.type === Constants.PostTypes.FAKE_PARENT_DELETED;

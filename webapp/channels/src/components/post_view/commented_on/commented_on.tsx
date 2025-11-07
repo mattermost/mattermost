@@ -11,6 +11,7 @@ import {ensureString} from 'mattermost-redux/utils/post_utils';
 
 import {usePost} from 'components/common/hooks/usePost';
 import {useUser} from 'components/common/hooks/useUser';
+import InlineCommentContext from 'components/inline_comment_context';
 import CommentedOnFilesMessage from 'components/post_view/commented_on_files_message';
 import UserProfile from 'components/user_profile';
 
@@ -28,8 +29,8 @@ function CommentedOn({onCommentClick, rootId, enablePostUsernameOverride}: Props
     const rootPost = usePost(rootId);
     const rootPostUser = useUser(rootPost?.user_id ?? '');
 
-    const isPageComment = rootPost?.props?.comment_type === 'inline';
-    const pagePost = usePost(isPageComment && rootPost?.root_id ? rootPost.root_id : '');
+    const isPageComment = rootPost?.type === PostTypes.PAGE_COMMENT;
+    const pagePost = usePost(isPageComment && rootPost?.props?.page_id ? rootPost.props.page_id as string : '');
 
     const rootPostOverriddenUsername = useMemo((): string => {
         if (!rootPost) {
@@ -74,6 +75,10 @@ function CommentedOn({onCommentClick, rootId, enablePostUsernameOverride}: Props
 
     if (isPageComment && pagePost) {
         const pageTitle = (pagePost.props?.title as string) || 'Untitled Page';
+        const isInlineComment = rootPost?.props?.comment_type === 'inline';
+        const anchorText = isInlineComment && rootPost?.props?.inline_anchor ?
+            (rootPost.props.inline_anchor as {text: string}).text : null;
+
         return (
             <div
                 data-testid='post-link'
@@ -92,6 +97,11 @@ function CommentedOn({onCommentClick, rootId, enablePostUsernameOverride}: Props
                         {pageTitle}
                     </a>
                 </span>
+                {anchorText && (
+                    <div style={{marginTop: '8px'}}>
+                        <InlineCommentContext anchorText={anchorText}/>
+                    </div>
+                )}
             </div>
         );
     }

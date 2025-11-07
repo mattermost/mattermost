@@ -14,6 +14,8 @@ import {getPages} from 'selectors/pages';
 import LoadingScreen from 'components/loading_screen';
 
 import {isDraftPageId} from 'utils/page_utils';
+import WebSocketClient from 'client/web_websocket_client';
+import {SocketEvents} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -51,14 +53,15 @@ const AllWikiThreads = ({wikiId, onThreadClick}: Props) => {
             }
 
             try {
+                // Use getPageComments instead of getPostThread to get inline comments
                 // eslint-disable-next-line no-await-in-loop
-                const postThread = await Client4.getPostThread(page.id, true, false, false);
+                const comments = await Client4.getPageComments(wikiId, page.id);
 
-                const inlineComments = postThread.posts ? Object.values(postThread.posts).filter((post: Post) => {
+                const inlineComments = comments.filter((post: Post) => {
                     return post.type === PostTypes.PAGE_COMMENT &&
                                post.props?.comment_type === 'inline' &&
                                post.props?.inline_anchor;
-                }) : [];
+                });
 
                 if (inlineComments.length > 0) {
                     threadsData.push({
@@ -75,10 +78,37 @@ const AllWikiThreads = ({wikiId, onThreadClick}: Props) => {
 
         setPageThreads(threadsData);
         setLoading(false);
-    }, [pages]);
+    }, [pages, wikiId]);
 
     useEffect(() => {
         fetchAllThreads();
+    }, [fetchAllThreads]);
+
+    // Listen for WebSocket events for new comments
+    useEffect(() => {
+        const handleNewPost = (msg: any) => {
+            // Only handle POSTED events
+            if (msg.event !== SocketEvents.POSTED) {
+                return;
+            }
+
+            const post = JSON.parse(msg.data.post);
+
+            // Check if it's an inline comment
+            if (post.type === PostTypes.PAGE_COMMENT &&
+                post.props?.comment_type === 'inline' &&
+                post.props?.inline_anchor &&
+                post.props?.page_id) {
+                // Refetch all threads to include the new comment
+                fetchAllThreads();
+            }
+        };
+
+        WebSocketClient.addMessageListener(handleNewPost);
+
+        return () => {
+            WebSocketClient.removeMessageListener(handleNewPost);
+        };
     }, [fetchAllThreads]);
 
     if (loading) {

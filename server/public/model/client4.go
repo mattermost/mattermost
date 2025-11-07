@@ -7706,6 +7706,20 @@ func (c *Client4) UpdatePageParent(ctx context.Context, wikiId, pageId, newParen
 	return BuildResponse(r), nil
 }
 
+// GetPageComments retrieves all comments for a page (including inline comments).
+func (c *Client4) GetPageComments(ctx context.Context, wikiId, pageId string) ([]*Post, *Response, error) {
+	r, err := c.DoAPIGet(ctx, fmt.Sprintf("%s/%s/comments", c.wikiPagesRoute(wikiId), pageId), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var posts []*Post
+	if err := json.NewDecoder(r.Body).Decode(&posts); err != nil {
+		return nil, BuildResponse(r), NewAppError("GetPageComments", "model.client.parse.app_error", nil, "", 0).Wrap(err)
+	}
+	return posts, BuildResponse(r), nil
+}
+
 // CreatePageComment creates a top-level comment on a page.
 func (c *Client4) CreatePageComment(ctx context.Context, wikiId, pageId, message string) (*Post, *Response, error) {
 	payload := map[string]string{

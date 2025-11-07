@@ -5,6 +5,7 @@ import {matchPath} from 'react-router-dom';
 import {batchActions} from 'redux-batched-actions';
 
 import type {Post} from '@mattermost/types/posts';
+import type {Wiki} from '@mattermost/types/wikis';
 
 import {PostTypes as PostActionTypes, WikiTypes} from 'mattermost-redux/action_types';
 import {logError, LogErrorBarMode} from 'mattermost-redux/actions/errors';
@@ -123,6 +124,34 @@ export function loadChannelWikis(channelId: string): ActionFuncAsync {
             }
 
             return {data: wikis};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
+// Load single wiki and cache in Redux
+export function loadWiki(wikiId: string): ActionFuncAsync<Wiki> {
+    return async (dispatch, getState) => {
+        const state = getState();
+        const existingWiki = state.entities.wikis?.byId?.[wikiId];
+
+        // Return cached wiki if it exists
+        if (existingWiki) {
+            return {data: existingWiki};
+        }
+
+        try {
+            const wiki = await Client4.getWiki(wikiId);
+
+            dispatch({
+                type: WikiTypes.RECEIVED_WIKI,
+                data: wiki,
+            });
+
+            return {data: wiki};
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -291,7 +320,7 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
             edit_at: 0,
             is_pinned: false,
             user_id: state.entities.users.currentUserId || '',
-            channel_id: wikiId,
+            channel_id: draft.channelId,
             root_id: '',
             original_id: '',
             page_parent_id: pageParentId || '',
@@ -318,7 +347,7 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
 
         dispatch(batchActions([
             {type: WikiTypes.PUBLISH_DRAFT_REQUEST, data: {draftId}},
-            {type: WikiTypes.RECEIVED_PAGE_IN_WIKI, data: optimisticPage},
+            {type: WikiTypes.RECEIVED_PAGE_IN_WIKI, data: {page: optimisticPage, wikiId}},
             {type: PostActionTypes.RECEIVED_POST, data: optimisticPage},
             removeDraftAction,
         ]));
@@ -337,7 +366,7 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
                 {type: WikiTypes.PUBLISH_DRAFT_SUCCESS, data: {draftId, pageId: data.id, optimisticId: pendingPageId}},
                 {type: PostActionTypes.POST_REMOVED, data: {id: pendingPageId}},
                 {type: PostActionTypes.RECEIVED_POST, data},
-                {type: WikiTypes.RECEIVED_PAGE_IN_WIKI, data},
+                {type: WikiTypes.RECEIVED_PAGE_IN_WIKI, data: {page: data, wikiId}},
                 {type: WikiTypes.DELETED_DRAFT, data: {id: draftId, wikiId}},
             ];
 
@@ -369,9 +398,12 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
             // Clear outline cache for the published page so fresh headings are extracted
             dispatch(clearOutlineCache(data.id));
 
-            // Reload hierarchy to show the newly published page
-            // loadPages now preserves existing content in Redux, so this is safe
-            await dispatch(loadPages(wikiId));
+            // Invalidate pages to trigger WikiView useEffect reload
+            // This updates lastInvalidated timestamp which triggers parent component to reload
+            dispatch({
+                type: WikiTypes.INVALIDATE_PAGES,
+                data: {wikiId},
+            });
 
             return {data};
         } catch (error) {
@@ -493,7 +525,7 @@ export function deletePage(pageId: string, wikiId: string): ActionFuncAsync {
                     },
                     {
                         type: WikiTypes.RECEIVED_PAGE_IN_WIKI,
-                        data: originalPost,
+                        data: {page: originalPost, wikiId},
                     },
                 ]));
             }

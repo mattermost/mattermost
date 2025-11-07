@@ -9,13 +9,12 @@ import type {Post} from '@mattermost/types/posts';
 
 import {getChannel, getChannelMember, selectChannel} from 'mattermost-redux/actions/channels';
 import {logError, LogErrorBarMode} from 'mattermost-redux/actions/errors';
-import {Client4} from 'mattermost-redux/client';
 import {getChannel as getChannelSelector} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {savePageDraft} from 'actions/page_drafts';
-import {loadChannelDefaultPage, loadPages, publishPageDraft, loadPage} from 'actions/pages';
+import {loadChannelDefaultPage, publishPageDraft, loadPage, loadWiki} from 'actions/pages';
 
 import {getWikiUrl, getTeamNameFromPath} from 'utils/url';
 
@@ -136,11 +135,10 @@ export function useWikiPageData(
 
             // Load pages list for the hierarchy panel
             if (wikiId) {
-                // First check if wiki exists by trying to fetch it
+                // First check if wiki exists by trying to fetch it from Redux (or API if not cached)
                 // This will return 404 if wiki was deleted
-                try {
-                    await Client4.getWiki(wikiId);
-                } catch (error: any) {
+                const wikiResult = await dispatch(loadWiki(wikiId));
+                if (wikiResult.error) {
                     // Wiki was deleted or user doesn't have permission - redirect to channel
                     const teamName = currentTeamRef.current?.name || '';
                     const channelName = loadedChannel?.name || channelId;
@@ -149,8 +147,7 @@ export function useWikiPageData(
                     return;
                 }
 
-                // Wiki exists, now load pages
-                await dispatch(loadPages(wikiId));
+                // Wiki exists - pages and drafts are loaded by parent WikiView component
             } else {
                 // No wikiId - load default page if available (for channel wiki without explicit wikiId)
                 try {
@@ -160,13 +157,12 @@ export function useWikiPageData(
                 }
             }
 
-            // Note: Drafts are loaded by PagesHierarchyPanel, no need to reload here
-            // This avoids race condition where we re-add a just-deleted draft
+            // Pages and drafts are loaded by parent WikiView component to prevent duplicate API calls
             setLoading(false);
         };
 
         loadPageOrDraft();
-    }, [pageId, draftId, channelId, wikiId, currentUserId, dispatch, channel, member]);
+    }, [pageId, draftId, channelId, wikiId, currentUserId, dispatch]);
 
     return {
         isLoading,

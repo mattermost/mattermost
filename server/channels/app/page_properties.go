@@ -261,10 +261,70 @@ func (a *App) EnrichPagesWithProperties(rctx request.CTX, postList *model.PostLi
 		return nil
 	}
 
+	// Fetch metadata once (not per page)
+	group, err := a.GetPagePropertyGroup()
+	if err != nil {
+		rctx.Logger().Warn("EnrichPagesWithProperties: failed to get property group, skipping enrichment", mlog.Err(err))
+		return nil
+	}
+
+	statusField, err := a.Srv().propertyService.GetPropertyFieldByName(group.ID, "", pagePropertyNameStatus)
+	if err != nil {
+		rctx.Logger().Warn("EnrichPagesWithProperties: failed to get status field, skipping enrichment", mlog.Err(err))
+		return nil
+	}
+
+	// Collect all page IDs
+	pageIds := make([]string, 0, len(postList.Posts))
 	for _, page := range postList.Posts {
-		if err := a.EnrichPageWithProperties(rctx, page); err != nil {
-			return err
+		if page.Type == model.PostTypePage {
+			pageIds = append(pageIds, page.Id)
 		}
+	}
+
+	if len(pageIds) == 0 {
+		return nil
+	}
+
+	// Batch fetch ALL property values in ONE query
+	searchOpts := model.PropertyValueSearchOpts{
+		TargetIDs: pageIds,
+		FieldID:   statusField.ID,
+		PerPage:   len(pageIds),
+	}
+
+	values, err := a.Srv().propertyService.SearchPropertyValues(group.ID, searchOpts)
+	if err != nil {
+		rctx.Logger().Warn("EnrichPagesWithProperties: search returned error, skipping enrichment", mlog.Err(err))
+		return nil
+	}
+
+	// Build a map of pageId -> status value
+	statusMap := make(map[string]string)
+	for _, value := range values {
+		var status string
+		if jsonErr := json.Unmarshal(value.Value, &status); jsonErr == nil {
+			statusMap[value.TargetID] = status
+		}
+	}
+
+	// Apply status to each page
+	for _, page := range postList.Posts {
+		if page.Type != model.PostTypePage {
+			continue
+		}
+
+		status, found := statusMap[page.Id]
+		if !found {
+			status = model.PageStatusInProgress
+		}
+
+		props := page.GetProps()
+		if props == nil {
+			props = make(map[string]any)
+		}
+		props["page_status"] = status
+		page.SetProps(props)
 	}
 
 	return nil

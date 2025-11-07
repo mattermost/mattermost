@@ -14,6 +14,8 @@ import {openWikiRhs, closeRightHandSide} from 'actions/views/rhs';
 import {getRhsState} from 'selectors/rhs';
 
 import {isDraftPageId} from 'utils/page_utils';
+import WebSocketClient from 'client/web_websocket_client';
+import {SocketEvents} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -35,20 +37,21 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
     // Store fetch logic in a ref to avoid recreating callbacks
     const fetchInlineCommentsRef = useRef<() => Promise<void>>();
     fetchInlineCommentsRef.current = async () => {
-        if (!pageId || isDraftPageId(pageId) || !page) {
+        if (!pageId || isDraftPageId(pageId) || !page || !wikiId) {
             return;
         }
 
         try {
-            const posts = await Client4.getPostThread(pageId, true, false, false);
+            const comments = await Client4.getPageComments(wikiId, pageId);
 
-            const inline = posts.posts ? Object.values(posts.posts).filter((post: Post) => {
+            // Filter to only inline comments
+            const inline = comments.filter((post: Post) => {
                 return post.type === PostTypes.PAGE_COMMENT &&
                        post.props?.comment_type === 'inline' &&
                        post.props?.inline_anchor;
-            }) : [];
+            });
 
-            setInlineComments(inline as Post[]);
+            setInlineComments(inline);
         } catch (error) {
             setInlineComments([]);
         }
@@ -84,6 +87,37 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
     useEffect(() => {
         fetchInlineComments();
     }, [pageId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Listen for WebSocket events for new comments
+    useEffect(() => {
+        if (!pageId || isDraftPageId(pageId)) {
+            return undefined;
+        }
+
+        const handleNewPost = (msg: any) => {
+            // Only handle POSTED events
+            if (msg.event !== SocketEvents.POSTED) {
+                return;
+            }
+
+            const post = JSON.parse(msg.data.post);
+
+            // Check if it's an inline comment for this page
+            if (post.type === PostTypes.PAGE_COMMENT &&
+                post.props?.page_id === pageId &&
+                post.props?.comment_type === 'inline' &&
+                post.props?.inline_anchor) {
+                // Add to inline comments list to show the new highlight
+                setInlineComments((prev) => [...prev, post]);
+            }
+        };
+
+        WebSocketClient.addMessageListener(handleNewPost);
+
+        return () => {
+            WebSocketClient.removeMessageListener(handleNewPost);
+        };
+    }, [pageId]);
 
     // Store the latest callback logic in a ref to avoid closure issues with TipTap
     const handleCommentClickRef = useRef((commentId: string) => {

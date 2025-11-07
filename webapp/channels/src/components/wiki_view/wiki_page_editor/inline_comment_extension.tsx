@@ -25,6 +25,7 @@ export type InlineCommentConfig = {
             };
         };
     }>;
+    editable?: boolean;
 };
 
 const InlineCommentExtension = Extension.create<InlineCommentConfig>({
@@ -35,6 +36,7 @@ const InlineCommentExtension = Extension.create<InlineCommentConfig>({
             onAddComment: undefined,
             onCommentClick: undefined,
             comments: [],
+            editable: true,
         };
     },
 
@@ -102,6 +104,19 @@ const InlineCommentExtension = Extension.create<InlineCommentConfig>({
                                     const docText = doc.textBetween(from, to);
 
                                     if (docText === text) {
+                                        if (extension.options.editable) {
+                                            const iconWidget = document.createElement('span');
+                                            iconWidget.className = 'inline-comment-icon';
+                                            iconWidget.setAttribute('data-comment-id', comment.id);
+                                            iconWidget.innerHTML = '<i class="icon icon-message-text-outline"></i>';
+
+                                            decorations.push(
+                                                Decoration.widget(from, iconWidget, {
+                                                    side: -1,
+                                                }),
+                                            );
+                                        }
+
                                         decorations.push(
                                             Decoration.inline(from, to, {
                                                 class: 'inline-comment-highlight',
@@ -119,6 +134,7 @@ const InlineCommentExtension = Extension.create<InlineCommentConfig>({
                     },
                     handleClickOn(view, pos, node, nodePos, event) {
                         const target = event.target as HTMLElement;
+
                         if (target.classList.contains('inline-comment-highlight')) {
                             const commentId = target.getAttribute('data-comment-id');
                             if (commentId && extension.options.onCommentClick) {
@@ -126,6 +142,16 @@ const InlineCommentExtension = Extension.create<InlineCommentConfig>({
                                 return true;
                             }
                         }
+
+                        const iconSpan = target.closest('.inline-comment-icon');
+                        if (iconSpan) {
+                            const commentId = iconSpan.getAttribute('data-comment-id');
+                            if (commentId && extension.options.onCommentClick) {
+                                extension.options.onCommentClick(commentId);
+                                return true;
+                            }
+                        }
+
                         return false;
                     },
                 },

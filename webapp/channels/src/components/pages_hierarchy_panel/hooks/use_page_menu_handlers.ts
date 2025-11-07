@@ -277,6 +277,7 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         try {
             if (isDraft) {
                 await dispatch(removePageDraft(wikiId, page.id));
+                onPageSelect?.('');
             } else {
                 if (deleteChildren) {
                     const descendantIds = getAllDescendantIds(page.id);

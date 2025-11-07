@@ -40,8 +40,8 @@ import type {GlobalState} from 'types/store';
 import {createChannelMentionSuggestion} from './channel_mention_mm_bridge';
 import {uploadImageForEditor, validateImageFile} from './file_upload_helper';
 import FormattingBarBubble from './formatting_bar_bubble';
-import InlineCommentButton from './inline_comment_button';
 import InlineCommentExtension from './inline_comment_extension';
+import InlineCommentToolbar from './inline_comment_toolbar';
 import {createMMentionSuggestion} from './mention_mm_bridge';
 import PageLinkModal from './page_link_modal';
 
@@ -296,6 +296,7 @@ const TipTapEditor = ({
                 comments: [], // Start with empty array, update via useEffect below
                 onAddComment: onCreateInlineComment,
                 onCommentClick,
+                editable,
             }),
             Table.configure({
                 resizable: true,
@@ -379,7 +380,19 @@ const TipTapEditor = ({
         if (currentUserId && teamId) {
             // User mentions (@username)
             exts.push(
-                Mention.configure({
+                Mention.extend({
+                    renderHTML({node, HTMLAttributes}: {node: any; HTMLAttributes: Record<string, any>}) {
+                        return [
+                            'span',
+                            mergeAttributes(
+                                {'data-type': this.name},
+                                this.options.HTMLAttributes,
+                                HTMLAttributes,
+                            ),
+                            `@${node.attrs.label ?? node.attrs.id}`,
+                        ];
+                    },
+                }).configure({
                     HTMLAttributes: {
                         class: 'mention',
                     },
@@ -705,7 +718,7 @@ const TipTapEditor = ({
                 />
             )}
             {editor && !editable && onCreateInlineComment && (
-                <InlineCommentButton
+                <InlineCommentToolbar
                     editor={editor}
                     onCreateComment={handleCreateComment}
                 />

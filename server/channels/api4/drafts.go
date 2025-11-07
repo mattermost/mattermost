@@ -9,6 +9,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
 )
 
 func (api *API) InitDrafts() {
@@ -157,8 +158,24 @@ func deleteDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 func getPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireWikiId()
 	c.RequireDraftId()
-	c.RequireWikiReadPermission()
 	if c.Err != nil {
+		return
+	}
+
+	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	channel, appErr := c.App.GetChannel(c.AppContext, wiki.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
@@ -177,8 +194,24 @@ func getPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 func savePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireWikiId()
 	c.RequireDraftId()
-	c.RequireWikiWritePermission()
 	if c.Err != nil {
+		return
+	}
+
+	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	channel, appErr := c.App.GetChannel(c.AppContext, wiki.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if err := c.App.HasPermissionToModifyWiki(c.AppContext, c.AppContext.Session(), channel, app.WikiOperationEdit, "savePageDraft"); err != nil {
+		c.Err = err
 		return
 	}
 
@@ -217,8 +250,24 @@ func savePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 func deletePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireWikiId()
 	c.RequireDraftId()
-	c.RequireWikiWritePermission()
 	if c.Err != nil {
+		return
+	}
+
+	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	channel, appErr := c.App.GetChannel(c.AppContext, wiki.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if err := c.App.HasPermissionToModifyWiki(c.AppContext, c.AppContext.Session(), channel, app.WikiOperationEdit, "deletePageDraft"); err != nil {
+		c.Err = err
 		return
 	}
 
@@ -232,8 +281,24 @@ func deletePageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func getPageDraftsForWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireWikiId()
-	c.RequireWikiReadPermission()
 	if c.Err != nil {
+		return
+	}
+
+	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	channel, appErr := c.App.GetChannel(c.AppContext, wiki.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
@@ -257,8 +322,24 @@ func getPageDraftsForWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 func publishPageDraft(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireWikiId()
 	c.RequireDraftId()
-	c.RequireWikiWritePermission()
 	if c.Err != nil {
+		return
+	}
+
+	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	channel, appErr := c.App.GetChannel(c.AppContext, wiki.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if err := c.App.HasPermissionToModifyWiki(c.AppContext, c.AppContext.Session(), channel, app.WikiOperationEdit, "publishPageDraft"); err != nil {
+		c.Err = err
 		return
 	}
 

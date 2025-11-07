@@ -801,56 +801,6 @@ func (c *Context) RequireDraftId() *Context {
 	return c
 }
 
-func (c *Context) RequireWikiReadPermission() *Context {
-	if c.Err != nil {
-		return c
-	}
-
-	wiki, err := c.App.GetWiki(c.AppContext, c.Params.WikiId)
-	if err != nil {
-		c.Err = err
-		return c
-	}
-
-	channel, err := c.App.GetChannel(c.AppContext, wiki.ChannelId)
-	if err != nil {
-		c.Err = err
-		return c
-	}
-
-	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
-		c.SetPermissionError(model.PermissionReadChannelContent)
-	}
-
-	return c
-}
-
-func (c *Context) RequireWikiWritePermission() *Context {
-	if c.Err != nil {
-		return c
-	}
-
-	wiki, err := c.App.GetWiki(c.AppContext, c.Params.WikiId)
-	if err != nil {
-		c.Err = err
-		return c
-	}
-
-	channel, err := c.App.GetChannel(c.AppContext, wiki.ChannelId)
-	if err != nil {
-		c.Err = err
-		return c
-	}
-
-	if err := c.App.HasPermissionToModifyWiki(
-		c.AppContext, c.AppContext.Session(), channel,
-		app.WikiOperationEdit, "RequireWikiWritePermission"); err != nil {
-		c.Err = err
-	}
-
-	return c
-}
-
 func (c *Context) RequireWikiModifyPermission(op app.WikiOperation, callerContext string) (*model.Wiki, *model.Channel, bool) {
 	if c.Err != nil {
 		return nil, nil, false

@@ -63,11 +63,14 @@ function makeMapStateToProps() {
         let lastUpdateAt = 0;
 
         if (selected) {
-            // Use our filtering selector with focusedInlineCommentId
-            postIds = getFilteredPostIds(state, selected.id, focusedInlineCommentId);
-            userThread = getThread(state, selected.id);
+            // When viewing a focused inline comment thread, use the comment ID as rootId
+            // Otherwise use the page ID
+            const threadRootId = focusedInlineCommentId || selected.id;
+
+            postIds = getFilteredPostIds(state, threadRootId, focusedInlineCommentId);
+            userThread = getThread(state, threadRootId);
             channel = getChannel(state, selected.channel_id);
-            lastUpdateAt = getThreadLastUpdateAt(state, selected.id);
+            lastUpdateAt = getThreadLastUpdateAt(state, threadRootId);
         }
 
         const result = {

@@ -9,11 +9,13 @@ import {useRouteMatch, useHistory, useLocation} from 'react-router-dom';
 import {getCurrentTeamId, getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
+import {loadPageDraftsForWiki} from 'actions/page_drafts';
+import {loadPages} from 'actions/pages';
 import {openPagesPanel} from 'actions/views/pages_hierarchy';
 import {closeRightHandSide, openWikiRhs} from 'actions/views/rhs';
 import {setWikiRhsMode} from 'actions/views/wiki_rhs';
 import {getPageDraft, getPageDraftsForWiki} from 'selectors/page_drafts';
-import {getPage, getPages} from 'selectors/pages';
+import {getPage, getPages, getPagesLastInvalidated} from 'selectors/pages';
 import {getIsPanesPanelCollapsed} from 'selectors/pages_hierarchy';
 import {getRhsState} from 'selectors/rhs';
 
@@ -86,6 +88,17 @@ const WikiView = () => {
 
     // Track if we're navigating to select a draft
     const isSelectingDraftRef = React.useRef(false);
+
+    const lastInvalidated = useSelector((state: GlobalState) => getPagesLastInvalidated(state, wikiId));
+
+    // Load pages and drafts at parent level to avoid duplicate API calls
+    // Both WikiView hooks and PagesHierarchyPanel need this data
+    React.useEffect(() => {
+        if (wikiId) {
+            dispatch(loadPages(wikiId));
+            dispatch(loadPageDraftsForWiki(wikiId));
+        }
+    }, [wikiId, lastInvalidated, dispatch]);
 
     const {isLoading} = useWikiPageData(
         pageId,

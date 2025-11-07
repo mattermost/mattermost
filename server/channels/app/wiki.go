@@ -377,16 +377,16 @@ func (a *App) CreateWikiPage(rctx request.CTX, wikiId, parentId, title, content,
 		mlog.String("title", title),
 		mlog.Bool("is_child_page", isChild))
 
-	a.handlePageMentions(rctx, createdPage, wiki.ChannelId, content, userId)
-
 	channel, chanErr := a.GetChannel(rctx, wiki.ChannelId)
 	if chanErr == nil {
-		a.sendPageAddedNotification(rctx, createdPage, wiki, channel, userId)
+		a.sendPageAddedNotification(rctx, createdPage, wiki, channel, userId, title)
 	} else {
 		rctx.Logger().Warn("Failed to get channel for page added notification",
 			mlog.String("channel_id", wiki.ChannelId),
 			mlog.Err(chanErr))
 	}
+
+	a.handlePageMentions(rctx, createdPage, wiki.ChannelId, content, userId)
 
 	return createdPage, nil
 }
@@ -686,6 +686,14 @@ func (a *App) DuplicatePage(rctx request.CTX, sourcePageId, targetWikiId string,
 }
 
 func (a *App) sendWikiAddedNotification(rctx request.CTX, wiki *model.Wiki, channel *model.Channel, userId string) {
+	user, err := a.GetUser(userId)
+	if err != nil {
+		rctx.Logger().Warn("Failed to get user for wiki added notification",
+			mlog.String("user_id", userId),
+			mlog.Err(err))
+		return
+	}
+
 	systemPost := &model.Post{
 		ChannelId: channel.Id,
 		UserId:    userId,
@@ -696,6 +704,14 @@ func (a *App) sendWikiAddedNotification(rctx request.CTX, wiki *model.Wiki, chan
 			"channel_id":    channel.Id,
 			"channel_name":  channel.Name,
 			"added_user_id": userId,
+			"username":      user.Username,
+			"attachments": []*model.SlackAttachment{
+				{
+					Fallback: wiki.Title,
+					Title:    wiki.Title,
+					Text:     channel.Name,
+				},
+			},
 		},
 	}
 
@@ -707,19 +723,35 @@ func (a *App) sendWikiAddedNotification(rctx request.CTX, wiki *model.Wiki, chan
 	}
 }
 
-func (a *App) sendPageAddedNotification(rctx request.CTX, page *model.Post, wiki *model.Wiki, channel *model.Channel, userId string) {
+func (a *App) sendPageAddedNotification(rctx request.CTX, page *model.Post, wiki *model.Wiki, channel *model.Channel, userId string, pageTitle string) {
+	user, err := a.GetUser(userId)
+	if err != nil {
+		rctx.Logger().Warn("Failed to get user for page added notification",
+			mlog.String("user_id", userId),
+			mlog.Err(err))
+		return
+	}
+
 	systemPost := &model.Post{
 		ChannelId: channel.Id,
 		UserId:    userId,
 		Type:      model.PostTypePageAdded,
 		Props: map[string]any{
 			"page_id":       page.Id,
-			"page_title":    page.GetProp("page_title"),
+			"page_title":    pageTitle,
 			"wiki_id":       wiki.Id,
 			"wiki_title":    wiki.Title,
 			"channel_id":    channel.Id,
 			"channel_name":  channel.Name,
 			"added_user_id": userId,
+			"username":      user.Username,
+			"attachments": []*model.SlackAttachment{
+				{
+					Fallback: pageTitle,
+					Title:    pageTitle,
+					Text:     channel.Name + " / " + wiki.Title,
+				},
+			},
 		},
 	}
 

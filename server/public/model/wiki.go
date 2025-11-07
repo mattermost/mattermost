@@ -153,7 +153,7 @@ func (w *Wiki) ShowMentionsInChannelFeed() bool {
 	if val, ok := w.Props["show_mentions_in_channel_feed"].(bool); ok {
 		return val
 	}
-	return false
+	return true // Default to true - show mentions in channel feed
 }
 
 // SetShowMentionsInChannelFeed sets the show_mentions_in_channel_feed prop

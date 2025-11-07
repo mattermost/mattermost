@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState} from 'react';
-import {useSelector} from 'react-redux';
+import {useSelector, useDispatch} from 'react-redux';
 import {Link} from 'react-router-dom';
 
 import type {BreadcrumbPath} from '@mattermost/types/wikis';
@@ -11,6 +11,7 @@ import {Client4} from 'mattermost-redux/client';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
+import {loadWiki} from 'actions/pages';
 import {getPageDraftsForWiki} from 'selectors/page_drafts';
 
 import type {GlobalState} from 'types/store';
@@ -32,19 +33,9 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
     const [breadcrumbPath, setBreadcrumbPath] = useState<BreadcrumbPath | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const dispatch = useDispatch();
     const currentTeam = useSelector((state: GlobalState) => getCurrentTeam(state));
     const currentPage = useSelector((state: GlobalState) => (pageId ? getPost(state, pageId) : null));
-    const allDrafts = useSelector((state: GlobalState) => (wikiId ? getPageDraftsForWiki(state, wikiId) : []));
-
-    // Helper to check if an ID is a draft
-    const isDraftId = (id: string): boolean => {
-        return allDrafts.some((draft: PostDraft) => draft.rootId === id);
-    };
-
-    // Helper to get draft by ID
-    const getDraftById = (id: string): PostDraft | undefined => {
-        return allDrafts.find((draft: PostDraft) => draft.rootId === id);
-    };
 
     // Helper to fix breadcrumb item paths - use /wiki/ route not /channels/
     const fixBreadcrumbPath = (item: BreadcrumbPath['items'][0]): BreadcrumbPath['items'][0] => ({
@@ -57,6 +48,23 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
             setIsLoading(true);
             setError(null);
             try {
+                // Get drafts at the time this effect runs (not reactive to draft changes)
+                const state = dispatch((_, getState) => getState()) as any;
+                const allDrafts = getPageDraftsForWiki(state, wikiId);
+
+                // Helper to check if an ID is a draft
+                const isDraftId = (id: string): boolean => {
+                    return allDrafts.some((draft: PostDraft) => draft.rootId === id);
+                };
+
+                // Helper to get draft by ID
+                const getDraftById = (id: string): PostDraft | undefined => {
+                    return allDrafts.find((draft: PostDraft) => draft.rootId === id);
+                };
+
+                // Load wiki into Redux if not already cached
+                const wikiResult = await dispatch(loadWiki(wikiId));
+                const loadedWiki = wikiResult.data;
                 if (isDraft) {
                     if (parentPageId) {
                         // Check if parent is also a draft
@@ -80,12 +88,11 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                                         channel_id: channelId,
                                     },
                                 ];
-                            } else if (!grandparentId) {
+                            } else if (!grandparentId && loadedWiki) {
                                 // Parent draft is at wiki root
-                                const wiki = await Client4.getWiki(wikiId);
                                 items = [{
                                     id: wikiId,
-                                    title: wiki.title,
+                                    title: loadedWiki.title,
                                     type: 'wiki',
                                     path: `/${currentTeam?.name || 'team'}/wiki/${channelId}/${wikiId}`,
                                     channel_id: channelId,
@@ -136,13 +143,12 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                             };
                             setBreadcrumbPath(fixedPath);
                         }
-                    } else {
+                    } else if (loadedWiki) {
                         // Draft at wiki root - just show wiki + draft
-                        const wiki = await Client4.getWiki(wikiId);
                         const simplePath: BreadcrumbPath = {
                             items: [{
                                 id: wikiId,
-                                title: wiki.title,
+                                title: loadedWiki.title,
                                 type: 'wiki',
                                 path: `/${currentTeam?.name || 'team'}/wiki/${channelId}/${wikiId}`,
                                 channel_id: channelId,
@@ -169,14 +175,13 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                     };
 
                     setBreadcrumbPath(fixedPath);
-                } else {
+                } else if (loadedWiki) {
                     // No page selected - show wiki name only
-                    const wiki = await Client4.getWiki(wikiId);
                     setBreadcrumbPath({
                         items: [],
                         current_page: {
                             id: wikiId,
-                            title: wiki.title,
+                            title: loadedWiki.title,
                             type: 'wiki',
                             path: `/${currentTeam?.name || 'team'}/wiki/${channelId}/${wikiId}`,
                             channel_id: channelId,
@@ -193,7 +198,7 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
         if (wikiId) {
             fetchBreadcrumb();
         }
-    }, [wikiId, pageId, channelId, isDraft, parentPageId, draftTitle, currentTeam?.name, currentPage?.update_at, allDrafts]);
+    }, [wikiId, pageId, channelId, isDraft, parentPageId, draftTitle, currentTeam?.name, currentPage?.update_at, dispatch]);
 
     if (isLoading) {
         return (

@@ -54,8 +54,8 @@ func (s *SqlPageDraftStore) Upsert(pageDraft *model.PageDraft) (*model.PageDraft
 	// Use QueryRow with RETURNING to get the actual database row
 	var result model.PageDraft
 	var resultContentJSON string
-	var resultFileIdsJSON string
-	var resultPropsJSON string
+	var resultFileIdsJSON sql.NullString
+	var resultPropsJSON sql.NullString
 
 	err = s.GetMaster().QueryRow(query, args...).Scan(
 		&result.UserId,
@@ -77,15 +77,15 @@ func (s *SqlPageDraftStore) Upsert(pageDraft *model.PageDraft) (*model.PageDraft
 		return nil, errors.Wrap(err, "failed to deserialize returned content")
 	}
 
-	if resultFileIdsJSON != "" && resultFileIdsJSON != "null" {
-		if err := json.Unmarshal([]byte(resultFileIdsJSON), &result.FileIds); err != nil {
+	if resultFileIdsJSON.Valid && resultFileIdsJSON.String != "" && resultFileIdsJSON.String != "null" {
+		if err := json.Unmarshal([]byte(resultFileIdsJSON.String), &result.FileIds); err != nil {
 			return nil, errors.Wrap(err, "failed to deserialize returned file IDs")
 		}
 	}
 
-	if resultPropsJSON != "" && resultPropsJSON != "null" {
+	if resultPropsJSON.Valid && resultPropsJSON.String != "" && resultPropsJSON.String != "null" {
 		var props map[string]any
-		if err := json.Unmarshal([]byte(resultPropsJSON), &props); err != nil {
+		if err := json.Unmarshal([]byte(resultPropsJSON.String), &props); err != nil {
 			return nil, errors.Wrap(err, "failed to deserialize returned props")
 		}
 		result.SetProps(props)
@@ -111,8 +111,8 @@ func (s *SqlPageDraftStore) Get(userId, wikiId, draftId string) (*model.PageDraf
 
 	var pageDraft model.PageDraft
 	var contentJSON string
-	var fileIdsJSON string
-	var propsJSON string
+	var fileIdsJSON sql.NullString
+	var propsJSON sql.NullString
 
 	if err := s.GetReplica().QueryRow(queryString, args...).Scan(
 		&pageDraft.UserId,
@@ -135,13 +135,13 @@ func (s *SqlPageDraftStore) Get(userId, wikiId, draftId string) (*model.PageDraf
 		return nil, errors.Wrap(err, "failed to parse PageDraft content")
 	}
 
-	if fileIdsJSON != "" {
-		pageDraft.FileIds = model.ArrayFromJSON(strings.NewReader(fileIdsJSON))
+	if fileIdsJSON.Valid && fileIdsJSON.String != "" {
+		pageDraft.FileIds = model.ArrayFromJSON(strings.NewReader(fileIdsJSON.String))
 	}
 
-	if propsJSON != "" {
+	if propsJSON.Valid && propsJSON.String != "" {
 		var props map[string]any
-		if err := json.Unmarshal([]byte(propsJSON), &props); err != nil {
+		if err := json.Unmarshal([]byte(propsJSON.String), &props); err != nil {
 			return nil, errors.Wrap(err, "failed to parse PageDraft props")
 		}
 		pageDraft.SetProps(props)

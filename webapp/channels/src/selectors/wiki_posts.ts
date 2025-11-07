@@ -47,18 +47,14 @@ function computeFilteredPostIds(
 
     // If an inline comment is focused, show ONLY that comment + its replies
     if (focusedInlineCommentId) {
+        // getPostThread already includes the root post and its replies
+        // Just return all posts, but ensure no duplicates
+        const seen = new Set<string>();
         result = [];
-        for (let i = posts.length - 1; i >= 0; i--) {
+        for (let i = 0; i < posts.length; i++) {
             const post = posts[i];
-
-            // Include the focused inline comment itself
-            if (post.id === focusedInlineCommentId) {
-                result.push(post.id);
-                continue;
-            }
-
-            // Include replies to the focused inline comment
-            if (post.props?.parent_comment_id === focusedInlineCommentId) {
+            if (!seen.has(post.id)) {
+                seen.add(post.id);
                 result.push(post.id);
             }
         }

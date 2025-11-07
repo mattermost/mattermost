@@ -3317,7 +3317,9 @@ func (s *SqlPostStore) GetPostReminderMetadata(postID string) (*store.PostRemind
 }
 
 // GetCommentsForPage retrieves all comments and replies for a page using the flat model
-// Returns the page itself plus all comments/replies (which all have RootId = pageId)
+// Returns the page itself plus all comments/replies
+// Inline comments have empty RootId and are identified by Props->'page_id'
+// Regular comments have RootId = pageId
 func (s *SqlPostStore) GetCommentsForPage(pageID string, includeDeleted bool) (*model.PostList, error) {
 	if pageID == "" {
 		return nil, store.NewErrInvalidInput("Post", "pageID", pageID)
@@ -3325,14 +3327,20 @@ func (s *SqlPostStore) GetCommentsForPage(pageID string, includeDeleted bool) (*
 
 	pl := model.NewPostList()
 
-	// Build query: Get page + all comments/replies in one query
-	// Flat model: ALL comments AND replies have RootId = pageId
+	// Build query: Get page + all comments/replies
+	// - Page itself: Id = pageID
+	// - Inline comments: RootId is empty AND Props->>'page_id' = pageID
+	// - Regular comments and replies: RootId = pageID
 	query := s.getQueryBuilder().
 		Select("*").
 		From("Posts").
 		Where(sq.Or{
 			sq.Eq{"Id": pageID},     // Include the page itself
-			sq.Eq{"RootId": pageID}, // All comments and replies
+			sq.Eq{"RootId": pageID}, // Regular comments and replies
+			sq.And{
+				sq.Expr("Props->>'page_id' = ?", pageID), // Inline comments
+				sq.Eq{"RootId": ""},                       // with empty RootId
+			},
 		}).
 		OrderBy("CreateAt ASC")
 

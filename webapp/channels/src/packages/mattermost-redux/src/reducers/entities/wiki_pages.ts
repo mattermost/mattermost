@@ -71,8 +71,7 @@ export default function wikiPagesReducer(state = initialState, action: AnyAction
         };
     }
     case WikiTypes.RECEIVED_PAGE_IN_WIKI: {
-        const page: Post = action.data;
-        const wikiId = page.channel_id;
+        const {page, wikiId} = action.data;
 
         const currentPageIds = state.byWiki[wikiId] || [];
         const nextPageIds = currentPageIds.includes(page.id) ? currentPageIds : [...currentPageIds, page.id];
@@ -152,11 +151,12 @@ export default function wikiPagesReducer(state = initialState, action: AnyAction
     }
     case WikiTypes.INVALIDATE_PAGES: {
         const {wikiId} = action.data;
+        const timestamp = Date.now();
         return {
             ...state,
             lastInvalidated: {
                 ...state.lastInvalidated,
-                [wikiId]: Date.now(),
+                [wikiId]: timestamp,
             },
         };
     }

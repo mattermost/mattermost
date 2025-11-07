@@ -160,29 +160,3 @@ func (s *SqlPageStore) ChangePageParent(postID string, newParentID string) error
 
 	return nil
 }
-
-func (s *SqlPageStore) GetCommentsForPage(pageID string, options model.GetPostsOptions) (*model.PostList, error) {
-	query := s.getQueryBuilder().
-		Select("p.*").
-		From("Posts p").
-		Where("p.Props->>'page_id' = ?", pageID)
-
-	if !options.IncludeDeleted {
-		query = query.Where(sq.Eq{"p.DeleteAt": 0})
-	}
-
-	query = query.OrderBy("p.CreateAt ASC")
-
-	posts := []*model.Post{}
-	if err := s.GetReplica().SelectBuilder(&posts, query); err != nil {
-		return nil, errors.Wrapf(err, "failed to find comments for page_id=%s", pageID)
-	}
-
-	postList := model.NewPostList()
-	for _, post := range posts {
-		postList.AddPost(post)
-		postList.AddOrder(post.Id)
-	}
-
-	return postList, nil
-}

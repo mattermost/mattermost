@@ -900,7 +900,7 @@ export function handlePagePublishedEvent(msg) {
     }
 
     dispatch(batchActions([
-        {type: WikiTypes.RECEIVED_PAGE_IN_WIKI, data: page},
+        {type: WikiTypes.RECEIVED_PAGE_IN_WIKI, data: {page, wikiId}},
         {type: WikiTypes.DELETED_DRAFT, data: {id: draftId, wikiId}},
     ]));
 }

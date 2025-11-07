@@ -271,9 +271,8 @@ function ChannelTabs({
                         title: wikiName.trim(),
                     });
                     dispatch(closeModal(ModalIdentifiers.TEXT_INPUT_MODAL));
-                    onTabChange('wiki');
                     if (teamUrl && wiki.id) {
-                        window.location.href = `${teamUrl}/wiki/${channelId}/${wiki.id}`;
+                        history.push(`${teamUrl}/wiki/${channelId}/${wiki.id}`);
                     }
                 },
                 onCancel: () => {
@@ -402,7 +401,7 @@ function ChannelTabs({
                                     <Tab
                                         id={wikiTabId}
                                         label={wiki.title}
-                                        icon='icon-file-multiple'
+                                        icon='icon-file-multiple-outline'
                                         isActive={isWikiActive}
                                         onClick={handleTabClick}
                                         onKeyDown={handleKeyDown}

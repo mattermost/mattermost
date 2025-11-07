@@ -2075,6 +2075,13 @@ export default class Client4 {
         );
     };
 
+    getPageComments = (wikiId: string, pageId: string) => {
+        return this.doFetch<Post[]>(
+            `${this.getWikiPageRoute(wikiId, pageId)}/comments`,
+            {method: 'get'},
+        );
+    };
+
     getChannelDefaultWikiPage = async (channelId: string) => {
         const wikis = await this.getChannelWikis(channelId, false);
         if (wikis.length === 0) {

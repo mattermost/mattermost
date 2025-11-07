@@ -23,7 +23,7 @@ export default function wikisReducer(state = initialState, action: AnyAction): W
         const wiki: Wiki = action.data;
         const existingWiki = state.byId[wiki.id];
 
-        let nextByChannel = {...state.byChannel};
+        const nextByChannel = {...state.byChannel};
 
         // If wiki existed in a different channel, remove it from old channel
         if (existingWiki && existingWiki.channel_id !== wiki.channel_id) {

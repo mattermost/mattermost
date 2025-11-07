@@ -334,3 +334,27 @@
         background-color: rgba(255, 235, 59, 0.5);
     }
 }
+
+.inline-comment-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    margin-right: 4px;
+    border-radius: 3px;
+    background-color: rgba(var(--center-channel-color-rgb), 0.08);
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    vertical-align: middle;
+
+    &:hover {
+        background-color: rgba(var(--center-channel-color-rgb), 0.12);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+
+    .icon {
+        font-size: 14px;
+    }
+}

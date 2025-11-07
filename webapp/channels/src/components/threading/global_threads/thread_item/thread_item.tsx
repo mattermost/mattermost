@@ -98,8 +98,13 @@ function ThreadItem({
     const mentionsKeys = useSelector((state: GlobalState) => getMentionKeysForPost(state, post, channel));
     const ref = useRef<HTMLDivElement>(null);
 
-    const isPageComment = post?.props?.comment_type === 'inline';
-    const pagePost = useSelector((state: GlobalState) => (isPageComment && post?.root_id ? getPost(state, post.root_id) : null));
+    const isPageComment = post?.type === PostTypes.PAGE_COMMENT;
+    const pagePost = useSelector((state: GlobalState) => {
+        if (!isPageComment || !post?.props?.page_id) {
+            return null;
+        }
+        return getPost(state, post.props.page_id as string);
+    });
 
     useEffect(() => {
         if (channel?.teammate_id) {

@@ -193,6 +193,8 @@ export function createMMentionSuggestion(props: MentionBridgeProps): Partial<Sug
                                             selectItem={(index: number) => {
                                                 const item = componentItems[index];
                                                 if (commandFunction) {
+                                                    console.log('[TipTap Mention] Selected item:', item);
+                                                    console.log('[TipTap Mention] Command data:', {id: item.id || item.username, label: item.username});
                                                     commandFunction({id: item.id || item.username, label: item.username});
                                                 }
                                                 closePopup();
@@ -278,7 +280,9 @@ export function createMMentionSuggestion(props: MentionBridgeProps): Partial<Sug
                     if (event.key === 'Enter' || event.key === 'Tab') {
                         const item = currentItems[currentSelectedIndex];
                         if (item && commandFunction) {
+                            console.log('[TipTap Mention] Selected item (keyboard):', item);
                             const commandData = {id: item.id || item.username, label: item.username};
+                            console.log('[TipTap Mention] Command data (keyboard):', commandData);
                             commandFunction(commandData);
                             closePopup();
                             return true;

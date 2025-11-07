@@ -67,17 +67,12 @@ const PagesHierarchyPanel = ({
     expandedNodes,
     selectedPageId,
     isPanelCollapsed,
-    lastInvalidated,
     actions,
 }: Props) => {
     const [searchQuery, setSearchQuery] = useState('');
 
-    // Load pages and drafts on mount, when wikiId changes, or when pages are invalidated
-    // lastInvalidated timestamp changes when wiki is renamed/modified, triggering a reload
-    useEffect(() => {
-        actions.loadPages(wikiId);
-        actions.loadPageDraftsForWiki(wikiId);
-    }, [wikiId, lastInvalidated]);
+    // Data loading moved to parent WikiView component to prevent duplicate API calls
+    // Pages and drafts are loaded once at WikiView level and passed down via Redux
 
     // Use menu handlers hook - it will combine pages and drafts internally
     const menuHandlers = usePageMenuHandlers({
@@ -177,8 +172,7 @@ const PagesHierarchyPanel = ({
 
     // Build tree from flat pages (including drafts)
     const tree = useMemo(() => {
-        const builtTree = buildTree(allPages);
-        return builtTree;
+        return buildTree(allPages);
     }, [allPages]);
 
     // Filter tree by search query

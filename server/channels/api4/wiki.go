@@ -27,6 +27,7 @@ func (api *API) InitWiki() {
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/parent", api.APISessionRequired(updatePageParent)).Methods(http.MethodPut)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/move", api.APISessionRequired(movePageToWiki)).Methods(http.MethodPut)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/duplicate", api.APISessionRequired(duplicatePage)).Methods(http.MethodPost)
+	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/comments", api.APISessionRequired(getPageComments)).Methods(http.MethodGet)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/comments", api.APISessionRequired(createPageComment)).Methods(http.MethodPost)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/comments/{parent_comment_id:[A-Za-z0-9]+}/replies", api.APISessionRequired(createPageCommentReply)).Methods(http.MethodPost)
 	api.BaseRoutes.Channel.Handle("/pages", api.APISessionRequired(getChannelPages)).Methods(http.MethodGet)
@@ -89,7 +90,6 @@ func createWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func getWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireWikiId()
-	c.RequireWikiReadPermission()
 	if c.Err != nil {
 		return
 	}
@@ -97,6 +97,17 @@ func getWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
 	if appErr != nil {
 		c.Err = appErr
+		return
+	}
+
+	channel, appErr := c.App.GetChannel(c.AppContext, wiki.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
@@ -214,8 +225,24 @@ func deleteWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func getWikiPages(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireWikiId()
-	c.RequireWikiReadPermission()
 	if c.Err != nil {
+		return
+	}
+
+	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	channel, appErr := c.App.GetChannel(c.AppContext, wiki.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
@@ -243,7 +270,6 @@ func getWikiPages(c *Context, w http.ResponseWriter, r *http.Request) {
 func getWikiPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireWikiId()
 	c.RequirePageId()
-	c.RequireWikiReadPermission()
 	if c.Err != nil {
 		return
 	}
@@ -259,9 +285,20 @@ func getWikiPage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wiki, getWikiErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
-	if getWikiErr != nil {
-		c.Err = getWikiErr
+	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	channel, appErr := c.App.GetChannel(c.AppContext, wiki.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
@@ -392,11 +429,6 @@ func updatePageParent(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.RequireWikiReadPermission()
-	if c.Err != nil {
-		return
-	}
-
 	pageWikiId, wikiErr := c.App.GetWikiIdForPage(c.AppContext, c.Params.PageId)
 	if wikiErr != nil {
 		c.Err = wikiErr
@@ -405,6 +437,23 @@ func updatePageParent(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if pageWikiId != c.Params.WikiId {
 		c.Err = model.NewAppError("updatePageParent", "api.wiki.update_page_parent.invalid_wiki", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	channel, appErr := c.App.GetChannel(c.AppContext, wiki.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
@@ -710,13 +759,6 @@ func getPageBreadcrumb(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check wiki read permission
-	c.RequireWikiReadPermission()
-	if c.Err != nil {
-		return
-	}
-
-	// Verify page belongs to this wiki
 	pageWikiId, wikiErr := c.App.GetWikiIdForPage(c.AppContext, c.Params.PageId)
 	if wikiErr != nil {
 		c.Err = wikiErr
@@ -725,6 +767,23 @@ func getPageBreadcrumb(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if pageWikiId != c.Params.WikiId {
 		c.Err = model.NewAppError("getPageBreadcrumb", "api.wiki.breadcrumb.invalid_wiki", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	channel, appErr := c.App.GetChannel(c.AppContext, wiki.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
@@ -759,14 +818,56 @@ func getPageBreadcrumb(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func createPageComment(c *Context, w http.ResponseWriter, r *http.Request) {
+func getPageComments(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireWikiId()
 	c.RequirePageId()
 	if c.Err != nil {
 		return
 	}
 
-	c.RequireWikiReadPermission()
+	pageWikiId, wikiErr := c.App.GetWikiIdForPage(c.AppContext, c.Params.PageId)
+	if wikiErr != nil {
+		c.Err = wikiErr
+		return
+	}
+
+	if pageWikiId != c.Params.WikiId {
+		c.Err = model.NewAppError("getPageComments", "api.wiki.get_comments.invalid_wiki", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	channel, appErr := c.App.GetChannel(c.AppContext, wiki.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
+		c.SetPermissionError(model.PermissionReadChannelContent)
+		return
+	}
+
+	comments, appErr := c.App.GetPageComments(c.AppContext, c.Params.PageId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(comments); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func createPageComment(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireWikiId()
+	c.RequirePageId()
 	if c.Err != nil {
 		return
 	}
@@ -794,6 +895,23 @@ func createPageComment(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if pageWikiId != c.Params.WikiId {
 		c.Err = model.NewAppError("createPageComment", "api.wiki.create_comment.invalid_wiki", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	channel, appErr := c.App.GetChannel(c.AppContext, wiki.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
@@ -840,11 +958,6 @@ func createPageCommentReply(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	c.RequireWikiReadPermission()
-	if c.Err != nil {
-		return
-	}
-
 	parentCommentId := c.Params.ParentCommentId
 	if parentCommentId == "" || !model.IsValidId(parentCommentId) {
 		c.SetInvalidParam("parent_comment_id")
@@ -862,6 +975,23 @@ func createPageCommentReply(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	if req.Message == "" {
 		c.SetInvalidParam("message")
+		return
+	}
+
+	wiki, appErr := c.App.GetWiki(c.AppContext, c.Params.WikiId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	channel, appErr := c.App.GetChannel(c.AppContext, wiki.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
+		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 

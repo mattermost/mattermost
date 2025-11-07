@@ -162,14 +162,6 @@ describe('components/pages_hierarchy_panel/PagesHierarchyPanel', () => {
     });
 
     describe('Lifecycle - Data Loading', () => {
-        test('should load pages and drafts on mount', async () => {
-            const baseProps = await getBaseProps();
-            renderWithContext(<PagesHierarchyPanel {...baseProps}/>, getInitialState());
-
-            expect(baseProps.actions.loadPages).toHaveBeenCalledWith(testContext.wikiId);
-            expect(baseProps.actions.loadPageDraftsForWiki).toHaveBeenCalledWith(testContext.wikiId);
-        });
-
         test('should set selected page when currentPageId changes', async () => {
             const baseProps = await getBaseProps();
             const {rerender} = renderWithContext(<PagesHierarchyPanel {...baseProps}/>, getInitialState());

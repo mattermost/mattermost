@@ -13,6 +13,7 @@ import {
     markChannelAsViewedOnServer,
 } from 'mattermost-redux/actions/channels';
 import * as PostActions from 'mattermost-redux/actions/posts';
+import {PostTypes} from 'mattermost-redux/constants';
 import {getCurrentChannelId, isManuallyUnread} from 'mattermost-redux/selectors/entities/channels';
 import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
@@ -62,6 +63,18 @@ export function completePostReceive(post: Post, websocketMessageProps: NewPostMe
                     WebSocketClient.acknowledgePostedNotification(post.id, 'error', 'missing_root_post', result.error);
                 }
                 return {error: result.error};
+            }
+        }
+
+        // Handle inline comments - they have empty root_id but need thread metadata
+        const isInlineComment = post.type === PostTypes.PAGE_COMMENT &&
+                                post.props?.comment_type === 'inline' &&
+                                !post.root_id;
+        if (isInlineComment) {
+            // Fetch thread metadata for this inline comment
+            const thread = getThread(state, post.id);
+            if (!thread) {
+                await dispatch(PostActions.getPostThread(post.id));
             }
         }
         const actions: AnyAction[] = [];

@@ -109,7 +109,7 @@ describe('actions/pages - Page Status', () => {
             testStore.getState().entities.posts.posts = {[postId]: mockPost as any};
             (Client4.updatePageStatus as jest.Mock).mockResolvedValue({});
 
-            for (const status of validStatuses) {
+            const statusTests = validStatuses.map(async (status) => {
                 testStore.clearActions();
                 await testStore.dispatch(Actions.updatePageStatus(postId, status));
 
@@ -117,7 +117,9 @@ describe('actions/pages - Page Status', () => {
                 expect(actions).toHaveLength(1);
                 expect(actions[0].type).toBe('RECEIVED_POST');
                 expect(actions[0].data.props.page_status).toBe(status);
-            }
+            });
+
+            await Promise.all(statusTests);
         });
     });
 });

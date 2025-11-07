@@ -107,7 +107,7 @@ describe('wiki_pages reducer', () => {
         test('should add page ID to byWiki', () => {
             const action = {
                 type: WikiTypes.RECEIVED_PAGE_IN_WIKI,
-                data: mockPage,
+                data: {page: mockPage, wikiId},
             };
 
             const nextState = wikiPagesReducer(initialState, action);
@@ -126,7 +126,7 @@ describe('wiki_pages reducer', () => {
 
             const action = {
                 type: WikiTypes.RECEIVED_PAGE_IN_WIKI,
-                data: mockPage,
+                data: {page: mockPage, wikiId},
             };
 
             const nextState = wikiPagesReducer(stateWithPage, action);
@@ -148,7 +148,7 @@ describe('wiki_pages reducer', () => {
             const newPage = {...mockPage, id: 'new-page'};
             const action = {
                 type: WikiTypes.RECEIVED_PAGE_IN_WIKI,
-                data: newPage,
+                data: {page: newPage, wikiId},
             };
 
             const nextState = wikiPagesReducer(stateWithPage, action);
@@ -159,7 +159,7 @@ describe('wiki_pages reducer', () => {
         test('should not store page content', () => {
             const action = {
                 type: WikiTypes.RECEIVED_PAGE_IN_WIKI,
-                data: mockPage,
+                data: {page: mockPage, wikiId},
             };
 
             const nextState = wikiPagesReducer(initialState, action);

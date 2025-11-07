@@ -214,14 +214,24 @@ export async function ensurePanelOpen(page: Page) {
     const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
     const hamburgerButton = page.locator('[data-testid="wiki-view-hamburger-button"]');
 
-    const isPanelVisible = await hierarchyPanel.isVisible().catch(() => false);
+    // Wait for either the panel or hamburger button to appear
+    // This handles both cases: panel already open OR panel collapsed
+    await page.waitForSelector(
+        '[data-testid="pages-hierarchy-panel"], [data-testid="wiki-view-hamburger-button"]',
+        {state: 'visible', timeout: 10000},
+    );
 
-    if (!isPanelVisible) {
-        await hamburgerButton.waitFor({state: 'visible', timeout: 10000});
+    // Check current state
+    const isPanelVisible = await hierarchyPanel.isVisible();
+    const isHamburgerVisible = await hamburgerButton.isVisible();
+
+    if (!isPanelVisible && isHamburgerVisible) {
+        // Panel is collapsed, hamburger is visible → click to open
         await hamburgerButton.click();
         await hierarchyPanel.waitFor({state: 'visible', timeout: 10000});
         await page.waitForTimeout(500);
     }
+    // else: panel is already open, do nothing
 }
 
 /**

@@ -2,14 +2,19 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState, useCallback} from 'react';
-import {useSelector} from 'react-redux';
+import {useSelector, useDispatch} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
 import type {UserThread} from '@mattermost/types/threads';
 
+import {Client4} from 'mattermost-redux/client';
 import {PostTypes} from 'mattermost-redux/constants/posts';
+import {receivedPosts} from 'mattermost-redux/actions/posts';
 import type {ActionResult} from 'mattermost-redux/types/actions';
+
+import WebSocketClient from 'client/web_websocket_client';
+import {SocketEvents} from 'utils/constants';
 
 import FileUploadOverlay from 'components/file_upload_overlay';
 import {DropOverlayIdThreads} from 'components/file_upload_overlay/file_upload_overlay';
@@ -47,53 +52,78 @@ export type Props = {
 };
 
 const WikiPageThreadViewer = (props: Props) => {
+    const dispatch = useDispatch();
     const [isLoading, setIsLoading] = useState(false);
+    const [pageComments, setPageComments] = useState<Post[]>([]);
 
     const allPosts = useSelector((state: GlobalState) => state.entities.posts.posts);
     const postsInThread = useSelector((state: GlobalState) =>
         state.entities.posts.postsInThread[props.rootPostId] || [],
     );
 
-    // Extract inline comments from Redux - always use latest data from Redux
+    // Extract inline comments from fetched page comments
     const inlineComments = React.useMemo(() => {
         if (props.focusedInlineCommentId) {
             return [];
         }
-        return postsInThread.
-            map((postId) => allPosts[postId]).
-            filter(Boolean).
-            filter((post: Post) => {
-                return post.type === PostTypes.PAGE_COMMENT &&
-                       post.props?.comment_type === 'inline' &&
-                       post.props?.inline_anchor;
-            }) as Post[];
-    }, [props.focusedInlineCommentId, postsInThread, allPosts]);
+        return pageComments.filter((post: Post) => {
+            return post.type === PostTypes.PAGE_COMMENT &&
+                   post.props?.comment_type === 'inline' &&
+                   post.props?.inline_anchor;
+        }) as Post[];
+    }, [props.focusedInlineCommentId, pageComments]);
 
     useEffect(() => {
         const fetchData = async () => {
-            if (!props.selected) {
+            if (!props.selected || !props.wikiId) {
                 setIsLoading(false);
                 return;
             }
 
             setIsLoading(true);
-            const res = await props.actions.getPostThread(props.rootPostId, true, props.lastUpdateAt);
 
-            if (props.selected && res.data) {
-                const {order, posts} = res.data;
-                if (order.length > 0 && posts[order[0]]) {
-                    let highestUpdateAt = posts[order[0]].update_at;
+            // For focused inline comment, fetch thread using getPostThread
+            if (props.focusedInlineCommentId) {
+                const res = await props.actions.getPostThread(props.focusedInlineCommentId, true, props.lastUpdateAt);
 
-                    for (const postId in posts) {
-                        if (Object.hasOwn(posts, postId)) {
-                            const post = posts[postId];
-                            if (post.update_at > highestUpdateAt) {
-                                highestUpdateAt = post.update_at;
+                if (props.selected && res.data) {
+                    const {order, posts} = res.data;
+                    if (order.length > 0 && posts[order[0]]) {
+                        let highestUpdateAt = posts[order[0]].update_at;
+
+                        for (const postId in posts) {
+                            if (Object.hasOwn(posts, postId)) {
+                                const post = posts[postId];
+                                if (post.update_at > highestUpdateAt) {
+                                    highestUpdateAt = post.update_at;
+                                }
                             }
                         }
-                    }
 
-                    props.actions.updateThreadLastUpdateAt(props.selected.id, highestUpdateAt);
+                        props.actions.updateThreadLastUpdateAt(props.focusedInlineCommentId, highestUpdateAt);
+                    }
+                }
+            } else {
+                // For list view, fetch all page comments
+                try {
+                    const comments = await Client4.getPageComments(props.wikiId, props.rootPostId);
+
+                    // Update Redux store with fetched comments
+                    const postsById: {[id: string]: Post} = {};
+                    const order: string[] = [];
+                    comments.forEach((post) => {
+                        postsById[post.id] = post;
+                        order.push(post.id);
+                    });
+
+                    dispatch(receivedPosts({
+                        posts: postsById,
+                        order,
+                    }));
+
+                    setPageComments(comments);
+                } catch (error) {
+                    setPageComments([]);
                 }
             }
 
@@ -101,7 +131,41 @@ const WikiPageThreadViewer = (props: Props) => {
         };
 
         fetchData();
-    }, [props.rootPostId, props.focusedInlineCommentId]);
+    }, [props.rootPostId, props.focusedInlineCommentId, props.wikiId, dispatch]);
+
+    // Listen for WebSocket events for new comments
+    useEffect(() => {
+        if (!props.rootPostId || !props.wikiId || props.focusedInlineCommentId) {
+            return undefined;
+        }
+
+        const handleNewPost = (msg: any) => {
+            // Only handle POSTED events
+            if (msg.event !== SocketEvents.POSTED) {
+                return;
+            }
+
+            const post = JSON.parse(msg.data.post);
+
+            // Check if it's a page comment for this page
+            if (post.type === PostTypes.PAGE_COMMENT && post.props?.page_id === props.rootPostId) {
+                // Update Redux store with the new post
+                dispatch(receivedPosts({
+                    posts: {[post.id]: post},
+                    order: [post.id],
+                }));
+
+                // Add to page comments list
+                setPageComments((prev) => [...prev, post]);
+            }
+        };
+
+        WebSocketClient.addMessageListener(handleNewPost);
+
+        return () => {
+            WebSocketClient.removeMessageListener(handleNewPost);
+        };
+    }, [props.rootPostId, props.wikiId, props.focusedInlineCommentId, dispatch]);
 
     useEffect(() => {
         if (props.isCollapsedThreadsEnabled && props.userThread) {

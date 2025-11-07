@@ -23,7 +23,4 @@ type PageStore interface {
 
 	// ChangePageParent updates the parent of a page
 	ChangePageParent(postID string, newParentID string) error
-
-	// GetCommentsForPage fetches comments for a specific page
-	GetCommentsForPage(pageID string, options model.GetPostsOptions) (*model.PostList, error)
 }

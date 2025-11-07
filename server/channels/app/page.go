@@ -256,6 +256,9 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 		return nil, enrichErr
 	}
 
+	// Handle mentions in the page content
+	a.handlePageMentions(rctx, createdPage, channelID, content, userID)
+
 	return createdPage, nil
 }
 
@@ -1104,20 +1107,6 @@ func (a *App) PublishPageDraft(rctx request.CTX, userId, wikiId, draftId, parent
 		return nil, err
 	}
 
-	// Handle mentions in the published page content
-	contentToUse := message
-	if contentToUse == "" {
-		var contentErr error
-		contentToUse, contentErr = draft.GetDocumentJSON()
-		if contentErr != nil {
-			rctx.Logger().Warn("Failed to get content for mention handling", mlog.String("page_id", savedPost.Id), mlog.Err(contentErr))
-		} else {
-			a.handlePageMentions(rctx, savedPost, savedPost.ChannelId, contentToUse, userId)
-		}
-	} else {
-		a.handlePageMentions(rctx, savedPost, savedPost.ChannelId, contentToUse, userId)
-	}
-
 	if deleteErr := a.Srv().Store().PageDraft().Delete(userId, wikiId, draftId); deleteErr != nil {
 		rctx.Logger().Warn("Failed to delete draft after successful publish - orphaned draft will remain",
 			mlog.String("user_id", userId),
@@ -1293,10 +1282,10 @@ func (a *App) handlePageMentions(rctx request.CTX, page *model.Post, channelId, 
 		return
 	}
 
-	a.sendPageMentionNotifications(rctx, page, channel, authorUserID, mentionedUserIDs)
+	a.sendPageMentionNotifications(rctx, page, channel, authorUserID, mentionedUserIDs, content)
 }
 
-func (a *App) sendPageMentionNotifications(rctx request.CTX, page *model.Post, channel *model.Channel, authorUserID string, mentionedUserIDs []string) {
+func (a *App) sendPageMentionNotifications(rctx request.CTX, page *model.Post, channel *model.Channel, authorUserID string, mentionedUserIDs []string, content string) {
 	if len(mentionedUserIDs) == 0 {
 		rctx.Logger().Debug("No mentions in page", mlog.String("page_id", page.Id))
 		return
@@ -1328,24 +1317,30 @@ func (a *App) sendPageMentionNotifications(rctx request.CTX, page *model.Post, c
 			mlog.Int("mention_count", len(mentionedUserIDs)))
 	}
 
-	rctx.Logger().Debug("Attempting to get wiki for page mention system messages", mlog.String("page_id", page.Id))
+	rctx.Logger().Debug("Starting channel post creation for page mentions",
+		mlog.String("page_id", page.Id),
+		mlog.Int("mention_count", len(mentionedUserIDs)))
+
+	// Get wiki to check if mentions should appear in channel feed
 	wikiId, wikiErr := a.GetWikiIdForPage(rctx, page.Id)
 	if wikiErr != nil {
-		rctx.Logger().Warn("Failed to get wiki for page mention system messages",
+		rctx.Logger().Warn("Failed to get wiki for page mention channel posts",
 			mlog.String("page_id", page.Id),
 			mlog.Err(wikiErr))
 		return
 	}
-	rctx.Logger().Debug("Got wiki ID for page", mlog.String("page_id", page.Id), mlog.String("wiki_id", wikiId))
+
+	rctx.Logger().Debug("Got wiki ID for page mention posts", mlog.String("wiki_id", wikiId))
 
 	wiki, wikiErr := a.GetWiki(rctx, wikiId)
 	if wikiErr != nil {
-		rctx.Logger().Warn("Failed to get wiki for page mention system messages",
+		rctx.Logger().Warn("Failed to get wiki for page mention channel posts",
 			mlog.String("wiki_id", wikiId),
 			mlog.Err(wikiErr))
 		return
 	}
-	rctx.Logger().Debug("Got wiki, checking ShowMentionsInChannelFeed",
+
+	rctx.Logger().Debug("Checking ShowMentionsInChannelFeed",
 		mlog.String("wiki_id", wikiId),
 		mlog.Bool("show_mentions", wiki.ShowMentionsInChannelFeed()))
 
@@ -1354,37 +1349,54 @@ func (a *App) sendPageMentionNotifications(rctx request.CTX, page *model.Post, c
 			mlog.String("wiki_id", wikiId))
 		return
 	}
-	rctx.Logger().Debug("Creating system messages for mentions", mlog.String("wiki_id", wikiId), mlog.Int("mention_count", len(mentionedUserIDs)))
+
+	rctx.Logger().Debug("Wiki has channel feed mentions enabled, proceeding with post creation",
+		mlog.String("wiki_id", wikiId))
 
 	pageTitle := page.GetProp("title")
 	if pageTitle == "" {
 		pageTitle = "Untitled"
 	}
 
+	rctx.Logger().Debug("Extracting mention context",
+		mlog.String("page_id", page.Id),
+		mlog.Int("content_length", len(content)))
+
+	// Create a channel post for each mentioned user
 	for _, mentionedUserID := range mentionedUserIDs {
 		mentionedUser, mentionErr := a.GetUser(mentionedUserID)
 		if mentionErr != nil {
-			rctx.Logger().Warn("Failed to get mentioned user for system message",
+			rctx.Logger().Warn("Failed to get mentioned user for channel post",
 				mlog.String("user_id", mentionedUserID),
 				mlog.Err(mentionErr))
 			continue
 		}
 
-		message := fmt.Sprintf("Mentioned @%s on the page: [%s](%s)",
+		// Extract the context (paragraph) containing this mention
+		mentionContext := a.extractMentionContext(rctx, content, mentionedUserID)
+
+		rctx.Logger().Debug("Extracted mention context",
+			mlog.String("mentioned_user_id", mentionedUserID),
+			mlog.String("context", mentionContext),
+			mlog.Int("context_length", len(mentionContext)))
+
+		// Build the post message header
+		teamURL := fmt.Sprintf("/%s", team.Name)
+		pageURL := fmt.Sprintf("%s/wiki/%s/%s/%s", teamURL, channel.Id, wikiId, page.Id)
+		postMessage := fmt.Sprintf("Mentioned @%s on the page: [%s](%s)\n\n%s",
 			mentionedUser.Username,
 			pageTitle,
-			fmt.Sprintf("/[team_name]/channels/[channel_name]/pages/%s", page.Id))
+			pageURL,
+			mentionContext)
 
-		systemPost := &model.Post{
+		channelPost := &model.Post{
 			UserId:    authorUserID,
 			ChannelId: channel.Id,
-			Message:   message,
-			Type:      model.PostTypePageMention,
+			Message:   postMessage,
 			Props: model.StringInterface{
 				"page_id":           page.Id,
-				"mentioned_user_id": mentionedUserID,
 				"wiki_id":           wikiId,
-				"page_title":        pageTitle,
+				"mentioned_user_id": mentionedUserID,
 			},
 		}
 
@@ -1392,13 +1404,180 @@ func (a *App) sendPageMentionNotifications(rctx request.CTX, page *model.Post, c
 			TriggerWebhooks: false,
 			SetOnline:       true,
 		}
-		if _, createErr := a.CreatePost(rctx, systemPost, channel, flags); createErr != nil {
-			rctx.Logger().Warn("Failed to create page mention system message",
+		if _, createErr := a.CreatePost(rctx, channelPost, channel, flags); createErr != nil {
+			rctx.Logger().Warn("Failed to create page mention channel post",
 				mlog.String("page_id", page.Id),
 				mlog.String("mentioned_user_id", mentionedUserID),
 				mlog.Err(createErr))
 		}
 	}
+}
+
+// extractMentionContext extracts the paragraph containing a mention from TipTap JSON content
+func (a *App) extractMentionContext(rctx request.CTX, content string, mentionedUserID string) string {
+	if content == "" {
+		return ""
+	}
+
+	var doc struct {
+		Content []json.RawMessage `json:"content"`
+	}
+
+	if err := json.Unmarshal([]byte(content), &doc); err != nil {
+		rctx.Logger().Warn("Failed to parse TipTap content for mention context",
+			mlog.String("mentioned_user_id", mentionedUserID),
+			mlog.Err(err))
+		return ""
+	}
+
+	// Search through all nodes to find the paragraph containing this mention
+	context := a.findMentionInNodes(rctx, doc.Content, mentionedUserID)
+	if context != "" {
+		return context
+	}
+
+	return ""
+}
+
+// findMentionInNodes recursively searches TipTap nodes for a paragraph containing the mention
+func (a *App) findMentionInNodes(rctx request.CTX, nodes []json.RawMessage, mentionedUserID string) string {
+	for _, nodeRaw := range nodes {
+		var node struct {
+			Type    string            `json:"type"`
+			Content []json.RawMessage `json:"content,omitempty"`
+			Attrs   map[string]any    `json:"attrs,omitempty"`
+			Text    string            `json:"text,omitempty"`
+		}
+
+		if err := json.Unmarshal(nodeRaw, &node); err != nil {
+			rctx.Logger().Debug("Failed to unmarshal TipTap node while searching for mention",
+				mlog.String("mentioned_user_id", mentionedUserID),
+				mlog.Err(err))
+			continue
+		}
+
+		// If this is a paragraph node, check if it contains the mention
+		if node.Type == "paragraph" {
+			paragraphText := a.extractTextFromNodes(rctx, node.Content)
+			// Check if this paragraph contains a mention of this user
+			if a.paragraphContainsMention(rctx, node.Content, mentionedUserID) {
+				return paragraphText
+			}
+		}
+
+		// Recurse into child nodes
+		if len(node.Content) > 0 {
+			if result := a.findMentionInNodes(rctx, node.Content, mentionedUserID); result != "" {
+				return result
+			}
+		}
+	}
+
+	return ""
+}
+
+// paragraphContainsMention checks if a paragraph contains a mention of the specified user
+func (a *App) paragraphContainsMention(rctx request.CTX, nodes []json.RawMessage, mentionedUserID string) bool {
+	for _, nodeRaw := range nodes {
+		var node struct {
+			Type  string         `json:"type"`
+			Attrs map[string]any `json:"attrs,omitempty"`
+		}
+
+		if err := json.Unmarshal(nodeRaw, &node); err != nil {
+			rctx.Logger().Debug("Failed to unmarshal TipTap node while checking for mention",
+				mlog.String("mentioned_user_id", mentionedUserID),
+				mlog.Err(err))
+			continue
+		}
+
+		if node.Type == "mention" && node.Attrs != nil {
+			if id, ok := node.Attrs["id"].(string); ok && id == mentionedUserID {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+// extractTextFromNodes converts TipTap nodes to plain text
+func (a *App) extractTextFromNodes(rctx request.CTX, nodes []json.RawMessage) string {
+	var text strings.Builder
+
+	for _, nodeRaw := range nodes {
+		var node struct {
+			Type    string            `json:"type"`
+			Text    string            `json:"text,omitempty"`
+			Content []json.RawMessage `json:"content,omitempty"`
+			Attrs   map[string]any    `json:"attrs,omitempty"`
+		}
+
+		if err := json.Unmarshal(nodeRaw, &node); err != nil {
+			rctx.Logger().Debug("Failed to unmarshal TipTap node while extracting text",
+				mlog.Err(err))
+			continue
+		}
+
+		switch node.Type {
+		case "text":
+			text.WriteString(node.Text)
+		case "mention":
+			if node.Attrs != nil {
+				if label, ok := node.Attrs["label"].(string); ok {
+					text.WriteString(label)
+				}
+			}
+		case "hardBreak":
+			text.WriteString("\n")
+		default:
+			// Recurse for other node types
+			if len(node.Content) > 0 {
+				text.WriteString(a.extractTextFromNodes(rctx, node.Content))
+			}
+		}
+	}
+
+	return text.String()
+}
+
+// GetPageComments retrieves all comments (including inline comments) for a page
+func (a *App) GetPageComments(rctx request.CTX, pageID string) ([]*model.Post, *model.AppError) {
+	// Validate page exists
+	page, err := a.GetSinglePost(rctx, pageID, false)
+	if err != nil {
+		return nil, model.NewAppError("GetPageComments",
+			"app.page.get_comments.page_not_found.app_error",
+			nil, "", http.StatusNotFound).Wrap(err)
+	}
+
+	// Validate it's actually a page
+	if page.Type != model.PostTypePage {
+		return nil, model.NewAppError("GetPageComments",
+			"app.page.get_comments.not_a_page.app_error",
+			nil, "post is not a page", http.StatusBadRequest)
+	}
+
+	// Get all comments with this page_id
+	// This includes both inline comments (RootId empty) and regular comments (RootId = pageID)
+	postList, appErr := a.Srv().Store().Post().GetCommentsForPage(pageID, false)
+	if appErr != nil {
+		return nil, model.NewAppError("GetPageComments",
+			"app.page.get_comments.store_error.app_error",
+			nil, "", http.StatusInternalServerError).Wrap(appErr)
+	}
+
+	// Convert PostList to array of posts (excluding the page itself)
+	comments := make([]*model.Post, 0)
+	for _, postID := range postList.Order {
+		if postID != pageID { // Exclude the page itself
+			if post, ok := postList.Posts[postID]; ok {
+				comments = append(comments, post)
+			}
+		}
+	}
+
+	return comments, nil
 }
 
 // CreatePageComment creates a top-level comment on a page
@@ -1428,16 +1607,19 @@ func (a *App) CreatePageComment(rctx request.CTX, pageID, message string, inline
 		"page_id": pageID,
 	}
 
-	// If inline_anchor is provided, this is an inline comment
+	// Inline comments are their own thread roots
+	// Regular page comments are replies to the page
+	rootID := pageID
 	if len(inlineAnchor) > 0 {
 		props["comment_type"] = "inline"
 		props["inline_anchor"] = inlineAnchor
+		rootID = ""
 	}
 
 	comment := &model.Post{
 		ChannelId: page.ChannelId,
 		UserId:    rctx.Session().UserId,
-		RootId:    pageID,
+		RootId:    rootID,
 		Message:   message,
 		Type:      model.PostTypePageComment,
 		Props:     props,
@@ -1495,10 +1677,17 @@ func (a *App) CreatePageCommentReply(rctx request.CTX, pageID, parentCommentID, 
 		return nil, chanErr
 	}
 
+	// Determine RootId: for inline comments, RootId is the comment itself (thread root)
+	// For regular page comments, RootId is the page
+	rootID := pageID
+	if parentComment.Props["comment_type"] == "inline" {
+		rootID = parentCommentID
+	}
+
 	reply := &model.Post{
 		ChannelId: page.ChannelId,
 		UserId:    rctx.Session().UserId,
-		RootId:    pageID,
+		RootId:    rootID,
 		Message:   message,
 		Type:      model.PostTypePageComment,
 		Props: model.StringInterface{
@@ -1525,9 +1714,15 @@ func (a *App) CreatePageCommentReply(rctx request.CTX, pageID, parentCommentID, 
 // from the standard RHS interface. This allows users to reply to page comments using
 // the normal Mattermost reply UI without special handling.
 //
-// Page comments have RootId = pageID (not empty), so when a user tries to reply to a
-// comment with RootId = commentID, standard validation fails. This function detects
-// that case and transforms:
+// Inline comments have empty RootId (they are thread roots themselves)
+// Regular page comments have RootId = pageID
+//
+// When a user tries to reply to an inline comment with RootId = commentID, this function:
+//   - Keeps reply.RootId = commentID (inline comment is the thread root)
+//   - Sets Props[parent_comment_id] = commentID
+//   - Sets Type = PostTypePageComment
+//
+// For regular page comments:
 //   - reply.RootId (commentID) -> reply.RootId (pageID)
 //   - Sets Props[parent_comment_id] = commentID
 //   - Sets Type = PostTypePageComment
@@ -1537,9 +1732,8 @@ func (a *App) TransformPageCommentReply(rctx request.CTX, post *model.Post, pare
 		return false
 	}
 
-	// Page comments have RootId = pageID
 	parentCommentID := post.RootId
-	pageID := parentComment.RootId
+	pageID, _ := parentComment.Props["page_id"].(string)
 
 	// Validate that the parent comment only replies to a page (one level nesting)
 	if parentComment.Props["parent_comment_id"] != nil {
@@ -1547,8 +1741,15 @@ func (a *App) TransformPageCommentReply(rctx request.CTX, post *model.Post, pare
 		return false
 	}
 
+	// For inline comments: RootId stays as the comment ID (thread root)
+	// For regular page comments: RootId becomes the page ID
+	rootID := pageID
+	if parentComment.Props["comment_type"] == "inline" {
+		rootID = parentCommentID
+	}
+
 	// Update the post structure for page comment reply
-	post.RootId = pageID
+	post.RootId = rootID
 	post.Type = model.PostTypePageComment
 	if post.Props == nil {
 		post.Props = make(model.StringInterface)
@@ -1558,7 +1759,7 @@ func (a *App) TransformPageCommentReply(rctx request.CTX, post *model.Post, pare
 
 	rctx.Logger().Debug("Transformed page comment reply structure",
 		mlog.String("original_root_id", parentCommentID),
-		mlog.String("new_root_id", pageID),
+		mlog.String("new_root_id", rootID),
 		mlog.String("parent_comment_id", parentCommentID))
 
 	return true
