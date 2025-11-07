@@ -5763,7 +5763,7 @@
   "signup_user_completed.userHelp": "You can use lowercase letters, numbers, periods, dashes, and underscores.",
   "signup_user_completed.usernameLength": "Usernames have to begin with a lowercase letter and be {min}-{max} characters long. You can use lowercase letters, numbers, periods, dashes, and underscores.",
   "signup_user_completed.validEmail": "Please enter a valid email address",
-  "signup.agreement": "By proceeding to create your account and use {siteName}, you agree to our <a1>Terms of Use</a1> and <a2>Privacy Policy</a2>.  If you do not agree, you cannot use {siteName}.",
+  "signup.agreement": "By proceeding to create your account and use {siteName}, you agree to our <termsOfUseLink>Terms of Use</termsOfUseLink> and <privacyPolicyLink>Privacy Policy</privacyPolicyLink>.  If you do not agree, you cannot use {siteName}.",
   "signup.ldap": "AD/LDAP Credentials",
   "signup.title": "Create Account | {siteName}",
   "single_image_view.copied_link_tooltip": "Copied",
