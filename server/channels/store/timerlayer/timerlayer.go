@@ -64,6 +64,7 @@ type TimerLayer struct {
 	StatusStore                     store.StatusStore
 	SystemStore                     store.SystemStore
 	TeamStore                       store.TeamStore
+	TemporaryPostStore              store.TemporaryPostStore
 	TermsOfServiceStore             store.TermsOfServiceStore
 	ThreadStore                     store.ThreadStore
 	TokenStore                      store.TokenStore
@@ -252,6 +253,10 @@ func (s *TimerLayer) System() store.SystemStore {
 
 func (s *TimerLayer) Team() store.TeamStore {
 	return s.TeamStore
+}
+
+func (s *TimerLayer) TemporaryPost() store.TemporaryPostStore {
+	return s.TemporaryPostStore
 }
 
 func (s *TimerLayer) TermsOfService() store.TermsOfServiceStore {
@@ -508,6 +513,11 @@ type TimerLayerSystemStore struct {
 
 type TimerLayerTeamStore struct {
 	store.TeamStore
+	Root *TimerLayer
+}
+
+type TimerLayerTemporaryPostStore struct {
+	store.TemporaryPostStore
 	Root *TimerLayer
 }
 
@@ -10854,6 +10864,70 @@ func (s *TimerLayerTeamStore) UserBelongsToTeams(userID string, teamIds []string
 	return result, err
 }
 
+func (s *TimerLayerTemporaryPostStore) Delete(rctx request.CTX, id string) error {
+	start := time.Now()
+
+	err := s.TemporaryPostStore.Delete(rctx, id)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TemporaryPostStore.Delete", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerTemporaryPostStore) DeleteExpired(rctx request.CTX, expireAt int64) error {
+	start := time.Now()
+
+	err := s.TemporaryPostStore.DeleteExpired(rctx, expireAt)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TemporaryPostStore.DeleteExpired", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerTemporaryPostStore) Get(rctx request.CTX, id string) (*model.TemporaryPost, error) {
+	start := time.Now()
+
+	result, err := s.TemporaryPostStore.Get(rctx, id)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TemporaryPostStore.Get", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerTemporaryPostStore) Save(rctx request.CTX, post *model.TemporaryPost) (*model.TemporaryPost, error) {
+	start := time.Now()
+
+	result, err := s.TemporaryPostStore.Save(rctx, post)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TemporaryPostStore.Save", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerTermsOfServiceStore) Get(id string, allowFromCache bool) (*model.TermsOfService, error) {
 	start := time.Now()
 
@@ -13602,6 +13676,7 @@ func New(childStore store.Store, metrics einterfaces.MetricsInterface) *TimerLay
 	newStore.StatusStore = &TimerLayerStatusStore{StatusStore: childStore.Status(), Root: &newStore}
 	newStore.SystemStore = &TimerLayerSystemStore{SystemStore: childStore.System(), Root: &newStore}
 	newStore.TeamStore = &TimerLayerTeamStore{TeamStore: childStore.Team(), Root: &newStore}
+	newStore.TemporaryPostStore = &TimerLayerTemporaryPostStore{TemporaryPostStore: childStore.TemporaryPost(), Root: &newStore}
 	newStore.TermsOfServiceStore = &TimerLayerTermsOfServiceStore{TermsOfServiceStore: childStore.TermsOfService(), Root: &newStore}
 	newStore.ThreadStore = &TimerLayerThreadStore{ThreadStore: childStore.Thread(), Root: &newStore}
 	newStore.TokenStore = &TimerLayerTokenStore{TokenStore: childStore.Token(), Root: &newStore}

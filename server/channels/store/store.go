@@ -98,6 +98,7 @@ type Store interface {
 	GetSchemaDefinition() (*model.SupportPacketDatabaseSchema, error)
 	ContentFlagging() ContentFlaggingStore
 	ReadReceipt() ReadReceiptStore
+	TemporaryPost() TemporaryPostStore
 }
 
 type RetentionPolicyStore interface {
@@ -1161,6 +1162,13 @@ type ReadReceiptStore interface {
 	DeleteByPost(rctx request.CTX, postID string) error
 	Get(rctx request.CTX, postID, userID string) (*model.ReadReceipt, error)
 	GetReadCountForPost(rctx request.CTX, postID string) (int64, error)
+}
+
+type TemporaryPostStore interface {
+	Save(rctx request.CTX, post *model.TemporaryPost) (*model.TemporaryPost, error)
+	Get(rctx request.CTX, id string) (*model.TemporaryPost, error)
+	Delete(rctx request.CTX, id string) error
+	DeleteExpired(rctx request.CTX, expireAt int64) error
 }
 
 // ChannelSearchOpts contains options for searching channels.
