@@ -72,7 +72,7 @@ var (
 	LvlSharedChannelServiceWarn             = Level{ID: 202, Name: "SharedChannelServiceWarn"}
 	LvlSharedChannelServiceMessagesInbound  = Level{ID: 203, Name: "SharedChannelServiceMsgInbound"}
 	LvlSharedChannelServiceMessagesOutbound = Level{ID: 204, Name: "SharedChannelServiceMsgOutbound"}
-	MlvlSharedChannelServiceDAll            = []Level{
+	MlvlSharedChannelServiceAll             = []Level{
 		LvlSharedChannelServiceDebug,
 		LvlSharedChannelServiceError,
 		LvlSharedChannelServiceWarn,
@@ -116,7 +116,7 @@ var (
 		StdAll,
 		MLvlRemoteClusterServiceAll,
 		MLvlLDAPAll,
-		MlvlSharedChannelServiceDAll,
+		MlvlSharedChannelServiceAll,
 		MlvlNotificationAll,
 	)
 )
