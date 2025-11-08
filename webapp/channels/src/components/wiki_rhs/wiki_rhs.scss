@@ -8,14 +8,14 @@
     &__header {
         display: flex;
         align-items: center;
-        padding: 16px 20px;
+        padding: 14px 14px 13px 20px;
         border-bottom: var(--border-default);
         gap: 8px;
 
         h2 {
             margin: 0;
             color: var(--center-channel-color);
-            font-size: 20px;
+            font-size: 16px;
             font-weight: 600;
         }
 
@@ -29,8 +29,9 @@
 
     &__page-title {
         margin-left: 8px;
+        margin-bottom: 2px;
         color: rgba(var(--center-channel-color-rgb), 0.75);
-        font-size: 14px;
+        font-size: 12px;
     }
 
     &__expand-btn,
@@ -107,7 +108,7 @@
 
         .nav-tabs {
             display: flex;
-            padding: 0 20px;
+            padding: 0 12px;
             border-bottom: var(--border-default);
             margin: 0;
 
@@ -115,15 +116,15 @@
                 margin: 0;
 
                 > a {
-                    padding: 12px 16px;
+                    padding: 6px 8px;
                     border: none;
-                    border-bottom: 2px solid transparent;
+                    border-bottom: 2px solid transparent !important;
                     margin: 0;
                     background: transparent;
                     color: rgba(var(--center-channel-color-rgb), 0.75);
-                    font-size: 14px;
-                    font-weight: 600;
                     transition: all 0.15s ease;
+                    font-size: 12px;
+                    font-weight: 600;
 
                     &:hover {
                         border-color: transparent;
