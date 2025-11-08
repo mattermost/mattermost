@@ -108,7 +108,7 @@ $radius-sm: 4px;
     height: $search-height;
     flex-shrink: 0;
     align-items: center;
-    padding: 0 $spacing-md;
+    padding: 0 $spacing-sm;
     border-radius: $radius-sm;
     margin: $spacing-sm 0 $spacing-md 0;
     background: rgba(var(--center-channel-text-rgb), 0.08);
@@ -137,13 +137,15 @@ $radius-sm: 4px;
         outline: none;
 
         &::placeholder {
-            color: rgba(var(--center-channel-text-rgb), 0.64);
+            color: var(--center-channel-color);
         }
     }
 }
 
 .PagesHierarchyPanel__clearSearch {
     display: flex;
+    position: absolute;
+    right: 18px;
     width: 20px;
     height: 20px;
     align-items: center;
@@ -151,7 +153,7 @@ $radius-sm: 4px;
     padding: 0;
     border: none;
     background: transparent;
-    color: $node-text-muted;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
     cursor: pointer;
 
     &:hover {

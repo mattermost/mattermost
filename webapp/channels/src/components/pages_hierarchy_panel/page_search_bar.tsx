@@ -30,7 +30,7 @@ const PageSearchBar = ({value, placeholder = 'Find pages...', onChange}: Props) 
                     aria-label='Clear search'
                     data-testid='pages-search-clear'
                 >
-                    <i className='icon-close'/>
+                    <i className='icon icon-close-circle'/>
                 </button>
             )}
         </div>
