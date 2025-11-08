@@ -20,6 +20,16 @@
 
     &__tab-wrapper {
         display: flex;
+
+        &--wiki {
+            position: relative;
+
+            &:hover {
+                .wiki-tab__menu {
+                    visibility: visible;
+                }
+            }
+        }
     }
 
     &__tab-actions {
@@ -58,9 +68,14 @@
 }
 
 .wiki-tab__menu {
+    position: absolute;
+    top: 6px;
+    right: -6px;
     display: flex;
     align-items: center;
     padding-right: 4px;
+    background: var(--center-channel-bg);
+    visibility: hidden;
 }
 
 .wiki-tab__menu-button {

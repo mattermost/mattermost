@@ -3,8 +3,8 @@
 
 // Import design tokens
 $node-height: 32px;
-$node-hover-bg: rgba(20, 93, 191, 0.08);
-$node-selected-bg: rgba(20, 93, 191, 0.16);
+$node-hover-bg: rgba(var(--center-channel-text-rgb), 0.08);
+$node-selected-bg: rgba(var(--button-bg-rgb), 0.12);
 $node-text: var(--center-channel-text);
 $node-text-muted: rgba(var(--center-channel-text-rgb), 0.75);
 $radius-sm: 4px;
@@ -35,6 +35,11 @@ $radius-sm: 4px;
 
         .PageTreeNode__title {
             font-weight: 600;
+            color: var(--link-color);
+        }
+
+        .PageTreeNode__icon {
+            color: var(--link-color);
         }
     }
 }

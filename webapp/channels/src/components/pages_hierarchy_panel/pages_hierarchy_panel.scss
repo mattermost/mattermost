@@ -11,11 +11,11 @@ $node-base-padding: 16px;
 
 // Colors (from Figma)
 $sidebar-bg: var(--center-channel-bg);
-$sidebar-border: rgba(63, 67, 80, 0.12);
-$node-hover-bg: rgba(20, 93, 191, 0.08);
-$node-selected-bg: rgba(20, 93, 191, 0.16);
+$sidebar-border: var(--border-default);
+$node-hover-bg: rgba(var(--center-channel-text-rgb), 0.08);
+$node-selected-bg: rgba(var(--button-bg-rgb), 0.08);
 $node-text: var(--center-channel-text);
-$node-text-muted: rgba(var(--center-channel-text-rgb), 0.56);
+$node-text-muted: rgba(var(--center-channel-text-rgb), 0.75);
 
 // Shadows
 $elevation-2: 0px 4px 6px rgba(0, 0, 0, 0.12);
