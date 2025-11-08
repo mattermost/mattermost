@@ -6,6 +6,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useHistory} from 'react-router-dom';
 
+import {Tag, TagGroup} from '@mattermost/design-system';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -16,8 +17,6 @@ import ChannelInviteModal from 'components/channel_invite_modal';
 import useAccessControlAttributes, {EntityType} from 'components/common/hooks/useAccessControlAttributes';
 import ExternalLink from 'components/external_link';
 import MoreDirectChannels from 'components/more_direct_channels';
-import AlertTag from 'components/widgets/tag/alert_tag';
-import TagGroup from 'components/widgets/tag/tag_group';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
 
@@ -249,10 +248,11 @@ export default function ChannelMembersRHS({
                             <TagGroup>
                                 {structuredAttributes.flatMap((attribute) =>
                                     attribute.values.map((value) => (
-                                        <AlertTag
+                                        <Tag
                                             key={`${attribute.name}-${value}`}
                                             tooltipTitle={formatAttributeName(attribute.name)}
                                             text={value}
+                                            size='sm'
                                         />
                                     )),
                                 )}

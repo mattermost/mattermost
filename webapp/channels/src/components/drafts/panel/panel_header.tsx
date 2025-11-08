@@ -5,11 +5,11 @@ import React, {useMemo} from 'react';
 import type {ComponentProps} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {SyncIcon} from '@mattermost/compass-icons/components';
+import {AlertOutlineIcon, SyncIcon} from '@mattermost/compass-icons/components';
+import {Tag} from '@mattermost/design-system';
 import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 
 import Timestamp, {RelativeRanges} from 'components/timestamp';
-import Tag from 'components/widgets/tag/tag';
 
 import './panel_header.scss';
 import {isToday} from 'utils/datetime';
@@ -113,7 +113,7 @@ function PanelHeader({
                             text={error}
                             variant={'danger'}
                             uppercase={true}
-                            icon={'alert-outline'}
+                            icon={<AlertOutlineIcon/>}
                         />
                     )}
                 </div>

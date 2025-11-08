@@ -4,12 +4,12 @@
 import classNames from 'classnames';
 import React from 'react';
 
+import {Tag} from '@mattermost/design-system';
 import WithTooltip from '@mattermost/design-system/src/components/primitives/with_tooltip';
 import type {MarketplaceLabel} from '@mattermost/types/marketplace';
 
 import ExternalLink from 'components/external_link';
 import PluginIcon from 'components/widgets/icons/plugin_icon';
-import Tag from 'components/widgets/tag/tag';
 
 // Label renders a tag showing a name and a description in a tooltip.
 // If a URL is provided, clicking on the tag will open the URL in a new tab.

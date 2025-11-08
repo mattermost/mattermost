@@ -10,6 +10,7 @@ import {components} from 'react-select';
 import type {FormatOptionLabelMeta, InputActionMeta, InputProps, Options, StylesConfig, SelectInstance, MultiValue, SingleValue, OptionsOrGroups, GroupBase, MultiValueRemoveProps} from 'react-select';
 import AsyncCreatable from 'react-select/async-creatable';
 
+import {BotTag} from '@mattermost/design-system';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
@@ -17,12 +18,11 @@ import {isEmail} from 'mattermost-redux/utils/helpers';
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import GuestTag from 'components/guest_tag';
 import CloseCircleSolidIcon from 'components/widgets/icons/close_circle_solid_icon';
 import MailIcon from 'components/widgets/icons/mail_icon';
 import MailPlusIcon from 'components/widgets/icons/mail_plus_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
-import BotTag from 'components/widgets/tag/bot_tag';
-import GuestTag from 'components/widgets/tag/guest_tag';
 import Avatar from 'components/widgets/users/avatar';
 
 import {getDisplayName, getLongDisplayNameParts, imageURLForUser} from 'utils/utils';

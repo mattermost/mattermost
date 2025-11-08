@@ -5,14 +5,14 @@ import React from 'react';
 import {useIntl} from 'react-intl';
 import styled from 'styled-components';
 
+import {BotTag} from '@mattermost/design-system';
 import type {Channel} from '@mattermost/types/channels';
 
 import {Client4} from 'mattermost-redux/client';
 
+import GuestTag from 'components/guest_tag';
 import Markdown from 'components/markdown';
 import ProfilePicture from 'components/profile_picture';
-import BotTag from 'components/widgets/tag/bot_tag';
-import GuestTag from 'components/widgets/tag/guest_tag';
 
 import type {DMUser} from './channel_info_rhs';
 import EditableArea from './components/editable_area';

@@ -11,7 +11,7 @@ import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import {displayUsername, isGuest} from 'mattermost-redux/utils/user_utils';
 
-import GuestTag from 'components/widgets/tag/guest_tag';
+import GuestTag from 'components/guest_tag';
 
 type Props = {
     dmUser?: UserProfile;

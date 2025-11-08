@@ -6,13 +6,14 @@ import {defineMessages, FormattedMessage} from 'react-intl';
 
 import type {AutoTranslationSettings} from '@mattermost/types/config';
 
+import {Toggle} from '@mattermost/design-system';
+
 import DropdownSetting from 'components/admin_console/dropdown_setting';
 import {
     AdminSection,
     SectionContent,
     SectionHeader,
 } from 'components/admin_console/system_properties/controls';
-import Toggle from 'components/toggle';
 
 import AutoTranslationInfo from './auto_translation_info';
 import LibreTranslateSettings from './libreTranslate_settings';

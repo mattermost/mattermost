@@ -4,10 +4,10 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
+import {AlertCircleOutlineIcon, AlertOutlineIcon} from '@mattermost/compass-icons/components';
+import {Tag} from '@mattermost/design-system';
+import type {TagSize} from '@mattermost/design-system';
 import {PostPriority} from '@mattermost/types/posts';
-
-import Tag from 'components/widgets/tag/tag';
-import type {TagSize} from 'components/widgets/tag/tag';
 
 type Props = {
     priority?: PostPriority|'';
@@ -26,7 +26,7 @@ export default function PriorityLabel({
             <Tag
                 {...rest}
                 variant='danger'
-                icon={'alert-outline'}
+                icon={<AlertOutlineIcon/>}
                 text={formatMessage({id: 'post_priority.priority.urgent', defaultMessage: 'Urgent'})}
                 uppercase={true}
                 data-testid='post-priority-label'
@@ -39,7 +39,7 @@ export default function PriorityLabel({
             <Tag
                 {...rest}
                 variant='info'
-                icon={'alert-circle-outline'}
+                icon={<AlertCircleOutlineIcon/>}
                 text={formatMessage({id: 'post_priority.priority.important', defaultMessage: 'Important'})}
                 uppercase={true}
                 data-testid='post-priority-label'

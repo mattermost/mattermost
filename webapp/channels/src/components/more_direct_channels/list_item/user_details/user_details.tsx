@@ -5,6 +5,7 @@ import React, {useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector} from 'react-redux';
 
+import {BotTag} from '@mattermost/design-system';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
@@ -12,10 +13,9 @@ import {getRemoteDisplayName} from 'mattermost-redux/selectors/entities/shared_c
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
+import GuestTag from 'components/guest_tag';
 import ProfilePicture from 'components/profile_picture';
 import SharedUserIndicator from 'components/shared_user_indicator';
-import BotTag from 'components/widgets/tag/bot_tag';
-import GuestTag from 'components/widgets/tag/guest_tag';
 
 import {displayEntireNameForUser} from 'utils/utils';
 

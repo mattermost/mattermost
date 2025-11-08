@@ -5,6 +5,8 @@ import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage} from 'react-intl';
 
+import {SkuTag} from '@mattermost/design-system';
+import type {LicenseSkus} from '@mattermost/design-system';
 import type {AnalyticsState} from '@mattermost/types/admin';
 import type {CloudCustomer} from '@mattermost/types/cloud';
 import type {ClientLicense} from '@mattermost/types/config';
@@ -14,9 +16,7 @@ import AlertBanner from 'components/alert_banner';
 import ExternalLink from 'components/external_link';
 import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
-import SkuTag from 'components/widgets/tag/sku_tag';
 
-import type {LicenseSkus} from 'utils/constants';
 import {AboutLinks, LicenseLinks} from 'utils/constants';
 import {goToMattermostContactSalesForm} from 'utils/contact_support_sales';
 

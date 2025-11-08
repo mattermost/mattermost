@@ -5,12 +5,12 @@ import React from 'react';
 import {components} from 'react-select';
 import type {OptionProps} from 'react-select';
 
+import {BotTag} from '@mattermost/design-system';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
-import BotTag from 'components/widgets/tag/bot_tag';
-import GuestTag from 'components/widgets/tag/guest_tag';
+import GuestTag from 'components/guest_tag';
 import Avatar from 'components/widgets/users/avatar/avatar';
 
 import * as Utils from 'utils/utils';

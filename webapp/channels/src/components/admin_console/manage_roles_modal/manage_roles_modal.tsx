@@ -5,7 +5,7 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import {RadioInput} from '@mattermost/design-system';
+import {RadioInput, BotTag} from '@mattermost/design-system';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
@@ -14,7 +14,6 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
 import ExternalLink from 'components/external_link';
-import BotTag from 'components/widgets/tag/bot_tag';
 import Avatar from 'components/widgets/users/avatar';
 
 import {DeveloperLinks} from 'utils/constants';

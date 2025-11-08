@@ -4,6 +4,7 @@
 import React from 'react';
 import {FormattedMessage, defineMessage} from 'react-intl';
 
+import {Tag} from '@mattermost/design-system';
 import type {Role} from '@mattermost/types/roles';
 import type {UserProfile, UsersStats, GetFilteredUsersStatsOpts} from '@mattermost/types/users';
 
@@ -14,7 +15,6 @@ import UserGridName from 'components/admin_console/user_grid/user_grid_name';
 import UserGridRemove from 'components/admin_console/user_grid/user_grid_remove';
 import ToggleModalButton from 'components/toggle_modal_button';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
-import Tag from 'components/widgets/tag/tag';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
 

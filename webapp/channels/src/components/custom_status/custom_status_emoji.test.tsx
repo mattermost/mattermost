@@ -13,9 +13,28 @@ import CustomStatusEmoji from './custom_status_emoji';
 
 jest.mock('mattermost-redux/selectors/entities/timezone');
 jest.mock('selectors/views/custom_status');
+jest.mock('@mattermost/design-system', () => {
+    const actual = jest.requireActual('@mattermost/design-system');
+    return {
+        ...actual,
+
+        // Mock tags that use Redux to avoid state setup issues in tests
+        GuestTag: () => null,
+        BotTag: () => null,
+    };
+});
 
 describe('components/custom_status/custom_status_emoji', () => {
-    const store = mockStore({});
+    const store = mockStore({
+        entities: {
+            general: {
+                config: {},
+            },
+            emojis: {
+                customEmoji: {},
+            },
+        },
+    });
 
     const getCustomStatus = () => {
         return null;
