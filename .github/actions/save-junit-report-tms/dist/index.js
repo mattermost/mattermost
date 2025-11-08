@@ -19761,22 +19761,22 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
       process.stdout.write(message + os.EOL);
     }
     exports2.info = info3;
-    function startGroup(name) {
+    function startGroup2(name) {
       (0, command_1.issue)("group", name);
     }
-    exports2.startGroup = startGroup;
-    function endGroup() {
+    exports2.startGroup = startGroup2;
+    function endGroup2() {
       (0, command_1.issue)("endgroup");
     }
-    exports2.endGroup = endGroup;
+    exports2.endGroup = endGroup2;
     function group(name, fn) {
       return __awaiter(this, void 0, void 0, function* () {
-        startGroup(name);
+        startGroup2(name);
         let result;
         try {
           result = yield fn();
         } finally {
-          endGroup();
+          endGroup2();
         }
         return result;
       });
@@ -21542,7 +21542,7 @@ function newTestExecution(testCaseKey, statusName, executionTime, comment) {
     comment
   };
 }
-async function getTestData(xmlFile, config) {
+async function getTestData(junitFile, config) {
   const testCycle = {
     projectKey: config.projectKey,
     name: `mmctl: E2E Tests with ${config.branch}, ${config.buildImage}, ${config.buildNumber}`,
@@ -21551,7 +21551,7 @@ async function getTestData(xmlFile, config) {
     folderId: config.zephyrFolderId
   };
   const testExecutions = [];
-  const data = await fs.readFile(xmlFile, "utf8");
+  const data = await fs.readFile(junitFile, "utf8");
   const parser = new import_fast_xml_parser.XMLParser({
     ignoreAttributes: false,
     attributeNamePrefix: "@_"
@@ -21559,17 +21559,27 @@ async function getTestData(xmlFile, config) {
   const result = parser.parse(data);
   let totalTests = 0;
   let totalFailures = 0;
+  let totalErrors = 0;
+  let totalSkipped = 0;
   let totalTime = 0;
   let earliestTimestamp = null;
   let latestTimestamp = null;
+  const testKeysPassed = /* @__PURE__ */ new Set();
+  const testKeysFailed = /* @__PURE__ */ new Set();
+  const testKeysSkipped = /* @__PURE__ */ new Set();
+  let totalTestKeyOccurrences = 0;
   if (result?.testsuites?.testsuite) {
     const testsuites = Array.isArray(result.testsuites.testsuite) ? result.testsuites.testsuite : [result.testsuites.testsuite];
     for (const testsuite of testsuites) {
       const tests = parseInt(testsuite["@_tests"] || "0", 10);
       const failures = parseInt(testsuite["@_failures"] || "0", 10);
+      const errors = parseInt(testsuite["@_errors"] || "0", 10);
+      const skipped = parseInt(testsuite["@_skipped"] || "0", 10);
       const time = parseFloat(testsuite["@_time"] || "0");
       totalTests += tests;
       totalFailures += failures;
+      totalErrors += errors;
+      totalSkipped += skipped;
       totalTime += time;
       const timestamp = testsuite["@_timestamp"];
       if (timestamp) {
@@ -21589,16 +21599,29 @@ async function getTestData(xmlFile, config) {
           const testName = testcase["@_name"];
           const testTime = testcase["@_time"] || 0;
           const hasFailure = testcase.failure !== void 0;
+          const hasSkipped = testcase.skipped !== void 0;
           if (testName) {
             const match = testName.match(reTestKey);
             if (match !== null) {
               const testKey = match[0];
+              totalTestKeyOccurrences++;
               testCycle.description += `* ${testKey} - ${testTime}s
 `;
+              let statusName;
+              if (hasSkipped) {
+                statusName = "Not Executed";
+                testKeysSkipped.add(testKey);
+              } else if (hasFailure) {
+                statusName = "Fail";
+                testKeysFailed.add(testKey);
+              } else {
+                statusName = "Pass";
+                testKeysPassed.add(testKey);
+              }
               testExecutions.push(
                 newTestExecution(
                   testKey,
-                  hasFailure ? "Fail" : "Pass",
+                  statusName,
                   parseFloat(testTime),
                   testName
                 )
@@ -21609,6 +21632,38 @@ async function getTestData(xmlFile, config) {
       }
     }
   }
+  core.startGroup("JUnit report summary");
+  core.info(`  - Total tests: ${totalTests}`);
+  core.info(`  - Failures: ${totalFailures}`);
+  core.info(`  - Errors: ${totalErrors}`);
+  core.info(`  - Skipped: ${totalSkipped}`);
+  const timeInMinutes = (totalTime / 60).toFixed(1);
+  core.info(`  - Duration: ${totalTime.toFixed(1)}s (~${timeInMinutes}m)`);
+  core.endGroup();
+  core.startGroup("Extracted MM-T test cases");
+  const uniqueTestKeys = /* @__PURE__ */ new Set([
+    ...testKeysPassed,
+    ...testKeysFailed,
+    ...testKeysSkipped
+  ]);
+  core.info(`  - Total test key occurrences: ${totalTestKeyOccurrences}`);
+  core.info(`  - Unique test keys: ${uniqueTestKeys.size}`);
+  core.info(`  - Passed: ${testKeysPassed.size} test keys`);
+  if (testKeysFailed.size > 0) {
+    core.info(
+      `  - Failed: ${testKeysFailed.size} test keys (${Array.from(testKeysFailed).join(", ")})`
+    );
+  } else {
+    core.info(`  - Failed: ${testKeysFailed.size} test keys`);
+  }
+  if (testKeysSkipped.size > 0) {
+    core.info(
+      `  - Skipped: ${testKeysSkipped.size} test keys (${Array.from(testKeysSkipped).join(", ")})`
+    );
+  } else {
+    core.info(`  - Skipped: ${testKeysSkipped.size} test keys`);
+  }
+  core.endGroup();
   const passedTests = totalTests - totalFailures;
   const passRate = totalTests > 0 ? (passedTests / totalTests * 100).toFixed(1) : "0";
   testCycle.description = `### Test Summary
@@ -21650,12 +21705,23 @@ async function getTestData(xmlFile, config) {
   return {
     testCycle,
     testExecutions,
-    xmlStats: {
+    junitStats: {
       totalTests,
       totalFailures,
+      totalErrors,
+      totalSkipped,
       totalPassed: passedTests,
       passRate,
       totalTime
+    },
+    testKeyStats: {
+      totalOccurrences: totalTestKeyOccurrences,
+      uniqueCount: uniqueTestKeys.size,
+      passedCount: testKeysPassed.size,
+      failedCount: testKeysFailed.size,
+      skippedCount: testKeysSkipped.size,
+      failedKeys: Array.from(testKeysFailed),
+      skippedKeys: Array.from(testKeysSkipped)
     }
   };
 }
@@ -21683,22 +21749,18 @@ async function saveMmctlReport() {
     throw new Error("zephyr-api-key is required");
   }
   core.info(`Reading report file from: ${reportPath}`);
-  const { testCycle, testExecutions, xmlStats } = await getTestData(
-    reportPath,
-    {
-      projectKey,
-      zephyrFolderId,
-      branch,
-      buildImage,
-      buildNumber,
-      githubRunUrl
-    }
-  );
-  core.info(`Test Cycle: ${testCycle.name}`);
-  core.info(
-    `Total tests in XML Report: ${xmlStats.totalTests} (${xmlStats.totalPassed} passed, ${xmlStats.totalFailures} failed)`
-  );
-  core.info(`MM-T test cases extracted: ${testExecutions.length}`);
+  core.info(`  - Branch: ${branch}`);
+  core.info(`  - Build Image: ${buildImage}`);
+  core.info(`  - Build Number: ${buildNumber}`);
+  const { testCycle, testExecutions, junitStats, testKeyStats } = await getTestData(reportPath, {
+    projectKey,
+    zephyrFolderId,
+    branch,
+    buildImage,
+    buildNumber,
+    githubRunUrl
+  });
+  core.startGroup("Creating test cycle and saving test executions in Zephyr");
   const createCycleResponse = await fetch(`${zephyrCloudApiUrl}/testcycles`, {
     method: "POST",
     headers: {
@@ -21716,7 +21778,6 @@ async function saveMmctlReport() {
   }
   const createdTestCycle = await createCycleResponse.json();
   core.info(`Created test cycle: ${createdTestCycle.key}`);
-  core.setOutput("test-cycle-key", createdTestCycle.key);
   async function saveTestExecution(testExecution, retries = 3) {
     testExecution.projectKey = projectKey;
     testExecution.testCycleKey = createdTestCycle.key;
@@ -21737,7 +21798,10 @@ async function saveMmctlReport() {
           const errorBody = await response.text();
           throw new Error(`HTTP ${response.status}: ${errorBody}`);
         }
-        await response.json();
+        const responseData = await response.json();
+        core.info(
+          `Saved test execution: ${testExecution.testCaseKey} (${testExecution.statusName}) - Response: ${JSON.stringify(responseData)}`
+        );
         return;
       } catch (error2) {
         const errorMsg = error2 instanceof Error ? error2.message : String(error2);
@@ -21757,17 +21821,31 @@ async function saveMmctlReport() {
       }
     }
   }
-  const promises = testExecutions.map(
-    (testExecution) => saveTestExecution(testExecution).then(() => ({
+  const statusOrder = {
+    Pass: 1,
+    Fail: 2,
+    "Not Executed": 3
+  };
+  const promises = testExecutions.sort((a, b) => {
+    const statusA = statusOrder[a.statusName] || 999;
+    const statusB = statusOrder[b.statusName] || 999;
+    const statusComparison = statusA - statusB;
+    if (statusComparison !== 0) {
+      return statusComparison;
+    }
+    return a.testCaseKey.localeCompare(b.testCaseKey);
+  }).map((testExecution) => {
+    return saveTestExecution(testExecution).then(() => ({
       success: true,
       testCaseKey: testExecution.testCaseKey
     })).catch((error2) => ({
       success: false,
       testCaseKey: testExecution.testCaseKey,
       error: error2.message
-    }))
-  );
+    }));
+  });
   const results = await Promise.all(promises);
+  core.endGroup();
   let successCount = 0;
   let failureCount = 0;
   const savedTestKeys = [];
@@ -21788,42 +21866,61 @@ async function saveMmctlReport() {
   const uniqueSavedTestKeys = new Set(savedTestKeys);
   const uniqueFailedTestKeys = new Set(failedTestKeys);
   if (process.env.GITHUB_STEP_SUMMARY) {
-    const summary2 = core.summary.addHeading("mmctl Test Report", 2).addHeading("XML Report Summary (All Tests)", 3).addRaw(`**Total Tests:** ${xmlStats.totalTests}
-
-`).addRaw(`**Passed:** ${xmlStats.totalPassed}
-
-`).addRaw(`**Failed:** ${xmlStats.totalFailures}
-
-`).addRaw(`**Pass Rate:** ${xmlStats.passRate}%
-
-`).addRaw(`**Duration:** ${xmlStats.totalTime.toFixed(1)}s
-
-`).addRaw(`**Branch:** ${branch}
-
-`).addRaw(`**Build Image:** ${buildImage}
-
-`).addRaw(`**Build Number:** ${buildNumber}
-
-`).addHeading("Zephyr Scale Results", 3).addRaw(
-      `**Test Cycle:** ${createdTestCycle.key} ${testCycle.name}
+    const timeInMinutes = (junitStats.totalTime / 60).toFixed(1);
+    const zephyrUrl = `https://mattermost.atlassian.net/projects/${projectKey}?selectedItem=com.atlassian.plugins.atlassian-connect-plugin:com.kanoah.test-manager__main-project-page#!/v2/testCycle/${createdTestCycle.key}`;
+    const summary2 = core.summary.addHeading("mmctl: E2E Test Report", 2).addHeading("JUnit report summary", 3).addRaw(`  - Total tests: ${junitStats.totalTests}
+`).addRaw(`  - Failures: ${junitStats.totalFailures}
+`).addRaw(`  - Errors: ${junitStats.totalErrors}
+`).addRaw(`  - Skipped: ${junitStats.totalSkipped}
+`).addRaw(
+      `  - Duration: ${junitStats.totalTime.toFixed(1)}s (~${timeInMinutes}m)
 
 `
-    ).addRaw(
-      `**MM-T test cases extracted:** ${testExecutions.length}
+    ).addHeading("Extracted MM-T test cases", 3).addRaw(
+      `  - Total test key occurrences: ${testKeyStats.totalOccurrences}
+`
+    ).addRaw(`  - Unique test keys: ${testKeyStats.uniqueCount}
+`).addRaw(`  - Passed: ${testKeyStats.passedCount} test keys
+`);
+    if (testKeyStats.failedCount > 0) {
+      summary2.addRaw(
+        `  - Failed: ${testKeyStats.failedCount} test keys (${testKeyStats.failedKeys.join(", ")})
+`
+      );
+    } else {
+      summary2.addRaw(
+        `  - Failed: ${testKeyStats.failedCount} test keys
+`
+      );
+    }
+    if (testKeyStats.skippedCount > 0) {
+      summary2.addRaw(
+        `  - Skipped: ${testKeyStats.skippedCount} test keys (${testKeyStats.skippedKeys.join(", ")})
 
 `
-    ).addRaw(
-      `**Successfully saved:** ${successCount} executions (${uniqueSavedTestKeys.size} unique test keys)
+      );
+    } else {
+      summary2.addRaw(
+        `  - Skipped: ${testKeyStats.skippedCount} test keys
 
 `
-    ).addRaw(
-      `**Failed to save:** ${failureCount} executions (${uniqueFailedTestKeys.size} unique test keys)
-
+      );
+    }
+    summary2.addHeading("Zephyr Scale Results", 3).addRaw(`  - Test cycle key: ${createdTestCycle.key}
+`).addRaw(`  - Test cycle name: ${testCycle.name}
+`).addRaw(
+      `  - Successfully saved: ${successCount} executions (${uniqueSavedTestKeys.size} unique test keys)
 `
-    ).addLink(
-      "View in Zephyr Scale",
-      `https://mattermost.atlassian.net/projects/${projectKey}?selectedItem=com.atlassian.plugins.atlassian-connect-plugin:com.kanoah.test-manager__main-project-page#!/v2/testCycle/${createdTestCycle.key}`
     );
+    if (failureCount > 0) {
+      summary2.addRaw(
+        `  - Failed to save: ${failureCount} executions (${uniqueFailedTestKeys.size} unique test keys)
+`
+      );
+    }
+    summary2.addRaw(`  - [View in Zephyr](${zephyrUrl})
+
+`);
     if (savedTestKeys.length > 0) {
       summary2.addHeading("Saved Test Cases (Details)", 4).addRaw(`**Total Executions:** ${savedTestKeys.length}
 
@@ -21859,51 +21956,35 @@ async function saveMmctlReport() {
 `);
     }
     await summary2.write();
-  } else {
-    core.info("=== XML Report Summary (All Tests) ===");
-    core.info(`Total Tests: ${xmlStats.totalTests}`);
-    core.info(`Passed: ${xmlStats.totalPassed}`);
-    core.info(`Failed: ${xmlStats.totalFailures}`);
-    core.info(`Pass Rate: ${xmlStats.passRate}%`);
-    core.info(`Duration: ${xmlStats.totalTime.toFixed(1)}s`);
-    core.info(`Branch: ${branch}`);
-    core.info(`Build Image: ${buildImage}`);
-    core.info(`Build Number: ${buildNumber}`);
-    core.info("");
-    core.info("=== Zephyr Scale Results ===");
-    core.info(`Test Cycle Key: ${createdTestCycle.key}`);
-    core.info(`Test Cycle Name: ${testCycle.name}`);
-    core.info(`MM-T Test Cases Extracted: ${testExecutions.length}`);
-    core.info(
-      `Successfully Saved: ${successCount} executions (${uniqueSavedTestKeys.size} unique test keys)`
-    );
-    core.info(
-      `Failed to Save: ${failureCount} executions (${uniqueFailedTestKeys.size} unique test keys)`
-    );
-    core.info("");
-    core.info(
-      `View in Zephyr: https://mattermost.atlassian.net/projects/${projectKey}?selectedItem=com.atlassian.plugins.atlassian-connect-plugin:com.kanoah.test-manager__main-project-page#!/v2/testCycle/${createdTestCycle.key}`
-    );
-    core.info("");
-    core.info(
-      `Saved Test Keys (${savedTestKeys.length} total, ${uniqueSavedTestKeys.size} unique): ${savedTestKeys.join(", ")}`
-    );
-    if (failedTestKeys.length > 0) {
-      core.info(
-        `Failed Test Keys (${failedTestKeys.length} total, ${uniqueFailedTestKeys.size} unique): ${failedTestKeys.join(", ")}`
-      );
-    }
   }
-  core.setOutput("test-cycle-key", createdTestCycle.key);
-  core.setOutput("test-cycle-success-count", successCount.toString());
-  core.setOutput("test-cycle-failure-count", failureCount.toString());
-  core.setOutput("xml-total-tests", xmlStats.totalTests.toString());
-  core.setOutput("xml-total-passed", xmlStats.totalPassed.toString());
-  core.setOutput("xml-total-failed", xmlStats.totalFailures.toString());
-  core.setOutput("xml-pass-rate", xmlStats.passRate);
-  core.setOutput("xml-duration", xmlStats.totalTime.toFixed(1));
-  core.setOutput("unique-saved-keys", uniqueSavedTestKeys.size.toString());
-  core.setOutput("unique-failed-keys", uniqueFailedTestKeys.size.toString());
+  core.startGroup("Zephyr Scale Results");
+  core.info(`Test cycle key: ${createdTestCycle.key}`);
+  core.info(`Test cycle name: ${testCycle.name}`);
+  core.info(
+    `Successfully saved: ${successCount} executions (${uniqueSavedTestKeys.size} unique test keys)`
+  );
+  if (failureCount > 0) {
+    core.info(
+      `Failed to save: ${failureCount} executions (${uniqueFailedTestKeys.size} unique test keys)`
+    );
+  }
+  core.info(
+    `View in Zephyr: https://mattermost.atlassian.net/projects/${projectKey}?selectedItem=com.atlassian.plugins.atlassian-connect-plugin:com.kanoah.test-manager__main-project-page#!/v2/testCycle/${createdTestCycle.key}`
+  );
+  if (failedTestKeys.length > 0) {
+    core.info(
+      `Failed test keys (${failedTestKeys.length} total, ${uniqueFailedTestKeys.size} unique): ${failedTestKeys.join(", ")}`
+    );
+  }
+  core.endGroup();
+  core.setOutput("junit-total-tests", junitStats.totalTests);
+  core.setOutput("junit-total-passed", junitStats.totalPassed);
+  core.setOutput("junit-total-failed", junitStats.totalFailures);
+  core.setOutput("junit-pass-rate", junitStats.passRate);
+  core.setOutput("junit-duration-seconds", junitStats.totalTime.toFixed(1));
+  core.setOutput("test-cycle", createdTestCycle.key);
+  core.setOutput("test-keys-execution-count", testExecutions.length);
+  core.setOutput("test-keys-unique-count", uniqueSavedTestKeys.size);
 }
 
 // src/index.ts

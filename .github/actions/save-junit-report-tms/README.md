@@ -1,6 +1,6 @@
-# Save mmctl Test Report Action
+# Save JUnit Test Report to TMS Action
 
-GitHub Action to save mmctl test reports to Zephyr Scale for test management.
+GitHub Action to save JUnit test reports to Zephyr Scale Test Management System.
 
 ## Usage
 
@@ -13,8 +13,8 @@ This action should be used after downloading the test report artifact from a pre
     name: mmctl-test-report
     path: ./test-reports
 
-- name: Save mmctl test report to Zephyr
-  uses: ./.github/actions/save-mmctl-test-report
+- name: Save JUnit test report to Zephyr
+  uses: ./.github/actions/save-junit-report-tms
   with:
     report-path: ./test-reports/report.xml
     zephyr-api-key: ${{ secrets.ZEPHYR_API_KEY }}
@@ -91,7 +91,7 @@ jobs:
           path: ./test-reports
 
       - name: Save to Zephyr Scale
-        uses: ./.github/actions/save-mmctl-test-report
+        uses: ./.github/actions/save-junit-report-tms
         with:
           report-path: ./test-reports/report.xml
           zephyr-api-key: ${{ secrets.ZEPHYR_API_KEY }}

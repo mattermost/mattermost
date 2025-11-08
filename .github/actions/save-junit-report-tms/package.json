@@ -1,5 +1,5 @@
 {
-  "name": "save-mmctl-test-report-action",
+  "name": "save-junit-report-tms",
   "private": true,
   "version": "0.1.0",
   "main": "dist/index.js",

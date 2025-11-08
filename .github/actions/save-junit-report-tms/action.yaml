@@ -1,5 +1,5 @@
-name: Save mmctl Test Report
-description: Save mmctl test report to Zephyr Scale
+name: Save JUnit Test Report to TMS
+description: Save JUnit test report to Zephyr Scale Test Management System
 author: Mattermost
 
 # Define your inputs here.
