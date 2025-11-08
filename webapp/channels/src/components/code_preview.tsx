@@ -35,7 +35,7 @@ const CodePreview = ({
         highlighted: '',
     });
 
-    const [status, setStatus] = useState<'success' | 'loading' | 'fail'>('success');
+    const [status, setStatus] = useState<'success' | 'loading' | 'fail'>('loading');
     const [prevFileUrl, setPrevFileUrl] = useState<string | undefined>();
 
     useEffect(() => {
@@ -92,6 +92,12 @@ const CodePreview = ({
             }
             try {
                 const data = await fetch(fileUrl);
+                if (!data.ok) {
+                    // Handle HTTP error responses (including 423 Locked from plugin rejection)
+                    console.error('[CodePreview] Failed to fetch file:', data.status, data.statusText);
+                    handleReceivedError();
+                    return;
+                }
                 const text = await data.text();
                 handleReceivedCode(text);
             } catch (e) {
@@ -99,10 +105,12 @@ const CodePreview = ({
             }
         };
 
-        if (fileUrl !== prevFileUrl) {
+        
+        // Only fetch if status is loading and we have a language
+        if (status === 'loading' && codeInfo.lang && !shouldNotGetCode) {
             getCode();
         }
-    }, [codeInfo, fileUrl, prevFileUrl, getContent, shouldNotGetCode]);
+    }, [codeInfo, fileUrl, prevFileUrl, getContent, shouldNotGetCode, status]);
 
     if (status === 'loading') {
         return (

@@ -93,6 +93,11 @@ export type Props = WrappedComponentProps & {
     * Prevents display of utility buttons when image in a location that makes them inappropriate
     */
     hideUtilities?: boolean;
+
+    /*
+    * Indicates whether the file has been rejected and should not show preview
+    */
+    isFileRejected?: boolean;
 }
 
 type State = {
@@ -407,7 +412,8 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             const height = (dimensions?.height ?? 0) * ratio;
             const width = (dimensions?.width ?? 0) * ratio;
 
-            const miniPreview = getFileMiniPreviewUrl(fileInfo);
+            // Don't show mini preview (blurred thumbnail) if the file is rejected
+            const miniPreview = !this.props.isFileRejected ? getFileMiniPreviewUrl(fileInfo) : null;
 
             if (miniPreview) {
                 fallback = (

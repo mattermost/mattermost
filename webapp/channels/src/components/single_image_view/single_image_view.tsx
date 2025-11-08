@@ -246,6 +246,7 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
                                     enablePublicLink={this.props.enablePublicLink}
                                     getFilePublicLink={this.getFilePublicLink}
                                     hideUtilities={this.props.disableActions}
+                                    isFileRejected={this.props.isFileRejected}
                                 />
                             </div>
                         </div>
