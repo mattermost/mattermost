@@ -21868,93 +21868,30 @@ async function saveMmctlReport() {
   if (process.env.GITHUB_STEP_SUMMARY) {
     const timeInMinutes = (junitStats.totalTime / 60).toFixed(1);
     const zephyrUrl = `https://mattermost.atlassian.net/projects/${projectKey}?selectedItem=com.atlassian.plugins.atlassian-connect-plugin:com.kanoah.test-manager__main-project-page#!/v2/testCycle/${createdTestCycle.key}`;
-    const summary2 = core.summary.addHeading("mmctl: E2E Test Report", 2).addHeading("JUnit report summary", 3).addRaw(`  - Total tests: ${junitStats.totalTests}
-`).addRaw(`  - Failures: ${junitStats.totalFailures}
-`).addRaw(`  - Errors: ${junitStats.totalErrors}
-`).addRaw(`  - Skipped: ${junitStats.totalSkipped}
-`).addRaw(
-      `  - Duration: ${junitStats.totalTime.toFixed(1)}s (~${timeInMinutes}m)
-
-`
-    ).addHeading("Extracted MM-T test cases", 3).addRaw(
-      `  - Total test key occurrences: ${testKeyStats.totalOccurrences}
-`
-    ).addRaw(`  - Unique test keys: ${testKeyStats.uniqueCount}
-`).addRaw(`  - Passed: ${testKeyStats.passedCount} test keys
-`);
-    if (testKeyStats.failedCount > 0) {
-      summary2.addRaw(
-        `  - Failed: ${testKeyStats.failedCount} test keys (${testKeyStats.failedKeys.join(", ")})
-`
-      );
-    } else {
-      summary2.addRaw(
-        `  - Failed: ${testKeyStats.failedCount} test keys
-`
-      );
-    }
-    if (testKeyStats.skippedCount > 0) {
-      summary2.addRaw(
-        `  - Skipped: ${testKeyStats.skippedCount} test keys (${testKeyStats.skippedKeys.join(", ")})
-
-`
-      );
-    } else {
-      summary2.addRaw(
-        `  - Skipped: ${testKeyStats.skippedCount} test keys
-
-`
-      );
-    }
-    summary2.addHeading("Zephyr Scale Results", 3).addRaw(`  - Test cycle key: ${createdTestCycle.key}
-`).addRaw(`  - Test cycle name: ${testCycle.name}
-`).addRaw(
-      `  - Successfully saved: ${successCount} executions (${uniqueSavedTestKeys.size} unique test keys)
-`
-    );
-    if (failureCount > 0) {
-      summary2.addRaw(
-        `  - Failed to save: ${failureCount} executions (${uniqueFailedTestKeys.size} unique test keys)
-`
-      );
-    }
-    summary2.addRaw(`  - [View in Zephyr](${zephyrUrl})
-
-`);
-    if (savedTestKeys.length > 0) {
-      summary2.addHeading("Saved Test Cases (Details)", 4).addRaw(`**Total Executions:** ${savedTestKeys.length}
-
-`).addRaw(`**Unique Test Keys:** ${uniqueSavedTestKeys.size}
-
-`).addRaw(
-        `<details>
-<summary>View all saved test keys</summary>
-
-`
-      ).addRaw(
-        savedTestKeys.map((key) => `- ${key}`).join("\n") + "\n\n"
-      ).addRaw(`</details>
-
-`);
-    }
-    if (failedTestKeys.length > 0) {
-      summary2.addHeading("Failed Test Cases (Details)", 4).addRaw(`**Total Executions:** ${failedTestKeys.length}
-
-`).addRaw(
-        `**Unique Test Keys:** ${uniqueFailedTestKeys.size}
-
-`
-      ).addRaw(
-        `<details>
-<summary>View all failed test keys</summary>
-
-`
-      ).addRaw(
-        failedTestKeys.map((key) => `- ${key}`).join("\n") + "\n\n"
-      ).addRaw(`</details>
-
-`);
-    }
+    const summary2 = core.summary.addHeading("mmctl: E2E Test Report", 2).addHeading("JUnit report summary", 3).addTable([
+      ["Total tests", `${junitStats.totalTests}`],
+      ["Passed", `${junitStats.totalPassed}`],
+      ["Failed", `${junitStats.totalFailures}`],
+      ["Skipped", `${junitStats.totalSkipped}`],
+      ["Error", `${junitStats.totalErrors}`],
+      [
+        "Duration",
+        `${junitStats.totalTime.toFixed(1)}s (~${timeInMinutes}m)`
+      ]
+    ]).addHeading("Extracted MM-T test cases", 3).addTable([
+      ["Total tests found", `${testKeyStats.totalOccurrences}`],
+      ["Unique test keys", `${testKeyStats.uniqueCount}`],
+      ["Passed", `${testKeyStats.passedCount} test keys`],
+      ["Failed", `${testKeyStats.failedCount} test keys`],
+      ["Skipped", `${testKeyStats.skippedCount} test keys`]
+    ]).addHeading("Zephyr Scale Results", 3).addTable([
+      ["Test cycle key", `${createdTestCycle.key}`],
+      ["Test cycle name", `${testCycle.name}`],
+      [
+        "Successfully saved",
+        `${successCount} executions (${uniqueSavedTestKeys.size} unique test keys)`
+      ]
+    ]).addLink("View in Zephyr", zephyrUrl);
     await summary2.write();
   }
   core.startGroup("Zephyr Scale Results");

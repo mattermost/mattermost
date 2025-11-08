@@ -480,87 +480,35 @@ export async function saveMmctlReport(): Promise<void> {
         const summary = core.summary
             .addHeading("mmctl: E2E Test Report", 2)
             .addHeading("JUnit report summary", 3)
-            .addRaw(`  - Total tests: ${junitStats.totalTests}\n`)
-            .addRaw(`  - Failures: ${junitStats.totalFailures}\n`)
-            .addRaw(`  - Errors: ${junitStats.totalErrors}\n`)
-            .addRaw(`  - Skipped: ${junitStats.totalSkipped}\n`)
-            .addRaw(
-                `  - Duration: ${junitStats.totalTime.toFixed(1)}s (~${timeInMinutes}m)\n\n`,
-            )
+            .addTable([
+                ["Total tests", `${junitStats.totalTests}`],
+                ["Passed", `${junitStats.totalPassed}`],
+                ["Failed", `${junitStats.totalFailures}`],
+                ["Skipped", `${junitStats.totalSkipped}`],
+                ["Error", `${junitStats.totalErrors}`],
+                [
+                    "Duration",
+                    `${junitStats.totalTime.toFixed(1)}s (~${timeInMinutes}m)`,
+                ],
+            ])
             .addHeading("Extracted MM-T test cases", 3)
-            .addRaw(
-                `  - Total test key occurrences: ${testKeyStats.totalOccurrences}\n`,
-            )
-            .addRaw(`  - Unique test keys: ${testKeyStats.uniqueCount}\n`)
-            .addRaw(`  - Passed: ${testKeyStats.passedCount} test keys\n`);
-
-        if (testKeyStats.failedCount > 0) {
-            summary.addRaw(
-                `  - Failed: ${testKeyStats.failedCount} test keys (${testKeyStats.failedKeys.join(", ")})\n`,
-            );
-        } else {
-            summary.addRaw(
-                `  - Failed: ${testKeyStats.failedCount} test keys\n`,
-            );
-        }
-
-        if (testKeyStats.skippedCount > 0) {
-            summary.addRaw(
-                `  - Skipped: ${testKeyStats.skippedCount} test keys (${testKeyStats.skippedKeys.join(", ")})\n\n`,
-            );
-        } else {
-            summary.addRaw(
-                `  - Skipped: ${testKeyStats.skippedCount} test keys\n\n`,
-            );
-        }
-
-        summary
+            .addTable([
+                ["Total tests found", `${testKeyStats.totalOccurrences}`],
+                ["Unique test keys", `${testKeyStats.uniqueCount}`],
+                ["Passed", `${testKeyStats.passedCount} test keys`],
+                ["Failed", `${testKeyStats.failedCount} test keys`],
+                ["Skipped", `${testKeyStats.skippedCount} test keys`],
+            ])
             .addHeading("Zephyr Scale Results", 3)
-            .addRaw(`  - Test cycle key: ${createdTestCycle.key}\n`)
-            .addRaw(`  - Test cycle name: ${testCycle.name}\n`)
-            .addRaw(
-                `  - Successfully saved: ${successCount} executions (${uniqueSavedTestKeys.size} unique test keys)\n`,
-            );
-
-        if (failureCount > 0) {
-            summary.addRaw(
-                `  - Failed to save: ${failureCount} executions (${uniqueFailedTestKeys.size} unique test keys)\n`,
-            );
-        }
-
-        summary.addRaw(`  - [View in Zephyr](${zephyrUrl})\n\n`);
-
-        if (savedTestKeys.length > 0) {
-            summary
-                .addHeading("Saved Test Cases (Details)", 4)
-                .addRaw(`**Total Executions:** ${savedTestKeys.length}\n\n`)
-                .addRaw(`**Unique Test Keys:** ${uniqueSavedTestKeys.size}\n\n`)
-                .addRaw(
-                    `<details>\n<summary>View all saved test keys</summary>\n\n`,
-                )
-                .addRaw(
-                    savedTestKeys.map((key: string) => `- ${key}`).join("\n") +
-                        "\n\n",
-                )
-                .addRaw(`</details>\n\n`);
-        }
-
-        if (failedTestKeys.length > 0) {
-            summary
-                .addHeading("Failed Test Cases (Details)", 4)
-                .addRaw(`**Total Executions:** ${failedTestKeys.length}\n\n`)
-                .addRaw(
-                    `**Unique Test Keys:** ${uniqueFailedTestKeys.size}\n\n`,
-                )
-                .addRaw(
-                    `<details>\n<summary>View all failed test keys</summary>\n\n`,
-                )
-                .addRaw(
-                    failedTestKeys.map((key: string) => `- ${key}`).join("\n") +
-                        "\n\n",
-                )
-                .addRaw(`</details>\n\n`);
-        }
+            .addTable([
+                ["Test cycle key", `${createdTestCycle.key}`],
+                ["Test cycle name", `${testCycle.name}`],
+                [
+                    "Successfully saved",
+                    `${successCount} executions (${uniqueSavedTestKeys.size} unique test keys)`,
+                ],
+            ])
+            .addLink("View in Zephyr", zephyrUrl);
 
         await summary.write();
     }
