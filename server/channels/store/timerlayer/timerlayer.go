@@ -8798,10 +8798,10 @@ func (s *TimerLayerScheduledPostStore) PermanentlyDeleteScheduledPosts(scheduled
 	return err
 }
 
-func (s *TimerLayerScheduledPostStore) UpdateOldScheduledPosts(beforeTime int64) error {
+func (s *TimerLayerScheduledPostStore) UpdateOldScheduledPosts(beforeTime int64) (int64, error) {
 	start := time.Now()
 
-	err := s.ScheduledPostStore.UpdateOldScheduledPosts(beforeTime)
+	result, err := s.ScheduledPostStore.UpdateOldScheduledPosts(beforeTime)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -8811,7 +8811,7 @@ func (s *TimerLayerScheduledPostStore) UpdateOldScheduledPosts(beforeTime int64)
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ScheduledPostStore.UpdateOldScheduledPosts", success, elapsed)
 	}
-	return err
+	return result, err
 }
 
 func (s *TimerLayerScheduledPostStore) UpdatedScheduledPost(scheduledPost *model.ScheduledPost) error {
