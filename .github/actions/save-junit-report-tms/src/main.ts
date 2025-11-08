@@ -1,52 +1,14 @@
 import * as core from "@actions/core";
 import * as fs from "fs/promises";
 import { XMLParser } from "fast-xml-parser";
+import type {
+    TestExecution,
+    TestCycle,
+    TestData,
+    ZephyrApiClient,
+} from "./types";
 
-const reTestKey = /MM-T\d+/;
 const zephyrCloudApiUrl = "https://api.zephyrscale.smartbear.com/v2";
-
-interface TestExecution {
-    testCaseKey: string;
-    statusName: string;
-    executionTime: number;
-    comment: string;
-    projectKey?: string;
-    testCycleKey?: string;
-}
-
-interface TestCycle {
-    projectKey: string;
-    name: string;
-    description: string;
-    statusName: string;
-    folderId: number;
-    plannedStartDate?: string;
-    plannedEndDate?: string;
-    customFields?: Record<string, any>;
-}
-
-interface TestData {
-    testCycle: TestCycle;
-    testExecutions: TestExecution[];
-    junitStats: {
-        totalTests: number;
-        totalFailures: number;
-        totalErrors: number;
-        totalSkipped: number;
-        totalPassed: number;
-        passRate: string;
-        totalTime: number;
-    };
-    testKeyStats: {
-        totalOccurrences: number;
-        uniqueCount: number;
-        passedCount: number;
-        failedCount: number;
-        skippedCount: number;
-        failedKeys: string[];
-        skippedKeys: string[];
-    };
-}
 
 function newTestExecution(
     testCaseKey: string,
@@ -62,7 +24,7 @@ function newTestExecution(
     };
 }
 
-async function getTestData(
+export async function getTestData(
     junitFile: string,
     config: {
         projectKey: string;
@@ -70,7 +32,7 @@ async function getTestData(
         branch: string;
         buildImage: string;
         buildNumber: string;
-        githubRunUrl?: string;
+        githubRunUrl: string;
     },
 ): Promise<TestData> {
     const testCycle: TestCycle = {
@@ -81,6 +43,8 @@ async function getTestData(
         folderId: config.zephyrFolderId,
     };
 
+    // Create dynamic regex based on project key (e.g., MM-T1234, FOO-T5678)
+    const reTestKey = new RegExp(`${config.projectKey}-T\\d+`);
     const testExecutions: TestExecution[] = [];
 
     const data = await fs.readFile(junitFile, "utf8");
@@ -225,21 +189,17 @@ async function getTestData(
     const passRate =
         totalTests > 0 ? ((passedTests / totalTests) * 100).toFixed(1) : "0";
 
-    testCycle.description = `### Test Summary\n\n`;
-    testCycle.description += `**${passedTests}** passed | `;
-    testCycle.description += `**${totalFailures}** failed | `;
-    testCycle.description += `**${passRate}%** pass rate | `;
-    testCycle.description += `**${totalTime.toFixed(1)}s** duration\n\n`;
+    testCycle.description = `Test Summary: `;
+    testCycle.description += `${passedTests} passed | `;
+    testCycle.description += `${totalFailures} failed | `;
+    testCycle.description += `${passRate}% pass rate | `;
+    testCycle.description += `${totalTime.toFixed(1)}s duration | `;
 
-    if (config.githubRunUrl) {
-        testCycle.description += `[View GitHub Pipeline](${config.githubRunUrl})\n\n`;
-    }
+    testCycle.description += `branch: ${config.branch} | `;
+    testCycle.description += `build image: ${config.buildImage} | `;
+    testCycle.description += `build number: ${config.buildNumber} | `;
 
-    testCycle.description += `---\n\n`;
-    testCycle.description += `**Build Details:**\n`;
-    testCycle.description += `* Branch: ${config.branch}\n`;
-    testCycle.description += `* Build Image: ${config.buildImage}\n`;
-    testCycle.description += `* Build Number: ${config.buildNumber}\n`;
+    testCycle.description += `${config.githubRunUrl}`;
 
     // Calculate and set planned start and end dates
     if (earliestTimestamp) {
@@ -283,7 +243,170 @@ async function getTestData(
     };
 }
 
-export async function saveMmctlReport(): Promise<void> {
+// Sort test executions by status (Pass, Fail, Not Executed), then by test key
+export function sortTestExecutions(
+    executions: TestExecution[],
+): TestExecution[] {
+    const statusOrder: Record<string, number> = {
+        Pass: 1,
+        Fail: 2,
+        "Not Executed": 3,
+    };
+
+    return [...executions].sort((a, b) => {
+        // First, sort by status
+        const statusA = statusOrder[a.statusName] || 999;
+        const statusB = statusOrder[b.statusName] || 999;
+        const statusComparison = statusA - statusB;
+        if (statusComparison !== 0) {
+            return statusComparison;
+        }
+
+        // Then, sort by test key
+        return a.testCaseKey.localeCompare(b.testCaseKey);
+    });
+}
+
+// Write GitHub Actions summary using core.summary API
+export async function writeGitHubSummary(
+    testCycle: TestCycle,
+    junitStats: TestData["junitStats"],
+    testKeyStats: TestData["testKeyStats"],
+    successCount: number,
+    failureCount: number,
+    uniqueSavedTestKeys: Set<string>,
+    uniqueFailedTestKeys: Set<string>,
+    projectKey: string,
+    testCycleKey: string,
+): Promise<void> {
+    const timeInMinutes = (junitStats.totalTime / 60).toFixed(1);
+    const zephyrUrl = `https://mattermost.atlassian.net/projects/${projectKey}?selectedItem=com.atlassian.plugins.atlassian-connect-plugin:com.kanoah.test-manager__main-project-page#!/v2/testCycle/${testCycleKey}`;
+
+    const summary = core.summary
+        .addHeading("mmctl: E2E Test Report", 2)
+        .addHeading("JUnit report summary", 3)
+        .addTable([
+            ["Total tests", `${junitStats.totalTests}`],
+            ["Passed", `${junitStats.totalPassed}`],
+            ["Failed", `${junitStats.totalFailures}`],
+            ["Skipped", `${junitStats.totalSkipped}`],
+            ["Error", `${junitStats.totalErrors}`],
+            [
+                "Duration",
+                `${junitStats.totalTime.toFixed(1)}s (~${timeInMinutes}m)`,
+            ],
+        ])
+        .addHeading("Extracted MM-T test cases", 3)
+        .addTable([
+            ["Total tests found", `${testKeyStats.totalOccurrences}`],
+            ["Unique test keys", `${testKeyStats.uniqueCount}`],
+            ["Passed", `${testKeyStats.passedCount} test keys`],
+            ["Failed", `${testKeyStats.failedCount} test keys`],
+            ["Skipped", `${testKeyStats.skippedCount} test keys`],
+        ])
+        .addHeading("Zephyr Scale Results", 3)
+        .addTable([
+            ["Test cycle key", `${testCycleKey}`],
+            ["Test cycle name", `${testCycle.name}`],
+            [
+                "Successfully saved",
+                `${successCount} executions (${uniqueSavedTestKeys.size} unique test keys)`,
+            ],
+            // if failed is 0 then don't print, otherwise print the failed row
+            ...(failureCount === 0
+                ? []
+                : [
+                      [
+                          "Failed on saving",
+                          `${failureCount} executions (${uniqueFailedTestKeys.size} unique test keys)`,
+                      ],
+                  ]),
+        ])
+        .addLink("View in Zephyr", zephyrUrl);
+
+    await summary.write();
+}
+
+// Create Zephyr API client implementation
+export function createZephyrApiClient(apiKey: string): ZephyrApiClient {
+    return {
+        async createTestCycle(testCycle: TestCycle): Promise<{ key: string }> {
+            const response = await fetch(`${zephyrCloudApiUrl}/testcycles`, {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${apiKey}`,
+                    "Content-Type": "application/json; charset=utf-8",
+                },
+                body: JSON.stringify(testCycle),
+            });
+
+            if (!response.ok) {
+                const errorDetails = await response.json();
+                throw new Error(
+                    `Failed to create test cycle: ${JSON.stringify(errorDetails)} (Status: ${response.status})`,
+                );
+            }
+
+            return await response.json();
+        },
+
+        async saveTestExecution(
+            testExecution: TestExecution,
+            retries = 3,
+        ): Promise<void> {
+            for (let attempt = 1; attempt <= retries; attempt++) {
+                try {
+                    const response = await fetch(
+                        `${zephyrCloudApiUrl}/testexecutions`,
+                        {
+                            method: "POST",
+                            headers: {
+                                Authorization: `Bearer ${apiKey}`,
+                                "Content-Type":
+                                    "application/json; charset=utf-8",
+                            },
+                            body: JSON.stringify(testExecution),
+                        },
+                    );
+
+                    if (!response.ok) {
+                        const errorBody = await response.text();
+                        throw new Error(
+                            `HTTP ${response.status}: ${errorBody}`,
+                        );
+                    }
+
+                    const responseData = await response.json();
+                    core.info(
+                        `Saved test execution: ${testExecution.testCaseKey} (${testExecution.statusName}) - Response: ${JSON.stringify(responseData)}`,
+                    );
+                    return; // Success
+                } catch (error) {
+                    const errorMsg =
+                        error instanceof Error ? error.message : String(error);
+                    core.warning(
+                        `Error saving test execution for ${testExecution.testCaseKey} (attempt ${attempt}/${retries}): ${errorMsg}`,
+                    );
+
+                    if (attempt === retries) {
+                        throw new Error(
+                            `Failed after ${retries} attempts: ${errorMsg}`,
+                        );
+                    }
+
+                    // Wait before retry (exponential backoff)
+                    const delay = 1000 * attempt;
+                    core.info(
+                        `Retrying ${testExecution.testCaseKey} in ${delay}ms...`,
+                    );
+                    await new Promise((resolve) => setTimeout(resolve, delay));
+                }
+            }
+        },
+    };
+}
+
+export async function run(): Promise<void> {
     // GitHub environment variables
     const branch =
         process.env.GITHUB_HEAD_REF || process.env.GITHUB_REF_NAME || "unknown";
@@ -292,7 +415,7 @@ export async function saveMmctlReport(): Promise<void> {
     const githubRunUrl =
         githubRepository && githubRunId
             ? `https://github.com/${githubRepository}/actions/runs/${githubRunId}`
-            : undefined;
+            : "";
 
     // Generate build number from GitHub environment variables
     const buildNumber = `${branch}-${githubRunId}`;
@@ -335,117 +458,34 @@ export async function saveMmctlReport(): Promise<void> {
             githubRunUrl,
         });
 
+    const client = createZephyrApiClient(zephyrApiKey);
+
     core.startGroup("Creating test cycle and saving test executions in Zephyr");
 
     // Create test cycle
-    const createCycleResponse = await fetch(`${zephyrCloudApiUrl}/testcycles`, {
-        method: "POST",
-        headers: {
-            Authorization: `Bearer ${zephyrApiKey}`,
-            "Content-Type": "application/json; charset=utf-8",
-        },
-        body: JSON.stringify(testCycle),
-    });
-
-    if (!createCycleResponse.ok) {
-        const errorDetails = await createCycleResponse.json();
-        core.error(
-            `Failed to create test cycle: ${JSON.stringify(errorDetails)}`,
-        );
-        throw new Error(`HTTP error! Status: ${createCycleResponse.status}`);
-    }
-
-    const createdTestCycle = await createCycleResponse.json();
+    const createdTestCycle = await client.createTestCycle(testCycle);
     core.info(`Created test cycle: ${createdTestCycle.key}`);
 
-    // Helper function to save a single test execution with retry logic
-    async function saveTestExecution(
-        testExecution: TestExecution,
-        retries = 3,
-    ): Promise<void> {
+    // Sort and save test executions
+    const sortedExecutions = sortTestExecutions(testExecutions);
+
+    const promises = sortedExecutions.map((testExecution) => {
+        // Add project key and test cycle key
         testExecution.projectKey = projectKey;
         testExecution.testCycleKey = createdTestCycle.key;
 
-        for (let attempt = 1; attempt <= retries; attempt++) {
-            try {
-                const response = await fetch(
-                    `${zephyrCloudApiUrl}/testexecutions`,
-                    {
-                        method: "POST",
-                        headers: {
-                            Authorization: `Bearer ${zephyrApiKey}`,
-                            "Content-Type": "application/json; charset=utf-8",
-                        },
-                        body: JSON.stringify(testExecution),
-                    },
-                );
-
-                if (!response.ok) {
-                    const errorBody = await response.text();
-                    throw new Error(`HTTP ${response.status}: ${errorBody}`);
-                }
-
-                const responseData = await response.json();
-                core.info(
-                    `Saved test execution: ${testExecution.testCaseKey} (${testExecution.statusName}) - Response: ${JSON.stringify(responseData)}`,
-                );
-                return; // Success, exit function
-            } catch (error) {
-                const errorMsg =
-                    error instanceof Error ? error.message : String(error);
-                core.warning(
-                    `Error saving test execution for ${testExecution.testCaseKey} (attempt ${attempt}/${retries}): ${errorMsg}`,
-                );
-
-                if (attempt === retries) {
-                    // Last attempt failed, throw error
-                    throw new Error(
-                        `Failed after ${retries} attempts: ${errorMsg}`,
-                    );
-                }
-
-                // Wait before retry (exponential backoff)
-                const delay = 1000 * attempt;
-                core.info(
-                    `Retrying ${testExecution.testCaseKey} in ${delay}ms...`,
-                );
-                await new Promise((resolve) => setTimeout(resolve, delay));
-            }
-        }
-    }
-
-    // Sort test executions by status first (Pass, Fail, Not Executed), then by test key
-    const statusOrder: Record<string, number> = {
-        Pass: 1,
-        Fail: 2,
-        "Not Executed": 3,
-    };
-
-    const promises = testExecutions
-        .sort((a, b) => {
-            // First, sort by status
-            const statusA = statusOrder[a.statusName] || 999;
-            const statusB = statusOrder[b.statusName] || 999;
-            const statusComparison = statusA - statusB;
-            if (statusComparison !== 0) {
-                return statusComparison;
-            }
-
-            // Then, sort by test key
-            return a.testCaseKey.localeCompare(b.testCaseKey);
-        })
-        .map((testExecution) => {
-            return saveTestExecution(testExecution)
-                .then(() => ({
-                    success: true,
-                    testCaseKey: testExecution.testCaseKey,
-                }))
-                .catch((error) => ({
-                    success: false,
-                    testCaseKey: testExecution.testCaseKey,
-                    error: error.message,
-                }));
-        });
+        return client
+            .saveTestExecution(testExecution)
+            .then(() => ({
+                success: true,
+                testCaseKey: testExecution.testCaseKey,
+            }))
+            .catch((error) => ({
+                success: false,
+                testCaseKey: testExecution.testCaseKey,
+                error: error.message,
+            }));
+    });
     const results = await Promise.all(promises);
     core.endGroup();
 
@@ -474,43 +514,17 @@ export async function saveMmctlReport(): Promise<void> {
 
     // Create GitHub Actions summary (only if running in GitHub Actions environment)
     if (process.env.GITHUB_STEP_SUMMARY) {
-        const timeInMinutes = (junitStats.totalTime / 60).toFixed(1);
-        const zephyrUrl = `https://mattermost.atlassian.net/projects/${projectKey}?selectedItem=com.atlassian.plugins.atlassian-connect-plugin:com.kanoah.test-manager__main-project-page#!/v2/testCycle/${createdTestCycle.key}`;
-
-        const summary = core.summary
-            .addHeading("mmctl: E2E Test Report", 2)
-            .addHeading("JUnit report summary", 3)
-            .addTable([
-                ["Total tests", `${junitStats.totalTests}`],
-                ["Passed", `${junitStats.totalPassed}`],
-                ["Failed", `${junitStats.totalFailures}`],
-                ["Skipped", `${junitStats.totalSkipped}`],
-                ["Error", `${junitStats.totalErrors}`],
-                [
-                    "Duration",
-                    `${junitStats.totalTime.toFixed(1)}s (~${timeInMinutes}m)`,
-                ],
-            ])
-            .addHeading("Extracted MM-T test cases", 3)
-            .addTable([
-                ["Total tests found", `${testKeyStats.totalOccurrences}`],
-                ["Unique test keys", `${testKeyStats.uniqueCount}`],
-                ["Passed", `${testKeyStats.passedCount} test keys`],
-                ["Failed", `${testKeyStats.failedCount} test keys`],
-                ["Skipped", `${testKeyStats.skippedCount} test keys`],
-            ])
-            .addHeading("Zephyr Scale Results", 3)
-            .addTable([
-                ["Test cycle key", `${createdTestCycle.key}`],
-                ["Test cycle name", `${testCycle.name}`],
-                [
-                    "Successfully saved",
-                    `${successCount} executions (${uniqueSavedTestKeys.size} unique test keys)`,
-                ],
-            ])
-            .addLink("View in Zephyr", zephyrUrl);
-
-        await summary.write();
+        await writeGitHubSummary(
+            testCycle,
+            junitStats,
+            testKeyStats,
+            successCount,
+            failureCount,
+            uniqueSavedTestKeys,
+            uniqueFailedTestKeys,
+            projectKey,
+            createdTestCycle.key,
+        );
     }
 
     core.startGroup("Zephyr Scale Results");

@@ -4,15 +4,7 @@ GitHub Action to save JUnit test reports to Zephyr Scale Test Management System.
 
 ## Usage
 
-This action should be used after downloading the test report artifact from a previous workflow run.
-
 ```yaml
-- name: Download test report artifact
-  uses: actions/download-artifact@v4
-  with:
-    name: mmctl-test-report
-    path: ./test-reports
-
 - name: Save JUnit test report to Zephyr
   uses: ./.github/actions/save-junit-report-tms
   with:
@@ -37,77 +29,40 @@ This action should be used after downloading the test report artifact from a pre
 
 | Output | Description |
 |--------|-------------|
-| `test-cycle-key` | The created test cycle key in Zephyr Scale |
-| `test-cycle-success-count` | Number of successfully saved test executions |
-| `test-cycle-failure-count` | Number of failed test execution saves |
-| `xml-total-tests` | Total number of tests in the XML report |
-| `xml-total-passed` | Number of passed tests in the XML report |
-| `xml-total-failed` | Number of failed tests in the XML report |
-| `xml-pass-rate` | Pass rate percentage from the XML report |
-| `xml-duration` | Total test duration in seconds from the XML report |
-| `unique-saved-keys` | Number of unique test keys successfully saved to Zephyr |
-| `unique-failed-keys` | Number of unique test keys that failed to save to Zephyr |
-
-## Example Workflow
-
-```yaml
-name: mmctl E2E Tests
-
-on:
-  workflow_dispatch:
-    inputs:
-      release-build:
-        description: 'Release build version'
-        required: true
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Run mmctl tests
-        run: |
-          # Run your mmctl tests here
-          # Generate report.xml
-
-      - name: Upload test report
-        uses: actions/upload-artifact@v4
-        with:
-          name: mmctl-test-report
-          path: ./server/report.xml
-
-  save-report:
-    needs: test
-    runs-on: ubuntu-latest
-    if: always()
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Download test report
-        uses: actions/download-artifact@v4
-        with:
-          name: mmctl-test-report
-          path: ./test-reports
-
-      - name: Save to Zephyr Scale
-        uses: ./.github/actions/save-junit-report-tms
-        with:
-          report-path: ./test-reports/report.xml
-          zephyr-api-key: ${{ secrets.ZEPHYR_API_KEY }}
-          build-image: ${{ env.BUILD_IMAGE }}
-```
+| `test-cycle` | The created test cycle key in Zephyr Scale |
+| `test-keys-execution-count` | Total number of test executions (including duplicates) |
+| `test-keys-unique-count` | Number of unique test keys successfully saved to Zephyr |
+| `junit-total-tests` | Total number of tests in the JUnit XML report |
+| `junit-total-passed` | Number of passed tests in the JUnit XML report |
+| `junit-total-failed` | Number of failed tests in the JUnit XML report |
+| `junit-pass-rate` | Pass rate percentage from the JUnit XML report |
+| `junit-duration-seconds` | Total test duration in seconds from the JUnit XML report |
 
 ## Local Development
 
 1. Copy `.env.example` to `.env` and fill in your values
 2. Run `npm install` to install dependencies
-3. Run `npm run local-action` to test locally
-4. Run `npm run build` to build for production
+3. Run `npm run pretter` to format code
+4. Run `npm test` to run unit tests
+5. Run `npm run local-action` to test locally
+6. Run `npm run build` to build for production
+
+### Submitting Code Changes
+
+**IMPORTANT**: When submitting code changes, you must run the following checks locally as there are no CI jobs for this action:
+
+1. Run `npm run prettier` to format your code
+2. Run `npm test` to ensure all tests pass
+3. Run `npm run build` to compile your changes
+4. Include the updated `dist/` folder in your commit
+
+GitHub Actions runs the compiled code from the `dist/` folder, not the source TypeScript files. If you don't include the built files, your changes won't be reflected in the action.
 
 ## Report Format
 
-The action expects a JUnit XML format report with test case names containing Jira test keys (e.g., `MM-T1234`).
+The action expects a JUnit XML format report with test case names containing Zephyr test keys in the format `{PROJECT_KEY}-T{NUMBER}` (e.g., `MM-T1234`, `FOO-T5678`).
+
+The test key pattern is automatically determined by the `jira-project-key` input (defaults to `MM`).
 
 Example:
 ```xml

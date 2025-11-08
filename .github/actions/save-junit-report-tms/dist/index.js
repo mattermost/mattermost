@@ -8,10 +8,6 @@ var __hasOwnProp = Object.prototype.hasOwnProperty;
 var __commonJS = (cb, mod) => function __require() {
   return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
 };
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
 var __copyProps = (to, from, except, desc) => {
   if (from && typeof from === "object" || typeof from === "function") {
     for (let key of __getOwnPropNames(from))
@@ -28,7 +24,6 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
   mod
 ));
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
 // node_modules/@actions/core/lib/utils.js
 var require_utils = __commonJS({
@@ -123,14 +118,14 @@ var require_command = __commonJS({
           let first = true;
           for (const key in this.properties) {
             if (this.properties.hasOwnProperty(key)) {
-              const val = this.properties[key];
-              if (val) {
+              const val2 = this.properties[key];
+              if (val2) {
                 if (first) {
                   first = false;
                 } else {
                   cmdStr += ",";
                 }
-                cmdStr += `${key}=${escapeProperty(val)}`;
+                cmdStr += `${key}=${escapeProperty(val2)}`;
               }
             }
           }
@@ -423,18 +418,18 @@ var require_tunnel = __commonJS({
             res.statusCode
           );
           socket.destroy();
-          var error2 = new Error("tunneling socket could not be established, statusCode=" + res.statusCode);
-          error2.code = "ECONNRESET";
-          options.request.emit("error", error2);
+          var error = new Error("tunneling socket could not be established, statusCode=" + res.statusCode);
+          error.code = "ECONNRESET";
+          options.request.emit("error", error);
           self.removeSocket(placeholder);
           return;
         }
         if (head.length > 0) {
           debug("got illegal response body from proxy");
           socket.destroy();
-          var error2 = new Error("got illegal response body from proxy");
-          error2.code = "ECONNRESET";
-          options.request.emit("error", error2);
+          var error = new Error("got illegal response body from proxy");
+          error.code = "ECONNRESET";
+          options.request.emit("error", error);
           self.removeSocket(placeholder);
           return;
         }
@@ -449,9 +444,9 @@ var require_tunnel = __commonJS({
           cause.message,
           cause.stack
         );
-        var error2 = new Error("tunneling socket could not be established, cause=" + cause.message);
-        error2.code = "ECONNRESET";
-        options.request.emit("error", error2);
+        var error = new Error("tunneling socket could not be established, cause=" + cause.message);
+        error.code = "ECONNRESET";
+        options.request.emit("error", error);
         self.removeSocket(placeholder);
       }
     };
@@ -1085,8 +1080,8 @@ var require_util = __commonJS({
       }
     }
     var KEEPALIVE_TIMEOUT_EXPR = /timeout=(\d+)/;
-    function parseKeepAliveTimeout(val) {
-      const m = val.toString().match(KEEPALIVE_TIMEOUT_EXPR);
+    function parseKeepAliveTimeout(val2) {
+      const m = val2.toString().match(KEEPALIVE_TIMEOUT_EXPR);
       return m ? parseInt(m[1], 10) * 1e3 : null;
     }
     function headerNameToString(value) {
@@ -1096,19 +1091,19 @@ var require_util = __commonJS({
       if (!Array.isArray(headers)) return headers;
       for (let i = 0; i < headers.length; i += 2) {
         const key = headers[i].toString().toLowerCase();
-        let val = obj[key];
-        if (!val) {
+        let val2 = obj[key];
+        if (!val2) {
           if (Array.isArray(headers[i + 1])) {
             obj[key] = headers[i + 1].map((x) => x.toString("utf8"));
           } else {
             obj[key] = headers[i + 1].toString("utf8");
           }
         } else {
-          if (!Array.isArray(val)) {
-            val = [val];
-            obj[key] = val;
+          if (!Array.isArray(val2)) {
+            val2 = [val2];
+            obj[key] = val2;
           }
-          val.push(headers[i + 1].toString("utf8"));
+          val2.push(headers[i + 1].toString("utf8"));
         }
       }
       if ("content-length" in obj && "content-disposition" in obj) {
@@ -1122,14 +1117,14 @@ var require_util = __commonJS({
       let contentDispositionIdx = -1;
       for (let n = 0; n < headers.length; n += 2) {
         const key = headers[n + 0].toString();
-        const val = headers[n + 1].toString("utf8");
+        const val2 = headers[n + 1].toString("utf8");
         if (key.length === 14 && (key === "content-length" || key.toLowerCase() === "content-length")) {
-          ret.push(key, val);
+          ret.push(key, val2);
           hasContentLength = true;
         } else if (key.length === 19 && (key === "content-disposition" || key.toLowerCase() === "content-disposition")) {
-          contentDispositionIdx = ret.push(key, val) - 1;
+          contentDispositionIdx = ret.push(key, val2) - 1;
         } else {
-          ret.push(key, val);
+          ret.push(key, val2);
         }
       }
       if (hasContentLength && contentDispositionIdx !== -1) {
@@ -1258,13 +1253,13 @@ var require_util = __commonJS({
       return () => signal.removeListener("abort", listener);
     }
     var hasToWellFormed = !!String.prototype.toWellFormed;
-    function toUSVString(val) {
+    function toUSVString(val2) {
       if (hasToWellFormed) {
-        return `${val}`.toWellFormed();
+        return `${val2}`.toWellFormed();
       } else if (nodeUtil.toUSVString) {
-        return nodeUtil.toUSVString(val);
+        return nodeUtil.toUSVString(val2);
       }
-      return `${val}`;
+      return `${val2}`;
     }
     function parseRangeHeader(range) {
       if (range == null || range === "") return { start: 0, end: null, size: null };
@@ -5582,7 +5577,7 @@ Content-Type: ${value.type || "application/octet-stream"}\r
         throw new TypeError("Body is unusable");
       }
       const promise = createDeferredPromise();
-      const errorSteps = (error2) => promise.reject(error2);
+      const errorSteps = (error) => promise.reject(error);
       const successSteps = (data) => {
         try {
           promise.resolve(convertBytesToJSValue(data));
@@ -5868,16 +5863,16 @@ var require_request = __commonJS({
           this.onError(err);
         }
       }
-      onError(error2) {
+      onError(error) {
         this.onFinally();
         if (channels.error.hasSubscribers) {
-          channels.error.publish({ request: this, error: error2 });
+          channels.error.publish({ request: this, error });
         }
         if (this.aborted) {
           return;
         }
         this.aborted = true;
-        return this[kHandler].onError(error2);
+        return this[kHandler].onError(error);
       }
       onFinally() {
         if (this.errorHandler) {
@@ -5932,41 +5927,41 @@ var require_request = __commonJS({
         return headers;
       }
     };
-    function processHeaderValue(key, val, skipAppend) {
-      if (val && typeof val === "object") {
+    function processHeaderValue(key, val2, skipAppend) {
+      if (val2 && typeof val2 === "object") {
         throw new InvalidArgumentError(`invalid ${key} header`);
       }
-      val = val != null ? `${val}` : "";
-      if (headerCharRegex.exec(val) !== null) {
+      val2 = val2 != null ? `${val2}` : "";
+      if (headerCharRegex.exec(val2) !== null) {
         throw new InvalidArgumentError(`invalid ${key} header`);
       }
-      return skipAppend ? val : `${key}: ${val}\r
+      return skipAppend ? val2 : `${key}: ${val2}\r
 `;
     }
-    function processHeader(request, key, val, skipAppend = false) {
-      if (val && (typeof val === "object" && !Array.isArray(val))) {
+    function processHeader(request, key, val2, skipAppend = false) {
+      if (val2 && (typeof val2 === "object" && !Array.isArray(val2))) {
         throw new InvalidArgumentError(`invalid ${key} header`);
-      } else if (val === void 0) {
+      } else if (val2 === void 0) {
         return;
       }
       if (request.host === null && key.length === 4 && key.toLowerCase() === "host") {
-        if (headerCharRegex.exec(val) !== null) {
+        if (headerCharRegex.exec(val2) !== null) {
           throw new InvalidArgumentError(`invalid ${key} header`);
         }
-        request.host = val;
+        request.host = val2;
       } else if (request.contentLength === null && key.length === 14 && key.toLowerCase() === "content-length") {
-        request.contentLength = parseInt(val, 10);
+        request.contentLength = parseInt(val2, 10);
         if (!Number.isFinite(request.contentLength)) {
           throw new InvalidArgumentError("invalid content-length header");
         }
       } else if (request.contentType === null && key.length === 12 && key.toLowerCase() === "content-type") {
-        request.contentType = val;
-        if (skipAppend) request.headers[key] = processHeaderValue(key, val, skipAppend);
-        else request.headers += processHeaderValue(key, val);
+        request.contentType = val2;
+        if (skipAppend) request.headers[key] = processHeaderValue(key, val2, skipAppend);
+        else request.headers += processHeaderValue(key, val2);
       } else if (key.length === 17 && key.toLowerCase() === "transfer-encoding") {
         throw new InvalidArgumentError("invalid transfer-encoding header");
       } else if (key.length === 10 && key.toLowerCase() === "connection") {
-        const value = typeof val === "string" ? val.toLowerCase() : null;
+        const value = typeof val2 === "string" ? val2.toLowerCase() : null;
         if (value !== "close" && value !== "keep-alive") {
           throw new InvalidArgumentError("invalid connection header");
         } else if (value === "close") {
@@ -5981,18 +5976,18 @@ var require_request = __commonJS({
       } else if (tokenRegExp.exec(key) === null) {
         throw new InvalidArgumentError("invalid header key");
       } else {
-        if (Array.isArray(val)) {
-          for (let i = 0; i < val.length; i++) {
+        if (Array.isArray(val2)) {
+          for (let i = 0; i < val2.length; i++) {
             if (skipAppend) {
-              if (request.headers[key]) request.headers[key] += `,${processHeaderValue(key, val[i], skipAppend)}`;
-              else request.headers[key] = processHeaderValue(key, val[i], skipAppend);
+              if (request.headers[key]) request.headers[key] += `,${processHeaderValue(key, val2[i], skipAppend)}`;
+              else request.headers[key] = processHeaderValue(key, val2[i], skipAppend);
             } else {
-              request.headers += processHeaderValue(key, val[i]);
+              request.headers += processHeaderValue(key, val2[i]);
             }
           }
         } else {
-          if (skipAppend) request.headers[key] = processHeaderValue(key, val, skipAppend);
-          else request.headers += processHeaderValue(key, val);
+          if (skipAppend) request.headers[key] = processHeaderValue(key, val2, skipAppend);
+          else request.headers += processHeaderValue(key, val2);
         }
       }
     }
@@ -6740,8 +6735,8 @@ var require_RedirectHandler = __commonJS({
       onUpgrade(statusCode, headers, socket) {
         this.handler.onUpgrade(statusCode, headers, socket);
       }
-      onError(error2) {
-        this.handler.onError(error2);
+      onError(error) {
+        this.handler.onError(error);
       }
       onHeaders(statusCode, headers, resume, statusText) {
         this.location = this.history.length >= this.maxRedirections || util.isDisturbed(this.opts.body) ? null : parseLocation(statusCode, headers);
@@ -8885,7 +8880,7 @@ var require_pool = __commonJS({
         this[kOptions] = { ...util.deepClone(options), connect, allowH2 };
         this[kOptions].interceptors = options.interceptors ? { ...options.interceptors } : void 0;
         this[kFactory] = factory;
-        this.on("connectionError", (origin2, targets, error2) => {
+        this.on("connectionError", (origin2, targets, error) => {
           for (const target of targets) {
             const idx = this[kClients].indexOf(target);
             if (idx !== -1) {
@@ -10496,13 +10491,13 @@ var require_mock_utils = __commonJS({
       if (mockDispatch2.data.callback) {
         mockDispatch2.data = { ...mockDispatch2.data, ...mockDispatch2.data.callback(opts) };
       }
-      const { data: { statusCode, data, headers, trailers, error: error2 }, delay, persist } = mockDispatch2;
+      const { data: { statusCode, data, headers, trailers, error }, delay, persist } = mockDispatch2;
       const { timesInvoked, times } = mockDispatch2;
       mockDispatch2.consumed = !persist && timesInvoked >= times;
       mockDispatch2.pending = timesInvoked < times;
-      if (error2 !== null) {
+      if (error !== null) {
         deleteMockDispatch(this[kDispatches], key);
-        handler.onError(error2);
+        handler.onError(error);
         return true;
       }
       if (typeof delay === "number" && delay > 0) {
@@ -10540,19 +10535,19 @@ var require_mock_utils = __commonJS({
         if (agent.isMockActive) {
           try {
             mockDispatch.call(this, opts, handler);
-          } catch (error2) {
-            if (error2 instanceof MockNotMatchedError) {
+          } catch (error) {
+            if (error instanceof MockNotMatchedError) {
               const netConnect = agent[kGetNetConnect]();
               if (netConnect === false) {
-                throw new MockNotMatchedError(`${error2.message}: subsequent request to origin ${origin} was not allowed (net.connect disabled)`);
+                throw new MockNotMatchedError(`${error.message}: subsequent request to origin ${origin} was not allowed (net.connect disabled)`);
               }
               if (checkNetConnect(netConnect, origin)) {
                 originalDispatch.call(this, opts, handler);
               } else {
-                throw new MockNotMatchedError(`${error2.message}: subsequent request to origin ${origin} was not allowed (net.connect is not enabled for this origin)`);
+                throw new MockNotMatchedError(`${error.message}: subsequent request to origin ${origin} was not allowed (net.connect is not enabled for this origin)`);
               }
             } else {
-              throw error2;
+              throw error;
             }
           }
         } else {
@@ -10715,11 +10710,11 @@ var require_mock_interceptor = __commonJS({
       /**
        * Mock an undici request with a defined error.
        */
-      replyWithError(error2) {
-        if (typeof error2 === "undefined") {
+      replyWithError(error) {
+        if (typeof error === "undefined") {
           throw new InvalidArgumentError("error must be defined");
         }
-        const newMockDispatch = addMockDispatch(this[kDispatches], this[kDispatchKey], { error: error2 });
+        const newMockDispatch = addMockDispatch(this[kDispatches], this[kDispatchKey], { error });
         return new MockScope(newMockDispatch);
       }
       /**
@@ -12589,8 +12584,8 @@ var require_request2 = __commonJS({
           const headers = init.headers !== void 0 ? init.headers : new HeadersList(headersList);
           headersList.clear();
           if (headers instanceof HeadersList) {
-            for (const [key, val] of headers) {
-              headersList.append(key, val);
+            for (const [key, val2] of headers) {
+              headersList.append(key, val2);
             }
             headersList.cookies = headers.cookies;
           } else {
@@ -13047,17 +13042,17 @@ var require_fetch = __commonJS({
         this.emit("terminated", reason);
       }
       // https://fetch.spec.whatwg.org/#fetch-controller-abort
-      abort(error2) {
+      abort(error) {
         if (this.state !== "ongoing") {
           return;
         }
         this.state = "aborted";
-        if (!error2) {
-          error2 = new DOMException2("The operation was aborted.", "AbortError");
+        if (!error) {
+          error = new DOMException2("The operation was aborted.", "AbortError");
         }
-        this.serializedAbortReason = error2;
-        this.connection?.destroy(error2);
-        this.emit("terminated", error2);
+        this.serializedAbortReason = error;
+        this.connection?.destroy(error);
+        this.emit("terminated", error);
       }
     };
     function fetch2(input, init = {}) {
@@ -13161,13 +13156,13 @@ var require_fetch = __commonJS({
         performance.markResourceTiming(timingInfo, originalURL.href, initiatorType, globalThis2, cacheState);
       }
     }
-    function abortFetch(p, request, responseObject, error2) {
-      if (!error2) {
-        error2 = new DOMException2("The operation was aborted.", "AbortError");
+    function abortFetch(p, request, responseObject, error) {
+      if (!error) {
+        error = new DOMException2("The operation was aborted.", "AbortError");
       }
-      p.reject(error2);
+      p.reject(error);
       if (request.body != null && isReadable(request.body?.stream)) {
-        request.body.stream.cancel(error2).catch((err) => {
+        request.body.stream.cancel(error).catch((err) => {
           if (err.code === "ERR_INVALID_STATE") {
             return;
           }
@@ -13179,7 +13174,7 @@ var require_fetch = __commonJS({
       }
       const response = responseObject[kState];
       if (response.body != null && isReadable(response.body?.stream)) {
-        response.body.stream.cancel(error2).catch((err) => {
+        response.body.stream.cancel(error).catch((err) => {
           if (err.code === "ERR_INVALID_STATE") {
             return;
           }
@@ -13890,24 +13885,24 @@ var require_fetch = __commonJS({
               if (Array.isArray(headersList)) {
                 for (let n = 0; n < headersList.length; n += 2) {
                   const key = headersList[n + 0].toString("latin1");
-                  const val = headersList[n + 1].toString("latin1");
+                  const val2 = headersList[n + 1].toString("latin1");
                   if (key.toLowerCase() === "content-encoding") {
-                    codings = val.toLowerCase().split(",").map((x) => x.trim());
+                    codings = val2.toLowerCase().split(",").map((x) => x.trim());
                   } else if (key.toLowerCase() === "location") {
-                    location = val;
+                    location = val2;
                   }
-                  headers[kHeadersList].append(key, val);
+                  headers[kHeadersList].append(key, val2);
                 }
               } else {
                 const keys = Object.keys(headersList);
                 for (const key of keys) {
-                  const val = headersList[key];
+                  const val2 = headersList[key];
                   if (key.toLowerCase() === "content-encoding") {
-                    codings = val.toLowerCase().split(",").map((x) => x.trim()).reverse();
+                    codings = val2.toLowerCase().split(",").map((x) => x.trim()).reverse();
                   } else if (key.toLowerCase() === "location") {
-                    location = val;
+                    location = val2;
                   }
-                  headers[kHeadersList].append(key, val);
+                  headers[kHeadersList].append(key, val2);
                 }
               }
               this.body = new Readable({ read: resume });
@@ -13959,13 +13954,13 @@ var require_fetch = __commonJS({
               fetchParams.controller.ended = true;
               this.body.push(null);
             },
-            onError(error2) {
+            onError(error) {
               if (this.abort) {
                 fetchParams.controller.off("terminated", this.abort);
               }
-              this.body?.destroy(error2);
-              fetchParams.controller.terminate(error2);
-              reject(error2);
+              this.body?.destroy(error);
+              fetchParams.controller.terminate(error);
+              reject(error);
             },
             onUpgrade(status, headersList, socket) {
               if (status !== 101) {
@@ -13974,8 +13969,8 @@ var require_fetch = __commonJS({
               const headers = new Headers();
               for (let n = 0; n < headersList.length; n += 2) {
                 const key = headersList[n + 0].toString("latin1");
-                const val = headersList[n + 1].toString("latin1");
-                headers[kHeadersList].append(key, val);
+                const val2 = headersList[n + 1].toString("latin1");
+                headers[kHeadersList].append(key, val2);
               }
               resolve({
                 status,
@@ -14431,8 +14426,8 @@ var require_util4 = __commonJS({
                   }
                   fr[kResult] = result;
                   fireAProgressEvent("load", fr);
-                } catch (error2) {
-                  fr[kError] = error2;
+                } catch (error) {
+                  fr[kError] = error;
                   fireAProgressEvent("error", fr);
                 }
                 if (fr[kState] !== "loading") {
@@ -14441,13 +14436,13 @@ var require_util4 = __commonJS({
               });
               break;
             }
-          } catch (error2) {
+          } catch (error) {
             if (fr[kAborted]) {
               return;
             }
             queueMicrotask(() => {
               fr[kState] = "done";
-              fr[kError] = error2;
+              fr[kError] = error;
               fireAProgressEvent("error", fr);
               if (fr[kState] !== "loading") {
                 fireAProgressEvent("loadend", fr);
@@ -16447,11 +16442,11 @@ var require_connection = __commonJS({
         });
       }
     }
-    function onSocketError(error2) {
+    function onSocketError(error) {
       const { ws } = this;
       ws[kReadyState] = states.CLOSING;
       if (channels.socketError.hasSubscribers) {
-        channels.socketError.publish(error2);
+        channels.socketError.publish(error);
       }
       this.destroy();
     }
@@ -17595,12 +17590,12 @@ var require_lib = __commonJS({
             throw new Error("Client has already been disposed.");
           }
           const parsedUrl = new URL(requestUrl);
-          let info3 = this._prepareRequest(verb, parsedUrl, headers);
+          let info2 = this._prepareRequest(verb, parsedUrl, headers);
           const maxTries = this._allowRetries && RetryableHttpVerbs.includes(verb) ? this._maxRetries + 1 : 1;
           let numTries = 0;
           let response;
           do {
-            response = yield this.requestRaw(info3, data);
+            response = yield this.requestRaw(info2, data);
             if (response && response.message && response.message.statusCode === HttpCodes.Unauthorized) {
               let authenticationHandler;
               for (const handler of this.handlers) {
@@ -17610,7 +17605,7 @@ var require_lib = __commonJS({
                 }
               }
               if (authenticationHandler) {
-                return authenticationHandler.handleAuthentication(this, info3, data);
+                return authenticationHandler.handleAuthentication(this, info2, data);
               } else {
                 return response;
               }
@@ -17633,8 +17628,8 @@ var require_lib = __commonJS({
                   }
                 }
               }
-              info3 = this._prepareRequest(verb, parsedRedirectUrl, headers);
-              response = yield this.requestRaw(info3, data);
+              info2 = this._prepareRequest(verb, parsedRedirectUrl, headers);
+              response = yield this.requestRaw(info2, data);
               redirectsRemaining--;
             }
             if (!response.message.statusCode || !HttpResponseRetryCodes.includes(response.message.statusCode)) {
@@ -17663,7 +17658,7 @@ var require_lib = __commonJS({
        * @param info
        * @param data
        */
-      requestRaw(info3, data) {
+      requestRaw(info2, data) {
         return __awaiter(this, void 0, void 0, function* () {
           return new Promise((resolve, reject) => {
             function callbackForResult(err, res) {
@@ -17675,7 +17670,7 @@ var require_lib = __commonJS({
                 resolve(res);
               }
             }
-            this.requestRawWithCallback(info3, data, callbackForResult);
+            this.requestRawWithCallback(info2, data, callbackForResult);
           });
         });
       }
@@ -17685,12 +17680,12 @@ var require_lib = __commonJS({
        * @param data
        * @param onResult
        */
-      requestRawWithCallback(info3, data, onResult) {
+      requestRawWithCallback(info2, data, onResult) {
         if (typeof data === "string") {
-          if (!info3.options.headers) {
-            info3.options.headers = {};
+          if (!info2.options.headers) {
+            info2.options.headers = {};
           }
-          info3.options.headers["Content-Length"] = Buffer.byteLength(data, "utf8");
+          info2.options.headers["Content-Length"] = Buffer.byteLength(data, "utf8");
         }
         let callbackCalled = false;
         function handleResult(err, res) {
@@ -17699,7 +17694,7 @@ var require_lib = __commonJS({
             onResult(err, res);
           }
         }
-        const req = info3.httpModule.request(info3.options, (msg) => {
+        const req = info2.httpModule.request(info2.options, (msg) => {
           const res = new HttpClientResponse(msg);
           handleResult(void 0, res);
         });
@@ -17711,7 +17706,7 @@ var require_lib = __commonJS({
           if (socket) {
             socket.end();
           }
-          handleResult(new Error(`Request timeout: ${info3.options.path}`));
+          handleResult(new Error(`Request timeout: ${info2.options.path}`));
         });
         req.on("error", function(err) {
           handleResult(err);
@@ -17747,27 +17742,27 @@ var require_lib = __commonJS({
         return this._getProxyAgentDispatcher(parsedUrl, proxyUrl);
       }
       _prepareRequest(method, requestUrl, headers) {
-        const info3 = {};
-        info3.parsedUrl = requestUrl;
-        const usingSsl = info3.parsedUrl.protocol === "https:";
-        info3.httpModule = usingSsl ? https : http;
+        const info2 = {};
+        info2.parsedUrl = requestUrl;
+        const usingSsl = info2.parsedUrl.protocol === "https:";
+        info2.httpModule = usingSsl ? https : http;
         const defaultPort = usingSsl ? 443 : 80;
-        info3.options = {};
-        info3.options.host = info3.parsedUrl.hostname;
-        info3.options.port = info3.parsedUrl.port ? parseInt(info3.parsedUrl.port) : defaultPort;
-        info3.options.path = (info3.parsedUrl.pathname || "") + (info3.parsedUrl.search || "");
-        info3.options.method = method;
-        info3.options.headers = this._mergeHeaders(headers);
+        info2.options = {};
+        info2.options.host = info2.parsedUrl.hostname;
+        info2.options.port = info2.parsedUrl.port ? parseInt(info2.parsedUrl.port) : defaultPort;
+        info2.options.path = (info2.parsedUrl.pathname || "") + (info2.parsedUrl.search || "");
+        info2.options.method = method;
+        info2.options.headers = this._mergeHeaders(headers);
         if (this.userAgent != null) {
-          info3.options.headers["user-agent"] = this.userAgent;
+          info2.options.headers["user-agent"] = this.userAgent;
         }
-        info3.options.agent = this._getAgent(info3.parsedUrl);
+        info2.options.agent = this._getAgent(info2.parsedUrl);
         if (this.handlers) {
           for (const handler of this.handlers) {
-            handler.prepareRequest(info3.options);
+            handler.prepareRequest(info2.options);
           }
         }
-        return info3;
+        return info2;
       }
       _mergeHeaders(headers) {
         if (this.requestOptions && this.requestOptions.headers) {
@@ -18083,12 +18078,12 @@ var require_oidc_utils = __commonJS({
         var _a;
         return __awaiter(this, void 0, void 0, function* () {
           const httpclient = _OidcClient.createHttpClient();
-          const res = yield httpclient.getJson(id_token_url).catch((error2) => {
+          const res = yield httpclient.getJson(id_token_url).catch((error) => {
             throw new Error(`Failed to get ID Token. 
  
-        Error Code : ${error2.statusCode}
+        Error Code : ${error.statusCode}
  
-        Error Message: ${error2.message}`);
+        Error Message: ${error.message}`);
           });
           const id_token = (_a = res.result) === null || _a === void 0 ? void 0 : _a.value;
           if (!id_token) {
@@ -18109,8 +18104,8 @@ var require_oidc_utils = __commonJS({
             const id_token = yield _OidcClient.getCall(id_token_url);
             (0, core_1.setSecret)(id_token);
             return id_token;
-          } catch (error2) {
-            throw new Error(`Error message: ${error2.message}`);
+          } catch (error) {
+            throw new Error(`Error message: ${error.message}`);
           }
         });
       }
@@ -19232,7 +19227,7 @@ var require_toolrunner = __commonJS({
               this._debug(`STDIO streams have closed for tool '${this.toolPath}'`);
               state.CheckComplete();
             });
-            state.on("done", (error2, exitCode) => {
+            state.on("done", (error, exitCode) => {
               if (stdbuffer.length > 0) {
                 this.emit("stdline", stdbuffer);
               }
@@ -19240,8 +19235,8 @@ var require_toolrunner = __commonJS({
                 this.emit("errline", errbuffer);
               }
               cp.removeAllListeners();
-              if (error2) {
-                reject(error2);
+              if (error) {
+                reject(error);
               } else {
                 resolve(exitCode);
               }
@@ -19336,14 +19331,14 @@ var require_toolrunner = __commonJS({
         this.emit("debug", message);
       }
       _setResult() {
-        let error2;
+        let error;
         if (this.processExited) {
           if (this.processError) {
-            error2 = new Error(`There was an error when attempting to execute the process '${this.toolPath}'. This may indicate the process failed to start. Error: ${this.processError}`);
+            error = new Error(`There was an error when attempting to execute the process '${this.toolPath}'. This may indicate the process failed to start. Error: ${this.processError}`);
           } else if (this.processExitCode !== 0 && !this.options.ignoreReturnCode) {
-            error2 = new Error(`The process '${this.toolPath}' failed with exit code ${this.processExitCode}`);
+            error = new Error(`The process '${this.toolPath}' failed with exit code ${this.processExitCode}`);
           } else if (this.processStderr && this.options.failOnStdErr) {
-            error2 = new Error(`The process '${this.toolPath}' failed because one or more lines were written to the STDERR stream`);
+            error = new Error(`The process '${this.toolPath}' failed because one or more lines were written to the STDERR stream`);
           }
         }
         if (this.timeout) {
@@ -19351,7 +19346,7 @@ var require_toolrunner = __commonJS({
           this.timeout = null;
         }
         this.done = true;
-        this.emit("done", error2, this.processExitCode);
+        this.emit("done", error, this.processExitCode);
       }
       static HandleTimeout(state) {
         if (state.done) {
@@ -19664,12 +19659,12 @@ var require_core = __commonJS({
       ExitCode2[ExitCode2["Success"] = 0] = "Success";
       ExitCode2[ExitCode2["Failure"] = 1] = "Failure";
     })(ExitCode || (exports2.ExitCode = ExitCode = {}));
-    function exportVariable(name, val) {
-      const convertedVal = (0, utils_1.toCommandValue)(val);
+    function exportVariable(name, val2) {
+      const convertedVal = (0, utils_1.toCommandValue)(val2);
       process.env[name] = convertedVal;
       const filePath = process.env["GITHUB_ENV"] || "";
       if (filePath) {
-        return (0, file_command_1.issueFileCommand)("ENV", (0, file_command_1.prepareKeyValueMessage)(name, val));
+        return (0, file_command_1.issueFileCommand)("ENV", (0, file_command_1.prepareKeyValueMessage)(name, val2));
       }
       (0, command_1.issueCommand)("set-env", { name }, convertedVal);
     }
@@ -19689,14 +19684,14 @@ var require_core = __commonJS({
     }
     exports2.addPath = addPath;
     function getInput2(name, options) {
-      const val = process.env[`INPUT_${name.replace(/ /g, "_").toUpperCase()}`] || "";
-      if (options && options.required && !val) {
+      const val2 = process.env[`INPUT_${name.replace(/ /g, "_").toUpperCase()}`] || "";
+      if (options && options.required && !val2) {
         throw new Error(`Input required and not supplied: ${name}`);
       }
       if (options && options.trimWhitespace === false) {
-        return val;
+        return val2;
       }
-      return val.trim();
+      return val2.trim();
     }
     exports2.getInput = getInput2;
     function getMultilineInput(name, options) {
@@ -19710,10 +19705,10 @@ var require_core = __commonJS({
     function getBooleanInput(name, options) {
       const trueValue = ["true", "True", "TRUE"];
       const falseValue = ["false", "False", "FALSE"];
-      const val = getInput2(name, options);
-      if (trueValue.includes(val))
+      const val2 = getInput2(name, options);
+      if (trueValue.includes(val2))
         return true;
-      if (falseValue.includes(val))
+      if (falseValue.includes(val2))
         return false;
       throw new TypeError(`Input does not meet YAML 1.2 "Core Schema" specification: ${name}
 Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
@@ -19732,11 +19727,11 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
       (0, command_1.issue)("echo", enabled ? "on" : "off");
     }
     exports2.setCommandEcho = setCommandEcho;
-    function setFailed2(message) {
+    function setFailed(message) {
       process.exitCode = ExitCode.Failure;
-      error2(message);
+      error(message);
     }
-    exports2.setFailed = setFailed2;
+    exports2.setFailed = setFailed;
     function isDebug() {
       return process.env["RUNNER_DEBUG"] === "1";
     }
@@ -19745,10 +19740,10 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
       (0, command_1.issueCommand)("debug", {}, message);
     }
     exports2.debug = debug;
-    function error2(message, properties = {}) {
+    function error(message, properties = {}) {
       (0, command_1.issueCommand)("error", (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
     }
-    exports2.error = error2;
+    exports2.error = error;
     function warning2(message, properties = {}) {
       (0, command_1.issueCommand)("warning", (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
     }
@@ -19757,10 +19752,10 @@ Support boolean input list: \`true | True | TRUE | false | False | FALSE\``);
       (0, command_1.issueCommand)("notice", (0, utils_1.toCommandProperties)(properties), message instanceof Error ? message.toString() : message);
     }
     exports2.notice = notice;
-    function info3(message) {
+    function info2(message) {
       process.stdout.write(message + os.EOL);
     }
-    exports2.info = info3;
+    exports2.info = info2;
     function startGroup2(name) {
       (0, command_1.issue)("group", name);
     }
@@ -20218,11 +20213,11 @@ var require_OptionsBuilder = __commonJS({
         leadingZeros: true,
         eNotation: true
       },
-      tagValueProcessor: function(tagName, val) {
-        return val;
+      tagValueProcessor: function(tagName, val2) {
+        return val2;
       },
-      attributeValueProcessor: function(attrName, val) {
-        return val;
+      attributeValueProcessor: function(attrName, val2) {
+        return val2;
       },
       stopNodes: [],
       //nested tags will not be parsed even for errors
@@ -20259,9 +20254,9 @@ var require_xmlNode = __commonJS({
         this.child = [];
         this[":@"] = {};
       }
-      add(key, val) {
+      add(key, val2) {
         if (key === "__proto__") key = "#__proto__";
-        this.child.push({ [key]: val });
+        this.child.push({ [key]: val2 });
       }
       addChild(node) {
         if (node.tagname === "__proto__") node.tagname = "#__proto__";
@@ -20292,7 +20287,6 @@ var require_DocTypeReader = __commonJS({
           if (xmlData[i] === "<" && !comment) {
             if (hasBody && isEntity(xmlData, i)) {
               i += 7;
-              let entityName, val;
               [entityName, val, i] = readEntityExp(xmlData, i + 1);
               if (val.indexOf("&") === -1)
                 entities[validateEntityName(entityName)] = {
@@ -20333,18 +20327,18 @@ var require_DocTypeReader = __commonJS({
       return { entities, i };
     }
     function readEntityExp(xmlData, i) {
-      let entityName = "";
+      let entityName2 = "";
       for (; i < xmlData.length && (xmlData[i] !== "'" && xmlData[i] !== '"'); i++) {
-        entityName += xmlData[i];
+        entityName2 += xmlData[i];
       }
-      entityName = entityName.trim();
-      if (entityName.indexOf(" ") !== -1) throw new Error("External entites are not supported");
+      entityName2 = entityName2.trim();
+      if (entityName2.indexOf(" ") !== -1) throw new Error("External entites are not supported");
       const startChar = xmlData[i++];
-      let val = "";
+      let val2 = "";
       for (; i < xmlData.length && xmlData[i] !== startChar; i++) {
-        val += xmlData[i];
+        val2 += xmlData[i];
       }
-      return [entityName, val, i];
+      return [entityName2, val2, i];
     }
     function isComment(xmlData, i) {
       if (xmlData[i + 1] === "!" && xmlData[i + 2] === "-" && xmlData[i + 3] === "-") return true;
@@ -20553,26 +20547,26 @@ var require_OrderedObjParser = __commonJS({
         };
       }
     }
-    function parseTextData(val, tagName, jPath, dontTrim, hasAttributes, isLeafNode, escapeEntities) {
-      if (val !== void 0) {
+    function parseTextData(val2, tagName, jPath, dontTrim, hasAttributes, isLeafNode, escapeEntities) {
+      if (val2 !== void 0) {
         if (this.options.trimValues && !dontTrim) {
-          val = val.trim();
+          val2 = val2.trim();
         }
-        if (val.length > 0) {
-          if (!escapeEntities) val = this.replaceEntitiesValue(val);
-          const newval = this.options.tagValueProcessor(tagName, val, jPath, hasAttributes, isLeafNode);
+        if (val2.length > 0) {
+          if (!escapeEntities) val2 = this.replaceEntitiesValue(val2);
+          const newval = this.options.tagValueProcessor(tagName, val2, jPath, hasAttributes, isLeafNode);
           if (newval === null || newval === void 0) {
-            return val;
-          } else if (typeof newval !== typeof val || newval !== val) {
+            return val2;
+          } else if (typeof newval !== typeof val2 || newval !== val2) {
             return newval;
           } else if (this.options.trimValues) {
-            return parseValue(val, this.options.parseTagValue, this.options.numberParseOptions);
+            return parseValue(val2, this.options.parseTagValue, this.options.numberParseOptions);
           } else {
-            const trimmedVal = val.trim();
-            if (trimmedVal === val) {
-              return parseValue(val, this.options.parseTagValue, this.options.numberParseOptions);
+            const trimmedVal = val2.trim();
+            if (trimmedVal === val2) {
+              return parseValue(val2, this.options.parseTagValue, this.options.numberParseOptions);
             } else {
-              return val;
+              return val2;
             }
           }
         }
@@ -20711,12 +20705,12 @@ var require_OrderedObjParser = __commonJS({
             const closeIndex = findClosingIndex(xmlData, "]]>", i, "CDATA is not closed.") - 2;
             const tagExp = xmlData.substring(i + 9, closeIndex);
             textData = this.saveTextToParentTag(textData, currentNode, jPath);
-            let val = this.parseTextData(tagExp, currentNode.tagname, jPath, true, false, true, true);
-            if (val == void 0) val = "";
+            let val2 = this.parseTextData(tagExp, currentNode.tagname, jPath, true, false, true, true);
+            if (val2 == void 0) val2 = "";
             if (this.options.cdataPropName) {
               currentNode.add(this.options.cdataPropName, [{ [this.options.textNodeName]: tagExp }]);
             } else {
-              currentNode.add(this.options.textNodeName, val);
+              currentNode.add(this.options.textNodeName, val2);
             }
             i = closeIndex + 2;
           } else {
@@ -20818,29 +20812,29 @@ var require_OrderedObjParser = __commonJS({
         currentNode.addChild(childNode);
       }
     }
-    var replaceEntitiesValue = function(val) {
+    var replaceEntitiesValue = function(val2) {
       if (this.options.processEntities) {
-        for (let entityName in this.docTypeEntities) {
-          const entity = this.docTypeEntities[entityName];
-          val = val.replace(entity.regx, entity.val);
+        for (let entityName2 in this.docTypeEntities) {
+          const entity = this.docTypeEntities[entityName2];
+          val2 = val2.replace(entity.regx, entity.val);
         }
-        for (let entityName in this.lastEntities) {
-          const entity = this.lastEntities[entityName];
-          val = val.replace(entity.regex, entity.val);
+        for (let entityName2 in this.lastEntities) {
+          const entity = this.lastEntities[entityName2];
+          val2 = val2.replace(entity.regex, entity.val);
         }
         if (this.options.htmlEntities) {
-          for (let entityName in this.htmlEntities) {
-            const entity = this.htmlEntities[entityName];
-            val = val.replace(entity.regex, entity.val);
+          for (let entityName2 in this.htmlEntities) {
+            const entity = this.htmlEntities[entityName2];
+            val2 = val2.replace(entity.regex, entity.val);
           }
         }
-        val = val.replace(this.ampEntity.regex, this.ampEntity.val);
+        val2 = val2.replace(this.ampEntity.regex, this.ampEntity.val);
       }
-      return val;
+      return val2;
     };
     function saveTextToParentTag(textData, currentNode, jPath, isLeafNode) {
       if (textData) {
-        if (isLeafNode === void 0) isLeafNode = currentNode.child.length === 0;
+        if (isLeafNode === void 0) isLeafNode = Object.keys(currentNode.child).length === 0;
         textData = this.parseTextData(
           textData,
           currentNode.tagname,
@@ -20968,15 +20962,15 @@ var require_OrderedObjParser = __commonJS({
         }
       }
     }
-    function parseValue(val, shouldParse, options) {
-      if (shouldParse && typeof val === "string") {
-        const newval = val.trim();
+    function parseValue(val2, shouldParse, options) {
+      if (shouldParse && typeof val2 === "string") {
+        const newval = val2.trim();
         if (newval === "true") return true;
         else if (newval === "false") return false;
-        else return toNumber(val, options);
+        else return toNumber(val2, options);
       } else {
-        if (util.isExist(val)) {
-          return val;
+        if (util.isExist(val2)) {
+          return val2;
         } else {
           return "";
         }
@@ -21008,26 +21002,26 @@ var require_node2json = __commonJS({
         } else if (property === void 0) {
           continue;
         } else if (tagObj[property]) {
-          let val = compress(tagObj[property], options, newJpath);
-          const isLeaf = isLeafTag(val, options);
+          let val2 = compress(tagObj[property], options, newJpath);
+          const isLeaf = isLeafTag(val2, options);
           if (tagObj[":@"]) {
-            assignAttributes(val, tagObj[":@"], newJpath, options);
-          } else if (Object.keys(val).length === 1 && val[options.textNodeName] !== void 0 && !options.alwaysCreateTextNode) {
-            val = val[options.textNodeName];
-          } else if (Object.keys(val).length === 0) {
-            if (options.alwaysCreateTextNode) val[options.textNodeName] = "";
-            else val = "";
+            assignAttributes(val2, tagObj[":@"], newJpath, options);
+          } else if (Object.keys(val2).length === 1 && val2[options.textNodeName] !== void 0 && !options.alwaysCreateTextNode) {
+            val2 = val2[options.textNodeName];
+          } else if (Object.keys(val2).length === 0) {
+            if (options.alwaysCreateTextNode) val2[options.textNodeName] = "";
+            else val2 = "";
           }
           if (compressedObj[property] !== void 0 && compressedObj.hasOwnProperty(property)) {
             if (!Array.isArray(compressedObj[property])) {
               compressedObj[property] = [compressedObj[property]];
             }
-            compressedObj[property].push(val);
+            compressedObj[property].push(val2);
           } else {
             if (options.isArray(property, newJpath, isLeaf)) {
-              compressedObj[property] = [val];
+              compressedObj[property] = [val2];
             } else {
-              compressedObj[property] = val;
+              compressedObj[property] = val2;
             }
           }
         }
@@ -21336,26 +21330,24 @@ var require_json2xml = __commonJS({
     };
     Builder.prototype.j2x = function(jObj, level, ajPath) {
       let attrStr = "";
-      let val = "";
+      let val2 = "";
       const jPath = ajPath.join(".");
       for (let key in jObj) {
         if (!Object.prototype.hasOwnProperty.call(jObj, key)) continue;
         if (typeof jObj[key] === "undefined") {
           if (this.isAttribute(key)) {
-            val += "";
+            val2 += "";
           }
         } else if (jObj[key] === null) {
           if (this.isAttribute(key)) {
-            val += "";
-          } else if (key === this.options.cdataPropName) {
-            val += "";
+            val2 += "";
           } else if (key[0] === "?") {
-            val += this.indentate(level) + "<" + key + "?" + this.tagEndChar;
+            val2 += this.indentate(level) + "<" + key + "?" + this.tagEndChar;
           } else {
-            val += this.indentate(level) + "<" + key + "/" + this.tagEndChar;
+            val2 += this.indentate(level) + "<" + key + "/" + this.tagEndChar;
           }
         } else if (jObj[key] instanceof Date) {
-          val += this.buildTextValNode(jObj[key], key, "", level);
+          val2 += this.buildTextValNode(jObj[key], key, "", level);
         } else if (typeof jObj[key] !== "object") {
           const attr = this.isAttribute(key);
           if (attr && !this.ignoreAttributesFn(attr, jPath)) {
@@ -21363,9 +21355,9 @@ var require_json2xml = __commonJS({
           } else if (!attr) {
             if (key === this.options.textNodeName) {
               let newval = this.options.tagValueProcessor(key, "" + jObj[key]);
-              val += this.replaceEntitiesValue(newval);
+              val2 += this.replaceEntitiesValue(newval);
             } else {
-              val += this.buildTextValNode(jObj[key], key, "", level);
+              val2 += this.buildTextValNode(jObj[key], key, "", level);
             }
           }
         } else if (Array.isArray(jObj[key])) {
@@ -21376,8 +21368,8 @@ var require_json2xml = __commonJS({
             const item = jObj[key][j];
             if (typeof item === "undefined") {
             } else if (item === null) {
-              if (key[0] === "?") val += this.indentate(level) + "<" + key + "?" + this.tagEndChar;
-              else val += this.indentate(level) + "<" + key + "/" + this.tagEndChar;
+              if (key[0] === "?") val2 += this.indentate(level) + "<" + key + "?" + this.tagEndChar;
+              else val2 += this.indentate(level) + "<" + key + "/" + this.tagEndChar;
             } else if (typeof item === "object") {
               if (this.options.oneListGroup) {
                 const result = this.j2x(item, level + 1, ajPath.concat(key));
@@ -21401,7 +21393,7 @@ var require_json2xml = __commonJS({
           if (this.options.oneListGroup) {
             listTagVal = this.buildObjectNode(listTagVal, key, listTagAttr, level);
           }
-          val += listTagVal;
+          val2 += listTagVal;
         } else {
           if (this.options.attributesGroupName && key === this.options.attributesGroupName) {
             const Ks = Object.keys(jObj[key]);
@@ -21410,18 +21402,18 @@ var require_json2xml = __commonJS({
               attrStr += this.buildAttrPairStr(Ks[j], "" + jObj[key][Ks[j]]);
             }
           } else {
-            val += this.processTextOrObjNode(jObj[key], key, level, ajPath);
+            val2 += this.processTextOrObjNode(jObj[key], key, level, ajPath);
           }
         }
       }
-      return { attrStr, val };
+      return { attrStr, val: val2 };
     };
-    Builder.prototype.buildAttrPairStr = function(attrName, val) {
-      val = this.options.attributeValueProcessor(attrName, "" + val);
-      val = this.replaceEntitiesValue(val);
-      if (this.options.suppressBooleanAttributes && val === "true") {
+    Builder.prototype.buildAttrPairStr = function(attrName, val2) {
+      val2 = this.options.attributeValueProcessor(attrName, "" + val2);
+      val2 = this.replaceEntitiesValue(val2);
+      if (this.options.suppressBooleanAttributes && val2 === "true") {
         return " " + attrName;
-      } else return " " + attrName + '="' + val + '"';
+      } else return " " + attrName + '="' + val2 + '"';
     };
     function processTextOrObjNode(object, key, level, ajPath) {
       const result = this.j2x(object, level + 1, ajPath.concat(key));
@@ -21431,8 +21423,8 @@ var require_json2xml = __commonJS({
         return this.buildObjectNode(result.val, key, result.attrStr, level);
       }
     }
-    Builder.prototype.buildObjectNode = function(val, key, attrStr, level) {
-      if (val === "") {
+    Builder.prototype.buildObjectNode = function(val2, key, attrStr, level) {
+      if (val2 === "") {
         if (key[0] === "?") return this.indentate(level) + "<" + key + attrStr + "?" + this.tagEndChar;
         else {
           return this.indentate(level) + "<" + key + attrStr + this.closeTag(key) + this.tagEndChar;
@@ -21444,12 +21436,12 @@ var require_json2xml = __commonJS({
           piClosingChar = "?";
           tagEndExp = "";
         }
-        if ((attrStr || attrStr === "") && val.indexOf("<") === -1) {
-          return this.indentate(level) + "<" + key + attrStr + piClosingChar + ">" + val + tagEndExp;
+        if ((attrStr || attrStr === "") && val2.indexOf("<") === -1) {
+          return this.indentate(level) + "<" + key + attrStr + piClosingChar + ">" + val2 + tagEndExp;
         } else if (this.options.commentPropName !== false && key === this.options.commentPropName && piClosingChar.length === 0) {
-          return this.indentate(level) + `<!--${val}-->` + this.newLine;
+          return this.indentate(level) + `<!--${val2}-->` + this.newLine;
         } else {
-          return this.indentate(level) + "<" + key + attrStr + piClosingChar + this.tagEndChar + val + this.indentate(level) + tagEndExp;
+          return this.indentate(level) + "<" + key + attrStr + piClosingChar + this.tagEndChar + val2 + this.indentate(level) + tagEndExp;
         }
       }
     };
@@ -21464,15 +21456,15 @@ var require_json2xml = __commonJS({
       }
       return closeTag;
     };
-    Builder.prototype.buildTextValNode = function(val, key, attrStr, level) {
+    Builder.prototype.buildTextValNode = function(val2, key, attrStr, level) {
       if (this.options.cdataPropName !== false && key === this.options.cdataPropName) {
-        return this.indentate(level) + `<![CDATA[${val}]]>` + this.newLine;
+        return this.indentate(level) + `<![CDATA[${val2}]]>` + this.newLine;
       } else if (this.options.commentPropName !== false && key === this.options.commentPropName) {
-        return this.indentate(level) + `<!--${val}-->` + this.newLine;
+        return this.indentate(level) + `<!--${val2}-->` + this.newLine;
       } else if (key[0] === "?") {
         return this.indentate(level) + "<" + key + attrStr + "?" + this.tagEndChar;
       } else {
-        let textValue = this.options.tagValueProcessor(key, val);
+        let textValue = this.options.tagValueProcessor(key, val2);
         textValue = this.replaceEntitiesValue(textValue);
         if (textValue === "") {
           return this.indentate(level) + "<" + key + attrStr + this.closeTag(key) + this.tagEndChar;
@@ -21519,19 +21511,10 @@ var require_fxp = __commonJS({
   }
 });
 
-// src/index.ts
-var index_exports = {};
-__export(index_exports, {
-  run: () => run
-});
-module.exports = __toCommonJS(index_exports);
-var core2 = __toESM(require_core());
-
 // src/main.ts
 var core = __toESM(require_core());
 var fs = __toESM(require("fs/promises"));
 var import_fast_xml_parser = __toESM(require_fxp());
-var reTestKey = /MM-T\d+/;
 var zephyrCloudApiUrl = "https://api.zephyrscale.smartbear.com/v2";
 function newTestExecution(testCaseKey, statusName, executionTime, comment) {
   return {
@@ -21550,6 +21533,7 @@ async function getTestData(junitFile, config) {
     statusName: "Done",
     folderId: config.zephyrFolderId
   };
+  const reTestKey = new RegExp(`${config.projectKey}-T\\d+`);
   const testExecutions = [];
   const data = await fs.readFile(junitFile, "utf8");
   const parser = new import_fast_xml_parser.XMLParser({
@@ -21666,31 +21650,15 @@ async function getTestData(junitFile, config) {
   core.endGroup();
   const passedTests = totalTests - totalFailures;
   const passRate = totalTests > 0 ? (passedTests / totalTests * 100).toFixed(1) : "0";
-  testCycle.description = `### Test Summary
-
-`;
-  testCycle.description += `**${passedTests}** passed | `;
-  testCycle.description += `**${totalFailures}** failed | `;
-  testCycle.description += `**${passRate}%** pass rate | `;
-  testCycle.description += `**${totalTime.toFixed(1)}s** duration
-
-`;
-  if (config.githubRunUrl) {
-    testCycle.description += `[View GitHub Pipeline](${config.githubRunUrl})
-
-`;
-  }
-  testCycle.description += `---
-
-`;
-  testCycle.description += `**Build Details:**
-`;
-  testCycle.description += `* Branch: ${config.branch}
-`;
-  testCycle.description += `* Build Image: ${config.buildImage}
-`;
-  testCycle.description += `* Build Number: ${config.buildNumber}
-`;
+  testCycle.description = `Test Summary: `;
+  testCycle.description += `${passedTests} passed | `;
+  testCycle.description += `${totalFailures} failed | `;
+  testCycle.description += `${passRate}% pass rate | `;
+  testCycle.description += `${totalTime.toFixed(1)}s duration | `;
+  testCycle.description += `branch: ${config.branch} | `;
+  testCycle.description += `build image: ${config.buildImage} | `;
+  testCycle.description += `build number: ${config.buildNumber} | `;
+  testCycle.description += `${config.githubRunUrl}`;
   if (earliestTimestamp) {
     testCycle.plannedStartDate = earliestTimestamp.toISOString();
     if (latestTimestamp && latestTimestamp > earliestTimestamp) {
@@ -21725,11 +21693,127 @@ async function getTestData(junitFile, config) {
     }
   };
 }
-async function saveMmctlReport() {
+function sortTestExecutions(executions) {
+  const statusOrder = {
+    Pass: 1,
+    Fail: 2,
+    "Not Executed": 3
+  };
+  return [...executions].sort((a, b) => {
+    const statusA = statusOrder[a.statusName] || 999;
+    const statusB = statusOrder[b.statusName] || 999;
+    const statusComparison = statusA - statusB;
+    if (statusComparison !== 0) {
+      return statusComparison;
+    }
+    return a.testCaseKey.localeCompare(b.testCaseKey);
+  });
+}
+async function writeGitHubSummary(testCycle, junitStats, testKeyStats, successCount, failureCount, uniqueSavedTestKeys, uniqueFailedTestKeys, projectKey, testCycleKey) {
+  const timeInMinutes = (junitStats.totalTime / 60).toFixed(1);
+  const zephyrUrl = `https://mattermost.atlassian.net/projects/${projectKey}?selectedItem=com.atlassian.plugins.atlassian-connect-plugin:com.kanoah.test-manager__main-project-page#!/v2/testCycle/${testCycleKey}`;
+  const summary2 = core.summary.addHeading("mmctl: E2E Test Report", 2).addHeading("JUnit report summary", 3).addTable([
+    ["Total tests", `${junitStats.totalTests}`],
+    ["Passed", `${junitStats.totalPassed}`],
+    ["Failed", `${junitStats.totalFailures}`],
+    ["Skipped", `${junitStats.totalSkipped}`],
+    ["Error", `${junitStats.totalErrors}`],
+    [
+      "Duration",
+      `${junitStats.totalTime.toFixed(1)}s (~${timeInMinutes}m)`
+    ]
+  ]).addHeading("Extracted MM-T test cases", 3).addTable([
+    ["Total tests found", `${testKeyStats.totalOccurrences}`],
+    ["Unique test keys", `${testKeyStats.uniqueCount}`],
+    ["Passed", `${testKeyStats.passedCount} test keys`],
+    ["Failed", `${testKeyStats.failedCount} test keys`],
+    ["Skipped", `${testKeyStats.skippedCount} test keys`]
+  ]).addHeading("Zephyr Scale Results", 3).addTable([
+    ["Test cycle key", `${testCycleKey}`],
+    ["Test cycle name", `${testCycle.name}`],
+    [
+      "Successfully saved",
+      `${successCount} executions (${uniqueSavedTestKeys.size} unique test keys)`
+    ],
+    // if failed is 0 then don't print, otherwise print the failed row
+    ...failureCount === 0 ? [] : [
+      [
+        "Failed on saving",
+        `${failureCount} executions (${uniqueFailedTestKeys.size} unique test keys)`
+      ]
+    ]
+  ]).addLink("View in Zephyr", zephyrUrl);
+  await summary2.write();
+}
+function createZephyrApiClient(apiKey) {
+  return {
+    async createTestCycle(testCycle) {
+      const response = await fetch(`${zephyrCloudApiUrl}/testcycles`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json; charset=utf-8"
+        },
+        body: JSON.stringify(testCycle)
+      });
+      if (!response.ok) {
+        const errorDetails = await response.json();
+        throw new Error(
+          `Failed to create test cycle: ${JSON.stringify(errorDetails)} (Status: ${response.status})`
+        );
+      }
+      return await response.json();
+    },
+    async saveTestExecution(testExecution, retries = 3) {
+      for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+          const response = await fetch(
+            `${zephyrCloudApiUrl}/testexecutions`,
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${apiKey}`,
+                "Content-Type": "application/json; charset=utf-8"
+              },
+              body: JSON.stringify(testExecution)
+            }
+          );
+          if (!response.ok) {
+            const errorBody = await response.text();
+            throw new Error(
+              `HTTP ${response.status}: ${errorBody}`
+            );
+          }
+          const responseData = await response.json();
+          core.info(
+            `Saved test execution: ${testExecution.testCaseKey} (${testExecution.statusName}) - Response: ${JSON.stringify(responseData)}`
+          );
+          return;
+        } catch (error) {
+          const errorMsg = error instanceof Error ? error.message : String(error);
+          core.warning(
+            `Error saving test execution for ${testExecution.testCaseKey} (attempt ${attempt}/${retries}): ${errorMsg}`
+          );
+          if (attempt === retries) {
+            throw new Error(
+              `Failed after ${retries} attempts: ${errorMsg}`
+            );
+          }
+          const delay = 1e3 * attempt;
+          core.info(
+            `Retrying ${testExecution.testCaseKey} in ${delay}ms...`
+          );
+          await new Promise((resolve) => setTimeout(resolve, delay));
+        }
+      }
+    }
+  };
+}
+async function run() {
   const branch = process.env.GITHUB_HEAD_REF || process.env.GITHUB_REF_NAME || "unknown";
   const githubRepository = process.env.GITHUB_REPOSITORY || "";
   const githubRunId = process.env.GITHUB_RUN_ID || "";
-  const githubRunUrl = githubRepository && githubRunId ? `https://github.com/${githubRepository}/actions/runs/${githubRunId}` : void 0;
+  const githubRunUrl = githubRepository && githubRunId ? `https://github.com/${githubRepository}/actions/runs/${githubRunId}` : "";
   const buildNumber = `${branch}-${githubRunId}`;
   const reportPath = core.getInput("report-path", { required: true });
   const buildImage = core.getInput("build-image", { required: true });
@@ -21760,88 +21844,21 @@ async function saveMmctlReport() {
     buildNumber,
     githubRunUrl
   });
+  const client = createZephyrApiClient(zephyrApiKey);
   core.startGroup("Creating test cycle and saving test executions in Zephyr");
-  const createCycleResponse = await fetch(`${zephyrCloudApiUrl}/testcycles`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${zephyrApiKey}`,
-      "Content-Type": "application/json; charset=utf-8"
-    },
-    body: JSON.stringify(testCycle)
-  });
-  if (!createCycleResponse.ok) {
-    const errorDetails = await createCycleResponse.json();
-    core.error(
-      `Failed to create test cycle: ${JSON.stringify(errorDetails)}`
-    );
-    throw new Error(`HTTP error! Status: ${createCycleResponse.status}`);
-  }
-  const createdTestCycle = await createCycleResponse.json();
+  const createdTestCycle = await client.createTestCycle(testCycle);
   core.info(`Created test cycle: ${createdTestCycle.key}`);
-  async function saveTestExecution(testExecution, retries = 3) {
+  const sortedExecutions = sortTestExecutions(testExecutions);
+  const promises = sortedExecutions.map((testExecution) => {
     testExecution.projectKey = projectKey;
     testExecution.testCycleKey = createdTestCycle.key;
-    for (let attempt = 1; attempt <= retries; attempt++) {
-      try {
-        const response = await fetch(
-          `${zephyrCloudApiUrl}/testexecutions`,
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${zephyrApiKey}`,
-              "Content-Type": "application/json; charset=utf-8"
-            },
-            body: JSON.stringify(testExecution)
-          }
-        );
-        if (!response.ok) {
-          const errorBody = await response.text();
-          throw new Error(`HTTP ${response.status}: ${errorBody}`);
-        }
-        const responseData = await response.json();
-        core.info(
-          `Saved test execution: ${testExecution.testCaseKey} (${testExecution.statusName}) - Response: ${JSON.stringify(responseData)}`
-        );
-        return;
-      } catch (error2) {
-        const errorMsg = error2 instanceof Error ? error2.message : String(error2);
-        core.warning(
-          `Error saving test execution for ${testExecution.testCaseKey} (attempt ${attempt}/${retries}): ${errorMsg}`
-        );
-        if (attempt === retries) {
-          throw new Error(
-            `Failed after ${retries} attempts: ${errorMsg}`
-          );
-        }
-        const delay = 1e3 * attempt;
-        core.info(
-          `Retrying ${testExecution.testCaseKey} in ${delay}ms...`
-        );
-        await new Promise((resolve) => setTimeout(resolve, delay));
-      }
-    }
-  }
-  const statusOrder = {
-    Pass: 1,
-    Fail: 2,
-    "Not Executed": 3
-  };
-  const promises = testExecutions.sort((a, b) => {
-    const statusA = statusOrder[a.statusName] || 999;
-    const statusB = statusOrder[b.statusName] || 999;
-    const statusComparison = statusA - statusB;
-    if (statusComparison !== 0) {
-      return statusComparison;
-    }
-    return a.testCaseKey.localeCompare(b.testCaseKey);
-  }).map((testExecution) => {
-    return saveTestExecution(testExecution).then(() => ({
+    return client.saveTestExecution(testExecution).then(() => ({
       success: true,
       testCaseKey: testExecution.testCaseKey
-    })).catch((error2) => ({
+    })).catch((error) => ({
       success: false,
       testCaseKey: testExecution.testCaseKey,
-      error: error2.message
+      error: error.message
     }));
   });
   const results = await Promise.all(promises);
@@ -21857,42 +21874,26 @@ async function saveMmctlReport() {
     } else {
       failureCount++;
       failedTestKeys.push(result.testCaseKey);
-      const error2 = "error" in result ? result.error : "Unknown error";
+      const error = "error" in result ? result.error : "Unknown error";
       core.warning(
-        `Test execution failed for ${result.testCaseKey}: ${error2}`
+        `Test execution failed for ${result.testCaseKey}: ${error}`
       );
     }
   });
   const uniqueSavedTestKeys = new Set(savedTestKeys);
   const uniqueFailedTestKeys = new Set(failedTestKeys);
   if (process.env.GITHUB_STEP_SUMMARY) {
-    const timeInMinutes = (junitStats.totalTime / 60).toFixed(1);
-    const zephyrUrl = `https://mattermost.atlassian.net/projects/${projectKey}?selectedItem=com.atlassian.plugins.atlassian-connect-plugin:com.kanoah.test-manager__main-project-page#!/v2/testCycle/${createdTestCycle.key}`;
-    const summary2 = core.summary.addHeading("mmctl: E2E Test Report", 2).addHeading("JUnit report summary", 3).addTable([
-      ["Total tests", `${junitStats.totalTests}`],
-      ["Passed", `${junitStats.totalPassed}`],
-      ["Failed", `${junitStats.totalFailures}`],
-      ["Skipped", `${junitStats.totalSkipped}`],
-      ["Error", `${junitStats.totalErrors}`],
-      [
-        "Duration",
-        `${junitStats.totalTime.toFixed(1)}s (~${timeInMinutes}m)`
-      ]
-    ]).addHeading("Extracted MM-T test cases", 3).addTable([
-      ["Total tests found", `${testKeyStats.totalOccurrences}`],
-      ["Unique test keys", `${testKeyStats.uniqueCount}`],
-      ["Passed", `${testKeyStats.passedCount} test keys`],
-      ["Failed", `${testKeyStats.failedCount} test keys`],
-      ["Skipped", `${testKeyStats.skippedCount} test keys`]
-    ]).addHeading("Zephyr Scale Results", 3).addTable([
-      ["Test cycle key", `${createdTestCycle.key}`],
-      ["Test cycle name", `${testCycle.name}`],
-      [
-        "Successfully saved",
-        `${successCount} executions (${uniqueSavedTestKeys.size} unique test keys)`
-      ]
-    ]).addLink("View in Zephyr", zephyrUrl);
-    await summary2.write();
+    await writeGitHubSummary(
+      testCycle,
+      junitStats,
+      testKeyStats,
+      successCount,
+      failureCount,
+      uniqueSavedTestKeys,
+      uniqueFailedTestKeys,
+      projectKey,
+      createdTestCycle.key
+    );
   }
   core.startGroup("Zephyr Scale Results");
   core.info(`Test cycle key: ${createdTestCycle.key}`);
@@ -21925,22 +21926,7 @@ async function saveMmctlReport() {
 }
 
 // src/index.ts
-async function run() {
-  try {
-    core2.info("Saving mmctl test report...");
-    await saveMmctlReport();
-    core2.info("Successfully saved mmctl test report!");
-  } catch (err) {
-    core2.setFailed(`Action failed with error ${err}`);
-  }
-}
-if (process.env.GITHUB_ACTIONS === "true") {
-  run();
-}
-// Annotate the CommonJS export names for ESM import in node:
-0 && (module.exports = {
-  run
-});
+run();
 /*! Bundled license information:
 
 undici/lib/fetch/body.js:
