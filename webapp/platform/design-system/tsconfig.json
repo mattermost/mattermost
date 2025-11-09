@@ -9,7 +9,7 @@
         "strict": true,
         "skipLibCheck": true,
         "strictNullChecks": true,
-        "types": ["node", "@testing-library/jest-dom"],
+        "types": ["node", "jest", "@testing-library/jest-dom"],
         "isolatedModules": true,
         "declaration": true,
         "outDir": "dist",
@@ -20,8 +20,6 @@
         "./src/**/*"
     ],
     "exclude": [
-        "./src/**/*.test.tsx",
-        "./src/**/*.test.ts",
         "./src/**/*.stories.tsx",
         "./src/**/*.stories.ts",
         "node_modules",

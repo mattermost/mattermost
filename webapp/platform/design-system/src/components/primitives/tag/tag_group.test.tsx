@@ -75,7 +75,7 @@ describe('TagGroup', () => {
     });
 
     it('should handle empty children', () => {
-        const {container} = renderWithIntl(<TagGroup/>);
+        const {container} = renderWithIntl(<TagGroup>{[]}</TagGroup>);
         expect(container.firstChild).toBeInTheDocument();
     });
 

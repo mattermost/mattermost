@@ -24,6 +24,7 @@
     "@rollup/plugin-node-resolve": "^13.1.3",
     "@rollup/plugin-typescript": "11.1.6",
     "@testing-library/jest-dom": "6.8.0",
+    "@types/jest": "30.0.0",
     "@types/lodash": "^4.14.178",
     "@types/react": "18.2.64",
     "@types/react-bootstrap": "^0.32.35",
