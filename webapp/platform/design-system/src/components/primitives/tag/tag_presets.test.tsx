@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {render, screen} from '@testing-library/react';
+import React from 'react';
 import {IntlProvider} from 'react-intl';
 
 import {BetaTag, BotTag, GuestTag} from './tag_presets';
@@ -10,7 +10,7 @@ import {BetaTag, BotTag, GuestTag} from './tag_presets';
 // Test wrapper with IntlProvider only (no Redux needed - pure components)
 const renderWithIntl = (ui: React.ReactElement) => {
     return render(
-        <IntlProvider locale="en" messages={{}}>
+        <IntlProvider locale='en' messages={{}}>
             {ui}
         </IntlProvider>,
     );
@@ -20,7 +20,7 @@ const renderWithIntl = (ui: React.ReactElement) => {
 jest.mock('../with_tooltip', () => {
     return function WithTooltip({title, children}: {title: React.ReactNode; children: React.ReactNode}) {
         return (
-            <div data-testid="tooltip-wrapper" title={String(title)}>
+            <div data-testid='tooltip-wrapper' title={String(title)}>
                 {children}
             </div>
         );
@@ -35,19 +35,19 @@ describe('Preset Tag Wrappers', () => {
         });
 
         it('should apply custom size', () => {
-            const {container} = renderWithIntl(<BetaTag size="lg"/>);
+            const {container} = renderWithIntl(<BetaTag size='lg'/>);
             const tag = container.querySelector('.Tag--lg');
             expect(tag).toBeInTheDocument();
         });
 
         it('should apply custom variant', () => {
-            const {container} = renderWithIntl(<BetaTag variant="success"/>);
+            const {container} = renderWithIntl(<BetaTag variant='success'/>);
             const tag = container.querySelector('.Tag--success');
             expect(tag).toBeInTheDocument();
         });
 
         it('should apply custom className', () => {
-            const {container} = renderWithIntl(<BetaTag className="custom-beta"/>);
+            const {container} = renderWithIntl(<BetaTag className='custom-beta'/>);
             const tag = container.querySelector('.custom-beta');
             expect(tag).toBeInTheDocument();
         });
@@ -72,13 +72,13 @@ describe('Preset Tag Wrappers', () => {
         });
 
         it('should apply custom size', () => {
-            const {container} = renderWithIntl(<BotTag size="md"/>);
+            const {container} = renderWithIntl(<BotTag size='md'/>);
             const tag = container.querySelector('.Tag--md');
             expect(tag).toBeInTheDocument();
         });
 
         it('should apply custom className', () => {
-            const {container} = renderWithIntl(<BotTag className="custom-bot"/>);
+            const {container} = renderWithIntl(<BotTag className='custom-bot'/>);
             const tag = container.querySelector('.custom-bot');
             expect(tag).toBeInTheDocument();
         });
@@ -103,13 +103,13 @@ describe('Preset Tag Wrappers', () => {
         });
 
         it('should apply custom size', () => {
-            const {container} = renderWithIntl(<GuestTag size="sm"/>);
+            const {container} = renderWithIntl(<GuestTag size='sm'/>);
             const tag = container.querySelector('.Tag--sm');
             expect(tag).toBeInTheDocument();
         });
 
         it('should apply custom className', () => {
-            const {container} = renderWithIntl(<GuestTag className="custom-guest"/>);
+            const {container} = renderWithIntl(<GuestTag className='custom-guest'/>);
             const tag = container.querySelector('.custom-guest');
             expect(tag).toBeInTheDocument();
         });
@@ -135,5 +135,4 @@ describe('Preset Tag Wrappers', () => {
             expect(screen.getByText('GUEST')).toBeInTheDocument();
         });
     });
-
 });

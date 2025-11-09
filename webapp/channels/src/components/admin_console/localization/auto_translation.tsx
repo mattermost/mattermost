@@ -4,9 +4,8 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {defineMessages, FormattedMessage} from 'react-intl';
 
-import type {AutoTranslationSettings} from '@mattermost/types/config';
-
 import {Toggle} from '@mattermost/design-system';
+import type {AutoTranslationSettings} from '@mattermost/types/config';
 
 import DropdownSetting from 'components/admin_console/dropdown_setting';
 import {

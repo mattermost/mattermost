@@ -6,12 +6,13 @@ import React from 'react';
 
 import Tag from './tag';
 import TagGroup from './tag_group';
+
 import WithTooltip from '../with_tooltip';
 
 // Mock Compass Icon for demonstration
 const MockIcon = ({size = 16}: {size?: number}) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
-        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+    <svg width={size} height={size} viewBox='0 0 24 24' fill='currentColor'>
+        <path d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z'/>
     </svg>
 );
 
@@ -61,7 +62,7 @@ type Story = StoryObj<typeof Tag>;
 export const Default: Story = {
     render: () => (
         <div style={{padding: '20px', background: '#f0f0f0'}}>
-            <Tag text="Default Tag" variant="default" size="xs" />
+            <Tag text='Default Tag' variant='default' size='xs' />
         </div>
     ),
 };
@@ -69,7 +70,7 @@ export const Default: Story = {
 export const Info: Story = {
     render: () => (
         <div style={{padding: '20px', background: '#f0f0f0'}}>
-            <Tag text="Info" variant="info" size="sm" uppercase={true} />
+            <Tag text='Info' variant='info' size='sm' uppercase={true} />
         </div>
     ),
 };
@@ -77,7 +78,7 @@ export const Info: Story = {
 export const Success: Story = {
     render: () => (
         <div style={{padding: '20px', background: '#f0f0f0'}}>
-            <Tag text="Success" variant="success" size="sm" uppercase={true} />
+            <Tag text='Success' variant='success' size='sm' uppercase={true} />
         </div>
     ),
 };
@@ -85,7 +86,7 @@ export const Success: Story = {
 export const Warning: Story = {
     render: () => (
         <div style={{padding: '20px', background: '#f0f0f0'}}>
-            <Tag text="Warning" variant="warning" size="sm" uppercase={true} />
+            <Tag text='Warning' variant='warning' size='sm' uppercase={true} />
         </div>
     ),
 };
@@ -93,7 +94,7 @@ export const Warning: Story = {
 export const Danger: Story = {
     render: () => (
         <div style={{padding: '20px', background: '#f0f0f0'}}>
-            <Tag text="Danger" variant="danger" size="sm" uppercase={true} />
+            <Tag text='Danger' variant='danger' size='sm' uppercase={true} />
         </div>
     ),
 };
@@ -101,7 +102,7 @@ export const Danger: Story = {
 export const DangerDim: Story = {
     render: () => (
         <div style={{padding: '20px', background: '#f0f0f0'}}>
-            <Tag text="Danger Dim" variant="dangerDim" size="sm" uppercase={true} />
+            <Tag text='Danger Dim' variant='dangerDim' size='sm' uppercase={true} />
         </div>
     ),
 };
@@ -110,10 +111,10 @@ export const DangerDim: Story = {
 export const Sizes: Story = {
     render: () => (
         <div style={{display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap'}}>
-            <Tag text="Extra Small" size="xs" variant="info"/>
-            <Tag text="Small" size="sm" variant="info"/>
-            <Tag text="Medium" size="md" variant="info"/>
-            <Tag text="Large" size="lg" variant="info"/>
+            <Tag text='Extra Small' size='xs' variant='info'/>
+            <Tag text='Small' size='sm' variant='info'/>
+            <Tag text='Medium' size='md' variant='info'/>
+            <Tag text='Large' size='lg' variant='info'/>
         </div>
     ),
 };
@@ -122,13 +123,13 @@ export const Sizes: Story = {
 export const AllVariants: Story = {
     render: () => (
         <div style={{display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap'}}>
-            <Tag text="Default" variant="default" size="sm" uppercase={true}/>
-            <Tag text="Primary" variant="primary" size="sm" uppercase={true}/>
-            <Tag text="Info" variant="info" size="sm" uppercase={true}/>
-            <Tag text="Success" variant="success" size="sm" uppercase={true}/>
-            <Tag text="Warning" variant="warning" size="sm" uppercase={true}/>
-            <Tag text="Danger" variant="danger" size="sm" uppercase={true}/>
-            <Tag text="Danger Dim" variant="dangerDim" size="sm" uppercase={true}/>
+            <Tag text='Default' variant='default' size='sm' uppercase={true}/>
+            <Tag text='Primary' variant='primary' size='sm' uppercase={true}/>
+            <Tag text='Info' variant='info' size='sm' uppercase={true}/>
+            <Tag text='Success' variant='success' size='sm' uppercase={true}/>
+            <Tag text='Warning' variant='warning' size='sm' uppercase={true}/>
+            <Tag text='Danger' variant='danger' size='sm' uppercase={true}/>
+            <Tag text='Danger Dim' variant='dangerDim' size='sm' uppercase={true}/>
         </div>
     ),
 };
@@ -138,10 +139,10 @@ export const BetaTag: Story = {
     name: 'Preset: Beta',
     render: () => (
         <div style={{display: 'flex', gap: '8px', alignItems: 'center'}}>
-            <Tag preset="beta" size="xs"/>
-            <Tag preset="beta" size="sm"/>
-            <Tag preset="beta" size="md"/>
-            <Tag preset="beta" size="lg"/>
+            <Tag preset='beta' size='xs'/>
+            <Tag preset='beta' size='sm'/>
+            <Tag preset='beta' size='md'/>
+            <Tag preset='beta' size='lg'/>
         </div>
     ),
 };
@@ -150,10 +151,10 @@ export const BotTag: Story = {
     name: 'Preset: Bot',
     render: () => (
         <div style={{display: 'flex', gap: '8px', alignItems: 'center'}}>
-            <Tag preset="bot" size="xs"/>
-            <Tag preset="bot" size="sm"/>
-            <Tag preset="bot" size="md"/>
-            <Tag preset="bot" size="lg"/>
+            <Tag preset='bot' size='xs'/>
+            <Tag preset='bot' size='sm'/>
+            <Tag preset='bot' size='md'/>
+            <Tag preset='bot' size='lg'/>
         </div>
     ),
 };
@@ -162,10 +163,10 @@ export const GuestTag: Story = {
     name: 'Preset: Guest',
     render: () => (
         <div style={{display: 'flex', gap: '8px', alignItems: 'center'}}>
-            <Tag preset="guest" size="xs"/>
-            <Tag preset="guest" size="sm"/>
-            <Tag preset="guest" size="md"/>
-            <Tag preset="guest" size="lg"/>
+            <Tag preset='guest' size='xs'/>
+            <Tag preset='guest' size='sm'/>
+            <Tag preset='guest' size='md'/>
+            <Tag preset='guest' size='lg'/>
         </div>
     ),
 };
@@ -173,11 +174,11 @@ export const GuestTag: Story = {
 // With Icon
 export const WithIcon: Story = {
     render: () => (
-        <div style={{display: 'flex', gap: '12px', alignItems: 'center', flexDirection: 'column', alignItems: 'flex-start'}}>
-            <Tag text="With Icon" icon={<MockIcon/>} variant="success" size="xs"/>
-            <Tag text="With Icon" icon={<MockIcon/>} variant="success" size="sm"/>
-            <Tag text="With Icon" icon={<MockIcon/>} variant="info" size="md"/>
-            <Tag text="With Icon" icon={<MockIcon/>} variant="warning" size="lg"/>
+        <div style={{display: 'flex', gap: '12px', flexDirection: 'column', alignItems: 'flex-start'}}>
+            <Tag text='With Icon' icon={<MockIcon/>} variant='success' size='xs'/>
+            <Tag text='With Icon' icon={<MockIcon/>} variant='success' size='sm'/>
+            <Tag text='With Icon' icon={<MockIcon/>} variant='info' size='md'/>
+            <Tag text='With Icon' icon={<MockIcon/>} variant='warning' size='lg'/>
         </div>
     ),
 };
@@ -187,19 +188,19 @@ export const Clickable: Story = {
     render: () => (
         <div style={{padding: '20px', background: '#f0f0f0'}}>
             <div style={{display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap'}}>
-                <Tag 
-                    text="Click Me" 
-                    variant="info" 
-                    size="sm"
+                <Tag
+                    text='Click Me'
+                    variant='info'
+                    size='sm'
                     uppercase={true}
                     // eslint-disable-next-line no-alert
                     onClick={() => alert('Tag clicked!')}
                 />
-                <Tag 
-                    text="Clickable with Icon" 
+                <Tag
+                    text='Clickable with Icon'
                     icon={<MockIcon/>}
-                    variant="success" 
-                    size="md"
+                    variant='success'
+                    size='md'
                     uppercase={true}
                     // eslint-disable-next-line no-alert
                     onClick={() => alert('Tag with icon clicked!')}
@@ -215,19 +216,19 @@ export const WithTooltipStory: Story = {
     render: () => (
         <div style={{padding: '20px', background: '#f0f0f0'}}>
             <div style={{display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap'}}>
-                <Tag 
-                    text="Hover Me" 
-                    variant="info" 
-                    size="md"
+                <Tag
+                    text='Hover Me'
+                    variant='info'
+                    size='md'
                     uppercase={true}
-                    tooltip="This is additional information about the tag"
+                    tooltip='This is additional information about the tag'
                     TooltipComponent={WithTooltip}
                 />
-                <Tag 
-                    text="User Info" 
-                    variant="success" 
-                    size="sm"
-                    tooltip="Additional user context information"
+                <Tag
+                    text='User Info'
+                    variant='success'
+                    size='sm'
+                    tooltip='Additional user context information'
                     TooltipComponent={WithTooltip}
                 />
             </div>
@@ -239,10 +240,10 @@ export const WithTooltipStory: Story = {
 export const LongTextOverflow: Story = {
     render: () => (
         <div style={{maxWidth: '200px', padding: '20px', border: '1px dashed #ccc'}}>
-            <Tag 
-                text="This is a very long tag text that will overflow" 
-                variant="info" 
-                size="sm"
+            <Tag
+                text='This is a very long tag text that will overflow'
+                variant='info'
+                size='sm'
             />
         </div>
     ),
@@ -252,10 +253,10 @@ export const LongTextOverflow: Story = {
 export const FullWidth: Story = {
     render: () => (
         <div style={{width: '300px', padding: '20px', border: '1px dashed #ccc'}}>
-            <Tag 
-                text="Full Width Tag" 
-                variant="primary" 
-                size="md"
+            <Tag
+                text='Full Width Tag'
+                variant='primary'
+                size='md'
                 fullWidth={true}
             />
         </div>
@@ -266,10 +267,10 @@ export const FullWidth: Story = {
 export const TagGroupExample: Story = {
     render: () => (
         <TagGroup>
-            <Tag preset="beta" size="sm"/>
-            <Tag preset="bot" size="sm"/>
-            <Tag preset="guest" size="sm"/>
-            <Tag text="Custom" variant="warning" size="sm" uppercase={true}/>
+            <Tag preset='beta' size='sm'/>
+            <Tag preset='bot' size='sm'/>
+            <Tag preset='guest' size='sm'/>
+            <Tag text='Custom' variant='warning' size='sm' uppercase={true}/>
         </TagGroup>
     ),
 };
@@ -277,9 +278,9 @@ export const TagGroupExample: Story = {
 export const TagGroupWithIcons: Story = {
     render: () => (
         <TagGroup>
-            <Tag text="Active" icon={<MockIcon/>} variant="success" size="sm"/>
-            <Tag text="Pending" icon={<MockIcon/>} variant="warning" size="sm"/>
-            <Tag text="Error" icon={<MockIcon/>} variant="danger" size="sm"/>
+            <Tag text='Active' icon={<MockIcon/>} variant='success' size='sm'/>
+            <Tag text='Pending' icon={<MockIcon/>} variant='warning' size='sm'/>
+            <Tag text='Error' icon={<MockIcon/>} variant='danger' size='sm'/>
         </TagGroup>
     ),
 };
@@ -288,10 +289,10 @@ export const TagGroupWithIcons: Story = {
 export const MixedSizesInGroup: Story = {
     render: () => (
         <TagGroup>
-            <Tag text="XS" variant="info" size="xs"/>
-            <Tag text="Small" variant="success" size="sm"/>
-            <Tag text="Medium" variant="warning" size="md"/>
-            <Tag text="Large" variant="danger" size="lg"/>
+            <Tag text='XS' variant='info' size='xs'/>
+            <Tag text='Small' variant='success' size='sm'/>
+            <Tag text='Medium' variant='warning' size='md'/>
+            <Tag text='Large' variant='danger' size='lg'/>
         </TagGroup>
     ),
 };
@@ -302,10 +303,10 @@ export const StatusIndicators: Story = {
     render: () => (
         <div style={{padding: '20px'}}>
             <TagGroup>
-                <Tag text="Online" icon={<MockIcon/>} variant="success" size="sm"/>
-                <Tag text="Away" icon={<MockIcon/>} variant="warning" size="sm"/>
-                <Tag text="Do Not Disturb" icon={<MockIcon/>} variant="danger" size="sm"/>
-                <Tag text="Offline" variant="default" size="sm"/>
+                <Tag text='Online' icon={<MockIcon/>} variant='success' size='sm'/>
+                <Tag text='Away' icon={<MockIcon/>} variant='warning' size='sm'/>
+                <Tag text='Do Not Disturb' icon={<MockIcon/>} variant='danger' size='sm'/>
+                <Tag text='Offline' variant='default' size='sm'/>
             </TagGroup>
         </div>
     ),
@@ -318,19 +319,19 @@ export const ChannelTags: Story = {
             <div style={{display: 'flex', flexDirection: 'column', gap: '16px'}}>
                 <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
                     <span style={{fontWeight: 'bold'}}>general</span>
-                    <Tag text="Public" variant="info" size="xs"/>
+                    <Tag text='Public' variant='info' size='xs'/>
                 </div>
                 <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
                     <span style={{fontWeight: 'bold'}}>engineering</span>
-                    <Tag text="Private" variant="default" size="xs"/>
+                    <Tag text='Private' variant='default' size='xs'/>
                 </div>
                 <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
                     <span style={{fontWeight: 'bold'}}>announcements</span>
-                    <Tag text="Read-Only" variant="warning" size="xs"/>
+                    <Tag text='Read-Only' variant='warning' size='xs'/>
                 </div>
                 <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
                     <span style={{fontWeight: 'bold'}}>archived-project</span>
-                    <Tag text="Archived" variant="default" size="xs"/>
+                    <Tag text='Archived' variant='default' size='xs'/>
                 </div>
             </div>
         </div>
@@ -345,26 +346,26 @@ export const UserBadges: Story = {
                 <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
                     <span>john.doe</span>
                     <TagGroup>
-                        <Tag preset="bot" size="xs"/>
-                        <Tag text="Admin" variant="primary" size="xs" uppercase={true}/>
+                        <Tag preset='bot' size='xs'/>
+                        <Tag text='Admin' variant='primary' size='xs' uppercase={true}/>
                     </TagGroup>
                 </div>
                 <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
                     <span>jane.smith</span>
                     <TagGroup>
-                        <Tag preset="guest" size="xs"/>
+                        <Tag preset='guest' size='xs'/>
                     </TagGroup>
                 </div>
                 <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
                     <span>assistant</span>
                     <TagGroup>
-                        <Tag preset="bot" size="xs"/>
+                        <Tag preset='bot' size='xs'/>
                     </TagGroup>
                 </div>
                 <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
                     <span>new-feature</span>
                     <TagGroup>
-                        <Tag preset="beta" size="xs"/>
+                        <Tag preset='beta' size='xs'/>
                     </TagGroup>
                 </div>
             </div>
@@ -384,8 +385,8 @@ export const MessageActions: Story = {
                 Hey team, the new authentication system is ready for testing!
             </div>
             <TagGroup>
-                <Tag text="Pinned" icon={<MockIcon/>} variant="info" size="xs"/>
-                <Tag text="Edited" variant="default" size="xs"/>
+                <Tag text='Pinned' icon={<MockIcon/>} variant='info' size='xs'/>
+                <Tag text='Edited' variant='default' size='xs'/>
             </TagGroup>
         </div>
     ),
@@ -401,21 +402,21 @@ export const FeatureFlags: Story = {
                         <div style={{fontWeight: 'bold', marginBottom: '4px'}}>AI Assistant</div>
                         <div style={{fontSize: '12px', color: '#888'}}>Enable AI-powered chat assistance</div>
                     </div>
-                    <Tag preset="beta" size="sm"/>
+                    <Tag preset='beta' size='sm'/>
                 </div>
                 <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', border: '1px solid #ddd', borderRadius: '4px'}}>
                     <div>
                         <div style={{fontWeight: 'bold', marginBottom: '4px'}}>New Message Editor</div>
                         <div style={{fontSize: '12px', color: '#888'}}>Try the redesigned message composer</div>
                     </div>
-                    <Tag text="Experimental" variant="warning" size="sm" uppercase={true}/>
+                    <Tag text='Experimental' variant='warning' size='sm' uppercase={true}/>
                 </div>
                 <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', border: '1px solid #ddd', borderRadius: '4px'}}>
                     <div>
                         <div style={{fontWeight: 'bold', marginBottom: '4px'}}>Video Calls</div>
                         <div style={{fontSize: '12px', color: '#888'}}>Start video calls from channels</div>
                     </div>
-                    <Tag text="Stable" variant="success" size="sm" uppercase={true}/>
+                    <Tag text='Stable' variant='success' size='sm' uppercase={true}/>
                 </div>
             </div>
         </div>

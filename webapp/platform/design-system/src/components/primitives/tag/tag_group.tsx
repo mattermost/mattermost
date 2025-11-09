@@ -8,6 +8,7 @@ import type {ReactNode} from 'react';
 import './tag.scss';
 
 export interface TagGroupProps {
+
     /** Child elements (typically Tag components) */
     children: ReactNode;
 
@@ -20,7 +21,7 @@ export interface TagGroupProps {
 
 /**
  * A component for grouping and displaying multiple tags with consistent spacing.
- * 
+ *
  * @example
  * <TagGroup>
  *   <Tag preset="beta" />
@@ -34,7 +35,7 @@ const TagGroup: React.FC<TagGroupProps> = ({
     testId,
 }) => {
     return (
-        <div 
+        <div
             className={classNames('TagGroup', className)}
             data-testid={testId}
         >

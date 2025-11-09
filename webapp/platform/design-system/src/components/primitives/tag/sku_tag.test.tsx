@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {render, screen} from '@testing-library/react';
+import React from 'react';
 import {IntlProvider} from 'react-intl';
 
 import SkuTag, {LicenseSkus} from './sku_tag';
@@ -10,7 +10,7 @@ import SkuTag, {LicenseSkus} from './sku_tag';
 // Test wrapper with IntlProvider
 const renderWithIntl = (ui: React.ReactElement) => {
     return render(
-        <IntlProvider locale="en" messages={{}}>
+        <IntlProvider locale='en' messages={{}}>
             {ui}
         </IntlProvider>,
     );

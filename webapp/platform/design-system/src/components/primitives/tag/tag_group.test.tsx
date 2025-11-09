@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {render, screen} from '@testing-library/react';
+import React from 'react';
 import {IntlProvider} from 'react-intl';
 
 import Tag from './tag';
@@ -11,7 +11,7 @@ import TagGroup from './tag_group';
 // Test wrapper with IntlProvider
 const renderWithIntl = (ui: React.ReactElement) => {
     return render(
-        <IntlProvider locale="en" messages={{}}>
+        <IntlProvider locale='en' messages={{}}>
             {ui}
         </IntlProvider>,
     );
@@ -21,8 +21,8 @@ describe('TagGroup', () => {
     it('should render children', () => {
         renderWithIntl(
             <TagGroup>
-                <Tag text="Tag 1" testId="tag-1"/>
-                <Tag text="Tag 2" testId="tag-2"/>
+                <Tag text='Tag 1' testId='tag-1'/>
+                <Tag text='Tag 2' testId='tag-2'/>
             </TagGroup>,
         );
         expect(screen.getByTestId('tag-1')).toBeInTheDocument();
@@ -32,7 +32,7 @@ describe('TagGroup', () => {
     it('should apply base TagGroup class', () => {
         const {container} = renderWithIntl(
             <TagGroup>
-                <Tag text="Test"/>
+                <Tag text='Test'/>
             </TagGroup>,
         );
         const group = container.firstChild as HTMLElement;
@@ -41,8 +41,8 @@ describe('TagGroup', () => {
 
     it('should apply custom className', () => {
         const {container} = renderWithIntl(
-            <TagGroup className="custom-group">
-                <Tag text="Test"/>
+            <TagGroup className='custom-group'>
+                <Tag text='Test'/>
             </TagGroup>,
         );
         const group = container.firstChild as HTMLElement;
@@ -52,8 +52,8 @@ describe('TagGroup', () => {
 
     it('should apply testId attribute', () => {
         renderWithIntl(
-            <TagGroup testId="my-tag-group">
-                <Tag text="Test"/>
+            <TagGroup testId='my-tag-group'>
+                <Tag text='Test'/>
             </TagGroup>,
         );
         expect(screen.getByTestId('my-tag-group')).toBeInTheDocument();
@@ -62,10 +62,10 @@ describe('TagGroup', () => {
     it('should render multiple tags', () => {
         renderWithIntl(
             <TagGroup>
-                <Tag preset="beta"/>
-                <Tag preset="bot"/>
-                <Tag preset="guest"/>
-                <Tag text="Custom" variant="info"/>
+                <Tag preset='beta'/>
+                <Tag preset='bot'/>
+                <Tag preset='guest'/>
+                <Tag text='Custom' variant='info'/>
             </TagGroup>,
         );
         expect(screen.getByText('BETA')).toBeInTheDocument();
@@ -82,7 +82,7 @@ describe('TagGroup', () => {
     it('should render as div element', () => {
         const {container} = renderWithIntl(
             <TagGroup>
-                <Tag text="Test"/>
+                <Tag text='Test'/>
             </TagGroup>,
         );
         expect(container.firstChild?.nodeName).toBe('DIV');

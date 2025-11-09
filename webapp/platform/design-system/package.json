@@ -8,6 +8,7 @@
   "scripts": {
     "build": "rollup -c",
     "check": "eslint --ext .js,.jsx,.tsx,.ts ./src --quiet",
+    "fix": "eslint --ext .js,.jsx,.tsx,.ts ./src --quiet --fix --cache",
     "check-types": "tsc -b",
     "run": "rollup -c --watch",
     "test": "cross-env TZ=Etc/UTC jest",

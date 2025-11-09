@@ -75,6 +75,7 @@ export const BotTag: React.FC<BotTagProps> = ({
 interface GuestTagProps {
     className?: string;
     size?: TagSize;
+
     /** Whether to hide the tag. Defaults to false. */
     hide?: boolean;
 }
