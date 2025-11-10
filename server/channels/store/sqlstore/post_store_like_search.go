@@ -21,16 +21,19 @@ func addWildcardToTerm(term string, alwaysMiddleMatch bool) string {
 	return term
 }
 
-func toLowerSearchArgsForPosts(phrases []string, terms string, excludedTerms string, searchType string) ([]string, string, string, string) {
+func toLowerSearchArgsForPosts(phrases []string, terms string, excludedTerms string, excludedPhrases []string, searchType string) ([]string, string, string, []string, string) {
 	for i, p := range phrases {
 		phrases[i] = strings.ToLower(p)
 	}
 	terms = strings.ToLower(terms)
 	excludedTerms = strings.ToLower(excludedTerms)
+	for i, p := range excludedPhrases {
+		excludedPhrases[i] = strings.ToLower(p)
+	}
 
 	searchType = fmt.Sprintf("LOWER(%s)", searchType)
 
-	return phrases, terms, excludedTerms, searchType
+	return phrases, terms, excludedTerms, excludedPhrases, searchType
 }
 
 func buildPhrasesQuery(phrases []string, searchType string, searchClauses []string, searchArgs []any) ([]string, []any) {
@@ -93,7 +96,7 @@ func (s *SqlPostStore) generateLikeSearchQueryForPosts(baseQuery sq.SelectBuilde
 	var searchArgs []any
 
 	// Make both index and query lowercase for case-insensitive searching.
-	phrases, terms, excludedTerms, searchType = toLowerSearchArgsForPosts(phrases, terms, excludedTerms, searchType)
+	phrases, terms, excludedTerms, excludedPhrases, searchType = toLowerSearchArgsForPosts(phrases, terms, excludedTerms, excludedPhrases, searchType)
 
 	// Phrase search: search for strings enclosed in “” without splitting them.
 	searchClauses, searchArgs = buildPhrasesQuery(phrases, searchType, searchClauses, searchArgs)
