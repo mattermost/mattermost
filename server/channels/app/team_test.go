@@ -489,8 +489,8 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		assert.Equal(t, model.SidebarCategoryDirectMessages, res.Categories[2].Type)
 	})
 
-	// Tests for Easy Login Invitation tokens
-	t.Run("valid easy login invitation token adds guest to team and channels", func(t *testing.T) {
+	// Tests for Magic link Invitation tokens
+	t.Run("valid magic link invitation token adds guest to team and channels", func(t *testing.T) {
 		guest := th.CreateGuest()
 		channel1 := th.CreateChannel(th.Context, th.BasicTeam)
 		channel2 := th.CreateChannel(th.Context, th.BasicTeam)
@@ -503,7 +503,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			"senderId": th.BasicUser.Id,
 		}
 		token := model.NewToken(
-			TokenTypeEasyLoginInvitation,
+			TokenTypeGuestMagicLinkInvitation,
 			model.MapToJSON(tokenData),
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
@@ -527,7 +527,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		assert.True(t, channelIds[channel2.Id], "Guest should be in channel2")
 	})
 
-	t.Run("easy login invitation token with expired timestamp fails", func(t *testing.T) {
+	t.Run("Guest magic link invitation token with expired timestamp fails", func(t *testing.T) {
 		guest := th.CreateGuest()
 
 		tokenData := map[string]string{
@@ -538,7 +538,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			"senderId": th.BasicUser.Id,
 		}
 		token := model.NewToken(
-			TokenTypeEasyLoginInvitation,
+			TokenTypeGuestMagicLinkInvitation,
 			model.MapToJSON(tokenData),
 		)
 		// Make token expired (48 hours + 1ms)
@@ -546,11 +546,11 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 
 		_, _, err := th.App.AddUserToTeamByToken(th.Context, guest.Id, token.Token)
-		require.NotNil(t, err, "Should fail on expired easy login token")
+		require.NotNil(t, err, "Should fail on expired guest magic link token")
 		assert.Equal(t, "api.user.create_user.signup_link_expired.app_error", err.Id)
 	})
 
-	t.Run("easy login invitation token should not add regular user", func(t *testing.T) {
+	t.Run("Guest magic link invitation token should not add regular user", func(t *testing.T) {
 		regularUser := th.CreateUser()
 
 		tokenData := map[string]string{
@@ -561,14 +561,14 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			"senderId": th.BasicUser.Id,
 		}
 		token := model.NewToken(
-			TokenTypeEasyLoginInvitation,
+			TokenTypeGuestMagicLinkInvitation,
 			model.MapToJSON(tokenData),
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 
-		// Regular users cannot use easy login tokens (they're guest-only)
+		// Regular users cannot use guest magic link tokens (they're guest-only)
 		_, _, err := th.App.AddUserToTeamByToken(th.Context, regularUser.Id, token.Token)
-		require.NotNil(t, err, "Should fail when adding regular user with easy login token")
+		require.NotNil(t, err, "Should fail when adding regular user with guest magic link token")
 	})
 }
 

@@ -1623,7 +1623,7 @@ export const Constants = {
     EMAIL_SERVICE: 'email',
     LDAP_SERVICE: 'ldap',
     SAML_SERVICE: 'saml',
-    EASY_LOGIN_SERVICE: 'easy_login',
+    MAGIC_LINK_SERVICE: 'magic_link',
     LOGIN_TYPE_DEACTIVATED: 'deactivated',
     USERNAME_SERVICE: 'username',
     SIGNIN_CHANGE: 'signin_change',

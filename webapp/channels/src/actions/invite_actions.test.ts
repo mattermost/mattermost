@@ -48,7 +48,7 @@ jest.mock('mattermost-redux/actions/teams', () => ({
         return ({type: 'MOCK_RECEIVED_ME', data: emails.map((email) => ({email, error: undefined}))});
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    sendEmailGuestInvitesToChannelsGracefully: (teamId: string, _channelIds: string[], emails: string[], _message: string, _easyLogin = false) => {
+    sendEmailGuestInvitesToChannelsGracefully: (teamId: string, _channelIds: string[], emails: string[], _message: string, _guestMagicLink = false) => {
         if (teamId === 'incorrect-default-smtp') {
             return ({type: 'MOCK_RECEIVED_ME', data: emails.map((email) => ({email, error: {message: '(From server) SMTP is not configured in System Console.', id: 'api.team.invite_members.unable_to_send_email_with_defaults.app_error'}}))});
         } else if (emails.length > 21) { // Poor attempt to mock rate limiting.
@@ -671,7 +671,7 @@ describe('actions/invite_actions', () => {
             });
         });
 
-        it('should accept easyLogin parameter', async () => {
+        it('should accept guestMagicLink parameter', async () => {
             const channels = [{id: 'correct'}] as Channel[];
             const emails = ['email-one@email-one.com'];
             const response = await store.dispatch(sendGuestsInvites('correct', channels, [], emails, 'message', true));

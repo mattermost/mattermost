@@ -33,7 +33,7 @@ func New(srv *app.Server) *Web {
 	web.InitOAuth()
 	web.InitWebhooks()
 	web.InitSaml()
-	web.InitEasyLogin()
+	web.InitMagicLink()
 	web.InitStatic()
 
 	return web

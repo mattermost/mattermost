@@ -69,7 +69,7 @@ const (
 
 	DesktopTokenTTL = time.Minute * 3
 
-	UserAuthServiceEasyLogin = "easy_login"
+	UserAuthServiceMagicLink = "magic_link"
 )
 
 //msgp:tuple User
@@ -874,8 +874,9 @@ func (u *User) IsGuest() bool {
 	return IsInRole(u.Roles, SystemGuestRoleId)
 }
 
-func (u *User) IsEasyLoginEnabled() bool {
-	return u.AuthService == UserAuthServiceEasyLogin
+func (u *User) IsMagicLinkEnabled() bool {
+	// Magic link is only enabled for guest users
+	return u.AuthService == UserAuthServiceMagicLink && u.IsGuest()
 }
 
 func (u *User) IsSystemAdmin() bool {

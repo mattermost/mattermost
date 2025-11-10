@@ -76,7 +76,7 @@ export type ClientConfig = {
     EnableFile: string;
     EnableGifPicker: string;
     EnableGuestAccounts: string;
-    EnableEasyLogin: string;
+    EnableGuestMagicLink: string;
     EnableIncomingWebhooks: string;
     EnableJoinLeaveMessageByDefault: string;
     EnableLatex: string;
@@ -956,7 +956,7 @@ export type GuestAccountsSettings = {
     AllowEmailAccounts: boolean;
     EnforceMultifactorAuthentication: boolean;
     RestrictCreationToDomains: string;
-    EnableEasyLogin: boolean;
+    EnableGuestMagicLink: boolean;
 };
 
 export type ImageProxySettings = {

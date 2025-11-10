@@ -371,14 +371,14 @@ describe('components/login/Login', () => {
         expect(history.push).toHaveBeenCalledWith(redirectPath);
     });
 
-    describe('EnableEasyLogin', () => {
-        it('should show password field when EnableEasyLogin is false', async () => {
+    describe('EnableGuestMagicLink', () => {
+        it('should show password field when EnableGuestMagicLink is false', async () => {
             const state = mergeObjects(baseState, {
                 entities: {
                     general: {
                         config: {
                             EnableSignInWithEmail: 'true',
-                            EnableEasyLogin: 'false',
+                            EnableGuestMagicLink: 'false',
                         },
                     },
                 },
@@ -393,13 +393,13 @@ describe('components/login/Login', () => {
             expect(screen.getByLabelText('Password')).toBeVisible();
         });
 
-        it('should hide password field initially when EnableEasyLogin is true', async () => {
+        it('should hide password field initially when EnableGuestMagicLink is true', async () => {
             const state = mergeObjects(baseState, {
                 entities: {
                     general: {
                         config: {
                             EnableSignInWithEmail: 'true',
-                            EnableEasyLogin: 'true',
+                            EnableGuestMagicLink: 'true',
                         },
                     },
                 },
@@ -414,21 +414,21 @@ describe('components/login/Login', () => {
             expect(screen.queryByLabelText('Password')).not.toBeInTheDocument();
         });
 
-        it('should show EasyLoginCard when user login type is easy_login', async () => {
+        it('should show GuestMagicLinkCard when user login type is guest_magic_link', async () => {
             const state = mergeObjects(baseState, {
                 entities: {
                     general: {
                         config: {
                             EnableSignInWithEmail: 'true',
-                            EnableEasyLogin: 'true',
+                            EnableGuestMagicLink: 'true',
                         },
                     },
                 },
             });
 
-            // Mock the getUserLoginType to return 'easy_login'
+            // Mock the getUserLoginType to return 'magic_link'
             const mockGetUserLoginType = jest.fn().mockReturnValue(async () => ({
-                data: 'easy_login',
+                data: 'magic_link',
             }));
             jest.spyOn(loginActions, 'getUserLoginType').mockImplementation(mockGetUserLoginType);
 
@@ -442,7 +442,7 @@ describe('components/login/Login', () => {
 
             await userEvent.click(screen.getByRole('button', {name: 'Log in'}));
 
-            // Should show the easy login success message
+            // Should show the guest magic link success message
             expect(await screen.findByText('We sent you a link to login!')).toBeVisible();
             expect(screen.getByText('Please check your email for the link to login.')).toBeVisible();
             expect(screen.getByText('Your link will expire in 5 minutes.')).toBeVisible();
@@ -454,7 +454,7 @@ describe('components/login/Login', () => {
                     general: {
                         config: {
                             EnableSignInWithEmail: 'true',
-                            EnableEasyLogin: 'true',
+                            EnableGuestMagicLink: 'true',
                         },
                     },
                 },
@@ -490,7 +490,7 @@ describe('components/login/Login', () => {
                     general: {
                         config: {
                             EnableSignInWithEmail: 'true',
-                            EnableEasyLogin: 'true',
+                            EnableGuestMagicLink: 'true',
                         },
                     },
                 },
@@ -524,7 +524,7 @@ describe('components/login/Login', () => {
                     general: {
                         config: {
                             EnableSignInWithEmail: 'true',
-                            EnableEasyLogin: 'true',
+                            EnableGuestMagicLink: 'true',
                         },
                     },
                 },
@@ -561,7 +561,7 @@ describe('components/login/Login', () => {
                     general: {
                         config: {
                             EnableSignInWithEmail: 'true',
-                            EnableEasyLogin: 'true',
+                            EnableGuestMagicLink: 'true',
                         },
                     },
                 },
@@ -598,13 +598,13 @@ describe('components/login/Login', () => {
             expect(mockLogin).toHaveBeenCalledWith('user@example.com', 'password123', undefined);
         });
 
-        it('should not show forgot password link when EnableEasyLogin is true and password not required', async () => {
+        it('should not show forgot password link when EnableGuestMagicLink is true and password not required', async () => {
             const state = mergeObjects(baseState, {
                 entities: {
                     general: {
                         config: {
                             EnableSignInWithEmail: 'true',
-                            EnableEasyLogin: 'true',
+                            EnableGuestMagicLink: 'true',
                             PasswordEnableForgotLink: 'true',
                         },
                     },
@@ -626,7 +626,7 @@ describe('components/login/Login', () => {
                     general: {
                         config: {
                             EnableSignInWithEmail: 'true',
-                            EnableEasyLogin: 'true',
+                            EnableGuestMagicLink: 'true',
                             PasswordEnableForgotLink: 'true',
                         },
                     },
@@ -659,7 +659,7 @@ describe('components/login/Login', () => {
                     general: {
                         config: {
                             EnableSignInWithEmail: 'true',
-                            EnableEasyLogin: 'true',
+                            EnableGuestMagicLink: 'true',
                         },
                     },
                 },

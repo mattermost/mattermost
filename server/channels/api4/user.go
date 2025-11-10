@@ -2004,7 +2004,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	mfaToken := props["token"]
 	deviceId := props["device_id"]
 	ldapOnly := props["ldap_only"] == "true"
-	easyLoginToken := props["easy_login_token"]
+	magicLinkToken := props["magic_link_token"]
 
 	auditRec := c.MakeAuditRecord(model.AuditEventLogin, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
@@ -2013,18 +2013,18 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	var user *model.User
 	var err *model.AppError
 
-	if easyLoginToken != "" {
-		auditRec.AddMeta("login_method", "easy_login")
-		c.LogAudit("attempt - easy_login")
+	if magicLinkToken != "" {
+		auditRec.AddMeta("login_method", "guest_magic_link")
+		c.LogAudit("attempt - guest_magic_link")
 
-		if !*c.App.Config().GuestAccountsSettings.EnableEasyLogin {
-			c.Err = model.NewAppError("login", "api.user.login.easy_login.disabled.error", nil, "", http.StatusUnauthorized)
+		if !*c.App.Config().GuestAccountsSettings.EnableGuestMagicLink {
+			c.Err = model.NewAppError("login", "api.user.login.guest_magic_link.disabled.error", nil, "", http.StatusUnauthorized)
 			return
 		}
 
-		user, err = c.App.AuthenticateUserForEasyLogin(c.AppContext, easyLoginToken)
+		user, err = c.App.AuthenticateUserForGuestMagicLink(c.AppContext, magicLinkToken)
 		if err != nil {
-			c.LogAudit("failure - easy_login")
+			c.LogAudit("failure - guest_magic_link")
 			c.Err = err
 			return
 		}
@@ -2041,9 +2041,9 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddEventResultState(user)
 
-	if user.IsEasyLoginEnabled() {
-		if !*c.App.Config().GuestAccountsSettings.EnableEasyLogin {
-			c.Err = model.NewAppError("login", "api.user.login.easy_login.disabled.error", nil, "", http.StatusUnauthorized)
+	if user.IsMagicLinkEnabled() {
+		if !*c.App.Config().GuestAccountsSettings.EnableGuestMagicLink {
+			c.Err = model.NewAppError("login", "api.user.login.guest_magic_link.disabled.error", nil, "", http.StatusUnauthorized)
 			return
 		}
 	}
@@ -2218,9 +2218,9 @@ func getLoginType(c *Context, w http.ResponseWriter, r *http.Request) {
 	deviceId := props["device_id"]
 
 	// For the time being, we only support getting the login type when
-	// easy login is enabled. We cand consider adding support for other
+	// guest magic link is enabled. We cand consider adding support for other
 	// login methods in the future, and this check may be removed.
-	if !*c.App.Config().GuestAccountsSettings.EnableEasyLogin ||
+	if !*c.App.Config().GuestAccountsSettings.EnableGuestMagicLink ||
 		!*c.App.Config().GuestAccountsSettings.Enable ||
 		!*c.App.Channels().License().Features.GuestAccounts {
 		w.WriteHeader(http.StatusNotFound)
@@ -2265,11 +2265,11 @@ func getLoginType(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 
 	if user.IsGuest() &&
-		user.IsEasyLoginEnabled() &&
+		user.IsMagicLinkEnabled() &&
 		c.App.Channels().License() != nil &&
 		*c.App.Channels().License().Features.GuestAccounts &&
-		*c.App.Config().GuestAccountsSettings.EnableEasyLogin {
-		eErr := c.App.Srv().EmailService.SendGuestEasyLoginEmailSelfService(user.Email, c.App.GetSiteURL())
+		*c.App.Config().GuestAccountsSettings.EnableGuestMagicLink {
+		eErr := c.App.Srv().EmailService.SendMagicLinkEmailSelfService(user.Email, c.App.GetSiteURL())
 		if eErr != nil {
 			switch {
 			case errors.Is(eErr, email.NoRateLimiterError):
@@ -2281,10 +2281,10 @@ func getLoginType(c *Context, w http.ResponseWriter, r *http.Request) {
 			}
 			return
 		}
-		c.Logger.Debug("Easy login email sent successfully", mlog.String("user_id", user.Id))
+		c.Logger.Debug("Guest magic link email sent successfully", mlog.String("user_id", user.Id))
 
 		if jErr := json.NewEncoder(w).Encode(model.LoginTypeResponse{
-			AuthService: "easy_login",
+			AuthService: "guest_magic_link",
 		}); jErr != nil {
 			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}

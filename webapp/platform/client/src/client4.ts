@@ -835,7 +835,7 @@ export default class Client4 {
         };
 
         return this.doFetch<UserProfile>(
-            `${this.getUsersRoute()}/login/sso/easy`,
+            `${this.getUsersRoute()}/login/sso/magic_link`,
             {method: 'post', body: JSON.stringify(body)},
         );
     };
@@ -845,7 +845,7 @@ export default class Client4 {
             login_id: loginId,
         };
 
-        return this.doFetch<{auth_service: 'easy_login' | '' }>(
+        return this.doFetch<{auth_service: 'magic_link' | '' }>(
             `${this.getUsersRoute()}/login/type`,
             {method: 'post', body: JSON.stringify(body)},
         );
@@ -1552,10 +1552,10 @@ export default class Client4 {
         );
     };
 
-    sendEmailGuestInvitesToChannelsGracefully = async (teamId: string, channelIds: string[], emails: string[], message: string, easyLogin = false) => {
+    sendEmailGuestInvitesToChannelsGracefully = async (teamId: string, channelIds: string[], emails: string[], message: string, guestMagicLink = false) => {
         const queryParams = new URLSearchParams({graceful: 'true'});
-        if (easyLogin) {
-            queryParams.append('easy_login', 'true');
+        if (guestMagicLink) {
+            queryParams.append('guest_magic_link', 'true');
         }
         return this.doFetch<TeamInviteWithError[]>(
             `${this.getTeamRoute(teamId)}/invite-guests/email?${queryParams.toString()}`,

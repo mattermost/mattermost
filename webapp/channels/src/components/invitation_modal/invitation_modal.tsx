@@ -53,7 +53,7 @@ export type Props = {
             users: UserProfile[],
             emails: string[],
             message: string,
-            easyLogin: boolean,
+            guestMagicLink: boolean,
         ) => Promise<ActionResult<InviteResults>>;
         sendMembersInvites: (
             teamId: string,
@@ -77,7 +77,7 @@ export type Props = {
     isCloud: boolean;
     canAddUsers: boolean;
     canInviteGuests: boolean;
-    canInviteGuestsWithEasyLogin: boolean;
+    canInviteGuestsWithMagicLink: boolean;
     onExited: () => void;
     channelToInvite?: Channel;
     initialValue?: string;
@@ -98,17 +98,17 @@ type State = {
     result: ResultState;
     termWithoutResults: string | null;
     show: boolean;
-    useEasyLogin: boolean;
+    useGuestMagicLink: boolean;
 };
 
 export default class InvitationModal extends React.PureComponent<Props, State> {
     defaultState: State = deepFreeze({
         view: View.INVITE,
         termWithoutResults: null,
-        invite: initializeInviteState(this.props.initialValue || '', this.props.inviteAsGuest, this.props.canInviteGuestsWithEasyLogin),
+        invite: initializeInviteState(this.props.initialValue || '', this.props.inviteAsGuest, this.props.canInviteGuestsWithMagicLink),
         result: defaultResultState,
         show: true,
-        useEasyLogin: false,
+        useGuestMagicLink: false,
     });
     constructor(props: Props) {
         super(props);
@@ -177,10 +177,10 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
         }
     };
 
-    toggleEasyLogin = () => {
+    toggleGuestMagicLink = () => {
         this.setState((state) => ({
             ...state,
-            useEasyLogin: !state.useEasyLogin,
+            useGuestMagicLink: !state.useGuestMagicLink,
         }));
     };
 
@@ -222,7 +222,7 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
                 users,
                 emails,
                 this.state.invite.customMessage.open ? this.state.invite.customMessage.message : '',
-                this.state.useEasyLogin,
+                this.state.useGuestMagicLink,
             );
             invites = result.data!;
         }
@@ -429,8 +429,8 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
                 footerClass='InvitationModal__footer'
                 onClose={this.handleHide}
                 channelToInvite={this.props.channelToInvite}
-                useEasyLogin={this.state.useEasyLogin}
-                toggleEasyLogin={this.toggleEasyLogin}
+                useGuestMagicLink={this.state.useGuestMagicLink}
+                toggleGuestMagicLink={this.toggleGuestMagicLink}
                 {...this.state.invite}
             />
         );

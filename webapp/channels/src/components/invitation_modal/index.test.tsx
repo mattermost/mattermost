@@ -20,7 +20,7 @@ describe('mapStateToProps', () => {
                 config: {
                     EnableGuestAccounts: 'true',
                     BuildEnterpriseReady: 'true',
-                    EnableEasyLogin: 'false',
+                    EnableGuestMagicLink: 'false',
                 },
                 license: {
                     IsLicensed: 'true',
@@ -182,7 +182,7 @@ describe('mapStateToProps', () => {
         expect(props.currentTeam?.id).toBe(testChannel.team_id);
     });
 
-    test('canInviteGuestsWithEasyLogin is false when EnableEasyLogin is false', () => {
+    test('canInviteGuestsWithMagicLink is false when EnableGuestMagicLink is false', () => {
         const testState = {
             ...initialState,
             entities: {
@@ -191,7 +191,7 @@ describe('mapStateToProps', () => {
                     config: {
                         EnableGuestAccounts: 'true',
                         BuildEnterpriseReady: 'true',
-                        EnableEasyLogin: 'false',
+                        EnableGuestMagicLink: 'false',
                     },
                     license: {
                         IsLicensed: 'true',
@@ -210,10 +210,10 @@ describe('mapStateToProps', () => {
         } as unknown as GlobalState;
 
         const props = mapStateToProps(testState, {});
-        expect(props.canInviteGuestsWithEasyLogin).toBe(false);
+        expect(props.canInviteGuestsWithMagicLink).toBe(false);
     });
 
-    test('canInviteGuestsWithEasyLogin is true when EnableEasyLogin is true and can invite guests', () => {
+    test('canInviteGuestsWithMagicLink is true when EnableGuestMagicLink is true and can invite guests', () => {
         const testState = {
             ...initialState,
             entities: {
@@ -222,7 +222,7 @@ describe('mapStateToProps', () => {
                     config: {
                         EnableGuestAccounts: 'true',
                         BuildEnterpriseReady: 'true',
-                        EnableEasyLogin: 'true',
+                        EnableGuestMagicLink: 'true',
                     },
                     license: {
                         IsLicensed: 'true',
@@ -241,10 +241,10 @@ describe('mapStateToProps', () => {
         } as unknown as GlobalState;
 
         const props = mapStateToProps(testState, {});
-        expect(props.canInviteGuestsWithEasyLogin).toBe(true);
+        expect(props.canInviteGuestsWithMagicLink).toBe(true);
     });
 
-    test('canInviteGuestsWithEasyLogin is false when EnableEasyLogin is true but cannot invite guests', () => {
+    test('canInviteGuestsWithMagicLink is false when EnableGuestMagicLink is true but cannot invite guests', () => {
         const testState = {
             ...initialState,
             entities: {
@@ -253,7 +253,7 @@ describe('mapStateToProps', () => {
                     config: {
                         EnableGuestAccounts: 'false',
                         BuildEnterpriseReady: 'true',
-                        EnableEasyLogin: 'true',
+                        EnableGuestMagicLink: 'true',
                     },
                     license: {
                         IsLicensed: 'true',
@@ -272,6 +272,6 @@ describe('mapStateToProps', () => {
         } as unknown as GlobalState;
 
         const props = mapStateToProps(testState, {});
-        expect(props.canInviteGuestsWithEasyLogin).toBe(false);
+        expect(props.canInviteGuestsWithMagicLink).toBe(false);
     });
 });

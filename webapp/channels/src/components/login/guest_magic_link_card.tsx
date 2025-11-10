@@ -5,29 +5,29 @@ import React from 'react';
 import {useIntl} from 'react-intl';
 
 import './easy_login_card.scss';
-import EasyLoginCardSvg from './easy_login_card_svg';
+import GuestMagicLinkCardSvg from './easy_login_card_svg';
 
-const EasyLoginCard = () => {
+const GuestMagicLinkCard = () => {
     const {formatMessage} = useIntl();
 
     return (
-        <div className='easy-login-card'>
-            <EasyLoginCardSvg/>
+        <div className='guest-magic-link-card'>
+            <GuestMagicLinkCardSvg/>
             <h2>
                 {formatMessage({
-                    id: 'easy_login.success.title',
+                    id: 'guest_magic_link.success.title',
                     defaultMessage: 'We sent you a link to login!',
                 })}
             </h2>
             <p>
                 {formatMessage({
-                    id: 'easy_login.success.description',
+                    id: 'guest_magic_link.success.description',
                     defaultMessage: 'Please check your email for the link to login.',
                 })}
             </p>
-            <p className='easy-login-card-expiry'>
+            <p className='guest-magic-link-card-expiry'>
                 {formatMessage({
-                    id: 'easy_login.success.expiry',
+                    id: 'guest_magic_link.success.expiry',
                     defaultMessage: 'Your link will expire in 5 minutes.',
                 })}
             </p>
@@ -35,5 +35,5 @@ const EasyLoginCard = () => {
     );
 };
 
-export default EasyLoginCard;
+export default GuestMagicLinkCard;
 

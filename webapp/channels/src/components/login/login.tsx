@@ -57,7 +57,7 @@ import {setCSRFFromCookie} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
-import EasyLoginCard from './easy_login_card';
+import GuestMagicLinkCard from './guest_magic_link_card';
 import LoginMfa from './login_mfa';
 
 import './login.scss';
@@ -81,7 +81,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const {
         EnableLdap,
         EnableSaml,
-        EnableEasyLogin,
+        EnableGuestMagicLink,
         EnableSignInWithEmail,
         EnableSignInWithUsername,
         EnableSignUpWithEmail,
@@ -125,11 +125,11 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const [alertBanner, setAlertBanner] = useState<AlertBannerProps | null>(null);
     const [hasError, setHasError] = useState(false);
     const [isMobileView, setIsMobileView] = useState(false);
-    const [easyLoginSuccessful, setEasyLoginSuccessful] = useState(false);
+    const [magicLinkSuccessful, setMagicLinkSuccessful] = useState(false);
     const [requiresPassword, setRequiresPassword] = useState(false);
 
     const enableCustomBrand = EnableCustomBrand === 'true';
-    const enableEasyLogin = EnableEasyLogin === 'true'; // Hardcoded for now
+    const enableGuestMagicLink = EnableGuestMagicLink === 'true';
     const enableLdap = EnableLdap === 'true';
     const enableOpenServer = EnableOpenServer === 'true';
     const enableUserCreation = EnableUserCreation === 'true';
@@ -408,7 +408,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 mode = 'danger';
                 const messageParam = searchParam.get('message');
                 title = messageParam || formatMessage({
-                    id: 'easy_login.error',
+                    id: 'login.defaultError',
                     defaultMessage: 'We were unable to log you in. Please enter your details and try again.',
                 });
                 break;
@@ -420,7 +420,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         }
 
         return setAlertBanner(mode ? {mode: mode as ModeType, title, onDismiss} : null);
-    }, [extraParam, sessionExpired, siteName, onDismissSessionExpired]);
+    }, [sessionExpired, formatMessage, onDismissSessionExpired, extraParam, siteName, searchParam]);
 
     const getAlternateLink = useCallback(() => {
         const linkLabel = formatMessage({
@@ -629,7 +629,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         }
 
         // Handle passwordless login - check user login type first
-        if (enableEasyLogin && !requiresPassword) {
+        if (enableGuestMagicLink && !requiresPassword) {
             checkUserLoginType(currentLoginId);
             return;
         }
@@ -722,8 +722,8 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             return;
         }
 
-        if (result.data === Constants.EASY_LOGIN_SERVICE) {
-            setEasyLoginSuccessful(true);
+        if (result.data === Constants.MAGIC_LINK_SERVICE) {
+            setMagicLinkSuccessful(true);
         } else if (result.data === Constants.LOGIN_TYPE_DEACTIVATED) {
             setAlertBanner({
                 mode: 'danger',
@@ -805,7 +805,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             dismissAlert();
         }
 
-        if (enableEasyLogin && requiresPassword) {
+        if (enableGuestMagicLink && requiresPassword) {
             setRequiresPassword(false);
             setPassword('');
         }
@@ -953,8 +953,8 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                         <div
                             className='login-body-card-content'
                         >
-                            {easyLoginSuccessful ? (
-                                <EasyLoginCard/>
+                            {magicLinkSuccessful ? (
+                                <GuestMagicLinkCard/>
                             ) : (
                                 <>
                                     <p className='login-body-card-title'>
@@ -992,7 +992,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                                                     autoFocus={true}
                                                     aria-describedby={alertBanner ? 'login-body-card-banner' : undefined}
                                                 />
-                                                {(!enableEasyLogin || requiresPassword) && (
+                                                {(!enableGuestMagicLink || requiresPassword) && (
                                                     <>
                                                         <PasswordInput
                                                             ref={passwordInput}

@@ -393,9 +393,9 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                         id: 'user.settings.security.passwordOffice365CantUpdate',
                         defaultMessage: 'Login occurs through Entra ID. Password cannot be updated.',
                     }),
-                    [Constants.EASY_LOGIN_SERVICE]: this.props.intl.formatMessage({
-                        id: 'user.settings.security.passwordEasyLoginCantUpdate',
-                        defaultMessage: 'Login occurs via Easy Login. Password cannot be updated.',
+                    [Constants.MAGIC_LINK_SERVICE]: this.props.intl.formatMessage({
+                        id: 'user.settings.security.passwordMagicLinkCantUpdate',
+                        defaultMessage: 'Login occurs via magic link. Password cannot be updated.',
                     }),
                 };
 

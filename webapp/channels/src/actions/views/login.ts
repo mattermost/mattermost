@@ -70,7 +70,7 @@ export function loginById(id: string, password: string): ActionFuncAsync {
     };
 }
 
-export function getUserLoginType(loginId: string): ActionFuncAsync<'easy_login' | ''> {
+export function getUserLoginType(loginId: string): ActionFuncAsync<'magic_link' | ''> {
     return async (dispatch) => {
         try {
             const response = await Client4.getUserLoginType(loginId);

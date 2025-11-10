@@ -1582,9 +1582,9 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	easyLogin := r.URL.Query().Get("easy_login") == "true"
-	if easyLogin && !*c.App.Config().GuestAccountsSettings.EnableEasyLogin {
-		c.Err = model.NewAppError("Api4.InviteGuestsToChannels", "api.team.invite_guests_to_channels.easy_login_disabled.error", nil, "", http.StatusForbidden)
+	guestMagicLink := r.URL.Query().Get("guest_magic_link") == "true"
+	if guestMagicLink && !*c.App.Config().GuestAccountsSettings.EnableGuestMagicLink {
+		c.Err = model.NewAppError("Api4.InviteGuestsToChannels", "api.team.invite_guests_to_channels.guest_magic_link_disabled.error", nil, "", http.StatusForbidden)
 		return
 	}
 
@@ -1596,8 +1596,8 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 	auditRec := c.MakeAuditRecord(model.AuditEventInviteGuestsToChannels, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "team_id", c.Params.TeamId)
-	if easyLogin {
-		auditRec.AddMeta("easy_login", true)
+	if guestMagicLink {
+		auditRec.AddMeta("guest_magic_link", true)
 	}
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionInviteGuest) {
@@ -1639,7 +1639,7 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 		var appErr *model.AppError
 
 		if guestsInvite.Emails != nil {
-			invitesWithError, appErr = c.App.InviteGuestsToChannelsGracefully(c.AppContext, c.Params.TeamId, &guestsInvite, c.AppContext.Session().UserId, easyLogin)
+			invitesWithError, appErr = c.App.InviteGuestsToChannelsGracefully(c.AppContext, c.Params.TeamId, &guestsInvite, c.AppContext.Session().UserId, guestMagicLink)
 		}
 
 		if appErr != nil {
@@ -1662,7 +1662,7 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
 	} else {
-		appErr := c.App.InviteGuestsToChannels(c.AppContext, c.Params.TeamId, &guestsInvite, c.AppContext.Session().UserId, easyLogin)
+		appErr := c.App.InviteGuestsToChannels(c.AppContext, c.Params.TeamId, &guestsInvite, c.AppContext.Session().UserId, guestMagicLink)
 		if appErr != nil {
 			c.Err = appErr
 			return

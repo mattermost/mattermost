@@ -79,8 +79,8 @@ export function mapStateToProps(state: GlobalState, props: OwnProps) {
 
     const canAddUsers = haveICurrentTeamPermission(state, Permissions.ADD_USER_TO_TEAM);
 
-    const easyLoginEnabled = config.EnableEasyLogin === 'true';
-    const canInviteGuestsWithEasyLogin = canInviteGuests && easyLoginEnabled;
+    const guestMagicLinkEnabled = config.EnableGuestMagicLink === 'true';
+    const canInviteGuestsWithMagicLink = canInviteGuests && guestMagicLinkEnabled;
 
     return {
         invitableChannels,
@@ -92,7 +92,7 @@ export function mapStateToProps(state: GlobalState, props: OwnProps) {
         isAdmin: isAdmin(getCurrentUser(state).roles),
         currentChannel,
         townSquareDisplayName,
-        canInviteGuestsWithEasyLogin,
+        canInviteGuestsWithMagicLink,
     };
 }
 

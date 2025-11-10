@@ -4961,9 +4961,9 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                         {
                             type: 'bool',
-                            key: 'GuestAccountsSettings.EnableEasyLogin',
-                            label: defineMessage({id: 'admin.guest_access.enableEasyLoginTitle', defaultMessage: 'Enable Easy Login: '}),
-                            help_text: defineMessage({id: 'admin.guest_access.enableEasyLoginDescription', defaultMessage: 'When true, guest users can login using their email address only.'}),
+                            key: 'GuestAccountsSettings.EnableGuestMagicLink',
+                            label: defineMessage({id: 'admin.guest_access.enableGuestMagicLinkTitle', defaultMessage: 'Enable passwordless authentication for guests using magic links via email: '}),
+                            help_text: defineMessage({id: 'admin.guest_access.enableGuestMagicLinkDescription', defaultMessage: 'When true, team admins can decide to invite guests that login via magic link. The invitation link will log them in without the need to configure a password. Future logins will also be done with a magic link sent to their email.'}),
                             help_text_markdown: false,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.GUEST_ACCESS)),
                         },

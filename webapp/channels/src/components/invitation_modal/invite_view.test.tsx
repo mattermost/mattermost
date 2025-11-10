@@ -58,9 +58,9 @@ const defaultProps: Props = deepFreeze({
     usersEmails: [],
     usersEmailsSearch: '',
     townSquareDisplayName: '',
-    canInviteGuestsWithEasyLogin: false,
-    useEasyLogin: false,
-    toggleEasyLogin: jest.fn(),
+    canInviteGuestsWithMagicLink: false,
+    useGuestMagicLink: false,
+    toggleGuestMagicLink: jest.fn(),
 });
 
 let props = defaultProps;
@@ -165,11 +165,11 @@ describe('InviteView', () => {
         expect(wrapper.find(InviteAs).length).toBe(0);
     });
 
-    it('shows easy login checkbox when inviting guests and easy login is enabled', async () => {
+    it('shows guest magic link checkbox when inviting guests and guest magic link is enabled', async () => {
         props = {
             ...defaultProps,
             inviteType: InviteType.GUEST,
-            canInviteGuestsWithEasyLogin: true,
+            canInviteGuestsWithMagicLink: true,
         };
 
         const wrapper = mountWithIntl(
@@ -178,15 +178,15 @@ describe('InviteView', () => {
             </Provider>,
         );
 
-        const checkbox = wrapper.find('[data-testid="InviteView__easyLoginCheckbox"]');
+        const checkbox = wrapper.find('[data-testid="InviteView__guestMagicLinkCheckbox"]');
         expect(checkbox.length).toBe(1);
     });
 
-    it('hides easy login checkbox when inviting members', async () => {
+    it('hides guest magic link checkbox when inviting members', async () => {
         props = {
             ...defaultProps,
             inviteType: InviteType.MEMBER,
-            canInviteGuestsWithEasyLogin: true,
+            canInviteGuestsWithMagicLink: true,
         };
 
         const wrapper = mountWithIntl(
@@ -195,15 +195,15 @@ describe('InviteView', () => {
             </Provider>,
         );
 
-        const checkbox = wrapper.find('[data-testid="InviteView__easyLoginCheckbox"]');
+        const checkbox = wrapper.find('[data-testid="InviteView__guestMagicLinkCheckbox"]');
         expect(checkbox.length).toBe(0);
     });
 
-    it('hides easy login checkbox when easy login is not enabled', async () => {
+    it('hides guest magic link checkbox when guest magic link is not enabled', async () => {
         props = {
             ...defaultProps,
             inviteType: InviteType.GUEST,
-            canInviteGuestsWithEasyLogin: false,
+            canInviteGuestsWithMagicLink: false,
         };
 
         const wrapper = mountWithIntl(
@@ -212,17 +212,17 @@ describe('InviteView', () => {
             </Provider>,
         );
 
-        const checkbox = wrapper.find('[data-testid="InviteView__easyLoginCheckbox"]');
+        const checkbox = wrapper.find('[data-testid="InviteView__guestMagicLinkCheckbox"]');
         expect(checkbox.length).toBe(0);
     });
 
-    it('calls toggleEasyLogin when checkbox is clicked', async () => {
-        const toggleEasyLogin = jest.fn();
+    it('calls toggleGuestMagicLink when checkbox is clicked', async () => {
+        const toggleGuestMagicLink = jest.fn();
         props = {
             ...defaultProps,
             inviteType: InviteType.GUEST,
-            canInviteGuestsWithEasyLogin: true,
-            toggleEasyLogin,
+            canInviteGuestsWithMagicLink: true,
+            toggleGuestMagicLink,
         };
 
         const wrapper = mountWithIntl(
@@ -231,9 +231,9 @@ describe('InviteView', () => {
             </Provider>,
         );
 
-        const checkbox = wrapper.find('[data-testid="InviteView__easyLoginCheckbox"]');
+        const checkbox = wrapper.find('[data-testid="InviteView__guestMagicLinkCheckbox"]');
         checkbox.simulate('change');
 
-        expect(toggleEasyLogin).toHaveBeenCalledTimes(1);
+        expect(toggleGuestMagicLink).toHaveBeenCalledTimes(1);
     });
 });

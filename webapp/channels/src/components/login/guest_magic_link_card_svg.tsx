@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-const EasyLoginCardSvg = () => {
+const GuestMagicLinkCardSvg = () => {
     return (
         <svg
             width={184}
@@ -164,4 +164,4 @@ const EasyLoginCardSvg = () => {
     );
 };
 
-export default EasyLoginCardSvg;
+export default GuestMagicLinkCardSvg;

@@ -25,14 +25,14 @@ import OverageUsersBannerNotice from './overage_users_banner_notice';
 
 import './invite_view.scss';
 
-export const initializeInviteState = (initialSearchValue = '', inviteAsGuest = false, canInviteGuestsWithEasyLogin = false): InviteState => {
+export const initializeInviteState = (initialSearchValue = '', inviteAsGuest = false, canInviteGuestsWithMagicLink = false): InviteState => {
     return deepFreeze({
         inviteType: inviteAsGuest ? InviteType.GUEST : InviteType.MEMBER,
         customMessage: defaultCustomMessage,
         inviteChannels: defaultInviteChannels,
         usersEmails: [],
         usersEmailsSearch: initialSearchValue,
-        canInviteGuestsWithEasyLogin,
+        canInviteGuestsWithMagicLink,
     });
 };
 
@@ -42,7 +42,7 @@ export type InviteState = {
     inviteChannels: InviteChannels;
     usersEmails: Array<UserProfile | string>;
     usersEmailsSearch: string;
-    canInviteGuestsWithEasyLogin: boolean;
+    canInviteGuestsWithMagicLink: boolean;
 };
 
 export type Props = InviteState & {
@@ -70,8 +70,8 @@ export type Props = InviteState & {
     townSquareDisplayName: string;
     channelToInvite?: Channel;
     onPaste?: (e: ClipboardEvent) => void;
-    useEasyLogin: boolean;
-    toggleEasyLogin: () => void;
+    useGuestMagicLink: boolean;
+    toggleGuestMagicLink: () => void;
 }
 
 export default function InviteView(props: Props) {
@@ -238,18 +238,18 @@ export default function InviteView(props: Props) {
                     canInviteGuests={props.canInviteGuests}
                 />
                 }
-                {props.inviteType === InviteType.GUEST && props.canInviteGuestsWithEasyLogin && (
-                    <div className='InviteView__easyLoginSection'>
-                        <label className='InviteView__easyLoginCheckbox'>
+                {props.inviteType === InviteType.GUEST && props.canInviteGuestsWithMagicLink && (
+                    <div className='InviteView__guestMagicLinkSection'>
+                        <label className='InviteView__guestMagicLinkCheckbox'>
                             <input
                                 type='checkbox'
-                                checked={props.useEasyLogin}
-                                onChange={props.toggleEasyLogin}
-                                data-testid='InviteView__easyLoginCheckbox'
+                                checked={props.useGuestMagicLink}
+                                onChange={props.toggleGuestMagicLink}
+                                data-testid='InviteView__guestMagicLinkCheckbox'
                             />
                             <FormattedMessage
-                                id='invite_modal.easy_login'
-                                defaultMessage='Enable easy login workflow for guests'
+                                id='invite_modal.guest_magic_link'
+                                defaultMessage='Allow newly created guests to login without password'
                             />
                         </label>
                     </div>

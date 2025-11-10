@@ -33,17 +33,17 @@ import (
 )
 
 const (
-	TokenTypePasswordRecovery    = "password_recovery"
-	TokenTypeVerifyEmail         = "verify_email"
-	TokenTypeTeamInvitation      = "team_invitation"
-	TokenTypeGuestInvitation     = "guest_invitation"
-	TokenTypeCWSAccess           = "cws_access_token"
-	TokenTypeEasyLoginInvitation = "easy_login_invitation"
-	TokenTypeEasyLogin           = "easy_login"
-	PasswordRecoverExpiryTime    = 1000 * 60 * 60 * 24 // 24 hours
-	InvitationExpiryTime         = 1000 * 60 * 60 * 48 // 48 hours
-	EasyLoginExpiryTime          = 1000 * 60 * 5       // 5 minutes
-	ImageProfilePixelDimension   = 128
+	TokenTypePasswordRecovery         = "password_recovery"
+	TokenTypeVerifyEmail              = "verify_email"
+	TokenTypeTeamInvitation           = "team_invitation"
+	TokenTypeGuestInvitation          = "guest_invitation"
+	TokenTypeCWSAccess                = "cws_access_token"
+	TokenTypeGuestMagicLinkInvitation = "guest_magic_link_invitation"
+	TokenTypeGuestMagicLink           = "guest_magic_link"
+	PasswordRecoverExpiryTime         = 1000 * 60 * 60 * 24 // 24 hours
+	InvitationExpiryTime              = 1000 * 60 * 60 * 48 // 48 hours
+	MagicLinkExpiryTime               = 1000 * 60 * 5       // 5 minutes
+	ImageProfilePixelDimension        = 128
 )
 
 func (a *App) CreateUserWithToken(rctx request.CTX, user *model.User, token *model.Token) (*model.User, *model.AppError) {
@@ -51,7 +51,7 @@ func (a *App) CreateUserWithToken(rctx request.CTX, user *model.User, token *mod
 		return nil, err
 	}
 
-	if token.Type != TokenTypeTeamInvitation && token.Type != TokenTypeGuestInvitation && token.Type != TokenTypeEasyLoginInvitation {
+	if token.Type != TokenTypeTeamInvitation && token.Type != TokenTypeGuestInvitation && token.Type != TokenTypeGuestMagicLinkInvitation {
 		return nil, model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -115,7 +115,7 @@ func (a *App) CreateUserWithToken(rctx request.CTX, user *model.User, token *mod
 		return nil, appErr
 	}
 
-	if token.Type == TokenTypeGuestInvitation || token.Type == TokenTypeEasyLoginInvitation || (token.Type == TokenTypeTeamInvitation && len(channels) > 0) {
+	if token.Type == TokenTypeGuestInvitation || token.Type == TokenTypeGuestMagicLinkInvitation || (token.Type == TokenTypeTeamInvitation && len(channels) > 0) {
 		for _, channel := range channels {
 			_, err := a.AddChannelMember(rctx, ruser.Id, channel, ChannelMemberOpts{})
 			if err != nil {
@@ -131,26 +131,26 @@ func (a *App) CreateUserWithToken(rctx request.CTX, user *model.User, token *mod
 	return ruser, nil
 }
 
-// AuthenticateUserForEasyLogin validates an easy login token and creates a guest user.
-// This function handles the passwordless "easy login" flow where clicking an email link logs the user in.
+// AuthenticateUserForGuestMagicLink validates an guest magic link token and creates a guest user.
+// This function handles the passwordless "guest magic link" flow where clicking an email link logs the user in.
 // Follows the same pattern as SAML/OAuth SSO by creating the user then calling AddUserToTeamByToken.
-func (a *App) AuthenticateUserForEasyLogin(rctx request.CTX, tokenString string) (*model.User, *model.AppError) {
+func (a *App) AuthenticateUserForGuestMagicLink(rctx request.CTX, tokenString string) (*model.User, *model.AppError) {
 	// Get and validate token type and expiry
 	token, err := a.Srv().Store().Token().GetByToken(tokenString)
 	if err != nil {
-		return nil, model.NewAppError("AuthenticateUserForEasyLogin", "api.user.easy_login.invalid_token.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, model.NewAppError("AuthenticateUserForGuestMagicLink", "api.user.guest_magic_link.invalid_token.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	if token.Type != TokenTypeEasyLoginInvitation && token.Type != TokenTypeEasyLogin {
-		return nil, model.NewAppError("AuthenticateUserForEasyLogin", "api.user.easy_login.invalid_token_type.app_error", nil, "", http.StatusBadRequest)
+	if token.Type != TokenTypeGuestMagicLinkInvitation && token.Type != TokenTypeGuestMagicLink {
+		return nil, model.NewAppError("AuthenticateUserForGuestMagicLink", "api.user.guest_magic_link.invalid_token_type.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	var expiryTime int64 = InvitationExpiryTime
-	if token.Type == TokenTypeEasyLogin {
-		expiryTime = EasyLoginExpiryTime
+	if token.Type == TokenTypeGuestMagicLink {
+		expiryTime = MagicLinkExpiryTime
 	}
 	if model.GetMillis()-token.CreateAt >= expiryTime {
-		return nil, model.NewAppError("AuthenticateUserForEasyLogin", "api.user.easy_login.expired_token.app_error", nil, "", http.StatusBadRequest)
+		return nil, model.NewAppError("AuthenticateUserForGuestMagicLink", "api.user.guest_magic_link.expired_token.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	// Extract email from token
@@ -160,14 +160,14 @@ func (a *App) AuthenticateUserForEasyLogin(rctx request.CTX, tokenString string)
 	// Check if user already exists
 	existingUser, getUserErr := a.GetUserByEmail(email)
 
-	// Handle login-only tokens (TokenTypeEasyLogin) - for existing users only
-	if token.Type == TokenTypeEasyLogin {
+	// Handle login-only tokens (TokenTypeGuestMagicLink) - for existing users only
+	if token.Type == TokenTypeGuestMagicLink {
 		if getUserErr != nil || existingUser == nil {
 			if appErr := a.DeleteToken(token); appErr != nil {
 				rctx.Logger().Warn("Error while deleting token for non-existent user", mlog.Err(appErr))
 			}
 			// Return generic error to prevent user enumeration
-			return nil, model.NewAppError("AuthenticateUserForEasyLogin", "api.user.easy_login.invalid_token.app_error", nil, "", http.StatusBadRequest)
+			return nil, model.NewAppError("AuthenticateUserForGuestMagicLink", "api.user.guest_magic_link.invalid_token.app_error", nil, "", http.StatusBadRequest)
 		}
 		// Delete the single-use token and return the existing user
 		if appErr := a.DeleteToken(token); appErr != nil {
@@ -176,15 +176,15 @@ func (a *App) AuthenticateUserForEasyLogin(rctx request.CTX, tokenString string)
 		return existingUser, nil
 	}
 
-	// Handle invitation tokens (TokenTypeEasyLoginInvitation) - create new guest user
+	// Handle invitation tokens (TokenTypeGuestMagicLinkInvitation) - create new guest user
 	if getUserErr == nil && existingUser != nil {
 		// Log the specific reason internally for debugging
-		rctx.Logger().Warn("Easy login invitation token attempted for existing user", mlog.String("email", email))
+		rctx.Logger().Warn("Guest magic link invitation token attempted for existing user", mlog.String("email", email))
 		if appErr := a.DeleteToken(token); appErr != nil {
 			rctx.Logger().Warn("Error while deleting token for existing user", mlog.Err(appErr))
 		}
 		// Return generic error to prevent user enumeration - don't reveal that user exists
-		return nil, model.NewAppError("AuthenticateUserForEasyLogin", "api.user.easy_login.invalid_token.app_error", nil, "", http.StatusBadRequest)
+		return nil, model.NewAppError("AuthenticateUserForGuestMagicLink", "api.user.guest_magic_link.invalid_token.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	// Generate username from email
@@ -204,7 +204,7 @@ func (a *App) AuthenticateUserForEasyLogin(rctx request.CTX, tokenString string)
 	}
 
 	if !usernameFound {
-		return nil, model.NewAppError("AuthenticateUserForEasyLogin", "api.user.easy_login.username_generation_failed.app_error", nil, "could not generate unique username after 10 attempts", http.StatusInternalServerError)
+		return nil, model.NewAppError("AuthenticateUserForGuestMagicLink", "api.user.guest_magic_link.username_generation_failed.app_error", nil, "could not generate unique username after 10 attempts", http.StatusInternalServerError)
 	}
 
 	// Create guest user with auto-generated username
@@ -213,7 +213,7 @@ func (a *App) AuthenticateUserForEasyLogin(rctx request.CTX, tokenString string)
 		EmailVerified: true,
 		Username:      username,
 		Password:      model.NewId(), // Random password - user won't use it
-		AuthService:   model.UserAuthServiceEasyLogin,
+		AuthService:   model.UserAuthServiceMagicLink,
 	}
 
 	guestUser, createErr := a.CreateGuest(rctx, user)
@@ -1716,8 +1716,8 @@ func (a *App) resetPasswordFromToken(rctx request.CTX, userSuppliedTokenString, 
 		return model.NewAppError("ResetPasswordFromCode", "api.user.reset_password.sso.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 	}
 
-	if user.IsGuest() && user.IsEasyLoginEnabled() {
-		return model.NewAppError("ResetPasswordFromCode", "api.user.send_password_reset.easy_login.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
+	if user.IsGuest() && user.IsMagicLinkEnabled() {
+		return model.NewAppError("ResetPasswordFromCode", "api.user.send_password_reset.guest_magic_link.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 	}
 
 	// don't allow password reset for remote/synthetic users
@@ -1753,8 +1753,8 @@ func (a *App) SendPasswordReset(rctx request.CTX, email string, siteURL string) 
 		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.sso.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 	}
 
-	if user.IsGuest() && user.IsEasyLoginEnabled() {
-		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.easy_login.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
+	if user.IsGuest() && user.IsMagicLinkEnabled() {
+		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.guest_magic_link.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 	}
 
 	token, err := a.CreatePasswordRecoveryToken(rctx, user.Id, user.Email)

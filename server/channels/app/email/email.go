@@ -496,7 +496,7 @@ func (es *Service) SendGuestInviteEmails(
 	errorWhenNotSent bool,
 	isSystemAdmin bool,
 	isFirstAdmin bool,
-	isEasyLogin bool,
+	isGuestMagicLink bool,
 ) error {
 	if es.perHourEmailRateLimiter == nil {
 		return NoRateLimiterError
@@ -539,8 +539,8 @@ func (es *Service) SendGuestInviteEmails(
 			}
 
 			tokenType := TokenTypeGuestInvitation
-			if isEasyLogin {
-				tokenType = TokenTypeEasyLoginInvitation
+			if isGuestMagicLink {
+				tokenType = TokenTypeGuestMagicLinkInvitation
 			}
 
 			token := model.NewToken(
@@ -565,9 +565,9 @@ func (es *Service) SendGuestInviteEmails(
 				continue
 			}
 
-			if isEasyLogin {
-				// Easy login uses SSO-style authentication - clicking the link sends them to the landing page and logs them in directly
-				data.Props["ButtonURL"] = fmt.Sprintf("%s/landing#/login/sso/easy?t=%s", siteURL, url.QueryEscape(token.Token))
+			if isGuestMagicLink {
+				// Guest magic link uses SSO-style authentication - clicking the link sends them to the landing page and logs them in directly
+				data.Props["ButtonURL"] = fmt.Sprintf("%s/landing#/login/sso/magic_link?t=%s", siteURL, url.QueryEscape(token.Token))
 			} else {
 				data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s&sbr=%s", siteURL, url.QueryEscape(tokenData), url.QueryEscape(token.Token), es.GetTrackFlowStartedByRole(isFirstAdmin, isSystemAdmin))
 			}
@@ -611,10 +611,10 @@ func (es *Service) SendGuestInviteEmails(
 	return nil
 }
 
-// SendGuestEasyLoginEmailSelfService sends a passwordless login link to an existing guest user
+// SendMagicLinkEmailSelfService sends a passwordless login link to an existing guest user
 // This is for self-service login requests (no sender, no team/channel context).
-// For admin-initiated easy login invitations with team/channel assignment, use SendGuestInviteEmails with isEasyLogin=true.
-func (es *Service) SendGuestEasyLoginEmailSelfService(
+// For admin-initiated guest magic link invitations with team/channel assignment, use SendGuestInviteEmails with isGuestMagicLink=true.
+func (es *Service) SendMagicLinkEmailSelfService(
 	invite string,
 	siteURL string,
 ) error {
@@ -638,45 +638,45 @@ func (es *Service) SendGuestEasyLoginEmailSelfService(
 		return nil
 	}
 
-	subject := i18n.T("api.templates.easy_login_subject",
+	subject := i18n.T("api.templates.guest_magic_link_subject",
 		map[string]any{"SiteName": es.config().TeamSettings.SiteName})
 
 	data := es.NewEmailTemplateData("")
 	data.Props["SiteURL"] = siteURL
-	data.Props["Title"] = i18n.T("api.templates.easy_login_body.title")
-	data.Props["SubTitle"] = i18n.T("api.templates.easy_login_body.subtitle")
+	data.Props["Title"] = i18n.T("api.templates.guest_magic_link_body.title")
+	data.Props["SubTitle"] = i18n.T("api.templates.guest_magic_link_body.subtitle")
 	data.Props["Button"] = i18n.T("api.templates.invite_body.button")
-	data.Props["InviteFooterTitle"] = i18n.T("api.templates.easy_login_body.footer.title")
-	data.Props["InviteFooterInfo"] = i18n.T("api.templates.easy_login_body.footer.info")
+	data.Props["InviteFooterTitle"] = i18n.T("api.templates.guest_magic_link_body.footer.title")
+	data.Props["InviteFooterInfo"] = i18n.T("api.templates.guest_magic_link_body.footer.info")
 
 	// Login-only token - no team or channel info needed
 	// TODO: re-use existing token if it hasn't expired
 	token := model.NewToken(
-		TokenTypeEasyLogin,
+		TokenTypeGuestMagicLink,
 		model.MapToJSON(map[string]string{
 			"email": invite,
 		}),
 	)
 
 	if saveErr := es.store.Token().Save(token); saveErr != nil {
-		mlog.Error("Failed to save easy login token", mlog.Err(saveErr))
+		mlog.Error("Failed to save guest magic link token", mlog.Err(saveErr))
 		return fmt.Errorf("%w: %v", SaveTokenError, saveErr)
 	}
 
-	// Easy login uses SSO-style authentication - clicking the link sends them to the landing page and logs them in directly
-	data.Props["ButtonURL"] = fmt.Sprintf("%s/landing#/login/sso/easy?t=%s", siteURL, url.QueryEscape(token.Token))
+	// Guest magic link uses SSO-style authentication - clicking the link sends them to the landing page and logs them in directly
+	data.Props["ButtonURL"] = fmt.Sprintf("%s/landing#/login/sso/magic_link?t=%s", siteURL, url.QueryEscape(token.Token))
 
 	if !*es.config().EmailSettings.SendEmailNotifications {
-		mlog.Info("sending easy login link", mlog.String("to", invite))
+		mlog.Info("sending guest magic link", mlog.String("to", invite))
 	}
 
 	body, err := es.templatesContainer.RenderToString("invite_body", data)
 	if err != nil {
-		mlog.Error("Failed to send easy login email successfully", mlog.Err(err))
+		mlog.Error("Failed to send guest magic link email successfully", mlog.Err(err))
 	}
 
-	if nErr := es.SendMailWithEmbeddedFiles(invite, subject, body, nil, "", "", "", "EasyLoginEmail"); nErr != nil {
-		mlog.Error("Failed to send easy login email successfully", mlog.Err(nErr))
+	if nErr := es.SendMailWithEmbeddedFiles(invite, subject, body, nil, "", "", "", "GuestMagicLinkEmail"); nErr != nil {
+		mlog.Error("Failed to send guest magic link email successfully", mlog.Err(nErr))
 	}
 
 	return nil

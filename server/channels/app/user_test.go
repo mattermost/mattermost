@@ -1241,9 +1241,9 @@ func TestCreateUserWithToken(t *testing.T) {
 		assert.Equal(t, members[0].ChannelId, th.BasicChannel.Id)
 	})
 
-	// Tests for Easy Login Invitation token channel assignment
-	t.Run("easy login invitation token adds guest to multiple channels", func(t *testing.T) {
-		invitationEmail := strings.ToLower(model.NewId()) + "easylogin@test.com"
+	// Tests for Guest Magic Link Invitation token channel assignment
+	t.Run("Guest Magic Link Invitation token adds guest to multiple channels", func(t *testing.T) {
+		invitationEmail := strings.ToLower(model.NewId()) + "magiclink@test.com"
 		channel1 := th.CreateChannel(th.Context, th.BasicTeam)
 		channel2 := th.CreateChannel(th.Context, th.BasicTeam)
 
@@ -1255,12 +1255,12 @@ func TestCreateUserWithToken(t *testing.T) {
 			"senderId": th.BasicUser.Id,
 		}
 		token := model.NewToken(
-			TokenTypeEasyLoginInvitation,
+			TokenTypeGuestMagicLinkInvitation,
 			model.MapToJSON(tokenData),
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 
-		guest := model.User{Email: invitationEmail, Nickname: "Easy Guest", Username: "easyguest" + model.NewId(), Password: "passwd1", AuthService: ""}
+		guest := model.User{Email: invitationEmail, Nickname: "Magic Link Guest", Username: "magiclinkguest" + model.NewId(), Password: "passwd1", AuthService: ""}
 		newGuest, err := th.App.CreateUserWithToken(th.Context, &guest, token)
 		require.Nil(t, err, "Should create guest user successfully")
 		require.True(t, newGuest.IsGuest())
@@ -1281,8 +1281,8 @@ func TestCreateUserWithToken(t *testing.T) {
 		assert.True(t, channelIds[channel2.Id], "Guest should be in channel2")
 	})
 
-	t.Run("easy login invitation token validates channel permissions", func(t *testing.T) {
-		invitationEmail := strings.ToLower(model.NewId()) + "easylogin@test.com"
+	t.Run("Guest Magic Link invitation token validates channel permissions", func(t *testing.T) {
+		invitationEmail := strings.ToLower(model.NewId()) + "magiclink@test.com"
 
 		// Create channels with different access levels
 		publicChannel := th.CreateChannel(th.Context, th.BasicTeam)
@@ -1304,12 +1304,12 @@ func TestCreateUserWithToken(t *testing.T) {
 			"senderId": th.BasicUser.Id, // Sender has access to public and private, but not restricted
 		}
 		token := model.NewToken(
-			TokenTypeEasyLoginInvitation,
+			TokenTypeGuestMagicLinkInvitation,
 			model.MapToJSON(tokenData),
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 
-		guest := model.User{Email: invitationEmail, Nickname: "Easy Guest", Username: "easyguest" + model.NewId(), Password: "passwd1", AuthService: ""}
+		guest := model.User{Email: invitationEmail, Nickname: "Magic Link Guest", Username: "magiclinkguest" + model.NewId(), Password: "passwd1", AuthService: ""}
 		newGuest, err := th.App.CreateUserWithToken(th.Context, &guest, token)
 		require.Nil(t, err)
 
@@ -1326,11 +1326,11 @@ func TestCreateUserWithToken(t *testing.T) {
 		assert.False(t, channelIds[restrictedChannel.Id], "Guest should NOT be in restricted channel")
 	})
 
-	t.Run("easy login invitation token doesn't add user to channels if token is TeamInvitation", func(t *testing.T) {
+	t.Run("Guest Magic Link invitation token doesn't add user to channels if token is TeamInvitation", func(t *testing.T) {
 		invitationEmail := strings.ToLower(model.NewId()) + "regular@test.com"
 		channel1 := th.CreateChannel(th.Context, th.BasicTeam)
 
-		// Use regular team invitation token (not easy login)
+		// Use regular team invitation token (not guest magic link)
 		tokenData := map[string]string{
 			"teamId":   th.BasicTeam.Id,
 			"channels": channel1.Id, // Channels specified but wrong token type
@@ -1338,7 +1338,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			"senderId": th.BasicUser.Id,
 		}
 		token := model.NewToken(
-			TokenTypeTeamInvitation, // Regular team invitation, not easy login
+			TokenTypeTeamInvitation, // Regular team invitation, not guest magic link
 			model.MapToJSON(tokenData),
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
@@ -2620,18 +2620,18 @@ func TestRemoteUserDirectChannelCreation(t *testing.T) {
 	})
 }
 
-func TestAuthenticateUserForEasyLogin(t *testing.T) {
+func TestAuthenticateUserForGuestMagicLink(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	// Enable guest accounts for easy login
+	// Enable guest accounts for guest magic link
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.GuestAccountsSettings.Enable = true
 	})
 
-	t.Run("valid easy login token creates guest user successfully", func(t *testing.T) {
-		// Create easy login invitation token
+	t.Run("valid guest magic link token creates guest user successfully", func(t *testing.T) {
+		// Create guest magic link invitation token
 		email := strings.ToLower(model.NewId()) + "@example.com"
 		channel2 := th.CreateChannel(th.Context, th.BasicTeam)
 		tokenData := map[string]string{
@@ -2642,13 +2642,13 @@ func TestAuthenticateUserForEasyLogin(t *testing.T) {
 			"senderId": th.BasicUser.Id,
 		}
 		token := model.NewToken(
-			TokenTypeEasyLoginInvitation,
+			TokenTypeGuestMagicLinkInvitation,
 			model.MapToJSON(tokenData),
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 
-		// Authenticate with easy login token
-		user, err := th.App.AuthenticateUserForEasyLogin(th.Context, token.Token)
+		// Authenticate with guest magic link token
+		user, err := th.App.AuthenticateUserForGuestMagicLink(th.Context, token.Token)
 		require.Nil(t, err, "Should create guest user successfully")
 		require.NotNil(t, user)
 
@@ -2679,10 +2679,10 @@ func TestAuthenticateUserForEasyLogin(t *testing.T) {
 	})
 
 	t.Run("invalid token returns error", func(t *testing.T) {
-		user, err := th.App.AuthenticateUserForEasyLogin(th.Context, "invalid-token-123")
+		user, err := th.App.AuthenticateUserForGuestMagicLink(th.Context, "invalid-token-123")
 		require.NotNil(t, err, "Should fail on invalid token")
 		require.Nil(t, user)
-		assert.Equal(t, "api.user.easy_login.invalid_token.app_error", err.Id)
+		assert.Equal(t, "api.user.guest_magic_link.invalid_token.app_error", err.Id)
 	})
 
 	t.Run("expired token returns error", func(t *testing.T) {
@@ -2695,17 +2695,17 @@ func TestAuthenticateUserForEasyLogin(t *testing.T) {
 			"senderId": th.BasicUser.Id,
 		}
 		token := model.NewToken(
-			TokenTypeEasyLoginInvitation,
+			TokenTypeGuestMagicLinkInvitation,
 			model.MapToJSON(tokenData),
 		)
 		// Set token to be expired (48 hours + 1 millisecond old)
 		token.CreateAt = model.GetMillis() - InvitationExpiryTime - 1
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 
-		user, err := th.App.AuthenticateUserForEasyLogin(th.Context, token.Token)
+		user, err := th.App.AuthenticateUserForGuestMagicLink(th.Context, token.Token)
 		require.NotNil(t, err, "Should fail on expired token")
 		require.Nil(t, user)
-		assert.Equal(t, "api.user.easy_login.expired_token.app_error", err.Id)
+		assert.Equal(t, "api.user.guest_magic_link.expired_token.app_error", err.Id)
 
 		// Verify token was deleted
 		_, nErr := th.App.Srv().Store().Token().GetByToken(token.Token)
@@ -2715,7 +2715,7 @@ func TestAuthenticateUserForEasyLogin(t *testing.T) {
 	t.Run("wrong token type returns error", func(t *testing.T) {
 		// Create token with wrong type
 		token := model.NewToken(
-			TokenTypeTeamInvitation, // Wrong type - should be TokenTypeEasyLoginInvitation
+			TokenTypeTeamInvitation, // Wrong type - should be TokenTypeGuestMagicLinkInvitation
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id}),
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
@@ -2724,10 +2724,10 @@ func TestAuthenticateUserForEasyLogin(t *testing.T) {
 			require.Nil(t, appErr)
 		}()
 
-		user, err := th.App.AuthenticateUserForEasyLogin(th.Context, token.Token)
+		user, err := th.App.AuthenticateUserForGuestMagicLink(th.Context, token.Token)
 		require.NotNil(t, err, "Should fail on wrong token type")
 		require.Nil(t, user)
-		assert.Equal(t, "api.user.easy_login.invalid_token_type.app_error", err.Id)
+		assert.Equal(t, "api.user.guest_magic_link.invalid_token_type.app_error", err.Id)
 	})
 
 	t.Run("user already exists returns generic error", func(t *testing.T) {
@@ -2741,16 +2741,16 @@ func TestAuthenticateUserForEasyLogin(t *testing.T) {
 			"senderId": th.BasicUser.Id,
 		}
 		token := model.NewToken(
-			TokenTypeEasyLoginInvitation,
+			TokenTypeGuestMagicLinkInvitation,
 			model.MapToJSON(tokenData),
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 
-		user, err := th.App.AuthenticateUserForEasyLogin(th.Context, token.Token)
+		user, err := th.App.AuthenticateUserForGuestMagicLink(th.Context, token.Token)
 		require.NotNil(t, err, "Should fail when user already exists")
 		require.Nil(t, user)
 		// Returns generic error to prevent user enumeration
-		assert.Equal(t, "api.user.easy_login.invalid_token.app_error", err.Id)
+		assert.Equal(t, "api.user.guest_magic_link.invalid_token.app_error", err.Id)
 
 		// Verify token was deleted even on error
 		_, nErr := th.App.Srv().Store().Token().GetByToken(token.Token)
@@ -2768,12 +2768,12 @@ func TestAuthenticateUserForEasyLogin(t *testing.T) {
 			"senderId": th.BasicUser.Id,
 		}
 		token1 := model.NewToken(
-			TokenTypeEasyLoginInvitation,
+			TokenTypeGuestMagicLinkInvitation,
 			model.MapToJSON(tokenData1),
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token1))
 
-		user1, err1 := th.App.AuthenticateUserForEasyLogin(th.Context, token1.Token)
+		user1, err1 := th.App.AuthenticateUserForGuestMagicLink(th.Context, token1.Token)
 		require.Nil(t, err1)
 		require.NotNil(t, user1)
 		assert.Contains(t, user1.Username, "john", "Username should be derived from email")
@@ -2788,12 +2788,12 @@ func TestAuthenticateUserForEasyLogin(t *testing.T) {
 			"senderId": th.BasicUser.Id,
 		}
 		token2 := model.NewToken(
-			TokenTypeEasyLoginInvitation,
+			TokenTypeGuestMagicLinkInvitation,
 			model.MapToJSON(tokenData2),
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token2))
 
-		user2, err2 := th.App.AuthenticateUserForEasyLogin(th.Context, token2.Token)
+		user2, err2 := th.App.AuthenticateUserForGuestMagicLink(th.Context, token2.Token)
 		require.Nil(t, err2)
 		require.NotNil(t, user2)
 
@@ -2815,12 +2815,12 @@ func TestAuthenticateUserForEasyLogin(t *testing.T) {
 			"senderId": th.BasicUser.Id,
 		}
 		token := model.NewToken(
-			TokenTypeEasyLoginInvitation,
+			TokenTypeGuestMagicLinkInvitation,
 			model.MapToJSON(tokenData),
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 
-		user, err := th.App.AuthenticateUserForEasyLogin(th.Context, token.Token)
+		user, err := th.App.AuthenticateUserForGuestMagicLink(th.Context, token.Token)
 		require.NotNil(t, err, "Should fail on invalid team id")
 		require.Nil(t, user)
 
@@ -2847,12 +2847,12 @@ func TestAuthenticateUserForEasyLogin(t *testing.T) {
 			"senderId": th.BasicUser.Id, // BasicUser should have access to private channel
 		}
 		token := model.NewToken(
-			TokenTypeEasyLoginInvitation,
+			TokenTypeGuestMagicLinkInvitation,
 			model.MapToJSON(tokenData),
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 
-		user, err := th.App.AuthenticateUserForEasyLogin(th.Context, token.Token)
+		user, err := th.App.AuthenticateUserForGuestMagicLink(th.Context, token.Token)
 		require.Nil(t, err)
 		require.NotNil(t, user)
 

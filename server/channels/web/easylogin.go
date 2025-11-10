@@ -11,18 +11,18 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
-func (w *Web) InitEasyLogin() {
-	w.MainRouter.Handle("/login/sso/easy", w.APIHandler(loginWithEasyToken)).Methods(http.MethodGet)
+func (w *Web) InitMagicLink() {
+	w.MainRouter.Handle("/login/sso/magic_link", w.APIHandler(loginWithMagicLinkToken)).Methods(http.MethodGet)
 }
 
-func loginWithEasyToken(c *Context, w http.ResponseWriter, r *http.Request) {
+func loginWithMagicLinkToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord(model.AuditEventLogin, model.AuditStatusFail)
-	auditRec.AddMeta("login_method", "easy_login")
+	auditRec.AddMeta("login_method", "guest_magic_link")
 	defer c.LogAuditRec(auditRec)
 
 	tokenString := r.URL.Query().Get("t")
 	if tokenString == "" {
-		c.Err = model.NewAppError("loginWithEasyToken", "api.user.easy_login.missing_token.app_error", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("loginWithMagicLinkToken", "api.user.guest_magic_link.missing_token.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
@@ -36,18 +36,18 @@ func loginWithEasyToken(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	redirectURL := html.EscapeString(r.URL.Query().Get("redirect_to"))
 
-	user, err := c.App.AuthenticateUserForEasyLogin(c.AppContext, tokenString)
+	user, err := c.App.AuthenticateUserForGuestMagicLink(c.AppContext, tokenString)
 	if err != nil {
 		http.Redirect(w, r, c.GetSiteURLHeader()+"/login?extra=login_error&message="+html.EscapeString(err.Message), http.StatusFound)
 		return
 	}
 
 	auditRec.AddMeta("user_id", user.Id)
-	c.LogAuditWithUserId(user.Id, "attempt - easy_login")
+	c.LogAuditWithUserId(user.Id, "attempt - guest_magic_link")
 
 	// Check user authentication criteria
 	if authErr := c.App.CheckUserAllAuthenticationCriteria(c.AppContext, user, ""); authErr != nil {
-		c.LogAuditWithUserId(user.Id, "failure - easy_login")
+		c.LogAuditWithUserId(user.Id, "failure - guest_magic_link")
 		utils.RenderWebAppError(c.App.Config(), w, r, authErr, c.App.AsymmetricSigningKey())
 		return
 	}
@@ -63,7 +63,7 @@ func loginWithEasyToken(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Mark login as successful in audit log
 	auditRec.Success()
-	c.LogAuditWithUserId(user.Id, "success - easy_login")
+	c.LogAuditWithUserId(user.Id, "success - guest_magic_link")
 
 	// Attach session cookies and redirect
 	c.App.AttachSessionCookies(c.AppContext, w, r)

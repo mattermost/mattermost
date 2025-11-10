@@ -119,18 +119,18 @@ describe('components/user_settings/security/UserSettingsSecurityTab - Auth Servi
             expect(screen.getByText('Login occurs through Entra ID. Password cannot be updated.')).toBeInTheDocument();
         });
 
-        it('should display Easy Login message when user auth_service is easy_login', () => {
+        it('should display Guest Magic Link message when user auth_service is magic_link', () => {
             const props = {
                 ...baseProps,
                 user: {
                     ...user,
-                    auth_service: Constants.EASY_LOGIN_SERVICE,
+                    auth_service: Constants.MAGIC_LINK_SERVICE,
                 } as UserProfile,
             };
 
             renderWithContext(<SecurityTab {...props}/>);
 
-            expect(screen.getByText('Login occurs via Easy Login. Password cannot be updated.')).toBeInTheDocument();
+            expect(screen.getByText('Login occurs via magic link. Password cannot be updated.')).toBeInTheDocument();
         });
 
         it('should not display password fields or auth message when user auth_service is openid (unhandled case)', () => {

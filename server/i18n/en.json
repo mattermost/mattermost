@@ -3331,8 +3331,8 @@
     "translation": "Guest accounts are disabled"
   },
   {
-    "id": "api.team.invite_guests_to_channels.easy_login_disabled.error",
-    "translation": "Easy login is not enabled"
+    "id": "api.team.invite_guests_to_channels.guest_magic_link_disabled.error",
+    "translation": "Guest magic link is not enabled"
   },
   {
     "id": "api.team.invite_guests_to_channels.invalid_body.app_error",
@@ -3587,26 +3587,6 @@
     "translation": "[{{ .SiteName }}] Your account at {{ .ServerURL }} has been deactivated"
   },
   {
-    "id": "api.templates.easy_login_body.footer.info",
-    "translation": "This email was sent to you because someone requested a login link for Mattermost. If you did not request this, you can safely ignore this email."
-  },
-  {
-    "id": "api.templates.easy_login_body.footer.title",
-    "translation": "Didn't request this email?"
-  },
-  {
-    "id": "api.templates.easy_login_body.subtitle",
-    "translation": "Click the button below to sign in to your account. Remember not to share this link with anyone else."
-  },
-  {
-    "id": "api.templates.easy_login_body.title",
-    "translation": "Sign in to Mattermost"
-  },
-  {
-    "id": "api.templates.easy_login_subject",
-    "translation": "Sign in to {{ .SiteName }}"
-  },
-  {
     "id": "api.templates.email_change_body.info",
     "translation": "Your email address for {{.TeamDisplayName}} has been changed to {{.NewEmail}}."
   },
@@ -3665,6 +3645,26 @@
   {
     "id": "api.templates.email_warning",
     "translation": "If you did not make this change, please contact the system administrator."
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.footer.info",
+    "translation": "This email was sent to you because someone requested a login link for Mattermost. If you did not request this, you can safely ignore this email."
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.footer.title",
+    "translation": "Didn't request this email?"
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.subtitle",
+    "translation": "Click the button below to sign in to your account. Remember not to share this link with anyone else."
+  },
+  {
+    "id": "api.templates.guest_magic_link_body.title",
+    "translation": "Sign in to Mattermost"
+  },
+  {
+    "id": "api.templates.guest_magic_link_subject",
+    "translation": "Sign in to {{ .SiteName }}"
   },
   {
     "id": "api.templates.invite_body.button",
@@ -4219,26 +4219,6 @@
     "translation": "Unable to convert the user to guest because is already a guest."
   },
   {
-    "id": "api.user.easy_login.expired_token.app_error",
-    "translation": "This invitation link has expired."
-  },
-  {
-    "id": "api.user.easy_login.invalid_token.app_error",
-    "translation": "Invalid invitation link."
-  },
-  {
-    "id": "api.user.easy_login.invalid_token_type.app_error",
-    "translation": "Invalid invitation link type."
-  },
-  {
-    "id": "api.user.easy_login.missing_token.app_error",
-    "translation": "Missing invitation token."
-  },
-  {
-    "id": "api.user.easy_login.username_generation_failed.app_error",
-    "translation": "Could not generate a unique username. Please contact your system administrator."
-  },
-  {
     "id": "api.user.email_to_ldap.not_available.app_error",
     "translation": "AD/LDAP not available on this server."
   },
@@ -4269,6 +4249,26 @@
   {
     "id": "api.user.get_users_not_in_abac_channel.access_control_unavailable.app_error",
     "translation": "Access control service unavailable. Cannot filter users for ABAC-enabled channel."
+  },
+  {
+    "id": "api.user.guest_magic_link.expired_token.app_error",
+    "translation": "This invitation link has expired."
+  },
+  {
+    "id": "api.user.guest_magic_link.invalid_token.app_error",
+    "translation": "Invalid invitation link."
+  },
+  {
+    "id": "api.user.guest_magic_link.invalid_token_type.app_error",
+    "translation": "Invalid invitation link type."
+  },
+  {
+    "id": "api.user.guest_magic_link.missing_token.app_error",
+    "translation": "Missing invitation token."
+  },
+  {
+    "id": "api.user.guest_magic_link.username_generation_failed.app_error",
+    "translation": "Could not generate a unique username. Please contact your system administrator."
   },
   {
     "id": "api.user.invalidate_password_recovery_tokens.error",
@@ -4317,6 +4317,10 @@
   {
     "id": "api.user.login.guest_accounts.license.error",
     "translation": "Your license does not support guest accounts"
+  },
+  {
+    "id": "api.user.login.guest_magic_link.disabled.error",
+    "translation": ""
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -4443,8 +4447,8 @@
     "translation": "Failed to send email change verification email successfully"
   },
   {
-    "id": "api.user.send_password_reset.easy_login.app_error",
-    "translation": "Unable to reset password for easy login accounts."
+    "id": "api.user.send_password_reset.guest_magic_link.app_error",
+    "translation": "Unable to reset password for guest magic link accounts."
   },
   {
     "id": "api.user.send_password_reset.send.app_error",

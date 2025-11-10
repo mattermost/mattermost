@@ -26,13 +26,13 @@ const (
 	emailRateLimitingPerHour      = 20
 	emailRateLimitingMaxBurst     = 20
 
-	TokenTypePasswordRecovery    = "password_recovery"
-	TokenTypeVerifyEmail         = "verify_email"
-	TokenTypeTeamInvitation      = "team_invitation"
-	TokenTypeGuestInvitation     = "guest_invitation"
-	TokenTypeCWSAccess           = "cws_access_token"
-	TokenTypeEasyLoginInvitation = "easy_login_invitation"
-	TokenTypeEasyLogin           = "easy_login"
+	TokenTypePasswordRecovery         = "password_recovery"
+	TokenTypeVerifyEmail              = "verify_email"
+	TokenTypeTeamInvitation           = "team_invitation"
+	TokenTypeGuestInvitation          = "guest_invitation"
+	TokenTypeCWSAccess                = "cws_access_token"
+	TokenTypeGuestMagicLinkInvitation = "guest_magic_link_invitation"
+	TokenTypeGuestMagicLink           = "guest_magic_link"
 )
 
 func condenseSiteURL(siteURL string) string {
@@ -155,8 +155,8 @@ type ServiceInterface interface {
 	SendPasswordResetEmail(email string, token *model.Token, locale, siteURL string) (bool, error)
 	SendMfaChangeEmail(email string, activated bool, locale, siteURL string) error
 	SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string, reminderData *model.TeamInviteReminderData, errorWhenNotSent bool, isSystemAdmin bool, isFirstAdmin bool) error
-	SendGuestInviteEmails(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, message string, errorWhenNotSent bool, isSystemAdmin bool, isFirstAdmin bool, isEasyLogin bool) error
-	SendGuestEasyLoginEmailSelfService(invite string, siteURL string) error
+	SendGuestInviteEmails(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, message string, errorWhenNotSent bool, isSystemAdmin bool, isFirstAdmin bool, isGuestMagicLink bool) error
+	SendMagicLinkEmailSelfService(invite string, siteURL string) error
 	SendInviteEmailsToTeamAndChannels(team *model.Team, channels []*model.Channel, senderName string, senderUserId string, senderProfileImage []byte, invites []string, siteURL string, reminderData *model.TeamInviteReminderData, message string, errorWhenNotSent bool, isSystemAdmin bool, isFirstAdmin bool) ([]*model.EmailInviteWithError, error)
 	SendDeactivateAccountEmail(email string, locale, siteURL string) error
 	SendNotificationMail(to, subject, htmlBody string) error
