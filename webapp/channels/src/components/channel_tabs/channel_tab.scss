@@ -14,6 +14,7 @@
     color: rgba(var(--center-channel-color-rgb), 0.75);
     cursor: pointer;
     transition: all 0.15s ease;
+    overflow: hidden;
 
     &:hover {
         .channel-tab__content {
@@ -36,6 +37,10 @@
                 background: none;
                 color: var(--link-color);
             }
+
+            + .wiki-tab__menu-button {
+                background-color: var(--center-channel-bg);
+            }
         }
     }
 
@@ -45,6 +50,7 @@
         align-items: center;
         padding: 4px 8px;
         border-radius: var(--radius-s);
+        overflow: hidden;
         gap: 2px;
     }
 
