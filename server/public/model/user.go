@@ -852,10 +852,6 @@ func (u *User) GetRawRoles() string {
 func IsValidUserRoles(userRoles string) bool {
 	roles := strings.Fields(userRoles)
 
-	if len(roles) == 0 {
-		return false
-	}
-
 	for _, r := range roles {
 		if !IsValidRoleName(r) {
 			return false

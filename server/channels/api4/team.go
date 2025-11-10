@@ -1145,7 +1145,7 @@ func updateTeamMemberRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJSON(r.Body)
 
 	newRoles := props["roles"]
-	if !model.IsValidUserRoles(newRoles) {
+	if !model.IsValidUserRoles(newRoles) || len(strings.TrimSpace(newRoles)) == 0 {
 		c.SetInvalidParam("team_member_roles")
 		return
 	}

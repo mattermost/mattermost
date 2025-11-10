@@ -3345,6 +3345,11 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
+	// user 1 tries to demote someone by setting empty role
+	resp, err = client.UpdateTeamMemberRoles(context.Background(), th.BasicTeam.Id, th.SystemAdminUser.Id, "")
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
 	// system admin promotes user 1
 	_, err = SystemAdminClient.UpdateTeamMemberRoles(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, TeamAdmin)
 	require.NoError(t, err)

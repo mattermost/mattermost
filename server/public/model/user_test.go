@@ -507,7 +507,6 @@ func TestRoles(t *testing.T) {
 	require.True(t, IsValidUserRoles("team_user"))
 	require.False(t, IsValidUserRoles("system_admin"))
 	require.True(t, IsValidUserRoles("system_user system_admin"))
-	require.False(t, IsValidUserRoles(""))
 
 	require.False(t, IsInRole("system_admin junk", "admin"))
 	require.True(t, IsInRole("system_admin junk", "system_admin"))
