@@ -561,16 +561,6 @@ const AdvancedTextEditor = ({
         setServerError(null);
     }, [channelId, rootId]);
 
-    // Remove uploads in progress on mount
-    useEffect(() => {
-        dispatch(actionOnGlobalItemsWithPrefix(rootId ? StoragePrefixes.COMMENT_DRAFT : StoragePrefixes.DRAFT, (_key: string, draft: PostDraft) => {
-            if (!draft || !draft.uploadsInProgress || draft.uploadsInProgress.length === 0) {
-                return draft;
-            }
-
-            return {...draft, uploadsInProgress: []};
-        }));
-    }, []);
 
     // Register listener to store the draft when the page unloads
     useEffect(() => {
