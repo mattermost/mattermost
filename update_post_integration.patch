@@ -1,0 +1,7 @@
+--- Original UpdatePost method should call preserveInteractiveElements
++++ Enhanced to preserve interactive button data
+
+// In the UpdatePost method, add this call before saving:
+post = a.preserveInteractiveElements(originalPost, post)
+
+// This ensures interactive buttons survive message edits
