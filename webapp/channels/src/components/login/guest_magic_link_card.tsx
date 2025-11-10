@@ -4,8 +4,8 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
-import './easy_login_card.scss';
-import GuestMagicLinkCardSvg from './easy_login_card_svg';
+import './guest_magic_link_card.scss';
+import GuestMagicLinkCardSvg from './guest_magic_link_card_svg';
 
 const GuestMagicLinkCard = () => {
     const {formatMessage} = useIntl();
