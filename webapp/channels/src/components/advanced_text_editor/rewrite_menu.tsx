@@ -127,13 +127,18 @@ export default function RewriteMenu({
             id: 'texteditor.rewrite.create',
             defaultMessage: 'Create a new message...',
         });
+    } else if (originalMessage) {
+        placeholderText = formatMessage({
+            id: 'texteditor.rewrite.nextPrompt',
+            defaultMessage: 'What would you like AI to do next?',
+        });
     }
 
     return (
         <Menu.Container
             menuHeader={(
                 <div className='rewrite-menu-header'>
-                    {agents && agents.length > 0 && (
+                    {!isProcessing && agents && agents.length > 0 && (
                         <AgentDropdown
                             selectedBotId={selectedAgentId}
                             onBotSelect={setSelectedAgentId}
@@ -142,51 +147,36 @@ export default function RewriteMenu({
                         />
                     )}
                     {isProcessing &&
-                        <button
-                            className='btn btn-danger btn-xs'
-                            type='button'
-                            onClick={onCancelProcessing}
-                        >
-                            <i className='icon icon-close'/>
+                        <div className='rewrite-menu-header-processing'>
+                            <LoadingSpinner/>
                             <FormattedMessage
-                                id='texteditor.rewrite.cancel'
-                                defaultMessage='Cancel'
+                                id='texteditor.rewrite.rewriting'
+                                defaultMessage='Rewriting'
                             />
-                        </button>
+                            <button
+                                className='btn btn-xs'
+                                type='button'
+                                onClick={onCancelProcessing}
+                            >
+                                <i className='icon icon-close'/>
+                                <FormattedMessage
+                                    id='texteditor.rewrite.stopGenerating'
+                                    defaultMessage='Stop generating'
+                                />
+                            </button>
+                        </div>
                     }
-                    {!isProcessing && originalMessage && lastAction && <>
-                        <button
-                            className='btn btn-tertiary btn-xs'
-                            type='button'
-                            onClick={onUndoMessage}
-                        >
-                            <i className='icon icon-arrow-left'/>
-                            <FormattedMessage
-                                id='texteditor.rewrite.undo'
-                                defaultMessage='Undo'
-                            />
-                        </button>
-                        <button
-                            className='btn btn-xs'
-                            type='button'
-                            onClick={onRegenerateMessage}
-                        >
-                            <i className='icon icon-content-copy'/>
-                            <FormattedMessage
-                                id='texteditor.rewrite.regenerate'
-                                defaultMessage='Regenerate'
-                            />
-                        </button>
-                    </>}
-                    <Input
-                        ref={customPromptRef}
-                        inputPrefix={isProcessing ? <LoadingSpinner/> : <CreationOutlineIcon size={18}/>}
-                        placeholder={placeholderText}
-                        disabled={isProcessing}
-                        value={prompt}
-                        onChange={(e) => setPrompt(e.target.value)}
-                        onKeyDown={onCustomPromptKeyDown}
-                    />
+                    {!isProcessing &&
+                        <Input
+                            ref={customPromptRef}
+                            inputPrefix={<CreationOutlineIcon size={18}/>}
+                            placeholder={placeholderText}
+                            disabled={isProcessing}
+                            value={prompt}
+                            onChange={(e) => setPrompt(e.target.value)}
+                            onKeyDown={onCustomPromptKeyDown}
+                        />
+                    }
                 </div>
             )}
             menuButton={{
@@ -199,7 +189,7 @@ export default function RewriteMenu({
                         type='button'
                         aria-label={formatMessage({
                             id: 'texteditor.rewrite',
-                            defaultMessage: 'AI Rewrite',
+                            defaultMessage: 'Rewrite',
                         })}
                     >
                         <CreationOutlineIcon
@@ -212,19 +202,45 @@ export default function RewriteMenu({
             menuButtonTooltip={{
                 text: formatMessage({
                     id: 'texteditor.rewrite',
-                    defaultMessage: 'AI Rewrite',
+                    defaultMessage: 'Rewrite',
                 }),
             }}
             menu={{
                 id: 'rewrite-menu',
                 'aria-label': formatMessage({
                     id: 'texteditor.rewrite.menu',
-                    defaultMessage: 'AI Rewrite Options',
+                    defaultMessage: 'Rewrite Options',
                 }),
                 className: 'rewrite-menu',
                 onToggle: setIsMenuOpen,
                 isMenuOpen,
             }}
+            menuFooter={!isProcessing && originalMessage && lastAction &&
+                <div className='rewrite-menu-footer'>
+                    <button
+                        className='btn btn-tertiary btn-xs'
+                        type='button'
+                        onClick={onUndoMessage}
+                    >
+                        <i className='icon icon-close'/>
+                        <FormattedMessage
+                            id='texteditor.rewrite.discard'
+                            defaultMessage='Discard'
+                        />
+                    </button>
+                    <button
+                        className='btn btn-xs'
+                        type='button'
+                        onClick={onRegenerateMessage}
+                    >
+                        <i className='icon icon-content-copy'/>
+                        <FormattedMessage
+                            id='texteditor.rewrite.regenerate'
+                            defaultMessage='Regenerate'
+                        />
+                    </button>
+                </div>
+            }
             anchorOrigin={{
                 vertical: 'top',
                 horizontal: 'left',

@@ -148,6 +148,12 @@ const useRewrite = (
         }
     }, [isMenuOpen, draft.message]);
 
+    useEffect(() => {
+        if (!isProcessing && draft.message.trim() && lastAction) {
+            resetState();
+        }
+    }, [draft.message]);
+
     // This adds an overlay to the textbox to
     // indicate that the AI is rewriting the message.
     // It might belong in the text editor - but since

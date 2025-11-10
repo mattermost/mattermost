@@ -13,11 +13,12 @@ import RewriteMenu from './rewrite_menu';
 
 jest.mock('components/menu', () => ({
     ...jest.requireActual('components/menu'),
-    Container: ({children, menuButton, menuHeader}: any) => (
+    Container: ({children, menuButton, menuHeader, menuFooter}: any) => (
         <div data-testid='menu-container'>
             <div data-testid='menu-header'>{menuHeader}</div>
             <div data-testid='menu-button'>{menuButton.children}</div>
             <div data-testid='menu-items'>{children}</div>
+            {menuFooter && <div data-testid='menu-footer'>{menuFooter}</div>}
         </div>
     ),
     Item: ({labels, onClick, leadingElement}: any) => (
@@ -165,17 +166,17 @@ describe('RewriteMenu', () => {
         expect(screen.queryByTestId('menu-item')).not.toBeInTheDocument();
     });
 
-    test('should render cancel button when processing', () => {
+    test('should render stop generating button when processing', () => {
         renderWithContext(
             <RewriteMenu
                 {...baseProps}
                 isProcessing={true}
             />,
         );
-        expect(screen.getByText('Cancel')).toBeInTheDocument();
+        expect(screen.getByText('Stop generating')).toBeInTheDocument();
     });
 
-    test('should call onCancelProcessing when cancel button is clicked', () => {
+    test('should call onCancelProcessing when stop generating button is clicked', () => {
         const onCancelProcessing = jest.fn();
         renderWithContext(
             <RewriteMenu
@@ -184,11 +185,11 @@ describe('RewriteMenu', () => {
                 onCancelProcessing={onCancelProcessing}
             />,
         );
-        fireEvent.click(screen.getByText('Cancel'));
+        fireEvent.click(screen.getByText('Stop generating'));
         expect(onCancelProcessing).toHaveBeenCalled();
     });
 
-    test('should render undo and regenerate buttons when not processing and original message exists', () => {
+    test('should render discard and regenerate buttons when not processing and original message exists', () => {
         renderWithContext(
             <RewriteMenu
                 {...baseProps}
@@ -197,11 +198,12 @@ describe('RewriteMenu', () => {
                 lastAction={RewriteAction.SHORTEN}
             />,
         );
-        expect(screen.getByText('Undo')).toBeInTheDocument();
+        expect(screen.getByText('Discard')).toBeInTheDocument();
         expect(screen.getByText('Regenerate')).toBeInTheDocument();
+        expect(screen.getByTestId('menu-footer')).toBeInTheDocument();
     });
 
-    test('should not render undo and regenerate buttons when processing', () => {
+    test('should not render discard and regenerate buttons when processing', () => {
         renderWithContext(
             <RewriteMenu
                 {...baseProps}
@@ -210,11 +212,12 @@ describe('RewriteMenu', () => {
                 lastAction={RewriteAction.SHORTEN}
             />,
         );
-        expect(screen.queryByText('Undo')).not.toBeInTheDocument();
+        expect(screen.queryByText('Discard')).not.toBeInTheDocument();
         expect(screen.queryByText('Regenerate')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('menu-footer')).not.toBeInTheDocument();
     });
 
-    test('should call onUndoMessage when undo button is clicked', () => {
+    test('should call onUndoMessage when discard button is clicked', () => {
         const onUndoMessage = jest.fn();
         renderWithContext(
             <RewriteMenu
@@ -225,7 +228,7 @@ describe('RewriteMenu', () => {
                 onUndoMessage={onUndoMessage}
             />,
         );
-        fireEvent.click(screen.getByText('Undo'));
+        fireEvent.click(screen.getByText('Discard'));
         expect(onUndoMessage).toHaveBeenCalled();
     });
 
@@ -284,15 +287,14 @@ describe('RewriteMenu', () => {
         expect(onCustomPromptKeyDown).toHaveBeenCalled();
     });
 
-    test('should disable prompt input when processing', () => {
+    test('should not render prompt input when processing', () => {
         renderWithContext(
             <RewriteMenu
                 {...baseProps}
                 isProcessing={true}
             />,
         );
-        const input = screen.getByTestId('prompt-input-field');
-        expect(input).toBeDisabled();
+        expect(screen.queryByTestId('prompt-input')).not.toBeInTheDocument();
     });
 
     test('should show placeholder text based on state', () => {
@@ -317,33 +319,22 @@ describe('RewriteMenu', () => {
         rerender(
             <RewriteMenu
                 {...baseProps}
-                isProcessing={true}
                 draftMessage='Test message'
+                originalMessage='Original message'
             />,
         );
         input = screen.getByTestId('prompt-input-field');
-        expect(input).toHaveAttribute('placeholder', 'Rewriting...');
-
-        rerender(
-            <RewriteMenu
-                {...baseProps}
-                isProcessing={true}
-                prompt='Custom prompt'
-            />,
-        );
-        input = screen.getByTestId('prompt-input-field');
-        expect(input).toHaveAttribute('placeholder', 'Custom prompt');
+        expect(input).toHaveAttribute('placeholder', 'What would you like AI to do next?');
     });
 
-    test('should disable agent dropdown when processing', () => {
+    test('should not render agent dropdown when processing', () => {
         renderWithContext(
             <RewriteMenu
                 {...baseProps}
                 isProcessing={true}
             />,
         );
-        const select = screen.getByTestId('agent-select');
-        expect(select).toBeDisabled();
+        expect(screen.queryByTestId('agent-dropdown')).not.toBeInTheDocument();
     });
 
     test('should call setSelectedAgentId when agent is selected', () => {

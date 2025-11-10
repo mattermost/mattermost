@@ -1,3 +1,7 @@
+.rewrite-menu {
+    min-width: 400px;
+}
+
 .rewrite-menu-header {
     padding: 8px 12px 0 12px;
     margin-bottom: -4px;
@@ -14,9 +18,35 @@
         margin-left: 10px;
     }
 
-    button {
+    .agent-dropdown {
         margin-bottom: 12px;
     }
+
+    .rewrite-menu-header-processing {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 4px 0 4px;
+
+        > i, > span {
+            color: var(--center-channel-color);
+        }
+
+        > span {
+            font-size: 14px;
+            font-weight: 400;
+            line-height: 20px;
+        }
+
+        button {
+            margin-left: auto;
+        }
+    }
+}
+
+.rewrite-menu-footer {
+    padding: 12px 14px;
+    border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
 }
 
 .textarea-wrapper {
