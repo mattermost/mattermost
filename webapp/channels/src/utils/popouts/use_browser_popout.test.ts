@@ -17,13 +17,6 @@ describe('use_browser_popout', () => {
             }
             return originalAddEventListener.call(window, type, listener, options);
         }) as typeof window.addEventListener;
-
-        Object.defineProperty(window, 'location', {
-            value: {
-                origin: 'https://example.com',
-            },
-            writable: true,
-        });
     });
 
     afterEach(() => {
@@ -48,7 +41,7 @@ describe('use_browser_popout', () => {
                     channel: 'test-channel',
                     args: ['arg1', 'arg2'],
                 },
-                'https://example.com',
+                'http://localhost:8065',
             );
         });
     });
@@ -72,7 +65,7 @@ describe('use_browser_popout', () => {
                     channel: 'parent-channel',
                     args: ['data1', 'data2'],
                 },
-                origin: 'https://example.com',
+                origin: 'http://localhost:8065',
                 source: mockOpener,
             });
 

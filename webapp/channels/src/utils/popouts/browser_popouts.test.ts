@@ -40,12 +40,6 @@ describe('BrowserPopouts', () => {
         };
         mockGetHistory.mockReturnValue(mockHistory as unknown as ReturnType<typeof getHistory>);
 
-        Object.defineProperty(window, 'location', {
-            value: {
-                origin: 'https://example.com',
-            },
-            writable: true,
-        });
         Object.defineProperty(window, 'screenX', {value: 0, writable: true});
         Object.defineProperty(window, 'outerWidth', {value: 1920, writable: true});
         Object.defineProperty(window, 'screenY', {value: 0, writable: true});
@@ -140,7 +134,7 @@ describe('BrowserPopouts', () => {
                     channel: 'channel1',
                     args: [],
                 },
-                origin: 'https://example.com',
+                origin: 'http://localhost:8065',
                 source: mockPopoutWindow1,
             });
 
@@ -149,7 +143,7 @@ describe('BrowserPopouts', () => {
                     channel: 'channel2',
                     args: [],
                 },
-                origin: 'https://example.com',
+                origin: 'http://localhost:8065',
                 source: mockPopoutWindow2,
             });
 
@@ -182,7 +176,7 @@ describe('BrowserPopouts', () => {
                     channel: 'channel',
                     args: [1, true, {nested: 'object'}, ['array']],
                 },
-                'https://example.com',
+                'http://localhost:8065',
             );
         });
     });
@@ -210,7 +204,7 @@ describe('BrowserPopouts', () => {
                     channel: 'test-channel',
                     args: ['data'],
                 },
-                origin: 'https://example.com',
+                origin: 'http://localhost:8065',
                 source: mockPopoutWindow,
             });
 
@@ -244,7 +238,7 @@ describe('BrowserPopouts', () => {
                     channel: 'test-channel',
                     args: [],
                 },
-                origin: 'https://example.com',
+                origin: 'http://localhost:8065',
                 source: mockPopoutWindow,
             });
 
@@ -274,7 +268,7 @@ describe('BrowserPopouts', () => {
                     channel: 'test-channel',
                     args: [],
                 },
-                origin: 'https://example.com',
+                origin: 'http://localhost:8065',
                 source: unknownWindow,
             });
 
@@ -314,7 +308,7 @@ describe('BrowserPopouts', () => {
                     channel: '_navigate',
                     args: ['/new-path'],
                 },
-                origin: 'https://example.com',
+                origin: 'http://localhost:8065',
                 source: mockPopoutWindow,
             });
 
@@ -352,7 +346,7 @@ describe('BrowserPopouts', () => {
                     channel: '_close',
                     args: [],
                 },
-                origin: 'https://example.com',
+                origin: 'http://localhost:8065',
                 source: mockPopoutWindow,
             });
 
@@ -388,7 +382,7 @@ describe('BrowserPopouts', () => {
                     channel: '_close',
                     args: [],
                 },
-                origin: 'https://example.com',
+                origin: 'http://localhost:8065',
                 source: mockPopoutWindow,
             });
 
@@ -423,7 +417,7 @@ describe('BrowserPopouts', () => {
                     channel: '_close',
                     args: [],
                 },
-                origin: 'https://example.com',
+                origin: 'http://localhost:8065',
                 source: mockPopoutWindow,
             });
 
@@ -442,7 +436,7 @@ describe('BrowserPopouts', () => {
                     channel: 'test-channel',
                     args: [],
                 },
-                origin: 'https://example.com',
+                origin: 'http://localhost:8065',
                 source: mockPopoutWindow,
             });
 
@@ -474,7 +468,7 @@ describe('BrowserPopouts', () => {
                     channel: '_close',
                     args: [],
                 },
-                origin: 'https://example.com',
+                origin: 'http://localhost:8065',
                 source: mockPopoutWindow,
             });
 
