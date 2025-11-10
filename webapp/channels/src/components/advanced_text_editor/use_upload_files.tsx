@@ -9,7 +9,6 @@ import type {FileInfo} from '@mattermost/types/files';
 
 import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
 
-import {hasActiveUploads} from 'actions/file_actions';
 import {getCurrentLocale} from 'selectors/i18n';
 
 import FilePreview from 'components/file_preview';
@@ -143,7 +142,7 @@ const useUploadFiles = (
     }, [draft, fileUploadRef, handleDraftChange, handleUploadError, handleFileUploadChange]);
 
     let attachmentPreview = null;
-    if (!isDisabled && (draft.fileInfos.length > 0 || (draft.uploadsInProgress.length > 0 && hasActiveUploads()))) {
+    if (!isDisabled && (draft.fileInfos.length > 0 || draft.uploadsInProgress.length > 0)) {
         attachmentPreview = (
             <FilePreview
                 fileInfos={draft.fileInfos}

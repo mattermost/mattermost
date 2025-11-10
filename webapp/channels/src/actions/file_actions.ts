@@ -17,18 +17,6 @@ import {localizeMessage} from 'utils/utils';
 
 import type {ThunkActionFunc} from 'types/store';
 
-const activeUploads = new Set<XMLHttpRequest>();
-
-export function trackXHR(xhr: XMLHttpRequest) {
-    activeUploads.add(xhr);
-    xhr.addEventListener('loadend', () => activeUploads.delete(xhr));
-    return xhr;
-}
-
-export function hasActiveUploads() {
-    return activeUploads.size > 0;
-}
-
 export interface UploadFile {
     file: File;
     name: string;
@@ -51,7 +39,7 @@ export function uploadFile({file, name, type, rootId, channelId, clientId, onPro
         }
 
         const xhr = new XMLHttpRequest();
-        trackXHR(xhr);
+
         xhr.open('POST', url, true);
 
         const client4Headers = Client4.getOptions({method: 'POST'}).headers;
