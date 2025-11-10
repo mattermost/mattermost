@@ -45,7 +45,23 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cmd.CreatorId = c.AppContext.Session().UserId
+	userId := c.AppContext.Session().UserId
+	if cmd.CreatorId != "" && cmd.CreatorId != userId {
+		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), cmd.TeamId, model.PermissionManageOthersSlashCommands) {
+			c.LogAudit("fail - inappropriate permissions")
+			c.SetPermissionError(model.PermissionManageOthersSlashCommands)
+			return
+		}
+
+		if _, err := c.App.GetUser(cmd.CreatorId); err != nil {
+			c.Err = err
+			return
+		}
+
+		userId = cmd.CreatorId
+	}
+
+	cmd.CreatorId = userId
 
 	rcmd, err := c.App.CreateCommand(&cmd)
 	if err != nil {

@@ -33,11 +33,10 @@ func TestCreateCommand(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
 
 	newCmd := &model.Command{
-		CreatorId: th.BasicUser.Id,
-		TeamId:    th.BasicTeam.Id,
-		URL:       "http://nowhere.com",
-		Method:    model.CommandMethodPost,
-		Trigger:   "trigger",
+		TeamId:  th.BasicTeam.Id,
+		URL:     "http://nowhere.com",
+		Method:  model.CommandMethodPost,
+		Trigger: "trigger",
 	}
 
 	_, resp, err := client.CreateCommand(context.Background(), newCmd)
@@ -56,6 +55,7 @@ func TestCreateCommand(t *testing.T) {
 	CheckErrorID(t, err, "api.command.duplicate_trigger.app_error")
 
 	newCmd.Trigger = "Local"
+	newCmd.CreatorId = "" // Reset CreatorId for local client test
 	localCreatedCmd, resp, err := LocalClient.CreateCommand(context.Background(), newCmd)
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
@@ -81,6 +81,88 @@ func TestCreateCommand(t *testing.T) {
 	newCmd.Trigger = "LocalOverride"
 	_, _, err = LocalClient.CreateCommand(context.Background(), newCmd)
 	CheckErrorID(t, err, "api.command.disabled.app_error")
+}
+
+func TestCreateCommandForOtherUser(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableCommands = &enableCommands })
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
+
+	// Give BasicUser permission to manage their own commands
+	th.AddPermissionToRole(model.PermissionManageOwnSlashCommands.Id, model.TeamUserRoleId)
+	defer th.RemovePermissionFromRole(model.PermissionManageOwnSlashCommands.Id, model.TeamUserRoleId)
+
+	t.Run("UserWithOnlyManageOwnCannotCreateForOthers", func(t *testing.T) {
+		cmdForOther := &model.Command{
+			CreatorId: th.BasicUser2.Id,
+			TeamId:    th.BasicTeam.Id,
+			URL:       "http://nowhere.com",
+			Method:    model.CommandMethodPost,
+			Trigger:   "trigger_for_other_fail",
+		}
+
+		_, resp, err := th.Client.CreateCommand(context.Background(), cmdForOther)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("UserWithManageOthersCanCreateForOthers", func(t *testing.T) {
+		// Give BasicUser permission to manage others' commands
+		th.AddPermissionToRole(model.PermissionManageOthersSlashCommands.Id, model.TeamUserRoleId)
+		defer th.RemovePermissionFromRole(model.PermissionManageOthersSlashCommands.Id, model.TeamUserRoleId)
+
+		cmdForOther := &model.Command{
+			CreatorId: th.BasicUser2.Id,
+			TeamId:    th.BasicTeam.Id,
+			URL:       "http://nowhere.com",
+			Method:    model.CommandMethodPost,
+			Trigger:   "trigger_for_other_success",
+		}
+
+		createdCmd, _, err := th.Client.CreateCommand(context.Background(), cmdForOther)
+		require.NoError(t, err)
+		require.Equal(t, th.BasicUser2.Id, createdCmd.CreatorId, "command should be owned by BasicUser2")
+		require.Equal(t, th.BasicTeam.Id, createdCmd.TeamId)
+	})
+
+	t.Run("UserWithManageOthersCannotCreateForNonExistentUser", func(t *testing.T) {
+		// Give BasicUser permission to manage others' commands
+		th.AddPermissionToRole(model.PermissionManageOthersSlashCommands.Id, model.TeamUserRoleId)
+		defer th.RemovePermissionFromRole(model.PermissionManageOthersSlashCommands.Id, model.TeamUserRoleId)
+
+		cmdForInvalidUser := &model.Command{
+			CreatorId: model.NewId(), // Non-existent user ID
+			TeamId:    th.BasicTeam.Id,
+			URL:       "http://nowhere.com",
+			Method:    model.CommandMethodPost,
+			Trigger:   "trigger_invalid_user",
+		}
+
+		_, resp, err := th.Client.CreateCommand(context.Background(), cmdForInvalidUser)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("SystemAdminCanCreateForOthers", func(t *testing.T) {
+		cmdForOther := &model.Command{
+			CreatorId: th.BasicUser.Id,
+			TeamId:    th.BasicTeam.Id,
+			URL:       "http://nowhere.com",
+			Method:    model.CommandMethodPost,
+			Trigger:   "trigger_admin_for_other",
+		}
+
+		createdCmd, _, err := th.SystemAdminClient.CreateCommand(context.Background(), cmdForOther)
+		require.NoError(t, err)
+		require.Equal(t, th.BasicUser.Id, createdCmd.CreatorId, "command should be owned by BasicUser")
+		require.Equal(t, th.BasicTeam.Id, createdCmd.TeamId)
+	})
 }
 
 func TestUpdateCommand(t *testing.T) {
@@ -565,11 +647,10 @@ func TestListCommands(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
 
 	newCmd := &model.Command{
-		CreatorId: th.BasicUser.Id,
-		TeamId:    th.BasicTeam.Id,
-		URL:       "http://nowhere.com",
-		Method:    model.CommandMethodPost,
-		Trigger:   "custom_command",
+		TeamId:  th.BasicTeam.Id,
+		URL:     "http://nowhere.com",
+		Method:  model.CommandMethodPost,
+		Trigger: "custom_command",
 	}
 	_, _, rootErr := th.SystemAdminClient.CreateCommand(context.Background(), newCmd)
 	require.NoError(t, rootErr)
@@ -786,11 +867,10 @@ func TestListAutocompleteCommands(t *testing.T) {
 	client := th.Client
 
 	newCmd := &model.Command{
-		CreatorId: th.BasicUser.Id,
-		TeamId:    th.BasicTeam.Id,
-		URL:       "http://nowhere.com",
-		Method:    model.CommandMethodPost,
-		Trigger:   "custom_command",
+		TeamId:  th.BasicTeam.Id,
+		URL:     "http://nowhere.com",
+		Method:  model.CommandMethodPost,
+		Trigger: "custom_command",
 	}
 
 	_, _, err := th.SystemAdminClient.CreateCommand(context.Background(), newCmd)
@@ -861,11 +941,10 @@ func TestListCommandAutocompleteSuggestions(t *testing.T) {
 	client := th.Client
 
 	newCmd := &model.Command{
-		CreatorId: th.BasicUser.Id,
-		TeamId:    th.BasicTeam.Id,
-		URL:       "http://nowhere.com",
-		Method:    model.CommandMethodPost,
-		Trigger:   "custom_command",
+		TeamId:  th.BasicTeam.Id,
+		URL:     "http://nowhere.com",
+		Method:  model.CommandMethodPost,
+		Trigger: "custom_command",
 	}
 
 	_, _, err := th.SystemAdminClient.CreateCommand(context.Background(), newCmd)
@@ -964,11 +1043,10 @@ func TestGetCommand(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
 
 	newCmd := &model.Command{
-		CreatorId: th.BasicUser.Id,
-		TeamId:    th.BasicTeam.Id,
-		URL:       "http://nowhere.com",
-		Method:    model.CommandMethodPost,
-		Trigger:   "roger",
+		TeamId:  th.BasicTeam.Id,
+		URL:     "http://nowhere.com",
+		Method:  model.CommandMethodPost,
+		Trigger: "roger",
 	}
 	newCmd, _, rootErr := th.SystemAdminClient.CreateCommand(context.Background(), newCmd)
 	require.NoError(t, rootErr)
@@ -1106,11 +1184,10 @@ func TestRegenToken(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
 
 	newCmd := &model.Command{
-		CreatorId: th.BasicUser.Id,
-		TeamId:    th.BasicTeam.Id,
-		URL:       "http://nowhere.com",
-		Method:    model.CommandMethodPost,
-		Trigger:   "trigger",
+		TeamId:  th.BasicTeam.Id,
+		URL:     "http://nowhere.com",
+		Method:  model.CommandMethodPost,
+		Trigger: "trigger",
 	}
 
 	createdCmd, resp, err := th.SystemAdminClient.CreateCommand(context.Background(), newCmd)
