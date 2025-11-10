@@ -78,3 +78,17 @@ func GetInterface(port int) string {
 func ResetLicenseValidator() {
 	utils.LicenseValidator = &utils.LicenseValidatorImpl{}
 }
+
+func ResetIntegrationAdmin(adminUsername string) func() {
+	originalAdmin := os.Getenv("INTEGRATION_ADMIN_USERNAME")
+
+	os.Setenv("INTEGRATION_ADMIN_USERNAME", adminUsername)
+
+	return func() {
+		if originalAdmin == "" {
+			os.Unsetenv("INTEGRATION_ADMIN_USERNAME")
+		} else {
+			os.Setenv("INTEGRATION_ADMIN_USERNAME", originalAdmin)
+		}
+	}
+}

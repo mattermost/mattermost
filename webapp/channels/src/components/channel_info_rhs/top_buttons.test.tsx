@@ -5,6 +5,8 @@ import React from 'react';
 
 import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
+import * as officialChannelUtils from 'utils/official_channel_utils';
+import {TestHelper} from 'utils/test_helper';
 
 import TopButtons from './top_buttons';
 import type {Props} from './top_buttons';
@@ -22,6 +24,11 @@ jest.mock('../common/hooks/useCopyText', () => {
 
 describe('channel_info_rhs/top_buttons', () => {
     const topButtonDefaultProps: Props = {
+        channel: TestHelper.getChannelMock({
+            id: 'channel_id',
+            name: 'channel_name',
+            type: 'O' as const,
+        }),
         channelType: Constants.OPEN_CHANNEL,
         channelURL: 'https://test.com',
         isFavorite: false,
@@ -156,6 +163,54 @@ describe('channel_info_rhs/top_buttons', () => {
         );
 
         expect(screen.queryByText('Add People')).not.toBeInTheDocument();
+    });
+
+    test('should not display Add People for official TUNAG channels', () => {
+        // Mock the official channel detection function to return true
+        jest.spyOn(officialChannelUtils, 'isOfficialTunagChannel').mockReturnValue(true);
+
+        const officialChannel = TestHelper.getChannelMock({
+            id: 'tunag_channel_id',
+            name: 'tunag-12345-subdomain-admin',
+            type: 'O' as const,
+        });
+
+        const testProps: Props = {
+            ...topButtonDefaultProps,
+            channel: officialChannel,
+        };
+
+        renderWithContext(
+            <TopButtons
+                {...testProps}
+            />,
+        );
+
+        expect(screen.queryByText('Add People')).not.toBeInTheDocument();
+    });
+
+    test('should display Add People for non-official channels', () => {
+        // Mock the official channel detection function to return false
+        jest.spyOn(officialChannelUtils, 'isOfficialTunagChannel').mockReturnValue(false);
+
+        const regularChannel = TestHelper.getChannelMock({
+            id: 'regular_channel_id',
+            name: 'regular-channel',
+            type: 'O' as const,
+        });
+
+        const testProps: Props = {
+            ...topButtonDefaultProps,
+            channel: regularChannel,
+        };
+
+        renderWithContext(
+            <TopButtons
+                {...testProps}
+            />,
+        );
+
+        expect(screen.getByText('Add People')).toBeInTheDocument();
     });
 
     test('can copy link', () => {

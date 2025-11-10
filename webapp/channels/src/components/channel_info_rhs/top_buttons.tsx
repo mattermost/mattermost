@@ -5,10 +5,13 @@ import React from 'react';
 import {useIntl, FormattedMessage} from 'react-intl';
 import styled from 'styled-components';
 
+import type {Channel} from '@mattermost/types/channels';
+
 import useCopyText from 'components/common/hooks/useCopyText';
 import WithTooltip from 'components/with_tooltip';
 
 import Constants from 'utils/constants';
+import {isOfficialTunagChannel} from 'utils/official_channel_utils';
 
 const ChannelInfoRhsTopButtons = styled.div`
     display: flex;
@@ -77,6 +80,7 @@ const CopyButton = styled(Button)`
 `;
 
 export interface Props {
+    channel: Channel;
     channelType: string;
     channelURL?: string;
 
@@ -94,6 +98,7 @@ export interface Props {
 }
 
 export default function TopButtons({
+    channel,
     channelType,
     channelURL,
     isFavorite,
@@ -109,7 +114,8 @@ export default function TopButtons({
         successCopyTimeout: 1000,
     });
 
-    const canAddPeople = ([Constants.OPEN_CHANNEL, Constants.PRIVATE_CHANNEL].includes(channelType) && propsCanAddPeople) || channelType === Constants.GM_CHANNEL;
+    const canAddPeopleOriginal = ([Constants.OPEN_CHANNEL, Constants.PRIVATE_CHANNEL].includes(channelType) && propsCanAddPeople) || channelType === Constants.GM_CHANNEL;
+    const canAddPeople = canAddPeopleOriginal && !isOfficialTunagChannel(channel);
 
     const canCopyLink = [Constants.OPEN_CHANNEL, Constants.PRIVATE_CHANNEL].includes(channelType);
 
