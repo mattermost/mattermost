@@ -14,7 +14,7 @@ import (
 
 func addWildcardToTerm(term string, alwaysMiddleMatch bool) string {
 	// Accept prefix search when wildcard are in the appropriate position, otherwise treat as middle match.
-	// Suffix is only considered when the alwaysMiddleMatch is true.
+	// Suffix is only considered when the alwaysMiddleMatch is false.
 	if !strings.HasSuffix(term, "*") || alwaysMiddleMatch {
 		term = "%" + term + "%"
 	} else {
