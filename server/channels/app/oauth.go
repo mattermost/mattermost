@@ -223,7 +223,7 @@ func (a *App) AllowOAuthAppAccessToUser(rctx request.CTX, userID string, authReq
 	}
 
 	// Validate PKCE requirements for public clients
-	if oauthApp.IsPublicClient() && authRequest.CodeChallenge == "" {
+	if oauthApp.IsPublicClient() && authRequest.ResponseType == model.AuthCodeResponseType && authRequest.CodeChallenge == "" {
 		return "", model.NewAppError("AllowOAuthAppAccessToUser", "api.oauth.allow_oauth.pkce_required_public.app_error", nil, "", http.StatusBadRequest)
 	}
 
