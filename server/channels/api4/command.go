@@ -271,24 +271,16 @@ func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		commands, err = c.App.ListTeamCommands(teamId)
+		// Filter to only commands the user can manage
+		userIdFilter := c.AppContext.Session().UserId
+		if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionManageOthersSlashCommands) {
+			userIdFilter = "" // Empty means return all commands
+		}
+
+		commands, err = c.App.ListTeamCommandsByUser(teamId, userIdFilter)
 		if err != nil {
 			c.Err = err
 			return
-		}
-
-		// Filter to only commands the user can manage
-		hasManageOthers := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionManageOthersSlashCommands)
-		if !hasManageOthers {
-			// User only has ManageOwn - return only their commands
-			userCommands := make([]*model.Command, 0)
-			userId := c.AppContext.Session().UserId
-			for _, cmd := range commands {
-				if cmd.CreatorId == userId {
-					userCommands = append(userCommands, cmd)
-				}
-			}
-			commands = userCommands
 		}
 	} else {
 		//User with no permission should see only system commands
@@ -299,26 +291,16 @@ func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		} else {
-			commands, err = c.App.ListAllCommands(teamId, c.AppContext.T)
+			// Filter custom commands to only those the user can manage
+			userIdFilter := c.AppContext.Session().UserId
+			if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionManageOthersSlashCommands) {
+				userIdFilter = "" // Empty means return all commands
+			}
+
+			commands, err = c.App.ListAllCommandsByUser(teamId, userIdFilter, c.AppContext.T)
 			if err != nil {
 				c.Err = err
 				return
-			}
-
-			// Filter custom commands to only those the user can manage
-			hasManageOthers := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionManageOthersSlashCommands)
-			if !hasManageOthers {
-				// User only has ManageOwn - filter out others' custom commands
-				filteredCommands := make([]*model.Command, 0)
-				userId := c.AppContext.Session().UserId
-				for _, cmd := range commands {
-					// Include all system commands (those without a creator)
-					// and custom commands created by this user
-					if cmd.CreatorId == "" || cmd.CreatorId == userId {
-						filteredCommands = append(filteredCommands, cmd)
-					}
-				}
-				commands = filteredCommands
 			}
 		}
 	}

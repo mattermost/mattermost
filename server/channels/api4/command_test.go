@@ -55,7 +55,7 @@ func TestCreateCommand(t *testing.T) {
 	CheckErrorID(t, err, "api.command.duplicate_trigger.app_error")
 
 	newCmd.Trigger = "Local"
-	newCmd.CreatorId = "" // Reset CreatorId for local client test
+	newCmd.CreatorId = th.BasicUser.Id
 	localCreatedCmd, resp, err := LocalClient.CreateCommand(context.Background(), newCmd)
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
