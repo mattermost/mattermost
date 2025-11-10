@@ -312,7 +312,7 @@ export async function writeGitHubSummary(
                 "Successfully saved",
                 `${successCount} executions (${uniqueSavedTestKeys.size} unique test keys)`,
             ],
-            // if failed is 0 then don't print, otherwise print the failed row
+
             ...(failureCount === 0
                 ? []
                 : [
