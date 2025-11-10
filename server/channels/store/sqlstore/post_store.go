@@ -2081,10 +2081,6 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 		terms = sanitizeSearchTerm(terms, "\\")
 		excludedTerms = sanitizeSearchTerm(excludedTerms, "\\")
 
-		// Parse text for wildcards
-		terms = wildCardRegex.ReplaceAllLiteralString(terms, "%")
-		excludedTerms = wildCardRegex.ReplaceAllLiteralString(excludedTerms, "%")
-
 		phrases := quotedStringsRegex.FindAllString(terms, -1)
 		terms = quotedStringsRegex.ReplaceAllString(terms, " ")
 		excludedPhrases := quotedStringsRegex.FindAllString(excludedTerms, -1)

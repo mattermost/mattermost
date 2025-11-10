@@ -180,7 +180,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		baseQuery := sq.Select("*").From("Posts")
 		params := &model.SearchParams{OrTerms: false}
 		phrases := []string{}
-		terms := "test%"
+		terms := "test*"
 		excludedTerms := ""
 		excludedPhrases := []string{}
 		searchType := "Posts.Message"
@@ -285,7 +285,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		params := &model.SearchParams{OrTerms: false}
 		phrases := []string{}
 		terms := "hello"
-		excludedTerms := "test%"
+		excludedTerms := "test*"
 		excludedPhrases := []string{}
 		searchType := "Posts.Message"
 
@@ -298,6 +298,26 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		assert.Equal(t, 2, len(args))
 		assert.Equal(t, "%hello%", args[0])
 		assert.Equal(t, "test%", args[1])
+	})
+
+	t.Run("excluded phrases", func(t *testing.T) {
+		baseQuery := sq.Select("*").From("Posts")
+		params := &model.SearchParams{OrTerms: false}
+		phrases := []string{}
+		terms := "appear"
+		excludedTerms := ""
+		excludedPhrases := []string{"will not"}
+		searchType := "Posts.Message"
+
+		result := s.generateLikeSearchQueryForPosts(baseQuery, params, phrases, terms, excludedTerms, excludedPhrases, searchType)
+		sql, args, err := result.ToSql()
+
+		require.NoError(t, err)
+		assert.Contains(t, sql, "LOWER(Posts.Message) LIKE ? ESCAPE '\\'")
+		assert.Contains(t, sql, "LOWER(Posts.Message) NOT LIKE ? ESCAPE '\\'")
+		assert.Equal(t, 2, len(args))
+		assert.Equal(t, "%appear%", args[0])
+		assert.Equal(t, "%will not%", args[1])
 	})
 
 	t.Run("case insensitive search", func(t *testing.T) {
@@ -322,7 +342,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 	t.Run("case insensitive phrase search", func(t *testing.T) {
 		baseQuery := sq.Select("*").From("Posts")
 		params := &model.SearchParams{OrTerms: false}
-		phrases := []string{`"HELLO WORLD"`}
+		phrases := []string{`"HelLO WorLd"`}
 		terms := ""
 		excludedTerms := ""
 		excludedPhrases := []string{}
@@ -500,7 +520,7 @@ func TestGenerateLikeSearchQuery(t *testing.T) {
 		baseQuery := sq.Select("*").From("Posts")
 		params := &model.SearchParams{OrTerms: false}
 		phrases := []string{`"exact phrase"`}
-		terms := "#hashtag @mention word test%"
+		terms := "#hashtag @mention word test*"
 		excludedTerms := "excluded #excludedtag"
 		excludedPhrases := []string{"excluded phrase", "another excluded"}
 		searchType := "Posts.Message"
