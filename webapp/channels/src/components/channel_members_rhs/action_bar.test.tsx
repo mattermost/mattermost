@@ -5,12 +5,19 @@ import React from 'react';
 
 import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
+import * as officialChannelUtils from 'utils/official_channel_utils';
+import {TestHelper} from 'utils/test_helper';
 
 import ActionBar from './action_bar';
 import type {Props} from './action_bar';
 
 describe('channel_members_rhs/action_bar', () => {
     const actionBarDefaultProps: Props = {
+        channel: TestHelper.getChannelMock({
+            id: 'channel_id',
+            name: 'channel_name',
+            type: 'O' as const,
+        }),
         channelType: Constants.OPEN_CHANNEL,
         membersCount: 12,
         canManageMembers: true,
@@ -109,5 +116,78 @@ describe('channel_members_rhs/action_bar', () => {
         );
 
         expect(screen.queryByText('Manage')).not.toBeInTheDocument();
+    });
+
+    test('should not display Add button for official TUNAG channels', () => {
+        // Mock the official channel detection function to return true
+        jest.spyOn(officialChannelUtils, 'isOfficialTunagChannel').mockReturnValue(true);
+
+        const officialChannel = TestHelper.getChannelMock({
+            id: 'tunag_channel_id',
+            name: 'tunag-12345-subdomain-admin',
+            type: 'O' as const,
+        });
+
+        const testProps: Props = {
+            ...actionBarDefaultProps,
+            channel: officialChannel,
+        };
+
+        renderWithContext(
+            <ActionBar
+                {...testProps}
+            />,
+        );
+
+        expect(screen.queryByText('Add')).not.toBeInTheDocument();
+    });
+
+    test('should not display Manage button for official TUNAG channels', () => {
+        // Mock the official channel detection function to return true
+        jest.spyOn(officialChannelUtils, 'isOfficialTunagChannel').mockReturnValue(true);
+
+        const officialChannel = TestHelper.getChannelMock({
+            id: 'tunag_channel_id',
+            name: 'tunag-12345-subdomain-admin',
+            type: 'O' as const,
+        });
+
+        const testProps: Props = {
+            ...actionBarDefaultProps,
+            channel: officialChannel,
+        };
+
+        renderWithContext(
+            <ActionBar
+                {...testProps}
+            />,
+        );
+
+        expect(screen.queryByText('Manage')).not.toBeInTheDocument();
+    });
+
+    test('should display Add and Manage buttons for non-official channels', () => {
+        // Mock the official channel detection function to return false
+        jest.spyOn(officialChannelUtils, 'isOfficialTunagChannel').mockReturnValue(false);
+
+        const regularChannel = TestHelper.getChannelMock({
+            id: 'regular_channel_id',
+            name: 'regular-channel',
+            type: 'O' as const,
+        });
+
+        const testProps: Props = {
+            ...actionBarDefaultProps,
+            channel: regularChannel,
+        };
+
+        renderWithContext(
+            <ActionBar
+                {...testProps}
+            />,
+        );
+
+        expect(screen.getByText('Add')).toBeInTheDocument();
+        expect(screen.getByText('Manage')).toBeInTheDocument();
     });
 });

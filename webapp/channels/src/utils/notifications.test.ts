@@ -94,7 +94,8 @@ describe('Notifications.showNotification', () => {
         expect(call[1]).toEqual({
             body: 'body',
             tag: 'body',
-            icon: '',
+
+            // icon: '',
             requireInteraction: true,
             silent: false,
         });
@@ -120,7 +121,8 @@ describe('Notifications.showNotification', () => {
         expect(call[1]).toEqual({
             body: 'body',
             tag: 'body',
-            icon: '',
+
+            // icon: '',
             requireInteraction: true,
             silent: false,
         });

@@ -21,6 +21,7 @@ jobs:
             server/i18n/*.json
             webapp/channels/src/i18n/*.json
             !server/i18n/en.json
+            !server/i18n/en_*.json
             !webapp/channels/src/i18n/en.json
 
       - name: Check changed files

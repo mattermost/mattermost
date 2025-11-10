@@ -103,7 +103,9 @@ export default function SidebarTeamMenu(props: Props) {
                 />
             )}
             {(!isTeamGroupConstrained && experimentalPrimaryTeam !== props.currentTeam.name) && (
-                <LeaveTeamMenuItem/>
+                <div style={{display: 'none'}}>
+                    <LeaveTeamMenuItem/>
+                </div>
             )}
             {(canJoinAnotherTeam || havePermissionToCreateTeam) && <Menu.Separator/>}
             {canJoinAnotherTeam &&
@@ -114,8 +116,10 @@ export default function SidebarTeamMenu(props: Props) {
                     isCloud={isCloud}
                 />
             )}
-            <Menu.Separator/>
-            <LearnAboutTeamsMenuItem/>
+            <div style={{display: 'none'}}>
+                <Menu.Separator/>
+                <LearnAboutTeamsMenuItem/>
+            </div>
             <PluginMenuItems/>
         </Menu.Container>
     );
