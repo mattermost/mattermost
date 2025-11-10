@@ -6004,7 +6004,7 @@ func testDeactivateGuests(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		defer func() { require.NoError(t, ss.User().PermanentDelete(rctx, regularUser.Id)) }()
 
-		ids, err := ss.User().DeactivateGuests()
+		ids, err := ss.User().DeactivateGuests(false)
 		require.NoError(t, err)
 		assert.ElementsMatch(t, []string{guest1.Id, guest2.Id}, ids)
 

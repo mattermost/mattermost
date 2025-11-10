@@ -14740,11 +14740,11 @@ func (s *RetryLayerUserStore) Count(options model.UserCountOptions) (int64, erro
 
 }
 
-func (s *RetryLayerUserStore) DeactivateGuests() ([]string, error) {
+func (s *RetryLayerUserStore) DeactivateGuests(onlyMagicLink bool) ([]string, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserStore.DeactivateGuests()
+		result, err := s.UserStore.DeactivateGuests(onlyMagicLink)
 		if err == nil {
 			return result, nil
 		}

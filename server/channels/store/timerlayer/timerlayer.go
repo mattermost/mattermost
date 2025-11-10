@@ -11594,10 +11594,10 @@ func (s *TimerLayerUserStore) Count(options model.UserCountOptions) (int64, erro
 	return result, err
 }
 
-func (s *TimerLayerUserStore) DeactivateGuests() ([]string, error) {
+func (s *TimerLayerUserStore) DeactivateGuests(onlyMagicLink bool) ([]string, error) {
 	start := time.Now()
 
-	result, err := s.UserStore.DeactivateGuests()
+	result, err := s.UserStore.DeactivateGuests(onlyMagicLink)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

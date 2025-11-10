@@ -145,6 +145,12 @@ func (a *App) AuthenticateUserForGuestMagicLink(rctx request.CTX, tokenString st
 		return nil, model.NewAppError("AuthenticateUserForGuestMagicLink", "api.user.guest_magic_link.invalid_token_type.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	// We have the token we were looking for, so remove it from the database ASAP
+	err = a.Srv().Store().Token().Delete(tokenString)
+	if err != nil {
+		rctx.Logger().Warn("Error while deleting token", mlog.Err(err))
+	}
+
 	var expiryTime int64 = InvitationExpiryTime
 	if token.Type == TokenTypeGuestMagicLink {
 		expiryTime = MagicLinkExpiryTime
@@ -163,15 +169,8 @@ func (a *App) AuthenticateUserForGuestMagicLink(rctx request.CTX, tokenString st
 	// Handle login-only tokens (TokenTypeGuestMagicLink) - for existing users only
 	if token.Type == TokenTypeGuestMagicLink {
 		if getUserErr != nil || existingUser == nil {
-			if appErr := a.DeleteToken(token); appErr != nil {
-				rctx.Logger().Warn("Error while deleting token for non-existent user", mlog.Err(appErr))
-			}
 			// Return generic error to prevent user enumeration
 			return nil, model.NewAppError("AuthenticateUserForGuestMagicLink", "api.user.guest_magic_link.invalid_token.app_error", nil, "", http.StatusBadRequest)
-		}
-		// Delete the single-use token and return the existing user
-		if appErr := a.DeleteToken(token); appErr != nil {
-			rctx.Logger().Warn("Error while deleting used login token", mlog.Err(appErr))
 		}
 		return existingUser, nil
 	}
@@ -180,9 +179,7 @@ func (a *App) AuthenticateUserForGuestMagicLink(rctx request.CTX, tokenString st
 	if getUserErr == nil && existingUser != nil {
 		// Log the specific reason internally for debugging
 		rctx.Logger().Warn("Guest magic link invitation token attempted for existing user", mlog.String("email", email))
-		if appErr := a.DeleteToken(token); appErr != nil {
-			rctx.Logger().Warn("Error while deleting token for existing user", mlog.Err(appErr))
-		}
+
 		// Return generic error to prevent user enumeration - don't reveal that user exists
 		return nil, model.NewAppError("AuthenticateUserForGuestMagicLink", "api.user.guest_magic_link.invalid_token.app_error", nil, "", http.StatusBadRequest)
 	}
