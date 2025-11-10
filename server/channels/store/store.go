@@ -499,7 +499,7 @@ type UserStore interface {
 	GetChannelGroupUsers(channelID string) ([]*model.User, error)
 	PromoteGuestToUser(userID string) error
 	DemoteUserToGuest(userID string) (*model.User, error)
-	DeactivateGuests() ([]string, error)
+	DeactivateGuests(onlyMagicLink bool) ([]string, error)
 	AutocompleteUsersInChannel(rctx request.CTX, teamID, channelID, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error)
 	GetKnownUsers(userID string) ([]string, error)
 	IsEmpty(excludeBots bool) (bool, error)

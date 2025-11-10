@@ -1247,8 +1247,8 @@ func (a *App) UpdateActive(rctx request.CTX, user *model.User, active bool) (*mo
 	return ruser, nil
 }
 
-func (a *App) DeactivateGuests(rctx request.CTX) *model.AppError {
-	userIDs, err := a.ch.srv.userService.DeactivateAllGuests()
+func (a *App) DeactivateGuests(rctx request.CTX, onlyMagicLink bool) *model.AppError {
+	userIDs, err := a.ch.srv.userService.DeactivateAllGuests(onlyMagicLink)
 	if err != nil {
 		return model.NewAppError("DeactivateGuests", "app.user.update_active_for_multiple_users.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

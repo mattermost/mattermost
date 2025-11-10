@@ -206,8 +206,8 @@ func (us *UserService) UpdateUserNotifyProps(userID string, props map[string]str
 	return us.store.UpdateNotifyProps(userID, props)
 }
 
-func (us *UserService) DeactivateAllGuests() ([]string, error) {
-	users, err := us.store.DeactivateGuests()
+func (us *UserService) DeactivateAllGuests(onlyMagicLink bool) ([]string, error) {
+	users, err := us.store.DeactivateGuests(onlyMagicLink)
 	if err != nil {
 		return nil, err
 	}

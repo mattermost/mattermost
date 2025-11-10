@@ -184,13 +184,17 @@ func (us SqlUserStore) Save(rctx request.CTX, user *model.User) (*model.User, er
 	return user, nil
 }
 
-func (us SqlUserStore) DeactivateGuests() ([]string, error) {
+func (us SqlUserStore) DeactivateGuests(onlyMagicLink bool) ([]string, error) {
 	curTime := model.GetMillis()
 	updateQuery := us.getQueryBuilder().Update("Users").
 		Set("UpdateAt", curTime).
 		Set("DeleteAt", curTime).
 		Where(sq.Eq{"Roles": "system_guest"}).
 		Where(sq.Eq{"DeleteAt": 0})
+
+	if onlyMagicLink {
+		updateQuery = updateQuery.Where(sq.Eq{"AuthService": model.UserAuthServiceMagicLink})
+	}
 
 	_, err := us.GetMaster().ExecBuilder(updateQuery)
 	if err != nil {

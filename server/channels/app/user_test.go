@@ -2168,7 +2168,7 @@ func TestDeactivateGuests(t *testing.T) {
 	guest2 := th.CreateGuest()
 	user := th.CreateUser()
 
-	err := th.App.DeactivateGuests(th.Context)
+	err := th.App.DeactivateGuests(th.Context, false)
 	require.Nil(t, err)
 
 	guest1, err = th.App.GetUser(guest1.Id)

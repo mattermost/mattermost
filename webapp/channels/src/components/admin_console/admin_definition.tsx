@@ -57,6 +57,7 @@ import CompanyInfoEdit from './billing/company_info_edit';
 import BrandImageSetting from './brand_image_setting/brand_image_setting';
 import ClientSideUserIdsSetting from './client_side_userids_setting';
 import ClusterSettings, {searchableStrings as clusterSearchableStrings} from './cluster_settings';
+import CustomEnableDisableGuestAccountsMagicLinkSetting from './custom_enable_disable_guest_accounts_magic_link_setting';
 import CustomEnableDisableGuestAccountsSetting from './custom_enable_disable_guest_accounts_setting';
 import CustomTermsOfServiceSettings from './custom_terms_of_service_settings';
 import {messages as customTermsOfServiceMessages, searchableStrings as customTermsOfServiceSearchableStrings} from './custom_terms_of_service_settings/custom_terms_of_service_settings';
@@ -4960,11 +4961,9 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.GUEST_ACCESS)),
                         },
                         {
-                            type: 'bool',
+                            type: 'custom',
+                            component: CustomEnableDisableGuestAccountsMagicLinkSetting,
                             key: 'GuestAccountsSettings.EnableGuestMagicLink',
-                            label: defineMessage({id: 'admin.guest_access.enableGuestMagicLinkTitle', defaultMessage: 'Enable passwordless authentication for guests using magic links via email: '}),
-                            help_text: defineMessage({id: 'admin.guest_access.enableGuestMagicLinkDescription', defaultMessage: 'When true, team admins can decide to invite guests that login via magic link. The invitation link will log them in without the need to configure a password. Future logins will also be done with a magic link sent to their email.'}),
-                            help_text_markdown: false,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.GUEST_ACCESS)),
                         },
                     ],

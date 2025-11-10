@@ -3079,6 +3079,11 @@ func promoteGuestToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if user.IsMagicLinkEnabled() {
+		c.Err = model.NewAppError("Api4.promoteGuestToUser", "api.user.promote_guest_to_user.magic_link_enabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
 	if err := c.App.PromoteGuestToUser(c.AppContext, user, c.AppContext.Session().UserId); err != nil {
 		c.Err = err
 		return

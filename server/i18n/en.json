@@ -4395,6 +4395,10 @@
     "translation": "Field '{{.Field}}' must be set through user's login provider."
   },
   {
+    "id": "api.user.promote_guest_to_user.magic_link_enabled.app_error",
+    "translation": "Unable to convert the guest to regular user because the guest uses magic link authentication."
+  },
+  {
     "id": "api.user.promote_guest_to_user.no_guest.app_error",
     "translation": "Unable to convert the guest to regular user because is not a guest."
   },
