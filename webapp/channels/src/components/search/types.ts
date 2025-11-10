@@ -55,6 +55,7 @@ export type DispatchProps = {
         getMorePostsForSearch: (teamId: string) => void;
         openRHSSearch: () => void;
         getMoreFilesForSearch: (teamId: string) => void;
+        getMoreFlaggedPosts: () => void;
         filterFilesSearchByExt: (extensions: string[]) => void;
     };
 }

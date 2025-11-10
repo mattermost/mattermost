@@ -80,12 +80,22 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
     }, [props.searchPage, props.searchTerms, props.isSearchingTerm]);
 
     const handleScroll = (): void => {
-        if (!props.isFlaggedPosts && !props.isPinnedPosts && !props.isSearchingTerm && !props.isSearchGettingMore && !props.isChannelFiles) {
+        if (!props.isChannelFiles) {
+            // Prevent loading when already loading regular search or flagged posts
+            if ((props.isFlaggedPosts && props.isFlaggedPostsGettingMore) ||
+                (!props.isFlaggedPosts && (props.isSearchingTerm || props.isSearchGettingMore))) {
+                return;
+            }
+
             const scrollHeight = scrollbars.current?.scrollHeight || 0;
             const scrollTop = scrollbars.current?.scrollTop || 0;
             const clientHeight = scrollbars.current?.clientHeight || 0;
             if ((scrollTop + clientHeight + GET_MORE_BUFFER) >= scrollHeight) {
-                if (searchType === DataSearchTypes.FILES_SEARCH_TYPE) {
+                if (props.isFlaggedPosts) {
+                    loadMoreFlaggedPosts();
+                } else if (props.isPinnedPosts || props.isSearchingPinnedPost) {
+                    // Pinned posts don't support pagination yet
+                } else if (searchType === DataSearchTypes.FILES_SEARCH_TYPE) {
                     loadMoreFiles();
                 } else {
                     loadMorePosts();
@@ -116,6 +126,15 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
         (): void => {},
     );
 
+    const loadMoreFlaggedPosts = debounce(
+        () => {
+            props.getMoreFlaggedPosts();
+        },
+        100,
+        false,
+        (): void => {},
+    );
+
     const {
         results,
         fileResults,
@@ -123,6 +142,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
         isCard = false,
         isSearchAtEnd,
         isSearchFilesAtEnd,
+        isFlaggedPostsAtEnd,
         isSearchingTerm,
         isFlaggedPosts,
         isSearchingFlaggedPost,
@@ -141,8 +161,8 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
     const noResults = (!results || !Array.isArray(results) || results.length === 0);
     const noFileResults = (!fileResults || !Array.isArray(fileResults) || fileResults.length === 0);
     const isLoading = isSearchingTerm || isSearchingFlaggedPost || isSearchingPinnedPost || !isOpened;
-    const isAtEnd = (searchType === DataSearchTypes.MESSAGES_SEARCH_TYPE && isSearchAtEnd) || (searchType === DataSearchTypes.FILES_SEARCH_TYPE && isSearchFilesAtEnd);
-    const showLoadMore = !isAtEnd && !isChannelFiles && !isFlaggedPosts && !isPinnedPosts;
+    const isAtEnd = (searchType === DataSearchTypes.MESSAGES_SEARCH_TYPE && isSearchAtEnd) || (searchType === DataSearchTypes.FILES_SEARCH_TYPE && isSearchFilesAtEnd) || (isFlaggedPosts && isFlaggedPostsAtEnd);
+    const showLoadMore = !isAtEnd && !isChannelFiles && !isPinnedPosts;
     const isMessagesSearch = (!isFlaggedPosts && !isMentionSearch && !isCard && !isPinnedPosts && !isChannelFiles);
 
     let contentItems;

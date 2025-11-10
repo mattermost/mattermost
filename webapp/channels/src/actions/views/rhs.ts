@@ -13,6 +13,7 @@ import {getPostsByIds, getPost as fetchPost} from 'mattermost-redux/actions/post
 import {
     clearSearch,
     getFlaggedPosts,
+    getMoreFlaggedPosts,
     getPinnedPosts,
     searchPostsWithParams,
     searchFilesWithParams,
@@ -322,36 +323,21 @@ export function toggleRHSPlugin(pluggableId: string): ActionFunc<boolean> {
 }
 
 export function showFlaggedPosts(): ActionFuncAsync {
-    return async (dispatch, getState) => {
-        const state = getState();
-        const teamId = getCurrentTeamId(state);
-
+    return async (dispatch) => {
         dispatch({
             type: ActionTypes.UPDATE_RHS_STATE,
             state: RHSStates.FLAG,
         });
 
-        const results = await dispatch(getFlaggedPosts());
-        let data;
-        if ('data' in results) {
-            data = results.data;
-        }
+        await dispatch(getFlaggedPosts());
 
-        dispatch(batchActions([
-            {
-                type: SearchTypes.RECEIVED_SEARCH_POSTS,
-                data,
-            },
-            {
-                type: SearchTypes.RECEIVED_SEARCH_TERM,
-                data: {
-                    teamId,
-                    terms: null,
-                    isOrSearch: false,
-                },
-            },
-        ]));
+        return {data: true};
+    };
+}
 
+export function getMoreFlaggedPostsForRhs(): ActionFuncAsync {
+    return async (dispatch) => {
+        await dispatch(getMoreFlaggedPosts());
         return {data: true};
     };
 }

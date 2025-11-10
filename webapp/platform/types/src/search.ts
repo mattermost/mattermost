@@ -14,6 +14,7 @@ export type SearchState = {
     pinned: Record<string, string[]>;
     isSearchingTerm: boolean;
     isSearchGettingMore: boolean;
+    isFlaggedPostsGettingMore: boolean;
     isLimitedResults: number;
     matches: {
         [x: string]: string[];
@@ -22,6 +23,7 @@ export type SearchState = {
         posts: number;
         files: number;
     };
+    flaggedPostsAtEnd: boolean;
 };
 
 export type SearchParameter = {

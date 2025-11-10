@@ -168,6 +168,14 @@ export function getIsSearchGettingMore(state: GlobalState): boolean {
     return state.entities.search.isSearchGettingMore;
 }
 
+export function getIsFlaggedPostsGettingMore(state: GlobalState): boolean {
+    return state.entities.search.isFlaggedPostsGettingMore;
+}
+
+export function getIsFlaggedPostsAtEnd(state: GlobalState): boolean {
+    return state.entities.search.flaggedPostsAtEnd;
+}
+
 export function makeGetChannelDraft() {
     const defaultDraft = Object.freeze({
         message: '',

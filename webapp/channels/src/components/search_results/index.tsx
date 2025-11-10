@@ -18,7 +18,9 @@ import {
     getIsSearchingFlaggedPost,
     getIsSearchingPinnedPost,
     getIsSearchGettingMore,
+    getIsFlaggedPostsGettingMore,
     getCurrentSearchForSearchTeam,
+    getIsFlaggedPostsAtEnd,
 } from 'selectors/rhs';
 
 import type {GlobalState} from 'types/store';
@@ -33,7 +35,14 @@ function makeMapStateToProps() {
     const addDateSeparatorsForSearchResults = makeAddDateSeparatorsForSearchResults();
 
     return function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
-        const newResults = getSearchResults(state);
+        let newResults;
+        
+        // Use flagged posts array when viewing flagged posts, otherwise use search results
+        if (ownProps.isFlaggedPosts) {
+            newResults = state.entities.search.flagged.map((id) => state.entities.posts.posts[id]).filter((post) => post);
+        } else {
+            newResults = getSearchResults(state);
+        }
 
         // Cache results
         if (newResults && newResults !== results) {
@@ -77,8 +86,10 @@ function makeMapStateToProps() {
             isSearchingFlaggedPost: getIsSearchingFlaggedPost(state),
             isSearchingPinnedPost: getIsSearchingPinnedPost(state),
             isSearchGettingMore: getIsSearchGettingMore(state),
+            isFlaggedPostsGettingMore: getIsFlaggedPostsGettingMore(state),
             isSearchAtEnd: currentSearch.isEnd,
             isSearchFilesAtEnd: currentSearch.isFilesEnd,
+            isFlaggedPostsAtEnd: getIsFlaggedPostsAtEnd(state),
             searchPage: currentSearch.params?.page,
             currentTeamName,
         };

@@ -26,6 +26,7 @@ import {
     openRHSSearch,
     filterFilesSearchByExt,
     updateSearchType,
+    getMoreFlaggedPostsForRhs,
 } from 'actions/views/rhs';
 import {getRhsState, getSearchTeam, getSearchTerms, getSearchType, getIsSearchingTerm, getIsRhsOpen, getIsRhsExpanded} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
@@ -87,6 +88,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             getMorePostsForSearch,
             openRHSSearch,
             getMoreFilesForSearch,
+            getMoreFlaggedPosts: getMoreFlaggedPostsForRhs,
             filterFilesSearchByExt,
         }, dispatch),
     };

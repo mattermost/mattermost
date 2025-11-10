@@ -236,7 +236,7 @@ export function getFlaggedPosts(): ActionFuncAsync<PostList> {
 
         let posts;
         try {
-            posts = await Client4.getFlaggedPosts(userId);
+            posts = await Client4.getFlaggedPosts(userId, '', '', 0, WEBAPP_SEARCH_PER_PAGE);
 
             await Promise.all([getMentionsAndStatusesForPosts(posts.posts, dispatch, getState), dispatch(getMissingChannelsFromPosts(posts.posts))]);
         } catch (error) {
@@ -250,6 +250,46 @@ export function getFlaggedPosts(): ActionFuncAsync<PostList> {
             {
                 type: SearchTypes.RECEIVED_SEARCH_FLAGGED_POSTS,
                 data: posts,
+            },
+            receivedPosts(posts),
+            {
+                type: SearchTypes.SEARCH_FLAGGED_POSTS_SUCCESS,
+            },
+        ], 'SEARCH_FLAGGED_POSTS_BATCH'));
+
+        return {data: posts};
+    };
+}
+
+export function getMoreFlaggedPosts(): ActionFuncAsync<PostList> {
+    return async (dispatch, getState) => {
+        const state = getState();
+        const userId = getCurrentUserId(state);
+
+        const isGettingMore = true;
+        dispatch({type: SearchTypes.SEARCH_FLAGGED_POSTS_REQUEST, isGettingMore});
+
+        // Get current flagged posts to determine the page
+        const currentPosts = state.entities.search.flagged;
+        const page = currentPosts ? Math.ceil(currentPosts.length / WEBAPP_SEARCH_PER_PAGE) : 1;
+
+        let posts;
+        try {
+            posts = await Client4.getFlaggedPosts(userId, '', '', page, WEBAPP_SEARCH_PER_PAGE);
+
+            await Promise.all([getMentionsAndStatusesForPosts(posts.posts, dispatch, getState), dispatch(getMissingChannelsFromPosts(posts.posts))]);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch({type: SearchTypes.SEARCH_FLAGGED_POSTS_FAILURE, error});
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch(batchActions([
+            {
+                type: SearchTypes.RECEIVED_SEARCH_FLAGGED_POSTS,
+                data: posts,
+                isGettingMore,
             },
             receivedPosts(posts),
             {

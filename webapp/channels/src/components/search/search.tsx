@@ -85,6 +85,7 @@ const Search = ({
         filterFilesSearchByExt,
         getMoreFilesForSearch,
         getMorePostsForSearch,
+        getMoreFlaggedPosts,
         openRHSSearch,
         setRhsExpanded,
         showChannelFiles,
@@ -556,6 +557,7 @@ const Search = ({
                     isSideBarExpanded={isRhsExpanded}
                     getMorePostsForSearch={getMorePostsForSearchCallback}
                     getMoreFilesForSearch={getMoreFilesForSearchCallback}
+                    getMoreFlaggedPosts={getMoreFlaggedPosts}
                     setSearchFilterType={handleSetSearchFilter}
                     searchFilterType={searchFilterType}
                     setSearchType={(value: SearchType) => updateSearchType(value)}

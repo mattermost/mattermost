@@ -82,6 +82,9 @@ function matches(state: Record<string, string[]> = {}, action: MMReduxAction) {
 function flagged(state: string[] = [], action: MMReduxAction) {
     switch (action.type) {
     case SearchTypes.RECEIVED_SEARCH_FLAGGED_POSTS: {
+        if (action.isGettingMore) {
+            return [...new Set(state.concat(action.data.order))];
+        }
         return action.data.order;
     }
     case PostTypes.POST_REMOVED: {
@@ -226,6 +229,20 @@ function current(state: any = {}, action: MMReduxAction) {
     }
 }
 
+function flaggedPostsAtEnd(state = false, action: MMReduxAction) {
+    switch (action.type) {
+    case SearchTypes.RECEIVED_SEARCH_FLAGGED_POSTS: {
+        // If we get less than the page size (20), we're at the end
+        // This applies to both initial load and pagination
+        return action.data.order.length < 20;
+    }
+    case UserTypes.LOGOUT_SUCCESS:
+        return false;
+    default:
+        return state;
+    }
+}
+
 function isSearchingTerm(state = false, action: MMReduxAction) {
     switch (action.type) {
     case SearchTypes.SEARCH_POSTS_REQUEST:
@@ -242,6 +259,18 @@ function isSearchGettingMore(state = false, action: MMReduxAction) {
     case SearchTypes.SEARCH_POSTS_REQUEST:
         return action.isGettingMore;
     case SearchTypes.SEARCH_POSTS_SUCCESS:
+        return false;
+    default:
+        return state;
+    }
+}
+
+function isFlaggedPostsGettingMore(state = false, action: MMReduxAction) {
+    switch (action.type) {
+    case SearchTypes.SEARCH_FLAGGED_POSTS_REQUEST:
+        return action.isGettingMore || false;
+    case SearchTypes.SEARCH_FLAGGED_POSTS_SUCCESS:
+    case SearchTypes.SEARCH_FLAGGED_POSTS_FAILURE:
         return false;
     default:
         return state;
@@ -320,10 +349,16 @@ export default combineReducers({
     // Boolean true if we are getting more search results
     isSearchGettingMore,
 
+    // Boolean true if we are getting more flagged posts
+    isFlaggedPostsGettingMore,
+
     // Boolean true if the search returns results inaccessible because
     // they are beyond a cloud workspace's message limits.
     isLimitedResults,
 
     // Object tracking truncation info for posts and files separately
     truncationInfo,
+
+    // Boolean true if flagged posts pagination has reached the end
+    flaggedPostsAtEnd,
 });
