@@ -150,18 +150,35 @@ func TestGetOAuthAccessTokenForImplicitFlow(t *testing.T) {
 			State:        "test_state",
 		}
 
-		session, appErr := th.App.GetOAuthAccessTokenForImplicitFlow(th.Context, th.BasicUser.Id, authRequest)
-		require.Nil(t, appErr)
-		require.NotNil(t, session)
-		require.NotEmpty(t, session.Token)
-		require.Equal(t, th.BasicUser.Id, session.UserId)
-		require.True(t, session.IsOAuth)
-
-		redirectURL, appErr := th.App.GetOAuthImplicitRedirect(th.Context, th.BasicUser.Id, authRequest)
+		redirectURL, appErr := th.App.AllowOAuthAppAccessToUser(th.Context, th.BasicUser.Id, authRequest)
 		require.Nil(t, appErr)
 		require.Contains(t, redirectURL, "#access_token=")
 		require.Contains(t, redirectURL, "token_type=bearer")
 		require.Contains(t, redirectURL, "state=test_state")
+
+		// Parse the access token from the fragment
+		uri, err := url.Parse(redirectURL)
+		require.NoError(t, err)
+		fragment := uri.Fragment
+		fragmentValues, err := url.ParseQuery(fragment)
+		require.NoError(t, err)
+		accessToken := fragmentValues.Get("access_token")
+		require.NotEmpty(t, accessToken)
+
+		// Verify session exists
+		session, appErr := th.App.GetSession(accessToken)
+		require.Nil(t, appErr)
+		require.NotNil(t, session)
+		require.Equal(t, th.BasicUser.Id, session.UserId)
+		require.True(t, session.IsOAuth)
+
+		// Verify access data exists for public client
+		accessData, err := th.App.Srv().Store().OAuth().GetAccessData(accessToken)
+		require.NoError(t, err)
+		require.NotNil(t, accessData)
+		require.Equal(t, publicApp.Id, accessData.ClientId)
+		require.Equal(t, th.BasicUser.Id, accessData.UserId)
+		require.Empty(t, accessData.RefreshToken)
 	})
 
 	t.Run("ConfidentialClient_Success", func(t *testing.T) {
@@ -188,12 +205,35 @@ func TestGetOAuthAccessTokenForImplicitFlow(t *testing.T) {
 			State:        "test_state",
 		}
 
-		session, appErr := th.App.GetOAuthAccessTokenForImplicitFlow(th.Context, th.BasicUser.Id, authRequest)
+		redirectURL, appErr := th.App.AllowOAuthAppAccessToUser(th.Context, th.BasicUser.Id, authRequest)
+		require.Nil(t, appErr)
+		require.Contains(t, redirectURL, "#access_token=")
+		require.Contains(t, redirectURL, "token_type=bearer")
+		require.Contains(t, redirectURL, "state=test_state")
+
+		// Parse the access token from the fragment
+		uri, err := url.Parse(redirectURL)
+		require.NoError(t, err)
+		fragment := uri.Fragment
+		fragmentValues, err := url.ParseQuery(fragment)
+		require.NoError(t, err)
+		accessToken := fragmentValues.Get("access_token")
+		require.NotEmpty(t, accessToken)
+
+		// Verify session exists
+		session, appErr := th.App.GetSession(accessToken)
 		require.Nil(t, appErr)
 		require.NotNil(t, session)
-		require.NotEmpty(t, session.Token)
 		require.Equal(t, th.BasicUser.Id, session.UserId)
 		require.True(t, session.IsOAuth)
+
+		// Verify access data exists for confidential client
+		accessData, err := th.App.Srv().Store().OAuth().GetAccessData(accessToken)
+		require.NoError(t, err)
+		require.NotNil(t, accessData)
+		require.Equal(t, confidentialApp.Id, accessData.ClientId)
+		require.Equal(t, th.BasicUser.Id, accessData.UserId)
+		require.Empty(t, accessData.RefreshToken)
 	})
 }
 
