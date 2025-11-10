@@ -32,11 +32,12 @@ describe('UserPropertyValues', () => {
 
     const updateField = jest.fn();
 
-    const renderComponent = (field: UserPropertyField = baseField) => {
+    const renderComponent = (field: UserPropertyField = baseField, autoFocus = false) => {
         return renderWithContext(
             <UserPropertyValues
                 field={field}
                 updateField={updateField}
+                autoFocus={autoFocus}
             />,
         );
     };
@@ -213,5 +214,19 @@ describe('UserPropertyValues', () => {
 
         const samlLinkElement = screen.getByTestId(`user-property-field-values__saml-${baseField.name}`);
         expect(samlLinkElement).toBeInTheDocument();
+    });
+
+    it('applies autoFocus when prop is true', () => {
+        renderComponent(baseField, true);
+
+        const input = screen.getByRole('combobox');
+        expect(document.activeElement).toBe(input);
+    });
+
+    it('does not autoFocus when prop is false', () => {
+        renderComponent(baseField, false);
+
+        const input = screen.getByRole('combobox');
+        expect(document.activeElement).not.toBe(input);
     });
 });

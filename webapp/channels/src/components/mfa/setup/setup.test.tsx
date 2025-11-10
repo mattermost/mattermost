@@ -7,6 +7,7 @@ import React from 'react';
 import Setup from 'components/mfa/setup/setup';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import {act, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 jest.mock('actions/global_actions', () => ({
@@ -69,7 +70,10 @@ describe('components/mfa/setup', () => {
 
         (wrapper.instance() as Setup).input.current!.value = 'testcodeinput';
         wrapper.find('form').simulate('submit', {preventDefault: () => {}});
-        expect(baseProps.actions.activateMfa).toBeCalledWith('testcodeinput');
+
+        await waitFor(() => {
+            expect(baseProps.actions.activateMfa).toBeCalledWith('testcodeinput');
+        });
     });
 
     test('should focus input when code is empty', async () => {
@@ -80,7 +84,10 @@ describe('components/mfa/setup', () => {
         const focusSpy = jest.spyOn(input, 'focus');
 
         wrapper.find('form').simulate('submit', {preventDefault: () => {}});
-        expect(focusSpy).toHaveBeenCalled();
+
+        await waitFor(() => {
+            expect(focusSpy).toHaveBeenCalled();
+        });
     });
 
     test('should focus input when authentication fails', async () => {
@@ -103,9 +110,13 @@ describe('components/mfa/setup', () => {
         const input = wrapper.find('input').getDOMNode() as HTMLInputElement;
         const focusSpy = jest.spyOn(input, 'focus');
 
-        (wrapper.instance() as Setup).input.current!.value = 'invalidcode';
-        wrapper.find('form').simulate('submit', {preventDefault: () => {}});
-        await new Promise((resolve) => setTimeout(resolve, 0)); // Wait for state update
-        expect(focusSpy).toHaveBeenCalled();
+        act(() => {
+            (wrapper.instance() as Setup).input.current!.value = 'invalidcode';
+            wrapper.find('form').simulate('submit', {preventDefault: () => {}});
+        });
+
+        await waitFor(() => {
+            expect(focusSpy).toHaveBeenCalled();
+        });
     });
 });

@@ -33,7 +33,7 @@ describe('/components/create_team/components/display_name', () => {
     test('should return to display_name.jsx page', async () => {
         renderWithContext(<TeamUrl {...defaultProps}/>);
 
-        screen.getByText('Back to previous step').click();
+        await userEvent.click(screen.getByText('Back to previous step'));
 
         expect(defaultProps.updateParent).toHaveBeenCalledWith({
             ...defaultProps.state,
@@ -53,7 +53,7 @@ describe('/components/create_team/components/display_name', () => {
             <TeamUrl {...props}/>,
         );
 
-        screen.getByText('Finish').click();
+        await userEvent.click(screen.getByText('Finish'));
 
         await waitFor(() => {
             expect(screen.getByText('This URL is taken or unavailable. Please try another.')).toBeInTheDocument();
@@ -62,7 +62,7 @@ describe('/components/create_team/components/display_name', () => {
         expect(actions.checkIfTeamExists).toHaveBeenCalledTimes(1);
         expect(actions.createTeam).not.toHaveBeenCalled();
 
-        screen.getByText('Finish').click();
+        await userEvent.click(screen.getByText('Finish'));
 
         await waitFor(() => {
             expect(actions.checkIfTeamExists).toHaveBeenCalledTimes(2);
@@ -73,70 +73,79 @@ describe('/components/create_team/components/display_name', () => {
         });
     });
 
-    test('should display isRequired error', () => {
+    test('should display isRequired error', async () => {
         renderWithContext(
             <TeamUrl {...defaultProps}/>,
         );
 
-        userEvent.clear(screen.getByRole('textbox'));
-        screen.getByText('Finish').click();
+        await userEvent.clear(screen.getByRole('textbox'));
+        await userEvent.click(screen.getByText('Finish'));
 
         expect(screen.getByText('This field is required')).toBeInTheDocument();
     });
 
-    test('should display charLength error', () => {
+    test('should display charLength error', async () => {
+        const checkIfTeamExists = jest.fn().
+            mockResolvedValue({data: false});
+
+        const actions = {...defaultProps.actions, checkIfTeamExists};
+        const props = {...defaultProps, actions};
+
         const lengthError = `Name must be ${Constants.MIN_TEAMNAME_LENGTH} or more characters up to a maximum of ${Constants.MAX_TEAMNAME_LENGTH}`;
 
         renderWithContext(
-            <TeamUrl {...defaultProps}/>,
+            <TeamUrl {...props}/>,
         );
+
+        await userEvent.clear(screen.getByRole('textbox'));
 
         expect(screen.queryByText(lengthError)).not.toBeInTheDocument();
 
-        userEvent.type(screen.getByRole('textbox'), 'a');
-        screen.getByText('Finish').click();
+        await userEvent.type(screen.getByRole('textbox'), 'a');
+        await userEvent.click(screen.getByText('Finish'));
 
         expect(screen.getByText(lengthError)).toBeInTheDocument();
 
-        userEvent.type(screen.getByRole('textbox'), 'a'.repeat(Constants.MAX_TEAMNAME_LENGTH + 1));
-        screen.getByText('Finish').click();
+        await userEvent.clear(screen.getByRole('textbox'));
+        await userEvent.type(screen.getByRole('textbox'), 'a'.repeat(Constants.MAX_TEAMNAME_LENGTH + 1));
+        await userEvent.click(screen.getByText('Finish'));
 
         expect(screen.getByText(lengthError)).toBeInTheDocument();
     });
 
-    test('should display teamUrl regex error', () => {
+    test('should display teamUrl regex error', async () => {
         renderWithContext(
             <TeamUrl {...defaultProps}/>,
         );
 
-        userEvent.type(screen.getByRole('textbox'), '!!wrongName1');
-        screen.getByText('Finish').click();
+        await userEvent.type(screen.getByRole('textbox'), '!!wrongName1');
+        await userEvent.click(screen.getByText('Finish'));
 
         expect(screen.getByText("Use only lower case letters, numbers and dashes. Must start with a letter and can't end in a dash.")).toBeInTheDocument();
     });
 
-    test('should display teamUrl taken error', () => {
+    test('should display teamUrl taken error', async () => {
         renderWithContext(
             <TeamUrl {...defaultProps}/>,
         );
 
-        userEvent.type(screen.getByRole('textbox'), 'channel');
-        screen.getByText('Finish').click();
+        await userEvent.type(screen.getByRole('textbox'), 'channel');
+        await userEvent.click(screen.getByText('Finish'));
 
         expect(screen.getByText('Please try another.', {exact: false})).toBeInTheDocument();
     });
 
-    test('should focus input when validation error occurs', () => {
+    test('should focus input when validation error occurs', async () => {
         renderWithContext(
             <TeamUrl {...defaultProps}/>,
         );
 
         const input = screen.getByRole('textbox');
-        userEvent.clear(input);
+        await userEvent.clear(input);
         const focusSpy = jest.spyOn(input, 'focus');
 
         // Trigger validation error by submitting empty input
-        screen.getByText('Finish').click();
+        await userEvent.click(screen.getByText('Finish'));
 
         expect(focusSpy).toHaveBeenCalled();
     });

@@ -21,7 +21,7 @@
   },
   {
     "id": "app.import.import_post.user_not_found.error",
-    "translation": "Грешка при увозу канала. Нисам могао да нађем тим са именом \"{{.TeamName}}\"."
+    "translation": "Greška pri uvozu objave. Korisnik sa korisničkim imenom „{{.Username}}“ nije pronađen."
   },
   {
     "id": "app.import.import_post.save_preferences.error",
@@ -29,7 +29,7 @@
   },
   {
     "id": "app.import.import_post.channel_not_found.error",
-    "translation": "Грешка при увозу канала. Нисам могао да нађем тим са именом \"{{.TeamName}}\"."
+    "translation": "Greška pri uvozu objave. Kanal sa nazivom „{{.ChannelName}}“ nije pronađen."
   },
   {
     "id": "app.import.import_line.null_user.error",
@@ -357,15 +357,15 @@
   },
   {
     "id": "api.post.disabled_here",
-    "translation": "@here је онемогућено зато што канал има више од {{.Users}} корисника."
+    "translation": "@here obaveštenja su onemogućena u kanalima sa više od {{.Users}} korisnika. Za više informacija kontaktirajte administratora sistema."
   },
   {
     "id": "api.post.disabled_channel",
-    "translation": "@channel је онемогућено зато што канал има више од {{.Users}} корисника."
+    "translation": "Obaveštenja @channel su onemogućena u kanalima sa više od {{.Users}} korisnika. Za više informacija kontaktirajte administratora sistema."
   },
   {
     "id": "api.post.disabled_all",
-    "translation": "@all је онемогућено зато што канал има више од {{.Users}} корисника."
+    "translation": "@sva obaveštenja su onemogućena u kanalima sa više od {{.Users}} korisnika. Za više informacija kontaktirajte administratora sistema."
   },
   {
     "id": "api.post.create_post.can_not_post_to_deleted.error",
@@ -1077,7 +1077,7 @@
   },
   {
     "id": "April",
-    "translation": "Април"
+    "translation": "april"
   },
   {
     "id": "api.command_groupmsg.name",
@@ -1102,5 +1102,37 @@
   {
     "id": "api.admin.add_certificate.parseform.app_error",
     "translation": "Грешка у парсирању вишеформног захтева"
+  },
+  {
+    "id": "api.command_groupmsg.invalid_user.app_error",
+    "translation": {
+      "few": "Nisu pronađeni korisnici: {{.Users}}",
+      "one": "Nije moguće pronaći korisnika: {{.Users}}",
+      "other": "Nisu pronađeni korisnici: {{.Users}}"
+    }
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.app_error",
+    "translation": {
+      "few": "{{.User}} su već na kanalu.",
+      "one": "{{.User}} je već na kanalu.",
+      "other": "{{.User}} su već na kanalu."
+    }
+  },
+  {
+    "id": "app.scheduled_post.failed_message_detail",
+    "translation": {
+      "few": "- {{.Count}} u kanalu {{.ChannelName}}. Razlozi: {{.ErrorReason}}",
+      "one": "- {{.Count}} u kanalu {{.ChannelName}}. Razlog: {{.ErrorReason}}",
+      "other": "- {{.Count}} u kanalu {{.ChannelName}}. Razlozi: {{.ErrorReason}}"
+    }
+  },
+  {
+    "id": "app.scheduled_post.failed_messages",
+    "translation": {
+      "few": "Nije uspelo slanje {{.Count}} zakazanih objava.",
+      "one": "Nije uspelo slanje {{.Count}} zakazane objave.",
+      "other": "Nije uspelo slanje {{.Count}} zakazanih objava."
+    }
   }
 ]
