@@ -121,7 +121,7 @@ export default class BackstageSidebar extends React.PureComponent<Props> {
         let oauthApps: JSX.Element | null = null;
         if (this.props.enableOAuthServiceProvider) {
             oauthApps = (
-                <SystemPermissionGate permissions={[Permissions.MANAGE_OAUTH, Permissions.MANAGE_OWN_OAUTH_APPS]}>
+                <SystemPermissionGate permissions={[Permissions.MANAGE_OAUTH]}>
                     <BackstageSection
                         name='oauth2-apps'
                         parentLink={'/' + this.props.team.name + '/integrations'}

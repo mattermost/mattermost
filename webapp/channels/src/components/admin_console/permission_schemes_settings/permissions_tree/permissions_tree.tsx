@@ -238,17 +238,8 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
                 integrationsGroup.permissions.push(outgoingWebhookGroup);
             }
         }
-        if (config.EnableOAuthServiceProvider === 'true') {
-            const oauthGroup = {
-                id: 'manage_oauth_group',
-                permissions: [
-                    Permissions.MANAGE_OWN_OAUTH_APPS,
-                    Permissions.MANAGE_SYSTEM_WIDE_OAUTH,
-                ],
-            };
-            if (!integrationsGroup.permissions.some((p: any) => p.id === 'manage_oauth_group')) {
-                integrationsGroup.permissions.push(oauthGroup);
-            }
+        if (config.EnableOAuthServiceProvider === 'true' && !integrationsGroup.permissions.includes(Permissions.MANAGE_OAUTH)) {
+            integrationsGroup.permissions.push(Permissions.MANAGE_OAUTH);
         }
         if (config.EnableOutgoingOAuthConnections === 'true' && !integrationsGroup.permissions.includes(Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS)) {
             integrationsGroup.permissions.push(Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS);

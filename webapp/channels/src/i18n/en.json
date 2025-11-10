@@ -1982,8 +1982,6 @@
   "admin.permissions.permission.manage_outgoing_webhooks.name": "Manage Others'",
   "admin.permissions.permission.manage_own_incoming_webhooks.description": "Create, edit, and delete your own incoming webhooks.",
   "admin.permissions.permission.manage_own_incoming_webhooks.name": "Manage Own",
-  "admin.permissions.permission.manage_own_oauth_apps.description": "Create, edit and delete your own OAuth 2.0 applications.",
-  "admin.permissions.permission.manage_own_oauth_apps.name": "Manage Own",
   "admin.permissions.permission.manage_own_outgoing_webhooks.description": "Create, edit, and delete your own outgoing webhooks.",
   "admin.permissions.permission.manage_own_outgoing_webhooks.name": "Manage Own",
   "admin.permissions.permission.manage_own_slash_commands.description": "Create, edit and delete your own slash commands.",

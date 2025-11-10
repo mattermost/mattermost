@@ -78,7 +78,6 @@ const (
 	PermissionManageSharedChannels             = "manage_shared_channels"
 	PermissionManageSecureConnections          = "manage_secure_connections"
 	PermissionManageOAuth                      = "manage_oauth"
-	PermissionManageOwnOAuthApps               = "manage_own_oauth_apps"
 	PermissionManageRemoteClusters             = "manage_remote_clusters" // deprecated; use `manage_secure_connections`
 )
 
@@ -298,11 +297,6 @@ func (a *App) getIntegrationsOwnPermissionsMigration() (permissionsMap, error) {
 			On:     permissionExists(PermissionManageSlashCommands),
 			Add:    []string{PermissionManageOwnSlashCommands},
 			Remove: []string{PermissionManageSlashCommands},
-		},
-		permissionTransformation{
-			On:     permissionExists(PermissionManageOAuth),
-			Add:    []string{PermissionManageOwnOAuthApps},
-			Remove: []string{PermissionManageOAuth},
 		},
 		// Ensure system admin has the new "manage others" permissions
 		permissionTransformation{

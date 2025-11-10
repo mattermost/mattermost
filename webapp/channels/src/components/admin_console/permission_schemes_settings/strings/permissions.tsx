@@ -255,16 +255,6 @@ export const permissionRolesStrings: Record<string, Record<string, MessageDescri
             defaultMessage: 'Create, edit and delete OAuth 2.0 applications owned by other users.',
         },
     }),
-    manage_own_oauth_apps: defineMessages({
-        name: {
-            id: 'admin.permissions.permission.manage_own_oauth_apps.name',
-            defaultMessage: 'Manage Own',
-        },
-        description: {
-            id: 'admin.permissions.permission.manage_own_oauth_apps.description',
-            defaultMessage: 'Create, edit and delete your own OAuth 2.0 applications.',
-        },
-    }),
     manage_system_wide_oauth: defineMessages({
         name: {
             id: 'admin.permissions.permission.manage_system_wide_oauth.name',

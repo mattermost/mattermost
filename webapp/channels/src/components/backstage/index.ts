@@ -45,8 +45,7 @@ function mapStateToProps(state: GlobalState) {
         haveITeamPermission(state, team?.id, Permissions.MANAGE_OWN_INCOMING_WEBHOOKS) ||
         haveITeamPermission(state, team?.id, Permissions.MANAGE_OUTGOING_WEBHOOKS) ||
         haveITeamPermission(state, team?.id, Permissions.MANAGE_OWN_OUTGOING_WEBHOOKS) ||
-        haveISystemPermission(state, {permission: Permissions.MANAGE_OAUTH}) ||
-        haveISystemPermission(state, {permission: Permissions.MANAGE_OWN_OAUTH_APPS})
+        haveISystemPermission(state, {permission: Permissions.MANAGE_OAUTH})
     );
     const canManageSystemBots = (haveISystemPermission(state, {permission: Permissions.MANAGE_BOTS}) || haveISystemPermission(state, {permission: Permissions.MANAGE_OTHERS_BOTS}));
     const canManageIntegrations = canManageTeamIntegrations || canManageSystemBots;

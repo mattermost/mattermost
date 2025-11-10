@@ -254,10 +254,25 @@ func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PermissionManageOwnSlashCommands)
 			return
 		}
+
 		commands, err = c.App.ListTeamCommands(teamId)
 		if err != nil {
 			c.Err = err
 			return
+		}
+
+		// Filter to only commands the user can manage
+		hasManageOthers := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionManageOthersSlashCommands)
+		if !hasManageOthers {
+			// User only has ManageOwn - return only their commands
+			userCommands := make([]*model.Command, 0)
+			userId := c.AppContext.Session().UserId
+			for _, cmd := range commands {
+				if cmd.CreatorId == userId {
+					userCommands = append(userCommands, cmd)
+				}
+			}
+			commands = userCommands
 		}
 	} else {
 		//User with no permission should see only system commands
@@ -272,6 +287,22 @@ func listCommands(c *Context, w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				c.Err = err
 				return
+			}
+
+			// Filter custom commands to only those the user can manage
+			hasManageOthers := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionManageOthersSlashCommands)
+			if !hasManageOthers {
+				// User only has ManageOwn - filter out others' custom commands
+				filteredCommands := make([]*model.Command, 0)
+				userId := c.AppContext.Session().UserId
+				for _, cmd := range commands {
+					// Include all system commands (those without a creator)
+					// and custom commands created by this user
+					if cmd.CreatorId == "" || cmd.CreatorId == userId {
+						filteredCommands = append(filteredCommands, cmd)
+					}
+				}
+				commands = filteredCommands
 			}
 		}
 	}

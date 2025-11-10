@@ -534,11 +534,6 @@
                 "roleName": "system_user",
                 "permission": "manage_oauth",
                 "shouldHave": false
-            },
-            {
-                "roleName": "system_user",
-                "permission": "manage_own_oauth_apps",
-                "shouldHave": false
             }
         ],
         "false": [
@@ -580,11 +575,6 @@
             {
                 "roleName": "system_user",
                 "permission": "manage_oauth",
-                "shouldHave": true
-            },
-            {
-                "roleName": "system_user",
-                "permission": "manage_own_oauth_apps",
                 "shouldHave": true
             }
         ]

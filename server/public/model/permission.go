@@ -76,7 +76,6 @@ var PermissionManageOthersIncomingWebhooks *Permission
 var PermissionManageOthersOutgoingWebhooks *Permission
 var PermissionManageOwnSlashCommands *Permission
 var PermissionManageOAuth *Permission
-var PermissionManageOwnOAuthApps *Permission
 var PermissionManageSystemWideOAuth *Permission
 var PermissionBypassIncomingWebhookChannelLock *Permission
 var PermissionManageEmojis *Permission
@@ -724,17 +723,10 @@ func initializePermissions() {
 		"authentication.permissions.bypass_incoming_webhook_channel_lock.description",
 		PermissionScopeTeam,
 	}
-	// DEPRECATED - use PermissionManageOwnOAuthApps instead
 	PermissionManageOAuth = &Permission{
 		"manage_oauth",
 		"authentication.permissions.manage_oauth.name",
 		"authentication.permissions.manage_oauth.description",
-		PermissionScopeSystem,
-	}
-	PermissionManageOwnOAuthApps = &Permission{
-		"manage_own_oauth_apps",
-		"authentication.permissions.manage_own_oauth_apps.name",
-		"authentication.permissions.manage_own_oauth_apps.description",
 		PermissionScopeSystem,
 	}
 	PermissionManageSystemWideOAuth = &Permission{
@@ -2453,7 +2445,6 @@ func initializePermissions() {
 		PermissionEditOtherUsers,
 		PermissionReadOtherUsersTeams,
 		PermissionGetPublicLink,
-		PermissionManageOwnOAuthApps,
 		PermissionManageSystemWideOAuth,
 		PermissionCreateTeam,
 		PermissionListUsersWithoutTeam,

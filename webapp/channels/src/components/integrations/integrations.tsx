@@ -132,7 +132,7 @@ export default class Integrations extends React.PureComponent <Props> {
         if (this.props.enableOAuthServiceProvider) {
             options.push(
                 <SystemPermissionGate
-                    permissions={[Permissions.MANAGE_OAUTH, Permissions.MANAGE_OWN_OAUTH_APPS]}
+                    permissions={[Permissions.MANAGE_OAUTH]}
                     key='oauth2AppsPermission'
                 >
                     <IntegrationOption

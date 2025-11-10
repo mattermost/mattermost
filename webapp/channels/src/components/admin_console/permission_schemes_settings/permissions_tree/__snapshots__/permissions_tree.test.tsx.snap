@@ -366,13 +366,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
                   "manage_others_outgoing_webhooks",
                 ],
               },
-              Object {
-                "id": "manage_oauth_group",
-                "permissions": Array [
-                  "manage_own_oauth_apps",
-                  "manage_system_wide_oauth",
-                ],
-              },
+              "manage_oauth",
               Object {
                 "id": "manage_slash_commands_group",
                 "permissions": Array [
@@ -582,13 +576,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
                   "manage_others_outgoing_webhooks",
                 ],
               },
-              Object {
-                "id": "manage_oauth_group",
-                "permissions": Array [
-                  "manage_own_oauth_apps",
-                  "manage_system_wide_oauth",
-                ],
-              },
+              "manage_oauth",
               Object {
                 "id": "manage_slash_commands_group",
                 "permissions": Array [
@@ -809,13 +797,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
                   "manage_others_outgoing_webhooks",
                 ],
               },
-              Object {
-                "id": "manage_oauth_group",
-                "permissions": Array [
-                  "manage_own_oauth_apps",
-                  "manage_system_wide_oauth",
-                ],
-              },
+              "manage_oauth",
               Object {
                 "id": "manage_slash_commands_group",
                 "permissions": Array [
@@ -1036,13 +1018,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
                   "manage_others_outgoing_webhooks",
                 ],
               },
-              Object {
-                "id": "manage_oauth_group",
-                "permissions": Array [
-                  "manage_own_oauth_apps",
-                  "manage_system_wide_oauth",
-                ],
-              },
+              "manage_oauth",
               Object {
                 "id": "manage_slash_commands_group",
                 "permissions": Array [
@@ -1263,13 +1239,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
                   "manage_others_outgoing_webhooks",
                 ],
               },
-              Object {
-                "id": "manage_oauth_group",
-                "permissions": Array [
-                  "manage_own_oauth_apps",
-                  "manage_system_wide_oauth",
-                ],
-              },
+              "manage_oauth",
               Object {
                 "id": "manage_slash_commands_group",
                 "permissions": Array [
@@ -1497,13 +1467,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_tree sh
                   "manage_others_outgoing_webhooks",
                 ],
               },
-              Object {
-                "id": "manage_oauth_group",
-                "permissions": Array [
-                  "manage_own_oauth_apps",
-                  "manage_system_wide_oauth",
-                ],
-              },
+              "manage_oauth",
               Object {
                 "id": "manage_slash_commands_group",
                 "permissions": Array [

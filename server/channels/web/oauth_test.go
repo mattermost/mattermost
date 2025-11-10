@@ -242,8 +242,8 @@ func TestOAuthAccessToken(t *testing.T) {
 	defer func() {
 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
 	}()
-	th.AddPermissionToRole(model.PermissionManageOwnOAuthApps.Id, model.TeamUserRoleId)
-	th.AddPermissionToRole(model.PermissionManageOwnOAuthApps.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.TeamUserRoleId)
+	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
 	oauthApp := &model.OAuthApp{
 		Name:         "TestApp5" + model.NewId(),
@@ -517,8 +517,8 @@ func TestOAuthComplete(t *testing.T) {
 	defer func() {
 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
 	}()
-	th.AddPermissionToRole(model.PermissionManageOwnOAuthApps.Id, model.TeamUserRoleId)
-	th.AddPermissionToRole(model.PermissionManageOwnOAuthApps.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.TeamUserRoleId)
+	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
 
 	oauthApp := &model.OAuthApp{
 		Name:        "TestApp5" + model.NewId(),
