@@ -206,6 +206,12 @@
             }
         }
 
+        hr {
+            margin: 3.5em -1em 3em -1em;  
+            border: none;
+            border-top: var(--border-dark);
+        }
+
         strong {
             font-weight: 600;
         }
