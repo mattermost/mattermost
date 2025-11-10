@@ -248,21 +248,11 @@ export const permissionRolesStrings: Record<string, Record<string, MessageDescri
     manage_oauth: defineMessages({
         name: {
             id: 'admin.permissions.permission.manage_oauth.name',
-            defaultMessage: 'Manage Others\'',
+            defaultMessage: 'Manage OAuth Applications',
         },
         description: {
             id: 'admin.permissions.permission.manage_oauth.description',
-            defaultMessage: 'Create, edit and delete OAuth 2.0 applications owned by other users.',
-        },
-    }),
-    manage_system_wide_oauth: defineMessages({
-        name: {
-            id: 'admin.permissions.permission.manage_system_wide_oauth.name',
-            defaultMessage: 'Manage Others\'',
-        },
-        description: {
-            id: 'admin.permissions.permission.manage_system_wide_oauth.description',
-            defaultMessage: 'Create, edit and delete OAuth 2.0 applications owned by other users.',
+            defaultMessage: 'Create, edit and delete OAuth 2.0 application tokens.',
         },
     }),
     manage_private_channel_properties: defineMessages({
