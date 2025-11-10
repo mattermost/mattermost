@@ -24,7 +24,7 @@ func TestFlushGracefulDegradation(t *testing.T) {
 	}
 
 	// Verify it doesn't implement Flusher
-	_, ok := interface{}(mockWriter).(http.Flusher)
+	_, ok := any(mockWriter).(http.Flusher)
 	require.False(t, ok, "basicWriter should not implement http.Flusher")
 
 	// Create server with non-Flusher writer
