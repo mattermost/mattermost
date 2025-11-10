@@ -7,11 +7,12 @@ import type {MessageDescriptor} from 'react-intl';
 import {defineMessage, FormattedMessage, useIntl} from 'react-intl';
 
 import {
-    FormatLetterCaseIcon,
-    ArrowExpandIcon,
-    ArrowCollapseIcon,
-    TextBoxOutlineIcon,
+    AiSummarizeIcon,
     CreationOutlineIcon,
+    TextShortIcon,
+    TextLongIcon,
+    AutoFixIcon,
+    SpellcheckIcon,
 } from '@mattermost/compass-icons/components';
 import type {Agent} from '@mattermost/types/agents';
 
@@ -35,22 +36,22 @@ const menuItems: MenuItemConfig[] = [
     {
         action: RewriteAction.SHORTEN,
         label: defineMessage({id: 'texteditor.rewrite.shorten', defaultMessage: 'Shorten'}),
-        icon: <ArrowCollapseIcon size={18}/>,
+        icon: <TextShortIcon size={18}/>,
     },
     {
         action: RewriteAction.ELABORATE,
         label: defineMessage({id: 'texteditor.rewrite.elaborate', defaultMessage: 'Elaborate'}),
-        icon: <ArrowExpandIcon size={18}/>,
+        icon: <TextLongIcon size={18}/>,
     },
     {
         action: RewriteAction.IMPROVE_WRITING,
         label: defineMessage({id: 'texteditor.rewrite.improveWriting', defaultMessage: 'Improve writing'}),
-        icon: <FormatLetterCaseIcon size={18}/>,
+        icon: <AutoFixIcon size={18}/>,
     },
     {
         action: RewriteAction.FIX_SPELLING,
         label: defineMessage({id: 'texteditor.rewrite.fixSpelling', defaultMessage: 'Fix spelling and grammar'}),
-        icon: <FormatLetterCaseIcon size={18}/>,
+        icon: <SpellcheckIcon size={18}/>,
     },
     {
         action: RewriteAction.SIMPLIFY,
@@ -60,7 +61,7 @@ const menuItems: MenuItemConfig[] = [
     {
         action: RewriteAction.SUMMARIZE,
         label: defineMessage({id: 'texteditor.rewrite.summarize', defaultMessage: 'Summarize'}),
-        icon: <TextBoxOutlineIcon size={18}/>,
+        icon: <AiSummarizeIcon size={18}/>,
     },
 ];
 
