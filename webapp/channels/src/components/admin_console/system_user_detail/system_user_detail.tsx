@@ -511,6 +511,8 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     />
                 );
             }
+
+            // Only text elements can have errors
             case 'text':
             default: {
                 const inputType = getInputTypeFromValueType(field.attrs?.value_type);
@@ -525,10 +527,12 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                             value={Array.isArray(value) ? value.join(this.props.intl.formatMessage({id: 'admin.userManagement.userDetail.arrayValueSeparator', defaultMessage: ', '})) : value}
                             onChange={(e) => this.handleCpaValueChange(field.id, e.target.value)}
                             disabled={isDisabled}
+                            aria-describedby={field.id + '-error'}
+                            aria-invalid={error ? 'true' : 'false'}
                         />
                         {error && (
                             <div
-                                id='authdata-error'
+                                id={field.id + '-error'}
                                 className='field-error'
                                 role='alert'
                                 aria-live='polite'
@@ -819,7 +823,39 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                 if (field.id === fieldId) {
                     const fieldName = field.name;
                     const originalValue = this.state.originalCpaValues[fieldId];
-                    const newValue = Array.isArray(changes[1]) ? changes[1].join(this.props.intl.formatMessage({id: 'admin.userManagement.userDetail.arrayValueSeparator', defaultMessage: ', '})) : changes[1];
+
+                    // Helper function to resolve option IDs to names for select/multiselect fields
+                    const resolveOptionNames = (value: string | string[] | undefined) => {
+                        if (!value) {
+                            return '(empty)';
+                        }
+
+                        const options = field.attrs?.options || [];
+                        if (field.type === 'select' || field.type === 'multiselect') {
+                            if (!Array.isArray(value)) {
+                                // Select: resolve single ID to its name
+                                const option = options.find((opt) => opt.id === value);
+                                return option ? option.name : value;
+                            }
+
+                            // Multiselect: resolve each ID to its name
+                            if (value.length === 0) {
+                                return '(empty)';
+                            }
+                            
+                            const names = value.map((id) => {
+                                const option = options.find((opt) => opt.id === id);
+                                return option ? option.name : id;
+                            });
+                            return names.join(this.props.intl.formatMessage({id: 'admin.userManagement.userDetail.arrayValueSeparator', defaultMessage: ', '}));
+                        }
+
+                        // For non-select fields, display as-is
+                        return Array.isArray(value) ? value.join(this.props.intl.formatMessage({id: 'admin.userManagement.userDetail.arrayValueSeparator', defaultMessage: ', '})) : value;
+                    };
+
+                    const oldValue = resolveOptionNames(originalValue);
+                    const newValue = resolveOptionNames(changes[1]);
 
                     fields.push(
                         <FormattedMessage
@@ -827,8 +863,8 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                             defaultMessage='{fieldName}: {oldValue} → {newValue}'
                             values={{
                                 fieldName,
-                                oldValue: originalValue || '(empty)',
-                                newValue: newValue || '(empty)',
+                                oldValue,
+                                newValue,
                             }}
                         />,
                     );
