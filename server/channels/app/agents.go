@@ -4,6 +4,8 @@
 package app
 
 import (
+	"net/http"
+
 	agentclient "github.com/mattermost/mattermost-plugin-ai/public/bridgeclient"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -16,7 +18,7 @@ func (a *App) getBridgeClient(userID string) *agentclient.Client {
 }
 
 // GetAgents retrieves all available agents from the bridge API
-func (a *App) GetAgents(rctx request.CTX, userID string) (*agentclient.AgentsResponse, *model.AppError) {
+func (a *App) GetAgents(rctx request.CTX, userID string) ([]agentclient.BridgeAgentInfo, *model.AppError) {
 	// Create bridge client
 	sessionUserID := ""
 	if session := rctx.Session(); session != nil {
@@ -30,14 +32,14 @@ func (a *App) GetAgents(rctx request.CTX, userID string) (*agentclient.AgentsRes
 			mlog.Err(err),
 			mlog.String("user_id", userID),
 		)
-		return nil, model.NewAppError("GetAgents", "app.agents.get_agents.bridge_call_failed", nil, err.Error(), 500)
+		return nil, model.NewAppError("GetAgents", "app.agents.get_agents.bridge_call_failed", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	return &agentclient.AgentsResponse{Agents: agents}, nil
+	return agents, nil
 }
 
 // GetLLMServices retrieves all available LLM services from the bridge API
-func (a *App) GetLLMServices(rctx request.CTX, userID string) (*agentclient.ServicesResponse, *model.AppError) {
+func (a *App) GetLLMServices(rctx request.CTX, userID string) ([]agentclient.BridgeServiceInfo, *model.AppError) {
 	// Create bridge client
 	sessionUserID := ""
 	if session := rctx.Session(); session != nil {
@@ -51,8 +53,8 @@ func (a *App) GetLLMServices(rctx request.CTX, userID string) (*agentclient.Serv
 			mlog.Err(err),
 			mlog.String("user_id", userID),
 		)
-		return nil, model.NewAppError("GetLLMServices", "app.agents.get_services.bridge_call_failed", nil, err.Error(), 500)
+		return nil, model.NewAppError("GetLLMServices", "app.agents.get_services.bridge_call_failed", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	return &agentclient.ServicesResponse{Services: services}, nil
+	return services, nil
 }

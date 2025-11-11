@@ -1,0 +1,76 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+.SidebarRecaps {
+    margin-bottom: 12px;
+
+    .SidebarChannel {
+        height: 32px;
+        padding: 0;
+
+        &.active {
+            background-color: rgba(var(--sidebar-text-rgb), 0.08);
+
+            .SidebarLink::before {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 2px;
+                height: 100%;
+                border-radius: 0 var(--radius-s) var(--radius-s) 0;
+                background-color: var(--sidebar-text-active-border);
+                content: '';
+            }
+        }
+
+        &:hover:not(.active) {
+            background-color: rgba(var(--sidebar-text-rgb), 0.04);
+        }
+    }
+
+    .SidebarLink {
+        position: relative;
+        display: flex;
+        height: 100%;
+        align-items: center;
+        padding: 0 16px 0 18px;
+        color: rgba(var(--sidebar-text-rgb), 0.72);
+        text-decoration: none;
+
+        .icon {
+            display: flex;
+            align-items: center;
+            padding: 3px;
+            margin-right: 4px;
+            font-size: 18px;
+            opacity: 0.64;
+        }
+
+        .SidebarChannelLinkLabel_wrapper {
+            min-width: 0;
+            flex: 1;
+            padding: 2px 4px;
+        }
+
+        .SidebarChannelLinkLabel {
+            overflow: hidden;
+            font-size: 14px;
+            line-height: 20px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    }
+
+    .active .SidebarLink {
+        color: var(--sidebar-text);
+
+        .icon {
+            opacity: 1;
+        }
+
+        .SidebarChannelLinkLabel {
+            font-weight: 600;
+        }
+    }
+}
+
