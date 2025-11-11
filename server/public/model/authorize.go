@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"net/http"
+	"net/url"
 	"regexp"
 )
 
@@ -38,6 +39,7 @@ type AuthData struct {
 	Scope               string `json:"scope"`
 	CodeChallenge       string `json:"code_challenge,omitempty"`
 	CodeChallengeMethod string `json:"code_challenge_method,omitempty"`
+	Resource            string `json:"resource,omitempty"`
 }
 
 type AuthorizeRequest struct {
@@ -48,6 +50,7 @@ type AuthorizeRequest struct {
 	State               string `json:"state"`
 	CodeChallenge       string `json:"code_challenge,omitempty"`
 	CodeChallengeMethod string `json:"code_challenge_method,omitempty"`
+	Resource            string `json:"resource,omitempty"`
 }
 
 // IsValid validates the AuthData and returns an error if it isn't configured
@@ -92,6 +95,13 @@ func (ad *AuthData) IsValid() *AppError {
 		}
 	}
 
+	// Resource validation per RFC 8707
+	if ad.Resource != "" {
+		if err := ValidateResourceParameter(ad.Resource, ad.ClientId, "AuthData.IsValid"); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -121,6 +131,13 @@ func (ar *AuthorizeRequest) IsValid() *AppError {
 	// PKCE validation - if one PKCE field is present, both must be present and valid
 	if ar.CodeChallenge != "" || ar.CodeChallengeMethod != "" {
 		if err := ar.validatePKCE(); err != nil {
+			return err
+		}
+	}
+
+	// Resource validation per RFC 8707
+	if ar.Resource != "" {
+		if err := ValidateResourceParameter(ar.Resource, ar.ClientId, "AuthorizeRequest.IsValid"); err != nil {
 			return err
 		}
 	}
@@ -247,6 +264,36 @@ func (ad *AuthData) ValidatePKCEForClientType(isPublicClient bool, codeVerifier 
 			// Client provided code_verifier but didn't use PKCE in authorization - reject
 			return NewAppError("AuthData.ValidatePKCEForClientType", "model.authorize.validate_pkce.not_used_in_auth.app_error", nil, "client_id="+ad.ClientId, http.StatusBadRequest)
 		}
+	}
+
+	return nil
+}
+
+// ValidateResourceParameter validates a resource parameter per RFC 8707
+func ValidateResourceParameter(resource, clientId, caller string) *AppError {
+	// Empty resource parameter is allowed (no resource specified)
+	if resource == "" {
+		return nil
+	}
+
+	// Resource must not exceed 512 characters to fit in database column
+	if len(resource) > 512 {
+		return NewAppError(caller, "model.authorize.is_valid.resource.length.app_error", nil, "client_id="+clientId, http.StatusBadRequest)
+	}
+
+	parsedURL, err := url.Parse(resource)
+	if err != nil {
+		return NewAppError(caller, "model.authorize.is_valid.resource.invalid_uri.app_error", nil, "client_id="+clientId, http.StatusBadRequest)
+	}
+
+	// Must be absolute URI (has scheme)
+	if !parsedURL.IsAbs() {
+		return NewAppError(caller, "model.authorize.is_valid.resource.not_absolute.app_error", nil, "client_id="+clientId, http.StatusBadRequest)
+	}
+
+	// Must not include a fragment component per RFC 8707
+	if parsedURL.Fragment != "" {
+		return NewAppError(caller, "model.authorize.is_valid.resource.has_fragment.app_error", nil, "client_id="+clientId, http.StatusBadRequest)
 	}
 
 	return nil
