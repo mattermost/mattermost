@@ -60,6 +60,8 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
 
         const expected = {
             clientId: '1234abcd',
+            codeChallenge: null,
+            codeChallengeMethod: null,
             responseType: null,
             redirectUri: null,
             state: null,
