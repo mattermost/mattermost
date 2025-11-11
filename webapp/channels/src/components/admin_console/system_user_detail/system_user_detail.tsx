@@ -185,7 +185,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                 throw new Error(userResult.error ? userResult.error.message : this.props.intl.formatMessage({id: 'admin.user_item.unknownError', defaultMessage: 'Unknown error'}));
             }
         } catch (error) {
-            console.log('SystemUserDetails-getUser: ', error); // eslint-disable-line no-console
+            console.error('SystemUserDetails-getUser: ', error); // eslint-disable-line no-console
 
             this.setState({
                 isLoading: false,
@@ -301,8 +301,10 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         const {target: {value}} = event;
 
         // Validate email
-        let emailError = null;
-        if (value.trim() && !isEmail(value)) {
+        let emailError;
+        if (!value.trim()) {
+            emailError = this.props.intl.formatMessage({id: 'admin.user_item.emptyEmail', defaultMessage: 'Email cannot be empty'});
+        } else if (!isEmail(value)) {
             emailError = this.props.intl.formatMessage({id: 'admin.user_item.invalidEmail', defaultMessage: 'Invalid email address'});
         }
 
@@ -359,11 +361,11 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         }
 
         const emailChanged = this.state.emailField !== this.state.user.email;
-        const didUsernameChanged = this.state.usernameField !== this.state.user.username;
-        const didAuthDataChanged = this.state.authDataField !== (this.state.user.auth_data || '');
+        const usernameChanged = this.state.usernameField !== this.state.user.username;
+        const authDataChanged = this.state.authDataField !== (this.state.user.auth_data || '');
         const cpaChanged = this.hasCpaChanges();
 
-        const hasChanges = emailChanged || didUsernameChanged || didAuthDataChanged || cpaChanged;
+        const hasChanges = emailChanged || usernameChanged || authDataChanged || cpaChanged;
 
         this.setState({
             isSaveNeeded: hasChanges,
@@ -400,17 +402,19 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
         const {target: {value}} = event;
 
-        // Validate username
+        // Validate auth data
         let authDataError;
         if (!value.trim()) {
             authDataError = this.props.intl.formatMessage({id: 'admin.user_item.invalidAuthData', defaultMessage: 'Auth Data cannot be empty'});
+        } else if (value.length > 128) {
+            authDataError = this.props.intl.formatMessage({id: 'admin.user_item.authDataTooLong', defaultMessage: 'Auth Data must be 128 characters or less'});
         }
 
         this.setState({
             authDataField: value,
             authDataError,
         }, () => {
-            //this.checkForChanges();
+            this.checkForChanges();
         });
     };
 
@@ -699,7 +703,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             </label>,
         );
 
-        if (this.state.user?.auth_data && this.state.user?.auth_service) {
+        if (this.state.user?.auth_service) {
             fields.push(
                 <label key='authData'>
                     <FormattedMessage
@@ -709,7 +713,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     <SheidOutlineIcon/>
                     <input
                         className={classNames('form-control', {
-                            error: this.state.usernameError,
+                            error: this.state.authDataError,
                         })}
                         type='text'
                         value={this.state.authDataField}
@@ -842,7 +846,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                             if (value.length === 0) {
                                 return '(empty)';
                             }
-                            
+
                             const names = value.map((id) => {
                                 const option = options.find((opt) => opt.id === id);
                                 return option ? option.name : id;
@@ -859,7 +863,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
                     fields.push(
                         <FormattedMessage
-                            id='admin.userDetail.saveChangesModal.authDataChange'
+                            id='admin.userDetail.saveChangesModal.cpaFieldChange'
                             defaultMessage='{fieldName}: {oldValue} → {newValue}'
                             values={{
                                 fieldName,
@@ -901,8 +905,14 @@ export class SystemUserDetail extends PureComponent<Props, State> {
     handleCancel = () => {
         // Reset all fields to original values
         this.setState({
+            usernameField: this.state?.user?.username || '',
+            usernameError: null,
             emailField: this.state.user?.email || '',
+            emailError: null,
+            authDataField: this.state.user?.auth_data || '',
+            authDataError: null,
             customProfileAttributeValues: {...this.state.originalCpaValues},
+            customProfileAttributeErrors: {},
             error: null, // Clear any errors when user starts editing
             isSaveNeeded: false,
         });
@@ -936,6 +946,9 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         if (!this.state.isSaveNeeded) {
             return;
         }
+        if (this.state.isSaving) {
+            return;
+        }
 
         this.setState({
             error: null,
@@ -946,16 +959,14 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         try {
             const promises = [];
 
-            let userData: UserProfile = this.state.user;
+            let updatedUser: UserProfile = {...this.state.user};
 
             // Handle email/username updates (only if no auth_service)
             const emailChanged = !this.state.user.auth_service && this.state.emailField !== this.state.user.email;
             const usernameChanged = !this.state.user.auth_service && this.state.usernameField !== this.state.user.username;
 
-            // Update user profile if email changed
-            if (emailChanged || usernameChanged) {
-                const updatedUser: UserProfile = {...this.state.user};
-
+            // Update user profile if email or username changed
+            if (usernameChanged || emailChanged) {
                 if (emailChanged) {
                     updatedUser.email = this.state.emailField.trim().toLowerCase();
                 }
@@ -978,11 +989,10 @@ export class SystemUserDetail extends PureComponent<Props, State> {
             const results = await Promise.all(promises);
 
             // Handle results
-            let updatedUser = this.state.user;
             let resultIndex = 0;
 
-            // Handle user update result if email was changed
-            if (emailChanged) {
+            // Handle user update result if email or username changed
+            if (emailChanged || usernameChanged) {
                 const userResult = results[resultIndex] as ActionResult<UserProfile, ServerError>;
                 if (userResult.data) {
                     updatedUser = userResult.data;
@@ -1003,21 +1013,6 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                 }
             }
 
-            // Update state with successful results
-            this.setState({
-                user: updatedUser,
-                emailField: updatedUser.email,
-                originalCpaValues: {...this.state.customProfileAttributeValues}, // Update original values
-                error: null,
-                isSaving: false,
-                isSaveNeeded: false,
-            });
-
-            // Refresh user data to ensure we have latest CPA values from server
-            if (cpaChanged) {
-                await this.props.getCustomProfileAttributeValues(this.state.user.id);
-            }
-
             // Handle auth_data update
             const authDataChanged = this.state.authDataField !== (this.state.user.auth_data || '');
             if (authDataChanged) {
@@ -1028,8 +1023,8 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
                 if (data) {
                     // Update the user data with the new auth information
-                    userData = {
-                        ...userData,
+                    updatedUser = {
+                        ...updatedUser,
                         auth_data: data.auth_data,
                         auth_service: data.auth_service,
                     };
@@ -1038,14 +1033,22 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                 }
             }
 
+            // Refresh user data to ensure we have latest CPA values from server
+            if (cpaChanged) {
+                await this.props.getCustomProfileAttributeValues(this.state.user.id);
+            }
+
+            // Update state with successful results
             this.setState({
-                user: userData,
-                emailField: userData.email,
-                usernameField: userData.username,
-                authDataField: userData.auth_data || '',
-                error: null,
-                emailError: null,
+                user: updatedUser,
+                usernameField: updatedUser.username,
                 usernameError: null,
+                emailField: updatedUser.email,
+                emailError: null,
+                authDataField: updatedUser.auth_data || '',
+                authDataError: null,
+                originalCpaValues: {...this.state.customProfileAttributeValues}, // Update original values
+                error: null,
                 isSaving: false,
                 isSaveNeeded: false,
             });

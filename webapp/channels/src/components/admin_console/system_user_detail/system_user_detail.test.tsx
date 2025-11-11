@@ -19,7 +19,7 @@ import Constants from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 // Mock user profile data
-const user = Object.assign(TestHelper.getUserMock(), {auth_service: Constants.EMAIL_SERVICE}) as UserProfile;
+const user = Object.assign(TestHelper.getUserMock(), {auth_service: ''}) as UserProfile;
 const ldapUser = {...user, auth_service: Constants.LDAP_SERVICE} as UserProfile;
 
 // Mock getUser action result
@@ -110,7 +110,6 @@ describe('SystemUserDetail', () => {
         const props = {
             ...defaultProps,
             getUser: getLdapUserMock,
-            isLoading: false,
         };
 
         const {container} = renderWithContext(<SystemUserDetail {...props}/>);
@@ -228,6 +227,29 @@ describe('SystemUserDetail', () => {
                 });
             }
         });
+
+        test('should show validation error for empty email', async () => {
+            const props = {
+                ...defaultProps,
+                intl: {
+                    formatMessage: jest.fn().mockImplementation(({defaultMessage}) => defaultMessage),
+                } as MockIntl,
+            };
+            renderWithContext(<SystemUserDetail {...props}/>);
+
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+
+            const emailInputs = screen.getAllByDisplayValue(user.email);
+            const emailInput = emailInputs.find((input) => !(input as HTMLInputElement).disabled);
+
+            if (emailInput) {
+                fireEvent.change(emailInput, {target: {value: '  '}});
+
+                await waitFor(() => {
+                    expect(screen.getByText('Email cannot be empty')).toBeInTheDocument();
+                });
+            }
+        });
     });
 
     describe('username validation', () => {
@@ -255,10 +277,87 @@ describe('SystemUserDetail', () => {
         });
     });
 
+    describe('authData validation', () => {
+        const samlUser = {...user, auth_service: Constants.SAML_SERVICE, auth_data: 'test-auth-data'} as UserProfile;
+        const getSamlUserMock = jest.fn().mockResolvedValue({data: samlUser, error: null});
+
+        test('should show validation error for empty authData', async () => {
+            const props = {
+                ...defaultProps,
+                getUser: getSamlUserMock,
+                intl: {
+                    formatMessage: jest.fn().mockImplementation(({defaultMessage}) => defaultMessage),
+                } as MockIntl,
+            };
+            renderWithContext(<SystemUserDetail {...props}/>);
+
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+
+            const authDataInput = screen.getByPlaceholderText('Enter auth data');
+
+            if (authDataInput) {
+                fireEvent.change(authDataInput, {target: {value: '  '}});
+
+                await waitFor(() => {
+                    expect(screen.getByText('Auth Data cannot be empty')).toBeInTheDocument();
+                });
+            }
+        });
+
+        test('should show validation error for authData exceeding 128 characters', async () => {
+            const props = {
+                ...defaultProps,
+                getUser: getSamlUserMock,
+                intl: {
+                    formatMessage: jest.fn().mockImplementation(({defaultMessage}) => defaultMessage),
+                } as MockIntl,
+            };
+            renderWithContext(<SystemUserDetail {...props}/>);
+
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+
+            const authDataInput = screen.getByPlaceholderText('Enter auth data');
+
+            if (authDataInput) {
+                const longAuthData = 'a'.repeat(129); // 129 characters, exceeds max
+                fireEvent.change(authDataInput, {target: {value: longAuthData}});
+
+                await waitFor(() => {
+                    expect(screen.getByText('Auth Data must be 128 characters or less')).toBeInTheDocument();
+                });
+            }
+        });
+
+        test('should not show validation error for valid authData', async () => {
+            const props = {
+                ...defaultProps,
+                getUser: getSamlUserMock,
+                intl: {
+                    formatMessage: jest.fn().mockImplementation(({defaultMessage}) => defaultMessage),
+                } as MockIntl,
+            };
+            renderWithContext(<SystemUserDetail {...props}/>);
+
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+
+            const authDataInput = screen.getByPlaceholderText('Enter auth data');
+
+            if (authDataInput) {
+                const validAuthData = 'a'.repeat(128); // Exactly 128 characters
+                fireEvent.change(authDataInput, {target: {value: validAuthData}});
+
+                await waitFor(() => {
+                    expect(screen.queryByText('Auth Data must be 128 characters or less')).not.toBeInTheDocument();
+                    expect(screen.queryByText('Auth Data cannot be empty')).not.toBeInTheDocument();
+                });
+            }
+        });
+    });
+
     describe('error handling', () => {
         test('should handle getUser error correctly', async () => {
             // Suppress expected console errors
-            const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+            const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
             const getUserErrorMock = jest.fn().mockResolvedValue({
                 data: null,
