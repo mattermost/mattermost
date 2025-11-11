@@ -4,9 +4,10 @@
 import type {Post} from '@mattermost/types/posts';
 
 import {savePageDraft} from 'actions/page_drafts';
+
 import {getWikiUrl, getTeamNameFromPath} from 'utils/url';
 
-import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync} from 'types/store';
 
 /**
  * Opens a page in edit mode by creating a draft and navigating to it

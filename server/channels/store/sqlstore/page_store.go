@@ -179,8 +179,8 @@ func (s *SqlPageStore) UpdatePageWithContent(rctx request.CTX, pageID, title, co
 		Select(
 			"Id", "CreateAt", "UpdateAt", "EditAt", "DeleteAt",
 			"IsPinned", "UserId", "ChannelId", "RootId", "OriginalId",
-			"PageParentId", "Message", "MessageSource", "Type", "Props",
-			"Hashtags", "Filenames", "FileIds", "PendingPostId",
+			"PageParentId", "Message", "Type", "Props",
+			"Hashtags", "Filenames", "FileIds",
 			"HasReactions", "RemoteId",
 		).
 		From("Posts").

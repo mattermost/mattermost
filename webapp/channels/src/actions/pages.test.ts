@@ -112,8 +112,8 @@ describe('actions/pages - Page Status', () => {
             for (const status of validStatuses) {
                 testStore.clearActions();
                 await testStore.dispatch(Actions.updatePageStatus(postId, status));
-
                 const actions = testStore.getActions();
+
                 expect(actions).toHaveLength(1);
                 expect(actions[0].type).toBe('RECEIVED_POST');
                 expect(actions[0].data.props.page_status).toBe(status);

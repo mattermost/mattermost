@@ -23,6 +23,7 @@ import MessageWithAdditionalContent from 'components/message_with_additional_con
 import PriorityLabel from 'components/post_priority/post_priority_label';
 import PostProfilePicture from 'components/post_profile_picture';
 import PostAcknowledgements from 'components/post_view/acknowledgements';
+import AiGeneratedIndicator from 'components/post_view/ai_generated_indicator/ai_generated_indicator';
 import CommentedOn from 'components/post_view/commented_on/commented_on';
 import FailedPostOptions from 'components/post_view/failed_post_options';
 import PageCommentedOn from 'components/post_view/page_commented_on';
@@ -458,33 +459,40 @@ function PostComponent(props: Props) {
     // Hide message when PageCommentedOn is shown (it renders the message itself)
     const hideMessageForPageComment = isPageInlineComment(post) && props.location === Locations.RHS_ROOT;
 
-    const message = hideMessageForPageComment ? null : (isSearchResultItem ? (
-        <PostBodyAdditionalContent
-            post={post}
-            options={{
-                searchTerm: props.term,
-                searchMatches: props.matches,
-            }}
-        >
-            <PostMessageContainer
-                post={post}
-                options={{
-                    searchTerm: props.term,
-                    searchMatches: props.matches,
-                    mentionHighlight: props.isMentionSearch,
-                }}
-                isRHS={isRHS}
-            />
-        </PostBodyAdditionalContent>
-    ) : (
-        <MessageWithAdditionalContent
-            post={post}
-            isEmbedVisible={props.isEmbedVisible}
-            pluginPostTypes={props.pluginPostTypes}
-            isRHS={isRHS}
-            compactDisplay={props.compactDisplay}
-        />
-    ));
+    let message = null;
+    if (!hideMessageForPageComment) {
+        if (isSearchResultItem) {
+            message = (
+                <PostBodyAdditionalContent
+                    post={post}
+                    options={{
+                        searchTerm: props.term,
+                        searchMatches: props.matches,
+                    }}
+                >
+                    <PostMessageContainer
+                        post={post}
+                        options={{
+                            searchTerm: props.term,
+                            searchMatches: props.matches,
+                            mentionHighlight: props.isMentionSearch,
+                        }}
+                        isRHS={isRHS}
+                    />
+                </PostBodyAdditionalContent>
+            );
+        } else {
+            message = (
+                <MessageWithAdditionalContent
+                    post={post}
+                    isEmbedVisible={props.isEmbedVisible}
+                    pluginPostTypes={props.pluginPostTypes}
+                    isRHS={isRHS}
+                    compactDisplay={props.compactDisplay}
+                />
+            );
+        }
+    }
 
     const slotBasedOnEditOrMessageView = props.isPostBeingEdited ? AutoHeightSlots.SLOT2 : AutoHeightSlots.SLOT1;
     const threadFooter = props.location !== Locations.RHS_ROOT && props.isCollapsedThreadsEnabled && !post.root_id && (props.hasReplies || post.is_following) ? (
@@ -604,6 +612,15 @@ function PostComponent(props: Props) {
                                     />
                                 }
                                 {priority}
+                                {Boolean(post.props && post.props.ai_generated_by && post.props.ai_generated_by_username) &&
+                                    typeof post.props.ai_generated_by === 'string' &&
+                                    typeof post.props.ai_generated_by_username === 'string' && (
+                                    <AiGeneratedIndicator
+                                        userId={post.props.ai_generated_by}
+                                        username={post.props.ai_generated_by_username}
+                                        postAuthorId={post.user_id}
+                                    />
+                                )}
                                 {Boolean(post.props && post.props.card) &&
                                     <WithTooltip
                                         title={

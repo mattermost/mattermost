@@ -4,9 +4,9 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
+import {GenericModal} from '@mattermost/components';
 import type {Post} from '@mattermost/types/posts';
 
-import {GenericModal} from '@mattermost/components';
 import PostEditHistory from 'components/post_edit_history/post_edit_history';
 
 import './page_version_history_modal.scss';

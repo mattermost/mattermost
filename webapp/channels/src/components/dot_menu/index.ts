@@ -24,6 +24,7 @@ import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserId, getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
 import {isSystemMessage} from 'mattermost-redux/utils/post_utils';
 
+import {resolvePageComment, unresolvePageComment} from 'actions/pages';
 import {
     flagPost,
     unflagPost,
@@ -32,7 +33,6 @@ import {
     setEditingPost,
     markPostAsUnread,
 } from 'actions/post_actions';
-import {resolvePageComment, unresolvePageComment} from 'actions/pages';
 import {openModal} from 'actions/views/modals';
 import {makeCanWrangler} from 'selectors/posts';
 import {getIsMobileView} from 'selectors/views/browser';

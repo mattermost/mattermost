@@ -5,8 +5,8 @@ import {batchActions} from 'redux-batched-actions';
 
 import type {PageDraft as ServerPageDraft} from '@mattermost/types/drafts';
 
-import {Client4} from 'mattermost-redux/client';
 import {WikiTypes} from 'mattermost-redux/action_types';
+import {Client4} from 'mattermost-redux/client';
 import {syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
 import {setGlobalItem, removeGlobalItem} from 'actions/storage';

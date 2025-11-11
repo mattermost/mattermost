@@ -4,6 +4,7 @@
 package app
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -831,12 +832,12 @@ func TestDuplicatePage(t *testing.T) {
 		createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
 		require.Nil(t, err)
 
-		var longTitle string
+		var longTitle strings.Builder
 		for range 300 {
-			longTitle += "A"
+			longTitle.WriteString("A")
 		}
 
-		page, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", longTitle[:255], "", th.BasicUser.Id, "")
+		page, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", longTitle.String()[:255], "", th.BasicUser.Id, "")
 		require.Nil(t, err)
 
 		th.Context.Session().UserId = th.BasicUser.Id

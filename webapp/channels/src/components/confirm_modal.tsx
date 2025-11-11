@@ -59,6 +59,11 @@ type Props = {
     checkboxText?: React.ReactNode;
 
     /*
+     * CSS class to apply to the checkbox container
+     */
+    checkboxClass?: string;
+
+    /*
      * If true, show the checkbox in the footer instead of the modal body
      */
     checkboxInFooter?: boolean;
@@ -72,6 +77,11 @@ type Props = {
      * Function called when the cancel button is pressed or the modal is hidden. Passes `true` if the checkbox is checked
      */
     onCancel?: (checked: boolean) => void;
+
+    /*
+     * Function called when the checkbox is changed. Passes `true` if the checkbox is checked
+     */
+    onCheckboxChange?: (checked: boolean) => void;
 
     /**
      * Function called when modal is dismissed
@@ -87,6 +97,11 @@ type Props = {
      * Set to hide the confirm button
      */
     hideConfirm?: boolean;
+
+    /*
+     * Set to disable the confirm button
+     */
+    confirmDisabled?: boolean;
 
     /*
      * The element that triggered the modal
@@ -113,19 +128,23 @@ const ConfirmModal = ({
     isStacked,
     showCheckbox,
     checkboxText,
+    checkboxClass,
     checkboxInFooter,
     cancelButtonText,
     hideCancel,
     hideConfirm,
+    confirmDisabled,
     onConfirm,
     onCancel,
+    onCheckboxChange,
     onExited,
 }: Props) => {
     const [checked, setChecked] = useState(false);
 
     const handleCheckboxChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         setChecked(e.target.checked);
-    }, []);
+        onCheckboxChange?.(e.target.checked);
+    }, [onCheckboxChange]);
 
     const handleConfirm = useCallback(() => {
         onConfirm?.(checked);
@@ -145,8 +164,9 @@ const ConfirmModal = ({
 
     let checkbox;
     if (showCheckbox) {
+        const checkboxContainerClass = checkboxClass || 'checkbox text-right mb-0';
         checkbox = (
-            <div className='checkbox text-right mb-0'>
+            <div className={checkboxContainerClass}>
                 <label>
                     <input
                         type='checkbox'
@@ -218,6 +238,7 @@ const ConfirmModal = ({
                             onClick={handleConfirm}
                             id='confirmModalButton'
                             autoFocus={true}
+                            disabled={confirmDisabled}
                         >
                             {confirmButtonText}
                         </button>

@@ -434,7 +434,7 @@ export function createPage(wikiId: string, title: string, pageParentId?: string)
 
             await Client4.savePageDraft(wikiId, draftId, placeholderContent, title, undefined, {page_parent_id: pageParentId});
 
-            const result = await dispatch(loadPageDraftsForWiki(wikiId));
+            await dispatch(loadPageDraftsForWiki(wikiId));
 
             return {data: draftId};
         } catch (error) {

@@ -92,6 +92,8 @@ const (
 	PostPropsForceNotification        = "force_notification"
 	PostPropsChannelMentions          = "channel_mentions"
 	PostPropsUnsafeLinks              = "unsafe_links"
+	PostPropsAIGeneratedByUserID      = "ai_generated_by"
+	PostPropsAIGeneratedByUsername    = "ai_generated_by_username"
 
 	PostPriorityUrgent = "urgent"
 )
@@ -809,6 +811,20 @@ func (o *Post) propsIsValid() error {
 	if props[PostPropsForceNotification] != nil {
 		if _, ok := props[PostPropsForceNotification].(bool); !ok {
 			multiErr = multierror.Append(multiErr, fmt.Errorf("force_notification prop must be a boolean"))
+		}
+	}
+
+	if props[PostPropsAIGeneratedByUserID] != nil {
+		if aiGenUserID, ok := props[PostPropsAIGeneratedByUserID].(string); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("ai_generated_by prop must be a string"))
+		} else if !IsValidId(aiGenUserID) {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("ai_generated_by prop must be a valid user ID"))
+		}
+	}
+
+	if props[PostPropsAIGeneratedByUsername] != nil {
+		if _, ok := props[PostPropsAIGeneratedByUsername].(string); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("ai_generated_by_username prop must be a string"))
 		}
 	}
 

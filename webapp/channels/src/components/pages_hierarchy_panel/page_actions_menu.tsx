@@ -43,7 +43,7 @@ const PageActionsMenu = ({
     const [menuPosition, setMenuPosition] = useState({x: 0, y: 0});
 
     const isOutlineVisible = useSelector((state: GlobalState) =>
-        state.views.pagesHierarchy.outlineExpandedNodes[pageId] || false
+        state.views.pagesHierarchy.outlineExpandedNodes[pageId] || false,
     );
 
     const handleMenuButtonClick = useCallback((e: React.MouseEvent) => {

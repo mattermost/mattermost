@@ -118,7 +118,6 @@ const WikiPageThreadViewer = (props: Props) => {
                                 await props.actions.getPost(rootPost.props.page_id);
                             } catch (error) {
                                 // Page post fetch failed, but thread is still usable
-                                console.error('Failed to fetch page post:', error);
                             }
                         }
                     }

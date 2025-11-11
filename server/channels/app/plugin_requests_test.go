@@ -520,6 +520,22 @@ func TestServePluginRequest(t *testing.T) {
 		th.App.ch.servePluginRequest(rr, req, mockHandler)
 		require.True(t, handlerCalled)
 	})
+
+	t.Run("third-party use of Authorization header preserved", func(t *testing.T) {
+		req := httptest.NewRequest(http.MethodPost, "/plugins/testplugin/endpoint", nil)
+		req.Header.Set(model.HeaderAuth, "Bearer 3rd-party-token")
+		rr := httptest.NewRecorder()
+
+		handlerCalled := false
+		mockHandler := func(ctx *plugin.Context, w http.ResponseWriter, r *http.Request) {
+			handlerCalled = true
+			// Should still have the authorization header
+			assert.Equal(t, "Bearer 3rd-party-token", r.Header.Get(model.HeaderAuth))
+		}
+
+		th.App.ch.servePluginRequest(rr, req, mockHandler)
+		require.True(t, handlerCalled)
+	})
 }
 
 func TestValidateCSRFForPluginRequest(t *testing.T) {

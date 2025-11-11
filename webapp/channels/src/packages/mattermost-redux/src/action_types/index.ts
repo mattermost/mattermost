@@ -4,6 +4,7 @@
 import type {AnyAction} from 'redux';
 
 import AdminTypes from './admin';
+import AgentTypes from './agents';
 import AppsTypes from './apps';
 import BotTypes from './bots';
 import ChannelBookmarkTypes from './channel_bookmarks';
@@ -66,6 +67,7 @@ export {
     ScheduledPostTypes,
     SharedChannelTypes,
     ContentFlaggingTypes,
+    AgentTypes,
     WikiTypes,
 };
 

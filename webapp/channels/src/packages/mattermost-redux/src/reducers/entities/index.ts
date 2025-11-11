@@ -4,6 +4,7 @@
 import {combineReducers} from 'redux';
 
 import admin from './admin';
+import agents from './agents';
 import apps from './apps';
 import bots from './bots';
 import channelBookmarks from './channel_bookmarks';
@@ -36,6 +37,7 @@ import wikis from './wikis';
 
 export default combineReducers({
     general,
+    agents,
     users,
     limits,
     teams,

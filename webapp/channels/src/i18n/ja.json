@@ -3711,7 +3711,6 @@
   "channel_settings.access_rules.confirm_modal.question": "本当にアクセスルールを適用しますか?",
   "channel_settings.access_rules.confirm_modal.restricted_tab": "制限 ({count})",
   "channel_settings.access_rules.confirm_modal.saving": "保存中...",
-  "channel_settings.access_rules.confirm_modal.title": "保存してルールを適用",
   "channel_settings.access_rules.confirm_modal.view_users": "ユーザーを見る",
   "channel_settings.access_rules.error.back_to_editing": "編集に戻る",
   "channel_settings.access_rules.error.no_current_user": "アクセスルールを検証できません: 現在のユーザーが見つかりません",

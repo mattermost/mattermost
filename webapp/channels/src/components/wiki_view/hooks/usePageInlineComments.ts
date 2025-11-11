@@ -7,7 +7,6 @@ import {useDispatch, useSelector} from 'react-redux';
 import type {Post} from '@mattermost/types/posts';
 
 import {Client4} from 'mattermost-redux/client';
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
 import {openWikiRhs, closeRightHandSide} from 'actions/views/rhs';
 import {getRhsState} from 'selectors/rhs';
@@ -48,6 +47,7 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
                 if (!pageInlineCommentHasAnchor(post)) {
                     return false;
                 }
+
                 // Exclude resolved comments from highlights
                 return !post.props?.comment_resolved;
             });
@@ -155,7 +155,6 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
                 if (commentId && eventPageId === pageId) {
                     setInlineComments((prev) => prev.filter((comment) => comment.id !== commentId));
                 }
-                return;
             }
         };
 
@@ -213,8 +212,6 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
                     setTimeout(() => {
                         commentElement.classList.remove('highlight-animation');
                     }, 2000);
-                } else {
-                    // Comment element not found yet, may still be loading
                 }
             }, 300);
         };

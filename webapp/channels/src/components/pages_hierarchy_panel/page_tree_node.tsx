@@ -53,7 +53,7 @@ const PageTreeNode = ({
 }: Props) => {
     const currentTeam = useSelector((state: GlobalState) => getCurrentTeam(state));
     const isOutlineVisible = useSelector((state: GlobalState) =>
-        state.views.pagesHierarchy.outlineExpandedNodes[node.id] || false
+        state.views.pagesHierarchy.outlineExpandedNodes[node.id] || false,
     );
 
     const [showMenu, setShowMenu] = useState(false);
@@ -63,7 +63,7 @@ const PageTreeNode = ({
 
     const isLoading = isRenaming || isDeleting;
 
-    const paddingLeft = (node.depth * 20);
+    const paddingLeft = (node.depth * 20) + 8;
 
     // Build the link path for the page
     const pageLink = wikiId && channelId ? `/${currentTeam?.name || 'team'}/wiki/${channelId}/${wikiId}/${node.id}` : '#';

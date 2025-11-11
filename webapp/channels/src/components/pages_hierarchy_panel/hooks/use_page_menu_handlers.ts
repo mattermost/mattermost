@@ -11,7 +11,7 @@ import {Client4} from 'mattermost-redux/client';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {removePageDraft} from 'actions/page_drafts';
-import {createPage, updatePage, deletePage, duplicatePage, movePageToWiki} from 'actions/pages';
+import {createPage, deletePage, duplicatePage, movePageToWiki} from 'actions/pages';
 import {expandAncestors} from 'actions/views/pages_hierarchy';
 import {openPageInEditMode} from 'actions/wiki_edit';
 

@@ -31,6 +31,6 @@ export async function fetchMissingPagePosts(threads: UserThreadWithPost[], dispa
             data: {posts: postsToDispatch},
         });
     } catch (error) {
-        console.error('Failed to fetch PAGE posts:', error);
+        // Failed to fetch page posts
     }
 }
