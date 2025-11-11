@@ -308,18 +308,12 @@ func getTranslatedDateRange(dateRange string) string {
 	}
 }
 
-func (a *App) GetPostsForReporting(rctx request.CTX, options model.ReportPostOptions, cursor model.ReportPostOptionsCursor) (*model.ReportPostListResponse, *model.AppError) {
+func (a *App) GetPostsForReporting(rctx request.CTX, queryParams model.ReportPostQueryParams, includeMetadata bool) (*model.ReportPostListResponse, *model.AppError) {
 	if !model.MinimumEnterpriseLicense(a.Srv().License()) {
 		return nil, model.NewAppError("GetPostsForReporting", "app.post.get_posts_for_reporting.license_error", nil, "", http.StatusBadRequest)
 	}
 
-	// Resolve cursor and options into concrete query parameters
-	queryParams, err := model.ResolveReportPostQueryParams(options, cursor)
-	if err != nil {
-		return nil, err.(*model.AppError)
-	}
-
-	response, err := a.Srv().Store().Post().GetPostsForReporting(rctx, *queryParams)
+	response, err := a.Srv().Store().Post().GetPostsForReporting(rctx, queryParams)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
@@ -331,7 +325,7 @@ func (a *App) GetPostsForReporting(rctx request.CTX, options model.ReportPostOpt
 	}
 
 	// Optionally enrich posts with metadata if requested
-	if options.IncludeMetadata {
+	if includeMetadata {
 		for id, post := range response.Posts {
 			// Use PreparePostForClient to add metadata (files, reactions counts, emojis, priority, acknowledgements)
 			// This does NOT include embeds or images - those are only for UI presentation

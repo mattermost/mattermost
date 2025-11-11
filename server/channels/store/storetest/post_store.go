@@ -5728,6 +5728,38 @@ func testGetPostsSinceForSyncExcludeMetadata(t *testing.T, rctx request.CTX, ss 
 	})
 }
 
+// buildReportPostQueryParams is a test helper to build ReportPostQueryParams for store tests.
+// Store tests focus on SQL query logic, not parameter resolution/validation (which happens in API layer).
+func buildReportPostQueryParams(channelId, timeField, sortDirection string, perPage int, includeDeleted, excludeSystemPosts bool) model.ReportPostQueryParams {
+	// Set defaults
+	if timeField == "" {
+		timeField = model.ReportingTimeFieldCreateAt
+	}
+	if sortDirection == "" {
+		sortDirection = model.ReportingSortDirectionAsc
+	}
+	if perPage == 0 {
+		perPage = 100
+	}
+
+	// Set initial cursor position based on sort direction
+	cursorTime := int64(0) // ASC: start from beginning
+	if sortDirection == model.ReportingSortDirectionDesc {
+		cursorTime = int64(^uint64(0) >> 1) // MaxInt64
+	}
+
+	return model.ReportPostQueryParams{
+		ChannelId:          channelId,
+		CursorTime:         cursorTime,
+		CursorId:           "",
+		TimeField:          timeField,
+		SortDirection:      sortDirection,
+		IncludeDeleted:     includeDeleted,
+		ExcludeSystemPosts: excludeSystemPosts,
+		PerPage:            perPage,
+	}
+}
+
 func testGetPostsForReporting(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	channelID := model.NewId()
 	first := model.GetMillis()
@@ -5757,73 +5789,33 @@ func testGetPostsForReporting(t *testing.T, rctx request.CTX, ss store.Store, s 
 	}
 
 	t.Run("Invalid channel id", func(t *testing.T) {
-		options := model.ReportPostOptions{
-			ChannelId: model.NewId(),
-		}
-		cursor := model.ReportPostOptionsCursor{
-			Cursor: "", // Empty cursor for first page
-		}
-		queryParams, err := model.ResolveReportPostQueryParams(options, cursor)
-		require.NoError(t, err)
-		result, err := ss.Post().GetPostsForReporting(rctx, *queryParams)
+		queryParams := buildReportPostQueryParams(model.NewId(), "", "", 0, false, false)
+		result, err := ss.Post().GetPostsForReporting(rctx, queryParams)
 		require.NoError(t, err)
 		require.Empty(t, result.Posts, "should return zero posts")
 		require.Nil(t, result.NextCursor, "should not have next cursor")
 	})
 
 	t.Run("empty cursor is valid for first page", func(t *testing.T) {
-		// Empty cursor is valid for first page - the store layer handles defaults
-		// This is documented in OpenAPI spec and used by mmctl
-		options := model.ReportPostOptions{
-			ChannelId:     channelID,
-			TimeField:     "create_at",
-			SortDirection: "asc",
-			PerPage:       100,
-		}
-		cursor := model.ReportPostOptionsCursor{
-			Cursor: "", // Empty cursor for first page
-		}
-		queryParams, err := model.ResolveReportPostQueryParams(options, cursor)
-		require.NoError(t, err)
-		result, err := ss.Post().GetPostsForReporting(rctx, *queryParams)
+		queryParams := buildReportPostQueryParams(channelID, model.ReportingTimeFieldCreateAt, model.ReportingSortDirectionAsc, 100, false, false)
+		result, err := ss.Post().GetPostsForReporting(rctx, queryParams)
 		require.NoError(t, err, "empty cursor should be valid")
 		require.NotNil(t, result)
 		require.Greater(t, len(result.Posts), 0, "should return posts")
 	})
 
-	t.Run("Invalid cursor format validation", func(t *testing.T) {
-		options := model.ReportPostOptions{
-			ChannelId: channelID,
-		}
-		cursor := model.ReportPostOptionsCursor{
-			Cursor: "invalid:cursor:format", // Invalid cursor format
-		}
-		_, err := model.ResolveReportPostQueryParams(options, cursor)
-		require.Error(t, err, "should error on invalid cursor format")
-	})
-
 	t.Run("Basic cursor pagination with create_at ASC", func(t *testing.T) {
-		options := model.ReportPostOptions{
-			ChannelId:     channelID,
-			TimeField:     "create_at",
-			SortDirection: "asc",
-			PerPage:       5,
-		}
-		cursor := model.ReportPostOptionsCursor{
-			Cursor: "", // Empty cursor for first page
-		}
-
 		// First page
-		queryParams, err := model.ResolveReportPostQueryParams(options, cursor)
-		require.NoError(t, err)
-		result1, err := ss.Post().GetPostsForReporting(rctx, *queryParams)
+		queryParams := buildReportPostQueryParams(channelID, model.ReportingTimeFieldCreateAt, model.ReportingSortDirectionAsc, 5, false, false)
+		result1, err := ss.Post().GetPostsForReporting(rctx, queryParams)
 		require.NoError(t, err)
 		require.Len(t, result1.Posts, 5, "should get 5 posts")
 		require.NotNil(t, result1.NextCursor, "should have next cursor")
 
-		// Second page - use cursor from first page
-		queryParams2, err := model.ResolveReportPostQueryParams(options, *result1.NextCursor)
+		// Second page - decode cursor from first page
+		queryParams2, err := model.DecodeReportPostCursorV1(result1.NextCursor.Cursor)
 		require.NoError(t, err)
+		queryParams2.PerPage = 5
 		result2, err := ss.Post().GetPostsForReporting(rctx, *queryParams2)
 		require.NoError(t, err)
 		require.Len(t, result2.Posts, 5, "should get 5 posts")
@@ -5831,20 +5823,8 @@ func testGetPostsForReporting(t *testing.T, rctx request.CTX, ss store.Store, s 
 	})
 
 	t.Run("DESC sort order", func(t *testing.T) {
-		// Empty cursor for DESC starts from the most recent post
-		options := model.ReportPostOptions{
-			ChannelId:     channelID,
-			TimeField:     "create_at",
-			SortDirection: "desc",
-			PerPage:       3,
-		}
-		cursor := model.ReportPostOptionsCursor{
-			Cursor: "", // Empty cursor - DESC will start from most recent
-		}
-
-		queryParams, err := model.ResolveReportPostQueryParams(options, cursor)
-		require.NoError(t, err)
-		result, err := ss.Post().GetPostsForReporting(rctx, *queryParams)
+		queryParams := buildReportPostQueryParams(channelID, model.ReportingTimeFieldCreateAt, model.ReportingSortDirectionDesc, 3, false, false)
+		result, err := ss.Post().GetPostsForReporting(rctx, queryParams)
 		require.NoError(t, err)
 		require.Len(t, result.Posts, 3, "should get 3 posts")
 		require.NotNil(t, result.NextCursor, "should have next cursor")
@@ -5862,20 +5842,8 @@ func testGetPostsForReporting(t *testing.T, rctx request.CTX, ss store.Store, s 
 	})
 
 	t.Run("Include deleted posts", func(t *testing.T) {
-		options := model.ReportPostOptions{
-			ChannelId:      channelID,
-			TimeField:      "create_at",
-			SortDirection:  "asc",
-			PerPage:        100,
-			IncludeDeleted: true,
-		}
-		cursor := model.ReportPostOptionsCursor{
-			Cursor: "", // Empty cursor for first page
-		}
-
-		queryParams, err := model.ResolveReportPostQueryParams(options, cursor)
-		require.NoError(t, err)
-		result, err := ss.Post().GetPostsForReporting(rctx, *queryParams)
+		queryParams := buildReportPostQueryParams(channelID, model.ReportingTimeFieldCreateAt, model.ReportingSortDirectionAsc, 100, true, false)
+		result, err := ss.Post().GetPostsForReporting(rctx, queryParams)
 		require.NoError(t, err)
 		require.Len(t, result.Posts, 12, "should get all 12 posts including deleted")
 
@@ -5890,20 +5858,8 @@ func testGetPostsForReporting(t *testing.T, rctx request.CTX, ss store.Store, s 
 	})
 
 	t.Run("Exclude channel metadata system posts", func(t *testing.T) {
-		options := model.ReportPostOptions{
-			ChannelId:          channelID,
-			TimeField:          "create_at",
-			SortDirection:      "asc",
-			PerPage:            100,
-			ExcludeSystemPosts: true,
-		}
-		cursor := model.ReportPostOptionsCursor{
-			Cursor: "", // Empty cursor for first page
-		}
-
-		queryParams, err := model.ResolveReportPostQueryParams(options, cursor)
-		require.NoError(t, err)
-		result, err := ss.Post().GetPostsForReporting(rctx, *queryParams)
+		queryParams := buildReportPostQueryParams(channelID, model.ReportingTimeFieldCreateAt, model.ReportingSortDirectionAsc, 100, false, true)
+		result, err := ss.Post().GetPostsForReporting(rctx, queryParams)
 		require.NoError(t, err)
 		require.Len(t, result.Posts, 8, "should get 8 posts (10 regular posts - 2 deleted)")
 
@@ -5936,19 +5892,8 @@ func testGetPostsForReporting(t *testing.T, rctx request.CTX, ss store.Store, s 
 		}
 
 		// Query by update_at field
-		options := model.ReportPostOptions{
-			ChannelId:     channelID3,
-			TimeField:     "update_at",
-			SortDirection: "asc",
-			PerPage:       100,
-		}
-		cursor := model.ReportPostOptionsCursor{
-			Cursor: "", // Empty cursor for first page
-		}
-
-		queryParams, err := model.ResolveReportPostQueryParams(options, cursor)
-		require.NoError(t, err)
-		result, err := ss.Post().GetPostsForReporting(rctx, *queryParams)
+		queryParams := buildReportPostQueryParams(channelID3, model.ReportingTimeFieldUpdateAt, model.ReportingSortDirectionAsc, 100, false, false)
+		result, err := ss.Post().GetPostsForReporting(rctx, queryParams)
 		require.NoError(t, err)
 		require.Len(t, result.Posts, 3, "should get all 3 posts")
 
@@ -5977,24 +5922,14 @@ func testGetPostsForReporting(t *testing.T, rctx request.CTX, ss store.Store, s 
 		}
 
 		// Paginate through posts with same timestamp
-		options := model.ReportPostOptions{
-			ChannelId:     channelID2,
-			TimeField:     "create_at",
-			SortDirection: "asc",
-			PerPage:       2,
-		}
-		cursor := model.ReportPostOptionsCursor{
-			Cursor: "", // Empty cursor for first page
-		}
-
 		allPosts := make(map[string]*model.Post)
 		iterations := 0
 		maxIterations := 10 // Safety limit
 
+		queryParams := buildReportPostQueryParams(channelID2, model.ReportingTimeFieldCreateAt, model.ReportingSortDirectionAsc, 2, false, false)
+
 		for iterations < maxIterations {
-			queryParams, err := model.ResolveReportPostQueryParams(options, cursor)
-			require.NoError(t, err)
-			result, err := ss.Post().GetPostsForReporting(rctx, *queryParams)
+			result, err := ss.Post().GetPostsForReporting(rctx, queryParams)
 			require.NoError(t, err)
 
 			maps.Copy(allPosts, result.Posts)
@@ -6002,7 +5937,11 @@ func testGetPostsForReporting(t *testing.T, rctx request.CTX, ss store.Store, s 
 			if result.NextCursor == nil {
 				break
 			}
-			cursor = *result.NextCursor
+			// Decode cursor for next page
+			qp, err := model.DecodeReportPostCursorV1(result.NextCursor.Cursor)
+			require.NoError(t, err)
+			qp.PerPage = 2
+			queryParams = *qp
 			iterations++
 		}
 
@@ -6010,59 +5949,24 @@ func testGetPostsForReporting(t *testing.T, rctx request.CTX, ss store.Store, s 
 	})
 
 	t.Run("Per page limits", func(t *testing.T) {
-		options := model.ReportPostOptions{
-			ChannelId:     channelID,
-			TimeField:     "create_at",
-			SortDirection: "asc",
-			PerPage:       3, // Request 3 per page
-		}
-		cursor := model.ReportPostOptionsCursor{
-			Cursor: "", // Empty cursor for first page
-		}
-
-		queryParams, err := model.ResolveReportPostQueryParams(options, cursor)
-		require.NoError(t, err)
-		result, err := ss.Post().GetPostsForReporting(rctx, *queryParams)
+		queryParams := buildReportPostQueryParams(channelID, model.ReportingTimeFieldCreateAt, model.ReportingSortDirectionAsc, 3, false, false)
+		result, err := ss.Post().GetPostsForReporting(rctx, queryParams)
 		require.NoError(t, err)
 		require.Len(t, result.Posts, 3, "should respect per_page limit")
 	})
 
 	t.Run("Default per page when not specified", func(t *testing.T) {
-		options := model.ReportPostOptions{
-			ChannelId:     channelID,
-			TimeField:     "create_at",
-			SortDirection: "asc",
-			PerPage:       0, // 0 should default to 100
-		}
-		cursor := model.ReportPostOptionsCursor{
-			Cursor: "", // Empty cursor for first page
-		}
-
-		queryParams, err := model.ResolveReportPostQueryParams(options, cursor)
-		require.NoError(t, err)
-		result, err := ss.Post().GetPostsForReporting(rctx, *queryParams)
+		queryParams := buildReportPostQueryParams(channelID, model.ReportingTimeFieldCreateAt, model.ReportingSortDirectionAsc, 0, false, false)
+		result, err := ss.Post().GetPostsForReporting(rctx, queryParams)
 		require.NoError(t, err)
 		// Should get all non-deleted posts in one page (default is 100)
 		require.Greater(t, len(result.Posts), 0, "should get posts with default per_page")
 	})
 
 	t.Run("Max per page limit enforced", func(t *testing.T) {
-		// Test that per_page > 1000 is capped at 1000
-		// We can't easily test the 1000 limit without creating 1001 posts,
-		// so we just verify the function doesn't error with large values
-		options := model.ReportPostOptions{
-			ChannelId:     channelID,
-			TimeField:     "create_at",
-			SortDirection: "asc",
-			PerPage:       5000, // Request more than max
-		}
-		cursor := model.ReportPostOptionsCursor{
-			Cursor: "", // Empty cursor for first page
-		}
-
-		queryParams, err := model.ResolveReportPostQueryParams(options, cursor)
-		require.NoError(t, err)
-		result, err := ss.Post().GetPostsForReporting(rctx, *queryParams)
+		// Test that per_page > 1000 is capped at 1000 by the helper
+		queryParams := buildReportPostQueryParams(channelID, model.ReportingTimeFieldCreateAt, model.ReportingSortDirectionAsc, 5000, false, false)
+		result, err := ss.Post().GetPostsForReporting(rctx, queryParams)
 		require.NoError(t, err)
 		require.NotNil(t, result, "should handle large per_page values")
 	})
@@ -6097,38 +6001,16 @@ func testGetPostsForReporting(t *testing.T, rctx request.CTX, ss store.Store, s 
 		}
 
 		// Query with ASC direction - should use (ChannelId, CreateAt) index seek
-		options := model.ReportPostOptions{
-			ChannelId:     largeChannelID,
-			TimeField:     "create_at",
-			SortDirection: "asc",
-			PerPage:       50,
-		}
-		cursor := model.ReportPostOptionsCursor{
-			Cursor: "", // Empty cursor for first page
-		}
-
 		// This query should be fast (< 100ms) if using indexes properly
 		// If it's doing a table scan, it would be much slower with larger datasets
-		queryParams, err := model.ResolveReportPostQueryParams(options, cursor)
-		require.NoError(t, err)
-		result, err := ss.Post().GetPostsForReporting(rctx, *queryParams)
+		queryParams := buildReportPostQueryParams(largeChannelID, model.ReportingTimeFieldCreateAt, model.ReportingSortDirectionAsc, 50, false, false)
+		result, err := ss.Post().GetPostsForReporting(rctx, queryParams)
 		require.NoError(t, err)
 		require.Greater(t, len(result.Posts), 0, "should return posts")
 
 		// Test DESC query which uses different index path
-		optionsDesc := model.ReportPostOptions{
-			ChannelId:     largeChannelID,
-			TimeField:     "create_at",
-			SortDirection: "desc",
-			PerPage:       50,
-		}
-		cursorDesc := model.ReportPostOptionsCursor{
-			Cursor: "", // Empty cursor - starts from most recent
-		}
-
-		queryParamsDesc, err := model.ResolveReportPostQueryParams(optionsDesc, cursorDesc)
-		require.NoError(t, err)
-		resultDesc, err := ss.Post().GetPostsForReporting(rctx, *queryParamsDesc)
+		queryParamsDesc := buildReportPostQueryParams(largeChannelID, model.ReportingTimeFieldCreateAt, model.ReportingSortDirectionDesc, 50, false, false)
+		resultDesc, err := ss.Post().GetPostsForReporting(rctx, queryParamsDesc)
 		require.NoError(t, err)
 		require.Greater(t, len(resultDesc.Posts), 0, "should return posts")
 

@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"io"
 	"maps"
-	"math"
 	"net/http"
 	"regexp"
 	"sort"
@@ -1153,6 +1152,7 @@ type PreparePostForClientOpts struct {
 // ReportPostOptions contains options for querying posts for reporting/compliance purposes
 type ReportPostOptions struct {
 	ChannelId          string `json:"channel_id"`
+	StartTime          int64  `json:"start_time,omitempty"`           // Optional: Start time for query range (unix timestamp in milliseconds)
 	TimeField          string `json:"time_field,omitempty"`           // "create_at" or "update_at" (default: "create_at")
 	SortDirection      string `json:"sort_direction,omitempty"`       // "asc" or "desc" (default: "asc")
 	PerPage            int    `json:"per_page,omitempty"`             // Number of posts per page (default: 100, max: MaxReportingPerPage)
@@ -1239,6 +1239,35 @@ type ReportPostQueryParams struct {
 	PerPage            int    // Number of posts per page (already validated)
 }
 
+// Validate validates the ReportPostQueryParams fields.
+// This should be called after parameter resolution (from cursor or options) and before passing to the store layer.
+// Note: PerPage is handled separately in the API layer (capped at 100-1000 range).
+func (q *ReportPostQueryParams) Validate() *AppError {
+	// Validate ChannelId
+	if !IsValidId(q.ChannelId) {
+		return NewAppError("ReportPostQueryParams.Validate", "model.post.query_params.invalid_channel_id", nil, "channel_id must be a valid 26-character ID", 400)
+	}
+
+	// Validate TimeField
+	if q.TimeField != ReportingTimeFieldCreateAt && q.TimeField != ReportingTimeFieldUpdateAt {
+		return NewAppError("ReportPostQueryParams.Validate", "model.post.query_params.invalid_time_field", nil, fmt.Sprintf("time_field must be %q or %q", ReportingTimeFieldCreateAt, ReportingTimeFieldUpdateAt), 400)
+	}
+
+	// Validate SortDirection
+	if q.SortDirection != ReportingSortDirectionAsc && q.SortDirection != ReportingSortDirectionDesc {
+		return NewAppError("ReportPostQueryParams.Validate", "model.post.query_params.invalid_sort_direction", nil, fmt.Sprintf("sort_direction must be %q or %q", ReportingSortDirectionAsc, ReportingSortDirectionDesc), 400)
+	}
+
+	// Validate CursorId - can be empty (first page) or must be a valid ID format (subsequent pages)
+	if q.CursorId != "" && !IsValidId(q.CursorId) {
+		return NewAppError("ReportPostQueryParams.Validate", "model.post.query_params.invalid_cursor_id", nil, "cursor_id must be a valid 26-character ID", 400)
+	}
+
+	// CursorTime is validated by the fact it's an int64
+	// PerPage is handled in API layer before calling Validate()
+	return nil
+}
+
 // EncodeReportPostCursor creates an opaque cursor string from pagination state.
 // The cursor encodes all query-affecting parameters to ensure consistency across pages.
 // The cursor is base64-encoded to ensure it's truly opaque and URL-safe.
@@ -1257,40 +1286,40 @@ func EncodeReportPostCursor(channelId string, timeField string, includeDeleted b
 	return base64.URLEncoding.EncodeToString([]byte(plainText))
 }
 
-// decodeReportPostCursorV1 parses an opaque cursor string into query parameters.
-// Returns a partially populated ReportPostQueryParams (missing PerPage which comes from options).
-func decodeReportPostCursorV1(cursor string) (*ReportPostQueryParams, error) {
+// DecodeReportPostCursorV1 parses an opaque cursor string into query parameters.
+// Returns a partially populated ReportPostQueryParams (missing PerPage which comes from the request).
+func DecodeReportPostCursorV1(cursor string) (*ReportPostQueryParams, *AppError) {
 	decoded, err := base64.URLEncoding.DecodeString(cursor)
 	if err != nil {
-		return nil, NewAppError("decodeReportPostCursorV1", "model.post.decode_cursor.invalid_base64", nil, err.Error(), 400)
+		return nil, NewAppError("DecodeReportPostCursorV1", "model.post.decode_cursor.invalid_base64", nil, err.Error(), 400)
 	}
 
 	parts := strings.Split(string(decoded), ":")
 	if len(parts) != 8 {
-		return nil, NewAppError("decodeReportPostCursorV1", "model.post.decode_cursor.invalid_format", nil, fmt.Sprintf("expected 8 parts, got %d", len(parts)), 400)
+		return nil, NewAppError("DecodeReportPostCursorV1", "model.post.decode_cursor.invalid_format", nil, fmt.Sprintf("expected 8 parts, got %d", len(parts)), 400)
 	}
 
 	version, err := strconv.Atoi(parts[0])
 	if err != nil {
-		return nil, NewAppError("decodeReportPostCursorV1", "model.post.decode_cursor.invalid_version", nil, fmt.Sprintf("version must be an integer: %s", err.Error()), 400)
+		return nil, NewAppError("DecodeReportPostCursorV1", "model.post.decode_cursor.invalid_version", nil, fmt.Sprintf("version must be an integer: %s", err.Error()), 400)
 	}
 	if version != 1 {
-		return nil, NewAppError("decodeReportPostCursorV1", "model.post.decode_cursor.unsupported_version", nil, fmt.Sprintf("version %d", version), 400)
+		return nil, NewAppError("DecodeReportPostCursorV1", "model.post.decode_cursor.unsupported_version", nil, fmt.Sprintf("version %d", version), 400)
 	}
 
 	includeDeleted, err := strconv.ParseBool(parts[3])
 	if err != nil {
-		return nil, NewAppError("decodeReportPostCursorV1", "model.post.decode_cursor.invalid_include_deleted", nil, fmt.Sprintf("include_deleted must be a boolean: %s", err.Error()), 400)
+		return nil, NewAppError("DecodeReportPostCursorV1", "model.post.decode_cursor.invalid_include_deleted", nil, fmt.Sprintf("include_deleted must be a boolean: %s", err.Error()), 400)
 	}
 
 	excludeSystemPosts, err := strconv.ParseBool(parts[4])
 	if err != nil {
-		return nil, NewAppError("decodeReportPostCursorV1", "model.post.decode_cursor.invalid_exclude_system_posts", nil, fmt.Sprintf("exclude_system_posts must be a boolean: %s", err.Error()), 400)
+		return nil, NewAppError("DecodeReportPostCursorV1", "model.post.decode_cursor.invalid_exclude_system_posts", nil, fmt.Sprintf("exclude_system_posts must be a boolean: %s", err.Error()), 400)
 	}
 
 	timestamp, err := strconv.ParseInt(parts[6], 10, 64)
 	if err != nil {
-		return nil, NewAppError("decodeReportPostCursorV1", "model.post.decode_cursor.invalid_timestamp", nil, fmt.Sprintf("timestamp must be an integer: %s", err.Error()), 400)
+		return nil, NewAppError("DecodeReportPostCursorV1", "model.post.decode_cursor.invalid_timestamp", nil, fmt.Sprintf("timestamp must be an integer: %s", err.Error()), 400)
 	}
 
 	return &ReportPostQueryParams{
@@ -1301,62 +1330,5 @@ func decodeReportPostCursorV1(cursor string) (*ReportPostQueryParams, error) {
 		SortDirection:      parts[5],
 		IncludeDeleted:     includeDeleted,
 		ExcludeSystemPosts: excludeSystemPosts,
-		// PerPage will be set by ResolveReportPostQueryParams
 	}, nil
-}
-
-// ResolveReportPostQueryParams decodes the cursor (if provided) and resolves query parameters.
-// Cursor parameters take precedence over request options (cursor is self-contained).
-func ResolveReportPostQueryParams(options ReportPostOptions, cursor ReportPostOptionsCursor) (*ReportPostQueryParams, error) {
-	if options.ChannelId == "" {
-		return nil, NewAppError("ResolveReportPostQueryParams", "model.post.resolve_query_params.missing_channel_id", nil, "", 400)
-	}
-
-	var params *ReportPostQueryParams
-
-	if cursor.Cursor != "" {
-		// Decode cursor - it contains all query parameters
-		var err error
-		params, err = decodeReportPostCursorV1(cursor.Cursor)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		// First page - apply defaults from options
-		timeField := ReportingTimeFieldCreateAt
-		if options.TimeField == ReportingTimeFieldUpdateAt {
-			timeField = ReportingTimeFieldUpdateAt
-		}
-		sortDirection := ReportingSortDirectionAsc
-		if options.SortDirection == ReportingSortDirectionDesc {
-			sortDirection = ReportingSortDirectionDesc
-		}
-
-		// Set initial cursor position based on sort direction
-		cursorTime := int64(0) // ASC: start from beginning
-		if sortDirection == ReportingSortDirectionDesc {
-			cursorTime = math.MaxInt64 // DESC: start from end
-		}
-
-		params = &ReportPostQueryParams{
-			ChannelId:          options.ChannelId,
-			CursorTime:         cursorTime,
-			CursorId:           "",
-			TimeField:          timeField,
-			SortDirection:      sortDirection,
-			IncludeDeleted:     options.IncludeDeleted,
-			ExcludeSystemPosts: options.ExcludeSystemPosts,
-		}
-	}
-
-	// Apply PerPage from options (not in cursor)
-	params.PerPage = options.PerPage
-	if params.PerPage <= 0 {
-		params.PerPage = 100
-	}
-	if params.PerPage > MaxReportingPerPage {
-		params.PerPage = MaxReportingPerPage
-	}
-
-	return params, nil
 }

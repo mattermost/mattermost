@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -186,63 +187,86 @@ func getPostsForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validate required parameters
-	if request.ChannelId == "" {
-		c.SetInvalidParam("channel_id")
-		return
-	}
-	if !model.IsValidId(request.ChannelId) {
-		c.SetInvalidParam("channel_id")
-		return
+	// Resolve query parameters: either from cursor (if provided) or from request options
+	var queryParams *model.ReportPostQueryParams
+	var appErr *model.AppError
+
+	if request.Cursor != "" {
+		// Decode cursor - it contains all query parameters
+		queryParams, appErr = model.DecodeReportPostCursorV1(request.Cursor)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+	} else {
+		// First request - build params from options
+		// Set defaults for optional parameters
+		timeField := model.ReportingTimeFieldCreateAt
+		if request.TimeField == model.ReportingTimeFieldUpdateAt {
+			timeField = model.ReportingTimeFieldUpdateAt
+		}
+
+		sortDirection := model.ReportingSortDirectionAsc
+		if request.SortDirection == model.ReportingSortDirectionDesc {
+			sortDirection = model.ReportingSortDirectionDesc
+		}
+
+		// Set initial cursor position based on sort direction and start_time
+		cursorTime := int64(0) // ASC: start from beginning (or user-specified start_time)
+		if request.StartTime > 0 {
+			cursorTime = request.StartTime
+		} else if sortDirection == model.ReportingSortDirectionDesc {
+			cursorTime = math.MaxInt64 // DESC: start from end
+		}
+
+		// Build query params
+		queryParams = &model.ReportPostQueryParams{
+			ChannelId:          request.ChannelId,
+			CursorTime:         cursorTime,
+			CursorId:           "",
+			TimeField:          timeField,
+			SortDirection:      sortDirection,
+			IncludeDeleted:     request.IncludeDeleted,
+			ExcludeSystemPosts: request.ExcludeSystemPosts,
+		}
 	}
 
-	// Verify channel exists before querying posts
-	// This provides a better error message than returning an empty result set
-	channel, appErr := c.App.GetChannel(c.AppContext, request.ChannelId)
-	if appErr != nil {
-		c.Err = appErr
-		return
-	}
-	if channel == nil {
-		c.Err = model.NewAppError("getPostsForReporting", "api.post.get_posts_for_reporting.channel_not_found", nil, fmt.Sprintf("channel_id=%s", request.ChannelId), http.StatusNotFound)
-		return
-	}
-
-	// Set defaults
-	if request.TimeField == "" {
-		request.TimeField = "create_at"
-	}
-	if request.TimeField != "create_at" && request.TimeField != "update_at" {
-		c.SetInvalidParam("time_field")
-		return
-	}
-
-	if request.SortDirection == "" {
-		request.SortDirection = "asc"
-	}
-	if request.SortDirection != "asc" && request.SortDirection != "desc" {
-		c.SetInvalidParam("sort_direction")
-		return
-	}
-
+	// Handle PerPage - applies to both cursor and non-cursor requests
+	// Cap at min 100, max 1000
 	if request.PerPage <= 0 {
-		request.PerPage = 100
+		queryParams.PerPage = 100
+	} else if request.PerPage > model.MaxReportingPerPage {
+		queryParams.PerPage = model.MaxReportingPerPage
+	} else {
+		queryParams.PerPage = request.PerPage
 	}
-	if request.PerPage > model.MaxReportingPerPage {
-		c.Err = model.NewAppError("getPostsForReporting", "api.post.get_posts_for_reporting.invalid_per_page", nil, fmt.Sprintf("Maximum per_page is %d", model.MaxReportingPerPage), http.StatusBadRequest)
+
+	// Validate the fully resolved query parameters (shared validation for both cursor and options)
+	if appErr = queryParams.Validate(); appErr != nil {
+		c.Err = appErr
 		return
 	}
 
-	// Split into options and cursor
-	options := request.ReportPostOptions
-	cursor := request.ReportPostOptionsCursor
-
-	response, appErr := c.App.GetPostsForReporting(c.AppContext, options, cursor)
+	// Call app layer with resolved and validated parameters
+	response, appErr := c.App.GetPostsForReporting(c.AppContext, *queryParams, request.IncludeMetadata)
 	if appErr != nil {
 		c.Err = appErr
 		return
 	}
 
+	if len(response.Posts) == 0 {
+		// Determine if channel exists.
+		// This provides a better error message than returning an empty result set
+		channel, appErr := c.App.GetChannel(c.AppContext, request.ChannelId)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+		if channel == nil {
+			c.Err = model.NewAppError("getPostsForReporting", "api.post.get_posts_for_reporting.channel_not_found", nil, fmt.Sprintf("channel_id=%s", request.ChannelId), http.StatusNotFound)
+			return
+		}
+	}
 	if jsonErr := json.NewEncoder(w).Encode(response); jsonErr != nil {
 		c.Logger.Warn("Error writing response", mlog.Err(jsonErr))
 	}

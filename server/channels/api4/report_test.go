@@ -6,7 +6,9 @@ package api4
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -310,7 +312,7 @@ func TestGetPostsForReporting(t *testing.T) {
 		}
 
 		resp, _ := doPostJSON(t, th.SystemAdminClient, "/api/v4/reports/posts", requestBody)
-		require.Equal(t, http.StatusNotFound, resp.StatusCode, "should return 404 for non-existent channel instead of empty result")
+		require.Equal(t, http.StatusNotFound, resp.StatusCode, "should return 404 for non-existent channel")
 	})
 
 	t.Run("should accept empty cursor for first page", func(t *testing.T) {
@@ -619,8 +621,14 @@ func TestGetPostsForReporting(t *testing.T) {
 			"per_page":   5000, // More than max
 		}
 
-		resp, _ := doPostJSON(t, th.SystemAdminClient, "/api/v4/reports/posts", requestBody)
-		require.Equal(t, http.StatusBadRequest, resp.StatusCode, "should reject per_page > MaxReportingPerPage")
+		resp, body := doPostJSON(t, th.SystemAdminClient, "/api/v4/reports/posts", requestBody)
+		require.Equal(t, http.StatusOK, resp.StatusCode, "should cap per_page to MaxReportingPerPage instead of rejecting")
+
+		// Verify it was capped to max (we can't directly check the query but the request succeeds)
+		var result map[string]any
+		err := json.Unmarshal(body, &result)
+		require.NoError(t, err)
+		require.NotNil(t, result["posts"], "should return posts with capped per_page")
 	})
 
 	t.Run("should validate invalid channel_id format", func(t *testing.T) {
@@ -636,4 +644,75 @@ func TestGetPostsForReporting(t *testing.T) {
 		resp, _ := doPostJSON(t, th.SystemAdminClient, "/api/v4/reports/posts", requestBody)
 		require.Equal(t, http.StatusBadRequest, resp.StatusCode, "should reject invalid ID format")
 	})
+
+	t.Run("should reject tampered cursor with invalid TimeField", func(t *testing.T) {
+		th.LoginSystemAdmin()
+
+		// Create a tampered cursor with invalid TimeField
+		tamperedCursor := encodeManualCursor("1", th.BasicChannel.Id, "DROP TABLE Posts", "false", "false", "asc", "1640000000000", model.NewId())
+
+		requestBody := map[string]any{
+			"channel_id": th.BasicChannel.Id,
+			"cursor":     tamperedCursor,
+			"per_page":   10,
+		}
+
+		resp, _ := doPostJSON(t, th.SystemAdminClient, "/api/v4/reports/posts", requestBody)
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode, "should reject cursor with invalid time_field")
+	})
+
+	t.Run("should reject tampered cursor with invalid SortDirection", func(t *testing.T) {
+		th.LoginSystemAdmin()
+
+		// Create a tampered cursor with SQL injection in SortDirection
+		tamperedCursor := encodeManualCursor("1", th.BasicChannel.Id, "create_at", "false", "false", "ASC; DROP TABLE Posts--", "1640000000000", model.NewId())
+
+		requestBody := map[string]any{
+			"channel_id": th.BasicChannel.Id,
+			"cursor":     tamperedCursor,
+			"per_page":   10,
+		}
+
+		resp, _ := doPostJSON(t, th.SystemAdminClient, "/api/v4/reports/posts", requestBody)
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode, "should reject cursor with invalid sort_direction")
+	})
+
+	t.Run("should reject tampered cursor with invalid ChannelId", func(t *testing.T) {
+		th.LoginSystemAdmin()
+
+		// Create a tampered cursor with invalid channel ID format
+		tamperedCursor := encodeManualCursor("1", "bad_id", "create_at", "false", "false", "asc", "1640000000000", model.NewId())
+
+		requestBody := map[string]any{
+			"channel_id": th.BasicChannel.Id,
+			"cursor":     tamperedCursor,
+			"per_page":   10,
+		}
+
+		resp, _ := doPostJSON(t, th.SystemAdminClient, "/api/v4/reports/posts", requestBody)
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode, "should reject cursor with invalid channel_id")
+	})
+
+	t.Run("should reject tampered cursor with invalid CursorId", func(t *testing.T) {
+		th.LoginSystemAdmin()
+
+		// Create a tampered cursor with invalid cursor ID format
+		tamperedCursor := encodeManualCursor("1", th.BasicChannel.Id, "create_at", "false", "false", "asc", "1640000000000", "bad_cursor_id")
+
+		requestBody := map[string]any{
+			"channel_id": th.BasicChannel.Id,
+			"cursor":     tamperedCursor,
+			"per_page":   10,
+		}
+
+		resp, _ := doPostJSON(t, th.SystemAdminClient, "/api/v4/reports/posts", requestBody)
+		require.Equal(t, http.StatusBadRequest, resp.StatusCode, "should reject cursor with invalid cursor_id")
+	})
+}
+
+// encodeManualCursor is a test helper to create cursors with arbitrary values for tampering tests
+func encodeManualCursor(version, channelId, timeField, includeDeleted, excludeSystemPosts, sortDirection, timestamp, postId string) string {
+	plainText := fmt.Sprintf("%s:%s:%s:%s:%s:%s:%s:%s",
+		version, channelId, timeField, includeDeleted, excludeSystemPosts, sortDirection, timestamp, postId)
+	return base64.URLEncoding.EncodeToString([]byte(plainText))
 }

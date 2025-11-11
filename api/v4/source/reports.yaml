@@ -239,14 +239,14 @@
                     The cursor is base64-encoded and contains all pagination state including time, post ID,
                     and query parameters. Do not attempt to parse or modify the cursor value.
                   default: ""
-                end_time:
+                start_time:
                   type: integer
                   format: int64
                   description: >
-                    Optional time boundary in Unix milliseconds. Behavior depends on sort_direction:
-                    - For "asc" (ascending): acts as upper bound - stops when reaching this time going forward
-                    - For "desc" (descending): acts as lower bound - stops when reaching this time going backward
-                    Useful for limiting the time range of queries.
+                    Optional start time for query range in Unix milliseconds. Only used for the first request (ignored when cursor is provided).
+                    - For "asc" (ascending): starts retrieving from this time going forward
+                    - For "desc" (descending): starts retrieving from this time going backward
+                    If omitted, defaults to 0 for ascending or MaxInt64 for descending.
                 time_field:
                   type: string
                   enum: [create_at, update_at]
@@ -300,11 +300,11 @@
                   cursor: "MTphYmMxMjM6Y3JlYXRlX2F0OmZhbHNlOmZhbHNlOmFzYzoxNjM1NzI0ODAwMDAwOnBvc3QxMjM"
                   per_page: 100
               time_range_query:
-                summary: Query with time range
+                summary: Query with time range starting from specific time
                 value:
                   channel_id: "4xp9fdt77pncbef59f4k1qe83o"
                   cursor: ""
-                  end_time: 1635724800000
+                  start_time: 1635638400000
                   per_page: 100
               descending_order:
                 summary: Descending order from recent
