@@ -604,7 +604,10 @@ func (a *App) AddUserToTeamByToken(rctx request.CTX, userID string, tokenID stri
 	if err != nil {
 		return nil, nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
+	return a.AddUserToTeamWithToken(rctx, userID, token)
+}
 
+func (a *App) AddUserToTeamWithToken(rctx request.CTX, userID string, token *model.Token) (*model.Team, *model.TeamMember, *model.AppError) {
 	if token.Type != model.TokenTypeTeamInvitation && token.Type != model.TokenTypeGuestInvitation && token.Type != model.TokenTypeGuestMagicLinkInvitation {
 		return nil, nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest)
 	}

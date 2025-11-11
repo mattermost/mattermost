@@ -206,7 +206,7 @@ func (a *App) AuthenticateUserForGuestMagicLink(rctx request.CTX, tokenString st
 
 	// Add user to team and channels using the shared SSO pattern
 	// This handles team joining, channel assignment, and token deletion
-	if _, _, addErr := a.AddUserToTeamByToken(rctx, guestUser.Id, tokenString); addErr != nil {
+	if _, _, addErr := a.AddUserToTeamWithToken(rctx, guestUser.Id, token); addErr != nil {
 		return nil, addErr
 	}
 
@@ -1699,7 +1699,10 @@ func (a *App) resetPasswordFromToken(rctx request.CTX, userSuppliedTokenString, 
 	if err != nil {
 		return err
 	}
-	if token.IsExpired() {
+
+	// We cannot use IsExpired() here because we need to check
+	// with the argument passed in.
+	if nowMilli > token.CreateAt+model.PasswordRecoverExpiryTime {
 		return model.NewAppError("resetPassword", "api.user.reset_password.link_expired.app_error", nil, "", http.StatusBadRequest)
 	}
 
