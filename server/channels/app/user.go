@@ -2277,6 +2277,37 @@ func (a *App) AutocompleteUsersInChannel(rctx request.CTX, teamID string, channe
 		return nil, model.NewAppError("AutocompleteUsersInChannel", "app.user.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// Get enabled plugin IDs to filter plugin bots
+	enabledPluginIDs := make(map[string]bool)
+	pluginStatuses, appErr := a.GetPluginStatuses()
+	if appErr == nil {
+		for _, status := range pluginStatuses {
+			if status.State == model.PluginStateRunning {
+				enabledPluginIDs[status.PluginId] = true
+			}
+		}
+	}
+
+	// Filter out plugin bots from disabled plugins
+	filterPluginBots := func(users []*model.User) []*model.User {
+		filtered := make([]*model.User, 0, len(users))
+		for _, user := range users {
+			// Include user if: not a bot, or not a plugin bot, or plugin is enabled
+			if !user.IsBot || user.BotOwnerId == "" || len(user.BotOwnerId) <= 26 {
+				// Regular user or user-owned bot (OwnerId is empty or a user ID <= 26 chars)
+				filtered = append(filtered, user)
+			} else {
+				// Plugin bot (OwnerId > 26 chars = plugin ID) - only include if plugin is enabled
+				if enabledPluginIDs[user.BotOwnerId] {
+					filtered = append(filtered, user)
+				}
+			}
+		}
+		return filtered
+	}
+
+	autocomplete.OutOfChannel = filterPluginBots(autocomplete.OutOfChannel)
+
 	for _, user := range autocomplete.InChannel {
 		a.SanitizeProfile(user, options.IsAdmin)
 	}

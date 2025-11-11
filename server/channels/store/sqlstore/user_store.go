@@ -95,6 +95,7 @@ func getBotInfoColumns() []string {
 		"b.UserId IS NOT NULL AS IsBot",
 		"COALESCE(b.Description, '') AS BotDescription",
 		"COALESCE(b.LastIconUpdate, 0) AS BotLastIconUpdate",
+		"COALESCE(b.OwnerId, '') AS BotOwnerId",
 	}
 }
 
@@ -1651,7 +1652,13 @@ func (us SqlUserStore) SearchNotInTeam(notInTeamId string, term string, options 
 func (us SqlUserStore) SearchNotInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
 	query := us.usersQuery.
 		LeftJoin("ChannelMembers cm ON ( cm.UserId = Users.Id AND cm.ChannelId = ? )", channelId).
-		Where("cm.UserId IS NULL").
+		Where(sq.Or{
+			sq.Eq{"cm.UserId": nil}, // Regular users not in channel
+			sq.And{ // OR plugin-created bots (even if not in channel)
+				sq.Expr("b.UserId IS NOT NULL"),      // Is a bot
+				sq.Expr("LENGTH(b.OwnerId) > ?", 26), // OwnerId is plugin ID (>26 chars = plugin ID)
+			},
+		}).
 		OrderBy("Username ASC").
 		Limit(uint64(options.Limit))
 

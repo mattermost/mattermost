@@ -302,8 +302,23 @@ export default class AtMentionProvider extends Provider {
             return a.username.localeCompare(b.username);
         };
 
-        // Combine the local and remote members, sorting to mix the results together.
-        const localAndRemoteMembers = localMembers.concat(remoteMembers).sort(orderUsers);
+        // Separate bots from regular users
+        const allChannelMembers = [...priorityProfiles, ...localMembers, ...remoteMembers];
+        const bots = allChannelMembers.filter((member) => member.is_bot);
+        const nonBotMembers = allChannelMembers.filter((member) => !member.is_bot);
+
+        // Get plugin bots from non-members (backend includes plugin bots in out_of_channel)
+        const remoteNonMembers = this.remoteNonMembers().
+            filter((member) => !localUserIds[member.id] && !priorityProfilesIds[member.id]);
+        const pluginBots = remoteNonMembers.filter((member) => member.is_bot);
+        const nonBotNonMembers = remoteNonMembers.filter((member) => !member.is_bot);
+
+        // Combine all bots (in-channel bots + plugin bots not in channel)
+        const allBots = bots.concat(pluginBots).sort(orderUsers);
+
+        // Sort non-bot members
+        const localAndRemoteMembers = nonBotMembers.sort(orderUsers);
+        const sortedNonMembers = nonBotNonMembers.sort(orderUsers);
 
         // handle groups
         const localGroups = this.localGroups();
@@ -335,14 +350,13 @@ export default class AtMentionProvider extends Provider {
         // Combine the local and remote groups, sorting to mix the results together.
         const localAndRemoteGroups = localGroups.concat(remoteGroups).sort(orderGroups);
 
-        const remoteNonMembers = this.remoteNonMembers().
-            filter((member) => !localUserIds[member.id]).
-            sort(orderUsers);
-
         const items = [];
 
-        if (priorityProfiles.length > 0 || localAndRemoteMembers.length > 0) {
-            items.push(membersGroup([...priorityProfiles, ...localAndRemoteMembers]));
+        if (localAndRemoteMembers.length > 0) {
+            items.push(membersGroup(localAndRemoteMembers));
+        }
+        if (allBots.length > 0) {
+            items.push(botsGroup(allBots));
         }
         if (localAndRemoteGroups.length > 0) {
             items.push(groupsGroup(localAndRemoteGroups));
@@ -350,8 +364,8 @@ export default class AtMentionProvider extends Provider {
         if (specialMentions.length > 0) {
             items.push(specialMentionsGroup(specialMentions));
         }
-        if (remoteNonMembers.length > 0) {
-            items.push(nonMembersGroup(remoteNonMembers));
+        if (sortedNonMembers.length > 0) {
+            items.push(nonMembersGroup(sortedNonMembers));
         }
 
         return items;
@@ -443,6 +457,16 @@ export function membersGroup(items: CreatedProfile[]) {
     return {
         key: 'members',
         label: defineMessage({id: 'suggestion.mention.members', defaultMessage: 'Channel Members'}),
+        items,
+        terms: items.map((profile) => '@' + profile.username),
+        component: AtMentionSuggestion,
+    };
+}
+
+export function botsGroup(items: CreatedProfile[]) {
+    return {
+        key: 'bots',
+        label: defineMessage({id: 'suggestion.mention.bots', defaultMessage: 'Bots'}),
         items,
         terms: items.map((profile) => '@' + profile.username),
         component: AtMentionSuggestion,
