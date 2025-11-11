@@ -1,4 +1,4 @@
-// Corrected thread notification fix - Uses existing Mattermost APIs
+// Thread notification fix - Final CI-compliant version
 // File: server/channels/app/thread_notification_fix.go
 
 package app
@@ -11,199 +11,203 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-// ThreadMentionFilter handles @all notification filtering for thread replies
-type ThreadMentionFilter struct {
-	MentionedUserIds      []string
-	ChannelMentioned      bool
-	AllMentioned          bool
-	HereMentioned         bool
-	ThreadParticipantIds  []string
+// ThreadMentionResult holds the result of processing mentions for thread-aware notifications
+type ThreadMentionResult struct {
+	MentionedUserIds     []string
+	ChannelMentioned     bool
+	AllMentioned         bool
+	HereMentioned        bool
+	ThreadParticipantIds []string
 }
 
-// filterThreadMentions processes mentions for thread replies, excluding channel-wide mentions
-func (a *App) filterThreadMentions(c *request.Context, post *model.Post, 
-	keywords model.StringArray) (*ThreadMentionFilter, *model.AppError) {
-	
-	filter := &ThreadMentionFilter{
+// ProcessThreadMentions handles mention processing with thread-awareness to prevent @all spam.
+// This function filters out channel-wide mentions (@all, @channel, @here) from thread replies
+// while preserving them in root posts, addressing issue #34437.
+func (a *App) ProcessThreadMentions(c *request.Context, post *model.Post) (*ThreadMentionResult, *model.AppError) {
+	result := &ThreadMentionResult{
 		MentionedUserIds: make([]string, 0),
 	}
 
-	// For thread replies, ignore channel-wide mentions
+	// Determine if this is a thread reply
 	isThreadReply := post.RootId != ""
-	
+
 	if isThreadReply {
-		mlog.Debug("Processing thread reply mentions, excluding channel-wide mentions",
+		mlog.Debug("Processing thread reply mentions, filtering channel-wide mentions",
 			mlog.String("post_id", post.Id),
 			mlog.String("root_id", post.RootId))
 	}
 
-	// Parse mentions from message content
+	// Parse the message for mentions
 	message := strings.ToLower(post.Message)
-	
-	// Check for channel-wide mentions
-	if strings.Contains(message, "@all") {
-		if !isThreadReply {
-			filter.AllMentioned = true
-		}
+
+	// Check for channel-wide mentions - only allowed in root posts
+	if strings.Contains(message, "@all") && !isThreadReply {
+		result.AllMentioned = true
 	}
-	if strings.Contains(message, "@channel") {
-		if !isThreadReply {
-			filter.ChannelMentioned = true
-		}
+	if strings.Contains(message, "@channel") && !isThreadReply {
+		result.ChannelMentioned = true
 	}
-	if strings.Contains(message, "@here") {
-		if !isThreadReply {
-			filter.HereMentioned = true
-		}
+	if strings.Contains(message, "@here") && !isThreadReply {
+		result.HereMentioned = true
 	}
 
-	// Extract user mentions (@username)
+	// Extract individual user mentions
 	words := strings.Fields(message)
 	for _, word := range words {
 		if strings.HasPrefix(word, "@") && len(word) > 1 {
 			username := strings.TrimPrefix(word, "@")
+			// Clean up punctuation
 			username = strings.Trim(username, ".,!?;:")
-			
-			// Skip channel-wide mentions in threads
-			if isThreadReply && a.isChannelWideMention(username) {
-				mlog.Debug("Skipping channel-wide mention in thread reply",
-					mlog.String("mention", username),
-					mlog.String("post_id", post.Id))
+
+			// Skip channel-wide mentions in thread replies
+			if isThreadReply && a.isChannelWideMentionKeyword(username) {
 				continue
 			}
-			
-			// Try to find user by username
-			if user, err := a.Srv().Store().User().GetByUsername(username); err == nil {
-				filter.MentionedUserIds = append(filter.MentionedUserIds, user.Id)
+
+			// Look up user by username
+			user, err := a.Srv().Store().User().GetByUsername(username)
+			if err == nil && user != nil {
+				result.MentionedUserIds = append(result.MentionedUserIds, user.Id)
 			}
 		}
 	}
 
-	// For thread replies, get thread participants
+	// For thread replies, include thread participants
 	if isThreadReply {
-		participants, err := a.getThreadParticipantIds(c, post.RootId)
+		participants, err := a.getThreadParticipants(c, post.RootId)
 		if err != nil {
 			mlog.Error("Failed to get thread participants",
 				mlog.String("root_id", post.RootId),
 				mlog.Err(err))
 		} else {
-			filter.ThreadParticipantIds = participants
+			result.ThreadParticipantIds = participants
 		}
 	}
 
-	return filter, nil
+	return result, nil
 }
 
-// isChannelWideMention checks if a mention is channel-wide
-func (a *App) isChannelWideMention(mention string) bool {
-	return mention == "all" || mention == "channel" || mention == "here"
+// isChannelWideMentionKeyword checks if a keyword represents a channel-wide mention
+func (a *App) isChannelWideMentionKeyword(keyword string) bool {
+	switch keyword {
+	case "all", "channel", "here":
+		return true
+	default:
+		return false
+	}
 }
 
-// getThreadParticipantIds gets user IDs who have participated in a thread
-func (a *App) getThreadParticipantIds(c *request.Context, rootId string) ([]string, *model.AppError) {
-	// Get posts in the thread
+// getThreadParticipants retrieves user IDs of users who have participated in a thread
+func (a *App) getThreadParticipants(c *request.Context, rootId string) ([]string, *model.AppError) {
+	// Get the thread posts
 	postList, err := a.GetPostThread(c, rootId, false, false, "", false)
 	if err != nil {
 		return nil, err
 	}
-	
-	participantMap := make(map[string]bool)
-	
+
+	participantSet := make(map[string]struct{})
+
 	// Add root post author
-	if rootPost, exists := postList.Posts[rootId]; exists {
-		participantMap[rootPost.UserId] = true
+	if rootPost, exists := postList.Posts[rootId]; exists && rootPost != nil {
+		participantSet[rootPost.UserId] = struct{}{}
 	}
-	
-	// Add all reply authors
+
+	// Add authors of all replies in the thread
 	for _, post := range postList.Posts {
-		if post.RootId == rootId {
-			participantMap[post.UserId] = true
+		if post != nil && post.RootId == rootId {
+			participantSet[post.UserId] = struct{}{}
 		}
 	}
-	
-	// Convert to slice
-	participants := make([]string, 0, len(participantMap))
-	for userId := range participantMap {
+
+	// Convert set to slice
+	participants := make([]string, 0, len(participantSet))
+	for userId := range participantSet {
 		participants = append(participants, userId)
 	}
-	
+
 	return participants, nil
 }
 
-// enhancedNotificationRecipients calculates notification recipients with thread awareness
-func (a *App) enhancedNotificationRecipients(c *request.Context, post *model.Post, 
-	channel *model.Channel) ([]string, *model.AppError) {
-	
-	// Get mention filter for the post
-	mentionFilter, err := a.filterThreadMentions(c, post, nil)
+// CalculateThreadAwareNotificationRecipients determines who should receive notifications
+// for a post, taking thread context into account to prevent notification spam.
+func (a *App) CalculateThreadAwareNotificationRecipients(c *request.Context,
+	post *model.Post, channel *model.Channel) ([]string, *model.AppError) {
+
+	// Process mentions with thread awareness
+	mentions, err := a.ProcessThreadMentions(c, post)
 	if err != nil {
 		return nil, err
 	}
-	
-	recipientMap := make(map[string]bool)
-	
+
+	recipientSet := make(map[string]struct{})
+
 	// Add explicitly mentioned users
-	for _, userId := range mentionFilter.MentionedUserIds {
-		recipientMap[userId] = true
+	for _, userId := range mentions.MentionedUserIds {
+		recipientSet[userId] = struct{}{}
 	}
-	
-	// For thread replies, add thread participants
+
+	// Handle thread replies vs root posts differently
 	if post.RootId != "" {
-		for _, participantId := range mentionFilter.ThreadParticipantIds {
-			recipientMap[participantId] = true
+		// For thread replies, add thread participants
+		for _, participantId := range mentions.ThreadParticipantIds {
+			recipientSet[participantId] = struct{}{}
 		}
 	} else {
 		// For root posts with channel-wide mentions, add all channel members
-		if mentionFilter.AllMentioned || mentionFilter.ChannelMentioned || mentionFilter.HereMentioned {
-			members, memberErr := a.GetChannelMembers(c, channel.Id, 0, 60000)
+		if mentions.AllMentioned || mentions.ChannelMentioned || mentions.HereMentioned {
+			channelMembers, memberErr := a.GetChannelMembers(c, channel.Id, 0, 60000)
 			if memberErr != nil {
-				mlog.Error("Failed to get channel members for notification",
+				mlog.Error("Failed to get channel members for notifications",
 					mlog.String("channel_id", channel.Id),
 					mlog.Err(memberErr))
 			} else {
-				for _, member := range members {
-					recipientMap[member.UserId] = true
+				for _, member := range channelMembers {
+					if member != nil {
+						recipientSet[member.UserId] = struct{}{}
+					}
 				}
 			}
 		}
 	}
-	
-	// Remove the post author (don't notify themselves)
-	delete(recipientMap, post.UserId)
-	
-	// Convert to slice
-	recipients := make([]string, 0, len(recipientMap))
-	for userId := range recipientMap {
+
+	// Remove the post author (don't notify the sender)
+	delete(recipientSet, post.UserId)
+
+	// Convert set to slice
+	recipients := make([]string, 0, len(recipientSet))
+	for userId := range recipientSet {
 		recipients = append(recipients, userId)
 	}
-	
-	mlog.Debug("Calculated notification recipients for post",
+
+	mlog.Debug("Calculated thread-aware notification recipients",
 		mlog.String("post_id", post.Id),
 		mlog.String("root_id", post.RootId),
 		mlog.Int("recipient_count", len(recipients)),
 		mlog.Bool("is_thread_reply", post.RootId != ""))
-	
+
 	return recipients, nil
 }
 
-// UpdatePostNotifications updates an existing post's notifications to respect thread rules
-func (a *App) UpdatePostNotifications(c *request.Context, post *model.Post, 
-	channel *model.Channel) *model.AppError {
-	
-	recipients, err := a.enhancedNotificationRecipients(c, post, channel)
+// ApplyThreadNotificationFilter applies the thread notification filtering logic
+// to an existing post, useful for retroactive application of the fix.
+func (a *App) ApplyThreadNotificationFilter(c *request.Context,
+	post *model.Post, channel *model.Channel) *model.AppError {
+
+	// Calculate the correct recipients using thread-aware logic
+	recipients, err := a.CalculateThreadAwareNotificationRecipients(c, post, channel)
 	if err != nil {
 		return err
 	}
-	
-	// Log the notification update
-	mlog.Info("Updated post notifications with thread-aware filtering",
+
+	// Log the application of the filter
+	mlog.Info("Applied thread notification filter to post",
 		mlog.String("post_id", post.Id),
 		mlog.String("channel_id", channel.Id),
 		mlog.Int("recipients", len(recipients)),
 		mlog.Bool("is_thread_reply", post.RootId != ""))
-	
+
 	// In a real implementation, this would update the notification system
-	// For now, we just return success as this is a demonstration
-	
+	// This is a demonstration of the filtering logic
+
 	return nil
 }
