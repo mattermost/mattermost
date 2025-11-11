@@ -109,6 +109,11 @@ func (a *App) FlagPost(rctx request.CTX, post *model.Post, teamId, reportingUser
 		return appErr
 	}
 
+	contentReviewBot, appErr := a.getContentReviewBot(rctx)
+	if appErr != nil {
+		return appErr
+	}
+
 	propertyValues := []*model.PropertyValue{
 		{
 			TargetID:   post.Id,
@@ -164,11 +169,6 @@ func (a *App) FlagPost(rctx request.CTX, post *model.Post, teamId, reportingUser
 		if appErr != nil {
 			return appErr
 		}
-	}
-
-	contentReviewBot, appErr := a.getContentReviewBot(rctx)
-	if appErr != nil {
-		return appErr
 	}
 
 	if *a.Config().ContentFlaggingSettings.AdditionalSettings.HideFlaggedContent {
@@ -562,6 +562,11 @@ func (a *App) PermanentDeleteFlaggedPost(rctx request.CTX, actionRequest *model.
 		return model.NewAppError("PermanentlyRemoveFlaggedPost", "api.content_flagging.error.post_not_in_progress", nil, "", http.StatusBadRequest)
 	}
 
+	contentReviewBot, appErr := a.getContentReviewBot(rctx)
+	if appErr != nil {
+		return appErr
+	}
+
 	editHistories, appErr := a.GetEditHistoryForPost(flaggedPost.Id)
 	if appErr != nil {
 		//editHistories = []*model.Post{}
@@ -601,11 +606,6 @@ func (a *App) PermanentDeleteFlaggedPost(rctx request.CTX, actionRequest *model.
 	_, err := a.Srv().Store().Post().Overwrite(rctx, flaggedPost)
 	if err != nil {
 		return model.NewAppError("PermanentlyRemoveFlaggedPost", "app.content_flagging.permanently_delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	contentReviewBot, appErr := a.getContentReviewBot(rctx)
-	if appErr != nil {
-		return appErr
 	}
 
 	// If the post is not already deleted, delete it now.
