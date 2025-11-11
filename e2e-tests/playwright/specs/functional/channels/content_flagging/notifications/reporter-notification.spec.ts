@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {expect, test} from '@mattermost/playwright-lib';
-import {makeClient} from 'lib/dist/server';
 
 async function setupContentFlagging(adminClient: any, reviewerUserIDs: string[], enable = true) {
     await adminClient.saveContentFlaggingConfig({
@@ -72,8 +71,8 @@ test('Verify Reporter is notified if flagged post is Retained in a channel', asy
     const {id: postFromThirdUserID} = await adminClient.createUser(postFromThirdUser, '', '');
     await adminClient.addToTeam(team.id, postFromThirdUserID);
 
-    const {client: thirdUserClient} = await makeClient(postFromThirdUser);
-    const {client: reporterUserClient} = await makeClient(reporterUser);
+    const {client: thirdUserClient} = await pw.makeClient(postFromThirdUser);
+    const {client: reporterUserClient} = await pw.makeClient(reporterUser);
 
     await setupContentFlagging(adminClient, [reviewerUser.id]);
     const message = `Post by @${reviewerUser.username}, is flagged once`;
@@ -107,8 +106,8 @@ test('Verify Reporter is notified if flagged post is Removed from a channel', as
     const {id: postFromThirdUserID} = await adminClient.createUser(postFromThirdUser, '', '');
     await adminClient.addToTeam(team.id, postFromThirdUserID);
 
-    const {client: thirdUserClient} = await makeClient(postFromThirdUser);
-    const {client: reporterUserClient} = await makeClient(reporterUser);
+    const {client: thirdUserClient} = await pw.makeClient(postFromThirdUser);
+    const {client: reporterUserClient} = await pw.makeClient(reporterUser);
 
     await setupContentFlagging(adminClient, [reviewerUser.id]);
     const message = `Post by @${reviewerUser.username}, is flagged once`;
