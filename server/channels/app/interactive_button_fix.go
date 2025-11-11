@@ -1,11 +1,16 @@
+// Fixed version of interactive_button_fix.go that addresses compilation errors
+// File: server/channels/app/interactive_button_fix.go
+
 package app
 
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 // Fix for #34438: Preserve interactive button functionality through message edits
@@ -32,7 +37,7 @@ func (a *App) preserveInteractiveElements(originalPost, updatedPost *model.Post)
 	return updatedPost
 }
 
-// extractSlackAttachments gets attachments from post props
+// extractSlackAttachments gets attachments from post props with size validation
 func (a *App) extractSlackAttachments(post *model.Post) []*model.SlackAttachment {
 	var attachments []*model.SlackAttachment
 	
@@ -42,7 +47,19 @@ func (a *App) extractSlackAttachments(post *model.Post) []*model.SlackAttachment
 	
 	if attachmentData, ok := post.GetProps()["attachments"]; ok {
 		if attachmentJSON, ok := attachmentData.(string); ok {
-			json.Unmarshal([]byte(attachmentJSON), &attachments)
+			// Validate JSON size to prevent DoS attacks (max 1MB)
+			if len(attachmentJSON) > 1024*1024 {
+				mlog.Warn("Interactive button attachment JSON too large, skipping",
+					mlog.String("post_id", post.Id),
+					mlog.Int("size", len(attachmentJSON)))
+				return attachments
+			}
+			
+			if err := json.Unmarshal([]byte(attachmentJSON), &attachments); err != nil {
+				mlog.Error("Failed to unmarshal interactive button attachments",
+					mlog.String("post_id", post.Id),
+					mlog.Err(err))
+			}
 		}
 	}
 	
@@ -55,7 +72,14 @@ func (a *App) setSlackAttachments(post *model.Post, attachments []*model.SlackAt
 		post.SetProps(make(model.StringInterface))
 	}
 	
-	attachmentJSON, _ := json.Marshal(attachments)
+	attachmentJSON, err := json.Marshal(attachments)
+	if err != nil {
+		mlog.Error("Failed to marshal interactive button attachments",
+			mlog.String("post_id", post.Id),
+			mlog.Err(err))
+		return
+	}
+	
 	post.GetProps()["attachments"] = string(attachmentJSON)
 }
 
@@ -106,19 +130,19 @@ func (a *App) getAttachmentKey(attachment *model.SlackAttachment) string {
 }
 
 // Enhanced DoPostActionWithCookie to handle post-edit scenarios
-func (a *App) executeInteractiveAction(c *Context, postId, actionId, actionCookie string) *model.AppError {
-	post, err := a.GetSinglePost(postId, false)
+func (a *App) executeInteractiveAction(c *request.Context, postId, actionId, actionCookie string) *model.AppError {
+	post, err := a.GetSinglePost(c, postId, false)
 	if err != nil {
 		return err
 	}
 	
 	// Find the action in post attachments
-	action, attachment := a.findInteractiveAction(post, actionId)
+	action := a.findInteractiveAction(post, actionId)
 	if action == nil {
 		return model.NewAppError("executeInteractiveAction",
 			"api.post.interactive_action.not_found", nil,
 			fmt.Sprintf("Action %s not found in post %s", actionId, postId),
-			404)
+			http.StatusNotFound)
 	}
 	
 	// Verify action cookie for security
@@ -129,29 +153,29 @@ func (a *App) executeInteractiveAction(c *Context, postId, actionId, actionCooki
 		
 		return model.NewAppError("executeInteractiveAction",
 			"api.post.interactive_action.cookie_mismatch", nil,
-			"Action cookie mismatch", 401)
+			"Action cookie mismatch", http.StatusUnauthorized)
 	}
 	
 	// Log successful action execution
 	mlog.Debug("Executing interactive action after message edit",
 		mlog.String("post_id", postId),
 		mlog.String("action_id", actionId),
-		mlog.String("url", action.URL))
+		mlog.String("url", action.Url)) // Fixed: Use Url instead of URL
 	
 	return nil // Success - actual HTTP callback would happen here
 }
 
 // findInteractiveAction locates an action by ID in post attachments
-func (a *App) findInteractiveAction(post *model.Post, actionId string) (*model.PostAction, *model.SlackAttachment) {
+func (a *App) findInteractiveAction(post *model.Post, actionId string) *model.PostAction {
 	attachments := a.extractSlackAttachments(post)
 	
 	for _, attachment := range attachments {
 		for _, action := range attachment.Actions {
 			if action.Id == actionId {
-				return action, attachment
+				return action
 			}
 		}
 	}
 	
-	return nil, nil
+	return nil
 }
