@@ -485,7 +485,9 @@ function PolicyDetails({
                                             if (accessControlSettings.EnableUserManagedAttributes) {
                                                 return true;
                                             }
-                                            return attr.attrs?.ldap || attr.attrs?.saml;
+                                            const isSynced = attr.attrs?.ldap || attr.attrs?.saml;
+                                            const isAdminManaged = attr.attrs?.managed === 'admin';
+                                            return isSynced || isAdminManaged;
                                         }).
                                         map((attr) => ({
                                             attribute: attr.name,

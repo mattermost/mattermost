@@ -383,7 +383,7 @@ function CELEditor({
                 </div>
                 <TestButton
                     onClick={() => setEditorState((prev) => ({...prev, showTestResults: true}))}
-                    disabled={disabled || !editorState.isValid || editorState.isValidating}
+                    disabled={disabled || !editorState.expression || !editorState.isValid || editorState.isValidating}
                 />
             </div>
             {editorState.showTestResults && (
