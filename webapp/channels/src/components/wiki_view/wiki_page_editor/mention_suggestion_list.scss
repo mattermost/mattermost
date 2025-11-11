@@ -17,7 +17,6 @@
         border: none;
         margin: 0;
         background: transparent;
-        color: #3d3c40 !important;
         color: var(--center-channel-color) !important;
         cursor: pointer;
         font-size: 14px !important;
@@ -26,7 +25,6 @@
 
         &.suggestion--selected,
         &:hover {
-            background-color: rgba(61, 60, 64, 0.08) !important;
             background-color: rgba(var(--center-channel-color-rgb), 0.08) !important;
         }
 
@@ -72,7 +70,6 @@
         display: flex !important;
         overflow: hidden;
         max-width: 89%;
-        color: rgba(61, 60, 64, 0.75) !important;
         color: rgba(var(--center-channel-color-rgb), 0.75) !important;
         gap: 8px;
         text-overflow: ellipsis;
@@ -80,7 +77,6 @@
 
         .suggestion-list__main {
             display: flex !important;
-            color: #3d3c40 !important;
             color: var(--center-channel-color) !important;
             font-weight: 600 !important;
             white-space: nowrap;

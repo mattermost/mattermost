@@ -3,19 +3,19 @@
     width: 100%;
     height: 100%;
     flex-direction: column;
-    background: #FFFFFF;
+    background: var(--center-channel-bg);
 
     &__header {
         display: flex;
         align-items: center;
-        padding: 16px 20px;
-        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+        padding: 14px 14px 13px 20px;
+        border-bottom: var(--border-default);
         gap: 8px;
 
         h2 {
             margin: 0;
             color: var(--center-channel-color);
-            font-size: 20px;
+            font-size: 16px;
             font-weight: 600;
         }
 
@@ -29,8 +29,9 @@
 
     &__page-title {
         margin-left: 8px;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
-        font-size: 14px;
+        margin-bottom: 2px;
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 12px;
     }
 
     &__expand-btn,
@@ -58,11 +59,11 @@
 
     &__outline-header {
         padding: 16px 20px 8px;
-        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        border-bottom: var(--border-default);
 
         h3 {
             margin: 0;
-            color: rgba(var(--center-channel-color-rgb), 0.64);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
             font-size: 12px;
             font-weight: 600;
             letter-spacing: 0.5px;
@@ -83,7 +84,7 @@
         align-items: center;
         justify-content: center;
         padding: 32px 24px;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 14px;
         text-align: center;
 
@@ -107,23 +108,23 @@
 
         .nav-tabs {
             display: flex;
-            padding: 0 20px;
-            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+            padding: 0 12px;
+            border-bottom: var(--border-default);
             margin: 0;
 
             > li {
                 margin: 0;
 
                 > a {
-                    padding: 12px 16px;
+                    padding: 6px 8px;
                     border: none;
-                    border-bottom: 2px solid transparent;
+                    border-bottom: 2px solid transparent !important;
                     margin: 0;
                     background: transparent;
-                    color: rgba(var(--center-channel-color-rgb), 0.64);
-                    font-size: 14px;
-                    font-weight: 600;
+                    color: rgba(var(--center-channel-color-rgb), 0.75);
                     transition: all 0.15s ease;
+                    font-size: 12px;
+                    font-weight: 600;
 
                     &:hover {
                         border-color: transparent;

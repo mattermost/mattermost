@@ -1,4 +1,6 @@
 .WikiView {
+    --sidebar-width: 240px;
+
     position: relative;
     display: flex;
     overflow: hidden;
@@ -7,99 +9,8 @@
 
     &__hamburgerButton {
         position: absolute;
-        top: 16px;
-        left: 16px;
-    }
-
-    .PagesList {
-        position: relative;
-        display: flex;
-        width: 240px;
-        flex-direction: column;
-        flex-shrink: 0;
-        align-self: stretch;
-        border-right: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
-        background: #F9F9FA;
-        box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.12);
-
-        &__header {
-            display: flex;
-            min-height: 64px;
-            align-items: center;
-            padding: 16px;
-            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
-            background: #F9F9FA;
-
-            h2 {
-                overflow: hidden;
-                flex: 1;
-                margin: 0 12px;
-                color: var(--center-channel-color);
-                font-size: 18px;
-                font-weight: 600;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-            }
-        }
-
-        &__back-button,
-        &__menu-button {
-            display: flex;
-            width: 32px;
-            min-width: 32px;
-            height: 32px;
-            align-items: center;
-            justify-content: center;
-            border: none;
-            border-radius: 4px;
-            background: transparent;
-            color: rgba(var(--center-channel-color-rgb), 0.56);
-            cursor: pointer;
-            transition: all 0.15s ease;
-
-            &:hover {
-                background: rgba(var(--center-channel-color-rgb), 0.08);
-                color: var(--center-channel-color);
-            }
-
-            &:active {
-                background: rgba(var(--center-channel-color-rgb), 0.16);
-            }
-
-            i {
-                font-size: 18px;
-            }
-        }
-
-        &__content {
-            flex: 1;
-            padding: 8px;
-            overflow-y: auto;
-
-            &::-webkit-scrollbar {
-                width: 8px;
-            }
-
-            &::-webkit-scrollbar-track {
-                background: transparent;
-            }
-
-            &::-webkit-scrollbar-thumb {
-                border-radius: 4px;
-                background: rgba(var(--center-channel-color-rgb), 0.16);
-
-                &:hover {
-                    background: rgba(var(--center-channel-color-rgb), 0.24);
-                }
-            }
-
-            p {
-                padding: 12px;
-                color: rgba(var(--center-channel-color-rgb), 0.56);
-                font-size: 14px;
-                text-align: center;
-            }
-        }
+        top: 12px;
+        left: 12px;
     }
 
     .PagePane {
@@ -107,14 +18,15 @@
         min-width: 0;
         flex: 1;
         flex-direction: column;
-        background: #FFFFFF;
+        background: var(--center-channel-bg);
+        margin-left: var(--sidebar-width);
+        transition: margin-left 0.2s ease-in-out;
 
         &__header {
             display: flex;
-            min-height: 64px;
+            min-height: 56px;
             align-items: center;
-            padding: 16px 24px;
-            border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+            padding: 12px 14px;
             background: var(--center-channel-bg);
         }
 
@@ -167,47 +79,23 @@
             align-items: center;
             gap: 8px;
 
-            .btn {
+            .btn-icon {
                 height: 32px;
-                padding: 0 12px;
-                font-size: 14px;
-                font-weight: 600;
+                width: 32px;
+                min-width: 32px;
+                margin:0;
+            }
 
-                i {
-                    margin-right: 6px;
-                    font-size: 16px;
-                }
+            .PagePane__publish-button,
+            .PagePane__edit-button {
+                height: 32px;
+                padding-left: 12px;
+                padding-right: 12px;
+                margin: 0;
             }
         }
 
         &__icon-button {
-            position: relative;
-            display: flex;
-            width: 32px;
-            height: 32px;
-            align-items: center;
-            justify-content: center;
-            padding: 0;
-            border: none;
-            border-radius: 4px;
-            background: transparent;
-            color: rgba(var(--center-channel-color-rgb), 0.56);
-            cursor: pointer;
-            transition: all 0.15s ease;
-
-            &:hover {
-                background: rgba(var(--center-channel-color-rgb), 0.08);
-                color: var(--center-channel-color);
-            }
-
-            &:active {
-                background: rgba(var(--center-channel-color-rgb), 0.16);
-            }
-
-            i {
-                font-size: 18px;
-            }
-
             .badge {
                 position: absolute;
                 top: -4px;
@@ -216,7 +104,7 @@
                 padding: 2px 6px;
                 border-radius: 10px;
                 background: var(--button-bg);
-                color: #FFFFFF;
+                color: var(--button-color);
                 font-size: 10px;
                 font-weight: 600;
                 text-align: center;
@@ -237,11 +125,11 @@
 
         &__content {
             display: flex;
-            overflow: hidden;
+            align-items: center;
+            overflow-y: auto;
             min-width: 0;
             flex: 1;
             flex-direction: column;
-            background: #FFFFFF;
         }
 
         &__emptyState {
@@ -272,16 +160,8 @@
                 font-size: 14px;
             }
         }
-
-        // Center toolbar within the PagePane content area using CSS variables
-        .PagePane__content {
-            // Set CSS custom property for content area bounds
-            --content-left: 240px; // Sidebar width
-        }
-
-        // Update content bounds when sidebar is collapsed
-        &--sidebarCollapsed .PagePane__content {
-            --content-left: 0px;
+        &--sidebarCollapsed {
+            margin-left: 0;
         }
     }
 
@@ -327,8 +207,8 @@
         display: flex;
         width: 100%;
         height: 100%;
+        max-width: 800px;
         flex-direction: column;
-        overflow-y: auto;
 
         .page-title-input {
             width: 100%;
@@ -337,8 +217,9 @@
             background: transparent;
             color: var(--center-channel-color);
             font-family: 'Metropolis', sans-serif;
-            font-size: 36px;
             font-weight: 600;
+            font-size: 40px;
+            line-height: 1.2;
             letter-spacing: -.02em;
             outline: none;
         }
@@ -363,9 +244,9 @@
                 margin: 0 0 12px 0;
                 background: transparent;
                 color: var(--center-channel-color);
-                font-size: 32px;
-                font-weight: 600;
-                line-height: 1.3;
+                font-size: 40px;
+                line-height: 1.2;
+                letter-spacing: -0.02em;
                 outline: none;
 
                 &::placeholder {
@@ -544,15 +425,6 @@
 
             &__controls {
                 gap: 4px;
-
-                button {
-                    width: 28px;
-                    height: 28px;
-
-                    i {
-                        font-size: 16px;
-                    }
-                }
             }
         }
 
@@ -579,6 +451,7 @@
 }
 
 .PagePane--sidebarCollapsed {
+
     .PagePane__header {
         padding-left: 64px;
     }

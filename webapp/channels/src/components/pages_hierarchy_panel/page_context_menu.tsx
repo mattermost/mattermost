@@ -24,6 +24,7 @@ type Props = {
     pageId: string;
     wikiId?: string;
     position: {x: number; y: number};
+    alignRight?: boolean;
     onClose: () => void;
     onCreateChild?: () => void;
     onRename?: () => void;
@@ -40,6 +41,7 @@ const PageContextMenu = ({
     pageId,
     wikiId,
     position,
+    alignRight,
     onClose,
     onCreateChild,
     onRename,
@@ -182,7 +184,7 @@ const PageContextMenu = ({
     return (
         <div
             ref={menuRef}
-            className='PageContextMenu'
+            className={`PageContextMenu ${alignRight ? 'PageContextMenu--align-right' : ''}`}
             style={{
                 top: `${position.y}px`,
                 left: `${position.x}px`,

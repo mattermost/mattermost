@@ -121,8 +121,8 @@ function WikiTabMenu({wiki, channelId}: Props) {
             onClick={(e) => e.stopPropagation()}
         >
             <Menu.Container
-                anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
-                transformOrigin={{vertical: 'top', horizontal: 'right'}}
+                anchorOrigin={{vertical: 'bottom', horizontal: 'left'}}
+                transformOrigin={{vertical: 'top', horizontal: 'left'}}
                 menuButton={{
                     id: `wiki-tab-menu-${wiki.id}`,
                     class: 'wiki-tab__menu-button',

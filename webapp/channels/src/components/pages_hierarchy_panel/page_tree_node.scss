@@ -3,10 +3,10 @@
 
 // Import design tokens
 $node-height: 32px;
-$node-hover-bg: rgba(20, 93, 191, 0.08);
-$node-selected-bg: rgba(20, 93, 191, 0.16);
+$node-hover-bg: rgba(var(--center-channel-text-rgb), 0.08);
+$node-selected-bg: rgba(var(--button-bg-rgb), 0.12);
 $node-text: var(--center-channel-text);
-$node-text-muted: rgba(var(--center-channel-text-rgb), 0.56);
+$node-text-muted: rgba(var(--center-channel-text-rgb), 0.75);
 $radius-sm: 4px;
 
 .PageTreeNode {
@@ -17,7 +17,6 @@ $radius-sm: 4px;
     align-items: center;
     padding: 0 4px;
     border-radius: $radius-sm;
-    gap: 4px;
     pointer-events: auto; // Re-enable pointer events for children
     transition: background-color 150ms ease;
 
@@ -36,6 +35,11 @@ $radius-sm: 4px;
 
         .PageTreeNode__title {
             font-weight: 600;
+            color: var(--link-color);
+        }
+
+        .PageTreeNode__icon {
+            color: var(--link-color);
         }
     }
 }
@@ -71,8 +75,6 @@ $radius-sm: 4px;
     flex: 1;
     color: $node-text;
     font-size: 14px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 
     &-button {
         border: unset;
@@ -80,24 +82,30 @@ $radius-sm: 4px;
         color: $node-text;
         cursor: pointer;
         pointer-events: auto;
+        flex-grow: 1;
+        text-align: left;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 }
 
 .PageTreeNode__draftBadge {
     flex-shrink: 0;
-    padding: 2px 6px;
+    padding: 2px 4px;
     border-radius: 3px;
     background: rgba(var(--center-channel-text-rgb), 0.08);
     color: $node-text-muted;
-    font-size: 11px;
+    font-size: 10px;
+    line-height: 12px;
     font-weight: 600;
     text-transform: uppercase;
 }
 
 .PageTreeNode__dragHandle {
     display: flex;
-    width: 16px;
-    height: 20px;
+    width: 12px;
+    height: 28px;
     flex-shrink: 0;
     align-items: center;
     justify-content: center;

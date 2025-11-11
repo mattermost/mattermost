@@ -20,6 +20,29 @@
 
     &__tab-wrapper {
         display: flex;
+        overflow: hidden;
+
+        &--wiki {
+            position: relative;
+
+            &:hover {
+                .wiki-tab__menu {
+                    visibility: visible;
+                }
+
+                .channel-tab--active + .wiki-tab__menu {
+                    .wiki-tab__menu-button {
+                        background-color: var(--center-channel-bg);
+
+                        &:hover {
+                            background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                            color: rgba(var(--center-channel-color-rgb), 0.72);
+                        }
+                    }
+                }
+            }
+            
+        }
     }
 
     &__tab-actions {
@@ -58,21 +81,28 @@
 }
 
 .wiki-tab__menu {
+    position: absolute;
+    top: 8px;
+    right: 1px;
     display: flex;
     align-items: center;
-    padding-right: 4px;
+    border-radius: 4px;
+    overflow: hidden;
+    background: linear-gradient(0deg, rgba(var(--center-channel-color-rgb), 0.08) 0%, rgba(var(--center-channel-color-rgb), 0.08) 100%), var(--center-channel-bg);
+    visibility: hidden;
 }
 
 .wiki-tab__menu-button {
     display: flex;
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
+    padding: 4px;
     align-items: center;
     justify-content: center;
     border: none;
     border-radius: 4px;
     background: none;
-    color: rgba(var(--center-channel-color-rgb), 0.56);
+    color: rgba(var(--center-channel-color-rgb), 0.64);
     cursor: pointer;
     transition: all 0.15s ease;
 
