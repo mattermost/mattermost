@@ -17051,10 +17051,6 @@ func (s *RetryLayer) MarkSystemRanUnitTests() {
 	s.Store.MarkSystemRanUnitTests()
 }
 
-func (s *RetryLayer) SetContext(context context.Context) {
-	s.Store.SetContext(context)
-}
-
 func (s *RetryLayer) TotalMasterDbConnections() int {
 	return s.Store.TotalMasterDbConnections()
 }
