@@ -48,6 +48,7 @@ func createOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	oauthApp.CreatorId = c.AppContext.Session().UserId
+	oauthApp.IsDynamicallyRegistered = false
 
 	rapp, err := c.App.CreateOAuthApp(&oauthApp)
 	if err != nil {
