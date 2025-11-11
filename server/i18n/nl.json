@@ -10937,7 +10937,7 @@
   },
   {
     "id": "app.content_flagging.keep_post.undelete.app_error",
-    "translation": "Fout bij het bericht in de database bij te werken toen werd geprobeerd het gemarkeerde bericht te verwijderen."
+    "translation": "Fout bij het bericht in de database bij te werken toen werd geprobeerd het gemarkeerde bericht en de bijhorende data te verwijderen."
   },
   {
     "id": "app.content_flagging.marshal_property_values.app_error",
@@ -10958,10 +10958,6 @@
   {
     "id": "app.content_flagging.permanently_delete.update_property_value.app_error",
     "translation": "Faalde in het bijwerken van de status van gemarkeerde berichten bij het permanent verwijderen van gemarkeerde berichten."
-  },
-  {
-    "id": "app.content_flagging.restore_file_info.app_error",
-    "translation": "Fout bij het herstellen van de bestandsinfo voor het gemarkeerde bericht."
   },
   {
     "id": "app.content_flagging.search_property_fields.app_error",
@@ -11086,5 +11082,21 @@
   {
     "id": "app.content_flagging.search_team_reviewers.app_error",
     "translation": "Kan de zoekterm niet vinden in Team Reviewers."
+  },
+  {
+    "id": "app.content_flagging.get_thread_replies.app_error",
+    "translation": "Het is niet gelukt om reacties op de gemarkeerde post op te halen."
+  },
+  {
+    "id": "app.content_flagging.missing_manage_by_field.app_error",
+    "translation": "Manage By-eigenschapsveld is niet gevonden."
+  },
+  {
+    "id": "app.content_flagging.missing_status_field.app_error",
+    "translation": "Status-eigenschapsveld niet gevonden."
+  },
+  {
+    "id": "app.content_flagging.set_thread_replies_properties.app_error",
+    "translation": "Het is niet gelukt om eigenschappen in te stellen op antwoorden op het draadje voor het gemarkeerde bericht."
   }
 ]

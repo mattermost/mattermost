@@ -10933,7 +10933,7 @@
   },
   {
     "id": "app.content_flagging.keep_post.undelete.app_error",
-    "translation": "Beitrag konnte in der Datenbank nicht aktualisiert werden, während versucht wurde den markierten Beitrag wieder herzustellen."
+    "translation": "Beim Versuch, die Löschung des markierten Beitrag und die zugehörigen Daten rückgängig zu machen, konnte der Beitrag nicht in der Datenbank aktualisiert werden."
   },
   {
     "id": "app.content_flagging.marshal_property_values.app_error",
@@ -10954,10 +10954,6 @@
   {
     "id": "app.content_flagging.permanently_delete.update_property_value.app_error",
     "translation": "Beim dauerhaften Löschen von markierten Beiträgen wurde der Status der markierten Beiträge nicht aktualisiert."
-  },
-  {
-    "id": "app.content_flagging.restore_file_info.app_error",
-    "translation": "Die Dateiinformationen für den markierten Beitrag konnten nicht wiederhergestellt werden."
   },
   {
     "id": "app.content_flagging.save_reviewer_settings.app_error",
@@ -11074,5 +11070,21 @@
   {
     "id": "app.content_flagging.search_team_reviewers.app_error",
     "translation": "Die Suche nach dem Suchbegriff in Team Reviewers ist fehlgeschlagen."
+  },
+  {
+    "id": "app.content_flagging.get_thread_replies.app_error",
+    "translation": "Die Antworten auf den markierten Beitrag konnten nicht abgerufen werden."
+  },
+  {
+    "id": "app.content_flagging.missing_manage_by_field.app_error",
+    "translation": "Das Eigenschaftsfeld \"Verwaltet durch\" konnte nicht gefunden werden."
+  },
+  {
+    "id": "app.content_flagging.missing_status_field.app_error",
+    "translation": "Das Eigenschaftsfeld Status konnte nicht gefunden werden."
+  },
+  {
+    "id": "app.content_flagging.set_thread_replies_properties.app_error",
+    "translation": "Das Setzen von Eigenschaftswerten auf Antworten von Unterhaltungen für den markierten Beitrag ist fehlgeschlagen."
   }
 ]
