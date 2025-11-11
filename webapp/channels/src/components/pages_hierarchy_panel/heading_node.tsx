@@ -21,7 +21,7 @@ interface HeadingNodeProps {
 const HeadingNode: React.FC<HeadingNodeProps> = ({heading, pageId, currentPageId, teamName, wikiId, channelId}) => {
     const history = useHistory();
 
-    const paddingLeft = ((heading.level - 1) * 16) + 16;
+    const paddingLeft = ((heading.level - 1) * 12) + 22;
 
     const handleClick = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
