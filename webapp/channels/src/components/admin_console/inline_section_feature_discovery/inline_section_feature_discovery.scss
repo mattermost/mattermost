@@ -1,0 +1,46 @@
+.InlineSectionFeatureDiscovery {
+    display: flex;
+    align-items: center;
+    padding: 40px;
+    border: solid 1px rgba(var(--center-channel-color-rgb), 0.08);
+    border-radius: var(--radius-m);
+    margin: 20px 0;
+    background-color: var(--center-channel-bg);
+    gap: 40px;
+
+    &__image {
+        flex-shrink: 0;
+    }
+
+    &__content {
+        flex: 1;
+    }
+
+    &__badge {
+        margin-bottom: 16px;
+
+        .LicenseSkuBadge {
+            margin-left: 0;
+        }
+    }
+
+    &__title {
+        margin-bottom: 12px !important;
+        color: var(--center-channel-color);
+        font-size: 18px;
+        font-weight: 600;
+        line-height: 24px;
+    }
+
+    &__description {
+        margin: 0 0 24px;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    &__actions {
+        display: flex;
+        align-items: center;
+    }
+}
