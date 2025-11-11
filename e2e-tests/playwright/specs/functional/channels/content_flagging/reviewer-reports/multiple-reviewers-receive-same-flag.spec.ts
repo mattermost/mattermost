@@ -2,68 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {test} from '@mattermost/playwright-lib';
-
-async function setupContentFlagging(adminClient: any, userIds: string[], enable = true) {
-    // Configure content flagging
-    await adminClient.saveContentFlaggingConfig({
-        EnableContentFlagging: enable,
-        NotificationSettings: {
-            EventTargetMapping: {
-                assigned: ['reviewers', 'author'],
-                dismissed: ['reporter', 'author', 'reviewers'],
-                flagged: ['reviewers', 'author'],
-                removed: ['author', 'reporter', 'reviewers'],
-            },
-        },
-        ReviewerSettings: {
-            CommonReviewers: true,
-            CommonReviewerIds: userIds,
-            TeamReviewersSetting: {},
-            SystemAdminsAsReviewers: true,
-            TeamAdminsAsReviewers: true,
-        },
-        AdditionalSettings: {
-            Reasons: ['Inappropriate content', 'Spam', 'Harassment', 'Other'],
-            ReporterCommentRequired: true,
-            ReviewerCommentRequired: true,
-            HideFlaggedContent: true,
-        },
-    });
-    return adminClient;
-}
-
-async function createPost(adminClient: any, userClient: any, team: any, user: any, message: string) {
-    const channels = await adminClient.getMyChannels(team.id);
-    const townSquare = channels.find((ch: any) => ch.name === 'town-square');
-
-    if (!townSquare) throw new Error('Town Square channel not found');
-
-    const post = await userClient.createPost({
-        channel_id: townSquare.id,
-        message,
-        user_id: user.id,
-    });
-
-    return {post, message, townSquare};
-}
-
-async function verifyAuthorNotification(
-    postID: string,
-    channelsPage: any,
-    contentReviewPage: any,
-    teamName: string,
-    expectedMessage: string,
-) {
-    await channelsPage.goto(teamName, '@content-review');
-    await channelsPage.toBeVisible();
-
-    await contentReviewPage.setReportCardByPostID(postID);
-    await contentReviewPage.waitForPageLoaded();
-
-    await contentReviewPage.verifyFlaggedPostStatus('Pending');
-    await contentReviewPage.verifyFlaggedPostReason('Inappropriate content');
-    await contentReviewPage.verifyFlaggedPostMessage(expectedMessage);
-}
+import {setupContentFlagging, createPost, verifyAuthorNotification} from '../support';
 
 /** @objective Verify that multiple reviewers receive the same flag notification
  * @testcase
@@ -97,9 +36,9 @@ test('Verify multiple reviewers receive same flagged post', async ({pw}) => {
 
     const {channelsPage: secondChannelsPage, contentReviewPage: secondContentReviewPage} =
         await pw.testBrowser.login(secondUser);
-    await verifyAuthorNotification(post.id, secondChannelsPage, secondContentReviewPage, team.name, message);
+    await verifyAuthorNotification(secondChannelsPage,team.name, message, post.id, secondContentReviewPage, 'Pending');
 
     const {channelsPage: channelsPageThird, contentReviewPage: contentReviewPageThird} =
         await pw.testBrowser.login(thirdUser);
-    await verifyAuthorNotification(post.id, channelsPageThird, contentReviewPageThird, team.name, message);
+    await verifyAuthorNotification(channelsPageThird, team.name, message, post.id, contentReviewPageThird, 'Pending');
 });
