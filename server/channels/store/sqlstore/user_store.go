@@ -184,7 +184,7 @@ func (us SqlUserStore) Save(rctx request.CTX, user *model.User) (*model.User, er
 	return user, nil
 }
 
-func (us SqlUserStore) DeactivateGuests(onlyMagicLink bool) ([]string, error) {
+func (us SqlUserStore) DeactivateGuests() ([]string, error) {
 	curTime := model.GetMillis()
 	updateQuery := us.getQueryBuilder().Update("Users").
 		Set("UpdateAt", curTime).
@@ -192,13 +192,37 @@ func (us SqlUserStore) DeactivateGuests(onlyMagicLink bool) ([]string, error) {
 		Where(sq.Eq{"Roles": "system_guest"}).
 		Where(sq.Eq{"DeleteAt": 0})
 
-	if onlyMagicLink {
-		updateQuery = updateQuery.Where(sq.Eq{"AuthService": model.UserAuthServiceMagicLink})
-	}
-
 	_, err := us.GetMaster().ExecBuilder(updateQuery)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to update Users with roles=system_guest")
+	}
+
+	selectQuery := us.getQueryBuilder().
+		Select("Id").
+		From("Users").
+		Where(sq.Eq{"DeleteAt": curTime})
+
+	userIds := []string{}
+	err = us.GetMaster().SelectBuilder(&userIds, selectQuery)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to find Users")
+	}
+
+	return userIds, nil
+}
+
+func (us SqlUserStore) DeactivateMagicLinkGuests() ([]string, error) {
+	curTime := model.GetMillis()
+	updateQuery := us.getQueryBuilder().Update("Users").
+		Set("UpdateAt", curTime).
+		Set("DeleteAt", curTime).
+		Set("Roles", "system_user").
+		Where(sq.Eq{"DeleteAt": 0}).
+		Where(sq.Eq{"AuthService": model.UserAuthServiceMagicLink})
+
+	_, err := us.GetMaster().ExecBuilder(updateQuery)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to update Users with auth_service=magic_link")
 	}
 
 	selectQuery := us.getQueryBuilder().

@@ -2107,7 +2107,7 @@
                 type: object
                 properties:
                   auth_service:
-                    description: The authentication service type. Returns the actual service type if guesst_magic_link is enabled (in which case a magic link is also sent to the user's email). Returns an empty string for all other authentication methods.
+                    description: The authentication service type. Returns the actual service type if guest_magic_link is enabled (in which case a magic link is also sent to the user's email). Returns an empty string for all other authentication methods.
                     type: string
         "400":
           $ref: "#/components/responses/BadRequest"

@@ -835,7 +835,7 @@ export default class Client4 {
         };
 
         return this.doFetch<UserProfile>(
-            `${this.getUsersRoute()}/login/sso/magic_link`,
+            `${this.getUsersRoute()}/login/one_time_link`,
             {method: 'post', body: JSON.stringify(body)},
         );
     };

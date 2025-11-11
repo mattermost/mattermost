@@ -700,7 +700,7 @@ func TestUpdateUserEmail(t *testing.T) {
 		tokens := []*model.Token{}
 		require.Eventually(t, func() bool {
 			var err error
-			tokens, err = th.App.Srv().Store().Token().GetAllTokensByType(TokenTypeVerifyEmail)
+			tokens, err = th.App.Srv().Store().Token().GetAllTokensByType(model.TokenTypeVerifyEmail)
 			return err == nil && len(tokens) == 1
 		}, 100*time.Millisecond, 10*time.Millisecond)
 
@@ -715,7 +715,7 @@ func TestUpdateUserEmail(t *testing.T) {
 
 		require.Eventually(t, func() bool {
 			var err error
-			tokens, err = th.App.Srv().Store().Token().GetAllTokensByType(TokenTypeVerifyEmail)
+			tokens, err = th.App.Srv().Store().Token().GetAllTokensByType(model.TokenTypeVerifyEmail)
 			// We verify the same conditions as the earlier function,
 			// but we also need to ensure that this is not the same token
 			// as before, which is possible if the token update goroutine
@@ -1058,7 +1058,7 @@ func TestCreateUserWithToken(t *testing.T) {
 
 	t.Run("invalid token type", func(t *testing.T) {
 		token := model.NewToken(
-			TokenTypeVerifyEmail,
+			model.TokenTypeVerifyEmail,
 			model.MapToJSON(map[string]string{"teamID": th.BasicTeam.Id, "email": user.Email}),
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
@@ -1073,7 +1073,7 @@ func TestCreateUserWithToken(t *testing.T) {
 	t.Run("token extra email does not match provided user data email", func(t *testing.T) {
 		invitationEmail := "attacker@test.com"
 		token := model.NewToken(
-			TokenTypeTeamInvitation,
+			model.TokenTypeTeamInvitation,
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail}),
 		)
 
@@ -1084,10 +1084,10 @@ func TestCreateUserWithToken(t *testing.T) {
 
 	t.Run("expired token", func(t *testing.T) {
 		token := model.NewToken(
-			TokenTypeTeamInvitation,
+			model.TokenTypeTeamInvitation,
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
-		token.CreateAt = model.GetMillis() - InvitationExpiryTime - 1
+		token.CreateAt = model.GetMillis() - model.InvitationExpiryTime - 1
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 		defer func() {
 			appErr := th.App.DeleteToken(token)
@@ -1099,7 +1099,7 @@ func TestCreateUserWithToken(t *testing.T) {
 
 	t.Run("invalid team id", func(t *testing.T) {
 		token := model.NewToken(
-			TokenTypeTeamInvitation,
+			model.TokenTypeTeamInvitation,
 			model.MapToJSON(map[string]string{"teamId": model.NewId(), "email": user.Email}),
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
@@ -1115,7 +1115,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		invitationEmail := strings.ToLower(model.NewId()) + "other-email@test.com"
 		u := model.User{Email: invitationEmail, Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 		token := model.NewToken(
-			TokenTypeTeamInvitation,
+			model.TokenTypeTeamInvitation,
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail}),
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
@@ -1135,7 +1135,7 @@ func TestCreateUserWithToken(t *testing.T) {
 	t.Run("valid guest request", func(t *testing.T) {
 		invitationEmail := strings.ToLower(model.NewId()) + "other-email@test.com"
 		token := model.NewToken(
-			TokenTypeGuestInvitation,
+			model.TokenTypeGuestInvitation,
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail, "channels": th.BasicChannel.Id, "senderId": th.BasicUser.Id}),
 		)
 
@@ -1166,11 +1166,11 @@ func TestCreateUserWithToken(t *testing.T) {
 		forbiddenInvitationEmail := strings.ToLower(model.NewId()) + "other-email@test.com"
 		grantedInvitationEmail := strings.ToLower(model.NewId()) + "other-email@restricted.com"
 		forbiddenDomainToken := model.NewToken(
-			TokenTypeGuestInvitation,
+			model.TokenTypeGuestInvitation,
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": forbiddenInvitationEmail, "channels": th.BasicChannel.Id, "senderId": th.BasicUser.Id}),
 		)
 		grantedDomainToken := model.NewToken(
-			TokenTypeGuestInvitation,
+			model.TokenTypeGuestInvitation,
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": grantedInvitationEmail, "channels": th.BasicChannel.Id, "senderId": th.BasicUser.Id}),
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(forbiddenDomainToken))
@@ -1217,7 +1217,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictCreationToDomains = "restricted.com" })
 		invitationEmail := strings.ToLower(model.NewId()) + "other-email@test.com"
 		token := model.NewToken(
-			TokenTypeGuestInvitation,
+			model.TokenTypeGuestInvitation,
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail, "channels": th.BasicChannel.Id, "senderId": th.BasicUser.Id}),
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
@@ -1255,7 +1255,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			"senderId": th.BasicUser.Id,
 		}
 		token := model.NewToken(
-			TokenTypeGuestMagicLinkInvitation,
+			model.TokenTypeGuestMagicLinkInvitation,
 			model.MapToJSON(tokenData),
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
@@ -1304,7 +1304,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			"senderId": th.BasicUser.Id, // Sender has access to public and private, but not restricted
 		}
 		token := model.NewToken(
-			TokenTypeGuestMagicLinkInvitation,
+			model.TokenTypeGuestMagicLinkInvitation,
 			model.MapToJSON(tokenData),
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
@@ -1338,7 +1338,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			"senderId": th.BasicUser.Id,
 		}
 		token := model.NewToken(
-			TokenTypeTeamInvitation, // Regular team invitation, not guest magic link
+			model.TokenTypeTeamInvitation, // Regular team invitation, not guest magic link
 			model.MapToJSON(tokenData),
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
@@ -1521,19 +1521,19 @@ func TestInvalidatePasswordRecoveryTokens(t *testing.T) {
 	t.Run("remove manually added tokens", func(t *testing.T) {
 		for range 5 {
 			token := model.NewToken(
-				TokenTypePasswordRecovery,
+				model.TokenTypePasswordRecovery,
 				model.MapToJSON(map[string]string{"UserId": th.BasicUser.Id, "email": th.BasicUser.Email}),
 			)
 			require.NoError(t, th.App.Srv().Store().Token().Save(token))
 		}
-		tokens, err := th.App.Srv().Store().Token().GetAllTokensByType(TokenTypePasswordRecovery)
+		tokens, err := th.App.Srv().Store().Token().GetAllTokensByType(model.TokenTypePasswordRecovery)
 		assert.NoError(t, err)
 		assert.Equal(t, 5, len(tokens))
 
 		appErr := th.App.InvalidatePasswordRecoveryTokensForUser(th.BasicUser.Id)
 		assert.Nil(t, appErr)
 
-		tokens, err = th.App.Srv().Store().Token().GetAllTokensByType(TokenTypePasswordRecovery)
+		tokens, err = th.App.Srv().Store().Token().GetAllTokensByType(model.TokenTypePasswordRecovery)
 		assert.NoError(t, err)
 		assert.Equal(t, 0, len(tokens))
 	})
@@ -1545,7 +1545,7 @@ func TestInvalidatePasswordRecoveryTokens(t *testing.T) {
 		token, appErr := th.App.CreatePasswordRecoveryToken(th.Context, th.BasicUser.Id, th.BasicUser.Email)
 		assert.Nil(t, appErr)
 
-		tokens, err := th.App.Srv().Store().Token().GetAllTokensByType(TokenTypePasswordRecovery)
+		tokens, err := th.App.Srv().Store().Token().GetAllTokensByType(model.TokenTypePasswordRecovery)
 		assert.NoError(t, err)
 		assert.Equal(t, 1, len(tokens))
 		assert.Equal(t, token.Token, tokens[0].Token)
@@ -2168,7 +2168,7 @@ func TestDeactivateGuests(t *testing.T) {
 	guest2 := th.CreateGuest()
 	user := th.CreateUser()
 
-	err := th.App.DeactivateGuests(th.Context, false)
+	err := th.App.DeactivateGuests(th.Context)
 	require.Nil(t, err)
 
 	guest1, err = th.App.GetUser(guest1.Id)
@@ -2642,7 +2642,7 @@ func TestAuthenticateUserForGuestMagicLink(t *testing.T) {
 			"senderId": th.BasicUser.Id,
 		}
 		token := model.NewToken(
-			TokenTypeGuestMagicLinkInvitation,
+			model.TokenTypeGuestMagicLinkInvitation,
 			model.MapToJSON(tokenData),
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
@@ -2695,11 +2695,11 @@ func TestAuthenticateUserForGuestMagicLink(t *testing.T) {
 			"senderId": th.BasicUser.Id,
 		}
 		token := model.NewToken(
-			TokenTypeGuestMagicLinkInvitation,
+			model.TokenTypeGuestMagicLinkInvitation,
 			model.MapToJSON(tokenData),
 		)
 		// Set token to be expired (48 hours + 1 millisecond old)
-		token.CreateAt = model.GetMillis() - InvitationExpiryTime - 1
+		token.CreateAt = model.GetMillis() - model.InvitationExpiryTime - 1
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
 
 		user, err := th.App.AuthenticateUserForGuestMagicLink(th.Context, token.Token)
@@ -2715,7 +2715,7 @@ func TestAuthenticateUserForGuestMagicLink(t *testing.T) {
 	t.Run("wrong token type returns error", func(t *testing.T) {
 		// Create token with wrong type
 		token := model.NewToken(
-			TokenTypeTeamInvitation, // Wrong type - should be TokenTypeGuestMagicLinkInvitation
+			model.TokenTypeTeamInvitation, // Wrong type - should be TokenTypeGuestMagicLinkInvitation
 			model.MapToJSON(map[string]string{"teamId": th.BasicTeam.Id}),
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
@@ -2741,7 +2741,7 @@ func TestAuthenticateUserForGuestMagicLink(t *testing.T) {
 			"senderId": th.BasicUser.Id,
 		}
 		token := model.NewToken(
-			TokenTypeGuestMagicLinkInvitation,
+			model.TokenTypeGuestMagicLinkInvitation,
 			model.MapToJSON(tokenData),
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
@@ -2768,7 +2768,7 @@ func TestAuthenticateUserForGuestMagicLink(t *testing.T) {
 			"senderId": th.BasicUser.Id,
 		}
 		token1 := model.NewToken(
-			TokenTypeGuestMagicLinkInvitation,
+			model.TokenTypeGuestMagicLinkInvitation,
 			model.MapToJSON(tokenData1),
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token1))
@@ -2788,7 +2788,7 @@ func TestAuthenticateUserForGuestMagicLink(t *testing.T) {
 			"senderId": th.BasicUser.Id,
 		}
 		token2 := model.NewToken(
-			TokenTypeGuestMagicLinkInvitation,
+			model.TokenTypeGuestMagicLinkInvitation,
 			model.MapToJSON(tokenData2),
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token2))
@@ -2815,7 +2815,7 @@ func TestAuthenticateUserForGuestMagicLink(t *testing.T) {
 			"senderId": th.BasicUser.Id,
 		}
 		token := model.NewToken(
-			TokenTypeGuestMagicLinkInvitation,
+			model.TokenTypeGuestMagicLinkInvitation,
 			model.MapToJSON(tokenData),
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
@@ -2847,7 +2847,7 @@ func TestAuthenticateUserForGuestMagicLink(t *testing.T) {
 			"senderId": th.BasicUser.Id, // BasicUser should have access to private channel
 		}
 		token := model.NewToken(
-			TokenTypeGuestMagicLinkInvitation,
+			model.TokenTypeGuestMagicLinkInvitation,
 			model.MapToJSON(tokenData),
 		)
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))

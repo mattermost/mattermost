@@ -567,7 +567,7 @@ func (es *Service) SendGuestInviteEmails(
 
 			if isGuestMagicLink {
 				// Guest magic link uses SSO-style authentication - clicking the link sends them to the landing page and logs them in directly
-				data.Props["ButtonURL"] = fmt.Sprintf("%s/landing#/login/sso/magic_link?t=%s", siteURL, url.QueryEscape(token.Token))
+				data.Props["ButtonURL"] = fmt.Sprintf("%s/landing#/login/one_time_link?t=%s", siteURL, url.QueryEscape(token.Token))
 			} else {
 				data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s&sbr=%s", siteURL, url.QueryEscape(tokenData), url.QueryEscape(token.Token), es.GetTrackFlowStartedByRole(isFirstAdmin, isSystemAdmin))
 			}
@@ -650,13 +650,16 @@ func (es *Service) SendMagicLinkEmailSelfService(
 	data.Props["InviteFooterInfo"] = i18n.T("api.templates.guest_magic_link_body.footer.info")
 
 	// Login-only token - no team or channel info needed
-	// TODO: re-use existing token if it hasn't expired
-	token := model.NewToken(
-		TokenTypeGuestMagicLink,
-		model.MapToJSON(map[string]string{
-			"email": invite,
-		}),
-	)
+	token, err := es.store.Token().GetTokenByTypeAndEmail(TokenTypeGuestMagicLink, invite)
+	if err != nil || token.IsExpired() {
+		// No existing token found, create a new one
+		token = model.NewToken(
+			TokenTypeGuestMagicLink,
+			model.MapToJSON(map[string]string{
+				"email": invite,
+			}),
+		)
+	}
 
 	if saveErr := es.store.Token().Save(token); saveErr != nil {
 		mlog.Error("Failed to save guest magic link token", mlog.Err(saveErr))
@@ -664,7 +667,7 @@ func (es *Service) SendMagicLinkEmailSelfService(
 	}
 
 	// Guest magic link uses SSO-style authentication - clicking the link sends them to the landing page and logs them in directly
-	data.Props["ButtonURL"] = fmt.Sprintf("%s/landing#/login/sso/magic_link?t=%s", siteURL, url.QueryEscape(token.Token))
+	data.Props["ButtonURL"] = fmt.Sprintf("%s/landing#/login/one_time_link?t=%s", siteURL, url.QueryEscape(token.Token))
 
 	if !*es.config().EmailSettings.SendEmailNotifications {
 		mlog.Info("sending guest magic link", mlog.String("to", invite))

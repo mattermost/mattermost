@@ -6814,10 +6814,10 @@ func (s *TimerLayerPostStore) RefreshPostStats() error {
 	return err
 }
 
-func (s *TimerLayerPostStore) RestoreContentFlaggedPost(post *model.Post, deletedBy string, statusFieldId string) error {
+func (s *TimerLayerPostStore) RestoreContentFlaggedPost(post *model.Post, statusFieldId string, contentFlaggingManagedFieldId string) error {
 	start := time.Now()
 
-	err := s.PostStore.RestoreContentFlaggedPost(post, deletedBy, statusFieldId)
+	err := s.PostStore.RestoreContentFlaggedPost(post, statusFieldId, contentFlaggingManagedFieldId)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -11323,6 +11323,22 @@ func (s *TimerLayerTokenStore) GetByToken(token string) (*model.Token, error) {
 	return result, err
 }
 
+func (s *TimerLayerTokenStore) GetTokenByTypeAndEmail(tokenType string, email string) (*model.Token, error) {
+	start := time.Now()
+
+	result, err := s.TokenStore.GetTokenByTypeAndEmail(tokenType, email)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("TokenStore.GetTokenByTypeAndEmail", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerTokenStore) RemoveAllTokensByType(tokenType string) error {
 	start := time.Now()
 
@@ -11594,10 +11610,10 @@ func (s *TimerLayerUserStore) Count(options model.UserCountOptions) (int64, erro
 	return result, err
 }
 
-func (s *TimerLayerUserStore) DeactivateGuests(onlyMagicLink bool) ([]string, error) {
+func (s *TimerLayerUserStore) DeactivateGuests() ([]string, error) {
 	start := time.Now()
 
-	result, err := s.UserStore.DeactivateGuests(onlyMagicLink)
+	result, err := s.UserStore.DeactivateGuests()
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -11606,6 +11622,22 @@ func (s *TimerLayerUserStore) DeactivateGuests(onlyMagicLink bool) ([]string, er
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.DeactivateGuests", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerUserStore) DeactivateMagicLinkGuests() ([]string, error) {
+	start := time.Now()
+
+	result, err := s.UserStore.DeactivateMagicLinkGuests()
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.DeactivateMagicLinkGuests", success, elapsed)
 	}
 	return result, err
 }

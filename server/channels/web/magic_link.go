@@ -12,7 +12,7 @@ import (
 )
 
 func (w *Web) InitMagicLink() {
-	w.MainRouter.Handle("/login/sso/magic_link", w.APIHandler(loginWithMagicLinkToken)).Methods(http.MethodGet)
+	w.MainRouter.Handle("/login/one_time_link", w.APIHandler(loginWithMagicLinkToken)).Methods(http.MethodGet)
 }
 
 func loginWithMagicLinkToken(c *Context, w http.ResponseWriter, r *http.Request) {

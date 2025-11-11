@@ -33,17 +33,7 @@ import (
 )
 
 const (
-	TokenTypePasswordRecovery         = "password_recovery"
-	TokenTypeVerifyEmail              = "verify_email"
-	TokenTypeTeamInvitation           = "team_invitation"
-	TokenTypeGuestInvitation          = "guest_invitation"
-	TokenTypeCWSAccess                = "cws_access_token"
-	TokenTypeGuestMagicLinkInvitation = "guest_magic_link_invitation"
-	TokenTypeGuestMagicLink           = "guest_magic_link"
-	PasswordRecoverExpiryTime         = 1000 * 60 * 60 * 24 // 24 hours
-	InvitationExpiryTime              = 1000 * 60 * 60 * 48 // 48 hours
-	MagicLinkExpiryTime               = 1000 * 60 * 5       // 5 minutes
-	ImageProfilePixelDimension        = 128
+	ImageProfilePixelDimension = 128
 )
 
 func (a *App) CreateUserWithToken(rctx request.CTX, user *model.User, token *model.Token) (*model.User, *model.AppError) {
@@ -51,11 +41,11 @@ func (a *App) CreateUserWithToken(rctx request.CTX, user *model.User, token *mod
 		return nil, err
 	}
 
-	if token.Type != TokenTypeTeamInvitation && token.Type != TokenTypeGuestInvitation && token.Type != TokenTypeGuestMagicLinkInvitation {
+	if token.Type != model.TokenTypeTeamInvitation && token.Type != model.TokenTypeGuestInvitation && token.Type != model.TokenTypeGuestMagicLinkInvitation {
 		return nil, model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if model.GetMillis()-token.CreateAt >= InvitationExpiryTime {
+	if token.IsExpired() {
 		if appErr := a.DeleteToken(token); appErr != nil {
 			rctx.Logger().Warn("Error while deleting expired signup-invite token", mlog.Err(appErr))
 		}
@@ -98,7 +88,7 @@ func (a *App) CreateUserWithToken(rctx request.CTX, user *model.User, token *mod
 
 	var ruser *model.User
 	var err *model.AppError
-	if token.Type == TokenTypeTeamInvitation {
+	if token.Type == model.TokenTypeTeamInvitation {
 		ruser, err = a.CreateUser(rctx, user)
 	} else {
 		ruser, err = a.CreateGuest(rctx, user)
@@ -115,7 +105,7 @@ func (a *App) CreateUserWithToken(rctx request.CTX, user *model.User, token *mod
 		return nil, appErr
 	}
 
-	if token.Type == TokenTypeGuestInvitation || token.Type == TokenTypeGuestMagicLinkInvitation || (token.Type == TokenTypeTeamInvitation && len(channels) > 0) {
+	if token.Type == model.TokenTypeGuestInvitation || token.Type == model.TokenTypeGuestMagicLinkInvitation || (token.Type == model.TokenTypeTeamInvitation && len(channels) > 0) {
 		for _, channel := range channels {
 			_, err := a.AddChannelMember(rctx, ruser.Id, channel, ChannelMemberOpts{})
 			if err != nil {
@@ -141,7 +131,7 @@ func (a *App) AuthenticateUserForGuestMagicLink(rctx request.CTX, tokenString st
 		return nil, model.NewAppError("AuthenticateUserForGuestMagicLink", "api.user.guest_magic_link.invalid_token.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
-	if token.Type != TokenTypeGuestMagicLinkInvitation && token.Type != TokenTypeGuestMagicLink {
+	if token.Type != model.TokenTypeGuestMagicLinkInvitation && token.Type != model.TokenTypeGuestMagicLink {
 		return nil, model.NewAppError("AuthenticateUserForGuestMagicLink", "api.user.guest_magic_link.invalid_token_type.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -151,11 +141,7 @@ func (a *App) AuthenticateUserForGuestMagicLink(rctx request.CTX, tokenString st
 		rctx.Logger().Warn("Error while deleting token", mlog.Err(err))
 	}
 
-	var expiryTime int64 = InvitationExpiryTime
-	if token.Type == TokenTypeGuestMagicLink {
-		expiryTime = MagicLinkExpiryTime
-	}
-	if model.GetMillis()-token.CreateAt >= expiryTime {
+	if token.IsExpired() {
 		return nil, model.NewAppError("AuthenticateUserForGuestMagicLink", "api.user.guest_magic_link.expired_token.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -167,7 +153,7 @@ func (a *App) AuthenticateUserForGuestMagicLink(rctx request.CTX, tokenString st
 	existingUser, getUserErr := a.GetUserByEmail(email)
 
 	// Handle login-only tokens (TokenTypeGuestMagicLink) - for existing users only
-	if token.Type == TokenTypeGuestMagicLink {
+	if token.Type == model.TokenTypeGuestMagicLink {
 		if getUserErr != nil || existingUser == nil {
 			// Return generic error to prevent user enumeration
 			return nil, model.NewAppError("AuthenticateUserForGuestMagicLink", "api.user.guest_magic_link.invalid_token.app_error", nil, "", http.StatusBadRequest)
@@ -1244,8 +1230,35 @@ func (a *App) UpdateActive(rctx request.CTX, user *model.User, active bool) (*mo
 	return ruser, nil
 }
 
-func (a *App) DeactivateGuests(rctx request.CTX, onlyMagicLink bool) *model.AppError {
-	userIDs, err := a.ch.srv.userService.DeactivateAllGuests(onlyMagicLink)
+func (a *App) DeactivateGuests(rctx request.CTX) *model.AppError {
+	userIDs, err := a.ch.srv.userService.DeactivateAllGuests()
+	if err != nil {
+		return model.NewAppError("DeactivateGuests", "app.user.update_active_for_multiple_users.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	for _, userID := range userIDs {
+		if err := a.Srv().Platform().RevokeAllSessions(rctx, userID); err != nil {
+			return model.NewAppError("DeactivateGuests", "app.user.update_active_for_multiple_users.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	for _, userID := range userIDs {
+		if err := a.userDeactivated(rctx, userID); err != nil {
+			return err
+		}
+	}
+
+	a.Srv().Store().Channel().ClearCaches()
+	a.Srv().Store().User().ClearCaches()
+
+	message := model.NewWebSocketEvent(model.WebsocketEventGuestsDeactivated, "", "", "", nil, "")
+	a.Publish(message)
+
+	return nil
+}
+
+func (a *App) DeactivateMagicLinkGuests(rctx request.CTX) *model.AppError {
+	userIDs, err := a.ch.srv.userService.DeactivateMagicLinkGuests()
 	if err != nil {
 		return model.NewAppError("DeactivateGuests", "app.user.update_active_for_multiple_users.updating.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -1686,7 +1699,7 @@ func (a *App) resetPasswordFromToken(rctx request.CTX, userSuppliedTokenString, 
 	if err != nil {
 		return err
 	}
-	if nowMilli-token.CreateAt >= PasswordRecoverExpiryTime {
+	if token.IsExpired() {
 		return model.NewAppError("resetPassword", "api.user.reset_password.link_expired.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -1786,7 +1799,7 @@ func (a *App) CreatePasswordRecoveryToken(rctx request.CTX, userID, email string
 		rctx.Logger().Warn("Error while deleting additional user tokens.", mlog.Err(err))
 	}
 
-	token := model.NewToken(TokenTypePasswordRecovery, string(jsonData))
+	token := model.NewToken(model.TokenTypePasswordRecovery, string(jsonData))
 	if err := a.Srv().Store().Token().Save(token); err != nil {
 		var appErr *model.AppError
 		switch {
@@ -1801,7 +1814,7 @@ func (a *App) CreatePasswordRecoveryToken(rctx request.CTX, userID, email string
 }
 
 func (a *App) InvalidatePasswordRecoveryTokensForUser(userID string) *model.AppError {
-	tokens, err := a.Srv().Store().Token().GetAllTokensByType(TokenTypePasswordRecovery)
+	tokens, err := a.Srv().Store().Token().GetAllTokensByType(model.TokenTypePasswordRecovery)
 	if err != nil {
 		return model.NewAppError("InvalidatePasswordRecoveryTokensForUser", "api.user.invalidate_password_recovery_tokens.error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -1833,7 +1846,7 @@ func (a *App) GetPasswordRecoveryToken(token string) (*model.Token, *model.AppEr
 	if err != nil {
 		return nil, model.NewAppError("GetPasswordRecoveryToken", "api.user.reset_password.invalid_link.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
-	if rtoken.Type != TokenTypePasswordRecovery {
+	if rtoken.Type != model.TokenTypePasswordRecovery {
 		return nil, model.NewAppError("GetPasswordRecoveryToken", "api.user.reset_password.broken_token.app_error", nil, "", http.StatusBadRequest)
 	}
 	return rtoken, nil
@@ -2142,7 +2155,7 @@ func (a *App) VerifyEmailFromToken(rctx request.CTX, userSuppliedTokenString str
 	if err != nil {
 		return err
 	}
-	if model.GetMillis()-token.CreateAt >= PasswordRecoverExpiryTime {
+	if token.IsExpired() {
 		return model.NewAppError("VerifyEmailFromToken", "api.user.verify_email.link_expired.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -2186,7 +2199,7 @@ func (a *App) GetVerifyEmailToken(token string) (*model.Token, *model.AppError) 
 	if err != nil {
 		return nil, model.NewAppError("GetVerifyEmailToken", "api.user.verify_email.bad_link.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
-	if rtoken.Type != TokenTypeVerifyEmail {
+	if rtoken.Type != model.TokenTypeVerifyEmail {
 		return nil, model.NewAppError("GetVerifyEmailToken", "api.user.verify_email.broken_token.app_error", nil, "", http.StatusBadRequest)
 	}
 	return rtoken, nil

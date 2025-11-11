@@ -243,7 +243,7 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 		auditRec.AddMeta("token_type", token.Type)
 
-		if token.Type == app.TokenTypeGuestInvitation {
+		if token.Type == model.TokenTypeGuestInvitation {
 			if c.App.Channels().License() == nil {
 				c.Err = model.NewAppError("CreateUserWithToken", "api.user.create_user.guest_accounts.license.app_error", nil, "", http.StatusBadRequest)
 				return
@@ -2218,7 +2218,7 @@ func getLoginType(c *Context, w http.ResponseWriter, r *http.Request) {
 	deviceId := props["device_id"]
 
 	// For the time being, we only support getting the login type when
-	// guest magic link is enabled. We cand consider adding support for other
+	// guest magic link is enabled. We can consider adding support for other
 	// login methods in the future, and this check may be removed.
 	if !*c.App.Config().GuestAccountsSettings.EnableGuestMagicLink ||
 		!*c.App.Config().GuestAccountsSettings.Enable ||
