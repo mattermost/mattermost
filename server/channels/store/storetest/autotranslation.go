@@ -33,7 +33,6 @@ func testAutoTranslationIsChannelEnabled(t *testing.T, rctx request.CTX, ss stor
 	}
 	team, err := ss.Team().Save(team)
 	require.NoError(t, err)
-	defer ss.Team().PermanentDelete(team.Id)
 
 	channel := &model.Channel{
 		TeamId:      team.Id,
@@ -43,7 +42,11 @@ func testAutoTranslationIsChannelEnabled(t *testing.T, rctx request.CTX, ss stor
 	}
 	channel, nErr := ss.Channel().Save(rctx, channel, 999)
 	require.NoError(t, nErr)
-	defer ss.Channel().PermanentDelete(rctx, channel.Id)
+
+	defer func() {
+		_ = ss.Team().PermanentDelete(team.Id)
+		_ = ss.Channel().PermanentDelete(rctx, channel.Id)
+	}()
 
 	t.Run("default value is false", func(t *testing.T) {
 		enabled, appErr := ss.AutoTranslation().IsChannelEnabled(channel.Id)
@@ -91,7 +94,6 @@ func testAutoTranslationSetChannelEnabled(t *testing.T, rctx request.CTX, ss sto
 	}
 	team, err := ss.Team().Save(team)
 	require.NoError(t, err)
-	defer ss.Team().PermanentDelete(team.Id)
 
 	channel := &model.Channel{
 		TeamId:      team.Id,
@@ -101,7 +103,11 @@ func testAutoTranslationSetChannelEnabled(t *testing.T, rctx request.CTX, ss sto
 	}
 	channel, nErr := ss.Channel().Save(rctx, channel, 999)
 	require.NoError(t, nErr)
-	defer ss.Channel().PermanentDelete(rctx, channel.Id)
+
+	defer func() {
+		_ = ss.Team().PermanentDelete(team.Id)
+		_ = ss.Channel().PermanentDelete(rctx, channel.Id)
+	}()
 
 	t.Run("successfully enables autotranslation", func(t *testing.T) {
 		appErr := ss.AutoTranslation().SetChannelEnabled(channel.Id, true)
@@ -156,7 +162,6 @@ func testAutoTranslationIsUserEnabled(t *testing.T, rctx request.CTX, ss store.S
 	}
 	team, err := ss.Team().Save(team)
 	require.NoError(t, err)
-	defer ss.Team().PermanentDelete(team.Id)
 
 	channel := &model.Channel{
 		TeamId:      team.Id,
@@ -166,7 +171,6 @@ func testAutoTranslationIsUserEnabled(t *testing.T, rctx request.CTX, ss store.S
 	}
 	channel, nErr := ss.Channel().Save(rctx, channel, 999)
 	require.NoError(t, nErr)
-	defer ss.Channel().PermanentDelete(rctx, channel.Id)
 
 	user := &model.User{
 		Email:    "test@example.com",
@@ -175,7 +179,12 @@ func testAutoTranslationIsUserEnabled(t *testing.T, rctx request.CTX, ss store.S
 	}
 	user, nErr = ss.User().Save(rctx, user)
 	require.NoError(t, nErr)
-	defer ss.User().PermanentDelete(rctx, user.Id)
+
+	defer func() {
+		_ = ss.Team().PermanentDelete(team.Id)
+		_ = ss.Channel().PermanentDelete(rctx, channel.Id)
+		_ = ss.User().PermanentDelete(rctx, user.Id)
+	}()
 
 	// Add user to channel
 	member := &model.ChannelMember{
@@ -251,7 +260,6 @@ func testAutoTranslationSetUserEnabled(t *testing.T, rctx request.CTX, ss store.
 	}
 	team, err := ss.Team().Save(team)
 	require.NoError(t, err)
-	defer ss.Team().PermanentDelete(team.Id)
 
 	channel := &model.Channel{
 		TeamId:      team.Id,
@@ -261,7 +269,6 @@ func testAutoTranslationSetUserEnabled(t *testing.T, rctx request.CTX, ss store.
 	}
 	channel, nErr := ss.Channel().Save(rctx, channel, 999)
 	require.NoError(t, nErr)
-	defer ss.Channel().PermanentDelete(rctx, channel.Id)
 
 	user := &model.User{
 		Email:    "test@example.com",
@@ -270,7 +277,12 @@ func testAutoTranslationSetUserEnabled(t *testing.T, rctx request.CTX, ss store.
 	}
 	user, nErr = ss.User().Save(rctx, user)
 	require.NoError(t, nErr)
-	defer ss.User().PermanentDelete(rctx, user.Id)
+
+	defer func() {
+		_ = ss.Team().PermanentDelete(team.Id)
+		_ = ss.Channel().PermanentDelete(rctx, channel.Id)
+		_ = ss.User().PermanentDelete(rctx, user.Id)
+	}()
 
 	// Add user to channel
 	member := &model.ChannelMember{
@@ -308,7 +320,6 @@ func testAutoTranslationGetUserLanguage(t *testing.T, rctx request.CTX, ss store
 	}
 	team, err := ss.Team().Save(team)
 	require.NoError(t, err)
-	defer ss.Team().PermanentDelete(team.Id)
 
 	channel := &model.Channel{
 		TeamId:      team.Id,
@@ -318,7 +329,6 @@ func testAutoTranslationGetUserLanguage(t *testing.T, rctx request.CTX, ss store
 	}
 	channel, nErr := ss.Channel().Save(rctx, channel, 999)
 	require.NoError(t, nErr)
-	defer ss.Channel().PermanentDelete(rctx, channel.Id)
 
 	userEN := &model.User{
 		Email:    "test-en@example.com",
@@ -327,7 +337,6 @@ func testAutoTranslationGetUserLanguage(t *testing.T, rctx request.CTX, ss store
 	}
 	userEN, nErr = ss.User().Save(rctx, userEN)
 	require.NoError(t, nErr)
-	defer ss.User().PermanentDelete(rctx, userEN.Id)
 
 	userES := &model.User{
 		Email:    "test-es@example.com",
@@ -336,7 +345,13 @@ func testAutoTranslationGetUserLanguage(t *testing.T, rctx request.CTX, ss store
 	}
 	userES, nErr = ss.User().Save(rctx, userES)
 	require.NoError(t, nErr)
-	defer ss.User().PermanentDelete(rctx, userES.Id)
+
+	defer func() {
+		_ = ss.Team().PermanentDelete(team.Id)
+		_ = ss.Channel().PermanentDelete(rctx, channel.Id)
+		_ = ss.User().PermanentDelete(rctx, userEN.Id)
+		_ = ss.User().PermanentDelete(rctx, userES.Id)
+	}()
 
 	// Add users to channel
 	for _, user := range []*model.User{userEN, userES} {
@@ -412,7 +427,6 @@ func testAutoTranslationGetActiveDestinationLanguages(t *testing.T, rctx request
 	}
 	team, err := ss.Team().Save(team)
 	require.NoError(t, err)
-	defer ss.Team().PermanentDelete(team.Id)
 
 	channel := &model.Channel{
 		TeamId:      team.Id,
@@ -422,7 +436,11 @@ func testAutoTranslationGetActiveDestinationLanguages(t *testing.T, rctx request
 	}
 	channel, nErr := ss.Channel().Save(rctx, channel, 999)
 	require.NoError(t, nErr)
-	defer ss.Channel().PermanentDelete(rctx, channel.Id)
+
+	defer func() {
+		_ = ss.Team().PermanentDelete(team.Id)
+		_ = ss.Channel().PermanentDelete(rctx, channel.Id)
+	}()
 
 	// Create users with different locales
 	users := make([]*model.User, 0)
@@ -436,7 +454,9 @@ func testAutoTranslationGetActiveDestinationLanguages(t *testing.T, rctx request
 		}
 		user, nErr = ss.User().Save(rctx, user)
 		require.NoError(t, nErr)
-		defer ss.User().PermanentDelete(rctx, user.Id)
+		defer func() {
+			_ = ss.User().PermanentDelete(rctx, user.Id)
+		}()
 		users = append(users, user)
 
 		// Add user to channel
