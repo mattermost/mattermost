@@ -31,6 +31,7 @@ describe('MobileSidebarRightItems', () => {
             showFlaggedPosts: jest.fn(),
             closeRightHandSide: jest.fn(),
             closeRhsMenu: jest.fn(),
+            openModal: jest.fn(),
         },
         teamIsGroupConstrained: false,
         isStarterFree: false,
