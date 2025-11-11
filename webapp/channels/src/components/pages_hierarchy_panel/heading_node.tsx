@@ -21,7 +21,7 @@ interface HeadingNodeProps {
 const HeadingNode: React.FC<HeadingNodeProps> = ({heading, pageId, currentPageId, teamName, wikiId, channelId}) => {
     const history = useHistory();
 
-    const paddingLeft = ((heading.level - 1) * 12) + 22;
+    const paddingLeft = ((heading.level - 1) * 12) + 18;
 
     const handleClick = useCallback((e: React.MouseEvent) => {
         e.stopPropagation();
@@ -41,18 +41,17 @@ const HeadingNode: React.FC<HeadingNodeProps> = ({heading, pageId, currentPageId
     return (
         <div
             className='HeadingNode'
-            style={{
-                paddingLeft: `${paddingLeft}px`,
-            }}
         >
             <button
                 className='HeadingNode__button'
+                style={{
+                    paddingLeft: `${paddingLeft}px`,
+                }}
                 onClick={handleClick}
                 role='treeitem'
                 aria-level={heading.level}
                 aria-label={`Heading level ${heading.level}: ${heading.text}`}
             >
-                <i className='icon icon-text-short'/>
                 <span className='HeadingNode__text'>{heading.text}</span>
             </button>
         </div>
