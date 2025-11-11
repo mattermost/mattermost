@@ -2534,7 +2534,7 @@
   "admin.secure_connections.details.shared_channels.tabs.home": "Dina kanaler",
   "admin.secure_connections.details.shared_channels.title": "Delade kanaler",
   "admin.secure_connections.details.subtitle": "Anslutningsnamn och andra behörigheter",
-  "admin.secure_connections.details.team.help": "Välj det standardteam som de delade kanalerna ska placeras i. Detta kan uppdateras senare för respektive delad kanal.",
+  "admin.secure_connections.details.team.help": "Välj vilket team som nya delade kanaler ska placeras i. {link}",
   "admin.secure_connections.details.team.label": "Mottagande Team",
   "admin.secure_connections.details.title": "Anslutningsdetaljer",
   "admin.secure_connections.menu.accept_invitation": "Acceptera en inbjudan",
