@@ -228,3 +228,12 @@ func IsBotDMChannel(channel *Channel, botUserID string) bool {
 
 	return true
 }
+
+// IsPluginBot returns true if the bot was created by a plugin (not by a user).
+// Plugin-created bots have OwnerId set to the plugin ID (e.g., "com.mattermost.calls").
+// User-created bots have OwnerId set to a User ID (26 character alphanumeric string).
+func IsPluginBot(bot *Bot) bool {
+	// User IDs are exactly 26 characters (from NewId())
+	// Plugin IDs are 3-190 chars and can contain dots, dashes, underscores
+	return !IsValidId(bot.OwnerId) && IsValidPluginId(bot.OwnerId)
+}

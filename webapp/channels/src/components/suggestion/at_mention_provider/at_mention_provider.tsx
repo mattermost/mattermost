@@ -269,7 +269,7 @@ export default class AtMentionProvider extends Provider {
         });
 
         const specialMentions = this.specialMentions();
-        const localMembers = this.localMembers().filter((member) => !priorityProfilesIds[member.id]);
+        const localMembers = this.localMembers().filter((member) => !priorityProfilesIds[member.id] && !member.is_bot);
 
         const localUserIds: Record<string, boolean> = {};
 
@@ -277,7 +277,7 @@ export default class AtMentionProvider extends Provider {
             localUserIds[member.id] = true;
         });
 
-        const remoteMembers = this.remoteMembers().filter((member: CreatedProfile) => !localUserIds[member.id] && !priorityProfilesIds[member.id]);
+        const remoteMembers = this.remoteMembers().filter((member: CreatedProfile) => !localUserIds[member.id] && !priorityProfilesIds[member.id] && !member.is_bot);
 
         // comparator which prioritises users with usernames starting with search term
         const orderUsers = (a: CreatedProfile, b: CreatedProfile) => {
@@ -302,8 +302,21 @@ export default class AtMentionProvider extends Provider {
             return a.username.localeCompare(b.username);
         };
 
-        // Combine the local and remote members, sorting to mix the results together.
-        const localAndRemoteMembers = localMembers.concat(remoteMembers).sort(orderUsers);
+        // Get all bots from the backend (includes both plugin bots and in-channel user-created bots)
+        const remoteBots = this.data && this.data.plugin_bots ?
+            (this.data.plugin_bots || []).
+                filter((profile: UserProfileWithLastViewAt) => this.filterProfile(profile)).
+                map((profile: UserProfileWithLastViewAt) => this.createFromProfile(profile)) :
+            [];
+
+        // Sort non-bot members
+        const nonBotPriorityProfiles = priorityProfiles.filter((member) => !member.is_bot);
+        const localAndRemoteMembers = [...nonBotPriorityProfiles, ...localMembers, ...remoteMembers].sort(orderUsers);
+
+        // Get non-members (excluding bots which are now in plugin_bots field)
+        const remoteNonMembers = this.remoteNonMembers().
+            filter((member) => !localUserIds[member.id] && !priorityProfilesIds[member.id] && !member.is_bot);
+        const sortedNonMembers = remoteNonMembers.sort(orderUsers);
 
         // handle groups
         const localGroups = this.localGroups();
@@ -335,14 +348,13 @@ export default class AtMentionProvider extends Provider {
         // Combine the local and remote groups, sorting to mix the results together.
         const localAndRemoteGroups = localGroups.concat(remoteGroups).sort(orderGroups);
 
-        const remoteNonMembers = this.remoteNonMembers().
-            filter((member) => !localUserIds[member.id]).
-            sort(orderUsers);
-
         const items = [];
 
-        if (priorityProfiles.length > 0 || localAndRemoteMembers.length > 0) {
-            items.push(membersGroup([...priorityProfiles, ...localAndRemoteMembers]));
+        if (localAndRemoteMembers.length > 0) {
+            items.push(membersGroup(localAndRemoteMembers));
+        }
+        if (remoteBots.length > 0) {
+            items.push(botsGroup(remoteBots));
         }
         if (localAndRemoteGroups.length > 0) {
             items.push(groupsGroup(localAndRemoteGroups));
@@ -350,8 +362,8 @@ export default class AtMentionProvider extends Provider {
         if (specialMentions.length > 0) {
             items.push(specialMentionsGroup(specialMentions));
         }
-        if (remoteNonMembers.length > 0) {
-            items.push(nonMembersGroup(remoteNonMembers));
+        if (sortedNonMembers.length > 0) {
+            items.push(nonMembersGroup(sortedNonMembers));
         }
 
         return items;
@@ -443,6 +455,16 @@ export function membersGroup(items: CreatedProfile[]) {
     return {
         key: 'members',
         label: defineMessage({id: 'suggestion.mention.members', defaultMessage: 'Channel Members'}),
+        items,
+        terms: items.map((profile) => '@' + profile.username),
+        component: AtMentionSuggestion,
+    };
+}
+
+export function botsGroup(items: CreatedProfile[]) {
+    return {
+        key: 'bots',
+        label: defineMessage({id: 'suggestion.mention.bots', defaultMessage: 'BOTS'}),
         items,
         terms: items.map((profile) => '@' + profile.username),
         component: AtMentionSuggestion,

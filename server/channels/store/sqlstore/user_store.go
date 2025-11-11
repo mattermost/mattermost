@@ -1675,6 +1675,16 @@ func (us SqlUserStore) SearchInChannel(channelId string, term string, options *m
 	return us.performSearch(query, term, options)
 }
 
+func (us SqlUserStore) SearchPluginBots(term string, options *model.UserSearchOptions) ([]*model.User, error) {
+	query := us.usersQuery.
+		Join("Bots b ON ( b.UserId = Users.Id )").
+		Where(sq.Eq{"Users.IsBot": true}).
+		OrderBy("Users.Username ASC").
+		Limit(uint64(options.Limit))
+
+	return us.performSearch(query, term, options)
+}
+
 func (us SqlUserStore) SearchInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
 	query := us.usersQuery.
 		Join("GroupMembers gm ON ( gm.UserId = Users.Id AND gm.GroupId = ? AND gm.DeleteAt = 0 )", groupID).
@@ -2258,24 +2268,45 @@ func (us SqlUserStore) DemoteUserToGuest(userID string) (_ *model.User, err erro
 }
 
 func (us SqlUserStore) AutocompleteUsersInChannel(rctx request.CTX, teamId, channelId, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error) {
-	var usersInChannel, usersNotInChannel []*model.User
+	var usersInChannel, usersNotInChannel, pluginBots []*model.User
 	g := errgroup.Group{}
+
+	// Existing: users in channel
 	g.Go(func() (err error) {
 		usersInChannel, err = us.SearchInChannel(channelId, term, options)
 		return err
 	})
+
+	// Existing: users not in channel but in team
 	g.Go(func() (err error) {
 		usersNotInChannel, err = us.SearchNotInChannel(teamId, channelId, term, options)
 		return err
 	})
+
+	// NEW: all plugin bots (no channel restriction)
+	g.Go(func() (err error) {
+		pluginBots, err = us.SearchPluginBots(term, options)
+		return err
+	})
+
 	err := g.Wait()
 	if err != nil {
 		return nil, err
 	}
 
+	// Filter bots out of in-channel results
+	// They'll appear in the dedicated "BOTS" section instead
+	usersInChannelFiltered := make([]*model.User, 0, len(usersInChannel))
+	for _, user := range usersInChannel {
+		if !user.IsBot {
+			usersInChannelFiltered = append(usersInChannelFiltered, user)
+		}
+	}
+
 	return &model.UserAutocompleteInChannel{
-		InChannel:    usersInChannel,
+		InChannel:    usersInChannelFiltered,
 		OutOfChannel: usersNotInChannel,
+		PluginBots:   pluginBots,
 	}, nil
 }
 
