@@ -35,7 +35,8 @@ export const getPageDraftsForWiki = createSelector(
             }
         }
 
-        return drafts.sort((a, b) => (a.createAt || 0) - (b.createAt || 0));
+        const sorted = drafts.sort((a, b) => (a.createAt || 0) - (b.createAt || 0));
+        return sorted;
     },
 );
 

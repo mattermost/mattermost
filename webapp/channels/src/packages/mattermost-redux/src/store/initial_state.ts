@@ -231,6 +231,8 @@ const state: GlobalState = {
             error: {},
             pendingPublishes: {},
             lastInvalidated: {},
+            lastPagesInvalidated: {},
+            lastDraftsInvalidated: {},
         },
         wikis: {
             byChannel: {},

@@ -521,8 +521,8 @@ export function openWikiRhs(pageId: string, wikiId?: string, focusedInlineCommen
         const currentRhsState = getRhsState(getState());
         const currentPageId = getSelectedPageId(getState());
 
-        // Only dispatch UPDATE_RHS_STATE if we're not already in WIKI state with the same page
-        // This prevents unnecessary remounting of WikiRHS and ThreadViewer
+        // Always dispatch if pageId changed, even if already in WIKI state
+        // This ensures RHS updates when navigating between pages
         if (currentRhsState !== RHSStates.WIKI || currentPageId !== pageId) {
             dispatch({
                 type: ActionTypes.UPDATE_RHS_STATE,

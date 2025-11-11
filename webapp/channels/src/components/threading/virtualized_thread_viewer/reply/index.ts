@@ -14,6 +14,7 @@ import Reply from './reply';
 
 type OwnProps = {
     id: string;
+    isRootPost?: boolean;
 }
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
@@ -36,6 +37,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         post,
         previewEnabled,
         previewCollapsed,
+        isRootPost: ownProps.isRootPost,
     };
 }
 

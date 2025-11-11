@@ -39,7 +39,7 @@ func TestGetWikisForChannel_SoftDelete(t *testing.T) {
 		require.Nil(t, err)
 		require.Len(t, wikis, 2)
 
-		err = th.App.DeleteWiki(th.Context, createdWiki1.Id)
+		err = th.App.DeleteWiki(th.Context, createdWiki1.Id, th.BasicUser.Id)
 		require.Nil(t, err)
 
 		wikis, err = th.App.GetWikisForChannel(th.Context, th.BasicChannel.Id, false)
@@ -888,6 +888,46 @@ func TestSystemMessages_WikiAdded(t *testing.T) {
 		require.Equal(t, createdWiki.Title, systemPost.Props["wiki_title"])
 		require.Equal(t, th.BasicChannel.Id, systemPost.Props["channel_id"])
 		require.Equal(t, th.BasicUser.Id, systemPost.Props["added_user_id"])
+		require.Equal(t, th.BasicUser.Username, systemPost.Props["username"])
+	})
+
+	t.Run("creates system message when wiki is deleted", func(t *testing.T) {
+		wiki := &model.Wiki{
+			ChannelId:   th.BasicChannel.Id,
+			Title:       "Wiki to Delete",
+			Description: "Test wiki deletion",
+		}
+
+		createdWiki, err := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+		require.Nil(t, err)
+		require.NotNil(t, createdWiki)
+
+		err = th.App.DeleteWiki(th.Context, createdWiki.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		postList, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
+			ChannelId: th.BasicChannel.Id,
+			Page:      0,
+			PerPage:   10,
+		})
+		require.Nil(t, appErr)
+		require.NotNil(t, postList)
+
+		var systemPost *model.Post
+		for _, post := range postList.Posts {
+			if post.Type == model.PostTypeWikiDeleted {
+				systemPost = post
+				break
+			}
+		}
+
+		require.NotNil(t, systemPost, "Should have created a system_wiki_deleted post")
+		require.Equal(t, th.BasicChannel.Id, systemPost.ChannelId)
+		require.Equal(t, th.BasicUser.Id, systemPost.UserId)
+		require.Equal(t, createdWiki.Id, systemPost.Props["wiki_id"])
+		require.Equal(t, createdWiki.Title, systemPost.Props["wiki_title"])
+		require.Equal(t, th.BasicUser.Id, systemPost.Props["deleted_user_id"])
+		require.Equal(t, th.BasicUser.Username, systemPost.Props["username"])
 	})
 }
 
@@ -929,9 +969,11 @@ func TestSystemMessages_PageAdded(t *testing.T) {
 		require.Equal(t, th.BasicChannel.Id, systemPost.ChannelId)
 		require.Equal(t, th.BasicUser.Id, systemPost.UserId)
 		require.Equal(t, page.Id, systemPost.Props["page_id"])
+		require.Equal(t, "New Page", systemPost.Props["page_title"])
 		require.Equal(t, createdWiki.Id, systemPost.Props["wiki_id"])
 		require.Equal(t, createdWiki.Title, systemPost.Props["wiki_title"])
 		require.Equal(t, th.BasicUser.Id, systemPost.Props["added_user_id"])
+		require.Equal(t, th.BasicUser.Username, systemPost.Props["username"])
 	})
 }
 
@@ -977,8 +1019,16 @@ func TestSystemMessages_PageUpdated(t *testing.T) {
 		require.Equal(t, th.BasicChannel.Id, systemPost.ChannelId)
 		require.Equal(t, th.BasicUser.Id, systemPost.UserId)
 		require.Equal(t, page.Id, systemPost.Props["page_id"])
+		require.Equal(t, "Updated Title", systemPost.Props["page_title"])
 		require.Equal(t, createdWiki.Id, systemPost.Props["wiki_id"])
+		require.Equal(t, createdWiki.Title, systemPost.Props["wiki_title"])
 		require.Equal(t, 1, int(systemPost.Props["update_count"].(float64)))
+
+		updaterIds, ok := systemPost.Props["updater_ids"].([]any)
+		require.True(t, ok, "updater_ids should be an array")
+		require.Len(t, updaterIds, 1, "Should have one updater")
+		require.Equal(t, th.BasicUser.Id, updaterIds[0])
+		require.Equal(t, th.BasicUser.Username, systemPost.Props["username_"+th.BasicUser.Id])
 	})
 
 	t.Run("consolidates multiple updates within 2 hours", func(t *testing.T) {
@@ -1036,6 +1086,56 @@ func TestSystemMessages_PageUpdated(t *testing.T) {
 		require.Equal(t, 1, updateNotificationCount, "Should still have only one system_page_updated post")
 		require.NotNil(t, latestUpdatePost)
 		require.Equal(t, 4, int(latestUpdatePost.Props["update_count"].(float64)), "Update count should be 4 (first subtest + 3 updates)")
+	})
+
+	t.Run("tracks multiple updaters in consolidated notification", func(t *testing.T) {
+		th.AddUserToChannel(th.BasicUser2, th.BasicChannel)
+		_, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.BasicUser2.Id, model.ChannelAdminRoleId)
+		require.Nil(t, appErr)
+
+		session1, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id})
+		require.Nil(t, err)
+		_, appErr = th.App.UpdatePage(th.Context.WithSession(session1), page.Id, "Update by User1", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"User1 update"}]}]}`, "User1 update")
+		require.Nil(t, appErr)
+
+		session2, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser2.Id})
+		require.Nil(t, err)
+		_, appErr = th.App.UpdatePage(th.Context.WithSession(session2), page.Id, "Update by User2", `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"User2 update"}]}]}`, "User2 update")
+		require.Nil(t, appErr)
+
+		postList, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
+			ChannelId: th.BasicChannel.Id,
+			Page:      0,
+			PerPage:   20,
+		})
+		require.Nil(t, appErr)
+
+		var latestUpdatePost *model.Post
+		for _, post := range postList.Posts {
+			if post.Type == model.PostTypePageUpdated {
+				if latestUpdatePost == nil || post.CreateAt > latestUpdatePost.CreateAt {
+					latestUpdatePost = post
+				}
+			}
+		}
+
+		require.NotNil(t, latestUpdatePost)
+		updaterIds, ok := latestUpdatePost.Props["updater_ids"].([]any)
+		require.True(t, ok, "updater_ids should be an array")
+		require.Len(t, updaterIds, 2, "Should have two unique updaters")
+
+		updaterIdMap := make(map[string]bool)
+		for _, id := range updaterIds {
+			idStr, ok := id.(string)
+			require.True(t, ok)
+			updaterIdMap[idStr] = true
+			require.Contains(t, latestUpdatePost.Props, "username_"+idStr, "Should have username for updater")
+		}
+
+		require.True(t, updaterIdMap[th.BasicUser.Id], "Should include BasicUser in updaters")
+		require.True(t, updaterIdMap[th.BasicUser2.Id], "Should include BasicUser2 in updaters")
+		require.Equal(t, th.BasicUser.Username, latestUpdatePost.Props["username_"+th.BasicUser.Id])
+		require.Equal(t, th.BasicUser2.Username, latestUpdatePost.Props["username_"+th.BasicUser2.Id])
 	})
 }
 

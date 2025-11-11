@@ -25,6 +25,7 @@ import PostProfilePicture from 'components/post_profile_picture';
 import PostAcknowledgements from 'components/post_view/acknowledgements';
 import CommentedOn from 'components/post_view/commented_on/commented_on';
 import FailedPostOptions from 'components/post_view/failed_post_options';
+import PageCommentedOn from 'components/post_view/page_commented_on';
 import PostAriaLabelDiv from 'components/post_view/post_aria_label_div';
 import PostBodyAdditionalContent from 'components/post_view/post_body_additional_content';
 import PostMessageContainer from 'components/post_view/post_message_view';
@@ -41,6 +42,7 @@ import {getHistory} from 'utils/browser_history';
 import Constants, {A11yCustomEventTypes, AppEvents, Locations} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
+import {isPageInlineComment} from 'utils/page_utils';
 import * as PostUtils from 'utils/post_utils';
 import {makeIsEligibleForClick} from 'utils/utils';
 
@@ -409,6 +411,17 @@ function PostComponent(props: Props) {
         );
     }
 
+    let pageCommentContext;
+    if (isPageInlineComment(post) && props.location === Locations.RHS_ROOT) {
+        pageCommentContext = (
+            <PageCommentedOn
+                rootId={post.id}
+                onCommentClick={handleCommentClick}
+                showUserHeader={false}
+            />
+        );
+    }
+
     let visibleMessage = null;
     if (post.type === Constants.PostTypes.EPHEMERAL && !props.compactDisplay && post.state !== Posts.POST_DELETED) {
         visibleMessage = (
@@ -442,7 +455,10 @@ function PostComponent(props: Props) {
         }
     }
 
-    const message = isSearchResultItem ? (
+    // Hide message when PageCommentedOn is shown (it renders the message itself)
+    const hideMessageForPageComment = isPageInlineComment(post) && props.location === Locations.RHS_ROOT;
+
+    const message = hideMessageForPageComment ? null : (isSearchResultItem ? (
         <PostBodyAdditionalContent
             post={post}
             options={{
@@ -468,7 +484,7 @@ function PostComponent(props: Props) {
             isRHS={isRHS}
             compactDisplay={props.compactDisplay}
         />
-    );
+    ));
 
     const slotBasedOnEditOrMessageView = props.isPostBeingEdited ? AutoHeightSlots.SLOT2 : AutoHeightSlots.SLOT1;
     const threadFooter = props.location !== Locations.RHS_ROOT && props.isCollapsedThreadsEnabled && !post.root_id && (props.hasReplies || post.is_following) ? (
@@ -627,6 +643,7 @@ function PostComponent(props: Props) {
                             }
                         </div>
                         {comment}
+                        {pageCommentContext}
                         <div
                             className={postClass}
                             id={isRHS ? undefined : `${post.id}_message`}

@@ -24,6 +24,7 @@ type Props = {
     onDuplicate?: () => void;
     onMove?: () => void;
     onDelete?: () => void;
+    onVersionHistory?: () => void;
     pageLink?: string;
 };
 
@@ -45,6 +46,7 @@ const WikiPageHeader = ({
     onDuplicate,
     onMove,
     onDelete,
+    onVersionHistory,
     pageLink,
 }: Props) => {
     return (
@@ -106,11 +108,13 @@ const WikiPageHeader = ({
                     {pageId && (
                         <PageActionsMenu
                             pageId={pageId}
+                            wikiId={wikiId}
                             onCreateChild={onCreateChild}
                             onRename={onRename}
                             onDuplicate={onDuplicate}
                             onMove={onMove}
                             onDelete={onDelete}
+                            onVersionHistory={onVersionHistory}
                             isDraft={isDraft}
                             pageLink={pageLink}
                             buttonTestId='wiki-page-more-actions'

@@ -13,7 +13,8 @@ export type WikiPagesState = {
     loading: Record<string, boolean>;
     error: Record<string, string | null>;
     pendingPublishes: Record<string, boolean>;
-    lastInvalidated: Record<string, number>;
+    lastPagesInvalidated: Record<string, number>;
+    lastDraftsInvalidated: Record<string, number>;
     statusField: SelectPropertyField | null;
 };
 
@@ -22,7 +23,8 @@ const initialState: WikiPagesState = {
     loading: {},
     error: {},
     pendingPublishes: {},
-    lastInvalidated: {},
+    lastPagesInvalidated: {},
+    lastDraftsInvalidated: {},
     statusField: null,
 };
 
@@ -71,9 +73,15 @@ export default function wikiPagesReducer(state = initialState, action: AnyAction
         };
     }
     case WikiTypes.RECEIVED_PAGE_IN_WIKI: {
-        const {page, wikiId} = action.data;
+        const {page, wikiId, pendingPageId} = action.data;
 
-        const currentPageIds = state.byWiki[wikiId] || [];
+        let currentPageIds = state.byWiki[wikiId] || [];
+
+        // If a pendingPageId is provided, remove it first (atomic replacement of optimistic page)
+        if (pendingPageId) {
+            currentPageIds = currentPageIds.filter((id) => id !== pendingPageId);
+        }
+
         const nextPageIds = currentPageIds.includes(page.id) ? currentPageIds : [...currentPageIds, page.id];
 
         return {
@@ -109,15 +117,19 @@ export default function wikiPagesReducer(state = initialState, action: AnyAction
         const nextError = {...state.error};
         delete nextError[wikiId];
 
-        const nextLastInvalidated = {...state.lastInvalidated};
-        delete nextLastInvalidated[wikiId];
+        const nextLastPagesInvalidated = {...state.lastPagesInvalidated};
+        delete nextLastPagesInvalidated[wikiId];
+
+        const nextLastDraftsInvalidated = {...state.lastDraftsInvalidated};
+        delete nextLastDraftsInvalidated[wikiId];
 
         return {
             ...state,
             byWiki: nextByWiki,
             loading: nextLoading,
             error: nextError,
-            lastInvalidated: nextLastInvalidated,
+            lastPagesInvalidated: nextLastPagesInvalidated,
+            lastDraftsInvalidated: nextLastDraftsInvalidated,
         };
     }
     case WikiTypes.PUBLISH_DRAFT_REQUEST: {
@@ -150,12 +162,21 @@ export default function wikiPagesReducer(state = initialState, action: AnyAction
         };
     }
     case WikiTypes.INVALIDATE_PAGES: {
-        const {wikiId} = action.data;
-        const timestamp = Date.now();
+        const {wikiId, timestamp} = action.data;
         return {
             ...state,
-            lastInvalidated: {
-                ...state.lastInvalidated,
+            lastPagesInvalidated: {
+                ...state.lastPagesInvalidated,
+                [wikiId]: timestamp,
+            },
+        };
+    }
+    case WikiTypes.INVALIDATE_DRAFTS: {
+        const {wikiId, timestamp} = action.data;
+        return {
+            ...state,
+            lastDraftsInvalidated: {
+                ...state.lastDraftsInvalidated,
                 [wikiId]: timestamp,
             },
         };

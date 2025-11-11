@@ -413,8 +413,15 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		}
 	}
 
-	if err := a.handlePostEvents(rctx, rpost, user, channel, flags.TriggerWebhooks, parentPostList, flags.SetOnline); err != nil {
-		rctx.Logger().Warn("Failed to handle post events", mlog.Err(err))
+	// Handle page comment threads (page-specific logic)
+	if rpost.Type == model.PostTypePageComment && rpost.RootId == "" {
+		if threadErr := a.handlePageCommentThreadCreation(rctx, rpost, user, channel); threadErr != nil {
+			rctx.Logger().Warn("Failed to handle page comment thread creation", mlog.Err(threadErr))
+		}
+	}
+
+	if eventsErr := a.handlePostEvents(rctx, rpost, user, channel, flags.TriggerWebhooks, parentPostList, flags.SetOnline); eventsErr != nil {
+		rctx.Logger().Warn("Failed to handle post events", mlog.Err(eventsErr))
 	}
 
 	// Send any ephemeral posts after the post is created to ensure it shows up after the latest post created
@@ -829,6 +836,10 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 }
 
 func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, message *model.WebSocketEvent) *model.AppError {
+	if post.Type == model.PostTypePage || post.Type == model.PostTypePageComment {
+		return nil
+	}
+
 	postJSON, jsonErr := post.ToJSON()
 	if jsonErr != nil {
 		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypeAll, model.NotificationReasonMarshalError, model.NotificationNoPlatform)
@@ -1507,6 +1518,14 @@ func (a *App) DeletePost(rctx request.CTX, postID, deleteByID string) (*model.Po
 	appErr = a.CleanUpAfterPostDeletion(rctx, post, deleteByID)
 	if appErr != nil {
 		return nil, appErr
+	}
+
+	// Send page comment deleted event if this is a page comment
+	if pageId, ok := post.Props["page_id"].(string); ok && pageId != "" {
+		page, pageErr := a.GetSinglePost(rctx, pageId, false)
+		if pageErr == nil {
+			a.SendCommentDeletedEvent(rctx, post, page, channel)
+		}
 	}
 
 	return post, nil

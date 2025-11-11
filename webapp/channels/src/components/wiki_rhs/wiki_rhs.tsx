@@ -17,6 +17,7 @@ type Props = {
     pageTitle: string;
     channelLoaded: boolean;
     activeTab: 'page_comments' | 'all_threads';
+    focusedInlineCommentId: string | null;
     actions: {
         publishPage: (wikiId: string, pageId: string) => Promise<any>;
         closeRightHandSide: () => void;
@@ -25,7 +26,7 @@ type Props = {
     };
 };
 
-const WikiRHS = ({pageId, wikiId, pageTitle, channelLoaded, activeTab, actions}: Props) => {
+const WikiRHS = ({pageId, wikiId, pageTitle, channelLoaded, activeTab, focusedInlineCommentId, actions}: Props) => {
     const handleTabSwitch = useCallback((key: any) => {
         if (typeof key === 'string') {
             actions.setWikiRhsActiveTab(key as 'page_comments' | 'all_threads');
@@ -39,6 +40,58 @@ const WikiRHS = ({pageId, wikiId, pageTitle, channelLoaded, activeTab, actions}:
         }
     }, [wikiId, actions]);
 
+    // When focused on an inline comment, show single thread view (no tabs)
+    if (focusedInlineCommentId) {
+        return (
+            <div
+                className='sidebar--right__content WikiRHS'
+                data-testid='wiki-rhs'
+            >
+                <div
+                    className='WikiRHS__header'
+                    data-testid='wiki-rhs-header'
+                >
+                    <h2 data-testid='wiki-rhs-header-title'>{'Thread'}</h2>
+                    <div
+                        className='WikiRHS__header-actions'
+                        data-testid='wiki-rhs-header-actions'
+                    >
+                        <button
+                            className='WikiRHS__expand-btn'
+                            aria-label='Expand'
+                            data-testid='wiki-rhs-expand-button'
+                        >
+                            <i className='icon-arrow-expand'/>
+                        </button>
+                        <button
+                            className='WikiRHS__close-btn'
+                            aria-label='Close'
+                            onClick={actions.closeRightHandSide}
+                            data-testid='wiki-rhs-close-button'
+                        >
+                            <i className='icon-close'/>
+                        </button>
+                    </div>
+                </div>
+                <div
+                    className='WikiRHS__thread-content'
+                    data-testid='wiki-rhs-thread-content'
+                >
+                    {pageId && channelLoaded && (
+                        <WikiThreadViewer
+                            key={`${pageId}-${focusedInlineCommentId || 'list'}`}
+                            rootPostId={pageId}
+                            useRelativeTimestamp={true}
+                            isThreadView={true}
+                            hideRootPost={true}
+                        />
+                    )}
+                </div>
+            </div>
+        );
+    }
+
+    // Default view: Show tabs for page comments and all threads
     return (
         <div
             className='sidebar--right__content WikiRHS'
@@ -96,6 +149,7 @@ const WikiRHS = ({pageId, wikiId, pageTitle, channelLoaded, activeTab, actions}:
                     >
                         {pageId && channelLoaded && (
                             <WikiThreadViewer
+                                key={pageId}
                                 rootPostId={pageId}
                                 useRelativeTimestamp={true}
                                 isThreadView={false}

@@ -91,7 +91,6 @@ type Props = {
     onDuplicate?: (pageId: string) => void;
     onMove?: (pageId: string) => void;
     onDelete?: (pageId: string) => void;
-    renamingPageId?: string | null;
     deletingPageId?: string | null;
     wikiId?: string;
     channelId?: string;
@@ -109,7 +108,6 @@ const PageTreeView = ({
     onDuplicate,
     onMove,
     onDelete,
-    renamingPageId,
     deletingPageId,
     wikiId,
     channelId,
@@ -246,14 +244,16 @@ const PageTreeView = ({
                                                     onDuplicate={onDuplicate}
                                                     onMove={onMove}
                                                     onDelete={onDelete}
-                                                    isRenaming={renamingPageId === node.id}
                                                     isDeleting={deletingPageId === node.id}
                                                     wikiId={wikiId}
                                                     channelId={channelId}
                                                     dragHandleProps={provided.dragHandleProps}
                                                 />
                                                 {isOutlineExpanded && (
-                                                    <div className='PageTreeView__outline'>
+                                                    <div
+                                                        className='PageTreeView__outline'
+                                                        data-testid='page-outline'
+                                                    >
                                                         {headings.length > 0 ? (
                                                             <>
                                                                 {headings.map((heading) => (

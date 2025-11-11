@@ -56,6 +56,7 @@ const (
 	PostTypePageComment          = "page_comment"
 	PostTypePageMention          = "system_page_mention"
 	PostTypeWikiAdded            = "system_wiki_added"
+	PostTypeWikiDeleted          = "system_wiki_deleted"
 	PostTypePageAdded            = "system_page_added"
 	PostTypePageUpdated          = "system_page_updated"
 	PostCustomTypePrefix         = "custom_"
@@ -525,6 +526,7 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypePageComment,
 		PostTypePageMention,
 		PostTypeWikiAdded,
+		PostTypeWikiDeleted,
 		PostTypePageAdded,
 		PostTypePageUpdated,
 		PostTypeWrangler,

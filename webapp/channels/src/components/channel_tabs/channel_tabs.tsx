@@ -163,11 +163,6 @@ const tabs: TabConfig[] = [
         icon: 'icon-message-text-outline',
     },
     {
-        id: 'files',
-        label: 'Files',
-        icon: 'icon-file-text-outline',
-    },
-    {
         id: 'wiki',
         label: 'Wiki',
         icon: 'icon-file-multiple-outline',
@@ -338,8 +333,8 @@ function ChannelTabs({
             return;
         }
 
-        // For messages and files tabs, navigate to the channel URL if we're currently on a wiki route
-        if ((tabId === 'messages' || tabId === 'files') && channel) {
+        // For messages tab, navigate to the channel URL if we're currently on a wiki route
+        if (tabId === 'messages' && channel) {
             const currentPath = window.location.pathname;
             if (currentPath.includes('/wiki/')) {
                 history.push(`${teamUrl}/channels/${channel.name}`);
@@ -347,7 +342,7 @@ function ChannelTabs({
             }
         }
 
-        // For other tabs (messages, files), just change the tab state
+        // For other tabs (messages), just change the tab state
         onTabChange(tabId);
     }, [onTabChange, history, teamUrl, channelId, channel]);
 

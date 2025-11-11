@@ -19,7 +19,7 @@ export const useInlineComments = (pageId?: string, wikiId?: string, onCommentCre
     const handleCreateInlineComment = useCallback((anchor: CommentAnchor) => {
         setCommentAnchor(anchor);
         setShowCommentModal(true);
-    }, []);
+    }, [pageId, wikiId]);
 
     const handleSubmitComment = useCallback(async (message: string) => {
         if (!commentAnchor || !pageId || !wikiId) {

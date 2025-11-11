@@ -30,6 +30,8 @@ func (api *API) InitWiki() {
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/comments", api.APISessionRequired(getPageComments)).Methods(http.MethodGet)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/comments", api.APISessionRequired(createPageComment)).Methods(http.MethodPost)
 	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/comments/{parent_comment_id:[A-Za-z0-9]+}/replies", api.APISessionRequired(createPageCommentReply)).Methods(http.MethodPost)
+	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/comments/{comment_id:[A-Za-z0-9]+}/resolve", api.APISessionRequired(resolvePageComment)).Methods(http.MethodPost)
+	api.BaseRoutes.Wiki.Handle("/pages/{page_id:[A-Za-z0-9]+}/comments/{comment_id:[A-Za-z0-9]+}/unresolve", api.APISessionRequired(unresolvePageComment)).Methods(http.MethodPost)
 	api.BaseRoutes.Channel.Handle("/pages", api.APISessionRequired(getChannelPages)).Methods(http.MethodGet)
 }
 
@@ -211,7 +213,7 @@ func deleteWiki(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddEventPriorState(oldWiki)
 
-	if appErr := c.App.DeleteWiki(c.AppContext, c.Params.WikiId); appErr != nil {
+	if appErr := c.App.DeleteWiki(c.AppContext, c.Params.WikiId, c.AppContext.Session().UserId); appErr != nil {
 		c.Err = appErr
 		return
 	}
@@ -1095,5 +1097,183 @@ func moveWikiToChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewEncoder(w).Encode(movedWiki); err != nil {
 		c.Logger.Warn("Error writing response", mlog.Err(err))
+	}
+}
+
+func resolvePageComment(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireWikiId()
+	c.RequirePageId()
+	if c.Err != nil {
+		return
+	}
+
+	commentId := c.Params.CommentId
+	if commentId == "" || !model.IsValidId(commentId) {
+		c.SetInvalidParam("comment_id")
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("resolvePageComment", model.AuditStatusFail)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+	auditRec.AddMeta("comment_id", commentId)
+	auditRec.AddMeta("page_id", c.Params.PageId)
+
+	comment, appErr := c.App.GetSinglePost(c.AppContext, commentId, false)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if comment.DeleteAt != 0 {
+		c.Err = model.NewAppError(
+			"resolvePageComment",
+			"api.wiki.resolve_comment.deleted.app_error",
+			nil,
+			"",
+			http.StatusBadRequest,
+		)
+		return
+	}
+
+	if comment.Type != model.PostTypePageComment {
+		c.Err = model.NewAppError(
+			"resolvePageComment",
+			"api.wiki.resolve_comment.not_comment.app_error",
+			nil,
+			"",
+			http.StatusBadRequest,
+		)
+		return
+	}
+
+	commentPageId, ok := comment.Props["page_id"].(string)
+	if !ok || commentPageId != c.Params.PageId {
+		c.Err = model.NewAppError(
+			"resolvePageComment",
+			"api.wiki.resolve_comment.wrong_page.app_error",
+			nil,
+			"",
+			http.StatusBadRequest,
+		)
+		return
+	}
+
+	commentType, _ := comment.Props["comment_type"].(string)
+	if commentType != "inline" {
+		c.Err = model.NewAppError(
+			"resolvePageComment",
+			"api.wiki.resolve_comment.not_inline.app_error",
+			nil,
+			"only inline comments can be resolved",
+			http.StatusBadRequest,
+		)
+		return
+	}
+
+	if !c.App.CanResolvePageComment(c.AppContext, c.AppContext.Session(), comment, c.Params.PageId) {
+		c.SetPermissionError(model.PermissionReadChannelContent)
+		return
+	}
+
+	resolvedComment, resolveErr := c.App.ResolvePageComment(c.AppContext, commentId, c.AppContext.Session().UserId)
+	if resolveErr != nil {
+		c.Err = resolveErr
+		return
+	}
+
+	auditRec.Success()
+	auditRec.AddEventResultState(resolvedComment)
+
+	if err := json.NewEncoder(w).Encode(resolvedComment); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func unresolvePageComment(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireWikiId()
+	c.RequirePageId()
+	if c.Err != nil {
+		return
+	}
+
+	commentId := c.Params.CommentId
+	if commentId == "" || !model.IsValidId(commentId) {
+		c.SetInvalidParam("comment_id")
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("unresolvePageComment", model.AuditStatusFail)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+	auditRec.AddMeta("comment_id", commentId)
+	auditRec.AddMeta("page_id", c.Params.PageId)
+
+	comment, appErr := c.App.GetSinglePost(c.AppContext, commentId, false)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	if comment.DeleteAt != 0 {
+		c.Err = model.NewAppError(
+			"unresolvePageComment",
+			"api.wiki.unresolve_comment.deleted.app_error",
+			nil,
+			"",
+			http.StatusBadRequest,
+		)
+		return
+	}
+
+	if comment.Type != model.PostTypePageComment {
+		c.Err = model.NewAppError(
+			"unresolvePageComment",
+			"api.wiki.unresolve_comment.not_comment.app_error",
+			nil,
+			"",
+			http.StatusBadRequest,
+		)
+		return
+	}
+
+	commentPageId, ok := comment.Props["page_id"].(string)
+	if !ok || commentPageId != c.Params.PageId {
+		c.Err = model.NewAppError(
+			"unresolvePageComment",
+			"api.wiki.unresolve_comment.wrong_page.app_error",
+			nil,
+			"",
+			http.StatusBadRequest,
+		)
+		return
+	}
+
+	commentType, _ := comment.Props["comment_type"].(string)
+	if commentType != "inline" {
+		c.Err = model.NewAppError(
+			"unresolvePageComment",
+			"api.wiki.unresolve_comment.not_inline.app_error",
+			nil,
+			"only inline comments can be unresolved",
+			http.StatusBadRequest,
+		)
+		return
+	}
+
+	if !c.App.CanResolvePageComment(c.AppContext, c.AppContext.Session(), comment, c.Params.PageId) {
+		c.SetPermissionError(model.PermissionReadChannelContent)
+		return
+	}
+
+	unresolvedComment, unresolveErr := c.App.UnresolvePageComment(c.AppContext, commentId)
+	if unresolveErr != nil {
+		c.Err = unresolveErr
+		return
+	}
+
+	auditRec.Success()
+	auditRec.AddEventResultState(unresolvedComment)
+
+	if err := json.NewEncoder(w).Encode(unresolvedComment); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

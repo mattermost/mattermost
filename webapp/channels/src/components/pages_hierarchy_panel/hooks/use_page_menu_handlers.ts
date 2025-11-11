@@ -3,6 +3,7 @@
 
 import {useState, useCallback, useMemo} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
+import {useHistory, useLocation} from 'react-router-dom';
 
 import type {Post} from '@mattermost/types/posts';
 
@@ -12,6 +13,7 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {removePageDraft} from 'actions/page_drafts';
 import {createPage, updatePage, deletePage, duplicatePage, movePageToWiki} from 'actions/pages';
 import {expandAncestors} from 'actions/views/pages_hierarchy';
+import {openPageInEditMode} from 'actions/wiki_edit';
 
 import {PageDisplayTypes} from 'utils/constants';
 
@@ -28,6 +30,8 @@ type UsePageMenuHandlersProps = {
 
 export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSelect}: UsePageMenuHandlersProps) => {
     const dispatch = useDispatch();
+    const history = useHistory();
+    const location = useLocation();
     const currentUserId = useSelector((state: GlobalState) => getCurrentUserId(state));
 
     // Convert drafts to Post-like objects and combine with pages
@@ -68,17 +72,14 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
     }, [pages, drafts, currentUserId]);
 
     const [showCreatePageModal, setShowCreatePageModal] = useState(false);
-    const [showRenameModal, setShowRenameModal] = useState(false);
     const [showMoveModal, setShowMoveModal] = useState(false);
     const [showDuplicateModal, setShowDuplicateModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [createPageParent, setCreatePageParent] = useState<{id: string; title: string} | null>(null);
-    const [pageToRename, setPageToRename] = useState<{pageId: string; currentTitle: string} | null>(null);
     const [pageToMove, setPageToMove] = useState<{pageId: string; pageTitle: string; hasChildren: boolean} | null>(null);
     const [pageToDuplicate, setPageToDuplicate] = useState<{pageId: string; pageTitle: string; hasChildren: boolean} | null>(null);
     const [pageToDelete, setPageToDelete] = useState<{page: Post; childCount: number} | null>(null);
     const [availableWikis, setAvailableWikis] = useState<any[]>([]);
-    const [renamingPageId, setRenamingPageId] = useState<string | null>(null);
     const [deletingPageId, setDeletingPageId] = useState<string | null>(null);
     const [creatingPage, setCreatingPage] = useState(false);
 
@@ -120,8 +121,11 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
             const parentPageId = createPageParent?.id;
             const result = await dispatch(createPage(wikiId, title, parentPageId));
             if ((result as any).error) {
-                // Error handled
-            } else if ((result as any).data) {
+                setCreatingPage(false);
+                throw (result as any).error;
+            }
+
+            if ((result as any).data) {
                 const draftId = (result as any).data;
                 if (parentPageId) {
                     dispatch(expandAncestors(wikiId, [parentPageId]));
@@ -139,39 +143,13 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
     }, []);
 
     const handleRename = useCallback((pageId: string) => {
-        if (renamingPageId) {
-            return;
-        }
         const page = allPages.find((p) => p.id === pageId);
-        if (!page) {
+        if (!page || !wikiId) {
             return;
         }
-        const currentTitle = (page.props?.title as string | undefined) || page.message || 'Untitled';
-        setPageToRename({pageId, currentTitle});
-        setShowRenameModal(true);
-    }, [allPages, renamingPageId]);
 
-    const handleRenameConfirm = useCallback(async (newTitle: string) => {
-        if (!pageToRename) {
-            return;
-        }
-        const trimmedTitle = newTitle.trim();
-        if (!trimmedTitle || trimmedTitle === pageToRename.currentTitle) {
-            setPageToRename(null);
-            return;
-        }
-        setRenamingPageId(pageToRename.pageId);
-        try {
-            await dispatch(updatePage(pageToRename.pageId, trimmedTitle, wikiId));
-        } finally {
-            setRenamingPageId(null);
-            setPageToRename(null);
-        }
-    }, [dispatch, pageToRename, wikiId]);
-
-    const handleRenameCancel = useCallback(() => {
-        setPageToRename(null);
-    }, []);
+        dispatch(openPageInEditMode(channelId, wikiId, page, history, location));
+    }, [allPages, wikiId, channelId, history, location, dispatch]);
 
     const handleDuplicate = useCallback(async (pageId: string) => {
         const page = allPages.find((p) => p.id === pageId);
@@ -328,8 +306,6 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         // Modal state
         showCreatePageModal,
         setShowCreatePageModal,
-        showRenameModal,
-        setShowRenameModal,
         showMoveModal,
         setShowMoveModal,
         showDuplicateModal,
@@ -339,7 +315,6 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
 
         // Modal data
         createPageParent,
-        pageToRename,
         pageToMove,
         pageToDuplicate,
         pageToDelete,
@@ -348,8 +323,6 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         // Modal handlers
         handleConfirmCreatePage,
         handleCancelCreatePage,
-        handleRenameConfirm,
-        handleRenameCancel,
         handleDuplicateConfirm,
         handleDuplicateCancel,
         handleMoveConfirm,
@@ -361,7 +334,6 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         fetchPagesForWiki,
 
         // Loading states
-        renamingPageId,
         deletingPageId,
         creatingPage,
     };

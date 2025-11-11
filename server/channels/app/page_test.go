@@ -770,7 +770,6 @@ func TestPageDepthLimit(t *testing.T) {
 
 func TestHasPermissionToModifyPage(t *testing.T) {
 	th := Setup(t).InitBasic()
-	setupPagePermissions(th)
 	defer th.TearDown()
 
 	th.SetupPagePermissions()

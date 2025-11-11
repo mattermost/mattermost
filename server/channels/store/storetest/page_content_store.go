@@ -18,6 +18,7 @@ import (
 func TestPageContentStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("SavePageContent", func(t *testing.T) { testSavePageContent(t, rctx, ss) })
 	t.Run("GetPageContent", func(t *testing.T) { testGetPageContent(t, rctx, ss) })
+	t.Run("GetManyPageContent", func(t *testing.T) { testGetManyPageContent(t, rctx, ss) })
 	t.Run("UpdatePageContent", func(t *testing.T) { testUpdatePageContent(t, rctx, ss) })
 	t.Run("DeletePageContent", func(t *testing.T) { testDeletePageContent(t, rctx, ss) })
 	t.Run("GetPageContentWithDeleted", func(t *testing.T) { testGetPageContentWithDeleted(t, rctx, ss) })
@@ -191,6 +192,142 @@ func testGetPageContent(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		var nfErr *store.ErrNotFound
 		require.ErrorAs(t, getErr, &nfErr)
+	})
+}
+
+func testGetManyPageContent(t *testing.T, rctx request.CTX, ss store.Store) {
+	team := &model.Team{
+		DisplayName: "Test Team",
+		Name:        model.NewId(),
+		Email:       "test@example.com",
+		Type:        model.TeamOpen,
+	}
+	team, err := ss.Team().Save(team)
+	require.NoError(t, err)
+
+	channel := &model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "Test Channel",
+		Name:        model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}
+	channel, nErr := ss.Channel().Save(rctx, channel, 1000)
+	require.NoError(t, nErr)
+
+	user := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewUsername(),
+	}
+	user, err = ss.User().Save(rctx, user)
+	require.NoError(t, err)
+
+	pages := []*model.Post{}
+
+	for i := range 5 {
+		page := &model.Post{
+			ChannelId: channel.Id,
+			UserId:    user.Id,
+			Message:   "",
+			Type:      model.PostTypePage,
+			Props: model.StringInterface{
+				"title": "Test Page " + string(rune('A'+i)),
+			},
+		}
+		page, err = ss.Post().Save(rctx, page)
+		require.NoError(t, err)
+		pages = append(pages, page)
+
+		pc := &model.PageContent{
+			PageId: page.Id,
+			Content: model.TipTapDocument{
+				Type: "doc",
+				Content: []map[string]any{
+					{
+						"type": "paragraph",
+						"content": []any{
+							map[string]any{
+								"type": "text",
+								"text": "Content for page " + string(rune('A'+i)),
+							},
+						},
+					},
+				},
+			},
+		}
+		_, saveErr := ss.PageContent().Save(pc)
+		require.NoError(t, saveErr)
+	}
+
+	t.Run("get multiple page contents", func(t *testing.T) {
+		pageIDs := []string{pages[0].Id, pages[1].Id, pages[2].Id}
+
+		retrieved, getErr := ss.PageContent().GetMany(pageIDs)
+		require.NoError(t, getErr)
+		require.Len(t, retrieved, 3)
+
+		retrievedMap := make(map[string]*model.PageContent)
+		for _, pc := range retrieved {
+			retrievedMap[pc.PageId] = pc
+		}
+
+		for _, pageID := range pageIDs {
+			content, found := retrievedMap[pageID]
+			require.True(t, found, "page content not found for %s", pageID)
+			require.Equal(t, pageID, content.PageId)
+			require.Equal(t, "doc", content.Content.Type)
+		}
+	})
+
+	t.Run("get all page contents", func(t *testing.T) {
+		allPageIDs := []string{}
+		for _, page := range pages {
+			allPageIDs = append(allPageIDs, page.Id)
+		}
+
+		retrieved, getErr := ss.PageContent().GetMany(allPageIDs)
+		require.NoError(t, getErr)
+		require.Len(t, retrieved, 5)
+	})
+
+	t.Run("get many with empty list returns empty result", func(t *testing.T) {
+		retrieved, getErr := ss.PageContent().GetMany([]string{})
+		require.NoError(t, getErr)
+		require.Empty(t, retrieved)
+	})
+
+	t.Run("get many with non-existent IDs returns only existing content", func(t *testing.T) {
+		mixedIDs := []string{pages[0].Id, model.NewId(), pages[2].Id, model.NewId()}
+
+		retrieved, getErr := ss.PageContent().GetMany(mixedIDs)
+		require.NoError(t, getErr)
+		require.Len(t, retrieved, 2)
+
+		retrievedMap := make(map[string]*model.PageContent)
+		for _, pc := range retrieved {
+			retrievedMap[pc.PageId] = pc
+		}
+
+		require.Contains(t, retrievedMap, pages[0].Id)
+		require.Contains(t, retrievedMap, pages[2].Id)
+	})
+
+	t.Run("get many excludes soft-deleted content", func(t *testing.T) {
+		deleteErr := ss.PageContent().Delete(pages[1].Id)
+		require.NoError(t, deleteErr)
+
+		pageIDs := []string{pages[0].Id, pages[1].Id, pages[2].Id}
+		retrieved, getErr := ss.PageContent().GetMany(pageIDs)
+		require.NoError(t, getErr)
+		require.Len(t, retrieved, 2)
+
+		retrievedMap := make(map[string]*model.PageContent)
+		for _, pc := range retrieved {
+			retrievedMap[pc.PageId] = pc
+		}
+
+		require.Contains(t, retrievedMap, pages[0].Id)
+		require.NotContains(t, retrievedMap, pages[1].Id)
+		require.Contains(t, retrievedMap, pages[2].Id)
 	})
 }
 

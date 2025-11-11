@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, fillCreatePageModal} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, fillCreatePageModal, buildWikiPageUrl} from './test_helpers';
 
 /**
  * @objective Verify breadcrumb navigation displays correct page hierarchy
@@ -27,33 +27,31 @@ test('displays breadcrumb navigation for nested pages', {tag: '@pages'}, async (
 
     // * Verify breadcrumb shows full hierarchy
     const breadcrumb = page.locator('[data-testid="breadcrumb"], .breadcrumb').first();
-    if (await breadcrumb.isVisible({timeout: 3000}).catch(() => false)) {
-        const breadcrumbText = await breadcrumb.textContent();
+    await expect(breadcrumb).toBeVisible({timeout: 3000});
+    const breadcrumbText = await breadcrumb.textContent();
 
-        // * Verify all ancestors in correct order
-        expect(breadcrumbText).toContain('Grandparent Page');
-        expect(breadcrumbText).toContain('Parent Page');
-        expect(breadcrumbText).toContain('Child Page');
+    // * Verify all ancestors in correct order
+    expect(breadcrumbText).toContain('Grandparent Page');
+    expect(breadcrumbText).toContain('Parent Page');
+    expect(breadcrumbText).toContain('Child Page');
 
-        // * Verify order is correct (Grandparent before Parent before Child)
-        const grandparentIndex = breadcrumbText!.indexOf('Grandparent Page');
-        const parentIndex = breadcrumbText!.indexOf('Parent Page');
-        const childIndex = breadcrumbText!.indexOf('Child Page');
+    // * Verify order is correct (Grandparent before Parent before Child)
+    const grandparentIndex = breadcrumbText!.indexOf('Grandparent Page');
+    const parentIndex = breadcrumbText!.indexOf('Parent Page');
+    const childIndex = breadcrumbText!.indexOf('Child Page');
 
-        expect(grandparentIndex).toBeLessThan(parentIndex);
-        expect(parentIndex).toBeLessThan(childIndex);
+    expect(grandparentIndex).toBeLessThan(parentIndex);
+    expect(parentIndex).toBeLessThan(childIndex);
 
-        // # Click grandparent in breadcrumb
-        const grandparentLink = breadcrumb.locator('text="Grandparent Page"').first();
-        if (await grandparentLink.isVisible().catch(() => false)) {
-            await grandparentLink.click();
-            await page.waitForLoadState('networkidle');
+    // # Click grandparent in breadcrumb
+    const grandparentLink = breadcrumb.locator('text="Grandparent Page"').first();
+    await expect(grandparentLink).toBeVisible();
+    await grandparentLink.click();
+    await page.waitForLoadState('networkidle');
 
-            // * Verify navigated to grandparent page
-            const currentUrl = page.url();
-            expect(currentUrl).toContain(grandparent.id);
-        }
-    }
+    // * Verify navigated to grandparent page
+    const currentUrl = page.url();
+    expect(currentUrl).toContain(grandparent.id);
 });
 
 /**
@@ -139,28 +137,20 @@ test('displays breadcrumbs for draft of child page', {tag: '@pages'}, async ({pw
     const wiki = await createWikiThroughUI(page, `Breadcrumb Wiki ${pw.random.id()}`);
     const parentPage = await createPageThroughUI(page, 'Parent Page', 'Parent content');
 
-    // # Create child page draft
-    const addChildButton = page.locator('[data-testid="add-child-button"]');
-    if (await addChildButton.isVisible().catch(() => false)) {
-        await addChildButton.click();
-        await fillCreatePageModal(page, 'Child Draft');
-    } else {
-        // Alternative: right-click parent in hierarchy
-        const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
-        const parentNode = hierarchyPanel.locator('text="Parent Page"').first();
-        await parentNode.click({button: 'right'});
+    // # Create child page draft via context menu
+    const parentNode = page.locator(`[data-testid="page-tree-node"][data-page-id="${parentPage.id}"]`);
+    const menuButton = parentNode.locator('[data-testid="page-tree-node-menu-button"]');
+    await menuButton.click();
 
-        const contextMenu = page.locator('[data-testid="page-context-menu"]');
-        if (await contextMenu.isVisible({timeout: 2000}).catch(() => false)) {
-            const createSubpageButton = contextMenu.locator('button:has-text("Create"), button:has-text("Subpage")').first();
-            await createSubpageButton.click();
-            await fillCreatePageModal(page, 'Child Draft');
-        }
-    }
+    const addChildButton = page.locator('[data-testid="page-context-menu-new-child"]').first();
+    await addChildButton.click();
+
+    await fillCreatePageModal(page, 'Child Draft');
 
     await page.waitForTimeout(1000); // Wait for editor to load
 
     const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
+    await editor.waitFor({state: 'visible', timeout: 5000});
     await editor.click();
     await editor.type('Child content');
 
@@ -192,9 +182,8 @@ test('navigates to correct page via URL routing', {tag: '@pages'}, async ({pw, s
 
     // * Verify correct page is displayed
     const pageContent = page.locator('[data-testid="page-viewer-content"]');
-    if (await pageContent.isVisible({timeout: 5000}).catch(() => false)) {
-        await expect(pageContent).toContainText('URL routing test content');
-    }
+    await expect(pageContent).toBeVisible({timeout: 5000});
+    await expect(pageContent).toContainText('URL routing test content');
 
     // * Verify URL is correct
     const currentUrl = page.url();
@@ -221,8 +210,8 @@ test('opens page from deep link shared externally', {tag: '@pages'}, async ({pw,
     const wiki = await createWikiThroughUI(page, `Deep Link Wiki ${pw.random.id()}`);
     const deepLinkPage = await createPageThroughUI(page, 'Deep Link Page', 'Deep link test content');
 
-    // # Construct deep link URL
-    const deepLinkUrl = `${pw.url}/${team.name}/channels/${channel.name}/wikis/${wiki.id}/pages/${deepLinkPage.id}`;
+    // # Construct deep link URL using helper
+    const deepLinkUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, deepLinkPage.id);
 
     // # Open deep link (simulating external link)
     await page.goto(deepLinkUrl);
@@ -230,9 +219,8 @@ test('opens page from deep link shared externally', {tag: '@pages'}, async ({pw,
 
     // * Verify page loaded correctly
     const pageContent = page.locator('[data-testid="page-viewer-content"]');
-    if (await pageContent.isVisible({timeout: 5000}).catch(() => false)) {
-        await expect(pageContent).toContainText('Deep link test content');
-    }
+    await expect(pageContent).toBeVisible({timeout: 5000});
+    await expect(pageContent).toContainText('Deep link test content');
 
     // * Verify URL matches deep link
     const currentUrl = page.url();
@@ -240,8 +228,7 @@ test('opens page from deep link shared externally', {tag: '@pages'}, async ({pw,
 
     // * Verify page is accessible (not showing error)
     const errorMessage = page.locator('text=/error|not found|access denied/i').first();
-    const hasError = await errorMessage.isVisible({timeout: 2000}).catch(() => false);
-    expect(hasError).toBe(false);
+    await expect(errorMessage).not.toBeVisible({timeout: 2000});
 });
 
 /**
@@ -335,22 +322,18 @@ test('displays 404 error for non-existent page', {tag: '@pages'}, async ({pw, sh
 
     // # Navigate to non-existent page ID
     const nonExistentPageId = 'nonexistent123456789';
-    await page.goto(`${pw.url}/${team.name}/channels/${channel.name}/wikis/${wiki.id}/pages/${nonExistentPageId}`);
+    await page.goto(buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, nonExistentPageId));
     await page.waitForLoadState('networkidle');
 
     // * Verify either error message shown OR redirected away from nonexistent page
     const errorMessage = page.locator('text=/not found|page.*not.*exist|404/i').first();
     const currentUrl = page.url();
 
-    const hasErrorMessage = await errorMessage.isVisible({timeout: 5000}).catch(() => false);
     const isRedirected = !currentUrl.includes(nonExistentPageId);
 
-    // At least one of these must be true - test fails if both false
-    expect(hasErrorMessage || isRedirected).toBe(true);
-
-    // * If error message shown, verify it's actually visible
-    if (hasErrorMessage) {
-        await expect(errorMessage).toBeVisible();
+    // If not redirected, we expect an error message.
+    if (!isRedirected) {
+        await expect(errorMessage).toBeVisible({timeout: 5000});
     }
 });
 

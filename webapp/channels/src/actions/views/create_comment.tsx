@@ -28,9 +28,10 @@ import {executeCommand} from 'actions/command';
 import {runMessageWillBePostedHooks, runSlashCommandWillBePostedHooks} from 'actions/hooks';
 import * as PostActions from 'actions/post_actions';
 import {createSchedulePostFromDraft} from 'actions/post_actions';
-import {isPagePost, submitPageComment} from 'actions/views/create_page_comment';
+import {submitPageComment} from 'actions/views/create_page_comment';
 
 import EmojiMap from 'utils/emoji_map';
+import {isPagePost} from 'utils/page_utils';
 import {containsAtChannel, groupsMentionedInText} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 

@@ -99,6 +99,54 @@ func (s SqlPageContentStore) Get(pageID string) (*model.PageContent, error) {
 	return &pageContent, nil
 }
 
+func (s SqlPageContentStore) GetMany(pageIDs []string) ([]*model.PageContent, error) {
+	if len(pageIDs) == 0 {
+		return []*model.PageContent{}, nil
+	}
+
+	query := s.pageContentQuery.Where(sq.Eq{"PageId": pageIDs, "DeleteAt": 0})
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "page_content_getmany_tosql")
+	}
+
+	rows, err := s.GetReplica().Query(queryString, args...)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get PageContents with pageIds=%v", pageIDs)
+	}
+	defer rows.Close()
+
+	pageContents := []*model.PageContent{}
+	for rows.Next() {
+		var pageContent model.PageContent
+		var contentJSON string
+
+		if err := rows.Scan(
+			&pageContent.PageId,
+			&contentJSON,
+			&pageContent.SearchText,
+			&pageContent.CreateAt,
+			&pageContent.UpdateAt,
+			&pageContent.DeleteAt,
+		); err != nil {
+			return nil, errors.Wrap(err, "failed to scan PageContent row")
+		}
+
+		if err := pageContent.SetDocumentJSON(contentJSON); err != nil {
+			return nil, errors.Wrapf(err, "failed to parse PageContent document for pageId=%s", pageContent.PageId)
+		}
+
+		pageContents = append(pageContents, &pageContent)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, errors.Wrap(err, "error iterating PageContent rows")
+	}
+
+	return pageContents, nil
+}
+
 func (s SqlPageContentStore) GetWithDeleted(pageID string) (*model.PageContent, error) {
 	query := s.pageContentQuery.Where(sq.Eq{"PageId": pageID})
 

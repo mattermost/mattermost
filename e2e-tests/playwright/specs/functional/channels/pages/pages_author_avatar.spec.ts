@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createTestChannel, getNewPageButton, fillCreatePageModal} from './test_helpers';
+import {createWikiThroughUI, createTestChannel, getNewPageButton, fillCreatePageModal, waitForWikiViewLoad} from './test_helpers';
 
 /**
  * @objective Verify author avatar appears in wiki page draft editor
@@ -105,6 +105,9 @@ test('persists author avatar after page reload', {tag: '@pages'}, async ({pw, sh
     await page.reload();
     await page.waitForLoadState('networkidle');
 
+    // # Wait for wiki view to load after reload
+    await waitForWikiViewLoad(page);
+
     // # Wait for editor to reappear after reload
     await editor.waitFor({state: 'visible', timeout: 5000});
 
@@ -157,7 +160,5 @@ test('does not show author avatar in published page view', {tag: '@pages'}, asyn
 
     // * Verify page content is visible (we're in view mode)
     const pageViewer = page.locator('[data-testid="page-viewer-content"]');
-    if (await pageViewer.isVisible().catch(() => false)) {
-        await expect(pageViewer).toBeVisible();
-    }
+    await expect(pageViewer).toBeVisible();
 });

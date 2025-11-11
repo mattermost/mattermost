@@ -19,6 +19,7 @@ type Props = {
     previousPostId: string;
     timestampProps?: Partial<TimestampProps>;
     id?: Post['id'];
+    isRootPost?: boolean;
 }
 
 function Reply({
@@ -28,6 +29,7 @@ function Reply({
     post,
     previousPostId,
     timestampProps,
+    isRootPost,
 }: Props) {
     if (!post) {
         return null;
@@ -41,7 +43,7 @@ function Reply({
             post={post}
             previousPostId={previousPostId}
             timestampProps={timestampProps}
-            location={Locations.RHS_COMMENT}
+            location={isRootPost ? Locations.RHS_ROOT : Locations.RHS_COMMENT}
         />
     );
 }

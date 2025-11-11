@@ -322,26 +322,43 @@ func (a *App) LoadPageContentForPostList(rctx request.CTX, postList *model.PostL
 		return nil
 	}
 
+	pageIDs := []string{}
 	for _, post := range postList.Posts {
 		if post.Type == model.PostTypePage {
-			pageContent, contentErr := a.Srv().Store().PageContent().Get(post.Id)
-			if contentErr != nil {
-				var nfErr *store.ErrNotFound
-				if errors.As(contentErr, &nfErr) {
-					rctx.Logger().Warn("LoadPageContentForPostList: PageContent not found for page", mlog.String("page_id", post.Id))
-					post.Message = ""
-				} else {
-					rctx.Logger().Error("LoadPageContentForPostList: error fetching PageContent", mlog.String("page_id", post.Id), mlog.Err(contentErr))
-					return model.NewAppError("LoadPageContentForPostList", "app.page.get.content.app_error", nil, "", http.StatusInternalServerError).Wrap(contentErr)
-				}
-			} else {
-				contentJSON, jsonErr := pageContent.GetDocumentJSON()
-				if jsonErr != nil {
-					rctx.Logger().Error("LoadPageContentForPostList: error serializing page content", mlog.String("page_id", post.Id), mlog.Err(jsonErr))
-					return model.NewAppError("LoadPageContentForPostList", "app.page.get.serialize_content.app_error", nil, jsonErr.Error(), http.StatusInternalServerError)
-				}
-				post.Message = contentJSON
+			pageIDs = append(pageIDs, post.Id)
+		}
+	}
+
+	if len(pageIDs) == 0 {
+		return nil
+	}
+
+	pageContents, contentErr := a.Srv().Store().PageContent().GetMany(pageIDs)
+	if contentErr != nil {
+		rctx.Logger().Error("LoadPageContentForPostList: error fetching PageContents", mlog.Int("count", len(pageIDs)), mlog.Err(contentErr))
+		return model.NewAppError("LoadPageContentForPostList", "app.page.get.content.app_error", nil, "", http.StatusInternalServerError).Wrap(contentErr)
+	}
+
+	contentMap := make(map[string]*model.PageContent, len(pageContents))
+	for _, content := range pageContents {
+		contentMap[content.PageId] = content
+	}
+
+	for _, post := range postList.Posts {
+		if post.Type == model.PostTypePage {
+			pageContent, found := contentMap[post.Id]
+			if !found {
+				rctx.Logger().Warn("LoadPageContentForPostList: PageContent not found for page", mlog.String("page_id", post.Id))
+				post.Message = ""
+				continue
 			}
+
+			contentJSON, jsonErr := pageContent.GetDocumentJSON()
+			if jsonErr != nil {
+				rctx.Logger().Error("LoadPageContentForPostList: error serializing page content", mlog.String("page_id", post.Id), mlog.Err(jsonErr))
+				return model.NewAppError("LoadPageContentForPostList", "app.page.get.serialize_content.app_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+			}
+			post.Message = contentJSON
 		}
 	}
 
@@ -364,79 +381,72 @@ func (a *App) UpdatePage(rctx request.CTX, pageID, title, content, searchText st
 		return nil, err
 	}
 
-	titleChanged := false
-	if title != "" {
-		if len(title) > model.MaxPageTitleLength {
-			return nil, model.NewAppError("UpdatePage", "app.page.update.title_too_long.app_error", nil, fmt.Sprintf("title must be %d characters or less", model.MaxPageTitleLength), http.StatusBadRequest)
-		}
-		post.Props["title"] = title
-		titleChanged = true
+	if title != "" && len(title) > model.MaxPageTitleLength {
+		return nil, model.NewAppError("UpdatePage", "app.page.update.title_too_long.app_error", nil, fmt.Sprintf("title must be %d characters or less", model.MaxPageTitleLength), http.StatusBadRequest)
 	}
 
-	var updatedPost *model.Post
-	if titleChanged {
-		var updateErr *model.AppError
-		updatedPost, updateErr = a.UpdatePost(rctx, post, nil)
-		if updateErr != nil {
-			return nil, updateErr
+	if title != "" {
+		wikiId, wikiErr := a.GetWikiIdForPage(rctx, pageID)
+		if wikiErr == nil && wikiId != "" {
+			if dupErr := a.checkDuplicatePageName(rctx, wikiId, title, pageID); dupErr != nil {
+				return nil, dupErr
+			}
 		}
-		rctx.Logger().Debug("Page Post updated successfully, proceeding to update PageContent",
-			mlog.String("page_id", pageID),
-			mlog.Bool("has_content_update", content != ""))
-	} else {
-		updatedPost = post
+	}
+
+	updatedPost, storeErr := a.Srv().Store().Page().UpdatePageWithContent(rctx, pageID, title, content, searchText)
+	if storeErr != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(storeErr, &nfErr) {
+			return nil, model.NewAppError("UpdatePage", "app.page.update.not_found.app_error", nil, "page not found", http.StatusNotFound).Wrap(storeErr)
+		}
+		if strings.Contains(storeErr.Error(), "invalid_content") {
+			return nil, model.NewAppError("UpdatePage", "app.page.update.invalid_content.app_error", nil, storeErr.Error(), http.StatusBadRequest)
+		}
+		return nil, model.NewAppError("UpdatePage", "app.page.update.store_error.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
 	}
 
 	if content != "" {
-		pageContent, getErr := a.Srv().Store().PageContent().Get(pageID)
-		if getErr != nil {
-			var nfErr *store.ErrNotFound
-			if errors.As(getErr, &nfErr) {
-				pageContent = &model.PageContent{PageId: pageID}
-			} else {
-				return nil, model.NewAppError("UpdatePage", "app.page.update.get_content.app_error", nil, "", http.StatusInternalServerError).Wrap(getErr)
-			}
-		}
-
-		if err := pageContent.SetDocumentJSON(content); err != nil {
-			return nil, model.NewAppError("UpdatePage", "app.page.update.invalid_content.app_error", nil, err.Error(), http.StatusBadRequest)
-		}
-
-		if searchText != "" {
-			pageContent.SearchText = searchText
-		}
-
-		var contentErr error
-		if getErr != nil {
-			_, contentErr = a.Srv().Store().PageContent().Save(pageContent)
-		} else {
-			_, contentErr = a.Srv().Store().PageContent().Update(pageContent)
-		}
-
-		if contentErr != nil {
-			rctx.Logger().Error("Failed to update PageContent after Post update succeeded - Post changes persisted but content update failed",
-				mlog.String("page_id", pageID),
-				mlog.Bool("title_was_updated", titleChanged),
-				mlog.Err(contentErr))
-			return nil, model.NewAppError("UpdatePage", "app.page.update.save_content.app_error", nil, "", http.StatusInternalServerError).Wrap(contentErr)
-		}
-
 		a.handlePageMentions(rctx, updatedPost, updatedPost.ChannelId, content, session.UserId)
 	}
 
 	rctx.Logger().Info("Page updated successfully",
 		mlog.String("page_id", pageID),
-		mlog.Bool("title_updated", titleChanged),
+		mlog.Bool("title_updated", title != ""),
 		mlog.Bool("content_updated", content != ""))
 
 	a.handlePageUpdateNotification(rctx, updatedPost, session.UserId)
 
-	// Enrich page with property values (status, etc.)
 	if enrichErr := a.EnrichPageWithProperties(rctx, updatedPost); enrichErr != nil {
 		return nil, enrichErr
 	}
 
 	return updatedPost, nil
+}
+
+func (a *App) checkDuplicatePageName(rctx request.CTX, wikiId, title, excludePageID string) *model.AppError {
+	existingPage, err := a.Srv().Store().Wiki().GetPageByTitleInWiki(wikiId, title)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		if errors.As(err, &nfErr) {
+			return nil
+		}
+		rctx.Logger().Warn("Failed to check for duplicate page name",
+			mlog.String("wiki_id", wikiId),
+			mlog.String("title", title),
+			mlog.Err(err))
+		return nil
+	}
+
+	if existingPage.Id != excludePageID {
+		return model.NewAppError("checkDuplicatePageName",
+			"app.page.duplicate_name.app_error",
+			map[string]any{"Title": title},
+			"page with this name already exists in wiki",
+			http.StatusBadRequest)
+	}
+
+	return nil
 }
 
 // DeletePage deletes a page
@@ -1393,10 +1403,12 @@ func (a *App) sendPageMentionNotifications(rctx request.CTX, page *model.Post, c
 			UserId:    authorUserID,
 			ChannelId: channel.Id,
 			Message:   postMessage,
+			Type:      model.PostTypePageMention,
 			Props: model.StringInterface{
 				"page_id":           page.Id,
 				"wiki_id":           wikiId,
 				"mentioned_user_id": mentionedUserID,
+				"page_title":        pageTitle,
 			},
 		}
 
@@ -1607,6 +1619,12 @@ func (a *App) CreatePageComment(rctx request.CTX, pageID, message string, inline
 		"page_id": pageID,
 	}
 
+	// Get wiki_id from CPA system
+	wikiID, wikiErr := a.GetWikiIdForPage(rctx, pageID)
+	if wikiErr == nil && wikiID != "" {
+		props["wiki_id"] = wikiID
+	}
+
 	// Inline comments are their own thread roots
 	// Regular page comments are replies to the page
 	rootID := pageID
@@ -1684,16 +1702,24 @@ func (a *App) CreatePageCommentReply(rctx request.CTX, pageID, parentCommentID, 
 		rootID = parentCommentID
 	}
 
+	replyProps := model.StringInterface{
+		"page_id":           pageID,
+		"parent_comment_id": parentCommentID,
+	}
+
+	// Get wiki_id from CPA system
+	wikiID, wikiErr := a.GetWikiIdForPage(rctx, pageID)
+	if wikiErr == nil && wikiID != "" {
+		replyProps["wiki_id"] = wikiID
+	}
+
 	reply := &model.Post{
 		ChannelId: page.ChannelId,
 		UserId:    rctx.Session().UserId,
 		RootId:    rootID,
 		Message:   message,
 		Type:      model.PostTypePageComment,
-		Props: model.StringInterface{
-			"page_id":           pageID,
-			"parent_comment_id": parentCommentID,
-		},
+		Props:     replyProps,
 	}
 
 	// Use existing CreatePost to get all hooks, validation, WebSocket events
@@ -1825,9 +1851,39 @@ func (a *App) handlePageUpdateNotification(rctx request.CTX, page *model.Post, u
 			updateCount = countProp + 1
 		}
 
+		updaterIds := make(map[string]bool)
+		if existingUpdaters, ok := existingNotification.Props["updater_ids"].([]any); ok {
+			for _, id := range existingUpdaters {
+				if idStr, ok := id.(string); ok {
+					updaterIds[idStr] = true
+				}
+			}
+		}
+		updaterIds[userId] = true
+
+		updaterIdsList := make([]string, 0, len(updaterIds))
+		for id := range updaterIds {
+			updaterIdsList = append(updaterIdsList, id)
+		}
+
+		user, userErr := a.GetUser(userId)
+		if userErr != nil {
+			rctx.Logger().Warn("Failed to get user for page update notification",
+				mlog.String("user_id", userId),
+				mlog.Err(userErr))
+		} else {
+			existingNotification.Props["username_"+userId] = user.Username
+		}
+
+		pageTitle := "Untitled"
+		if title, ok := page.Props["title"].(string); ok && title != "" {
+			pageTitle = title
+		}
+
+		existingNotification.Props["page_title"] = pageTitle
 		existingNotification.Props["update_count"] = updateCount
 		existingNotification.Props["last_update_time"] = model.GetMillis()
-		existingNotification.Props["last_updater_id"] = userId
+		existingNotification.Props["updater_ids"] = updaterIdsList
 
 		if _, updateErr := a.Srv().Store().Post().Overwrite(rctx, existingNotification); updateErr != nil {
 			rctx.Logger().Warn("Failed to update existing page update notification",
@@ -1846,20 +1902,34 @@ func (a *App) handlePageUpdateNotification(rctx request.CTX, page *model.Post, u
 }
 
 func (a *App) createNewPageUpdateNotification(rctx request.CTX, page *model.Post, wiki *model.Wiki, channel *model.Channel, userId string, updateCount int) {
+	pageTitle := "Untitled"
+	if title, ok := page.Props["title"].(string); ok && title != "" {
+		pageTitle = title
+	}
+
+	user, userErr := a.GetUser(userId)
+	if userErr != nil {
+		rctx.Logger().Warn("Failed to get user for page update notification",
+			mlog.String("user_id", userId),
+			mlog.Err(userErr))
+		return
+	}
+
 	systemPost := &model.Post{
 		ChannelId: channel.Id,
 		UserId:    userId,
 		Type:      model.PostTypePageUpdated,
 		Props: map[string]any{
-			"page_id":          page.Id,
-			"page_title":       page.GetProp("page_title"),
-			"wiki_id":          wiki.Id,
-			"wiki_title":       wiki.Title,
-			"channel_id":       channel.Id,
-			"channel_name":     channel.Name,
-			"update_count":     updateCount,
-			"last_update_time": model.GetMillis(),
-			"last_updater_id":  userId,
+			"page_id":            page.Id,
+			"page_title":         pageTitle,
+			"wiki_id":            wiki.Id,
+			"wiki_title":         wiki.Title,
+			"channel_id":         channel.Id,
+			"channel_name":       channel.Name,
+			"update_count":       updateCount,
+			"last_update_time":   model.GetMillis(),
+			"updater_ids":        []string{userId},
+			"username_" + userId: user.Username,
 		},
 	}
 
@@ -1874,4 +1944,146 @@ func (a *App) createNewPageUpdateNotification(rctx request.CTX, page *model.Post
 			mlog.String("page_id", page.Id),
 			mlog.Int("update_count", updateCount))
 	}
+}
+
+func (a *App) CanResolvePageComment(rctx request.CTX, session *model.Session, comment *model.Post, pageId string) bool {
+	if comment.UserId == session.UserId {
+		return true
+	}
+
+	page, err := a.GetSinglePost(rctx, pageId, false)
+	if err != nil {
+		return false
+	}
+
+	if page.UserId == session.UserId {
+		return true
+	}
+
+	return a.SessionHasPermissionToChannel(rctx, *session, page.ChannelId, model.PermissionManageChannelRoles)
+}
+
+func (a *App) ResolvePageComment(rctx request.CTX, commentId string, userId string) (*model.Post, *model.AppError) {
+	comment, err := a.GetSinglePost(rctx, commentId, false)
+	if err != nil {
+		return nil, err
+	}
+
+	props := comment.GetProps()
+	if resolved, ok := props["comment_resolved"].(bool); ok && resolved {
+		return comment, nil
+	}
+
+	newProps := make(model.StringInterface)
+	maps.Copy(newProps, props)
+
+	newProps["comment_resolved"] = true
+	newProps["resolved_at"] = model.GetMillis()
+	newProps["resolved_by"] = userId
+	newProps["resolution_reason"] = "manual"
+	comment.SetProps(newProps)
+
+	updatedComment, updateErr := a.UpdatePost(rctx, comment, &model.UpdatePostOptions{})
+	if updateErr != nil {
+		return nil, updateErr
+	}
+
+	// Get page_id from comment props (inline comments have empty RootId)
+	pageId, ok := comment.Props["page_id"].(string)
+	if !ok || pageId == "" {
+		return updatedComment, nil
+	}
+
+	page, pageErr := a.GetSinglePost(rctx, pageId, false)
+	if pageErr == nil {
+		channel, channelErr := a.GetChannel(rctx, page.ChannelId)
+		if channelErr == nil {
+			a.SendCommentResolvedEvent(rctx, updatedComment, page, channel)
+		}
+	}
+
+	return updatedComment, nil
+}
+
+func (a *App) UnresolvePageComment(rctx request.CTX, commentId string) (*model.Post, *model.AppError) {
+	comment, err := a.GetSinglePost(rctx, commentId, false)
+	if err != nil {
+		return nil, err
+	}
+
+	props := comment.GetProps()
+	newProps := make(model.StringInterface)
+	maps.Copy(newProps, props)
+
+	delete(newProps, "comment_resolved")
+	delete(newProps, "resolved_at")
+	delete(newProps, "resolved_by")
+	delete(newProps, "resolution_reason")
+	comment.SetProps(newProps)
+
+	updatedComment, updateErr := a.UpdatePost(rctx, comment, &model.UpdatePostOptions{})
+	if updateErr != nil {
+		return nil, updateErr
+	}
+
+	// Get page_id from comment props (inline comments have empty RootId)
+	pageId, ok := comment.Props["page_id"].(string)
+	if !ok || pageId == "" {
+		return updatedComment, nil
+	}
+
+	page, pageErr := a.GetSinglePost(rctx, pageId, false)
+	if pageErr == nil {
+		channel, channelErr := a.GetChannel(rctx, page.ChannelId)
+		if channelErr == nil {
+			a.SendCommentUnresolvedEvent(rctx, updatedComment, page, channel)
+		}
+	}
+
+	return updatedComment, nil
+}
+
+func (a *App) SendCommentResolvedEvent(rctx request.CTX, comment *model.Post, page *model.Post, channel *model.Channel) {
+	message := model.NewWebSocketEvent(
+		"page_comment_resolved",
+		channel.TeamId,
+		comment.ChannelId,
+		"",
+		nil,
+		"",
+	)
+	props := comment.GetProps()
+	message.Add("comment_id", comment.Id)
+	message.Add("page_id", page.Id)
+	message.Add("resolved_at", props["resolved_at"])
+	message.Add("resolved_by", props["resolved_by"])
+	a.Publish(message)
+}
+
+func (a *App) SendCommentUnresolvedEvent(rctx request.CTX, comment *model.Post, page *model.Post, channel *model.Channel) {
+	message := model.NewWebSocketEvent(
+		"page_comment_unresolved",
+		channel.TeamId,
+		comment.ChannelId,
+		"",
+		nil,
+		"",
+	)
+	message.Add("comment_id", comment.Id)
+	message.Add("page_id", page.Id)
+	a.Publish(message)
+}
+
+func (a *App) SendCommentDeletedEvent(rctx request.CTX, comment *model.Post, page *model.Post, channel *model.Channel) {
+	message := model.NewWebSocketEvent(
+		"page_comment_deleted",
+		channel.TeamId,
+		comment.ChannelId,
+		"",
+		nil,
+		"",
+	)
+	message.Add("comment_id", comment.Id)
+	message.Add("page_id", page.Id)
+	a.Publish(message)
 }

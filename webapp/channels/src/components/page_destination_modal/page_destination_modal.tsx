@@ -21,6 +21,7 @@ type Props = {
     fetchPagesForWiki: (wikiId: string) => Promise<Post[]>;
     onConfirm: (targetWikiId: string, parentPageId?: string) => void;
     onCancel: () => void;
+    confirmButtonTestId?: string;
 };
 
 const PageDestinationModal = ({
@@ -37,6 +38,7 @@ const PageDestinationModal = ({
     fetchPagesForWiki,
     onConfirm,
     onCancel,
+    confirmButtonTestId,
 }: Props) => {
     const [selectedWikiId, setSelectedWikiId] = useState(currentWikiId);
     const [parentPageId, setParentPageId] = useState<string | undefined>();
@@ -129,6 +131,7 @@ const PageDestinationModal = ({
             cancelButtonText='Cancel'
             isConfirmDisabled={!selectedWikiId}
             autoCloseOnConfirmButton={true}
+            confirmButtonTestId={confirmButtonTestId}
         >
             <div style={{padding: '16px 0'}}>
                 <div style={{marginBottom: '16px'}}>
@@ -274,6 +277,7 @@ const PageDestinationModal = ({
                                     <button
                                         key={page.id}
                                         type='button'
+                                        data-page-id={page.id}
                                         onClick={() => setParentPageId(page.id)}
                                         style={{
                                             width: '100%',

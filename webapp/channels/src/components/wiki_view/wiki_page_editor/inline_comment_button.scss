@@ -6,11 +6,11 @@
     display: flex;
     align-items: center;
     padding: 4px;
-    gap: 4px;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
     border-radius: 4px;
     background: var(--center-channel-bg);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12), 0 0 1px rgba(0, 0, 0, 0.08);
+    gap: 4px;
 
     .inline-comment-btn {
         display: flex;

@@ -193,7 +193,9 @@ export function createMMentionSuggestion(props: MentionBridgeProps): Partial<Sug
                                             selectItem={(index: number) => {
                                                 const item = componentItems[index];
                                                 if (commandFunction) {
+                                                    // eslint-disable-next-line no-console
                                                     console.log('[TipTap Mention] Selected item:', item);
+                                                    // eslint-disable-next-line no-console
                                                     console.log('[TipTap Mention] Command data:', {id: item.id || item.username, label: item.username});
                                                     commandFunction({id: item.id || item.username, label: item.username});
                                                 }
@@ -280,8 +282,10 @@ export function createMMentionSuggestion(props: MentionBridgeProps): Partial<Sug
                     if (event.key === 'Enter' || event.key === 'Tab') {
                         const item = currentItems[currentSelectedIndex];
                         if (item && commandFunction) {
+                            // eslint-disable-next-line no-console
                             console.log('[TipTap Mention] Selected item (keyboard):', item);
                             const commandData = {id: item.id || item.username, label: item.username};
+                            // eslint-disable-next-line no-console
                             console.log('[TipTap Mention] Command data (keyboard):', commandData);
                             commandFunction(commandData);
                             closePopup();

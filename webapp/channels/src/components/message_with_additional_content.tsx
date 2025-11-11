@@ -5,11 +5,12 @@ import React from 'react';
 
 import type {Post} from '@mattermost/types/posts';
 
-import Posts, {PostTypes} from 'mattermost-redux/constants/posts';
+import Posts from 'mattermost-redux/constants/posts';
 
 import PostBodyAdditionalContent from 'components/post_view/post_body_additional_content';
 import PostMessageView from 'components/post_view/post_message_view';
 
+import {isPagePost} from 'utils/page_utils';
 import {extractPlaintextFromTipTapJSON} from 'utils/tiptap_utils';
 
 import type {PluginsState} from 'types/store/plugins';
@@ -30,7 +31,7 @@ export default function MessageWithAdditionalContent({post, isEmbedVisible, plug
 
     let msg;
 
-    if (post.type === PostTypes.PAGE) {
+    if (isPagePost(post)) {
         const pageTitle = (post.props?.title as string) || 'Untitled Page';
         let plainText = '';
 

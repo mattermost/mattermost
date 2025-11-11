@@ -3327,19 +3327,26 @@ func (s *SqlPostStore) GetCommentsForPage(pageID string, includeDeleted bool) (*
 
 	pl := model.NewPostList()
 
-	// Build query: Get page + all comments/replies
-	// - Page itself: Id = pageID
-	// - Inline comments: RootId is empty AND Props->>'page_id' = pageID
-	// - Regular comments and replies: RootId = pageID
+	// Build query: Get page + all comments/replies (exclude system posts)
+	// - Page itself: Id = pageID AND Type = 'page'
+	// - Regular comments and replies: RootId = pageID AND Type = 'page_comment'
+	// - Inline comments: RootId is empty AND Props->>'page_id' = pageID AND Type = 'page_comment'
 	query := s.getQueryBuilder().
 		Select("*").
 		From("Posts").
 		Where(sq.Or{
-			sq.Eq{"Id": pageID},     // Include the page itself
-			sq.Eq{"RootId": pageID}, // Regular comments and replies
 			sq.And{
-				sq.Expr("Props->>'page_id' = ?", pageID), // Inline comments
-				sq.Eq{"RootId": ""},                       // with empty RootId
+				sq.Eq{"Id": pageID},
+				sq.Eq{"Type": model.PostTypePage},
+			},
+			sq.And{
+				sq.Eq{"RootId": pageID},
+				sq.Eq{"Type": model.PostTypePageComment},
+			},
+			sq.And{
+				sq.Expr("Props->>'page_id' = ?", pageID),
+				sq.Eq{"RootId": ""},
+				sq.Eq{"Type": model.PostTypePageComment},
 			},
 		}).
 		OrderBy("CreateAt ASC")
@@ -3367,6 +3374,94 @@ func (s *SqlPostStore) GetCommentsForPage(pageID string, includeDeleted bool) (*
 	}
 
 	return pl, nil
+}
+
+func (s *SqlPostStore) UpdatePageWithContent(rctx request.CTX, pageID, title, content, searchText string) (post *model.Post, err error) {
+	if pageID == "" {
+		return nil, store.NewErrInvalidInput("Post", "pageID", pageID)
+	}
+
+	transaction, err := s.GetMaster().Beginx()
+	if err != nil {
+		return nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	query := s.getQueryBuilder().
+		Select("*").
+		From("Posts").
+		Where(sq.And{
+			sq.Eq{"Id": pageID},
+			sq.Eq{"Type": model.PostTypePage},
+		})
+
+	queryString, args, buildErr := query.ToSql()
+	if buildErr != nil {
+		return nil, errors.Wrap(buildErr, "failed to build get page query")
+	}
+
+	var currentPost model.Post
+	if err = transaction.Get(&currentPost, queryString, args...); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("Post", pageID)
+		}
+		return nil, errors.Wrap(err, "failed to get page")
+	}
+
+	if title != "" {
+		if currentPost.Props == nil {
+			currentPost.Props = make(model.StringInterface)
+		}
+		currentPost.Props["title"] = title
+		currentPost.UpdateAt = model.GetMillis()
+		currentPost.PreCommit()
+
+		if _, err = transaction.NamedExec(`UPDATE Posts SET Props=:Props, UpdateAt=:UpdateAt WHERE Id=:Id`, &currentPost); err != nil {
+			return nil, errors.Wrap(err, "failed to update post")
+		}
+	}
+
+	if content != "" {
+		pageContent := &model.PageContent{PageId: pageID}
+		if setErr := pageContent.SetDocumentJSON(content); setErr != nil {
+			return nil, errors.Wrap(setErr, "invalid_content")
+		}
+
+		if searchText != "" {
+			pageContent.SearchText = searchText
+		}
+
+		contentJSON, jsonErr := pageContent.GetDocumentJSON()
+		if jsonErr != nil {
+			return nil, errors.Wrap(jsonErr, "failed to serialize content")
+		}
+
+		now := model.GetMillis()
+
+		result, execErr := transaction.Exec(
+			"UPDATE PageContents SET Content = ?, SearchText = ?, UpdateAt = ? WHERE PageId = ?",
+			contentJSON, pageContent.SearchText, now, pageID)
+
+		if execErr != nil {
+			return nil, errors.Wrap(execErr, "failed to update content")
+		}
+
+		rowsAffected, _ := result.RowsAffected()
+		if rowsAffected == 0 {
+			_, execErr = transaction.Exec(
+				"INSERT INTO PageContents (PageId, Content, SearchText, CreateAt, UpdateAt) VALUES (?, ?, ?, ?, ?)",
+				pageID, contentJSON, pageContent.SearchText, now, now)
+			if execErr != nil {
+				return nil, errors.Wrap(execErr, "failed to insert content")
+			}
+		}
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
+	}
+
+	return &currentPost, nil
 }
 
 func (s *SqlPostStore) RefreshPostStats() error {

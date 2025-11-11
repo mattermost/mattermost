@@ -1,26 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Post} from '@mattermost/types/posts';
-
 import type {CreatePostReturnType} from 'mattermost-redux/actions/posts';
-import {PostTypes} from 'mattermost-redux/constants/posts';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
 import {createPageComment as createPageCommentAction, createPageCommentReply} from 'actions/pages';
 import {getWikiRhsWikiId, getFocusedInlineCommentId} from 'selectors/wiki_rhs';
 
+import {isPagePost} from 'utils/page_utils';
+
 import type {ActionFuncAsync} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 
 export type SubmitPageCommentReturnType = CreatePostReturnType;
-
-/**
- * Check if a post is a page (and therefore comments on it should be page comments)
- */
-export function isPagePost(post: Post | null | undefined): boolean {
-    return post?.type === PostTypes.PAGE;
-}
 
 /**
  * Submit a page comment using the dedicated page comment API.
@@ -50,7 +42,7 @@ export function submitPageComment(
             return {error};
         }
 
-        if (page.type !== PostTypes.PAGE) {
+        if (!isPagePost(page)) {
             const error = new Error('Root post is not a page');
             return {error};
         }

@@ -2178,6 +2178,20 @@ export default class Client4 {
         );
     };
 
+    resolvePageComment = (wikiId: string, pageId: string, commentId: string) => {
+        return this.doFetch<Post>(
+            `${this.getWikiPageRoute(wikiId, pageId)}/comments/${commentId}/resolve`,
+            {method: 'post'},
+        );
+    };
+
+    unresolvePageComment = (wikiId: string, pageId: string, commentId: string) => {
+        return this.doFetch<Post>(
+            `${this.getWikiPageRoute(wikiId, pageId)}/comments/${commentId}/unresolve`,
+            {method: 'post'},
+        );
+    };
+
     //  Channel Category Routes
 
     getChannelCategories = (userId: string, teamId: string) => {

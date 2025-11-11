@@ -16,8 +16,7 @@ import type {UserThread} from '@mattermost/types/threads';
 import {getChannel as fetchChannel} from 'mattermost-redux/actions/channels';
 import {markLastPostInThreadAsUnread, updateThreadRead} from 'mattermost-redux/actions/threads';
 import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
-import {Posts, PostTypes} from 'mattermost-redux/constants';
-import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import {Posts} from 'mattermost-redux/constants';
 import {getInt} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {ensureString} from 'mattermost-redux/utils/post_utils';
@@ -25,7 +24,6 @@ import {ensureString} from 'mattermost-redux/utils/post_utils';
 import {manuallyMarkThreadAsUnread} from 'actions/views/threads';
 import {getIsMobileView} from 'selectors/views/browser';
 
-import InlineCommentContext from 'components/inline_comment_context';
 import Markdown from 'components/markdown';
 import {makeGetMentionKeysForPost} from 'components/post_markdown';
 import PriorityBadge from 'components/post_priority/post_priority_badge';
@@ -37,11 +35,13 @@ import Avatars from 'components/widgets/users/avatars';
 import WithTooltip from 'components/with_tooltip';
 
 import {CrtTutorialSteps, Preferences} from 'utils/constants';
+import {isPageComment, isPagePost} from 'utils/page_utils';
 import * as Utils from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
 import Attachment from './attachments';
+import {renderPageCommentPreview, renderPagePreview, usePagePostForComment} from './page_thread_utils';
 
 import {THREADING_TIME} from '../../common/options';
 import {useThreadRouting} from '../../hooks';
@@ -98,13 +98,7 @@ function ThreadItem({
     const mentionsKeys = useSelector((state: GlobalState) => getMentionKeysForPost(state, post, channel));
     const ref = useRef<HTMLDivElement>(null);
 
-    const isPageComment = post?.type === PostTypes.PAGE_COMMENT;
-    const pagePost = useSelector((state: GlobalState) => {
-        if (!isPageComment || !post?.props?.page_id) {
-            return null;
-        }
-        return getPost(state, post.props.page_id as string);
-    });
+    const pagePost = usePagePostForComment(post ?? null);
 
     useEffect(() => {
         if (channel?.teammate_id) {
@@ -300,68 +294,19 @@ function ThreadItem({
                     style={{height: 'auto', maxHeight: 'none'}}
                 >
                     {(() => {
-                        if (isPageComment && pagePost) {
-                            return (
-                                <div style={{height: 'auto', maxHeight: 'none'}}>
-                                    <div
-                                        style={{
-                                            fontSize: '12px',
-                                            color: 'rgba(var(--center-channel-color-rgb), 0.64)',
-                                            marginBottom: '4px',
-                                        }}
-                                    >
-                                        <FormattedMessage
-                                            id='threading.pageComment.context'
-                                            defaultMessage='Commented on the page:'
-                                        />
-                                        {' '}
-                                        <span style={{fontWeight: 600}}>
-                                            {(pagePost.props?.title as string) || 'Untitled Page'}
-                                        </span>
-                                    </div>
-                                    {(() => {
-                                        const anchorText = post.props?.inline_anchor ? (post.props.inline_anchor as {text: string}).text : null;
-                                        if (anchorText) {
-                                            return <InlineCommentContext anchorText={anchorText}/>;
-                                        }
-
-                                        if (post.message) {
-                                            return (
-                                                <div style={{marginTop: '4px'}}>
-                                                    <Markdown
-                                                        message={post.state === Posts.POST_DELETED ? msgDeleted : post.message}
-                                                        options={markdownPreviewOptions}
-                                                        imagesMetadata={post?.metadata && post?.metadata?.images}
-                                                        mentionKeys={mentionsKeys}
-                                                        imageProps={imageProps}
-                                                    />
-                                                </div>
-                                            );
-                                        }
-                                        return null;
-                                    })()}
-                                </div>
+                        if (isPageComment(post) && pagePost) {
+                            return renderPageCommentPreview(
+                                post,
+                                pagePost,
+                                msgDeleted,
+                                markdownPreviewOptions,
+                                mentionsKeys,
+                                imageProps,
                             );
                         }
 
-                        if (post.type === PostTypes.PAGE && thread && thread.reply_count > 0) {
-                            return (
-                                <div style={{height: 'auto', maxHeight: 'none'}}>
-                                    <InlineCommentContext anchorText={(post.props?.title as string) || 'Untitled Page'}/>
-                                </div>
-                            );
-                        }
-
-                        if (post.type === PostTypes.PAGE) {
-                            return (
-                                <div style={{height: 'auto', maxHeight: 'none'}}>
-                                    <div>
-                                        <i className='icon icon-file-document-outline'/>
-                                        {' '}
-                                        {(post.props?.title as string) || 'Untitled Page'}
-                                    </div>
-                                </div>
-                            );
+                        if (isPagePost(post)) {
+                            return renderPagePreview(post, thread ? thread.reply_count > 0 : false);
                         }
 
                         if (post.message) {

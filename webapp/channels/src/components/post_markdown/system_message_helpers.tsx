@@ -393,6 +393,22 @@ function renderWikiAddedMessage(post: Post, currentTeamName: string, channel: Ch
     );
 }
 
+function renderWikiDeletedMessage(post: Post): ReactNode {
+    const wikiTitle = ensureString(post.props.wiki_title);
+    const username = renderUsername(post.props.username);
+
+    return (
+        <FormattedMessage
+            id='api.wiki.wiki_deleted'
+            defaultMessage='{username} deleted the doc tab: {wikiTitle}'
+            values={{
+                wikiTitle,
+                username,
+            }}
+        />
+    );
+}
+
 function renderPageAddedMessage(post: Post, currentTeamName: string, channel: Channel): ReactNode {
     const pageTitle = ensureString(post.props.page_title);
     const pageId = ensureString(post.props.page_id);
@@ -432,6 +448,68 @@ function renderPageMentionMessage(post: Post, currentTeamName: string, channel: 
             values={{
                 pageLink,
                 username,
+            }}
+        />
+    );
+}
+
+function renderPageUpdatedMessage(post: Post, currentTeamName: string, channel: Channel): ReactNode {
+    const pageTitle = ensureString(post.props.page_title);
+    const pageId = ensureString(post.props.page_id);
+    const wikiTitle = ensureString(post.props.wiki_title);
+    const wikiId = ensureString(post.props.wiki_id);
+    const updaterIds = post.props.updater_ids;
+
+    const pageUrl = `${getSiteURL()}/${currentTeamName}/wiki/${channel.id}/${wikiId}/${pageId}`;
+    const pageLink = <a href={pageUrl}>{pageTitle}</a>;
+
+    let usersText: ReactNode = '';
+    if (Array.isArray(updaterIds) && updaterIds.length > 0) {
+        const usernames = updaterIds.map((id) => renderUsername(post.props[`username_${id}`] || id));
+
+        if (usernames.length === 1) {
+            usersText = usernames[0];
+        } else if (usernames.length === 2) {
+            usersText = (
+                <FormattedMessage
+                    id='api.page.page_updated.two_users'
+                    defaultMessage='{user1} and {user2}'
+                    values={{
+                        user1: usernames[0],
+                        user2: usernames[1],
+                    }}
+                />
+            );
+        } else {
+            const lastUser = usernames[usernames.length - 1];
+            const otherUsers = usernames.slice(0, -1).reduce((acc: ReactNode[], user, idx) => {
+                if (idx > 0) {
+                    acc.push(', ');
+                }
+                acc.push(user);
+                return acc;
+            }, []);
+            usersText = (
+                <FormattedMessage
+                    id='api.page.page_updated.multiple_users'
+                    defaultMessage='{users} and {lastUser}'
+                    values={{
+                        users: otherUsers,
+                        lastUser,
+                    }}
+                />
+            );
+        }
+    }
+
+    return (
+        <FormattedMessage
+            id='api.page.page_updated'
+            defaultMessage='{users} made updates to the page {pageLink} in the {wikiTitle} doc tab'
+            values={{
+                users: usersText,
+                pageLink,
+                wikiTitle,
             }}
         />
     );
@@ -511,10 +589,14 @@ export function renderSystemMessage(post: Post, currentTeamName: string, channel
         return null;
     } else if (post.type === Posts.POST_TYPES.WIKI_ADDED) {
         return renderWikiAddedMessage(post, currentTeamName, channel);
+    } else if (post.type === Posts.POST_TYPES.WIKI_DELETED) {
+        return renderWikiDeletedMessage(post);
     } else if (post.type === Posts.POST_TYPES.PAGE_ADDED) {
         return renderPageAddedMessage(post, currentTeamName, channel);
     } else if (post.type === Posts.POST_TYPES.PAGE_MENTION) {
         return renderPageMentionMessage(post, currentTeamName, channel);
+    } else if (post.type === Posts.POST_TYPES.PAGE_UPDATED) {
+        return renderPageUpdatedMessage(post, currentTeamName, channel);
     } else if (systemMessageRenderers[post.type]) {
         return systemMessageRenderers[post.type](post);
     } else if (post.type === Posts.POST_TYPES.GUEST_JOIN_CHANNEL) {

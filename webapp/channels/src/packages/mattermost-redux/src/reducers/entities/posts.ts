@@ -1047,13 +1047,20 @@ export function postsInThread(state: RelationOneToMany<Post, Post> = {}, action:
         const postsForThread = state[action.rootId] || [];
         const nextPostsForThread = [...postsForThread];
 
-        for (const post of newPosts) {
-            // Include the root post itself (root_id === '') AND all replies (root_id === action.rootId)
-            const isRootPost = post.id === action.rootId && post.root_id === '';
-            const isReply = post.root_id === action.rootId;
+        // Check if this is a page comment thread (inline comment with empty root_id)
+        const rootPost = prevPosts[action.rootId];
+        const isPageCommentThread = rootPost && rootPost.type === 'page_comment' && rootPost.root_id === '';
 
-            if (!isRootPost && !isReply) {
-                // Skip posts that are neither the root nor replies to the root
+        for (const post of newPosts) {
+            if (isPageCommentThread) {
+                // For page comment threads: only include replies, NOT the root inline comment itself
+                const isReply = post.root_id === action.rootId;
+
+                if (!isReply) {
+                    continue;
+                }
+            } else if (post.root_id !== action.rootId) {
+                // Original logic for regular threads: only store comments
                 continue;
             }
 

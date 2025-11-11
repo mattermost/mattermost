@@ -302,6 +302,48 @@ func (s *SqlWikiStore) GetPages(wikiId string, offset, limit int) ([]*model.Post
 	return posts, nil
 }
 
+func (s *SqlWikiStore) GetPageByTitleInWiki(wikiId, title string) (*model.Post, error) {
+	groupID, err := s.getPagePropertyGroupID()
+	if err != nil {
+		return nil, err
+	}
+
+	fieldID, err := s.getWikiPropertyFieldID(groupID)
+	if err != nil {
+		return nil, err
+	}
+
+	var columns []string
+	for _, c := range postSliceColumns() {
+		columns = append(columns, "p."+c)
+	}
+
+	builder := s.getQueryBuilder().
+		Select(columns...).
+		From("Posts p").
+		Join("PropertyValues v ON v.TargetType = 'post' AND v.TargetID = p.Id").
+		Where(sq.Eq{
+			"v.FieldID":  fieldID,
+			"v.GroupID":  groupID,
+			"v.DeleteAt": 0,
+			"p.Type":     model.PostTypePage,
+			"p.DeleteAt": 0,
+		}).
+		Where("v.Value = to_jsonb(?::text)", wikiId).
+		Where("LOWER(p.Props->>'title') = LOWER(?)", title).
+		Limit(1)
+
+	var post model.Post
+	if err := s.GetReplica().GetBuilder(&post, builder); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("Post", "title="+title)
+		}
+		return nil, errors.Wrap(err, "unable_to_get_page_by_title")
+	}
+
+	return &post, nil
+}
+
 // SaveWikiT saves a wiki within an existing transaction
 func (s *SqlWikiStore) SaveWikiT(transaction *sqlxTxWrapper, wiki *model.Wiki) (*model.Wiki, error) {
 	wiki.PreSave()

@@ -53,6 +53,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 pageTitle: 'Test Page',
                 channelLoaded: true,
                 activeTab: 'page_comments' as const,
+                focusedInlineCommentId: null,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
@@ -74,6 +75,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 pageTitle: 'Test Page',
                 channelLoaded: true,
                 activeTab: 'page_comments' as const,
+                focusedInlineCommentId: null,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
@@ -94,6 +96,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 pageTitle: 'Test Page',
                 channelLoaded: true,
                 activeTab: 'page_comments' as const,
+                focusedInlineCommentId: null,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
@@ -115,6 +118,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 pageTitle: 'Test Page',
                 channelLoaded: true,
                 activeTab: 'page_comments' as const,
+                focusedInlineCommentId: null,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
@@ -136,6 +140,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 pageTitle: 'Test Page',
                 channelLoaded: true,
                 activeTab: 'page_comments' as const,
+                focusedInlineCommentId: null,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
@@ -157,6 +162,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 pageTitle: 'Test Page',
                 channelLoaded: true,
                 activeTab: 'page_comments' as const,
+                focusedInlineCommentId: null,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
@@ -180,6 +186,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 pageTitle: 'Test Page',
                 channelLoaded: true,
                 activeTab: 'page_comments' as const,
+                focusedInlineCommentId: null,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
@@ -201,6 +208,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 pageTitle: 'Test Page',
                 channelLoaded: true,
                 activeTab: 'all_threads' as const,
+                focusedInlineCommentId: null,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
@@ -224,6 +232,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 pageTitle: 'Test Page',
                 channelLoaded: true,
                 activeTab: 'page_comments' as const,
+                focusedInlineCommentId: null,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
@@ -247,6 +256,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 pageTitle: 'Test Page',
                 channelLoaded: true,
                 activeTab: 'all_threads' as const,
+                focusedInlineCommentId: null,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
@@ -267,6 +277,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 pageTitle: 'Test Page',
                 channelLoaded: true,
                 activeTab: 'page_comments' as const,
+                focusedInlineCommentId: null,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
@@ -289,6 +300,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 pageTitle: 'Test Page',
                 channelLoaded: true,
                 activeTab: 'page_comments' as const,
+                focusedInlineCommentId: null,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
@@ -312,6 +324,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 pageTitle: 'Test Page',
                 channelLoaded: true,
                 activeTab: 'page_comments' as const,
+                focusedInlineCommentId: null,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
@@ -332,6 +345,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 pageTitle: 'Test Page',
                 channelLoaded: false,
                 activeTab: 'page_comments' as const,
+                focusedInlineCommentId: null,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
@@ -354,6 +368,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 pageTitle: 'Test Page',
                 channelLoaded: true,
                 activeTab: 'all_threads' as const,
+                focusedInlineCommentId: null,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
@@ -375,6 +390,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 pageTitle: 'Test Page',
                 channelLoaded: true,
                 activeTab: 'all_threads' as const,
+                focusedInlineCommentId: null,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
@@ -399,6 +415,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 pageTitle: 'Test Page',
                 channelLoaded: true,
                 activeTab: 'page_comments' as const,
+                focusedInlineCommentId: null,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide,
@@ -424,6 +441,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 pageTitle: 'Custom Page Title',
                 channelLoaded: true,
                 activeTab: 'page_comments' as const,
+                focusedInlineCommentId: null,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
@@ -445,6 +463,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 pageTitle: longTitle,
                 channelLoaded: true,
                 activeTab: 'page_comments' as const,
+                focusedInlineCommentId: null,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
@@ -466,6 +485,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 pageTitle: specialTitle,
                 channelLoaded: true,
                 activeTab: 'page_comments' as const,
+                focusedInlineCommentId: null,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
@@ -488,6 +508,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 pageTitle: 'Test Page',
                 channelLoaded: true,
                 activeTab: 'page_comments' as const,
+                focusedInlineCommentId: null,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
@@ -509,6 +530,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 pageTitle: 'Test Page',
                 channelLoaded: true,
                 activeTab: 'page_comments' as const,
+                focusedInlineCommentId: null,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
@@ -530,6 +552,7 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 pageTitle: 'Test Page',
                 channelLoaded: true,
                 activeTab: 'page_comments' as const,
+                focusedInlineCommentId: null,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),

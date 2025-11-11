@@ -13,7 +13,6 @@ import {
     markChannelAsViewedOnServer,
 } from 'mattermost-redux/actions/channels';
 import * as PostActions from 'mattermost-redux/actions/posts';
-import {PostTypes} from 'mattermost-redux/constants';
 import {getCurrentChannelId, isManuallyUnread} from 'mattermost-redux/selectors/entities/channels';
 import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
@@ -31,6 +30,7 @@ import {isThreadOpen, makeGetThreadLastViewedAt} from 'selectors/views/threads';
 
 import WebSocketClient from 'client/web_websocket_client';
 import {ActionTypes} from 'utils/constants';
+import {pageInlineCommentHasAnchor} from 'utils/page_utils';
 
 import type {DispatchFunc, GetStateFunc, ActionFunc, ActionFuncAsync} from 'types/store';
 
@@ -67,14 +67,11 @@ export function completePostReceive(post: Post, websocketMessageProps: NewPostMe
         }
 
         // Handle inline comments - they have empty root_id but need thread metadata
-        const isInlineComment = post.type === PostTypes.PAGE_COMMENT &&
-                                post.props?.comment_type === 'inline' &&
-                                !post.root_id;
-        if (isInlineComment) {
-            // Fetch thread metadata for this inline comment
+        if (pageInlineCommentHasAnchor(post) && !post.root_id) {
+            // Fetch thread metadata for this inline comment (non-blocking)
             const thread = getThread(state, post.id);
             if (!thread) {
-                await dispatch(PostActions.getPostThread(post.id));
+                dispatch(PostActions.getPostThread(post.id));
             }
         }
         const actions: AnyAction[] = [];

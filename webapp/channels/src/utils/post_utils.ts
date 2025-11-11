@@ -855,20 +855,3 @@ export function hasRequestedPersistentNotifications(priority?: PostPriorityMetad
         priority?.persistent_notifications
     );
 }
-
-export function getInlineCommentAnchorText(postsInThread?: Post[]): string | null {
-    if (!postsInThread || postsInThread.length === 0) {
-        return null;
-    }
-
-    for (let i = postsInThread.length - 1; i >= 0; i--) {
-        const post = postsInThread[i];
-
-        if (post?.props?.comment_type === 'inline' && post?.props?.inline_anchor) {
-            const anchorText = (post.props.inline_anchor as {text: string}).text;
-            return anchorText;
-        }
-    }
-
-    return null;
-}

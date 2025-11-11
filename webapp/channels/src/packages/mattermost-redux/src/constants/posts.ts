@@ -8,6 +8,7 @@ export const PostTypes = {
     PAGE_COMMENT: 'page_comment' as PostType,
     PAGE_MENTION: 'system_page_mention' as PostType,
     WIKI_ADDED: 'system_wiki_added' as PostType,
+    WIKI_DELETED: 'system_wiki_deleted' as PostType,
     PAGE_ADDED: 'system_page_added' as PostType,
     PAGE_UPDATED: 'system_page_updated' as PostType,
     CHANNEL_DELETED: 'system_channel_deleted' as PostType,

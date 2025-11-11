@@ -6,9 +6,9 @@ import {expect, test} from './pages_test_fixture';
 import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton, fillCreatePageModal} from './test_helpers';
 
 /**
- * @objective Verify pages can be found using title search
+ * @objective Verify pages can be found using wiki tree panel search by title
  */
-test('searches pages by title', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+test('searches pages by title in wiki tree panel', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
@@ -24,43 +24,29 @@ test('searches pages by title', {tag: '@pages'}, async ({pw, sharedPagesSetup}) 
     await createPageThroughUI(page, 'Other Page Title', 'Different content');
     await createPageThroughUI(page, 'Another Page', 'More content');
 
-    // # Perform search
+    // # Perform search in wiki tree panel
     const searchInput = page.locator('[data-testid="pages-search-input"]').first();
-    if (await searchInput.isVisible({timeout: 3000}).catch(() => false)) {
-        await searchInput.fill(searchableTitle);
-        await page.waitForTimeout(500); // Debounce
+    await expect(searchInput).toBeVisible({timeout: 3000});
+    await searchInput.fill(searchableTitle);
+    await page.waitForTimeout(500); // Debounce
 
-        // * Verify search results show matching page
-        const searchResults = page.locator('[data-testid="search-results"], .search-results').first();
-        if (await searchResults.isVisible({timeout: 3000}).catch(() => false)) {
-            await expect(searchResults).toContainText(searchableTitle);
+    // * Verify filtered tree shows matching page
+    const treeContainer = page.locator('[data-testid="pages-hierarchy-tree"]').first();
+    await expect(treeContainer).toBeVisible({timeout: 3000});
+    await expect(treeContainer).toContainText(searchableTitle);
 
-            // * Verify non-matching pages are not shown
-            const resultsText = await searchResults.textContent();
-            expect(resultsText).not.toContain('Other Page Title');
-            expect(resultsText).not.toContain('Another Page');
-        }
-    } else {
-        // # Try global search bar
-        const globalSearch = page.locator('#searchBox, [aria-label*="Search"]').first();
-        if (await globalSearch.isVisible().catch(() => false)) {
-            await globalSearch.click();
-            await globalSearch.fill(searchableTitle);
-            await page.keyboard.press('Enter');
-            await page.waitForTimeout(1000);
-
-            // * Verify page appears in search results
-            const searchResultItem = page.locator(`[data-testid="search-item-title"]:has-text("${searchableTitle}")`).first();
-            const searchResultVisible = await searchResultItem.isVisible({timeout: 5000}).catch(() => false);
-            expect(searchResultVisible).toBe(true);
-        }
-    }
+    // * Verify non-matching pages are not shown in filtered tree
+    const resultsText = await treeContainer.textContent();
+    expect(resultsText).not.toContain('Other Page Title');
+    expect(resultsText).not.toContain('Another Page');
 });
 
 /**
- * @objective Verify pages can be found using content search
+ * @objective Verify wiki tree panel search only filters by title, not content
+ * @note Wiki tree panel search is designed to filter the page hierarchy by title only.
+ * For content search, users should use the global Mattermost search.
  */
-test('searches pages by content', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+test('wiki tree panel search filters by title only', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
@@ -68,18 +54,17 @@ test('searches pages by content', {tag: '@pages'}, async ({pw, sharedPagesSetup}
     await channelsPage.goto(team.name, channel.name);
 
     // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Content Search Wiki ${pw.random.id()}`);
+    const wiki = await createWikiThroughUI(page, `Tree Filter Wiki ${pw.random.id()}`);
 
-    // # Create page with unique content and H1 heading through UI
-    const uniqueContent = `UniqueSearchableContent${pw.random.id()}`;
+    // # Create page with specific title and different content
+    const pageTitle = 'Engineering Documentation';
+    const uniqueContent = `UniqueInternalContent${pw.random.id()}`;
     const newPageButton = getNewPageButton(page);
     await newPageButton.click();
-    await fillCreatePageModal(page, 'Page with Searchable Content');
+    await fillCreatePageModal(page, pageTitle);
 
     const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
     await editor.click();
-
-    // # Add searchable content to the page
     await editor.type(`Document\n\n${uniqueContent}`);
 
     // # Publish the page
@@ -87,49 +72,106 @@ test('searches pages by content', {tag: '@pages'}, async ({pw, sharedPagesSetup}
     await publishButton.click();
     await page.waitForLoadState('networkidle');
 
-    // # Create page without unique content through UI
-    await createPageThroughUI(page, 'Page without Match', 'Generic content here');
+    // # Create another page
+    await createPageThroughUI(page, 'Marketing Plans', 'Different content');
 
-    // # Perform content search
+    // # Search by title - should find the page
     const searchInput = page.locator('[data-testid="pages-search-input"]').first();
-    if (await searchInput.isVisible({timeout: 3000}).catch(() => false)) {
-        await searchInput.fill(uniqueContent);
-        await page.waitForTimeout(500); // Debounce
+    await expect(searchInput).toBeVisible({timeout: 3000});
+    await searchInput.fill('Engineering');
+    await page.waitForTimeout(500); // Debounce
 
-        // * Verify search results show page with matching content
-        const searchResults = page.locator('[data-testid="search-results"], .search-results').first();
-        if (await searchResults.isVisible({timeout: 3000}).catch(() => false)) {
-            // * Verify page title appears
-            await expect(searchResults).toContainText('Page with Searchable Content');
+    const treeContainer = page.locator('[data-testid="pages-hierarchy-tree"]').first();
+    await expect(treeContainer).toBeVisible({timeout: 3000});
+    // * Verify page found by title
+    await expect(treeContainer).toContainText('Engineering Documentation');
 
-            // * Verify content snippet shows match
-            const resultSnippet = searchResults.locator('[data-testid="search-result-snippet"], .search-snippet').first();
-            if (await resultSnippet.isVisible().catch(() => false)) {
-                await expect(resultSnippet).toContainText(uniqueContent);
-            }
+    // # Clear and search by content - should NOT find the page (tree search is title-only)
+    await searchInput.clear();
+    await searchInput.fill(uniqueContent);
+    await page.waitForTimeout(500); // Debounce
 
-            // * Verify non-matching page doesn't appear
-            const resultsText = await searchResults.textContent();
-            expect(resultsText).not.toContain('Page without Match');
-        }
-    } else {
-        // # Try global search bar
-        const globalSearch = page.locator('#searchBox, [aria-label*="Search"]').first();
-        if (await globalSearch.isVisible().catch(() => false)) {
-            await globalSearch.click();
-            await globalSearch.fill(uniqueContent);
-            await page.keyboard.press('Enter');
-            await page.waitForTimeout(1000);
+    // * Verify no pages found (content not searchable in tree panel)
+    await expect(treeContainer).toContainText('No pages found');
+});
 
-            // * Verify page appears in search results
-            const searchResultItem = page.locator('[data-testid="search-item"]:has-text("Page with Searchable Content")').first();
-            const searchResultVisible = await searchResultItem.isVisible({timeout: 5000}).catch(() => false);
+/**
+ * @objective Verify pages can be found using global Mattermost search by title
+ */
+test('searches pages by title using global search', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
 
-            if (searchResultVisible) {
-                // * Verify content is highlighted or shown in snippet
-                const itemText = await searchResultItem.textContent();
-                expect(itemText).toContain(uniqueContent);
-            }
-        }
-    }
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki through UI
+    const wiki = await createWikiThroughUI(page, `Global Search Wiki ${pw.random.id()}`);
+
+    // # Create page with unique title through UI
+    const searchableTitle = `GlobalSearchableTitle${pw.random.id()}`;
+    await createPageThroughUI(page, searchableTitle, 'Test content for global search');
+
+    // # Wait for page to be indexed (pages need to be saved to PageContents for search)
+    await page.waitForTimeout(1000);
+
+    // # Perform global search
+    await channelsPage.globalHeader.openSearch();
+    const {searchInput} = channelsPage.searchBox;
+    await searchInput.fill(searchableTitle);
+    await searchInput.press('Enter');
+
+    // # Wait for search results to appear in RHS
+    await page.waitForTimeout(1000);
+    await channelsPage.sidebarRight.toBeVisible();
+
+    // * Verify search results contain the page title
+    await channelsPage.sidebarRight.toContainText(searchableTitle);
+});
+
+/**
+ * @objective Verify pages can be found using global Mattermost search by content
+ */
+test('searches pages by content using global search', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki through UI
+    const wiki = await createWikiThroughUI(page, `Content Global Search Wiki ${pw.random.id()}`);
+
+    // # Create page with unique content through UI
+    const uniqueContent = `GlobalSearchContent${pw.random.id()}`;
+    const pageTitle = 'Page for Global Content Search';
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, pageTitle);
+
+    const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
+    await editor.click();
+    await editor.type(`Test Document\n\n${uniqueContent}`);
+
+    // # Publish the page
+    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]');
+    await publishButton.click();
+    await page.waitForLoadState('networkidle');
+
+    // # Wait for page to be indexed
+    await page.waitForTimeout(1000);
+
+    // # Perform global search for content
+    await channelsPage.globalHeader.openSearch();
+    const {searchInput} = channelsPage.searchBox;
+    await searchInput.fill(uniqueContent);
+    await searchInput.press('Enter');
+
+    // # Wait for search results to appear in RHS
+    await page.waitForTimeout(1000);
+    await channelsPage.sidebarRight.toBeVisible();
+
+    // * Verify search results contain the page title and content preview
+    await channelsPage.sidebarRight.toContainText(pageTitle);
+    await channelsPage.sidebarRight.toContainText(uniqueContent);
 });

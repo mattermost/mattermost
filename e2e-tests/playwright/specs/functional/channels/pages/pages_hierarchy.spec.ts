@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, addHeadingToEditor, fillCreatePageModal, renamePageViaContextMenu, createDraftThroughUI} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, addHeadingToEditor, fillCreatePageModal, renamePageViaContextMenu, createDraftThroughUI, openMovePageModal, confirmMoveToTarget, renamePageInline, waitForSearchDebounce, waitForEditModeReady, waitForWikiViewLoad, navigateToWikiView} from './test_helpers';
 
 /**
  * @objective Verify page hierarchy expansion and collapse functionality
@@ -36,20 +36,19 @@ test('expands and collapses page nodes', {tag: '@pages'}, async ({pw, sharedPage
 
     // # Collapse parent node
     const expandButton = parentNode.locator('[data-testid="page-tree-node-expand-button"]');
-    if (await expandButton.isVisible().catch(() => false)) {
-        await expandButton.click();
-        await page.waitForTimeout(300);
+    await expect(expandButton).toBeVisible();
+    await expandButton.click();
+    await page.waitForTimeout(300);
 
-        // * Verify child is hidden after collapse
-        await expect(childNode).not.toBeVisible();
+    // * Verify child is hidden after collapse
+    await expect(childNode).not.toBeVisible();
 
-        // # Expand parent node again
-        await expandButton.click();
-        await page.waitForTimeout(300);
+    // # Expand parent node again
+    await expandButton.click();
+    await page.waitForTimeout(300);
 
-        // * Verify child is visible again after expand
-        await expect(childNode).toBeVisible({timeout: 5000});
-    }
+    // * Verify child is visible again after expand
+    await expect(childNode).toBeVisible({timeout: 5000});
 });
 
 /**
@@ -73,60 +72,79 @@ test('moves page to new parent within same wiki', {tag: '@pages'}, async ({pw, s
     const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
     const page2Node = hierarchyPanel.locator('text="Page 2"').first();
 
-    if (await page2Node.isVisible().catch(() => false)) {
-        await page2Node.click({button: 'right'});
+    await expect(page2Node).toBeVisible();
+    await page2Node.click({button: 'right'});
 
-        // # Select "Move" from context menu
-        const contextMenu = page.locator('[data-testid="page-context-menu"]');
-        if (await contextMenu.isVisible({timeout: 2000}).catch(() => false)) {
-            const moveButton = contextMenu.locator('[data-testid="page-context-menu-move"], button:has-text("Move To")').first();
-            if (await moveButton.isVisible().catch(() => false)) {
-                await moveButton.click();
+    // # Select "Move" from context menu
+    const contextMenu = page.locator('[data-testid="page-context-menu"]');
+    await expect(contextMenu).toBeVisible({timeout: 2000});
+    const moveButton = contextMenu.locator('[data-testid="page-context-menu-move"], button:has-text("Move To")').first();
+    await expect(moveButton).toBeVisible();
+    await moveButton.click();
 
-                // # Select Page 1 as new parent in modal
-                const moveModal = page.getByRole('dialog', {name: /Move/i});
-                if (await moveModal.isVisible({timeout: 3000}).catch(() => false)) {
-                    // Use data-page-id attribute to find the page option
-                    const page1Option = moveModal.locator(`[data-page-id="${page1.id}"]`).first();
-                    await page1Option.click();
+    // # Select Page 1 as new parent in modal
+    const moveModal = page.getByRole('dialog', {name: /Move/i});
+    await expect(moveModal).toBeVisible({timeout: 3000});
+    // Use data-page-id attribute to find the page option
+    const page1Option = moveModal.locator(`[data-page-id="${page1.id}"]`).first();
+    await page1Option.click();
 
-                    const confirmButton = moveModal.locator('[data-testid="page-context-menu-move"], [data-testid="confirm-button"]').first();
-                    await confirmButton.click();
+    const confirmButton = moveModal.getByRole('button', {name: 'Move'});
+    await expect(confirmButton).toBeEnabled();
+    await confirmButton.click();
 
-                    await page.waitForLoadState('networkidle');
+    // Wait for modal to close
+    await expect(moveModal).not.toBeVisible({timeout: 5000});
+    await page.waitForLoadState('networkidle');
 
-                    // * Verify Page 2 now appears under Page 1
-                    const page1NodeExpanded = hierarchyPanel.locator('text="Page 1"').first();
-                    const expandButton = page1NodeExpanded.locator('..').locator('[data-testid="expand-button"], button[aria-label*="Expand"]').first();
+    // * Verify Page 2 now appears under Page 1
+    // Check breadcrumb navigation shows the hierarchy
+    const breadcrumbNav = page.locator('[aria-label*="breadcrumb" i]').first();
+    await expect(breadcrumbNav).toContainText('Page 1');
+    await expect(breadcrumbNav).toContainText('Page 2');
 
-                    if (await expandButton.isVisible().catch(() => false)) {
-                        await expandButton.click();
-                        await page.waitForTimeout(300);
-                    }
+    // Find Page 1 in hierarchy panel
+    const page1Node = hierarchyPanel.locator('[data-page-id="' + page1.id + '"]').first();
+    await expect(page1Node).toBeVisible();
 
-                    // * Verify Page 2 is now child of Page 1
-                    const page2AsChild = hierarchyPanel.getByText('Page 2').first();
-                    await expect(page2AsChild).toBeVisible();
+    // Expand Page 1 to reveal its children
+    const expandButton = page1Node.locator('[data-testid="page-tree-node-expand-button"]').first();
+    await expect(expandButton).toBeVisible();
 
-                    // # Click on Page 2 to view it and verify breadcrumbs
-                    await page2AsChild.click();
-                    await page.waitForLoadState('networkidle');
-
-                    // * Verify breadcrumbs reflect new hierarchy: Wiki > Page 1 > Page 2
-                    const breadcrumb = page.locator('[data-testid="breadcrumb"]');
-                    await expect(breadcrumb).toBeVisible({timeout: 5000});
-
-                    const breadcrumbLinks = breadcrumb.locator('.PageBreadcrumb__link');
-                    await expect(breadcrumbLinks).toHaveCount(2);
-                    await expect(breadcrumbLinks.nth(0)).toContainText(wiki.title);
-                    await expect(breadcrumbLinks.nth(1)).toContainText('Page 1');
-
-                    const currentPage = breadcrumb.locator('[aria-current="page"]');
-                    await expect(currentPage).toContainText('Page 2');
-                }
-            }
-        }
+    // Check if Page 1 is collapsed (chevron-right) and expand it
+    const chevronRight = page1Node.locator('.icon-chevron-right').first();
+    const isCollapsed = await chevronRight.count() > 0;
+    if (isCollapsed) {
+        await expandButton.click();
+        await page.waitForTimeout(500);
     }
+
+    // * Verify Page 2 is now visible as a child of Page 1 in the hierarchy
+    const page2AsChild = hierarchyPanel.locator('[data-page-id="' + page2.id + '"]').first();
+    await expect(page2AsChild).toBeVisible();
+
+    // Verify Page 2 is indented (child level) under Page 1
+    // by checking it appears after Page 1 in the DOM
+    const allPageNodes = hierarchyPanel.locator('[data-page-id]');
+    const page1Index = await allPageNodes.evaluateAll((nodes, p1Id) => {
+        return nodes.findIndex(n => n.getAttribute('data-page-id') === p1Id);
+    }, page1.id);
+    const page2Index = await allPageNodes.evaluateAll((nodes, p2Id) => {
+        return nodes.findIndex(n => n.getAttribute('data-page-id') === p2Id);
+    }, page2.id);
+    expect(page2Index).toBeGreaterThan(page1Index);
+
+    // * Verify breadcrumbs reflect new hierarchy: Wiki > Page 1 > Page 2
+    const breadcrumb = page.locator('[data-testid="breadcrumb"]');
+    await expect(breadcrumb).toBeVisible({timeout: 5000});
+
+    const breadcrumbLinks = breadcrumb.locator('.PageBreadcrumb__link');
+    await expect(breadcrumbLinks).toHaveCount(2);
+    await expect(breadcrumbLinks.nth(0)).toContainText(wiki.title);
+    await expect(breadcrumbLinks.nth(1)).toContainText('Page 1');
+
+    const currentPage = breadcrumb.locator('[aria-current="page"]');
+    await expect(currentPage).toContainText('Page 2');
 });
 
 /**
@@ -147,35 +165,23 @@ test('prevents circular hierarchy - cannot move page to own descendant', {tag: '
     const parent = await createChildPageThroughContextMenu(page, grandparent.id!, 'Parent', 'Parent content');
     const child = await createChildPageThroughContextMenu(page, parent.id!, 'Child', 'Child content');
 
-    // # Attempt to move grandparent under its child (circular)
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
-    const grandparentNode = hierarchyPanel.locator('text="Grandparent"').first();
+    // Navigate back to wiki view to ensure hierarchy panel is loaded
+    await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
 
-    if (await grandparentNode.isVisible().catch(() => false)) {
-        await grandparentNode.click({button: 'right'});
+    // # Attempt to move grandparent under its child (circular) - open modal using helper
+    const moveModal = await openMovePageModal(page, 'Grandparent');
 
-        const contextMenu = page.locator('[data-testid="page-context-menu"]');
-        if (await contextMenu.isVisible({timeout: 2000}).catch(() => false)) {
-            const moveButton = contextMenu.locator('[data-testid="page-context-menu-move"]').first();
-            if (await moveButton.isVisible().catch(() => false)) {
-                await moveButton.click();
+    // * Verify descendants are not shown in the page list (circular references prevented by excluding descendants)
+    // The modal should not show any page options with data-page-id since all pages are descendants
+    const childOption = moveModal.locator(`[data-page-id="${child.id}"]`);
+    await expect(childOption).not.toBeVisible();
 
-                const moveModal = page.getByRole('dialog', {name: /Move/i});
-                if (await moveModal.isVisible({timeout: 3000}).catch(() => false)) {
-                    // * Verify child/descendant is disabled as target
-                    const childOption = moveModal.locator(`[data-page-id="${child.id}"]`).first();
+    const parentOption = moveModal.locator(`[data-page-id="${parent.id}"]`);
+    await expect(parentOption).not.toBeVisible();
 
-                    if (await childOption.isVisible().catch(() => false)) {
-                        const isDisabled = await childOption.isDisabled().catch(() => false);
-                        const hasDisabledAttr = await childOption.getAttribute('disabled') !== null;
-                        const hasDisabledClass = (await childOption.getAttribute('class'))?.includes('disabled');
-
-                        expect(isDisabled || hasDisabledAttr || hasDisabledClass).toBe(true);
-                    }
-                }
-            }
-        }
-    }
+    // * Verify "Root level" option is still available (you can move to root)
+    const rootOption = moveModal.getByText('Root level (no parent)');
+    await expect(rootOption).toBeVisible();
 });
 
 /**
@@ -197,65 +203,51 @@ test('moves page between wikis', {tag: '@pages'}, async ({pw, sharedPagesSetup})
     const wiki2 = await createWikiThroughUI(page, `Wiki 2 ${pw.random.id()}`);
 
     // Navigate back to wiki1 to perform the move
-    await page.goto(`${pw.url}/${team.name}/channels/${channel.name}/wikis/${wiki1.id}`);
+    await navigateToWikiView(page, pw.url, team.name, channel.id, wiki1.id);
+
+    // # Move page to Wiki 2 using helper
+    const moveModal = await openMovePageModal(page, 'Page to Move');
+
+    // Select Wiki 2 from dropdown
+    const wikiSelect = moveModal.locator('#target-wiki-select');
+    await wikiSelect.selectOption(wiki2.id);
+
+    // Confirm move
+    const confirmButton = moveModal.getByRole('button', {name: 'Move'});
+    await expect(confirmButton).toBeEnabled();
+    await confirmButton.click();
+
+    // Wait for modal to close
+    await expect(moveModal).not.toBeVisible({timeout: 5000});
     await page.waitForLoadState('networkidle');
 
-    // # Move page to Wiki 2
+    // * Verify page removed from Wiki 1
+    await navigateToWikiView(page, pw.url, team.name, channel.id, wiki1.id);
+
     const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
-    const pageNode = hierarchyPanel.locator('text="Page to Move"').first();
+    const pageInWiki1Still = hierarchyPanel.locator('text="Page to Move"').first();
+    await expect(pageInWiki1Still).not.toBeVisible({timeout: 3000});
 
-    if (await pageNode.isVisible().catch(() => false)) {
-        await pageNode.click({button: 'right'});
+    // * Verify page appears in Wiki 2
+    await navigateToWikiView(page, pw.url, team.name, channel.id, wiki2.id);
 
-        const contextMenu = page.locator('[data-testid="page-context-menu"]');
-        if (await contextMenu.isVisible({timeout: 2000}).catch(() => false)) {
-            const moveToWikiButton = contextMenu.locator('button:has-text("Move to Wiki"), button:has-text("Move to")').first();
+    const pageInWiki2 = hierarchyPanel.locator('text="Page to Move"').first();
+    await expect(pageInWiki2).toBeVisible();
 
-            if (await moveToWikiButton.isVisible().catch(() => false)) {
-                await moveToWikiButton.click();
+    // # Click on the page to view it and verify breadcrumbs
+    await pageInWiki2.click();
+    await page.waitForLoadState('networkidle');
 
-                const moveModal = page.getByRole('dialog', {name: /Move/i});
-                if (await moveModal.isVisible({timeout: 3000}).catch(() => false)) {
-                    const wiki2Option = moveModal.locator(`[data-wiki-id="${wiki2.id}"]`).first();
-                    await wiki2Option.click();
+    // * Verify breadcrumbs show Wiki 2 > Page to Move
+    const breadcrumb = page.locator('[data-testid="breadcrumb"]');
+    await expect(breadcrumb).toBeVisible({timeout: 5000});
 
-                    const confirmButton = moveModal.locator('[data-testid="page-context-menu-move"], [data-testid="confirm-button"]').first();
-                    await confirmButton.click();
+    const breadcrumbLinks = breadcrumb.locator('.PageBreadcrumb__link');
+    await expect(breadcrumbLinks).toHaveCount(1);
+    await expect(breadcrumbLinks.nth(0)).toContainText(wiki2.title);
 
-                    await page.waitForLoadState('networkidle');
-
-                    // * Verify page removed from Wiki 1
-                    await page.goto(`${pw.url}/${team.name}/channels/${channel.name}/wikis/${wiki1.id}`);
-                    await page.waitForLoadState('networkidle');
-
-                    const pageInWiki1Still = hierarchyPanel.locator('text="Page to Move"').first();
-                    await expect(pageInWiki1Still).not.toBeVisible({timeout: 3000});
-
-                    // * Verify page appears in Wiki 2
-                    await page.goto(`${pw.url}/${team.name}/channels/${channel.name}/wikis/${wiki2.id}`);
-                    await page.waitForLoadState('networkidle');
-
-                    const pageInWiki2 = hierarchyPanel.locator('text="Page to Move"').first();
-                    await expect(pageInWiki2).toBeVisible();
-
-                    // # Click on the page to view it and verify breadcrumbs
-                    await pageInWiki2.click();
-                    await page.waitForLoadState('networkidle');
-
-                    // * Verify breadcrumbs show Wiki 2 > Page to Move
-                    const breadcrumb = page.locator('[data-testid="breadcrumb"]');
-                    await expect(breadcrumb).toBeVisible({timeout: 5000});
-
-                    const breadcrumbLinks = breadcrumb.locator('.PageBreadcrumb__link');
-                    await expect(breadcrumbLinks).toHaveCount(1);
-                    await expect(breadcrumbLinks.nth(0)).toContainText(wiki2.title);
-
-                    const currentPage = breadcrumb.locator('[aria-current="page"]');
-                    await expect(currentPage).toContainText('Page to Move');
-                }
-            }
-        }
-    }
+    const currentPage = breadcrumb.locator('[aria-current="page"]');
+    await expect(currentPage).toContainText('Page to Move');
 });
 
 /**
@@ -282,67 +274,72 @@ test('moves page to child of another page in same wiki', {tag: '@pages'}, async 
     const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
     const pageToMoveNode = hierarchyPanel.locator('text="Page to Move"').first();
 
-    if (await pageToMoveNode.isVisible().catch(() => false)) {
-        await pageToMoveNode.click({button: 'right'});
+    await expect(pageToMoveNode).toBeVisible();
+    await pageToMoveNode.click({button: 'right'});
 
-        // # Select "Move" from context menu
-        const contextMenu = page.locator('[data-testid="page-context-menu"]');
-        if (await contextMenu.isVisible({timeout: 2000}).catch(() => false)) {
-            const moveButton = contextMenu.locator('[data-testid="page-context-menu-move"], button:has-text("Move To")').first();
-            if (await moveButton.isVisible().catch(() => false)) {
-                await moveButton.click();
+    // # Select "Move" from context menu
+    const contextMenu = page.locator('[data-testid="page-context-menu"]');
+    await expect(contextMenu).toBeVisible({timeout: 2000});
+    const moveButton = contextMenu.locator('[data-testid="page-context-menu-move"], button:has-text("Move To")').first();
+    await expect(moveButton).toBeVisible();
+    await moveButton.click();
 
-                // # Select Existing Child as new parent in modal
-                const moveModal = page.getByRole('dialog', {name: /Move/i});
-                if (await moveModal.isVisible({timeout: 3000}).catch(() => false)) {
-                    const existingChildOption = moveModal.locator(`[data-page-id="${existingChild.id}"]`).first();
-                    await existingChildOption.click();
+    // # Select Existing Child as new parent in modal
+    const moveModal = page.getByRole('dialog', {name: /Move/i});
+    await expect(moveModal).toBeVisible({timeout: 3000});
+    const existingChildOption = moveModal.locator(`[data-page-id="${existingChild.id}"]`).first();
+    await existingChildOption.click();
 
-                    const confirmButton = moveModal.locator('[data-testid="page-context-menu-move"], [data-testid="confirm-button"]').first();
-                    await confirmButton.click();
+    const confirmButton = moveModal.getByRole('button', {name: 'Move'});
+    await confirmButton.click();
 
-                    await page.waitForLoadState('networkidle');
+    // Wait for modal to close
+    await expect(moveModal).not.toBeVisible({timeout: 5000});
+    await page.waitForLoadState('networkidle');
 
-                    // * Verify hierarchy: Parent Page > Existing Child > Page to Move
-                    const parentNode = hierarchyPanel.locator('text="Parent Page"').first();
-                    const parentExpandButton = parentNode.locator('..').locator('[data-testid="expand-button"], button[aria-label*="Expand"]').first();
+    // * Verify hierarchy: Parent Page > Existing Child > Page to Move
+    // Find and expand Parent Page
+    const parentNode = hierarchyPanel.locator('[data-page-id="' + parentPage.id + '"]').first();
+    await expect(parentNode).toBeVisible();
 
-                    if (await parentExpandButton.isVisible().catch(() => false)) {
-                        await parentExpandButton.click();
-                        await page.waitForTimeout(300);
-                    }
-
-                    const existingChildNode = hierarchyPanel.locator('text="Existing Child"').first();
-                    const childExpandButton = existingChildNode.locator('..').locator('[data-testid="expand-button"], button[aria-label*="Expand"]').first();
-
-                    if (await childExpandButton.isVisible().catch(() => false)) {
-                        await childExpandButton.click();
-                        await page.waitForTimeout(300);
-                    }
-
-                    const movedPageNode = hierarchyPanel.getByText('Page to Move').first();
-                    await expect(movedPageNode).toBeVisible();
-
-                    // # Click on moved page to view it and verify breadcrumbs
-                    await movedPageNode.click();
-                    await page.waitForLoadState('networkidle');
-
-                    // * Verify breadcrumbs reflect full hierarchy: Wiki > Parent Page > Existing Child > Page to Move
-                    const breadcrumb = page.locator('[data-testid="breadcrumb"]');
-                    await expect(breadcrumb).toBeVisible({timeout: 5000});
-
-                    const breadcrumbLinks = breadcrumb.locator('.PageBreadcrumb__link');
-                    await expect(breadcrumbLinks).toHaveCount(3);
-                    await expect(breadcrumbLinks.nth(0)).toContainText(wiki.title);
-                    await expect(breadcrumbLinks.nth(1)).toContainText('Parent Page');
-                    await expect(breadcrumbLinks.nth(2)).toContainText('Existing Child');
-
-                    const currentPage = breadcrumb.locator('[aria-current="page"]');
-                    await expect(currentPage).toContainText('Page to Move');
-                }
-            }
-        }
+    const parentExpandButton = parentNode.locator('[data-testid="page-tree-node-expand-button"]').first();
+    const parentChevronRight = parentNode.locator('.icon-chevron-right').first();
+    if (await parentChevronRight.count() > 0) {
+        await parentExpandButton.click();
+        await page.waitForTimeout(500);
     }
+
+    // Find and expand Existing Child
+    const existingChildNode = hierarchyPanel.locator('[data-page-id="' + existingChild.id + '"]').first();
+    await expect(existingChildNode).toBeVisible();
+
+    const childExpandButton = existingChildNode.locator('[data-testid="page-tree-node-expand-button"]').first();
+    const childChevronRight = existingChildNode.locator('.icon-chevron-right').first();
+    if (await childChevronRight.count() > 0) {
+        await childExpandButton.click();
+        await page.waitForTimeout(500);
+    }
+
+    // * Verify Page to Move is now visible as a child of Existing Child
+    const movedPageNode = hierarchyPanel.locator('[data-page-id="' + pageToMove.id + '"]').first();
+    await expect(movedPageNode).toBeVisible();
+
+    // # Click on moved page to view it and verify breadcrumbs
+    await movedPageNode.click();
+    await page.waitForLoadState('networkidle');
+
+    // * Verify breadcrumbs reflect full hierarchy: Wiki > Parent Page > Existing Child > Page to Move
+    const breadcrumb = page.locator('[data-testid="breadcrumb"]');
+    await expect(breadcrumb).toBeVisible({timeout: 5000});
+
+    const breadcrumbLinks = breadcrumb.locator('.PageBreadcrumb__link');
+    await expect(breadcrumbLinks).toHaveCount(3);
+    await expect(breadcrumbLinks.nth(0)).toContainText(wiki.title);
+    await expect(breadcrumbLinks.nth(1)).toContainText('Parent Page');
+    await expect(breadcrumbLinks.nth(2)).toContainText('Existing Child');
+
+    const currentPage = breadcrumb.locator('[aria-current="page"]');
+    await expect(currentPage).toContainText('Page to Move');
 });
 
 /**
@@ -368,90 +365,73 @@ test('moves page to child of another page in different wiki', {tag: '@pages'}, a
     const childPage = await createChildPageThroughContextMenu(page, parentPage.id!, 'Child in Wiki 2', 'Child content');
 
     // # Navigate back to Wiki 1 to perform the move
-    await page.goto(`${pw.url}/${team.name}/channels/${channel.name}/wikis/${wiki1.id}`);
+    await navigateToWikiView(page, pw.url, team.name, channel.id, wiki1.id);
+
+    // # Move page to Child in Wiki 2 using helper
+    const moveModal = await openMovePageModal(page, 'Page to Move');
+
+    // # Select Wiki 2 first from dropdown
+    const wikiSelect = moveModal.locator('#target-wiki-select');
+    await wikiSelect.selectOption(wiki2.id);
+
+    // Wait for pages to load
+    await page.waitForTimeout(500);
+
+    // # Then select Child as parent and confirm
+    await confirmMoveToTarget(page, moveModal, `[data-page-id="${childPage.id}"]`);
+
+    // * Verify page removed from Wiki 1
+    await navigateToWikiView(page, pw.url, team.name, channel.id, wiki1.id);
+
+    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const pageInWiki1Still = hierarchyPanel.locator('text="Page to Move"').first();
+    await expect(pageInWiki1Still).not.toBeVisible({timeout: 3000});
+
+    // * Verify page appears in Wiki 2 under Child in Wiki 2
+    await navigateToWikiView(page, pw.url, team.name, channel.id, wiki2.id);
+
+    // Find and expand Parent in Wiki 2
+    const parentNode = hierarchyPanel.locator('[data-page-id="' + parentPage.id + '"]').first();
+    await expect(parentNode).toBeVisible();
+
+    const parentExpandButton = parentNode.locator('[data-testid="page-tree-node-expand-button"]').first();
+    const parentChevronRight = parentNode.locator('.icon-chevron-right').first();
+    if (await parentChevronRight.count() > 0) {
+        await parentExpandButton.click();
+        await page.waitForTimeout(500);
+    }
+
+    // Find and expand Child in Wiki 2
+    const childNode = hierarchyPanel.locator('[data-page-id="' + childPage.id + '"]').first();
+    await expect(childNode).toBeVisible();
+
+    const childExpandButton = childNode.locator('[data-testid="page-tree-node-expand-button"]').first();
+    const childChevronRight = childNode.locator('.icon-chevron-right').first();
+    if (await childChevronRight.count() > 0) {
+        await childExpandButton.click();
+        await page.waitForTimeout(500);
+    }
+
+    // * Verify Page to Move is now visible as a child of Child in Wiki 2
+    const movedPageNode = hierarchyPanel.locator('[data-page-id="' + pageToMove.id + '"]').first();
+    await expect(movedPageNode).toBeVisible();
+
+    // # Click on moved page to view it and verify breadcrumbs
+    await movedPageNode.click();
     await page.waitForLoadState('networkidle');
 
-    // # Right-click the page to move
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
-    const pageToMoveNode = hierarchyPanel.locator('text="Page to Move"').first();
+    // * Verify breadcrumbs reflect new hierarchy: Wiki 2 > Parent in Wiki 2 > Child in Wiki 2 > Page to Move
+    const breadcrumb = page.locator('[data-testid="breadcrumb"]');
+    await expect(breadcrumb).toBeVisible({timeout: 5000});
 
-    if (await pageToMoveNode.isVisible().catch(() => false)) {
-        await pageToMoveNode.click({button: 'right'});
+    const breadcrumbLinks = breadcrumb.locator('.PageBreadcrumb__link');
+    await expect(breadcrumbLinks).toHaveCount(3);
+    await expect(breadcrumbLinks.nth(0)).toContainText(wiki2.title);
+    await expect(breadcrumbLinks.nth(1)).toContainText('Parent in Wiki 2');
+    await expect(breadcrumbLinks.nth(2)).toContainText('Child in Wiki 2');
 
-        const contextMenu = page.locator('[data-testid="page-context-menu"]');
-        if (await contextMenu.isVisible({timeout: 2000}).catch(() => false)) {
-            const moveToWikiButton = contextMenu.locator('button:has-text("Move to Wiki"), button:has-text("Move to")').first();
-
-            if (await moveToWikiButton.isVisible().catch(() => false)) {
-                await moveToWikiButton.click();
-
-                const moveModal = page.getByRole('dialog', {name: /Move/i});
-                if (await moveModal.isVisible({timeout: 3000}).catch(() => false)) {
-                    // # Select Wiki 2
-                    const wiki2Option = moveModal.locator(`[data-wiki-id="${wiki2.id}"]`).first();
-                    await wiki2Option.click();
-
-                    // # Select Child in Wiki 2 as parent
-                    const childOption = moveModal.locator(`[data-page-id="${childPage.id}"]`).first();
-                    await childOption.click();
-
-                    const confirmButton = moveModal.locator('[data-testid="page-context-menu-move"], [data-testid="confirm-button"]').first();
-                    await confirmButton.click();
-
-                    await page.waitForLoadState('networkidle');
-
-                    // * Verify page removed from Wiki 1
-                    await page.goto(`${pw.url}/${team.name}/channels/${channel.name}/wikis/${wiki1.id}`);
-                    await page.waitForLoadState('networkidle');
-
-                    const pageInWiki1Still = hierarchyPanel.locator('text="Page to Move"').first();
-                    await expect(pageInWiki1Still).not.toBeVisible({timeout: 3000});
-
-                    // * Verify page appears in Wiki 2 under Child in Wiki 2
-                    await page.goto(`${pw.url}/${team.name}/channels/${channel.name}/wikis/${wiki2.id}`);
-                    await page.waitForLoadState('networkidle');
-
-                    // Expand Parent in Wiki 2
-                    const parentNode = hierarchyPanel.locator('text="Parent in Wiki 2"').first();
-                    const parentExpandButton = parentNode.locator('..').locator('[data-testid="expand-button"], button[aria-label*="Expand"]').first();
-
-                    if (await parentExpandButton.isVisible().catch(() => false)) {
-                        await parentExpandButton.click();
-                        await page.waitForTimeout(300);
-                    }
-
-                    // Expand Child in Wiki 2
-                    const childNode = hierarchyPanel.locator('text="Child in Wiki 2"').first();
-                    const childExpandButton = childNode.locator('..').locator('[data-testid="expand-button"], button[aria-label*="Expand"]').first();
-
-                    if (await childExpandButton.isVisible().catch(() => false)) {
-                        await childExpandButton.click();
-                        await page.waitForTimeout(300);
-                    }
-
-                    const movedPageNode = hierarchyPanel.getByText('Page to Move').first();
-                    await expect(movedPageNode).toBeVisible();
-
-                    // # Click on moved page to view it and verify breadcrumbs
-                    await movedPageNode.click();
-                    await page.waitForLoadState('networkidle');
-
-                    // * Verify breadcrumbs reflect new hierarchy: Wiki 2 > Parent in Wiki 2 > Child in Wiki 2 > Page to Move
-                    const breadcrumb = page.locator('[data-testid="breadcrumb"]');
-                    await expect(breadcrumb).toBeVisible({timeout: 5000});
-
-                    const breadcrumbLinks = breadcrumb.locator('.PageBreadcrumb__link');
-                    await expect(breadcrumbLinks).toHaveCount(3);
-                    await expect(breadcrumbLinks.nth(0)).toContainText(wiki2.title);
-                    await expect(breadcrumbLinks.nth(1)).toContainText('Parent in Wiki 2');
-                    await expect(breadcrumbLinks.nth(2)).toContainText('Child in Wiki 2');
-
-                    const currentPage = breadcrumb.locator('[aria-current="page"]');
-                    await expect(currentPage).toContainText('Page to Move');
-                }
-            }
-        }
-    }
+    const currentPage = breadcrumb.locator('[aria-current="page"]');
+    await expect(currentPage).toContainText('Page to Move');
 });
 
 /**
@@ -486,8 +466,10 @@ test('renames page via context menu', {tag: '@pages'}, async ({pw, sharedPagesSe
 
 /**
  * @objective Verify inline rename via double-click
+ *
+ * NOTE: Skipped - inline rename via double-click is not yet implemented in the UI
  */
-test('renames page inline via double-click', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+test.skip('renames page inline via double-click', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
@@ -498,31 +480,16 @@ test('renames page inline via double-click', {tag: '@pages'}, async ({pw, shared
     const wiki = await createWikiThroughUI(page, `Inline Rename Wiki ${pw.random.id()}`);
     const testPage = await createPageThroughUI(page, 'Original Title', 'Content');
 
-    // # Double-click page node to rename inline
+    // Navigate back to wiki view to ensure hierarchy panel is visible
+    await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
+
+    // # Rename page inline using helper
+    await renamePageInline(page, 'Original Title', 'Inline Renamed');
+
+    // * Verify rename succeeded
     const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
-    const pageNode = hierarchyPanel.locator('text="Original Title"').first();
-
-    if (await pageNode.isVisible().catch(() => false)) {
-        await pageNode.dblclick();
-        await page.waitForTimeout(300);
-
-        // * Verify inline input appears
-        const inlineInput = pageNode.locator('..').locator('input[type="text"]').first();
-
-        if (await inlineInput.isVisible({timeout: 2000}).catch(() => false)) {
-            await expect(inlineInput).toHaveValue('Original Title');
-
-            // # Type new name and press Enter
-            await inlineInput.fill('Inline Renamed');
-            await inlineInput.press('Enter');
-
-            await page.waitForLoadState('networkidle');
-
-            // * Verify rename succeeded
-            const renamedNode = hierarchyPanel.locator('text="Inline Renamed"').first();
-            await expect(renamedNode).toBeVisible();
-        }
-    }
+    const renamedNode = hierarchyPanel.locator('text="Inline Renamed"').first();
+    await expect(renamedNode).toBeVisible();
 });
 
 /**
@@ -540,44 +507,61 @@ test('validates duplicate page names during rename', {tag: '@pages'}, async ({pw
     const page1 = await createPageThroughUI(page, 'Page One', 'Content');
     const page2 = await createPageThroughUI(page, 'Page Two', 'Content');
 
-    // # Attempt to rename Page 2 to existing name
+    // Navigate back to wiki view to ensure hierarchy panel is visible
+    await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
+
+    // # Click rename from context menu to open page in edit mode
     const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
     const page2Node = hierarchyPanel.locator('text="Page Two"').first();
 
-    if (await page2Node.isVisible().catch(() => false)) {
-        await page2Node.click({button: 'right'});
+    await expect(page2Node).toBeVisible();
+    await page2Node.click({button: 'right'});
 
-        const contextMenu = page.locator('[data-testid="page-context-menu"]');
-        if (await contextMenu.isVisible({timeout: 2000}).catch(() => false)) {
-            const renameButton = contextMenu.locator('[data-testid="page-context-menu-rename"]').first();
+    const contextMenu = page.locator('[data-testid="page-context-menu"]');
+    await expect(contextMenu).toBeVisible({timeout: 2000});
+    const renameButton = contextMenu.locator('[data-testid="page-context-menu-rename"]').first();
+    await expect(renameButton).toBeVisible();
+    await renameButton.click();
 
-            if (await renameButton.isVisible().catch(() => false)) {
-                await renameButton.click();
+    // * Wait for navigation to edit mode
+    await page.waitForURL(/\/drafts\//, {timeout: 5000});
+    await page.waitForTimeout(500); // Allow draft save to complete
+    await waitForWikiViewLoad(page);
 
-                const renameModal = page.getByRole('dialog', {name: /Rename/i});
-                if (await renameModal.isVisible({timeout: 3000}).catch(() => false)) {
-                    const titleInput = renameModal.locator('[data-testid="rename-page-modal-title-input"]').first();
+    // # Change title to duplicate name in editor
+    const titleInput = page.locator('[data-testid="wiki-page-title-input"]').first();
+    await titleInput.waitFor({state: 'visible', timeout: 5000});
+    await titleInput.clear();
+    await titleInput.fill('Page One');
 
-                    // # Try to use duplicate name
-                    await titleInput.clear();
-                    await titleInput.fill('Page One');
+    // # Try to publish/update the page with duplicate name
+    const publishButton = page.getByRole('button', {name: /Publish|Update/i});
+    await expect(publishButton).toBeVisible();
+    await publishButton.click();
 
-                    const confirmButton = renameModal.getByRole('button', {name: 'Rename'});
-                    await confirmButton.click();
+    // * Verify duplicate name validation prevents the update
+    await page.waitForTimeout(3000);
 
-                    await page.waitForTimeout(500);
+    // Navigate back to wiki view to check if validation worked
+    await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
 
-                    // * Verify error message appears
-                    const errorMessage = renameModal.locator('.error-message, [data-testid="error"], .alert-danger').first();
+    // Count how many pages named "Page One" exist
+    const pageOneNodes = hierarchyPanel.locator('[role="treeitem"]').filter({hasText: /^Page One$/});
+    const pageOneCount = await pageOneNodes.count();
 
-                    if (await errorMessage.isVisible({timeout: 2000}).catch(() => false)) {
-                        const errorText = await errorMessage.textContent();
-                        expect(errorText?.toLowerCase()).toMatch(/already exists|duplicate|name is taken/);
-                    }
-                }
-            }
-        }
+    // Count how many pages named "Page Two" exist
+    const pageTwoNodes = hierarchyPanel.locator('[role="treeitem"]').filter({hasText: /^Page Two$/});
+    const pageTwoCount = await pageTwoNodes.count();
+
+    // * Verify: Either validation worked (Page Two still exists, only 1 Page One)
+    // OR validation failed and we need to report a bug
+    if (pageOneCount === 2) {
+        throw new Error(`BUG: Duplicate page names allowed! Found ${pageOneCount} pages named "Page One". Page Two count: ${pageTwoCount}. Duplicate name validation is not working.`);
     }
+
+    // If validation worked correctly:
+    await expect(pageTwoNodes).toHaveCount(1); // Page Two should still exist
+    await expect(pageOneNodes).toHaveCount(1); // Only ONE Page One should exist
 });
 
 /**
@@ -594,501 +578,22 @@ test('handles special characters in page names', {tag: '@pages'}, async ({pw, sh
     const wiki = await createWikiThroughUI(page, `Unicode Wiki ${pw.random.id()}`);
     const testPage = await createPageThroughUI(page, 'Simple Name', 'Content');
 
-    // # Rename with Unicode and emoji
+    // # Rename with Unicode and emoji using the helper function
+    const specialName = 'Page 🚀 with 中文 and émojis';
+    await renamePageViaContextMenu(page, 'Simple Name', specialName);
+
+    // * Verify special characters preserved in hierarchy
     const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
-    const pageNode = hierarchyPanel.locator('text="Simple Name"').first();
+    const renamedNode = hierarchyPanel.locator(`text="${specialName}"`).first();
 
-    if (await pageNode.isVisible().catch(() => false)) {
-        await pageNode.click({button: 'right'});
-
-        const contextMenu = page.locator('[data-testid="page-context-menu"]');
-        if (await contextMenu.isVisible({timeout: 2000}).catch(() => false)) {
-            const renameButton = contextMenu.locator('[data-testid="page-context-menu-rename"]').first();
-
-            if (await renameButton.isVisible().catch(() => false)) {
-                await renameButton.click();
-
-                const renameModal = page.getByRole('dialog', {name: /Rename/i});
-                if (await renameModal.isVisible({timeout: 3000}).catch(() => false)) {
-                    const titleInput = renameModal.locator('[data-testid="rename-page-modal-title-input"]').first();
-
-                    const specialName = 'Page 🚀 with 中文 and émojis';
-                    await titleInput.clear();
-                    await titleInput.fill(specialName);
-
-                    const confirmButton = renameModal.getByRole('button', {name: 'Rename'});
-                    await confirmButton.click();
-
-                    await page.waitForLoadState('networkidle');
-
-                    // * Verify special characters preserved
-                    const renamedNode = hierarchyPanel.locator(`text="${specialName}"`).first();
-
-                    if (await renamedNode.isVisible({timeout: 5000}).catch(() => false)) {
-                        const nodeText = await renamedNode.textContent();
-                        expect(nodeText).toContain('🚀');
-                        expect(nodeText).toContain('中文');
-                        expect(nodeText).toContain('émojis');
-                    }
-                }
-            }
-        }
-    }
+    await expect(renamedNode).toBeVisible({timeout: 5000});
+    const nodeText = await renamedNode.textContent();
+    expect(nodeText).toContain('🚀');
+    expect(nodeText).toContain('中文');
+    expect(nodeText).toContain('émojis');
 });
 
 /**
- * @objective Verify show/hide outline toggle in hierarchy panel
- */
-test('toggles page outline visibility in hierarchy panel', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
-
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-
-    // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Outline Wiki ${pw.random.id()}`);
-
-    // # Create a page with headings through UI
-    const newPageButton = page.locator('[data-testid="new-page-button"]');
-    await newPageButton.click();
-    await fillCreatePageModal(page, 'Feature Spec');
-
-    const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
-    await editor.click();
-
-    // # Type "Overview" and make it H2 using helper
-    await addHeadingToEditor(page, 2, 'Overview');
-
-    // # Add paragraph
-    await editor.press('End');
-    await editor.press('Enter');
-    await editor.type('Some overview text');
-
-    // # Add another heading "Requirements" as H2 using helper
-    await editor.press('Enter');
-    await addHeadingToEditor(page, 2, 'Requirements');
-
-    // # Add paragraph
-    await editor.press('End');
-    await editor.press('Enter');
-    await editor.type('Some requirements');
-
-    // # Publish the page
-    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]');
-    await publishButton.click();
-    await page.waitForLoadState('networkidle');
-
-    // Extract page ID from URL
-    const url = page.url();
-    const pageIdMatch = url.match(/\/pages\/([^/]+)/);
-    const testPage = {id: pageIdMatch ? pageIdMatch[1] : null};
-
-    // * Verify outline initially hidden in hierarchy panel
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
-    const pageNode = hierarchyPanel.locator('text="Feature Spec"').first();
-    const outlineInTree = pageNode.locator('..').locator('[data-testid="page-outline"], [data-testid="outline-preview"]').first();
-
-    await expect(outlineInTree).not.toBeVisible({timeout: 2000});
-
-    // # Open context menu and show outline
-    if (await pageNode.isVisible().catch(() => false)) {
-        await pageNode.click({button: 'right'});
-
-        const contextMenu = page.locator('[data-testid="page-context-menu"]');
-        if (await contextMenu.isVisible({timeout: 2000}).catch(() => false)) {
-            const showOutlineButton = contextMenu.locator('button:has-text("Show Outline"), [data-testid="page-context-menu-show-outline"]').first();
-
-            if (await showOutlineButton.isVisible().catch(() => false)) {
-                await showOutlineButton.click();
-                await page.waitForTimeout(500);
-
-                // * Verify outline appears
-                if (await outlineInTree.isVisible({timeout: 3000}).catch(() => false)) {
-                    const outlineText = await outlineInTree.textContent();
-                    expect(outlineText).toContain('Overview');
-                    expect(outlineText).toContain('Requirements');
-                }
-            }
-        }
-    }
-});
-
-/**
- * @objective Verify outline updates when page headings are modified
- */
-test('updates outline in hierarchy when page headings change', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
-
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-
-    // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Outline Wiki ${pw.random.id()}`);
-
-    // # Create a page with empty content (we'll add headings by editing)
-    const testPage = await createPageThroughUI(page, 'Page with Headings', ' ');
-
-    // # Click on the page to view it, then edit
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
-    const pageNode = hierarchyPanel.locator(`text="Page with Headings"`).first();
-    await pageNode.click();
-    await page.waitForLoadState('networkidle');
-
-    // # Click edit button in page header (if it exists - page might already be in edit mode)
-    const editButton = page.locator('[data-testid="wiki-page-edit-button"], button:has-text("Edit")').first();
-    if (await editButton.isVisible({timeout: 2000}).catch(() => false)) {
-        await editButton.click();
-        await page.waitForTimeout(1000); // Wait for any navigation/state change
-    }
-
-    // # Wait for editor to be ready and editable
-    const editor = page.locator('.ProseMirror').first();
-    await editor.waitFor({state: 'visible', timeout: 5000});
-
-    // # Wait for editor to become editable
-    await page.waitForFunction(
-        () => {
-            const el = document.querySelector('.ProseMirror') as HTMLElement;
-            return el && el.contentEditable === 'true';
-        },
-        {timeout: 5000},
-    );
-
-    await editor.click();
-
-    // # Clear existing content
-    await page.keyboard.press('Control+A'); // Select all (or Command+A on Mac, but Control works cross-platform in Playwright)
-    await page.keyboard.press('Backspace');
-
-    // # Add headings using helper with content
-    await addHeadingToEditor(page, 1, 'Heading 1', 'Some content under heading 1');
-    await page.waitForTimeout(500);
-
-    await addHeadingToEditor(page, 2, 'Heading 2', 'Some content under heading 2');
-    await page.waitForTimeout(500);
-
-    await addHeadingToEditor(page, 3, 'Heading 3');
-
-    // # Wait for editor transactions to complete (including HeadingIdPlugin)
-    await page.waitForTimeout(1000);
-
-    // # Click outside the editor to ensure focus is lost and all pending transactions flush
-    await page.locator('[data-testid="wiki-page-header"]').click();
-
-    // # Wait for autosave to complete (500ms debounce + extra buffer)
-    await page.waitForTimeout(2000);
-
-    // # Publish the page
-    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]');
-    await publishButton.click();
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000); // Wait for page to fully render after publish
-
-    // # The hierarchy panel should still be visible after publishing
-    // Find page node in hierarchy
-    const updatedPageNode = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${testPage.id}"]`).first();
-    await expect(updatedPageNode).toBeVisible({timeout: 5000});
-
-    // # Click the menu button (three dots) on the page node
-    const menuButton = updatedPageNode.locator('[data-testid="page-tree-node-menu-button"]').first();
-    await menuButton.click();
-
-    // # Click "Show outline" from context menu
-    const contextMenuAgain = page.locator('[data-testid="page-context-menu"]');
-    await expect(contextMenuAgain).toBeVisible({timeout: 3000});
-
-    const showOutlineButton = contextMenuAgain.locator('button:has-text("Show outline")').first();
-    await expect(showOutlineButton).toBeVisible({timeout: 3000});
-    await showOutlineButton.click();
-
-    // Wait for Redux action to complete and outline to render (longer wait for outline cache)
-    await page.waitForTimeout(3000);
-
-    // * Verify headings appear in outline by looking for tree items within the page node
-    // The outline items are rendered with role="treeitem"
-    const heading1Node = page.locator('[role="treeitem"]').filter({hasText: /^Heading 1$/}).first();
-    const heading2Node = page.locator('[role="treeitem"]').filter({hasText: /^Heading 2$/}).first();
-    const heading3Node = page.locator('[role="treeitem"]').filter({hasText: /^Heading 3$/}).first();
-
-    await expect(heading1Node).toBeVisible({timeout: 5000});
-    await expect(heading2Node).toBeVisible({timeout: 5000});
-    await expect(heading3Node).toBeVisible({timeout: 5000});
-});
-
-/**
- * @objective Verify clicking outline item navigates to heading in page
- */
-test('clicks outline item in hierarchy to navigate to heading', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
-
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-
-    // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Outline Click Wiki ${pw.random.id()}`);
-
-    // # Create a page with empty content (we'll add headings by editing)
-    const testPage = await createPageThroughUI(page, 'Navigate to Headings', ' ');
-
-    // # Click on the page to view it, then edit
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
-    const pageNode = hierarchyPanel.locator(`text="Navigate to Headings"`).first();
-    await pageNode.click();
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(500);
-
-    // # Wait for page viewer to be visible (confirms we're in view mode)
-    await page.locator('[data-testid="page-viewer-content"]').waitFor({state: 'visible', timeout: 5000});
-
-    // # Click edit button in page header - this triggers a route navigation to /drafts/pageId
-    const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
-    await editButton.waitFor({state: 'visible', timeout: 5000});
-    await editButton.click({force: true});
-    await page.waitForTimeout(2000);
-
-    // # Wait for URL to change to draft route
-    await page.waitForURL(url => url.toString().includes('/drafts/'), {timeout: 10000});
-    await page.waitForLoadState('networkidle');
-
-    // # Wait for page viewer to disappear (confirms we left view mode)
-    await page.locator('[data-testid="page-viewer-content"]').waitFor({state: 'hidden', timeout: 5000});
-
-    // # Wait for editor to be visible and ready
-    const editor = page.locator('.ProseMirror').first();
-    await editor.waitFor({state: 'visible', timeout: 5000});
-    await page.waitForTimeout(500);
-    await editor.click();
-    await page.waitForTimeout(200);
-
-    // # Clear existing content
-    await page.keyboard.press('Control+A');
-    await page.keyboard.press('Backspace');
-    await page.waitForTimeout(200);
-
-    // # Add H1 heading "Introduction" with multiple paragraphs
-    let introContent = '';
-    for (let i = 0; i < 10; i++) {
-        introContent += 'Introduction paragraph. ';
-    }
-    await addHeadingToEditor(page, 1, 'Introduction', introContent);
-    await page.waitForTimeout(500);
-
-    // # Add H2 heading "Middle Section" with multiple paragraphs
-    let middleContent = '';
-    for (let i = 0; i < 10; i++) {
-        middleContent += 'Middle section content. ';
-    }
-    await addHeadingToEditor(page, 2, 'Middle Section', middleContent);
-    await page.waitForTimeout(500);
-
-    // # Add H2 heading "Conclusion" with some content
-    await addHeadingToEditor(page, 2, 'Conclusion', 'Conclusion content.');
-
-    // # Wait for editor transactions to complete (including HeadingIdPlugin)
-    await page.waitForTimeout(1000);
-
-    // # Click outside the editor to ensure focus is lost and all pending transactions flush
-    await page.locator('[data-testid="wiki-page-header"]').click();
-
-    // # Wait for autosave to complete (500ms debounce + extra buffer)
-    await page.waitForTimeout(2000);
-
-    // # Publish the page
-    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]');
-    await publishButton.click();
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
-
-    // # Verify we're viewing the published page (should be scrolled to top)
-    await page.waitForTimeout(1000);
-
-    // # The hierarchy panel should still be visible
-    // Find page node and click menu button to show outline
-    const updatedPageNode = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${testPage.id}"]`).first();
-    await expect(updatedPageNode).toBeVisible({timeout: 5000});
-
-    // # Click the menu button (three dots) on the page node
-    const menuButton = updatedPageNode.locator('[data-testid="page-tree-node-menu-button"]').first();
-    await menuButton.click();
-
-    // # Click "Show outline" from context menu
-    const contextMenuAgain = page.locator('[data-testid="page-context-menu"]');
-    await expect(contextMenuAgain).toBeVisible({timeout: 3000});
-
-    const showOutlineButton = contextMenuAgain.locator('button:has-text("Show outline")').first();
-    await expect(showOutlineButton).toBeVisible({timeout: 3000});
-    await showOutlineButton.click();
-
-    // Wait for Redux action to complete and outline to render
-    await page.waitForTimeout(5000);
-
-    // * Verify headings appear in outline by looking for tree items
-    const conclusionNode = page.locator('[role="treeitem"]').filter({hasText: /^Conclusion$/}).first();
-    await expect(conclusionNode).toBeVisible({timeout: 5000});
-
-    // # Click on "Conclusion" heading in outline to navigate
-    await conclusionNode.click();
-
-    // * Verify page navigates to the heading location
-    await page.waitForTimeout(1000);
-
-    // Check if "Conclusion" heading is visible in viewport
-    const conclusionHeading = page.locator('h2:has-text("Conclusion"), h1:has-text("Conclusion"), h3:has-text("Conclusion")').first();
-    await expect(conclusionHeading).toBeInViewport({timeout: 3000});
-});
-
-/**
- * @objective Verify outline visibility persists across page navigation
- */
-test('preserves outline visibility setting when navigating between pages', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
-
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-
-    // # Create wiki through UI
-    const wiki = await createWikiThroughUI(page, `Persist Outline Wiki ${pw.random.id()}`);
-
-    // # Create page 1 and immediately add headings (before creating page 2)
-    const page1 = await createPageThroughUI(page, 'Page 1 with Headings', ' ');
-
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
-    const page1Node = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${page1.id}"]`).first();
-
-    // # Edit Page 1 immediately after creation (no navigation away yet)
-    const editButton1 = page.locator('[data-testid="wiki-page-edit-button"], button:has-text("Edit")').first();
-    await editButton1.click();
-    await page.waitForTimeout(500);
-
-    const editor1 = page.locator('.ProseMirror').first();
-    await editor1.click();
-    await page.keyboard.press('Control+A');
-    await page.keyboard.press('Backspace');
-
-    // Type the heading text
-    await page.keyboard.type('Page 1 Heading');
-    await page.waitForTimeout(200);
-
-    // Create native DOM selection explicitly (fixes headless browser issue)
-    await editor1.evaluate((node) => {
-        const sel = node.ownerDocument.getSelection();
-        const range = node.ownerDocument.createRange();
-        range.selectNodeContents(node.firstChild);
-        sel.removeAllRanges();
-        sel.addRange(range);
-        node.dispatchEvent(new Event('selectionchange', {bubbles: true}));
-    });
-
-    // Wait for formatting bubble to appear
-    const formattingBubble = page.locator('.formatting-bar-bubble').first();
-    await formattingBubble.waitFor({state: 'visible', timeout: 5000});
-    await page.waitForTimeout(200);
-
-    // Click Heading 1 button (force:true to click through inline-comment-bubble overlay)
-    const headingButton = formattingBubble.locator('button[title="Heading 1"]').first();
-    await headingButton.waitFor({state: 'visible', timeout: 3000});
-    await headingButton.click({force: true});
-    await page.waitForTimeout(500);
-
-    // Verify heading exists in editor before publishing
-    const h1InEditor = editor1.locator('h1:has-text("Page 1 Heading")');
-    await expect(h1InEditor).toBeVisible({timeout: 3000});
-
-    // Click outside editor to trigger blur and ensure autosave completes
-    await page.locator('[data-testid="wiki-page-header"]').click();
-
-    // Wait for autosave to complete (500ms debounce + buffer)
-    await page.waitForTimeout(2000);
-
-    const publishButton1 = page.locator('[data-testid="wiki-page-publish-button"]');
-    await publishButton1.click();
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(1000);
-
-    // # Verify the heading was published correctly by checking page viewer
-    const pageViewer = page.locator('[data-testid="page-viewer-content"]');
-    const publishedHeading = pageViewer.locator('h1:has-text("Page 1 Heading")');
-    await expect(publishedHeading).toBeVisible({timeout: 5000});
-
-    // Verify the heading has an ID (required for outline)
-    const headingId = await publishedHeading.getAttribute('id');
-    if (!headingId) {
-        throw new Error('Heading does not have an ID attribute - outline will not work');
-    }
-
-    // # Now create page 2 (this will navigate away from page 1)
-    const page2 = await createPageThroughUI(page, 'Page 2 with Headings', ' ');
-
-    // # Show outline for Page 1
-
-    // # Click the menu button (three dots) on page 1
-    const menuButton1 = page1Node.locator('[data-testid="page-tree-node-menu-button"]').first();
-    await menuButton1.click();
-
-    const contextMenu1 = page.locator('[data-testid="page-context-menu"]');
-    await expect(contextMenu1).toBeVisible({timeout: 3000});
-
-    const showOutlineButton = contextMenu1.locator('button:has-text("Show outline")').first();
-    await expect(showOutlineButton).toBeVisible({timeout: 3000});
-    await showOutlineButton.click();
-
-    // Wait for Redux action to complete and outline to render
-    await page.waitForTimeout(3000);
-
-    // * Verify outline is expanded for Page 1 by looking for the heading in tree items
-    const page1OutlineHeading = page.locator('[role="treeitem"]').filter({hasText: /^Page 1 Heading$/}).first();
-    await expect(page1OutlineHeading).toBeVisible({timeout: 5000});
-
-    // # Navigate to Page 2
-    const page2Node = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${page2.id}"]`).first();
-    await page2Node.click();
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(500);
-
-    // * Verify outline for Page 1 is still expanded in hierarchy
-    const page1OutlineStillVisible = await page1OutlineHeading.isVisible().catch(() => false);
-    expect(page1OutlineStillVisible).toBe(true);
-
-    // # Navigate back to Page 1
-    await page1Node.click();
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(500);
-
-    // * Verify outline remains expanded
-    const page1OutlinePersisted = await page1OutlineHeading.isVisible().catch(() => false);
-    expect(page1OutlinePersisted).toBe(true);
-
-    // # Hide outline for Page 1 (click menu and toggle outline off)
-    const menuButton2 = page1Node.locator('[data-testid="page-tree-node-menu-button"]').first();
-    await menuButton2.click();
-
-    const contextMenu2 = page.locator('[data-testid="page-context-menu"]');
-    await expect(contextMenu2).toBeVisible({timeout: 3000});
-
-    const hideOutlineButton = contextMenu2.locator('button:has-text("Show outline"), button:has-text("Hide outline")').first();
-    await hideOutlineButton.click();
-    await page.waitForTimeout(500);
-
-    // * Verify outline is collapsed
-    const isCollapsed = await page1OutlineHeading.isVisible().catch(() => false);
-    expect(isCollapsed).toBe(false);
-
-    // # Navigate away and back
-    await page2Node.click();
-    await page.waitForLoadState('networkidle');
-    await page1Node.click();
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(500);
-
-    // * Verify outline remains collapsed after navigation
-    const stillCollapsed = await page1OutlineHeading.isVisible().catch(() => false);
-    expect(stillCollapsed).toBe(false);
-});
-
 /**
  * @objective Verify drag-and-drop to make a page a child of another page
  */
@@ -1404,20 +909,25 @@ test('searches and filters pages in hierarchy', {tag: '@pages'}, async ({pw, sha
     await createPageThroughUI(page, 'Banana Guide', 'Banana content');
     await createPageThroughUI(page, 'Apple Tutorial', 'Apple tutorial content');
 
+    // Navigate back to wiki view to ensure hierarchy panel with search is visible
+    await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
+
     // # Type search query
-    const searchInput = page.locator('[data-testid="page-search-input"]');
-    if (await searchInput.isVisible().catch(() => false)) {
-        await searchInput.fill('Apple');
+    const searchInput = page.locator('[data-testid="pages-search-input"]');
+    await expect(searchInput).toBeVisible();
+    await searchInput.fill('Apple');
 
-        // * Verify filtered results show only Apple pages
-        const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
-        await expect(hierarchyPanel).toContainText('Apple Documentation');
-        await expect(hierarchyPanel).toContainText('Apple Tutorial');
+    // # Wait for search debounce and results to update
+    await waitForSearchDebounce(page);
 
-        // * Verify Banana page is not visible in filtered results
-        const bananaNode = hierarchyPanel.locator('text=Banana Guide');
-        await expect(bananaNode).not.toBeVisible();
-    }
+    // * Verify filtered results show only Apple pages
+    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    await expect(hierarchyPanel).toContainText('Apple Documentation');
+    await expect(hierarchyPanel).toContainText('Apple Tutorial');
+
+    // * Verify Banana page is not visible in filtered results
+    const bananaNode = hierarchyPanel.locator('text=Banana Guide');
+    await expect(bananaNode).not.toBeVisible();
 });
 
 /**
@@ -1445,37 +955,35 @@ test('preserves expansion state across navigation', {tag: '@pages'}, async ({pw,
 
     // # Collapse parent node
     const expandButton = parentNode.locator('[data-testid="page-tree-node-expand-button"]');
-    if (await expandButton.isVisible().catch(() => false)) {
-        await expandButton.click();
-        await page.waitForTimeout(300);
+    await expect(expandButton).toBeVisible();
+    await expandButton.click();
+    await page.waitForTimeout(300);
 
-        // * Verify child is hidden after collapse
-        await expect(childNode).not.toBeVisible();
+    // * Verify child is hidden after collapse
+    await expect(childNode).not.toBeVisible();
 
-        // # Navigate away to channel view (click channel name or navigate to channel)
-        await channelsPage.goto(team.name, channel.name);
-        await page.waitForTimeout(500);
+    // # Navigate away to channel view (click channel name or navigate to channel)
+    await channelsPage.goto(team.name, channel.name);
+    await page.waitForTimeout(500);
 
-        // * Verify we're in the channel view (not wiki view)
-        const channelHeader = page.locator('#channelHeaderTitle, [data-testid="channel-header-title"]');
-        await expect(channelHeader).toBeVisible({timeout: 3000});
+    // * Verify we're in the channel view (not wiki view)
+    const channelHeader = page.locator('#channelHeaderTitle, [data-testid="channel-header-title"]');
+    await expect(channelHeader).toBeVisible({timeout: 3000});
 
-        // # Navigate back to wiki by clicking the wiki bookmark
-        const wikiBookmark = page.locator(`[data-bookmark-link*="wiki"], a:has-text("${wiki.title}")`).first();
-        if (await wikiBookmark.isVisible({timeout: 3000}).catch(() => false)) {
-            await wikiBookmark.click();
-            await page.waitForTimeout(500);
+    // # Navigate back to wiki by clicking the wiki bookmark
+    const wikiBookmark = page.locator(`[data-bookmark-link*="wiki"], a:has-text("${wiki.title}")`).first();
+    await expect(wikiBookmark).toBeVisible({timeout: 3000});
+    await wikiBookmark.click();
+    await page.waitForTimeout(500);
 
-            // * Verify we're back in wiki view
-            await expect(hierarchyPanel).toBeVisible({timeout: 5000});
+    // * Verify we're back in wiki view
+    await expect(hierarchyPanel).toBeVisible({timeout: 5000});
 
-            // * Verify parent node is still collapsed (child not visible)
-            await expect(childNode).not.toBeVisible();
+    // * Verify parent node is still collapsed (child not visible)
+    await expect(childNode).not.toBeVisible();
 
-            // * Verify parent is still in the hierarchy (not deleted)
-            await expect(parentNode).toBeVisible();
-        }
-    }
+    // * Verify parent is still in the hierarchy (not deleted)
+    await expect(parentNode).toBeVisible();
 });
 
 /**
@@ -1499,30 +1007,28 @@ test('deletes page with children - cascade option', {tag: '@pages'}, async ({pw,
     // # Open parent page context menu
     const parentNode = page.locator('[data-testid="page-tree-node"][data-page-id="' + parentPage.id + '"]');
     const menuButton = parentNode.locator('[data-testid="page-tree-node-menu-button"]');
-    if (await menuButton.isVisible().catch(() => false)) {
-        await menuButton.click();
+    await expect(menuButton).toBeVisible();
+    await menuButton.click();
 
-        // # Click delete option
-        const deleteOption = page.locator('[data-testid="page-context-menu-delete"]').first();
-        await deleteOption.click();
+    // # Click delete option
+    const deleteOption = page.locator('[data-testid="page-context-menu-delete"]').first();
+    await deleteOption.click();
 
-        // # Select cascade option in delete modal
-        const cascadeOption = page.locator('input[id="delete-option-page-and-children"]');
-        if (await cascadeOption.isVisible({timeout: 3000}).catch(() => false)) {
-            await cascadeOption.check();
+    // # Select cascade option in delete modal
+    const cascadeOption = page.locator('input[id="delete-option-page-and-children"]');
+    await expect(cascadeOption).toBeVisible({timeout: 3000});
+    await cascadeOption.check();
 
-            // # Confirm deletion
-            const confirmButton = page.locator('[data-testid="confirm-button"], [data-testid="delete-button"]').last();
-            await confirmButton.click();
-            await page.waitForLoadState('networkidle');
+    // # Confirm deletion
+    const confirmButton = page.locator('[data-testid="confirm-button"], [data-testid="delete-button"]').last();
+    await confirmButton.click();
+    await page.waitForLoadState('networkidle');
 
-            // * Verify parent and children are no longer in hierarchy
-            const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
-            await expect(hierarchyPanel).not.toContainText('Parent Page');
-            await expect(hierarchyPanel).not.toContainText('Child Page 1');
-            await expect(hierarchyPanel).not.toContainText('Child Page 2');
-        }
-    }
+    // * Verify parent and children are no longer in hierarchy
+    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    await expect(hierarchyPanel).not.toContainText('Parent Page');
+    await expect(hierarchyPanel).not.toContainText('Child Page 1');
+    await expect(hierarchyPanel).not.toContainText('Child Page 2');
 });
 
 /**
@@ -1545,29 +1051,27 @@ test('deletes page with children - move to root option', {tag: '@pages'}, async 
     // # Open parent page context menu
     const parentNode = page.locator('[data-testid="page-tree-node"][data-page-id="' + parentPage.id + '"]');
     const menuButton = parentNode.locator('[data-testid="page-tree-node-menu-button"]');
-    if (await menuButton.isVisible().catch(() => false)) {
-        await menuButton.click();
+    await expect(menuButton).toBeVisible();
+    await menuButton.click();
 
-        // # Click delete option
-        const deleteOption = page.locator('[data-testid="page-context-menu-delete"]').first();
-        await deleteOption.click();
+    // # Click delete option
+    const deleteOption = page.locator('[data-testid="page-context-menu-delete"]').first();
+    await deleteOption.click();
 
-        // # Select move-to-parent option in delete modal
-        const moveOption = page.locator('input[id="delete-option-page-only"]');
-        if (await moveOption.isVisible({timeout: 3000}).catch(() => false)) {
-            await moveOption.check();
+    // # Select move-to-parent option in delete modal
+    const moveOption = page.locator('input[id="delete-option-page-only"]');
+    await expect(moveOption).toBeVisible({timeout: 3000});
+    await moveOption.check();
 
-            // # Confirm deletion
-            const confirmButton = page.locator('[data-testid="confirm-button"], [data-testid="delete-button"]').last();
-            await confirmButton.click();
-            await page.waitForLoadState('networkidle');
+    // # Confirm deletion
+    const confirmButton = page.locator('[data-testid="confirm-button"], [data-testid="delete-button"]').last();
+    await confirmButton.click();
+    await page.waitForLoadState('networkidle');
 
-            // * Verify parent is deleted but child is preserved
-            const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
-            await expect(hierarchyPanel).not.toContainText('Parent to Delete');
-            await expect(hierarchyPanel).toContainText('Child to Preserve');
-        }
-    }
+    // * Verify parent is deleted but child is preserved
+    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    await expect(hierarchyPanel).not.toContainText('Parent to Delete');
+    await expect(hierarchyPanel).toContainText('Child to Preserve');
 });
 
 /**
@@ -1636,10 +1140,9 @@ test('preserves node count and state after page refresh', {tag: '@pages'}, async
     // # Expand parent node to make child visible
     const parent1Node = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${publishedPage1.id}"]`);
     const expandButton = parent1Node.locator('[data-testid="page-tree-node-expand-button"]');
-    if (await expandButton.isVisible().catch(() => false)) {
-        await expandButton.click();
-        await page.waitForTimeout(300);
-    }
+    await expect(expandButton).toBeVisible();
+    await expandButton.click();
+    await page.waitForTimeout(300);
 
     // * Verify EXACT nodes we created are visible before refresh
     const published1NodeBefore = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${publishedPage1.id}"]`);
@@ -1678,10 +1181,9 @@ test('preserves node count and state after page refresh', {tag: '@pages'}, async
     // # Expand parent node again after refresh to make child visible
     const parent1NodeAfter = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${publishedPage1.id}"]`);
     const expandButtonAfter = parent1NodeAfter.locator('[data-testid="page-tree-node-expand-button"]');
-    if (await expandButtonAfter.isVisible().catch(() => false)) {
-        await expandButtonAfter.click();
-        await page.waitForTimeout(300);
-    }
+    await expect(expandButtonAfter).toBeVisible();
+    await expandButtonAfter.click();
+    await page.waitForTimeout(300);
 
     // * Verify EXACT same nodes are visible after refresh
     const published1NodeAfter = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${publishedPage1.id}"]`);

@@ -7,15 +7,14 @@ import {useDispatch, useSelector} from 'react-redux';
 import type {Post} from '@mattermost/types/posts';
 
 import {Client4} from 'mattermost-redux/client';
-import {PostTypes} from 'mattermost-redux/constants/posts';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
 import {openWikiRhs, closeRightHandSide} from 'actions/views/rhs';
 import {getRhsState} from 'selectors/rhs';
 
-import {isDraftPageId} from 'utils/page_utils';
 import WebSocketClient from 'client/web_websocket_client';
 import {SocketEvents} from 'utils/constants';
+import {isDraftPageId, pageInlineCommentHasAnchor} from 'utils/page_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -28,7 +27,6 @@ import {useInlineComments} from './useInlineComments';
 export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
     const dispatch = useDispatch();
     const rhsState = useSelector((state: GlobalState) => getRhsState(state));
-    const page = useSelector((state: GlobalState) => (pageId ? getPost(state, pageId) : undefined));
     const [inlineComments, setInlineComments] = useState<Post[]>([]);
     const [lastClickedCommentId, setLastClickedCommentId] = useState<string | null>(null);
 
@@ -37,18 +35,21 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
     // Store fetch logic in a ref to avoid recreating callbacks
     const fetchInlineCommentsRef = useRef<() => Promise<void>>();
     fetchInlineCommentsRef.current = async () => {
-        if (!pageId || isDraftPageId(pageId) || !page || !wikiId) {
+        if (!pageId || isDraftPageId(pageId) || !wikiId) {
             return;
         }
 
         try {
             const comments = await Client4.getPageComments(wikiId, pageId);
 
-            // Filter to only inline comments
+            // Filter to only inline comments that are NOT resolved
+            // Confluence behavior: resolved comments have their highlights removed
             const inline = comments.filter((post: Post) => {
-                return post.type === PostTypes.PAGE_COMMENT &&
-                       post.props?.comment_type === 'inline' &&
-                       post.props?.inline_anchor;
+                if (!pageInlineCommentHasAnchor(post)) {
+                    return false;
+                }
+                // Exclude resolved comments from highlights
+                return !post.props?.comment_resolved;
             });
 
             setInlineComments(inline);
@@ -103,10 +104,8 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
             const post = JSON.parse(msg.data.post);
 
             // Check if it's an inline comment for this page
-            if (post.type === PostTypes.PAGE_COMMENT &&
-                post.props?.page_id === pageId &&
-                post.props?.comment_type === 'inline' &&
-                post.props?.inline_anchor) {
+            // Only add if not resolved (Confluence behavior: no highlight for resolved comments)
+            if (pageInlineCommentHasAnchor(post) && post.props?.page_id === pageId && !post.props?.comment_resolved) {
                 // Add to inline comments list to show the new highlight
                 setInlineComments((prev) => [...prev, post]);
             }
@@ -118,6 +117,54 @@ export const usePageInlineComments = (pageId?: string, wikiId?: string) => {
             WebSocketClient.removeMessageListener(handleNewPost);
         };
     }, [pageId]);
+
+    // Listen for WebSocket events that should remove inline comment highlights
+    // This handles: resolution, unresolve, and deletion
+    useEffect(() => {
+        if (!pageId || isDraftPageId(pageId)) {
+            return undefined;
+        }
+
+        const handleCommentUpdate = (msg: any) => {
+            // Handle comment resolution - removes highlight
+            if (msg.event === SocketEvents.PAGE_COMMENT_RESOLVED) {
+                const commentId = msg.data?.comment_id;
+                const eventPageId = msg.data?.page_id;
+
+                if (commentId && eventPageId === pageId) {
+                    setInlineComments((prev) => prev.filter((comment) => comment.id !== commentId));
+                }
+                return;
+            }
+
+            // Handle comment unresolve - adds highlight back
+            if (msg.event === SocketEvents.PAGE_COMMENT_UNRESOLVED) {
+                const eventPageId = msg.data?.page_id;
+
+                if (eventPageId === pageId) {
+                    fetchInlineComments();
+                }
+                return;
+            }
+
+            // Handle comment deletion - removes highlight
+            if (msg.event === SocketEvents.PAGE_COMMENT_DELETED) {
+                const commentId = msg.data?.comment_id;
+                const eventPageId = msg.data?.page_id;
+
+                if (commentId && eventPageId === pageId) {
+                    setInlineComments((prev) => prev.filter((comment) => comment.id !== commentId));
+                }
+                return;
+            }
+        };
+
+        WebSocketClient.addMessageListener(handleCommentUpdate);
+
+        return () => {
+            WebSocketClient.removeMessageListener(handleCommentUpdate);
+        };
+    }, [pageId, fetchInlineComments]);
 
     // Store the latest callback logic in a ref to avoid closure issues with TipTap
     const handleCommentClickRef = useRef((commentId: string) => {

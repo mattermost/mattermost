@@ -369,7 +369,9 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddImage, onA
                                     });
                                 }}
                                 className='formatting-btn'
+                                aria-label='Add comment'
                                 title='Add Comment'
+                                data-testid='inline-comment-submit'
                             >
                                 <i className='icon icon-message-text-outline'/>
                             </button>

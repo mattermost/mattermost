@@ -366,7 +366,7 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
                 {type: WikiTypes.PUBLISH_DRAFT_SUCCESS, data: {draftId, pageId: data.id, optimisticId: pendingPageId}},
                 {type: PostActionTypes.POST_REMOVED, data: {id: pendingPageId}},
                 {type: PostActionTypes.RECEIVED_POST, data},
-                {type: WikiTypes.RECEIVED_PAGE_IN_WIKI, data: {page: data, wikiId}},
+                {type: WikiTypes.RECEIVED_PAGE_IN_WIKI, data: {page: data, wikiId, pendingPageId}},
                 {type: WikiTypes.DELETED_DRAFT, data: {id: draftId, wikiId}},
             ];
 
@@ -398,12 +398,12 @@ export function publishPageDraft(wikiId: string, draftId: string, pageParentId: 
             // Clear outline cache for the published page so fresh headings are extracted
             dispatch(clearOutlineCache(data.id));
 
-            // Invalidate pages to trigger WikiView useEffect reload
-            // This updates lastInvalidated timestamp which triggers parent component to reload
-            dispatch({
-                type: WikiTypes.INVALIDATE_PAGES,
-                data: {wikiId},
-            });
+            // Invalidate both pages and drafts to trigger WikiView useEffect reload
+            const timestamp = Date.now();
+            dispatch(batchActions([
+                {type: WikiTypes.INVALIDATE_PAGES, data: {wikiId, timestamp}},
+                {type: WikiTypes.INVALIDATE_DRAFTS, data: {wikiId, timestamp}},
+            ]));
 
             return {data};
         } catch (error) {
@@ -434,7 +434,7 @@ export function createPage(wikiId: string, title: string, pageParentId?: string)
 
             await Client4.savePageDraft(wikiId, draftId, placeholderContent, title, undefined, {page_parent_id: pageParentId});
 
-            await dispatch(loadPageDraftsForWiki(wikiId));
+            const result = await dispatch(loadPageDraftsForWiki(wikiId));
 
             return {data: draftId};
         } catch (error) {
@@ -477,7 +477,11 @@ export function updatePage(pageId: string, newTitle: string, wikiId: string): Ac
                 data,
             });
 
-            await dispatch(loadPages(wikiId));
+            const timestamp = Date.now();
+            dispatch({
+                type: WikiTypes.INVALIDATE_PAGES,
+                data: {wikiId, timestamp},
+            });
 
             return {data};
         } catch (error) {
@@ -513,7 +517,11 @@ export function deletePage(pageId: string, wikiId: string): ActionFuncAsync {
         try {
             await Client4.deletePage(wikiId, pageId);
 
-            await dispatch(loadPages(wikiId));
+            const timestamp = Date.now();
+            dispatch({
+                type: WikiTypes.INVALIDATE_PAGES,
+                data: {wikiId, timestamp},
+            });
 
             return {data: true};
         } catch (error) {
@@ -569,7 +577,11 @@ export function movePage(pageId: string, newParentId: string, wikiId: string): A
                 data,
             });
 
-            await dispatch(loadPages(wikiId));
+            const timestamp = Date.now();
+            dispatch({
+                type: WikiTypes.INVALIDATE_PAGES,
+                data: {wikiId, timestamp},
+            });
 
             return {data};
         } catch (error) {
@@ -667,7 +679,11 @@ export function movePageInHierarchy(pageId: string, newParentId: string | null, 
                 data,
             });
 
-            await dispatch(loadPages(wikiId));
+            const timestamp = Date.now();
+            dispatch({
+                type: WikiTypes.INVALIDATE_PAGES,
+                data: {wikiId, timestamp},
+            });
 
             return {data};
         } catch (error) {
@@ -689,13 +705,19 @@ export function movePageToWiki(pageId: string, sourceWikiId: string, targetWikiI
         try {
             await Client4.movePageToWiki(sourceWikiId, pageId, targetWikiId, parentPageId);
 
+            const timestamp = Date.now();
             const isSameWiki = sourceWikiId === targetWikiId;
 
             if (isSameWiki) {
-                await dispatch(loadPages(sourceWikiId));
+                dispatch({
+                    type: WikiTypes.INVALIDATE_PAGES,
+                    data: {wikiId: sourceWikiId, timestamp},
+                });
             } else {
-                await dispatch(loadPages(sourceWikiId));
-                await dispatch(loadPages(targetWikiId));
+                dispatch(batchActions([
+                    {type: WikiTypes.INVALIDATE_PAGES, data: {wikiId: sourceWikiId, timestamp}},
+                    {type: WikiTypes.INVALIDATE_PAGES, data: {wikiId: targetWikiId, timestamp}},
+                ]));
             }
 
             return {data: true};
@@ -717,12 +739,19 @@ export function duplicatePage(pageId: string, sourceWikiId: string, targetWikiId
                 data: duplicatedPage,
             });
 
+            const timestamp = Date.now();
             const isSameWiki = sourceWikiId === targetWikiId;
 
             if (isSameWiki) {
-                await dispatch(loadPages(sourceWikiId));
+                dispatch({
+                    type: WikiTypes.INVALIDATE_PAGES,
+                    data: {wikiId: sourceWikiId, timestamp},
+                });
             } else {
-                await dispatch(loadPages(targetWikiId));
+                dispatch({
+                    type: WikiTypes.INVALIDATE_PAGES,
+                    data: {wikiId: targetWikiId, timestamp},
+                });
             }
 
             return {data: duplicatedPage};
@@ -778,6 +807,44 @@ export function createPageCommentReply(wikiId: string, pageId: string, parentCom
             dispatch(receivedNewPost(reply, crtEnabled));
 
             return {data: reply};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
+export function resolvePageComment(wikiId: string, pageId: string, commentId: string): ActionFuncAsync<Post> {
+    return async (dispatch, getState) => {
+        try {
+            const resolvedComment = await Client4.resolvePageComment(wikiId, pageId, commentId);
+
+            dispatch({
+                type: PostActionTypes.RECEIVED_POST,
+                data: resolvedComment,
+            });
+
+            return {data: resolvedComment};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
+export function unresolvePageComment(wikiId: string, pageId: string, commentId: string): ActionFuncAsync<Post> {
+    return async (dispatch, getState) => {
+        try {
+            const unresolvedComment = await Client4.unresolvePageComment(wikiId, pageId, commentId);
+
+            dispatch({
+                type: PostActionTypes.RECEIVED_POST,
+                data: unresolvedComment,
+            });
+
+            return {data: unresolvedComment};
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));

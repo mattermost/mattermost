@@ -708,15 +708,18 @@ const TipTapEditor = ({
                 editor={editor}
                 data-testid='tiptap-editor-content'
             />
-            {editor && editable && (
-                <FormattingBarBubble
-                    editor={editor}
-                    uploadsEnabled={uploadsEnabled && Boolean(channelId)}
-                    onSetLink={setLink}
-                    onAddImage={addImage}
-                    onAddComment={onCreateInlineComment ? handleCreateComment : undefined}
-                />
-            )}
+            {editor && editable && (() => {
+                const commentHandler = onCreateInlineComment ? handleCreateComment : undefined;
+                return (
+                    <FormattingBarBubble
+                        editor={editor}
+                        uploadsEnabled={uploadsEnabled && Boolean(channelId)}
+                        onSetLink={setLink}
+                        onAddImage={addImage}
+                        onAddComment={commentHandler}
+                    />
+                );
+            })()}
             {editor && !editable && onCreateInlineComment && (
                 <InlineCommentToolbar
                     editor={editor}

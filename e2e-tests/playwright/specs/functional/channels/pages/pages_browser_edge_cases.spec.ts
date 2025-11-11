@@ -39,10 +39,9 @@ test.skip('warns when navigating away with unsaved changes', {tag: '@pages'}, as
     await page.waitForTimeout(1000);
 
     const savingIndicator = page.locator('[data-testid="saving-indicator"], .saving-indicator').first();
-    if (await savingIndicator.isVisible().catch(() => false)) {
-        // Wait for "Saved" or "Saving..." to appear
-        await page.waitForTimeout(2000);
-    }
+    await expect(savingIndicator).toBeVisible();
+    // Wait for "Saved" or "Saving..." to appear
+    await page.waitForTimeout(2000);
 
     // # Try to navigate away via new page button
     const newPageButton2 = getNewPageButton(page);
@@ -52,25 +51,23 @@ test.skip('warns when navigating away with unsaved changes', {tag: '@pages'}, as
     await page.waitForTimeout(500);
 
     const warningDialog = page.getByRole('dialog', {name: /Unsaved Changes|Discard Changes|Discard Draft/i});
-    const hasWarning = await warningDialog.isVisible({timeout: 3000}).catch(() => false);
+    await expect(warningDialog).toBeVisible({timeout: 3000});
 
-    if (hasWarning) {
-        await expect(warningDialog).toContainText(/unsaved|discard|changes/i);
+    await expect(warningDialog).toContainText(/unsaved|discard|changes/i);
 
-        // * Verify options: "Stay" or "Discard"
-        const stayButton = warningDialog.locator('button:has-text("Stay"), [data-testid="cancel-button"]').first();
-        const discardButton = warningDialog.locator('[data-testid="wiki-page-discard-button"], button:has-text("Leave")').first();
+    // * Verify options: "Stay" or "Discard"
+    const stayButton = warningDialog.locator('button:has-text("Stay"), [data-testid="cancel-button"]').first();
+    const discardButton = warningDialog.locator('[data-testid="wiki-page-discard-button"], button:has-text("Leave")').first();
 
-        await expect(stayButton).toBeVisible();
-        await expect(discardButton).toBeVisible();
+    await expect(stayButton).toBeVisible();
+    await expect(discardButton).toBeVisible();
 
-        // # Click "Stay"
-        await stayButton.click();
+    // # Click "Stay"
+    await stayButton.click();
 
-        // * Verify still on editor with changes preserved
-        await expect(titleInput).toHaveValue('Draft With Changes');
-        await expect(editor).toContainText('Important unsaved content');
-    }
+    // * Verify still on editor with changes preserved
+    await expect(titleInput).toHaveValue('Draft With Changes');
+    await expect(editor).toContainText('Important unsaved content');
 });
 
 /**
@@ -111,15 +108,9 @@ test.skip('warns when using browser back button with unsaved changes', {tag: '@p
     await page.waitForTimeout(500);
 
     const warningDialog = page.getByRole('dialog', {name: /Unsaved Changes|Discard/i});
-    const hasCustomWarning = await warningDialog.isVisible().catch(() => false);
+    await expect(warningDialog).toBeVisible();
 
-    if (hasCustomWarning) {
-        await expect(warningDialog).toContainText(/unsaved changes/i);
-    } else {
-        // If using native beforeunload, page should still be on editor
-        const editorStillVisible = await page.locator('.ProseMirror').first().isVisible();
-        expect(editorStillVisible).toBe(true);
-    }
+    await expect(warningDialog).toContainText(/unsaved changes/i);
 });
 
 /**
@@ -220,20 +211,8 @@ test('handles browser refresh during edit without data loss', {tag: '@pages'}, a
     await editor.click();
     await editor.type('Content that should survive refresh');
 
-    // * Wait for auto-save
-    await page.waitForTimeout(2000);
-
-    const savingIndicator = page.locator('[data-testid="saving-indicator"], .saving-indicator').first();
-    if (await savingIndicator.isVisible().catch(() => false)) {
-        // Wait for "Saved" state
-        await pw.waitUntil(
-            async () => {
-                const text = await savingIndicator.textContent();
-                return text?.includes('Saved') || text?.includes('saved');
-            },
-            {timeout: 5000},
-        );
-    }
+    // * Wait for auto-save (2s debounce + save operation)
+    await page.waitForTimeout(3000);
 
     // # Refresh browser
     await page.reload();
@@ -246,27 +225,16 @@ test('handles browser refresh during edit without data loss', {tag: '@pages'}, a
     const titleAfterRefresh = page.locator('[data-testid="wiki-page-title-input"]').first();
 
     // Check if draft was recovered
-    const editorVisible = await editorAfterRefresh.isVisible().catch(() => false);
-    const titleVisible = await titleAfterRefresh.isVisible().catch(() => false);
+    await expect(editorAfterRefresh).toBeVisible();
+    await expect(titleAfterRefresh).toBeVisible();
 
-    if (editorVisible && titleVisible) {
-        // Draft should be recovered
-        const titleValue = await titleAfterRefresh.inputValue();
-        const editorText = await editorAfterRefresh.textContent();
+    // Draft should be recovered
+    const titleValue = await titleAfterRefresh.inputValue();
+    const editorText = await editorAfterRefresh.textContent();
 
-        // Either exact match or draft was saved to server
-        const titleMatches = titleValue === 'Draft Before Refresh';
-        const contentMatches = editorText?.includes('Content that should survive refresh');
+    // Either exact match or draft was saved to server
+    const titleMatches = titleValue === 'Draft Before Refresh';
+    const contentMatches = editorText?.includes('Content that should survive refresh');
 
-        expect(titleMatches || contentMatches).toBe(true);
-    } else {
-        // If not in editor, draft might be in hierarchy tree (drafts are integrated in tree)
-        const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
-        const draftNode = hierarchyPanel.locator('[data-testid="page-tree-node"][data-is-draft="true"]', {hasText: 'Draft Before Refresh'});
-        const hasDraft = await draftNode.isVisible().catch(() => false);
-
-        if (hasDraft) {
-            await expect(draftNode).toBeVisible();
-        }
-    }
+    expect(titleMatches || contentMatches).toBe(true);
 });

@@ -89,6 +89,36 @@
         }
     }
 
+    &__filter-bar {
+        display: flex;
+        padding: 12px 20px;
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        gap: 8px;
+    }
+
+    &__filter-btn {
+        padding: 6px 16px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+        border-radius: 4px;
+        background: transparent;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        transition: all 0.15s ease;
+
+        &:hover {
+            border-color: rgba(var(--center-channel-color-rgb), 0.32);
+            background: rgba(var(--center-channel-color-rgb), 0.04);
+        }
+
+        &.active {
+            border-color: var(--button-bg);
+            background: var(--button-bg);
+            color: var(--button-color);
+        }
+    }
+
     &__empty {
         display: flex;
         flex: 1;
@@ -159,6 +189,16 @@
         &:active {
             background: rgba(var(--center-channel-color-rgb), 0.08);
         }
+
+        &.resolved {
+            opacity: 0.7;
+            border-color: rgba(var(--center-channel-color-rgb), 0.04);
+            background: rgba(var(--center-channel-color-rgb), 0.02);
+
+            .WikiPageThreadViewer__thread-item-icon i {
+                opacity: 0.5;
+            }
+        }
     }
 
     &__thread-item-icon {
@@ -182,10 +222,30 @@
     }
 
     &__thread-item-text {
+        display: flex;
+        align-items: center;
+        gap: 8px;
         color: var(--center-channel-color);
         font-size: 14px;
         font-weight: 500;
         line-height: 1.4;
+    }
+
+    &__resolved-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 8px;
+        border-radius: 3px;
+        background: rgba(var(--online-indicator-rgb), 0.12);
+        color: var(--online-indicator);
+        font-size: 11px;
+        font-weight: 600;
+        gap: 4px;
+        white-space: nowrap;
+
+        i {
+            font-size: 12px;
+        }
     }
 
     &__thread-item-meta {

@@ -10,7 +10,7 @@ import type {ClientConfig} from '@mattermost/types/config';
 import type {UserThread} from '@mattermost/types/threads';
 
 import {fetchRHSAppsBindings} from 'mattermost-redux/actions/apps';
-import {getNewestPostThread, getPostThread} from 'mattermost-redux/actions/posts';
+import {getNewestPostThread, getPostThread, getPost as fetchPost} from 'mattermost-redux/actions/posts';
 import {getThread as fetchThread, updateThreadRead} from 'mattermost-redux/actions/threads';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
@@ -104,6 +104,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             fetchRHSAppsBindings,
             getNewestPostThread,
             getPostThread,
+            getPost: fetchPost,
             getThread: fetchThread,
             selectPostCard,
             updateThreadLastOpened,

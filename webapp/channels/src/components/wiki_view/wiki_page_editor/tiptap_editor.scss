@@ -156,6 +156,14 @@
             margin: 1em 0;
         }
 
+        // ImageResize extension wraps images in a div with inline styles
+        // Override the default dashed border to make selection more visible
+        div[style*="border: 1px dashed"] {
+            border: 2px solid var(--button-bg) !important;
+            box-shadow: 0 0 0 4px rgba(var(--button-bg-rgb), 0.12) !important;
+            border-radius: 4px !important;
+        }
+
         table {
             overflow: hidden;
             width: 100%;
@@ -337,12 +345,12 @@
 
 .inline-comment-icon {
     display: inline-flex;
-    align-items: center;
-    justify-content: center;
     width: 20px;
     height: 20px;
-    margin-right: 4px;
+    align-items: center;
+    justify-content: center;
     border-radius: 3px;
+    margin-right: 4px;
     background-color: rgba(var(--center-channel-color-rgb), 0.08);
     color: rgba(var(--center-channel-color-rgb), 0.56);
     cursor: pointer;

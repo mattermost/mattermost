@@ -232,13 +232,19 @@ const PageBreadcrumb = ({wikiId, pageId, channelId, isDraft, parentPageId, draft
                         key={item.id}
                         className='PageBreadcrumb__item'
                     >
-                        <Link
-                            to={item.path}
-                            className='PageBreadcrumb__link'
-                            aria-label={`Navigate to ${item.title}`}
-                        >
-                            {item.title}
-                        </Link>
+                        {item.type === 'wiki' ? (
+                            <span className='PageBreadcrumb__wiki-name'>
+                                {item.title}
+                            </span>
+                        ) : (
+                            <Link
+                                to={item.path}
+                                className='PageBreadcrumb__link'
+                                aria-label={`Navigate to ${item.title}`}
+                            >
+                                {item.title}
+                            </Link>
+                        )}
                     </li>
                 ))}
 

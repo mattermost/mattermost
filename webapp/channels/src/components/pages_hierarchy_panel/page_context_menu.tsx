@@ -30,8 +30,10 @@ type Props = {
     onDuplicate?: () => void;
     onMove?: () => void;
     onDelete?: () => void;
+    onVersionHistory?: () => void;
     isDraft?: boolean;
     pageLink?: string;
+    isOutlineVisible?: boolean;
 };
 
 const PageContextMenu = ({
@@ -44,8 +46,10 @@ const PageContextMenu = ({
     onDuplicate,
     onMove,
     onDelete,
+    onVersionHistory,
     isDraft = false,
     pageLink,
+    isOutlineVisible = false,
 }: Props) => {
     const menuRef = useRef<HTMLDivElement>(null);
     const dispatch = useDispatch();
@@ -109,7 +113,7 @@ const PageContextMenu = ({
         {separator: true, id: 'sep1', label: '', icon: '', action: () => {}},
         {
             id: 'show-outline',
-            label: 'Show outline',
+            label: isOutlineVisible ? 'Hide outline' : 'Show outline',
             icon: 'icon-format-list-bulleted',
             action: handleShowOutline,
         },
@@ -147,6 +151,15 @@ const PageContextMenu = ({
             },
         },
         {separator: true, id: 'sep2', label: '', icon: '', action: () => {}},
+        {
+            id: 'version-history',
+            label: 'Version History',
+            icon: 'icon-history',
+            action: () => {
+                onVersionHistory?.();
+                onClose();
+            },
+        },
         {
             id: 'delete',
             label: isDraft ? 'Delete draft' : 'Delete page',

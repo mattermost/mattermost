@@ -6,6 +6,7 @@ package mocks
 
 import (
 	model "github.com/mattermost/mattermost/server/public/model"
+	request "github.com/mattermost/mattermost/server/public/shared/request"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -55,36 +56,6 @@ func (_m *PageStore) GetChannelPages(channelID string) (*model.PostList, error) 
 
 	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(channelID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetCommentsForPage provides a mock function with given fields: pageID, options
-func (_m *PageStore) GetCommentsForPage(pageID string, options model.GetPostsOptions) (*model.PostList, error) {
-	ret := _m.Called(pageID, options)
-
-	if len(ret) == 0 {
-		panic("no return value specified for GetCommentsForPage")
-	}
-
-	var r0 *model.PostList
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string, model.GetPostsOptions) (*model.PostList, error)); ok {
-		return rf(pageID, options)
-	}
-	if rf, ok := ret.Get(0).(func(string, model.GetPostsOptions) *model.PostList); ok {
-		r0 = rf(pageID, options)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.PostList)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string, model.GetPostsOptions) error); ok {
-		r1 = rf(pageID, options)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -175,6 +146,36 @@ func (_m *PageStore) GetPageDescendants(postID string) (*model.PostList, error) 
 
 	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(postID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpdatePageWithContent provides a mock function with given fields: rctx, pageID, title, content, searchText
+func (_m *PageStore) UpdatePageWithContent(rctx request.CTX, pageID string, title string, content string, searchText string) (*model.Post, error) {
+	ret := _m.Called(rctx, pageID, title, content, searchText)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdatePageWithContent")
+	}
+
+	var r0 *model.Post
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, string, string) (*model.Post, error)); ok {
+		return rf(rctx, pageID, title, content, searchText)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, string, string) *model.Post); ok {
+		r0 = rf(rctx, pageID, title, content, searchText)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Post)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string, string, string) error); ok {
+		r1 = rf(rctx, pageID, title, content, searchText)
 	} else {
 		r1 = ret.Error(1)
 	}

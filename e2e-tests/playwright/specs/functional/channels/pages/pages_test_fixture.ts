@@ -23,6 +23,7 @@ type PagesWorkerFixtures = {
  */
 export const test = base.extend<{}, PagesWorkerFixtures>({
     // Worker-scoped fixture: created once per worker, shared across all pages test files
+    // Extended timeout of 120 seconds to allow for server operations (team/user creation)
     sharedPagesSetup: [async ({}, use) => {
         // This is a workaround to access pw.initSetup from within the fixture
         // We need to create the setup directly using the server utilities
@@ -58,7 +59,7 @@ export const test = base.extend<{}, PagesWorkerFixtures>({
         await userClient.savePreferences(user.id, preferences);
 
         await use({team, user, adminClient});
-    }, {scope: 'worker'}],
+    }, {scope: 'worker', timeout: 120000}],
 });
 
 export {expect};

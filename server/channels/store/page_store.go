@@ -3,7 +3,10 @@
 
 package store
 
-import "github.com/mattermost/mattermost/server/public/model"
+import (
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
+)
 
 // PageStore manages page hierarchy operations.
 // Pages are stored as Posts with Type="page", but hierarchy-specific
@@ -23,4 +26,7 @@ type PageStore interface {
 
 	// ChangePageParent updates the parent of a page
 	ChangePageParent(postID string, newParentID string) error
+
+	// UpdatePageWithContent updates a page's title and/or content and creates edit history
+	UpdatePageWithContent(rctx request.CTX, pageID, title, content, searchText string) (*model.Post, error)
 }

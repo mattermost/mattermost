@@ -73,9 +73,16 @@ export const getPagesError = (state: GlobalState, wikiId: string): string | null
     return state.entities.wikiPages?.error?.[wikiId] || null;
 };
 
-// Get last invalidation timestamp for a wiki
+// Get last pages invalidation timestamp for a wiki
 export const getPagesLastInvalidated = (state: GlobalState, wikiId: string): number => {
-    return state.entities.wikiPages?.lastInvalidated?.[wikiId] || 0;
+    const newValue = state.entities.wikiPages?.lastPagesInvalidated?.[wikiId];
+    const oldValue = state.entities.wikiPages?.lastInvalidated?.[wikiId];
+    return newValue || oldValue || 0;
+};
+
+// Get last drafts invalidation timestamp for a wiki
+export const getDraftsLastInvalidated = (state: GlobalState, wikiId: string): number => {
+    return state.entities.wikiPages?.lastDraftsInvalidated?.[wikiId] || 0;
 };
 
 // Get all pages from all wikis in a channel (for cross-wiki linking)

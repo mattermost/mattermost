@@ -15,6 +15,8 @@ describe('wiki_pages reducer', () => {
         error: {},
         pendingPublishes: {},
         lastInvalidated: {},
+        lastPagesInvalidated: {},
+        lastDraftsInvalidated: {},
         statusField: null,
     };
 

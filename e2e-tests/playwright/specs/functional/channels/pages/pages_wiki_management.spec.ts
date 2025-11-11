@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createTestChannel, createPageThroughUI, createChildPageThroughContextMenu, waitForPageInHierarchy, getWikiTab, openWikiTabMenu, clickWikiTabMenuItem, waitForWikiViewLoad, getAllWikiTabs} from './test_helpers';
+import {createWikiThroughUI, createTestChannel, createPageThroughUI, createChildPageThroughContextMenu, waitForPageInHierarchy, getWikiTab, openWikiTabMenu, clickWikiTabMenuItem, waitForWikiViewLoad, getAllWikiTabs, renameWikiThroughModal, deleteWikiThroughModalConfirmation, navigateToChannelFromWiki, verifyWikiNameInBreadcrumb, verifyNavigatedToWiki, extractWikiIdFromUrl, verifyWikiDeleted, waitForWikiTab, openWikiByTab, moveWikiToChannel} from './test_helpers';
 
 /**
  * @objective Verify wiki can be renamed through channel tab bar menu
@@ -16,7 +16,6 @@ test('renames wiki through channel tab bar menu', {tag: '@pages'}, async ({pw, s
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
-
     await channelsPage.goto(team.name, channel.name);
 
     const originalWikiName = `Original Wiki ${pw.random.id()}`;
@@ -26,58 +25,24 @@ test('renames wiki through channel tab bar menu', {tag: '@pages'}, async ({pw, s
     await createWikiThroughUI(page, originalWikiName);
 
     // * Verify wiki created and navigated to wiki view
-    await expect(page).toHaveURL(/\/wiki\/[^/]+\/[^/]+/);
+    await verifyNavigatedToWiki(page);
 
     // # Navigate back to channel
-    await channelsPage.goto(team.name, channel.name);
-    await page.waitForLoadState('networkidle');
+    await navigateToChannelFromWiki(page, channelsPage, team.name, channel.name);
 
-    // # Wait for wiki tab to be visible
-    const wikiTab = getWikiTab(page, originalWikiName);
-    await wikiTab.waitFor({state: 'visible', timeout: 5000});
-
-    // # Open wiki tab menu
-    await openWikiTabMenu(page, originalWikiName);
-
-    // # Click "Rename" in the dropdown menu
-    await clickWikiTabMenuItem(page, 'wiki-tab-rename');
-
-    // # Wait for rename modal to appear
-    const renameModal = page.getByRole('dialog');
-    await renameModal.waitFor({state: 'visible', timeout: 3000});
-
-    // # Find the title input field
-    const titleInput = renameModal.locator('#text-input-modal-input');
-
-    // # Clear and type new wiki name
-    await titleInput.clear();
-    await titleInput.fill(newWikiName);
-
-    // # Click Rename button
-    const renameButton = renameModal.getByRole('button', {name: /rename/i});
-    await renameButton.click();
-
-    // # Wait for modal to close
-    await renameModal.waitFor({state: 'hidden', timeout: 5000});
-
-    // # Give React time to re-render with updated wiki list
-    await page.waitForTimeout(1000);
+    // # Wait for wiki tab to be visible and rename it
+    await waitForWikiTab(page, originalWikiName);
+    await renameWikiThroughModal(page, originalWikiName, newWikiName);
 
     // * Verify wiki tab displays new name in channel tab bar
-    const updatedTab = getWikiTab(page, newWikiName);
-    await expect(updatedTab).toBeVisible({timeout: 5000});
+    await expect(getWikiTab(page, newWikiName)).toBeVisible({timeout: 5000});
 
     // # Click on renamed wiki tab to open it
-    await updatedTab.click();
+    await openWikiByTab(page, newWikiName);
 
-    // * Verify navigated to wiki with updated name
-    await expect(page).toHaveURL(/\/wiki\/[^/]+\/[^/]+/);
-
-    // * Verify wiki title is updated (check browser title or header if available)
-    const wikiHeader = page.locator('[data-testid="wiki-header"]').first();
-    if (await wikiHeader.isVisible({timeout: 2000}).catch(() => false)) {
-        await expect(wikiHeader).toContainText(newWikiName);
-    }
+    // * Verify navigated to wiki with updated name and wiki name appears in breadcrumb
+    await verifyNavigatedToWiki(page);
+    await verifyWikiNameInBreadcrumb(page, newWikiName);
 });
 
 /**
@@ -96,42 +61,23 @@ test('deletes wiki when wiki tab is deleted', {tag: '@pages'}, async ({pw, share
     const wikiName = `Delete Test Wiki ${pw.random.id()}`;
 
     // # Create wiki through channel tab bar UI
-    const wiki = await createWikiThroughUI(page, wikiName);
+    await createWikiThroughUI(page, wikiName);
 
     // * Verify wiki created and navigated to wiki view
-    await expect(page).toHaveURL(/\/wiki\/[^/]+\/[^/]+/);
+    await verifyNavigatedToWiki(page);
 
     // # Extract wiki ID from URL for later verification
-    const wikiUrl = page.url();
-    const wikiIdMatch = wikiUrl.match(/\/wiki\/[^/]+\/([^/?]+)/);
-    const wikiId = wikiIdMatch ? wikiIdMatch[1] : null;
+    const wikiId = extractWikiIdFromUrl(page);
     expect(wikiId).toBeTruthy();
 
     // # Navigate back to channel
-    await channelsPage.goto(team.name, channel.name);
-    await page.waitForLoadState('networkidle');
+    await navigateToChannelFromWiki(page, channelsPage, team.name, channel.name);
 
     // # Wait for wiki tab to be visible
-    const wikiTab = getWikiTab(page, wikiName);
-    await wikiTab.waitFor({state: 'visible', timeout: 5000});
+    const wikiTab = await waitForWikiTab(page, wikiName);
 
-    // # Open wiki tab menu and click delete
-    await openWikiTabMenu(page, wikiName);
-    await clickWikiTabMenuItem(page, 'wiki-tab-delete');
-
-    // # Wait for delete confirmation modal
-    const confirmModal = page.getByRole('dialog');
-    await confirmModal.waitFor({state: 'visible', timeout: 3000});
-
-    // * Verify confirmation modal contains wiki name
-    await expect(confirmModal).toContainText(wikiName);
-
-    // # Click Delete/Confirm button
-    const confirmButton = confirmModal.getByRole('button', {name: /delete|yes/i});
-    await confirmButton.click();
-
-    // # Wait for modal to close
-    await confirmModal.waitFor({state: 'hidden', timeout: 5000});
+    // # Delete wiki through tab menu with confirmation
+    await deleteWikiThroughModalConfirmation(page, wikiName);
 
     // * Verify wiki tab is removed from channel tab bar
     await expect(wikiTab).not.toBeVisible({timeout: 5000});
@@ -139,18 +85,10 @@ test('deletes wiki when wiki tab is deleted', {tag: '@pages'}, async ({pw, share
     // * Verify navigated back to channel (not wiki)
     await expect(page).toHaveURL(new RegExp(`/${team.name}/channels/${channel.name}`));
 
-    // # Try to navigate to the deleted wiki URL directly
+    // # Try to navigate to the deleted wiki URL directly and verify it's inaccessible
     if (wikiId) {
         await page.goto(`/${team.name}/wiki/${channel.id}/${wikiId}`);
-
-        // Wait for redirect to complete
-        await page.waitForLoadState('networkidle');
-
-        // * Verify wiki is no longer accessible (404 or error page)
-        const is404OrError = await page.locator('text=/not found|error|doesn\'t exist/i').isVisible({timeout: 5000}).catch(() => false);
-        const isRedirectedToChannel = page.url().includes(`/channels/${channel.name}`);
-
-        expect(is404OrError || isRedirectedToChannel).toBeTruthy();
+        await verifyWikiDeleted(page, channel.name);
     }
 });
 
@@ -204,11 +142,10 @@ test('updates both wiki tab and wiki title when renamed', {tag: '@pages'}, async
     // * Verify navigated to wiki
     await expect(page).toHaveURL(/\/wiki\/[^/]+\/[^/]+/);
 
-    // * Verify wiki header shows updated name (if header element exists)
-    const wikiHeader = page.locator('[data-testid="wiki-header"]').first();
-    if (await wikiHeader.isVisible({timeout: 2000}).catch(() => false)) {
-        await expect(wikiHeader).toContainText(updatedName);
-    }
+    // * Verify wiki name is displayed in breadcrumb
+    const breadcrumb = page.locator('[data-testid="breadcrumb"]').first();
+    await expect(breadcrumb).toBeVisible({timeout: 5000});
+    await expect(breadcrumb).toContainText(updatedName);
 });
 
 /**
@@ -328,10 +265,8 @@ test('maintains breadcrumb navigation after wiki rename', {tag: '@pages'}, async
     const expandButton = parentNode.locator('[data-testid="page-tree-node-expand-button"]');
 
     // Check if parent has children and is collapsed (expand button visible)
-    const isExpandButtonVisible = await expandButton.isVisible({timeout: 2000}).catch(() => false);
-    if (isExpandButtonVisible) {
-        await expandButton.click();
-    }
+    await expect(expandButton).toBeVisible({timeout: 2000});
+    await expandButton.click();
 
     // # Wait for child page to become visible after expansion
     await waitForPageInHierarchy(page, 'Child Page', 10000);
@@ -344,20 +279,18 @@ test('maintains breadcrumb navigation after wiki rename', {tag: '@pages'}, async
     await expect(childPageContent).toContainText('Child content');
 
     // * Verify breadcrumb navigation exists and shows page hierarchy
-    const breadcrumb = page.locator('[data-testid="page-breadcrumb"]').first();
-    if (await breadcrumb.isVisible({timeout: 2000}).catch(() => false)) {
-        await expect(breadcrumb).toContainText('Parent Page');
-        await expect(breadcrumb).toContainText('Child Page');
-    }
+    const breadcrumb = page.locator('[data-testid="breadcrumb"]').first();
+    await expect(breadcrumb).toBeVisible({timeout: 5000});
+    await expect(breadcrumb).toContainText('Parent Page');
+    await expect(breadcrumb).toContainText('Child Page');
 
     // # Click on parent in breadcrumb to navigate back
-    const parentBreadcrumbLink = page.locator('[data-testid="breadcrumb-link"]').filter({hasText: 'Parent Page'}).first();
-    if (await parentBreadcrumbLink.isVisible({timeout: 2000}).catch(() => false)) {
-        await parentBreadcrumbLink.click();
+    const parentBreadcrumbLink = breadcrumb.locator('.PageBreadcrumb__link').filter({hasText: 'Parent Page'}).first();
+    await expect(parentBreadcrumbLink).toBeVisible({timeout: 5000});
+    await parentBreadcrumbLink.click();
 
-        // * Verify navigated back to parent page
-        await expect(childPageContent).toContainText('Parent content');
-    }
+    // * Verify navigated back to parent page
+    await expect(childPageContent).toContainText('Parent content');
 
     // # Navigate to child again through hierarchy panel
     await childPageNode.click();
@@ -505,10 +438,15 @@ test('makes all child pages inaccessible after wiki deletion', {tag: '@pages'}, 
     await page.waitForTimeout(1000);
 
     // * Verify child page is not accessible (404, error, or redirect)
-    const isError = await page.locator('text=/not found|error|doesn\'t exist/i').isVisible({timeout: 1000}).catch(() => false);
+    const errorLocator = page.locator('text=/not found|error|doesn\'t exist/i');
     const isRedirected = page.url().includes('/channels/' + channel.name) || !page.url().includes('/wiki/');
 
-    expect(isError || isRedirected).toBeTruthy();
+    // Either we see an error message or we're redirected away from wiki
+    if (!isRedirected) {
+        await expect(errorLocator).toBeVisible({timeout: 1000});
+    } else {
+        expect(isRedirected).toBeTruthy();
+    }
 });
 
 /**

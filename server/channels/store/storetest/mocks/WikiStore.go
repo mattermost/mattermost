@@ -170,6 +170,36 @@ func (_m *WikiStore) GetForChannel(channelId string, includeDeleted bool) ([]*mo
 	return r0, r1
 }
 
+// GetPageByTitleInWiki provides a mock function with given fields: wikiId, title
+func (_m *WikiStore) GetPageByTitleInWiki(wikiId string, title string) (*model.Post, error) {
+	ret := _m.Called(wikiId, title)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPageByTitleInWiki")
+	}
+
+	var r0 *model.Post
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string) (*model.Post, error)); ok {
+		return rf(wikiId, title)
+	}
+	if rf, ok := ret.Get(0).(func(string, string) *model.Post); ok {
+		r0 = rf(wikiId, title)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Post)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(wikiId, title)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetPages provides a mock function with given fields: wikiId, offset, limit
 func (_m *WikiStore) GetPages(wikiId string, offset int, limit int) ([]*model.Post, error) {
 	ret := _m.Called(wikiId, offset, limit)

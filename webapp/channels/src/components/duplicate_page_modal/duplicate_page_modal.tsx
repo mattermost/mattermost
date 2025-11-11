@@ -69,6 +69,7 @@ const DuplicatePageModal = (props: Props) => {
             childrenWarningText={childrenWarning}
             renderAdditionalInputs={renderTitleInput}
             onConfirm={handleConfirm}
+            confirmButtonTestId='confirm-button'
         />
     );
 };

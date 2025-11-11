@@ -143,7 +143,7 @@ func TestListChannelWikis(t *testing.T) {
 	})
 
 	t.Run("list excludes deleted wikis by default", func(t *testing.T) {
-		appErr := th.App.DeleteWiki(th.Context, wiki1.Id)
+		appErr := th.App.DeleteWiki(th.Context, wiki1.Id, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
 		wikis, resp, err := th.Client.GetWikisForChannel(context.Background(), th.BasicChannel.Id)
@@ -2568,5 +2568,152 @@ func TestGetPageStatusField(t *testing.T) {
 		options, ok := field.Attrs["options"]
 		require.True(t, ok, "Should have options")
 		require.NotEmpty(t, options, "Options should not be empty")
+	})
+}
+
+func TestResolvePageComment(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.AddPermissionToRole(model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
+	th.Context.Session().UserId = th.BasicUser.Id
+
+	wiki := &model.Wiki{
+		ChannelId: th.BasicChannel.Id,
+		Title:     "Test Wiki",
+	}
+	wiki, appErr := th.App.CreateWiki(th.Context, wiki, th.BasicUser.Id)
+	require.Nil(t, appErr)
+
+	pageContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Test Page Content"}]}]}`
+	page, appErr := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", pageContent, th.BasicUser.Id, "")
+	require.Nil(t, appErr)
+
+	comment := &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		UserId:    th.BasicUser.Id,
+		Message:   "Test Comment",
+		RootId:    page.Id,
+		Type:      model.PostTypePageComment,
+		Props: model.StringInterface{
+			"wiki_id":      wiki.Id,
+			"page_id":      page.Id,
+			"comment_type": "inline",
+			"inline_anchor": map[string]any{
+				"text": "highlighted text",
+			},
+		},
+	}
+	comment, appErr = th.App.CreatePost(th.Context, comment, th.BasicChannel, model.CreatePostFlags{})
+	require.Nil(t, appErr)
+
+	t.Run("comment author can resolve their own comment", func(t *testing.T) {
+		url := "/wikis/" + wiki.Id + "/pages/" + page.Id + "/comments/" + comment.Id + "/resolve"
+		httpResp, err := th.Client.DoAPIPost(context.Background(), url, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, model.BuildResponse(httpResp))
+
+		var resolvedComment model.Post
+		err = json.NewDecoder(httpResp.Body).Decode(&resolvedComment)
+		require.NoError(t, err)
+		require.Equal(t, comment.Id, resolvedComment.Id)
+		require.True(t, resolvedComment.Props["comment_resolved"].(bool))
+		require.NotEmpty(t, resolvedComment.Props["resolved_at"])
+		require.Equal(t, th.BasicUser.Id, resolvedComment.Props["resolved_by"])
+		require.Equal(t, "manual", resolvedComment.Props["resolution_reason"])
+	})
+
+	t.Run("can unresolve a resolved comment", func(t *testing.T) {
+		url := "/wikis/" + wiki.Id + "/pages/" + page.Id + "/comments/" + comment.Id + "/unresolve"
+		httpResp, err := th.Client.DoAPIPost(context.Background(), url, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, model.BuildResponse(httpResp))
+
+		var unresolvedComment model.Post
+		err = json.NewDecoder(httpResp.Body).Decode(&unresolvedComment)
+		require.NoError(t, err)
+		require.Equal(t, comment.Id, unresolvedComment.Id)
+		require.Nil(t, unresolvedComment.Props["comment_resolved"])
+		require.Nil(t, unresolvedComment.Props["resolved_at"])
+		require.Nil(t, unresolvedComment.Props["resolved_by"])
+	})
+
+	t.Run("page author can resolve comments on their page", func(t *testing.T) {
+		comment2 := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "Comment by User2",
+			RootId:    page.Id,
+			Type:      model.PostTypePageComment,
+			UserId:    th.BasicUser2.Id,
+			Props: model.StringInterface{
+				"wiki_id":      wiki.Id,
+				"page_id":      page.Id,
+				"comment_type": "inline",
+				"inline_anchor": map[string]any{
+					"text": "another highlight",
+				},
+			},
+		}
+		th.Context.Session().UserId = th.BasicUser2.Id
+		comment2, appErr = th.App.CreatePost(th.Context, comment2, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		th.Context.Session().UserId = th.BasicUser.Id
+		url := "/wikis/" + wiki.Id + "/pages/" + page.Id + "/comments/" + comment2.Id + "/resolve"
+		httpResp, err := th.Client.DoAPIPost(context.Background(), url, "")
+		require.NoError(t, err)
+		CheckOKStatus(t, model.BuildResponse(httpResp))
+
+		var resolvedComment model.Post
+		err = json.NewDecoder(httpResp.Body).Decode(&resolvedComment)
+		require.NoError(t, err)
+		require.True(t, resolvedComment.Props["comment_resolved"].(bool))
+	})
+
+	t.Run("fail with invalid comment ID", func(t *testing.T) {
+		url := "/wikis/" + wiki.Id + "/pages/" + page.Id + "/comments/invalidid123/resolve"
+		_, err := th.Client.DoAPIPost(context.Background(), url, "")
+		require.Error(t, err)
+	})
+
+	t.Run("fail with deleted comment", func(t *testing.T) {
+		deletedComment := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "To be deleted",
+			RootId:    page.Id,
+			Type:      model.PostTypePageComment,
+			Props: model.StringInterface{
+				"wiki_id": wiki.Id,
+				"page_id": page.Id,
+			},
+		}
+		deletedComment, appErr = th.App.CreatePost(th.Context, deletedComment, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.DeletePost(th.Context, deletedComment.Id, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		url := "/wikis/" + wiki.Id + "/pages/" + page.Id + "/comments/" + deletedComment.Id + "/resolve"
+		httpResp, err := th.Client.DoAPIPost(context.Background(), url, "")
+		require.Error(t, err)
+		CheckNotFoundStatus(t, model.BuildResponse(httpResp))
+	})
+
+	t.Run("fail when resolving non-page-comment post", func(t *testing.T) {
+		regularPost := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			UserId:    th.BasicUser.Id,
+			Message:   "Regular post",
+		}
+		regularPost, appErr = th.App.CreatePost(th.Context, regularPost, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		url := "/wikis/" + wiki.Id + "/pages/" + page.Id + "/comments/" + regularPost.Id + "/resolve"
+		httpResp, err := th.Client.DoAPIPost(context.Background(), url, "")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, model.BuildResponse(httpResp))
 	})
 }

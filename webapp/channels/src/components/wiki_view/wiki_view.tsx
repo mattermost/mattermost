@@ -15,13 +15,14 @@ import {openPagesPanel} from 'actions/views/pages_hierarchy';
 import {closeRightHandSide, openWikiRhs} from 'actions/views/rhs';
 import {setWikiRhsMode} from 'actions/views/wiki_rhs';
 import {getPageDraft, getPageDraftsForWiki} from 'selectors/page_drafts';
-import {getPage, getPages, getPagesLastInvalidated} from 'selectors/pages';
+import {getPage, getPages, getPagesLastInvalidated, getDraftsLastInvalidated} from 'selectors/pages';
 import {getIsPanesPanelCollapsed} from 'selectors/pages_hierarchy';
 import {getRhsState} from 'selectors/rhs';
 
 import DuplicatePageModal from 'components/duplicate_page_modal';
 import LoadingScreen from 'components/loading_screen';
 import MovePageModal from 'components/move_page_modal';
+import PageVersionHistoryModal from 'components/page_version_history';
 import PagesHierarchyPanel from 'components/pages_hierarchy_panel';
 import DeletePageModal from 'components/pages_hierarchy_panel/delete_page_modal';
 import {usePageMenuHandlers} from 'components/pages_hierarchy_panel/hooks/use_page_menu_handlers';
@@ -56,9 +57,24 @@ const WikiView = () => {
     // Fullscreen state
     const [isFullscreen, setIsFullscreen] = React.useState(false);
 
+    // Version history modal state
+    const [showVersionHistory, setShowVersionHistory] = React.useState(false);
+    const [versionHistoryPageId, setVersionHistoryPageId] = React.useState<string | null>(null);
+
     // Toggle fullscreen
     const toggleFullscreen = () => {
         setIsFullscreen(!isFullscreen);
+    };
+
+    // Handle version history
+    const handleVersionHistory = (targetPageId: string) => {
+        setVersionHistoryPageId(targetPageId);
+        setShowVersionHistory(true);
+    };
+
+    const handleCloseVersionHistory = () => {
+        setShowVersionHistory(false);
+        setVersionHistoryPageId(null);
     };
 
     // Esc key handler
@@ -89,16 +105,22 @@ const WikiView = () => {
     // Track if we're navigating to select a draft
     const isSelectingDraftRef = React.useRef(false);
 
-    const lastInvalidated = useSelector((state: GlobalState) => getPagesLastInvalidated(state, wikiId));
+    const lastPagesInvalidated = useSelector((state: GlobalState) => getPagesLastInvalidated(state, wikiId));
+    const lastDraftsInvalidated = useSelector((state: GlobalState) => getDraftsLastInvalidated(state, wikiId));
 
-    // Load pages and drafts at parent level to avoid duplicate API calls
-    // Both WikiView hooks and PagesHierarchyPanel need this data
+    // Load pages when they are invalidated
     React.useEffect(() => {
         if (wikiId) {
             dispatch(loadPages(wikiId));
+        }
+    }, [wikiId, lastPagesInvalidated, dispatch]);
+
+    // Load drafts when they are invalidated
+    React.useEffect(() => {
+        if (wikiId) {
             dispatch(loadPageDraftsForWiki(wikiId));
         }
-    }, [wikiId, lastInvalidated, dispatch]);
+    }, [wikiId, lastDraftsInvalidated, dispatch]);
 
     const {isLoading} = useWikiPageData(
         pageId,
@@ -208,7 +230,7 @@ const WikiView = () => {
             const targetPageId = pageId || getPublishedPageIdFromDraft(currentDraft);
 
             if (targetPageId) {
-                dispatch(openWikiRhs(targetPageId, wikiId || ''));
+                dispatch(openWikiRhs(targetPageId, wikiId || '', undefined));
                 dispatch(setWikiRhsMode('comments'));
             }
         }
@@ -222,8 +244,18 @@ const WikiView = () => {
         history.push(url);
 
         // If RHS is open, update it to show the new page's comments
-        if (isWikiRhsOpen && !isSelectedIdDraft) {
-            dispatch(openWikiRhs(selectedPageId, wikiId || ''));
+        if (isWikiRhsOpen) {
+            if (isSelectedIdDraft) {
+                // For drafts, try to get the published page ID to show comments
+                const draft = allDrafts.find((d) => d.rootId === selectedPageId || selectedPageId.startsWith('draft-'));
+                const publishedPageId = getPublishedPageIdFromDraft(draft);
+                if (publishedPageId) {
+                    dispatch(openWikiRhs(publishedPageId, wikiId || '', undefined));
+                }
+            } else {
+                // For published pages, use the page ID directly
+                dispatch(openWikiRhs(selectedPageId, wikiId || '', undefined));
+            }
         }
     };
 
@@ -335,6 +367,7 @@ const WikiView = () => {
                                     onDuplicate={() => currentPageIdForHeader && menuHandlers.handleDuplicate(currentPageIdForHeader)}
                                     onMove={() => currentPageIdForHeader && menuHandlers.handleMove(currentPageIdForHeader)}
                                     onDelete={() => currentPageIdForHeader && menuHandlers.handleDelete(currentPageIdForHeader)}
+                                    onVersionHistory={() => currentPageIdForHeader && handleVersionHistory(currentPageIdForHeader)}
                                     pageLink={pageLink}
                                 />
                             );
@@ -429,22 +462,6 @@ const WikiView = () => {
                         />
                     )}
 
-                    {menuHandlers.showRenameModal && menuHandlers.pageToRename && (
-                        <TextInputModal
-                            show={menuHandlers.showRenameModal}
-                            title='Rename Page'
-                            placeholder='Enter new page title...'
-                            confirmButtonText='Rename'
-                            maxLength={255}
-                            initialValue={menuHandlers.pageToRename.currentTitle}
-                            ariaLabel='Rename Page'
-                            inputTestId='rename-page-modal-title-input'
-                            onConfirm={menuHandlers.handleRenameConfirm}
-                            onCancel={menuHandlers.handleRenameCancel}
-                            onHide={() => menuHandlers.setShowRenameModal(false)}
-                        />
-                    )}
-
                     {menuHandlers.showCreatePageModal && (
                         <TextInputModal
                             show={menuHandlers.showCreatePageModal}
@@ -460,6 +477,21 @@ const WikiView = () => {
                             onHide={() => menuHandlers.setShowCreatePageModal(false)}
                         />
                     )}
+
+                    {showVersionHistory && versionHistoryPageId && (() => {
+                        const versionHistoryPage = allPages.find((p) => p.id === versionHistoryPageId);
+                        if (!versionHistoryPage) {
+                            return null;
+                        }
+                        const pageTitle = (versionHistoryPage.props?.title as string | undefined) || versionHistoryPage.message || 'Untitled';
+                        return (
+                            <PageVersionHistoryModal
+                                page={versionHistoryPage}
+                                pageTitle={pageTitle}
+                                onClose={handleCloseVersionHistory}
+                            />
+                        );
+                    })()}
                 </>
             )}
         </div>

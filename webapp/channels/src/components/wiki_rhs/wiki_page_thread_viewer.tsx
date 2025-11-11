@@ -2,19 +2,17 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState, useCallback} from 'react';
-import {useSelector, useDispatch} from 'react-redux';
+import {useDispatch} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
 import type {UserThread} from '@mattermost/types/threads';
 
-import {Client4} from 'mattermost-redux/client';
-import {PostTypes} from 'mattermost-redux/constants/posts';
 import {receivedPosts} from 'mattermost-redux/actions/posts';
+import {Client4} from 'mattermost-redux/client';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import WebSocketClient from 'client/web_websocket_client';
-import {SocketEvents} from 'utils/constants';
+import {isPageCommentResolved} from 'selectors/wiki_posts';
 
 import FileUploadOverlay from 'components/file_upload_overlay';
 import {DropOverlayIdThreads} from 'components/file_upload_overlay/file_upload_overlay';
@@ -22,7 +20,10 @@ import LoadingScreen from 'components/loading_screen';
 import CreateComment from 'components/threading/virtualized_thread_viewer/create_comment';
 import Reply from 'components/threading/virtualized_thread_viewer/reply/index';
 
-import type {GlobalState} from 'types/store';
+import WebSocketClient from 'client/web_websocket_client';
+import {SocketEvents} from 'utils/constants';
+import {isPageComment, pageInlineCommentHasAnchor} from 'utils/page_utils';
+
 import type {FakePost} from 'types/store/rhs';
 
 import './wiki_page_thread_viewer.scss';
@@ -36,6 +37,7 @@ export type Props = {
     currentTeamId: string;
     actions: {
         getPostThread: (rootId: string, fetchThreads: boolean, lastUpdateAt: number) => Promise<ActionResult>;
+        getPost: (postId: string, includeDeleted?: boolean, retainContent?: boolean) => Promise<ActionResult>;
         updateThreadLastOpened: (threadId: string, lastViewedAt: number) => unknown;
         updateThreadRead: (userId: string, teamId: string, threadId: string, timestamp: number) => unknown;
         updateThreadLastUpdateAt: (threadId: string, lastUpdateAt: number) => unknown;
@@ -55,27 +57,34 @@ const WikiPageThreadViewer = (props: Props) => {
     const dispatch = useDispatch();
     const [isLoading, setIsLoading] = useState(false);
     const [pageComments, setPageComments] = useState<Post[]>([]);
-
-    const allPosts = useSelector((state: GlobalState) => state.entities.posts.posts);
-    const postsInThread = useSelector((state: GlobalState) =>
-        state.entities.posts.postsInThread[props.rootPostId] || [],
-    );
+    const [resolutionFilter, setResolutionFilter] = useState<'all' | 'open' | 'resolved'>('all');
 
     // Extract inline comments from fetched page comments
     const inlineComments = React.useMemo(() => {
         if (props.focusedInlineCommentId) {
             return [];
         }
-        return pageComments.filter((post: Post) => {
-            return post.type === PostTypes.PAGE_COMMENT &&
-                   post.props?.comment_type === 'inline' &&
-                   post.props?.inline_anchor;
+
+        let filtered = pageComments.filter((post: Post) => {
+            return pageInlineCommentHasAnchor(post);
         }) as Post[];
-    }, [props.focusedInlineCommentId, pageComments]);
+
+        // Apply resolution filter
+        if (resolutionFilter === 'open') {
+            filtered = filtered.filter((post) => !isPageCommentResolved(post));
+        } else if (resolutionFilter === 'resolved') {
+            filtered = filtered.filter((post) => isPageCommentResolved(post));
+        }
+
+        return filtered;
+    }, [props.focusedInlineCommentId, pageComments, resolutionFilter]);
 
     useEffect(() => {
+        // Clear previous page's comments when navigating to a new page
+        setPageComments([]);
+
         const fetchData = async () => {
-            if (!props.selected || !props.wikiId) {
+            if (!props.rootPostId || !props.wikiId) {
                 setIsLoading(false);
                 return;
             }
@@ -101,6 +110,17 @@ const WikiPageThreadViewer = (props: Props) => {
                         }
 
                         props.actions.updateThreadLastUpdateAt(props.focusedInlineCommentId, highestUpdateAt);
+
+                        // Fetch the page post if this is a page comment with page_id
+                        const rootPost = posts[order[0]];
+                        if (rootPost?.props?.page_id) {
+                            try {
+                                await props.actions.getPost(rootPost.props.page_id);
+                            } catch (error) {
+                                // Page post fetch failed, but thread is still usable
+                                console.error('Failed to fetch page post:', error);
+                            }
+                        }
                     }
                 }
             } else {
@@ -119,6 +139,9 @@ const WikiPageThreadViewer = (props: Props) => {
                     dispatch(receivedPosts({
                         posts: postsById,
                         order,
+                        next_post_id: '',
+                        prev_post_id: '',
+                        first_inaccessible_post_time: 0,
                     }));
 
                     setPageComments(comments);
@@ -148,11 +171,14 @@ const WikiPageThreadViewer = (props: Props) => {
             const post = JSON.parse(msg.data.post);
 
             // Check if it's a page comment for this page
-            if (post.type === PostTypes.PAGE_COMMENT && post.props?.page_id === props.rootPostId) {
+            if (isPageComment(post) && post.props?.page_id === props.rootPostId) {
                 // Update Redux store with the new post
                 dispatch(receivedPosts({
                     posts: {[post.id]: post},
                     order: [post.id],
+                    next_post_id: '',
+                    prev_post_id: '',
+                    first_inaccessible_post_time: 0,
                 }));
 
                 // Add to page comments list
@@ -166,6 +192,56 @@ const WikiPageThreadViewer = (props: Props) => {
             WebSocketClient.removeMessageListener(handleNewPost);
         };
     }, [props.rootPostId, props.wikiId, props.focusedInlineCommentId, dispatch]);
+
+    // Listen for WebSocket events for comment resolution changes
+    useEffect(() => {
+        if (!props.rootPostId || !props.wikiId) {
+            return undefined;
+        }
+
+        const handleResolutionUpdate = (msg: any) => {
+            // Handle both resolved and unresolved events
+            if (msg.event !== SocketEvents.PAGE_COMMENT_RESOLVED && msg.event !== SocketEvents.PAGE_COMMENT_UNRESOLVED) {
+                return;
+            }
+
+            const commentId = msg.data.comment_id;
+            const pageId = msg.data.page_id;
+
+            // Only update if it's for the current page
+            if (pageId !== props.rootPostId) {
+                return;
+            }
+
+            // Update the comment in the local state
+            setPageComments((prev) => {
+                return prev.map((comment) => {
+                    if (comment.id === commentId) {
+                        const updatedProps = {...comment.props};
+                        if (msg.event === SocketEvents.PAGE_COMMENT_RESOLVED) {
+                            updatedProps.comment_resolved = true;
+                            updatedProps.resolved_at = msg.data.resolved_at;
+                            updatedProps.resolved_by = msg.data.resolved_by;
+                            updatedProps.resolution_reason = 'manual';
+                        } else {
+                            delete updatedProps.comment_resolved;
+                            delete updatedProps.resolved_at;
+                            delete updatedProps.resolved_by;
+                            delete updatedProps.resolution_reason;
+                        }
+                        return {...comment, props: updatedProps};
+                    }
+                    return comment;
+                });
+            });
+        };
+
+        WebSocketClient.addMessageListener(handleResolutionUpdate);
+
+        return () => {
+            WebSocketClient.removeMessageListener(handleResolutionUpdate);
+        };
+    }, [props.rootPostId, props.wikiId]);
 
     useEffect(() => {
         if (props.isCollapsedThreadsEnabled && props.userThread) {
@@ -195,7 +271,8 @@ const WikiPageThreadViewer = (props: Props) => {
         }
     }, [props.wikiId, props.rootPostId, props.actions]);
 
-    if (props.postIds == null || props.selected == null || !props.channel) {
+    // For focused thread view, we need the posts in Redux
+    if (props.focusedInlineCommentId && (props.postIds == null || props.selected == null || !props.channel)) {
         return <span/>;
     }
 
@@ -213,85 +290,111 @@ const WikiPageThreadViewer = (props: Props) => {
 
     // List mode: Show list of inline comment threads
     if (!props.focusedInlineCommentId) {
-        if (inlineComments.length === 0) {
-            return (
-                <div
-                    className='WikiPageThreadViewer__empty'
-                    data-testid='wiki-page-thread-viewer-empty'
-                >
-                    <i className='icon-comment-outline'/>
-                    <p>{'No comment threads on this page yet'}</p>
-                </div>
-            );
-        }
-
         return (
             <div className='WikiPageThreadViewer'>
-                <div className='WikiPageThreadViewer__thread-list'>
-                    {inlineComments.map((thread) => {
-                        const anchor = thread.props?.inline_anchor as {text?: string} | undefined;
-                        const anchorText = anchor?.text || '';
-                        const truncatedText = anchorText.length > 60 ? `${anchorText.substring(0, 60)}...` : anchorText;
-
-                        return (
-                            <button
-                                key={thread.id}
-                                className='WikiPageThreadViewer__thread-item'
-                                onClick={() => handleThreadClick(thread.id)}
-                                data-testid={`wiki-thread-${thread.id}`}
-                            >
-                                <div className='WikiPageThreadViewer__thread-item-icon'>
-                                    <i className='icon-message-text-outline'/>
-                                </div>
-                                <div className='WikiPageThreadViewer__thread-item-content'>
-                                    <div className='WikiPageThreadViewer__thread-item-text'>
-                                        {truncatedText || 'Comment thread'}
-                                    </div>
-                                    <div className='WikiPageThreadViewer__thread-item-meta'>
-                                        {thread.message && (
-                                            <span className='WikiPageThreadViewer__thread-item-preview'>
-                                                {thread.message.length > 80 ? `${thread.message.substring(0, 80)}...` : thread.message}
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-                            </button>
-                        );
-                    })}
+                <div className='WikiPageThreadViewer__filter-bar'>
+                    <button
+                        className={`WikiPageThreadViewer__filter-btn ${resolutionFilter === 'all' ? 'active' : ''}`}
+                        onClick={() => setResolutionFilter('all')}
+                        data-testid='filter-all'
+                    >
+                        {'All'}
+                    </button>
+                    <button
+                        className={`WikiPageThreadViewer__filter-btn ${resolutionFilter === 'open' ? 'active' : ''}`}
+                        onClick={() => setResolutionFilter('open')}
+                        data-testid='filter-open'
+                    >
+                        {'Open'}
+                    </button>
+                    <button
+                        className={`WikiPageThreadViewer__filter-btn ${resolutionFilter === 'resolved' ? 'active' : ''}`}
+                        onClick={() => setResolutionFilter('resolved')}
+                        data-testid='filter-resolved'
+                    >
+                        {'Resolved'}
+                    </button>
                 </div>
+                {inlineComments.length === 0 ? (
+                    <div
+                        className='WikiPageThreadViewer__empty'
+                        data-testid='wiki-page-thread-viewer-empty'
+                    >
+                        <i className='icon-comment-outline'/>
+                        <p>{resolutionFilter === 'all' ? 'No comment threads on this page yet' : `No ${resolutionFilter} comments`}</p>
+                    </div>
+                ) : (
+                    <div className='WikiPageThreadViewer__thread-list'>
+                        {inlineComments.map((thread) => {
+                            const anchor = thread.props?.inline_anchor as {text?: string} | undefined;
+                            const anchorText = anchor?.text || '';
+                            const truncatedText = anchorText.length > 60 ? `${anchorText.substring(0, 60)}...` : anchorText;
+                            const resolved = isPageCommentResolved(thread);
+
+                            return (
+                                <button
+                                    key={thread.id}
+                                    className={`WikiPageThreadViewer__thread-item ${resolved ? 'resolved' : ''}`}
+                                    onClick={() => handleThreadClick(thread.id)}
+                                    data-testid={`wiki-thread-${thread.id}`}
+                                >
+                                    <div className='WikiPageThreadViewer__thread-item-icon'>
+                                        <i className='icon-message-text-outline'/>
+                                    </div>
+                                    <div className='WikiPageThreadViewer__thread-item-content'>
+                                        <div className='WikiPageThreadViewer__thread-item-text'>
+                                            {truncatedText || 'Comment thread'}
+                                            {resolved && (
+                                                <span className='WikiPageThreadViewer__resolved-badge'>
+                                                    <i className='icon-check-circle'/>
+                                                    {'Resolved'}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className='WikiPageThreadViewer__thread-item-meta'>
+                                            {thread.message && (
+                                                <span className='WikiPageThreadViewer__thread-item-preview'>
+                                                    {thread.message.length > 80 ? `${thread.message.substring(0, 80)}...` : thread.message}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </button>
+                            );
+                        })}
+                    </div>
+                )}
             </div>
         );
     }
 
     // Thread view mode: Show focused thread with replies
-    const focusedComment = props.focusedInlineCommentId ? allPosts[props.focusedInlineCommentId] : null;
-    const anchorText = (focusedComment?.props?.inline_anchor as {text?: string} | undefined)?.text || 'Comment thread';
-
     return (
         <div className='WikiPageThreadViewer'>
             <FileUploadOverlay
                 overlayType='right'
                 id={DropOverlayIdThreads}
             />
-            <div className='WikiPageThreadViewer__thread-header'>
-                <h3 className='WikiPageThreadViewer__thread-title'>{anchorText}</h3>
-            </div>
             <div className='WikiPageThreadViewer__posts'>
-                {props.postIds.map((postId, index) => (
-                    <Reply
-                        key={postId}
-                        id={postId}
-                        currentUserId={props.currentUserId}
-                        a11yIndex={index}
-                        isLastPost={index === props.postIds.length - 1}
-                        onCardClick={() => {}}
-                        previousPostId={index > 0 ? props.postIds[index - 1] : ''}
-                    />
-                ))}
+                {props.postIds.map((postId, index) => {
+                    const isRootPost = index === 0 && postId === props.focusedInlineCommentId;
+                    return (
+                        <Reply
+                            key={postId}
+                            id={postId}
+                            currentUserId={props.currentUserId}
+                            a11yIndex={index}
+                            isLastPost={index === props.postIds.length - 1}
+                            onCardClick={() => {}}
+                            previousPostId={index > 0 ? props.postIds[index - 1] : ''}
+                            isRootPost={isRootPost}
+                        />
+                    );
+                })}
             </div>
             <CreateComment
                 isThreadView={props.isThreadView}
-                threadId={props.focusedInlineCommentId || props.selected.id}
+                threadId={props.focusedInlineCommentId || props.selected?.id || ''}
             />
         </div>
     );

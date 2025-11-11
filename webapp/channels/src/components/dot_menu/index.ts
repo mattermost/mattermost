@@ -32,12 +32,15 @@ import {
     setEditingPost,
     markPostAsUnread,
 } from 'actions/post_actions';
+import {resolvePageComment, unresolvePageComment} from 'actions/pages';
 import {openModal} from 'actions/views/modals';
 import {makeCanWrangler} from 'selectors/posts';
 import {getIsMobileView} from 'selectors/views/browser';
+import {isPageCommentResolved} from 'selectors/wiki_posts';
 
 import {isArchivedChannel} from 'utils/channel_utils';
 import {Locations, Preferences} from 'utils/constants';
+import {isPageComment} from 'utils/page_utils';
 import * as PostUtils from 'utils/post_utils';
 import {matchUserMentionTriggersWithMessageMentions} from 'utils/post_utils';
 import {allAtMentions} from 'utils/text_formatting';
@@ -103,6 +106,10 @@ function makeMapStateToProps() {
         }
 
         const canFlagContent = channel && !isSystemMessage(post) && contentFlaggingEnabledInTeam(state, channel.team_id);
+        const isPageCommentPost = isPageComment(post);
+        const isResolved = isPageCommentPost ? isPageCommentResolved(post) : false;
+        const wikiId = isPageCommentPost ? (post.props?.wiki_id as string) : null;
+        const pageId = isPageCommentPost ? (post.props?.page_id as string) : null;
 
         return {
             channelIsArchived: isArchivedChannel(channel),
@@ -124,6 +131,10 @@ function makeMapStateToProps() {
             isMilitaryTime,
             canMove: channel ? canWrangler(state, channel.type, threadReplyCount) : false,
             canFlagContent,
+            isPageComment: isPageCommentPost,
+            isCommentResolved: isResolved,
+            wikiId,
+            pageId,
         };
     };
 }
@@ -139,6 +150,8 @@ function mapDispatchToProps(dispatch: Dispatch) {
             openModal,
             markPostAsUnread,
             setThreadFollow,
+            resolvePageComment,
+            unresolvePageComment,
         }, dispatch),
     };
 }

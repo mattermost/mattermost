@@ -172,7 +172,8 @@ const PagesHierarchyPanel = ({
 
     // Build tree from flat pages (including drafts)
     const tree = useMemo(() => {
-        return buildTree(allPages);
+        const builtTree = buildTree(allPages);
+        return builtTree;
     }, [allPages]);
 
     // Filter tree by search query
@@ -263,7 +264,6 @@ const PagesHierarchyPanel = ({
                         onDuplicate={menuHandlers.handleDuplicate}
                         onMove={menuHandlers.handleMove}
                         onDelete={menuHandlers.handleDelete}
-                        renamingPageId={menuHandlers.renamingPageId}
                         deletingPageId={menuHandlers.deletingPageId}
                         wikiId={wikiId}
                         channelId={channelId}
@@ -306,23 +306,6 @@ const PagesHierarchyPanel = ({
                     hasChildren={menuHandlers.pageToDuplicate.hasChildren}
                     onConfirm={menuHandlers.handleDuplicateConfirm}
                     onCancel={menuHandlers.handleDuplicateCancel}
-                />
-            )}
-
-            {/* Rename page modal */}
-            {menuHandlers.showRenameModal && menuHandlers.pageToRename && (
-                <TextInputModal
-                    show={menuHandlers.showRenameModal}
-                    title='Rename Page'
-                    placeholder='Enter new page title...'
-                    confirmButtonText='Rename'
-                    maxLength={255}
-                    initialValue={menuHandlers.pageToRename.currentTitle}
-                    ariaLabel='Rename Page'
-                    inputTestId='rename-page-modal-title-input'
-                    onConfirm={menuHandlers.handleRenameConfirm}
-                    onCancel={menuHandlers.handleRenameCancel}
-                    onHide={() => menuHandlers.setShowRenameModal(false)}
                 />
             )}
 

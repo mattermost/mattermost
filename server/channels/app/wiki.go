@@ -152,8 +152,13 @@ func (a *App) UpdateWiki(rctx request.CTX, wiki *model.Wiki) (*model.Wiki, *mode
 	return updatedWiki, nil
 }
 
-func (a *App) DeleteWiki(rctx request.CTX, wikiId string) *model.AppError {
+func (a *App) DeleteWiki(rctx request.CTX, wikiId, userId string) *model.AppError {
 	rctx.Logger().Debug("Deleting wiki", mlog.String("wiki_id", wikiId))
+
+	wiki, wikiErr := a.GetWiki(rctx, wikiId)
+	if wikiErr != nil {
+		return wikiErr
+	}
 
 	if err := a.Srv().Store().Wiki().DeleteAllPagesForWiki(wikiId); err != nil {
 		return model.NewAppError("DeleteWiki", "app.wiki.delete.delete_pages.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -167,6 +172,16 @@ func (a *App) DeleteWiki(rctx request.CTX, wikiId string) *model.AppError {
 		}
 		return model.NewAppError("DeleteWiki", "app.wiki.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+
+	channel, chanErr := a.GetChannel(rctx, wiki.ChannelId)
+	if chanErr == nil {
+		a.sendWikiDeletedNotification(rctx, wiki, channel, userId)
+	} else {
+		rctx.Logger().Warn("Failed to get channel for wiki deleted notification",
+			mlog.String("channel_id", wiki.ChannelId),
+			mlog.Err(chanErr))
+	}
+
 	return nil
 }
 
@@ -705,18 +720,42 @@ func (a *App) sendWikiAddedNotification(rctx request.CTX, wiki *model.Wiki, chan
 			"channel_name":  channel.Name,
 			"added_user_id": userId,
 			"username":      user.Username,
-			"attachments": []*model.SlackAttachment{
-				{
-					Fallback: wiki.Title,
-					Title:    wiki.Title,
-					Text:     channel.Name,
-				},
-			},
 		},
 	}
 
 	if _, err := a.CreatePost(rctx, systemPost, channel, model.CreatePostFlags{}); err != nil {
 		rctx.Logger().Warn("Failed to create wiki added system message",
+			mlog.String("wiki_id", wiki.Id),
+			mlog.String("channel_id", channel.Id),
+			mlog.Err(err))
+	}
+}
+
+func (a *App) sendWikiDeletedNotification(rctx request.CTX, wiki *model.Wiki, channel *model.Channel, userId string) {
+	user, err := a.GetUser(userId)
+	if err != nil {
+		rctx.Logger().Warn("Failed to get user for wiki deleted notification",
+			mlog.String("user_id", userId),
+			mlog.Err(err))
+		return
+	}
+
+	systemPost := &model.Post{
+		ChannelId: channel.Id,
+		UserId:    userId,
+		Type:      model.PostTypeWikiDeleted,
+		Props: map[string]any{
+			"wiki_id":         wiki.Id,
+			"wiki_title":      wiki.Title,
+			"channel_id":      channel.Id,
+			"channel_name":    channel.Name,
+			"deleted_user_id": userId,
+			"username":        user.Username,
+		},
+	}
+
+	if _, err := a.CreatePost(rctx, systemPost, channel, model.CreatePostFlags{}); err != nil {
+		rctx.Logger().Warn("Failed to create wiki deleted system message",
 			mlog.String("wiki_id", wiki.Id),
 			mlog.String("channel_id", channel.Id),
 			mlog.Err(err))
@@ -745,13 +784,6 @@ func (a *App) sendPageAddedNotification(rctx request.CTX, page *model.Post, wiki
 			"channel_name":  channel.Name,
 			"added_user_id": userId,
 			"username":      user.Username,
-			"attachments": []*model.SlackAttachment{
-				{
-					Fallback: pageTitle,
-					Title:    pageTitle,
-					Text:     channel.Name + " / " + wiki.Title,
-				},
-			},
 		},
 	}
 

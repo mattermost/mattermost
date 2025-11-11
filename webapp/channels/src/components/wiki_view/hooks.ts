@@ -15,6 +15,7 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {savePageDraft} from 'actions/page_drafts';
 import {loadChannelDefaultPage, publishPageDraft, loadPage, loadWiki} from 'actions/pages';
+import {openPageInEditMode} from 'actions/wiki_edit';
 
 import {getWikiUrl, getTeamNameFromPath} from 'utils/url';
 
@@ -285,37 +286,8 @@ export function useWikiPageActions(
             return;
         }
 
-        try {
-            const pageTitle = (currentPage.props?.title as string | undefined) || 'Untitled page';
-            const pageParentId = currentPage.page_parent_id;
-            const pageStatusFromProps = currentPage.props?.page_status as string | undefined;
-
-            const additionalProps: Record<string, any> = {};
-            if (pageParentId) {
-                additionalProps.page_parent_id = pageParentId;
-            }
-            if (pageStatusFromProps) {
-                additionalProps.page_status = pageStatusFromProps;
-            }
-
-            await dispatch(savePageDraft(
-                channelId,
-                wikiId,
-                pageId,
-                currentPage.message,
-                pageTitle,
-                pageId,
-                Object.keys(additionalProps).length > 0 ? additionalProps : undefined,
-            ));
-
-            const currentPath = location.pathname;
-            const basePath = currentPath.substring(0, currentPath.lastIndexOf('/'));
-            const draftPath = `${basePath}/drafts/${pageId}`;
-            history.replace(draftPath);
-        } catch (error) {
-            // TODO: Show error notification instead of alert
-        }
-    }, [channelId, pageId, wikiId, currentPage, dispatch, location.pathname, history]);
+        dispatch(openPageInEditMode(channelId, wikiId, currentPage, history, location));
+    }, [channelId, pageId, wikiId, currentPage, dispatch, history, location]);
 
     const handleTitleChange = useCallback((newTitle: string) => {
         // Update ref immediately

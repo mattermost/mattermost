@@ -10,7 +10,6 @@ import {useSelector, useDispatch, shallowEqual} from 'react-redux';
 import {Link, useRouteMatch} from 'react-router-dom';
 
 import {getThreadCounts, getThreadsForCurrentTeam} from 'mattermost-redux/actions/threads';
-import {PostTypes} from 'mattermost-redux/constants';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {
     getThreadOrderInCurrentTeam,
@@ -42,6 +41,7 @@ import ThreadList, {ThreadFilter, FILTER_STORAGE_KEY} from './thread_list';
 import ThreadPane from './thread_pane';
 
 import {useThreadRouting} from '../hooks';
+import {shouldHideRootPost} from '../page_thread_utils';
 import ThreadViewer from '../thread_viewer';
 
 import './global_threads.scss';
@@ -185,7 +185,7 @@ const GlobalThreads = () => {
                                 rootPostId={selectedThread.id}
                                 useRelativeTimestamp={true}
                                 isThreadView={true}
-                                hideRootPost={selectedPost.type === PostTypes.PAGE}
+                                hideRootPost={shouldHideRootPost(selectedPost)}
                             />
                         </ThreadPane>
                     ) : (

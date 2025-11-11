@@ -10,7 +10,7 @@ import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {publishPage} from 'actions/pages';
 import {closeRightHandSide, openWikiRhs} from 'actions/views/rhs';
 import {setWikiRhsActiveTab} from 'actions/views/wiki_rhs';
-import {getSelectedPageId, getWikiRhsWikiId, getWikiRhsActiveTab} from 'selectors/wiki_rhs';
+import {getSelectedPageId, getWikiRhsWikiId, getWikiRhsActiveTab, getFocusedInlineCommentId} from 'selectors/wiki_rhs';
 
 import type {GlobalState} from 'types/store';
 
@@ -29,6 +29,7 @@ function makeMapStateToProps() {
             pageTitle,
             channelLoaded: Boolean(channel),
             activeTab: getWikiRhsActiveTab(state),
+            focusedInlineCommentId: getFocusedInlineCommentId(state),
         };
     };
 }

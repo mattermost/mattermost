@@ -6,6 +6,7 @@ import {batchActions} from 'redux-batched-actions';
 import type {PageDraft as ServerPageDraft} from '@mattermost/types/drafts';
 
 import {Client4} from 'mattermost-redux/client';
+import {WikiTypes} from 'mattermost-redux/action_types';
 import {syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
 
 import {setGlobalItem, removeGlobalItem} from 'actions/storage';
@@ -186,8 +187,13 @@ export function removePageDraft(wikiId: string, draftId: string): ActionFuncAsyn
             }
         }
 
-        // Remove from local storage after server delete attempt
-        dispatch(removeGlobalItem(key));
+        // Remove from local storage and notify Redux
+        const timestamp = Date.now();
+        dispatch(batchActions([
+            removeGlobalItem(key),
+            {type: WikiTypes.DELETED_DRAFT, data: {id: draftId, wikiId}},
+            {type: WikiTypes.INVALIDATE_DRAFTS, data: {wikiId, timestamp}},
+        ]));
 
         return {data: true};
     };

@@ -80,6 +80,7 @@ const WikiPageEditor = ({
     }, [dispatch, channelId]);
 
     // Use shared inline comments hook - only for existing pages (not new drafts)
+    const hookPageId = isExistingPage ? pageId : undefined;
     const {
         inlineComments,
         handleCommentClick,
@@ -89,7 +90,7 @@ const WikiPageEditor = ({
         handleSubmitComment,
         handleCloseModal,
     } = usePageInlineComments(
-        isExistingPage ? pageId : undefined,
+        hookPageId,
         wikiId,
     );
 
@@ -193,7 +194,7 @@ const WikiPageEditor = ({
                     pages={pages}
                     inlineComments={inlineComments}
                     onCommentClick={handleCommentClick}
-                    onCreateInlineComment={isExistingPage ? handleCreateInlineComment : undefined}
+                    onCreateInlineComment={handleCreateInlineComment}
                 />
             </div>
             {showCommentModal && commentAnchor && (

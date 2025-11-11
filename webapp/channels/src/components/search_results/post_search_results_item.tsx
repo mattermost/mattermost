@@ -5,11 +5,10 @@ import React from 'react';
 
 import type {Post} from '@mattermost/types/posts';
 
-import {PostTypes} from 'mattermost-redux/constants/posts';
-
 import PostComponent from 'components/post';
 
 import {Locations} from 'utils/constants';
+import {isPagePost} from 'utils/page_utils';
 
 type Props = {
     a11yIndex: number;
@@ -22,7 +21,7 @@ type Props = {
 }
 
 export default function PostSearchResultsItem(props: Props) {
-    const isPage = props.post.type === PostTypes.PAGE;
+    const isPage = isPagePost(props.post);
 
     return (
         <div

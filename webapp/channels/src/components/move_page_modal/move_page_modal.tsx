@@ -36,6 +36,7 @@ const MovePageModal = (props: Props) => {
             confirmButtonText='Move'
             helpText={helpText}
             childrenWarningText={childrenWarning}
+            confirmButtonTestId='confirm-button'
         />
     );
 };

@@ -174,10 +174,9 @@ test.skip('duplicates page', {tag: '@pages'}, async ({pw}) => {
     await pageActions.click();
 
     const duplicateButton = page.locator('[data-testid="page-context-menu-duplicate"]').first();
-    if (await duplicateButton.isVisible().catch(() => false)) {
-        await duplicateButton.click();
-        await page.waitForLoadState('networkidle');
-    }
+    await expect(duplicateButton).toBeVisible();
+    await duplicateButton.click();
+    await page.waitForLoadState('networkidle');
 });
 
 /**

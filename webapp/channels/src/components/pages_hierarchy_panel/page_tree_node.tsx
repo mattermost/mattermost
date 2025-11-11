@@ -50,6 +50,9 @@ const PageTreeNode = ({
     dragHandleProps,
 }: Props) => {
     const currentTeam = useSelector((state: GlobalState) => getCurrentTeam(state));
+    const isOutlineVisible = useSelector((state: GlobalState) =>
+        state.views.pagesHierarchy.outlineExpandedNodes[node.id] || false
+    );
 
     const [showMenu, setShowMenu] = useState(false);
     const [menuPosition, setMenuPosition] = useState({x: 0, y: 0});
@@ -181,6 +184,7 @@ const PageTreeNode = ({
                     onDelete={() => onDelete?.(node.id)}
                     isDraft={node.page.type === PageDisplayTypes.PAGE_DRAFT}
                     pageLink={pageLink}
+                    isOutlineVisible={isOutlineVisible}
                 />
             )}
         </div>

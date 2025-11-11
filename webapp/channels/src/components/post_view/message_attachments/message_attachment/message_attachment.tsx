@@ -11,7 +11,6 @@ import type {
 } from '@mattermost/types/message_attachments';
 import type {Post, PostImage} from '@mattermost/types/posts';
 
-import {Posts} from 'mattermost-redux/constants';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 import {secureGetFromRecord} from 'mattermost-redux/utils/post_utils';
 
@@ -19,7 +18,6 @@ import ExternalImage from 'components/external_image';
 import ExternalLink from 'components/external_link';
 import FilePreviewModal from 'components/file_preview_modal';
 import Markdown from 'components/markdown';
-import PagePreviewModal from 'components/page_preview_modal';
 import ShowMore from 'components/post_view/show_more';
 import SizeAwareImage from 'components/size_aware_image';
 
@@ -225,38 +223,6 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
         return opt;
     };
 
-    isPageAttachmentLink = (url: string): boolean => {
-        // Check if this is a page link: /{team}/wiki/{channelId}/{wikiId}/{pageId}
-        const urlParts = url.split('/').filter(Boolean);
-        return urlParts.length === 5 && urlParts[1] === 'wiki';
-    };
-
-    handleTitleClick = (e: MouseEvent<HTMLElement>) => {
-        const url = e.currentTarget.getAttribute('href');
-        if (url && this.isPageAttachmentLink(url)) {
-            e.preventDefault();
-
-            // Parse URL: /{team}/wiki/{channelId}/{wikiId}/{pageId}
-            const urlParts = url.split('/').filter(Boolean);
-            const [teamName, , channelId, wikiId, pageId] = urlParts;
-
-            this.props.actions.openModal({
-                modalId: ModalIdentifiers.PAGE_PREVIEW_MODAL,
-                dialogType: PagePreviewModal,
-                dialogProps: {
-                    pageId,
-                    wikiId,
-                    channelId,
-                    teamName,
-                    onEdit: () => {
-                        // Navigate to the page for editing
-                        window.location.href = url;
-                    },
-                },
-            });
-        }
-    };
-
     getFieldsTable = () => {
         const fields = this.props.attachment.fields;
         if (!fields || !fields.length) {
@@ -441,8 +407,6 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
 
         let title;
         if (attachment.title) {
-            const isPageAttachment = this.props.post?.type === Posts.POST_TYPES.PAGE_ADDED;
-
             if (attachment.title_link && isUrlSafe(attachment.title_link)) {
                 title = (
                     <h1 className='attachment__title'>
@@ -450,49 +414,9 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                             className='attachment__title-link'
                             href={attachment.title_link}
                             location='message_attachment'
-                            onClick={this.handleTitleClick}
                         >
                             {attachment.title}
                         </ExternalLink>
-                    </h1>
-                );
-            } else if (isPageAttachment) {
-                const postProps = this.props.post?.props || {};
-                const pageId = postProps.page_id as string;
-                const wikiId = postProps.wiki_id as string;
-                const channelId = postProps.channel_id as string;
-                const teamName = this.props.currentRelativeTeamUrl.replace('/', '');
-
-                title = (
-                    <h1 className='attachment__title'>
-                        <a
-                            className='attachment__title-link'
-                            style={{cursor: 'pointer'}}
-                            onClick={(e) => {
-                                e.preventDefault();
-
-                                if (!pageId || !wikiId || !channelId) {
-                                    return;
-                                }
-
-                                this.props.actions.openModal({
-                                    modalId: ModalIdentifiers.PAGE_PREVIEW_MODAL,
-                                    dialogType: PagePreviewModal,
-                                    dialogProps: {
-                                        pageId,
-                                        wikiId,
-                                        channelId,
-                                        teamName,
-                                        onEdit: () => {
-                                            const pageUrl = `${this.props.currentRelativeTeamUrl}/wiki/${channelId}/${wikiId}/${pageId}`;
-                                            window.location.href = pageUrl;
-                                        },
-                                    },
-                                });
-                            }}
-                        >
-                            {attachment.title}
-                        </a>
                     </h1>
                 );
             } else {

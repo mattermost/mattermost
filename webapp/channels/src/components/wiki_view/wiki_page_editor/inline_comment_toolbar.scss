@@ -5,19 +5,19 @@
     z-index: 1000;
     display: flex;
     align-items: center;
-    gap: 4px;
     padding: 4px;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
     border-radius: 4px;
     background: var(--center-channel-bg);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12), 0 0 1px rgba(0, 0, 0, 0.08);
+    gap: 4px;
 
     .inline-comment-toolbar__icon-btn {
         display: flex;
-        align-items: center;
-        justify-content: center;
         width: 28px;
         height: 28px;
+        align-items: center;
+        justify-content: center;
         padding: 6px;
         border: none;
         border-radius: 4px;

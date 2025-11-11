@@ -19,7 +19,9 @@ import type {AttachmentTextOverflowType} from 'components/post_view/show_more/sh
 
 import Pluggable from 'plugins/pluggable';
 import {PostTypes} from 'utils/constants';
+import {isPagePost} from 'utils/page_utils';
 import type {TextFormattingOptions} from 'utils/text_formatting';
+import {extractPlaintextFromTipTapJSON} from 'utils/tiptap_utils';
 import * as Utils from 'utils/utils';
 
 import type {PostPluginComponent} from 'types/store/plugins';
@@ -145,6 +147,21 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
 
         let message = post.message;
         const isEphemeral = isPostEphemeral(post);
+
+        // For page posts, convert Tiptap JSON to plain text for display
+        if (isPagePost(post) && post.message) {
+            const plaintext = extractPlaintextFromTipTapJSON(post.message);
+            if (plaintext) {
+                // Show title and preview of content (first 200 chars)
+                const title = post.props?.title as string || 'Untitled Page';
+                const preview = plaintext.length > 200 ? plaintext.substring(0, 200) + '...' : plaintext;
+                message = `**${title}**\n\n${preview}`;
+            } else if (post.props?.title) {
+                // Fallback to just showing title if content extraction fails
+                message = `**${post.props.title}**`;
+            }
+        }
+
         if (compactDisplay && isEphemeral) {
             const visibleMessage = Utils.localizeMessage({id: 'post_info.message.visible.compact', defaultMessage: ' (Only visible to you)'});
             message = message.concat(visibleMessage);

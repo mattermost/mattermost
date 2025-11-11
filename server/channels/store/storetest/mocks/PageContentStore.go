@@ -62,6 +62,36 @@ func (_m *PageContentStore) Get(pageID string) (*model.PageContent, error) {
 	return r0, r1
 }
 
+// GetMany provides a mock function with given fields: pageIDs
+func (_m *PageContentStore) GetMany(pageIDs []string) ([]*model.PageContent, error) {
+	ret := _m.Called(pageIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetMany")
+	}
+
+	var r0 []*model.PageContent
+	var r1 error
+	if rf, ok := ret.Get(0).(func([]string) ([]*model.PageContent, error)); ok {
+		return rf(pageIDs)
+	}
+	if rf, ok := ret.Get(0).(func([]string) []*model.PageContent); ok {
+		r0 = rf(pageIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.PageContent)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]string) error); ok {
+		r1 = rf(pageIDs)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetWithDeleted provides a mock function with given fields: pageID
 func (_m *PageContentStore) GetWithDeleted(pageID string) (*model.PageContent, error) {
 	ret := _m.Called(pageID)

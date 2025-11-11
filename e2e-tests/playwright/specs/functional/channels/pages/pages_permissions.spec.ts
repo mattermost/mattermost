@@ -3,7 +3,16 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton} from './test_helpers';
+import {
+    createWikiThroughUI,
+    createPageThroughUI,
+    createChildPageThroughContextMenu,
+    getNewPageButton,
+    openPageActionsMenu,
+    clickPageContextMenuItem,
+    buildWikiPageUrl,
+    waitForPageViewerLoad,
+} from './test_helpers';
 
 /**
  * @objective Verify channel member can create page
@@ -22,18 +31,17 @@ test('allows channel member to create page', {tag: '@pages'}, async ({pw, shared
     const newPageButton = getNewPageButton(page);
 
     // * Verify button is visible and enabled
-    if (await newPageButton.isVisible({timeout: 3000}).catch(() => false)) {
-        const isDisabled = await newPageButton.isDisabled();
-        expect(isDisabled).toBe(false);
+    await expect(newPageButton).toBeVisible({timeout: 3000});
+    const isDisabled = await newPageButton.isDisabled();
+    expect(isDisabled).toBe(false);
 
-        // # Click to verify creation flow works
-        await newPageButton.click();
-        await page.waitForTimeout(500);
+    // # Click to verify creation flow works
+    await newPageButton.click();
+    await page.waitForTimeout(500);
 
-        // * Verify editor opened
-        const editor = page.locator('.ProseMirror').first();
-        await expect(editor).toBeVisible();
-    }
+    // * Verify editor opened
+    const editor = page.locator('.ProseMirror').first();
+    await expect(editor).toBeVisible();
 });
 
 /**
@@ -89,8 +97,7 @@ test('prevents non-member from viewing wiki', {tag: '@pages'}, async ({pw, share
         if (!isAccessDenied) {
             // Check for permission error message on page
             const errorMessage = nonMemberPage.locator('text=/permission|access denied|unauthorized/i').first();
-            const hasError = await errorMessage.isVisible({timeout: 3000}).catch(() => false);
-            expect(hasError).toBe(true);
+            await expect(errorMessage).toBeVisible({timeout: 3000});
         } else {
             expect(isAccessDenied).toBe(true);
         }
@@ -118,18 +125,17 @@ test('allows channel member to edit page', {tag: '@pages'}, async ({pw, sharedPa
     const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
 
     // * Verify edit button is visible and enabled
-    if (await editButton.isVisible({timeout: 3000}).catch(() => false)) {
-        const isDisabled = await editButton.isDisabled();
-        expect(isDisabled).toBe(false);
+    await expect(editButton).toBeVisible({timeout: 3000});
+    const isDisabled = await editButton.isDisabled();
+    expect(isDisabled).toBe(false);
 
-        // # Click edit to verify it works
-        await editButton.click();
-        await page.waitForTimeout(500);
+    // # Click edit to verify it works
+    await editButton.click();
+    await page.waitForTimeout(500);
 
-        // * Verify editor opened
-        const editor = page.locator('.ProseMirror').first();
-        await expect(editor).toBeVisible();
-    }
+    // * Verify editor opened
+    const editor = page.locator('.ProseMirror').first();
+    await expect(editor).toBeVisible();
 });
 
 /**
@@ -154,19 +160,14 @@ test('allows channel admin to delete any page', {tag: '@pages'}, async ({pw, sha
     const testPage = await createPageThroughUI(page, 'Page to Delete', 'Content');
 
     // # Open page actions menu
-    const pageActions = page.locator('[data-testid="page-actions"], [data-testid="wiki-page-more-actions"], button[aria-label*="more"]').first();
+    await openPageActionsMenu(page);
 
-    if (await pageActions.isVisible({timeout: 3000}).catch(() => false)) {
-        await pageActions.click();
+    // * Verify delete option is available and enabled
+    const deleteMenuItem = page.locator('[data-testid="page-context-menu-delete"]');
+    await expect(deleteMenuItem).toBeVisible({timeout: 3000});
 
-        // * Verify delete option is available
-        const deleteButton = page.locator('[data-testid="delete-button"]').first();
-
-        if (await deleteButton.isVisible({timeout: 2000}).catch(() => false)) {
-            const isDisabled = await deleteButton.isDisabled();
-            expect(isDisabled).toBe(false);
-        }
-    }
+    const isDisabled = await deleteMenuItem.isDisabled();
+    expect(isDisabled).toBe(false);
 });
 
 /**
@@ -204,41 +205,36 @@ test('inherits permissions when page moved to different wiki', {tag: '@pages'}, 
     const wiki2 = await createWikiThroughUI(page, `Wiki 2 ${pw.random.id()}`);
 
     // # Navigate back to the page in wiki1
-    await channelsPage.goto(team.name, channel1.name);
-    await page.goto(`${pw.url}/${team.name}/channels/${channel1.name}/wikis/${wiki1.id}/pages/${testPage.id}`);
+    const pageUrl = buildWikiPageUrl(pw.url, team.name, channel1.id, wiki1.id, testPage.id);
+    await page.goto(pageUrl);
+    await page.waitForLoadState('networkidle');
+    await waitForPageViewerLoad(page);
+
+    // # Open page actions menu and click Move
+    await openPageActionsMenu(page);
+    await clickPageContextMenuItem(page, 'move');
+
+    // # Select wiki2 in move modal
+    const moveModal = page.getByRole('dialog', {name: /Move/i});
+    await expect(moveModal).toBeVisible({timeout: 3000});
+
+    const wiki2Option = moveModal.locator(`text="${wiki2.title}"`).first();
+    await wiki2Option.click();
+
+    const confirmButton = moveModal.getByRole('button', {name: /Move|Confirm/i});
+    await confirmButton.click();
+
     await page.waitForLoadState('networkidle');
 
-    // # Move page to wiki2 (if move functionality exists)
-    const pageActions = page.locator('[data-testid="page-actions"], [data-testid="wiki-page-more-actions"]').first();
+    // * Verify page now accessible via wiki2/channel2 permissions
+    const movedPageUrl = buildWikiPageUrl(pw.url, team.name, channel2.id, wiki2.id, testPage.id);
+    await page.goto(movedPageUrl);
+    await page.waitForLoadState('networkidle');
 
-    if (await pageActions.isVisible({timeout: 3000}).catch(() => false)) {
-        await pageActions.click();
-
-        const moveButton = page.locator('button:has-text("Move to Wiki"), [data-testid="page-context-menu-move"]').first();
-
-        if (await moveButton.isVisible({timeout: 2000}).catch(() => false)) {
-            await moveButton.click();
-
-            const moveModal = page.getByRole('dialog', {name: /Move/i});
-            if (await moveModal.isVisible({timeout: 3000}).catch(() => false)) {
-                const wiki2Option = moveModal.locator(`text="${wiki2.title}"`).first();
-                await wiki2Option.click();
-
-                const confirmButton = moveModal.locator('[data-testid="page-context-menu-move"], [data-testid="confirm-button"]').first();
-                await confirmButton.click();
-
-                await page.waitForLoadState('networkidle');
-
-                // * Verify page now accessible via wiki2/channel2 permissions
-                await page.goto(`${pw.url}/${team.name}/channels/${channel2.name}/wikis/${wiki2.id}/pages/${testPage.id}`);
-                await page.waitForLoadState('networkidle');
-
-                // * Verify page content is accessible
-                const pageContent = page.locator('[data-testid="page-viewer-content"]');
-                await expect(pageContent).toBeVisible();
-            }
-        }
-    }
+    // * Verify page content is accessible
+    await waitForPageViewerLoad(page);
+    const pageContent = page.locator('[data-testid="page-viewer-content"]');
+    await expect(pageContent).toContainText('Content');
 });
 
 /**
@@ -266,24 +262,16 @@ test('restricts page actions based on channel permissions', {tag: '@pages'}, asy
 
     // # Login as guest and navigate to the page
     const {page} = await pw.testBrowser.login(guestUser);
-    await page.goto(`${pw.url}/${team.name}/channels/${channel.name}/wikis/${wiki.id}/pages/${testPage.id}`);
+    const pageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, testPage.id);
+    await page.goto(pageUrl);
     await page.waitForLoadState('networkidle');
 
     // * Verify page is viewable
+    await waitForPageViewerLoad(page);
     const pageContent = page.locator('[data-testid="page-viewer-content"]');
-    if (await pageContent.isVisible().catch(() => false)) {
-        await expect(pageContent).toContainText('Protected content');
-    }
+    await expect(pageContent).toContainText('Protected content');
 
-    // * Verify edit button is hidden or disabled
+    // * Verify edit button is not enabled
     const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
-
-    if (await editButton.isVisible({timeout: 2000}).catch(() => false)) {
-        const isDisabled = await editButton.isDisabled();
-        expect(isDisabled).toBe(true);
-    } else {
-        // Edit button is hidden (also acceptable)
-        const buttonVisible = await editButton.isVisible().catch(() => false);
-        expect(buttonVisible).toBe(false);
-    }
+    await expect(editButton).not.toBeEnabled({timeout: 2000});
 });

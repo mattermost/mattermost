@@ -31,14 +31,8 @@ test('auto-saves draft while editing', {tag: '@pages'}, async ({pw, sharedPagesS
     await editor.click();
     await editor.type('Draft content here');
 
-    // * Verify saving indicator appears
-    await page.waitForTimeout(2000); // Wait for auto-save
-
-    const savingIndicator = page.locator('[data-testid="saving-indicator"]');
-    if (await savingIndicator.isVisible().catch(() => false)) {
-        const indicatorText = await savingIndicator.textContent();
-        expect(indicatorText?.toLowerCase()).toMatch(/saved|saving/);
-    }
+    // * Wait for auto-save to complete
+    await page.waitForTimeout(2000);
 
     // # Refresh page
     await page.reload();
@@ -275,9 +269,7 @@ test('converts published page to draft when editing', {tag: '@pages'}, async ({p
     // * Verify hierarchy tree shows this page as draft
     const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
     const draftNode = hierarchyPanel.locator('[data-testid="page-tree-node"][data-is-draft="true"]', {hasText: 'Published Page'});
-    if (await draftNode.isVisible().catch(() => false)) {
-        await expect(draftNode).toBeVisible();
-    }
+    await expect(draftNode).toBeVisible();
 });
 
 /**
@@ -314,19 +306,18 @@ test('navigates to draft editor when clicking draft node', {tag: '@pages'}, asyn
     // # Click draft node in hierarchy (drafts are integrated in tree)
     const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
     const draftNode = hierarchyPanel.locator('[data-testid="page-tree-node"][data-is-draft="true"]', {hasText: 'Navigable Draft'});
-    if (await draftNode.isVisible().catch(() => false)) {
-        await draftNode.click();
-        await page.waitForLoadState('networkidle');
+    await expect(draftNode).toBeVisible();
+    await draftNode.click();
+    await page.waitForLoadState('networkidle');
 
-        // * Verify navigated to draft editor
-        const currentUrl = page.url();
-        expect(currentUrl).toMatch(/\/drafts\/|\/edit/);
+    // * Verify navigated to draft editor
+    const currentUrl = page.url();
+    expect(currentUrl).toMatch(/\/drafts\/|\/edit/);
 
-        // * Verify editor shows draft content
-        const editorAfterNav = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
-        await expect(editorAfterNav).toBeVisible();
-        await expect(editorAfterNav).toContainText('Draft content');
-    }
+    // * Verify editor shows draft content
+    const editorAfterNav = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
+    await expect(editorAfterNav).toBeVisible();
+    await expect(editorAfterNav).toContainText('Draft content');
 });
 
 /**
@@ -337,6 +328,15 @@ test('shows draft node as child of intended parent in tree', {tag: '@pages'}, as
     const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
+
+    // # Listen to console logs
+    page.on('console', (msg) => {
+        const text = msg.text();
+        if (text.includes('[createPage]') || text.includes('[PagesHierarchyPanel]') || text.includes('[getPageDraftsForWiki]')) {
+            console.log('Browser console:', text);
+        }
+    });
+
     await channelsPage.goto(team.name, channel.name);
 
     // # Create wiki and parent page through UI
@@ -348,41 +348,42 @@ test('shows draft node as child of intended parent in tree', {tag: '@pages'}, as
     const parentNode = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${parentPage.id}"]`);
     await parentNode.waitFor({state: 'visible', timeout: 5000});
 
-    // # Expand parent node if it has children indicator
-    const expandButton = parentNode.locator('xpath=ancestor::*').locator('[data-testid="expand-button"]').first();
-    if (await expandButton.isVisible({timeout: 1000}).catch(() => false)) {
-        await expandButton.click();
-        await page.waitForTimeout(300);
-    }
-
     // # Create child draft via right-click context menu
     await parentNode.click({button: 'right'});
 
     const contextMenu = page.locator('[data-testid="page-context-menu"]');
-    if (await contextMenu.isVisible({timeout: 2000}).catch(() => false)) {
-        const createSubpageButton = contextMenu.locator('button:has-text("Create"), button:has-text("Subpage")').first();
-        await createSubpageButton.click();
-        await fillCreatePageModal(page, 'Child Draft Node');
+    await expect(contextMenu).toBeVisible({timeout: 2000});
+    const createSubpageButton = contextMenu.locator('button:has-text("New subpage")');
+    await createSubpageButton.click();
+    await fillCreatePageModal(page, 'Child Draft Node');
 
-        await page.waitForTimeout(1000); // Wait for editor to load
+    // # Wait for editor to load
+    await page.waitForTimeout(1000);
 
-        const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
-        await editor.click();
-        await editor.type('Child content');
+    // # Add some content and wait for auto-save and hierarchy refresh
+    const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
+    await editor.click();
+    await editor.type('Child content');
+    await page.waitForTimeout(3000);
 
-        await page.waitForTimeout(2000);
+    // * Verify parent node now has expand button (showing it has the child)
+    const updatedParentNode = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${parentPage.id}"]`);
+    const expandButton = updatedParentNode.locator('[data-testid="page-tree-node-expand-button"]');
+    await expect(expandButton).toBeVisible({timeout: 5000});
 
-        // * Verify draft appears under parent in hierarchy
-        const childDraftNode = hierarchyPanel.locator('[data-testid="page-tree-node"]:has-text("Child Draft Node")').first();
-        if (await childDraftNode.isVisible().catch(() => false)) {
-            // Check if draft node is indented (indicating child relationship)
-            const draftPaddingLeft = await childDraftNode.evaluate((el) => window.getComputedStyle(el).paddingLeft);
-            const parentPaddingLeft = await parentNode.evaluate((el) => window.getComputedStyle(el).paddingLeft);
+    // # Check if parent is already expanded - if not, click to expand
+    // The createPage action calls expandAncestors, so parent should already be expanded
+    // But we need to wait for the expand to take effect
+    await page.waitForTimeout(500);
 
-            // Child should have more indentation than parent
-            expect(parseInt(draftPaddingLeft)).toBeGreaterThan(parseInt(parentPaddingLeft));
-        }
-    }
+    // * Verify child draft appears under parent in hierarchy (should be visible without clicking expand)
+    const childDraftNode = hierarchyPanel.locator('[data-testid="page-tree-node"]:has-text("Child Draft Node")').first();
+    await expect(childDraftNode).toBeVisible({timeout: 5000});
+
+    // * Verify draft node is indented (indicating child relationship)
+    const draftPaddingLeft = await childDraftNode.evaluate((el) => window.getComputedStyle(el).paddingLeft);
+    const parentPaddingLeft = await updatedParentNode.evaluate((el) => window.getComputedStyle(el).paddingLeft);
+    expect(parseInt(draftPaddingLeft)).toBeGreaterThan(parseInt(parentPaddingLeft));
 });
 
 /**
@@ -453,28 +454,26 @@ test('switches between multiple drafts without losing content', {tag: '@pages'},
     // # Switch back to first draft (drafts are integrated in tree)
     const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
     const firstDraftNode = hierarchyPanel.locator('[data-testid="page-tree-node"][data-is-draft="true"]', {hasText: 'First Draft'});
-    if (await firstDraftNode.isVisible().catch(() => false)) {
-        await firstDraftNode.click();
-        await page.waitForLoadState('networkidle');
+    await expect(firstDraftNode).toBeVisible();
+    await firstDraftNode.click();
+    await page.waitForLoadState('networkidle');
 
-        // * Verify first draft content preserved
-        titleInput = page.locator('[data-testid="wiki-page-title-input"]');
-        editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
+    // * Verify first draft content preserved
+    titleInput = page.locator('[data-testid="wiki-page-title-input"]');
+    editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
 
-        await expect(titleInput).toHaveValue('First Draft');
-        await expect(editor).toContainText('First draft content');
+    await expect(titleInput).toHaveValue('First Draft');
+    await expect(editor).toContainText('First draft content');
 
-        // # Switch to second draft
-        const secondDraftNode = hierarchyPanel.locator('[data-testid="page-tree-node"][data-is-draft="true"]', {hasText: 'Second Draft'});
-        if (await secondDraftNode.isVisible().catch(() => false)) {
-            await secondDraftNode.click();
-            await page.waitForLoadState('networkidle');
+    // # Switch to second draft
+    const secondDraftNode = hierarchyPanel.locator('[data-testid="page-tree-node"][data-is-draft="true"]', {hasText: 'Second Draft'});
+    await expect(secondDraftNode).toBeVisible();
+    await secondDraftNode.click();
+    await page.waitForLoadState('networkidle');
 
-            // * Verify second draft content preserved
-            await expect(titleInput).toHaveValue('Second Draft');
-            await expect(editor).toContainText('Second draft content');
-        }
-    }
+    // * Verify second draft content preserved
+    await expect(titleInput).toHaveValue('Second Draft');
+    await expect(editor).toContainText('Second draft content');
 });
 
 /**
@@ -658,10 +657,9 @@ test('publishes parent draft and child draft stays under published parent', {tag
 
     // # Expand parent node to see child
     const expandButton = parentDraftNodeAfterChildCreate.locator('[data-testid="page-tree-node-expand-button"]');
-    if (await expandButton.isVisible({timeout: 2000}).catch(() => false)) {
-        await expandButton.click();
-        await page.waitForTimeout(500);
-    }
+    await expect(expandButton).toBeVisible({timeout: 2000});
+    await expandButton.click();
+    await page.waitForTimeout(500);
 
     // * Verify child draft appears under parent draft in hierarchy
     const childDraftNode = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-is-draft="true"]`).filter({hasText: 'Child Draft'});
@@ -703,10 +701,9 @@ test('publishes parent draft and child draft stays under published parent', {tag
 
     // # Expand published parent node to see child draft
     const expandAfterPublish = publishedParentNode.locator('[data-testid="page-tree-node-expand-button"]');
-    if (await expandAfterPublish.isVisible({timeout: 2000}).catch(() => false)) {
-        await expandAfterPublish.click();
-        await page.waitForTimeout(1000);
-    }
+    await expect(expandAfterPublish).toBeVisible({timeout: 2000});
+    await expandAfterPublish.click();
+    await page.waitForTimeout(1000);
 
     // * Verify child draft is STILL under published parent (NOT moved to root)
     // The child should still be visible and still be a draft

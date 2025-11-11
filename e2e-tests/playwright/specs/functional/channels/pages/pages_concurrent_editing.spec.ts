@@ -35,9 +35,8 @@ test.skip('detects concurrent edit conflict when two users edit same page', {tag
 
     // Click edit button
     const editButton1 = page1.locator('[data-testid="wiki-page-edit-button"]').first();
-    if (await editButton1.isVisible()) {
-        await editButton1.click();
-    }
+    await expect(editButton1).toBeVisible();
+    await editButton1.click();
 
     // # User 2 opens editor
     const user2Page = await context.newPage();
@@ -50,9 +49,8 @@ test.skip('detects concurrent edit conflict when two users edit same page', {tag
     await user2Page.waitForLoadState('networkidle');
 
     const editButton2 = user2Page.locator('[data-testid="wiki-page-edit-button"]').first();
-    if (await editButton2.isVisible()) {
-        await editButton2.click();
-    }
+    await expect(editButton2).toBeVisible();
+    await editButton2.click();
 
     // # User 1 makes changes and publishes
     const editor1 = page1.locator('.ProseMirror').first();
@@ -81,23 +79,14 @@ test.skip('detects concurrent edit conflict when two users edit same page', {tag
     // Wait for either the modal or check if publish succeeded (implementation-specific)
     await pw.waitUntil(
         async () => {
-            const modalVisible = await conflictModal.isVisible().catch(() => false);
-            if (modalVisible) {
-                return true;
-            }
-
-            // If no modal, check if there's an error message or warning
-            const errorMessage = user2Page.locator('[data-testid="error-message"], .error, .alert').first();
-            return await errorMessage.isVisible().catch(() => false);
+            return await conflictModal.isVisible();
         },
         {timeout: 10000},
     );
 
     // * Verify conflict message exists somewhere in the UI
-    const hasConflictModal = await conflictModal.isVisible().catch(() => false);
-    if (hasConflictModal) {
-        await expect(conflictModal).toContainText(/conflict|modified|changed/i);
-    }
+    await expect(conflictModal).toBeVisible();
+    await expect(conflictModal).toContainText(/conflict|modified|changed/i);
 });
 
 /**
@@ -126,9 +115,8 @@ test.skip('allows user to refresh and see latest changes during conflict', {tag:
     await adminClient.addToChannel(user2.id, channel.id);
 
     const editButton1 = page1.locator('[data-testid="wiki-page-edit-button"]').first();
-    if (await editButton1.isVisible()) {
-        await editButton1.click();
-    }
+    await expect(editButton1).toBeVisible();
+    await editButton1.click();
 
     const user2Page = await context.newPage();
     await pw.testBrowser.login(user2, {page: user2Page});
@@ -136,9 +124,8 @@ test.skip('allows user to refresh and see latest changes during conflict', {tag:
     await user2Page.waitForLoadState('networkidle');
 
     const editButton2 = user2Page.locator('[data-testid="wiki-page-edit-button"]').first();
-    if (await editButton2.isVisible()) {
-        await editButton2.click();
-    }
+    await expect(editButton2).toBeVisible();
+    await editButton2.click();
 
     // # User 1 publishes first
     const editor1 = page1.locator('.ProseMirror').first();
@@ -160,14 +147,13 @@ test.skip('allows user to refresh and see latest changes during conflict', {tag:
     // # Look for refresh/reload option (implementation-specific)
     const refreshButton = user2Page.locator('button:has-text("Refresh"), button:has-text("Reload")').first();
 
-    if (await refreshButton.isVisible({timeout: 5000}).catch(() => false)) {
-        await refreshButton.click();
+    await expect(refreshButton).toBeVisible({timeout: 5000});
+    await refreshButton.click();
 
-        // * Verify User 2's editor reloads with User 1's changes
-        await user2Page.waitForLoadState('networkidle');
-        const editorContent2 = user2Page.locator('.ProseMirror').first();
-        await expect(editorContent2).toContainText('User 1 changes');
-    }
+    // * Verify User 2's editor reloads with User 1's changes
+    await user2Page.waitForLoadState('networkidle');
+    const editorContent2 = user2Page.locator('.ProseMirror').first();
+    await expect(editorContent2).toContainText('User 1 changes');
 });
 
 /**
@@ -196,9 +182,8 @@ test.skip('allows user to overwrite during conflict with confirmation', {tag: '@
     await adminClient.addToChannel(user2.id, channel.id);
 
     const editButton1 = page1.locator('[data-testid="wiki-page-edit-button"]').first();
-    if (await editButton1.isVisible()) {
-        await editButton1.click();
-    }
+    await expect(editButton1).toBeVisible();
+    await editButton1.click();
 
     const user2Page = await context.newPage();
     await pw.testBrowser.login(user2, {page: user2Page});
@@ -206,9 +191,8 @@ test.skip('allows user to overwrite during conflict with confirmation', {tag: '@
     await user2Page.waitForLoadState('networkidle');
 
     const editButton2 = user2Page.locator('[data-testid="wiki-page-edit-button"]').first();
-    if (await editButton2.isVisible()) {
-        await editButton2.click();
-    }
+    await expect(editButton2).toBeVisible();
+    await editButton2.click();
 
     // # User 1 publishes
     const editor1 = page1.locator('.ProseMirror').first();
@@ -230,20 +214,18 @@ test.skip('allows user to overwrite during conflict with confirmation', {tag: '@
     // # Look for overwrite button (implementation-specific)
     const overwriteButton = user2Page.locator('button:has-text("Overwrite"), button:has-text("Force")').first();
 
-    if (await overwriteButton.isVisible({timeout: 5000}).catch(() => false)) {
-        await overwriteButton.click();
+    await expect(overwriteButton).toBeVisible({timeout: 5000});
+    await overwriteButton.click();
 
-        // * Check for confirmation dialog
-        const confirmButton = user2Page.locator('[data-testid="confirm-button"], button:has-text("Yes")').first();
-        if (await confirmButton.isVisible({timeout: 3000}).catch(() => false)) {
-            await confirmButton.click();
-        }
+    // * Check for confirmation dialog
+    const confirmButton = user2Page.locator('[data-testid="confirm-button"], button:has-text("Yes")').first();
+    await expect(confirmButton).toBeVisible({timeout: 3000});
+    await confirmButton.click();
 
-        // * Verify User 2's version is saved
-        await user2Page.waitForLoadState('networkidle');
-        const pageContent = user2Page.locator('[data-testid="page-content"], [data-testid="page-viewer"], .wiki-page-content').first();
-        await expect(pageContent).toContainText('Version B');
-    }
+    // * Verify User 2's version is saved
+    await user2Page.waitForLoadState('networkidle');
+    const pageContent = user2Page.locator('[data-testid="page-content"], [data-testid="page-viewer"], .wiki-page-content').first();
+    await expect(pageContent).toContainText('Version B');
 });
 
 /**
@@ -272,9 +254,8 @@ test.skip('shows visual indicator when another user is editing same page', {tag:
     await adminClient.addToChannel(user2.id, channel.id);
 
     const editButton1 = page1.locator('[data-testid="wiki-page-edit-button"]').first();
-    if (await editButton1.isVisible()) {
-        await editButton1.click();
-    }
+    await expect(editButton1).toBeVisible();
+    await editButton1.click();
 
     // # User 2 views same page
     const user2Page = await context.newPage();
@@ -286,25 +267,18 @@ test.skip('shows visual indicator when another user is editing same page', {tag:
     const editingIndicator = user2Page.locator('[data-testid="editing-indicator"], .editing-indicator').first();
 
     // Check if indicator exists
-    const hasIndicator = await editingIndicator.isVisible({timeout: 5000}).catch(() => false);
-
-    if (hasIndicator) {
-        await expect(editingIndicator).toContainText(user1.username);
-    }
+    await expect(editingIndicator).toBeVisible({timeout: 5000});
+    await expect(editingIndicator).toContainText(user1.username);
 
     // # User 2 clicks edit
     const editButton2 = user2Page.locator('[data-testid="wiki-page-edit-button"]').first();
-    if (await editButton2.isVisible()) {
-        await editButton2.click();
-    }
+    await expect(editButton2).toBeVisible();
+    await editButton2.click();
 
     // * Verify warning appears (implementation-specific)
     const warningBanner = user2Page.locator('[data-testid="concurrent-edit-warning"], .warning, .alert').first();
-    const hasWarning = await warningBanner.isVisible({timeout: 5000}).catch(() => false);
-
-    if (hasWarning) {
-        await expect(warningBanner).toContainText(/editing|edit/i);
-    }
+    await expect(warningBanner).toBeVisible({timeout: 5000});
+    await expect(warningBanner).toContainText(/editing|edit/i);
 });
 
 /**
@@ -333,9 +307,8 @@ test.skip('preserves both users changes when merging non-conflicting edits', {ta
     await adminClient.addToChannel(user2.id, channel.id);
 
     const editButton1 = page1.locator('[data-testid="wiki-page-edit-button"]').first();
-    if (await editButton1.isVisible()) {
-        await editButton1.click();
-    }
+    await expect(editButton1).toBeVisible();
+    await editButton1.click();
 
     const user2Page = await context.newPage();
     await pw.testBrowser.login(user2, {page: user2Page});
@@ -343,9 +316,8 @@ test.skip('preserves both users changes when merging non-conflicting edits', {ta
     await user2Page.waitForLoadState('networkidle');
 
     const editButton2 = user2Page.locator('[data-testid="wiki-page-edit-button"]').first();
-    if (await editButton2.isVisible()) {
-        await editButton2.click();
-    }
+    await expect(editButton2).toBeVisible();
+    await editButton2.click();
 
     // # User 1 edits Section A
     const editor1 = page1.locator('.ProseMirror').first();
