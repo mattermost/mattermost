@@ -31,7 +31,7 @@ import PriorityBadge from 'components/post_priority/post_priority_badge';
 import ThreadButton from 'components/threading/common/thread_button';
 import Timestamp from 'components/timestamp';
 import CRTListTutorialTip from 'components/tours/crt_tour/crt_list_tutorial_tip';
-import Tag from 'components/widgets/tag/tag';
+import Tag from '@mattermost/design-system/src/components/primitives/tag';
 import Avatars from 'components/widgets/users/avatars';
 
 import {CrtTutorialSteps, Preferences} from 'utils/constants';

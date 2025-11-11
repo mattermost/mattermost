@@ -6,7 +6,7 @@ import type {ReactNode} from 'react';
 
 import {RadioInput} from '@mattermost/design-system';
 
-import Tag from 'components/widgets/tag/tag';
+import Tag from '@mattermost/design-system/src/components/primitives/tag';
 
 type RadioGroupProps = {
     id: string;
