@@ -1610,6 +1610,19 @@
         opacity: 0.73;
     }
 
+    .ai-generated-indicator {
+        display: inline-flex;
+        align-items: center;
+        margin-left: 8px;
+        color: inherit;
+        opacity: 0.73;
+
+        svg {
+            width: 14px;
+            height: 14px;
+        }
+    }
+
     .post__permalink {
         display: inline-block;
         color: inherit;

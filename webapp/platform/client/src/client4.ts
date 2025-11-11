@@ -5,7 +5,7 @@
 
 import type {AccessControlPolicy, CELExpressionError, AccessControlTestResult, AccessControlPoliciesResult, AccessControlPolicyChannelsResult, AccessControlVisualAST, AccessControlAttributes} from '@mattermost/types/access_control';
 import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery} from '@mattermost/types/admin';
-import type {AgentsResponse} from '@mattermost/types/agents';
+import type {Agent} from '@mattermost/types/agents';
 import type {AppBinding, AppCallRequest, AppCallResponse} from '@mattermost/types/apps';
 import type {Audit} from '@mattermost/types/audits';
 import type {UserAutocomplete, AutocompleteSuggestion} from '@mattermost/types/autocomplete';
@@ -3309,7 +3309,7 @@ export default class Client4 {
 
     // Agent Routes
     getAgents = () => {
-        return this.doFetch<AgentsResponse>(
+        return this.doFetch<Agent[]>(
             `${this.getAgentsRoute()}`,
             {method: 'get'},
         );
@@ -4334,6 +4334,13 @@ export default class Client4 {
             `${this.url}/plugins/${'com.mattermost.calls'}/${channelId}`,
             {method: 'get'},
         );
+    };
+
+    getAIRewrittenMessage = (agentId: string, message: string, action?: string, customPrompt?: string) => {
+        return this.doFetch<{rewritten_text: string; changes_made: string[]}>(
+            `${this.getPostsRoute()}/rewrite`,
+            {method: 'post', body: JSON.stringify({agent_id: agentId, message, action, custom_prompt: customPrompt})},
+        ).then((response) => response.rewritten_text);
     };
 
     // Client Helpers
