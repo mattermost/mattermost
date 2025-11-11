@@ -46,6 +46,9 @@ func (a *App) CreateOAuthApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppEr
 	if err != nil {
 		var appErr *model.AppError
 		var invErr *store.ErrInvalidInput
+
+		a.Log().Error("Error saving OAuth app", mlog.Err(err), mlog.String("name", app.Name))
+
 		switch {
 		case errors.As(err, &appErr):
 			return nil, appErr
@@ -87,6 +90,7 @@ func (a *App) UpdateOAuthApp(oldApp, updatedApp *model.OAuthApp) (*model.OAuthAp
 	updatedApp.CreatorId = oldApp.CreatorId
 	updatedApp.CreateAt = oldApp.CreateAt
 	updatedApp.ClientSecret = oldApp.ClientSecret
+	updatedApp.IsDynamicallyRegistered = oldApp.IsDynamicallyRegistered
 
 	oauthApp, err := a.Srv().Store().OAuth().UpdateApp(updatedApp)
 	if err != nil {
@@ -1039,6 +1043,37 @@ func (a *App) SwitchOAuthToEmail(rctx request.CTX, email, password, requesterId 
 
 func generateOAuthStateTokenExtra(email, action, cookie string) string {
 	return email + ":" + action + ":" + cookie
+}
+
+func (a *App) GetAuthorizationServerMetadata(rctx request.CTX) (*model.AuthorizationServerMetadata, *model.AppError) {
+	if !*a.Config().ServiceSettings.EnableOAuthServiceProvider {
+		return nil, model.NewAppError("GetAuthorizationServerMetadata", "api.oauth.authorization_server_metadata.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	siteURL := *a.Config().ServiceSettings.SiteURL
+	if siteURL == "" {
+		return nil, model.NewAppError("GetAuthorizationServerMetadata", "api.oauth.authorization_server_metadata.site_url_required.app_error", nil, "", http.StatusInternalServerError)
+	}
+
+	metadata, err := model.GetDefaultMetadata(siteURL)
+	if err != nil {
+		return nil, model.NewAppError("GetAuthorizationServerMetadata", "api.oauth.authorization_server_metadata.invalid_url.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if a.Config().ServiceSettings.EnableDynamicClientRegistration != nil && *a.Config().ServiceSettings.EnableDynamicClientRegistration {
+		metadata.RegistrationEndpoint, err = url.JoinPath(siteURL, model.OAuthAppsRegisterEndpoint)
+		if err != nil {
+			return nil, model.NewAppError("GetAuthorizationServerMetadata", "api.oauth.authorization_server_metadata.invalid_url.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	return metadata, nil
+}
+
+func (a *App) RegisterOAuthClient(rctx request.CTX, req *model.ClientRegistrationRequest, userID string) (*model.OAuthApp, *model.AppError) {
+	app := model.NewOAuthAppFromClientRegistration(req, userID)
+
+	return a.CreateOAuthApp(app)
 }
 
 // parseOAuthStateTokenExtra parses a token extra string in the format "email:action:cookie".
