@@ -2,7 +2,20 @@
 // See LICENSE.txt for license information.
 
 import {test} from '@mattermost/playwright-lib';
-import {createPost} from '../support';
+
+async function createPost(adminClient: any, userClient: any, team: any, user: any, message = '') {
+    const channels = await adminClient.getMyChannels(team.id);
+    const townSquare = channels.find((ch: any) => ch.name === 'town-square');
+    if (!townSquare) throw new Error('Town Square channel not found');
+
+    const post = await userClient.createPost({
+        channel_id: townSquare.id,
+        message,
+        user_id: user.id,
+    });
+
+    return {post, message, townSquare};
+}
 
 /**
  * Verify flagged post card details in the Content Review DM
