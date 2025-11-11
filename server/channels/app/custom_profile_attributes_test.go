@@ -64,6 +64,44 @@ func TestGetCPAField(t *testing.T) {
 		require.Equal(t, model.CustomProfileAttributesVisibilityHidden, fetchedField.Attrs["visibility"])
 	})
 
+	t.Run("should initialize default attrs when field has nil Attrs", func(t *testing.T) {
+		// Create a field with nil Attrs directly via property service (bypassing CPA validation)
+		field := &model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    "Field with nil attrs",
+			Type:    model.PropertyFieldTypeText,
+			Attrs:   nil,
+		}
+		createdField, err := th.App.Srv().propertyService.CreatePropertyField(field)
+		require.NoError(t, err)
+
+		// GetCPAField should initialize Attrs with defaults
+		fetchedField, appErr := th.App.GetCPAField(createdField.ID)
+		require.Nil(t, appErr)
+		require.NotNil(t, fetchedField.Attrs)
+		require.Equal(t, model.CustomProfileAttributesVisibilityDefault, fetchedField.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility])
+		require.Equal(t, float64(0), fetchedField.Attrs[model.CustomProfileAttributesPropertyAttrsSortOrder])
+	})
+
+	t.Run("should initialize default attrs when field has empty Attrs", func(t *testing.T) {
+		// Create a field with empty Attrs directly via property service
+		field := &model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    "Field with empty attrs",
+			Type:    model.PropertyFieldTypeText,
+			Attrs:   model.StringInterface{},
+		}
+		createdField, err := th.App.Srv().propertyService.CreatePropertyField(field)
+		require.NoError(t, err)
+
+		// GetCPAField should add missing default attrs
+		fetchedField, appErr := th.App.GetCPAField(createdField.ID)
+		require.Nil(t, appErr)
+		require.NotNil(t, fetchedField.Attrs)
+		require.Equal(t, model.CustomProfileAttributesVisibilityDefault, fetchedField.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility])
+		require.Equal(t, float64(0), fetchedField.Attrs[model.CustomProfileAttributesPropertyAttrsSortOrder])
+	})
+
 	t.Run("should validate LDAP/SAML synced fields", func(t *testing.T) {
 		// Create LDAP synced field
 		ldapField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
@@ -160,6 +198,42 @@ func TestListCPAFields(t *testing.T) {
 		require.Len(t, fields, 2)
 		require.Equal(t, "Field 3", fields[0].Name)
 		require.Equal(t, "Field 1", fields[1].Name)
+	})
+
+	t.Run("should initialize default attrs for fields with nil or empty Attrs", func(t *testing.T) {
+		// Create a field with nil Attrs
+		fieldWithNilAttrs := &model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    "Field with nil attrs",
+			Type:    model.PropertyFieldTypeText,
+			Attrs:   nil,
+		}
+		_, err := th.App.Srv().propertyService.CreatePropertyField(fieldWithNilAttrs)
+		require.NoError(t, err)
+
+		// Create a field with empty Attrs
+		fieldWithEmptyAttrs := &model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    "Field with empty attrs",
+			Type:    model.PropertyFieldTypeText,
+			Attrs:   model.StringInterface{},
+		}
+		_, err = th.App.Srv().propertyService.CreatePropertyField(fieldWithEmptyAttrs)
+		require.NoError(t, err)
+
+		// ListCPAFields should initialize Attrs with defaults
+		fields, appErr := th.App.ListCPAFields()
+		require.Nil(t, appErr)
+		require.NotEmpty(t, fields)
+
+		// Find our test fields and verify default attrs are set
+		for _, field := range fields {
+			if field.Name == "Field with nil attrs" || field.Name == "Field with empty attrs" {
+				require.NotNil(t, field.Attrs)
+				require.Equal(t, model.CustomProfileAttributesVisibilityDefault, field.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility])
+				require.Equal(t, float64(0), field.Attrs[model.CustomProfileAttributesPropertyAttrsSortOrder])
+			}
+		}
 	})
 }
 
@@ -583,7 +657,7 @@ func TestDeleteCPAField(t *testing.T) {
 	for i := range 3 {
 		newValue := &model.PropertyValue{
 			TargetID:   model.NewId(),
-			TargetType: "user",
+			TargetType: model.PropertyValueTargetTypeUser,
 			GroupID:    cpaGroupID,
 			FieldID:    createdField.ID,
 			Value:      json.RawMessage(fmt.Sprintf(`"Value %d"`, i)),
@@ -662,7 +736,7 @@ func TestGetCPAValue(t *testing.T) {
 	t.Run("should fail if the group id is invalid", func(t *testing.T) {
 		propertyValue := &model.PropertyValue{
 			TargetID:   model.NewId(),
-			TargetType: "user",
+			TargetType: model.PropertyValueTargetTypeUser,
 			GroupID:    model.NewId(),
 			FieldID:    fieldID,
 			Value:      json.RawMessage(`"Value"`),
@@ -678,7 +752,7 @@ func TestGetCPAValue(t *testing.T) {
 	t.Run("should succeed if id exists", func(t *testing.T) {
 		propertyValue := &model.PropertyValue{
 			TargetID:   model.NewId(),
-			TargetType: "user",
+			TargetType: model.PropertyValueTargetTypeUser,
 			GroupID:    cpaGroupID,
 			FieldID:    fieldID,
 			Value:      json.RawMessage(`"Value"`),
@@ -702,7 +776,7 @@ func TestGetCPAValue(t *testing.T) {
 
 		propertyValue := &model.PropertyValue{
 			TargetID:   model.NewId(),
-			TargetType: "user",
+			TargetType: model.PropertyValueTargetTypeUser,
 			GroupID:    cpaGroupID,
 			FieldID:    createdField.ID,
 			Value:      json.RawMessage(`["option1", "option2", "option3"]`),
@@ -751,7 +825,7 @@ func TestListCPAValues(t *testing.T) {
 
 			value := &model.PropertyValue{
 				TargetID:   userID,
-				TargetType: "user",
+				TargetType: model.PropertyValueTargetTypeUser,
 				GroupID:    cpaGroupID,
 				FieldID:    field.ID,
 				Value:      json.RawMessage(fmt.Sprintf(`"Value %d"`, i)),

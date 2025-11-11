@@ -6,7 +6,8 @@ import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {PropertyValue} from '@mattermost/types/properties';
 
-import {useTeam} from 'components/common/hooks/use_team';
+import {usePropertyCardViewTeamLoader} from 'components/common/hooks/usePropertyCardViewTeamLoader';
+import type {TeamFieldMetadata} from 'components/properties_card_view/properties_card_view';
 import {TeamIcon} from 'components/widgets/team_icon/team_icon';
 
 import {imageURLForTeam} from 'utils/utils';
@@ -15,13 +16,13 @@ import './team_property_renderer.scss';
 
 type Props = {
     value: PropertyValue<unknown>;
+    metadata?: TeamFieldMetadata;
 }
 
-export default function TeamPropertyRenderer({value}: Props) {
+export default function TeamPropertyRenderer({value, metadata}: Props) {
     const intl = useIntl();
-
     const teamId = value.value as string;
-    const team = useTeam(teamId);
+    const team = usePropertyCardViewTeamLoader(teamId, metadata?.getTeam);
 
     return (
         <div

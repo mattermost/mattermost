@@ -57,13 +57,6 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 		hasManageSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 
 		if !hasManageSystemPermission {
-			// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this check when feature is GA
-			if !c.App.Config().FeatureFlags.ChannelAdminManageABACRules {
-				c.Err = model.NewAppError("createAccessControlPolicy", "api.not_implemented", nil, "", http.StatusNotImplemented)
-				return
-			}
-			// END FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules
-
 			// For non-system admins, check channel-specific permission
 			if !model.IsValidId(policy.ID) {
 				c.SetInvalidParam("policy.id")
@@ -121,13 +114,6 @@ func getAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 	// Check if user has system admin permission OR channel-specific permission
 	hasManageSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 	if !hasManageSystemPermission {
-		// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this check when feature is GA
-		if !c.App.Config().FeatureFlags.ChannelAdminManageABACRules {
-			c.Err = model.NewAppError("getAccessControlPolicy", "api.not_implemented", nil, "", http.StatusNotImplemented)
-			return
-		}
-		// END FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules
-
 		// For non-system admins, validate policy access permission (read-only access for GET requests)
 		if appErr := c.App.ValidateAccessControlPolicyPermissionWithChannelContext(c.AppContext, c.AppContext.Session().UserId, policyID, true, channelID); appErr != nil {
 			c.SetPermissionError(model.PermissionManageSystem)
@@ -166,13 +152,6 @@ func deleteAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 	// Check if user has system admin permission OR channel-specific permission
 	hasManageSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 	if !hasManageSystemPermission {
-		// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this check when feature is GA
-		if !c.App.Config().FeatureFlags.ChannelAdminManageABACRules {
-			c.Err = model.NewAppError("deleteAccessControlPolicy", "api.not_implemented", nil, "", http.StatusNotImplemented)
-			return
-		}
-		// END FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules
-
 		// For non-system admins, validate policy access permission
 		if appErr := c.App.ValidateAccessControlPolicyPermission(c.AppContext, c.AppContext.Session().UserId, policyID); appErr != nil {
 			c.SetPermissionError(model.PermissionManageSystem)
@@ -213,12 +192,6 @@ func checkExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 		// For channel admins, channelId is required
 		if channelId == "" {
 			c.SetPermissionError(model.PermissionManageSystem)
-			return
-		}
-
-		// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this check when feature is GA
-		if !c.App.Config().FeatureFlags.ChannelAdminManageABACRules {
-			c.Err = model.NewAppError("checkExpression", "api.not_implemented", nil, "", http.StatusNotImplemented)
 			return
 		}
 
@@ -267,12 +240,6 @@ func testExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 		// For channel admins, channelId is required
 		if channelId == "" {
 			c.SetPermissionError(model.PermissionManageSystem)
-			return
-		}
-
-		// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this check when feature is GA
-		if !c.App.Config().FeatureFlags.ChannelAdminManageABACRules {
-			c.Err = model.NewAppError("testExpression", "api.not_implemented", nil, "", http.StatusNotImplemented)
 			return
 		}
 
@@ -352,12 +319,6 @@ func validateExpressionAgainstRequester(c *Context, w http.ResponseWriter, r *ht
 			return
 		}
 
-		// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this check when feature is GA
-		if !c.App.Config().FeatureFlags.ChannelAdminManageABACRules {
-			c.Err = model.NewAppError("validateExpressionAgainstRequester", "api.not_implemented", nil, "", http.StatusNotImplemented)
-			return
-		}
-
 		// SECURE: Check specific channel permission
 		hasChannelPermission := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
 		if !hasChannelPermission {
@@ -431,13 +392,6 @@ func updateActiveStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Check if user has system admin permission OR channel-specific permission for this policy
 	hasManageSystemPermission := c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem)
 	if !hasManageSystemPermission {
-		// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this check when feature is GA
-		if !c.App.Config().FeatureFlags.ChannelAdminManageABACRules {
-			c.Err = model.NewAppError("updateActiveStatus", "api.not_implemented", nil, "", http.StatusNotImplemented)
-			return
-		}
-		// END FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules
-
 		// For non-system admins, validate policy access permission
 		if appErr := c.App.ValidateAccessControlPolicyPermission(c.AppContext, c.AppContext.Session().UserId, policyID); appErr != nil {
 			c.SetPermissionError(model.PermissionManageSystem)
@@ -669,12 +623,6 @@ func getFieldsAutocomplete(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this check when feature is GA
-		if !c.App.Config().FeatureFlags.ChannelAdminManageABACRules {
-			c.Err = model.NewAppError("getFieldsAutocomplete", "api.not_implemented", nil, "", http.StatusNotImplemented)
-			return
-		}
-
 		// SECURE: Check specific channel permission
 		hasChannelPermission := c.App.HasPermissionToChannel(c.AppContext, c.AppContext.Session().UserId, channelId, model.PermissionManageChannelAccessRules)
 		if !hasChannelPermission {
@@ -746,12 +694,6 @@ func convertToVisualAST(c *Context, w http.ResponseWriter, r *http.Request) {
 		// For channel admins, channelId is required
 		if channelId == "" {
 			c.SetPermissionError(model.PermissionManageSystem)
-			return
-		}
-
-		// FEATURE_FLAG_REMOVAL: ChannelAdminManageABACRules - Remove this check when feature is GA
-		if !c.App.Config().FeatureFlags.ChannelAdminManageABACRules {
-			c.Err = model.NewAppError("convertToVisualAST", "api.not_implemented", nil, "", http.StatusNotImplemented)
 			return
 		}
 

@@ -135,7 +135,7 @@ export const UpdateConfirmationModal = ({show, name, version, installedVersion, 
                     defaultMessage='You currently have {installedVersion} installed. View the <a>release notes</a> to learn about the changes included in this update.'
                     values={{
                         installedVersion,
-                        a: (chunks: string) => (
+                        a: (chunks) => (
                             <ExternalLink
                                 href={releaseNotesUrl as string}
                                 location='plugin-marketplace'
@@ -177,7 +177,7 @@ export const UpdateConfirmationModal = ({show, name, version, installedVersion, 
                         id='marketplace_modal.list.update_confirmation.message.warning_major_version_with_release_notes'
                         defaultMessage='This update may contain breaking changes. Consult the <a>release notes</a> before upgrading.'
                         values={{
-                            a: (chunks: string) => (
+                            a: (chunks) => (
                                 <ExternalLink
                                     href={releaseNotesUrl as string}
                                     location='plugin-marketplace'

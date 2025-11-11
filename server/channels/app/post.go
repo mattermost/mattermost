@@ -52,6 +52,15 @@ func (a *App) CreatePostAsUser(rctx request.CTX, post *model.Post, currentSessio
 		return nil, err
 	}
 
+	restrictDM, err := a.CheckIfChannelIsRestrictedDM(rctx, channel)
+	if err != nil {
+		return nil, err
+	}
+
+	if restrictDM {
+		return nil, model.NewAppError("createPost", "api.post.create_post.can_not_post_in_restricted_dm.error", nil, "", http.StatusBadRequest)
+	}
+
 	rp, err := a.CreatePost(rctx, post, channel, model.CreatePostFlags{TriggerWebhooks: true, SetOnline: setOnline})
 	if err != nil {
 		if err.Id == "api.post.create_post.root_id.app_error" ||
@@ -372,7 +381,7 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 	// to be done when we send the post over the websocket in handlePostEvents
 	// PS: we don't want to include PostPriority from the db to avoid the replica lag,
 	// so we just return the one that was passed with post
-	rpost = a.PreparePostForClient(rctx, rpost, true, false, false)
+	rpost = a.PreparePostForClient(rctx, rpost, &model.PreparePostForClientOpts{IsEditPost: true})
 
 	a.applyPostWillBeConsumedHook(&rpost)
 
@@ -506,6 +515,24 @@ func (a *App) FillInPostProps(rctx request.CTX, post *model.Post, channel *model
 		post.AddProp(model.PostPropsGroupHighlightDisabled, true)
 	}
 
+	// Populate AI-generated username from provided user ID
+	if aiGenUserID, ok := post.GetProp(model.PostPropsAIGeneratedByUserID).(string); ok && aiGenUserID != "" {
+		user, err := a.GetUser(aiGenUserID)
+		if err != nil {
+			// If user doesn't exist, remove the ai_generated_by prop to avoid storing invalid data
+			rctx.Logger().Warn("Failed to get user for AI-generated post, removing ai_generated_by prop", mlog.String("user_id", aiGenUserID), mlog.Err(err))
+			post.DelProp(model.PostPropsAIGeneratedByUserID)
+		} else {
+			// Only allow AI-generated username if the user is the post creator or a bot
+			if user.Id == post.UserId || user.IsBot {
+				post.AddProp(model.PostPropsAIGeneratedByUsername, user.Username)
+			} else {
+				// User ID cannot be a different non-bot user - return error
+				return model.NewAppError("FillInPostProps", "api.post.fill_in_post_props.invalid_ai_generated_user.app_error", nil, "", http.StatusBadRequest)
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -575,7 +602,7 @@ func (a *App) SendEphemeralPost(rctx request.CTX, userID string, post *model.Pos
 
 	post.GenerateActionIds()
 	message := model.NewWebSocketEvent(model.WebsocketEventEphemeralMessage, "", post.ChannelId, userID, nil, "")
-	post = a.PreparePostForClientWithEmbedsAndImages(rctx, post, true, false, true)
+	post = a.PreparePostForClientWithEmbedsAndImages(rctx, post, &model.PreparePostForClientOpts{IsNewPost: true, IncludePriority: true})
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
 
 	sanitizedPost, appErr := a.SanitizePostMetadataForUser(rctx, post, userID)
@@ -609,7 +636,7 @@ func (a *App) UpdateEphemeralPost(rctx request.CTX, userID string, post *model.P
 
 	post.GenerateActionIds()
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", post.ChannelId, userID, nil, "")
-	post = a.PreparePostForClientWithEmbedsAndImages(rctx, post, true, false, true)
+	post = a.PreparePostForClientWithEmbedsAndImages(rctx, post, &model.PreparePostForClientOpts{IsNewPost: true, IncludePriority: true})
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
 
 	sanitizedPost, appErr := a.SanitizePostMetadataForUser(rctx, post, userID)
@@ -698,6 +725,16 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 		return nil, model.NewAppError("UpdatePost", "api.post.update_post.can_not_update_post_in_deleted.error", nil, "", http.StatusBadRequest)
 	}
 
+	restrictDM, err := a.CheckIfChannelIsRestrictedDM(rctx, channel)
+	if err != nil {
+		return nil, err
+	}
+
+	if restrictDM {
+		err := model.NewAppError("UpdatePost", "api.post.update_post.can_not_update_post_in_restricted_dm.error", nil, "", http.StatusBadRequest)
+		return nil, err
+	}
+
 	newPost := oldPost.Clone()
 
 	if newPost.Message != receivedUpdatedPost.Message {
@@ -769,7 +806,7 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 		}, plugin.MessageHasBeenUpdatedID)
 	})
 
-	rpost = a.PreparePostForClientWithEmbedsAndImages(rctx, rpost, false, true, true)
+	rpost = a.PreparePostForClientWithEmbedsAndImages(rctx, rpost, &model.PreparePostForClientOpts{IsEditPost: true, IncludePriority: true})
 
 	// Ensure IsFollowing is nil since this updated post will be broadcast to all users
 	// and we don't want to have to populate it for every single user and broadcast to each
@@ -938,6 +975,15 @@ func (a *App) PatchPost(rctx request.CTX, postID string, patch *model.PostPatch,
 	if channel.DeleteAt != 0 {
 		err = model.NewAppError("PatchPost", "api.post.patch_post.can_not_update_post_in_deleted.error", nil, "", http.StatusBadRequest)
 		return nil, err
+	}
+
+	restrictDM, err := a.CheckIfChannelIsRestrictedDM(rctx, channel)
+	if err != nil {
+		return nil, err
+	}
+
+	if restrictDM {
+		return nil, model.NewAppError("PatchPost", "api.post.patch_post.can_not_update_post_in_restricted_dm.error", nil, "", http.StatusBadRequest)
 	}
 
 	if !a.HasPermissionToChannel(rctx, post.UserId, post.ChannelId, model.PermissionUseChannelMentions) {
@@ -1421,6 +1467,16 @@ func (a *App) DeletePost(rctx request.CTX, postID, deleteByID string) (*model.Po
 
 	if channel.DeleteAt != 0 {
 		return nil, model.NewAppError("DeletePost", "api.post.delete_post.can_not_delete_post_in_deleted.error", nil, "", http.StatusBadRequest)
+	}
+
+	restrictDM, appErr := a.CheckIfChannelIsRestrictedDM(rctx, channel)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if restrictDM {
+		err := model.NewAppError("DeletePost", "api.post.delete_post.can_not_delete_from_restricted_dm.error", nil, "", http.StatusBadRequest)
+		return nil, err
 	}
 
 	err = a.Srv().Store().Post().Delete(rctx, postID, model.GetMillis(), deleteByID)
@@ -2192,7 +2248,7 @@ func (a *App) SetPostReminder(rctx request.CTX, postID, userID string, targetTim
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventEphemeralMessage, "", ephemeralPost.ChannelId, userID, nil, "")
-	ephemeralPost = a.PreparePostForClientWithEmbedsAndImages(rctx, ephemeralPost, true, false, true)
+	ephemeralPost = a.PreparePostForClientWithEmbedsAndImages(rctx, ephemeralPost, &model.PreparePostForClientOpts{IsNewPost: true, IncludePriority: true})
 	ephemeralPost = model.AddPostActionCookies(ephemeralPost, a.PostActionCookieSecret())
 
 	postJSON, jsonErr := ephemeralPost.ToJSON()
