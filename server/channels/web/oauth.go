@@ -182,8 +182,7 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// Validate PKCE requirements for public clients using authorization code flow
 	// Implicit flow doesn't require PKCE as it doesn't use code exchange
-	isPublicClient := oauthApp.ClientSecret == ""
-	if isPublicClient && authRequest.ResponseType == model.AuthCodeResponseType && authRequest.CodeChallenge == "" {
+	if oauthApp.IsPublicClient() && authRequest.ResponseType == model.AuthCodeResponseType && authRequest.CodeChallenge == "" {
 		err := model.NewAppError("authorizeOAuthPage", "api.oauth.allow_oauth.pkce_required_public.app_error", nil, "", http.StatusBadRequest)
 		utils.RenderWebError(c.App.Config(), w, r, err.StatusCode,
 			url.Values{

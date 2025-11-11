@@ -234,7 +234,7 @@ func (a *App) AllowOAuthAppAccessToUser(rctx request.CTX, userID string, authReq
 	}
 
 	// Validate PKCE requirements for public clients
-	if oauthApp.IsPublicClient() && authRequest.CodeChallenge == "" {
+	if oauthApp.IsPublicClient() && authRequest.ResponseType == model.AuthCodeResponseType && authRequest.CodeChallenge == "" {
 		return "", model.NewAppError("AllowOAuthAppAccessToUser", "api.oauth.allow_oauth.pkce_required_public.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -292,12 +292,8 @@ func (a *App) GetOAuthAccessTokenForImplicitFlow(rctx request.CTX, userID string
 
 	accessData := &model.AccessData{ClientId: authRequest.ClientId, UserId: user.Id, Token: session.Token, RefreshToken: "", RedirectUri: authRequest.RedirectURI, ExpiresAt: session.ExpiresAt, Scope: authRequest.Scope}
 
-	// For implicit flow, we only save access data for confidential clients
-	// Public clients receive the token directly in the redirect URL fragment
-	if !oauthApp.IsPublicClient() {
-		if _, err := a.Srv().Store().OAuth().SaveAccessData(accessData); err != nil {
-			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
+	if _, err := a.Srv().Store().OAuth().SaveAccessData(accessData); err != nil {
+		return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return session, nil
