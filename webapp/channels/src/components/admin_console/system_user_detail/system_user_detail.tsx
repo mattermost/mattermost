@@ -387,28 +387,31 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         });
     };
     hasCpaChanges = (): boolean => {
-        const {customProfileAttributeValues, originalCpaValues} = this.state;
+        return Object.keys(this.getChangedCpaFields()).length > 0
+    };
 
-        // Check if any CPA value has changed
-        const currentFields = new Set([...Object.keys(customProfileAttributeValues), ...Object.keys(originalCpaValues)]);
+    getChangedCpaFields = (): Record<string, string | string[]>=> {
+        let res: Record<string, string | string[]> ={};
+        const {customProfileAttributeFields} = this.props;
+        for (const field of customProfileAttributeFields) {
+            const currentValue = this.state.customProfileAttributeValues[field.id];
+            const originalValue = this.state.originalCpaValues[field.id];
 
-        for (const fieldId of currentFields) {
-            const currentValue = customProfileAttributeValues[fieldId];
-            const originalValue = originalCpaValues[fieldId];
-
-            // Handle array comparison for multiselect fields
+            // Check if this field value has changed
+            let hasChanged = false;
             if (Array.isArray(currentValue) && Array.isArray(originalValue)) {
-                if (currentValue.length !== originalValue.length ||
-                    currentValue.some((val, idx) => val !== originalValue[idx])) {
-                    return true;
-                }
-            } else if (currentValue !== originalValue) {
-                return true;
+                hasChanged = currentValue.length !== originalValue.length ||
+                            currentValue.some((val, idx) => val !== originalValue[idx]);
+            } else {
+                hasChanged = currentValue !== originalValue;
+            }
+
+            if (hasChanged) {
+                res[field.id] = currentValue || '';
             }
         }
-
-        return false;
-    };
+        return res;
+    }
 
     renderCpaField = (field: UserPropertyField) => {
         const value = this.state.customProfileAttributeValues[field.id] || '';
@@ -676,7 +679,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                         aria-describedby='authdata-error'
                         aria-invalid={this.state.authDataError ? 'true' : 'false'}
                     />
-                    {this.state.usernameError && (
+                    {this.state.authDataError && (
                         <div
                             id='authdata-error'
                             className='field-error'
@@ -724,6 +727,100 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         );
     };
 
+    renderConfirmModal = () => {
+
+        const fields: Array<React.ReactNode | null> = [];
+
+        if (this.state.user && this.state.usernameField !== this.state.user.username) {
+            fields.push(
+                <FormattedMessage
+                    id='admin.userDetail.saveChangesModal.usernameChange'
+                    defaultMessage='Username: {oldUsername} → {newUsername}'
+                    values={{
+                        oldUsername: this.state.user.username,
+                        newUsername: this.state.usernameField,
+                    }}
+                />
+            )
+        }
+
+        if (this.state.user && this.state.emailField !== this.state.user.email) {
+            fields.push(
+                <FormattedMessage
+                    id='admin.userDetail.saveChangesModal.emailChange'
+                    defaultMessage='Email: {oldEmail} → {newEmail}'
+                    values={{
+                        oldEmail: this.state.user.email,
+                        newEmail: this.state.emailField,
+                    }}
+                />
+            )
+        }
+
+        if (this.state.user && this.state.authDataField !== (this.state.user.auth_data || '')) {
+            fields.push(
+                <FormattedMessage
+                    id='admin.userDetail.saveChangesModal.authDataChange'
+                    defaultMessage='Auth Data: {oldAuthData} → {newAuthData}'
+                    values={{
+                        oldAuthData: this.state.user.auth_data || '(empty)',
+                        newAuthData: this.state.authDataField || '(empty)',
+                    }}
+                />
+            )
+        }
+
+        for (const changes of Object.entries(this.getChangedCpaFields())) {
+            const fieldId = changes[0];
+
+            for (const field of this.props.customProfileAttributeFields) {
+                if (field.id == fieldId) {
+                    const fieldName = field.name;
+                    const originalValue = this.state.originalCpaValues[fieldId];
+                    const newValue = changes[1];
+                    fields.push(
+                        <FormattedMessage
+                            id='admin.userDetail.saveChangesModal.authDataChange'
+                            defaultMessage='{fieldName}: {oldValue} → {newValue}'
+                            values={{
+                                fieldName,
+                                oldValue: originalValue || '(empty)',
+                                newValue: newValue || '(empty)',
+                            }}
+                        />
+                    )
+                }
+            }
+           
+        }
+
+        return (
+             <div>
+                <FormattedMessage
+                    id='admin.userDetail.saveChangesModal.message'
+                    defaultMessage='You are about to save the following changes to {username}:'
+                    values={{
+                        username: this.state.user?.username ?? '',
+                    }}
+                />
+                <ul className='changes-list'>
+                    {fields.map((field) => {
+                        return (
+                            <li>
+                                {field}
+                            </li>
+                        )
+                    })}
+                </ul>
+                <FormattedMessage
+                    id='admin.userDetail.saveChangesModal.warning'
+                    defaultMessage='Are you sure you want to proceed with these changes?'
+                />
+            </div>
+        )
+    }
+
+
     handleCancel = () => {
         // Reset all fields to original values
         this.setState({
@@ -743,15 +840,11 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         }
 
         // Check for validation errors before proceeding
-        if (this.state.emailError || this.state.usernameError) {
+        if (this.state.usernameError || this.state.emailError || this.state.authDataError) {
             return;
         }
 
-        const emailChanged = !this.state.user.auth_service && this.state.user.email !== this.state.emailField;
-        const usernameChanged = !this.state.user.auth_service && this.state.user.username !== this.state.usernameField;
-        const authDataChanged = (this.state.user.auth_data || '') !== this.state.authDataField;
-
-        if (!emailChanged && !usernameChanged && !authDataChanged) {
+        if (!this.state.isSaveNeeded) {
             return;
         }
 
@@ -833,24 +926,8 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
             // Update CPA values if changed
             if (cpaChanged) {
-                // Get only changed CPA values and save each one using Redux action
-                const {customProfileAttributeFields} = this.props;
-                for (const field of customProfileAttributeFields) {
-                    const currentValue = this.state.customProfileAttributeValues[field.id];
-                    const originalValue = this.state.originalCpaValues[field.id];
-
-                    // Check if this field value has changed
-                    let hasChanged = false;
-                    if (Array.isArray(currentValue) && Array.isArray(originalValue)) {
-                        hasChanged = currentValue.length !== originalValue.length ||
-                                   currentValue.some((val, idx) => val !== originalValue[idx]);
-                    } else {
-                        hasChanged = currentValue !== originalValue;
-                    }
-
-                    if (hasChanged) {
-                        promises.push(this.props.saveCustomProfileAttribute(this.state.user!.id, field.id, currentValue || ''));
-                    }
+                for (const changes of Object.entries(this.getChangedCpaFields())) {
+                    promises.push(this.props.saveCustomProfileAttribute(this.state.user!.id, changes[0], changes[1] || ''));
                 }
             }
 
@@ -1285,57 +1362,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                         />
                     }
                     message={
-                        <div>
-                            <FormattedMessage
-                                id='admin.userDetail.saveChangesModal.message'
-                                defaultMessage='You are about to save the following changes to {username}:'
-                                values={{
-                                    username: this.state.user?.username ?? '',
-                                }}
-                            />
-                            <ul className='changes-list'>
-                                {this.state.user && !this.state.user.auth_service && this.state.emailField !== this.state.user.email && (
-                                    <li>
-                                        <FormattedMessage
-                                            id='admin.userDetail.saveChangesModal.emailChange'
-                                            defaultMessage='Email: {oldEmail} → {newEmail}'
-                                            values={{
-                                                oldEmail: this.state.user.email,
-                                                newEmail: this.state.emailField,
-                                            }}
-                                        />
-                                    </li>
-                                )}
-                                {this.state.user && !this.state.user.auth_service && this.state.usernameField !== this.state.user.username && (
-                                    <li>
-                                        <FormattedMessage
-                                            id='admin.userDetail.saveChangesModal.usernameChange'
-                                            defaultMessage='Username: {oldUsername} → {newUsername}'
-                                            values={{
-                                                oldUsername: this.state.user.username,
-                                                newUsername: this.state.usernameField,
-                                            }}
-                                        />
-                                    </li>
-                                )}
-                                {this.state.user && this.state.authDataField !== (this.state.user.auth_data || '') && (
-                                    <li>
-                                        <FormattedMessage
-                                            id='admin.userDetail.saveChangesModal.authDataChange'
-                                            defaultMessage='Auth Data: {oldAuthData} → {newAuthData}'
-                                            values={{
-                                                oldAuthData: this.state.user.auth_data || '(empty)',
-                                                newAuthData: this.state.authDataField || '(empty)',
-                                            }}
-                                        />
-                                    </li>
-                                )}
-                            </ul>
-                            <FormattedMessage
-                                id='admin.userDetail.saveChangesModal.warning'
-                                defaultMessage='Are you sure you want to proceed with these changes?'
-                            />
-                        </div>
+                       this.renderConfirmModal()
                     }
                     confirmButtonClass='btn btn-primary'
                     confirmButtonText={
