@@ -36,6 +36,17 @@ type OAuthApp struct {
 	IsDynamicallyRegistered bool `json:"is_dynamically_registered,omitempty"`
 }
 
+// OAuthAppRequest represents the request body for creating an OAuth app
+type OAuthAppRequest struct {
+	Name         string      `json:"name"`
+	Description  string      `json:"description"`
+	IconURL      string      `json:"icon_url"`
+	CallbackUrls StringArray `json:"callback_urls"`
+	Homepage     string      `json:"homepage"`
+	IsTrusted    bool        `json:"is_trusted"`
+	IsPublic     bool        `json:"is_public"`
+}
+
 func (a *OAuthApp) Auditable() map[string]any {
 	return map[string]any{
 		"id":                         a.Id,

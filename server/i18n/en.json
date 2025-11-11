@@ -2581,6 +2581,10 @@
     "translation": "Redirecting you back to the app."
   },
   {
+    "id": "api.oauth.regenerate_secret.public_client.app_error",
+    "translation": "invalid_request: Cannot regenerate secret for public OAuth clients."
+  },
+  {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
     "translation": "The system admin has turned off OAuth2 Service Provider."
   },
