@@ -4,7 +4,7 @@
 .PageContextMenu {
     position: fixed;
     z-index: 1000;
-    min-width: 200px;
+    min-width: 216px;
     padding: 8px 0;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
     border-radius: 4px;
@@ -38,6 +38,7 @@
         width: 20px;
         height: 20px;
         flex-shrink: 0;
+        color: rgba(var(--center-channel-color-rgb), 0.64);
     }
 
     span {
