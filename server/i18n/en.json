@@ -4348,7 +4348,7 @@
   },
   {
     "id": "api.user.login.guest_magic_link.disabled.error",
-    "translation": ""
+    "translation": "Login with magic link is disabled."
   },
   {
     "id": "api.user.login.inactive.app_error",
