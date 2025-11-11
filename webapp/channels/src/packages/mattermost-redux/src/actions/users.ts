@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+/* eslint-disable max-lines */
+
 import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
@@ -11,7 +13,7 @@ import type {UserProfile, UserStatus, GetFilteredUsersStatsOpts, UsersStats, Use
 
 import {UserTypes, AdminTypes} from 'mattermost-redux/action_types';
 import {logError} from 'mattermost-redux/actions/errors';
-import {setServerVersion, getClientConfig, getLicenseConfig, getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
+import {setServerVersion, getClientConfig, getLicenseConfig} from 'mattermost-redux/actions/general';
 import {bindClientFunc, forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {getServerLimits} from 'mattermost-redux/actions/limits';
 import {getMyPreferences} from 'mattermost-redux/actions/preferences';
@@ -20,7 +22,7 @@ import {getMyTeams, getMyTeamMembers, getMyTeamUnreads} from 'mattermost-redux/a
 import {Client4} from 'mattermost-redux/client';
 import {General} from 'mattermost-redux/constants';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
-import {getServerVersion, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
+import {getServerVersion} from 'mattermost-redux/selectors/entities/general';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId, getUser as selectUser, getUsers, getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
 import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
@@ -80,10 +82,6 @@ export function loadMe(): ActionFuncAsync<boolean> {
                 dispatch(getMyTeams()),
                 dispatch(getMyTeamMembers()),
             ]);
-
-            if (getFeatureFlagValue(getState(), 'CustomProfileAttributes') === 'true') {
-                dispatch(getCustomProfileAttributeFields());
-            }
 
             const isCollapsedThreads = isCollapsedThreadsEnabled(getState());
             await dispatch(getMyTeamUnreads(isCollapsedThreads));
@@ -646,6 +644,19 @@ export function getUserByEmail(email: string) {
     });
 }
 
+export function canUserDirectMessage(userId: string, otherUserId: string): ActionFuncAsync<{can_dm: boolean}> {
+    return async (dispatch, getState) => {
+        try {
+            const result = await Client4.canUserDirectMessage(userId, otherUserId);
+            return {data: result};
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+    };
+}
+
 export function getStatusesByIds(userIds: Array<UserProfile['id']>): ActionFuncAsync<UserStatus[]> {
     return async (dispatch, getState) => {
         if (!userIds || userIds.length === 0) {
@@ -996,11 +1007,23 @@ export function saveCustomProfileAttribute(userID: string, attributeID: string, 
     return async (dispatch) => {
         try {
             const values = {[attributeID]: attributeValue || ''};
-            const data = await Client4.updateCustomProfileAttributeValues(values);
+
+            const data = await Client4.updateUserCustomProfileAttributesValues(userID, values);
             return {data};
         } catch (error) {
-            dispatch(logError(error));
-            return {error};
+            // Extract user-friendly error message from server response
+            let errorMessage = 'Failed to update custom profile attribute';
+            if (error && typeof error === 'object' && 'message' in error && error.message) {
+                errorMessage = error.message;
+            }
+
+            const serverError = {
+                ...error,
+                message: errorMessage,
+            };
+
+            dispatch(logError(serverError));
+            return {error: serverError};
         }
     };
 }

@@ -6,7 +6,7 @@ import {Provider} from 'react-redux';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
-import {CloudProducts} from 'utils/constants';
+import {DataSearchTypes} from 'utils/constants';
 import {FileSizes} from 'utils/file_utils';
 import {makeEmptyUsage} from 'utils/limits_test';
 
@@ -37,35 +37,13 @@ const limits = {
     },
 };
 
-const products = {
-    prod_1: {
-        id: 'prod_1',
-        sku: CloudProducts.STARTER,
-        price_per_seat: 0,
-        name: 'Cloud Free',
-    },
-    prod_2: {
-        id: 'prod_2',
-        sku: CloudProducts.PROFESSIONAL,
-        price_per_seat: 10,
-        name: 'Cloud Professional',
-    },
-    prod_3: {
-        id: 'prod_3',
-        sku: CloudProducts.ENTERPRISE,
-        price_per_seat: 30,
-        name: 'Cloud Enterprise',
-    },
-};
-
 describe('components/select_results/SearchLimitsBanner', () => {
-    test('should NOT show banner for non cloud when doing messages search', () => {
+    test('should NOT show banner for no limits when doing messages search', () => {
         const state = {
             entities: {
                 general: {
                     license: {
                         IsLicensed: 'true',
-                        Cloud: 'false', // not cloud
                     },
                 },
                 users: {
@@ -74,124 +52,32 @@ describe('components/select_results/SearchLimitsBanner', () => {
                         uid: {},
                     },
                 },
-                cloud: {
-                    limits: {
-                        limits: {},
-                        limitsLoaded: false,
-                    },
+                limits: {
+                    serverLimits: undefined,
+                },
+                search: {
+                    results: [],
+                    flagged: [],
+                    isSearchingTerm: false,
+                    isSearchGettingMore: false,
+                    matches: {},
+                    recent: {},
+                    current: {},
+                    truncationInfo: undefined,
                 },
                 usage,
+            },
+            views: {
+                rhs: {
+                    rhsState: null, // No RHS state
+                },
             },
         };
         const store = mockStore(state);
         const wrapper = mountWithIntl(<Provider store={store}><SearchLimitsBanner searchType='messages'/></Provider>);
         expect(wrapper.find('#messages_search_limits_banner').exists()).toEqual(false);
     });
-
-    test('should NOT show banner for non cloud when doing files search', () => {
-        const state = {
-            entities: {
-                general: {
-                    license: {
-                        IsLicensed: 'true',
-                        Cloud: 'false', // not cloud
-                    },
-                },
-                users: {
-                    currentUserId: 'uid',
-                    profiles: {
-                        uid: {},
-                    },
-                },
-                cloud: {
-                    limits: {
-                        limits: {},
-                        limitsLoaded: false,
-                    },
-                },
-                usage,
-            },
-        };
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(<Provider store={store}><SearchLimitsBanner searchType='files'/></Provider>);
-        expect(wrapper.find('#files_search_limits_banner').exists()).toEqual(false);
-    });
-
-    test('should NOT show banner for cloud when doing cloud messages search for product without limits', () => {
-        const aboveMessagesLimitUsage = JSON.parse(JSON.stringify(usage));
-        aboveMessagesLimitUsage.messages.history = 15000; // above limit of 10k
-
-        const state = {
-            entities: {
-                general: {
-                    license: {
-                        IsLicensed: 'true',
-                        Cloud: 'true',
-                    },
-                },
-                users: {
-                    currentUserId: 'uid',
-                    profiles: {
-                        uid: {},
-                    },
-                },
-                cloud: {
-                    subscription: {
-                        is_free_trial: 'false',
-                        product_id: 'prod_3', // enterprise
-                    },
-                    products,
-                    limits: {
-                        limits: {},
-                        limitsLoaded: false,
-                    },
-                },
-                usage: aboveMessagesLimitUsage,
-            },
-        };
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(<Provider store={store}><SearchLimitsBanner searchType='messages'/></Provider>);
-        expect(wrapper.find('#messages_search_limits_banner').exists()).toEqual(false);
-    });
-
-    test('should NOT show banner for cloud when doing cloud files search for product without limits', () => {
-        const aboveMessagesLimitUsage = JSON.parse(JSON.stringify(usage));
-        aboveMessagesLimitUsage.messages.history = 15000; // above limit of 10k
-
-        const state = {
-            entities: {
-                general: {
-                    license: {
-                        IsLicensed: 'true',
-                        Cloud: 'true',
-                    },
-                },
-                users: {
-                    currentUserId: 'uid',
-                    profiles: {
-                        uid: {},
-                    },
-                },
-                cloud: {
-                    subscription: {
-                        is_free_trial: 'false',
-                        product_id: 'prod_3', // enterprise
-                    },
-                    products,
-                    limits: {
-                        limits: {},
-                        limitsLoaded: false,
-                    },
-                },
-                usage: aboveMessagesLimitUsage,
-            },
-        };
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(<Provider store={store}><SearchLimitsBanner searchType='files'/></Provider>);
-        expect(wrapper.find('#files_search_limits_banner').exists()).toEqual(false);
-    });
-
-    test('should show banner for CLOUD when doing cloud messages search above the limit in Free product', () => {
+    test('should show banner when doing messages search above the limit in Entry with limits', () => {
         const aboveMessagesLimitUsage = JSON.parse(JSON.stringify(usage));
         aboveMessagesLimitUsage.messages.history = 15000; // above limit of 10K
 
@@ -200,7 +86,6 @@ describe('components/select_results/SearchLimitsBanner', () => {
                 general: {
                     license: {
                         IsLicensed: 'true',
-                        Cloud: 'true', // cloud
                     },
                 },
                 users: {
@@ -214,10 +99,32 @@ describe('components/select_results/SearchLimitsBanner', () => {
                         is_free_trial: 'true',
                         product_id: 'prod_1', // free
                     },
-                    products,
                     limits,
                 },
+                limits: {
+                    serverLimits: {
+                        postHistoryLimit: 10000,
+                    },
+                },
                 usage: aboveMessagesLimitUsage,
+                search: {
+                    results: [],
+                    flagged: [],
+                    isSearchingTerm: false,
+                    isSearchGettingMore: false,
+                    matches: {},
+                    recent: {},
+                    current: {},
+                    truncationInfo: {
+                        posts: 1, // Indicate that search is truncated
+                        files: 0,
+                    },
+                },
+            },
+            views: {
+                rhs: {
+                    rhsState: 'search', // RHS showing search results
+                },
             },
         };
         const store = mockStore(state);
@@ -225,16 +132,16 @@ describe('components/select_results/SearchLimitsBanner', () => {
         expect(wrapper.find('#messages_search_limits_banner').exists()).toEqual(true);
     });
 
-    test('should show banner for CLOUD when doing cloud files search above the limit in Free product', () => {
-        const aboveFilesLimitUsage = JSON.parse(JSON.stringify(usage));
-        aboveFilesLimitUsage.files.totalStorage = 1.1 * FileSizes.Gigabyte; // above limit of 1GB
+    test('should display "View plans" CTA text for messages search when banner is shown', () => {
+        const aboveMessagesLimitUsage = JSON.parse(JSON.stringify(usage));
+        aboveMessagesLimitUsage.messages.history = 15000; // above limit of 10K
 
         const state = {
             entities: {
                 general: {
                     license: {
                         IsLicensed: 'true',
-                        Cloud: 'true', // cloud
+                        Cloud: 'true',
                     },
                 },
                 users: {
@@ -248,27 +155,52 @@ describe('components/select_results/SearchLimitsBanner', () => {
                         is_free_trial: 'true',
                         product_id: 'prod_1', // free
                     },
-                    products,
                     limits,
                 },
-                usage: aboveFilesLimitUsage,
+                limits: {
+                    serverLimits: {
+                        postHistoryLimit: 10000,
+                    },
+                },
+                usage: aboveMessagesLimitUsage,
+                search: {
+                    results: [],
+                    flagged: [],
+                    isSearchingTerm: false,
+                    isSearchGettingMore: false,
+                    matches: {},
+                    recent: {},
+                    current: {},
+                    truncationInfo: {
+                        posts: 1, // Indicate that search is truncated
+                        files: 0,
+                    },
+                },
+            },
+            views: {
+                rhs: {
+                    rhsState: 'search', // RHS showing search results
+                },
             },
         };
+
         const store = mockStore(state);
-        const wrapper = mountWithIntl(<Provider store={store}><SearchLimitsBanner searchType='files'/></Provider>);
-        expect(wrapper.find('#files_search_limits_banner').exists()).toEqual(true);
+        const wrapper = mountWithIntl(<Provider store={store}><SearchLimitsBanner searchType={DataSearchTypes.MESSAGES_SEARCH_TYPE}/></Provider>);
+
+        expect(wrapper.find('#messages_search_limits_banner').exists()).toEqual(true);
+        expect(wrapper.text()).toContain('paid plans');
     });
 
-    test('should not show banner for CLOUD when doing cloud files search above the limit in PROFESSIONAL product', () => {
-        const aboveFilesLimitUsage = JSON.parse(JSON.stringify(usage));
-        aboveFilesLimitUsage.files.totalStorage = 1.1 * FileSizes.Gigabyte; // above limit of 1GB. This limit is higher in professional
+    test('should display correct banner message format for messages search', () => {
+        const aboveMessagesLimitUsage = JSON.parse(JSON.stringify(usage));
+        aboveMessagesLimitUsage.messages.history = 15000; // above limit of 10K
 
         const state = {
             entities: {
                 general: {
                     license: {
                         IsLicensed: 'true',
-                        Cloud: 'true', // cloud
+                        Cloud: 'true',
                     },
                 },
                 users: {
@@ -280,19 +212,167 @@ describe('components/select_results/SearchLimitsBanner', () => {
                 cloud: {
                     subscription: {
                         is_free_trial: 'true',
-                        product_id: 'prod_2', // professional
+                        product_id: 'prod_1', // free
                     },
-                    products,
-                    limits: {
-                        limits: {},
-                        limitsLoaded: false,
+                    limits,
+                },
+                limits: {
+                    serverLimits: {
+                        postHistoryLimit: 10000,
                     },
                 },
-                usage: aboveFilesLimitUsage,
+                usage: aboveMessagesLimitUsage,
+                search: {
+                    results: [],
+                    flagged: [],
+                    isSearchingTerm: false,
+                    isSearchGettingMore: false,
+                    matches: {},
+                    recent: {},
+                    current: {},
+                    truncationInfo: {
+                        posts: 1, // Indicate that search is truncated
+                        files: 0,
+                    },
+                },
+            },
+            views: {
+                rhs: {
+                    rhsState: 'search', // RHS showing search results
+                },
             },
         };
+
         const store = mockStore(state);
-        const wrapper = mountWithIntl(<Provider store={store}><SearchLimitsBanner searchType='files'/></Provider>);
-        expect(wrapper.find('#files_search_limits_banner').exists()).toEqual(false);
+        const wrapper = mountWithIntl(<Provider store={store}><SearchLimitsBanner searchType={DataSearchTypes.MESSAGES_SEARCH_TYPE}/></Provider>);
+
+        const bannerText = wrapper.text();
+        expect(bannerText).toContain('Limited history is displayed');
+        expect(bannerText).toContain('Full access to message history is included in');
+    });
+
+    test('should render CTA link correctly when banner is shown', () => {
+        const aboveMessagesLimitUsage = JSON.parse(JSON.stringify(usage));
+        aboveMessagesLimitUsage.messages.history = 15000; // above limit of 10K
+
+        // Test focuses on verifying component renders correctly with proper CTA
+
+        const state = {
+            entities: {
+                general: {
+                    license: {
+                        IsLicensed: 'true',
+                        Cloud: 'true',
+                    },
+                },
+                users: {
+                    currentUserId: 'uid',
+                    profiles: {
+                        uid: {},
+                    },
+                },
+                cloud: {
+                    subscription: {
+                        is_free_trial: 'true',
+                        product_id: 'prod_1', // free
+                    },
+                    limits,
+                },
+                limits: {
+                    serverLimits: {
+                        postHistoryLimit: 10000,
+                    },
+                },
+                usage: aboveMessagesLimitUsage,
+                search: {
+                    results: [],
+                    flagged: [],
+                    isSearchingTerm: false,
+                    isSearchGettingMore: false,
+                    matches: {},
+                    recent: {},
+                    current: {},
+                    truncationInfo: {
+                        posts: 1, // Indicate that search is truncated
+                        files: 0,
+                    },
+                },
+            },
+            views: {
+                rhs: {
+                    rhsState: 'search', // RHS showing search results
+                },
+            },
+        };
+
+        const store = mockStore(state);
+        const wrapper = mountWithIntl(<Provider store={store}><SearchLimitsBanner searchType={DataSearchTypes.MESSAGES_SEARCH_TYPE}/></Provider>);
+
+        // Verify the banner is shown and contains the CTA link
+        expect(wrapper.find('#messages_search_limits_banner').exists()).toEqual(true);
+        expect(wrapper.text()).toContain('paid plans');
+
+        // Find the CTA link
+        const ctaLink = wrapper.find('a');
+        expect(ctaLink).toHaveLength(1);
+    });
+
+    test('should NOT show banner when RHS is showing pinned posts even with truncated search results', () => {
+        const aboveMessagesLimitUsage = JSON.parse(JSON.stringify(usage));
+        aboveMessagesLimitUsage.messages.history = 15000; // above limit of 10K
+
+        const state = {
+            entities: {
+                general: {
+                    license: {
+                        IsLicensed: 'true',
+                        Cloud: 'true',
+                    },
+                },
+                users: {
+                    currentUserId: 'uid',
+                    profiles: {
+                        uid: {},
+                    },
+                },
+                cloud: {
+                    subscription: {
+                        is_free_trial: 'true',
+                        product_id: 'prod_1', // free
+                    },
+                    limits,
+                },
+                limits: {
+                    serverLimits: {
+                        postHistoryLimit: 10000,
+                    },
+                },
+                usage: aboveMessagesLimitUsage,
+                search: {
+                    results: [],
+                    flagged: [],
+                    isSearchingTerm: false,
+                    isSearchGettingMore: false,
+                    matches: {},
+                    recent: {},
+                    current: {},
+                    truncationInfo: {
+                        posts: 1, // Search is truncated, but...
+                        files: 0,
+                    },
+                },
+            },
+            views: {
+                rhs: {
+                    rhsState: 'pin', // RHS showing pinned posts, not search results
+                },
+            },
+        };
+
+        const store = mockStore(state);
+        const wrapper = mountWithIntl(<Provider store={store}><SearchLimitsBanner searchType={DataSearchTypes.MESSAGES_SEARCH_TYPE}/></Provider>);
+
+        // Banner should NOT show because RHS is showing pinned posts, not search results
+        expect(wrapper.find('#messages_search_limits_banner').exists()).toEqual(false);
     });
 });

@@ -29,9 +29,9 @@ func (a *App) getSharedChannelsService(ensureIsActive bool) (SharedChannelServic
 	return scService, nil
 }
 
-func (a *App) checkChannelNotShared(c request.CTX, channelId string) error {
+func (a *App) checkChannelNotShared(rctx request.CTX, channelId string) error {
 	// check that channel exists.
-	if _, appErr := a.GetChannel(c, channelId); appErr != nil {
+	if _, appErr := a.GetChannel(rctx, channelId); appErr != nil {
 		return fmt.Errorf("cannot find channel: %w", appErr)
 	}
 
@@ -64,7 +64,7 @@ func (a *App) CheckCanInviteToSharedChannel(channelId string) error {
 
 // SharedChannels
 
-func (a *App) ShareChannel(c request.CTX, sc *model.SharedChannel) (*model.SharedChannel, error) {
+func (a *App) ShareChannel(rctx request.CTX, sc *model.SharedChannel) (*model.SharedChannel, error) {
 	scService, err := a.getSharedChannelsService(false)
 	if err != nil {
 		return nil, err

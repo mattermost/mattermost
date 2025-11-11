@@ -95,20 +95,11 @@ var ExportJobCancelCmd = &cobra.Command{
 }
 
 func init() {
-	ExportCreateCmd.Flags().Bool("attachments", false, "Set to true to include file attachments in the export file.")
-	_ = ExportCreateCmd.Flags().MarkHidden("attachments")
-	_ = ExportCreateCmd.Flags().MarkDeprecated("attachments", "the tool now includes attachments by default. The flag will be removed in a future version.")
-
 	ExportCreateCmd.Flags().Bool("no-attachments", false, "Exclude file attachments from the export file.")
 	ExportCreateCmd.Flags().Bool("include-archived-channels", false, "Include archived channels in the export file.")
 	ExportCreateCmd.Flags().Bool("include-profile-pictures", false, "Include profile pictures in the export file.")
 	ExportCreateCmd.Flags().Bool("no-roles-and-schemes", false, "Exclude roles and custom permission schemes from the export file.")
 
-	ExportDownloadCmd.Flags().Bool("resume", false, "Set to true to resume an export download.")
-	_ = ExportDownloadCmd.Flags().MarkHidden("resume")
-	// Intentionally the message does not start with a capital letter because
-	// cobra prepends "Flag --resume has been deprecated,"
-	_ = ExportDownloadCmd.Flags().MarkDeprecated("resume", "the tool now resumes a download automatically. The flag will be removed in a future version.")
 	ExportDownloadCmd.Flags().Int("num-retries", 5, "Number of retries to do to resume a download.")
 
 	ExportJobListCmd.Flags().Int("page", 0, "Page number to fetch for the list of export jobs")
@@ -247,6 +238,7 @@ func exportDownloadCmdF(c client.Client, command *cobra.Command, args []string) 
 // downloadFile handles the common logic for downloading files in export and compliance-export commands
 func downloadFile(path string, downloadFn func(*os.File) (string, error), retries int, fileType string) (string, error) {
 	var outFile *os.File
+	var createdFile bool
 	info, err := os.Stat(path)
 	switch {
 	case err != nil && !os.IsNotExist(err):
@@ -258,6 +250,7 @@ func downloadFile(path string, downloadFn func(*os.File) (string, error), retrie
 	case err != nil:
 		// file does not exist, we create it
 		outFile, err = os.Create(path)
+		createdFile = true
 	default:
 		// no error, file exists, we open it
 		outFile, err = os.OpenFile(path, os.O_WRONLY, 0600)
@@ -273,6 +266,13 @@ func downloadFile(path string, downloadFn func(*os.File) (string, error), retrie
 		suggestedFilename, err = downloadFn(outFile)
 		if err != nil {
 			if i >= retries {
+				// Cleanup the file we created earlier
+				if createdFile {
+					rmErr := os.Remove(path)
+					if rmErr != nil {
+						printer.PrintError(fmt.Sprintf("Failed to cleanup tempory file: %s", rmErr))
+					}
+				}
 				return "", fmt.Errorf("failed to download %s after %d retries: %w", fileType, retries, err)
 			}
 			printer.PrintWarning(fmt.Sprintf("Download attempt %d/%d failed. Retrying...", i+1, retries+1))

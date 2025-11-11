@@ -5,6 +5,7 @@ exports[`components/FilePreviewModalInfo should match snapshot 1`] = `
   className="file-preview-modal__info"
 >
   <Memo(Avatar)
+    alt=""
     className="file-preview-modal__avatar"
     size="lg"
     url="/api/v4/users/user_id/image?_=0"

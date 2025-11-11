@@ -1,17 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ReactNode} from 'react';
 import React from 'react';
+import {useIntl} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
 import type {OnChangeValue} from 'react-select';
 import ReactSelect from 'react-select';
+
+import {formatAsString} from 'utils/i18n';
 
 import type {BaseSettingItemProps} from './base_setting_item';
 import BaseSettingItem from './base_setting_item';
 
-export type Option = {
+export type SelectOption = {
     value: string;
-    label: ReactNode;
+    label: string | MessageDescriptor;
 };
 
 export type FieldsetReactSelect = {
@@ -21,14 +24,19 @@ export type FieldsetReactSelect = {
     dataTestId?: string;
     ariaLabelledby?: string;
     clearable?: boolean;
-    options: Option[];
+    options: SelectOption[];
 }
 
 type Props = BaseSettingItemProps & {
     inputFieldData: FieldsetReactSelect;
-    inputFieldValue: Option;
-    handleChange: (selected: OnChangeValue<Option, boolean>) => void;
+    inputFieldValue: SelectOption;
+    handleChange: (selected: OnChangeValue<SelectOption, boolean>) => void;
 }
+
+// Function to extract text from MessageDescriptor or return string as-is
+export const getOptionLabel = (option: SelectOption, intl: ReturnType<typeof useIntl>): string => {
+    return formatAsString(intl.formatMessage, option.label) || '';
+};
 
 function ReactSelectItemCreator({
     title,
@@ -37,6 +45,7 @@ function ReactSelectItemCreator({
     inputFieldValue,
     handleChange,
 }: Props): JSX.Element {
+    const intl = useIntl();
     const content = (
         <fieldset className='mm-modal-generic-section-item__fieldset-react-select'>
             <ReactSelect
@@ -52,6 +61,8 @@ function ReactSelectItemCreator({
                 onChange={handleChange}
                 value={inputFieldValue}
                 components={{IndicatorSeparator: NoIndicatorSeparatorComponent}}
+                getOptionLabel={(option) => getOptionLabel(option, intl)}
+
             />
         </fieldset>
     );

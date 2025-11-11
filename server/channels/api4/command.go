@@ -35,7 +35,7 @@ func createCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("createCommand", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCreateCommand, model.AuditStatusFail)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "command", &cmd)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
@@ -76,7 +76,7 @@ func updateCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateCommand", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateCommand, model.AuditStatusFail)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "command", &cmd)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
@@ -136,7 +136,7 @@ func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("moveCommand", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventMoveCommand, model.AuditStatusFail)
 	model.AddEventParameterToAuditRec(auditRec, "command_move_request", cmr.TeamId)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
@@ -188,7 +188,7 @@ func deleteCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("deleteCommand", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventDeleteCommand, model.AuditStatusFail)
 	model.AddEventParameterToAuditRec(auditRec, "command_id", c.Params.CommandId)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
@@ -318,7 +318,7 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("executeCommand", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventExecuteCommand, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "command_args", &commandArgs)
 
@@ -344,6 +344,17 @@ func executeCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		// some other team can't be run against this one
 		commandArgs.TeamId = channel.TeamId
 	} else {
+		restrictDM, appErr := c.App.CheckIfChannelIsRestrictedDM(c.AppContext, channel)
+		if appErr != nil {
+			c.Err = err
+			return
+		}
+
+		if restrictDM {
+			c.Err = model.NewAppError("createPost", "api.command.execute_command.restricted_dm.error", nil, "", http.StatusBadRequest)
+			return
+		}
+
 		// if the slash command was used in a DM or GM, ensure that the user is a member of the specified team, so that
 		// they can't just execute slash commands against arbitrary teams
 		if c.AppContext.Session().GetTeamByTeamId(commandArgs.TeamId) == nil {
@@ -449,7 +460,7 @@ func regenCommandToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("regenCommandToken", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRegenCommandToken, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 

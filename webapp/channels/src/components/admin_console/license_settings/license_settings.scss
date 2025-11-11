@@ -23,6 +23,11 @@
 
         .panel-card {
             padding: 28px 32px;
+
+            &.entry {
+                padding: 24px;
+                padding-top: 40px;
+            }
             border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.08);
             border-radius: 4px;
             background: var(--sys-center-channel-bg);
@@ -71,4 +76,8 @@
         margin-right: 5px;
         margin-left: -5px;
     }
+}
+
+.upgrade-error.unsupported .form-group {
+    margin-bottom: 0;
 }

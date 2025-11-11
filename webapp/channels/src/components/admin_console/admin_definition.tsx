@@ -27,8 +27,8 @@ import {
     uploadPrivateSamlCertificate,
     uploadPublicSamlCertificate,
 } from 'actions/admin_actions';
-import {trackEvent} from 'actions/telemetry_actions.jsx';
 
+import ContentFlaggingSettings from 'components/admin_console/content_flagging/content_flagging_settings';
 import CustomPluginSettings from 'components/admin_console/custom_plugin_settings';
 import CustomProfileAttributes from 'components/admin_console/custom_profile_attributes/custom_profile_attributes';
 import PluginManagement from 'components/admin_console/plugin_management';
@@ -54,8 +54,8 @@ import BillingHistory, {searchableStrings as billingHistorySearchableStrings} fr
 import BillingSubscriptions, {searchableStrings as billingSubscriptionSearchableStrings} from './billing/billing_subscriptions';
 import CompanyInfo, {searchableStrings as billingCompanyInfoSearchableStrings} from './billing/company_info';
 import CompanyInfoEdit from './billing/company_info_edit';
-import BleveSettings, {searchableStrings as bleveSearchableStrings} from './bleve_settings';
 import BrandImageSetting from './brand_image_setting/brand_image_setting';
+import BurnOnReadUserGroupSelector from './burn_on_read_user_group_selector';
 import ClientSideUserIdsSetting from './client_side_userids_setting';
 import ClusterSettings, {searchableStrings as clusterSearchableStrings} from './cluster_settings';
 import CustomEnableDisableGuestAccountsSetting from './custom_enable_disable_guest_accounts_setting';
@@ -73,6 +73,7 @@ import {
     ComplianceExportFeatureDiscovery,
     CustomTermsOfServiceFeatureDiscovery,
     DataRetentionFeatureDiscovery,
+    GitLabFeatureDiscovery,
     GroupsFeatureDiscovery,
     GuestAccessFeatureDiscovery,
     LDAPFeatureDiscovery,
@@ -83,6 +84,8 @@ import {
     SystemRolesFeatureDiscovery,
 } from './feature_discovery/features';
 import AttributeBasedAccessControlFeatureDiscovery from './feature_discovery/features/attribute_based_access_control';
+import AutoTranslationFeatureDiscovery from './feature_discovery/features/auto_translation';
+import BurnOnReadSVG from './feature_discovery/features/images/burn_on_read_svg';
 import UserAttributesFeatureDiscovery from './feature_discovery/features/user_attributes';
 import FeatureFlags, {messages as featureFlagsMessages} from './feature_flags';
 import GroupDetails from './group_settings/group_details';
@@ -91,6 +94,9 @@ import IPFiltering from './ip_filtering';
 import LDAPWizard from './ldap_wizard';
 import LicenseSettings from './license_settings';
 import {searchableStrings as licenseSettingsSearchableStrings} from './license_settings/license_settings';
+import LicensedSectionContainer from './licensed_section_container';
+import AutoTranslation, {searchableStrings as autoTranslationSearchableStrings} from './localization/auto_translation';
+import Localization, {searchableStrings as localizationSearchableStrings} from './localization/localization';
 import MessageExportSettings, {searchableStrings as messageExportSearchableStrings} from './message_export_settings';
 import OpenIdConvert from './openid_convert';
 import PasswordSettings, {searchableStrings as passwordSearchableStrings} from './password_settings';
@@ -432,7 +438,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.groups', defaultMessage: 'Groups'}),
                 isHidden: it.any(
                     it.licensedForFeature('LDAPGroups'),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'Groups',
@@ -531,6 +536,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: `user_management/system_roles/:role_id(${ID_PATH_PATTERN})`,
                 isHidden: it.any(
                     it.not(it.licensedForFeature('LDAPGroups')),
+                    it.licensedForSku(LicenseSkus.Entry),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                 ),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
@@ -544,6 +550,7 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.systemRoles', defaultMessage: 'Delegated Granular Administration'}),
                 isHidden: it.any(
                     it.not(it.licensedForFeature('LDAPGroups')),
+                    it.licensedForSku(LicenseSkus.Entry),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                 ),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
@@ -559,7 +566,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.systemRoles', defaultMessage: 'Delegated Granular Administration'}),
                 isHidden: it.any(
                     it.licensedForFeature('LDAPGroups'),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'SystemRoles',
@@ -606,7 +612,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.user_attributes', defaultMessage: 'User Attributes'}),
                 isHidden: it.any(
                     it.minLicenseTier(LicenseSkus.Enterprise),
-                    it.not(it.enterpriseReady),
                     it.configIsFalse('FeatureFlags', 'CustomProfileAttributes'),
                 ),
                 schema: {
@@ -627,7 +632,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: `system_attributes/attribute_based_access_control/edit_policy/:policy_id(${ID_PATH_PATTERN})`,
                 isHidden: it.any(
                     it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
-                    it.not(it.licensedForSku(LicenseSkus.EnterpriseAdvanced)),
+                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                 ),
                 isDisabled: it.any(
@@ -643,7 +648,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'system_attributes/attribute_based_access_control/edit_policy',
                 isHidden: it.any(
                     it.configIsFalse('AccessControlSettings', 'EnableAttributeBasedAccessControl'),
-                    it.not(it.licensedForSku(LicenseSkus.EnterpriseAdvanced)),
+                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                     it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
                 ),
@@ -657,7 +662,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'system_attributes/attribute_based_access_control',
                 title: defineMessage({id: 'admin.sidebar.attributeBasedAccessControl', defaultMessage: 'Attribute-Based Access'}),
                 isHidden: it.any(
-                    it.not(it.licensedForSku(LicenseSkus.EnterpriseAdvanced)),
+                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                     it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
                 ),
@@ -725,8 +730,7 @@ const AdminDefinition: AdminDefinitionType = {
                 isDiscovery: true,
                 title: defineMessage({id: 'admin.sidebar.attributeBasedAccessControl', defaultMessage: 'Attribute-Based Access'}),
                 isHidden: it.any(
-                    it.licensedForSku(LicenseSkus.EnterpriseAdvanced),
-                    it.not(it.enterpriseReady),
+                    it.minLicenseTier(LicenseSkus.EnterpriseAdvanced),
                     it.configIsFalse('FeatureFlags', 'AttributeBasedAccessControl'),
                 ),
                 schema: {
@@ -1932,10 +1936,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     </ExternalLink>
                                 ),
                             },
-                            onConfigSave: (displayVal, previousVal) => {
-                                if (previousVal && previousVal !== displayVal) {
-                                    trackEvent('ui', 'diagnostics_disabled');
-                                }
+                            onConfigSave: (displayVal) => {
                                 return displayVal;
                             },
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.LOGGING)),
@@ -2188,7 +2189,6 @@ const AdminDefinition: AdminDefinitionType = {
                 isHidden: it.any(
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.MOBILE_SECURITY)),
                     it.minLicenseTier(LicenseSkus.Enterprise),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'MobileSecurityFeatureDiscoverySettings',
@@ -2443,51 +2443,38 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'site_config/localization',
                 title: defineMessage({id: 'admin.sidebar.localization', defaultMessage: 'Localization'}),
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.LOCALIZATION)),
+                searchableStrings: localizationSearchableStrings.concat(autoTranslationSearchableStrings),
                 schema: {
                     id: 'LocalizationSettings',
                     name: defineMessage({id: 'admin.site.localization', defaultMessage: 'Localization'}),
                     settings: [
                         {
-                            type: 'language',
-                            key: 'LocalizationSettings.DefaultServerLocale',
-                            label: defineMessage({id: 'admin.general.localization.serverLocaleTitle', defaultMessage: 'Default Server Language:'}),
-                            help_text: defineMessage({id: 'admin.general.localization.serverLocaleDescription', defaultMessage: 'Default language for system messages.'}),
+                            type: 'custom',
+                            key: 'LocalizationSettings',
+                            component: Localization,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.LOCALIZATION)),
                         },
                         {
-                            type: 'language',
-                            key: 'LocalizationSettings.DefaultClientLocale',
-                            label: defineMessage({id: 'admin.general.localization.clientLocaleTitle', defaultMessage: 'Default Client Language:'}),
-                            help_text: defineMessage({id: 'admin.general.localization.clientLocaleDescription', defaultMessage: 'Default language for newly created users and pages where the user hasn\'t logged in.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.LOCALIZATION)),
+                            type: 'custom',
+                            key: 'AutoTranslationSettings',
+                            component: AutoTranslation,
+                            isHidden: it.any(
+                                it.configIsFalse('FeatureFlags', 'AutoTranslation'),
+                                it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                            ),
                         },
                         {
-                            type: 'language',
-                            key: 'LocalizationSettings.AvailableLocales',
-                            label: defineMessage({id: 'admin.general.localization.availableLocalesTitle', defaultMessage: 'Available Languages:'}),
-                            help_text: defineMessage({id: 'admin.general.localization.availableLocalesDescription', defaultMessage: 'Set which languages are available for users in <strong>Settings > Display > Language</strong> (leave this field blank to have all supported languages available). If you\'re manually adding new languages, the <strong>Default Client Language</strong> must be added before saving this setting.\n \nWould like to help with translations? Join the <link>Mattermost Translation Server</link> to contribute.'}),
-                            help_text_markdown: false,
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href='http://translate.mattermost.com/'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
+                            type: 'custom',
+                            key: 'auto-translation-discovery',
+                            component: AutoTranslationFeatureDiscovery,
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
+                            isHidden: it.any(
+                                it.all(
+                                    it.configIsTrue('FeatureFlags', 'AutoTranslation'),
+                                    it.minLicenseTier(LicenseSkus.EnterpriseAdvanced),
                                 ),
-                                strong: (msg: string) => <strong>{msg}</strong>,
-                            },
-                            multiple: true,
-                            no_result: defineMessage({id: 'admin.general.localization.availableLocalesNoResults', defaultMessage: 'No results found'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.LOCALIZATION)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'LocalizationSettings.EnableExperimentalLocales',
-                            label: defineMessage({id: 'admin.general.localization.enableExperimentalLocalesTitle', defaultMessage: 'Enable Experimental Locales:'}),
-                            help_text: defineMessage({id: 'admin.general.localization.enableExperimentalLocalesDescription', defaultMessage: 'When true, it allows users to select experimental (e.g., in progress) languages.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.LOCALIZATION)),
+                                it.configIsFalse('FeatureFlags', 'AutoTranslation'),
+                            ),
                         },
                     ],
                 },
@@ -2527,7 +2514,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'dropdown',
                             key: 'TeamSettings.RestrictDirectMessage',
                             label: defineMessage({id: 'admin.team.restrictDirectMessage', defaultMessage: 'Enable users to open Direct Message channels with:'}),
-                            help_text: defineMessage({id: 'admin.team.restrictDirectMessageDesc', defaultMessage: '"Any user on the Mattermost server" enables users to open a Direct Message channel with any user on the server, even if they are not on any teams together. "Any member of the team" limits the ability in the Direct Messages "More" menu to only open Direct Message channels with users who are in the same team. Note: This setting only affects the UI, not permissions on the server.'}),
+                            help_text: defineMessage({id: 'admin.team.restrictDirectMessageDesc', defaultMessage: '"Any user on the Mattermost server" enables users to open a Direct Message channel with any user on the server, even if they are not on any teams together. "Any member of the team" limits the ability in the Direct Messages "More" menu to only open Direct Message channels with users who are in the same team.'}),
                             options: [
                                 {
                                     value: 'any',
@@ -2571,14 +2558,6 @@ const AdminDefinition: AdminDefinitionType = {
                             },
                             isHidden: it.not(it.licensedForFeature('LockTeammateNameDisplay')),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'TeamSettings.ExperimentalViewArchivedChannels',
-                            label: defineMessage({id: 'admin.viewArchivedChannelsTitle', defaultMessage: 'Allow users to view archived channels: '}),
-                            help_text: defineMessage({id: 'admin.viewArchivedChannelsHelpText', defaultMessage: 'When true, allows users to view, share and search for content of channels that have been archived. Users can only view the content in channels of which they were a member before the channel was archived.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
-                            isHidden: it.licensedForFeature('Cloud'),
                         },
                         {
                             type: 'bool',
@@ -2888,7 +2867,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.announcement', defaultMessage: 'System-wide Notifications'}),
                 isHidden: it.any(
                     it.licensedForFeature('Announcement'),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'AnnouncementSettings',
@@ -2936,334 +2914,505 @@ const AdminDefinition: AdminDefinitionType = {
                 schema: {
                     id: 'PostSettings',
                     name: defineMessage({id: 'admin.site.posts', defaultMessage: 'Posts'}),
-                    settings: [
+                    sections: [
                         {
-                            type: 'bool',
-                            key: 'ServiceSettings.ThreadAutoFollow',
-                            label: defineMessage({id: 'admin.experimental.threadAutoFollow.title', defaultMessage: 'Automatically Follow Threads'}),
-                            help_text: defineMessage({id: 'admin.experimental.threadAutoFollow.desc', defaultMessage: 'This setting must be enabled in order to enable Threaded Discussions. When enabled, threads a user starts, participates in, or is mentioned in are automatically followed. A new `Threads` table is added in the database that tracks threads and thread participants, and a `ThreadMembership` table tracks followed threads for each user and the read or unread state of each followed thread. When false, all backend operations to support Threaded Discussions are disabled.'}),
-                            help_text_markdown: true,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                            isHidden: it.licensedForFeature('Cloud'),
-                        },
-                        {
-                            type: 'dropdown',
-                            key: 'ServiceSettings.CollapsedThreads',
-                            label: defineMessage({id: 'admin.experimental.collapsedThreads.title', defaultMessage: 'Threaded Discussions'}),
-                            help_text: defineMessage({id: 'admin.experimental.collapsedThreads.desc', defaultMessage: 'When enabled (default off), users must enable Threaded Discussions in Settings. When disabled, users cannot access Threaded Discussions. Please review our <linkKnownIssues>documentation for known issues</linkKnownIssues> and help provide feedback in our <linkCommunityChannel>Community Channel</linkCommunityChannel>.'}),
-                            help_text_values: {
-                                linkKnownIssues: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href='https://support.mattermost.com/hc/en-us/articles/4413183568276'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                                linkCommunityChannel: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href='https://community-daily.mattermost.com/core/channels/folded-reply-threads'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            help_text_markdown: false,
-                            options: [
+                            key: 'PostSettings.Threads',
+                            title: 'Threads',
+                            description: defineMessage({id: 'admin.posts.sections.threads.description', defaultMessage: 'Configure threaded discussions and auto-follow defaults.'}),
+                            settings: [
                                 {
-                                    value: 'disabled',
-                                    display_name: defineMessage({id: 'admin.experimental.collapsedThreads.off', defaultMessage: 'Disabled'}),
+                                    type: 'bool',
+                                    key: 'ServiceSettings.ThreadAutoFollow',
+                                    label: defineMessage({id: 'admin.experimental.threadAutoFollow.title', defaultMessage: 'Automatically Follow Threads'}),
+                                    help_text: defineMessage({id: 'admin.experimental.threadAutoFollow.desc', defaultMessage: 'This setting must be enabled in order to enable Threaded Discussions. When enabled, threads a user starts, participates in, or is mentioned in are automatically followed. A new `Threads` table is added in the database that tracks threads and thread participants, and a `ThreadMembership` table tracks followed threads for each user and the read or unread state of each followed thread. When false, all backend operations to support Threaded Discussions are disabled.'}),
+                                    help_text_markdown: true,
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                                    isHidden: it.licensedForFeature('Cloud'),
                                 },
                                 {
-                                    value: 'default_off',
-                                    display_name: defineMessage({id: 'admin.experimental.collapsedThreads.default_off', defaultMessage: 'Enabled (Default Off)'}),
-                                },
-                                {
-                                    value: 'default_on',
-                                    display_name: defineMessage({id: 'admin.experimental.collapsedThreads.default_on', defaultMessage: 'Enabled (Default On)'}),
-                                },
-                                {
-                                    value: 'always_on',
-                                    display_name: defineMessage({id: 'admin.experimental.collapsedThreads.always_on', defaultMessage: 'Always On'}),
+                                    type: 'dropdown',
+                                    key: 'ServiceSettings.CollapsedThreads',
+                                    label: defineMessage({id: 'admin.experimental.collapsedThreads.title', defaultMessage: 'Threaded Discussions'}),
+                                    help_text: defineMessage({id: 'admin.experimental.collapsedThreads.desc', defaultMessage: 'When enabled (default off), users must enable Threaded Discussions in Settings. When disabled, users cannot access Threaded Discussions. Please review our <linkKnownIssues>documentation for known issues</linkKnownIssues> and help provide feedback in our <linkCommunityChannel>Community Channel</linkCommunityChannel>.'}),
+                                    help_text_values: {
+                                        linkKnownIssues: (msg: string) => (
+                                            <ExternalLink
+                                                location='admin_console'
+                                                href='https://support.mattermost.com/hc/en-us/articles/4413183568276'
+                                            >
+                                                {msg}
+                                            </ExternalLink>
+                                        ),
+                                        linkCommunityChannel: (msg: string) => (
+                                            <ExternalLink
+                                                location='admin_console'
+                                                href='https://community-daily.mattermost.com/core/channels/folded-reply-threads'
+                                            >
+                                                {msg}
+                                            </ExternalLink>
+                                        ),
+                                    },
+                                    help_text_markdown: false,
+                                    options: [
+                                        {
+                                            value: 'disabled',
+                                            display_name: defineMessage({id: 'admin.experimental.collapsedThreads.off', defaultMessage: 'Disabled'}),
+                                        },
+                                        {
+                                            value: 'default_off',
+                                            display_name: defineMessage({id: 'admin.experimental.collapsedThreads.default_off', defaultMessage: 'Enabled (Default Off)'}),
+                                        },
+                                        {
+                                            value: 'default_on',
+                                            display_name: defineMessage({id: 'admin.experimental.collapsedThreads.default_on', defaultMessage: 'Enabled (Default On)'}),
+                                        },
+                                        {
+                                            value: 'always_on',
+                                            display_name: defineMessage({id: 'admin.experimental.collapsedThreads.always_on', defaultMessage: 'Always On'}),
+                                        },
+                                    ],
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                                 },
                             ],
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                         {
-                            type: 'bool',
-                            key: 'ServiceSettings.PostPriority',
-                            label: defineMessage({id: 'admin.posts.postPriority.title', defaultMessage: 'Message Priority'}),
-                            help_text: defineMessage({id: 'admin.posts.postPriority.desc', defaultMessage: 'When enabled, users can configure a visual indicator to communicate messages that are important or urgent. Learn more about message priority in our <link>documentation</link>.'}),
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href='https://mattermost.com/pl/message-priority/'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
+                            key: 'PostSettings.Drafts',
+                            title: 'Drafts and Scheduled Posts',
+                            description: defineMessage({id: 'admin.posts.sections.drafts.description', defaultMessage: 'Control draft syncing and scheduled sending.'}),
+                            settings: [
+                                {
+                                    type: 'bool',
+                                    key: 'ServiceSettings.AllowSyncedDrafts',
+                                    label: defineMessage({id: 'admin.customization.allowSyncedDrafts', defaultMessage: 'Enable server syncing of message drafts:'}),
+                                    help_text: defineMessage({id: 'admin.customization.allowSyncedDraftsDesc', defaultMessage: 'When enabled, users message drafts will sync with the server so they can be accessed from any device. Users may opt out of this behaviour in Account settings.'}),
+                                    help_text_markdown: false,
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'ServiceSettings.ScheduledPosts',
+                                    label: defineMessage({id: 'admin.posts.scheduledPosts.title', defaultMessage: 'Scheduled Posts'}),
+                                    help_text: defineMessage({id: 'admin.posts.scheduledPosts.description', defaultMessage: 'When enabled, users can schedule and send messages in the future.'}),
+                                    help_text_markdown: false,
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                    isHidden: it.not(it.licensed),
+                                },
+                            ],
+                        },
+                        {
+                            key: 'PostSettings.Priority',
+                            title: 'Priority & Urgent Notifications',
+                            description: defineMessage({id: 'admin.posts.sections.priority.description', defaultMessage: 'Set message priority and repeating notifications for urgent delivery.'}),
+                            settings: [
+                                {
+                                    type: 'bool',
+                                    key: 'ServiceSettings.PostPriority',
+                                    label: defineMessage({id: 'admin.posts.postPriority.title', defaultMessage: 'Message Priority'}),
+                                    help_text: defineMessage({id: 'admin.posts.postPriority.desc', defaultMessage: 'When enabled, users can configure a visual indicator to communicate messages that are important or urgent. Learn more about message priority in our <link>documentation</link>.'}),
+                                    help_text_values: {
+                                        link: (msg: string) => (
+                                            <ExternalLink
+                                                location='admin_console'
+                                                href='https://mattermost.com/pl/message-priority/'
+                                            >
+                                                {msg}
+                                            </ExternalLink>
+                                        ),
+                                    },
+                                    help_text_markdown: false,
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'ServiceSettings.AllowPersistentNotifications',
+                                    label: defineMessage({id: 'admin.posts.persistentNotifications.title', defaultMessage: 'Persistent Notifications'}),
+                                    help_text: defineMessage({id: 'admin.posts.persistentNotifications.desc', defaultMessage: 'When enabled, users can trigger repeating notifications for the recipients of urgent messages. Learn more about message priority and persistent notifications in our <link>documentation</link>.'}),
+                                    help_text_values: {
+                                        link: (msg: string) => (
+                                            <ExternalLink
+                                                location='admin_console'
+                                                href='https://mattermost.com/pl/message-priority/'
+                                            >
+                                                {msg}
+                                            </ExternalLink>
+                                        ),
+                                    },
+                                    help_text_markdown: false,
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                    isHidden: it.configIsFalse('ServiceSettings', 'PostPriority'),
+                                },
+                                {
+                                    type: 'number',
+                                    key: 'ServiceSettings.PersistentNotificationMaxRecipients',
+                                    label: defineMessage({id: 'admin.posts.persistentNotificationsMaxRecipients.title', defaultMessage: 'Maximum number of recipients for persistent notifications'}),
+                                    help_text: defineMessage({id: 'admin.posts.persistentNotificationsMaxRecipients.desc', defaultMessage: 'Configure the maximum number of recipients to which users may send persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.'}),
+                                    help_text_values: {
+                                        link: (msg: string) => (
+                                            <ExternalLink
+                                                location='admin_console'
+                                                href='https://mattermost.com/pl/message-priority/'
+                                            >
+                                                {msg}
+                                            </ExternalLink>
+                                        ),
+                                    },
+                                    help_text_markdown: false,
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                    isHidden: it.any(
+                                        it.configIsFalse('ServiceSettings', 'PostPriority'),
+                                        it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
+                                    ),
+                                },
+                                {
+                                    type: 'number',
+                                    key: 'ServiceSettings.PersistentNotificationIntervalMinutes',
+                                    label: defineMessage({id: 'admin.posts.persistentNotificationsInterval.title', defaultMessage: 'Frequency of persistent notifications'}),
+                                    help_text: defineMessage({id: 'admin.posts.persistentNotificationsInterval.desc', defaultMessage: 'Configure the number of minutes between repeated notifications for urgent messages send with persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.'}),
+                                    help_text_values: {
+                                        link: (msg: string) => (
+                                            <ExternalLink
+                                                location='admin_console'
+                                                href='https://mattermost.com/pl/message-priority/'
+                                            >
+                                                {msg}
+                                            </ExternalLink>
+                                        ),
+                                    },
+                                    help_text_markdown: false,
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                    isHidden: it.any(
+                                        it.configIsFalse('ServiceSettings', 'PostPriority'),
+                                        it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
+                                    ),
+                                    validate: validators.minValue(2, defineMessage({id: 'admin.posts.persistentNotificationsInterval.minValue', defaultMessage: 'Frequency cannot not be set to less than 2 minutes'})),
+                                },
+                                {
+                                    type: 'number',
+                                    key: 'ServiceSettings.PersistentNotificationMaxCount',
+                                    label: defineMessage({id: 'admin.posts.persistentNotificationsMaxCount.title', defaultMessage: 'Total number of persistent notification per post'}),
+                                    help_text: defineMessage({id: 'admin.posts.persistentNotificationsMaxCount.desc', defaultMessage: 'Configure the maximum number of times users may receive persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.'}),
+                                    help_text_values: {
+                                        link: (msg: string) => (
+                                            <ExternalLink
+                                                location='admin_console'
+                                                href='https://mattermost.com/pl/message-priority/'
+                                            >
+                                                {msg}
+                                            </ExternalLink>
+                                        ),
+                                    },
+                                    help_text_markdown: false,
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                    isHidden: it.any(
+                                        it.configIsFalse('ServiceSettings', 'PostPriority'),
+                                        it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
+                                    ),
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'ServiceSettings.AllowPersistentNotificationsForGuests',
+                                    label: defineMessage({id: 'admin.posts.persistentNotificationsGuests.title', defaultMessage: 'Allow guests to send persistent notifications'}),
+                                    help_text: defineMessage({id: 'admin.posts.persistentNotificationsGuests.desc', defaultMessage: 'Whether a guest is able to require persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.'}),
+                                    help_text_values: {
+                                        link: (msg: string) => (
+                                            <ExternalLink
+                                                location='admin_console'
+                                                href='https://mattermost.com/pl/message-priority/'
+                                            >
+                                                {msg}
+                                            </ExternalLink>
+                                        ),
+                                    },
+                                    help_text_markdown: false,
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                    isHidden: it.any(
+                                        it.configIsFalse('GuestAccountsSettings', 'Enable'),
+                                        it.configIsFalse('ServiceSettings', 'PostPriority'),
+                                        it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
+                                    ),
+                                },
+                            ],
+                        },
+                        {
+                            key: 'PostSettings.BurnOnRead',
+                            title: 'Self-Deleting Messages',
+                            description: defineMessage({id: 'admin.posts.sections.burnOnRead.description', defaultMessage: 'Controls for messages that delete automatically a certain time after being sent or read.'}),
+                            license_sku: LicenseSkus.EnterpriseAdvanced,
+                            component: LicensedSectionContainer,
+                            componentProps: {
+                                requiredSku: LicenseSkus.EnterpriseAdvanced,
+                                featureDiscoveryConfig: {
+                                    featureName: 'burn_on_read',
+                                    title: defineMessage({id: 'admin.burn_on_read_feature_discovery.title', defaultMessage: 'Send burn-on-read messages that are automatically deleted after being read'}),
+                                    description: defineMessage({id: 'admin.burn_on_read_feature_discovery.description', defaultMessage: 'With Mattermost Enterprise Advanced, users can send transient messages that are automatically deleted a fixed time after they are read by a recipient.'}),
+                                    learnMoreURL: 'https://docs.mattermost.com/deployment/burn-on-read-messages.html',
+                                    svgImage: BurnOnReadSVG,
+                                },
                             },
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.AllowPersistentNotifications',
-                            label: defineMessage({id: 'admin.posts.persistentNotifications.title', defaultMessage: 'Persistent Notifications'}),
-                            help_text: defineMessage({id: 'admin.posts.persistentNotifications.desc', defaultMessage: 'When enabled, users can trigger repeating notifications for the recipients of urgent messages. Learn more about message priority and persistent notifications in our <link>documentation</link>.'}),
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href='https://mattermost.com/pl/message-priority/'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                            isHidden: it.configIsFalse('ServiceSettings', 'PostPriority'),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.ScheduledPosts',
-                            label: defineMessage({id: 'admin.posts.scheduledPosts.title', defaultMessage: 'Scheduled Posts'}),
-                            help_text: defineMessage({id: 'admin.posts.scheduledPosts.description', defaultMessage: 'When enabled, users can schedule and send messages in the future.'}),
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                            isHidden: it.not(it.licensed),
-                        },
-                        {
-                            type: 'number',
-                            key: 'ServiceSettings.PersistentNotificationMaxRecipients',
-                            label: defineMessage({id: 'admin.posts.persistentNotificationsMaxRecipients.title', defaultMessage: 'Maximum number of recipients for persistent notifications'}),
-                            help_text: defineMessage({id: 'admin.posts.persistentNotificationsMaxRecipients.desc', defaultMessage: 'Configure the maximum number of recipients to which users may send persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.'}),
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href='https://mattermost.com/pl/message-priority/'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                            isHidden: it.any(
-                                it.configIsFalse('ServiceSettings', 'PostPriority'),
-                                it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
-                            ),
-                        },
-                        {
-                            type: 'number',
-                            key: 'ServiceSettings.PersistentNotificationIntervalMinutes',
-                            label: defineMessage({id: 'admin.posts.persistentNotificationsInterval.title', defaultMessage: 'Frequency of persistent notifications'}),
-                            help_text: defineMessage({id: 'admin.posts.persistentNotificationsInterval.desc', defaultMessage: 'Configure the number of minutes between repeated notifications for urgent messages send with persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.'}),
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href='https://mattermost.com/pl/message-priority/'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                            isHidden: it.any(
-                                it.configIsFalse('ServiceSettings', 'PostPriority'),
-                                it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
-                            ),
-                            validate: validators.minValue(2, defineMessage({id: 'admin.posts.persistentNotificationsInterval.minValue', defaultMessage: 'Frequency cannot not be set to less than 2 minutes'})),
-                        },
-                        {
-                            type: 'number',
-                            key: 'ServiceSettings.PersistentNotificationMaxCount',
-                            label: defineMessage({id: 'admin.posts.persistentNotificationsMaxCount.title', defaultMessage: 'Total number of persistent notification per post'}),
-                            help_text: defineMessage({id: 'admin.posts.persistentNotificationsMaxCount.desc', defaultMessage: 'Configure the maximum number of times users may receive persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.'}),
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href='https://mattermost.com/pl/message-priority/'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                            isHidden: it.any(
-                                it.configIsFalse('ServiceSettings', 'PostPriority'),
-                                it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
-                            ),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.AllowPersistentNotificationsForGuests',
-                            label: defineMessage({id: 'admin.posts.persistentNotificationsGuests.title', defaultMessage: 'Allow guests to send persistent notifications'}),
-                            help_text: defineMessage({id: 'admin.posts.persistentNotificationsGuests.desc', defaultMessage: 'Whether a guest is able to require persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.'}),
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href='https://mattermost.com/pl/message-priority/'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                            isHidden: it.any(
-                                it.configIsFalse('GuestAccountsSettings', 'Enable'),
-                                it.configIsFalse('ServiceSettings', 'PostPriority'),
-                                it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
-                            ),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.EnableLinkPreviews',
-                            label: defineMessage({id: 'admin.customization.enableLinkPreviewsTitle', defaultMessage: 'Enable website link previews:'}),
-                            help_text: defineMessage({id: 'admin.customization.enableLinkPreviewsDesc', defaultMessage: 'Display a preview of website content, image links and YouTube links below the message when available. The server must be connected to the internet and have access through the firewall (if applicable) to the websites from which previews are expected. Users can disable these previews from Settings > Display > Website Link Previews.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                        },
-                        {
-                            type: 'text',
-                            key: 'ServiceSettings.RestrictLinkPreviews',
-                            label: defineMessage({id: 'admin.customization.restrictLinkPreviewsTitle', defaultMessage: 'Disable website link previews from these domains:'}),
-                            help_text: defineMessage({id: 'admin.customization.restrictLinkPreviewsDesc', defaultMessage: 'Link previews and image link previews will not be shown for the above list of comma-separated domains.'}),
-                            placeholder: defineMessage({id: 'admin.customization.restrictLinkPreviewsExample', defaultMessage: 'E.g.: "internal.mycompany.com, images.example.com"'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                                it.configIsFalse('ServiceSettings', 'EnableLinkPreviews'),
-                            ),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.EnablePermalinkPreviews',
-                            label: defineMessage({id: 'admin.customization.enablePermalinkPreviewsTitle', defaultMessage: 'Enable message link previews:'}),
-                            help_text: defineMessage({id: 'admin.customization.enablePermalinkPreviewsDesc', defaultMessage: 'When enabled, links to Mattermost messages will generate a preview for any users that have access to the original message. Please review our <link>documentation</link> for details.'}),
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href={DocLinks.SHARE_LINKS_TO_MESSAGES}
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.EnableSVGs',
-                            label: defineMessage({id: 'admin.customization.enableSVGsTitle', defaultMessage: 'Enable SVGs:'}),
-                            help_text: defineMessage({id: 'admin.customization.enableSVGsDesc', defaultMessage: 'Enable previews for SVG file attachments and allow them to appear in messages. Enabling SVGs is not recommended in environments where not all users are trusted.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.EnableLatex',
-                            label: defineMessage({id: 'admin.customization.enableLatexTitle', defaultMessage: 'Enable Latex Rendering:'}),
-                            help_text: defineMessage({id: 'admin.customization.enableLatexDesc', defaultMessage: 'Enable rendering of Latex in code blocks. If false, Latex code will be highlighted only. Enabling Latex is not recommended in environments where not all users are trusted.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.EnableInlineLatex',
-                            label: defineMessage({id: 'admin.customization.enableInlineLatexTitle', defaultMessage: 'Enable Inline Latex Rendering:'}),
-                            help_text: defineMessage({id: 'admin.customization.enableInlineLatexDesc', defaultMessage: 'Enable rendering of inline Latex code. If false, Latex can only be rendered in a code block using syntax highlighting. Please review our <link>documentation</link> for details about text formatting.'}),
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href={DocLinks.FORMAT_MESSAGES}
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            help_text_markdown: false,
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                                it.stateIsFalse('ServiceSettings.EnableLatex'),
-                            ),
-                        },
-                        {
-                            type: 'custom',
-                            component: CustomURLSchemesSetting,
-                            key: 'DisplaySettings.CustomURLSchemes',
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                        },
-                        {
-                            type: 'number',
-                            key: 'DisplaySettings.MaxMarkdownNodes',
-                            label: defineMessage({id: 'admin.customization.maxMarkdownNodesTitle', defaultMessage: 'Max Markdown Nodes:'}),
-                            help_text: defineMessage({id: 'admin.customization.maxMarkdownNodesDesc', defaultMessage: 'When rendering Markdown text in the mobile app, controls the maximum number of Markdown elements (eg. emojis, links, table cells, etc) that can be in a single piece of text. If set to 0, a default limit will be used.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                        },
-                        {
-                            type: 'text',
-                            key: 'ServiceSettings.GoogleDeveloperKey',
-                            label: defineMessage({id: 'admin.service.googleTitle', defaultMessage: 'Google API Key:'}),
-                            placeholder: defineMessage({id: 'admin.service.googleExample', defaultMessage: 'E.g.: "7rAh6iwQCkV4cA1Gsg3fgGOXJAQ43QV"'}),
-                            help_text: defineMessage({id: 'admin.service.googleDescription', defaultMessage: 'Set this key to enable the display of titles for embedded YouTube video previews. Without the key, YouTube previews will still be created based on hyperlinks appearing in messages or comments but they will not show the video title. View a <link>Google Developers Tutorial</link> for instructions on how to obtain a key and add YouTube Data API v3 as a service to your key.'}),
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href='https://www.youtube.com/watch?v=Im69kzhpR3I'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            help_text_markdown: false,
-                            isHidden: it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.AllowSyncedDrafts',
-                            label: defineMessage({id: 'admin.customization.allowSyncedDrafts', defaultMessage: 'Enable server syncing of message drafts:'}),
-                            help_text: defineMessage({id: 'admin.customization.allowSyncedDraftsDesc', defaultMessage: 'When enabled, users message drafts will sync with the server so they can be accessed from any device. Users may opt out of this behaviour in Account settings.'}),
-                            help_text_markdown: false,
-                        },
-                        {
-                            type: 'number',
-                            key: 'ServiceSettings.UniqueEmojiReactionLimitPerPost',
-                            label: defineMessage({id: 'admin.customization.uniqueEmojiReactionLimitPerPost', defaultMessage: 'Unique Emoji Reaction Limit:'}),
-                            placeholder: defineMessage({id: 'admin.customization.uniqueEmojiReactionLimitPerPostPlaceholder', defaultMessage: 'E.g.: 25'}),
-                            help_text: defineMessage({id: 'admin.customization.uniqueEmojiReactionLimitPerPostDesc', defaultMessage: 'The number of unique emoji reactions that can be added to a post. Increasing this limit could lead to poor client performance. Maximum is 500.'}),
-                            help_text_markdown: false,
-                            validate: (value) => {
-                                const maxResult = validators.maxValue(
-                                    500,
-                                    defineMessage({id: 'admin.customization.uniqueEmojiReactionLimitPerPost.maxValue', defaultMessage: 'Cannot increase the limit to a value above 500.'}),
-                                )(value);
-                                if (!maxResult.isValid()) {
-                                    return maxResult;
-                                }
-                                const minResult = validators.minValue(
-                                    0,
-                                    defineMessage({id: 'admin.customization.uniqueEmojiReactionLimitPerPost.minValue', defaultMessage: 'Cannot decrease the limit below 0.'}),
-                                )(value);
-                                if (!minResult.isValid()) {
-                                    return minResult;
-                                }
+                            settings: [
+                                {
+                                    type: 'bool',
+                                    key: 'ServiceSettings.EnableBurnOnRead',
+                                    label: defineMessage({id: 'admin.posts.burnOnRead.enable.title', defaultMessage: 'Enable Burn-on-Read Messages'}),
+                                    help_text: defineMessage({id: 'admin.posts.burnOnRead.enable.desc', defaultMessage: 'When enabled, users are allowed to send burn-on-read messages in channels, direct messages, and group messages. If disabled, the option to send a Burn-on-Read message will not be available.'}),
+                                    help_text_markdown: false,
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                },
+                                {
+                                    type: 'dropdown',
+                                    key: 'ServiceSettings.BurnOnReadDurationMinutes',
+                                    label: defineMessage({id: 'admin.posts.burnOnRead.duration.title', defaultMessage: 'Burn-on-Read Duration'}),
+                                    help_text: defineMessage({id: 'admin.posts.burnOnRead.duration.desc', defaultMessage: 'Sets the countdown duration for Burn-on-Read messages once they are revealed. After a recipient clicks to reveal a BoR message, the message will delete itself for that user after the specified duration. This setting applies to all Burn-on-Read messages.'}),
+                                    help_text_markdown: false,
+                                    options: [
+                                        {
+                                            value: '1',
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.duration.1min', defaultMessage: '1 minute'}),
+                                        },
+                                        {
+                                            value: '5',
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.duration.5min', defaultMessage: '5 minutes'}),
+                                        },
+                                        {
+                                            value: '10',
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.duration.10min', defaultMessage: '10 minutes'}),
+                                        },
+                                        {
+                                            value: '30',
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.duration.30min', defaultMessage: '30 minutes'}),
+                                        },
+                                        {
+                                            value: '60',
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.duration.1hour', defaultMessage: '1 hour'}),
+                                        },
+                                        {
+                                            value: '480',
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.duration.8hours', defaultMessage: '8 hours'}),
+                                        },
+                                    ],
+                                    onConfigLoad: (value: any) => value ?? '10',
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                        it.stateIsFalse('ServiceSettings.EnableBurnOnRead'),
+                                    ),
+                                },
+                                {
+                                    type: 'radio',
+                                    key: 'ServiceSettings.BurnOnReadAllowedUsers',
+                                    label: defineMessage({id: 'admin.posts.burnOnRead.allowedUsers.title', defaultMessage: 'Users Allowed to Send Burn-on-Read Messages'}),
+                                    options: [
+                                        {
+                                            value: 'all',
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.allowedUsers.all', defaultMessage: 'Allow for all users'}),
+                                        },
+                                        {
+                                            value: 'allow_selected',
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.allowedUsers.allowSelected', defaultMessage: 'Allow selected users'}),
+                                        },
+                                        {
+                                            value: 'block_selected',
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.allowedUsers.blockSelected', defaultMessage: 'Block selected users'}),
+                                        },
+                                    ],
+                                    onConfigLoad: (value: any) => value ?? 'all',
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                        it.stateIsFalse('ServiceSettings.EnableBurnOnRead'),
+                                    ),
+                                },
+                                {
+                                    type: 'custom',
+                                    key: 'ServiceSettings.BurnOnReadAllowedUsersList',
+                                    label: defineMessage({id: 'admin.posts.burnOnRead.usersList.title', defaultMessage: 'Selected users and groups'}),
+                                    help_text: defineMessage({id: 'admin.posts.burnOnRead.usersList.desc', defaultMessage: 'Choose users or groups that will be allowed or blocked from sending burn-on-read messages, depending on your selection above.'}),
+                                    component: BurnOnReadUserGroupSelector,
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                        it.stateIsFalse('ServiceSettings.EnableBurnOnRead'),
+                                    ),
+                                    isHidden: it.any(
+                                        it.stateEqualsOrDefault('ServiceSettings.BurnOnReadAllowedUsers', 'all', 'all'),
+                                        it.stateIsFalse('ServiceSettings.EnableBurnOnRead'),
+                                    ),
+                                    validate: (value) => {
+                                        const isEmpty = !value ||
+                                            (typeof value === 'string' && value.trim() === '') ||
+                                            (Array.isArray(value) && value.length === 0);
 
-                                return new ValidationResult(true, '');
-                            },
+                                        if (isEmpty) {
+                                            return new ValidationResult(
+                                                false,
+                                                defineMessage({
+                                                    id: 'admin.posts.burnOnRead.usersList.required',
+                                                    defaultMessage: 'At least one user or group must be selected.',
+                                                }),
+                                            );
+                                        }
+
+                                        return new ValidationResult(true, '');
+                                    },
+                                },
+                            ],
+                        },
+                        {
+                            key: 'PostSettings.Previews',
+                            title: 'Content & Previews',
+                            description: defineMessage({id: 'admin.posts.sections.previews.description', defaultMessage: 'Configure link previews and how advanced formatting renders.'}),
+                            settings: [
+                                {
+                                    type: 'bool',
+                                    key: 'ServiceSettings.EnableLinkPreviews',
+                                    label: defineMessage({id: 'admin.customization.enableLinkPreviewsTitle', defaultMessage: 'Enable website link previews:'}),
+                                    help_text: defineMessage({id: 'admin.customization.enableLinkPreviewsDesc', defaultMessage: 'Display a preview of website content, image links and YouTube links below the message when available. The server must be connected to the internet and have access through the firewall (if applicable) to the websites from which previews are expected. Users can disable these previews from Settings > Display > Website Link Previews.'}),
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                },
+                                {
+                                    type: 'text',
+                                    key: 'ServiceSettings.RestrictLinkPreviews',
+                                    label: defineMessage({id: 'admin.customization.restrictLinkPreviewsTitle', defaultMessage: 'Disable website link previews from these domains:'}),
+                                    help_text: defineMessage({id: 'admin.customization.restrictLinkPreviewsDesc', defaultMessage: 'Link previews and image link previews will not be shown for the above list of comma-separated domains.'}),
+                                    placeholder: defineMessage({id: 'admin.customization.restrictLinkPreviewsExample', defaultMessage: 'E.g.: "internal.mycompany.com, images.example.com"'}),
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                        it.configIsFalse('ServiceSettings', 'EnableLinkPreviews'),
+                                    ),
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'ServiceSettings.EnablePermalinkPreviews',
+                                    label: defineMessage({id: 'admin.customization.enablePermalinkPreviewsTitle', defaultMessage: 'Enable message link previews:'}),
+                                    help_text: defineMessage({id: 'admin.customization.enablePermalinkPreviewsDesc', defaultMessage: 'When enabled, links to Mattermost messages will generate a preview for any users that have access to the original message. Please review our <link>documentation</link> for details.'}),
+                                    help_text_values: {
+                                        link: (msg: string) => (
+                                            <ExternalLink
+                                                location='admin_console'
+                                                href={DocLinks.SHARE_LINKS_TO_MESSAGES}
+                                            >
+                                                {msg}
+                                            </ExternalLink>
+                                        ),
+                                    },
+                                    help_text_markdown: false,
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'ServiceSettings.EnableSVGs',
+                                    label: defineMessage({id: 'admin.customization.enableSVGsTitle', defaultMessage: 'Enable SVGs:'}),
+                                    help_text: defineMessage({id: 'admin.customization.enableSVGsDesc', defaultMessage: 'Enable previews for SVG file attachments and allow them to appear in messages. Enabling SVGs is not recommended in environments where not all users are trusted.'}),
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'ServiceSettings.EnableLatex',
+                                    label: defineMessage({id: 'admin.customization.enableLatexTitle', defaultMessage: 'Enable Latex Rendering:'}),
+                                    help_text: defineMessage({id: 'admin.customization.enableLatexDesc', defaultMessage: 'Enable rendering of Latex in code blocks. If false, Latex code will be highlighted only. Enabling Latex is not recommended in environments where not all users are trusted.'}),
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'ServiceSettings.EnableInlineLatex',
+                                    label: defineMessage({id: 'admin.customization.enableInlineLatexTitle', defaultMessage: 'Enable Inline Latex Rendering:'}),
+                                    help_text: defineMessage({id: 'admin.customization.enableInlineLatexDesc', defaultMessage: 'Enable rendering of inline Latex code. If false, Latex can only be rendered in a code block using syntax highlighting. Please review our <link>documentation</link> for details about text formatting.'}),
+                                    help_text_values: {
+                                        link: (msg: string) => (
+                                            <ExternalLink
+                                                location='admin_console'
+                                                href={DocLinks.FORMAT_MESSAGES}
+                                            >
+                                                {msg}
+                                            </ExternalLink>
+                                        ),
+                                    },
+                                    help_text_markdown: false,
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                        it.stateIsFalse('ServiceSettings.EnableLatex'),
+                                    ),
+                                },
+                                {
+                                    type: 'custom',
+                                    component: CustomURLSchemesSetting,
+                                    key: 'DisplaySettings.CustomURLSchemes',
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                },
+                                {
+                                    type: 'text',
+                                    key: 'ServiceSettings.GoogleDeveloperKey',
+                                    label: defineMessage({id: 'admin.service.googleTitle', defaultMessage: 'Google API Key:'}),
+                                    placeholder: defineMessage({id: 'admin.service.googleExample', defaultMessage: 'E.g.: "7rAh6iwQCkV4cA1Gsg3fgGOXJAQ43QV"'}),
+                                    help_text: defineMessage({id: 'admin.service.googleDescription', defaultMessage: 'Set this key to enable the display of titles for embedded YouTube video previews. Without the key, YouTube previews will still be created based on hyperlinks appearing in messages or comments but they will not show the video title. View a <link>Google Developers Tutorial</link> for instructions on how to obtain a key and add YouTube Data API v3 as a service to your key.'}),
+                                    help_text_values: {
+                                        link: (msg: string) => (
+                                            <ExternalLink
+                                                location='admin_console'
+                                                href='https://www.youtube.com/watch?v=Im69kzhpR3I'
+                                            >
+                                                {msg}
+                                            </ExternalLink>
+                                        ),
+                                    },
+                                    help_text_markdown: false,
+                                    isHidden: it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                },
+                            ],
+                        },
+                        {
+                            key: 'PostSettings.Performance',
+                            title: 'Performance & Limits',
+                            description: defineMessage({id: 'admin.posts.sections.performance.description', defaultMessage: 'Configure limits that protect client performance and rendering.'}),
+                            settings: [
+                                {
+                                    type: 'number',
+                                    key: 'DisplaySettings.MaxMarkdownNodes',
+                                    label: defineMessage({id: 'admin.customization.maxMarkdownNodesTitle', defaultMessage: 'Max Markdown Nodes:'}),
+                                    help_text: defineMessage({id: 'admin.customization.maxMarkdownNodesDesc', defaultMessage: 'When rendering Markdown text in the mobile app, controls the maximum number of Markdown elements (eg. emojis, links, table cells, etc) that can be in a single piece of text. If set to 0, a default limit will be used.'}),
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                },
+                                {
+                                    type: 'number',
+                                    key: 'ServiceSettings.UniqueEmojiReactionLimitPerPost',
+                                    label: defineMessage({id: 'admin.customization.uniqueEmojiReactionLimitPerPost', defaultMessage: 'Unique Emoji Reaction Limit:'}),
+                                    placeholder: defineMessage({id: 'admin.customization.uniqueEmojiReactionLimitPerPostPlaceholder', defaultMessage: 'E.g.: 25'}),
+                                    help_text: defineMessage({id: 'admin.customization.uniqueEmojiReactionLimitPerPostDesc', defaultMessage: 'The number of unique emoji reactions that can be added to a post. Increasing this limit could lead to poor client performance. Maximum is 500.'}),
+                                    help_text_markdown: false,
+                                    validate: (value) => {
+                                        const maxResult = validators.maxValue(
+                                            500,
+                                            defineMessage({id: 'admin.customization.uniqueEmojiReactionLimitPerPost.maxValue', defaultMessage: 'Cannot increase the limit to a value above 500.'}),
+                                        )(value);
+                                        if (!maxResult.isValid()) {
+                                            return maxResult;
+                                        }
+                                        const minResult = validators.minValue(
+                                            0,
+                                            defineMessage({id: 'admin.customization.uniqueEmojiReactionLimitPerPost.minValue', defaultMessage: 'Cannot decrease the limit below 0.'}),
+                                        )(value);
+                                        if (!minResult.isValid()) {
+                                            return minResult;
+                                        }
+
+                                        return new ValidationResult(true, '');
+                                    },
+                                },
+                            ],
                         },
                     ],
+                },
+            },
+            content_flagging: {
+                url: 'site_config/content_flagging',
+                title: defineMessage({id: 'admin.sidebar.contentFlagging', defaultMessage: 'Content Flagging'}),
+                isHidden: it.any(
+                    it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                    it.configIsFalse('FeatureFlags', 'ContentFlagging'),
+                ),
+                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
+                restrictedIndicator: getRestrictedIndicator(false, LicenseSkus.EnterpriseAdvanced),
+                schema: {
+                    id: 'ContentFlaggingSettings',
+                    component: ContentFlaggingSettings,
                 },
             },
             wrangler: {
@@ -3686,7 +3835,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.ldap', defaultMessage: 'AD/LDAP'}),
                 isHidden: it.any(
                     it.licensedForFeature('LDAP'),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'LdapSettings',
@@ -4164,7 +4312,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.saml', defaultMessage: 'SAML 2.0'}),
                 isHidden: it.any(
                     it.licensedForFeature('SAML'),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'SamlSettings',
@@ -4179,112 +4326,6 @@ const AdminDefinition: AdminDefinitionType = {
                     ],
                 },
                 restrictedIndicator: getRestrictedIndicator(true),
-            },
-            gitlab: {
-                url: 'authentication/gitlab',
-                title: defineMessage({id: 'admin.sidebar.gitlab', defaultMessage: 'GitLab'}),
-                isHidden: it.any(
-                    it.licensed,
-                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
-                ),
-                schema: {
-                    id: 'GitLabSettings',
-                    name: defineMessage({id: 'admin.authentication.gitlab', defaultMessage: 'GitLab'}),
-                    onConfigLoad: (config) => {
-                        const newState: { 'GitLabSettings.Url'?: string } = {};
-                        newState['GitLabSettings.Url'] = config.GitLabSettings?.UserAPIEndpoint?.replace('/api/v4/user', '');
-                        return newState;
-                    },
-                    onConfigSave: (config) => {
-                        const newConfig = {...config};
-                        newConfig.GitLabSettings.UserAPIEndpoint = config.GitLabSettings.Url.replace(/\/$/, '') + '/api/v4/user';
-                        return newConfig;
-                    },
-                    settings: [
-                        {
-                            type: 'bool',
-                            key: 'GitLabSettings.Enable',
-                            label: defineMessage({id: 'admin.gitlab.enableTitle', defaultMessage: 'Enable authentication with GitLab: '}),
-                            help_text: defineMessage({id: 'admin.gitlab.enableDescription', defaultMessage: 'When true, Mattermost allows team creation and account signup using GitLab OAuth.{lineBreak} {lineBreak}1. Log in to your GitLab account and go to Profile Settings -> Applications.{lineBreak}2. Enter Redirect URIs "<loginUrlChunk>your-mattermost-url</loginUrlChunk>" (example: http://localhost:8065/login/gitlab/complete) and "<signupUrlChunk>your-mattermost-url</signupUrlChunk>".\n3. Then use "Application Secret Key" and "Application ID" fields from GitLab to complete the options below.\n4. Complete the Endpoint URLs below.'}),
-                            help_text_values: {
-                                lineBreak: '\n',
-                                loginUrlChunk: (chunk: string) => `<${chunk}>/login/gitlab/complete"`,
-                                signupUrlChunk: (chunk: string) => `<${chunk}>/signup/gitlab/complete"`,
-                            },
-                            help_text_markdown: true,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
-                        },
-                        {
-                            type: 'text',
-                            key: 'GitLabSettings.Id',
-                            label: defineMessage({id: 'admin.gitlab.clientIdTitle', defaultMessage: 'Application ID:'}),
-                            help_text: defineMessage({id: 'admin.gitlab.clientIdDescription', defaultMessage: 'Obtain this value via the instructions above for logging into GitLab.'}),
-                            placeholder: defineMessage({id: 'admin.gitlab.clientIdExample', defaultMessage: 'E.g.: "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
-                                it.stateIsFalse('GitLabSettings.Enable'),
-                            ),
-                        },
-                        {
-                            type: 'text',
-                            key: 'GitLabSettings.Secret',
-                            label: defineMessage({id: 'admin.gitlab.clientSecretTitle', defaultMessage: 'Application Secret Key:'}),
-                            help_text: defineMessage({id: 'admin.gitlab.clientSecretDescription', defaultMessage: 'Obtain this value via the instructions above for logging into GitLab.'}),
-                            placeholder: defineMessage({id: 'admin.gitlab.clientSecretExample', defaultMessage: 'E.g.: "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
-                                it.stateIsFalse('GitLabSettings.Enable'),
-                            ),
-                        },
-                        {
-                            type: 'text',
-                            key: 'GitLabSettings.Url',
-                            label: defineMessage({id: 'admin.gitlab.siteUrl', defaultMessage: 'GitLab Site URL:'}),
-                            help_text: defineMessage({id: 'admin.gitlab.siteUrlDescription', defaultMessage: 'Enter the URL of your GitLab instance, e.g. https://example.com:3000. If your GitLab instance is not set up with SSL, start the URL with http:// instead of https://.'}),
-                            placeholder: defineMessage({id: 'admin.gitlab.siteUrlExample', defaultMessage: 'E.g.: https://'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
-                                it.stateIsFalse('GitLabSettings.Enable'),
-                            ),
-                        },
-                        {
-                            type: 'text',
-                            key: 'GitLabSettings.UserAPIEndpoint',
-                            label: defineMessage({id: 'admin.gitlab.userTitle', defaultMessage: 'User API Endpoint:'}),
-                            dynamic_value: (value, config, state) => {
-                                if (state['GitLabSettings.Url']) {
-                                    return state['GitLabSettings.Url'].replace(/\/$/, '') + '/api/v4/user';
-                                }
-                                return '';
-                            },
-                            isDisabled: true,
-                        },
-                        {
-                            type: 'text',
-                            key: 'GitLabSettings.AuthEndpoint',
-                            label: defineMessage({id: 'admin.gitlab.authTitle', defaultMessage: 'Auth Endpoint:'}),
-                            dynamic_value: (value, config, state) => {
-                                if (state['GitLabSettings.Url']) {
-                                    return state['GitLabSettings.Url'].replace(/\/$/, '') + '/oauth/authorize';
-                                }
-                                return '';
-                            },
-                            isDisabled: true,
-                        },
-                        {
-                            type: 'text',
-                            key: 'GitLabSettings.TokenEndpoint',
-                            label: defineMessage({id: 'admin.gitlab.tokenTitle', defaultMessage: 'Token Endpoint:'}),
-                            dynamic_value: (value, config, state) => {
-                                if (state['GitLabSettings.Url']) {
-                                    return state['GitLabSettings.Url'].replace(/\/$/, '') + '/oauth/token';
-                                }
-                                return '';
-                            },
-                            isDisabled: true,
-                        },
-                    ],
-                },
             },
             oauth: {
                 url: 'authentication/oauth',
@@ -4964,7 +5005,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.openid', defaultMessage: 'OpenID Connect'}),
                 isHidden: it.any(
                     it.any(it.licensedForFeature('OpenId'), it.cloudLicensed),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'OpenIdSettings',
@@ -4974,6 +5014,27 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'custom',
                             component: OpenIDFeatureDiscovery,
                             key: 'OpenIDFeatureDiscovery',
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
+                        },
+                    ],
+                },
+                restrictedIndicator: getRestrictedIndicator(true),
+            },
+            gitlab_feature_discovery: {
+                url: 'authentication/gitlab',
+                isDiscovery: true,
+                title: defineMessage({id: 'admin.sidebar.gitlab', defaultMessage: 'GitLab'}),
+                isHidden: it.any(
+                    it.licensedForFeature('OpenId'),
+                ),
+                schema: {
+                    id: 'GitLabSettings',
+                    name: defineMessage({id: 'admin.authentication.gitlab', defaultMessage: 'GitLab'}),
+                    settings: [
+                        {
+                            type: 'custom',
+                            component: GitLabFeatureDiscovery,
+                            key: 'GitLabFeatureDiscovery',
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ABOUT.EDITION_AND_LICENSE)),
                         },
                     ],
@@ -5067,7 +5128,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.guest_access', defaultMessage: 'Guest Access'}),
                 isHidden: it.any(
                     it.licensedForFeature('GuestAccounts'),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'GuestAccountsSettings',
@@ -5221,6 +5281,18 @@ const AdminDefinition: AdminDefinitionType = {
                             },
                             help_text_markdown: false,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.INTEGRATION_MANAGEMENT)),
+                            isHidden: it.licensedForFeature('Cloud'),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'ServiceSettings.EnableDynamicClientRegistration',
+                            label: defineMessage({id: 'admin.oauth.dcrTitle', defaultMessage: 'Enable OAuth 2.0 Dynamic Client Registration: '}),
+                            help_text: defineMessage({id: 'admin.oauth.dcrDescription', defaultMessage: 'When true, external applications can dynamically register as OAuth 2.0 clients with Mattermost. Only enable this if you need third-party applications to register OAuth clients programmatically.'}),
+                            help_text_markdown: false,
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.INTEGRATION_MANAGEMENT)),
+                                it.stateIsFalse('ServiceSettings.EnableOAuthServiceProvider'),
+                            ),
                             isHidden: it.licensedForFeature('Cloud'),
                         },
                         {
@@ -5449,7 +5521,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: `compliance/data_retention_settings/custom_policy/:policy_id(${ID_PATH_PATTERN})`,
                 isHidden: it.any(
                     it.not(it.licensedForFeature('DataRetention')),
-                    it.not(it.userHasReadPermissionOnSomeResources(RESOURCE_KEYS.COMPLIANCE.DATA_RETENTION_POLICY)),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.COMPLIANCE.DATA_RETENTION_POLICY)),
                 ),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.COMPLIANCE.DATA_RETENTION_POLICY)),
                 schema: {
@@ -5462,7 +5534,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'compliance/data_retention_settings/custom_policy',
                 isHidden: it.any(
                     it.not(it.licensedForFeature('DataRetention')),
-                    it.not(it.userHasReadPermissionOnSomeResources(RESOURCE_KEYS.COMPLIANCE.DATA_RETENTION_POLICY)),
+                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.COMPLIANCE.DATA_RETENTION_POLICY)),
                 ),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.COMPLIANCE.DATA_RETENTION_POLICY)),
                 schema: {
@@ -5507,7 +5579,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.dataRetentionPolicy', defaultMessage: 'Data Retention Policy'}),
                 isHidden: it.any(
                     it.licensedForFeature('DataRetention'),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'DataRetentionSettings',
@@ -5544,7 +5615,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.complianceExport', defaultMessage: 'Compliance Export'}),
                 isHidden: it.any(
                     it.licensedForFeature('MessageExport'),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'MessageExportSettings',
@@ -5798,7 +5868,6 @@ const AdminDefinition: AdminDefinitionType = {
                 title: defineMessage({id: 'admin.sidebar.customTermsOfService', defaultMessage: 'Custom Terms of Service'}),
                 isHidden: it.any(
                     it.licensedForFeature('CustomTermsOfService'),
-                    it.not(it.enterpriseReady),
                 ),
                 schema: {
                     id: 'TermsOfServiceSettings',
@@ -5947,47 +6016,6 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: defineMessage({id: 'admin.experimental.enableChannelViewedMessages.desc', defaultMessage: 'This setting determines whether `channel_viewed` WebSocket events are sent, which synchronize unread notifications across clients and devices. Disabling the setting in larger deployments may improve server performance.'}),
                             help_text_markdown: false,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ExperimentalSettings.ClientSideCertEnable',
-                            label: defineMessage({id: 'admin.experimental.clientSideCertEnable.title', defaultMessage: 'Enable Client-Side Certification:'}),
-                            help_text: defineMessage({id: 'admin.experimental.clientSideCertEnable.desc', defaultMessage: 'Enables client-side certification for your Mattermost server. See <link>documentation</link> to learn more.'}),
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href={DocLinks.ENABLE_CLIENT_SIDE_CERTIFICATION}
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            help_text_markdown: false,
-                            isHidden: it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'dropdown',
-                            key: 'ExperimentalSettings.ClientSideCertCheck',
-                            label: defineMessage({id: 'admin.experimental.clientSideCertCheck.title', defaultMessage: 'Client-Side Certification Login Method:'}),
-                            help_text: defineMessage({id: 'admin.experimental.clientSideCertCheck.desc', defaultMessage: "When **primary**, after the client side certificate is verified, user's email is retrieved from the certificate and is used to log in without a password. When **secondary**, after the client side certificate is verified, user's email is retrieved from the certificate and matched against the one supplied by the user. If they match, the user logs in with regular email/password credentials."}),
-                            help_text_markdown: true,
-                            options: [
-                                {
-                                    value: 'primary',
-                                    display_name: defineMessage({id: 'admin.experimental.clientSideCertCheck.options.primary', defaultMessage: 'primary'}),
-                                },
-                                {
-                                    value: 'secondary',
-                                    display_name: defineMessage({id: 'admin.experimental.clientSideCertCheck.options.secondary', defaultMessage: 'secondary'}),
-                                },
-                            ],
-                            isHidden: it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                                it.stateIsFalse('ExperimentalSettings.ClientSideCertEnable'),
-                            ),
                         },
                         {
                             type: 'bool',
@@ -6234,20 +6262,6 @@ const AdminDefinition: AdminDefinitionType = {
                 schema: {
                     id: 'Feature Flags',
                     component: FeatureFlags,
-                },
-            },
-            bleve: {
-                url: 'experimental/blevesearch',
-                title: defineMessage({id: 'admin.sidebar.blevesearch', defaultMessage: 'Bleve'}),
-                isHidden: it.any(
-                    it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
-                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.BLEVE)),
-                ),
-                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.BLEVE)),
-                searchableStrings: bleveSearchableStrings,
-                schema: {
-                    id: 'BleveSettings',
-                    component: BleveSettings,
                 },
             },
         },

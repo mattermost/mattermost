@@ -124,8 +124,8 @@ func getMockStore(t *testing.T) *mocks.Store {
 	fakePosts := &model.PostList{}
 	fakeOptions := model.GetPostsOptions{ChannelId: "123", PerPage: 30}
 	mockPostStore := mocks.PostStore{}
-	mockPostStore.On("GetPosts", fakeOptions, true, map[string]bool{}).Return(fakePosts, nil)
-	mockPostStore.On("GetPosts", fakeOptions, false, map[string]bool{}).Return(fakePosts, nil)
+	mockPostStore.On("GetPosts", mock.AnythingOfType("*request.Context"), fakeOptions, true, map[string]bool{}).Return(fakePosts, nil)
+	mockPostStore.On("GetPosts", mock.AnythingOfType("*request.Context"), fakeOptions, false, map[string]bool{}).Return(fakePosts, nil)
 	mockPostStore.On("InvalidateLastPostTimeCache", "12360")
 
 	mockPostStoreOptions := model.GetPostsSinceOptions{
@@ -139,8 +139,8 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockPostStore.On("InvalidateLastPostTimeCache", "channelId")
 	mockPostStore.On("GetEtag", "channelId", true, false).Return(mockPostStoreEtagResult)
 	mockPostStore.On("GetEtag", "channelId", false, false).Return(mockPostStoreEtagResult)
-	mockPostStore.On("GetPostsSince", mockPostStoreOptions, true, map[string]bool{}).Return(model.NewPostList(), nil)
-	mockPostStore.On("GetPostsSince", mockPostStoreOptions, false, map[string]bool{}).Return(model.NewPostList(), nil)
+	mockPostStore.On("GetPostsSince", mock.AnythingOfType("*request.Context"), mockPostStoreOptions, true, map[string]bool{}).Return(model.NewPostList(), nil)
+	mockPostStore.On("GetPostsSince", mock.AnythingOfType("*request.Context"), mockPostStoreOptions, false, map[string]bool{}).Return(model.NewPostList(), nil)
 	mockStore.On("Post").Return(&mockPostStore)
 
 	fakeTermsOfService := model.TermsOfService{Id: "123", CreateAt: 11111, UserId: "321", Text: "Terms of service test"}
@@ -187,6 +187,9 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockTeamStore.On("GetUserTeamIds", "123", true).Return(fakeUserTeamIds, nil)
 	mockTeamStore.On("GetUserTeamIds", "123", false).Return(fakeUserTeamIds, nil)
 	mockStore.On("Team").Return(&mockTeamStore)
+
+	mockContentFlaggingStore := mocks.ContentFlaggingStore{}
+	mockStore.On("ContentFlagging").Return(&mockContentFlaggingStore)
 
 	return &mockStore
 }

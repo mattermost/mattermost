@@ -187,10 +187,9 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                     />
                   </svg>
                 </MagnifyIcon>
-                <QuickInput
+                <Memo()
                   className="user-group-popover_search-bar"
                   clearable={true}
-                  delayInputUpdate={false}
                   onChange={[Function]}
                   onClear={[Function]}
                   placeholder="Search members"
@@ -208,7 +207,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                       type="text"
                     />
                   </div>
-                </QuickInput>
+                </Memo()>
               </div>
             </SearchBar>
             <Connect(Component)
@@ -1046,7 +1045,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                     className="status "
                                                   >
                                                     <svg
-                                                      aria-label="Offline Icon"
+                                                      aria-label="Offline"
                                                       className="offline--icon"
                                                       height="100%"
                                                       role="img"
@@ -1225,7 +1224,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                     className="status "
                                                   >
                                                     <svg
-                                                      aria-label="Offline Icon"
+                                                      aria-label="Offline"
                                                       className="offline--icon"
                                                       height="100%"
                                                       role="img"
@@ -1404,7 +1403,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                     className="status "
                                                   >
                                                     <svg
-                                                      aria-label="Offline Icon"
+                                                      aria-label="Offline"
                                                       className="offline--icon"
                                                       height="100%"
                                                       role="img"
@@ -1583,7 +1582,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                     className="status "
                                                   >
                                                     <svg
-                                                      aria-label="Offline Icon"
+                                                      aria-label="Offline"
                                                       className="offline--icon"
                                                       height="100%"
                                                       role="img"
@@ -1762,7 +1761,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                                                     className="status "
                                                   >
                                                     <svg
-                                                      aria-label="Offline Icon"
+                                                      aria-label="Offline"
                                                       className="offline--icon"
                                                       height="100%"
                                                       role="img"

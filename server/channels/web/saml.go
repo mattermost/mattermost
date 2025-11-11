@@ -31,19 +31,25 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	teamId, err := c.App.GetTeamIdFromQuery(c.AppContext, r.URL.Query())
-	if err != nil {
-		c.Err = err
-		return
-	}
+	tokenID := r.URL.Query().Get("t")
+	inviteId := r.URL.Query().Get("id")
+
 	action := r.URL.Query().Get("action")
 	isMobile := action == model.OAuthActionMobile
 	redirectURL := html.EscapeString(r.URL.Query().Get("redirect_to"))
+	// Optional SAML challenge parameters for mobile code-exchange
+	state := r.URL.Query().Get("state")
+	codeChallenge := r.URL.Query().Get("code_challenge")
+	codeChallengeMethod := r.URL.Query().Get("code_challenge_method")
 	relayProps := map[string]string{}
 	relayState := ""
 
 	if action != "" {
-		relayProps["team_id"] = teamId
+		if tokenID != "" {
+			relayProps["invite_token"] = tokenID
+		} else if inviteId != "" {
+			relayProps["invite_id"] = inviteId
+		}
 		relayProps["action"] = action
 		if action == model.OAuthActionEmailToSSO {
 			relayProps["email_token"] = r.URL.Query().Get("email_token")
@@ -57,6 +63,19 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		relayProps["redirect_to"] = redirectURL
+	}
+
+	// Forward SAML challenge values via RelayState so the complete step can prefer code-exchange
+	if isMobile {
+		if state != "" {
+			relayProps["state"] = state
+		}
+		if codeChallenge != "" {
+			relayProps["code_challenge"] = codeChallenge
+		}
+		if codeChallengeMethod != "" {
+			relayProps["code_challenge_method"] = codeChallengeMethod
+		}
 	}
 
 	desktopToken := r.URL.Query().Get("desktop_token")
@@ -87,7 +106,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//Validate that the user is with SAML and all that
+	// Validate that the user is with SAML and all that
 	encodedXML := r.FormValue("SAMLResponse")
 	relayState := r.FormValue("RelayState")
 
@@ -103,7 +122,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		relayProps = model.MapFromJSON(strings.NewReader(stateStr))
 	}
 
-	auditRec := c.MakeAuditRecord("completeSaml", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCompleteSaml, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
@@ -117,7 +136,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		redirectURL = val
 		hasRedirectURL = val != ""
 	}
-	redirectURL = fullyQualifiedRedirectURL(c.GetSiteURLHeader(), redirectURL)
+	redirectURL = fullyQualifiedRedirectURL(c.GetSiteURLHeader(), redirectURL, c.App.Config().NativeAppSettings.AppCustomURLSchemes)
 
 	handleError := func(err *model.AppError) {
 		if isMobile && hasRedirectURL {
@@ -142,21 +161,19 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = c.App.CheckUserAllAuthenticationCriteria(c.AppContext, user, ""); err != nil {
+	err = c.App.CheckUserAllAuthenticationCriteria(c.AppContext, user, "")
+	if err != nil {
 		handleError(err)
 		return
 	}
 
 	switch action {
 	case model.OAuthActionSignup:
-		if teamId := relayProps["team_id"]; teamId != "" {
-			if err = c.App.AddUserToTeamByTeamId(c.AppContext, teamId, user); err != nil {
-				c.LogErrorByCode(err)
-				break
-			}
-			if err = c.App.AddDirectChannels(c.AppContext, teamId, user); err != nil {
-				c.LogErrorByCode(err)
-			}
+		inviteToken := relayProps["invite_token"]
+		inviteId := relayProps["invite_id"]
+		if err = c.App.AddUserToTeamByInviteIfNeeded(c.AppContext, user, inviteToken, inviteId); err != nil {
+			c.LogErrorByCode(err)
+			break
 		}
 	case model.OAuthActionEmailToSSO:
 		if err = c.App.RevokeAllSessions(c.AppContext, user.Id); err != nil {
@@ -221,7 +238,35 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// If it's not a desktop login we create a session for this SAML User that will be used in their browser or mobile app
+	// Decide between legacy token-in-URL vs SAML code-exchange for mobile
+	samlState := relayProps["state"]
+	samlChallenge := relayProps["code_challenge"]
+	samlMethod := relayProps["code_challenge_method"]
+
+	if isMobile && hasRedirectURL && samlChallenge != "" && c.App.Config().FeatureFlags.MobileSSOCodeExchange {
+		// Issue one-time login_code bound to user and SAML challenge values; do not create a session here
+		extra := model.MapToJSON(map[string]string{
+			"user_id":               user.Id,
+			"state":                 samlState,
+			"code_challenge":        samlChallenge,
+			"code_challenge_method": samlMethod,
+		})
+
+		var code *model.Token
+		code, err = c.App.CreateSamlRelayToken(model.TokenTypeSSOCodeExchange, extra)
+		if err != nil {
+			handleError(model.NewAppError("completeSaml", "app.recover.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err))
+			return
+		}
+
+		redirectURL = utils.AppendQueryParamsToURL(redirectURL, map[string]string{
+			"login_code": code.Token,
+		})
+		utils.RenderMobileAuthComplete(w, redirectURL)
+		return
+	}
+
+	// Legacy: create a session and attach tokens (web/mobile without SAML code exchange)
 	session, err := c.App.DoLogin(c.AppContext, w, r, user, "", isMobile, false, true)
 	if err != nil {
 		handleError(err)
@@ -236,10 +281,13 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	if hasRedirectURL {
 		if isMobile {
 			// Mobile clients with redirect url support
-			redirectURL = utils.AppendQueryParamsToURL(redirectURL, map[string]string{
-				model.SessionCookieToken: c.AppContext.Session().Token,
-				model.SessionCookieCsrf:  c.AppContext.Session().GetCSRF(),
-			})
+			// Legacy mobile path: return tokens only when SAML code exchange was not requested
+			if samlChallenge == "" {
+				redirectURL = utils.AppendQueryParamsToURL(redirectURL, map[string]string{
+					model.SessionCookieToken: c.AppContext.Session().Token,
+					model.SessionCookieCsrf:  c.AppContext.Session().GetCSRF(),
+				})
+			}
 			utils.RenderMobileAuthComplete(w, redirectURL)
 		} else {
 			http.Redirect(w, r, redirectURL, http.StatusFound)

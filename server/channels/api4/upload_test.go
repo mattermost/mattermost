@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -117,6 +118,36 @@ func TestCreateUpload(t *testing.T) {
 			require.NotEmpty(t, u)
 		})
 	})
+
+	t.Run("should clean filename", func(t *testing.T) {
+		us := &model.UploadSession{
+			ChannelId: th.BasicChannel.Id,
+			Filename:  "../../../image.png",
+			FileSize:  8 * 1024 * 1024,
+		}
+
+		u, resp, err := th.Client.CreateUpload(context.Background(), us)
+		require.NoError(t, err)
+		require.NotEmpty(t, u)
+		require.Equal(t, http.StatusCreated, resp.StatusCode)
+
+		require.Equal(t, "image.png", u.Filename)
+
+		rus, appErr := th.App.GetUploadSession(th.Context, u.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, "image.png", rus.Filename)
+		require.Equal(
+			t,
+			fmt.Sprintf(
+				"%s/teams/noteam/channels/%s/users/%s/%s/image.png",
+				model.GetTimeForMillis(u.CreateAt).Format("20060102"),
+				u.ChannelId,
+				u.UserId,
+				u.Id,
+			),
+			rus.Path,
+		)
+	})
 }
 
 func TestGetUpload(t *testing.T) {
@@ -184,7 +215,7 @@ func TestGetUploadsForUser(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		uploads := make([]*model.UploadSession, 4)
-		for i := 0; i < len(uploads); i++ {
+		for i := range uploads {
 			us := &model.UploadSession{
 				Id:        model.NewId(),
 				Type:      model.UploadTypeAttachment,

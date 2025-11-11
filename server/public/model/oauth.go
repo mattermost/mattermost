@@ -6,6 +6,7 @@ package model
 import (
 	"fmt"
 	"net/http"
+	"slices"
 	"unicode/utf8"
 )
 
@@ -30,26 +31,28 @@ type OAuthApp struct {
 	Homepage        string      `json:"homepage"`
 	IsTrusted       bool        `json:"is_trusted"`
 	MattermostAppID string      `json:"mattermost_app_id"`
+
+	IsDynamicallyRegistered bool `json:"is_dynamically_registered,omitempty"`
 }
 
 func (a *OAuthApp) Auditable() map[string]any {
 	return map[string]any{
-		"id":                a.Id,
-		"creator_id":        a.CreatorId,
-		"create_at":         a.CreateAt,
-		"update_at":         a.UpdateAt,
-		"name":              a.Name,
-		"description":       a.Description,
-		"icon_url":          a.IconURL,
-		"callback_urls:":    a.CallbackUrls,
-		"homepage":          a.Homepage,
-		"is_trusted":        a.IsTrusted,
-		"mattermost_app_id": a.MattermostAppID,
+		"id":                         a.Id,
+		"creator_id":                 a.CreatorId,
+		"create_at":                  a.CreateAt,
+		"update_at":                  a.UpdateAt,
+		"name":                       a.Name,
+		"description":                a.Description,
+		"icon_url":                   a.IconURL,
+		"callback_urls:":             a.CallbackUrls,
+		"homepage":                   a.Homepage,
+		"is_trusted":                 a.IsTrusted,
+		"mattermost_app_id":          a.MattermostAppID,
+		"token_endpoint_auth_method": a.GetTokenEndpointAuthMethod(),
+		"is_dynamically_registered":  a.IsDynamicallyRegistered,
 	}
 }
 
-// IsValid validates the app and returns an error if it isn't configured
-// correctly.
 func (a *OAuthApp) IsValid() *AppError {
 	if !IsValidId(a.Id) {
 		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.app_id.app_error", nil, "", http.StatusBadRequest)
@@ -63,7 +66,7 @@ func (a *OAuthApp) IsValid() *AppError {
 		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.update_at.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 	}
 
-	if !IsValidId(a.CreatorId) {
+	if !IsValidId(a.CreatorId) && !a.IsDynamicallyRegistered {
 		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.creator_id.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 	}
 
@@ -85,7 +88,11 @@ func (a *OAuthApp) IsValid() *AppError {
 		}
 	}
 
-	if a.Homepage == "" || len(a.Homepage) > 256 || !IsValidHTTPURL(a.Homepage) {
+	if a.Homepage == "" && !a.IsDynamicallyRegistered {
+		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.homepage.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
+	}
+
+	if a.Homepage != "" && (len(a.Homepage) > 256 || !IsValidHTTPURL(a.Homepage)) {
 		return NewAppError("OAuthApp.IsValid", "model.oauth.is_valid.homepage.app_error", nil, "app_id="+a.Id, http.StatusBadRequest)
 	}
 
@@ -137,11 +144,58 @@ func (a *OAuthApp) Sanitize() {
 }
 
 func (a *OAuthApp) IsValidRedirectURL(url string) bool {
-	for _, u := range a.CallbackUrls {
-		if u == url {
-			return true
-		}
+	return slices.Contains(a.CallbackUrls, url)
+}
+
+// GetTokenEndpointAuthMethod returns the token endpoint auth method based on whether the app has a client secret
+func (a *OAuthApp) GetTokenEndpointAuthMethod() string {
+	if a.ClientSecret == "" {
+		return ClientAuthMethodNone
+	}
+	return ClientAuthMethodClientSecretPost
+}
+
+func NewOAuthAppFromClientRegistration(req *ClientRegistrationRequest, creatorId string) *OAuthApp {
+	app := &OAuthApp{
+		CreatorId:               creatorId,
+		CallbackUrls:            req.RedirectURIs,
+		IsDynamicallyRegistered: true,
 	}
 
-	return false
+	if req.ClientName != nil {
+		app.Name = *req.ClientName
+	} else {
+		app.Name = "Dynamically Registered Client"
+	}
+
+	if req.ClientURI != nil {
+		app.Homepage = *req.ClientURI
+	}
+
+	return app
+}
+
+func (a *OAuthApp) ToClientRegistrationResponse(siteURL string) *ClientRegistrationResponse {
+	authMethod := a.GetTokenEndpointAuthMethod()
+	resp := &ClientRegistrationResponse{
+		ClientID:                a.Id,
+		RedirectURIs:            a.CallbackUrls,
+		TokenEndpointAuthMethod: authMethod,
+		GrantTypes:              GetDefaultGrantTypes(),
+		ResponseTypes:           GetDefaultResponseTypes(),
+	}
+
+	if authMethod != ClientAuthMethodNone {
+		resp.ClientSecret = &a.ClientSecret
+	}
+
+	if a.Name != "" {
+		resp.ClientName = &a.Name
+	}
+
+	if a.Homepage != "" {
+		resp.ClientURI = &a.Homepage
+	}
+
+	return resp
 }

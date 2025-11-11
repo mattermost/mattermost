@@ -60,7 +60,7 @@ func createCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("createCategoryForTeamForUser", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCreateCategoryForTeamForUser, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	var categoryCreateRequest model.SidebarCategoryWithChannels
@@ -138,7 +138,7 @@ func updateCategoryOrderForTeamForUser(c *Context, w http.ResponseWriter, r *htt
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateCategoryOrderForTeamForUser", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateCategoryOrderForTeamForUser, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	categoryOrder, err := model.NonSortedArrayFromJSON(r.Body)
@@ -216,7 +216,7 @@ func updateCategoriesForTeamForUser(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateCategoriesForTeamForUser", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateCategoriesForTeamForUser, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	var categoriesUpdateRequest []*model.SidebarCategoryWithChannels
@@ -330,7 +330,7 @@ func updateCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateCategoryForTeamForUser", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateCategoryForTeamForUser, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	var categoryUpdateRequest model.SidebarCategoryWithChannels
@@ -381,7 +381,7 @@ func deleteCategoryForTeamForUser(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("deleteCategoryForTeamForUser", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventDeleteCategoryForTeamForUser, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
 	appErr := c.App.DeleteSidebarCategory(c.AppContext, c.Params.UserId, c.Params.TeamId, c.Params.CategoryId)

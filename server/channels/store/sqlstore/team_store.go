@@ -468,9 +468,6 @@ func (s SqlTeamStore) teamSearchQuery(opts *model.TeamSearch, countQuery bool) s
 		term = wildcardSearchTerm(term)
 
 		operatorKeyword := "ILIKE"
-		if s.DriverName() == model.DatabaseDriverMysql {
-			operatorKeyword = "LIKE"
-		}
 
 		query = query.Where(fmt.Sprintf("(Name %[1]s ? OR DisplayName %[1]s ?)", operatorKeyword), term, term)
 	}
@@ -1114,7 +1111,7 @@ func (s SqlTeamStore) GetMembersByIds(teamId string, userIds []string, restricti
 }
 
 // GetTeamsForUser returns a list of teams that the user is a member of. Expects userId to be passed as a parameter. It can also negative the teamID passed.
-func (s SqlTeamStore) GetTeamsForUser(ctx request.CTX, userId, excludeTeamID string, includeDeleted bool) ([]*model.TeamMember, error) {
+func (s SqlTeamStore) GetTeamsForUser(rctx request.CTX, userId, excludeTeamID string, includeDeleted bool) ([]*model.TeamMember, error) {
 	query := s.getTeamMembersWithSchemeSelectQuery().
 		Where(sq.Eq{"TeamMembers.UserId": userId})
 
@@ -1132,7 +1129,7 @@ func (s SqlTeamStore) GetTeamsForUser(ctx request.CTX, userId, excludeTeamID str
 	}
 
 	dbMembers := teamMemberWithSchemeRolesList{}
-	err = s.SqlStore.DBXFromContext(ctx.Context()).Select(&dbMembers, queryString, args...)
+	err = s.SqlStore.DBXFromContext(rctx.Context()).Select(&dbMembers, queryString, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to find TeamMembers with userId=%s", userId)
 	}
@@ -1420,7 +1417,7 @@ func (s SqlTeamStore) ClearAllCustomRoleAssignments() (err error) {
 
 			var newRoles []string
 
-			for _, role := range strings.Fields(member.Roles) {
+			for role := range strings.FieldsSeq(member.Roles) {
 				for name := range builtInRoles {
 					if name == role {
 						newRoles = append(newRoles, role)
@@ -1625,6 +1622,7 @@ func (s SqlTeamStore) UpdateMembersRole(teamID string, adminIDs []string) (_ []*
 	}
 	defer finalizeTransactionX(transaction, &err)
 
+	// TODO: https://mattermost.atlassian.net/browse/MM-63368
 	// On MySQL it's not possible to update a table and select from it in the same query.
 	// A SELECT and a UPDATE query are needed.
 	// Once we only support PostgreSQL, this can be done in a single query using RETURNING.

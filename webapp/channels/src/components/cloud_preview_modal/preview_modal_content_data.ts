@@ -2,16 +2,10 @@
 // See LICENSE.txt for license information.
 
 import {defineMessage} from 'react-intl';
-import type {MessageDescriptor} from 'react-intl';
 
-export type PreviewModalContentData = {
-    skuLabel: MessageDescriptor;
-    title: MessageDescriptor;
-    subtitle: MessageDescriptor;
-    videoUrl: string;
-    videoPoster?: string;
-    useCase: string;
-};
+import type {PreviewModalContentData} from '@mattermost/types/cloud';
+
+export type {PreviewModalContentData};
 
 export const modalContent: PreviewModalContentData[] = [
     {
@@ -90,7 +84,7 @@ export const modalContent: PreviewModalContentData[] = [
         }),
         subtitle: defineMessage({
             id: 'cloud_preview_modal.missionops.playbooks.subtitle',
-            defaultMessage: 'Unlock powerful workflows tailored to real-world complexity. When conditions change, define tasks for the Playbook to evolve with your dynamic processes.',
+            defaultMessage: 'Move faster and make fewer mistakes with checklist-based automations that power your team’s workflows.',
         }),
         videoUrl: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/missionops/modal-assets/playbook-properties.jpg',
         useCase: 'mission-ops',
@@ -204,7 +198,7 @@ export const modalContent: PreviewModalContentData[] = [
         }),
         subtitle: defineMessage({
             id: 'cloud_preview_modal.devsecops.playbooks.subtitle',
-            defaultMessage: 'Unlock powerful workflows tailored to real-world complexity. When conditions change, define tasks for the Playbook to evolve with your dynamic processes.',
+            defaultMessage: 'Move faster and make fewer mistakes with checklist-based automations that power your team’s workflows.',
         }),
         videoUrl: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/devsecops/modal-assets/playbook-properties.jpg',
         useCase: 'dev-sec-ops',
@@ -318,7 +312,7 @@ export const modalContent: PreviewModalContentData[] = [
         }),
         subtitle: defineMessage({
             id: 'cloud_preview_modal.cyberdefense.playbooks.subtitle',
-            defaultMessage: 'Unlock powerful workflows tailored to real-world complexity. When conditions change, define tasks for the Playbook to evolve with your dynamic processes.',
+            defaultMessage: 'Move faster and make fewer mistakes with checklist-based automations that power your team’s workflows.',
         }),
         videoUrl: 'https://mattermost-cloud-preview-assets.s3.us-east-2.amazonaws.com/cyberdefense/modal-assets/playbook-properties.jpg',
         useCase: 'cyber-defense',

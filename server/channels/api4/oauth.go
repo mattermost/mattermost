@@ -20,6 +20,9 @@ func (api *API) InitOAuth() {
 	api.BaseRoutes.OAuthApp.Handle("", api.APISessionRequired(deleteOAuthApp)).Methods(http.MethodDelete)
 	api.BaseRoutes.OAuthApp.Handle("/regen_secret", api.APISessionRequired(regenerateOAuthAppSecret)).Methods(http.MethodPost)
 
+	// DCR (Dynamic Client Registration) endpoints as per RFC 7591
+	api.BaseRoutes.OAuthApps.Handle("/register", api.RateLimitedHandler(api.APIHandler(registerOAuthClient), model.RateLimitSettings{PerSec: model.NewPointer(2), MaxBurst: model.NewPointer(1)})).Methods(http.MethodPost)
+
 	api.BaseRoutes.User.Handle("/oauth/apps/authorized", api.APISessionRequired(getAuthorizedOAuthApps)).Methods(http.MethodGet)
 }
 
@@ -30,7 +33,7 @@ func createOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("createOAuthApp", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventCreateOAuthApp, model.AuditStatusFail)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "oauth_app", &oauthApp)
 
 	defer c.LogAuditRec(auditRec)
@@ -69,7 +72,7 @@ func updateOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("updateOAuthApp", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateOAuthApp, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "oauth_app_id", c.Params.AppId)
 	c.LogAudit("attempt")
@@ -208,7 +211,7 @@ func deleteOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("deleteOAuthApp", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventDeleteOAuthApp, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "oauth_app_id", c.Params.AppId)
 	c.LogAudit("attempt")
@@ -249,7 +252,7 @@ func regenerateOAuthAppSecret(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("regenerateOAuthAppSecret", model.AuditStatusFail)
+	auditRec := c.MakeAuditRecord(model.AuditEventRegenerateOAuthAppSecret, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "oauth_app_id", c.Params.AppId)
 
@@ -311,5 +314,76 @@ func getAuthorizedOAuthApps(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	if _, err := w.Write(js); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+// DCR (Dynamic Client Registration) endpoint handlers as per RFC 7591
+func registerOAuthClient(c *Context, w http.ResponseWriter, r *http.Request) {
+	// Session and permission checks removed for DCR endpoint to allow external client registration
+
+	var clientRequest model.ClientRegistrationRequest
+	if jsonErr := json.NewDecoder(r.Body).Decode(&clientRequest); jsonErr != nil {
+		dcrError := model.NewDCRError(model.DCRErrorInvalidClientMetadata, "Invalid JSON in request body")
+
+		w.WriteHeader(http.StatusBadRequest)
+		if err := json.NewEncoder(w).Encode(dcrError); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
+		return
+	}
+
+	// Check if OAuth service provider is enabled
+	if !*c.App.Config().ServiceSettings.EnableOAuthServiceProvider {
+		dcrError := model.NewDCRError(model.DCRErrorUnsupportedOperation, "OAuth service provider is disabled")
+
+		w.WriteHeader(http.StatusBadRequest)
+		if err := json.NewEncoder(w).Encode(dcrError); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
+		return
+	}
+
+	// Check if DCR is enabled
+	if c.App.Config().ServiceSettings.EnableDynamicClientRegistration == nil || !*c.App.Config().ServiceSettings.EnableDynamicClientRegistration {
+		dcrError := model.NewDCRError(model.DCRErrorUnsupportedOperation, "Dynamic client registration is disabled")
+
+		w.WriteHeader(http.StatusBadRequest)
+		if err := json.NewEncoder(w).Encode(dcrError); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
+		return
+	}
+
+	// Validate the request
+	if err := clientRequest.IsValid(); err != nil {
+		dcrError := model.NewDCRError(model.DCRErrorInvalidClientMetadata, err.Message)
+
+		w.WriteHeader(http.StatusBadRequest)
+		if err := json.NewEncoder(w).Encode(dcrError); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
+		return
+	}
+
+	// No user ID for DCR
+	userID := ""
+
+	app, appErr := c.App.RegisterOAuthClient(c.AppContext, &clientRequest, userID)
+	if appErr != nil {
+		dcrError := model.NewDCRError(model.DCRErrorInvalidClientMetadata, appErr.Message)
+
+		w.WriteHeader(appErr.StatusCode)
+		if err := json.NewEncoder(w).Encode(dcrError); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
+		return
+	}
+
+	siteURL := *c.App.Config().ServiceSettings.SiteURL
+	response := app.ToClientRegistrationResponse(siteURL)
+
+	w.WriteHeader(http.StatusCreated)
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		c.Logger.Warn("Error writing DCR response", mlog.Err(err))
 	}
 }

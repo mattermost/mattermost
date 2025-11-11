@@ -64,6 +64,44 @@ func TestGetCPAField(t *testing.T) {
 		require.Equal(t, model.CustomProfileAttributesVisibilityHidden, fetchedField.Attrs["visibility"])
 	})
 
+	t.Run("should initialize default attrs when field has nil Attrs", func(t *testing.T) {
+		// Create a field with nil Attrs directly via property service (bypassing CPA validation)
+		field := &model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    "Field with nil attrs",
+			Type:    model.PropertyFieldTypeText,
+			Attrs:   nil,
+		}
+		createdField, err := th.App.Srv().propertyService.CreatePropertyField(field)
+		require.NoError(t, err)
+
+		// GetCPAField should initialize Attrs with defaults
+		fetchedField, appErr := th.App.GetCPAField(createdField.ID)
+		require.Nil(t, appErr)
+		require.NotNil(t, fetchedField.Attrs)
+		require.Equal(t, model.CustomProfileAttributesVisibilityDefault, fetchedField.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility])
+		require.Equal(t, float64(0), fetchedField.Attrs[model.CustomProfileAttributesPropertyAttrsSortOrder])
+	})
+
+	t.Run("should initialize default attrs when field has empty Attrs", func(t *testing.T) {
+		// Create a field with empty Attrs directly via property service
+		field := &model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    "Field with empty attrs",
+			Type:    model.PropertyFieldTypeText,
+			Attrs:   model.StringInterface{},
+		}
+		createdField, err := th.App.Srv().propertyService.CreatePropertyField(field)
+		require.NoError(t, err)
+
+		// GetCPAField should add missing default attrs
+		fetchedField, appErr := th.App.GetCPAField(createdField.ID)
+		require.Nil(t, appErr)
+		require.NotNil(t, fetchedField.Attrs)
+		require.Equal(t, model.CustomProfileAttributesVisibilityDefault, fetchedField.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility])
+		require.Equal(t, float64(0), fetchedField.Attrs[model.CustomProfileAttributesPropertyAttrsSortOrder])
+	})
+
 	t.Run("should validate LDAP/SAML synced fields", func(t *testing.T) {
 		// Create LDAP synced field
 		ldapField, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
@@ -161,6 +199,42 @@ func TestListCPAFields(t *testing.T) {
 		require.Equal(t, "Field 3", fields[0].Name)
 		require.Equal(t, "Field 1", fields[1].Name)
 	})
+
+	t.Run("should initialize default attrs for fields with nil or empty Attrs", func(t *testing.T) {
+		// Create a field with nil Attrs
+		fieldWithNilAttrs := &model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    "Field with nil attrs",
+			Type:    model.PropertyFieldTypeText,
+			Attrs:   nil,
+		}
+		_, err := th.App.Srv().propertyService.CreatePropertyField(fieldWithNilAttrs)
+		require.NoError(t, err)
+
+		// Create a field with empty Attrs
+		fieldWithEmptyAttrs := &model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    "Field with empty attrs",
+			Type:    model.PropertyFieldTypeText,
+			Attrs:   model.StringInterface{},
+		}
+		_, err = th.App.Srv().propertyService.CreatePropertyField(fieldWithEmptyAttrs)
+		require.NoError(t, err)
+
+		// ListCPAFields should initialize Attrs with defaults
+		fields, appErr := th.App.ListCPAFields()
+		require.Nil(t, appErr)
+		require.NotEmpty(t, fields)
+
+		// Find our test fields and verify default attrs are set
+		for _, field := range fields {
+			if field.Name == "Field with nil attrs" || field.Name == "Field with empty attrs" {
+				require.NotNil(t, field.Attrs)
+				require.Equal(t, model.CustomProfileAttributesVisibilityDefault, field.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility])
+				require.Equal(t, float64(0), field.Attrs[model.CustomProfileAttributesPropertyAttrsSortOrder])
+			}
+		}
+	})
 }
 
 func TestCreateCPAField(t *testing.T) {
@@ -212,6 +286,34 @@ func TestCreateCPAField(t *testing.T) {
 		require.Equal(t, field.Name, fetchedField.Name)
 		require.NotZero(t, fetchedField.CreateAt)
 		require.Equal(t, fetchedField.CreateAt, fetchedField.UpdateAt)
+	})
+
+	t.Run("should create CPA field with DeleteAt set to 0 even if input has non-zero DeleteAt", func(t *testing.T) {
+		// Create a CPAField with DeleteAt != 0
+		field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    model.NewId(),
+			Type:    model.PropertyFieldTypeText,
+			Attrs:   model.StringInterface{model.CustomProfileAttributesPropertyAttrsVisibility: model.CustomProfileAttributesVisibilityHidden},
+		})
+		require.NoError(t, err)
+
+		// Set DeleteAt to non-zero value before creation
+		field.DeleteAt = time.Now().UnixMilli()
+		require.NotZero(t, field.DeleteAt, "Pre-condition: field should have non-zero DeleteAt")
+
+		createdField, appErr := th.App.CreateCPAField(field)
+		require.Nil(t, appErr)
+		require.NotZero(t, createdField.ID)
+		require.Equal(t, cpaGroupID, createdField.GroupID)
+
+		// Verify that DeleteAt has been reset to 0
+		require.Zero(t, createdField.DeleteAt, "DeleteAt should be 0 after creation")
+
+		// Double-check by fetching the field from the database
+		fetchedField, gErr := th.App.Srv().propertyService.GetPropertyField("", createdField.ID)
+		require.NoError(t, gErr)
+		require.Zero(t, fetchedField.DeleteAt, "DeleteAt should be 0 in database")
 	})
 
 	// reset the server at this point to avoid polluting the state
@@ -555,7 +657,7 @@ func TestDeleteCPAField(t *testing.T) {
 	for i := range 3 {
 		newValue := &model.PropertyValue{
 			TargetID:   model.NewId(),
-			TargetType: "user",
+			TargetType: model.PropertyValueTargetTypeUser,
 			GroupID:    cpaGroupID,
 			FieldID:    createdField.ID,
 			Value:      json.RawMessage(fmt.Sprintf(`"Value %d"`, i)),
@@ -588,7 +690,7 @@ func TestDeleteCPAField(t *testing.T) {
 	t.Run("should correctly delete the field", func(t *testing.T) {
 		// check that we have the associated values to the field prior deletion
 		opts := model.PropertyValueSearchOpts{PerPage: 10, FieldID: createdField.ID}
-		values, err := th.App.Srv().propertyService.SearchPropertyValues(cpaGroupID, "", opts)
+		values, err := th.App.Srv().propertyService.SearchPropertyValues(cpaGroupID, opts)
 		require.NoError(t, err)
 		require.Len(t, values, 3)
 
@@ -601,12 +703,12 @@ func TestDeleteCPAField(t *testing.T) {
 		require.NotZero(t, fetchedField.DeleteAt)
 
 		// ensure that the associated fields have been marked as deleted too
-		values, err = th.App.Srv().propertyService.SearchPropertyValues(cpaGroupID, "", opts)
+		values, err = th.App.Srv().propertyService.SearchPropertyValues(cpaGroupID, opts)
 		require.NoError(t, err)
 		require.Len(t, values, 0)
 
 		opts.IncludeDeleted = true
-		values, err = th.App.Srv().propertyService.SearchPropertyValues(cpaGroupID, "", opts)
+		values, err = th.App.Srv().propertyService.SearchPropertyValues(cpaGroupID, opts)
 		require.NoError(t, err)
 		require.Len(t, values, 3)
 		for _, value := range values {
@@ -634,7 +736,7 @@ func TestGetCPAValue(t *testing.T) {
 	t.Run("should fail if the group id is invalid", func(t *testing.T) {
 		propertyValue := &model.PropertyValue{
 			TargetID:   model.NewId(),
-			TargetType: "user",
+			TargetType: model.PropertyValueTargetTypeUser,
 			GroupID:    model.NewId(),
 			FieldID:    fieldID,
 			Value:      json.RawMessage(`"Value"`),
@@ -650,7 +752,7 @@ func TestGetCPAValue(t *testing.T) {
 	t.Run("should succeed if id exists", func(t *testing.T) {
 		propertyValue := &model.PropertyValue{
 			TargetID:   model.NewId(),
-			TargetType: "user",
+			TargetType: model.PropertyValueTargetTypeUser,
 			GroupID:    cpaGroupID,
 			FieldID:    fieldID,
 			Value:      json.RawMessage(`"Value"`),
@@ -674,7 +776,7 @@ func TestGetCPAValue(t *testing.T) {
 
 		propertyValue := &model.PropertyValue{
 			TargetID:   model.NewId(),
-			TargetType: "user",
+			TargetType: model.PropertyValueTargetTypeUser,
 			GroupID:    cpaGroupID,
 			FieldID:    createdField.ID,
 			Value:      json.RawMessage(`["option1", "option2", "option3"]`),
@@ -723,7 +825,7 @@ func TestListCPAValues(t *testing.T) {
 
 			value := &model.PropertyValue{
 				TargetID:   userID,
-				TargetType: "user",
+				TargetType: model.PropertyValueTargetTypeUser,
 				GroupID:    cpaGroupID,
 				FieldID:    field.ID,
 				Value:      json.RawMessage(fmt.Sprintf(`"Value %d"`, i)),

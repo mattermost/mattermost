@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -171,10 +172,6 @@ func setupTestHelper(tb testing.TB, dbStore store.Store, sqlSettings *model.SqlS
 		TestLogger:        testLogger,
 		LogBuffer:         buffer,
 		Store:             dbStore,
-	}
-
-	if s.Platform().SearchEngine != nil && s.Platform().SearchEngine.BleveEngine != nil && searchEngine != nil {
-		searchEngine.BleveEngine = s.Platform().SearchEngine.BleveEngine
 	}
 
 	if searchEngine != nil {
@@ -455,6 +452,13 @@ func (th *TestHelper) TearDown() {
 	}
 }
 
+func (th *TestHelper) RemoveLicense() {
+	err := th.App.Srv().RemoveLicense()
+	if err != nil {
+		th.TestLogger.Warn("TestHelper.RemoveLicense: failed to remove license", mlog.Err(err))
+	}
+}
+
 func closeBody(r *http.Response) {
 	if r.Body != nil {
 		_, _ = io.Copy(io.Discard, r.Body)
@@ -587,7 +591,7 @@ func (th *TestHelper) DeleteBots() *TestHelper {
 }
 
 func (th *TestHelper) waitForConnectivity(tb testing.TB) {
-	for i := 0; i < 1000; i++ {
+	for range 1000 {
 		conn, err := net.Dial("tcp", fmt.Sprintf("localhost:%v", th.App.Srv().ListenAddr.Port))
 		if err == nil {
 			conn.Close()
@@ -1335,7 +1339,7 @@ func (th *TestHelper) cleanupTestFile(info *model.FileInfo) error {
 }
 
 func (th *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Channel) {
-	if cm, err := th.App.Srv().Store().Channel().GetMember(context.Background(), channel.Id, user.Id); err == nil {
+	if cm, err := th.App.Srv().Store().Channel().GetMember(th.Context, channel.Id, user.Id); err == nil {
 		cm.SchemeAdmin = true
 		if _, err = th.App.Srv().Store().Channel().UpdateMember(th.Context, cm); err != nil {
 			panic(err)
@@ -1378,7 +1382,7 @@ func (th *TestHelper) SaveDefaultRolePermissions() map[string][]string {
 		"channel_user",
 		"channel_admin",
 	} {
-		role, err1 := th.App.GetRoleByName(context.Background(), roleName)
+		role, err1 := th.App.GetRoleByName(th.Context, roleName)
 		if err1 != nil {
 			panic(err1)
 		}
@@ -1390,7 +1394,7 @@ func (th *TestHelper) SaveDefaultRolePermissions() map[string][]string {
 
 func (th *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
 	for roleName, permissions := range data {
-		role, err1 := th.App.GetRoleByName(context.Background(), roleName)
+		role, err1 := th.App.GetRoleByName(th.Context, roleName)
 		if err1 != nil {
 			panic(err1)
 		}
@@ -1409,7 +1413,7 @@ func (th *TestHelper) RestoreDefaultRolePermissions(data map[string][]string) {
 }
 
 func (th *TestHelper) RemovePermissionFromRole(permission string, roleName string) {
-	role, err1 := th.App.GetRoleByName(context.Background(), roleName)
+	role, err1 := th.App.GetRoleByName(th.Context, roleName)
 	if err1 != nil {
 		panic(err1)
 	}
@@ -1434,15 +1438,13 @@ func (th *TestHelper) RemovePermissionFromRole(permission string, roleName strin
 }
 
 func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
-	role, err1 := th.App.GetRoleByName(context.Background(), roleName)
+	role, err1 := th.App.GetRoleByName(th.Context, roleName)
 	if err1 != nil {
 		panic(err1)
 	}
 
-	for _, existingPermission := range role.Permissions {
-		if existingPermission == permission {
-			return
-		}
+	if slices.Contains(role.Permissions, permission) {
+		return
 	}
 
 	role.Permissions = append(role.Permissions, permission)

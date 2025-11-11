@@ -30,7 +30,6 @@ type Props = {
     filters: ChannelSearchOpts;
     policyId?: string;
     onRemoveCallback: (channel: ChannelWithTeamData) => void;
-    onUndoRemoveCallback: (channel: ChannelWithTeamData) => void;
     channelsToRemove: Record<string, ChannelWithTeamData>;
     channelsToAdd: Record<string, ChannelWithTeamData>;
     actions: {
@@ -196,15 +195,8 @@ export default class ChannelList extends React.PureComponent<Props, State> {
     };
 
     private removeChannel = (channel: ChannelWithTeamData) => {
-        const {channelsToRemove, onRemoveCallback, onUndoRemoveCallback} = this.props;
+        const {onRemoveCallback} = this.props;
         const {page} = this.state;
-
-        // Toggle between adding and removing the channel
-        if (channelsToRemove[channel.id] === channel) {
-            // If the channel is already marked for removal, undo it
-            onUndoRemoveCallback(channel);
-            return;
-        }
 
         // If the channel is not marked for removal, mark it
         onRemoveCallback(channel);

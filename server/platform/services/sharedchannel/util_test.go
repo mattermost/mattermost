@@ -57,9 +57,9 @@ func Test_mungUsername(t *testing.T) {
 
 func Test_mungUsernameFuzz(t *testing.T) {
 	// ensure no index out of bounds panic for any combination
-	for i := 0; i < 70; i++ {
-		for j := 0; j < 70; j++ {
-			for k := 0; k < 3; k++ {
+	for i := range 70 {
+		for j := range 70 {
+			for k := range 3 {
 				username := R(i, "A")
 				remotename := R(j, "B")
 				suffix := R(k, "1")

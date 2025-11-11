@@ -40,7 +40,19 @@ interface Props {
     content: string;
 }
 
-const FilePreviewModalMainActions: React.FC<Props> = (props: Props) => {
+const FilePreviewModalMainActions: React.FC<Props> = ({
+    showOnlyClose = false,
+    showClose = true,
+    showPublicLink = true,
+    filename,
+    fileURL,
+    fileInfo,
+    enablePublicLink,
+    canDownloadFiles,
+    canCopyContent,
+    handleModalClose,
+    content,
+}: Props) => {
     const intl = useIntl();
 
     const selectedFilePublicLink = useSelector((state: GlobalState) => selectFilePublicLink(state)?.link);
@@ -48,10 +60,10 @@ const FilePreviewModalMainActions: React.FC<Props> = (props: Props) => {
     const [publicLinkCopied, setPublicLinkCopied] = useState(false);
 
     useEffect(() => {
-        if (isFileInfo(props.fileInfo) && props.enablePublicLink) {
-            dispatch(getFilePublicLink(props.fileInfo.id));
+        if (isFileInfo(fileInfo) && enablePublicLink) {
+            dispatch(getFilePublicLink(fileInfo.id));
         }
-    }, [props.fileInfo, props.enablePublicLink]);
+    }, [fileInfo, enablePublicLink]);
 
     useEffect(() => {
         if (publicLinkCopied) {
@@ -77,7 +89,7 @@ const FilePreviewModalMainActions: React.FC<Props> = (props: Props) => {
         >
             <button
                 className='file-preview-modal-main-actions__action-item'
-                onClick={props.handleModalClose}
+                onClick={handleModalClose}
                 aria-label={closeMessage}
             >
                 <i className='icon icon-close'/>
@@ -123,10 +135,10 @@ const FilePreviewModalMainActions: React.FC<Props> = (props: Props) => {
             title={downloadMessage}
         >
             <ExternalLink
-                href={props.fileURL}
+                href={fileURL}
                 className='file-preview-modal-main-actions__action-item'
                 location='file_preview_modal_main_actions'
-                download={props.filename}
+                download={filename}
                 aria-label={downloadMessage}
             >
                 <i className='icon icon-download-outline'/>
@@ -137,24 +149,18 @@ const FilePreviewModalMainActions: React.FC<Props> = (props: Props) => {
     const copy = (
         <CopyButton
             className='file-preview-modal-main-actions__action-item'
-            isForText={getFileType(props.fileInfo.extension) === FileTypes.TEXT}
-            content={props.content}
+            isForText={getFileType(fileInfo.extension) === FileTypes.TEXT}
+            content={content}
         />
     );
     return (
         <div className='file-preview-modal-main-actions__actions'>
-            {!props.showOnlyClose && props.canCopyContent && copy}
-            {!props.showOnlyClose && props.enablePublicLink && props.showPublicLink && publicLink}
-            {!props.showOnlyClose && props.canDownloadFiles && download}
-            {props.showClose && closeButton}
+            {!showOnlyClose && canCopyContent && copy}
+            {!showOnlyClose && enablePublicLink && showPublicLink && publicLink}
+            {!showOnlyClose && canDownloadFiles && download}
+            {showClose && closeButton}
         </div>
     );
-};
-
-FilePreviewModalMainActions.defaultProps = {
-    showOnlyClose: false,
-    showClose: true,
-    showPublicLink: true,
 };
 
 export default memo(FilePreviewModalMainActions);

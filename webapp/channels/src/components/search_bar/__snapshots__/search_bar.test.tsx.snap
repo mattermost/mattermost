@@ -174,7 +174,6 @@ exports[`components/search_bar/SearchBar should match snapshot without search 1`
             type="search"
             value=""
           />
-          
         </div>
       </div>
     </form>
@@ -232,7 +231,6 @@ exports[`components/search_bar/SearchBar should match snapshot without search, w
             type="search"
             value=""
           />
-          
         </div>
       </div>
     </form>
@@ -282,7 +280,6 @@ exports[`components/search_bar/SearchBar should match snapshot without search, w
             type="search"
             value=""
           />
-          
         </div>
       </div>
     </form>

@@ -11,7 +11,10 @@ exports[`components/widgets/inputs/Input should match snapshot 1`] = `
     >
       <label
         class="Input_legend"
-      />
+        for="input_"
+      >
+                                
+      </label>
       <div
         class="Input_wrapper"
       >
