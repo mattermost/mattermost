@@ -45,6 +45,13 @@ describe('DisplayNameMentionRenderer', () => {
                         last_name: 'Five',
                         nickname: 'Fifth',
                     },
+                    user6: {
+                        id: 'user6',
+                        username: 'testuser6.--',
+                        first_name: 'Number',
+                        last_name: 'Six',
+                        nickname: 'Sixth',
+                    },
                 },
                 profilesInChannel: {},
                 profilesNotInChannel: {},
@@ -181,8 +188,8 @@ describe('DisplayNameMentionRenderer', () => {
         },
         {
             description: 'handles restoration of mention suffixes "-"',
-            inputText: 'Hello @testuser6.____.',
-            outputText: 'Hello @Fifth__.',
+            inputText: 'Hello @testuser6.--__.',
+            outputText: 'Hello @Sixth__.',
         },
     ];
 
