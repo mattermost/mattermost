@@ -3730,7 +3730,6 @@
   "channel_settings.access_rules.confirm_modal.question": "Är du säker på att du vill spara och tillämpa åtkomstreglerna?",
   "channel_settings.access_rules.confirm_modal.restricted_tab": "Begränsad ({count})",
   "channel_settings.access_rules.confirm_modal.saving": "Sparar...",
-  "channel_settings.access_rules.confirm_modal.title": "Spara och tillämpa regler",
   "channel_settings.access_rules.confirm_modal.view_users": "Visa användare",
   "channel_settings.access_rules.error.back_to_editing": "Tillbaka till redigera",
   "channel_settings.access_rules.error.no_current_user": "Det går inte att validera åtkomstregler: aktuell användare hittades inte",

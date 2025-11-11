@@ -6,20 +6,8 @@ exports[`admin_console/system_user_detail/team_list/TeamList should match snapsh
   <AbstractList
     actions={
       Object {
-        "getTeamMembersForUser": [MockFunction],
-        "getTeamsData": [MockFunction] {
-          "calls": Array [
-            Array [
-              "1234",
-            ],
-          ],
-          "results": Array [
-            Object {
-              "type": "return",
-              "value": Promise {},
-            },
-          ],
-        },
+        "getTeamMembersForUser": [Function],
+        "getTeamsData": [Function],
         "removeUserFromTeam": [MockFunction],
         "updateTeamMemberSchemeRoles": [MockFunction],
       }
@@ -82,20 +70,8 @@ exports[`admin_console/system_user_detail/team_list/TeamList should match snapsh
   <AbstractList
     actions={
       Object {
-        "getTeamMembersForUser": [MockFunction],
-        "getTeamsData": [MockFunction] {
-          "calls": Array [
-            Array [
-              "1234",
-            ],
-          ],
-          "results": Array [
-            Object {
-              "type": "return",
-              "value": Promise {},
-            },
-          ],
-        },
+        "getTeamMembersForUser": [Function],
+        "getTeamsData": [Function],
         "removeUserFromTeam": [MockFunction],
         "updateTeamMemberSchemeRoles": [MockFunction],
       }
