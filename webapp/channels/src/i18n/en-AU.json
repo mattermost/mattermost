@@ -3747,7 +3747,6 @@
   "channel_settings.access_rules.confirm_modal.question": "Are you sure you want to save and apply the access rules?",
   "channel_settings.access_rules.confirm_modal.restricted_tab": "Restricted ({count})",
   "channel_settings.access_rules.confirm_modal.saving": "Saving...",
-  "channel_settings.access_rules.confirm_modal.title": "Save and apply rules",
   "channel_settings.access_rules.confirm_modal.view_users": "View users",
   "channel_settings.access_rules.error.back_to_editing": "Back to editing",
   "channel_settings.access_rules.error.no_current_user": "Cannot validate access rules: current user not found",
