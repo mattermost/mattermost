@@ -1771,6 +1771,280 @@ func TestInterpluginPluginHTTP(t *testing.T) {
 	assert.Equal(t, "ok", ret)
 }
 
+func TestInterpluginPluginHTTPStreaming(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	t.Run("large payload streaming", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		setupMultiPluginAPITest(t,
+			[]string{
+				`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"bytes"
+				"net/http"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+				switch r.URL.Path {
+				case "/api/v2/largepayload":
+					// Generate 1MB payload in 64KB chunks
+					chunkSize := 64 * 1024
+					totalChunks := 16
+
+					w.WriteHeader(http.StatusOK)
+
+					for i := 0; i < totalChunks; i++ {
+						chunk := bytes.Repeat([]byte("X"), chunkSize)
+						w.Write(chunk)
+
+						if f, ok := w.(http.Flusher); ok {
+							f.Flush()
+						}
+					}
+				}
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+				`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+				"net/http"
+				"io"
+				"fmt"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+				req, err := http.NewRequest("GET", "/testpluginlargepayloadserver/api/v2/largepayload", nil)
+				if err != nil {
+					return nil, err.Error()
+				}
+
+				resp := p.API.PluginHTTP(req)
+				if resp == nil {
+					return nil, "Nil resp"
+				}
+
+				if resp.Body == nil {
+					return nil, "Nil body"
+				}
+
+				// Read response incrementally
+				totalRead := 0
+				buf := make([]byte, 32*1024)
+
+				for {
+					n, err := resp.Body.Read(buf)
+					totalRead += n
+
+					if err == io.EOF {
+						break
+					}
+					if err != nil {
+						return nil, fmt.Sprintf("Read error: %v", err)
+					}
+				}
+
+				expectedSize := 1024 * 1024
+				if totalRead != expectedSize {
+					return nil, fmt.Sprintf("Expected %d bytes, got %d", expectedSize, totalRead)
+				}
+
+				return nil, "ok"
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+			},
+			[]string{
+				`{"id": "testpluginlargepayloadserver", "server": {"executable": "backend.exe"}}`,
+				`{"id": "testpluginlargepayloadclient", "server": {"executable": "backend.exe"}}`,
+			},
+			[]string{
+				"testpluginlargepayloadserver",
+				"testpluginlargepayloadclient",
+			},
+			true,
+			th.App,
+			th.Context,
+		)
+
+		hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("testpluginlargepayloadclient")
+		require.NoError(t, err)
+		_, ret := hooks.MessageWillBePosted(nil, nil)
+		assert.Equal(t, "ok", ret)
+	})
+
+	t.Run("incremental delivery", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		setupMultiPluginAPITest(t,
+			[]string{
+				`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"net/http"
+				"time"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+				switch r.URL.Path {
+				case "/api/v2/incremental":
+					w.WriteHeader(http.StatusOK)
+
+					chunks := []string{
+						"chunk1|",
+						"chunk2|",
+						"chunk3|",
+						"chunk4|",
+						"chunk5|",
+					}
+
+					for i, chunk := range chunks {
+						w.Write([]byte(chunk))
+
+						if f, ok := w.(http.Flusher); ok {
+							f.Flush()
+						}
+
+						// Delay between chunks (except last)
+						if i < len(chunks)-1 {
+							time.Sleep(100 * time.Millisecond)
+						}
+					}
+				}
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+				`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+				"net/http"
+				"io"
+				"fmt"
+				"time"
+				"strings"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+				req, err := http.NewRequest("GET", "/testpluginincrementalserver/api/v2/incremental", nil)
+				if err != nil {
+					return nil, err.Error()
+				}
+
+				start := time.Now()
+				resp := p.API.PluginHTTP(req)
+				if resp == nil {
+					return nil, "Nil resp"
+				}
+
+				if resp.Body == nil {
+					return nil, "Nil body"
+				}
+
+				// Track when chunks arrive
+				chunkTimes := []time.Duration{}
+				receivedChunks := []string{}
+				buf := make([]byte, 7)
+
+				for {
+					n, err := resp.Body.Read(buf)
+					if n > 0 {
+						chunkTimes = append(chunkTimes, time.Since(start))
+						receivedChunks = append(receivedChunks, string(buf[:n]))
+					}
+
+					if err == io.EOF {
+						break
+					}
+					if err != nil {
+						return nil, fmt.Sprintf("Read error: %v", err)
+					}
+				}
+
+				// Verify all chunks received
+				expected := "chunk1|chunk2|chunk3|chunk4|chunk5|"
+				received := strings.Join(receivedChunks, "")
+				if received != expected {
+					return nil, fmt.Sprintf("Expected %q, got %q", expected, received)
+				}
+
+				// Verify incremental delivery
+				if len(chunkTimes) < 2 {
+					return nil, "Not enough chunks for timing verification"
+				}
+
+				// Check that chunks didn't all arrive at once
+				timeDiff := chunkTimes[len(chunkTimes)-1] - chunkTimes[0]
+				if timeDiff < 200*time.Millisecond {
+					return nil, fmt.Sprintf("Chunks arrived too quickly: %v (expected >200ms)", timeDiff)
+				}
+
+				return nil, "ok"
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+			`,
+			},
+			[]string{
+				`{"id": "testpluginincrementalserver", "server": {"executable": "backend.exe"}}`,
+				`{"id": "testpluginincrementalclient", "server": {"executable": "backend.exe"}}`,
+			},
+			[]string{
+				"testpluginincrementalserver",
+				"testpluginincrementalclient",
+			},
+			true,
+			th.App,
+			th.Context,
+		)
+
+		hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("testpluginincrementalclient")
+		require.NoError(t, err)
+		_, ret := hooks.MessageWillBePosted(nil, nil)
+		assert.Equal(t, "ok", ret)
+	})
+}
+
 func TestAPIMetrics(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
