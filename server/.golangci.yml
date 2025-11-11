@@ -8,6 +8,7 @@ linters:
     - ineffassign
     - makezero
     - misspell
+    - modernize
     - revive
     - staticcheck
     - unconvert
