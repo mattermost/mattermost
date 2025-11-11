@@ -400,6 +400,10 @@
     "translation": "Unable to delete direct or group message channels"
   },
   {
+    "id": "api.channel.get_channel.flagged_post_mismatch.app_error",
+    "translation": "Channel ID does not match the channel ID of the flagged post."
+  },
+  {
     "id": "api.channel.get_channel_moderations.license.error",
     "translation": "Your license does not support channel moderation"
   },
@@ -446,6 +450,10 @@
   {
     "id": "api.channel.patch_channel_moderations.license.error",
     "translation": "Your license does not support channel moderation"
+  },
+  {
+    "id": "api.channel.patch_channel_moderations_for_channel.restricted_permission.app_error",
+    "translation": "Cannot add a permission that is restricted by the team or system permission scheme."
   },
   {
     "id": "api.channel.patch_update_channel.forbidden.app_error",
@@ -1774,8 +1782,8 @@
     "translation": "Please select a reason for flagging this message."
   },
   {
-    "id": "api.content_flagging.error.reviewer_only",
-    "translation": "You do not have permission to view this resource."
+    "id": "api.content_flagging.error.user_not_reviewer",
+    "translation": "The user is not a content reviewer."
   },
   {
     "id": "api.context.404.app_error",
@@ -2083,6 +2091,10 @@
   {
     "id": "api.emoji.upload.seek.app_error",
     "translation": "Unable to seek to file start."
+  },
+  {
+    "id": "api.encoding_error",
+    "translation": "Encountered an error encoding JSON for the API response"
   },
   {
     "id": "api.error_get_first_admin_complete_setup",
@@ -2709,6 +2721,10 @@
     "translation": "Unable to get the pending post."
   },
   {
+    "id": "api.post.fill_in_post_props.invalid_ai_generated_user.app_error",
+    "translation": "The AI-generated user must be either the post creator or a bot."
+  },
+  {
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
       "one": "{{.Count}} file sent: {{.Filenames}}",
@@ -3257,6 +3273,10 @@
   {
     "id": "api.team.get_invite_info.not_open_team",
     "translation": "Invite is invalid because this is not an open team."
+  },
+  {
+    "id": "api.team.get_team.flagged_post_mismatch.app_error",
+    "translation": "Team ID does not match the flagged post's team ID."
   },
   {
     "id": "api.team.get_team_icon.filesettings_no_driver.app_error",
@@ -4167,12 +4187,24 @@
     "translation": "Permanent channel deletion feature is not enabled. Please contact your System Administrator."
   },
   {
+    "id": "api.user.delete_channel.not_enabled.for_admin.app_error",
+    "translation": "Permanent channel deletion feature is not enabled. ServiceSettings.EnableAPIChannelDeletion must be set to true to use this command. See https://mattermost.com/pl/environment-configuration-settings for more information"
+  },
+  {
     "id": "api.user.delete_team.not_enabled.app_error",
     "translation": "Permanent team deletion feature is not enabled. Please contact your System Administrator."
   },
   {
+    "id": "api.user.delete_team.not_enabled.for_admin.app_error",
+    "translation": "Permanent team deletion feature is not enabled. ServiceSettings.EnableAPITeamDeletion must be set to true to use this command. See https://mattermost.com/pl/environment-configuration-settings for more information."
+  },
+  {
     "id": "api.user.delete_user.not_enabled.app_error",
     "translation": "Permanent user deletion feature is not enabled. Please contact your System Administrator."
+  },
+  {
+    "id": "api.user.delete_user.not_enabled.for_admin.app_error",
+    "translation": "Permanent user deletion feature is not enabled. ServiceSettings.EnableAPIUserDeletion must be set to true to use this command. See https://mattermost.com/pl/environment-configuration-settings for more information."
   },
   {
     "id": "api.user.demote_user_to_guest.already_guest.app_error",
@@ -4637,6 +4669,22 @@
   {
     "id": "app.admin.test_site_url.failure",
     "translation": "This is not a valid live URL"
+  },
+  {
+    "id": "app.agents.get_agents.app_error",
+    "translation": "Failed to get agents."
+  },
+  {
+    "id": "app.agents.get_agents.bridge_call_failed",
+    "translation": "Bridge call failed."
+  },
+  {
+    "id": "app.agents.get_services.app_error",
+    "translation": "Failed to get LLM services."
+  },
+  {
+    "id": "app.agents.get_services.bridge_call_failed",
+    "translation": "Bridge call failed."
   },
   {
     "id": "app.analytics.getanalytics.internal_error",
@@ -5167,8 +5215,20 @@
     "translation": "We encountered an error saving the compliance report."
   },
   {
+    "id": "app.content_flagging.assign_reviewer.no_reviewer_field.app_error",
+    "translation": "No Reviewer ID property field found."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.update_status_property_value.app_error",
+    "translation": "Failed to update Status property value on setting reviewer."
+  },
+  {
+    "id": "app.content_flagging.assign_reviewer.upsert_property_value.app_error",
+    "translation": "Failed to set flagged post reviewer."
+  },
+  {
     "id": "app.content_flagging.can_flag_post.in_progress",
-    "translation": "Cannot flag this post as is already flagged."
+    "translation": "Cannot flag this post as it is already flagged."
   },
   {
     "id": "app.content_flagging.can_flag_post.removed",
@@ -5187,10 +5247,6 @@
     "translation": "Unable to save property values for the flagged post."
   },
   {
-    "id": "app.content_flagging.delete_post.app_error",
-    "translation": "Unable to soft-delete the flagged post."
-  },
-  {
     "id": "app.content_flagging.flag_post.marshal_comment.app_error",
     "translation": "Failed to marshal flagging user's comment"
   },
@@ -5207,8 +5263,16 @@
     "translation": "Failed to get Content Flagging bot."
   },
   {
+    "id": "app.content_flagging.get_reviewer_settings.app_error",
+    "translation": "Failed to fetch content reviewer settings from the database"
+  },
+  {
     "id": "app.content_flagging.get_status_property.app_error",
     "translation": "Failed to get Status property field."
+  },
+  {
+    "id": "app.content_flagging.get_thread_replies.app_error",
+    "translation": "Failed to fetch thread replies for the flagged post."
   },
   {
     "id": "app.content_flagging.get_users_in_team.app_error",
@@ -5224,11 +5288,31 @@
   },
   {
     "id": "app.content_flagging.keep_post.undelete.app_error",
-    "translation": "Failed to update post in database when attempting to undelete the flagged post."
+    "translation": "Failed to update post in database when attempting to undelete the flagged post and associated data."
   },
   {
     "id": "app.content_flagging.marshal_property_values.app_error",
     "translation": "Failed to marshal Content Flagging property values to send in WebSocket event."
+  },
+  {
+    "id": "app.content_flagging.missing_flagged_post_id_field.app_error",
+    "translation": "Unable to find Flagged Post ID property field."
+  },
+  {
+    "id": "app.content_flagging.missing_manage_by_field.app_error",
+    "translation": "Failed to find Manage By property field."
+  },
+  {
+    "id": "app.content_flagging.missing_reporting_user_id_field.app_error",
+    "translation": "Unable to find reporting user field."
+  },
+  {
+    "id": "app.content_flagging.missing_reporting_user_id_property_value.app_error",
+    "translation": "Unable to find value for reporting user field."
+  },
+  {
+    "id": "app.content_flagging.missing_status_field.app_error",
+    "translation": "Failed to find Status property field."
   },
   {
     "id": "app.content_flagging.no_status_property.app_error",
@@ -5247,8 +5331,12 @@
     "translation": "Failed to update flagged post status when permanently deleting flagged post."
   },
   {
-    "id": "app.content_flagging.restore_file_info.app_error",
-    "translation": "Failed to restore file info for the flagged post."
+    "id": "app.content_flagging.save_reviewer_settings.app_error",
+    "translation": "Failed to save content reviewer settings to the database."
+  },
+  {
+    "id": "app.content_flagging.search_common_reviewers.app_error",
+    "translation": "Failed to search the term in Common Reviewers."
   },
   {
     "id": "app.content_flagging.search_property_fields.app_error",
@@ -5259,8 +5347,28 @@
     "translation": "Failed to fetch post's content flagging property values from the database."
   },
   {
+    "id": "app.content_flagging.search_reviewer_posts.app_error",
+    "translation": "Failed to search reviewer posts for the flagged post."
+  },
+  {
     "id": "app.content_flagging.search_status_property.app_error",
     "translation": "Failed to search Property Values for the flagged post."
+  },
+  {
+    "id": "app.content_flagging.search_sysadmin_reviewers.app_error",
+    "translation": "Failed to search the search term in System Admin Reviewers."
+  },
+  {
+    "id": "app.content_flagging.search_team_admin_reviewers.app_error",
+    "translation": "Failed to search the search term in Team Admin Reviewers."
+  },
+  {
+    "id": "app.content_flagging.search_team_reviewers.app_error",
+    "translation": "Failed to search the search term in Team Reviewers."
+  },
+  {
+    "id": "app.content_flagging.set_thread_replies_properties.app_error",
+    "translation": "Failed to set property values on thread replies for the flagged post."
   },
   {
     "id": "app.create_basic_user.save_member.app_error",
@@ -9237,6 +9345,30 @@
     "translation": "Invalid RemoteImageProxyURL for atmos/camo. Must be set to your shared key."
   },
   {
+    "id": "model.config.is_valid.autotranslation.libretranslate.url.app_error",
+    "translation": "LibreTranslate URL must be a valid URL and start with http:// or https://."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.provider.app_error",
+    "translation": "Invalid autotranslation provider, must not be empty."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.provider.unsupported.app_error",
+    "translation": "Unsupported autotranslation provider."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.fetch.app_error",
+    "translation": "Invalid fetch timeout for autotranslation settings. Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.new_post.app_error",
+    "translation": "Invalid new post timeout for autotranslation settings. Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.autotranslation.timeouts.notification.app_error",
+    "translation": "Invalid notification timeout for autotranslation settings. Must be a positive number."
+  },
+  {
     "id": "model.config.is_valid.cache_type.app_error",
     "translation": "Cache type must be either lru or redis."
   },
@@ -10882,15 +11014,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 138+"
+    "translation": "Version 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 138+"
+    "translation": "Version 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 128+"
+    "translation": "Version 140+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -10902,7 +11034,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_os_version.windows",
-    "translation": "Windows 10+"
+    "translation": "Windows 11+"
   },
   {
     "id": "web.error.unsupported_browser.no_longer_support",

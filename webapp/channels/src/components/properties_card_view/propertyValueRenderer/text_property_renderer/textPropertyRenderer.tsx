@@ -18,7 +18,7 @@ export default function TextPropertyRenderer({value, metadata}: Props) {
             className='TextProperty'
             data-testid='text-property'
         >
-            {Boolean(value.value) && value.value}
+            {Boolean(value.value) && value.value as string}
 
             {
                 !value.value && metadata?.placeholder && (
