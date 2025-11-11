@@ -42,7 +42,7 @@ func (s LocalCacheReadReceiptStore) Delete(rctx request.CTX, postID, userID stri
 func (s LocalCacheReadReceiptStore) DeleteByPost(rctx request.CTX, postID string) error {
 	defer func(postID string) {
 		// For redis, invalidate all keys with pattern "postID:*"
-		if externalCache, ok := s.rootStore.channelMemberCountsCache.(cache.ExternalCache); ok {
+		if externalCache, ok := s.rootStore.readReceiptCache.(cache.ExternalCache); ok {
 			s.rootStore.doInvalidateCacheCluster(externalCache, fmt.Sprintf("%s:*", postID), nil)
 		} else {
 			// Ideally we should be able to purge by post "%s:*", something to consider in future
