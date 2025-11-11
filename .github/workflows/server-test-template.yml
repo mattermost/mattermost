@@ -37,7 +37,7 @@ permissions:
 jobs:
   test:
     name: ${{ inputs.name }}
-    runs-on: ubuntu-latest-8-cores
+    runs-on: ubuntu-latest
     continue-on-error: ${{ inputs.fullyparallel }} # Used to avoid blocking PRs in case of flakiness
     env:
       COMPOSE_PROJECT_NAME: ghactions
