@@ -137,7 +137,7 @@ const PageContextMenu = ({
         {
             id: 'move',
             label: 'Move to...',
-            icon: 'icon-folder-move',
+            icon: 'icon-folder-move-outline',
             action: () => {
                 onMove?.();
                 onClose();
@@ -156,7 +156,7 @@ const PageContextMenu = ({
         {
             id: 'version-history',
             label: 'Version History',
-            icon: 'icon-history',
+            icon: 'icon-clock-outline',
             action: () => {
                 onVersionHistory?.();
                 onClose();
