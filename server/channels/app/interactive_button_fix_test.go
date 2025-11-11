@@ -5,7 +5,6 @@ package app
 
 import (
 	"encoding/json"
-	"fmt"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -25,7 +24,7 @@ func TestInteractiveButtonsAfterEdit(t *testing.T) {
 				{
 					Id:     "approve-btn",
 					Name:   "Approve",
-					Url:    "https://example.com/approve", // Fixed: Use Url instead of URL
+					URL:    "https://example.com/approve", // Fixed: Use URL instead of Url
 					Cookie: "test-cookie-123",
 				},
 			},
@@ -58,15 +57,15 @@ func TestInteractiveButtonsAfterEdit(t *testing.T) {
 		action := preservedAttachments[0].Actions[0]
 		assert.Equal(t, "approve-btn", action.Id)
 		assert.Equal(t, "Approve", action.Name)
-		assert.Equal(t, "https://example.com/approve", action.Url) // Fixed: Use Url
+		assert.Equal(t, "https://example.com/approve", action.URL) // Fixed: Use URL
 		assert.Equal(t, "test-cookie-123", action.Cookie)
 	})
 
 	t.Run("should find interactive actions by ID", func(t *testing.T) {
 		attachment := &model.SlackAttachment{
 			Actions: []*model.PostAction{
-				{Id: "action-1", Name: "Button 1", Url: "https://example.com/1"},
-				{Id: "action-2", Name: "Button 2", Url: "https://example.com/2"},
+				{Id: "action-1", Name: "Button 1", URL: "https://example.com/1"},
+				{Id: "action-2", Name: "Button 2", URL: "https://example.com/2"},
 			},
 		}
 
@@ -110,13 +109,13 @@ func TestInteractiveButtonsAfterEdit(t *testing.T) {
 			{
 				Text: "First approval",
 				Actions: []*model.PostAction{
-					{Id: "approve-1", Name: "Approve 1", Url: "https://example.com/approve1"},
+					{Id: "approve-1", Name: "Approve 1", URL: "https://example.com/approve1"},
 				},
 			},
 			{
 				Text: "Second approval", 
 				Actions: []*model.PostAction{
-					{Id: "approve-2", Name: "Approve 2", Url: "https://example.com/approve2"},
+					{Id: "approve-2", Name: "Approve 2", URL: "https://example.com/approve2"},
 				},
 			},
 		}
@@ -155,7 +154,7 @@ func TestPreserveInteractiveElements(t *testing.T) {
 				{
 					Id:     "original-action",
 					Name:   "Original Button",
-					Url:    "https://example.com/original",
+					URL:    "https://example.com/original",
 					Cookie: "original-cookie",
 				},
 			},
@@ -188,7 +187,7 @@ func TestPreserveInteractiveElements(t *testing.T) {
 		action := resultAttachments[0].Actions[0]
 		assert.Equal(t, "original-action", action.Id)
 		assert.Equal(t, "Original Button", action.Name)
-		assert.Equal(t, "https://example.com/original", action.Url)
+		assert.Equal(t, "https://example.com/original", action.URL)
 		assert.Equal(t, "original-cookie", action.Cookie)
 	})
 
@@ -223,12 +222,12 @@ func TestFindInteractiveAction(t *testing.T) {
 				{
 					Id:   "action-1",
 					Name: "First Action",
-					Url:  "https://example.com/1",
+					URL:  "https://example.com/1",
 				},
 				{
 					Id:   "action-2", 
 					Name: "Second Action",
-					Url:  "https://example.com/2",
+					URL:  "https://example.com/2",
 				},
 			},
 		}

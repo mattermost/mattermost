@@ -1,4 +1,4 @@
-// Fixed version of interactive_button_fix.go that addresses compilation errors
+// Corrected interactive button fix - Fixed field name issue
 // File: server/channels/app/interactive_button_fix.go
 
 package app
@@ -160,7 +160,7 @@ func (a *App) executeInteractiveAction(c *request.Context, postId, actionId, act
 	mlog.Debug("Executing interactive action after message edit",
 		mlog.String("post_id", postId),
 		mlog.String("action_id", actionId),
-		mlog.String("url", action.Url)) // Fixed: Use Url instead of URL
+		mlog.String("url", action.URL)) // Fixed: Use URL instead of Url
 	
 	return nil // Success - actual HTTP callback would happen here
 }
