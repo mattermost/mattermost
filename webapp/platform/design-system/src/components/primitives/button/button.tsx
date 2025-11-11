@@ -5,12 +5,20 @@ import classNames from 'classnames';
 import React, {forwardRef, memo, useMemo} from 'react';
 import type {ButtonHTMLAttributes, ReactNode} from 'react';
 
+import Spinner from '../spinner';
+
 import './button.scss';
 
 export type ButtonSize = 'xs' | 'sm' | 'md' | 'lg';
 export type ButtonEmphasis = 'primary' | 'secondary' | 'tertiary' | 'quaternary' | 'link';
 
-// Removed ButtonStyle type - now using inverted boolean prop
+// Map Button sizes to Spinner pixel sizes (using Figma design system values)
+const BUTTON_SPINNER_SIZE_MAP = {
+    xs: 12,
+    sm: 12,
+    md: 16,
+    lg: 20,
+} as const;
 
 export interface ButtonProps {
 
@@ -93,14 +101,6 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps & ButtonHTMLProps>(
             return width ? {width, ...style} : style;
         }, [width, style]);
 
-        const spinnerClasses = useMemo(() => classNames(
-            'Button__spinner',
-            `Button__spinner--${size}`,
-            {
-                'Button__spinner--inverted': inverted,
-            },
-        ), [size, inverted]);
-
         const iconBeforeClasses = useMemo(() => classNames(
             'Button__icon',
             `Button__icon--${size}`,
@@ -123,14 +123,11 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps & ButtonHTMLProps>(
                 {...restHtmlProps}
             >
                 {loading && (
-                    <span
-                        className='Button__loading'
-                        role='status'
-                        aria-label='Loading'
-                    >
-                        <span
-                            className={spinnerClasses}
-                            aria-hidden='true'
+                    <span className='Button__loading'>
+                        <Spinner
+                            size={BUTTON_SPINNER_SIZE_MAP[size]}
+                            inverted={inverted}
+                            aria-label='Loading'
                         />
                     </span>
                 )}

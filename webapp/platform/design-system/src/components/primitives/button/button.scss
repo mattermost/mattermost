@@ -330,62 +330,9 @@
         }
     }
 
-    // Loading spinner base styles
+    // Loading spinner container
     &__loading {
         line-height: 0;
-    }
-
-    &__spinner {
-        display: inline-block;
-        border-radius: 50%;
-        animation: spin 750ms linear infinite;
-        background: conic-gradient(rgba(var(--center-channel-color-rgb), 0), rgba(var(--center-channel-color-rgb), 0.48));
-
-        // Spinner size modifiers
-        &--xs {
-            width: 12px;
-            height: 12px;
-            mask-image: radial-gradient(
-                farthest-side,
-                transparent calc(100% - 1.5px),
-                #fff calc(100% - 1px)
-            );
-        }
-
-        &--sm {
-            width: 14px;
-            height: 14px;
-            mask-image: radial-gradient(
-                farthest-side,
-                transparent calc(100% - 1.5px),
-                #fff calc(100% - 1px)
-            );
-        }
-
-        &--md {
-            width: 16px;
-            height: 16px;
-            mask-image: radial-gradient(
-                farthest-side,
-                transparent calc(100% - 2px),
-                #fff calc(100% - 1.5px)
-            );
-        }
-
-        &--lg {
-            width: 20px;
-            height: 20px;
-            mask-image: radial-gradient(
-                farthest-side,
-                transparent calc(100% - 2.5px),
-                #fff calc(100% - 2px)
-            );
-        }
-
-        // Inverted spinner color override
-        &--inverted {
-            background: conic-gradient(rgba(var(--button-color-rgb), 0), rgba(var(--button-color-rgb), 0.48));
-        }
     }
 
     // Icon containers - standardized based on Figma design system
@@ -527,12 +474,3 @@
     }
 }
 
-// Spinner animation (global)
-@keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(360deg);
-    }
-}
