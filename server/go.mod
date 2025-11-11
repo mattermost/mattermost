@@ -214,5 +214,5 @@ require (
 // version always. Tablewriter has made breaking changes to its latest release.
 replace github.com/olekukonko/tablewriter => github.com/olekukonko/tablewriter v0.0.5
 
-// Use local msgpack fork to fix bugs
-replace github.com/vmihailenco/msgpack/v5 => ../../../msgpack-fork
+// Use msgpack fork to fix bugs
+replace github.com/vmihailenco/msgpack/v5 => github.com/bgardner8008/msgpack/v5 v5.4.2
