@@ -135,7 +135,9 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
             return;
         }
 
-        if (!this.state.description) {
+        const isDynamicallyRegistered = this.props.initialApp?.is_dynamically_registered || false;
+
+        if (!this.state.description && !isDynamicallyRegistered) {
             this.setState({
                 saving: false,
                 clientError: (
@@ -149,7 +151,7 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
             return;
         }
 
-        if (!this.state.homepage) {
+        if (!this.state.homepage && !isDynamicallyRegistered) {
             this.setState({
                 saving: false,
                 clientError: (

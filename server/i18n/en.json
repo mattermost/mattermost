@@ -2485,6 +2485,18 @@
     "translation": "Authentication complete"
   },
   {
+    "id": "api.oauth.authorization_server_metadata.disabled.app_error",
+    "translation": "OAuth service provider is disabled."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.invalid_url.app_error",
+    "translation": "Invalid URL configuration for authorization server metadata."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.site_url_required.app_error",
+    "translation": "Site URL must be configured to provide authorization server metadata."
+  },
+  {
     "id": "api.oauth.authorize_oauth.disabled.app_error",
     "translation": "The system admin has turned off OAuth2 Service Provider."
   },
@@ -9951,6 +9963,30 @@
   {
     "id": "model.config.is_valid.write_timeout.app_error",
     "translation": "Invalid value for write timeout."
+  },
+  {
+    "id": "model.dcr.is_valid.client_name.app_error",
+    "translation": "Client name must be 64 characters or less."
+  },
+  {
+    "id": "model.dcr.is_valid.client_uri_format.app_error",
+    "translation": "Invalid client URI format."
+  },
+  {
+    "id": "model.dcr.is_valid.client_uri_length.app_error",
+    "translation": "Client URI must be less than 256 characters."
+  },
+  {
+    "id": "model.dcr.is_valid.redirect_uri_format.app_error",
+    "translation": "Invalid redirect URI format."
+  },
+  {
+    "id": "model.dcr.is_valid.redirect_uris.app_error",
+    "translation": "At least one redirect URI is required."
+  },
+  {
+    "id": "model.dcr.is_valid.unsupported_auth_method.app_error",
+    "translation": "Unsupported token_endpoint_auth_method supplied."
   },
   {
     "id": "model.draft.is_valid.channel_id.app_error",
