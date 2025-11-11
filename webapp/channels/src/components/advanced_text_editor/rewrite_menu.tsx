@@ -229,7 +229,7 @@ export default function RewriteMenu({
                         />
                     </button>
                     <button
-                        className='btn btn-xs'
+                        className='btn btn-quaternary btn-xs'
                         type='button'
                         onClick={onRegenerateMessage}
                     >

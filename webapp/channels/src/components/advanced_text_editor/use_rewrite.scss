@@ -40,13 +40,30 @@
 
         button {
             margin-left: auto;
+            background: rgba(var(--center-channel-color-rgb), 0.04);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+
+            &:hover {
+                background: rgba(var(--center-channel-color-rgb), 0.08);
+                color: var(--center-channel-color);
+            }
         }
     }
 }
 
 .rewrite-menu-footer {
-    padding: 12px 14px;
+    padding: 12px 14px 8px;
     border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+
+    .btn-quaternary {
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+
+        &:hover {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: var(--center-channel-color);
+        }
+    }
 }
 
 .textarea-wrapper {
