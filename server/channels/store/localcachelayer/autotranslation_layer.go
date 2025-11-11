@@ -53,14 +53,7 @@ func (s LocalCacheAutoTranslationStore) IsChannelEnabled(channelID string) (bool
 			"store.sql_autotranslation.is_channel_enabled.app_error", nil, err.Error(), 500)
 	}
 
-	// Check autotranslation property in channel props
-	if channel.Props != nil {
-		if enabled, ok := channel.Props["autotranslation"].(bool); ok {
-			return enabled, nil
-		}
-	}
-
-	return false, nil
+	return channel.AutoTranslation, nil
 }
 
 // SetChannelEnabled sets auto-translation status for a channel and invalidates Channel cache
@@ -70,7 +63,7 @@ func (s LocalCacheAutoTranslationStore) SetChannelEnabled(channelID string, enab
 		return appErr
 	}
 
-	// Invalidate the Channel cache since we modified channel.props
+	// Invalidate the Channel cache since we modified channel.autotranslation
 	s.rootStore.Channel().InvalidateChannel(channelID)
 
 	return nil

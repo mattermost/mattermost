@@ -33,44 +33,24 @@ CREATE INDEX IF NOT EXISTS idx_translations_trgm
         COALESCE(contentSearchText, text) gin_trgm_ops
     );
 
--- Add settings JSON bag to channels table
+-- Add autotranslation boolean column to channels table
 ALTER TABLE channels
-    ADD COLUMN IF NOT EXISTS props jsonb NOT NULL DEFAULT '{}';
+    ADD COLUMN IF NOT EXISTS autotranslation boolean NOT NULL DEFAULT false;
 
--- Type guard for autotranslation (direct boolean value)
--- Phase 1: Add constraint without validation (instant, minimal blocking)
-ALTER TABLE channels
-    ADD CONSTRAINT chk_channels_autotranslation_bool
-    CHECK (
-        NOT (props ? 'autotranslation')
-        OR jsonb_typeof(props->'autotranslation') = 'boolean'
-    ) NOT VALID;
-
--- Phase 2: Validate constraint (allows concurrent reads/writes, only blocks DDL)
-ALTER TABLE channels
-    VALIDATE CONSTRAINT chk_channels_autotranslation_bool;
-
--- Add preferences JSON bag to channelmembers table
+-- Add autotranslation boolean column to channelmembers table
 ALTER TABLE channelmembers
-    ADD COLUMN IF NOT EXISTS props jsonb NOT NULL DEFAULT '{}';
+    ADD COLUMN IF NOT EXISTS autotranslation boolean NOT NULL DEFAULT false;
 
--- Type guard for autotranslation (direct boolean value)
--- Phase 1: Add constraint without validation (instant, minimal blocking)
-ALTER TABLE channelmembers
-    ADD CONSTRAINT chk_channelmembers_autotranslation_bool
-    CHECK (
-        NOT (props ? 'autotranslation')
-        OR jsonb_typeof(props->'autotranslation') = 'boolean'
-    ) NOT VALID;
-
--- Phase 2: Validate constraint (allows concurrent reads/writes, only blocks DDL)
-ALTER TABLE channelmembers
-    VALIDATE CONSTRAINT chk_channelmembers_autotranslation_bool;
-
--- Hot path index: Members opted in for a channel (missing = false)
+-- Hot path index: Members opted in for a channel
+-- Partial index only includes rows where autotranslation is enabled for performance
 CREATE INDEX IF NOT EXISTS idx_channelmembers_autotranslation_enabled
     ON channelmembers (channelid)
-    WHERE COALESCE((props->'autotranslation')::boolean, false) = true;
+    WHERE autotranslation = true;
+
+-- Index for efficient channel autotranslation lookups
+CREATE INDEX IF NOT EXISTS idx_channels_autotranslation_enabled
+    ON channels (id)
+    WHERE autotranslation = true;
 
 -- Covering index for GetActiveDestinationLanguages query
 -- Allows index-only scans when fetching user locales (avoids heap access)

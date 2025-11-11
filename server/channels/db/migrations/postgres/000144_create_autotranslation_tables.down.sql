@@ -1,20 +1,18 @@
 -- Drop users covering index
 DROP INDEX IF EXISTS idx_users_id_locale;
 
+-- Drop channels autotranslation index
+DROP INDEX IF EXISTS idx_channels_autotranslation_enabled;
+
 -- Drop channelmembers autotranslation index
 DROP INDEX IF EXISTS idx_channelmembers_autotranslation_enabled;
 
--- Drop channelmembers constraints and props column
+-- Drop autotranslation columns
 ALTER TABLE channelmembers
-    DROP CONSTRAINT IF EXISTS chk_channelmembers_autotranslation_bool;
-ALTER TABLE channelmembers
-    DROP COLUMN IF EXISTS props;
+    DROP COLUMN IF EXISTS autotranslation;
 
--- Drop channels constraints and props column
 ALTER TABLE channels
-    DROP CONSTRAINT IF EXISTS chk_channels_autotranslation_bool;
-ALTER TABLE channels
-    DROP COLUMN IF EXISTS props;
+    DROP COLUMN IF EXISTS autotranslation;
 
 -- Drop translations table indexes
 DROP INDEX IF EXISTS idx_translations_trgm;
