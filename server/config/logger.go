@@ -127,31 +127,15 @@ func makeSimpleConsoleTarget(level string, outputJSON bool, color bool) (mlog.Ta
 }
 
 func makeSimpleFileTarget(filename string, level string, json bool) (mlog.TargetCfg, error) {
-	levels, err := stdLevels(level)
-	if err != nil {
-		return mlog.TargetCfg{}, err
-	}
-
-	fileOpts, err := makeFileOptions(filename)
-	if err != nil {
-		return mlog.TargetCfg{}, fmt.Errorf("cannot encode file options: %w", err)
-	}
-
-	target := mlog.TargetCfg{
-		Type:         "file",
-		Levels:       levels,
-		Options:      fileOpts,
-		MaxQueueSize: 1000,
-	}
-
-	if json {
-		target.Format = "json"
-		target.FormatOptions = makeJSONFormatOptions()
-	} else {
-		target.Format = "plain"
-		target.FormatOptions = makePlainFormatOptions(false)
-	}
-	return target, nil
+	// Preserve existing simple-target behavior but route through the unified helper.
+	// Defaults here match the prior "simple" target intent: 100MB, no age/backups limit.
+	const (
+		maxSizeMB  = 100
+		maxAgeDays = 0
+		maxBackups = 0
+	)
+	compress := LogCompress
+	return makeFileTarget(filename, level, json, maxSizeMB, maxAgeDays, maxBackups, compress)
 }
 
 func stdLevels(level string) ([]mlog.Level, error) {
@@ -213,52 +197,4 @@ func makeFileOptions(filename string) (json.RawMessage, error) {
 	return json.RawMessage(b), nil
 }
 
-// makeAuditFileOptions builds file options for AUDIT logs using ExperimentalAuditSettings.
 // Falls back to the regular logging defaults when fields are unset.
-func makeAuditFileOptions(a *model.ExperimentalAuditSettings) (json.RawMessage, error) {
-	filename := ""
-	maxSize := LogRotateSizeMB
-	maxAge := LogRotateMaxAge
-	maxBackups := LogRotateMaxBackups
-	compress := LogCompress
-
-	if a != nil {
-		if a.FileName != nil {
-			filename = *a.FileName
-		}
-		if a.FileMaxSizeMB != nil {
-			maxSize = *a.FileMaxSizeMB
-		}
-		if a.FileMaxAgeDays != nil {
-			maxAge = *a.FileMaxAgeDays
-		}
-		if a.FileMaxBackups != nil {
-			maxBackups = *a.FileMaxBackups
-		}
-		if a.FileCompress != nil {
-			compress = *a.FileCompress
-		}
-	}
-
-	opts := struct {
-		Filename    string `json:"filename"`
-		Max_size    int    `json:"max_size"`
-		Max_age     int    `json:"max_age"`
-		Max_backups int    `json:"max_backups"`
-		Compress    bool   `json:"compress"`
-	}{
-		Filename:    filename,
-		Max_size:    maxSize,
-		Max_age:     maxAge,
-		Max_backups: maxBackups,
-		Compress:    compress,
-	}
-
-	b, err := json.Marshal(opts)
-	if err != nil {
-		return nil, err
-	}
-	return json.RawMessage(b), nil
-}
-
-// makeAuditFileTarget creates a file target for AUDIT logs using audit-specific options.
