@@ -135,7 +135,7 @@ describe('components/user_settings/notifications/EmailNotificationSetting', () =
 
         expect(wrapper.state('enableEmail')).toBe(true);
         expect(wrapper.state('newInterval')).toBe(Preferences.INTERVAL_IMMEDIATE);
-        expect(requiredProps.onChange).toBeCalledTimes(1);
+        expect(requiredProps.onChange).toHaveBeenCalledTimes(1);
     });
 
     test('should pass handleSubmit', async () => {
@@ -153,16 +153,16 @@ describe('components/user_settings/notifications/EmailNotificationSetting', () =
 
         await (wrapper.instance() as EmailNotificationSetting).handleSubmit();
         expect(wrapper.state('newInterval')).toBe(Preferences.INTERVAL_NEVER);
-        expect(newOnSubmit).toBeCalled();
+        expect(newOnSubmit).toHaveBeenCalled();
         expect(newUpdateSection).toHaveBeenCalledTimes(1);
-        expect(newUpdateSection).toBeCalledWith('');
+        expect(newUpdateSection).toHaveBeenCalledWith('');
 
         const newInterval = Preferences.INTERVAL_IMMEDIATE;
         wrapper.find('#emailNotificationImmediately').simulate('change');
         await (wrapper.instance() as EmailNotificationSetting).handleSubmit();
 
         expect(wrapper.state('newInterval')).toBe(newInterval);
-        expect(newOnSubmit).toBeCalled();
+        expect(newOnSubmit).toHaveBeenCalled();
         expect(newOnSubmit).toHaveBeenCalledTimes(2);
 
         const expectedPref = [{
@@ -173,7 +173,7 @@ describe('components/user_settings/notifications/EmailNotificationSetting', () =
         }];
 
         expect(newSavePreference).toHaveBeenCalledTimes(1);
-        expect(newSavePreference).toBeCalledWith('current_user_id', expectedPref);
+        expect(newSavePreference).toHaveBeenCalledWith('current_user_id', expectedPref);
     });
 
     test('should pass handleUpdateSection', () => {
@@ -185,17 +185,17 @@ describe('components/user_settings/notifications/EmailNotificationSetting', () =
         act(() => {
             (wrapper.instance() as EmailNotificationSetting).handleUpdateSection('email');
         });
-        expect(newUpdateSection).toBeCalledWith('email');
+        expect(newUpdateSection).toHaveBeenCalledWith('email');
         expect(newUpdateSection).toHaveBeenCalledTimes(1);
-        expect(newOnCancel).not.toBeCalled();
+        expect(newOnCancel).not.toHaveBeenCalled();
 
         act(() => {
             (wrapper.instance() as EmailNotificationSetting).handleUpdateSection();
         });
-        expect(newUpdateSection).toBeCalled();
+        expect(newUpdateSection).toHaveBeenCalled();
         expect(newUpdateSection).toHaveBeenCalledTimes(2);
-        expect(newUpdateSection).toBeCalledWith('');
-        expect(newOnCancel).toBeCalled();
+        expect(newUpdateSection).toHaveBeenCalledWith('');
+        expect(newOnCancel).toHaveBeenCalled();
     });
 
     test('should derived state from props', () => {
