@@ -4,15 +4,16 @@
 import type {GifsResult} from '@giphy/js-fetch-api';
 import type {EmojiVariationsListProps} from '@giphy/react-components';
 import {Grid} from '@giphy/react-components';
-import React, {memo, useCallback, useMemo} from 'react';
+import React, {memo, useCallback} from 'react';
 import {useSelector} from 'react-redux';
 
-import {getCurrentLocale} from 'selectors/i18n';
+import {
+    getGiphyFetchInstance,
+    getGiphyLanguageCode,
+} from 'selectors/views/gif_picker';
 
 import NoResultsIndicator from 'components/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
-
-import {getGiphyFetchInstance} from '../selectors';
 
 const GUTTER_BETWEEN_GIFS = 8;
 const NUM_OF_GIFS_COLUMNS = 2;
@@ -29,44 +30,37 @@ interface Props {
 
 function GifPickerItems(props: Props) {
     const giphyFetch = useSelector(getGiphyFetchInstance);
+    const giphyLanguageCode = useSelector(getGiphyLanguageCode);
 
-    const currentLocale = useSelector(getCurrentLocale);
+    const fetchGifs = useCallback(
+        async (offset: number) => {
+            if (!giphyFetch) {
+                return {} as GifsResult;
+            }
 
-    /**
-     * Library expects the language code to be the first part of the locale string, e.g. 'en-US' -> 'en'
-     * see https://developers.giphy.com/docs/#language-support
-     */
-    const languageCode = useMemo(() => {
-        const languageCodeSplitted = currentLocale?.split('-')?.[0] ?? 'en';
-        return languageCodeSplitted;
-    }, [currentLocale]);
+            // We dont have to throttled the fetching as the library does it for us
+            if (props.filter.length > 0) {
+                const filteredResult = await giphyFetch.search(props.filter, {
+                    offset,
+                    lang: giphyLanguageCode,
+                    sort: SORT_BY,
+                    limit: NUM_OF_RESULTS_PER_PAGE,
+                    rating: RATING_GENERAL,
+                    type: RESULTS_TYPE,
+                });
+                return filteredResult;
+            }
 
-    const fetchGifs = useCallback(async (offset: number) => {
-        if (!giphyFetch) {
-            return {} as GifsResult;
-        }
-
-        // We dont have to throttled the fetching as the library does it for us
-        if (props.filter.length > 0) {
-            const filteredResult = await giphyFetch.search(props.filter, {
+            const trendingResult = await giphyFetch.trending({
                 offset,
-                lang: languageCode,
-                sort: SORT_BY,
                 limit: NUM_OF_RESULTS_PER_PAGE,
                 rating: RATING_GENERAL,
                 type: RESULTS_TYPE,
             });
-            return filteredResult;
-        }
-
-        const trendingResult = await giphyFetch.trending({
-            offset,
-            limit: NUM_OF_RESULTS_PER_PAGE,
-            rating: RATING_GENERAL,
-            type: RESULTS_TYPE,
-        });
-        return trendingResult;
-    }, [props.filter, languageCode, giphyFetch]);
+            return trendingResult;
+        },
+        [props.filter, giphyLanguageCode, giphyFetch],
+    );
 
     return (
         <div className='emoji-picker__items gif-picker__items'>
