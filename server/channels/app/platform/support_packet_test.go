@@ -29,7 +29,6 @@ func TestGenerateSupportPacket(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t)
-	defer th.TearDown()
 
 	dir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
@@ -161,8 +160,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 }
 
 func TestGetSupportPacketDiagnostics(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Setenv(envVarInstallType, "docker")
 
@@ -347,6 +345,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 	t.Run("Elasticsearch config test when indexing disabled", func(t *testing.T) {
 		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.ElasticsearchSettings.Backend = model.NewPointer(model.ElasticsearchSettingsESBackend)
 			cfg.ElasticsearchSettings.EnableIndexing = model.NewPointer(false)
 		})
 
@@ -361,6 +360,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 		packet := getDiagnostics(t)
 
+		assert.Equal(t, model.ElasticsearchSettingsESBackend, packet.ElasticSearch.Backend)
 		assert.Equal(t, "7.10.0", packet.ElasticSearch.ServerVersion)
 		assert.Equal(t, []string{"plugin1", "plugin2"}, packet.ElasticSearch.ServerPlugins)
 		assert.Empty(t, packet.ElasticSearch.Error)
@@ -368,12 +368,13 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 	t.Run("Elasticsearch config test when indexing enabled and config valid", func(t *testing.T) {
 		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.ElasticsearchSettings.Backend = model.NewPointer(model.ElasticsearchSettingsOSBackend)
 			cfg.ElasticsearchSettings.EnableIndexing = model.NewPointer(true)
 		})
 
 		esMock := &semocks.SearchEngineInterface{}
-		esMock.On("GetFullVersion").Return("7.10.0")
-		esMock.On("GetPlugins").Return([]string{"plugin1", "plugin2"})
+		esMock.On("GetFullVersion").Return("2.5.0")
+		esMock.On("GetPlugins").Return([]string{"opensearch-plugin"})
 		esMock.On("TestConfig", mock.AnythingOfType("*request.Context"), mock.Anything).Return(nil)
 		originalES := th.Service.SearchEngine.ElasticsearchEngine
 		t.Cleanup(func() {
@@ -383,13 +384,15 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 		packet := getDiagnostics(t)
 
-		assert.Equal(t, "7.10.0", packet.ElasticSearch.ServerVersion)
-		assert.Equal(t, []string{"plugin1", "plugin2"}, packet.ElasticSearch.ServerPlugins)
+		assert.Equal(t, model.ElasticsearchSettingsOSBackend, packet.ElasticSearch.Backend)
+		assert.Equal(t, "2.5.0", packet.ElasticSearch.ServerVersion)
+		assert.Equal(t, []string{"opensearch-plugin"}, packet.ElasticSearch.ServerPlugins)
 		assert.Empty(t, packet.ElasticSearch.Error)
 	})
 
 	t.Run("Elasticsearch config test when indexing enabled and config invalid", func(t *testing.T) {
 		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.ElasticsearchSettings.Backend = model.NewPointer(model.ElasticsearchSettingsESBackend)
 			cfg.ElasticsearchSettings.EnableIndexing = model.NewPointer(true)
 		})
 
@@ -406,6 +409,7 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 
 		packet := getDiagnostics(t)
 
+		assert.Equal(t, model.ElasticsearchSettingsESBackend, packet.ElasticSearch.Backend)
 		assert.Equal(t, "7.10.0", packet.ElasticSearch.ServerVersion)
 		assert.Equal(t, []string{"plugin1", "plugin2"}, packet.ElasticSearch.ServerPlugins)
 		assert.Equal(t, "TestConfig: ent.elasticsearch.test_config.connection_failed, connection refused", packet.ElasticSearch.Error)
@@ -416,7 +420,6 @@ func TestGetSanitizedConfigFile(t *testing.T) {
 	t.Setenv("MM_FEATUREFLAGS_TestFeature", "true")
 
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.Service.UpdateConfig(func(cfg *model.Config) {
 		cfg.ServiceSettings.AllowedUntrustedInternalConnections = model.NewPointer("example.com")
@@ -450,7 +453,6 @@ func TestGetSanitizedConfigFile(t *testing.T) {
 
 func TestGetCPUProfile(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	fileData, err := th.Service.getCPUProfile(th.Context)
 	require.NoError(t, err)
@@ -460,7 +462,6 @@ func TestGetCPUProfile(t *testing.T) {
 
 func TestGetHeapProfile(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	fileData, err := th.Service.getHeapProfile(th.Context)
 	require.NoError(t, err)
@@ -470,7 +471,6 @@ func TestGetHeapProfile(t *testing.T) {
 
 func TestGetGoroutineProfile(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	fileData, err := th.Service.getGoroutineProfile(th.Context)
 	require.NoError(t, err)
