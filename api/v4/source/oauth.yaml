@@ -42,6 +42,9 @@
                 is_trusted:
                   type: boolean
                   description: Set this to `true` to skip asking users for permission
+                is_public:
+                  type: boolean
+                  description: Set this to `true` to create a public client (no client secret). Public clients must use PKCE for authorization.
         description: OAuth application to register
         required: true
       responses:
