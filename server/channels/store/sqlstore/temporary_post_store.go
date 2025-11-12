@@ -46,7 +46,7 @@ func temporaryPostSliceColumns() []string {
 }
 
 func (s *SqlTemporaryPostStore) Save(rctx request.CTX, post *model.TemporaryPost) (_ *model.TemporaryPost, err error) {
-	if err = post.PreSave(); err != nil {
+	if err = post.IsValid(); err != nil {
 		return nil, fmt.Errorf("failed to save TemporaryPost: %w", err)
 	}
 
