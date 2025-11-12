@@ -303,7 +303,7 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 		usr, err := s.th.App.CreateUser(s.th.Context, &userData)
 		s.Require().Nil(err)
 		userPool = append(userPool, usr.Username)
-		s.th.LinkUserToTeam(usr, s.th.BasicTeam)
+		s.th.LinkUserToTeam(s.T(), usr, s.th.BasicTeam)
 	}
 
 	s.RunForAllClients("Get list users given team", func(c client.Client) {
@@ -337,7 +337,7 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 		usr, err := s.th.App.CreateUser(s.th.Context, &userData)
 		s.Require().Nil(err)
 		inactiveUserPool = append(inactiveUserPool, usr.Username)
-		s.th.LinkUserToTeam(usr, s.th.BasicTeam)
+		s.th.LinkUserToTeam(s.T(), usr, s.th.BasicTeam)
 	}
 
 	s.RunForAllClients("Get list of inactive users given team", func(c client.Client) {
@@ -408,12 +408,12 @@ func (s *MmctlE2ETestSuite) TestUserInviteCmdf() {
 			s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = *previousVal })
 		}()
 
-		team := s.th.CreateTeam()
+		team := s.th.CreateTeam(s.T())
 		team.AllowedDomains = "@example.com"
 		team, appErr := s.th.App.UpdateTeam(team)
 		s.Require().Nil(appErr)
 
-		user := s.th.CreateUser()
+		user := s.th.CreateUser(s.T())
 		err := userInviteCmdF(c, &cobra.Command{}, []string{user.Email, team.Id})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
@@ -681,7 +681,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		confirm := true
 		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
 
-		newUser := s.th.CreateUser()
+		newUser := s.th.CreateUser(s.T())
 		err := deleteUsersCmdF(c, cmd, []string{newUser.Email})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
@@ -731,7 +731,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		confirm := true
 		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
 
-		newUser := s.th.CreateUser()
+		newUser := s.th.CreateUser(s.T())
 
 		var expectedErr *multierror.Error
 		expectedErr = multierror.Append(expectedErr, fmt.Errorf("unable to delete user %s error: %w", newUser.Username,
@@ -760,7 +760,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		confirm := true
 		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
 
-		newUser := s.th.CreateUser()
+		newUser := s.th.CreateUser(s.T())
 
 		var expectedErr *multierror.Error
 		expectedErr = multierror.Append(expectedErr, fmt.Errorf("unable to delete user %s error: %w", newUser.Username,
@@ -789,7 +789,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		confirm := true
 		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
 
-		newUser := s.th.CreateUser()
+		newUser := s.th.CreateUser(s.T())
 		err := deleteUsersCmdF(s.th.LocalClient, cmd, []string{newUser.Email})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)

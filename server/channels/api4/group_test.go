@@ -114,14 +114,14 @@ func TestCreateGroup(t *testing.T) {
 		AllowReference: true,
 	}
 
-	th.RemovePermissionFromRole(model.PermissionCreateCustomGroup.Id, model.SystemAdminRoleId)
-	th.RemovePermissionFromRole(model.PermissionCreateCustomGroup.Id, model.SystemUserRoleId)
-	defer th.AddPermissionToRole(model.PermissionCreateCustomGroup.Id, model.SystemUserRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionCreateCustomGroup.Id, model.SystemAdminRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionCreateCustomGroup.Id, model.SystemUserRoleId)
+	defer th.AddPermissionToRole(t, model.PermissionCreateCustomGroup.Id, model.SystemUserRoleId)
 	_, response, err = th.SystemAdminClient.CreateGroup(context.Background(), validGroup)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, response)
 
-	th.AddPermissionToRole(model.PermissionCreateCustomGroup.Id, model.SystemAdminRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreateCustomGroup.Id, model.SystemAdminRoleId)
 	_, response, err = th.SystemAdminClient.CreateGroup(context.Background(), validGroup)
 	require.NoError(t, err)
 	CheckCreatedStatus(t, response)
@@ -198,7 +198,7 @@ func TestDeleteGroup(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, response)
 
-	th.AddPermissionToRole(model.PermissionDeleteCustomGroup.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionDeleteCustomGroup.Id, model.SystemUserRoleId)
 	_, response, err = th.Client.DeleteGroup(context.Background(), g.Id)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, response)
@@ -239,13 +239,13 @@ func TestUndeleteGroup(t *testing.T) {
 	_, response, err := th.Client.DeleteGroup(context.Background(), validGroup.Id)
 	require.NoError(t, err)
 	CheckOKStatus(t, response)
-	th.RemovePermissionFromRole(model.PermissionRestoreCustomGroup.Id, model.SystemUserRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionRestoreCustomGroup.Id, model.SystemUserRoleId)
 	// shouldn't allow restoring unless user has required permission
 	_, response, err = th.Client.RestoreGroup(context.Background(), validGroup.Id, "")
 	require.Error(t, err)
 	CheckForbiddenStatus(t, response)
 
-	th.AddPermissionToRole(model.PermissionRestoreCustomGroup.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionRestoreCustomGroup.Id, model.SystemUserRoleId)
 	_, response, err = th.Client.RestoreGroup(context.Background(), validGroup.Id, "")
 	require.NoError(t, err)
 	CheckOKStatus(t, response)
@@ -408,7 +408,7 @@ func TestLinkGroupTeam(t *testing.T) {
 		assert.Nil(t, groupSyncable)
 	})
 
-	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
+	th.UpdateUserToTeamAdmin(t, th.BasicUser, th.BasicTeam)
 	response, err := th.Client.Logout(context.Background())
 	require.NoError(t, err)
 	CheckOKStatus(t, response)
@@ -521,7 +521,7 @@ func TestLinkGroupChannel(t *testing.T) {
 		assert.Nil(t, groupSyncable)
 	})
 
-	th.MakeUserChannelAdmin(th.BasicUser, th.BasicChannel)
+	th.MakeUserChannelAdmin(t, th.BasicUser, th.BasicChannel)
 	response, err := th.Client.Logout(context.Background())
 	require.NoError(t, err)
 	CheckOKStatus(t, response)
@@ -657,7 +657,7 @@ func TestUnlinkGroupTeam(t *testing.T) {
 	})
 
 	time.Sleep(4 * time.Second) // A hack to let "go c.App.SyncRolesAndMembership" finish before moving on.
-	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
+	th.UpdateUserToTeamAdmin(t, th.BasicUser, th.BasicTeam)
 	response, err = th.Client.Logout(context.Background())
 	require.NoError(t, err)
 	CheckOKStatus(t, response)
@@ -775,7 +775,7 @@ func TestUnlinkGroupChannel(t *testing.T) {
 		CheckForbiddenStatus(t, response)
 	})
 
-	th.MakeUserChannelAdmin(th.BasicUser, th.BasicChannel)
+	th.MakeUserChannelAdmin(t, th.BasicUser, th.BasicChannel)
 
 	response, err = th.Client.Logout(context.Background())
 	require.NoError(t, err)
@@ -835,14 +835,14 @@ func TestUnlinkGroupChannel(t *testing.T) {
 
 	t.Run("Unlinking a group in a group constrained channel causes group members to be removed", func(t *testing.T) {
 		// Create a test group
-		group := th.CreateGroup()
+		group := th.CreateGroup(t)
 
 		// Create a channel and set it as group-constrained
-		channel := th.CreatePrivateChannel()
+		channel := th.CreatePrivateChannel(t)
 
 		// Create a group user
-		groupUser := th.CreateUser()
-		th.LinkUserToTeam(groupUser, th.BasicTeam)
+		groupUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, groupUser, th.BasicTeam)
 
 		// Create a group member
 		_, appErr := th.App.UpsertGroupMember(group.Id, groupUser.Id)
@@ -919,14 +919,14 @@ func TestUnlinkGroupChannel(t *testing.T) {
 
 	t.Run("Unlinking a group in a non group constrained channel does not remove group members from the channel", func(t *testing.T) {
 		// Create a test group
-		group := th.CreateGroup()
+		group := th.CreateGroup(t)
 
 		// Create a channel and set it as group-constrained
-		channel := th.CreatePrivateChannel()
+		channel := th.CreatePrivateChannel(t)
 
 		// Create a group user
-		groupUser := th.CreateUser()
-		th.LinkUserToTeam(groupUser, th.BasicTeam)
+		groupUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, groupUser, th.BasicTeam)
 
 		// Create a group member
 		_, appErr := th.App.UpsertGroupMember(group.Id, groupUser.Id)
@@ -1143,7 +1143,7 @@ func TestGetGroupTeams(t *testing.T) {
 	}
 
 	for range 10 {
-		team := th.CreateTeam()
+		team := th.CreateTeam(t)
 		_, response, _ := th.SystemAdminClient.LinkGroupSyncable(context.Background(), g.Id, team.Id, model.GroupSyncableTypeTeam, patch)
 		assert.Equal(t, http.StatusCreated, response.StatusCode)
 	}
@@ -1197,7 +1197,7 @@ func TestGetGroupChannels(t *testing.T) {
 	}
 
 	for range 10 {
-		channel := th.CreatePublicChannel()
+		channel := th.CreatePublicChannel(t)
 		_, response, _ := th.SystemAdminClient.LinkGroupSyncable(context.Background(), g.Id, channel.Id, model.GroupSyncableTypeChannel, patch)
 		assert.Equal(t, http.StatusCreated, response.StatusCode)
 	}
@@ -1478,7 +1478,7 @@ func TestGetGroupsByChannel(t *testing.T) {
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
 
-	privateChannel := th.CreateChannelWithClient(th.SystemAdminClient, model.ChannelTypePrivate)
+	privateChannel := th.CreateChannelWithClient(t, th.SystemAdminClient, model.ChannelTypePrivate)
 
 	_, _, response, err := th.Client.GetGroupsByChannel(context.Background(), privateChannel.Id, opts)
 	require.Error(t, err)
@@ -2573,7 +2573,7 @@ func TestGetGroupsGroupConstrainedParentTeam(t *testing.T) {
 		groups = append(groups, group)
 	}
 
-	team := th.CreateTeam()
+	team := th.CreateTeam(t)
 
 	id := model.NewId()
 	channel := &model.Channel{

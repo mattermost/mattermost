@@ -22,9 +22,9 @@ func TestSaveReaction(t *testing.T) {
 	postId := th.BasicPost.Id
 
 	// Check the appropriate permissions are enforced.
-	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 	defer func() {
-		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 	}()
 
 	reaction := &model.Reaction{
@@ -130,7 +130,7 @@ func TestSaveReaction(t *testing.T) {
 
 	t.Run("react-as-other-user", func(t *testing.T) {
 		reaction.EmojiName = "smile"
-		otherUser := th.CreateUser()
+		otherUser := th.CreateUser(t)
 		_, err := client.Logout(context.Background())
 		require.NoError(t, err)
 		_, _, err = client.Login(context.Background(), otherUser.Email, otherUser.Password)
@@ -156,9 +156,9 @@ func TestSaveReaction(t *testing.T) {
 	})
 
 	t.Run("unable-to-create-reaction-without-permissions", func(t *testing.T) {
-		th.LoginBasic()
+		th.LoginBasic(t)
 
-		th.RemovePermissionFromRole(model.PermissionAddReaction.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionAddReaction.Id, model.ChannelUserRoleId)
 		_, resp, err := client.SaveReaction(context.Background(), reaction)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
@@ -166,14 +166,14 @@ func TestSaveReaction(t *testing.T) {
 		reactions, appErr := th.App.GetReactionsForPost(postId)
 		require.Nil(t, appErr)
 		require.Equal(t, 3, len(reactions), "should have not created a reactions")
-		th.AddPermissionToRole(model.PermissionAddReaction.Id, model.ChannelUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionAddReaction.Id, model.ChannelUserRoleId)
 	})
 
 	t.Run("unable-to-react-in-an-archived-channel", func(t *testing.T) {
-		th.LoginBasic()
+		th.LoginBasic(t)
 
-		channel := th.CreatePublicChannel()
-		post := th.CreatePostWithClient(th.Client, channel)
+		channel := th.CreatePublicChannel(t)
+		post := th.CreatePostWithClient(t, th.Client, channel)
 
 		reaction := &model.Reaction{
 			UserId:    userId,
@@ -310,9 +310,9 @@ func TestDeleteReaction(t *testing.T) {
 	}
 
 	// Check the appropriate permissions are enforced.
-	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 	defer func() {
-		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 	}()
 
 	t.Run("delete-reaction", func(t *testing.T) {
@@ -365,14 +365,14 @@ func TestDeleteReaction(t *testing.T) {
 	})
 
 	t.Run("delete-reaction-made-by-another-user", func(t *testing.T) {
-		th.LoginBasic2()
+		th.LoginBasic2(t)
 		_, appErr := th.App.SaveReactionForPost(th.Context, r4)
 		assert.Nil(t, appErr)
 		reactions, appErr := th.App.GetReactionsForPost(postId)
 		require.Nil(t, appErr)
 		require.Equal(t, 2, len(reactions), "didn't save reaction correctly")
 
-		th.LoginBasic()
+		th.LoginBasic(t)
 
 		resp, err := client.DeleteReaction(context.Background(), r4)
 		require.Error(t, err)
@@ -455,9 +455,9 @@ func TestDeleteReaction(t *testing.T) {
 	})
 
 	t.Run("unable-to-delete-reaction-without-permissions", func(t *testing.T) {
-		th.LoginBasic()
+		th.LoginBasic(t)
 
-		th.RemovePermissionFromRole(model.PermissionRemoveReaction.Id, model.ChannelUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionRemoveReaction.Id, model.ChannelUserRoleId)
 		_, appErr := th.App.SaveReactionForPost(th.Context, r1)
 		assert.Nil(t, appErr)
 
@@ -468,11 +468,11 @@ func TestDeleteReaction(t *testing.T) {
 		reactions, appErr := th.App.GetReactionsForPost(postId)
 		require.Nil(t, appErr)
 		require.Equal(t, 1, len(reactions), "should have not deleted a reactions")
-		th.AddPermissionToRole(model.PermissionRemoveReaction.Id, model.ChannelUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionRemoveReaction.Id, model.ChannelUserRoleId)
 	})
 
 	t.Run("unable-to-delete-others-reactions-without-permissions", func(t *testing.T) {
-		th.RemovePermissionFromRole(model.PermissionRemoveOthersReactions.Id, model.SystemAdminRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionRemoveOthersReactions.Id, model.SystemAdminRoleId)
 		_, appErr := th.App.SaveReactionForPost(th.Context, r1)
 		assert.Nil(t, appErr)
 
@@ -483,14 +483,14 @@ func TestDeleteReaction(t *testing.T) {
 		reactions, appErr := th.App.GetReactionsForPost(postId)
 		require.Nil(t, appErr)
 		require.Equal(t, 1, len(reactions), "should have not deleted a reactions")
-		th.AddPermissionToRole(model.PermissionRemoveOthersReactions.Id, model.SystemAdminRoleId)
+		th.AddPermissionToRole(t, model.PermissionRemoveOthersReactions.Id, model.SystemAdminRoleId)
 	})
 
 	t.Run("unable-to-delete-reactions-in-an-archived-channel", func(t *testing.T) {
-		th.LoginBasic()
+		th.LoginBasic(t)
 
-		channel := th.CreatePublicChannel()
-		post := th.CreatePostWithClient(th.Client, channel)
+		channel := th.CreatePublicChannel(t)
+		post := th.CreatePostWithClient(t, th.Client, channel)
 
 		reaction := &model.Reaction{
 			UserId:    userId,

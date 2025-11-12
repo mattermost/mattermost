@@ -18,11 +18,11 @@ func TestGetUsersForReporting(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	client := th.Client
 
-	defaultRolePermissions := th.SaveDefaultRolePermissions()
-	defer th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
+	defer th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 
 	t.Run("should return forbidden error when user lacks permission", func(t *testing.T) {
-		th.RemovePermissionFromRole(model.PermissionSysconsoleReadUserManagementUsers.Id, model.SystemUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionSysconsoleReadUserManagementUsers.Id, model.SystemUserRoleId)
 
 		_, resp, err := client.GetUsersForReporting(context.Background(), &model.UserReportOptions{})
 		require.Error(t, err)
@@ -30,7 +30,7 @@ func TestGetUsersForReporting(t *testing.T) {
 	})
 
 	t.Run("should return user reports when user has permission", func(t *testing.T) {
-		th.AddPermissionToRole(model.PermissionSysconsoleReadUserManagementUsers.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionSysconsoleReadUserManagementUsers.Id, model.SystemUserRoleId)
 
 		options := &model.UserReportOptions{
 			ReportingBaseOptions: model.ReportingBaseOptions{
@@ -46,7 +46,7 @@ func TestGetUsersForReporting(t *testing.T) {
 	})
 
 	t.Run("should return bad request on invalid parameters", func(t *testing.T) {
-		th.AddPermissionToRole(model.PermissionSysconsoleReadUserManagementUsers.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionSysconsoleReadUserManagementUsers.Id, model.SystemUserRoleId)
 
 		options := &model.UserReportOptions{
 			Team: "invalid_team_id",

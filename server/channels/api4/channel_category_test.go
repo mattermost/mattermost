@@ -123,7 +123,7 @@ func TestCreateCategoryForTeamForUser(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		th.LinkUserToTeam(user, team)
+		th.LinkUserToTeam(t, user, team)
 
 		// Create a client and log in
 		client := th.CreateClient()
@@ -510,7 +510,7 @@ func TestUpdateCategoryForTeamForUser(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		th.LinkUserToTeam(user, team)
+		th.LinkUserToTeam(t, user, team)
 
 		// Create a client and log in
 		client := th.CreateClient()
@@ -659,7 +659,7 @@ func TestUpdateCategoriesForTeamForUser(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		th.LinkUserToTeam(user, team)
+		th.LinkUserToTeam(t, user, team)
 
 		// Create a client and log in
 		client := th.CreateClient()
@@ -851,7 +851,7 @@ func TestGetCategoryOrderForTeamForUser(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		th.LinkUserToTeam(user, team)
+		th.LinkUserToTeam(t, user, team)
 
 		// Create a client and log in
 		client := th.CreateClient()
@@ -1008,7 +1008,7 @@ func TestUpdateCategoryOrderForTeamForUser(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		th.LinkUserToTeam(user, team)
+		th.LinkUserToTeam(t, user, team)
 
 		// Create a client and log in
 		client := th.CreateClient()
@@ -1146,7 +1146,7 @@ func TestGetCategoryForTeamForUser(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		th.LinkUserToTeam(user, team)
+		th.LinkUserToTeam(t, user, team)
 
 		// Create a client and log in
 		client := th.CreateClient()
@@ -1567,7 +1567,7 @@ func TestDeleteCategoryForTeamForUser(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		th.LinkUserToTeam(user, team)
+		th.LinkUserToTeam(t, user, team)
 
 		// Create a client and log in
 		client := th.CreateClient()
@@ -1606,10 +1606,10 @@ func setupUserForSubtest(t *testing.T, th *TestHelper) (*model.User, *model.Clie
 	})
 	require.Nil(t, appErr)
 
-	th.LinkUserToTeam(user, th.BasicTeam)
-	th.AddUserToChannel(user, th.BasicChannel)
-	th.AddUserToChannel(user, th.BasicChannel2)
-	th.AddUserToChannel(user, th.BasicPrivateChannel)
+	th.LinkUserToTeam(t, user, th.BasicTeam)
+	th.AddUserToChannel(t, user, th.BasicChannel)
+	th.AddUserToChannel(t, user, th.BasicChannel2)
+	th.AddUserToChannel(t, user, th.BasicPrivateChannel)
 
 	client := th.CreateClient()
 	user, _, err := client.Login(context.Background(), user.Email, password)

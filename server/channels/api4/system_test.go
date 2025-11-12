@@ -226,7 +226,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
-	th.LoginSystemManager()
+	th.LoginSystemManager(t)
 
 	t.Run("system admin and local client can generate Support Packet", func(t *testing.T) {
 		l := model.NewTestLicense()
@@ -937,8 +937,8 @@ func TestPushNotificationAck(t *testing.T) {
 	})
 
 	t.Run("should return error when the ack post is not authorized for the user", func(t *testing.T) {
-		privateChannel := th.CreateChannelWithClient(th.SystemAdminClient, model.ChannelTypePrivate)
-		privatePost := th.CreatePostWithClient(th.SystemAdminClient, privateChannel)
+		privateChannel := th.CreateChannelWithClient(t, th.SystemAdminClient, model.ChannelTypePrivate)
+		privatePost := th.CreatePostWithClient(t, th.SystemAdminClient, privateChannel)
 
 		handler := api.APIHandler(pushNotificationAck)
 		resp := httptest.NewRecorder()
@@ -1157,7 +1157,7 @@ func TestGetAppliedSchemaMigrations(t *testing.T) {
 	t.Run("as a system manager role", func(t *testing.T) {
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser2.Id, model.SystemManagerRoleId, false)
 		require.Nil(t, appErr)
-		th.LoginBasic2()
+		th.LoginBasic2(t)
 
 		_, resp, err := th.Client.GetAppliedSchemaMigrations(context.Background())
 		require.NoError(t, err)

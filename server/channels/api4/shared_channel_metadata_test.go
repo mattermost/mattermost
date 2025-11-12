@@ -81,7 +81,7 @@ func createSharedChannelSetup(t *testing.T, th *TestHelper, service *sharedchann
 	require.NoError(t, err)
 
 	// Create channel with users
-	testChannel := th.CreatePublicChannel()
+	testChannel := th.CreatePublicChannel(t)
 	_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, testChannel, false)
 	require.Nil(t, appErr)
 	_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser2, testChannel, false)
@@ -447,7 +447,7 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 		require.NoError(t, err)
 
 		// Create test channel and add local user
-		testChannel := th.CreatePublicChannel()
+		testChannel := th.CreatePublicChannel(t)
 		_, appErr := th.App.AddUserToChannel(th.Context, th.BasicUser, testChannel, false)
 		require.Nil(t, appErr)
 

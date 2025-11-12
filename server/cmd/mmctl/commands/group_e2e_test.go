@@ -534,12 +534,12 @@ func (s *MmctlE2ETestSuite) TestUserGroupRestoreCmd() {
 		_, appErr := s.th.App.DeleteGroup(group.Id)
 		s.Require().Nil(appErr)
 
-		s.th.RemovePermissionFromRole(model.PermissionRestoreCustomGroup.Id, model.SystemUserRoleId)
+		s.th.RemovePermissionFromRole(s.T(), model.PermissionRestoreCustomGroup.Id, model.SystemUserRoleId)
 		err := userGroupRestoreCmdF(s.th.Client, &cobra.Command{}, []string{group.Id})
 		s.Require().NotNil(err)
 		s.Require().Equal(err.Error(), "You do not have the appropriate permissions.")
 
-		s.th.AddPermissionToRole(model.PermissionRestoreCustomGroup.Id, model.SystemUserRoleId)
+		s.th.AddPermissionToRole(s.T(), model.PermissionRestoreCustomGroup.Id, model.SystemUserRoleId)
 		err = userGroupRestoreCmdF(s.th.Client, &cobra.Command{}, []string{group.Id})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)

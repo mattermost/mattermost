@@ -43,17 +43,17 @@ func TestAPIRestrictedViewMembers(t *testing.T) {
 	channel3, appErr := th.App.CreateChannel(th.Context, &model.Channel{DisplayName: "dn_" + model.NewId(), Name: "name_" + model.NewId(), Type: model.ChannelTypeOpen, TeamId: team2.Id, CreatorId: model.NewId()}, false)
 	require.Nil(t, appErr)
 
-	th.LinkUserToTeam(user1, team1)
-	th.LinkUserToTeam(user2, team1)
-	th.LinkUserToTeam(user3, team2)
-	th.LinkUserToTeam(user4, team1)
-	th.LinkUserToTeam(user4, team2)
+	th.LinkUserToTeam(t, user1, team1)
+	th.LinkUserToTeam(t, user2, team1)
+	th.LinkUserToTeam(t, user3, team2)
+	th.LinkUserToTeam(t, user4, team1)
+	th.LinkUserToTeam(t, user4, team2)
 
-	th.AddUserToChannel(user1, channel1)
-	th.AddUserToChannel(user2, channel2)
-	th.AddUserToChannel(user3, channel3)
-	th.AddUserToChannel(user4, channel1)
-	th.AddUserToChannel(user4, channel3)
+	th.AddUserToChannel(t, user1, channel1)
+	th.AddUserToChannel(t, user2, channel2)
+	th.AddUserToChannel(t, user3, channel3)
+	th.AddUserToChannel(t, user4, channel1)
+	th.AddUserToChannel(t, user4, channel3)
 
 	th.App.SetStatusOnline(user1.Id, true)
 	th.App.SetStatusOnline(user2.Id, true)
@@ -120,20 +120,20 @@ func TestAPIRestrictedViewMembers(t *testing.T) {
 				"api.context.permissions.app_error",
 			},
 		}
-		defaultPerms := th.SaveDefaultRolePermissions()
-		defer th.RestoreDefaultRolePermissions(defaultPerms)
+		defaultPerms := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
 
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
 				if tc.RestrictedTo == "channels" {
-					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
-					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.TeamUserRoleId)
+					th.RemovePermissionFromRole(t, model.PermissionViewMembers.Id, model.SystemUserRoleId)
+					th.RemovePermissionFromRole(t, model.PermissionViewMembers.Id, model.TeamUserRoleId)
 				} else if tc.RestrictedTo == "teams" {
-					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
-					th.AddPermissionToRole(model.PermissionViewMembers.Id, model.TeamUserRoleId)
+					th.RemovePermissionFromRole(t, model.PermissionViewMembers.Id, model.SystemUserRoleId)
+					th.AddPermissionToRole(t, model.PermissionViewMembers.Id, model.TeamUserRoleId)
 				} else {
-					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.TeamUserRoleId)
-					th.AddPermissionToRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
+					th.RemovePermissionFromRole(t, model.PermissionViewMembers.Id, model.TeamUserRoleId)
+					th.AddPermissionToRole(t, model.PermissionViewMembers.Id, model.SystemUserRoleId)
 				}
 
 				_, _, err := th.Client.GetUser(context.Background(), tc.UserId, "")
@@ -202,20 +202,20 @@ func TestAPIRestrictedViewMembers(t *testing.T) {
 				"api.context.permissions.app_error",
 			},
 		}
-		defaultPerms := th.SaveDefaultRolePermissions()
-		defer th.RestoreDefaultRolePermissions(defaultPerms)
+		defaultPerms := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
 
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
 				if tc.RestrictedTo == "channels" {
-					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
-					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.TeamUserRoleId)
+					th.RemovePermissionFromRole(t, model.PermissionViewMembers.Id, model.SystemUserRoleId)
+					th.RemovePermissionFromRole(t, model.PermissionViewMembers.Id, model.TeamUserRoleId)
 				} else if tc.RestrictedTo == "teams" {
-					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
-					th.AddPermissionToRole(model.PermissionViewMembers.Id, model.TeamUserRoleId)
+					th.RemovePermissionFromRole(t, model.PermissionViewMembers.Id, model.SystemUserRoleId)
+					th.AddPermissionToRole(t, model.PermissionViewMembers.Id, model.TeamUserRoleId)
 				} else {
-					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.TeamUserRoleId)
-					th.AddPermissionToRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
+					th.RemovePermissionFromRole(t, model.PermissionViewMembers.Id, model.TeamUserRoleId)
+					th.AddPermissionToRole(t, model.PermissionViewMembers.Id, model.SystemUserRoleId)
 				}
 
 				_, _, err := th.Client.GetUserByUsername(context.Background(), tc.Username, "")
@@ -284,20 +284,20 @@ func TestAPIRestrictedViewMembers(t *testing.T) {
 				"api.context.permissions.app_error",
 			},
 		}
-		defaultPerms := th.SaveDefaultRolePermissions()
-		defer th.RestoreDefaultRolePermissions(defaultPerms)
+		defaultPerms := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
 
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
 				if tc.RestrictedTo == "channels" {
-					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
-					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.TeamUserRoleId)
+					th.RemovePermissionFromRole(t, model.PermissionViewMembers.Id, model.SystemUserRoleId)
+					th.RemovePermissionFromRole(t, model.PermissionViewMembers.Id, model.TeamUserRoleId)
 				} else if tc.RestrictedTo == "teams" {
-					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
-					th.AddPermissionToRole(model.PermissionViewMembers.Id, model.TeamUserRoleId)
+					th.RemovePermissionFromRole(t, model.PermissionViewMembers.Id, model.SystemUserRoleId)
+					th.AddPermissionToRole(t, model.PermissionViewMembers.Id, model.TeamUserRoleId)
 				} else {
-					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.TeamUserRoleId)
-					th.AddPermissionToRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
+					th.RemovePermissionFromRole(t, model.PermissionViewMembers.Id, model.TeamUserRoleId)
+					th.AddPermissionToRole(t, model.PermissionViewMembers.Id, model.SystemUserRoleId)
 				}
 
 				_, _, err := th.Client.GetUserByEmail(context.Background(), tc.Email, "")
@@ -366,20 +366,20 @@ func TestAPIRestrictedViewMembers(t *testing.T) {
 				"api.context.permissions.app_error",
 			},
 		}
-		defaultPerms := th.SaveDefaultRolePermissions()
-		defer th.RestoreDefaultRolePermissions(defaultPerms)
+		defaultPerms := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
 
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
 				if tc.RestrictedTo == "channels" {
-					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
-					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.TeamUserRoleId)
+					th.RemovePermissionFromRole(t, model.PermissionViewMembers.Id, model.SystemUserRoleId)
+					th.RemovePermissionFromRole(t, model.PermissionViewMembers.Id, model.TeamUserRoleId)
 				} else if tc.RestrictedTo == "teams" {
-					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
-					th.AddPermissionToRole(model.PermissionViewMembers.Id, model.TeamUserRoleId)
+					th.RemovePermissionFromRole(t, model.PermissionViewMembers.Id, model.SystemUserRoleId)
+					th.AddPermissionToRole(t, model.PermissionViewMembers.Id, model.TeamUserRoleId)
 				} else {
-					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.TeamUserRoleId)
-					th.AddPermissionToRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
+					th.RemovePermissionFromRole(t, model.PermissionViewMembers.Id, model.TeamUserRoleId)
+					th.AddPermissionToRole(t, model.PermissionViewMembers.Id, model.SystemUserRoleId)
 				}
 
 				_, _, err := th.Client.GetDefaultProfileImage(context.Background(), tc.UserId)
@@ -448,20 +448,20 @@ func TestAPIRestrictedViewMembers(t *testing.T) {
 				"api.context.permissions.app_error",
 			},
 		}
-		defaultPerms := th.SaveDefaultRolePermissions()
-		defer th.RestoreDefaultRolePermissions(defaultPerms)
+		defaultPerms := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
 
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
 				if tc.RestrictedTo == "channels" {
-					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
-					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.TeamUserRoleId)
+					th.RemovePermissionFromRole(t, model.PermissionViewMembers.Id, model.SystemUserRoleId)
+					th.RemovePermissionFromRole(t, model.PermissionViewMembers.Id, model.TeamUserRoleId)
 				} else if tc.RestrictedTo == "teams" {
-					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
-					th.AddPermissionToRole(model.PermissionViewMembers.Id, model.TeamUserRoleId)
+					th.RemovePermissionFromRole(t, model.PermissionViewMembers.Id, model.SystemUserRoleId)
+					th.AddPermissionToRole(t, model.PermissionViewMembers.Id, model.TeamUserRoleId)
 				} else {
-					th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.TeamUserRoleId)
-					th.AddPermissionToRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
+					th.RemovePermissionFromRole(t, model.PermissionViewMembers.Id, model.TeamUserRoleId)
+					th.AddPermissionToRole(t, model.PermissionViewMembers.Id, model.SystemUserRoleId)
 				}
 
 				_, _, err := th.Client.GetProfileImage(context.Background(), tc.UserId, "")

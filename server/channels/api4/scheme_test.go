@@ -179,7 +179,7 @@ func TestCreateScheme(t *testing.T) {
 	err = th.App.SetPhase2PermissionsMigrationStatus(false)
 	require.NoError(t, err)
 
-	th.LoginSystemAdmin()
+	th.LoginSystemAdmin(t)
 	th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
 
 	scheme7 := &model.Scheme{
@@ -644,7 +644,7 @@ func TestPatchScheme(t *testing.T) {
 	err = th.App.SetPhase2PermissionsMigrationStatus(false)
 	require.NoError(t, err)
 
-	th.LoginSystemAdmin()
+	th.LoginSystemAdmin(t)
 	th.App.Srv().SetLicense(model.NewTestLicense("custom_permissions_schemes"))
 
 	_, r12, _ := th.SystemAdminClient.PatchScheme(context.Background(), s6.Id, schemePatch)
@@ -878,11 +878,11 @@ func TestUpdateTeamSchemeWithTeamMembers(t *testing.T) {
 		err := th.App.SetPhase2PermissionsMigrationStatus(true)
 		require.NoError(t, err)
 
-		team := th.CreateTeam()
+		team := th.CreateTeam(t)
 		_, _, appErr := th.App.AddUserToTeam(th.Context, team.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
 		require.Nil(t, appErr)
 
-		teamScheme := th.SetupTeamScheme()
+		teamScheme := th.SetupTeamScheme(t)
 
 		teamUserRole, appErr := th.App.GetRoleByName(th.Context, teamScheme.DefaultTeamUserRole)
 		require.Nil(t, appErr)
@@ -890,7 +890,7 @@ func TestUpdateTeamSchemeWithTeamMembers(t *testing.T) {
 		_, appErr = th.App.UpdateRole(teamUserRole)
 		require.Nil(t, appErr)
 
-		th.LoginBasic()
+		th.LoginBasic(t)
 
 		_, _, err = th.Client.CreateChannel(context.Background(), &model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id})
 		require.NoError(t, err)

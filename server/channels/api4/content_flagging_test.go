@@ -91,7 +91,7 @@ func TestSaveContentFlaggingSettings(t *testing.T) {
 		}
 
 		// Use basic user who doesn't have manage system permission
-		th.LoginBasic()
+		th.LoginBasic(t)
 		resp, err := client.SaveContentFlaggingSettings(context.Background(), &config)
 		require.Error(t, err)
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
@@ -115,7 +115,7 @@ func TestSaveContentFlaggingSettings(t *testing.T) {
 		}
 		config.SetDefaults()
 
-		th.LoginSystemAdmin()
+		th.LoginSystemAdmin(t)
 		resp, err := th.SystemAdminClient.SaveContentFlaggingSettings(context.Background(), &config)
 		require.Error(t, err)
 		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
@@ -154,7 +154,7 @@ func TestGetContentFlaggingSettings(t *testing.T) {
 		defer th.RemoveLicense(t)
 
 		// Use basic user who doesn't have manage system permission
-		th.LoginBasic()
+		th.LoginBasic(t)
 		settings, resp, err := th.Client.GetContentFlaggingSettings(context.Background())
 		require.Error(t, err)
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
@@ -196,7 +196,7 @@ func TestGetPostPropertyValues(t *testing.T) {
 			config.ContentFlaggingSettings.SetDefaults()
 		})
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 		propertyValues, resp, err := client.GetPostPropertyValues(context.Background(), post.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
@@ -210,7 +210,7 @@ func TestGetPostPropertyValues(t *testing.T) {
 			config.ContentFlaggingSettings.SetDefaults()
 		})
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 		propertyValues, resp, err := client.GetPostPropertyValues(context.Background(), post.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
@@ -237,7 +237,7 @@ func TestGetPostPropertyValues(t *testing.T) {
 			config.ContentFlaggingSettings.SetDefaults()
 		})
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 		propertyValues, resp, err := client.GetPostPropertyValues(context.Background(), post.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
@@ -249,7 +249,7 @@ func TestGetPostPropertyValues(t *testing.T) {
 		appErr := setBasicCommonReviewerConfig(th)
 		require.Nil(t, appErr)
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 		response, err := client.FlagPostForContentReview(context.Background(), post.Id, &model.FlagContentRequest{
 			Reason:  "Sensitive data",
 			Comment: "This is sensitive content",
@@ -278,7 +278,7 @@ func TestGetFlaggedPost(t *testing.T) {
 			config.ContentFlaggingSettings.SetDefaults()
 		})
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 		flaggedPost, resp, err := client.GetContentFlaggedPost(context.Background(), post.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
@@ -292,7 +292,7 @@ func TestGetFlaggedPost(t *testing.T) {
 			config.ContentFlaggingSettings.SetDefaults()
 		})
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 		flaggedPost, resp, err := client.GetContentFlaggedPost(context.Background(), post.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
@@ -337,7 +337,7 @@ func TestGetFlaggedPost(t *testing.T) {
 		appErr := th.App.SaveContentFlaggingConfig(config)
 		require.Nil(t, appErr)
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 		flaggedPost, resp, err := client.GetContentFlaggedPost(context.Background(), post.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
@@ -350,7 +350,7 @@ func TestGetFlaggedPost(t *testing.T) {
 		appErr := setBasicCommonReviewerConfig(th)
 		require.Nil(t, appErr)
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 		flaggedPost, resp, err := client.GetContentFlaggedPost(context.Background(), post.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotFound, resp.StatusCode)
@@ -363,7 +363,7 @@ func TestGetFlaggedPost(t *testing.T) {
 		appErr := setBasicCommonReviewerConfig(th)
 		require.Nil(t, appErr)
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 
 		// First flag the post
 		flagRequest := &model.FlagContentRequest{
@@ -396,7 +396,7 @@ func TestGetFlaggedPost(t *testing.T) {
 		require.Equal(t, 1, len(fileResponse.FileInfos))
 		fileInfo := fileResponse.FileInfos[0]
 
-		post := th.CreatePostInChannelWithFiles(th.BasicChannel, fileInfo)
+		post := th.CreatePostInChannelWithFiles(t, th.BasicChannel, fileInfo)
 
 		// First flag the post
 		flagRequest := &model.FlagContentRequest{
@@ -429,7 +429,7 @@ func TestFlagPost(t *testing.T) {
 			config.ContentFlaggingSettings.SetDefaults()
 		})
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 		flagRequest := &model.FlagContentRequest{
 			Reason:  "spam",
 			Comment: "This is spam content",
@@ -449,7 +449,7 @@ func TestFlagPost(t *testing.T) {
 			config.ContentFlaggingSettings.SetDefaults()
 		})
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 		flagRequest := &model.FlagContentRequest{
 			Reason:  "spam",
 			Comment: "This is spam content",
@@ -489,9 +489,9 @@ func TestFlagPost(t *testing.T) {
 		})
 
 		// Create a private channel and post
-		privateChannel := th.CreatePrivateChannel()
-		post := th.CreatePostWithClient(th.Client, privateChannel)
-		th.RemoveUserFromChannel(th.BasicUser, privateChannel)
+		privateChannel := th.CreatePrivateChannel(t)
+		post := th.CreatePostWithClient(t, th.Client, privateChannel)
+		th.RemoveUserFromChannel(t, th.BasicUser, privateChannel)
 
 		flagRequest := &model.FlagContentRequest{
 			Reason:  "spam",
@@ -526,7 +526,7 @@ func TestFlagPost(t *testing.T) {
 		appErr := th.App.SaveContentFlaggingConfig(config)
 		require.Nil(t, appErr)
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 		flagRequest := &model.FlagContentRequest{
 			Reason:  "spam",
 			Comment: "This is spam content",
@@ -544,7 +544,7 @@ func TestFlagPost(t *testing.T) {
 		appErr := setBasicCommonReviewerConfig(th)
 		require.Nil(t, appErr)
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 		flagRequest := &model.FlagContentRequest{
 			Reason:  "Sensitive data",
 			Comment: "This is sensitive data",
@@ -614,11 +614,11 @@ func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
 
 		// using basic user because the default user is a system admin, and they have
 		// access to all teams even without being an explicit team member
-		th.LoginBasic()
-		team := th.CreateTeam()
+		th.LoginBasic(t)
+		team := th.CreateTeam(t)
 		// unlinking from the created team as by default the team's creator is
 		// a team member, so we need to leave the team explicitly
-		th.UnlinkUserFromTeam(th.BasicUser, team)
+		th.UnlinkUserFromTeam(t, th.BasicUser, team)
 
 		status, resp, err := client.GetTeamPostFlaggingFeatureStatus(context.Background(), team.Id)
 		require.Error(t, err)
@@ -626,7 +626,7 @@ func TestGetTeamPostReportingFeatureStatus(t *testing.T) {
 		require.Nil(t, status)
 
 		// now we will join the team and that will allow us to call the endpoint without error
-		th.LinkUserToTeam(th.BasicUser, team)
+		th.LinkUserToTeam(t, th.BasicUser, team)
 		status, resp, err = client.GetTeamPostFlaggingFeatureStatus(context.Background(), team.Id)
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
@@ -761,7 +761,7 @@ func TestAssignContentFlaggingReviewer(t *testing.T) {
 			config.ContentFlaggingSettings.SetDefaults()
 		})
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 		resp, err := client.AssignContentFlaggingReviewer(context.Background(), post.Id, th.BasicUser.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
@@ -776,7 +776,7 @@ func TestAssignContentFlaggingReviewer(t *testing.T) {
 			config.ContentFlaggingSettings.SetDefaults()
 		})
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 		resp, err := client.AssignContentFlaggingReviewer(context.Background(), post.Id, th.BasicUser.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusNotImplemented, resp.StatusCode)
@@ -803,7 +803,7 @@ func TestAssignContentFlaggingReviewer(t *testing.T) {
 		appErr := setBasicCommonReviewerConfig(th)
 		require.Nil(t, appErr)
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 		resp, err := client.AssignContentFlaggingReviewer(context.Background(), post.Id, "invalidUserId")
 		require.Error(t, err)
 		require.Equal(t, http.StatusBadRequest, resp.StatusCode)
@@ -835,7 +835,7 @@ func TestAssignContentFlaggingReviewer(t *testing.T) {
 		appErr := th.App.SaveContentFlaggingConfig(config)
 		require.Nil(t, appErr)
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 		resp, err := client.AssignContentFlaggingReviewer(context.Background(), post.Id, th.BasicUser.Id)
 		require.Error(t, err)
 		require.Equal(t, http.StatusForbidden, resp.StatusCode)
@@ -846,8 +846,8 @@ func TestAssignContentFlaggingReviewer(t *testing.T) {
 		defer th.RemoveLicense(t)
 
 		// Create another user who will not be a reviewer
-		nonReviewerUser := th.CreateUser()
-		th.LinkUserToTeam(nonReviewerUser, th.BasicTeam)
+		nonReviewerUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, nonReviewerUser, th.BasicTeam)
 
 		config := model.ContentFlaggingSettingsRequest{
 			ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
@@ -866,7 +866,7 @@ func TestAssignContentFlaggingReviewer(t *testing.T) {
 		appErr := th.App.SaveContentFlaggingConfig(config)
 		require.Nil(t, appErr)
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 		// Try to assign non-reviewer user
 		resp, err := client.AssignContentFlaggingReviewer(context.Background(), post.Id, nonReviewerUser.Id)
 		require.Error(t, err)
@@ -878,8 +878,8 @@ func TestAssignContentFlaggingReviewer(t *testing.T) {
 		defer th.RemoveLicense(t)
 
 		// Create another reviewer user
-		reviewerUser := th.CreateUser()
-		th.LinkUserToTeam(reviewerUser, th.BasicTeam)
+		reviewerUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, reviewerUser, th.BasicTeam)
 
 		config := model.ContentFlaggingSettingsRequest{
 			ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
@@ -898,7 +898,7 @@ func TestAssignContentFlaggingReviewer(t *testing.T) {
 		appErr := th.App.SaveContentFlaggingConfig(config)
 		require.Nil(t, appErr)
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 
 		// First flag the post so it can be assigned
 		flagRequest := &model.FlagContentRequest{
@@ -920,8 +920,8 @@ func TestAssignContentFlaggingReviewer(t *testing.T) {
 		defer th.RemoveLicense(t)
 
 		// Create another reviewer user
-		reviewerUser := th.CreateUser()
-		th.LinkUserToTeam(reviewerUser, th.BasicTeam)
+		reviewerUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, reviewerUser, th.BasicTeam)
 
 		config := model.ContentFlaggingSettingsRequest{
 			ContentFlaggingSettingsBase: model.ContentFlaggingSettingsBase{
@@ -945,7 +945,7 @@ func TestAssignContentFlaggingReviewer(t *testing.T) {
 		appErr := th.App.SaveContentFlaggingConfig(config)
 		require.Nil(t, appErr)
 
-		post := th.CreatePost()
+		post := th.CreatePost(t)
 
 		// First flag the post so it can be assigned
 		flagRequest := &model.FlagContentRequest{

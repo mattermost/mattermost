@@ -44,7 +44,7 @@ func TestGetAllSharedChannels(t *testing.T) {
 
 	// make some shared channels
 	for i := range pages * pageSize {
-		channel := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, th.BasicTeam.Id)
+		channel := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, th.BasicTeam.Id)
 		sc := &model.SharedChannel{
 			ChannelId: channel.Id,
 			TeamId:    channel.TeamId,
@@ -170,7 +170,7 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 		}()
 
 		localUser := th.BasicUser
-		remoteUser := th.CreateUser()
+		remoteUser := th.CreateUser(t)
 		remoteUser.RemoteId = model.NewPointer(model.NewId())
 		remoteUser, appErr := th.App.UpdateUser(th.Context, remoteUser, false)
 		require.Nil(t, appErr)
@@ -192,7 +192,7 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 		}()
 
 		localUser := th.BasicUser
-		remoteUser := th.CreateUser()
+		remoteUser := th.CreateUser(t)
 		remoteUser.RemoteId = model.NewPointer(model.NewId())
 		remoteUser, appErr := th.App.UpdateUser(th.Context, remoteUser, false)
 		require.Nil(t, appErr)
@@ -217,7 +217,7 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 		}()
 
 		localUser := th.BasicUser
-		remoteUser := th.CreateUser()
+		remoteUser := th.CreateUser(t)
 
 		rc := &model.RemoteCluster{
 			Name:      "test",
@@ -251,7 +251,7 @@ func TestCreateDirectChannelWithRemoteUser(t *testing.T) {
 		}()
 
 		localUser := th.BasicUser
-		remoteUser := th.CreateUser()
+		remoteUser := th.CreateUser(t)
 
 		rc := &model.RemoteCluster{
 			Name:      "test",
@@ -294,7 +294,7 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 	rc2, appErr := th.App.AddRemoteCluster(newRC2)
 	require.Nil(t, appErr)
 
-	c1 := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, th.BasicTeam.Id)
+	c1 := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, th.BasicTeam.Id)
 	sc1 := &model.SharedChannel{
 		ChannelId:        c1.Id,
 		TeamId:           th.BasicTeam.Id,
@@ -307,7 +307,7 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 	_, err := th.App.ShareChannel(th.Context, sc1)
 	require.NoError(t, err)
 
-	c2 := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, th.BasicTeam.Id)
+	c2 := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, th.BasicTeam.Id)
 	sc2 := &model.SharedChannel{
 		ChannelId:        c2.Id,
 		TeamId:           th.BasicTeam.Id,
@@ -321,7 +321,7 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 	_, err = th.App.ShareChannel(th.Context, sc2)
 	require.NoError(t, err)
 
-	c3 := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, th.BasicTeam.Id)
+	c3 := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, th.BasicTeam.Id)
 	sc3 := &model.SharedChannel{
 		ChannelId: c3.Id,
 		TeamId:    th.BasicTeam.Id,
@@ -332,7 +332,7 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 	_, err = th.App.ShareChannel(th.Context, sc3)
 	require.NoError(t, err)
 
-	c4 := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, th.BasicTeam.Id)
+	c4 := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, th.BasicTeam.Id)
 	sc4 := &model.SharedChannel{
 		ChannelId:        c4.Id,
 		TeamId:           th.BasicTeam.Id,
@@ -346,7 +346,7 @@ func TestGetSharedChannelRemotesByRemoteCluster(t *testing.T) {
 	_, err = th.App.ShareChannel(th.Context, sc4)
 	require.NoError(t, err)
 
-	c5 := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, th.BasicTeam.Id)
+	c5 := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, th.BasicTeam.Id)
 	sc5 := &model.SharedChannel{
 		ChannelId:        c5.Id,
 		TeamId:           th.BasicTeam.Id,

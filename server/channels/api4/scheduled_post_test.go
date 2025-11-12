@@ -37,8 +37,8 @@ func TestCreateScheduledPost(t *testing.T) {
 	})
 
 	t.Run("should not allow created scheduled post in read-only channel", func(t *testing.T) {
-		channel := th.CreatePublicChannel()
-		th.AddUserToChannel(th.BasicUser, channel)
+		channel := th.CreatePublicChannel(t)
+		th.AddUserToChannel(t, th.BasicUser, channel)
 
 		channelModerationPatches := []*model.ChannelModerationPatch{
 			{

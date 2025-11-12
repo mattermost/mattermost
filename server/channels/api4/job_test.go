@@ -19,7 +19,7 @@ func TestCreateJob(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
-	th.LoginSystemManager()
+	th.LoginSystemManager(t)
 
 	job := &model.Job{
 		Type: model.JobTypeActiveUsers,
@@ -174,7 +174,7 @@ func TestGetJobsByType(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
-	th.LoginSystemManager()
+	th.LoginSystemManager(t)
 
 	jobType := model.JobTypeDataRetention
 
@@ -244,7 +244,7 @@ func TestDownloadJob(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	th.LoginSystemManager()
+	th.LoginSystemManager(t)
 	jobName := model.NewId()
 	job := &model.Job{
 		Id:   jobName,

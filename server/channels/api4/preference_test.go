@@ -21,8 +21,8 @@ func TestGetPreferences(t *testing.T) {
 	client := th.Client
 
 	// recreate basic user (cached has no default preferences)
-	th.BasicUser = th.CreateUser()
-	th.LoginBasic()
+	th.BasicUser = th.CreateUser(t)
+	th.LoginBasic(t)
 
 	user1 := th.BasicUser
 
@@ -59,8 +59,8 @@ func TestGetPreferences(t *testing.T) {
 	}
 
 	// recreate basic user2
-	th.BasicUser2 = th.CreateUser()
-	th.LoginBasic2()
+	th.BasicUser2 = th.CreateUser(t)
+	th.LoginBasic2(t)
 
 	prefs, _, err = client.GetPreferences(context.Background(), th.BasicUser2.Id)
 	require.NoError(t, err)
@@ -91,7 +91,7 @@ func TestGetPreferencesByCategory(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	client := th.Client
 
-	th.LoginBasic()
+	th.LoginBasic(t)
 	user1 := th.BasicUser
 
 	category := model.NewId()
@@ -125,7 +125,7 @@ func TestGetPreferencesByCategory(t *testing.T) {
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	th.LoginBasic2()
+	th.LoginBasic2(t)
 
 	_, resp, err = client.GetPreferencesByCategory(context.Background(), th.BasicUser2.Id, category)
 	require.Error(t, err)
@@ -161,7 +161,7 @@ func TestGetPreferenceByCategoryAndName(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	client := th.Client
 
-	th.LoginBasic()
+	th.LoginBasic(t)
 	user := th.BasicUser
 	name := model.NewId()
 	value := model.NewId()
@@ -230,7 +230,7 @@ func TestUpdatePreferences(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	client := th.Client
 
-	th.LoginBasic()
+	th.LoginBasic(t)
 	user1 := th.BasicUser
 
 	category := model.NewId()
@@ -309,7 +309,7 @@ func TestUpdatePreferencesOverload(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	client := th.Client
 
-	th.LoginBasic()
+	th.LoginBasic(t)
 	user1 := th.BasicUser
 
 	t.Run("No preferences", func(t *testing.T) {
@@ -398,14 +398,14 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 
 		user := th.BasicUser
 
-		team1 := th.CreateTeam()
-		th.LinkUserToTeam(user, team1)
+		team1 := th.CreateTeam(t)
+		th.LinkUserToTeam(t, user, team1)
 
 		_, _, err := th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team1.Id, "")
 		require.NoError(t, err)
 
-		channel := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, team1.Id)
-		th.AddUserToChannel(user, channel)
+		channel := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, team1.Id)
+		th.AddUserToChannel(t, user, channel)
 
 		// Confirm that the sidebar is populated correctly to begin with
 		categories, _, err := th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team1.Id, "")
@@ -460,10 +460,10 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 		user := th.BasicUser
 		user2 := th.BasicUser2
 
-		team1 := th.CreateTeam()
-		th.LinkUserToTeam(user, team1)
-		team2 := th.CreateTeam()
-		th.LinkUserToTeam(user, team2)
+		team1 := th.CreateTeam(t)
+		th.LinkUserToTeam(t, user, team1)
+		team2 := th.CreateTeam(t)
+		th.LinkUserToTeam(t, user, team2)
 
 		dmChannel := th.CreateDmChannel(t, user2)
 
@@ -527,20 +527,20 @@ func TestUpdateSidebarPreferences(t *testing.T) {
 		user2 := th.BasicUser2
 
 		client2 := th.CreateClient()
-		th.LoginBasic2WithClient(client2)
+		th.LoginBasic2WithClient(t, client2)
 
-		team1 := th.CreateTeam()
-		th.LinkUserToTeam(user, team1)
-		th.LinkUserToTeam(user2, team1)
+		team1 := th.CreateTeam(t)
+		th.LinkUserToTeam(t, user, team1)
+		th.LinkUserToTeam(t, user2, team1)
 
 		_, _, err := th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team1.Id, "")
 		require.NoError(t, err)
 		_, _, err = client2.GetSidebarCategoriesForTeamForUser(context.Background(), user2.Id, team1.Id, "")
 		require.NoError(t, err)
 
-		channel := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, team1.Id)
-		th.AddUserToChannel(user, channel)
-		th.AddUserToChannel(user2, channel)
+		channel := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, team1.Id)
+		th.AddUserToChannel(t, user, channel)
+		th.AddUserToChannel(t, user2, channel)
 
 		// Confirm that the sidebar is populated correctly to begin with
 		categories, _, err := th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team1.Id, "")
@@ -621,7 +621,7 @@ func TestDeletePreferences(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	client := th.Client
 
-	th.LoginBasic()
+	th.LoginBasic(t)
 
 	prefs, _, _ := client.GetPreferences(context.Background(), th.BasicUser.Id)
 	originalCount := len(prefs)
@@ -641,13 +641,13 @@ func TestDeletePreferences(t *testing.T) {
 	require.NoError(t, err)
 
 	// delete 10 preferences
-	th.LoginBasic2()
+	th.LoginBasic2(t)
 
 	resp, err := client.DeletePreferences(context.Background(), th.BasicUser2.Id, preferences)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	th.LoginBasic()
+	th.LoginBasic(t)
 
 	_, err = client.DeletePreferences(context.Background(), th.BasicUser.Id, preferences)
 	require.NoError(t, err)
@@ -691,7 +691,7 @@ func TestDeletePreferencesOverload(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	client := th.Client
 
-	th.LoginBasic()
+	th.LoginBasic(t)
 	user1 := th.BasicUser
 
 	t.Run("No preferences", func(t *testing.T) {
@@ -782,14 +782,14 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 
 		user := th.BasicUser
 
-		team1 := th.CreateTeam()
-		th.LinkUserToTeam(user, team1)
+		team1 := th.CreateTeam(t)
+		th.LinkUserToTeam(t, user, team1)
 
 		_, _, err := th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team1.Id, "")
 		require.NoError(t, err)
 
-		channel := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, team1.Id)
-		th.AddUserToChannel(user, channel)
+		channel := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, team1.Id)
+		th.AddUserToChannel(t, user, channel)
 
 		// Confirm that the sidebar is populated correctly to begin with
 		categories, _, err := th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team1.Id, "")
@@ -842,10 +842,10 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 		user := th.BasicUser
 		user2 := th.BasicUser2
 
-		team1 := th.CreateTeam()
-		th.LinkUserToTeam(user, team1)
-		team2 := th.CreateTeam()
-		th.LinkUserToTeam(user, team2)
+		team1 := th.CreateTeam(t)
+		th.LinkUserToTeam(t, user, team1)
+		team2 := th.CreateTeam(t)
+		th.LinkUserToTeam(t, user, team2)
 
 		dmChannel := th.CreateDmChannel(t, user2)
 
@@ -908,20 +908,20 @@ func TestDeleteSidebarPreferences(t *testing.T) {
 		user2 := th.BasicUser2
 
 		client2 := th.CreateClient()
-		th.LoginBasic2WithClient(client2)
+		th.LoginBasic2WithClient(t, client2)
 
-		team1 := th.CreateTeam()
-		th.LinkUserToTeam(user, team1)
-		th.LinkUserToTeam(user2, team1)
+		team1 := th.CreateTeam(t)
+		th.LinkUserToTeam(t, user, team1)
+		th.LinkUserToTeam(t, user2, team1)
 
 		_, _, err := th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team1.Id, "")
 		require.NoError(t, err)
 		_, _, err = client2.GetSidebarCategoriesForTeamForUser(context.Background(), user2.Id, team1.Id, "")
 		require.NoError(t, err)
 
-		channel := th.CreateChannelWithClientAndTeam(th.Client, model.ChannelTypeOpen, team1.Id)
-		th.AddUserToChannel(user, channel)
-		th.AddUserToChannel(user2, channel)
+		channel := th.CreateChannelWithClientAndTeam(t, th.Client, model.ChannelTypeOpen, team1.Id)
+		th.AddUserToChannel(t, user, channel)
+		th.AddUserToChannel(t, user2, channel)
 
 		// Confirm that the sidebar is populated correctly to begin with
 		categories, _, err := th.Client.GetSidebarCategoriesForTeamForUser(context.Background(), user.Id, team1.Id, "")
@@ -994,7 +994,7 @@ func TestUpdateLimitVisibleDMsGMs(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 		client := th.Client
 
-		th.LoginBasic()
+		th.LoginBasic(t)
 		user := th.BasicUser
 
 		_, err := client.UpdatePreferences(context.Background(), user.Id, model.Preferences{
@@ -1017,7 +1017,7 @@ func TestUpdateLimitVisibleDMsGMs(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 		client := th.Client
 
-		th.LoginBasic()
+		th.LoginBasic(t)
 		user := th.BasicUser
 
 		resp, err := client.UpdatePreferences(context.Background(), user.Id, model.Preferences{
@@ -1036,7 +1036,7 @@ func TestUpdateLimitVisibleDMsGMs(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 		client := th.Client
 
-		th.LoginBasic()
+		th.LoginBasic(t)
 		user := th.BasicUser
 
 		resp, err := client.UpdatePreferences(context.Background(), user.Id, model.Preferences{
@@ -1055,7 +1055,7 @@ func TestUpdateLimitVisibleDMsGMs(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 		client := th.Client
 
-		th.LoginBasic()
+		th.LoginBasic(t)
 		user := th.BasicUser
 
 		resp, err := client.UpdatePreferences(context.Background(), user.Id, model.Preferences{

@@ -94,7 +94,7 @@ func TestGetUserStatus(t *testing.T) {
 	})
 
 	t.Run("get status from other user", func(t *testing.T) {
-		th.LoginBasic2()
+		th.LoginBasic2(t)
 		userStatus, _, err := client.GetUserStatus(context.Background(), th.BasicUser2.Id, "")
 		require.NoError(t, err)
 		assert.Equal(t, "offline", userStatus.Status)
@@ -397,7 +397,7 @@ func TestRemoveUserCustomStatus(t *testing.T) {
 	})
 
 	t.Run("remove non-existent custom status", func(t *testing.T) {
-		th.LoginBasic()
+		th.LoginBasic(t)
 		resp, err := client.RemoveUserCustomStatus(context.Background(), th.BasicUser.Id)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)

@@ -91,7 +91,7 @@ func TestGetPolicies(t *testing.T) {
 
 	t.Run("as regular user", func(t *testing.T) {
 		// Ensure the basic user doesn't have the necessary permission
-		th.RemovePermissionFromRole(model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemUserRoleId)
 
 		policies, resp, err := th.Client.GetDataRetentionPolicies(context.Background(), 0, 100)
 		require.Error(t, err)
@@ -142,7 +142,7 @@ func TestGetDataRetentionPoliciesCount(t *testing.T) {
 
 	t.Run("get policies count with permissions", func(t *testing.T) {
 		// Add necessary permissions
-		th.AddPermissionToRole(model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemUserRoleId)
 
 		count, resp, err := th.Client.GetDataRetentionPoliciesCount(context.Background())
 		require.NoError(t, err)
@@ -216,7 +216,7 @@ func TestGetPolicy(t *testing.T) {
 
 	t.Run("Forbidden", func(t *testing.T) {
 		// Ensure the basic user doesn't have the necessary permission
-		th.RemovePermissionFromRole(model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemUserRoleId)
 
 		policy, resp, err := th.Client.GetDataRetentionPolicyByID(context.Background(), validPolicyId)
 		require.Error(t, err)
@@ -303,7 +303,7 @@ func TestCreatePolicy(t *testing.T) {
 
 	t.Run("Forbidden", func(t *testing.T) {
 		// Ensure the basic user doesn't have the necessary permission
-		th.RemovePermissionFromRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemUserRoleId)
 
 		var postDurationDays int64 = 30
 		policyToCreate := &model.RetentionPolicyWithTeamAndChannelIDs{
@@ -376,7 +376,7 @@ func TestPatchPolicy(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		// Grant necessary permission to system admin
-		th.AddPermissionToRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
+		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 
 		var postDurationDays int64 = 60
 		patchPayload := &model.RetentionPolicyWithTeamAndChannelIDs{
@@ -398,7 +398,7 @@ func TestPatchPolicy(t *testing.T) {
 		assert.Equal(t, int64(1), policy.TeamCount, "TeamCount should match")
 
 		// Clean up: remove the permission after the test
-		th.RemovePermissionFromRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 	})
 
 	t.Run("InvalidPolicyID", func(t *testing.T) {
@@ -482,26 +482,26 @@ func TestDeletePolicy(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		// Grant necessary permission to system admin
-		th.AddPermissionToRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
+		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 
 		resp, err := th.SystemAdminClient.DeleteDataRetentionPolicy(context.Background(), validPolicyId)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
 		// Clean up: remove the permission after the test
-		th.RemovePermissionFromRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 	})
 
 	t.Run("NonExistentPolicy", func(t *testing.T) {
 		// Grant necessary permission to system admin
-		th.AddPermissionToRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
+		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 
 		resp, err := th.SystemAdminClient.DeleteDataRetentionPolicy(context.Background(), nonExistentPolicyId)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 
 		// Clean up: remove the permission after the test
-		th.RemovePermissionFromRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 	})
 
 	t.Run("NoPermission", func(t *testing.T) {
@@ -579,7 +579,7 @@ func TestGetTeamPoliciesForUser(t *testing.T) {
 	})
 
 	t.Run("AsOtherUser", func(t *testing.T) {
-		th.LoginBasic2()
+		th.LoginBasic2(t)
 
 		policies, resp, err := th.Client.GetTeamPoliciesForUser(context.Background(), th.BasicUser.Id, 0, 60)
 		require.Error(t, err)
@@ -664,7 +664,7 @@ func TestGetChannelPoliciesForUser(t *testing.T) {
 	})
 
 	t.Run("AsOtherUser", func(t *testing.T) {
-		th.LoginBasic2()
+		th.LoginBasic2(t)
 
 		policies, resp, err := th.Client.GetChannelPoliciesForUser(context.Background(), th.BasicUser.Id, 0, 60)
 		require.Error(t, err)
@@ -734,7 +734,7 @@ func TestGetTeamsForPolicy(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		// Grant necessary permission to system admin
-		th.AddPermissionToRole(model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
+		th.AddPermissionToRole(t, model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 
 		teams, resp, err := th.SystemAdminClient.GetTeamsForRetentionPolicy(context.Background(), validPolicyId, 0, 100)
 		require.NoError(t, err)
@@ -746,12 +746,12 @@ func TestGetTeamsForPolicy(t *testing.T) {
 		assert.Equal(t, int64(2), teams.TotalCount, "Total count should be 2")
 
 		// Clean up: remove the permission after the test
-		th.RemovePermissionFromRole(model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 	})
 
 	t.Run("NonExistentPolicy", func(t *testing.T) {
 		// Grant necessary permission to system admin
-		th.AddPermissionToRole(model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
+		th.AddPermissionToRole(t, model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 
 		teams, resp, err := th.SystemAdminClient.GetTeamsForRetentionPolicy(context.Background(), nonExistentPolicyId, 0, 100)
 		require.Error(t, err)
@@ -759,7 +759,7 @@ func TestGetTeamsForPolicy(t *testing.T) {
 		assert.Nil(t, teams, "Teams should be nil for non-existent policy")
 
 		// Clean up: remove the permission after the test
-		th.RemovePermissionFromRole(model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 	})
 
 	t.Run("NoPermission", func(t *testing.T) {
@@ -812,26 +812,26 @@ func TestAddTeamsToPolicy(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		// Grant necessary permission to system admin
-		th.AddPermissionToRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
+		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 
 		resp, err := th.SystemAdminClient.AddTeamsToRetentionPolicy(context.Background(), validPolicyId, validTeamIDs)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
 		// Clean up: remove the permission after the test
-		th.RemovePermissionFromRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 	})
 
 	t.Run("NonExistentPolicy", func(t *testing.T) {
 		// Grant necessary permission to system admin
-		th.AddPermissionToRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
+		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 
 		resp, err := th.SystemAdminClient.AddTeamsToRetentionPolicy(context.Background(), nonExistentPolicyId, validTeamIDs)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 
 		// Clean up: remove the permission after the test
-		th.RemovePermissionFromRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 	})
 
 	t.Run("NoPermission", func(t *testing.T) {
@@ -882,26 +882,26 @@ func TestRemoveTeamsFromPolicy(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		// Grant necessary permission to system admin
-		th.AddPermissionToRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
+		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 
 		resp, err := th.SystemAdminClient.RemoveTeamsFromRetentionPolicy(context.Background(), validPolicyId, validTeamIDs)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
 		// Clean up: remove the permission after the test
-		th.RemovePermissionFromRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 	})
 
 	t.Run("NonExistentPolicy", func(t *testing.T) {
 		// Grant necessary permission to system admin
-		th.AddPermissionToRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
+		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 
 		resp, err := th.SystemAdminClient.RemoveTeamsFromRetentionPolicy(context.Background(), nonExistentPolicyId, validTeamIDs)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 
 		// Clean up: remove the permission after the test
-		th.RemovePermissionFromRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 	})
 
 	t.Run("NoPermission", func(t *testing.T) {
@@ -974,7 +974,7 @@ func TestGetChannelsForPolicy(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		// Grant necessary permission to system admin
-		th.AddPermissionToRole(model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
+		th.AddPermissionToRole(t, model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 
 		channels, resp, err := th.SystemAdminClient.GetChannelsForRetentionPolicy(context.Background(), validPolicyId, 0, 100)
 		require.NoError(t, err)
@@ -986,12 +986,12 @@ func TestGetChannelsForPolicy(t *testing.T) {
 		assert.Equal(t, int64(2), channels.TotalCount, "Total count should be 2")
 
 		// Clean up: remove the permission after the test
-		th.RemovePermissionFromRole(model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 	})
 
 	t.Run("NonExistentPolicy", func(t *testing.T) {
 		// Grant necessary permission to system admin
-		th.AddPermissionToRole(model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
+		th.AddPermissionToRole(t, model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 
 		channels, resp, err := th.SystemAdminClient.GetChannelsForRetentionPolicy(context.Background(), nonExistentPolicyId, 0, 100)
 		require.Error(t, err)
@@ -999,7 +999,7 @@ func TestGetChannelsForPolicy(t *testing.T) {
 		assert.Nil(t, channels, "Channels should be nil for non-existent policy")
 
 		// Clean up: remove the permission after the test
-		th.RemovePermissionFromRole(model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionSysconsoleReadComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 	})
 
 	t.Run("NoPermission", func(t *testing.T) {
@@ -1089,38 +1089,38 @@ func TestAddChannelsToPolicy(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		// Grant necessary permission to system admin
-		th.AddPermissionToRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
+		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 
 		resp, err := th.SystemAdminClient.AddChannelsToRetentionPolicy(context.Background(), validPolicyId, validChannelIDs)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
 		// Clean up: remove the permission after the test
-		th.RemovePermissionFromRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 	})
 
 	t.Run("NonExistentPolicy", func(t *testing.T) {
 		// Grant necessary permission to system admin
-		th.AddPermissionToRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
+		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 
 		resp, err := th.SystemAdminClient.AddChannelsToRetentionPolicy(context.Background(), nonExistentPolicyId, validChannelIDs)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 
 		// Clean up: remove the permission after the test
-		th.RemovePermissionFromRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 	})
 
 	t.Run("InvalidChannelIDs", func(t *testing.T) {
 		// Grant necessary permission to system admin
-		th.AddPermissionToRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
+		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 
 		resp, err := th.SystemAdminClient.AddChannelsToRetentionPolicy(context.Background(), validPolicyId, invalidChannelIDs)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
 		// Clean up: remove the permission after the test
-		th.RemovePermissionFromRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 	})
 
 	t.Run("NoPermission", func(t *testing.T) {
@@ -1190,38 +1190,38 @@ func TestRemoveChannelsFromPolicy(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		// Grant necessary permission to system admin
-		th.AddPermissionToRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
+		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 
 		resp, err := th.SystemAdminClient.RemoveChannelsFromRetentionPolicy(context.Background(), validPolicyId, validChannelIDs)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
 		// Clean up: remove the permission after the test
-		th.RemovePermissionFromRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 	})
 
 	t.Run("NonExistentPolicy", func(t *testing.T) {
 		// Grant necessary permission to system admin
-		th.AddPermissionToRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
+		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 
 		resp, err := th.SystemAdminClient.RemoveChannelsFromRetentionPolicy(context.Background(), nonExistentPolicyId, validChannelIDs)
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 
 		// Clean up: remove the permission after the test
-		th.RemovePermissionFromRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 	})
 
 	t.Run("InvalidChannelIDs", func(t *testing.T) {
 		// Grant necessary permission to system admin
-		th.AddPermissionToRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
+		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 
 		resp, err := th.SystemAdminClient.RemoveChannelsFromRetentionPolicy(context.Background(), validPolicyId, invalidChannelIDs)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
 		// Clean up: remove the permission after the test
-		th.RemovePermissionFromRole(model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteComplianceDataRetentionPolicy.Id, model.SystemAdminRoleId)
 	})
 
 	t.Run("NoPermission", func(t *testing.T) {

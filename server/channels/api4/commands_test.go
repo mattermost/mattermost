@@ -48,15 +48,15 @@ func TestGroupmsgCommands(t *testing.T) {
 	team := th.BasicTeam
 	user1 := th.BasicUser
 	user2 := th.BasicUser2
-	user3 := th.CreateUser()
-	user4 := th.CreateUser()
-	user5 := th.CreateUser()
-	user6 := th.CreateUser()
-	user7 := th.CreateUser()
-	user8 := th.CreateUser()
-	user9 := th.CreateUser()
-	th.LinkUserToTeam(user3, team)
-	th.LinkUserToTeam(user4, team)
+	user3 := th.CreateUser(t)
+	user4 := th.CreateUser(t)
+	user5 := th.CreateUser(t)
+	user6 := th.CreateUser(t)
+	user7 := th.CreateUser(t)
+	user8 := th.CreateUser(t)
+	user9 := th.CreateUser(t)
+	th.LinkUserToTeam(t, user3, team)
+	th.LinkUserToTeam(t, user4, team)
 
 	rs1, _, err := client.ExecuteCommand(context.Background(), th.BasicChannel.Id, "/groupmsg "+user2.Username+","+user3.Username)
 	require.NoError(t, err)
@@ -364,8 +364,8 @@ func TestMsgCommands(t *testing.T) {
 	team := th.BasicTeam
 	user1 := th.BasicUser
 	user2 := th.BasicUser2
-	user3 := th.CreateUser()
-	th.LinkUserToTeam(user3, team)
+	user3 := th.CreateUser(t)
+	th.LinkUserToTeam(t, user3, team)
 
 	_, _, err := client.CreateDirectChannel(context.Background(), th.BasicUser.Id, user2.Id)
 	require.NoError(t, err)

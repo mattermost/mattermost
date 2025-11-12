@@ -76,7 +76,7 @@ func TestCheckOutgoingOAuthConnectionReadPermissions(t *testing.T) {
 		c.App = th.App
 		c.Logger = th.App.Srv().Log()
 
-		th.AddPermissionToRole(model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
 
 		canReadWithTeam := checkOutgoingOAuthConnectionReadPermissions(c, th.BasicTeam.Id)
 		require.True(t, canReadWithTeam)
@@ -98,7 +98,7 @@ func TestCheckOutgoingOAuthConnectionReadPermissions(t *testing.T) {
 		c.App = th.App
 		c.Logger = th.App.Srv().Log()
 
-		th.AddPermissionToRole(model.PermissionManageSlashCommands.Id, model.TeamAdminRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageSlashCommands.Id, model.TeamAdminRoleId)
 
 		canRead := checkOutgoingOAuthConnectionReadPermissions(c, th.BasicTeam.Id)
 		require.True(t, canRead)
@@ -117,7 +117,7 @@ func TestCheckOutgoingOAuthConnectionReadPermissions(t *testing.T) {
 		c.App = th.App
 		c.Logger = th.App.Srv().Log()
 
-		th.AddPermissionToRole(model.PermissionManageOutgoingWebhooks.Id, model.TeamAdminRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageOutgoingWebhooks.Id, model.TeamAdminRoleId)
 
 		canRead := checkOutgoingOAuthConnectionReadPermissions(c, th.BasicTeam.Id)
 		require.True(t, canRead)
@@ -157,7 +157,7 @@ func TestCheckOutgoingOAuthConnectionWritePermissions(t *testing.T) {
 		c.App = th.App
 		c.Logger = th.App.Srv().Log()
 
-		th.AddPermissionToRole(model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
 
 		canWrite := checkOutgoingOAuthConnectionWritePermissions(c)
 		require.True(t, canWrite)
@@ -173,12 +173,12 @@ func TestClientOutgoingOAuthConnectionGet(t *testing.T) {
 		os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTION", "true")
 		defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTION")
 		th := Setup(t).InitBasic(t)
-		defaultRolePermissions := th.SaveDefaultRolePermissions()
+		defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 		defer func() {
-			th.RestoreDefaultRolePermissions(defaultRolePermissions)
+			th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 		}()
-		th.AddPermissionToRole(model.PermissionManageOutgoingWebhooks.Id, model.TeamAdminRoleId)
-		th.AddPermissionToRole(model.PermissionManageSlashCommands.Id, model.TeamAdminRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageOutgoingWebhooks.Id, model.TeamAdminRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageSlashCommands.Id, model.TeamAdminRoleId)
 
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
 		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
@@ -188,7 +188,7 @@ func TestClientOutgoingOAuthConnectionGet(t *testing.T) {
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
 		// th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
-		th.LoginTeamAdmin()
+		th.LoginTeamAdmin(t)
 
 		filters := model.OutgoingOAuthConnectionGetConnectionsFilter{
 			Limit:  10,
@@ -203,12 +203,12 @@ func TestClientOutgoingOAuthConnectionGet(t *testing.T) {
 	t.Run("license but no config enabled returns 501", func(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
-		defaultRolePermissions := th.SaveDefaultRolePermissions()
+		defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 		defer func() {
-			th.RestoreDefaultRolePermissions(defaultRolePermissions)
+			th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 		}()
-		th.AddPermissionToRole(model.PermissionManageOutgoingWebhooks.Id, model.TeamAdminRoleId)
-		th.AddPermissionToRole(model.PermissionManageSlashCommands.Id, model.TeamAdminRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageOutgoingWebhooks.Id, model.TeamAdminRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageSlashCommands.Id, model.TeamAdminRoleId)
 
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
 		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
@@ -225,7 +225,7 @@ func TestClientOutgoingOAuthConnectionGet(t *testing.T) {
 		appErr := th.App.Srv().RemoveLicense()
 		require.Nil(t, appErr)
 
-		th.LoginTeamAdmin()
+		th.LoginTeamAdmin(t)
 
 		filters := model.OutgoingOAuthConnectionGetConnectionsFilter{
 			Limit:  10,
@@ -278,11 +278,11 @@ func TestClientListOutgoingOAuthConnection(t *testing.T) {
 	t.Run("manager do not require team id", func(t *testing.T) {
 		defer outgoingOauthConnectionsCleanup(t, th)
 
-		defaultRolePermissions := th.SaveDefaultRolePermissions()
+		defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 		defer func() {
-			th.RestoreDefaultRolePermissions(defaultRolePermissions)
+			th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 		}()
-		th.AddPermissionToRole(model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
 
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
@@ -314,12 +314,12 @@ func TestClientListOutgoingOAuthConnection(t *testing.T) {
 	t.Run("empty", func(t *testing.T) {
 		defer outgoingOauthConnectionsCleanup(t, th)
 
-		defaultRolePermissions := th.SaveDefaultRolePermissions()
+		defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 		defer func() {
-			th.RestoreDefaultRolePermissions(defaultRolePermissions)
+			th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 		}()
-		th.AddPermissionToRole(model.PermissionManageOutgoingWebhooks.Id, model.SystemUserRoleId)
-		th.AddPermissionToRole(model.PermissionManageSlashCommands.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageOutgoingWebhooks.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageSlashCommands.Id, model.SystemUserRoleId)
 
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
@@ -352,12 +352,12 @@ func TestClientListOutgoingOAuthConnection(t *testing.T) {
 	t.Run("filter by audience", func(t *testing.T) {
 		defer outgoingOauthConnectionsCleanup(t, th)
 
-		defaultRolePermissions := th.SaveDefaultRolePermissions()
+		defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 		defer func() {
-			th.RestoreDefaultRolePermissions(defaultRolePermissions)
+			th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 		}()
-		th.AddPermissionToRole(model.PermissionManageOutgoingWebhooks.Id, model.SystemUserRoleId)
-		th.AddPermissionToRole(model.PermissionManageSlashCommands.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageOutgoingWebhooks.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageSlashCommands.Id, model.SystemUserRoleId)
 
 		conn := newOutgoingOAuthConnection()
 		conn.Audiences = []string{"http://knowhere.com"}
@@ -398,12 +398,12 @@ func TestClientListOutgoingOAuthConnection(t *testing.T) {
 	t.Run("return result", func(t *testing.T) {
 		defer outgoingOauthConnectionsCleanup(t, th)
 
-		defaultRolePermissions := th.SaveDefaultRolePermissions()
+		defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 		defer func() {
-			th.RestoreDefaultRolePermissions(defaultRolePermissions)
+			th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 		}()
-		th.AddPermissionToRole(model.PermissionManageOutgoingWebhooks.Id, model.SystemUserRoleId)
-		th.AddPermissionToRole(model.PermissionManageSlashCommands.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageOutgoingWebhooks.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageSlashCommands.Id, model.SystemUserRoleId)
 
 		conn := newOutgoingOAuthConnection()
 		conn.CreatorId = model.NewId()
@@ -481,11 +481,11 @@ func TestClientGetOutgoingOAuthConnection(t *testing.T) {
 	t.Run("return result (management permissions)", func(t *testing.T) {
 		defer outgoingOauthConnectionsCleanup(t, th)
 
-		defaultRolePermissions := th.SaveDefaultRolePermissions()
+		defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 		defer func() {
-			th.RestoreDefaultRolePermissions(defaultRolePermissions)
+			th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 		}()
-		th.AddPermissionToRole(model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
 
 		conn := newOutgoingOAuthConnection()
 		conn.CreatorId = model.NewId()
@@ -506,7 +506,7 @@ func TestClientGetOutgoingOAuthConnection(t *testing.T) {
 		})
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
-		th.LoginSystemAdmin()
+		th.LoginSystemAdmin(t)
 		connection, response, err := th.Client.GetOutgoingOAuthConnection(context.Background(), conn.Id)
 		require.NoError(t, err)
 
@@ -551,7 +551,7 @@ func TestClientCreateOutgoingOAuthConnection(t *testing.T) {
 		})
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
-		th.LoginSystemAdmin()
+		th.LoginSystemAdmin(t)
 
 		connection, response, err := th.Client.CreateOutgoingOAuthConnection(context.Background(), conn)
 		require.Error(t, err)
@@ -562,11 +562,11 @@ func TestClientCreateOutgoingOAuthConnection(t *testing.T) {
 	t.Run("ok", func(t *testing.T) {
 		defer outgoingOauthConnectionsCleanup(t, th)
 
-		defaultRolePermissions := th.SaveDefaultRolePermissions()
+		defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 		defer func() {
-			th.RestoreDefaultRolePermissions(defaultRolePermissions)
+			th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 		}()
-		th.AddPermissionToRole(model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
 
 		conn := newOutgoingOAuthConnection()
 		conn.CreatorId = model.NewId()
@@ -584,7 +584,7 @@ func TestClientCreateOutgoingOAuthConnection(t *testing.T) {
 		})
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
-		th.LoginSystemAdmin()
+		th.LoginSystemAdmin(t)
 
 		connection, response, err := th.Client.CreateOutgoingOAuthConnection(context.Background(), conn)
 		require.NoError(t, err)
@@ -627,7 +627,7 @@ func TestClientUpdateOutgoingOAuthConnection(t *testing.T) {
 		})
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
-		th.LoginSystemAdmin()
+		th.LoginSystemAdmin(t)
 
 		connection, response, err := th.Client.UpdateOutgoingOAuthConnection(context.Background(), conn)
 		require.Error(t, err)
@@ -638,11 +638,11 @@ func TestClientUpdateOutgoingOAuthConnection(t *testing.T) {
 	t.Run("ok", func(t *testing.T) {
 		defer outgoingOauthConnectionsCleanup(t, th)
 
-		defaultRolePermissions := th.SaveDefaultRolePermissions()
+		defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 		defer func() {
-			th.RestoreDefaultRolePermissions(defaultRolePermissions)
+			th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 		}()
-		th.AddPermissionToRole(model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
 
 		conn := newOutgoingOAuthConnection()
 		conn.CreatorId = model.NewId()
@@ -663,7 +663,7 @@ func TestClientUpdateOutgoingOAuthConnection(t *testing.T) {
 		})
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
-		th.LoginSystemAdmin()
+		th.LoginSystemAdmin(t)
 
 		updatedConn := conn
 		updatedConn.Name = "updated name"
@@ -710,7 +710,7 @@ func TestClientDeleteOutgoingOAuthConnection(t *testing.T) {
 		})
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
-		th.LoginSystemAdmin()
+		th.LoginSystemAdmin(t)
 
 		response, err := th.Client.DeleteOutgoingOAuthConnection(context.Background(), conn.Id)
 		require.Error(t, err)
@@ -720,11 +720,11 @@ func TestClientDeleteOutgoingOAuthConnection(t *testing.T) {
 	t.Run("ok", func(t *testing.T) {
 		defer outgoingOauthConnectionsCleanup(t, th)
 
-		defaultRolePermissions := th.SaveDefaultRolePermissions()
+		defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 		defer func() {
-			th.RestoreDefaultRolePermissions(defaultRolePermissions)
+			th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 		}()
-		th.AddPermissionToRole(model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
 
 		conn := newOutgoingOAuthConnection()
 		conn.CreatorId = model.NewId()
@@ -744,7 +744,7 @@ func TestClientDeleteOutgoingOAuthConnection(t *testing.T) {
 		})
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
-		th.LoginSystemAdmin()
+		th.LoginSystemAdmin(t)
 
 		response, err := th.Client.DeleteOutgoingOAuthConnection(context.Background(), conn.Id)
 		require.NoError(t, err)
@@ -880,13 +880,13 @@ func TestHandlerOutgoingOAuthConnectionListGet(t *testing.T) {
 	th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewPointer(true)
 	th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
-	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 	defer func() {
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
 		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = outgoingOAuthConnectionConfig
-		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 	}()
-	th.AddPermissionToRole(model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
 
 	t.Run("getOutgoingOAuthConnection", func(t *testing.T) {
 		req, err := http.NewRequest("GET", "/", nil)
@@ -1007,13 +1007,13 @@ func TestHandlerOutgoingOAuthConnectionListReadOnly(t *testing.T) {
 	th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewPointer(true)
 	th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
-	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 	defer func() {
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
 		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = outgoingOAuthConnectionConfig
-		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 	}()
-	th.AddPermissionToRole(model.PermissionManageOthersOutgoingWebhooks.Id, model.TeamAdminRoleId)
+	th.AddPermissionToRole(t, model.PermissionManageOthersOutgoingWebhooks.Id, model.TeamAdminRoleId)
 
 	t.Run("listOutgoingOAuthConnections", func(t *testing.T) {
 		req, err := http.NewRequest("GET", "/?team_id="+th.BasicTeam.Id, nil)
@@ -1126,12 +1126,12 @@ func TestHandlerOutgoingOAuthConnectionUpdate(t *testing.T) {
 		}
 		c.AppContext = th.Context.WithSession(&session)
 
-		defaultRolePermissions := th.SaveDefaultRolePermissions()
+		defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 		defer func() {
-			th.RestoreDefaultRolePermissions(defaultRolePermissions)
+			th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 		}()
 
-		th.AddPermissionToRole(model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
 
 		body := &bytes.Buffer{}
 		body.Write([]byte(`{/}`))
@@ -1178,12 +1178,12 @@ func TestHandlerOutgoingOAuthConnectionUpdate(t *testing.T) {
 		}
 		c.AppContext = th.Context.WithSession(&session)
 
-		defaultRolePermissions := th.SaveDefaultRolePermissions()
+		defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 		defer func() {
-			th.RestoreDefaultRolePermissions(defaultRolePermissions)
+			th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 		}()
 
-		th.AddPermissionToRole(model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
 
 		body := &bytes.Buffer{}
 		body.Write([]byte(`{"Id": "` + model.NewId() + `", "name": "changed name"}`))
@@ -1232,11 +1232,11 @@ func TestHandlerOutgoingOAuthConnectionUpdate(t *testing.T) {
 		}
 		c.AppContext = th.Context.WithSession(&session)
 
-		defaultRolePermissions := th.SaveDefaultRolePermissions()
+		defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 		defer func() {
-			th.RestoreDefaultRolePermissions(defaultRolePermissions)
+			th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 		}()
-		th.AddPermissionToRole(model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
 
 		conn.Id = model.NewId() // Faking an ID for the connection
 		t.Cleanup(func() {
@@ -1342,12 +1342,12 @@ func TestHandlerOutgoingOAuthConnectionHandlerCreate(t *testing.T) {
 		}
 		c.AppContext = th.Context.WithSession(&session)
 
-		defaultRolePermissions := th.SaveDefaultRolePermissions()
+		defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 		defer func() {
-			th.RestoreDefaultRolePermissions(defaultRolePermissions)
+			th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 		}()
 
-		th.AddPermissionToRole(model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
 
 		body := &bytes.Buffer{}
 		body.Write([]byte(`{/}`))
@@ -1392,11 +1392,11 @@ func TestHandlerOutgoingOAuthConnectionHandlerCreate(t *testing.T) {
 		}
 		c.AppContext = th.Context.WithSession(&session)
 
-		defaultRolePermissions := th.SaveDefaultRolePermissions()
+		defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 		defer func() {
-			th.RestoreDefaultRolePermissions(defaultRolePermissions)
+			th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 		}()
-		th.AddPermissionToRole(model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
 
 		body := &bytes.Buffer{}
 		require.NoError(t, json.NewEncoder(body).Encode(conn))
@@ -1513,11 +1513,11 @@ func TestHandlerOutgoingOAuthConnectionHandlerValidate(t *testing.T) {
 		}
 		c.AppContext = th.Context.WithSession(&session)
 
-		defaultRolePermissions := th.SaveDefaultRolePermissions()
+		defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 		defer func() {
-			th.RestoreDefaultRolePermissions(defaultRolePermissions)
+			th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 		}()
-		th.AddPermissionToRole(model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
 
 		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
 		defer func() {
@@ -1552,11 +1552,11 @@ func TestHandlerOutgoingOAuthConnectionHandlerValidate(t *testing.T) {
 		}
 		c.AppContext = th.Context.WithSession(&session)
 
-		defaultRolePermissions := th.SaveDefaultRolePermissions()
+		defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 		defer func() {
-			th.RestoreDefaultRolePermissions(defaultRolePermissions)
+			th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 		}()
-		th.AddPermissionToRole(model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
 
 		body := &bytes.Buffer{}
 		require.NoError(t, json.NewEncoder(body).Encode(conn))
@@ -1603,11 +1603,11 @@ func TestHandlerOutgoingOAuthConnectionHandlerValidate(t *testing.T) {
 		}
 		c.AppContext = th.Context.WithSession(&session)
 
-		defaultRolePermissions := th.SaveDefaultRolePermissions()
+		defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 		defer func() {
-			th.RestoreDefaultRolePermissions(defaultRolePermissions)
+			th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 		}()
-		th.AddPermissionToRole(model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
 
 		body := &bytes.Buffer{}
 		require.NoError(t, json.NewEncoder(body).Encode(conn))
@@ -1658,11 +1658,11 @@ func TestHandlerOutgoingOAuthConnectionHandlerValidate(t *testing.T) {
 			OutgoingOAuthConnectionID: conn.Id,
 		}
 
-		defaultRolePermissions := th.SaveDefaultRolePermissions()
+		defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 		defer func() {
-			th.RestoreDefaultRolePermissions(defaultRolePermissions)
+			th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 		}()
-		th.AddPermissionToRole(model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
 
 		body := &bytes.Buffer{}
 		require.NoError(t, json.NewEncoder(body).Encode(conn))

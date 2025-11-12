@@ -32,7 +32,7 @@ func TestGetPostsUsage(t *testing.T) {
 		th := Setup(t).InitBasic(t)
 
 		for range 14 {
-			th.CreatePost()
+			th.CreatePost(t)
 		}
 
 		total, err := th.Server.Store().Post().AnalyticsPostCount(&model.PostCountOptions{ExcludeDeleted: true})
@@ -84,8 +84,8 @@ func TestGetTeamsUsage(t *testing.T) {
 	t.Run("good request returns response", func(t *testing.T) {
 		// Following calls create a total of 3 teams
 		th := Setup(t).InitBasic(t)
-		th.CreateTeam()
-		th.CreateTeam()
+		th.CreateTeam(t)
+		th.CreateTeam(t)
 
 		usage, r, err := th.Client.GetTeamsUsage(context.Background())
 		assert.NoError(t, err)

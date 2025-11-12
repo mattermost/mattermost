@@ -45,8 +45,8 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		require.True(t, ok, "SetLicense should return true")
 
 		// Create another user who will create the channel
-		channelCreator := th.CreateUser()
-		th.LinkUserToTeam(channelCreator, th.BasicTeam)
+		channelCreator := th.CreateUser(t)
+		th.LinkUserToTeam(t, channelCreator, th.BasicTeam)
 		channelCreatorClient := th.CreateClient()
 		_, _, err := channelCreatorClient.Login(context.Background(), channelCreator.Email, channelCreator.Password)
 		require.NoError(t, err)
@@ -92,16 +92,16 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		require.True(t, ok, "SetLicense should return true")
 
 		// Add the permission to channel admin role
-		th.AddPermissionToRole(model.PermissionManageChannelAccessRules.Id, model.ChannelAdminRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageChannelAccessRules.Id, model.ChannelAdminRoleId)
 
 		// Create a private channel and make user channel admin
-		privateChannel := th.CreatePrivateChannel()
-		channelAdmin := th.CreateUser()
-		th.LinkUserToTeam(channelAdmin, th.BasicTeam)
-		th.AddUserToChannel(channelAdmin, privateChannel)
-		th.MakeUserChannelAdmin(channelAdmin, privateChannel)
+		privateChannel := th.CreatePrivateChannel(t)
+		channelAdmin := th.CreateUser(t)
+		th.LinkUserToTeam(t, channelAdmin, th.BasicTeam)
+		th.AddUserToChannel(t, channelAdmin, privateChannel)
+		th.MakeUserChannelAdmin(t, channelAdmin, privateChannel)
 		channelAdminClient := th.CreateClient()
-		th.LoginBasicWithClient(channelAdminClient)
+		th.LoginBasicWithClient(t, channelAdminClient)
 		_, _, err := channelAdminClient.Login(context.Background(), channelAdmin.Email, channelAdmin.Password)
 		require.NoError(t, err)
 
@@ -138,14 +138,14 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		require.True(t, ok, "SetLicense should return true")
 
 		// Create two private channels
-		privateChannel1 := th.CreatePrivateChannel()
-		privateChannel2 := th.CreatePrivateChannel()
-		channelAdmin := th.CreateUser()
-		th.LinkUserToTeam(channelAdmin, th.BasicTeam)
-		th.AddUserToChannel(channelAdmin, privateChannel1)
-		th.MakeUserChannelAdmin(channelAdmin, privateChannel1)
+		privateChannel1 := th.CreatePrivateChannel(t)
+		privateChannel2 := th.CreatePrivateChannel(t)
+		channelAdmin := th.CreateUser(t)
+		th.LinkUserToTeam(t, channelAdmin, th.BasicTeam)
+		th.AddUserToChannel(t, channelAdmin, privateChannel1)
+		th.MakeUserChannelAdmin(t, channelAdmin, privateChannel1)
 		channelAdminClient := th.CreateClient()
-		th.LoginBasicWithClient(channelAdminClient)
+		th.LoginBasicWithClient(t, channelAdminClient)
 		_, _, err := channelAdminClient.Login(context.Background(), channelAdmin.Email, channelAdmin.Password)
 		require.NoError(t, err)
 
@@ -177,13 +177,13 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		require.True(t, ok, "SetLicense should return true")
 
 		// Create a private channel and make user channel admin
-		privateChannel := th.CreatePrivateChannel()
-		channelAdmin := th.CreateUser()
-		th.LinkUserToTeam(channelAdmin, th.BasicTeam)
-		th.AddUserToChannel(channelAdmin, privateChannel)
-		th.MakeUserChannelAdmin(channelAdmin, privateChannel)
+		privateChannel := th.CreatePrivateChannel(t)
+		channelAdmin := th.CreateUser(t)
+		th.LinkUserToTeam(t, channelAdmin, th.BasicTeam)
+		th.AddUserToChannel(t, channelAdmin, privateChannel)
+		th.MakeUserChannelAdmin(t, channelAdmin, privateChannel)
 		channelAdminClient := th.CreateClient()
-		th.LoginBasicWithClient(channelAdminClient)
+		th.LoginBasicWithClient(t, channelAdminClient)
 		_, _, err := channelAdminClient.Login(context.Background(), channelAdmin.Email, channelAdmin.Password)
 		require.NoError(t, err)
 
@@ -241,7 +241,7 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		mockAccessControlService := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().Channels().AccessControl = mockAccessControlService
 
-		ch := th.CreatePrivateChannel()
+		ch := th.CreatePrivateChannel(t)
 
 		// Set up mock expectations
 		mockAccessControlService.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).Return(samplePolicy, nil).Times(1)
@@ -251,7 +251,7 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
 		})
 
-		th.AddPermissionToRole(model.PermissionManageChannelAccessRules.Id, model.ChannelAdminRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageChannelAccessRules.Id, model.ChannelAdminRoleId)
 
 		channelPolicy := &model.AccessControlPolicy{
 			Type:     model.AccessControlPolicyTypeChannel,
@@ -479,14 +479,14 @@ func TestCheckExpression(t *testing.T) {
 		require.True(t, ok, "SetLicense should return true")
 
 		// Add permission to channel admin role
-		th.AddPermissionToRole(model.PermissionManageChannelAccessRules.Id, model.ChannelAdminRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageChannelAccessRules.Id, model.ChannelAdminRoleId)
 
 		// Create private channel and make user channel admin
-		privateChannel := th.CreatePrivateChannel()
-		channelAdmin := th.CreateUser()
-		th.LinkUserToTeam(channelAdmin, th.BasicTeam)
-		th.AddUserToChannel(channelAdmin, privateChannel)
-		th.MakeUserChannelAdmin(channelAdmin, privateChannel)
+		privateChannel := th.CreatePrivateChannel(t)
+		channelAdmin := th.CreateUser(t)
+		th.LinkUserToTeam(t, channelAdmin, th.BasicTeam)
+		th.AddUserToChannel(t, channelAdmin, privateChannel)
+		th.MakeUserChannelAdmin(t, channelAdmin, privateChannel)
 		channelAdminClient := th.CreateClient()
 		_, _, err = channelAdminClient.Login(context.Background(), channelAdmin.Email, channelAdmin.Password)
 		require.NoError(t, err)

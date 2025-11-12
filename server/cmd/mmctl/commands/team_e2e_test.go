@@ -244,7 +244,7 @@ func (s *MmctlE2ETestSuite) TestModifyTeamsCmdF() {
 		teamID := s.th.BasicTeam.Id
 		cmd := &cobra.Command{}
 		cmd.Flags().Bool("private", true, "")
-		s.th.LoginBasic2()
+		s.th.LoginBasic2(s.T())
 		err := modifyTeamsCmdF(s.th.Client, cmd, []string{teamID})
 
 		expectedError := fmt.Sprintf("Unable to modify team '%s' error: You do not have the appropriate permissions.", s.th.BasicTeam.Name)
@@ -486,7 +486,7 @@ func (s *MmctlE2ETestSuite) TestRestoreTeamsCmd() {
 	s.RunForAllClients("Restore team", func(c client.Client) {
 		printer.Clean()
 
-		team := s.th.CreateTeam()
+		team := s.th.CreateTeam(s.T())
 		appErr := s.th.App.SoftDeleteTeam(team.Id)
 		s.Require().Nil(appErr)
 
@@ -514,7 +514,7 @@ func (s *MmctlE2ETestSuite) TestRestoreTeamsCmd() {
 	s.Run("Restore team without permissions", func() {
 		printer.Clean()
 
-		team := s.th.CreateTeamWithClient(s.th.SystemAdminClient)
+		team := s.th.CreateTeamWithClient(s.T(), s.th.SystemAdminClient)
 		appErr := s.th.App.SoftDeleteTeam(team.Id)
 		s.Require().Nil(appErr)
 

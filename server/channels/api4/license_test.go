@@ -512,7 +512,7 @@ func TestGetLicenseLoadMetric(t *testing.T) {
 
 		// Add 50 active users (50/1000 * 1000 = 50)
 		for range 49 { // 49 + 1 basic user = 50 active users
-			user := th.CreateUser()
+			user := th.CreateUser(t)
 
 			// Make user active
 			status := &model.Status{
@@ -554,7 +554,7 @@ func TestGetLicenseLoadMetric(t *testing.T) {
 
 		// Add 19 active users (19/20 * 1000 = 950)
 		for range 18 { // 18 + 1 basic user = 19 active users
-			user := th.CreateUser()
+			user := th.CreateUser(t)
 
 			// Make user active
 			status := &model.Status{
@@ -596,7 +596,7 @@ func TestGetLicenseLoadMetric(t *testing.T) {
 
 		// Add 30 active users (30/20 * 1000 = 1500)
 		for range 29 { // 29 + 1 basic user = 30 active users
-			user := th.CreateUser()
+			user := th.CreateUser(t)
 
 			// Make user active
 			status := &model.Status{

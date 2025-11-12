@@ -106,7 +106,7 @@ func TestCreateDirectChannelWithSocket(t *testing.T) {
 	users = append(users, user2)
 
 	for range 10 {
-		users = append(users, th.CreateUser())
+		users = append(users, th.CreateUser(t))
 	}
 
 	WebSocketClient, err := th.CreateWebSocketClient()
@@ -239,13 +239,13 @@ func TestWebSocketSendBinary(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	client := th.CreateClient()
-	th.LoginBasicWithClient(client)
+	th.LoginBasicWithClient(t, client)
 	WebSocketClient := th.CreateConnectedWebSocketClientWithClient(t, client)
 	resp := <-WebSocketClient.ResponseChannel
 	require.Equal(t, resp.Status, model.StatusOk)
 
 	client2 := th.CreateClient()
-	th.LoginBasic2WithClient(client2)
+	th.LoginBasic2WithClient(t, client2)
 	_ = th.CreateConnectedWebSocketClientWithClient(t, client2)
 
 	// Wait for statuses to be updated
@@ -289,21 +289,21 @@ func TestWebSocketStatuses(t *testing.T) {
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	ruser, _, err := client.CreateUser(context.Background(), &user)
 	require.NoError(t, err)
-	th.LinkUserToTeam(ruser, rteam)
+	th.LinkUserToTeam(t, ruser, rteam)
 	_, err = th.App.Srv().Store().User().VerifyEmail(ruser.Id, ruser.Email)
 	require.NoError(t, err)
 
 	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	ruser2, _, err := client.CreateUser(context.Background(), &user2)
 	require.NoError(t, err)
-	th.LinkUserToTeam(ruser2, rteam)
+	th.LinkUserToTeam(t, ruser2, rteam)
 	_, err = th.App.Srv().Store().User().VerifyEmail(ruser2.Id, ruser2.Email)
 	require.NoError(t, err)
 
 	_, _, err = client.Login(context.Background(), user.Email, user.Password)
 	require.NoError(t, err)
 
-	th.LoginBasic2()
+	th.LoginBasic2(t)
 
 	WebSocketClient2 := th.CreateConnectedWebSocketClient(t)
 
@@ -638,7 +638,7 @@ func TestWebSocketMFAEnforcement(t *testing.T) {
 		ruser, _, err := th.Client.CreateUser(context.Background(), user)
 		require.NoError(t, err)
 
-		th.LinkUserToTeam(ruser, th.BasicTeam)
+		th.LinkUserToTeam(t, ruser, th.BasicTeam)
 		_, err = th.App.Srv().Store().User().VerifyEmail(ruser.Id, ruser.Email)
 		require.NoError(t, err)
 

@@ -43,7 +43,7 @@ func TestCreatePostWithPendingPostId(t *testing.T) {
 		// First user creates a post with a PendingPostId
 		pendingPostId := makePendingPostId(th.BasicUser)
 
-		privateChannel := th.CreatePrivateChannel()
+		privateChannel := th.CreatePrivateChannel(t)
 
 		firstPost, resp, err := client.CreatePost(context.Background(), &model.Post{
 			ChannelId:     privateChannel.Id,
