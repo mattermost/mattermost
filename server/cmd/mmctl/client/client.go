@@ -43,6 +43,7 @@ type Client interface {
 	SearchTeams(ctx context.Context, search *model.TeamSearch) ([]*model.Team, *model.Response, error)
 	GetPost(ctx context.Context, postID string, etag string) (*model.Post, *model.Response, error)
 	CreatePost(ctx context.Context, post *model.Post) (*model.Post, *model.Response, error)
+	RevealPost(ctx context.Context, postID string) (*model.Post, *model.Response, error)
 	GetPostsForChannel(ctx context.Context, channelID string, page, perPage int, etag string, collapsedThreads bool, includeDeleted bool) (*model.PostList, *model.Response, error)
 	GetPostsSince(ctx context.Context, channelID string, since int64, collapsedThreads bool) (*model.PostList, *model.Response, error)
 	DoAPIPost(ctx context.Context, url string, data string) (*http.Response, error)
