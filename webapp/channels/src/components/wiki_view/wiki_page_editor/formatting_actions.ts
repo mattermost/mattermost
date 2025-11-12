@@ -164,20 +164,26 @@ export const FORMATTING_ACTIONS: FormattingAction[] = [
         description: 'Capture a quote',
         icon: 'icon-format-quote-open',
         command: (editor: Editor) => {
-            const {from} = editor.state.selection;
-            editor.chain().
-                focus().
-                insertContent({
-                    type: 'blockquote',
-                    content: [
-                        {
-                            type: 'paragraph',
-                            content: [{type: 'text', text: 'Quote'}],
-                        },
-                    ],
-                }).
-                setTextSelection({from, to: from + 5}).
-                run();
+            const {from, to} = editor.state.selection;
+            const hasSelection = from !== to;
+
+            if (hasSelection) {
+                editor.chain().focus().toggleBlockquote().run();
+            } else {
+                editor.chain().
+                    focus().
+                    insertContent({
+                        type: 'blockquote',
+                        content: [
+                            {
+                                type: 'paragraph',
+                                content: [{type: 'text', text: 'Quote'}],
+                            },
+                        ],
+                    }).
+                    setTextSelection({from, to: from + 5}).
+                    run();
+            }
         },
         isActive: (editor: Editor) => editor.isActive('blockquote'),
         aliases: ['quote', 'citation'],
@@ -189,15 +195,21 @@ export const FORMATTING_ACTIONS: FormattingAction[] = [
         description: 'Code with highlighting',
         icon: 'icon-code-tags',
         command: (editor: Editor) => {
-            const {from} = editor.state.selection;
-            editor.chain().
-                focus().
-                insertContent({
-                    type: 'codeBlock',
-                    content: [{type: 'text', text: 'Code'}],
-                }).
-                setTextSelection({from, to: from + 4}).
-                run();
+            const {from, to} = editor.state.selection;
+            const hasSelection = from !== to;
+
+            if (hasSelection) {
+                editor.chain().focus().toggleCodeBlock().run();
+            } else {
+                editor.chain().
+                    focus().
+                    insertContent({
+                        type: 'codeBlock',
+                        content: [{type: 'text', text: 'Code'}],
+                    }).
+                    setTextSelection({from, to: from + 4}).
+                    run();
+            }
         },
         isActive: (editor: Editor) => editor.isActive('codeBlock'),
         aliases: ['code', 'codeblock', 'pre'],

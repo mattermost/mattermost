@@ -156,7 +156,6 @@ export async function openPageLinkModalViaButton(page: Page): Promise<Locator> {
 export async function createWikiThroughUI(page: Page, wikiName: string) {
     // # Wait for page to fully load after navigation
     await page.waitForLoadState('domcontentloaded');
-    await page.waitForLoadState('networkidle');
 
     // # Click the add content button in the unified channel tabs bar
     // First, check if we need to navigate to channel view

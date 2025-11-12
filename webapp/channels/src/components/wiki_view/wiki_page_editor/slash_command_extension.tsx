@@ -13,22 +13,23 @@ import type {SlashCommandMenuRef} from './slash_command_menu';
 
 // Global state for slash command menu to prevent conflicts between multiple editor instances
 let globalExitTimeout: ReturnType<typeof setTimeout> | null = null;
-let globalIsRendering = false;
 let globalLastValidRange: {from: number; to: number} | null = null;
 let globalExtensionOptions: {onOpenLinkModal: () => void; onOpenImageModal: () => void} | null = null;
 
+// eslint-disable-next-line func-call-spacing, no-spaced-func
 export const SlashCommandExtension = Extension.create<{
     onOpenLinkModal: () => void;
     onOpenImageModal: () => void;
     suggestion: Partial<SuggestionOptions>;
+    // eslint-disable-next-line func-call-spacing
 }>({
-    name: 'slashCommand',
+            name: 'slashCommand',
 
-    addOptions() {
-        return {
-            onOpenLinkModal: () => {},
-            onOpenImageModal: () => {},
-            suggestion: {
+            addOptions() {
+                return {
+                    onOpenLinkModal: () => {},
+                    onOpenImageModal: () => {},
+                    suggestion: {
                         char: '/',
                         allowSpaces: false,
                         allowedPrefixes: null,
@@ -87,7 +88,6 @@ export const SlashCommandExtension = Extension.create<{
                                     const {items, command, clientRect, range} = props;
                                     currentItems = items || [];
                                     commandFunction = command;
-                                    globalIsRendering = true;
 
                                     globalLastValidRange = range;
 
@@ -114,7 +114,6 @@ export const SlashCommandExtension = Extension.create<{
                                     }
 
                                     renderComponent(items);
-                                    globalIsRendering = false;
 
                                     setTimeout(() => {
                                         document.addEventListener('mousedown', handleClickAway);
@@ -157,9 +156,7 @@ export const SlashCommandExtension = Extension.create<{
                                 },
 
                                 onExit: () => {
-                                    if (globalIsRendering) {
-                                        return;
-                                    }
+                                    // No cleanup needed
                                 },
                             };
                         },
@@ -192,6 +189,7 @@ export const SlashCommandExtension = Extension.create<{
                     onOpenImageModal: this.options.onOpenImageModal,
                 };
 
+                // eslint-disable-next-line new-cap
                 return [
                     Suggestion({
                         editor: this.editor,

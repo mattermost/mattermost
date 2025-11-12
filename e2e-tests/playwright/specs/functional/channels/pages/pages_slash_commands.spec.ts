@@ -229,11 +229,14 @@ test('inserts bulleted list when selected from slash command menu', {tag: '@page
     // * Verify list item is initially empty (no placeholder text)
     await expect(listElement.first()).toBeEmpty();
 
+    // # Wait for editor to be fully ready before typing
+    await page.waitForTimeout(200);
+
     // # Type text into the empty list item
     await page.keyboard.type('First item');
 
-    // * Verify bulleted list now contains the typed text
-    await expect(listElement.first()).toHaveText('First item');
+    // * Verify bulleted list now contains the typed text (text is in <p> within <li>)
+    await expect(listElement.first().locator('p')).toHaveText('First item');
 });
 
 /**
