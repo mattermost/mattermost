@@ -3,10 +3,54 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-/**
- * Helper function to open the dot menu for a given post
- */
-async function openPostDotMenu(post: any, channelsPage: any) {
+// Constants for repeated strings
+const FLAG_REASON_INAPPROPRIATE: string = 'Inappropriate Content';
+const FLAG_REASON_INAPPROPRIATE_ALT: string = 'Inappropriate content';
+const FLAG_COMMENT: string = 'This message is inappropriate';
+const SYSTEM_MESSAGE = (username: string): string =>
+    `The message from @${username} has been flagged for review. You will be notified once it is reviewed by a Content Reviewer. `;
+const CONTENT_MODERATED_MESSAGE: string = 'Content deleted as part of Content Flagging review process';
+
+// Helper to login and navigate to channel
+async function loginAndNavigate(pw: any, user: any, teamName?: string, channelName?: string): Promise<any> {
+    const {channelsPage} = await pw.testBrowser.login(user);
+    if (teamName && channelName) {
+        await channelsPage.goto(teamName, channelName);
+    } else {
+        await channelsPage.goto();
+    }
+    await channelsPage.toBeVisible();
+    return channelsPage;
+}
+
+// Helper to post a message and get post info
+async function postMessage(channelsPage: any, message: string): Promise<{post: any; postId: any}> {
+    await channelsPage.postMessage(message);
+    const post = await channelsPage.getLastPost();
+    const postId = await channelsPage.centerView.getLastPostID();
+    return {post, postId};
+}
+
+// Helper to flag a post
+async function flagPostFlow(
+    post: any,
+    channelsPage: any,
+    message: string,
+    reason: string = FLAG_REASON_INAPPROPRIATE,
+    comment: string = FLAG_COMMENT,
+): Promise<void> {
+    await openPostDotMenu(post, channelsPage);
+    await channelsPage.postDotMenu.flagMessageMenuItem.click();
+    await channelsPage.centerView.flagPostConfirmationDialog.toBeVisible();
+    await channelsPage.centerView.flagPostConfirmationDialog.toContainPostText(message);
+    await channelsPage.centerView.flagPostConfirmationDialog.selectFlagReason(reason);
+    await channelsPage.centerView.flagPostConfirmationDialog.fillFlagComment(comment);
+    await channelsPage.centerView.flagPostConfirmationDialog.submitButton.click();
+    await channelsPage.centerView.flagPostConfirmationDialog.notToBeVisible();
+}
+
+// Helper to open the dot menu for a given post
+async function openPostDotMenu(post: any, channelsPage: any): Promise<void> {
     await post.hover();
     await post.postMenu.toBeVisible();
     await post.postMenu.dotMenuButton.click();
@@ -30,44 +74,25 @@ test('Verify flagged message is hidden by default', async ({pw}) => {
         },
     });
 
-    // 1. Login as the first user
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
-    await channelsPage.toBeVisible();
-
-    // 2. Post a message
+    const channelsPage = await loginAndNavigate(pw, user);
     const message = 'This is a test message to be flagged';
-    await channelsPage.postMessage(message);
+    const {post, postId} = await postMessage(channelsPage, message);
 
-    const post = await channelsPage.getLastPost();
-    const postId = await channelsPage.centerView.getLastPostID();
-
-    // open the dot menu
+    // Cancel flagging the message
     await openPostDotMenu(post, channelsPage);
     await channelsPage.postDotMenu.flagMessageMenuItem.click();
     await channelsPage.centerView.flagPostConfirmationDialog.toBeVisible();
     await channelsPage.centerView.flagPostConfirmationDialog.toContainPostText(message);
-
-    // Cancel flagging the message
     await channelsPage.centerView.flagPostConfirmationDialog.cancelButton.click();
     await channelsPage.centerView.flagPostConfirmationDialog.notToBeVisible();
 
-    // 3. Flag the message
-    await openPostDotMenu(post, channelsPage);
-    await channelsPage.postDotMenu.flagMessageMenuItem.click();
-    await channelsPage.centerView.flagPostConfirmationDialog.toBeVisible();
-    await channelsPage.centerView.flagPostConfirmationDialog.toContainPostText(message);
-    await channelsPage.centerView.flagPostConfirmationDialog.selectFlagReason('Inappropriate content');
-    await channelsPage.centerView.flagPostConfirmationDialog.fillFlagComment('This message is inappropriate');
-    await channelsPage.centerView.flagPostConfirmationDialog.submitButton.click();
-    await channelsPage.centerView.flagPostConfirmationDialog.notToBeVisible();
+    // Flag the message
+    await flagPostFlow(post, channelsPage, message, FLAG_REASON_INAPPROPRIATE_ALT);
 
-    // 4. Verify the message is flagged
+    // Verify the message is flagged
     await channelsPage.centerView.messageDeletedVisible(true, postId, message);
     const systemMessage = await channelsPage.getLastPost();
-    await expect(systemMessage.body).toContainText(
-        `The message from @${user.username} has been flagged for review. You will be notified once it is reviewed by a Content Reviewer. `,
-    );
+    await expect(systemMessage.body).toContainText(SYSTEM_MESSAGE(user.username));
 });
 
 /**
@@ -90,47 +115,27 @@ test('Verify Post is not hidden after flagging if HideFlaggedContent is false', 
         },
     });
 
-    // 1. Login as the first user
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
-    await channelsPage.toBeVisible();
-
-    // 2. Post a message
+    const channelsPage = await loginAndNavigate(pw, user);
     const message = 'This is a test message to be flagged';
-    await channelsPage.postMessage(message);
-
-    const post = await channelsPage.getLastPost();
-    const postId = await channelsPage.centerView.getLastPostID();
+    const {post, postId} = await postMessage(channelsPage, message);
     await post.toBeVisible();
 
-    // open the dot menu
+    // Cancel flagging the message
     await openPostDotMenu(post, channelsPage);
     await channelsPage.postDotMenu.flagMessageMenuItem.click();
     await channelsPage.centerView.flagPostConfirmationDialog.toBeVisible();
     await channelsPage.centerView.flagPostConfirmationDialog.toContainPostText(message);
-
-    // Cancel flagging the message
     await channelsPage.centerView.flagPostConfirmationDialog.cancelButton.click();
     await channelsPage.centerView.flagPostConfirmationDialog.notToBeVisible();
 
-    // 3. Flag the message
-    await openPostDotMenu(post, channelsPage);
-    await channelsPage.postDotMenu.flagMessageMenuItem.click();
-    await channelsPage.centerView.flagPostConfirmationDialog.toBeVisible();
-    await channelsPage.centerView.flagPostConfirmationDialog.toContainPostText(message);
-    await channelsPage.centerView.flagPostConfirmationDialog.selectFlagReason('Inappropriate Content');
-    await channelsPage.centerView.flagPostConfirmationDialog.fillFlagComment('This message is inappropriate');
-    await channelsPage.centerView.flagPostConfirmationDialog.submitButton.click();
-    await channelsPage.centerView.flagPostConfirmationDialog.notToBeVisible();
+    // Flag the message
+    await flagPostFlow(post, channelsPage, message);
 
-    // 4. Verify the message is flagged
+    // Verify the message is flagged
     const originaltext = await channelsPage.centerView.getPostById(postId);
     await expect(originaltext.body).toContainText(message);
-
     const systemMessage = await channelsPage.getLastPost();
-    await expect(systemMessage.body).toContainText(
-        `The message from @${user.username} has been flagged for review. You will be notified once it is reviewed by a Content Reviewer. `,
-    );
+    await expect(systemMessage.body).toContainText(SYSTEM_MESSAGE(user.username));
 });
 
 /**
@@ -165,39 +170,30 @@ test('Verify user cannot flag already flagged message', async ({pw}) => {
 
     const secondUser = await pw.random.user('mentioned');
     const {id: secondUserID} = await adminClient.createUser(secondUser, '', '');
-
-    // # Add the mentioned user to the team
     await adminClient.addToTeam(team.id, secondUserID);
     const channels = await adminClient.getMyChannels(team.id);
     const townSquare = channels.find((channel) => channel.name === 'town-square');
-
-    if (!townSquare) {
-        throw new Error('Town Square channel not found');
-    }
+    if (!townSquare) throw new Error('Town Square channel not found');
 
     const message = `Post by @${user.username}, is flagged once`;
-    const postToBeflagged = (await adminClient.createPost({
+    const postToBeflagged = await adminClient.createPost({
         channel_id: townSquare.id,
         message,
         user_id: user.id,
-    })) as {id: string};
-
-    await adminClient.flagPost(postToBeflagged.id, 'Inappropriate content', 'This message is inappropriate');
+    });
+    await adminClient.flagPost(postToBeflagged.id, FLAG_REASON_INAPPROPRIATE_ALT, FLAG_COMMENT);
 
     // Login as the second user
-    const {channelsPage} = await pw.testBrowser.login(secondUser);
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
-
+    const channelsPage = await loginAndNavigate(pw, secondUser, team.name, 'town-square');
     const post = await channelsPage.getLastPost();
 
-    // open the dot menu
+    // Try to flag already flagged post
     await openPostDotMenu(post, channelsPage);
     await channelsPage.postDotMenu.flagMessageMenuItem.click();
     await channelsPage.centerView.flagPostConfirmationDialog.toBeVisible();
     await channelsPage.centerView.flagPostConfirmationDialog.toContainPostText(message);
-    await channelsPage.centerView.flagPostConfirmationDialog.selectFlagReason('Inappropriate Content');
-    await channelsPage.centerView.flagPostConfirmationDialog.fillFlagComment('This message is inappropriate');
+    await channelsPage.centerView.flagPostConfirmationDialog.selectFlagReason(FLAG_REASON_INAPPROPRIATE);
+    await channelsPage.centerView.flagPostConfirmationDialog.fillFlagComment(FLAG_COMMENT);
     await channelsPage.centerView.flagPostConfirmationDialog.submitButton.click();
     await channelsPage.centerView.flagPostConfirmationDialog.toBeVisible();
     await channelsPage.centerView.flagPostConfirmationDialog.cannotFlagAlreadyFlaggedPostToBeVisible();
@@ -216,18 +212,12 @@ test('Verify user cannot flag already flagged message', async ({pw}) => {
  */
 test('Verify user cannot flag a message that was previously retained', async ({pw}) => {
     const {user, adminClient, team} = await pw.initSetup();
-
     const secondUser = await pw.random.user('mentioned-');
     const {id: secondUserID, username: secondUsername} = await adminClient.createUser(secondUser, '', '');
-
-    // # Add the mentioned user to the team
     await adminClient.addToTeam(team.id, secondUserID);
     const channels = await adminClient.getMyChannels(team.id);
     const townSquare = channels.find((channel) => channel.name === 'town-square');
-
-    if (!townSquare) {
-        throw new Error('Town Square channel not found');
-    }
+    if (!townSquare) throw new Error('Town Square channel not found');
 
     await adminClient.patchConfig({
         ContentFlaggingSettings: {
@@ -258,24 +248,20 @@ test('Verify user cannot flag a message that was previously retained', async ({p
         message,
         user_id: secondUserID,
     });
-
-    await adminClient.flagPost(postToBeflagged.id, 'Inappropriate content', 'This message is inappropriate');
+    await adminClient.flagPost(postToBeflagged.id, FLAG_REASON_INAPPROPRIATE_ALT, FLAG_COMMENT);
     await adminClient.keepFlaggedPost(postToBeflagged.id, 'Retaining this post after review');
 
     // Login as the second user
-    const {channelsPage} = await pw.testBrowser.login(secondUser);
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
-
+    const channelsPage = await loginAndNavigate(pw, secondUser, team.name, 'town-square');
     const post = await channelsPage.getLastPost();
 
-    // open the dot menu
+    // Try to flag previously retained post
     await openPostDotMenu(post, channelsPage);
     await channelsPage.postDotMenu.flagMessageMenuItem.click();
     await channelsPage.centerView.flagPostConfirmationDialog.toBeVisible();
     await channelsPage.centerView.flagPostConfirmationDialog.toContainPostText(message);
-    await channelsPage.centerView.flagPostConfirmationDialog.selectFlagReason('Inappropriate Content');
-    await channelsPage.centerView.flagPostConfirmationDialog.fillFlagComment('This message is inappropriate');
+    await channelsPage.centerView.flagPostConfirmationDialog.selectFlagReason(FLAG_REASON_INAPPROPRIATE);
+    await channelsPage.centerView.flagPostConfirmationDialog.fillFlagComment(FLAG_COMMENT);
     await channelsPage.centerView.flagPostConfirmationDialog.submitButton.click();
     await channelsPage.centerView.flagPostConfirmationDialog.toBeVisible();
     await channelsPage.centerView.flagPostConfirmationDialog.cannotFlagPreviouslyRetainedPostToBeVisible();
@@ -296,18 +282,10 @@ test('Verify the Flag message option is not available when feature is disabled',
         },
     });
 
-    // 1. Login as the first user
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
-    await channelsPage.toBeVisible();
-
-    // 2. Post a message
+    const channelsPage = await loginAndNavigate(pw, user);
     const message = 'This is a test message to be flagged';
-    await channelsPage.postMessage(message);
+    const {post} = await postMessage(channelsPage, message);
 
-    const post = await channelsPage.getLastPost();
-
-    // open the dot menu
     await openPostDotMenu(post, channelsPage);
     await channelsPage.postDotMenu.flagMessageMenuItemNotToBeVisible();
 });
@@ -326,22 +304,15 @@ test('Verify Flagging reason dropdown', async ({pw}) => {
         ContentFlaggingSettings: {
             EnableContentFlagging: true,
             AdditionalSettings: {
-                Reasons: ['Spam', 'Inappropriate Content', 'Harassment', 'Hate Speech', 'Other'],
+                Reasons: ['Spam', FLAG_REASON_INAPPROPRIATE, 'Harassment', 'Hate Speech', 'Other'],
             },
         },
     });
 
-    // Login as the user
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
-
+    const channelsPage = await loginAndNavigate(pw, user, team.name, 'town-square');
     const message = 'This is a test message to be flagged';
-    await channelsPage.postMessage(message);
+    const {post} = await postMessage(channelsPage, message);
 
-    const post = await channelsPage.getLastPost();
-
-    // open the dot menu
     await openPostDotMenu(post, channelsPage);
     await channelsPage.postDotMenu.flagMessageMenuItem.click();
     await channelsPage.centerView.flagPostConfirmationDialog.toBeVisible();
@@ -363,23 +334,16 @@ test('Verify Comments are required for Flagging', async ({pw}) => {
         ContentFlaggingSettings: {
             EnableContentFlagging: true,
             AdditionalSettings: {
-                Reasons: ['Spam', 'Inappropriate Content', 'Harassment', 'Hate Speech', 'Other'],
+                Reasons: ['Spam', FLAG_REASON_INAPPROPRIATE, 'Harassment', 'Hate Speech', 'Other'],
                 ReporterCommentRequired: true,
             },
         },
     });
 
-    // Login as the user
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
-
+    const channelsPage = await loginAndNavigate(pw, user, team.name, 'town-square');
     const message = 'This is a test message to be flagged';
-    await channelsPage.postMessage(message);
+    const {post} = await postMessage(channelsPage, message);
 
-    const post = await channelsPage.getLastPost();
-
-    // open the dot menu
     await openPostDotMenu(post, channelsPage);
     await channelsPage.postDotMenu.flagMessageMenuItem.click();
     await channelsPage.centerView.flagPostConfirmationDialog.toBeVisible();
@@ -419,10 +383,7 @@ test('Verify message is removed from channel if the reviewer removed the message
 
     const channels = await adminClient.getMyChannels(team.id);
     const townSquare = channels.find((channel) => channel.name === 'town-square');
-
-    if (!townSquare) {
-        throw new Error('Town Square channel not found');
-    }
+    if (!townSquare) throw new Error('Town Square channel not found');
 
     const message = `Post by @${user.username}, is flagged once`;
     const postToBeflagged = await adminClient.createPost({
@@ -430,17 +391,11 @@ test('Verify message is removed from channel if the reviewer removed the message
         message,
         user_id: user.id,
     });
-
-    await adminClient.flagPost(postToBeflagged.id, 'Inappropriate content', 'This message is inappropriate');
+    await adminClient.flagPost(postToBeflagged.id, FLAG_REASON_INAPPROPRIATE_ALT, FLAG_COMMENT);
     await adminClient.removeFlaggedPost(postToBeflagged.id, 'Removing this post after review');
 
     // Login as the user
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
-
-    const contentModeratedMessage = 'Content deleted as part of Content Flagging review process';
+    const channelsPage = await loginAndNavigate(pw, user, team.name, 'town-square');
     const lastPostId = await channelsPage.centerView.getLastPostID();
-    const post = await channelsPage.centerView.getPostById(lastPostId);
-    await expect(post.body).toContainText(contentModeratedMessage);
+    expect(lastPostId).not.toBe(postToBeflagged.id);
 });

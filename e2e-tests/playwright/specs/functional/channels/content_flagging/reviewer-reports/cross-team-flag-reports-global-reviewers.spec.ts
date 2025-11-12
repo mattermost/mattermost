@@ -2,66 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {test} from '@mattermost/playwright-lib';
-
-async function createPost(adminClient: any, userClient: any, team: any, user: any, message = '') {
-    const channels = await adminClient.getMyChannels(team.id);
-    const townSquare = channels.find((ch: any) => ch.name === 'town-square');
-    if (!townSquare) throw new Error('Town Square channel not found');
-
-    const post = await userClient.createPost({
-        channel_id: townSquare.id,
-        message,
-        user_id: user.id,
-    });
-
-    return {post, message, townSquare};
-}
-
-/**
- * Verify flagged post card details in the Content Review DM
- */
-async function verifyFlaggedPostCardDetails(
-    postID: string,
-    channelsPage: any,
-    contentReviewPage: any,
-    team: any,
-    expectedMessage: string,
-) {
-    await channelsPage.goto(team.name, '@content-review');
-    await channelsPage.toBeVisible();
-
-    await contentReviewPage.setReportCardByPostID(postID);
-    await contentReviewPage.waitForPageLoaded();
-
-    await contentReviewPage.verifyFlaggedPostStatus('Pending');
-    await contentReviewPage.verifyFlaggedPostReason('Inappropriate content');
-    await contentReviewPage.verifyFlaggedPostMessage(expectedMessage);
-}
-
-/**
- * Verify flagged post details inside the RHS view
- */
-async function verifyRHSFlaggedPostDetails(
-    postID: string,
-    contentReviewPage: any,
-    postedByUsername: string,
-    flaggedByUsername: string,
-    postMessageFlagged: string,
-    reasonToFlag: string,
-    flagPostReviewStatus: string,
-    postFlaggedInChannel: string,
-) {
-    await contentReviewPage.setReportCardByPostID(postID);
-    await contentReviewPage.openViewDetails();
-    await contentReviewPage.waitForRHSVisible();
-
-    await contentReviewPage.expectSelectProperty('Status', flagPostReviewStatus);
-    await contentReviewPage.expectSelectProperty('Reason', reasonToFlag);
-    await contentReviewPage.expectMessageContains(postMessageFlagged);
-    await contentReviewPage.expectUser('Flagged by', flaggedByUsername);
-    await contentReviewPage.expectUser('Posted by', postedByUsername);
-    await contentReviewPage.expectChannel(postFlaggedInChannel);
-}
+import {createPost, verifyFlaggedPostCardDetails, verifyRHSFlaggedPostDetails} from './../support';
 
 /**
  * @objective Verify a reviewer from other team can receive a review request for a flagged post

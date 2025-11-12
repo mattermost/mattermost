@@ -1,59 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
-
-async function setupContentFlagging(adminClient: any, reviewerUserIDs: string[], enable = true) {
-    await adminClient.saveContentFlaggingConfig({
-        EnableContentFlagging: enable,
-        NotificationSettings: {
-            EventTargetMapping: {
-                assigned: ['reviewers', 'author'],
-                dismissed: ['reporter'],
-                flagged: ['reviewers', 'author'],
-                removed: ['reporter'],
-            },
-        },
-        ReviewerSettings: {
-            CommonReviewers: true,
-            CommonReviewerIds: reviewerUserIDs,
-            TeamReviewersSetting: {},
-            SystemAdminsAsReviewers: true,
-            TeamAdminsAsReviewers: true,
-        },
-        AdditionalSettings: {
-            Reasons: ['Inappropriate content', 'Spam', 'Harassment', 'Other'],
-            ReporterCommentRequired: true,
-            ReviewerCommentRequired: true,
-            HideFlaggedContent: true,
-        },
-    });
-    return adminClient;
-}
-
-async function createPost(userClient: any, team: any, user: any, message: string) {
-    const channels = await userClient.getMyChannels(team.id);
-    const townSquare = channels.find((ch: any) => ch.name === 'town-square');
-
-    if (!townSquare) throw new Error('Town Square channel not found');
-
-    const post = await userClient.createPost({
-        channel_id: townSquare.id,
-        message,
-        user_id: user.id,
-    });
-
-    return {post, message, townSquare};
-}
-
-async function verifyReporterNotification(channelsPage: any, teamName: string, expectedMessage: string) {
-    await channelsPage.goto(teamName, '@content-review');
-    await channelsPage.toBeVisible();
-
-    const lastPostId = await channelsPage.centerView.getLastPostID();
-    const post = await channelsPage.centerView.getPostById(lastPostId);
-    await expect(post.body).toContainText(expectedMessage);
-}
+import {test} from '@mattermost/playwright-lib';
+import {setupContentFlagging, createPost, verifyReporterNotification} from './../support';
 
 /**
  * @objective Verify Reporter is notified if the flagged post is Retained by the reviewer
@@ -77,7 +26,7 @@ test('Verify Reporter is notified if flagged post is Retained in a channel', asy
     await setupContentFlagging(adminClient, [reviewerUser.id]);
     const message = `Post by @${reviewerUser.username}, is flagged once`;
 
-    const {post, townSquare} = await createPost(thirdUserClient, team, postFromThirdUser, message);
+    const {post, townSquare} = await createPost(adminClient, thirdUserClient, team, postFromThirdUser, message);
 
     await reporterUserClient.flagPost(post.id, 'Inappropriate content', 'This message is inappropriate');
     await reviewerUserClient.keepFlaggedPost(post.id, 'Retaining this post after review');
@@ -112,7 +61,7 @@ test('Verify Reporter is notified if flagged post is Removed from a channel', as
     await setupContentFlagging(adminClient, [reviewerUser.id]);
     const message = `Post by @${reviewerUser.username}, is flagged once`;
 
-    const {post, townSquare} = await createPost(thirdUserClient, team, postFromThirdUser, message);
+    const {post, townSquare} = await createPost(adminClient, thirdUserClient, team, postFromThirdUser, message);
 
     await reporterUserClient.flagPost(post.id, 'Inappropriate content', 'This message is inappropriate');
     await reviewerUserClient.removeFlaggedPost(post.id, 'Retaining this post after review');
