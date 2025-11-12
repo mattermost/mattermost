@@ -23,7 +23,7 @@ func (o *TemporaryPost) PreSave() error {
 
 func CreateTemporaryPost(post *Post, expireAt int64) (*TemporaryPost, *Post, error) {
 	temporaryPost := &TemporaryPost{
-		ID:       NewId(),
+		ID:       post.Id,
 		Type:     post.Type,
 		ExpireAt: expireAt,
 		Message:  post.Message,
