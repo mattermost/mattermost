@@ -2755,10 +2755,6 @@
     "translation": "Channel not found"
   },
   {
-    "id": "api.post.get_posts_for_reporting.invalid_per_page",
-    "translation": "Invalid max page size value."
-  },
-  {
     "id": "api.post.move_thread.disabled.app_error",
     "translation": "Thread moving is disabled"
   },
@@ -10533,8 +10529,20 @@
     "translation": "Invalid user id."
   },
   {
-    "id": "model.post.resolve_query_params.missing_channel_id",
-    "translation": "Missing channel id paramameter."
+    "id": "model.post.query_params.invalid_channel_id",
+    "translation": "Invalid channel id."
+  },
+  {
+    "id": "model.post.query_params.invalid_cursor_id",
+    "translation": "Invalid cursor id."
+  },
+  {
+    "id": "model.post.query_params.invalid_sort_direction",
+    "translation": "Invalid sort direction."
+  },
+  {
+    "id": "model.post.query_params.invalid_time_field",
+    "translation": "Invalid time field."
   },
   {
     "id": "model.preference.is_valid.category.app_error",

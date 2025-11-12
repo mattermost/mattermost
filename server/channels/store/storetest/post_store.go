@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"maps"
 	"slices"
 	"sort"
 	"strings"
@@ -5829,16 +5828,8 @@ func testGetPostsForReporting(t *testing.T, rctx request.CTX, ss store.Store, s 
 		require.Len(t, result.Posts, 3, "should get 3 posts")
 		require.NotNil(t, result.NextCursor, "should have next cursor")
 
-		// Verify posts are in descending order by checking CreateAt values
-		// The 3 most recent posts (by CreateAt) should be returned
-		// Since we have 12 total posts (indices 0-11) and 8,9 are deleted,
-		// the last 3 non-deleted posts are: 11 (name change), 10 (header change), 7 (post 7)
-		postsByTime := make([]*model.Post, 0, len(result.Posts))
-		for _, post := range result.Posts {
-			postsByTime = append(postsByTime, post)
-		}
 		// Verify we got the right count
-		require.Len(t, postsByTime, 3, "should have 3 posts")
+		require.Len(t, result.Posts, 3, "should have 3 posts")
 	})
 
 	t.Run("Include deleted posts", func(t *testing.T) {
@@ -5932,7 +5923,10 @@ func testGetPostsForReporting(t *testing.T, rctx request.CTX, ss store.Store, s 
 			result, err := ss.Post().GetPostsForReporting(rctx, queryParams)
 			require.NoError(t, err)
 
-			maps.Copy(allPosts, result.Posts)
+			// Add posts from array to map for deduplication check
+			for _, post := range result.Posts {
+				allPosts[post.Id] = post
+			}
 
 			if result.NextCursor == nil {
 				break

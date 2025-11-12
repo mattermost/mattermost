@@ -326,17 +326,15 @@ func (a *App) GetPostsForReporting(rctx request.CTX, queryParams model.ReportPos
 
 	// Optionally enrich posts with metadata if requested
 	if includeMetadata {
-		for id, post := range response.Posts {
+		for i, post := range response.Posts {
 			// Use PreparePostForClient to add metadata (files, reactions counts, emojis, priority, acknowledgements)
 			// This does NOT include embeds or images - those are only for UI presentation
 			enrichedPost := a.PreparePostForClient(rctx, post, &model.PreparePostForClientOpts{
 				IncludePriority: true,
 			})
-			response.Posts[id] = enrichedPost
+			response.Posts[i] = enrichedPost
 		}
 	}
-
-	a.applyPostsWillBeConsumedHook(response.Posts)
 
 	return response, nil
 }

@@ -405,9 +405,10 @@ func TestGetPostsForReporting(t *testing.T) {
 		require.Len(t, result2.Posts, 5)
 
 		// Verify no duplicate posts between pages
-		for id1 := range result1.Posts {
-			_, exists := result2.Posts[id1]
-			require.False(t, exists, "should not have duplicate posts across pages")
+		for _, post1 := range result1.Posts {
+			for _, post2 := range result2.Posts {
+				require.NotEqual(t, post1.Id, post2.Id, "should not have duplicate posts across pages")
+			}
 		}
 	})
 
@@ -477,9 +478,7 @@ func TestGetPostsForReporting(t *testing.T) {
 		// If DESC is being used, posts should be ordered by CreateAt descending
 		if len(result.Posts) > 1 {
 			postSlice := make([]*model.Post, 0, len(result.Posts))
-			for _, post := range result.Posts {
-				postSlice = append(postSlice, post)
-			}
+			postSlice = append(postSlice, result.Posts...)
 			// Sort by the expected order (desc)
 			sort.Slice(postSlice, func(i, j int) bool {
 				if postSlice[i].CreateAt == postSlice[j].CreateAt {
@@ -543,7 +542,13 @@ func TestGetPostsForReporting(t *testing.T) {
 		require.NoError(t, err1)
 
 		// Verify deleted post is not included
-		_, hasDeleted := result1.Posts[deletedPost.Id]
+		hasDeleted := false
+		for _, post := range result1.Posts {
+			if post.Id == deletedPost.Id {
+				hasDeleted = true
+				break
+			}
+		}
 		require.False(t, hasDeleted, "should not include deleted post by default")
 
 		// Request with including deleted posts
@@ -562,8 +567,14 @@ func TestGetPostsForReporting(t *testing.T) {
 		require.NoError(t, err2)
 
 		// Verify deleted post is included
-		deletedPostResult, hasDeleted2 := result2.Posts[deletedPost.Id]
-		require.True(t, hasDeleted2, "should include deleted post when requested")
+		var deletedPostResult *model.Post
+		for _, post := range result2.Posts {
+			if post.Id == deletedPost.Id {
+				deletedPostResult = post
+				break
+			}
+		}
+		require.NotNil(t, deletedPostResult, "should include deleted post when requested")
 		require.Greater(t, deletedPostResult.DeleteAt, int64(0), "post should have DeleteAt set")
 	})
 

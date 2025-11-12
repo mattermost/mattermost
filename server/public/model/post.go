@@ -1221,7 +1221,7 @@ type ReportPostOptionsCursor struct {
 
 // ReportPostListResponse contains the response for cursor-based post reporting queries
 type ReportPostListResponse struct {
-	Posts      map[string]*Post         `json:"posts"`
+	Posts      []*Post                  `json:"posts"`
 	NextCursor *ReportPostOptionsCursor `json:"next_cursor,omitempty"` // nil if no more pages
 }
 

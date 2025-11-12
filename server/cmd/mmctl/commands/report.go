@@ -113,19 +113,13 @@ func reportPostsCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to get posts for reporting: %w", err)
 	}
 
-	// Convert map to slice
-	posts := make([]*model.Post, 0, len(response.Posts))
+	// Print posts (already in correct order from API)
 	for _, post := range response.Posts {
-		posts = append(posts, post)
-	}
-
-	// Print posts
-	for _, post := range posts {
 		printReportPost(post)
 	}
 
 	// Show pagination info
-	printer.Print(fmt.Sprintf("\nShowing %d posts.", len(posts)))
+	printer.Print(fmt.Sprintf("\nShowing %d posts.", len(response.Posts)))
 	if response.NextCursor != nil && response.NextCursor.Cursor != "" {
 		printer.Print(fmt.Sprintf("To get the next page, use: --cursor \"%s\"", response.NextCursor.Cursor))
 	} else {

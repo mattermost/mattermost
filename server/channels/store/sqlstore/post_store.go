@@ -1598,14 +1598,9 @@ func (s *SqlPostStore) GetPostsForReporting(rctx request.CTX, queryParams model.
 		posts = posts[:queryParams.PerPage]
 	}
 
-	// Build the posts map
-	postsMap := make(map[string]*model.Post, len(posts))
-	for _, post := range posts {
-		postsMap[post.Id] = post
-	}
-
+	// Return posts as ordered array (already sorted by the query)
 	return &model.ReportPostListResponse{
-		Posts:      postsMap,
+		Posts:      posts,
 		NextCursor: nextCursor,
 	}, nil
 }
