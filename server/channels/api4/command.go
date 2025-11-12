@@ -191,6 +191,14 @@ func moveCommand(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Verify that the command creator has permission to the new team
+	// This prevents moving a command to a team where its creator doesn't have access
+	if !c.App.HasPermissionToTeam(c.AppContext, cmd.CreatorId, newTeam.Id, model.PermissionManageOwnSlashCommands) {
+		c.LogAudit("fail - command creator does not have permission to new team")
+		c.Err = model.NewAppError("moveCommand", "api.command.move_command.creator_no_permission.app_error", nil, "creator_id="+cmd.CreatorId+" team_id="+newTeam.Id, http.StatusBadRequest)
+		return
+	}
+
 	if appErr = c.App.MoveCommand(newTeam, cmd); appErr != nil {
 		c.Err = appErr
 		return

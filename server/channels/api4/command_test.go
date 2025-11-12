@@ -484,6 +484,37 @@ func TestMoveCommand(t *testing.T) {
 		notMovedCmd, _ := th.App.GetCommand(rcmd.Id)
 		require.Equal(t, team.Id, notMovedCmd.TeamId)
 	})
+
+	t.Run("CannotMoveCommandWhenCreatorHasNoPermissionToNewTeam", func(t *testing.T) {
+		// Create a third team that the command creator (BasicUser2) is NOT a member of
+		thirdTeam := th.CreateTeam()
+		th.LinkUserToTeam(th.BasicUser, thirdTeam)
+
+		// Give BasicUser permission to manage others' commands
+		th.AddPermissionToRole(model.PermissionManageOthersSlashCommands.Id, model.TeamUserRoleId)
+		defer th.RemovePermissionFromRole(model.PermissionManageOthersSlashCommands.Id, model.TeamUserRoleId)
+
+		// Create a command owned by BasicUser2
+		// Note: BasicUser2 is NOT a member of thirdTeam (only member of team and newTeam)
+		cmd := &model.Command{
+			CreatorId: th.BasicUser2.Id,
+			TeamId:    team.Id,
+			URL:       "http://nowhere.com",
+			Method:    model.CommandMethodPost,
+			Trigger:   "trigger7",
+		}
+		rcmd, _ := th.App.CreateCommand(cmd)
+
+		// BasicUser attempts to move BasicUser2's command to thirdTeam
+		// This should fail because BasicUser2 doesn't have permission to thirdTeam
+		resp, err := th.Client.MoveCommand(context.Background(), thirdTeam.Id, rcmd.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		// Verify the command was not moved
+		notMovedCmd, _ := th.App.GetCommand(rcmd.Id)
+		require.Equal(t, team.Id, notMovedCmd.TeamId)
+	})
 }
 
 func TestDeleteCommand(t *testing.T) {
