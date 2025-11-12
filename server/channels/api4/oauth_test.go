@@ -7,6 +7,7 @@ import (
 	"context"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -627,4 +628,185 @@ func TestNilAuthorizeOAuthApp(t *testing.T) {
 	_, _, err := client.AuthorizeOAuthApp(context.Background(), nil)
 	require.Error(t, err)
 	CheckErrorID(t, err, "api.context.invalid_body_param.app_error")
+}
+
+func TestRegisterOAuthClient(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	// Configure server for DCR
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.EnableOAuthServiceProvider = model.NewPointer(true)
+		cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(true)
+	})
+
+	t.Run("Valid DCR request", func(t *testing.T) {
+		request := &model.ClientRegistrationRequest{
+			RedirectURIs: []string{"https://example.com/callback"},
+			ClientName:   model.NewPointer("Test Client"),
+		}
+
+		response, resp, err := th.SystemAdminClient.RegisterOAuthClient(context.Background(), request)
+
+		require.NoError(t, err)
+		require.NotNil(t, response)
+		CheckCreatedStatus(t, resp)
+		assert.Equal(t, request.RedirectURIs, response.RedirectURIs)
+		assert.NotEmpty(t, response.ClientID)
+		assert.NotNil(t, response.ClientSecret)
+		assert.NotEmpty(t, *response.ClientSecret)
+	})
+
+	t.Run("Missing redirect URIs", func(t *testing.T) {
+		request := &model.ClientRegistrationRequest{
+			ClientName: model.NewPointer("Test Client"),
+		}
+
+		_, resp, err := th.SystemAdminClient.RegisterOAuthClient(context.Background(), request)
+
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("Works without authentication", func(t *testing.T) {
+		// Sleep to avoid rate limiting issues
+		time.Sleep(time.Second)
+
+		// Log out to demonstrate DCR works without session
+		_, err := th.Client.Logout(context.Background())
+		require.NoError(t, err)
+
+		request := &model.ClientRegistrationRequest{
+			RedirectURIs: []string{"https://example.com/callback"},
+			ClientName:   model.NewPointer("Test Client No Auth"),
+		}
+
+		response, resp, err := th.Client.RegisterOAuthClient(context.Background(), request)
+
+		require.NoError(t, err)
+		require.NotNil(t, response)
+		CheckCreatedStatus(t, resp)
+		assert.Equal(t, request.RedirectURIs, response.RedirectURIs)
+		assert.NotEmpty(t, response.ClientID)
+		assert.NotNil(t, response.ClientSecret)
+		assert.NotEmpty(t, *response.ClientSecret)
+	})
+
+	t.Run("Works with client_uri", func(t *testing.T) {
+		// Sleep to avoid rate limiting issues
+		time.Sleep(time.Second)
+
+		request := &model.ClientRegistrationRequest{
+			RedirectURIs: []string{"https://example.com/callback"},
+			ClientName:   model.NewPointer("Test Client with URI"),
+			ClientURI:    model.NewPointer("https://example.com"),
+		}
+
+		response, resp, err := th.Client.RegisterOAuthClient(context.Background(), request)
+
+		require.NoError(t, err)
+		require.NotNil(t, response)
+		CheckCreatedStatus(t, resp)
+		assert.Equal(t, request.RedirectURIs, response.RedirectURIs)
+		assert.NotEmpty(t, response.ClientID)
+		assert.NotNil(t, response.ClientSecret)
+		assert.NotEmpty(t, *response.ClientSecret)
+		assert.Equal(t, request.ClientName, response.ClientName)
+		assert.Equal(t, request.ClientURI, response.ClientURI)
+	})
+}
+
+func TestRegisterOAuthClient_DisabledFeatures(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+	adminClient := th.SystemAdminClient
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	enableOAuthServiceProvider := th.App.Config().ServiceSettings.EnableOAuthServiceProvider
+	enableDCR := th.App.Config().ServiceSettings.EnableDynamicClientRegistration
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.EnableOAuthServiceProvider = enableOAuthServiceProvider
+			cfg.ServiceSettings.EnableDynamicClientRegistration = enableDCR
+		})
+	}()
+
+	th.AddPermissionToRole(model.PermissionManageOAuth.Id, model.SystemUserRoleId)
+
+	request := &model.ClientRegistrationRequest{
+		RedirectURIs: []string{"https://example.com/callback"},
+		ClientName:   model.NewPointer("Test Client"),
+	}
+
+	// Test with OAuth disabled
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.EnableOAuthServiceProvider = model.NewPointer(false)
+		cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(true)
+	})
+
+	_, resp, err := adminClient.RegisterOAuthClient(context.Background(), request)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
+	// Sleep to avoid rate limiting issues
+	time.Sleep(time.Second)
+
+	// Test with DCR disabled
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.EnableOAuthServiceProvider = model.NewPointer(true)
+		cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(false)
+	})
+
+	_, resp, err = adminClient.RegisterOAuthClient(context.Background(), request)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
+	// Sleep to avoid rate limiting issues
+	time.Sleep(time.Second)
+
+	// Test with nil config values (should be disabled by default)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.EnableOAuthServiceProvider = nil
+		cfg.ServiceSettings.EnableDynamicClientRegistration = nil
+	})
+
+	_, resp, err = adminClient.RegisterOAuthClient(context.Background(), request)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+}
+
+func TestRegisterOAuthClient_PublicClient_Success(t *testing.T) {
+	// Test successful public client DCR registration
+	mainHelper.Parallel(t)
+	th := Setup(t)
+	client := th.Client
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
+		cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(true)
+	})
+
+	// DCR request for public client
+	request := &model.ClientRegistrationRequest{
+		RedirectURIs:            []string{"https://example.com/callback"},
+		TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
+		ClientName:              model.NewPointer("Test Public Client"),
+		ClientURI:               model.NewPointer("https://example.com"),
+	}
+
+	// Register public client
+	response, resp, err := client.RegisterOAuthClient(context.Background(), request)
+	require.NoError(t, err)
+	CheckCreatedStatus(t, resp)
+	require.NotNil(t, response)
+
+	// Verify response properties for public client
+	assert.NotEmpty(t, response.ClientID)
+	assert.Nil(t, response.ClientSecret) // No client secret for public clients
+	assert.Equal(t, request.RedirectURIs, response.RedirectURIs)
+	assert.Equal(t, model.ClientAuthMethodNone, response.TokenEndpointAuthMethod)
+	assert.Equal(t, *request.ClientName, *response.ClientName)
+	assert.Equal(t, *request.ClientURI, *response.ClientURI)
+	assert.Equal(t, "user", response.Scope)
 }

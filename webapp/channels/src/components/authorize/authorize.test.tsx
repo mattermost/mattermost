@@ -60,10 +60,34 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
 
         const expected = {
             clientId: '1234abcd',
+            codeChallenge: null,
+            codeChallengeMethod: null,
             responseType: null,
             redirectUri: null,
             state: null,
             scope: null,
+            resource: null,
+        };
+        expect(requiredProps.actions.allowOAuth2).toHaveBeenCalled();
+        expect(requiredProps.actions.allowOAuth2).toHaveBeenCalledWith(expected);
+    });
+
+    test('handleAllow() should include resource parameter when provided in URL', () => {
+        const props = {...requiredProps, location: {search: 'client_id=1234abcd&resource=https://example.com/api'}};
+
+        const wrapper = shallow<Authorize>(<Authorize {...props}/>);
+
+        wrapper.instance().handleAllow();
+
+        const expected = {
+            clientId: '1234abcd',
+            codeChallenge: null,
+            codeChallengeMethod: null,
+            responseType: null,
+            redirectUri: null,
+            state: null,
+            scope: null,
+            resource: 'https://example.com/api',
         };
         expect(requiredProps.actions.allowOAuth2).toHaveBeenCalled();
         expect(requiredProps.actions.allowOAuth2).toHaveBeenCalledWith(expected);

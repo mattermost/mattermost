@@ -28,49 +28,212 @@ func TestGetOAuthAccessTokenForImplicitFlow(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	t.Run("BasicFlow_Success", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
-	oapp := &model.OAuthApp{
-		Name:         "fakeoauthapp" + model.NewRandomString(10),
-		CreatorId:    th.BasicUser2.Id,
-		Homepage:     "https://nowhere.com",
-		Description:  "test",
-		CallbackUrls: []string{"https://nowhere.com"},
-	}
+		oapp := &model.OAuthApp{
+			Name:         "fakeoauthapp" + model.NewRandomString(10),
+			CreatorId:    th.BasicUser2.Id,
+			Homepage:     "https://nowhere.com",
+			Description:  "test",
+			CallbackUrls: []string{"https://nowhere.com"},
+		}
 
-	oapp, err := th.App.CreateOAuthApp(oapp)
-	require.Nil(t, err)
+		oapp, err := th.App.CreateOAuthApp(oapp)
+		require.Nil(t, err)
 
-	authRequest := &model.AuthorizeRequest{
-		ResponseType: model.ImplicitResponseType,
-		ClientId:     oapp.Id,
-		RedirectURI:  oapp.CallbackUrls[0],
-		Scope:        "",
-		State:        "123",
-	}
+		authRequest := &model.AuthorizeRequest{
+			ResponseType: model.ImplicitResponseType,
+			ClientId:     oapp.Id,
+			RedirectURI:  oapp.CallbackUrls[0],
+			Scope:        "",
+			State:        "123",
+		}
 
-	session, err := th.App.GetOAuthAccessTokenForImplicitFlow(th.Context, th.BasicUser.Id, authRequest)
-	assert.Nil(t, err)
-	assert.NotNil(t, session)
+		session, err := th.App.GetOAuthAccessTokenForImplicitFlow(th.Context, th.BasicUser.Id, authRequest)
+		assert.Nil(t, err)
+		assert.NotNil(t, session)
+	})
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
+	t.Run("OAuthDisabled_ShouldFail", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
-	session, err = th.App.GetOAuthAccessTokenForImplicitFlow(th.Context, th.BasicUser.Id, authRequest)
-	assert.NotNil(t, err, "should fail - oauth2 disabled")
-	assert.Nil(t, session)
+		oapp := &model.OAuthApp{
+			Name:         "fakeoauthapp" + model.NewRandomString(10),
+			CreatorId:    th.BasicUser2.Id,
+			Homepage:     "https://nowhere.com",
+			Description:  "test",
+			CallbackUrls: []string{"https://nowhere.com"},
+		}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
-	authRequest.ClientId = "junk"
+		oapp, err := th.App.CreateOAuthApp(oapp)
+		require.Nil(t, err)
 
-	session, err = th.App.GetOAuthAccessTokenForImplicitFlow(th.Context, th.BasicUser.Id, authRequest)
-	assert.NotNil(t, err, "should fail - bad client id")
-	assert.Nil(t, session)
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 
-	authRequest.ClientId = oapp.Id
+		authRequest := &model.AuthorizeRequest{
+			ResponseType: model.ImplicitResponseType,
+			ClientId:     oapp.Id,
+			RedirectURI:  oapp.CallbackUrls[0],
+			Scope:        "",
+			State:        "123",
+		}
 
-	session, err = th.App.GetOAuthAccessTokenForImplicitFlow(th.Context, "junk", authRequest)
-	assert.NotNil(t, err, "should fail - bad user id")
-	assert.Nil(t, session)
+		session, err := th.App.GetOAuthAccessTokenForImplicitFlow(th.Context, th.BasicUser.Id, authRequest)
+		assert.NotNil(t, err)
+		assert.Nil(t, session)
+	})
+
+	t.Run("BadClientId_ShouldFail", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+
+		authRequest := &model.AuthorizeRequest{
+			ResponseType: model.ImplicitResponseType,
+			ClientId:     "invalid_client_id",
+			RedirectURI:  "https://nowhere.com",
+			Scope:        "",
+			State:        "123",
+		}
+
+		session, err := th.App.GetOAuthAccessTokenForImplicitFlow(th.Context, th.BasicUser.Id, authRequest)
+		assert.NotNil(t, err)
+		assert.Nil(t, session)
+	})
+
+	t.Run("BadUserId_ShouldFail", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+
+		oapp := &model.OAuthApp{
+			Name:         "fakeoauthapp" + model.NewRandomString(10),
+			CreatorId:    th.BasicUser2.Id,
+			Homepage:     "https://nowhere.com",
+			Description:  "test",
+			CallbackUrls: []string{"https://nowhere.com"},
+		}
+
+		oapp, err := th.App.CreateOAuthApp(oapp)
+		require.Nil(t, err)
+
+		authRequest := &model.AuthorizeRequest{
+			ResponseType: model.ImplicitResponseType,
+			ClientId:     oapp.Id,
+			RedirectURI:  oapp.CallbackUrls[0],
+			Scope:        "",
+			State:        "123",
+		}
+
+		session, err := th.App.GetOAuthAccessTokenForImplicitFlow(th.Context, "invalid_user_id", authRequest)
+		assert.NotNil(t, err)
+		assert.Nil(t, session)
+	})
+
+	t.Run("PublicClient_Success", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+
+		dcrRequest := &model.ClientRegistrationRequest{
+			ClientName:              model.NewPointer("Public Client Test"),
+			RedirectURIs:            []string{"https://example.com/callback"},
+			TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
+			ClientURI:               model.NewPointer("https://example.com"),
+		}
+
+		publicApp, appErr := th.App.RegisterOAuthClient(th.Context, dcrRequest, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+		require.Empty(t, publicApp.ClientSecret)
+
+		authRequest := &model.AuthorizeRequest{
+			ResponseType: model.ImplicitResponseType,
+			ClientId:     publicApp.Id,
+			RedirectURI:  publicApp.CallbackUrls[0],
+			Scope:        "user",
+			State:        "test_state",
+		}
+
+		redirectURL, appErr := th.App.AllowOAuthAppAccessToUser(th.Context, th.BasicUser.Id, authRequest)
+		require.Nil(t, appErr)
+		require.Contains(t, redirectURL, "#access_token=")
+		require.Contains(t, redirectURL, "token_type=bearer")
+		require.Contains(t, redirectURL, "state=test_state")
+
+		// Parse the access token from the fragment
+		uri, err := url.Parse(redirectURL)
+		require.NoError(t, err)
+		fragment := uri.Fragment
+		fragmentValues, err := url.ParseQuery(fragment)
+		require.NoError(t, err)
+		accessToken := fragmentValues.Get("access_token")
+		require.NotEmpty(t, accessToken)
+
+		// Verify session exists
+		session, appErr := th.App.GetSession(accessToken)
+		require.Nil(t, appErr)
+		require.NotNil(t, session)
+		require.Equal(t, th.BasicUser.Id, session.UserId)
+		require.True(t, session.IsOAuth)
+
+		// Verify access data exists for public client
+		accessData, err := th.App.Srv().Store().OAuth().GetAccessData(accessToken)
+		require.NoError(t, err)
+		require.NotNil(t, accessData)
+		require.Equal(t, publicApp.Id, accessData.ClientId)
+		require.Equal(t, th.BasicUser.Id, accessData.UserId)
+		require.Empty(t, accessData.RefreshToken)
+	})
+
+	t.Run("ConfidentialClient_Success", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+
+		confidentialApp := &model.OAuthApp{
+			Name:         "Confidential Client Test",
+			CreatorId:    th.BasicUser2.Id,
+			Homepage:     "https://example.com",
+			Description:  "test confidential client",
+			CallbackUrls: []string{"https://example.com/callback"},
+			ClientSecret: model.NewId(),
+		}
+
+		confidentialApp, appErr := th.App.CreateOAuthApp(confidentialApp)
+		require.Nil(t, appErr)
+		require.NotEmpty(t, confidentialApp.ClientSecret)
+
+		authRequest := &model.AuthorizeRequest{
+			ResponseType: model.ImplicitResponseType,
+			ClientId:     confidentialApp.Id,
+			RedirectURI:  confidentialApp.CallbackUrls[0],
+			Scope:        "user",
+			State:        "test_state",
+		}
+
+		redirectURL, appErr := th.App.AllowOAuthAppAccessToUser(th.Context, th.BasicUser.Id, authRequest)
+		require.Nil(t, appErr)
+		require.Contains(t, redirectURL, "#access_token=")
+		require.Contains(t, redirectURL, "token_type=bearer")
+		require.Contains(t, redirectURL, "state=test_state")
+
+		// Parse the access token from the fragment
+		uri, err := url.Parse(redirectURL)
+		require.NoError(t, err)
+		fragment := uri.Fragment
+		fragmentValues, err := url.ParseQuery(fragment)
+		require.NoError(t, err)
+		accessToken := fragmentValues.Get("access_token")
+		require.NotEmpty(t, accessToken)
+
+		// Verify session exists
+		session, appErr := th.App.GetSession(accessToken)
+		require.Nil(t, appErr)
+		require.NotNil(t, session)
+		require.Equal(t, th.BasicUser.Id, session.UserId)
+		require.True(t, session.IsOAuth)
+
+		// Verify access data exists for confidential client
+		accessData, err := th.App.Srv().Store().OAuth().GetAccessData(accessToken)
+		require.NoError(t, err)
+		require.NotNil(t, accessData)
+		require.Equal(t, confidentialApp.Id, accessData.ClientId)
+		require.Equal(t, th.BasicUser.Id, accessData.UserId)
+		require.Empty(t, accessData.RefreshToken)
+	})
 }
 
 func TestOAuthRevokeAccessToken(t *testing.T) {
@@ -666,13 +829,578 @@ func TestDeactivatedUserOAuthApp(t *testing.T) {
 	_, appErr = th.App.UpdateActive(th.Context, th.BasicUser, false)
 	require.Nil(t, appErr)
 
-	resp, appErr := th.App.GetOAuthAccessTokenForCodeFlow(th.Context, oapp.Id, model.AccessTokenGrantType, oapp.CallbackUrls[0], code, oapp.ClientSecret, "")
+	resp, appErr := th.App.GetOAuthAccessTokenForCodeFlow(th.Context, oapp.Id, model.AccessTokenGrantType, oapp.CallbackUrls[0], code, oapp.ClientSecret, "", "", "")
 	assert.Nil(t, resp)
 	require.NotNil(t, appErr, "Should not get access token")
 	require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	assert.Equal(t, "api.oauth.get_access_token.expired_code.app_error", appErr.Id)
 }
 
+func TestRegisterOAuthClient(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
+	})
+
+	t.Run("Valid DCR request with client_uri", func(t *testing.T) {
+		request := &model.ClientRegistrationRequest{
+			RedirectURIs: []string{"https://example.com/callback/" + model.NewId()},
+			ClientName:   model.NewPointer("Test Client"),
+			ClientURI:    model.NewPointer("https://example.com"),
+		}
+
+		app, appErr := th.App.RegisterOAuthClient(th.Context, request, th.BasicUser.Id)
+
+		require.Nil(t, appErr)
+		require.NotNil(t, app)
+		assert.Equal(t, request.RedirectURIs, []string(app.CallbackUrls))
+		assert.True(t, app.IsDynamicallyRegistered)
+		assert.Equal(t, th.BasicUser.Id, app.CreatorId)
+		assert.NotEmpty(t, app.Id)
+		assert.NotEmpty(t, app.ClientSecret)
+		assert.Equal(t, "https://example.com", app.Homepage) // client_uri is mapped to homepage
+	})
+
+	t.Run("Valid DCR request without client_uri", func(t *testing.T) {
+		request := &model.ClientRegistrationRequest{
+			RedirectURIs: []string{"https://example.com/callback/" + model.NewId()},
+			ClientName:   model.NewPointer("Test Client"),
+		}
+
+		app, appErr := th.App.RegisterOAuthClient(th.Context, request, th.BasicUser.Id)
+
+		require.Nil(t, appErr)
+		require.NotNil(t, app)
+		assert.Equal(t, request.RedirectURIs, []string(app.CallbackUrls))
+		assert.True(t, app.IsDynamicallyRegistered)
+		assert.Equal(t, th.BasicUser.Id, app.CreatorId)
+		assert.NotEmpty(t, app.Id)
+		assert.NotEmpty(t, app.ClientSecret)
+		assert.Equal(t, "", app.Homepage) // Homepage is empty when client_uri is not provided
+	})
+
+	t.Run("Invalid client_uri", func(t *testing.T) {
+		request := &model.ClientRegistrationRequest{
+			RedirectURIs: []string{"https://example.com/callback/" + model.NewId()},
+			ClientName:   model.NewPointer("Test Client"),
+			ClientURI:    model.NewPointer("invalid-url"),
+		}
+
+		_, appErr := th.App.RegisterOAuthClient(th.Context, request, th.BasicUser.Id)
+
+		require.NotNil(t, appErr)
+		assert.Equal(t, "model.oauth.is_valid.homepage.app_error", appErr.Id)
+	})
+
+	t.Run("PublicClient_Success", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(true)
+		})
+
+		dcrRequest := &model.ClientRegistrationRequest{
+			RedirectURIs:            []string{"https://example.com/callback"},
+			ClientName:              model.NewPointer("Test Public Client"),
+			TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
+		}
+
+		registeredApp, appErr := th.App.RegisterOAuthClient(th.Context, dcrRequest, "")
+		require.Nil(t, appErr)
+		require.NotNil(t, registeredApp)
+
+		require.Empty(t, registeredApp.ClientSecret)
+		require.True(t, registeredApp.IsPublicClient())
+		require.Equal(t, model.ClientAuthMethodNone, registeredApp.GetTokenEndpointAuthMethod())
+		require.True(t, registeredApp.IsDynamicallyRegistered)
+	})
+}
+
+func TestGetAuthorizationServerMetadata_DCRConfig(t *testing.T) {
+	th := Setup(t)
+
+	// Enable OAuth service provider and set SiteURL
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.EnableOAuthServiceProvider = model.NewPointer(true)
+		cfg.ServiceSettings.SiteURL = model.NewPointer("https://example.com")
+	})
+
+	t.Run("DCR disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(false)
+		})
+
+		metadata, err := th.App.GetAuthorizationServerMetadata(th.Context)
+		require.Nil(t, err)
+		require.NotNil(t, metadata)
+
+		// Should not include registration endpoint when DCR is disabled
+		assert.Empty(t, metadata.RegistrationEndpoint)
+
+		// Should include basic OAuth endpoints
+		assert.Equal(t, "https://example.com", metadata.Issuer)
+		assert.Equal(t, "https://example.com/oauth/authorize", metadata.AuthorizationEndpoint)
+		assert.Equal(t, "https://example.com/oauth/access_token", metadata.TokenEndpoint)
+	})
+
+	t.Run("DCR enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.EnableDynamicClientRegistration = model.NewPointer(true)
+		})
+
+		metadata, err := th.App.GetAuthorizationServerMetadata(th.Context)
+		require.Nil(t, err)
+		require.NotNil(t, metadata)
+
+		// Should include registration endpoint when DCR is enabled
+		assert.Equal(t, "https://example.com/api/v4/oauth/apps/register", metadata.RegistrationEndpoint)
+
+		// Should include basic OAuth endpoints
+		assert.Equal(t, "https://example.com", metadata.Issuer)
+		assert.Equal(t, "https://example.com/oauth/authorize", metadata.AuthorizationEndpoint)
+		assert.Equal(t, "https://example.com/oauth/access_token", metadata.TokenEndpoint)
+	})
+}
+
+func TestGetOAuthAccessTokenForCodeFlow(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+
+	// Helper function to create a confidential OAuth app
+	createConfidentialOAuthApp := func(name string) *model.OAuthApp {
+		oapp := &model.OAuthApp{
+			Name:         name + model.NewRandomString(10),
+			CreatorId:    th.BasicUser2.Id,
+			Homepage:     "https://nowhere.com",
+			Description:  "test",
+			CallbackUrls: []string{"https://example.com/callback"},
+		}
+		oapp, err := th.App.CreateOAuthApp(oapp)
+		require.Nil(t, err)
+		return oapp
+	}
+
+	// Helper function to get authorization code
+	getAuthorizationCode := func(app *model.OAuthApp, resource string) string {
+		authRequest := &model.AuthorizeRequest{
+			ResponseType: model.AuthCodeResponseType,
+			ClientId:     app.Id,
+			RedirectURI:  app.CallbackUrls[0],
+			Scope:        "user",
+			State:        "test_state",
+			Resource:     resource,
+		}
+
+		redirectURI, appErr := th.App.AllowOAuthAppAccessToUser(th.Context, th.BasicUser.Id, authRequest)
+		require.Nil(t, appErr)
+
+		uri, urlErr := url.Parse(redirectURI)
+		require.NoError(t, urlErr)
+		code := uri.Query().Get("code")
+		require.NotEmpty(t, code)
+		return code
+	}
+
+	t.Run("PublicClient_WithPKCE_Success", func(t *testing.T) {
+		dcrRequest := &model.ClientRegistrationRequest{
+			ClientName:              model.NewPointer("Public Client Test"),
+			RedirectURIs:            []string{"https://example.com/callback"},
+			TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
+			ClientURI:               model.NewPointer("https://example.com"),
+		}
+
+		publicApp, appErr := th.App.RegisterOAuthClient(th.Context, dcrRequest, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+		require.Empty(t, publicApp.ClientSecret)
+
+		codeVerifier := "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+		codeChallenge := "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
+		codeChallengeMethod := model.PKCECodeChallengeMethodS256
+
+		authRequest := &model.AuthorizeRequest{
+			ResponseType:        model.ResponseTypeCode,
+			ClientId:            publicApp.Id,
+			RedirectURI:         publicApp.CallbackUrls[0],
+			Scope:               "user",
+			State:               "test_state",
+			CodeChallenge:       codeChallenge,
+			CodeChallengeMethod: codeChallengeMethod,
+		}
+
+		redirectURL, appErr := th.App.AllowOAuthAppAccessToUser(th.Context, th.BasicUser.Id, authRequest)
+		require.Nil(t, appErr)
+
+		uri, err := url.Parse(redirectURL)
+		require.NoError(t, err)
+		code := uri.Query().Get("code")
+		require.NotEmpty(t, code)
+
+		accessResponse, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+			th.Context,
+			publicApp.Id,
+			model.AccessTokenGrantType,
+			authRequest.RedirectURI,
+			code,
+			"",
+			"",
+			codeVerifier,
+			"",
+		)
+
+		require.Nil(t, appErr)
+		require.NotNil(t, accessResponse)
+		require.NotEmpty(t, accessResponse.AccessToken)
+		require.Equal(t, model.AccessTokenType, accessResponse.TokenType)
+		require.Empty(t, accessResponse.RefreshToken)
+	})
+
+	t.Run("PublicClient_WithoutPKCE_ShouldFail", func(t *testing.T) {
+		dcrRequest := &model.ClientRegistrationRequest{
+			ClientName:              model.NewPointer("Public Client Test"),
+			RedirectURIs:            []string{"https://example.com/callback"},
+			TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
+			ClientURI:               model.NewPointer("https://example.com"),
+		}
+
+		publicApp, appErr := th.App.RegisterOAuthClient(th.Context, dcrRequest, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+
+		authRequest := &model.AuthorizeRequest{
+			ResponseType: model.ResponseTypeCode,
+			ClientId:     publicApp.Id,
+			RedirectURI:  publicApp.CallbackUrls[0],
+			Scope:        "user",
+			State:        "test_state",
+		}
+
+		_, appErr = th.App.AllowOAuthAppAccessToUser(th.Context, th.BasicUser.Id, authRequest)
+		require.NotNil(t, appErr)
+		require.Contains(t, appErr.Id, "pkce_required")
+	})
+
+	t.Run("ConfidentialClient_WithPKCE_Success", func(t *testing.T) {
+		confidentialApp := &model.OAuthApp{
+			Name:         "Confidential Client Test",
+			CreatorId:    th.BasicUser2.Id,
+			Homepage:     "https://example.com",
+			Description:  "test confidential client",
+			CallbackUrls: []string{"https://example.com/callback"},
+			ClientSecret: model.NewId(),
+		}
+
+		confidentialApp, appErr := th.App.CreateOAuthApp(confidentialApp)
+		require.Nil(t, appErr)
+		require.NotEmpty(t, confidentialApp.ClientSecret)
+
+		codeVerifier := "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk"
+		codeChallenge := "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
+		codeChallengeMethod := model.PKCECodeChallengeMethodS256
+
+		authRequest := &model.AuthorizeRequest{
+			ResponseType:        model.ResponseTypeCode,
+			ClientId:            confidentialApp.Id,
+			RedirectURI:         confidentialApp.CallbackUrls[0],
+			Scope:               "user",
+			State:               "test_state",
+			CodeChallenge:       codeChallenge,
+			CodeChallengeMethod: codeChallengeMethod,
+		}
+
+		redirectURL, appErr := th.App.AllowOAuthAppAccessToUser(th.Context, th.BasicUser.Id, authRequest)
+		require.Nil(t, appErr)
+
+		uri, err := url.Parse(redirectURL)
+		require.NoError(t, err)
+		code := uri.Query().Get("code")
+		require.NotEmpty(t, code)
+
+		accessResponse, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+			th.Context,
+			confidentialApp.Id,
+			model.AccessTokenGrantType,
+			authRequest.RedirectURI,
+			code,
+			confidentialApp.ClientSecret,
+			"",
+			codeVerifier,
+			"",
+		)
+
+		require.Nil(t, appErr)
+		require.NotNil(t, accessResponse)
+		require.NotEmpty(t, accessResponse.AccessToken)
+		require.Equal(t, model.AccessTokenType, accessResponse.TokenType)
+		require.NotEmpty(t, accessResponse.RefreshToken)
+	})
+
+	t.Run("ConfidentialClient_WithoutPKCE_Success", func(t *testing.T) {
+		confidentialApp := &model.OAuthApp{
+			Name:         "Confidential Client Test",
+			CreatorId:    th.BasicUser2.Id,
+			Homepage:     "https://example.com",
+			Description:  "test confidential client",
+			CallbackUrls: []string{"https://example.com/callback"},
+			ClientSecret: model.NewId(),
+		}
+
+		confidentialApp, appErr := th.App.CreateOAuthApp(confidentialApp)
+		require.Nil(t, appErr)
+
+		authRequest := &model.AuthorizeRequest{
+			ResponseType: model.ResponseTypeCode,
+			ClientId:     confidentialApp.Id,
+			RedirectURI:  confidentialApp.CallbackUrls[0],
+			Scope:        "user",
+			State:        "test_state",
+		}
+
+		redirectURL, appErr := th.App.AllowOAuthAppAccessToUser(th.Context, th.BasicUser.Id, authRequest)
+		require.Nil(t, appErr)
+
+		uri, err := url.Parse(redirectURL)
+		require.NoError(t, err)
+		code := uri.Query().Get("code")
+		require.NotEmpty(t, code)
+
+		accessResponse, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+			th.Context,
+			confidentialApp.Id,
+			model.AccessTokenGrantType,
+			authRequest.RedirectURI,
+			code,
+			confidentialApp.ClientSecret,
+			"",
+			"",
+			"",
+		)
+
+		require.Nil(t, appErr)
+		require.NotNil(t, accessResponse)
+		require.NotEmpty(t, accessResponse.AccessToken)
+		require.Equal(t, model.AccessTokenType, accessResponse.TokenType)
+		require.NotEmpty(t, accessResponse.RefreshToken)
+	})
+
+	t.Run("ConfidentialClient_PKCEEnforcement", func(t *testing.T) {
+		confidentialApp := &model.OAuthApp{
+			Name:         "Confidential Client Test",
+			CreatorId:    th.BasicUser2.Id,
+			Homepage:     "https://example.com",
+			Description:  "test confidential client",
+			CallbackUrls: []string{"https://example.com/callback"},
+			ClientSecret: model.NewId(),
+		}
+
+		confidentialApp, appErr := th.App.CreateOAuthApp(confidentialApp)
+		require.Nil(t, appErr)
+
+		codeChallenge := "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
+		codeChallengeMethod := model.PKCECodeChallengeMethodS256
+
+		authRequest := &model.AuthorizeRequest{
+			ResponseType:        model.ResponseTypeCode,
+			ClientId:            confidentialApp.Id,
+			RedirectURI:         confidentialApp.CallbackUrls[0],
+			Scope:               "user",
+			State:               "test_state",
+			CodeChallenge:       codeChallenge,
+			CodeChallengeMethod: codeChallengeMethod,
+		}
+
+		redirectURL, appErr := th.App.AllowOAuthAppAccessToUser(th.Context, th.BasicUser.Id, authRequest)
+		require.Nil(t, appErr)
+
+		uri, err := url.Parse(redirectURL)
+		require.NoError(t, err)
+		code := uri.Query().Get("code")
+		require.NotEmpty(t, code)
+
+		_, appErr = th.App.GetOAuthAccessTokenForCodeFlow(
+			th.Context,
+			confidentialApp.Id,
+			model.AccessTokenGrantType,
+			authRequest.RedirectURI,
+			code,
+			confidentialApp.ClientSecret,
+			"",
+			"",
+			"",
+		)
+
+		require.NotNil(t, appErr)
+		require.Contains(t, appErr.Id, "pkce")
+	})
+
+	t.Run("PublicClient_NoRefreshToken", func(t *testing.T) {
+		dcrRequest := &model.ClientRegistrationRequest{
+			ClientName:              model.NewPointer("Public Client Test"),
+			RedirectURIs:            []string{"https://example.com/callback"},
+			TokenEndpointAuthMethod: model.NewPointer(model.ClientAuthMethodNone),
+			ClientURI:               model.NewPointer("https://example.com"),
+		}
+
+		publicApp, appErr := th.App.RegisterOAuthClient(th.Context, dcrRequest, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.GetOAuthAccessTokenForCodeFlow(
+			th.Context,
+			publicApp.Id,
+			model.RefreshTokenGrantType,
+			"https://example.com/callback",
+			"",
+			"",
+			"some_fake_refresh_token",
+			"",
+			"",
+		)
+
+		require.NotNil(t, appErr)
+		require.Contains(t, appErr.Id, "public_client_refresh_token.app_error")
+	})
+
+	t.Run("WithResourceParameter_Success", func(t *testing.T) {
+		oapp := createConfidentialOAuthApp("TestResourceApp")
+		resourceParam := "https://api.example.com/resource"
+		code := getAuthorizationCode(oapp, resourceParam)
+
+		accessResponse, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+			th.Context,
+			oapp.Id,
+			model.AccessTokenGrantType,
+			oapp.CallbackUrls[0],
+			code,
+			oapp.ClientSecret,
+			"",
+			"",
+			resourceParam,
+		)
+
+		require.Nil(t, appErr)
+		require.NotNil(t, accessResponse)
+		require.NotEmpty(t, accessResponse.AccessToken)
+		require.Equal(t, model.AccessTokenType, accessResponse.TokenType)
+		require.Equal(t, resourceParam, accessResponse.Audience)
+	})
+
+	t.Run("ResourceParameterValidation", func(t *testing.T) {
+		oapp := createConfidentialOAuthApp("TestResourceValidationApp")
+
+		t.Run("Invalid resource parameter should fail", func(t *testing.T) {
+			code := getAuthorizationCode(oapp, "")
+
+			_, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+				th.Context,
+				oapp.Id,
+				model.AccessTokenGrantType,
+				oapp.CallbackUrls[0],
+				code,
+				oapp.ClientSecret,
+				"",
+				"",
+				"invalid-resource-uri",
+			)
+
+			require.NotNil(t, appErr)
+			require.Contains(t, appErr.Id, "resource")
+		})
+
+		t.Run("Resource with fragment should fail", func(t *testing.T) {
+			code := getAuthorizationCode(oapp, "")
+
+			_, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+				th.Context,
+				oapp.Id,
+				model.AccessTokenGrantType,
+				oapp.CallbackUrls[0],
+				code,
+				oapp.ClientSecret,
+				"",
+				"",
+				"https://api.example.com/resource#fragment",
+			)
+
+			require.NotNil(t, appErr)
+			require.Contains(t, appErr.Id, "resource")
+		})
+	})
+
+	t.Run("RefreshTokenWithResource", func(t *testing.T) {
+		oapp := createConfidentialOAuthApp("TestRefreshResourceApp")
+		resourceParam := "https://api.example.com/resource"
+
+		t.Run("Refresh token with matching resource should succeed", func(t *testing.T) {
+			code := getAuthorizationCode(oapp, resourceParam)
+
+			// Get initial access token
+			initialResponse, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+				th.Context,
+				oapp.Id,
+				model.AccessTokenGrantType,
+				oapp.CallbackUrls[0],
+				code,
+				oapp.ClientSecret,
+				"",
+				"",
+				resourceParam,
+			)
+			require.Nil(t, appErr)
+			require.NotEmpty(t, initialResponse.RefreshToken)
+
+			refreshResponse, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+				th.Context,
+				oapp.Id,
+				model.RefreshTokenGrantType,
+				oapp.CallbackUrls[0],
+				"",
+				oapp.ClientSecret,
+				initialResponse.RefreshToken,
+				"",
+				resourceParam,
+			)
+
+			require.Nil(t, appErr)
+			require.NotNil(t, refreshResponse)
+			require.Equal(t, resourceParam, refreshResponse.Audience)
+		})
+
+		t.Run("Refresh token with mismatched resource should fail", func(t *testing.T) {
+			code := getAuthorizationCode(oapp, resourceParam)
+
+			// Get initial access token with original resource
+			initialResponse, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+				th.Context,
+				oapp.Id,
+				model.AccessTokenGrantType,
+				oapp.CallbackUrls[0],
+				code,
+				oapp.ClientSecret,
+				"",
+				"",
+				resourceParam,
+			)
+			require.Nil(t, appErr)
+			require.NotEmpty(t, initialResponse.RefreshToken)
+
+			// Try to refresh with different resource - should fail
+			_, appErr = th.App.GetOAuthAccessTokenForCodeFlow(
+				th.Context,
+				oapp.Id,
+				model.RefreshTokenGrantType,
+				oapp.CallbackUrls[0],
+				"",
+				oapp.ClientSecret,
+				initialResponse.RefreshToken,
+				"",
+				"https://different.api.com/resource",
+			)
+
+			require.NotNil(t, appErr)
+			require.Contains(t, appErr.Id, "resource_mismatch")
+		})
+	})
+}
 func TestParseOAuthStateTokenExtra(t *testing.T) {
 	t.Run("valid token with normal values", func(t *testing.T) {
 		email, action, cookie, err := parseOAuthStateTokenExtra("user@example.com:email_to_sso:randomcookie123")
