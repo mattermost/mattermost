@@ -10948,10 +10948,6 @@
     "translation": "İşaretlenmiş ileti kalıcı olarak silinirken işaretlenmiş ileti durumu güncellenemedi."
   },
   {
-    "id": "app.content_flagging.restore_file_info.app_error",
-    "translation": "İşaretlenmiş iletinin dosya bilgileri geri yüklenemedi."
-  },
-  {
     "id": "app.content_flagging.search_property_fields.app_error",
     "translation": "İçerik işaretleme özellik alanlarında arama yapılamadı."
   },

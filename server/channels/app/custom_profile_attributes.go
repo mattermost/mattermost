@@ -19,6 +19,28 @@ const (
 	CustomProfileAttributesFieldLimit = 20
 )
 
+// ensureCPAFieldAttrs ensures that PropertyField.Attrs has default values for CPA fields
+// that were created before default attrs were enforced. This provides backward compatibility.
+func ensureCPAFieldAttrs(field *model.PropertyField) {
+	if field == nil {
+		return
+	}
+
+	if field.Attrs == nil {
+		field.Attrs = model.StringInterface{}
+	}
+
+	// Ensure visibility has a default value (this is the most critical attr)
+	if visibility, ok := field.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility]; !ok || visibility == "" {
+		field.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility] = model.CustomProfileAttributesVisibilityDefault
+	}
+
+	// Ensure sort_order exists (defaults to 0 if missing, which is fine)
+	if _, ok := field.Attrs[model.CustomProfileAttributesPropertyAttrsSortOrder]; !ok {
+		field.Attrs[model.CustomProfileAttributesPropertyAttrsSortOrder] = float64(0)
+	}
+}
+
 var cpaGroupID string
 
 // ToDo: we should explore moving this to the database cache layer
@@ -53,6 +75,8 @@ func (a *App) GetCPAField(fieldID string) (*model.PropertyField, *model.AppError
 		}
 	}
 
+	ensureCPAFieldAttrs(field)
+
 	return field, nil
 }
 
@@ -70,6 +94,10 @@ func (a *App) ListCPAFields() ([]*model.PropertyField, *model.AppError) {
 	fields, err := a.Srv().propertyService.SearchPropertyFields(groupID, opts)
 	if err != nil {
 		return nil, model.NewAppError("GetCPAFields", "app.custom_profile_attributes.search_property_fields.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	for _, field := range fields {
+		ensureCPAFieldAttrs(field)
 	}
 
 	sort.Slice(fields, func(i, j int) bool {
