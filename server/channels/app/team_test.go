@@ -486,9 +486,9 @@ func TestAddUserToTeamByToken(t *testing.T) {
 
 	// Tests for Magic link Invitation tokens
 	t.Run("valid magic link invitation token adds guest to team and channels", func(t *testing.T) {
-		guest := th.CreateGuest()
-		channel1 := th.CreateChannel(th.Context, th.BasicTeam)
-		channel2 := th.CreateChannel(th.Context, th.BasicTeam)
+		guest := th.CreateGuest(t)
+		channel1 := th.CreateChannel(t, th.BasicTeam)
+		channel2 := th.CreateChannel(t, th.BasicTeam)
 
 		tokenData := map[string]string{
 			"teamId":   th.BasicTeam.Id,
@@ -523,7 +523,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 	})
 
 	t.Run("Guest magic link invitation token with expired timestamp fails", func(t *testing.T) {
-		guest := th.CreateGuest()
+		guest := th.CreateGuest(t)
 
 		tokenData := map[string]string{
 			"teamId":   th.BasicTeam.Id,
@@ -546,7 +546,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 	})
 
 	t.Run("Guest magic link invitation token should not add regular user", func(t *testing.T) {
-		regularUser := th.CreateUser()
+		regularUser := th.CreateUser(t)
 
 		tokenData := map[string]string{
 			"teamId":   th.BasicTeam.Id,

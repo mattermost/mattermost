@@ -1229,8 +1229,8 @@ func TestCreateUserWithToken(t *testing.T) {
 	// Tests for Guest Magic Link Invitation token channel assignment
 	t.Run("Guest Magic Link Invitation token adds guest to multiple channels", func(t *testing.T) {
 		invitationEmail := strings.ToLower(model.NewId()) + "magiclink@test.com"
-		channel1 := th.CreateChannel(th.Context, th.BasicTeam)
-		channel2 := th.CreateChannel(th.Context, th.BasicTeam)
+		channel1 := th.CreateChannel(t, th.BasicTeam)
+		channel2 := th.CreateChannel(t, th.BasicTeam)
 
 		tokenData := map[string]string{
 			"teamId":   th.BasicTeam.Id,
@@ -1270,15 +1270,15 @@ func TestCreateUserWithToken(t *testing.T) {
 		invitationEmail := strings.ToLower(model.NewId()) + "magiclink@test.com"
 
 		// Create channels with different access levels
-		publicChannel := th.CreateChannel(th.Context, th.BasicTeam)
-		privateChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+		publicChannel := th.CreateChannel(t, th.BasicTeam)
+		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
 
 		// Create another user and a private channel they own (sender doesn't have access)
-		otherUser := th.CreateUser()
-		th.LinkUserToTeam(otherUser, th.BasicTeam)
-		restrictedChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
-		_ = th.RemoveUserFromChannel(th.BasicUser, restrictedChannel)
-		th.AddUserToChannel(otherUser, restrictedChannel)
+		otherUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, otherUser, th.BasicTeam)
+		restrictedChannel := th.CreatePrivateChannel(t, th.BasicTeam)
+		_ = th.RemoveUserFromChannel(t, th.BasicUser, restrictedChannel)
+		th.AddUserToChannel(t, otherUser, restrictedChannel)
 
 		// Token includes all three channels
 		tokenData := map[string]string{
@@ -1313,7 +1313,7 @@ func TestCreateUserWithToken(t *testing.T) {
 
 	t.Run("Guest Magic Link invitation token doesn't add user to channels if token is TeamInvitation", func(t *testing.T) {
 		invitationEmail := strings.ToLower(model.NewId()) + "regular@test.com"
-		channel1 := th.CreateChannel(th.Context, th.BasicTeam)
+		channel1 := th.CreateChannel(t, th.BasicTeam)
 
 		// Use regular team invitation token (not guest magic link)
 		tokenData := map[string]string{
@@ -2588,8 +2588,7 @@ func TestRemoteUserDirectChannelCreation(t *testing.T) {
 
 func TestAuthenticateUserForGuestMagicLink(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	// Enable guest accounts for guest magic link
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -2599,7 +2598,7 @@ func TestAuthenticateUserForGuestMagicLink(t *testing.T) {
 	t.Run("valid guest magic link token creates guest user successfully", func(t *testing.T) {
 		// Create guest magic link invitation token
 		email := strings.ToLower(model.NewId()) + "@example.com"
-		channel2 := th.CreateChannel(th.Context, th.BasicTeam)
+		channel2 := th.CreateChannel(t, th.BasicTeam)
 		tokenData := map[string]string{
 			"teamId":   th.BasicTeam.Id,
 			"channels": th.BasicChannel.Id + " " + channel2.Id,
@@ -2801,7 +2800,7 @@ func TestAuthenticateUserForGuestMagicLink(t *testing.T) {
 
 	t.Run("channels filtered by sender permissions", func(t *testing.T) {
 		// Create a private channel
-		privateChannel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
 
 		email := strings.ToLower(model.NewId()) + "@example.com"
 		// Include both public and private channel
