@@ -4,8 +4,10 @@
 import type {GifsResult} from '@giphy/js-fetch-api';
 import type {EmojiVariationsListProps} from '@giphy/react-components';
 import {Grid} from '@giphy/react-components';
-import React, {memo, useCallback} from 'react';
+import React, {memo, useCallback, useMemo} from 'react';
 import {useSelector} from 'react-redux';
+
+import {getCurrentLocale} from 'selectors/i18n';
 
 import NoResultsIndicator from 'components/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
@@ -14,6 +16,10 @@ import {getGiphyFetchInstance} from '../selectors';
 
 const GUTTER_BETWEEN_GIFS = 8;
 const NUM_OF_GIFS_COLUMNS = 2;
+const RATING_GENERAL = 'g';
+const NUM_OF_RESULTS_PER_PAGE = 10;
+const RESULTS_TYPE = 'gifs';
+const SORT_BY = 'relevant';
 
 interface Props {
     width: number;
@@ -24,6 +30,17 @@ interface Props {
 function GifPickerItems(props: Props) {
     const giphyFetch = useSelector(getGiphyFetchInstance);
 
+    const currentLocale = useSelector(getCurrentLocale);
+
+    /**
+     * Library expects the language code to be the first part of the locale string, e.g. 'en-US' -> 'en'
+     * see https://developers.giphy.com/docs/#language-support
+     */
+    const languageCode = useMemo(() => {
+        const languageCodeSplitted = currentLocale?.split('-')?.[0] ?? 'en';
+        return languageCodeSplitted;
+    }, [currentLocale]);
+
     const fetchGifs = useCallback(async (offset: number) => {
         if (!giphyFetch) {
             return {} as GifsResult;
@@ -31,13 +48,25 @@ function GifPickerItems(props: Props) {
 
         // We dont have to throttled the fetching as the library does it for us
         if (props.filter.length > 0) {
-            const filteredResult = await giphyFetch.search(props.filter, {offset, limit: 10});
+            const filteredResult = await giphyFetch.search(props.filter, {
+                offset,
+                lang: languageCode,
+                sort: SORT_BY,
+                limit: NUM_OF_RESULTS_PER_PAGE,
+                rating: RATING_GENERAL,
+                type: RESULTS_TYPE,
+            });
             return filteredResult;
         }
 
-        const trendingResult = await giphyFetch.trending({offset, limit: 10});
+        const trendingResult = await giphyFetch.trending({
+            offset,
+            limit: NUM_OF_RESULTS_PER_PAGE,
+            rating: RATING_GENERAL,
+            type: RESULTS_TYPE,
+        });
         return trendingResult;
-    }, [props.filter, giphyFetch]);
+    }, [props.filter, languageCode, giphyFetch]);
 
     return (
         <div className='emoji-picker__items gif-picker__items'>
