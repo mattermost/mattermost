@@ -1623,6 +1623,11 @@
         }
     }
 
+    &.post--compact .col__name .ai-generated-indicator {
+        margin-left: 4px;
+        margin-right: 4px;
+    }
+
     .post__permalink {
         display: inline-block;
         color: inherit;
