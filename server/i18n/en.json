@@ -2473,6 +2473,10 @@
     "translation": "E10 or E20 license required to use this endpoint."
   },
   {
+    "id": "api.oauth.allow_oauth.pkce_required_public.app_error",
+    "translation": "PKCE (Proof Key for Code Exchange) is required for public OAuth clients using authorization code flow."
+  },
+  {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
     "translation": "invalid_request: Supplied redirect_uri did not match registered callback_url."
   },
@@ -2483,6 +2487,18 @@
   {
     "id": "api.oauth.auth_complete",
     "translation": "Authentication complete"
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.disabled.app_error",
+    "translation": "OAuth service provider is disabled."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.invalid_url.app_error",
+    "translation": "Invalid URL configuration for authorization server metadata."
+  },
+  {
+    "id": "api.oauth.authorization_server_metadata.site_url_required.app_error",
+    "translation": "Site URL must be configured to provide authorization server metadata."
   },
   {
     "id": "api.oauth.authorize_oauth.disabled.app_error",
@@ -2499,10 +2515,6 @@
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
     "translation": "invalid_request: Bad client_id."
-  },
-  {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Missing client_secret."
   },
   {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
@@ -2557,12 +2569,20 @@
     "translation": "invalid_grant: Invalid refresh token."
   },
   {
+    "id": "api.oauth.get_access_token.resource_mismatch.app_error",
+    "translation": "Resource parameter mismatch between authorization and token requests."
+  },
+  {
     "id": "api.oauth.invalid_state_token.app_error",
     "translation": "Invalid state token."
   },
   {
     "id": "api.oauth.redirecting_back",
     "translation": "Redirecting you back to the app."
+  },
+  {
+    "id": "api.oauth.regenerate_secret.public_client.app_error",
+    "translation": "invalid_request: Cannot regenerate secret for public OAuth clients."
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
@@ -2719,6 +2739,10 @@
   {
     "id": "api.post.error_get_post_id.pending",
     "translation": "Unable to get the pending post."
+  },
+  {
+    "id": "api.post.fill_in_post_props.invalid_ai_generated_user.app_error",
+    "translation": "The AI-generated user must be either the post creator or a bot."
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
@@ -7047,6 +7071,22 @@
     "translation": "The provided post history ID does not correspond to a post history item."
   },
   {
+    "id": "app.post.rewrite.agent_call_failed",
+    "translation": "Failed to call AI agent."
+  },
+  {
+    "id": "app.post.rewrite.empty_response",
+    "translation": "Empty response from AI."
+  },
+  {
+    "id": "app.post.rewrite.invalid_action",
+    "translation": "Invalid rewrite action."
+  },
+  {
+    "id": "app.post.rewrite.parse_response_failed",
+    "translation": "Failed to parse rewrite response from AI."
+  },
+  {
     "id": "app.post.save.app_error",
     "translation": "Unable to save the Post."
   },
@@ -8713,6 +8753,54 @@
     "translation": "The provided audience is invalid: {{ .Error }}"
   },
   {
+    "id": "ent.push_proxy.delete.app_error",
+    "translation": "Failed to delete push proxy auth token."
+  },
+  {
+    "id": "ent.push_proxy.generate.bad_status.app_error",
+    "translation": "Failed to get auth token from push proxy server."
+  },
+  {
+    "id": "ent.push_proxy.generate.create_request.app_error",
+    "translation": "Failed to create HTTP request for push proxy auth."
+  },
+  {
+    "id": "ent.push_proxy.generate.empty_token.app_error",
+    "translation": "Push proxy returned empty auth token."
+  },
+  {
+    "id": "ent.push_proxy.generate.encrypt.app_error",
+    "translation": "Failed to encrypt payload for push proxy auth."
+  },
+  {
+    "id": "ent.push_proxy.generate.http_request.app_error",
+    "translation": "Failed to send HTTP request to push proxy."
+  },
+  {
+    "id": "ent.push_proxy.generate.marshal.app_error",
+    "translation": "Failed to marshal payload for push proxy auth."
+  },
+  {
+    "id": "ent.push_proxy.generate.marshal_request.app_error",
+    "translation": "Failed to marshal request body for push proxy auth."
+  },
+  {
+    "id": "ent.push_proxy.generate.no_key.app_error",
+    "translation": "No encryption key available for push proxy auth."
+  },
+  {
+    "id": "ent.push_proxy.generate.parse_response.app_error",
+    "translation": "Failed to parse response from push proxy auth endpoint."
+  },
+  {
+    "id": "ent.push_proxy.generate.save_system.app_error",
+    "translation": "Failed to save auth token."
+  },
+  {
+    "id": "ent.push_proxy.worker.interface_nil.app_error",
+    "translation": "Push proxy interface is nil."
+  },
+  {
     "id": "ent.saml.attribute.app_error",
     "translation": "SAML login was unsuccessful because one of the attributes is incorrect. Please contact your System Administrator."
   },
@@ -8993,6 +9081,26 @@
     "translation": "Invalid client id."
   },
   {
+    "id": "model.authorize.is_valid.code_challenge.app_error",
+    "translation": "Code challenge is required when using PKCE."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge.format.app_error",
+    "translation": "Code challenge must be base64url-encoded (using characters A-Z, a-z, 0-9, -, _)."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge.length.app_error",
+    "translation": "Code challenge must be between 43 and 128 characters long."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge_method.app_error",
+    "translation": "Code challenge method is required when using PKCE."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge_method.unsupported.app_error",
+    "translation": "Only 'S256' code challenge method is supported."
+  },
+  {
     "id": "model.authorize.is_valid.create_at.app_error",
     "translation": "Create at must be a valid time."
   },
@@ -9003,6 +9111,22 @@
   {
     "id": "model.authorize.is_valid.redirect_uri.app_error",
     "translation": "Invalid redirect uri."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.has_fragment.app_error",
+    "translation": "Resource parameter cannot contain a fragment component."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.invalid_uri.app_error",
+    "translation": "Resource parameter must be a valid URI."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.length.app_error",
+    "translation": "Resource parameter cannot exceed 512 characters."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.not_absolute.app_error",
+    "translation": "Resource parameter must be an absolute URI."
   },
   {
     "id": "model.authorize.is_valid.response_type.app_error",
@@ -9019,6 +9143,22 @@
   {
     "id": "model.authorize.is_valid.user_id.app_error",
     "translation": "Invalid user id."
+  },
+  {
+    "id": "model.authorize.validate_pkce.not_used_in_auth.app_error",
+    "translation": "PKCE code verifier provided but PKCE was not used during authorization."
+  },
+  {
+    "id": "model.authorize.validate_pkce.public_client_required.app_error",
+    "translation": "PKCE (Proof Key for Code Exchange) is required for public clients."
+  },
+  {
+    "id": "model.authorize.validate_pkce.verification_failed.app_error",
+    "translation": "PKCE code verifier does not match the code challenge."
+  },
+  {
+    "id": "model.authorize.validate_pkce.verifier_required.app_error",
+    "translation": "PKCE code verifier is required when PKCE is used."
   },
   {
     "id": "model.bot.is_valid.create_at.app_error",
@@ -9933,6 +10073,30 @@
     "translation": "Invalid value for write timeout."
   },
   {
+    "id": "model.dcr.is_valid.client_name.app_error",
+    "translation": "Client name must be 64 characters or less."
+  },
+  {
+    "id": "model.dcr.is_valid.client_uri_format.app_error",
+    "translation": "Invalid client URI format."
+  },
+  {
+    "id": "model.dcr.is_valid.client_uri_length.app_error",
+    "translation": "Client URI must be less than 256 characters."
+  },
+  {
+    "id": "model.dcr.is_valid.redirect_uri_format.app_error",
+    "translation": "Invalid redirect URI format."
+  },
+  {
+    "id": "model.dcr.is_valid.redirect_uris.app_error",
+    "translation": "At least one redirect URI is required."
+  },
+  {
+    "id": "model.dcr.is_valid.unsupported_auth_method.app_error",
+    "translation": "Unsupported token_endpoint_auth_method supplied."
+  },
+  {
     "id": "model.draft.is_valid.channel_id.app_error",
     "translation": "Invalid channel id."
   },
@@ -10235,6 +10399,22 @@
   {
     "id": "model.oauth.is_valid.update_at.app_error",
     "translation": "Update at must be a valid time."
+  },
+  {
+    "id": "model.oauth.validate_grant.credentials.app_error",
+    "translation": "Invalid client credentials."
+  },
+  {
+    "id": "model.oauth.validate_grant.pkce_required.app_error",
+    "translation": "PKCE (Proof Key for Code Exchange) is required for public clients."
+  },
+  {
+    "id": "model.oauth.validate_grant.public_client_refresh_token.app_error",
+    "translation": "Public clients cannot use refresh token grant type."
+  },
+  {
+    "id": "model.oauth.validate_grant.public_client_secret.app_error",
+    "translation": "Public clients must not provide a client secret."
   },
   {
     "id": "model.outgoing_hook.icon_url.app_error",

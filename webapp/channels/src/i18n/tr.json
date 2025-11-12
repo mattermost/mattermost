@@ -3730,7 +3730,6 @@
   "channel_settings.access_rules.confirm_modal.question": "Erişim kurallarını kaydedip uygulamak istediğinize emin misiniz?",
   "channel_settings.access_rules.confirm_modal.restricted_tab": "Kısıtlanmış ({count})",
   "channel_settings.access_rules.confirm_modal.saving": "Kaydediliyor...",
-  "channel_settings.access_rules.confirm_modal.title": "Kuralları kaydedip uygula",
   "channel_settings.access_rules.confirm_modal.view_users": "Kullanıcıları görüntüle",
   "channel_settings.access_rules.error.back_to_editing": "Düzenlemeye dön",
   "channel_settings.access_rules.error.no_current_user": "Erişim kuralları geçerli değil: Geçerli kullanıcı bulunamadı",

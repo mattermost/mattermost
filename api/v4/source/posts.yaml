@@ -1161,3 +1161,72 @@
           $ref: "#/components/responses/NotFound"
         "501":
           $ref: "#/components/responses/NotImplemented"
+
+  "/api/v4/posts/rewrite":
+    post:
+      tags:
+        - posts
+      summary: Rewrite a message using AI
+      description: >
+        Rewrite a message using AI based on the specified action. The message will be
+        processed by an AI agent and returned in a rewritten form.
+
+        ##### Permissions
+
+        Must be authenticated.
+
+        __Minimum server version__: 11.2
+      operationId: RewriteMessage
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - agent_id
+                - message
+                - action
+              properties:
+                agent_id:
+                  type: string
+                  description: The ID of the AI agent to use for rewriting
+                message:
+                  type: string
+                  description: The message text to rewrite
+                action:
+                  type: string
+                  description: The rewrite action to perform
+                  enum:
+                    - custom
+                    - shorten
+                    - elaborate
+                    - improve_writing
+                    - fix_spelling
+                    - simplify
+                    - summarize
+                custom_prompt:
+                  type: string
+                  description: Custom prompt for rewriting. Required when action is "custom", optional otherwise.
+        description: Rewrite request object
+        required: true
+      responses:
+        "200":
+          description: Message rewritten successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  rewritten_text:
+                    type: string
+                    description: The rewritten message text
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
