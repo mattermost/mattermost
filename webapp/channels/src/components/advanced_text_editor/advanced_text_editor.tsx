@@ -410,7 +410,7 @@ const AdvancedTextEditor = ({
         };
 
         // Remove both priority and burn_on_read from metadata
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+        // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unused-vars
         const {priority: _priority, burn_on_read: _burnOnRead, ...restMetadata} = updatedDraft.metadata || {};
         updatedDraft.metadata = restMetadata;
 

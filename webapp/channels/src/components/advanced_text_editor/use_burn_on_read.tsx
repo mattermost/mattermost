@@ -61,7 +61,7 @@ const useBurnOnRead = (
             };
         } else {
             // Remove burn_on_read from metadata
-            // eslint-disable-next-line @typescript-eslint/naming-convention
+            // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unused-vars
             const {burn_on_read: _, ...restMetadata} = updatedDraft.metadata || {};
             updatedDraft.metadata = restMetadata;
         }

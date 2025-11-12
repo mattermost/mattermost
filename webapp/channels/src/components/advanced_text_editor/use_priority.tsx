@@ -97,6 +97,7 @@ const usePriority = (
             };
         } else {
             // Remove priority but keep other metadata
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const {priority, ...restMetadata} = updatedDraft.metadata || {};
             updatedDraft.metadata = restMetadata;
         }
