@@ -32,8 +32,7 @@ import (
 
 func TestCreateTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	id := model.NewId()
 	team := &model.Team{
@@ -52,8 +51,7 @@ func TestCreateTeam(t *testing.T) {
 
 func TestCreateTeamWithUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	id := model.NewId()
 	team := &model.Team{
@@ -72,8 +70,7 @@ func TestCreateTeamWithUser(t *testing.T) {
 
 func TestUpdateTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.BasicTeam.DisplayName = "Testing 123"
 
@@ -84,8 +81,7 @@ func TestUpdateTeam(t *testing.T) {
 
 func TestAddUserToTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("add user", func(t *testing.T) {
 		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
@@ -211,8 +207,8 @@ func TestAddUserToTeam(t *testing.T) {
 	})
 
 	t.Run("should set up initial sidebar categories when joining a team", func(t *testing.T) {
-		user := th.CreateUser()
-		team := th.CreateTeam()
+		user := th.CreateUser(t)
+		team := th.CreateTeam(t)
 
 		_, _, err := th.App.AddUserToTeam(th.Context, team.Id, user.Id, "")
 		require.Nil(t, err)
@@ -228,12 +224,11 @@ func TestAddUserToTeam(t *testing.T) {
 
 func TestAddUserToTeamByToken(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 	ruser, _ := th.App.CreateUser(th.Context, &user)
-	rguest := th.CreateGuest()
+	rguest := th.CreateGuest(t)
 
 	t.Run("invalid token", func(t *testing.T) {
 		_, _, err := th.App.AddUserToTeamByToken(th.Context, ruser.Id, "123")
@@ -469,8 +464,8 @@ func TestAddUserToTeamByToken(t *testing.T) {
 	})
 
 	t.Run("should set up initial sidebar categories when joining a team by token", func(t *testing.T) {
-		user := th.CreateUser()
-		team := th.CreateTeam()
+		user := th.CreateUser(t)
+		team := th.CreateTeam(t)
 
 		token := model.NewToken(
 			model.TokenTypeTeamInvitation,
@@ -574,8 +569,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 
 func TestAddUserToTeamByTeamId(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("add user", func(t *testing.T) {
 		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
@@ -609,8 +603,8 @@ func TestAddUserToTeamByTeamId(t *testing.T) {
 
 func TestAdjustTeamsFromProductLimits(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+
 	teams := []*model.Team{
 		{
 			DisplayName: "team-1",
@@ -763,8 +757,7 @@ func TestAdjustTeamsFromProductLimits(t *testing.T) {
 
 func TestPermanentDeleteTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	team, err := th.App.CreateTeam(th.Context, &model.Team{
 		DisplayName: "deletion-test",
@@ -795,7 +788,7 @@ func TestPermanentDeleteTeam(t *testing.T) {
 	require.NotNil(t, appErr, "unable to get command")
 
 	// Test deleting a team with no channels.
-	team = th.CreateTeam()
+	team = th.CreateTeam(t)
 	defer func() {
 		appErr := th.App.PermanentDeleteTeam(th.Context, team)
 		require.Nil(t, appErr)
@@ -813,7 +806,6 @@ func TestPermanentDeleteTeam(t *testing.T) {
 func TestSanitizeTeam(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	team := &model.Team{
 		Id:             model.NewId(),
@@ -940,7 +932,6 @@ func TestSanitizeTeam(t *testing.T) {
 func TestSanitizeTeams(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	t.Run("not a system admin", func(t *testing.T) {
 		teams := []*model.Team{
@@ -1014,7 +1005,6 @@ func TestSanitizeTeams(t *testing.T) {
 func TestJoinUserToTeam(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	id := model.NewId()
 	team := &model.Team{
@@ -1105,7 +1095,7 @@ func TestJoinUserToTeam(t *testing.T) {
 			require.Nil(t, appErr)
 		}()
 
-		group := th.CreateGroup()
+		group := th.CreateGroup(t)
 
 		_, err = th.App.UpsertGroupMember(group.Id, user1.Id)
 		require.Nil(t, err)
@@ -1148,7 +1138,6 @@ func TestJoinUserToTeam(t *testing.T) {
 func TestLeaveTeamPanic(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
@@ -1231,8 +1220,7 @@ func TestLeaveTeamPanic(t *testing.T) {
 
 func TestAppUpdateTeamScheme(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	team := th.BasicTeam
 	mockID := model.NewPointer("x")
@@ -1246,7 +1234,7 @@ func TestAppUpdateTeamScheme(t *testing.T) {
 	err := th.App.SetPhase2PermissionsMigrationStatus(true)
 	require.NoError(t, err)
 
-	team2Scheme := th.SetupTeamScheme()
+	team2Scheme := th.SetupTeamScheme(t)
 	channelUser, appErr := th.App.GetRoleByName(th.Context, team2Scheme.DefaultChannelUserRole)
 	require.Nil(t, appErr)
 	channelUser.Permissions = []string{}
@@ -1259,10 +1247,10 @@ func TestAppUpdateTeamScheme(t *testing.T) {
 	_, appErr = th.App.UpdateRole(channelAdmin) // Remove all permissions from the team admin role of the scheme
 	require.Nil(t, appErr)
 
-	team2 := th.CreateTeam()
+	team2 := th.CreateTeam(t)
 	_, _, appErr = th.App.AddUserToTeam(th.Context, team2.Id, th.BasicUser.Id, "")
 	require.Nil(t, appErr)
-	channel := th.CreateChannel(th.Context, team2)
+	channel := th.CreateChannel(t, team2)
 	_, appErr = th.App.AddUserToChannel(th.Context, th.BasicUser, channel, true)
 	require.Nil(t, appErr)
 	session := model.Session{
@@ -1287,8 +1275,7 @@ func TestAppUpdateTeamScheme(t *testing.T) {
 
 func TestGetTeamMembers(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	var users []model.User
 	users = append(users, *th.BasicUser)
@@ -1399,8 +1386,7 @@ func TestGetTeamMembers(t *testing.T) {
 
 func TestGetTeamStats(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("without view restrictions", func(t *testing.T) {
 		teamStats, err := th.App.GetTeamStats(th.BasicTeam.Id, nil)
@@ -1464,8 +1450,7 @@ func TestGetTeamStats(t *testing.T) {
 
 func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("from guest to user", func(t *testing.T) {
 		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
@@ -1529,7 +1514,6 @@ func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
 func TestInvalidateAllResendInviteEmailJobs(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	job, err := th.App.Srv().Jobs.CreateJob(th.Context, model.JobTypeResendInvitationEmail, map[string]string{})
 	require.Nil(t, err)
@@ -1553,7 +1537,6 @@ func TestInvalidateAllResendInviteEmailJobs(t *testing.T) {
 func TestInvalidateAllEmailInvites(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	t1 := model.Token{
 		Token:    "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
@@ -1598,7 +1581,6 @@ func TestInvalidateAllEmailInvites(t *testing.T) {
 func TestClearTeamMembersCache(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockTeamStore := mocks.TeamStore{}
@@ -1620,8 +1602,7 @@ func TestClearTeamMembersCache(t *testing.T) {
 
 func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableEmailInvitations = true
@@ -1734,8 +1715,7 @@ func TestInviteNewUsersToTeamGracefully(t *testing.T) {
 
 func TestInviteGuestsToChannelsGracefully(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableEmailInvitations = true
@@ -1800,15 +1780,14 @@ func TestInviteGuestsToChannelsGracefully(t *testing.T) {
 }
 
 func TestInviteGuestsToChannelsWithPolicyEnforced(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableEmailInvitations = true
 	})
 
 	// Create a private channel
-	channel := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+	channel := th.CreatePrivateChannel(t, th.BasicTeam)
 
 	// Create a policy with the same ID as the channel
 	channelPolicy := &model.AccessControlPolicy{
@@ -1847,14 +1826,13 @@ func TestInviteGuestsToChannelsWithPolicyEnforced(t *testing.T) {
 
 func TestTeamSendEvents(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	testCluster := &testlib.FakeClusterInterface{}
 	th.Server.Platform().SetCluster(testCluster)
 	defer th.Server.Platform().SetCluster(nil)
 
-	team := th.CreateTeam()
+	team := th.CreateTeam(t)
 
 	testCluster.ClearMessages()
 
