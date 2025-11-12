@@ -14,8 +14,8 @@ import (
 
 func TestCWSLogin(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
+
 	license := model.NewTestLicense()
 	license.Features.Cloud = model.NewPointer(true)
 	th.App.Srv().SetLicense(license)

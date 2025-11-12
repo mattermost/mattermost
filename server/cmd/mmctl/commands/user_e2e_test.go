@@ -17,7 +17,7 @@ import (
 )
 
 func (s *MmctlE2ETestSuite) TestUserActivateCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 	s.Require().Nil(appErr)
@@ -67,7 +67,7 @@ func (s *MmctlE2ETestSuite) TestUserActivateCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestUserDeactivateCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 	s.Require().Nil(appErr)
@@ -117,7 +117,7 @@ func (s *MmctlE2ETestSuite) TestUserDeactivateCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.RunForAllClients("Search for an existing user", func(c client.Client) {
 		printer.Clean()
@@ -205,7 +205,7 @@ func (s *MmctlE2ETestSuite) TestSearchUserCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestListUserCmd() {
-	s.SetupTestHelper().InitBasic().DeleteBots()
+	s.SetupTestHelper().InitBasic(s.T()).DeleteBots(s.T())
 
 	// populate map for checking
 	userPool := []string{
@@ -303,7 +303,7 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 		usr, err := s.th.App.CreateUser(s.th.Context, &userData)
 		s.Require().Nil(err)
 		userPool = append(userPool, usr.Username)
-		s.th.LinkUserToTeam(usr, s.th.BasicTeam)
+		s.th.LinkUserToTeam(s.T(), usr, s.th.BasicTeam)
 	}
 
 	s.RunForAllClients("Get list users given team", func(c client.Client) {
@@ -337,7 +337,7 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 		usr, err := s.th.App.CreateUser(s.th.Context, &userData)
 		s.Require().Nil(err)
 		inactiveUserPool = append(inactiveUserPool, usr.Username)
-		s.th.LinkUserToTeam(usr, s.th.BasicTeam)
+		s.th.LinkUserToTeam(s.T(), usr, s.th.BasicTeam)
 	}
 
 	s.RunForAllClients("Get list of inactive users given team", func(c client.Client) {
@@ -361,7 +361,7 @@ func (s *MmctlE2ETestSuite) TestListUserCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestUserInviteCmdf() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.RunForAllClients("Invite user", func(c client.Client) {
 		printer.Clean()
@@ -408,12 +408,12 @@ func (s *MmctlE2ETestSuite) TestUserInviteCmdf() {
 			s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableEmailInvitations = *previousVal })
 		}()
 
-		team := s.th.CreateTeam()
+		team := s.th.CreateTeam(s.T())
 		team.AllowedDomains = "@example.com"
 		team, appErr := s.th.App.UpdateTeam(team)
 		s.Require().Nil(appErr)
 
-		user := s.th.CreateUser()
+		user := s.th.CreateUser(s.T())
 		err := userInviteCmdF(c, &cobra.Command{}, []string{user.Email, team.Id})
 		s.Require().Error(err)
 		s.Require().Len(printer.GetLines(), 0)
@@ -430,7 +430,7 @@ func (s *MmctlE2ETestSuite) TestUserInviteCmdf() {
 }
 
 func (s *MmctlE2ETestSuite) TestResetUserMfaCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId(), MfaActive: true, MfaSecret: "secret"})
 	s.Require().Nil(appErr)
@@ -496,7 +496,7 @@ func (s *MmctlE2ETestSuite) TestResetUserMfaCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestVerifyUserEmailWithoutTokenCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 	s.Require().Nil(appErr)
@@ -543,7 +543,7 @@ func (s *MmctlE2ETestSuite) TestVerifyUserEmailWithoutTokenCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.RunForAllClients("Should not create a user w/o username", func(c client.Client) {
 		printer.Clean()
@@ -668,7 +668,7 @@ func (s *MmctlE2ETestSuite) TestCreateUserCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.RunForSystemAdminAndLocal("Delete user", func(c client.Client) {
 		printer.Clean()
@@ -681,7 +681,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		confirm := true
 		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
 
-		newUser := s.th.CreateUser()
+		newUser := s.th.CreateUser(s.T())
 		err := deleteUsersCmdF(c, cmd, []string{newUser.Email})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
@@ -731,7 +731,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		confirm := true
 		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
 
-		newUser := s.th.CreateUser()
+		newUser := s.th.CreateUser(s.T())
 
 		var expectedErr *multierror.Error
 		expectedErr = multierror.Append(expectedErr, fmt.Errorf("unable to delete user %s error: %w", newUser.Username,
@@ -760,7 +760,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		confirm := true
 		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
 
-		newUser := s.th.CreateUser()
+		newUser := s.th.CreateUser(s.T())
 
 		var expectedErr *multierror.Error
 		expectedErr = multierror.Append(expectedErr, fmt.Errorf("unable to delete user %s error: %w", newUser.Username,
@@ -789,7 +789,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 		confirm := true
 		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
 
-		newUser := s.th.CreateUser()
+		newUser := s.th.CreateUser(s.T())
 		err := deleteUsersCmdF(s.th.LocalClient, cmd, []string{newUser.Email})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
@@ -806,7 +806,7 @@ func (s *MmctlE2ETestSuite) TestDeleteUsersCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestUserConvertCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.RunForAllClients("Error when no flag provided", func(c client.Client) {
 		printer.Clean()
@@ -902,7 +902,7 @@ func (s *MmctlE2ETestSuite) TestUserConvertCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestDeleteAllUserCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.Run("Delete all user as unpriviliged user should not work", func() {
 		printer.Clean()
@@ -982,7 +982,7 @@ func (s *MmctlE2ETestSuite) TestDeleteAllUserCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestPromoteGuestToUserCmd() {
-	s.SetupEnterpriseTestHelper().InitBasic()
+	s.SetupEnterpriseTestHelper().InitBasic(s.T())
 
 	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 	s.Require().Nil(appErr)
@@ -1014,7 +1014,7 @@ func (s *MmctlE2ETestSuite) TestPromoteGuestToUserCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestDemoteUserToGuestCmd() {
-	s.SetupEnterpriseTestHelper().InitBasic()
+	s.SetupEnterpriseTestHelper().InitBasic(s.T())
 
 	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{Email: s.th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
 	s.Require().Nil(appErr)
@@ -1044,7 +1044,7 @@ func (s *MmctlE2ETestSuite) TestDemoteUserToGuestCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
-	s.SetupEnterpriseTestHelper().InitBasic()
+	s.SetupEnterpriseTestHelper().InitBasic(s.T())
 	configForLdap(s.th)
 
 	s.Require().NoError(s.th.App.Srv().Jobs.StartWorkers()) // we need to start workers do actual sync
@@ -1153,7 +1153,7 @@ func (s *MmctlE2ETestSuite) cleanUpPreferences(userID string) {
 }
 
 func (s *MmctlE2ETestSuite) TestPreferenceListCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.cleanUpPreferences(s.th.BasicUser.Id)
 	s.cleanUpPreferences(s.th.BasicUser2.Id)
@@ -1244,7 +1244,7 @@ func (s *MmctlE2ETestSuite) TestPreferenceListCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestPreferenceGetCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.cleanUpPreferences(s.th.BasicUser.Id)
 	s.cleanUpPreferences(s.th.BasicUser2.Id)
@@ -1305,7 +1305,7 @@ func (s *MmctlE2ETestSuite) TestPreferenceGetCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	preference1 := model.Preference{UserId: s.th.BasicUser.Id, Category: "display_settings", Name: "collapsed_reply_threads", Value: "threads_view"}
 	preference2 := model.Preference{UserId: s.th.BasicUser.Id, Category: "display_settings", Name: "colorize_usernames", Value: "threads_view"}
@@ -1486,7 +1486,7 @@ func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestPreferenceDeleteCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.cleanUpPreferences(s.th.BasicUser.Id)
 	s.cleanUpPreferences(s.th.BasicUser2.Id)
@@ -1592,7 +1592,7 @@ func (s *MmctlE2ETestSuite) TestPreferenceDeleteCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestSendPasswordResetEmailCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 	s.RunForAllClients("all users can send password reset email", func(c client.Client) {
 		printer.Clean()
 		emailArg1 := "demo1@example.com"
@@ -1625,7 +1625,7 @@ func (s *MmctlE2ETestSuite) TestSendPasswordResetEmailCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestUserEditUsernameCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{
 		Email:    s.th.GenerateTestEmail(),
@@ -1704,7 +1704,7 @@ func (s *MmctlE2ETestSuite) TestUserEditUsernameCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestUserEditEmailCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{
 		Email:    s.th.GenerateTestEmail(),
@@ -1783,7 +1783,7 @@ func (s *MmctlE2ETestSuite) TestUserEditEmailCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestUserEditAuthdataCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	user, appErr := s.th.App.CreateUser(s.th.Context, &model.User{
 		Email:       s.th.GenerateTestEmail(),
