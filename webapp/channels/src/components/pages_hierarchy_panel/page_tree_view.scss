@@ -10,12 +10,11 @@
 
 .PageTreeView__outline {
     border-left: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-    margin-left: 8px;
+    margin-left: 28px;
 }
 
 .PageTreeView__outline-empty {
-    padding: 8px 12px;
-    margin-left: 24px;
+    padding-left: 18px;
     color: rgba(var(--center-channel-text-rgb), 0.56);
     font-size: 13px;
     font-style: italic;
