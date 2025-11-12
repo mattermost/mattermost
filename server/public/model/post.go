@@ -56,6 +56,7 @@ const (
 	PostTypeMe                   = "me"
 	PostCustomTypePrefix         = "custom_"
 	PostTypeReminder             = "reminder"
+	PostTypeBurnOnRead           = "burn_on_read"
 
 	PostFileidsMaxRunes   = 300
 	PostFilenamesMaxRunes = 4000
@@ -94,8 +95,13 @@ const (
 	PostPropsUnsafeLinks              = "unsafe_links"
 	PostPropsAIGeneratedByUserID      = "ai_generated_by"
 	PostPropsAIGeneratedByUsername    = "ai_generated_by_username"
+	PostPropsExpireAt                 = "expire_at"
+	PostPropsReadDurationSeconds      = "read_duration"
 
 	PostPriorityUrgent = "urgent"
+
+	DefaultExpirySeconds       = 60 * 60 * 24 * 7 // 7 days
+	DefaultReadDurationSeconds = 15               // 15 seconds
 )
 
 type Post struct {
@@ -512,7 +518,8 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypeReminder,
 		PostTypeMe,
 		PostTypeWrangler,
-		PostTypeGMConvertedToChannel:
+		PostTypeGMConvertedToChannel,
+		PostTypeBurnOnRead:
 	default:
 		if !strings.HasPrefix(o.Type, PostCustomTypePrefix) {
 			return NewAppError("Post.IsValid", "model.post.is_valid.type.app_error", nil, "id="+o.Type, http.StatusBadRequest)

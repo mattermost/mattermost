@@ -1060,6 +1060,23 @@ func (th *TestHelper) TestForAllClients(t *testing.T, f func(*testing.T, *model.
 	})
 }
 
+// TestForRegularAndSystemAdminClients runs a test function for regular and system admin the clients
+// registered in the TestHelper
+func (th *TestHelper) TestForRegularAndSystemAdminClients(t *testing.T, f func(*testing.T, *model.Client4), name ...string) {
+	var testName string
+	if len(name) > 0 {
+		testName = name[0] + "/"
+	}
+
+	t.Run(testName+"Client", func(t *testing.T) {
+		f(t, th.Client)
+	})
+
+	t.Run(testName+"SystemAdminClient", func(t *testing.T) {
+		f(t, th.SystemAdminClient)
+	})
+}
+
 func GenerateTestUsername() string {
 	return "fakeuser" + model.NewRandomString(10)
 }
