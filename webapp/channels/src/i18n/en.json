@@ -2960,7 +2960,7 @@
   "admin.system_users.list.actions.menu.manageTokens": "Manage tokens",
   "admin.system_users.list.actions.menu.promoteToMember": "Promote to member",
   "admin.system_users.list.actions.menu.removeMFA": "Remove MFA",
-  "admin.system_users.list.actions.menu.removeSessions": "Remove sessions",
+  "admin.system_users.list.actions.menu.removeSessions": "Revoke sessions",
   "admin.system_users.list.actions.menu.resetAttempts": "Reset login attempts",
   "admin.system_users.list.actions.menu.resetPassword": "Reset password",
   "admin.system_users.list.actions.menu.resyncUserViaLdapGroups": "Re-sync user via LDAP groups",
