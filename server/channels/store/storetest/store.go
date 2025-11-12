@@ -4,7 +4,6 @@
 package storetest
 
 import (
-	"context"
 	"database/sql"
 	"time"
 
@@ -58,7 +57,6 @@ type Store struct {
 	ProductNoticesStore             mocks.ProductNoticesStore
 	DraftStore                      mocks.DraftStore
 	logger                          mlog.LoggerIFace
-	context                         context.Context
 	NotifyAdminStore                mocks.NotifyAdminStore
 	PostPriorityStore               mocks.PostPriorityStore
 	PostAcknowledgementStore        mocks.PostAcknowledgementStore
@@ -74,8 +72,6 @@ type Store struct {
 	ContentFlaggingStore            mocks.ContentFlaggingStore
 }
 
-func (s *Store) SetContext(context context.Context)            { s.context = context }
-func (s *Store) Context() context.Context                      { return s.context }
 func (s *Store) Logger() mlog.LoggerIFace                      { return s.logger }
 func (s *Store) Team() store.TeamStore                         { return &s.TeamStore }
 func (s *Store) Channel() store.ChannelStore                   { return &s.ChannelStore }

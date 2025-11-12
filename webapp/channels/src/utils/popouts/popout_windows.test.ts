@@ -56,9 +56,9 @@ describe('popout_windows', () => {
         it('should handle desktop app popout', async () => {
             mockIsDesktopApp.mockReturnValue(true);
             const mockListeners = {
-                send: jest.fn(),
-                message: jest.fn(),
-                closed: jest.fn(),
+                sendToPopout: jest.fn(),
+                onMessageFromPopout: jest.fn(),
+                onClosePopout: jest.fn(),
             };
             mockDesktopApp.setupDesktopPopout.mockResolvedValue(mockListeners);
 

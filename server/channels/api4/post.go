@@ -49,6 +49,8 @@ func (api *API) InitPost() {
 	api.BaseRoutes.PostForUser.Handle("/ack", api.APISessionRequired(unacknowledgePost)).Methods(http.MethodDelete)
 
 	api.BaseRoutes.Post.Handle("/move", api.APISessionRequired(moveThread)).Methods(http.MethodPost)
+
+	api.BaseRoutes.Posts.Handle("/rewrite", api.APISessionRequired(rewriteMessage)).Methods(http.MethodPost)
 }
 
 func createPostChecks(where string, c *Context, post *model.Post) {
@@ -1380,4 +1382,33 @@ func hasPermittedWranglerRole(c *Context, user *model.User, channelMember *model
 	}
 
 	return false
+}
+
+// rewriteMessage handles AI-powered message rewriting requests
+func rewriteMessage(c *Context, w http.ResponseWriter, r *http.Request) {
+	// Parse request
+	var req model.RewriteRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		c.SetInvalidParamWithErr("request_body", err)
+		return
+	}
+
+	// Call app layer to handle business logic
+	response, appErr := c.App.RewriteMessage(
+		c.AppContext,
+		req.AgentID,
+		req.Message,
+		req.Action,
+		req.CustomPrompt,
+	)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	// Return response
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(*response); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
 }

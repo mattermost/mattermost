@@ -19,8 +19,7 @@ import (
 // to fix everything.
 func TestWebSocket(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	WebSocketClient, err := th.CreateWebSocketClient()
 	require.NoError(t, err)
 	defer WebSocketClient.Close()

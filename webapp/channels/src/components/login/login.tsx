@@ -49,6 +49,7 @@ import Constants from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {isEmbedded} from 'utils/embed';
 import {t} from 'utils/i18n';
+import {DesktopNotificationSounds} from 'utils/notification_sounds';
 import {showNotification} from 'utils/notifications';
 import {isDesktopApp} from 'utils/user_agent';
 import {setCSRFFromCookie} from 'utils/utils';
@@ -306,26 +307,44 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
 
     const showSessionExpiredNotificationIfNeeded = useCallback(() => {
         if (sessionExpired && !closeSessionExpiredNotification!.current) {
-            dispatch(showNotification({
-                title: siteName,
-                body: formatMessage({
-                    id: 'login.session_expired.notification',
-                    defaultMessage: 'Session Expired: Please sign in to continue receiving notifications.',
-                }),
-                requireInteraction: true,
-                silent: false,
-                onClick: () => {
-                    window.focus();
-                    if (closeSessionExpiredNotification.current) {
-                        closeSessionExpiredNotification.current();
-                        closeSessionExpiredNotification.current = undefined;
-                    }
-                },
-            })).then(({callback: closeNotification}) => {
-                closeSessionExpiredNotification.current = closeNotification;
-            }).catch(() => {
-                // Ignore the failure to display the notification.
-            });
+            if (isDesktopApp()) {
+                DesktopApp.dispatchNotification(
+                    formatMessage({
+                        id: 'login.session_expired.notification.title',
+                        defaultMessage: 'Session Expired',
+                    }),
+                    formatMessage({
+                        id: 'login.session_expired.notification.body',
+                        defaultMessage: 'Please sign in to continue receiving notifications.',
+                    }),
+                    '',
+                    '',
+                    false, // silent
+                    DesktopNotificationSounds.BING,
+                    `${Client4.getUrl()}/login`,
+                );
+            } else {
+                dispatch(showNotification({
+                    title: siteName,
+                    body: formatMessage({
+                        id: 'login.session_expired.notification',
+                        defaultMessage: 'Session Expired: Please sign in to continue receiving notifications.',
+                    }),
+                    requireInteraction: true,
+                    silent: false,
+                    onClick: () => {
+                        window.focus();
+                        if (closeSessionExpiredNotification.current) {
+                            closeSessionExpiredNotification.current();
+                            closeSessionExpiredNotification.current = undefined;
+                        }
+                    },
+                })).then(({callback: closeNotification}) => {
+                    closeSessionExpiredNotification.current = closeNotification;
+                }).catch(() => {
+                    // Ignore the failure to display the notification.
+                });
+            }
         } else if (!sessionExpired && closeSessionExpiredNotification!.current) {
             closeSessionExpiredNotification.current();
             closeSessionExpiredNotification.current = undefined;

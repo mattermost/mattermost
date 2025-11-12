@@ -21,6 +21,7 @@ type AccessData struct {
 	RedirectUri  string `json:"redirect_uri"`
 	ExpiresAt    int64  `json:"expires_at"`
 	Scope        string `json:"scope"`
+	Audience     string `json:"audience"`
 }
 
 type AccessResponse struct {
@@ -30,6 +31,7 @@ type AccessResponse struct {
 	Scope            string `json:"scope"`
 	RefreshToken     string `json:"refresh_token"`
 	IdToken          string `json:"id_token"`
+	Audience         string `json:"audience,omitempty"`
 }
 
 // IsValid validates the AccessData and returns an error if it isn't configured
@@ -53,6 +55,12 @@ func (ad *AccessData) IsValid() *AppError {
 
 	if ad.RedirectUri == "" || len(ad.RedirectUri) > 256 || !IsValidHTTPURL(ad.RedirectUri) {
 		return NewAppError("AccessData.IsValid", "model.access.is_valid.redirect_uri.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if ad.Audience != "" {
+		if err := ValidateResourceParameter(ad.Audience, ad.ClientId, "AccessData.IsValid"); err != nil {
+			return err
+		}
 	}
 
 	return nil

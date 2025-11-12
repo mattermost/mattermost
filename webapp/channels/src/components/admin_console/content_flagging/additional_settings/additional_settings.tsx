@@ -27,9 +27,10 @@ type Props = {
     id: string;
     onChange: SystemConsoleCustomSettingChangeHandler;
     value: ContentFlaggingAdditionalSettings;
+    disabled?: boolean;
 }
 
-export default function ContentFlaggingAdditionalSettingsSection({id, onChange, value}: Props) {
+export default function ContentFlaggingAdditionalSettingsSection({id, onChange, value, disabled = false}: Props) {
     const [additionalSettings, setAdditionalSettings] = React.useState<ContentFlaggingAdditionalSettings>(value as ContentFlaggingAdditionalSettings);
 
     const handleReasonsChange = useCallback((newValues: OnChangeValue<{ value: string }, true>) => {
@@ -115,6 +116,7 @@ export default function ContentFlaggingAdditionalSettingsSection({id, onChange, 
                                 value={reasonOptions}
                                 placeholder={'Type and press Tab to add a reason'}
                                 onChange={handleReasonsChange}
+                                isDisabled={disabled}
                                 components={{
                                     DropdownIndicator: () => null,
                                     Menu: () => null,
@@ -136,7 +138,7 @@ export default function ContentFlaggingAdditionalSettingsSection({id, onChange, 
                         </div>
 
                         <div className='setting-content'>
-                            <Label isDisabled={false}>
+                            <Label isDisabled={disabled}>
                                 <input
                                     data-testid='requireReporterComment_true'
                                     id='requireReporterComment_true'
@@ -144,6 +146,7 @@ export default function ContentFlaggingAdditionalSettingsSection({id, onChange, 
                                     value='true'
                                     checked={additionalSettings.ReporterCommentRequired}
                                     onChange={handleRequireReporterCommentChange}
+                                    disabled={disabled}
                                 />
                                 <FormattedMessage
                                     id='admin.true'
@@ -151,7 +154,7 @@ export default function ContentFlaggingAdditionalSettingsSection({id, onChange, 
                                 />
                             </Label>
 
-                            <Label isDisabled={false}>
+                            <Label isDisabled={disabled}>
                                 <input
                                     data-testid='requireReporterComment_false'
                                     id='requireReporterComment_false'
@@ -159,6 +162,7 @@ export default function ContentFlaggingAdditionalSettingsSection({id, onChange, 
                                     value='false'
                                     checked={!additionalSettings.ReporterCommentRequired}
                                     onChange={handleRequireReporterCommentChange}
+                                    disabled={disabled}
                                 />
                                 <FormattedMessage
                                     id='admin.false'
@@ -177,7 +181,7 @@ export default function ContentFlaggingAdditionalSettingsSection({id, onChange, 
                         </div>
 
                         <div className='setting-content'>
-                            <Label isDisabled={false}>
+                            <Label isDisabled={disabled}>
                                 <input
                                     data-testid='requireReviewerComment_true'
                                     id='requireReviewerComment_true'
@@ -185,6 +189,7 @@ export default function ContentFlaggingAdditionalSettingsSection({id, onChange, 
                                     value='true'
                                     checked={additionalSettings.ReviewerCommentRequired}
                                     onChange={handleRequireReviewerCommentChange}
+                                    disabled={disabled}
                                 />
                                 <FormattedMessage
                                     id='admin.true'
@@ -192,7 +197,7 @@ export default function ContentFlaggingAdditionalSettingsSection({id, onChange, 
                                 />
                             </Label>
 
-                            <Label isDisabled={false}>
+                            <Label isDisabled={disabled}>
                                 <input
                                     data-testid='requireReviewerComment_false'
                                     id='requireReviewerComment_false'
@@ -200,6 +205,7 @@ export default function ContentFlaggingAdditionalSettingsSection({id, onChange, 
                                     value='false'
                                     checked={!additionalSettings.ReviewerCommentRequired}
                                     onChange={handleRequireReviewerCommentChange}
+                                    disabled={disabled}
                                 />
                                 <FormattedMessage
                                     id='admin.false'
@@ -218,7 +224,7 @@ export default function ContentFlaggingAdditionalSettingsSection({id, onChange, 
                         </div>
 
                         <div className='setting-content'>
-                            <Label isDisabled={false}>
+                            <Label isDisabled={disabled}>
                                 <input
                                     data-testid='hideFlaggedPosts_true'
                                     id='hideFlaggedPosts_true'
@@ -226,6 +232,7 @@ export default function ContentFlaggingAdditionalSettingsSection({id, onChange, 
                                     value='true'
                                     checked={additionalSettings.HideFlaggedContent}
                                     onChange={handleHideFlaggedPosts}
+                                    disabled={disabled}
                                 />
                                 <FormattedMessage
                                     id='admin.true'
@@ -233,7 +240,7 @@ export default function ContentFlaggingAdditionalSettingsSection({id, onChange, 
                                 />
                             </Label>
 
-                            <Label isDisabled={false}>
+                            <Label isDisabled={disabled}>
                                 <input
                                     data-testid='setHideFlaggedPosts_false'
                                     id='setHideFlaggedPosts_false'
@@ -241,6 +248,7 @@ export default function ContentFlaggingAdditionalSettingsSection({id, onChange, 
                                     value='false'
                                     checked={!additionalSettings.HideFlaggedContent}
                                     onChange={handleHideFlaggedPosts}
+                                    disabled={disabled}
                                 />
                                 <FormattedMessage
                                     id='admin.false'

@@ -3730,7 +3730,6 @@
   "channel_settings.access_rules.confirm_modal.question": "您确定要保存并应用这些访问规则吗？",
   "channel_settings.access_rules.confirm_modal.restricted_tab": "受限（{count}）",
   "channel_settings.access_rules.confirm_modal.saving": "正在保存…",
-  "channel_settings.access_rules.confirm_modal.title": "保存并应用规则",
   "channel_settings.access_rules.confirm_modal.view_users": "查看用户",
   "channel_settings.access_rules.error.back_to_editing": "返回编辑",
   "channel_settings.access_rules.error.no_current_user": "无法验证访问规则：未找到当前用户",

@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/multiselect/multiselect MultiSelectList should match snapshot when custom no option message is defined 1`] = `
 <Fragment>

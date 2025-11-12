@@ -63,17 +63,17 @@ export class DesktopAppAPI {
             throw new Error('Failed to open popout: Desktop App returned an invalid popout ID');
         }
         return {
-            send: (channel: string, ...args: unknown[]) => {
+            sendToPopout: (channel: string, ...args: unknown[]) => {
                 this.sendToPopoutWindow(popoutId, channel, ...args);
             },
-            message: (listener: (channel: string, ...args: unknown[]) => void) => {
+            onMessageFromPopout: (listener: (channel: string, ...args: unknown[]) => void) => {
                 return this.onMessageFromPopoutWindow((id, channel, ...args) => {
                     if (id === popoutId) {
                         listener(channel, ...args);
                     }
                 });
             },
-            closed: (listener: () => void) => {
+            onClosePopout: (listener: () => void) => {
                 return this.onPopoutWindowClosed((id) => {
                     if (id === popoutId) {
                         listener();

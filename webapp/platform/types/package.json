@@ -24,7 +24,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "github:mattermost/mattermost",
+    "url": "git+https://github.com/mattermost/mattermost.git",
     "directory": "webapp/platform/types"
   },
   "devDependencies": {

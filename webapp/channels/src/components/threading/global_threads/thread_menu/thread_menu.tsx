@@ -21,8 +21,7 @@ import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
 import {useReadout} from 'hooks/useReadout';
-import DesktopApp from 'utils/desktop_api';
-import {popoutThread} from 'utils/popouts/popout_windows';
+import {canPopout, popoutThread} from 'utils/popouts/popout_windows';
 import {getSiteURL} from 'utils/url';
 import {copyToClipboard} from 'utils/utils';
 
@@ -87,8 +86,6 @@ function ThreadMenu({
         unreadTimestamp,
     ]);
 
-    // TODO: This should be in a reusable component but since this menu hasn't been
-    // migrated to the new menu component yet, we'll leave it here for now.
     const popout = useCallback(() => {
         popoutThread(intl, threadId, team);
     }, [threadId, team, intl]);
@@ -105,7 +102,7 @@ function ThreadMenu({
                 })}
                 openLeft={true}
             >
-                {DesktopApp.canPopout() && (
+                {!canPopout && (
                     <Menu.ItemAction
                         buttonClass='PopoutMenuItem'
                         text={formatMessage({

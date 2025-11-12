@@ -156,17 +156,17 @@ describe('components/UnreadsStatusHandler', () => {
         wrapper.setProps({
             unreadStatus: 3,
         });
-        expect(instance.updateFavicon).lastCalledWith('Mention');
+        expect(instance.updateFavicon).toHaveBeenLastCalledWith('Mention');
 
         wrapper.setProps({
             unreadStatus: true,
         });
-        expect(instance.updateFavicon).lastCalledWith('Unread');
+        expect(instance.updateFavicon).toHaveBeenLastCalledWith('Unread');
 
         wrapper.setProps({
             unreadStatus: false,
         });
-        expect(instance.updateFavicon).lastCalledWith('None');
+        expect(instance.updateFavicon).toHaveBeenLastCalledWith('None');
     });
 
     test('should display correct title when in drafts', () => {

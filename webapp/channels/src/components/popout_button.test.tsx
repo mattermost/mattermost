@@ -6,15 +6,15 @@ import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import {renderWithContext} from 'tests/react_testing_utils';
-import DesktopApp from 'utils/desktop_api';
 
 import PopoutButton from './popout_button';
 
-// Mock dependencies
-jest.mock('utils/desktop_api', () => ({
+let mockCanPopout = true;
+
+jest.mock('utils/popouts/popout_windows', () => ({
     __esModule: true,
-    default: {
-        canPopout: jest.fn(),
+    get canPopout() {
+        return mockCanPopout;
     },
 }));
 
@@ -22,21 +22,19 @@ jest.mock('utils/user_agent', () => ({
     isDesktopApp: jest.fn(),
 }));
 
-const mockDesktopApp = DesktopApp as jest.Mocked<typeof DesktopApp>;
-
 describe('PopoutButton', () => {
     const defaultProps = {
         onClick: jest.fn(),
     };
 
     beforeEach(() => {
-        mockDesktopApp.canPopout.mockReturnValue(true);
         jest.clearAllMocks();
+
+        mockCanPopout = true;
     });
 
-    it('should not render when desktop app cannot popout', async () => {
-        mockDesktopApp.canPopout.mockReturnValue(false);
-
+    it('should not render when cannot popout', async () => {
+        mockCanPopout = false;
         const {container} = renderWithContext(
             <PopoutButton {...defaultProps}/>,
         );

@@ -91,12 +91,12 @@ describe('components/emoji/components/AddEmoji', () => {
 
         const fileInput = wrapper.find('#select-emoji');
         fileInput.simulate('change', {target: {files: []}});
-        expect(FileReader).not.toBeCalled();
+        expect(FileReader).not.toHaveBeenCalled();
         expect(wrapper.state('image')).toEqual(null);
         expect(wrapper.state('imageUrl')).toEqual('');
 
         fileInput.simulate('change', {target: {files: [file]}});
-        expect(FileReader).toBeCalled();
+        expect(FileReader).toHaveBeenCalled();
         expect(readAsDataURL).toHaveBeenCalledWith(file);
         expect(onload).toHaveBeenCalledTimes(1);
         expect(wrapper.state('image')).toEqual(file);
@@ -134,7 +134,7 @@ describe('components/emoji/components/AddEmoji', () => {
         Promise.resolve();
 
         expect(wrapper.state('saving')).toEqual(true);
-        expect(baseProps.actions.createCustomEmoji).toBeCalled();
+        expect(baseProps.actions.createCustomEmoji).toHaveBeenCalled();
         expect(wrapper.state().error).toBeNull();
     });
 
@@ -151,7 +151,7 @@ describe('components/emoji/components/AddEmoji', () => {
         Promise.resolve();
 
         expect(wrapper.state('saving')).toEqual(true);
-        expect(baseProps.actions.createCustomEmoji).not.toBeCalled();
+        expect(baseProps.actions.createCustomEmoji).not.toHaveBeenCalled();
         expect(wrapper.state().error).toBeNull();
     });
 
@@ -166,7 +166,7 @@ describe('components/emoji/components/AddEmoji', () => {
         form.simulate('submit', {preventDefault: jest.fn()});
 
         expect(wrapper.state('saving')).toEqual(false);
-        expect(baseProps.actions.createCustomEmoji).not.toBeCalled();
+        expect(baseProps.actions.createCustomEmoji).not.toHaveBeenCalled();
         expect(wrapper.state().error).not.toBeNull();
         assertErrorIsElementWithMatchingId(wrapper.state().error, 'add_emoji.nameRequired');
     });
@@ -184,7 +184,7 @@ describe('components/emoji/components/AddEmoji', () => {
         form.simulate('submit', {preventDefault: jest.fn()});
 
         expect(wrapper.state('saving')).toEqual(false);
-        expect(baseProps.actions.createCustomEmoji).not.toBeCalled();
+        expect(baseProps.actions.createCustomEmoji).not.toHaveBeenCalled();
         expect(wrapper.state().error).not.toBeNull();
         assertErrorIsElementWithMatchingId(wrapper.state().error, 'add_emoji.imageRequired');
     });
@@ -209,7 +209,7 @@ describe('components/emoji/components/AddEmoji', () => {
         saveButton.simulate('click', {preventDefault: jest.fn()});
 
         expect(wrapper.state().saving).toEqual(true);
-        expect(baseProps.actions.createCustomEmoji).toBeCalled();
+        expect(baseProps.actions.createCustomEmoji).toHaveBeenCalled();
         expect(wrapper.state().error).toBeNull();
     });
 
@@ -240,7 +240,7 @@ describe('components/emoji/components/AddEmoji', () => {
         form.simulate('submit', {preventDefault: jest.fn()});
 
         expect(wrapper.state().saving).toEqual(false);
-        expect(baseProps.actions.createCustomEmoji).not.toBeCalled();
+        expect(baseProps.actions.createCustomEmoji).not.toHaveBeenCalled();
         expect(wrapper.state().error).not.toBeNull();
         assertErrorIsElementWithMatchingId(wrapper.state().error, 'add_emoji.nameInvalid');
     });
@@ -285,7 +285,7 @@ describe('components/emoji/components/AddEmoji', () => {
         form.simulate('submit', {preventDefault: jest.fn()});
 
         expect(wrapper.state().saving).toEqual(false);
-        expect(baseProps.actions.createCustomEmoji).not.toBeCalled();
+        expect(baseProps.actions.createCustomEmoji).not.toHaveBeenCalled();
         expect(wrapper.state().error).not.toBeNull();
         assertErrorIsElementWithMatchingId(wrapper.state().error, 'add_emoji.nameTaken');
     });
@@ -306,7 +306,7 @@ describe('components/emoji/components/AddEmoji', () => {
         form.simulate('submit', {preventDefault: jest.fn()});
 
         expect(wrapper.state().saving).toEqual(false);
-        expect(baseProps.actions.createCustomEmoji).not.toBeCalled();
+        expect(baseProps.actions.createCustomEmoji).not.toHaveBeenCalled();
         expect(wrapper.state().error).not.toBeNull();
         assertErrorIsElementWithMatchingId(wrapper.state().error, 'add_emoji.customNameTaken');
     });
@@ -331,7 +331,7 @@ describe('components/emoji/components/AddEmoji', () => {
         form.simulate('submit', {preventDefault: jest.fn()});
 
         expect(wrapper.state().saving).toEqual(false);
-        expect(baseProps.actions.createCustomEmoji).not.toBeCalled();
+        expect(baseProps.actions.createCustomEmoji).not.toHaveBeenCalled();
         expect(wrapper.state().error).not.toBeNull();
         assertErrorIsElementWithMatchingId(wrapper.state().error, 'add_emoji.imageTooLarge');
     });
@@ -360,7 +360,7 @@ describe('components/emoji/components/AddEmoji', () => {
         expect(wrapper.state().error).not.toBeNull();
         assertErrorIsElementWithMatchingId(wrapper.state().error, 'add_emoji.failedToAdd');
         expect(wrapper.state().saving).toEqual(false);
-        expect(baseProps.actions.createCustomEmoji).not.toBeCalled();
+        expect(baseProps.actions.createCustomEmoji).not.toHaveBeenCalled();
     });
 
     test('should show response error message when action response is error', async () => {
@@ -388,6 +388,6 @@ describe('components/emoji/components/AddEmoji', () => {
         expect(wrapper.state().error).not.toBeNull();
         expect(wrapper.state().error).toEqual(serverError);
         expect(wrapper.state().saving).toEqual(false);
-        expect(baseProps.actions.createCustomEmoji).not.toBeCalled();
+        expect(baseProps.actions.createCustomEmoji).not.toHaveBeenCalled();
     });
 });

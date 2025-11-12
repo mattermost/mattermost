@@ -20,7 +20,6 @@ func TestCreateCPAField(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.CustomProfileAttributes = true
 	})
-	defer th.TearDown()
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		field := &model.PropertyField{Name: model.NewId(), Type: model.PropertyFieldTypeText}
@@ -119,7 +118,6 @@ func TestListCPAFields(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.CustomProfileAttributes = true
 	})
-	defer th.TearDown()
 
 	field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 		Name:  model.NewId(),
@@ -166,7 +164,6 @@ func TestPatchCPAField(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.CustomProfileAttributes = true
 	})
-	defer th.TearDown()
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		patch := &model.PropertyFieldPatch{Name: model.NewPointer(model.NewId())}
@@ -350,7 +347,6 @@ func TestDeleteCPAField(t *testing.T) {
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.CustomProfileAttributes = true
 	})
-	defer th.TearDown()
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		resp, err := client.DeleteCPAField(context.Background(), model.NewId())
@@ -423,11 +419,10 @@ func TestListCPAValues(t *testing.T) {
 
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.CustomProfileAttributes = true
-	}).InitBasic()
-	defer th.TearDown()
+	}).InitBasic(t)
 
-	th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
-	defer th.AddPermissionToRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
+	th.RemovePermissionFromRole(t, model.PermissionViewMembers.Id, model.SystemUserRoleId)
+	defer th.AddPermissionToRole(t, model.PermissionViewMembers.Id, model.SystemUserRoleId)
 
 	field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 		Name: model.NewId(),
@@ -454,7 +449,7 @@ func TestListCPAValues(t *testing.T) {
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	// login with Client2 from this point on
-	th.LoginBasic2()
+	th.LoginBasic2(t)
 
 	t.Run("any team member should be able to list values", func(t *testing.T) {
 		values, resp, err := th.Client.ListCPAValues(context.Background(), th.BasicUser.Id)
@@ -512,8 +507,7 @@ func TestPatchCPAValues(t *testing.T) {
 
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.CustomProfileAttributes = true
-	}).InitBasic()
-	defer th.TearDown()
+	}).InitBasic(t)
 
 	field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 		Name: model.NewId(),
@@ -878,8 +872,7 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.CustomProfileAttributes = true
-	}).InitBasic()
-	defer th.TearDown()
+	}).InitBasic(t)
 
 	field, err := model.NewCPAFieldFromPropertyField(&model.PropertyField{
 		Name: model.NewId(),

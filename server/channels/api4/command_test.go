@@ -21,8 +21,7 @@ import (
 
 func TestCreateCommand(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	LocalClient := th.LocalClient
 
@@ -85,8 +84,7 @@ func TestCreateCommand(t *testing.T) {
 
 func TestUpdateCommand(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	user := th.SystemAdminUser
 	team := th.BasicTeam
 
@@ -166,11 +164,10 @@ func TestUpdateCommand(t *testing.T) {
 
 func TestMoveCommand(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	user := th.SystemAdminUser
 	team := th.BasicTeam
-	newTeam := th.CreateTeam()
+	newTeam := th.CreateTeam(t)
 
 	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
 	defer func() {
@@ -226,8 +223,7 @@ func TestMoveCommand(t *testing.T) {
 
 func TestDeleteCommand(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	user := th.SystemAdminUser
 	team := th.BasicTeam
 
@@ -286,8 +282,7 @@ func TestDeleteCommand(t *testing.T) {
 
 func TestListCommands(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
@@ -359,7 +354,7 @@ func TestListCommands(t *testing.T) {
 		_, err := client.Logout(context.Background())
 		require.NoError(t, err)
 
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 		_, _, err = client.Login(context.Background(), user.Email, user.Password)
 		require.NoError(t, err)
 
@@ -385,8 +380,7 @@ func TestListCommands(t *testing.T) {
 
 func TestListAutocompleteCommands(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	newCmd := &model.Command{
@@ -440,7 +434,7 @@ func TestListAutocompleteCommands(t *testing.T) {
 		_, err := client.Logout(context.Background())
 		require.NoError(t, err)
 
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 		_, _, err = client.Login(context.Background(), user.Email, user.Password)
 		require.NoError(t, err)
 
@@ -460,8 +454,7 @@ func TestListAutocompleteCommands(t *testing.T) {
 
 func TestListCommandAutocompleteSuggestions(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	newCmd := &model.Command{
@@ -538,7 +531,7 @@ func TestListCommandAutocompleteSuggestions(t *testing.T) {
 		_, err := client.Logout(context.Background())
 		require.NoError(t, err)
 
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 		_, _, err = client.Login(context.Background(), user.Email, user.Password)
 		require.NoError(t, err)
 
@@ -558,8 +551,7 @@ func TestListCommandAutocompleteSuggestions(t *testing.T) {
 
 func TestGetCommand(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
 	defer func() {
@@ -604,7 +596,7 @@ func TestGetCommand(t *testing.T) {
 		_, err := th.Client.Logout(context.Background())
 		require.NoError(t, err)
 
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 		_, _, err = th.Client.Login(context.Background(), user.Email, user.Password)
 		require.NoError(t, err)
 
@@ -624,8 +616,7 @@ func TestGetCommand(t *testing.T) {
 
 func TestRegenToken(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
@@ -658,8 +649,7 @@ func TestRegenToken(t *testing.T) {
 
 func TestExecuteInvalidCommand(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	channel := th.BasicChannel
 
@@ -710,7 +700,7 @@ func TestExecuteInvalidCommand(t *testing.T) {
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	otherUser := th.CreateUser()
+	otherUser := th.CreateUser(t)
 	_, _, err = client.Login(context.Background(), otherUser.Email, otherUser.Password)
 	require.NoError(t, err)
 
@@ -731,8 +721,7 @@ func TestExecuteInvalidCommand(t *testing.T) {
 
 func TestExecuteGetCommand(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	channel := th.BasicChannel
 
@@ -794,8 +783,7 @@ func TestExecuteGetCommand(t *testing.T) {
 
 func TestExecutePostCommand(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	channel := th.BasicChannel
 
@@ -856,8 +844,7 @@ func TestExecutePostCommand(t *testing.T) {
 
 func TestExecuteCommandAgainstChannelOnAnotherTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 	channel := th.BasicChannel
 
@@ -890,7 +877,7 @@ func TestExecuteCommandAgainstChannelOnAnotherTeam(t *testing.T) {
 	defer ts.Close()
 
 	// create a slash command on some other team where we have permission to do so
-	team2 := th.CreateTeam()
+	team2 := th.CreateTeam(t)
 	postCmd := &model.Command{
 		CreatorId: th.BasicUser.Id,
 		TeamId:    team2.Id,
@@ -910,8 +897,7 @@ func TestExecuteCommandAgainstChannelOnAnotherTeam(t *testing.T) {
 
 func TestExecuteCommandAgainstChannelUserIsNotIn(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
@@ -943,7 +929,7 @@ func TestExecuteCommandAgainstChannelUserIsNotIn(t *testing.T) {
 	defer ts.Close()
 
 	// create a slash command on some other team where we have permission to do so
-	team2 := th.CreateTeam()
+	team2 := th.CreateTeam(t)
 	postCmd := &model.Command{
 		CreatorId: th.BasicUser.Id,
 		TeamId:    team2.Id,
@@ -955,7 +941,7 @@ func TestExecuteCommandAgainstChannelUserIsNotIn(t *testing.T) {
 	require.Nil(t, appErr, "failed to create post command")
 
 	// make a channel on that team, ensuring that our test user isn't in it
-	channel2 := th.CreateChannelWithClientAndTeam(client, model.ChannelTypeOpen, team2.Id)
+	channel2 := th.CreateChannelWithClientAndTeam(t, client, model.ChannelTypeOpen, team2.Id)
 	_, err := th.Client.RemoveUserFromChannel(context.Background(), channel2.Id, th.BasicUser.Id)
 	require.NoError(t, err, "Failed to remove user from channel")
 
@@ -967,8 +953,7 @@ func TestExecuteCommandAgainstChannelUserIsNotIn(t *testing.T) {
 
 func TestExecuteCommandInDirectMessageChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
@@ -985,7 +970,7 @@ func TestExecuteCommandInDirectMessageChannel(t *testing.T) {
 	})
 
 	// create a team that the user isn't a part of
-	team2 := th.CreateTeam()
+	team2 := th.CreateTeam(t)
 
 	expectedCommandResponse := &model.CommandResponse{
 		Text:         "test post command response",
@@ -1032,8 +1017,7 @@ func TestExecuteCommandInDirectMessageChannel(t *testing.T) {
 
 func TestExecuteCommandInTeamUserIsNotOn(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
@@ -1050,7 +1034,7 @@ func TestExecuteCommandInTeamUserIsNotOn(t *testing.T) {
 	})
 
 	// create a team that the user isn't a part of
-	team2 := th.CreateTeam()
+	team2 := th.CreateTeam(t)
 
 	expectedCommandResponse := &model.CommandResponse{
 		Text:         "test post command response",
@@ -1110,8 +1094,7 @@ func TestExecuteCommandInTeamUserIsNotOn(t *testing.T) {
 
 func TestExecuteCommandReadOnly(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	enableCommands := *th.App.Config().ServiceSettings.EnableCommands

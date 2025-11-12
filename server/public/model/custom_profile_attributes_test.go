@@ -79,7 +79,7 @@ func TestNewCPAFieldFromPropertyField(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "property field with empty attributes",
+			name: "property field with empty attributes returns empty values",
 			propertyField: &PropertyField{
 				ID:       NewId(),
 				GroupID:  CustomProfileAttributesPropertyGroupName,
@@ -89,7 +89,7 @@ func TestNewCPAFieldFromPropertyField(t *testing.T) {
 				UpdateAt: GetMillis(),
 			},
 			wantAttrs: CPAAttrs{
-				Visibility: "",
+				Visibility: "", // Pure conversion, no defaults (defaults provided by app layer)
 				SortOrder:  0,
 				ValueType:  "",
 				Options:    nil,

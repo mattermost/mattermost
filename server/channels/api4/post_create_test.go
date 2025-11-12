@@ -18,8 +18,7 @@ func makePendingPostId(user *model.User) string {
 }
 
 func TestCreatePostWithPendingPostId(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	t.Run("should successfully create a post with PendingPostId", func(t *testing.T) {
@@ -44,7 +43,7 @@ func TestCreatePostWithPendingPostId(t *testing.T) {
 		// First user creates a post with a PendingPostId
 		pendingPostId := makePendingPostId(th.BasicUser)
 
-		privateChannel := th.CreatePrivateChannel()
+		privateChannel := th.CreatePrivateChannel(t)
 
 		firstPost, resp, err := client.CreatePost(context.Background(), &model.Post{
 			ChannelId:     privateChannel.Id,

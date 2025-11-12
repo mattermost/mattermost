@@ -79,20 +79,20 @@ describe('components/SuggestionBox', () => {
         instance.handleEmitClearSuggestions = jest.fn();
 
         instance.handleFocusOut({relatedTarget});
-        expect(instance.handleEmitClearSuggestions).not.toBeCalled();
+        expect(instance.handleEmitClearSuggestions).not.toHaveBeenCalled();
         expect(wrapper.state('focused')).toEqual(true);
-        expect(onBlur).not.toBeCalled();
+        expect(onBlur).not.toHaveBeenCalled();
 
         // test for iOS agent
         instance.handleFocusOut({});
-        expect(instance.handleEmitClearSuggestions).not.toBeCalled();
+        expect(instance.handleEmitClearSuggestions).not.toHaveBeenCalled();
         expect(wrapper.state('focused')).toEqual(true);
-        expect(onBlur).not.toBeCalled();
+        expect(onBlur).not.toHaveBeenCalled();
 
         instance.handleFocusOut({relatedTarget});
-        expect(instance.handleEmitClearSuggestions).toBeCalledTimes(1);
+        expect(instance.handleEmitClearSuggestions).toHaveBeenCalledTimes(1);
         expect(wrapper.state('focused')).toEqual(false);
-        expect(onBlur).toBeCalledTimes(1);
+        expect(onBlur).toHaveBeenCalledTimes(1);
     });
 
     test('should force pretext change on context change', () => {
@@ -106,10 +106,10 @@ describe('components/SuggestionBox', () => {
         instance.getTextbox = jest.fn().mockReturnValue({value: 'value'});
 
         wrapper.setProps({...baseProps});
-        expect(instance.handlePretextChanged).not.toBeCalled();
+        expect(instance.handlePretextChanged).not.toHaveBeenCalled();
 
         wrapper.setProps({...baseProps, contextId: 'new'});
-        expect(instance.handlePretextChanged).toBeCalledWith('value');
+        expect(instance.handlePretextChanged).toHaveBeenCalledWith('value');
 
         wrapper.setProps({...baseProps, contextId: 'new'});
         expect(instance.handlePretextChanged.mock.calls.length).toBe(1);
@@ -126,10 +126,10 @@ describe('components/SuggestionBox', () => {
         instance.pretext = 'value';
 
         wrapper.setProps({...baseProps});
-        expect(instance.handlePretextChanged).not.toBeCalled();
+        expect(instance.handlePretextChanged).not.toHaveBeenCalled();
 
         wrapper.setProps({...baseProps, value: ''});
-        expect(instance.handlePretextChanged).toBeCalledWith('');
+        expect(instance.handlePretextChanged).toHaveBeenCalledWith('');
     });
 
     test('should force pretext change on composition update', () => {
@@ -143,10 +143,10 @@ describe('components/SuggestionBox', () => {
         instance.getTextbox = jest.fn().mockReturnValue({value: ''});
 
         instance.handleCompositionUpdate({data: '@ㅈ'});
-        expect(instance.handlePretextChanged).toBeCalledWith('@ㅈ');
+        expect(instance.handlePretextChanged).toHaveBeenCalledWith('@ㅈ');
 
         instance.handleCompositionUpdate({data: '@저'});
-        expect(instance.handlePretextChanged).toBeCalledWith('@저');
+        expect(instance.handlePretextChanged).toHaveBeenCalledWith('@저');
     });
 
     test('should reset selection after provider.handlePretextChanged is handled', () => {
@@ -257,7 +257,7 @@ describe('components/SuggestionBox', () => {
         instance.handleFocusOut({relatedTarget});
         expect(instance.handleEmitClearSuggestions).not.toHaveBeenCalled();
         expect(wrapper.state('focused')).toEqual(false);
-        expect(onBlur).toBeCalledTimes(1);
+        expect(onBlur).toHaveBeenCalledTimes(1);
     });
 
     test('should call for handlePretextChanged on handleFocusIn and change of pretext', () => {

@@ -231,7 +231,7 @@ describe('components/Root', () => {
         window.dispatchEvent(new Event('focus'));
 
         await waitFor(() => {
-            expect(window.location.reload).toBeCalledTimes(1);
+            expect(window.location.reload).toHaveBeenCalledTimes(1);
         });
     });
 

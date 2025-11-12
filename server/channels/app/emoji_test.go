@@ -17,7 +17,6 @@ func TestGetMultipleEmojiByName(t *testing.T) {
 	// the call to the DB does not happen. If it did, we would have needed
 	// to provide the mock explicitly.
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableCustomEmoji = true

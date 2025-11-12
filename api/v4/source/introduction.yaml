@@ -462,6 +462,8 @@ tags:
     description: Endpoints related to metrics, including the Client Performance Monitoring feature.
   - name: audit_logs
     description: Endpoints for managing audit log certificates and configuration.
+  - name: ai
+    description: Endpoints for interacting with AI agents and services.
 servers:
   - url: "{your-mattermost-url}"
     variables:

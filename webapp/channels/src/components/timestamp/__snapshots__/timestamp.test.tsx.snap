@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/timestamp/Timestamp should be wrapped in SemanticTime and support passthrough className and label 1`] = `
 <Memo(SemanticTime)

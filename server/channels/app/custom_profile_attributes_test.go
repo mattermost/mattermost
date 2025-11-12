@@ -16,8 +16,7 @@ import (
 
 func TestGetCPAField(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	cpaGroupID, cErr := th.App.CpaGroupID()
 	require.NoError(t, cErr)
@@ -62,6 +61,44 @@ func TestGetCPAField(t *testing.T) {
 		require.Equal(t, createdField.ID, fetchedField.ID)
 		require.Equal(t, "Test Field", fetchedField.Name)
 		require.Equal(t, model.CustomProfileAttributesVisibilityHidden, fetchedField.Attrs["visibility"])
+	})
+
+	t.Run("should initialize default attrs when field has nil Attrs", func(t *testing.T) {
+		// Create a field with nil Attrs directly via property service (bypassing CPA validation)
+		field := &model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    "Field with nil attrs",
+			Type:    model.PropertyFieldTypeText,
+			Attrs:   nil,
+		}
+		createdField, err := th.App.Srv().propertyService.CreatePropertyField(field)
+		require.NoError(t, err)
+
+		// GetCPAField should initialize Attrs with defaults
+		fetchedField, appErr := th.App.GetCPAField(createdField.ID)
+		require.Nil(t, appErr)
+		require.NotNil(t, fetchedField.Attrs)
+		require.Equal(t, model.CustomProfileAttributesVisibilityDefault, fetchedField.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility])
+		require.Equal(t, float64(0), fetchedField.Attrs[model.CustomProfileAttributesPropertyAttrsSortOrder])
+	})
+
+	t.Run("should initialize default attrs when field has empty Attrs", func(t *testing.T) {
+		// Create a field with empty Attrs directly via property service
+		field := &model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    "Field with empty attrs",
+			Type:    model.PropertyFieldTypeText,
+			Attrs:   model.StringInterface{},
+		}
+		createdField, err := th.App.Srv().propertyService.CreatePropertyField(field)
+		require.NoError(t, err)
+
+		// GetCPAField should add missing default attrs
+		fetchedField, appErr := th.App.GetCPAField(createdField.ID)
+		require.Nil(t, appErr)
+		require.NotNil(t, fetchedField.Attrs)
+		require.Equal(t, model.CustomProfileAttributesVisibilityDefault, fetchedField.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility])
+		require.Equal(t, float64(0), fetchedField.Attrs[model.CustomProfileAttributesPropertyAttrsSortOrder])
 	})
 
 	t.Run("should validate LDAP/SAML synced fields", func(t *testing.T) {
@@ -121,8 +158,7 @@ func TestGetCPAField(t *testing.T) {
 
 func TestListCPAFields(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	cpaGroupID, cErr := th.App.CpaGroupID()
 	require.NoError(t, cErr)
@@ -161,11 +197,47 @@ func TestListCPAFields(t *testing.T) {
 		require.Equal(t, "Field 3", fields[0].Name)
 		require.Equal(t, "Field 1", fields[1].Name)
 	})
+
+	t.Run("should initialize default attrs for fields with nil or empty Attrs", func(t *testing.T) {
+		// Create a field with nil Attrs
+		fieldWithNilAttrs := &model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    "Field with nil attrs",
+			Type:    model.PropertyFieldTypeText,
+			Attrs:   nil,
+		}
+		_, err := th.App.Srv().propertyService.CreatePropertyField(fieldWithNilAttrs)
+		require.NoError(t, err)
+
+		// Create a field with empty Attrs
+		fieldWithEmptyAttrs := &model.PropertyField{
+			GroupID: cpaGroupID,
+			Name:    "Field with empty attrs",
+			Type:    model.PropertyFieldTypeText,
+			Attrs:   model.StringInterface{},
+		}
+		_, err = th.App.Srv().propertyService.CreatePropertyField(fieldWithEmptyAttrs)
+		require.NoError(t, err)
+
+		// ListCPAFields should initialize Attrs with defaults
+		fields, appErr := th.App.ListCPAFields()
+		require.Nil(t, appErr)
+		require.NotEmpty(t, fields)
+
+		// Find our test fields and verify default attrs are set
+		for _, field := range fields {
+			if field.Name == "Field with nil attrs" || field.Name == "Field with empty attrs" {
+				require.NotNil(t, field.Attrs)
+				require.Equal(t, model.CustomProfileAttributesVisibilityDefault, field.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility])
+				require.Equal(t, float64(0), field.Attrs[model.CustomProfileAttributesPropertyAttrsSortOrder])
+			}
+		}
+	})
 }
 
 func TestCreateCPAField(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 
 	cpaGroupID, cErr := th.App.CpaGroupID()
 	require.NoError(t, cErr)
@@ -242,12 +314,8 @@ func TestCreateCPAField(t *testing.T) {
 		require.Zero(t, fetchedField.DeleteAt, "DeleteAt should be 0 in database")
 	})
 
-	// reset the server at this point to avoid polluting the state
-	th.TearDown()
-
 	t.Run("CPA should honor the field limit", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		t.Run("should not be able to create CPA fields above the limit", func(t *testing.T) {
 			// we create the rest of the fields required to reach the limit
@@ -301,8 +369,7 @@ func TestCreateCPAField(t *testing.T) {
 
 func TestPatchCPAField(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	cpaGroupID, cErr := th.App.CpaGroupID()
 	require.NoError(t, cErr)
@@ -564,8 +631,7 @@ func TestPatchCPAField(t *testing.T) {
 
 func TestDeleteCPAField(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	cpaGroupID, cErr := th.App.CpaGroupID()
 	require.NoError(t, cErr)
@@ -645,8 +711,7 @@ func TestDeleteCPAField(t *testing.T) {
 
 func TestGetCPAValue(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	cpaGroupID, cErr := th.App.CpaGroupID()
 	require.NoError(t, cErr)
@@ -723,8 +788,7 @@ func TestListCPAValues(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.CustomProfileAttributes = true
-	}).InitBasic()
-	defer th.TearDown()
+	}).InitBasic(t)
 
 	cpaGroupID, cErr := th.App.CpaGroupID()
 	require.NoError(t, cErr)
@@ -779,8 +843,7 @@ func TestListCPAValues(t *testing.T) {
 
 func TestPatchCPAValue(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	cpaGroupID, cErr := th.App.CpaGroupID()
 	require.NoError(t, cErr)
@@ -906,8 +969,7 @@ func TestDeleteCPAValues(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupConfig(t, func(cfg *model.Config) {
 		cfg.FeatureFlags.CustomProfileAttributes = true
-	}).InitBasic()
-	defer th.TearDown()
+	}).InitBasic(t)
 
 	cpaGroupID, cErr := th.App.CpaGroupID()
 	require.NoError(t, cErr)

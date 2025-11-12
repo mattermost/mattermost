@@ -116,7 +116,7 @@ describe('components/user_settings/advanced/JoinLeaveSection', () => {
         wrapper.setState({joinLeaveState: 'false'});
         instance.handleUpdateSection(AdvancedSections.JOIN_LEAVE);
         expect(onUpdateSection).toHaveBeenCalledTimes(2);
-        expect(onUpdateSection).toBeCalledWith(AdvancedSections.JOIN_LEAVE);
+        expect(onUpdateSection).toHaveBeenCalledWith(AdvancedSections.JOIN_LEAVE);
     });
 });
 

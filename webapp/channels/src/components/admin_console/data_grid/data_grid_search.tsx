@@ -15,6 +15,7 @@ type Props = {
     onSearch: (term: string) => void;
     term?: string;
     extraComponent?: JSX.Element;
+    disabled?: boolean;
 
     filterProps?: {
         options: FilterOptions;
@@ -28,6 +29,7 @@ const DataGridSearch = ({
     extraComponent,
     filterProps,
     onSearch,
+    disabled,
 }: Props) => {
     const handleSearch = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const term = e.target.value;
@@ -60,6 +62,7 @@ const DataGridSearch = ({
                     onChange={handleSearch}
                     value={termFromProps}
                     data-testid='searchInput'
+                    disabled={disabled}
                 />
                 <i
                     className={'DataGrid_clearButton fa fa-times-circle ' + (termFromProps.length ? '' : 'hidden')}

@@ -152,27 +152,27 @@ TEMPLATES_DIR=templates
 
 # Plugins Packages
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
-PLUGIN_PACKAGES += mattermost-plugin-calls-v1.10.0
+PLUGIN_PACKAGES += mattermost-plugin-calls-v1.11.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.5.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.11.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v4.4.0
-PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.5.0
-PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
+PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.5.1
+PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.4.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.10.0
 PLUGIN_PACKAGES += mattermost-plugin-agents-v1.4.0
 PLUGIN_PACKAGES += mattermost-plugin-boards-v9.1.7
 PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
-PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.3.4
+PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v1.4.0
 PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v2.3.0
 PLUGIN_PACKAGES += mattermost-plugin-metrics-v0.7.0
-PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.2.1
+PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.3.0
 
 # Overwrite the definition of PLUGIN_PACKAGES with the list of FIPS-ready plugins
 # Note that the '+' in the file name is encoded as %2B for the URL we use to
 # download the package from to work. This will no longer be needed when we unify
 # the way we pre-package FIPS and non-FIPS plugins.
 ifeq ($(FIPS_ENABLED),true)
-	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.5.0%2Bc140653-fips
+	PLUGIN_PACKAGES  = mattermost-plugin-playbooks-v2.5.1%2Bfe08fbc-fips
 	PLUGIN_PACKAGES += mattermost-plugin-agents-v1.4.0%2B2f27b68-fips
 	PLUGIN_PACKAGES += mattermost-plugin-boards-v9.1.7%2Ba980cd2-fips
 endif

@@ -163,10 +163,10 @@ describe('components/ModalController', () => {
         expect(wrapper.find(TestModal).prop('onExited')).toBeDefined();
         expect(wrapper.find(Modal).prop('onExited')).toBeDefined();
 
-        expect(onExited).not.toBeCalled();
+        expect(onExited).not.toHaveBeenCalled();
 
         wrapper.find(TestModal).prop('onExited')!();
 
-        expect(onExited).toBeCalled();
+        expect(onExited).toHaveBeenCalled();
     });
 });

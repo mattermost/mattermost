@@ -57,13 +57,11 @@ func (s *MmctlUnitTestSuite) TestRemoveLicenseCmd() {
 func (s *MmctlUnitTestSuite) TestUploadLicenseCmdF() {
 	// create temporary file
 	tmpFile, err := os.CreateTemp(os.TempDir(), "testLicense-")
-	if err != nil {
-		panic(err)
-	}
+	s.NoError(err)
+
 	text := []byte(fakeLicensePayload)
-	if _, err = tmpFile.Write(text); err != nil {
-		panic(err)
-	}
+	_, err = tmpFile.Write(text)
+	s.NoError(err)
 	defer os.Remove(tmpFile.Name())
 
 	mockLicenseFile := []byte(fakeLicensePayload)

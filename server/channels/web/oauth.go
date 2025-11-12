@@ -28,11 +28,14 @@ const (
 )
 
 func (w *Web) InitOAuth() {
+	// OAuth 2.0 Authorization Server Metadata endpoint (RFC 8414)
+	w.MainRouter.Handle(model.OAuthMetadataEndpoint, w.APIHandlerTrustRequester(getAuthorizationServerMetadata)).Methods(http.MethodGet)
+
 	// API version independent OAuth 2.0 as a service provider endpoints
-	w.MainRouter.Handle("/oauth/authorize", w.APIHandlerTrustRequester(authorizeOAuthPage)).Methods(http.MethodGet)
-	w.MainRouter.Handle("/oauth/authorize", w.APISessionRequired(authorizeOAuthApp)).Methods(http.MethodPost)
-	w.MainRouter.Handle("/oauth/deauthorize", w.APISessionRequired(deauthorizeOAuthApp)).Methods(http.MethodPost)
-	w.MainRouter.Handle("/oauth/access_token", w.APIHandlerTrustRequester(getAccessToken)).Methods(http.MethodPost)
+	w.MainRouter.Handle(model.OAuthAuthorizeEndpoint, w.APIHandlerTrustRequester(authorizeOAuthPage)).Methods(http.MethodGet)
+	w.MainRouter.Handle(model.OAuthAuthorizeEndpoint, w.APISessionRequired(authorizeOAuthApp)).Methods(http.MethodPost)
+	w.MainRouter.Handle(model.OAuthDeauthorizeEndpoint, w.APISessionRequired(deauthorizeOAuthApp)).Methods(http.MethodPost)
+	w.MainRouter.Handle(model.OAuthAccessTokenEndpoint, w.APIHandlerTrustRequester(getAccessToken)).Methods(http.MethodPost)
 
 	// API version independent OAuth as a client endpoints
 	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/complete", w.APIHandler(completeOAuth)).Methods(http.MethodGet)
@@ -122,11 +125,14 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	authRequest := &model.AuthorizeRequest{
-		ResponseType: r.URL.Query().Get("response_type"),
-		ClientId:     r.URL.Query().Get("client_id"),
-		RedirectURI:  r.URL.Query().Get("redirect_uri"),
-		Scope:        r.URL.Query().Get("scope"),
-		State:        r.URL.Query().Get("state"),
+		ResponseType:        r.URL.Query().Get("response_type"),
+		ClientId:            r.URL.Query().Get("client_id"),
+		RedirectURI:         r.URL.Query().Get("redirect_uri"),
+		Scope:               r.URL.Query().Get("scope"),
+		State:               r.URL.Query().Get("state"),
+		CodeChallenge:       r.URL.Query().Get("code_challenge"),
+		CodeChallengeMethod: r.URL.Query().Get("code_challenge_method"),
+		Resource:            r.URL.Query().Get("resource"),
 	}
 
 	loginHint := r.URL.Query().Get("login_hint")
@@ -170,6 +176,18 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 			url.Values{
 				"type":    []string{"oauth_invalid_redirect_url"},
 				"message": []string{i18n.T("api.oauth.allow_oauth.redirect_callback.app_error")},
+			}, c.App.AsymmetricSigningKey())
+		return
+	}
+
+	// Validate PKCE requirements for public clients using authorization code flow
+	// Implicit flow doesn't require PKCE as it doesn't use code exchange
+	if oauthApp.IsPublicClient() && authRequest.ResponseType == model.AuthCodeResponseType && authRequest.CodeChallenge == "" {
+		err := model.NewAppError("authorizeOAuthPage", "api.oauth.allow_oauth.pkce_required_public.app_error", nil, "", http.StatusBadRequest)
+		utils.RenderWebError(c.App.Config(), w, r, err.StatusCode,
+			url.Values{
+				"type":    []string{"oauth_pkce_required"},
+				"message": []string{"PKCE is required for public clients using authorization code flow"},
 			}, c.App.AsymmetricSigningKey())
 		return
 	}
@@ -241,12 +259,14 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	secret := r.FormValue("client_secret")
-	if secret == "" {
-		c.Err = model.NewAppError("getAccessToken", "api.oauth.get_access_token.bad_client_secret.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
+	codeVerifier := r.FormValue("code_verifier")
+
+	// Authentication validation will be done at app layer based on client type
+	// For public clients: client_secret should be empty, code_verifier required
+	// For confidential clients: client_secret required, code_verifier optional but enforced if used
 
 	redirectURI := r.FormValue("redirect_uri")
+	resource := r.FormValue("resource")
 
 	auditRec := c.MakeAuditRecord(model.AuditEventGetAccessToken, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
@@ -254,7 +274,7 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("client_id", clientId)
 	c.LogAudit("attempt")
 
-	accessRsp, err := c.App.GetOAuthAccessTokenForCodeFlow(c.AppContext, clientId, grantType, redirectURI, code, secret, refreshToken)
+	accessRsp, err := c.App.GetOAuthAccessTokenForCodeFlow(c.AppContext, clientId, grantType, redirectURI, code, secret, refreshToken, codeVerifier, resource)
 	if err != nil {
 		c.Err = err
 		return
@@ -586,4 +606,21 @@ func fullyQualifiedRedirectURL(siteURLPrefix, targetURL string, otherValidScheme
 	}
 
 	return parsed.String()
+}
+
+func getAuthorizationServerMetadata(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !*c.App.Config().ServiceSettings.EnableOAuthServiceProvider {
+		c.Err = model.NewAppError("getAuthorizationServerMetadata", "api.oauth.authorization_server_metadata.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	metadata, err := c.App.GetAuthorizationServerMetadata(c.AppContext)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(metadata); err != nil {
+		c.Logger.Warn("Error writing authorization server metadata response", mlog.Err(err))
+	}
 }

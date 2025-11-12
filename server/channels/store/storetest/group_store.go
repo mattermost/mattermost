@@ -4437,7 +4437,6 @@ func testTeamMembersMinusGroupMembers(t *testing.T, rctx request.CTX, ss store.S
 		page               int
 		perPage            int
 		setup              func()
-		teardown           func()
 	}{
 		"No group IDs, all members": {
 			expectedUserIDs:    []string{users[0].Id, users[1].Id, users[2].Id, users[3].Id, user.Id},
@@ -4495,10 +4494,6 @@ func testTeamMembersMinusGroupMembers(t *testing.T, rctx request.CTX, ss store.S
 		t.Run(tcName, func(t *testing.T) {
 			if tc.setup != nil {
 				tc.setup()
-			}
-
-			if tc.teardown != nil {
-				defer tc.teardown()
 			}
 
 			actual, err := ss.Group().TeamMembersMinusGroupMembers(team.Id, tc.groupIDs, tc.page, tc.perPage)
@@ -4600,7 +4595,6 @@ func testChannelMembersMinusGroupMembers(t *testing.T, rctx request.CTX, ss stor
 		page               int
 		perPage            int
 		setup              func()
-		teardown           func()
 	}{
 		"No group IDs, all members": {
 			expectedUserIDs:    []string{users[0].Id, users[1].Id, users[2].Id, users[3].Id, users[4].Id},
@@ -4658,10 +4652,6 @@ func testChannelMembersMinusGroupMembers(t *testing.T, rctx request.CTX, ss stor
 		t.Run(tcName, func(t *testing.T) {
 			if tc.setup != nil {
 				tc.setup()
-			}
-
-			if tc.teardown != nil {
-				defer tc.teardown()
 			}
 
 			actual, err := ss.Group().ChannelMembersMinusGroupMembers(channel.Id, tc.groupIDs, tc.page, tc.perPage)

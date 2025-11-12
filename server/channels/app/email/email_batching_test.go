@@ -18,7 +18,6 @@ func TestHandleNewNotifications(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	id1 := model.NewId()
 	id2 := model.NewId()
@@ -77,8 +76,7 @@ func TestHandleNewNotifications(t *testing.T) {
 
 func TestCheckPendingNotifications(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	job := NewEmailBatchingJob(th.service, 128)
 	job.pendingNotifications[th.BasicUser.Id] = []*batchedNotification{
@@ -197,8 +195,7 @@ func TestCheckPendingNotifications(t *testing.T) {
  */
 func TestCheckPendingNotificationsDefaultInterval(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	job := NewEmailBatchingJob(th.service, 128)
 
@@ -241,8 +238,7 @@ func TestCheckPendingNotificationsDefaultInterval(t *testing.T) {
  */
 func TestCheckPendingNotificationsCantParseInterval(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	job := NewEmailBatchingJob(th.service, 128)
 

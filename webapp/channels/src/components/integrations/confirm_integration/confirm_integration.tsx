@@ -191,6 +191,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
     } else if (type === Constants.Integrations.OAUTH_APP && oauthApp) {
         const oauthAppToken = oauthApp.id;
         const oauthAppSecret = oauthApp.client_secret;
+        const isPublicClient = !oauthAppSecret || oauthAppSecret === '';
 
         headerText = (
             <FormattedMessage
@@ -200,24 +201,48 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
         );
 
         helpText = [];
-        helpText.push(
-            <p key='add_oauth_app.doneHelp'>
-                <FormattedMessage
-                    id='add_oauth_app.doneHelp'
-                    defaultMessage='Your OAuth 2.0 application is set up. Please use the following Client ID and Client Secret when requesting authorization for your application (details at <link>oAuth 2 Applications</link>).'
-                    values={{
-                        link: (msg) => (
-                            <ExternalLink
-                                href={DeveloperLinks.SETUP_OAUTH2}
-                                location='confirm_integration'
-                            >
-                                {msg}
-                            </ExternalLink>
-                        ),
-                    }}
-                />
-            </p>,
-        );
+
+        // Show different help text for public vs confidential clients
+        if (isPublicClient) {
+            helpText.push(
+                <p key='add_oauth_app.doneHelp'>
+                    <FormattedMessage
+                        id='add_oauth_app.doneHelp.public'
+                        defaultMessage='Your OAuth 2.0 public client application is set up. Please use the following Client ID when requesting authorization for your application. Public clients must use PKCE for authorization (details at <link>oAuth 2 Applications</link>).'
+                        values={{
+                            link: (msg) => (
+                                <ExternalLink
+                                    href={DeveloperLinks.SETUP_OAUTH2}
+                                    location='confirm_integration'
+                                >
+                                    {msg}
+                                </ExternalLink>
+                            ),
+                        }}
+                    />
+                </p>,
+            );
+        } else {
+            helpText.push(
+                <p key='add_oauth_app.doneHelp'>
+                    <FormattedMessage
+                        id='add_oauth_app.doneHelp'
+                        defaultMessage='Your OAuth 2.0 application is set up. Please use the following Client ID and Client Secret when requesting authorization for your application (details at <link>oAuth 2 Applications</link>).'
+                        values={{
+                            link: (msg) => (
+                                <ExternalLink
+                                    href={DeveloperLinks.SETUP_OAUTH2}
+                                    location='confirm_integration'
+                                >
+                                    {msg}
+                                </ExternalLink>
+                            ),
+                        }}
+                    />
+                </p>,
+            );
+        }
+
         helpText.push(
             <p key='add_oauth_app.clientId'>
                 <FormattedMessage
@@ -232,19 +257,23 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     label={messages.copyClientId}
                     value={oauthAppToken}
                 />
-                <br/>
-                <FormattedMessage
-                    id='add_oauth_app.clientSecret'
-                    defaultMessage='<b>Client Secret</b>: {secret}'
-                    values={{
-                        secret: <code>{oauthAppSecret}</code>,
-                        b: (chunks) => <b>{chunks}</b>,
-                    }}
-                />
-                <CopyText
-                    label={messages.copyClientSecret}
-                    value={oauthAppSecret}
-                />
+                {!isPublicClient && (
+                    <>
+                        <br/>
+                        <FormattedMessage
+                            id='add_oauth_app.clientSecret'
+                            defaultMessage='<b>Client Secret</b>: {secret}'
+                            values={{
+                                secret: <code>{oauthAppSecret}</code>,
+                                b: (chunks) => <b>{chunks}</b>,
+                            }}
+                        />
+                        <CopyText
+                            label={messages.copyClientSecret}
+                            value={oauthAppSecret}
+                        />
+                    </>
+                )}
             </p>,
         );
 

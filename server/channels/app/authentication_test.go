@@ -67,8 +67,7 @@ func TestParseAuthTokenFromRequest(t *testing.T) {
 
 func TestCheckPasswordAndAllCriteria(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	const maxFailedLoginAttempts = 3
 	const concurrentAttempts = maxFailedLoginAttempts + 1
@@ -161,8 +160,7 @@ func TestCheckPasswordAndAllCriteria(t *testing.T) {
 }
 
 func TestCheckLdapUserPasswordAndAllCriteria(t *testing.T) {
-	th := SetupEnterprise(t).InitBasic()
-	defer th.TearDown()
+	th := SetupEnterprise(t).InitBasic(t)
 
 	// update config
 	const maxFailedLoginAttempts = 3
@@ -258,8 +256,7 @@ func TestCheckLdapUserPasswordAndAllCriteria(t *testing.T) {
 }
 
 func TestCheckLdapUserPasswordConcurrency(t *testing.T) {
-	th := SetupEnterprise(t).InitBasic()
-	defer th.TearDown()
+	th := SetupEnterprise(t).InitBasic(t)
 
 	// update config
 	const maxFailedLoginAttempts = 1
@@ -369,8 +366,7 @@ func TestCheckLdapUserPasswordConcurrency(t *testing.T) {
 }
 
 func TestCheckUserPassword(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	pwd := "testPassword123$"
 	pwdBcryptBytes, err := bcrypt.GenerateFromPassword([]byte(pwd), 10)
@@ -382,7 +378,7 @@ func TestCheckUserPassword(t *testing.T) {
 	createUserWithHash := func(hash string) *model.User {
 		t.Helper()
 
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 
 		// Update the hash directly in the store (otherwise the app hashes it)
 		err := th.Server.Store().User().UpdatePassword(user.Id, hash)
@@ -502,8 +498,7 @@ func TestCheckUserPassword(t *testing.T) {
 }
 
 func TestMigratePassword(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	pwd := "testPassword123$"
 	pwdBcryptBytes, err := bcrypt.GenerateFromPassword([]byte(pwd), 10)
@@ -513,7 +508,7 @@ func TestMigratePassword(t *testing.T) {
 	createUserWithHash := func(hash string) *model.User {
 		t.Helper()
 
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 
 		// Update the hash directly in the store (otherwise the app hashes it)
 		err := th.Server.Store().User().UpdatePassword(user.Id, hash)

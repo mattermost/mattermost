@@ -16,8 +16,7 @@ func TestNotifyAdmin(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("error when notifying with empty data", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		statusCode, err := th.Client.NotifyAdmin(context.Background(), nil)
 
@@ -27,8 +26,7 @@ func TestNotifyAdmin(t *testing.T) {
 
 	t.Run("error when plan is unknown when notifying on upgrade", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		statusCode, err := th.Client.NotifyAdmin(context.Background(), &model.NotifyAdminToUpgradeRequest{
 			RequiredPlan:    "Unknown plan",
@@ -42,8 +40,7 @@ func TestNotifyAdmin(t *testing.T) {
 
 	t.Run("error when plan is unknown when notifying to trial", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		statusCode, err := th.Client.NotifyAdmin(context.Background(), &model.NotifyAdminToUpgradeRequest{
 			RequiredPlan:      "Unknown plan",
@@ -58,8 +55,7 @@ func TestNotifyAdmin(t *testing.T) {
 
 	t.Run("error when feature is unknown when notifying on upgrade", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		statusCode, err := th.Client.NotifyAdmin(context.Background(), &model.NotifyAdminToUpgradeRequest{
 			RequiredPlan:    model.LicenseShortSkuProfessional,
@@ -73,8 +69,7 @@ func TestNotifyAdmin(t *testing.T) {
 
 	t.Run("error when feature is unknown when notifying to trial", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		statusCode, err := th.Client.NotifyAdmin(context.Background(), &model.NotifyAdminToUpgradeRequest{
 			RequiredPlan:      model.LicenseShortSkuProfessional,
@@ -89,8 +84,7 @@ func TestNotifyAdmin(t *testing.T) {
 
 	t.Run("error when user tries to notify again on same feature within the cool off period", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		statusCode, err := th.Client.NotifyAdmin(context.Background(), &model.NotifyAdminToUpgradeRequest{
 			RequiredPlan:    model.LicenseShortSkuProfessional,
@@ -112,8 +106,7 @@ func TestNotifyAdmin(t *testing.T) {
 
 	t.Run("successfully save upgrade notification", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		statusCode, err := th.Client.NotifyAdmin(context.Background(), &model.NotifyAdminToUpgradeRequest{
 			RequiredPlan:    model.LicenseShortSkuProfessional,
@@ -129,8 +122,7 @@ func TestTriggerNotifyAdmin(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("error when EnableAPITriggerAdminNotifications is not true", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPITriggerAdminNotifications = false })
 
@@ -143,8 +135,7 @@ func TestTriggerNotifyAdmin(t *testing.T) {
 
 	t.Run("error when non admins try to trigger notifications", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPITriggerAdminNotifications = true })
 
@@ -158,7 +149,6 @@ func TestTriggerNotifyAdmin(t *testing.T) {
 	t.Run("happy path", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t)
-		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPITriggerAdminNotifications = true })
 

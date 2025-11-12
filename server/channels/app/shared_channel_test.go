@@ -28,11 +28,11 @@ func setupSharedChannels(tb testing.TB) *TestHelper {
 
 func TestApp_CheckCanInviteToSharedChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := setupSharedChannels(t).InitBasic()
+	th := setupSharedChannels(t).InitBasic(t)
 
-	channel1 := th.CreateChannel(th.Context, th.BasicTeam)
-	channel2 := th.CreateChannel(th.Context, th.BasicTeam)
-	channel3 := th.CreateChannel(th.Context, th.BasicTeam)
+	channel1 := th.CreateChannel(t, th.BasicTeam)
+	channel2 := th.CreateChannel(t, th.BasicTeam)
+	channel3 := th.CreateChannel(t, th.BasicTeam)
 
 	data := []struct {
 		channelID string
@@ -106,8 +106,7 @@ func TestApp_CheckCanInviteToSharedChannel(t *testing.T) {
 // TestApp_RemoteUnsharing tests the functionality where a shared channel is unshared on one side and triggers an unshare on the remote cluster.
 // This test uses a self-referential approach where a server syncs with itself through real HTTP communication.
 func TestApp_RemoteUnsharing(t *testing.T) {
-	th := setupSharedChannels(t).InitBasic()
-	defer th.TearDown()
+	th := setupSharedChannels(t).InitBasic(t)
 
 	ss := th.App.Srv().Store()
 
@@ -159,7 +158,7 @@ func TestApp_RemoteUnsharing(t *testing.T) {
 		syncHandler = NewSelfReferentialSyncHandler(t, service, selfCluster)
 
 		// Create a shared channel
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		sc := &model.SharedChannel{
 			ChannelId:        channel.Id,
 			TeamId:           channel.TeamId,
@@ -305,7 +304,7 @@ func TestApp_RemoteUnsharing(t *testing.T) {
 		syncHandler2 = NewSelfReferentialSyncHandler(t, service, selfCluster2)
 
 		// Create a shared channel
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
+		channel := th.CreateChannel(t, th.BasicTeam)
 		sc := &model.SharedChannel{
 			ChannelId:        channel.Id,
 			TeamId:           channel.TeamId,
@@ -442,8 +441,7 @@ func TestApp_RemoteUnsharing(t *testing.T) {
 }
 
 func TestSyncMessageErrChannelNotSharedResponse(t *testing.T) {
-	th := setupSharedChannels(t).InitBasic()
-	defer th.TearDown()
+	th := setupSharedChannels(t).InitBasic(t)
 
 	// Setup: Create a shared channel and remote cluster
 	ss := th.App.Srv().Store()
@@ -453,7 +451,7 @@ func TestSyncMessageErrChannelNotSharedResponse(t *testing.T) {
 	service, ok := scsInterface.(*sharedchannel.Service)
 	require.True(t, ok, "Expected sharedchannel.Service concrete type")
 
-	channel := th.CreateChannel(th.Context, th.BasicTeam)
+	channel := th.CreateChannel(t, th.BasicTeam)
 	sc := &model.SharedChannel{
 		ChannelId:        channel.Id,
 		TeamId:           th.BasicTeam.Id,
@@ -563,10 +561,10 @@ func TestSyncMessageErrChannelNotSharedResponse(t *testing.T) {
 // without requiring complex end-to-end cross-cluster setup.
 func TestTransformMentionsOnReceive(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := setupSharedChannels(t).InitBasic()
+	th := setupSharedChannels(t).InitBasic(t)
 
 	// Setup shared channel
-	sharedChannel := th.CreateChannel(th.Context, th.BasicTeam)
+	sharedChannel := th.CreateChannel(t, th.BasicTeam)
 	sc := &model.SharedChannel{
 		ChannelId: sharedChannel.Id,
 		TeamId:    th.BasicTeam.Id,
@@ -599,15 +597,15 @@ func TestTransformMentionsOnReceive(t *testing.T) {
 
 	// Helper to create test users
 	createUser := func(username string, remoteId *string) *model.User {
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 		user.Username = username
 		if remoteId != nil {
 			user.RemoteId = remoteId
 		}
 		user, updateErr := th.App.UpdateUser(th.Context, user, false)
 		require.Nil(t, updateErr)
-		th.LinkUserToTeam(user, th.BasicTeam)
-		th.AddUserToChannel(user, sharedChannel)
+		th.LinkUserToTeam(t, user, th.BasicTeam)
+		th.AddUserToChannel(t, user, sharedChannel)
 		return user
 	}
 

@@ -21,9 +21,10 @@ type Props = {
     id: string;
     onChange: SystemConsoleCustomSettingChangeHandler;
     value: ContentFlaggingNotificationSettings;
+    disabled?: boolean;
 }
 
-export default function ContentFlaggingNotificationSettingsSection({id, value, onChange}: Props) {
+export default function ContentFlaggingNotificationSettingsSection({id, value, onChange, disabled}: Props) {
     const [notificationSettings, setNotificationSettings] = useState<ContentFlaggingNotificationSettings>(value as ContentFlaggingNotificationSettings);
 
     const handleChange = useCallback((inputId: string, value: boolean) => {
@@ -133,6 +134,7 @@ export default function ContentFlaggingNotificationSettingsSection({id, value, o
                                 defaultChecked={getValue('flagged', 'author')}
                                 onChange={handleChange}
                                 setByEnv={false}
+                                disabled={disabled}
                             />
                         </div>
                     </div>
@@ -158,6 +160,7 @@ export default function ContentFlaggingNotificationSettingsSection({id, value, o
                                 defaultChecked={getValue('assigned', 'reviewers')}
                                 onChange={handleChange}
                                 setByEnv={false}
+                                disabled={disabled}
                             />
                         </div>
                     </div>
@@ -183,6 +186,7 @@ export default function ContentFlaggingNotificationSettingsSection({id, value, o
                                 defaultChecked={getValue('removed', 'reviewers')}
                                 onChange={handleChange}
                                 setByEnv={false}
+                                disabled={disabled}
                             />
 
                             <CheckboxSetting
@@ -196,6 +200,7 @@ export default function ContentFlaggingNotificationSettingsSection({id, value, o
                                 defaultChecked={getValue('removed', 'author')}
                                 onChange={handleChange}
                                 setByEnv={false}
+                                disabled={disabled}
                             />
 
                             <CheckboxSetting
@@ -209,6 +214,7 @@ export default function ContentFlaggingNotificationSettingsSection({id, value, o
                                 defaultChecked={getValue('removed', 'reporter')}
                                 onChange={handleChange}
                                 setByEnv={false}
+                                disabled={disabled}
                             />
                         </div>
                     </div>
@@ -234,6 +240,7 @@ export default function ContentFlaggingNotificationSettingsSection({id, value, o
                                 defaultChecked={getValue('dismissed', 'reviewers')}
                                 onChange={handleChange}
                                 setByEnv={false}
+                                disabled={disabled}
                             />
 
                             <CheckboxSetting
@@ -247,6 +254,7 @@ export default function ContentFlaggingNotificationSettingsSection({id, value, o
                                 defaultChecked={getValue('dismissed', 'author')}
                                 onChange={handleChange}
                                 setByEnv={false}
+                                disabled={disabled}
                             />
 
                             <CheckboxSetting
@@ -260,6 +268,7 @@ export default function ContentFlaggingNotificationSettingsSection({id, value, o
                                 defaultChecked={getValue('dismissed', 'reporter')}
                                 onChange={handleChange}
                                 setByEnv={false}
+                                disabled={disabled}
                             />
                         </div>
                     </div>

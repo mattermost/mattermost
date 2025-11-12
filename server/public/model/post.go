@@ -83,6 +83,8 @@ const (
 	PostPropsForceNotification        = "force_notification"
 	PostPropsChannelMentions          = "channel_mentions"
 	PostPropsUnsafeLinks              = "unsafe_links"
+	PostPropsAIGeneratedByUserID      = "ai_generated_by"
+	PostPropsAIGeneratedByUsername    = "ai_generated_by_username"
 
 	PostPriorityUrgent = "urgent"
 )
@@ -783,6 +785,20 @@ func (o *Post) propsIsValid() error {
 		}
 	}
 
+	if props[PostPropsAIGeneratedByUserID] != nil {
+		if aiGenUserID, ok := props[PostPropsAIGeneratedByUserID].(string); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("ai_generated_by prop must be a string"))
+		} else if !IsValidId(aiGenUserID) {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("ai_generated_by prop must be a valid user ID"))
+		}
+	}
+
+	if props[PostPropsAIGeneratedByUsername] != nil {
+		if _, ok := props[PostPropsAIGeneratedByUsername].(string); !ok {
+			multiErr = multierror.Append(multiErr, fmt.Errorf("ai_generated_by_username prop must be a string"))
+		}
+	}
+
 	for i, a := range o.Attachments() {
 		if err := a.IsValid(); err != nil {
 			multiErr = multierror.Append(multiErr, multierror.Prefix(err, fmt.Sprintf("message attachtment at index %d is invalid:", i)))
@@ -1123,3 +1139,30 @@ type PreparePostForClientOpts struct {
 	RetainContent   bool
 	IncludeDeleted  bool
 }
+
+type RewriteAction string
+
+const (
+	RewriteActionCustom         RewriteAction = "custom"
+	RewriteActionShorten        RewriteAction = "shorten"
+	RewriteActionElaborate      RewriteAction = "elaborate"
+	RewriteActionImproveWriting RewriteAction = "improve_writing"
+	RewriteActionFixSpelling    RewriteAction = "fix_spelling"
+	RewriteActionSimplify       RewriteAction = "simplify"
+	RewriteActionSummarize      RewriteAction = "summarize"
+)
+
+type RewriteRequest struct {
+	AgentID      string        `json:"agent_id"`
+	Message      string        `json:"message"`
+	Action       RewriteAction `json:"action"`
+	CustomPrompt string        `json:"custom_prompt,omitempty"`
+}
+
+type RewriteResponse struct {
+	RewrittenText string `json:"rewritten_text"`
+}
+
+const RewriteSystemPrompt = `You are a JSON API that rewrites text. Your response must be valid JSON only. 
+Return this exact format: {"rewritten_text":"content"}. 
+Do not use markdown, code blocks, or any formatting. Start with { and end with }.`

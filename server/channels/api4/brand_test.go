@@ -17,7 +17,6 @@ import (
 func TestGetBrandImage(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 
 	_, resp, err := client.GetBrandImage(context.Background())
@@ -38,7 +37,6 @@ func TestGetBrandImage(t *testing.T) {
 func TestUploadBrandImage(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 
 	data, err := testutils.ReadTestFile("test.png")
@@ -69,7 +67,6 @@ func TestUploadBrandImage(t *testing.T) {
 
 func TestUploadBrandImageTwice(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	data, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)
@@ -140,7 +137,6 @@ func TestUploadBrandImageTwice(t *testing.T) {
 func TestDeleteBrandImage(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	data, err := testutils.ReadTestFile("test.png")
 	require.NoError(t, err)

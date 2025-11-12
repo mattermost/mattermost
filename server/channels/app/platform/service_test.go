@@ -136,7 +136,6 @@ func TestMetrics(t *testing.T) {
 	t.Run("ensure the metrics server is not started by default", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t)
-		defer th.TearDown()
 
 		require.Nil(t, th.Service.metrics)
 	})
@@ -144,7 +143,6 @@ func TestMetrics(t *testing.T) {
 	t.Run("ensure the metrics server is started", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t, StartMetrics())
-		defer th.TearDown()
 
 		// there is no config listener for the metrics
 		// we handle it on config save step
@@ -172,7 +170,6 @@ func TestMetrics(t *testing.T) {
 	t.Run("ensure the metrics server is started with advanced metrics", func(t *testing.T) {
 		mainHelper.Parallel(t)
 		th := Setup(t, StartMetrics())
-		defer th.TearDown()
 
 		mockMetricsImpl := &mocks.MetricsInterface{}
 		mockMetricsImpl.On("Register").Return()
@@ -195,9 +192,8 @@ func TestMetrics(t *testing.T) {
 			ps.metricsIFace = mockMetricsImpl
 			return nil
 		})
-		defer th.TearDown()
 
-		_ = th.CreateUserOrGuest(false)
+		_ = th.CreateUserOrGuest(t, false)
 
 		mockMetricsImpl.AssertExpectations(t)
 	})
@@ -217,8 +213,7 @@ func TestShutdown(t *testing.T) {
 			})
 		}
 
-		err := th.Service.Shutdown()
-		require.NoError(t, err)
+		th.Shutdown(t)
 
 		// assert that there are no more go routines running
 		require.Zero(t, atomic.LoadInt32(&th.Service.goroutineCount))
@@ -229,7 +224,6 @@ func TestSetTelemetryId(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("ensure client config is regenerated after setting the telemetry id", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		clientConfig := th.Service.LimitedClientConfig()
 		require.Empty(t, clientConfig["DiagnosticId"])
@@ -245,7 +239,6 @@ func TestSetTelemetryId(t *testing.T) {
 func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	databaseType, schemaVersion, err := th.Service.DatabaseTypeAndSchemaVersion()
 	require.NoError(t, err)
