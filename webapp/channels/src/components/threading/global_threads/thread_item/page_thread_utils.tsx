@@ -33,6 +33,7 @@ export function renderPageCommentPreview(
     markdownPreviewOptions: MarkdownPreviewOptions,
     mentionsKeys: Array<{key: string}>,
     imageProps: ImageProps,
+    onPageLinkClick?: (e: React.MouseEvent) => void,
 ): JSX.Element {
     const anchorText = post.props?.inline_anchor ? (post.props.inline_anchor as {text: string}).text : null;
 
@@ -50,9 +51,23 @@ export function renderPageCommentPreview(
                     defaultMessage='Commented on the page:'
                 />
                 {' '}
-                <span style={{fontWeight: 600, color: 'var(--link-color)'}}>
+                <a
+                    onClick={onPageLinkClick}
+                    style={{
+                        fontWeight: 600,
+                        color: 'var(--link-color)',
+                        cursor: 'pointer',
+                        textDecoration: 'none',
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.textDecoration = 'underline';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.textDecoration = 'none';
+                    }}
+                >
                     {(pagePost.props?.title as string) || 'Untitled Page'}
-                </span>
+                </a>
             </div>
             {anchorText && (
                 <InlineCommentContext anchorText={anchorText}/>

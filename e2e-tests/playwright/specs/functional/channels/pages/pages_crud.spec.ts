@@ -125,35 +125,6 @@ test('deletes page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
 });
 
 /**
- * @objective Verify page duplication through full UI flow
- */
-test.skip('duplicates page', {tag: '@pages'}, async ({pw}) => {
-    // TODO: Page duplication functionality not yet implemented
-    // Confluence reference: Uses "More actions" → "Duplicate" menu option
-    // Copies: content, attachments, labels, restrictions
-    // Does not copy: comments, version history
-    // New page named: "Duplicate of [originalItemName]"
-
-    const channel = await createTestChannel(sharedAdminClient, sharedTeam.id, `Test Channel ${pw.random.id()}`);
-
-    const {page, channelsPage} = await pw.testBrowser.login(sharedUser);
-    await channelsPage.goto(sharedTeam.name, channel.name);
-
-    // # Create wiki and page through UI
-    await createWikiThroughUI(page, `Duplicate Wiki ${pw.random.id()}`);
-    await createPageThroughUI(page, 'Original Page', 'Content to duplicate');
-
-    // # Duplicate the page
-    const pageActions = page.locator('[data-testid="page-actions"], [data-testid="wiki-page-more-actions"]').first();
-    await pageActions.click();
-
-    const duplicateButton = page.locator('[data-testid="page-context-menu-duplicate"]').first();
-    await expect(duplicateButton).toBeVisible();
-    await duplicateButton.click();
-    await page.waitForLoadState('networkidle');
-});
-
-/**
  * @objective Verify wiki is created with a default draft page
  */
 test('wiki starts with default draft page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {

@@ -35,6 +35,7 @@ import Avatars from 'components/widgets/users/avatars';
 import WithTooltip from 'components/with_tooltip';
 
 import {CrtTutorialSteps, Preferences} from 'utils/constants';
+import {navigateToPageFromPost} from 'utils/page_navigation';
 import {isPageComment, isPagePost} from 'utils/page_utils';
 import * as Utils from 'utils/utils';
 
@@ -86,7 +87,7 @@ function ThreadItem({
     isPostPriorityEnabled,
 }: Props & OwnProps): React.ReactElement|null {
     const dispatch = useDispatch();
-    const {select, goToInChannel, currentTeamId} = useThreadRouting();
+    const {select, goToInChannel, currentTeamId, params} = useThreadRouting();
     const {formatMessage} = useIntl();
     const isMobileView = useSelector(getIsMobileView);
     const currentUserId = useSelector(getCurrentUserId);
@@ -179,6 +180,22 @@ function ThreadItem({
         }
         Utils.handleFormattedTextClick(e, currentRelativeTeamUrl);
     }, [currentRelativeTeamUrl]);
+
+    const handlePageLinkClick = useCallback((e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (post?.props?.page_id && post?.props?.wiki_id && post?.channel_id) {
+            const syntheticPagePost = {
+                id: post.props.page_id as string,
+                channel_id: post.channel_id,
+                props: {
+                    wiki_id: post.props.wiki_id,
+                },
+            } as Pick<Post, 'id' | 'channel_id' | 'props'>;
+            navigateToPageFromPost(syntheticPagePost as Post, params.team);
+        }
+    }, [params.team, post]);
 
     if (!thread || !post) {
         return null;
@@ -302,6 +319,7 @@ function ThreadItem({
                                 markdownPreviewOptions,
                                 mentionsKeys,
                                 imageProps,
+                                handlePageLinkClick,
                             );
                         }
 

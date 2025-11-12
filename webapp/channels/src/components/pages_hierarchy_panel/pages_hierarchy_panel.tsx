@@ -6,7 +6,6 @@ import React, {useEffect, useMemo, useState} from 'react';
 
 import type {Post} from '@mattermost/types/posts';
 
-import DuplicatePageModal from 'components/duplicate_page_modal';
 import MovePageModal from 'components/move_page_modal';
 import TextInputModal from 'components/text_input_modal';
 
@@ -313,19 +312,6 @@ const PagesHierarchyPanel = ({
                     hasChildren={menuHandlers.pageToMove.hasChildren}
                     onConfirm={menuHandlers.handleMoveConfirm}
                     onCancel={menuHandlers.handleMoveCancel}
-                />
-            )}
-
-            {/* Duplicate page modal */}
-            {menuHandlers.showDuplicateModal && menuHandlers.pageToDuplicate && (
-                <DuplicatePageModal
-                    pageId={menuHandlers.pageToDuplicate.pageId}
-                    pageTitle={menuHandlers.pageToDuplicate.pageTitle}
-                    currentWikiId={wikiId}
-                    availableWikis={menuHandlers.availableWikis}
-                    hasChildren={menuHandlers.pageToDuplicate.hasChildren}
-                    onConfirm={menuHandlers.handleDuplicateConfirm}
-                    onCancel={menuHandlers.handleDuplicateCancel}
                 />
             )}
 

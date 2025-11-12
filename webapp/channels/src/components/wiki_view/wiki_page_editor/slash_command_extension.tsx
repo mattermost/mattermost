@@ -21,7 +21,7 @@ export const SlashCommandExtension = Extension.create<{
     onOpenLinkModal: () => void;
     onOpenImageModal: () => void;
     suggestion: Partial<SuggestionOptions>;
-    // eslint-disable-next-line func-call-spacing
+// eslint-disable-next-line func-call-spacing
 }>({
             name: 'slashCommand',
 
@@ -189,8 +189,8 @@ export const SlashCommandExtension = Extension.create<{
                     onOpenImageModal: this.options.onOpenImageModal,
                 };
 
-                // eslint-disable-next-line new-cap
                 return [
+                    // eslint-disable-next-line new-cap
                     Suggestion({
                         editor: this.editor,
                         ...(this.options.suggestion || {}),

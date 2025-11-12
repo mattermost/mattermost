@@ -729,10 +729,10 @@ export function movePageToWiki(pageId: string, sourceWikiId: string, targetWikiI
     };
 }
 
-export function duplicatePage(pageId: string, sourceWikiId: string, targetWikiId: string, customTitle?: string): ActionFuncAsync<Post> {
+export function duplicatePage(pageId: string, wikiId: string): ActionFuncAsync<Post> {
     return async (dispatch, getState) => {
         try {
-            const duplicatedPage = await Client4.duplicatePage(sourceWikiId, pageId, targetWikiId, customTitle);
+            const duplicatedPage = await Client4.duplicatePage(wikiId, pageId, wikiId, undefined);
 
             dispatch({
                 type: PostActionTypes.RECEIVED_POST,
@@ -740,19 +740,10 @@ export function duplicatePage(pageId: string, sourceWikiId: string, targetWikiId
             });
 
             const timestamp = Date.now();
-            const isSameWiki = sourceWikiId === targetWikiId;
-
-            if (isSameWiki) {
-                dispatch({
-                    type: WikiTypes.INVALIDATE_PAGES,
-                    data: {wikiId: sourceWikiId, timestamp},
-                });
-            } else {
-                dispatch({
-                    type: WikiTypes.INVALIDATE_PAGES,
-                    data: {wikiId: targetWikiId, timestamp},
-                });
-            }
+            dispatch({
+                type: WikiTypes.INVALIDATE_PAGES,
+                data: {wikiId, timestamp},
+            });
 
             return {data: duplicatedPage};
         } catch (error) {

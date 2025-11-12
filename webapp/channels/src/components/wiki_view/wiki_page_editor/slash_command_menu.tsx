@@ -96,7 +96,6 @@ const SlashCommandMenu = forwardRef<SlashCommandMenuRef, SlashCommandMenuProps>(
                     <i className={`icon ${item.icon} slash-command-icon`}/>
                     <div className='slash-command-content'>
                         <div className='slash-command-title'>{item.title}</div>
-                        <div className='slash-command-description'>{item.description}</div>
                     </div>
                 </button>
             ))}

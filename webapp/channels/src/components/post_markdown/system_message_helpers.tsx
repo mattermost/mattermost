@@ -4,6 +4,7 @@
 import React from 'react';
 import type {ReactNode} from 'react';
 import {FormattedDate, FormattedMessage, FormattedTime, defineMessages} from 'react-intl';
+import {Link} from 'react-router-dom';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
@@ -378,8 +379,8 @@ function renderWikiAddedMessage(post: Post, currentTeamName: string, channel: Ch
     const wikiId = ensureString(post.props.wiki_id);
     const username = renderUsername(post.props.username);
 
-    const wikiUrl = `${getSiteURL()}/${currentTeamName}/wiki/${channel.id}/${wikiId}`;
-    const wikiLink = <a href={wikiUrl}>{wikiTitle}</a>;
+    const wikiUrl = `/${currentTeamName}/wiki/${channel.id}/${wikiId}`;
+    const wikiLink = <Link to={wikiUrl}>{wikiTitle}</Link>;
 
     return (
         <FormattedMessage

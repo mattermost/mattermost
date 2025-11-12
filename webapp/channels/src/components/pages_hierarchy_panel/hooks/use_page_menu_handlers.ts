@@ -73,11 +73,9 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
 
     const [showCreatePageModal, setShowCreatePageModal] = useState(false);
     const [showMoveModal, setShowMoveModal] = useState(false);
-    const [showDuplicateModal, setShowDuplicateModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [createPageParent, setCreatePageParent] = useState<{id: string; title: string} | null>(null);
     const [pageToMove, setPageToMove] = useState<{pageId: string; pageTitle: string; hasChildren: boolean} | null>(null);
-    const [pageToDuplicate, setPageToDuplicate] = useState<{pageId: string; pageTitle: string; hasChildren: boolean} | null>(null);
     const [pageToDelete, setPageToDelete] = useState<{page: Post; childCount: number} | null>(null);
     const [availableWikis, setAvailableWikis] = useState<any[]>([]);
     const [deletingPageId, setDeletingPageId] = useState<string | null>(null);
@@ -156,36 +154,13 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         if (!page) {
             return;
         }
-        const pageTitle = page.props?.title || page.message || 'Untitled';
-        const childCount = getDescendantCount(pageId);
-        const hasChildren = childCount > 0;
 
         try {
-            const wikis = await Client4.getChannelWikis(channelId);
-            setAvailableWikis(wikis || []);
-            setPageToDuplicate({pageId, pageTitle: String(pageTitle), hasChildren});
-            setShowDuplicateModal(true);
+            await dispatch(duplicatePage(pageId, wikiId));
         } catch (error) {
             // Error handled
         }
-    }, [allPages, channelId, getDescendantCount]);
-
-    const handleDuplicateConfirm = useCallback(async (targetWikiId: string, customTitle?: string) => {
-        if (!pageToDuplicate) {
-            return;
-        }
-        try {
-            await dispatch(duplicatePage(pageToDuplicate.pageId, wikiId, targetWikiId, customTitle));
-        } finally {
-            setShowDuplicateModal(false);
-            setPageToDuplicate(null);
-        }
-    }, [dispatch, pageToDuplicate, wikiId]);
-
-    const handleDuplicateCancel = useCallback(() => {
-        setShowDuplicateModal(false);
-        setPageToDuplicate(null);
-    }, []);
+    }, [allPages, wikiId, dispatch]);
 
     const handleMove = useCallback(async (pageId: string) => {
         const page = allPages.find((p) => p.id === pageId);
@@ -308,23 +283,18 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         setShowCreatePageModal,
         showMoveModal,
         setShowMoveModal,
-        showDuplicateModal,
-        setShowDuplicateModal,
         showDeleteModal,
         setShowDeleteModal,
 
         // Modal data
         createPageParent,
         pageToMove,
-        pageToDuplicate,
         pageToDelete,
         availableWikis,
 
         // Modal handlers
         handleConfirmCreatePage,
         handleCancelCreatePage,
-        handleDuplicateConfirm,
-        handleDuplicateCancel,
         handleMoveConfirm,
         handleMoveCancel,
         handleDeleteConfirm,

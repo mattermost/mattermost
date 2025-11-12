@@ -10,19 +10,36 @@ import './inline_comment_toolbar.scss';
 type Props = {
     editor: any;
     onCreateComment: (selection: {text: string; from: number; to: number}) => void;
+    onAIAssist?: (selection: {text: string; from: number; to: number}) => void;
 };
 
-const InlineCommentToolbar = ({editor, onCreateComment}: Props) => {
+const InlineCommentToolbar = ({editor, onCreateComment, onAIAssist}: Props) => {
     if (!editor) {
         return null;
     }
 
-    const handleClick = () => {
+    const handleCommentClick = () => {
         const {state} = editor;
         const {selection} = state;
         const text = state.doc.textBetween(selection.from, selection.to);
 
         onCreateComment({
+            text,
+            from: selection.from,
+            to: selection.to,
+        });
+    };
+
+    const handleAIClick = () => {
+        if (!onAIAssist) {
+            return;
+        }
+
+        const {state} = editor;
+        const {selection} = state;
+        const text = state.doc.textBetween(selection.from, selection.to);
+
+        onAIAssist({
             text,
             from: selection.from,
             to: selection.to,
@@ -46,6 +63,7 @@ const InlineCommentToolbar = ({editor, onCreateComment}: Props) => {
             <div className='inline-comment-toolbar'>
                 <button
                     type='button'
+                    onClick={handleAIClick}
                     className='inline-comment-toolbar__icon-btn'
                     aria-label='AI assistant'
                     title='AI assistant'
@@ -55,7 +73,7 @@ const InlineCommentToolbar = ({editor, onCreateComment}: Props) => {
                 </button>
                 <button
                     type='button'
-                    onClick={handleClick}
+                    onClick={handleCommentClick}
                     className='inline-comment-toolbar__icon-btn'
                     aria-label='Add a comment'
                     title='Add a comment'

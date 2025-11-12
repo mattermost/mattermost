@@ -19,7 +19,6 @@ import {getPage, getPages, getPagesLastInvalidated, getDraftsLastInvalidated} fr
 import {getIsPanesPanelCollapsed} from 'selectors/pages_hierarchy';
 import {getRhsState} from 'selectors/rhs';
 
-import DuplicatePageModal from 'components/duplicate_page_modal';
 import LoadingScreen from 'components/loading_screen';
 import MovePageModal from 'components/move_page_modal';
 import PageVersionHistoryModal from 'components/page_version_history';
@@ -470,18 +469,6 @@ const WikiView = () => {
                             hasChildren={menuHandlers.pageToMove.hasChildren}
                             onConfirm={menuHandlers.handleMoveConfirm}
                             onCancel={menuHandlers.handleMoveCancel}
-                        />
-                    )}
-
-                    {menuHandlers.showDuplicateModal && menuHandlers.pageToDuplicate && (
-                        <DuplicatePageModal
-                            pageId={menuHandlers.pageToDuplicate.pageId}
-                            pageTitle={menuHandlers.pageToDuplicate.pageTitle}
-                            currentWikiId={wikiId || ''}
-                            availableWikis={menuHandlers.availableWikis}
-                            hasChildren={menuHandlers.pageToDuplicate.hasChildren}
-                            onConfirm={menuHandlers.handleDuplicateConfirm}
-                            onCancel={menuHandlers.handleDuplicateCancel}
                         />
                     )}
 

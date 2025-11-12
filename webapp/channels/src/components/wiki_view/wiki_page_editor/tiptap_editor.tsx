@@ -286,6 +286,7 @@ const TipTapEditor = ({
                 openOnClick: false,
                 HTMLAttributes: {
                     class: 'wiki-page-link',
+                    target: null,
                 },
             }),
             HeadingWithId.configure({
@@ -638,6 +639,59 @@ const TipTapEditor = ({
         };
     }, [editor, teamId]);
 
+    // Handle clicks on wiki page links to navigate without full reload
+    useEffect(() => {
+        if (!editor) {
+            return undefined;
+        }
+
+        const handleClick = (event: MouseEvent) => {
+            const target = event.target as HTMLElement;
+            const wikiPageLink = target.closest('a.wiki-page-link');
+
+            if (wikiPageLink) {
+                const href = wikiPageLink.getAttribute('href');
+
+                if (href) {
+                    const currentOrigin = window.location.origin;
+                    const currentBasename = (window as any).basename || '';
+
+                    // Check if link is internal (same origin or relative path)
+                    const isInternalLink = href.startsWith('/') ||
+                        href.startsWith(currentOrigin) ||
+                        href.startsWith(currentBasename);
+
+                    if (isInternalLink) {
+                        event.preventDefault();
+                        event.stopPropagation();
+
+                        const history = getHistory();
+                        let relativePath = href;
+
+                        // Strip origin if present
+                        if (href.startsWith(currentOrigin)) {
+                            relativePath = href.substring(currentOrigin.length);
+                        }
+
+                        // Strip basename if present
+                        if (currentBasename && relativePath.startsWith(currentBasename)) {
+                            relativePath = relativePath.substring(currentBasename.length);
+                        }
+
+                        history.push(relativePath);
+                    }
+                }
+            }
+        };
+
+        const editorElement = editor.view.dom;
+        editorElement.addEventListener('click', handleClick);
+
+        return () => {
+            editorElement.removeEventListener('click', handleClick);
+        };
+    }, [editor]);
+
     const handlePageSelect = useCallback((pageId: string, pageTitle: string, pageWikiId: string, linkText?: string) => {
         if (!editor) {
             return;
@@ -745,6 +799,23 @@ const TipTapEditor = ({
         onCreateInlineComment(anchor);
     };
 
+    const handleAIAssist = (selection: {text: string; from: number; to: number}) => {
+        if (!editor) {
+            return;
+        }
+
+        // eslint-disable-next-line no-console
+        console.log('AI Assist triggered with selection:', {
+            text: selection.text,
+            from: selection.from,
+            to: selection.to,
+        });
+
+        // TODO: Implement AI assistance logic here
+        // eslint-disable-next-line no-alert
+        alert(`AI Assist clicked!\nSelected text: "${selection.text}"\n\nImplement your AI logic here.`);
+    };
+
     return (
         <div
             className='tiptap-editor-wrapper'
@@ -764,6 +835,7 @@ const TipTapEditor = ({
                         onSetLink={setLink}
                         onAddImage={addImage}
                         onAddComment={commentHandler}
+                        onAIAssist={handleAIAssist}
                     />
                 );
             })()}
@@ -771,6 +843,7 @@ const TipTapEditor = ({
                 <InlineCommentToolbar
                     editor={editor}
                     onCreateComment={handleCreateComment}
+                    onAIAssist={handleAIAssist}
                 />
             )}
 

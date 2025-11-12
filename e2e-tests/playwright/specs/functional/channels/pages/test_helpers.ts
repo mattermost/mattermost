@@ -2048,7 +2048,16 @@ export async function editPageThroughUI(page: Page, newContent: string, clearExi
  * @param pageId - ID of the page to duplicate
  * @returns The duplicate modal locator
  */
-export async function openDuplicatePageModal(page: Page, pageId: string): Promise<Locator> {
+/**
+ * Duplicates a page through the UI using the context menu (immediate action, no modal)
+ * The page is duplicated at the same level in the current wiki with default "Copy of [title]" naming
+ * @param page - Playwright page object
+ * @param pageId - ID of the page to duplicate
+ */
+export async function duplicatePageThroughUI(
+    page: Page,
+    pageId: string,
+) {
     const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
     const pageNode = hierarchyPanel.locator(`[data-page-id="${pageId}"]`).first();
     await pageNode.waitFor({state: 'visible', timeout: 15000});
@@ -2064,74 +2073,13 @@ export async function openDuplicatePageModal(page: Page, pageId: string): Promis
     const contextMenu = page.locator('[data-testid="page-context-menu"]');
     await contextMenu.waitFor({state: 'visible', timeout: 5000});
 
-    // Click duplicate option
+    // Click duplicate option (this now immediately duplicates the page)
     const duplicateOption = contextMenu.locator('[data-testid="page-context-menu-duplicate"]').first();
     await duplicateOption.click();
 
-    // Wait for duplicate modal
-    const duplicateModal = page.getByRole('dialog', {name: /Duplicate/i});
-    await duplicateModal.waitFor({state: 'visible', timeout: 15000});
-
-    return duplicateModal;
-}
-
-/**
- * Fills and confirms the duplicate page modal
- * @param page - Playwright page object
- * @param duplicateModal - The duplicate modal locator
- * @param customTitle - Optional custom title for the duplicate (omit to use default "Copy of [original]")
- * @param targetWikiId - Optional target wiki ID (omit to duplicate in same wiki)
- */
-export async function confirmDuplicatePage(
-    page: Page,
-    duplicateModal: Locator,
-    customTitle?: string,
-    targetWikiId?: string,
-) {
-    // Enter custom title if provided
-    if (customTitle) {
-        const titleInput = duplicateModal.locator('#custom-title-input');
-        await titleInput.waitFor({state: 'visible', timeout: 5000});
-        await titleInput.fill(customTitle);
-    }
-
-    // Select target wiki if provided
-    if (targetWikiId) {
-        const wikiSelect = duplicateModal.locator('#target-wiki-select');
-        await wikiSelect.waitFor({state: 'visible', timeout: 5000});
-        await wikiSelect.selectOption(targetWikiId);
-    }
-
-    // Click confirm button
-    const confirmButton = duplicateModal.getByRole('button', {name: /Duplicate/i}).first();
-    await confirmButton.click();
-
-    // Wait for modal to close and duplication to complete
-    await duplicateModal.waitFor({state: 'hidden', timeout: 15000});
+    // Wait for duplication to complete
     await page.waitForLoadState('networkidle');
-}
-
-/**
- * Duplicates a page through the UI using the context menu
- * This is a complete workflow helper that opens modal and confirms
- * @param page - Playwright page object
- * @param pageId - ID of the page to duplicate
- * @param customTitle - Optional custom title for the duplicate
- * @param targetWikiId - Optional target wiki ID
- * @returns The duplicate page title (either custom or "Copy of [original]")
- */
-export async function duplicatePageThroughUI(
-    page: Page,
-    pageId: string,
-    customTitle?: string,
-    targetWikiId?: string,
-) {
-    const duplicateModal = await openDuplicatePageModal(page, pageId);
-    await confirmDuplicatePage(page, duplicateModal, customTitle, targetWikiId);
-
-    // If custom title provided, use it, otherwise use "Copy of" prefix
-    // Note: We don't know the original title here, so caller should track it
-    return customTitle;
+    await page.waitForTimeout(1000);
 }
 
 /**
