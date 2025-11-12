@@ -45,13 +45,31 @@ func temporaryPostSliceColumns() []string {
 	}
 }
 
-func (s *SqlTemporaryPostStore) Save(rctx request.CTX, post *model.TemporaryPost) (*model.TemporaryPost, error) {
-	if err := post.PreSave(); err != nil {
+func (s *SqlTemporaryPostStore) Save(rctx request.CTX, post *model.TemporaryPost) (_ *model.TemporaryPost, err error) {
+	if err = post.PreSave(); err != nil {
 		return nil, fmt.Errorf("failed to save TemporaryPost: %w", err)
 	}
 
-	fileIdsJSON := model.ArrayToJSON(post.FileIDs)
+	var tx *sqlxTxWrapper
+	tx, err = s.GetMaster().Beginx()
+	if err != nil {
+		return nil, err
+	}
+	defer finalizeTransactionX(tx, &err)
 
+	_, err = s.saveT(tx, post)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return nil, fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return post, nil
+}
+
+func (s *SqlTemporaryPostStore) saveT(tx *sqlxTxWrapper, post *model.TemporaryPost) (*model.TemporaryPost, error) {
 	query := s.getQueryBuilder().
 		Insert("TemporaryPosts").
 		Columns(temporaryPostSliceColumns()...).
@@ -60,12 +78,12 @@ func (s *SqlTemporaryPostStore) Save(rctx request.CTX, post *model.TemporaryPost
 			post.Type,
 			post.ExpireAt,
 			post.Message,
-			fileIdsJSON,
+			model.ArrayToJSON(post.FileIDs),
 		)
 
-	_, err := s.GetMaster().ExecBuilder(query)
+	_, err := tx.ExecBuilder(query)
 	if err != nil {
-		return nil, fmt.Errorf("failed to save TemporaryPost: %w", err)
+		return nil, err
 	}
 
 	return post, nil
