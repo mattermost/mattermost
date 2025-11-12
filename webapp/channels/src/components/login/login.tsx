@@ -5,7 +5,7 @@
 
 import classNames from 'classnames';
 import throttle from 'lodash/throttle';
-import React, {useState, useEffect, useRef, useCallback} from 'react';
+import React, {useState, useEffect, useRef, useCallback, useMemo} from 'react';
 import type {FormEvent} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
@@ -74,9 +74,10 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const history = useHistory();
     const {pathname, search, hash} = useLocation();
 
-    const searchParam = new URLSearchParams(search);
+    const searchParam = useMemo(() => new URLSearchParams(search), [search]);
     const extraParam = searchParam.get('extra');
     const emailParam = searchParam.get('email');
+    const redirectTo = searchParam.get('redirect_to');
 
     const {
         EnableLdap,
@@ -150,9 +151,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const enableExternalSignup = enableSignUpWithGitLab || enableSignUpWithOffice365 || enableSignUpWithGoogle || enableSignUpWithOpenId || enableSignUpWithSaml;
     const showSignup = enableOpenServer && (enableExternalSignup || enableSignUpWithEmail || enableLdap);
     const onlyLdapEnabled = enableLdap && !(enableSaml || enableSignInWithEmail || enableSignInWithUsername || enableSignUpWithEmail || enableSignUpWithGitLab || enableSignUpWithGoogle || enableSignUpWithOffice365 || enableSignUpWithOpenId);
-
-    const query = new URLSearchParams(search);
-    const redirectTo = query.get('redirect_to');
 
     const [desktopLoginLink, setDesktopLoginLink] = useState('');
 
@@ -466,7 +464,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
 
     useEffect(() => {
         // We don't want to redirect outside of this route if we're doing Desktop App auth
-        if (query.get('server_token')) {
+        if (searchParam.get('server_token')) {
             return;
         }
 
@@ -746,9 +744,8 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         await dispatch(loadMe());
 
         // check for query params brought over from signup_user_complete
-        const params = new URLSearchParams(search);
-        const inviteToken = params.get('t') || '';
-        const inviteId = params.get('id') || '';
+        const inviteToken = searchParam.get('t') || '';
+        const inviteId = searchParam.get('id') || '';
 
         if (inviteId || inviteToken) {
             const {data: team} = await dispatch(addUserToTeamFromInvite(inviteToken, inviteId));
@@ -898,7 +895,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         }
 
         // Handle redirect before checking configs. This is to support the Pre-Authentication header flow.
-        if (desktopLoginLink || query.get('server_token')) {
+        if (desktopLoginLink || searchParam.get('server_token')) {
             return (
                 <Route
                     path={'/login/desktop'}
