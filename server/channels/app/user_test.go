@@ -5,10 +5,10 @@ package app
 
 import (
 	"bytes"
-	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -1629,9 +1629,9 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 	})
 
 	t.Run("VIEW_MEMBERS permission granted at team level", func(t *testing.T) {
-		systemUserRole, err := th.App.GetRoleByName(context.Background(), model.SystemUserRoleId)
+		systemUserRole, err := th.App.GetRoleByName(th.Context, model.SystemUserRoleId)
 		require.Nil(t, err)
-		teamUserRole, err := th.App.GetRoleByName(context.Background(), model.TeamUserRoleId)
+		teamUserRole, err := th.App.GetRoleByName(th.Context, model.TeamUserRoleId)
 		require.Nil(t, err)
 
 		require.Nil(t, removePermission(systemUserRole, model.PermissionViewMembers.Id))
@@ -1656,7 +1656,7 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 	})
 
 	t.Run("VIEW_MEMBERS permission not granted at any level", func(t *testing.T) {
-		systemUserRole, err := th.App.GetRoleByName(context.Background(), model.SystemUserRoleId)
+		systemUserRole, err := th.App.GetRoleByName(th.Context, model.SystemUserRoleId)
 		require.Nil(t, err)
 		require.Nil(t, removePermission(systemUserRole, model.PermissionViewMembers.Id))
 		defer func() {
@@ -1674,9 +1674,9 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 	})
 
 	t.Run("VIEW_MEMBERS permission for some teams but not for others", func(t *testing.T) {
-		systemUserRole, err := th.App.GetRoleByName(context.Background(), model.SystemUserRoleId)
+		systemUserRole, err := th.App.GetRoleByName(th.Context, model.SystemUserRoleId)
 		require.Nil(t, err)
-		teamAdminRole, err := th.App.GetRoleByName(context.Background(), model.TeamAdminRoleId)
+		teamAdminRole, err := th.App.GetRoleByName(th.Context, model.TeamAdminRoleId)
 		require.Nil(t, err)
 
 		require.Nil(t, removePermission(systemUserRole, model.PermissionViewMembers.Id))
@@ -2183,7 +2183,7 @@ func TestUpdateThreadReadForUser(t *testing.T) {
 		require.Nil(t, appErr)
 		replyPost, appErr := th.App.CreatePost(th.Context, &model.Post{RootId: rootPost.Id, UserId: th.BasicUser2.Id, CreateAt: model.GetMillis(), ChannelId: th.BasicChannel.Id, Message: "hi"}, th.BasicChannel, model.CreatePostFlags{})
 		require.Nil(t, appErr)
-		threads, appErr := th.App.GetThreadsForUser(th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
+		threads, appErr := th.App.GetThreadsForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
 		require.Nil(t, appErr)
 		require.Zero(t, threads.Total)
 
@@ -2482,5 +2482,86 @@ func TestRemoteUserDirectChannelCreation(t *testing.T) {
 		assert.NotNil(t, channel)
 		assert.Nil(t, appErr)
 		assert.Equal(t, model.ChannelTypeDirect, channel.Type)
+	})
+}
+
+func TestConsumeTokenOnce(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("successfully consume valid token", func(t *testing.T) {
+		token := model.NewToken(model.TokenTypeOAuth, "extra-data")
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		consumedToken, appErr := th.App.ConsumeTokenOnce(model.TokenTypeOAuth, token.Token)
+		require.Nil(t, appErr)
+		require.NotNil(t, consumedToken)
+		assert.Equal(t, token.Token, consumedToken.Token)
+		assert.Equal(t, model.TokenTypeOAuth, consumedToken.Type)
+		assert.Equal(t, "extra-data", consumedToken.Extra)
+
+		_, err := th.App.Srv().Store().Token().GetByToken(token.Token)
+		require.Error(t, err)
+	})
+
+	t.Run("token not found returns 404", func(t *testing.T) {
+		nonExistentToken := model.NewRandomString(model.TokenSize)
+
+		consumedToken, appErr := th.App.ConsumeTokenOnce(model.TokenTypeOAuth, nonExistentToken)
+		require.NotNil(t, appErr)
+		require.Nil(t, consumedToken)
+		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
+		assert.Equal(t, "ConsumeTokenOnce", appErr.Where)
+	})
+
+	t.Run("wrong token type returns not found", func(t *testing.T) {
+		token := model.NewToken(model.TokenTypeOAuth, "extra-data")
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+		defer func() {
+			_ = th.App.Srv().Store().Token().Delete(token.Token)
+		}()
+
+		consumedToken, appErr := th.App.ConsumeTokenOnce(model.TokenTypeSaml, token.Token)
+		require.NotNil(t, appErr)
+		require.Nil(t, consumedToken)
+		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
+
+		_, err := th.App.Srv().Store().Token().GetByToken(token.Token)
+		require.NoError(t, err)
+	})
+
+	t.Run("token can only be consumed once", func(t *testing.T) {
+		token := model.NewToken(model.TokenTypeSSOCodeExchange, "extra-data")
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		consumedToken1, appErr := th.App.ConsumeTokenOnce(model.TokenTypeSSOCodeExchange, token.Token)
+		require.Nil(t, appErr)
+		require.NotNil(t, consumedToken1)
+
+		consumedToken2, appErr := th.App.ConsumeTokenOnce(model.TokenTypeSSOCodeExchange, token.Token)
+		require.NotNil(t, appErr)
+		require.Nil(t, consumedToken2)
+		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
+	})
+
+	t.Run("empty token string returns not found", func(t *testing.T) {
+		consumedToken, appErr := th.App.ConsumeTokenOnce(model.TokenTypeOAuth, "")
+		require.NotNil(t, appErr)
+		require.Nil(t, consumedToken)
+		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
+	})
+
+	t.Run("empty token type returns not found", func(t *testing.T) {
+		token := model.NewToken(model.TokenTypeOAuth, "extra-data")
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+		defer func() {
+			_ = th.App.Srv().Store().Token().Delete(token.Token)
+		}()
+
+		consumedToken, appErr := th.App.ConsumeTokenOnce("", token.Token)
+		require.NotNil(t, appErr)
+		require.Nil(t, consumedToken)
+		assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
 	})
 }

@@ -14,7 +14,6 @@
   "about.enterpriseEditionLearn": "Saznaj više o izdanju za poduzeća na ",
   "about.enterpriseEditionSst": "Slanje poruka s visokom razinom povjerenja za poduzeće",
   "about.enterpriseEditionSt": "Moderna komunikacija iza vatrozida.",
-  "about.enterpriseEditione1": "Izdanje za poduzeća",
   "about.hash": "Hash gradnje:",
   "about.hashee": "Hash gradnje za izdanje za poduzeće:",
   "about.licensed": "Licenzirano za:",
@@ -417,7 +416,6 @@
   "admin.license.modal.done": "Obavljeno",
   "admin.license.remove": "Ukloni",
   "admin.license.trial-request.embargoed.button": "Zatvori",
-  "admin.license.trialCard.purchase_license": "Kupi licencu",
   "admin.license.upload-modal.file": "Datoteka",
   "admin.license.uploadFile": "Prenesi datoteku",
   "admin.log.Level": "Razina",
@@ -1892,10 +1890,7 @@
   "workspace_limits.file_storage.short.usage": "{actual} / {limit}",
   "workspace_limits.file_storage.usage": "{actual} od {limit} ({percent} %)",
   "workspace_limits.menu_limit.notify_admin": "Obavijesti administratora",
-  "workspace_limits.message_history.locked.cta.admin": "Nadogradi sada",
-  "workspace_limits.message_history.locked.cta.end_user": "Obavijesti administratora",
   "workspace_limits.message_history.short": "Poruke",
   "workspace_limits.message_history.short.usage": "{actual} / {limit}",
-  "workspace_limits.modals.close": "Zatvori",
-  "workspace_limits.search_limit.upgrade_now": "Nadogradi sada"
+  "workspace_limits.modals.close": "Zatvori"
 }

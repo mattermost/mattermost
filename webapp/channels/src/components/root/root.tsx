@@ -74,6 +74,7 @@ const SidebarRight = makeAsyncComponent('SidebarRight', lazy(() => import('compo
 const ModalController = makeAsyncComponent('ModalController', lazy(() => import('components/modal_controller')));
 const AppBar = makeAsyncComponent('AppBar', lazy(() => import('components/app_bar/app_bar')));
 const ComponentLibrary = makeAsyncComponent('ComponentLibrary', lazy(() => import('components/component_library')));
+const PopoutController = makeAsyncComponent('PopoutController', lazy(() => import('components/popout_controller')));
 
 const Pluggable = makeAsyncPluggableComponent();
 
@@ -407,6 +408,10 @@ export default class Root extends React.PureComponent<Props, State> {
                     <Redirect
                         from={'/_redirect/pl/:postid'}
                         to={`/${this.props.permalinkRedirectTeamName}/pl/:postid`}
+                    />
+                    <Route
+                        path={'/_popout'}
+                        component={PopoutController}
                     />
                     <>
                         {(this.props.showLaunchingWorkspace && !this.props.location.pathname.includes('/preparing-workspace') &&

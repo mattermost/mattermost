@@ -4,6 +4,7 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
+import {useLocation} from 'react-router-dom';
 import styled, {css} from 'styled-components';
 
 import {CloseIcon, PlaylistCheckIcon} from '@mattermost/compass-icons/components';
@@ -125,6 +126,7 @@ const Button = styled.button<{open: boolean}>(({open}) => {
 
 const OnBoardingTaskList = (): JSX.Element | null => {
     const {formatMessage} = useIntl();
+    const location = useLocation();
     const hasPreferences = useSelector((state: GlobalState) => Object.keys(getMyPreferencesSelector(state)).length !== 0);
     const subscription = useSelector(getCloudSubscription);
     const license = useSelector(getLicense);
@@ -237,7 +239,7 @@ const OnBoardingTaskList = (): JSX.Element | null => {
         dispatch(savePreferences(currentUserId, preferences));
     }, [open, currentUserId]);
 
-    if (!hasPreferences || !showTaskList || !isEnableOnboardingFlow || (isCloud && isCloudPreview)) {
+    if (!hasPreferences || !showTaskList || !isEnableOnboardingFlow || (isCloud && isCloudPreview) || location.pathname === '/preparing-workspace') {
         return null;
     }
 

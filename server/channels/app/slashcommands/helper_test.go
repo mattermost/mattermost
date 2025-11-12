@@ -5,7 +5,6 @@ package slashcommands
 
 import (
 	"bytes"
-	"context"
 	"os"
 	"path/filepath"
 	"slices"
@@ -55,7 +54,14 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	*memoryConfig.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
 	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
 	*memoryConfig.LogSettings.EnableSentry = false // disable error reporting during tests
-	*memoryConfig.LogSettings.ConsoleLevel = mlog.LvlStdLog.Name
+
+	// Check for environment variable override for console log level (useful for debugging tests)
+	consoleLevel := os.Getenv("MM_LOGSETTINGS_CONSOLELEVEL")
+	if consoleLevel == "" {
+		consoleLevel = mlog.LvlStdLog.Name
+	}
+	*memoryConfig.LogSettings.ConsoleLevel = consoleLevel
+
 	_, _, err = memoryStore.Set(memoryConfig)
 	require.NoError(tb, err)
 
@@ -362,7 +368,7 @@ func (th *TestHelper) addUserToChannel(tb testing.TB, user *model.User, channel 
 }
 
 func (th *TestHelper) removePermissionFromRole(tb testing.TB, permission string, roleName string) {
-	role, appErr := th.App.GetRoleByName(context.Background(), roleName)
+	role, appErr := th.App.GetRoleByName(th.Context, roleName)
 	require.Nil(tb, appErr)
 
 	var newPermissions []string
@@ -383,7 +389,7 @@ func (th *TestHelper) removePermissionFromRole(tb testing.TB, permission string,
 }
 
 func (th *TestHelper) addPermissionToRole(tb testing.TB, permission string, roleName string) {
-	role, appErr := th.App.GetRoleByName(context.Background(), roleName)
+	role, appErr := th.App.GetRoleByName(th.Context, roleName)
 	require.Nil(tb, appErr)
 
 	if slices.Contains(role.Permissions, permission) {

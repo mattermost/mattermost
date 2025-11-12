@@ -81,13 +81,13 @@ describe('components/submenu_modal', () => {
             <SubMenuModal {...props}/>,
         );
 
-        userEvent.click(screen.getByText('Text A'));
+        await userEvent.click(screen.getByText('Text A'));
         expect(action1).toHaveBeenCalledTimes(1);
 
-        userEvent.click(screen.getByText('Text B'));
+        await userEvent.click(screen.getByText('Text B'));
         expect(action2).toHaveBeenCalledTimes(1);
 
-        userEvent.click(screen.getByText('Text C'));
+        await userEvent.click(screen.getByText('Text C'));
         expect(action3).toHaveBeenCalledTimes(1);
     });
 

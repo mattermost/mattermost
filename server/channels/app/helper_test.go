@@ -5,7 +5,6 @@ package app
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -76,7 +75,14 @@ func setupTestHelper(dbStore store.Store, sqlStore *sqlstore.SqlStore, sqlSettin
 	*memoryConfig.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
 	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
 	*memoryConfig.LogSettings.EnableSentry = false // disable error reporting during tests
-	*memoryConfig.LogSettings.ConsoleLevel = mlog.LvlStdLog.Name
+
+	// Check for environment variable override for console log level (useful for debugging tests)
+	consoleLevel := os.Getenv("MM_LOGSETTINGS_CONSOLELEVEL")
+	if consoleLevel == "" {
+		consoleLevel = mlog.LvlStdLog.Name
+	}
+	*memoryConfig.LogSettings.ConsoleLevel = consoleLevel
+
 	*memoryConfig.AnnouncementSettings.AdminNoticesEnabled = false
 	*memoryConfig.AnnouncementSettings.UserNoticesEnabled = false
 	*memoryConfig.LogSettings.FileLocation = filepath.Join(tempWorkspace, "logs", "mattermost.log")
@@ -617,7 +623,7 @@ func (th *TestHelper) CreateScheme() (*model.Scheme, []*model.Role) {
 
 	var roles []*model.Role
 	for _, roleName := range roleNames {
-		role, err := th.App.GetRoleByName(context.Background(), roleName)
+		role, err := th.App.GetRoleByName(th.Context, roleName)
 		if err != nil {
 			panic(err)
 		}
@@ -791,7 +797,7 @@ func (th *TestHelper) SetupPluginAPI() *PluginAPI {
 }
 
 func (th *TestHelper) RemovePermissionFromRole(permission string, roleName string) {
-	role, err1 := th.App.GetRoleByName(context.Background(), roleName)
+	role, err1 := th.App.GetRoleByName(th.Context, roleName)
 	if err1 != nil {
 		panic(err1)
 	}
@@ -816,7 +822,7 @@ func (th *TestHelper) RemovePermissionFromRole(permission string, roleName strin
 }
 
 func (th *TestHelper) AddPermissionToRole(permission string, roleName string) {
-	role, err1 := th.App.GetRoleByName(context.Background(), roleName)
+	role, err1 := th.App.GetRoleByName(th.Context, roleName)
 	if err1 != nil {
 		panic(err1)
 	}

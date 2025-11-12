@@ -4,7 +4,6 @@
 package app
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -875,6 +874,62 @@ func TestDeletePostWithFileAttachments(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
+func TestDeletePostWithRestrictedDM(t *testing.T) {
+	mainHelper.Parallel(t)
+	t.Run("cannot delete post in restricted DM", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.RestrictDirectMessage = model.DirectMessageTeam
+		})
+
+		// Create a DM channel between two users who don't share a team
+		dmChannel := th.CreateDmChannel(th.BasicUser2)
+
+		// Ensure the two users do not share a team
+		teams, err := th.App.GetTeamsForUser(th.BasicUser.Id)
+		require.Nil(t, err)
+		for _, team := range teams {
+			teamErr := th.App.RemoveUserFromTeam(th.Context, team.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+			require.Nil(t, teamErr)
+		}
+		teams, err = th.App.GetTeamsForUser(th.BasicUser2.Id)
+		require.Nil(t, err)
+		for _, team := range teams {
+			teamErr := th.App.RemoveUserFromTeam(th.Context, team.Id, th.BasicUser2.Id, th.SystemAdminUser.Id)
+			require.Nil(t, teamErr)
+		}
+
+		// Create separate teams for each user
+		team1 := th.CreateTeam()
+		team2 := th.CreateTeam()
+		th.LinkUserToTeam(th.BasicUser, team1)
+		th.LinkUserToTeam(th.BasicUser2, team2)
+
+		// Create a post in the DM channel
+		post := &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: dmChannel.Id,
+			Message:   "test post",
+		}
+		post, err = th.App.CreatePost(th.Context, post, dmChannel, model.CreatePostFlags{})
+		require.Nil(t, err)
+
+		// Try to delete the post
+		_, appErr := th.App.DeletePost(th.Context, post.Id, th.BasicUser.Id)
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.post.delete_post.can_not_delete_from_restricted_dm.error", appErr.Id)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+
+		// Reset config
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.RestrictDirectMessage = model.DirectMessageAny
+		})
+	})
+}
+
 func TestDeletePostInArchivedChannel(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic()
@@ -1368,6 +1423,62 @@ func TestPatchPost(t *testing.T) {
 			th.AddPermissionToRole(model.PermissionUseChannelMentions.Id, model.ChannelAdminRoleId)
 		})
 	})
+
+	t.Run("cannot patch post in restricted DM", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.RestrictDirectMessage = model.DirectMessageTeam
+		})
+
+		// Create a DM channel between two users who don't share a team
+		dmChannel := th.CreateDmChannel(th.BasicUser2)
+
+		// Ensure the two users do not share a team
+		teams, err := th.App.GetTeamsForUser(th.BasicUser.Id)
+		require.Nil(t, err)
+		for _, team := range teams {
+			teamErr := th.App.RemoveUserFromTeam(th.Context, team.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+			require.Nil(t, teamErr)
+		}
+		teams, err = th.App.GetTeamsForUser(th.BasicUser2.Id)
+		require.Nil(t, err)
+		for _, team := range teams {
+			teamErr := th.App.RemoveUserFromTeam(th.Context, team.Id, th.BasicUser2.Id, th.SystemAdminUser.Id)
+			require.Nil(t, teamErr)
+		}
+
+		// Create separate teams for each user
+		team1 := th.CreateTeam()
+		team2 := th.CreateTeam()
+		th.LinkUserToTeam(th.BasicUser, team1)
+		th.LinkUserToTeam(th.BasicUser2, team2)
+
+		// Create a post in the DM channel
+		post := &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: dmChannel.Id,
+			Message:   "test post",
+		}
+		post, err = th.App.CreatePost(th.Context, post, dmChannel, model.CreatePostFlags{})
+		require.Nil(t, err)
+
+		// Try to patch the post
+		patch := &model.PostPatch{
+			Message: model.NewPointer("updated message"),
+		}
+		_, appErr := th.App.PatchPost(th.Context, post.Id, patch, model.DefaultUpdatePostOptions())
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.post.patch_post.can_not_update_post_in_restricted_dm.error", appErr.Id)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+
+		// Reset config
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.RestrictDirectMessage = model.DirectMessageAny
+		})
+	})
 }
 
 func TestCreatePostAsUser(t *testing.T) {
@@ -1383,14 +1494,14 @@ func TestCreatePostAsUser(t *testing.T) {
 			UserId:    th.BasicUser.Id,
 		}
 
-		channelMemberBefore, err := th.App.Srv().Store().Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		channelMemberBefore, err := th.App.Srv().Store().Channel().GetMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, err)
 
 		time.Sleep(1 * time.Millisecond)
 		_, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.Nil(t, appErr)
 
-		channelMemberAfter, err := th.App.Srv().Store().Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		channelMemberAfter, err := th.App.Srv().Store().Channel().GetMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, err)
 
 		require.Greater(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
@@ -1408,14 +1519,14 @@ func TestCreatePostAsUser(t *testing.T) {
 		}
 		post.AddProp(model.PostPropsFromWebhook, "true")
 
-		channelMemberBefore, err := th.App.Srv().Store().Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		channelMemberBefore, err := th.App.Srv().Store().Channel().GetMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, err)
 
 		time.Sleep(1 * time.Millisecond)
 		_, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.Nil(t, appErr)
 
-		channelMemberAfter, err := th.App.Srv().Store().Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		channelMemberAfter, err := th.App.Srv().Store().Channel().GetMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, err)
 
 		require.Equal(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
@@ -1440,14 +1551,14 @@ func TestCreatePostAsUser(t *testing.T) {
 			UserId:    bot.UserId,
 		}
 
-		channelMemberBefore, err := th.App.Srv().Store().Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		channelMemberBefore, err := th.App.Srv().Store().Channel().GetMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, err)
 
 		time.Sleep(1 * time.Millisecond)
 		_, appErr = th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.Nil(t, appErr)
 
-		channelMemberAfter, err := th.App.Srv().Store().Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		channelMemberAfter, err := th.App.Srv().Store().Channel().GetMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, err)
 
 		require.Equal(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
@@ -1496,7 +1607,7 @@ func TestCreatePostAsUser(t *testing.T) {
 		rootPost, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.Nil(t, appErr)
 
-		channelMemberBefore, err := th.App.Srv().Store().Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		channelMemberBefore, err := th.App.Srv().Store().Channel().GetMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, err)
 
 		time.Sleep(1 * time.Millisecond)
@@ -1509,7 +1620,7 @@ func TestCreatePostAsUser(t *testing.T) {
 		_, appErr = th.App.CreatePostAsUser(th.Context, replyPost, "", true)
 		require.Nil(t, appErr)
 
-		channelMemberAfter, err := th.App.Srv().Store().Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		channelMemberAfter, err := th.App.Srv().Store().Channel().GetMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, err)
 
 		require.NotEqual(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
@@ -1533,7 +1644,7 @@ func TestCreatePostAsUser(t *testing.T) {
 		rootPost, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
 		require.Nil(t, appErr)
 
-		channelMemberBefore, err := th.App.Srv().Store().Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		channelMemberBefore, err := th.App.Srv().Store().Channel().GetMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, err)
 
 		time.Sleep(1 * time.Millisecond)
@@ -1546,10 +1657,59 @@ func TestCreatePostAsUser(t *testing.T) {
 		_, appErr = th.App.CreatePostAsUser(th.Context, replyPost, "", true)
 		require.Nil(t, appErr)
 
-		channelMemberAfter, err := th.App.Srv().Store().Channel().GetMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id)
+		channelMemberAfter, err := th.App.Srv().Store().Channel().GetMember(th.Context, th.BasicChannel.Id, th.BasicUser.Id)
 		require.NoError(t, err)
 
 		require.Equal(t, channelMemberAfter.LastViewedAt, channelMemberBefore.LastViewedAt)
+	})
+
+	t.Run("cannot create post as user in restricted DM", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.RestrictDirectMessage = model.DirectMessageTeam
+		})
+
+		// Create a DM channel between two users who don't share a team
+		dmChannel := th.CreateDmChannel(th.BasicUser2)
+
+		// Ensure the two users do not share a team
+		teams, err := th.App.GetTeamsForUser(th.BasicUser.Id)
+		require.Nil(t, err)
+		for _, team := range teams {
+			teamErr := th.App.RemoveUserFromTeam(th.Context, team.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+			require.Nil(t, teamErr)
+		}
+		teams, err = th.App.GetTeamsForUser(th.BasicUser2.Id)
+		require.Nil(t, err)
+		for _, team := range teams {
+			teamErr := th.App.RemoveUserFromTeam(th.Context, team.Id, th.BasicUser2.Id, th.SystemAdminUser.Id)
+			require.Nil(t, teamErr)
+		}
+
+		// Create separate teams for each user
+		team1 := th.CreateTeam()
+		team2 := th.CreateTeam()
+		th.LinkUserToTeam(th.BasicUser, team1)
+		th.LinkUserToTeam(th.BasicUser2, team2)
+
+		post := &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: dmChannel.Id,
+			Message:   "test post",
+		}
+
+		_, appErr := th.App.CreatePostAsUser(th.Context, post, "", true)
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.post.create_post.can_not_post_in_restricted_dm.error", appErr.Id)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+
+		// Reset config
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.RestrictDirectMessage = model.DirectMessageAny
+		})
 	})
 }
 
@@ -1782,6 +1942,60 @@ func TestUpdatePost(t *testing.T) {
 				require.Len(t, previewPost.Metadata.Embeds, testCase.Length)
 			})
 		}
+	})
+
+	t.Run("cannot update post in restricted DM", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.RestrictDirectMessage = model.DirectMessageTeam
+		})
+
+		// Create a DM channel between two users who don't share a team
+		dmChannel := th.CreateDmChannel(th.BasicUser2)
+
+		// Ensure the two users do not share a team
+		teams, err := th.App.GetTeamsForUser(th.BasicUser.Id)
+		require.Nil(t, err)
+		for _, team := range teams {
+			teamErr := th.App.RemoveUserFromTeam(th.Context, team.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+			require.Nil(t, teamErr)
+		}
+		teams, err = th.App.GetTeamsForUser(th.BasicUser2.Id)
+		require.Nil(t, err)
+		for _, team := range teams {
+			teamErr := th.App.RemoveUserFromTeam(th.Context, team.Id, th.BasicUser2.Id, th.SystemAdminUser.Id)
+			require.Nil(t, teamErr)
+		}
+
+		// Create separate teams for each user
+		team1 := th.CreateTeam()
+		team2 := th.CreateTeam()
+		th.LinkUserToTeam(th.BasicUser, team1)
+		th.LinkUserToTeam(th.BasicUser2, team2)
+
+		// Create a post in the DM channel
+		post := &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: dmChannel.Id,
+			Message:   "test post",
+		}
+		post, err = th.App.CreatePost(th.Context, post, dmChannel, model.CreatePostFlags{})
+		require.Nil(t, err)
+
+		// Try to update the post
+		post.Message = "updated message"
+		_, appErr := th.App.UpdatePost(th.Context, post, model.DefaultUpdatePostOptions())
+		require.NotNil(t, appErr)
+		require.Equal(t, "api.post.update_post.can_not_update_post_in_restricted_dm.error", appErr.Id)
+		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+
+		// Reset config
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.RestrictDirectMessage = model.DirectMessageAny
+		})
 	})
 }
 
@@ -2867,6 +3081,107 @@ func TestFillInPostProps(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, post1.Props, model.StringInterface{"disable_group_highlight": true})
 	})
+
+	t.Run("should set AI-generated username when user ID is post creator", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		user1 := th.BasicUser
+		channel := th.CreateChannel(th.Context, th.BasicTeam)
+
+		post1 := &model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			Message:   "test post",
+		}
+		post1.AddProp(model.PostPropsAIGeneratedByUserID, user1.Id)
+
+		err := th.App.FillInPostProps(th.Context, post1, channel)
+
+		assert.Nil(t, err)
+		assert.Equal(t, user1.Id, post1.GetProp(model.PostPropsAIGeneratedByUserID))
+		assert.Equal(t, user1.Username, post1.GetProp(model.PostPropsAIGeneratedByUsername))
+	})
+
+	t.Run("should set AI-generated username when user ID is a bot", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		user1 := th.BasicUser
+		channel := th.CreateChannel(th.Context, th.BasicTeam)
+
+		// Create a bot
+		bot, appErr := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    "testbot",
+			Description: "test bot",
+			OwnerId:     user1.Id,
+		})
+		require.Nil(t, appErr)
+
+		post1 := &model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			Message:   "test post generated by bot",
+		}
+		post1.AddProp(model.PostPropsAIGeneratedByUserID, bot.UserId)
+
+		err := th.App.FillInPostProps(th.Context, post1, channel)
+
+		assert.Nil(t, err)
+		assert.Equal(t, bot.UserId, post1.GetProp(model.PostPropsAIGeneratedByUserID))
+		assert.Equal(t, bot.Username, post1.GetProp(model.PostPropsAIGeneratedByUsername))
+	})
+
+	t.Run("should return error when user ID is a different non-bot user", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		user1 := th.BasicUser
+		user2 := th.BasicUser2
+		channel := th.CreateChannel(th.Context, th.BasicTeam)
+
+		post1 := &model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			Message:   "test post",
+		}
+		// Try to set AI-generated user ID to a different user (not post creator, not bot)
+		post1.AddProp(model.PostPropsAIGeneratedByUserID, user2.Id)
+
+		err := th.App.FillInPostProps(th.Context, post1, channel)
+
+		// Should return an error since user2 is neither the post creator nor a bot
+		assert.NotNil(t, err)
+		assert.Equal(t, "FillInPostProps", err.Where)
+		assert.Equal(t, http.StatusBadRequest, err.StatusCode)
+	})
+
+	t.Run("should remove AI-generated prop when user ID does not exist", func(t *testing.T) {
+		mainHelper.Parallel(t)
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		user1 := th.BasicUser
+		channel := th.CreateChannel(th.Context, th.BasicTeam)
+
+		post1 := &model.Post{
+			UserId:    user1.Id,
+			ChannelId: channel.Id,
+			Message:   "test post",
+		}
+		// Set AI-generated user ID to a non-existent user
+		post1.AddProp(model.PostPropsAIGeneratedByUserID, model.NewId())
+
+		err := th.App.FillInPostProps(th.Context, post1, channel)
+
+		assert.Nil(t, err)
+		// The property should be removed since the user doesn't exist
+		assert.Nil(t, post1.GetProp(model.PostPropsAIGeneratedByUserID))
+		assert.Nil(t, post1.GetProp(model.PostPropsAIGeneratedByUsername))
+	})
 }
 
 func TestThreadMembership(t *testing.T) {
@@ -2963,7 +3278,7 @@ func TestFollowThreadSkipsParticipants(t *testing.T) {
 
 	threadMembership, appErr := th.App.GetThreadMembershipForUser(user.Id, p1.Id)
 	require.Nil(t, appErr)
-	thread, appErr := th.App.GetThreadForUser(threadMembership, false)
+	thread, appErr := th.App.GetThreadForUser(th.Context, threadMembership, false)
 	require.Nil(t, appErr)
 	require.Len(t, thread.Participants, 1) // length should be 1, the original poster, since sysadmin was just mentioned but didn't post
 
@@ -2972,7 +3287,7 @@ func TestFollowThreadSkipsParticipants(t *testing.T) {
 
 	threadMembership, appErr = th.App.GetThreadMembershipForUser(user.Id, p1.Id)
 	require.Nil(t, appErr)
-	thread, appErr = th.App.GetThreadForUser(threadMembership, false)
+	thread, appErr = th.App.GetThreadForUser(th.Context, threadMembership, false)
 	require.Nil(t, appErr)
 	require.Len(t, thread.Participants, 2) // length should be 2, the original poster and sysadmin, since sysadmin participated now
 
@@ -2982,7 +3297,7 @@ func TestFollowThreadSkipsParticipants(t *testing.T) {
 
 	threadMembership, appErr = th.App.GetThreadMembershipForUser(user2.Id, p1.Id)
 	require.Nil(t, appErr)
-	thread, appErr = th.App.GetThreadForUser(threadMembership, false)
+	thread, appErr = th.App.GetThreadForUser(th.Context, threadMembership, false)
 	require.Nil(t, appErr)
 	require.Len(t, thread.Participants, 2) // length should be 2, since follow shouldn't update participant list, only user1 and sysadmin are participants
 	for _, p := range thread.Participants {
@@ -2991,13 +3306,13 @@ func TestFollowThreadSkipsParticipants(t *testing.T) {
 
 	oldID := threadMembership.PostId
 	threadMembership.PostId = "notfound"
-	_, appErr = th.App.GetThreadForUser(threadMembership, false)
+	_, appErr = th.App.GetThreadForUser(th.Context, threadMembership, false)
 	require.NotNil(t, appErr)
 	assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
 
 	threadMembership.Following = false
 	threadMembership.PostId = oldID
-	_, appErr = th.App.GetThreadForUser(threadMembership, false)
+	_, appErr = th.App.GetThreadForUser(th.Context, threadMembership, false)
 	require.NotNil(t, appErr)
 	assert.Equal(t, http.StatusNotFound, appErr.StatusCode)
 }
@@ -3203,7 +3518,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 		require.Len(t, thread.Participants, 1)
 
 		// extended fetch posts page
-		l, appErr := th.App.GetPostsPage(model.GetPostsOptions{
+		l, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{
 			UserId:                   user1.Id,
 			ChannelId:                channel.Id,
 			PerPage:                  int(10),
@@ -3233,7 +3548,7 @@ func TestCollapsedThreadFetch(t *testing.T) {
 			CollapsedThreadsExtended: true,
 		}
 
-		l, appErr = th.App.GetPostThread(postRoot.Id, opts, user1.Id)
+		l, appErr = th.App.GetPostThread(th.Context, postRoot.Id, opts, user1.Id)
 		require.Nil(t, appErr)
 		require.Len(t, l.Order, 2)
 		require.NotEmpty(t, l.Posts[postRoot.Id].Participants[0].Email)

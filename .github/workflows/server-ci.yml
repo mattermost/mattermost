@@ -11,6 +11,8 @@ on:
       - ".github/workflows/server-ci.yml"
       - ".github/workflows/server-test-template.yml"
       - ".github/workflows/mmctl-test-template.yml"
+      - "!server/build/Dockerfile.buildenv"
+      - "!server/build/Dockerfile.buildenv-fips"
 
 concurrency:
   group: ${{ github.event_name == 'pull_request' && format('{0}-{1}', github.workflow, github.ref) || github.run_id }}
@@ -63,8 +65,8 @@ jobs:
         run: make modules-tidy
       - name: Check modules
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please tidy up the Go modules using make modules-tidy"; git diff; exit 1; fi
-  golangci:
-    name: golangci-lint
+  check-style:
+    name: check-style
     needs: go
     runs-on: ubuntu-22.04
     container: mattermostdevelopment/mattermost-build-server:${{ needs.go.outputs.version }}
@@ -79,7 +81,7 @@ jobs:
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Run golangci
-        run: make golangci-lint
+        run: make check-style
   check-gen-serialized:
     name: Check serialization methods for hot structs
     needs: go
@@ -97,25 +99,6 @@ jobs:
         run: make gen-serialized
       - name: Check serialized
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the serialized files using 'make gen-serialized'"; exit 1; fi
-  check-mattermost-vet:
-    name: Check style
-    needs: go
-    runs-on: ubuntu-22.04
-    container: mattermostdevelopment/mattermost-build-server:${{ needs.go.outputs.version }}
-    defaults:
-      run:
-        working-directory: server
-    steps:
-      - name: Checkout mattermost project
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: Run setup-go-work
-        run: make setup-go-work
-      - name: Reset config
-        run: make config-reset
-      - name: Run plugin-checker
-        run: make plugin-checker
-      - name: Run mattermost-vet
-        run: make vet BUILD_NUMBER='${GITHUB_HEAD_REF}'
   check-mattermost-vet-api:
     name: Vet API
     needs: go
@@ -201,9 +184,7 @@ jobs:
   test-postgres-binary:
     if: github.event_name == 'push' # Only run postgres binary tests on master/release pushes: odds are low this regresses, so save the cycles for pull requests.
     name: Postgres with binary parameters
-    needs:
-      - go
-      - check-mattermost-vet
+    needs: go
     uses: ./.github/workflows/server-test-template.yml
     secrets: inherit
     with:
@@ -212,11 +193,10 @@ jobs:
       drivername: postgres
       logsartifact: postgres-binary-server-test-logs
       go-version: ${{ needs.go.outputs.version }}
+      fips-enabled: false
   test-postgres-normal:
     name: Postgres
-    needs:
-      - go
-      - check-mattermost-vet
+    needs: go
     uses: ./.github/workflows/server-test-template.yml
     secrets: inherit
     with:
@@ -225,13 +205,26 @@ jobs:
       drivername: postgres
       logsartifact: postgres-server-test-logs
       go-version: ${{ needs.go.outputs.version }}
+      fips-enabled: false
+  test-postgres-normal-fips:
+    # Skip FIPS testing for forks, which won't have docker login credentials.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    name: Postgres (FIPS)
+    needs: go
+    uses: ./.github/workflows/server-test-template.yml
+    secrets: inherit
+    with:
+      name: Postgres
+      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      drivername: postgres
+      logsartifact: postgres-server-test-logs
+      go-version: ${{ needs.go.outputs.version }}
+      fips-enabled: true
   test-coverage:
+    name: Generate Test Coverage
     # Skip coverage generation for cherry-pick PRs into release branches.
     if: ${{ github.event_name != 'pull_request' || !startsWith(github.event.pull_request.base.ref, 'release-') }}
-    name: Generate Test Coverage
-    needs:
-      - go
-      - check-mattermost-vet
+    needs: go
     uses: ./.github/workflows/server-test-template.yml
     secrets: inherit
     with:
@@ -244,9 +237,7 @@ jobs:
       go-version: ${{ needs.go.outputs.version }}
   test-mmctl:
     name: Run mmctl tests
-    needs:
-      - check-mattermost-vet
-      - go
+    needs: go
     uses: ./.github/workflows/mmctl-test-template.yml
     secrets: inherit
     with:
@@ -255,11 +246,24 @@ jobs:
       drivername: postgres
       logsartifact: mmctl-test-logs
       go-version: ${{ needs.go.outputs.version }}
+      fips-enabled: false
+  test-mmctl-fips:
+    name: Run mmctl tests (FIPS)
+    # Skip FIPS testing for forks, which won't have docker login credentials.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    needs: go
+    uses: ./.github/workflows/mmctl-test-template.yml
+    secrets: inherit
+    with:
+      name: mmctl
+      datasource: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      drivername: postgres
+      logsartifact: mmctl-test-logs
+      go-version: ${{ needs.go.outputs.version }}
+      fips-enabled: true
   build-mattermost-server:
     name: Build mattermost server app
-    needs:
-      - go
-      - check-mattermost-vet
+    needs: go
     runs-on: ubuntu-22.04
     container: mattermostdevelopment/mattermost-build-server:${{ needs.go.outputs.version }}
     defaults:
@@ -267,23 +271,18 @@ jobs:
         working-directory: server
     env:
       GOFLAGS: -buildvcs=false # TODO: work around "error obtaining VCS status: exit status 128" in a container
+      BUILD_NUMBER: "${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}"
+      FIPS_ENABLED: false
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-      - name: ci/setup-node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
-        id: setup_node
-        with:
-          node-version-file: ".nvmrc"
-          cache: npm
-          cache-dependency-path: "webapp/package-lock.json"
       - name: Run setup-go-work
         run: make setup-go-work
       - name: Build
         run: |
           make config-reset
-          make build-cmd BUILD_NUMBER='${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}'
-          make package BUILD_NUMBER='${GITHUB_HEAD_REF}-${GITHUB_RUN_ID}'
+          make build-cmd
+          make package
       - name: Persist dist artifacts
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:

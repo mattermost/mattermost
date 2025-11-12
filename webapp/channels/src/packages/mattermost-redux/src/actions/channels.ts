@@ -351,11 +351,11 @@ export function getChannelByNameAndTeamName(teamName: string, channelName: strin
     };
 }
 
-export function getChannel(channelId: string): ActionFuncAsync<Channel> {
+export function getChannel(channelId: string, asContentReviewer = false): ActionFuncAsync<Channel> {
     return async (dispatch, getState) => {
         let data;
         try {
-            data = await Client4.getChannel(channelId);
+            data = await Client4.getChannel(channelId, asContentReviewer);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch({type: ChannelTypes.CHANNELS_FAILURE, error});
@@ -883,17 +883,13 @@ export function autocompleteChannelsForSearch(teamId: string, term: string): Act
     };
 }
 
-export function searchChannels(teamId: string, term: string, archived?: boolean): ActionFuncAsync<Channel[]> {
+export function searchChannels(teamId: string, term: string): ActionFuncAsync<Channel[]> {
     return async (dispatch, getState) => {
         dispatch({type: ChannelTypes.GET_CHANNELS_REQUEST, data: null});
 
         let channels;
         try {
-            if (archived) {
-                channels = await Client4.searchArchivedChannels(teamId, term);
-            } else {
-                channels = await Client4.searchChannels(teamId, term);
-            }
+            channels = await Client4.searchChannels(teamId, term);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch({type: ChannelTypes.GET_CHANNELS_FAILURE, error});
@@ -1394,12 +1390,12 @@ export function getChannelMemberCountsByGroup(channelId: string) {
     });
 }
 
-export function fetchMissingChannels(channelIDs: string[]): ActionFuncAsync<Array<Channel['id']>> {
+export function fetchMissingChannels(channelIDs: string[], asContentReviewer = false): ActionFuncAsync<Array<Channel['id']>> {
     return async (dispatch, getState, {loaders}: any) => {
         if (!loaders.missingChannelLoader) {
             loaders.missingChannelLoader = new DelayedDataLoader<Channel['id']>({
                 fetchBatch: (channelIDs) => {
-                    return channelIDs.length ? dispatch(getChannel(channelIDs[0])) : Promise.resolve();
+                    return channelIDs.length ? dispatch(getChannel(channelIDs[0], asContentReviewer)) : Promise.resolve();
                 },
                 maxBatchSize: 1,
                 wait: 100,
@@ -1418,6 +1414,16 @@ export function fetchMissingChannels(channelIDs: string[]): ActionFuncAsync<Arra
             data: missingChannelIDs,
         };
     };
+}
+
+export function fetchIsRestrictedDM(channelId: string) {
+    return bindClientFunc({
+        clientFunc: async () => {
+            const teams = (await Client4.getGroupMessageMembersCommonTeams(channelId)).data;
+            return {channelId, isRestricted: teams.length === 0};
+        },
+        onSuccess: ChannelTypes.RECEIVED_IS_DM_RESTRICTED,
+    });
 }
 
 export function getChannelAccessControlAttributes(channelId: string): ActionFuncAsync<AccessControlAttributes> {

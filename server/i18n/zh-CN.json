@@ -10710,10 +10710,6 @@
     "translation": "您的许可证不支持内容标记功能。"
   },
   {
-    "id": "api.not_implemented",
-    "translation": "此功能尚未实现。"
-  },
-  {
     "id": "app.access_control.insufficient_permissions",
     "translation": "您没有权限管理此访问控制策略。"
   },
@@ -10772,5 +10768,25 @@
   {
     "id": "model.config.is_valid.experimental_view_archived_channels.app_error",
     "translation": "不再支持隐藏已归档的频道。请将这些频道设为私有并移除成员。"
+  },
+  {
+    "id": "api.user.check_user_password.invalid_hash.app_error",
+    "translation": "哈希密码的格式无效，无法解析。"
+  },
+  {
+    "id": "app.user.check_user_password.failed_migration",
+    "translation": "未能将用户的密码迁移到最新的哈希方法。"
+  },
+  {
+    "id": "app.user.check_user_password.failed_update",
+    "translation": "未能更新用户密码。"
+  },
+  {
+    "id": "app.job.get_existing_jobs.error",
+    "translation": "无法获取现有的作业。"
+  },
+  {
+    "id": "app.submit_interactive_dialog.invalid_response",
+    "translation": "收到来自交互式对话提交的无效响应。"
   }
 ]

@@ -151,6 +151,7 @@ export const Preferences = {
     NOTIFY_ADMIN_REVOKE_DOWNGRADED_WORKSPACE: 'admin_revoke_downgraded_instance',
     OVERAGE_USERS_BANNER: ReduxPreferences.CATEGORY_OVERAGE_USERS_BANNER,
     POST_HISTORY_LIMIT_BANNER: ReduxPreferences.CATEGORY_POST_HISTORY_LIMIT_BANNER,
+    USERS_LIMITS_BANNER: 'users_limits_banner',
     TO_CLOUD_YEARLY_PLAN_NUDGE: 'to_cloud_yearly_plan_nudge',
     TO_PAID_PLAN_NUDGE: 'to_paid_plan_nudge',
     CLOUD_ANNUAL_RENEWAL_BANNER: 'cloud_annual_renewal_banner',
@@ -483,6 +484,7 @@ export const ModalIdentifiers = {
     ATTRIBUTE_MODAL_LDAP: 'attribute_modal_ldap',
     ATTRIBUTE_MODAL_SAML: 'attribute_modal_saml',
     FLAG_POST: 'flag_post',
+    REMOVE_FLAGGED_POST: 'remove_flagged_post',
 };
 
 export const UserStatuses = {
@@ -700,6 +702,7 @@ export const SocketEvents = {
     CPA_FIELD_UPDATED: 'custom_profile_attributes_field_updated',
     CPA_FIELD_DELETED: 'custom_profile_attributes_field_deleted',
     CPA_VALUES_UPDATED: 'custom_profile_attributes_values_updated',
+    CONTENT_FLAGGING_REPORT_VALUE_CHANGED: 'content_flagging_report_value_updated',
 };
 
 export const TutorialSteps = {
@@ -932,6 +935,7 @@ export const AnnouncementBarTypes = {
     ADVISOR: 'advisor',
     ADVISOR_ACK: 'advisor-ack',
     GENERAL: 'general',
+    WARNING: 'warning',
 };
 
 export const AnnouncementBarMessages = {
@@ -1167,7 +1171,7 @@ export const DeveloperLinks = {
 
 export const LicenseLinks = {
     CONTACT_SALES: 'https://mattermost.com/contact-sales/',
-    ENTRY_LIMITS_INFO: 'https://mattermost.com/pl/entry',
+    ENTRY_LIMITS_INFO: 'https://mattermost.com/pl/mattermost-entry-limits',
     TRIAL_INFO_LINK: 'https://mattermost.com/trial',
     EMBARGOED_COUNTRIES: 'https://mattermost.com/pl/limitations-for-embargoed-countries',
     SOFTWARE_SERVICES_LICENSE_AGREEMENT: 'https://mattermost.com/pl/software-and-services-license-agreement',
@@ -1480,20 +1484,8 @@ export const ZoomSettings = {
 };
 
 export const DataSpillagePropertyNames = {
-    Status: 'Status',
-    FlaggedBy: 'Flagged by',
-    Reason: 'Reason',
-    Comment: 'Comment',
-    ReportingTime: 'Reporting Time',
-    ReviewingUser: 'Reviewing User',
-    ActionBy: 'Action By',
-    ActionComment: 'Action Comment',
-    ActionTime: 'Action Time',
-    Message: 'Message',
-    PostedIn: 'Posted in',
-    Team: 'Team',
-    PostedBy: 'Posted by',
-    PostedAt: 'Posted at',
+    FlaggedBy: 'reporting_user_id',
+    Status: 'status',
 };
 
 export const Constants = {

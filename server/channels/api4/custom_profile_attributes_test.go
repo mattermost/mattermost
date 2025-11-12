@@ -1150,12 +1150,16 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 			require.Equal(t, "Regular Value", actualValue)
 		})
 
-		t.Run("system admin can update managed field", func(t *testing.T) {
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			// Set initial value through the app layer that we will be replacing during the test
+			_, appErr := th.App.PatchCPAValue(th.SystemAdminUser.Id, createdManagedField.ID, json.RawMessage(`"Initial Admin Value"`), true)
+			require.Nil(t, appErr)
+
 			values := map[string]json.RawMessage{
 				createdManagedField.ID: json.RawMessage(`"Admin Updated Value"`),
 			}
 
-			patchedValues, resp, err := th.SystemAdminClient.PatchCPAValuesForUser(context.Background(), th.SystemAdminUser.Id, values)
+			patchedValues, resp, err := client.PatchCPAValuesForUser(context.Background(), th.SystemAdminUser.Id, values)
 			CheckOKStatus(t, resp)
 			require.NoError(t, err)
 			require.NotEmpty(t, patchedValues)
@@ -1163,9 +1167,9 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 			var actualValue string
 			require.NoError(t, json.Unmarshal(patchedValues[createdManagedField.ID], &actualValue))
 			require.Equal(t, "Admin Updated Value", actualValue)
-		})
+		}, "system admin can update managed field")
 
-		t.Run("system admin can update managed field values for other users", func(t *testing.T) {
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 			values := map[string]json.RawMessage{
 				createdManagedField.ID: json.RawMessage(`"Admin Updated Managed Value For Other User"`),
 			}
@@ -1188,7 +1192,7 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 			var storedValue string
 			require.NoError(t, json.Unmarshal(userValues[createdManagedField.ID], &storedValue))
 			require.Equal(t, "Admin Updated Managed Value For Other User", storedValue)
-		})
+		}, "system admin can update managed field values for other users")
 
 		t.Run("a user should not be able to update other user's field values", func(t *testing.T) {
 			values := map[string]json.RawMessage{
@@ -1256,7 +1260,7 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 			require.True(t, managedFieldHasOriginalValue, "Managed field should retain its original value")
 		})
 
-		t.Run("batch update with managed fields succeeds for admin", func(t *testing.T) {
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 			values := map[string]json.RawMessage{
 				createdManagedField.ID: json.RawMessage(`"Admin Managed Batch"`),
 				createdRegularField.ID: json.RawMessage(`"Admin Regular Batch"`),
@@ -1272,6 +1276,6 @@ func TestPatchCPAValuesForUser(t *testing.T) {
 			require.NoError(t, json.Unmarshal(patchedValues[createdRegularField.ID], &regularValue))
 			require.Equal(t, "Admin Managed Batch", managedValue)
 			require.Equal(t, "Admin Regular Batch", regularValue)
-		})
+		}, "batch update with managed fields succeeds for admin")
 	})
 }
