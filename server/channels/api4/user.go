@@ -1304,7 +1304,6 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		autocomplete.Users = result.InChannel
 		autocomplete.OutOfChannel = result.OutOfChannel
-		autocomplete.PluginBots = result.PluginBots
 	} else if teamId != "" {
 		result, err := c.App.AutocompleteUsersInTeam(c.AppContext, teamId, name, options)
 		if err != nil {
@@ -1320,6 +1319,12 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		autocomplete.Users = result
+	}
+
+	// Fetch agents for autocomplete
+	agents, appErr := c.App.GetAgents(c.AppContext, c.AppContext.Session().UserId)
+	if appErr == nil && agents != nil {
+		autocomplete.Agents = agents
 	}
 
 	if err := json.NewEncoder(w).Encode(autocomplete); err != nil {

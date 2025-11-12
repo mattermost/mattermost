@@ -1,8 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import React from 'react';
 import {defineMessage} from 'react-intl';
 
+import {CreationOutlineIcon} from '@mattermost/compass-icons/components';
+import type {Agent} from '@mattermost/types/agents';
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -269,7 +272,7 @@ export default class AtMentionProvider extends Provider {
         });
 
         const specialMentions = this.specialMentions();
-        const localMembers = this.localMembers().filter((member) => !priorityProfilesIds[member.id] && !member.is_bot);
+        const localMembers = this.localMembers().filter((member) => !priorityProfilesIds[member.id]);
 
         const localUserIds: Record<string, boolean> = {};
 
@@ -277,7 +280,7 @@ export default class AtMentionProvider extends Provider {
             localUserIds[member.id] = true;
         });
 
-        const remoteMembers = this.remoteMembers().filter((member: CreatedProfile) => !localUserIds[member.id] && !priorityProfilesIds[member.id] && !member.is_bot);
+        const remoteMembers = this.remoteMembers().filter((member: CreatedProfile) => !localUserIds[member.id] && !priorityProfilesIds[member.id]);
 
         // comparator which prioritises users with usernames starting with search term
         const orderUsers = (a: CreatedProfile, b: CreatedProfile) => {
@@ -302,21 +305,51 @@ export default class AtMentionProvider extends Provider {
             return a.username.localeCompare(b.username);
         };
 
-        // Get all bots from the backend (includes both plugin bots and in-channel user-created bots)
-        const remoteBots = this.data && this.data.plugin_bots ?
-            (this.data.plugin_bots || []).
-                filter((profile: UserProfileWithLastViewAt) => this.filterProfile(profile)).
-                map((profile: UserProfileWithLastViewAt) => this.createFromProfile(profile)) :
-            [];
+        // Combine the local and remote members, sorting to mix the results together.
+        const localAndRemoteMembers = localMembers.concat(remoteMembers).sort(orderUsers);
 
-        // Sort non-bot members
-        const nonBotPriorityProfiles = priorityProfiles.filter((member) => !member.is_bot);
-        const localAndRemoteMembers = [...nonBotPriorityProfiles, ...localMembers, ...remoteMembers].sort(orderUsers);
+        // Get agents and filter by search term
+        // Only show agents if bridge is enabled (indicated by presence of agents data)
+        const agents: CreatedProfile[] = [];
+        if (this.data && this.data.agents && Array.isArray(this.data.agents) && this.data.agents.length > 0) {
+            const rawAgents = this.data.agents as Agent[];
+            rawAgents.forEach((agent: Agent) => {
+                // Filter agents by username or displayName matching the search term
+                const searchTerm = this.latestPrefix.toLowerCase();
+                const matchesUsername = agent.username.toLowerCase().includes(searchTerm);
+                const matchesDisplayName = agent.displayName.toLowerCase().includes(searchTerm);
 
-        // Get non-members (excluding bots which are now in plugin_bots field)
-        const remoteNonMembers = this.remoteNonMembers().
-            filter((member) => !localUserIds[member.id] && !priorityProfilesIds[member.id] && !member.is_bot);
-        const sortedNonMembers = remoteNonMembers.sort(orderUsers);
+                if (matchesUsername || matchesDisplayName) {
+                    // Convert Agent to CreatedProfile format
+                    const agentProfile: any = {
+                        id: agent.id,
+                        username: agent.username,
+                        nickname: '',
+                        first_name: agent.displayName,
+                        last_name: '',
+                        email: '',
+                        roles: '',
+                        position: '',
+                        delete_at: 0,
+                        create_at: 0,
+                        update_at: 0,
+                        is_bot: true,
+                        locale: '',
+                        timezone: {
+                            useAutomaticTimezone: 'true',
+                            automaticTimezone: '',
+                            manualTimezone: '',
+                        },
+                        password: '',
+                        auth_service: '',
+                        props: {},
+                        notify_props: {},
+                    };
+                    agents.push(agentProfile);
+                }
+            });
+            agents.sort(orderUsers);
+        }
 
         // handle groups
         const localGroups = this.localGroups();
@@ -348,13 +381,17 @@ export default class AtMentionProvider extends Provider {
         // Combine the local and remote groups, sorting to mix the results together.
         const localAndRemoteGroups = localGroups.concat(remoteGroups).sort(orderGroups);
 
+        const remoteNonMembers = this.remoteNonMembers().
+            filter((member) => !localUserIds[member.id]).
+            sort(orderUsers);
+
         const items = [];
 
-        if (localAndRemoteMembers.length > 0) {
-            items.push(membersGroup(localAndRemoteMembers));
+        if (priorityProfiles.length > 0 || localAndRemoteMembers.length > 0) {
+            items.push(membersGroup([...priorityProfiles, ...localAndRemoteMembers]));
         }
-        if (remoteBots.length > 0) {
-            items.push(botsGroup(remoteBots));
+        if (agents.length > 0) {
+            items.push(agentsGroup(agents));
         }
         if (localAndRemoteGroups.length > 0) {
             items.push(groupsGroup(localAndRemoteGroups));
@@ -362,8 +399,8 @@ export default class AtMentionProvider extends Provider {
         if (specialMentions.length > 0) {
             items.push(specialMentionsGroup(specialMentions));
         }
-        if (sortedNonMembers.length > 0) {
-            items.push(nonMembersGroup(sortedNonMembers));
+        if (remoteNonMembers.length > 0) {
+            items.push(nonMembersGroup(remoteNonMembers));
         }
 
         return items;
@@ -461,10 +498,11 @@ export function membersGroup(items: CreatedProfile[]) {
     };
 }
 
-export function botsGroup(items: CreatedProfile[]) {
+export function agentsGroup(items: CreatedProfile[]) {
     return {
-        key: 'bots',
-        label: defineMessage({id: 'suggestion.mention.bots', defaultMessage: 'BOTS'}),
+        key: 'agents',
+        label: defineMessage({id: 'suggestion.mention.agents', defaultMessage: 'Agents'}),
+        icon: <CreationOutlineIcon size={16}/>,
         items,
         terms: items.map((profile) => '@' + profile.username),
         component: AtMentionSuggestion,

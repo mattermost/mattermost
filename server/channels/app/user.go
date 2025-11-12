@@ -2277,46 +2277,13 @@ func (a *App) AutocompleteUsersInChannel(rctx request.CTX, teamID string, channe
 		return nil, model.NewAppError("AutocompleteUsersInChannel", "app.user.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	// Get active plugin IDs to determine which bots are plugin-created
-	activePluginIDs := make(map[string]bool)
-	activePluginManifests, appErr := a.GetActivePluginManifests()
-	if appErr == nil && activePluginManifests != nil {
-		for _, manifest := range activePluginManifests {
-			activePluginIDs[manifest.Id] = true
-		}
-	}
-
-	// Filter plugin bots from InChannel and sanitize
-	usersInChannelFiltered := make([]*model.User, 0, len(autocomplete.InChannel))
 	for _, user := range autocomplete.InChannel {
 		a.SanitizeProfile(user, options.IsAdmin)
-		// Only exclude bots that belong to active plugins
-		if !user.IsBot || !activePluginIDs[user.BotOwnerId] {
-			usersInChannelFiltered = append(usersInChannelFiltered, user)
-		}
 	}
-	autocomplete.InChannel = usersInChannelFiltered
 
-	// Filter plugin bots from OutOfChannel and sanitize
-	usersOutOfChannelFiltered := make([]*model.User, 0, len(autocomplete.OutOfChannel))
 	for _, user := range autocomplete.OutOfChannel {
 		a.SanitizeProfile(user, options.IsAdmin)
-		// Only exclude bots that belong to active plugins
-		if !user.IsBot || !activePluginIDs[user.BotOwnerId] {
-			usersOutOfChannelFiltered = append(usersOutOfChannelFiltered, user)
-		}
 	}
-	autocomplete.OutOfChannel = usersOutOfChannelFiltered
-
-	// Filter and sanitize plugin bots - only include those from active plugins
-	filteredPluginBots := make([]*model.User, 0, len(autocomplete.PluginBots))
-	for _, user := range autocomplete.PluginBots {
-		if activePluginIDs[user.BotOwnerId] {
-			a.SanitizeProfile(user, options.IsAdmin)
-			filteredPluginBots = append(filteredPluginBots, user)
-		}
-	}
-	autocomplete.PluginBots = filteredPluginBots
 
 	return autocomplete, nil
 }

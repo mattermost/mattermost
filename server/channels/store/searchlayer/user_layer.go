@@ -130,14 +130,6 @@ func (s *SearchUserStore) autocompleteUsersInChannelByEngine(rctx request.CTX, e
 		close(nuchan)
 	}()
 
-	// Fetch plugin bots directly from SQL store (not indexed in search engines)
-	pbchan := make(chan store.StoreResult[[]*model.User], 1)
-	go func() {
-		bots, nErr := s.UserStore.SearchPluginBots(term, options)
-		pbchan <- store.StoreResult[[]*model.User]{Data: bots, NErr: nErr}
-		close(pbchan)
-	}()
-
 	autocomplete := &model.UserAutocompleteInChannel{}
 
 	result := <-uchan
@@ -151,12 +143,6 @@ func (s *SearchUserStore) autocompleteUsersInChannelByEngine(rctx request.CTX, e
 		return nil, errors.Wrap(result.NErr, "failed to get user profiles by ids")
 	}
 	autocomplete.OutOfChannel = result.Data
-
-	result = <-pbchan
-	if result.NErr != nil {
-		return nil, errors.Wrap(result.NErr, "failed to search plugin bots")
-	}
-	autocomplete.PluginBots = result.Data
 
 	return autocomplete, nil
 }

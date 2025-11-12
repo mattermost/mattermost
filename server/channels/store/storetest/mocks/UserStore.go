@@ -1914,36 +1914,6 @@ func (_m *UserStore) SearchNotInTeam(notInTeamID string, term string, options *m
 	return r0, r1
 }
 
-// SearchPluginBots provides a mock function with given fields: term, options
-func (_m *UserStore) SearchPluginBots(term string, options *model.UserSearchOptions) ([]*model.User, error) {
-	ret := _m.Called(term, options)
-
-	if len(ret) == 0 {
-		panic("no return value specified for SearchPluginBots")
-	}
-
-	var r0 []*model.User
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string, *model.UserSearchOptions) ([]*model.User, error)); ok {
-		return rf(term, options)
-	}
-	if rf, ok := ret.Get(0).(func(string, *model.UserSearchOptions) []*model.User); ok {
-		r0 = rf(term, options)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.User)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string, *model.UserSearchOptions) error); ok {
-		r1 = rf(term, options)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // SearchTeamContentFlaggingReviewers provides a mock function with given fields: teamId, term
 func (_m *UserStore) SearchTeamContentFlaggingReviewers(teamId string, term string) ([]*model.User, error) {
 	ret := _m.Called(teamId, term)

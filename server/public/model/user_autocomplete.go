@@ -6,7 +6,6 @@ package model
 type UserAutocompleteInChannel struct {
 	InChannel    []*User `json:"in_channel"`
 	OutOfChannel []*User `json:"out_of_channel"`
-	PluginBots   []*User `json:"plugin_bots"`
 }
 
 type UserAutocompleteInTeam struct {
@@ -14,7 +13,7 @@ type UserAutocompleteInTeam struct {
 }
 
 type UserAutocomplete struct {
-	Users        []*User `json:"users"`
-	OutOfChannel []*User `json:"out_of_channel,omitempty"`
-	PluginBots   []*User `json:"plugin_bots,omitempty"`
+	Users        []*User     `json:"users"`
+	OutOfChannel []*User     `json:"out_of_channel,omitempty"`
+	Agents       interface{} `json:"agents,omitempty"`
 }

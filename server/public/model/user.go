@@ -106,7 +106,6 @@ type User struct {
 	IsBot                  bool        `json:"is_bot,omitempty"`
 	BotDescription         string      `json:"bot_description,omitempty"`
 	BotLastIconUpdate      int64       `json:"bot_last_icon_update,omitempty"`
-	BotOwnerId             string      `json:"bot_owner_id,omitempty"`
 	TermsOfServiceId       string      `json:"terms_of_service_id,omitempty"`
 	TermsOfServiceCreateAt int64       `json:"terms_of_service_create_at,omitempty"`
 	DisableWelcomeEmail    bool        `json:"disable_welcome_email"`
@@ -140,7 +139,6 @@ func (u *User) Auditable() map[string]any {
 		"is_bot":                     u.IsBot,
 		"bot_description":            u.BotDescription,
 		"bot_last_icon_update":       u.BotLastIconUpdate,
-		"bot_owner_id":               u.BotOwnerId,
 		"terms_of_service_id":        u.TermsOfServiceId,
 		"terms_of_service_create_at": u.TermsOfServiceCreateAt,
 		"disable_welcome_email":      u.DisableWelcomeEmail,
