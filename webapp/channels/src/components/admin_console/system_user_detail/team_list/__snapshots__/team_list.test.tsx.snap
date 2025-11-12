@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`admin_console/system_user_detail/team_list/TeamList should match snapshot when no teams are found 1`] = `
 <Fragment>
