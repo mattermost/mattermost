@@ -5,22 +5,46 @@ import type {IntlShape} from 'react-intl';
 
 import type {PopoutViewProps} from '@mattermost/desktop-api';
 
+import {Client4} from 'mattermost-redux/client';
+
 import DesktopApp from 'utils/desktop_api';
 import {isDesktopApp} from 'utils/user_agent';
 
 import BrowserPopouts from './browser_popouts';
-import {sendToParent as sendToParentBrowser, onMessageFromParent as onMessageFromParentBrowser} from './use_browser_popout';
+import {
+    sendToParent as sendToParentBrowser,
+    onMessageFromParent as onMessageFromParentBrowser,
+} from './use_browser_popout';
 
-export const canPopout = Boolean(!isDesktopApp() || DesktopApp.canPopout());
-
-export function popoutThread(intl: IntlShape, threadId: string, teamName: string) {
-    return popout(
+export const FOCUS_REPLY_POST = 'focus-reply-post';
+export async function popoutThread(
+    intl: IntlShape,
+    threadId: string,
+    teamName: string,
+    onFocusPost: (postId: string, returnTo: string) => void,
+) {
+    const popoutListeners = await popout(
         `/_popout/thread/${teamName}/${threadId}`,
         {
             isRHS: true,
-            titleTemplate: intl.formatMessage({id: 'thread_popout.title', defaultMessage: 'Thread - {channelName} - {teamName}'}),
+            titleTemplate: intl.formatMessage({
+                id: 'thread_popout.title',
+                defaultMessage: 'Thread - {channelName} - {teamName}',
+            }),
         },
     );
+
+    popoutListeners?.onMessageFromPopout?.((channel: string, ...args: unknown[]) => {
+        if (channel === FOCUS_REPLY_POST) {
+            const [postId, returnTo] = args;
+            onFocusPost(
+                postId as string,
+                returnTo as string,
+            );
+        }
+    });
+
+    return popoutListeners;
 }
 
 /**
@@ -34,7 +58,10 @@ type PopoutListeners = {
     onClosePopout: (listener: () => void) => void;
 };
 
-async function popout(path: string, desktopProps?: PopoutViewProps): Promise<Partial<PopoutListeners>> {
+async function popout(
+    path: string,
+    desktopProps?: PopoutViewProps,
+): Promise<Partial<PopoutListeners>> {
     if (isDesktopApp()) {
         return DesktopApp.setupDesktopPopout(path, desktopProps);
     }
@@ -58,3 +85,10 @@ export function onMessageFromParent(listener: (channel: string, ...args: unknown
     return onMessageFromParentBrowser(listener);
 }
 
+export function isPopoutWindow() {
+    return window.location.href.startsWith(`${Client4.getUrl()}/_popout/`);
+}
+
+export function canPopout() {
+    return Boolean(!isDesktopApp() || DesktopApp.canPopout());
+}
