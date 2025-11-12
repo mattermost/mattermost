@@ -23,8 +23,7 @@ import (
 
 func TestCreateUploadSession(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	us := &model.UploadSession{
 		Type:      model.UploadTypeAttachment,
@@ -68,7 +67,7 @@ func TestCreateUploadSession(t *testing.T) {
 	})
 
 	t.Run("deleted channel", func(t *testing.T) {
-		ch := th.CreateChannel(th.Context, th.BasicTeam)
+		ch := th.CreateChannel(t, th.BasicTeam)
 		appErr := th.App.DeleteChannel(th.Context, ch, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		us.ChannelId = ch.Id
@@ -91,7 +90,7 @@ func TestCreateUploadSession(t *testing.T) {
 		})
 
 		// Create a DM channel between two users who don't share a team
-		dmChannel := th.CreateDmChannel(th.BasicUser2)
+		dmChannel := th.CreateDmChannel(t, th.BasicUser2)
 
 		// Ensure the two users do not share a team
 		teams, err := th.App.GetTeamsForUser(th.BasicUser.Id)
@@ -108,10 +107,10 @@ func TestCreateUploadSession(t *testing.T) {
 		}
 
 		// Create separate teams for each user
-		team1 := th.CreateTeam()
-		team2 := th.CreateTeam()
-		th.LinkUserToTeam(th.BasicUser, team1)
-		th.LinkUserToTeam(th.BasicUser2, team2)
+		team1 := th.CreateTeam(t)
+		team2 := th.CreateTeam(t)
+		th.LinkUserToTeam(t, th.BasicUser, team1)
+		th.LinkUserToTeam(t, th.BasicUser2, team2)
 
 		us := &model.UploadSession{
 			Id:        model.NewId(),
@@ -136,8 +135,7 @@ func TestCreateUploadSession(t *testing.T) {
 
 func TestUploadData(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	us := &model.UploadSession{
 		Id:        model.NewId(),
@@ -296,8 +294,7 @@ func TestUploadData(t *testing.T) {
 
 func TestUploadDataConcurrent(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	us := &model.UploadSession{
 		Id:        model.NewId(),

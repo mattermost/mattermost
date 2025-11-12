@@ -2573,12 +2573,20 @@
     "translation": "invalid_grant: Invalid refresh token."
   },
   {
+    "id": "api.oauth.get_access_token.resource_mismatch.app_error",
+    "translation": "Resource parameter mismatch between authorization and token requests."
+  },
+  {
     "id": "api.oauth.invalid_state_token.app_error",
     "translation": "Invalid state token."
   },
   {
     "id": "api.oauth.redirecting_back",
     "translation": "Redirecting you back to the app."
+  },
+  {
+    "id": "api.oauth.regenerate_secret.public_client.app_error",
+    "translation": "invalid_request: Cannot regenerate secret for public OAuth clients."
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
@@ -8749,6 +8757,54 @@
     "translation": "The provided audience is invalid: {{ .Error }}"
   },
   {
+    "id": "ent.push_proxy.delete.app_error",
+    "translation": "Failed to delete push proxy auth token."
+  },
+  {
+    "id": "ent.push_proxy.generate.bad_status.app_error",
+    "translation": "Failed to get auth token from push proxy server."
+  },
+  {
+    "id": "ent.push_proxy.generate.create_request.app_error",
+    "translation": "Failed to create HTTP request for push proxy auth."
+  },
+  {
+    "id": "ent.push_proxy.generate.empty_token.app_error",
+    "translation": "Push proxy returned empty auth token."
+  },
+  {
+    "id": "ent.push_proxy.generate.encrypt.app_error",
+    "translation": "Failed to encrypt payload for push proxy auth."
+  },
+  {
+    "id": "ent.push_proxy.generate.http_request.app_error",
+    "translation": "Failed to send HTTP request to push proxy."
+  },
+  {
+    "id": "ent.push_proxy.generate.marshal.app_error",
+    "translation": "Failed to marshal payload for push proxy auth."
+  },
+  {
+    "id": "ent.push_proxy.generate.marshal_request.app_error",
+    "translation": "Failed to marshal request body for push proxy auth."
+  },
+  {
+    "id": "ent.push_proxy.generate.no_key.app_error",
+    "translation": "No encryption key available for push proxy auth."
+  },
+  {
+    "id": "ent.push_proxy.generate.parse_response.app_error",
+    "translation": "Failed to parse response from push proxy auth endpoint."
+  },
+  {
+    "id": "ent.push_proxy.generate.save_system.app_error",
+    "translation": "Failed to save auth token."
+  },
+  {
+    "id": "ent.push_proxy.worker.interface_nil.app_error",
+    "translation": "Push proxy interface is nil."
+  },
+  {
     "id": "ent.saml.attribute.app_error",
     "translation": "SAML login was unsuccessful because one of the attributes is incorrect. Please contact your System Administrator."
   },
@@ -9059,6 +9115,22 @@
   {
     "id": "model.authorize.is_valid.redirect_uri.app_error",
     "translation": "Invalid redirect uri."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.has_fragment.app_error",
+    "translation": "Resource parameter cannot contain a fragment component."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.invalid_uri.app_error",
+    "translation": "Resource parameter must be a valid URI."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.length.app_error",
+    "translation": "Resource parameter cannot exceed 512 characters."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.not_absolute.app_error",
+    "translation": "Resource parameter must be an absolute URI."
   },
   {
     "id": "model.authorize.is_valid.response_type.app_error",

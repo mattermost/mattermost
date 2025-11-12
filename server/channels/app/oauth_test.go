@@ -26,8 +26,7 @@ import (
 
 func TestGetOAuthAccessTokenForImplicitFlow(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("BasicFlow_Success", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
@@ -240,7 +239,6 @@ func TestGetOAuthAccessTokenForImplicitFlow(t *testing.T) {
 func TestOAuthRevokeAccessToken(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	session := &model.Session{}
 	session.CreateAt = model.GetMillis()
@@ -259,7 +257,6 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 func TestOAuthDeleteApp(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	*th.App.Config().ServiceSettings.EnableOAuthServiceProvider = true
 
@@ -354,7 +351,6 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 	t.Run("not enabled", func(t *testing.T) {
 		th := setup(t, false, true, true, "")
-		defer th.TearDown()
 
 		_, _, _, err := th.App.AuthorizeOAuthUser(th.Context, nil, nil, model.ServiceGitlab, "", "", "")
 		require.NotNil(t, err)
@@ -363,7 +359,6 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 	t.Run("with an improperly encoded state", func(t *testing.T) {
 		th := setup(t, true, true, true, "")
-		defer th.TearDown()
 
 		state := "!"
 
@@ -374,7 +369,6 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 	t.Run("without a stored token", func(t *testing.T) {
 		th := setup(t, true, true, true, "")
-		defer th.TearDown()
 
 		state := base64.StdEncoding.EncodeToString([]byte(model.MapToJSON(map[string]string{
 			"token": model.NewId(),
@@ -388,7 +382,6 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 	t.Run("with a stored token of the wrong type", func(t *testing.T) {
 		th := setup(t, true, true, true, "")
-		defer th.TearDown()
 
 		token := model.NewToken("invalid", "")
 		require.NoError(t, th.App.Srv().Store().Token().Save(token))
@@ -403,7 +396,6 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 	t.Run("with email missing when changing login types", func(t *testing.T) {
 		th := setup(t, true, true, true, "")
-		defer th.TearDown()
 
 		email := ""
 		action := model.OAuthActionEmailToSSO
@@ -425,7 +417,6 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 	t.Run("without an OAuth cookie", func(t *testing.T) {
 		th := setup(t, true, true, true, "")
-		defer th.TearDown()
 
 		cookie := model.NewId()
 		request := makeRequest("")
@@ -438,7 +429,6 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 	t.Run("with an invalid token", func(t *testing.T) {
 		th := setup(t, true, true, true, "")
-		defer th.TearDown()
 
 		cookie := model.NewId()
 
@@ -455,7 +445,6 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 	t.Run("with an incorrect token endpoint", func(t *testing.T) {
 		th := setup(t, true, false, true, "")
-		defer th.TearDown()
 
 		cookie := model.NewId()
 		request := makeRequest(cookie)
@@ -473,7 +462,6 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer server.Close()
 
 		th := setup(t, true, true, true, server.URL)
-		defer th.TearDown()
 
 		cookie := model.NewId()
 		request := makeRequest(cookie)
@@ -493,7 +481,6 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer server.Close()
 
 		th := setup(t, true, true, true, server.URL)
-		defer th.TearDown()
 
 		cookie := model.NewId()
 		request := makeRequest(cookie)
@@ -516,7 +503,6 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer server.Close()
 
 		th := setup(t, true, true, true, server.URL)
-		defer th.TearDown()
 
 		cookie := model.NewId()
 		request := makeRequest(cookie)
@@ -538,7 +524,6 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer server.Close()
 
 		th := setup(t, true, true, true, server.URL)
-		defer th.TearDown()
 
 		cookie := model.NewId()
 		request := makeRequest(cookie)
@@ -560,7 +545,6 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer server.Close()
 
 		th := setup(t, true, true, false, server.URL)
-		defer th.TearDown()
 
 		cookie := model.NewId()
 		request := makeRequest(cookie)
@@ -589,7 +573,6 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer server.Close()
 
 		th := setup(t, true, true, true, server.URL)
-		defer th.TearDown()
 
 		cookie := model.NewId()
 		request := makeRequest(cookie)
@@ -620,7 +603,6 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer server.Close()
 
 		th := setup(t, true, true, true, server.URL)
-		defer th.TearDown()
 
 		cookie := model.NewId()
 		request := makeRequest(cookie)
@@ -633,7 +615,6 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 	t.Run("with error in GetSSOSettings", func(t *testing.T) {
 		th := setup(t, true, true, true, "")
-		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.OpenIdSettings.Enable = true
@@ -679,7 +660,6 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 				defer server.Close()
 
 				th := setup(t, true, true, true, server.URL)
-				defer th.TearDown()
 
 				th.App.UpdateConfig(func(cfg *model.Config) {
 					*cfg.ServiceSettings.SiteURL = tc.SiteURL
@@ -718,7 +698,6 @@ func TestGetAuthorizationCode(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("not enabled", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.GitLabSettings.Enable = false
@@ -732,7 +711,6 @@ func TestGetAuthorizationCode(t *testing.T) {
 
 	t.Run("enabled and properly configured", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.GitLabSettings.Enable = true
@@ -774,8 +752,7 @@ func TestGetAuthorizationCode(t *testing.T) {
 
 func TestDeauthorizeOAuthApp(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
@@ -817,8 +794,7 @@ func TestDeauthorizeOAuthApp(t *testing.T) {
 
 func TestDeactivatedUserOAuthApp(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
@@ -853,7 +829,7 @@ func TestDeactivatedUserOAuthApp(t *testing.T) {
 	_, appErr = th.App.UpdateActive(th.Context, th.BasicUser, false)
 	require.Nil(t, appErr)
 
-	resp, appErr := th.App.GetOAuthAccessTokenForCodeFlow(th.Context, oapp.Id, model.AccessTokenGrantType, oapp.CallbackUrls[0], code, oapp.ClientSecret, "", "")
+	resp, appErr := th.App.GetOAuthAccessTokenForCodeFlow(th.Context, oapp.Id, model.AccessTokenGrantType, oapp.CallbackUrls[0], code, oapp.ClientSecret, "", "", "")
 	assert.Nil(t, resp)
 	require.NotNil(t, appErr, "Should not get access token")
 	require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
@@ -862,8 +838,7 @@ func TestDeactivatedUserOAuthApp(t *testing.T) {
 
 func TestRegisterOAuthClient(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableOAuthServiceProvider = true
@@ -943,7 +918,6 @@ func TestRegisterOAuthClient(t *testing.T) {
 
 func TestGetAuthorizationServerMetadata_DCRConfig(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	// Enable OAuth service provider and set SiteURL
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -990,10 +964,44 @@ func TestGetAuthorizationServerMetadata_DCRConfig(t *testing.T) {
 
 func TestGetOAuthAccessTokenForCodeFlow(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+
+	// Helper function to create a confidential OAuth app
+	createConfidentialOAuthApp := func(name string) *model.OAuthApp {
+		oapp := &model.OAuthApp{
+			Name:         name + model.NewRandomString(10),
+			CreatorId:    th.BasicUser2.Id,
+			Homepage:     "https://nowhere.com",
+			Description:  "test",
+			CallbackUrls: []string{"https://example.com/callback"},
+		}
+		oapp, err := th.App.CreateOAuthApp(oapp)
+		require.Nil(t, err)
+		return oapp
+	}
+
+	// Helper function to get authorization code
+	getAuthorizationCode := func(app *model.OAuthApp, resource string) string {
+		authRequest := &model.AuthorizeRequest{
+			ResponseType: model.AuthCodeResponseType,
+			ClientId:     app.Id,
+			RedirectURI:  app.CallbackUrls[0],
+			Scope:        "user",
+			State:        "test_state",
+			Resource:     resource,
+		}
+
+		redirectURI, appErr := th.App.AllowOAuthAppAccessToUser(th.Context, th.BasicUser.Id, authRequest)
+		require.Nil(t, appErr)
+
+		uri, urlErr := url.Parse(redirectURI)
+		require.NoError(t, urlErr)
+		code := uri.Query().Get("code")
+		require.NotEmpty(t, code)
+		return code
+	}
 
 	t.Run("PublicClient_WithPKCE_Success", func(t *testing.T) {
 		dcrRequest := &model.ClientRegistrationRequest{
@@ -1038,6 +1046,7 @@ func TestGetOAuthAccessTokenForCodeFlow(t *testing.T) {
 			"",
 			"",
 			codeVerifier,
+			"",
 		)
 
 		require.Nil(t, appErr)
@@ -1116,6 +1125,7 @@ func TestGetOAuthAccessTokenForCodeFlow(t *testing.T) {
 			confidentialApp.ClientSecret,
 			"",
 			codeVerifier,
+			"",
 		)
 
 		require.Nil(t, appErr)
@@ -1161,6 +1171,7 @@ func TestGetOAuthAccessTokenForCodeFlow(t *testing.T) {
 			authRequest.RedirectURI,
 			code,
 			confidentialApp.ClientSecret,
+			"",
 			"",
 			"",
 		)
@@ -1215,6 +1226,7 @@ func TestGetOAuthAccessTokenForCodeFlow(t *testing.T) {
 			confidentialApp.ClientSecret,
 			"",
 			"",
+			"",
 		)
 
 		require.NotNil(t, appErr)
@@ -1241,10 +1253,152 @@ func TestGetOAuthAccessTokenForCodeFlow(t *testing.T) {
 			"",
 			"some_fake_refresh_token",
 			"",
+			"",
 		)
 
 		require.NotNil(t, appErr)
 		require.Contains(t, appErr.Id, "public_client_refresh_token.app_error")
+	})
+
+	t.Run("WithResourceParameter_Success", func(t *testing.T) {
+		oapp := createConfidentialOAuthApp("TestResourceApp")
+		resourceParam := "https://api.example.com/resource"
+		code := getAuthorizationCode(oapp, resourceParam)
+
+		accessResponse, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+			th.Context,
+			oapp.Id,
+			model.AccessTokenGrantType,
+			oapp.CallbackUrls[0],
+			code,
+			oapp.ClientSecret,
+			"",
+			"",
+			resourceParam,
+		)
+
+		require.Nil(t, appErr)
+		require.NotNil(t, accessResponse)
+		require.NotEmpty(t, accessResponse.AccessToken)
+		require.Equal(t, model.AccessTokenType, accessResponse.TokenType)
+		require.Equal(t, resourceParam, accessResponse.Audience)
+	})
+
+	t.Run("ResourceParameterValidation", func(t *testing.T) {
+		oapp := createConfidentialOAuthApp("TestResourceValidationApp")
+
+		t.Run("Invalid resource parameter should fail", func(t *testing.T) {
+			code := getAuthorizationCode(oapp, "")
+
+			_, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+				th.Context,
+				oapp.Id,
+				model.AccessTokenGrantType,
+				oapp.CallbackUrls[0],
+				code,
+				oapp.ClientSecret,
+				"",
+				"",
+				"invalid-resource-uri",
+			)
+
+			require.NotNil(t, appErr)
+			require.Contains(t, appErr.Id, "resource")
+		})
+
+		t.Run("Resource with fragment should fail", func(t *testing.T) {
+			code := getAuthorizationCode(oapp, "")
+
+			_, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+				th.Context,
+				oapp.Id,
+				model.AccessTokenGrantType,
+				oapp.CallbackUrls[0],
+				code,
+				oapp.ClientSecret,
+				"",
+				"",
+				"https://api.example.com/resource#fragment",
+			)
+
+			require.NotNil(t, appErr)
+			require.Contains(t, appErr.Id, "resource")
+		})
+	})
+
+	t.Run("RefreshTokenWithResource", func(t *testing.T) {
+		oapp := createConfidentialOAuthApp("TestRefreshResourceApp")
+		resourceParam := "https://api.example.com/resource"
+
+		t.Run("Refresh token with matching resource should succeed", func(t *testing.T) {
+			code := getAuthorizationCode(oapp, resourceParam)
+
+			// Get initial access token
+			initialResponse, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+				th.Context,
+				oapp.Id,
+				model.AccessTokenGrantType,
+				oapp.CallbackUrls[0],
+				code,
+				oapp.ClientSecret,
+				"",
+				"",
+				resourceParam,
+			)
+			require.Nil(t, appErr)
+			require.NotEmpty(t, initialResponse.RefreshToken)
+
+			refreshResponse, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+				th.Context,
+				oapp.Id,
+				model.RefreshTokenGrantType,
+				oapp.CallbackUrls[0],
+				"",
+				oapp.ClientSecret,
+				initialResponse.RefreshToken,
+				"",
+				resourceParam,
+			)
+
+			require.Nil(t, appErr)
+			require.NotNil(t, refreshResponse)
+			require.Equal(t, resourceParam, refreshResponse.Audience)
+		})
+
+		t.Run("Refresh token with mismatched resource should fail", func(t *testing.T) {
+			code := getAuthorizationCode(oapp, resourceParam)
+
+			// Get initial access token with original resource
+			initialResponse, appErr := th.App.GetOAuthAccessTokenForCodeFlow(
+				th.Context,
+				oapp.Id,
+				model.AccessTokenGrantType,
+				oapp.CallbackUrls[0],
+				code,
+				oapp.ClientSecret,
+				"",
+				"",
+				resourceParam,
+			)
+			require.Nil(t, appErr)
+			require.NotEmpty(t, initialResponse.RefreshToken)
+
+			// Try to refresh with different resource - should fail
+			_, appErr = th.App.GetOAuthAccessTokenForCodeFlow(
+				th.Context,
+				oapp.Id,
+				model.RefreshTokenGrantType,
+				oapp.CallbackUrls[0],
+				"",
+				oapp.ClientSecret,
+				initialResponse.RefreshToken,
+				"",
+				"https://different.api.com/resource",
+			)
+
+			require.NotNil(t, appErr)
+			require.Contains(t, appErr.Id, "resource_mismatch")
+		})
 	})
 }
 func TestParseOAuthStateTokenExtra(t *testing.T) {
@@ -1295,7 +1449,6 @@ func TestParseOAuthStateTokenExtra(t *testing.T) {
 func TestAuthorizeOAuthUser_InvalidToken(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	mockProvider := &mocks.OAuthProvider{}
 	einterfaces.RegisterOAuthProvider(model.ServiceOpenid, mockProvider)
