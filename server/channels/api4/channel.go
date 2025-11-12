@@ -813,7 +813,8 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-	if !c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel) {
+	var hasPermission, isMember bool
+	if hasPermission, isMember = c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel); !hasPermission {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
@@ -838,6 +839,13 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Header().Set(model.HeaderEtagServer, clientPostList.Etag())
 	if err := clientPostList.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+
+	if !isMember {
+		auditRec := c.MakeAuditRecord(model.AuditEventViewedPinnedPostsWithoutMembership, model.AuditStatusSuccess)
+		defer c.LogAuditRec(auditRec)
+		auditRec.AddMeta("reason", "get_pinned_posts")
+		auditRec.AddMeta("channel_id", c.Params.ChannelId)
 	}
 }
 

@@ -48,8 +48,8 @@ func (_m *SuiteIFace) GetSession(token string) (*model.Session, *model.AppError)
 	return r0, r1
 }
 
-// HasPermissionToReadChannel provides a mock function with given fields: rctx, userID, channel
-func (_m *SuiteIFace) HasPermissionToReadChannel(rctx request.CTX, userID string, channel *model.Channel) bool {
+// HasPermissionToReadChannel provides a mock function with given fields: c, userID, channel
+func (_m *SuiteIFace) HasPermissionToReadChannel(rctx request.CTX, userID string, channel *model.Channel) (bool, bool) {
 	ret := _m.Called(rctx, userID, channel)
 
 	if len(ret) == 0 {
@@ -57,13 +57,23 @@ func (_m *SuiteIFace) HasPermissionToReadChannel(rctx request.CTX, userID string
 	}
 
 	var r0 bool
+	var r1 bool
+	if rf, ok := ret.Get(0).(func(request.CTX, string, *model.Channel) (bool, bool)); ok {
+		return rf(rctx, userID, channel)
+	}
 	if rf, ok := ret.Get(0).(func(request.CTX, string, *model.Channel) bool); ok {
 		r0 = rf(rctx, userID, channel)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(request.CTX, string, *model.Channel) bool); ok {
+		r1 = rf(rctx, userID, channel)
+	} else {
+		r1 = ret.Get(1).(bool)
+	}
+
+	return r0, r1
 }
 
 // MFARequired provides a mock function with given fields: rctx
