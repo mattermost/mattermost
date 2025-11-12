@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, ensurePanelOpen, getNewPageButton, fillCreatePageModal, createDraftThroughUI} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, ensurePanelOpen, getNewPageButton, fillCreatePageModal, createDraftThroughUI, deletePageThroughUI} from './test_helpers';
 
 /**
  * @objective Verify draft auto-save functionality and persistence
@@ -79,27 +79,11 @@ test('discards draft and removes from hierarchy', {tag: '@pages'}, async ({pw, s
     await page.waitForTimeout(2000);
 
     // # Delete draft via hierarchy panel context menu
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
-    const draftNode = hierarchyPanel.locator('[data-testid="page-tree-node"]', {hasText: 'Draft to Discard'});
-
-    const menuButton = draftNode.locator('[data-testid="page-tree-node-menu-button"]');
-    await menuButton.click();
-
-    const deleteMenuItem = page.locator('[data-testid="page-context-menu-delete"]');
-    await deleteMenuItem.click();
-
-    // # Confirm deletion in modal (MM modal for drafts, per our P0 fix)
-    const confirmDialog = page.getByRole('dialog', {name: /Delete|Confirm/i});
-    await expect(confirmDialog).toBeVisible({timeout: 3000});
-
-    const confirmButton = confirmDialog.getByRole('button', {name: /Delete|Confirm/i});
-    await confirmButton.click();
-
-    await page.waitForLoadState('networkidle');
+    await deletePageThroughUI(page, 'Draft to Discard');
 
     // * Verify draft removed from hierarchy
-    await page.waitForTimeout(500);
-    await expect(draftNode).not.toBeVisible();
+    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    await expect(hierarchyPanel).not.toContainText('Draft to Discard');
 });
 
 /**
@@ -329,13 +313,6 @@ test('shows draft node as child of intended parent in tree', {tag: '@pages'}, as
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
 
-    // # Listen to console logs
-    page.on('console', (msg) => {
-        const text = msg.text();
-        if (text.includes('[createPage]') || text.includes('[PagesHierarchyPanel]') || text.includes('[getPageDraftsForWiki]')) {
-            console.log('Browser console:', text);
-        }
-    });
 
     await channelsPage.goto(team.name, channel.name);
 

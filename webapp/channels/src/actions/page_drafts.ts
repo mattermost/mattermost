@@ -188,11 +188,9 @@ export function removePageDraft(wikiId: string, draftId: string): ActionFuncAsyn
         }
 
         // Remove from local storage and notify Redux
-        const timestamp = Date.now();
         dispatch(batchActions([
             removeGlobalItem(key),
             {type: WikiTypes.DELETED_DRAFT, data: {id: draftId, wikiId}},
-            {type: WikiTypes.INVALIDATE_DRAFTS, data: {wikiId, timestamp}},
         ]));
 
         return {data: true};

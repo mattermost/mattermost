@@ -385,15 +385,6 @@ func (a *App) UpdatePage(rctx request.CTX, pageID, title, content, searchText st
 		return nil, model.NewAppError("UpdatePage", "app.page.update.title_too_long.app_error", nil, fmt.Sprintf("title must be %d characters or less", model.MaxPageTitleLength), http.StatusBadRequest)
 	}
 
-	if title != "" {
-		wikiId, wikiErr := a.GetWikiIdForPage(rctx, pageID)
-		if wikiErr == nil && wikiId != "" {
-			if dupErr := a.checkDuplicatePageName(rctx, wikiId, title, pageID); dupErr != nil {
-				return nil, dupErr
-			}
-		}
-	}
-
 	updatedPost, storeErr := a.Srv().Store().Page().UpdatePageWithContent(rctx, pageID, title, content, searchText)
 	if storeErr != nil {
 		var nfErr *store.ErrNotFound
@@ -422,31 +413,6 @@ func (a *App) UpdatePage(rctx request.CTX, pageID, title, content, searchText st
 	}
 
 	return updatedPost, nil
-}
-
-func (a *App) checkDuplicatePageName(rctx request.CTX, wikiId, title, excludePageID string) *model.AppError {
-	existingPage, err := a.Srv().Store().Wiki().GetPageByTitleInWiki(wikiId, title)
-	if err != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(err, &nfErr) {
-			return nil
-		}
-		rctx.Logger().Warn("Failed to check for duplicate page name",
-			mlog.String("wiki_id", wikiId),
-			mlog.String("title", title),
-			mlog.Err(err))
-		return nil
-	}
-
-	if existingPage.Id != excludePageID {
-		return model.NewAppError("checkDuplicatePageName",
-			"app.page.duplicate_name.app_error",
-			map[string]any{"Title": title},
-			"page with this name already exists in wiki",
-			http.StatusBadRequest)
-	}
-
-	return nil
 }
 
 // DeletePage deletes a page
@@ -2045,7 +2011,7 @@ func (a *App) UnresolvePageComment(rctx request.CTX, commentId string) (*model.P
 
 func (a *App) SendCommentResolvedEvent(rctx request.CTX, comment *model.Post, page *model.Post, channel *model.Channel) {
 	message := model.NewWebSocketEvent(
-		"page_comment_resolved",
+		model.WebsocketEventPageCommentResolved,
 		channel.TeamId,
 		comment.ChannelId,
 		"",
@@ -2062,7 +2028,7 @@ func (a *App) SendCommentResolvedEvent(rctx request.CTX, comment *model.Post, pa
 
 func (a *App) SendCommentUnresolvedEvent(rctx request.CTX, comment *model.Post, page *model.Post, channel *model.Channel) {
 	message := model.NewWebSocketEvent(
-		"page_comment_unresolved",
+		model.WebsocketEventPageCommentUnresolved,
 		channel.TeamId,
 		comment.ChannelId,
 		"",
@@ -2076,7 +2042,7 @@ func (a *App) SendCommentUnresolvedEvent(rctx request.CTX, comment *model.Post, 
 
 func (a *App) SendCommentDeletedEvent(rctx request.CTX, comment *model.Post, page *model.Post, channel *model.Channel) {
 	message := model.NewWebSocketEvent(
-		"page_comment_deleted",
+		model.WebsocketEventPageCommentDeleted,
 		channel.TeamId,
 		comment.ChannelId,
 		"",

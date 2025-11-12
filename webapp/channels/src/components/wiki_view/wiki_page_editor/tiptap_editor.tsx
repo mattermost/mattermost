@@ -5,6 +5,7 @@ import {Extension, mergeAttributes} from '@tiptap/core';
 import Heading from '@tiptap/extension-heading';
 import Link from '@tiptap/extension-link';
 import {Mention} from '@tiptap/extension-mention';
+import Placeholder from '@tiptap/extension-placeholder';
 import {Table} from '@tiptap/extension-table';
 import {TableCell} from '@tiptap/extension-table-cell';
 import {TableHeader} from '@tiptap/extension-table-header';
@@ -44,6 +45,7 @@ import InlineCommentExtension from './inline_comment_extension';
 import InlineCommentToolbar from './inline_comment_toolbar';
 import {createMMentionSuggestion} from './mention_mm_bridge';
 import PageLinkModal from './page_link_modal';
+import {SlashCommandExtension} from './slash_command_extension';
 
 import './tiptap_editor.scss';
 
@@ -265,6 +267,9 @@ const TipTapEditor = ({
                 heading: false,
                 link: false,
             }),
+            Placeholder.configure({
+                placeholder,
+            }),
             Link.extend({
                 addKeyboardShortcuts() {
                     return {
@@ -305,6 +310,35 @@ const TipTapEditor = ({
             TableCell,
             TableHeader,
         ];
+
+        if (editable) {
+            exts.push(SlashCommandExtension.configure({
+                onOpenLinkModal: () => {
+                    setShowLinkModal(true);
+                },
+                onOpenImageModal: () => {
+                    if (!channelId || !uploadsEnabled) {
+                        setShowImageUrlModal(true);
+                        return;
+                    }
+
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = 'image/png,image/jpeg,image/gif,image/webp,image/svg+xml';
+                    input.multiple = false;
+
+                    input.onchange = async (e) => {
+                        const file = (e.target as HTMLInputElement).files?.[0];
+                        const currentEditor = (window as any).__tiptapEditor;
+                        if (file && currentEditor) {
+                            await handleImageUpload(currentEditor, file);
+                        }
+                    };
+
+                    input.click();
+                },
+            }));
+        }
 
         // Add custom image paste handler to prevent duplicate images
         if (editable && uploadsEnabled && channelId) {
@@ -475,6 +509,7 @@ const TipTapEditor = ({
 
         // NOTE: inlineComments is NOT in dependencies - we update them via useEffect below
         // This prevents extensions from recreating on every inline comment change
+        placeholder,
         onCreateInlineComment,
         onCommentClick,
         editable,
@@ -503,7 +538,16 @@ const TipTapEditor = ({
                 'data-placeholder': placeholder,
             },
         },
-    }, [editable, placeholder]); // Only recreate editor when editable/placeholder changes, NOT when extensions change
+    }, [editable, placeholder]);
+
+    useEffect(() => {
+        if (editor) {
+            (window as any).__tiptapEditor = editor;
+        }
+        return () => {
+            (window as any).__tiptapEditor = null;
+        };
+    }, [editor]);
 
     useEffect(() => {
         if (!editor) {

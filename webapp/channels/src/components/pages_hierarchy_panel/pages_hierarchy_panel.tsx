@@ -19,7 +19,7 @@ import {usePageMenuHandlers} from './hooks/use_page_menu_handlers';
 import PageSearchBar from './page_search_bar';
 import PageTreeView from './page_tree_view';
 import PagesHeader from './pages_header';
-import type {DraftPage} from './utils/tree_builder';
+import type {DraftPage, TreeNode} from './utils/tree_builder';
 import {buildTree, getAncestorIds} from './utils/tree_builder';
 import {filterTreeBySearch} from './utils/tree_flattener';
 
@@ -184,6 +184,27 @@ const PagesHierarchyPanel = ({
         return filterTreeBySearch(tree, searchQuery);
     }, [tree, searchQuery]);
 
+    // When searching, auto-expand all nodes in the filtered tree to make results visible
+    const effectiveExpandedNodes = useMemo(() => {
+        if (!searchQuery.trim()) {
+            return expandedNodes;
+        }
+
+        // Collect all node IDs from filtered tree
+        const allNodeIds: {[key: string]: boolean} = {};
+        const collectIds = (nodes: TreeNode[]) => {
+            nodes.forEach((node) => {
+                allNodeIds[node.id] = true;
+                if (node.children.length > 0) {
+                    collectIds(node.children);
+                }
+            });
+        };
+        collectIds(filteredTree);
+
+        return allNodeIds;
+    }, [searchQuery, filteredTree, expandedNodes]);
+
     const handlePageSelect = (pageId: string) => {
         actions.setSelectedPage(pageId);
         onPageSelect(pageId);
@@ -254,7 +275,7 @@ const PagesHierarchyPanel = ({
                 ) : (
                     <PageTreeView
                         tree={filteredTree}
-                        expandedNodes={expandedNodes}
+                        expandedNodes={effectiveExpandedNodes}
                         selectedPageId={selectedPageId}
                         currentPageId={currentPageId}
                         onNodeSelect={handlePageSelect}
@@ -302,7 +323,6 @@ const PagesHierarchyPanel = ({
                     pageTitle={menuHandlers.pageToDuplicate.pageTitle}
                     currentWikiId={wikiId}
                     availableWikis={menuHandlers.availableWikis}
-                    fetchPagesForWiki={menuHandlers.fetchPagesForWiki}
                     hasChildren={menuHandlers.pageToDuplicate.hasChildren}
                     onConfirm={menuHandlers.handleDuplicateConfirm}
                     onCancel={menuHandlers.handleDuplicateCancel}

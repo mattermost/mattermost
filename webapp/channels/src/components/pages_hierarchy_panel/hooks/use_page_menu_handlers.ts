@@ -170,12 +170,12 @@ export const usePageMenuHandlers = ({wikiId, channelId, pages, drafts, onPageSel
         }
     }, [allPages, channelId, getDescendantCount]);
 
-    const handleDuplicateConfirm = useCallback(async (targetWikiId: string, parentPageId?: string, customTitle?: string) => {
+    const handleDuplicateConfirm = useCallback(async (targetWikiId: string, customTitle?: string) => {
         if (!pageToDuplicate) {
             return;
         }
         try {
-            await dispatch(duplicatePage(pageToDuplicate.pageId, wikiId, targetWikiId, parentPageId, customTitle));
+            await dispatch(duplicatePage(pageToDuplicate.pageId, wikiId, targetWikiId, customTitle));
         } finally {
             setShowDuplicateModal(false);
             setPageToDuplicate(null);

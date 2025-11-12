@@ -7,6 +7,8 @@ import React, {useState, useEffect} from 'react';
 
 import WithTooltip from 'components/with_tooltip';
 
+import {FORMATTING_ACTIONS, type FormattingAction} from './formatting_actions';
+
 import './formatting_bar_bubble.scss';
 
 type Props = {
@@ -18,8 +20,6 @@ type Props = {
 };
 
 const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddImage, onAddComment}: Props) => {
-    // Track editor state changes to make isActive() reactive
-    // Without this, isActive() always returns the initial state and doesn't update
     const [, setUpdateTrigger] = useState(0);
 
     useEffect(() => {
@@ -28,11 +28,9 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddImage, onA
         }
 
         const updateHandler = () => {
-            // Force a re-render when editor content changes
             setUpdateTrigger((prev) => prev + 1);
         };
 
-        // Subscribe to editor transactions
         editor.on('transaction', updateHandler);
 
         return () => {
@@ -44,27 +42,98 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddImage, onA
         return null;
     }
 
-    // Now editor.isActive() will return current state because component re-renders on transactions
-    const editorState = {
-        bold: editor.isActive('bold'),
-        italic: editor.isActive('italic'),
-        strike: editor.isActive('strike'),
-        heading1: editor.isActive('heading', {level: 1}),
-        heading2: editor.isActive('heading', {level: 2}),
-        heading3: editor.isActive('heading', {level: 3}),
-        bulletList: editor.isActive('bulletList'),
-        orderedList: editor.isActive('orderedList'),
-        blockquote: editor.isActive('blockquote'),
-        codeBlock: editor.isActive('codeBlock'),
-        link: editor.isActive('link'),
-        table: editor.isActive('table'),
-    };
-
-    // Prevent focus from leaving the editor when clicking toolbar buttons
-    // This preserves the selection state and is the industry standard for rich text editors
     const handleMouseDown = (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
     };
+
+    const renderButton = (action: FormattingAction) => {
+        if (action.requiresModal) {
+            if (action.modalType === 'link') {
+                return (
+                    <WithTooltip
+                        key={action.id}
+                        title={action.title}
+                    >
+                        <button
+                            type='button'
+                            data-testid='page-link-button'
+                            onMouseDown={handleMouseDown}
+                            onClick={onSetLink}
+                            className={`formatting-btn ${action.isActive?.(editor) ? 'is-active' : ''}`}
+                            title={action.title}
+                        >
+                            <i className={`icon ${action.icon}`}/>
+                        </button>
+                    </WithTooltip>
+                );
+            }
+
+            if (action.modalType === 'image' && !uploadsEnabled) {
+                return null;
+            }
+
+            if (action.modalType === 'image') {
+                return (
+                    <WithTooltip
+                        key={action.id}
+                        title={action.title}
+                    >
+                        <button
+                            type='button'
+                            onMouseDown={handleMouseDown}
+                            onClick={onAddImage}
+                            className='formatting-btn'
+                            title={action.title}
+                        >
+                            <i className={`icon ${action.icon}`}/>
+                        </button>
+                    </WithTooltip>
+                );
+            }
+        }
+
+        if (action.id === 'table' && editor.isActive('table')) {
+            return null;
+        }
+
+        return (
+            <WithTooltip
+                key={action.id}
+                title={action.title}
+            >
+                <button
+                    type='button'
+                    onMouseDown={handleMouseDown}
+                    onClick={() => action.command(editor)}
+                    className={`formatting-btn ${action.isActive?.(editor) ? 'is-active' : ''}`}
+                    title={action.keyboardShortcut ? `${action.title} (${action.keyboardShortcut})` : action.title}
+                >
+                    <i className={`icon ${action.icon}`}/>
+                </button>
+            </WithTooltip>
+        );
+    };
+
+    const renderDivider = (key: string) => (
+        <span
+            key={key}
+            className='toolbar-divider'
+        />
+    );
+
+    const buttons: JSX.Element[] = [];
+    let lastCategory: string | null = null;
+
+    FORMATTING_ACTIONS.forEach((action) => {
+        if (lastCategory && lastCategory !== action.category) {
+            buttons.push(renderDivider(`divider-${action.id}`));
+        }
+        const button = renderButton(action);
+        if (button) {
+            buttons.push(button);
+        }
+        lastCategory = action.category;
+    });
 
     return (
         <BubbleMenu
@@ -81,181 +150,9 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddImage, onA
             }}
         >
             <div className='formatting-bar-bubble tiptap-toolbar'>
-                <WithTooltip title='Bold'>
-                    <button
-                        type='button'
-                        onMouseDown={handleMouseDown}
-                        onClick={() => editor.chain().focus().toggleBold().run()}
-                        className={`formatting-btn ${editorState?.bold ? 'is-active' : ''}`}
-                        title='Bold (Ctrl+B)'
-                    >
-                        <i className='icon icon-format-bold'/>
-                    </button>
-                </WithTooltip>
+                {buttons}
 
-                <WithTooltip title='Italic'>
-                    <button
-                        type='button'
-                        onMouseDown={handleMouseDown}
-                        onClick={() => editor.chain().focus().toggleItalic().run()}
-                        className={`formatting-btn ${editorState?.italic ? 'is-active' : ''}`}
-                        title='Italic (Ctrl+I)'
-                    >
-                        <i className='icon icon-format-italic'/>
-                    </button>
-                </WithTooltip>
-
-                <WithTooltip title='Strikethrough'>
-                    <button
-                        type='button'
-                        onMouseDown={handleMouseDown}
-                        onClick={() => editor.chain().focus().toggleStrike().run()}
-                        className={`formatting-btn ${editorState?.strike ? 'is-active' : ''}`}
-                        title='Strikethrough'
-                    >
-                        <i className='icon icon-format-strikethrough-variant'/>
-                    </button>
-                </WithTooltip>
-
-                <span className='toolbar-divider'/>
-
-                <WithTooltip title='Heading 1'>
-                    <button
-                        type='button'
-                        onMouseDown={handleMouseDown}
-                        onClick={() => editor.chain().focus().toggleHeading({level: 1}).run()}
-                        className={`formatting-btn ${editorState?.heading1 ? 'is-active' : ''}`}
-                        title='Heading 1'
-                    >
-                        <i className='icon icon-format-header-1'/>
-                    </button>
-                </WithTooltip>
-
-                <WithTooltip title='Heading 2'>
-                    <button
-                        type='button'
-                        onMouseDown={handleMouseDown}
-                        onClick={() => editor.chain().focus().toggleHeading({level: 2}).run()}
-                        className={`formatting-btn ${editorState?.heading2 ? 'is-active' : ''}`}
-                        title='Heading 2'
-                    >
-                        <i className='icon icon-format-header-2'/>
-                    </button>
-                </WithTooltip>
-
-                <WithTooltip title='Heading 3'>
-                    <button
-                        type='button'
-                        onMouseDown={handleMouseDown}
-                        onClick={() => editor.chain().focus().toggleHeading({level: 3}).run()}
-                        className={`formatting-btn ${editorState?.heading3 ? 'is-active' : ''}`}
-                        title='Heading 3'
-                    >
-                        <i className='icon icon-format-header-3'/>
-                    </button>
-                </WithTooltip>
-
-                <span className='toolbar-divider'/>
-
-                <WithTooltip title='Bullet List'>
-                    <button
-                        type='button'
-                        onMouseDown={handleMouseDown}
-                        onClick={() => editor.chain().focus().toggleBulletList().run()}
-                        className={`formatting-btn ${editorState?.bulletList ? 'is-active' : ''}`}
-                        title='Bullet List'
-                    >
-                        <i className='icon icon-format-list-bulleted'/>
-                    </button>
-                </WithTooltip>
-
-                <WithTooltip title='Numbered List'>
-                    <button
-                        type='button'
-                        onMouseDown={handleMouseDown}
-                        onClick={() => editor.chain().focus().toggleOrderedList().run()}
-                        className={`formatting-btn ${editorState?.orderedList ? 'is-active' : ''}`}
-                        title='Numbered List'
-                    >
-                        <i className='icon icon-format-list-numbered'/>
-                    </button>
-                </WithTooltip>
-
-                <span className='toolbar-divider'/>
-
-                <WithTooltip title='Quote'>
-                    <button
-                        type='button'
-                        onMouseDown={handleMouseDown}
-                        onClick={() => editor.chain().focus().toggleBlockquote().run()}
-                        className={`formatting-btn ${editorState?.blockquote ? 'is-active' : ''}`}
-                        title='Quote'
-                    >
-                        <i className='icon icon-format-quote-open'/>
-                    </button>
-                </WithTooltip>
-
-                <WithTooltip title='Code Block'>
-                    <button
-                        type='button'
-                        onMouseDown={handleMouseDown}
-                        onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-                        className={`formatting-btn ${editorState?.codeBlock ? 'is-active' : ''}`}
-                        title='Code Block'
-                    >
-                        <i className='icon icon-code-tags'/>
-                    </button>
-                </WithTooltip>
-
-                <span className='toolbar-divider'/>
-
-                <WithTooltip title='Add Link'>
-                    <button
-                        type='button'
-                        data-testid='page-link-button'
-                        onMouseDown={handleMouseDown}
-                        onClick={onSetLink}
-                        className={`formatting-btn ${editorState?.link ? 'is-active' : ''}`}
-                        title='Add Link'
-                    >
-                        <i className='icon icon-link-variant'/>
-                    </button>
-                </WithTooltip>
-
-                {uploadsEnabled && (
-                    <WithTooltip title='Add Image'>
-                        <button
-                            type='button'
-                            onMouseDown={handleMouseDown}
-                            onClick={onAddImage}
-                            className='formatting-btn'
-                            title='Add Image'
-                        >
-                            <i className='icon icon-image-outline'/>
-                        </button>
-                    </WithTooltip>
-                )}
-
-                <span className='toolbar-divider'/>
-
-                <WithTooltip title={editorState?.table ? 'Table Controls' : 'Insert Table (3x3)'}>
-                    <button
-                        type='button'
-                        onMouseDown={handleMouseDown}
-                        onClick={() => {
-                            if (!editorState?.table) {
-                                editor.chain().focus().insertTable({rows: 3, cols: 3, withHeaderRow: true}).run();
-                            }
-                        }}
-                        className={`formatting-btn ${editorState?.table ? 'is-active' : ''}`}
-                        title={editorState?.table ? 'Table Controls' : 'Insert Table (3x3)'}
-                        style={{fontSize: '18px'}}
-                    >
-                        <i className='icon icon-table-large'/>
-                    </button>
-                </WithTooltip>
-
-                {editorState?.table && (
+                {editor.isActive('table') && (
                     <>
                         <WithTooltip title='Add Column Before'>
                             <button

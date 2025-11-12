@@ -43,6 +43,7 @@ import {getHistory} from 'utils/browser_history';
 import Constants, {A11yCustomEventTypes, AppEvents, Locations} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
+import {navigateToPageFromPost} from 'utils/page_navigation';
 import {isPageInlineComment} from 'utils/page_utils';
 import * as PostUtils from 'utils/post_utils';
 import {makeIsEligibleForClick} from 'utils/utils';
@@ -382,14 +383,20 @@ function PostComponent(props: Props) {
 
     const {selectPostFromRightHandSideSearch} = props.actions;
 
-    const handleCommentClick = useCallback((e: React.MouseEvent) => {
+    const handleCommentClick = useCallback((e: React.MouseEvent, pagePost?: Post | null) => {
         e.preventDefault();
 
         if (!post) {
             return;
         }
+
+        if (pagePost && pagePost.props?.wiki_id && props.teamName) {
+            navigateToPageFromPost(pagePost, props.teamName);
+            return;
+        }
+
         selectPostFromRightHandSideSearch(post);
-    }, [post, selectPostFromRightHandSideSearch]);
+    }, [post, selectPostFromRightHandSideSearch, props.teamName]);
 
     const handleThreadClick = useCallback((e: React.MouseEvent) => {
         if (props.currentTeam?.id === teamId) {

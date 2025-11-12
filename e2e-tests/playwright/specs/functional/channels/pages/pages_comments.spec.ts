@@ -30,6 +30,11 @@ import {
     switchToWikiRHSTab,
     createWikiAndPage,
     setupPageWithComment,
+    closeWikiRHS,
+    clickCommentFilter,
+    verifyCommentsEmptyState,
+    getThreadItemAndVerify,
+    getEditor,
 } from './test_helpers';
 
 /**
@@ -149,7 +154,7 @@ test('navigates between multiple inline comments', {tag: '@pages'}, async ({pw, 
     await newPageButton.click();
     await fillCreatePageModal(page, 'Multi-Comment Page');
 
-    const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
+    const editor = getEditor(page);
     await editor.click();
     await editor.type('Section 1 needs work.');
     await editor.press('Enter');
@@ -241,7 +246,7 @@ test('preserves inline comment position after nearby text edits', {tag: '@pages'
 
     // # Edit page - add text before the commented section
     await enterEditMode(page);
-    const editor = page.locator('.ProseMirror').first();
+    const editor = getEditor(page);
     await editor.click();
     await page.keyboard.press('Home');
     await page.keyboard.type('Prefix: ');
@@ -376,17 +381,12 @@ test('closes RHS via close button', {tag: '@pages'}, async ({pw, sharedPagesSetu
 
     // # Verify comment marker exists and click to open RHS
     const commentMarker = await verifyCommentMarkerVisible(page);
-    const rhs = await clickCommentMarkerAndOpenRHS(page, commentMarker);
+    await clickCommentMarkerAndOpenRHS(page, commentMarker);
 
-    // # Click RHS close button
-    const closeButton = rhs.locator('[data-testid="wiki-rhs-close-button"]');
-    await expect(closeButton).toBeVisible();
-    await closeButton.click();
+    // # Close RHS via close button
+    await closeWikiRHS(page);
 
-    // * Verify RHS closes
-    await expect(rhs).not.toBeVisible();
-
-    // * Verify comment marker still visible
+    // * Verify comment marker still visible after RHS closes
     await expect(commentMarker).toBeVisible();
 });
 
@@ -553,7 +553,7 @@ test('displays correct anchor text for each inline comment in wiki RHS', {tag: '
     await addInlineCommentInEditMode(page, 'Comment on first section');
 
     // # Add second inline comment
-    const editor = page.locator('.ProseMirror').first();
+    const editor = getEditor(page);
     await editor.click();
     await selectTextInEditor(page);
     const commentModal = await openInlineCommentModal(page);
@@ -614,7 +614,7 @@ test('creates inline comment from formatting bar with correct anchor text', {tag
     await fillCreatePageModal(page, 'Test Page');
 
     // # Type content in the editor
-    const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
+    const editor = getEditor(page);
     await editor.waitFor({state: 'visible', timeout: 5000});
     await editor.click();
     await editor.type('important information');
@@ -670,7 +670,7 @@ test('displays correct anchor text for each thread in global Threads view', {tag
     await newPageButton.click();
     await fillCreatePageModal(page, 'Global Threads Anchors Test');
 
-    const editor = page.locator('.ProseMirror').first();
+    const editor = getEditor(page);
     await editor.waitFor({state: 'visible', timeout: 5000});
     await editor.click();
 
@@ -687,9 +687,7 @@ test('displays correct anchor text for each thread in global Threads view', {tag
     await publishPage(page);
 
     // # Now edit to add first inline comment
-    let editButton = page.locator('[data-testid="wiki-page-edit-button"]');
-    await editButton.click();
-    await page.waitForTimeout(500);
+    await enterEditMode(page);
 
     const comment1Added = await addInlineCommentAndPublish(
         page,
@@ -700,9 +698,7 @@ test('displays correct anchor text for each thread in global Threads view', {tag
 
     // # Edit page again to add second comment (if first succeeded)
     if (comment1Added) {
-        editButton = page.locator('[data-testid="wiki-page-edit-button"]');
-        await editButton.click();
-        await page.waitForTimeout(500);
+        await enterEditMode(page);
 
         await addInlineCommentAndPublish(
             page,
@@ -811,42 +807,25 @@ test('resolves and unresolves inline comment with filters', {tag: '@pages'}, asy
     await page.waitForTimeout(1000);
 
     // # Close the thread view and open page-level "Page Comments" RHS
-    const closeButton = page.locator('[data-testid="wiki-rhs"]').getByRole('button', {name: /close/i}).first();
-    await closeButton.click();
-    await page.waitForTimeout(500);
+    await closeWikiRHS(page);
 
     // # Open page-level RHS with "Page Comments" tab (where filters exist)
-    const toggleCommentsBtn = page.locator('[data-testid="toggle-comments"]').or(page.getByRole('button', {name: /toggle comments/i})).first();
-    await toggleCommentsBtn.click();
-    await page.waitForTimeout(1000);
-
-    const pageRhs = page.locator('[data-testid="wiki-rhs"]');
-    await expect(pageRhs).toBeVisible({timeout: 3000});
+    const pageRhs = await openWikiRHSViaToggleButton(page);
 
     // # Test filter: Click "Resolved" filter to see resolved comments
-    const resolvedFilterBtn = pageRhs.locator('[data-testid="filter-resolved"]').first();
-    await expect(resolvedFilterBtn).toBeVisible({timeout: 3000});
-    await resolvedFilterBtn.click();
-    await page.waitForTimeout(500);
+    await clickCommentFilter(page, pageRhs, 'resolved');
 
     // * Verify thread is visible in resolved filter
-    const threadItem = pageRhs.locator('.WikiPageThreadViewer__thread-item').first();
-    await expect(threadItem).toBeVisible({timeout: 3000});
+    const threadItem = await getThreadItemAndVerify(pageRhs);
 
     // # Click "Open" filter
-    const openFilterBtn = pageRhs.locator('[data-testid="filter-open"]').first();
-    await openFilterBtn.click();
-    await page.waitForTimeout(500);
+    await clickCommentFilter(page, pageRhs, 'open');
 
     // * Verify thread not visible in open filter (or empty state shown)
-    const emptyState = pageRhs.locator('.WikiPageThreadViewer__empty').first();
-    await expect(emptyState).toBeVisible({timeout: 2000});
-    await expect(emptyState).toContainText('No open comments');
+    await verifyCommentsEmptyState(pageRhs, 'No open comments');
 
     // # Switch back to "All" filter
-    const allFilterBtn = pageRhs.locator('[data-testid="filter-all"]').first();
-    await allFilterBtn.click();
-    await page.waitForTimeout(500);
+    await clickCommentFilter(page, pageRhs, 'all');
 
     // # Click on thread to open thread view and unresolve
     await threadItem.click();
@@ -857,18 +836,12 @@ test('resolves and unresolves inline comment with filters', {tag: '@pages'}, asy
     await page.waitForTimeout(1000);
 
     // # Close thread view and reopen page-level filters
-    await closeButton.click();
-    await page.waitForTimeout(500);
+    await closeWikiRHS(page);
 
     // # Reopen page-level RHS
-    await toggleCommentsBtn.click();
-    await page.waitForTimeout(1000);
+    await openWikiRHSViaToggleButton(page);
 
     // * Verify thread no longer appears in resolved filter after unresolving
-    const resolvedFilterBtn2 = pageRhs.locator('[data-testid="filter-resolved"]').first();
-    await resolvedFilterBtn2.click();
-    await page.waitForTimeout(500);
-    const emptyState2 = pageRhs.locator('.WikiPageThreadViewer__empty').first();
-    await expect(emptyState2).toBeVisible({timeout: 2000});
-    await expect(emptyState2).toContainText('No resolved comments');
+    await clickCommentFilter(page, pageRhs, 'resolved');
+    await verifyCommentsEmptyState(pageRhs, 'No resolved comments');
 });

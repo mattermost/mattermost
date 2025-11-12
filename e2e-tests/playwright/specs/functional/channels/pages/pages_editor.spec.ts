@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton, openPageLinkModal, openPageLinkModalViaButton, waitForPageInHierarchy, fillCreatePageModal} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton, openPageLinkModal, openPageLinkModalViaButton, waitForPageInHierarchy, fillCreatePageModal, openSlashCommandMenu, typeSlashCommandQuery, selectSlashCommandItem, insertViaSlashCommand, waitForFormattingBar, clickFormattingButton, isFormattingButtonActive, verifyFormattingButtonExists, setupPageInEditMode, typeInEditor, verifyEditorElement, publishPage, getEditorAndWait, selectTextInEditor, clickPageEditButton, selectAllText} from './test_helpers';
 
 /**
  * @objective Verify editor handles large content without performance degradation
@@ -27,8 +27,7 @@ test('handles large content without performance degradation', {tag: '@pages'}, a
     await fillCreatePageModal(page, 'Large Page Test');
 
     // # Wait for editor to be visible
-    const editor = page.locator('.ProseMirror').first();
-    await editor.waitFor({state: 'visible', timeout: 5000});
+    const editor = await getEditorAndWait(page);
 
     // # Generate large content (~50,000 characters)
     const largeContent = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. '.repeat(1000);
@@ -65,8 +64,7 @@ test('handles large content without performance degradation', {tag: '@pages'}, a
     await expect(editor).toContainText('Additional text to verify responsiveness');
 
     // # Publish large page
-    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
-    await publishButton.click();
+    await publishPage(page);
 
     // * Verify publish succeeds
     await page.waitForLoadState('networkidle', {timeout: 15000});
@@ -95,8 +93,7 @@ test('handles Unicode and special characters correctly', {tag: '@pages'}, async 
     await fillCreatePageModal(page, 'Unicode Test Page');
 
     // # Wait for editor to be visible
-    const editor = page.locator('.ProseMirror').first();
-    await editor.waitFor({state: 'visible', timeout: 5000});
+    const editor = await getEditorAndWait(page);
 
     // # Type various Unicode characters
     const unicodeContent = 'English, 中文, العربية, עברית, 日本語, 🚀 🎉 ✨, ©®™, ±≤≥≠';
@@ -111,8 +108,7 @@ test('handles Unicode and special characters correctly', {tag: '@pages'}, async 
     await expect(editor).toContainText('日本語');
 
     // # Publish
-    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
-    await publishButton.click();
+    await publishPage(page);
 
     await page.waitForLoadState('networkidle');
 
@@ -142,7 +138,7 @@ test('handles Unicode and special characters correctly', {tag: '@pages'}, async 
     await page.keyboard.press('Enter');
     await editorAfter.type('More: ñ, ü, ö, ä, Ø, Å');
 
-    await publishButton.click();
+    await publishPage(page);
     await page.waitForLoadState('networkidle');
 
     // * Verify additional Unicode persisted
@@ -176,8 +172,7 @@ test('handles @user mentions in editor', {tag: '@pages'}, async ({pw, sharedPage
     await fillCreatePageModal(page, 'Mention Test Page');
 
     // # Wait for editor to be visible
-    const editor = page.locator('.ProseMirror').first();
-    await editor.waitFor({state: 'visible', timeout: 5000});
+    const editor = await getEditorAndWait(page);
 
     // # Type @ mention in editor
     await editor.click();
@@ -201,8 +196,7 @@ test('handles @user mentions in editor', {tag: '@pages'}, async ({pw, sharedPage
     expect(editorContent).toContain(mentionedUser.username);
 
     // # Publish
-    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
-    await publishButton.click();
+    await publishPage(page);
     await page.waitForLoadState('networkidle');
 
     // * Verify mention persists after publish
@@ -243,8 +237,7 @@ test('handles ~channel mentions in editor', {tag: '@pages'}, async ({pw, sharedP
     await fillCreatePageModal(page, 'Channel Mention Test Page');
 
     // # Wait for editor to be visible
-    const editor = page.locator('.ProseMirror').first();
-    await editor.waitFor({state: 'visible', timeout: 5000});
+    const editor = await getEditorAndWait(page);
 
     // # Type ~ channel mention in editor
     await editor.click();
@@ -271,8 +264,7 @@ test('handles ~channel mentions in editor', {tag: '@pages'}, async ({pw, sharedP
     expect(editorContent).toContain(mentionedChannel.name);
 
     // # Publish
-    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
-    await publishButton.click();
+    await publishPage(page);
     await page.waitForLoadState('networkidle');
 
     // * Verify channel mention persists after publish
@@ -330,8 +322,7 @@ test('handles multiple user mentions in same page', {tag: '@pages'}, async ({pw,
     await fillCreatePageModal(page, 'Multi Mention Page');
 
     // # Wait for editor to be visible
-    const editor = page.locator('.ProseMirror').first();
-    await editor.waitFor({state: 'visible', timeout: 5000});
+    const editor = await getEditorAndWait(page);
 
     // # Type multiple mentions in editor
     await editor.click();
@@ -345,8 +336,7 @@ test('handles multiple user mentions in same page', {tag: '@pages'}, async ({pw,
     expect(editorContent).toContain(user2.username);
 
     // # Publish
-    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
-    await publishButton.click();
+    await publishPage(page);
     await page.waitForLoadState('networkidle');
 
     // * Verify both mentions persist after publish
@@ -383,8 +373,7 @@ test('does not duplicate typed text after mention selection', {tag: '@pages'}, a
     await fillCreatePageModal(page, 'Mention Duplication Test');
 
     // # Wait for editor to be visible
-    const editor = page.locator('.ProseMirror').first();
-    await editor.waitFor({state: 'visible', timeout: 5000});
+    const editor = await getEditorAndWait(page);
 
     // # Type @ mention text character by character (simulating real user typing)
     await editor.click();
@@ -466,8 +455,7 @@ test('allows multiple mentions in same document without refresh', {tag: '@pages'
     await fillCreatePageModal(page, 'Multiple Mentions Test');
 
     // # Wait for editor to be visible
-    const editor = page.locator('.ProseMirror').first();
-    await editor.waitFor({state: 'visible', timeout: 5000});
+    const editor = await getEditorAndWait(page);
 
     // # Add first mention
     await editor.click();
@@ -540,8 +528,7 @@ test('shows mention dropdown on second attempt after canceling first', {tag: '@p
     await fillCreatePageModal(page, 'Dropdown Reappearance Test');
 
     // # Wait for editor to be visible
-    const editor = page.locator('.ProseMirror').first();
-    await editor.waitFor({state: 'visible', timeout: 5000});
+    const editor = await getEditorAndWait(page);
 
     // # First attempt: Type @ and verify dropdown appears
     await editor.click();
@@ -613,7 +600,7 @@ test.skip('sends notification to mentioned user when page is published', {tag: '
     await newPageButton.click();
 
     // # Type content with @mention
-    const editor = authorPage.locator('.ProseMirror').first();
+    const editor = await getEditorAndWait(authorPage);
     await editor.click();
     await editor.type(`Hello @${mentionedUser.username}`);
 
@@ -638,8 +625,7 @@ test.skip('sends notification to mentioned user when page is published', {tag: '
     const titleInput = authorPage.locator('[data-testid="wiki-page-title-input"]').first();
     await titleInput.fill('Page with Mention Notification');
 
-    const publishButton = authorPage.locator('[data-testid="wiki-page-publish-button"]').first();
-    await publishButton.click();
+    await publishPage(authorPage);
     await authorPage.waitForLoadState('networkidle');
 
     // * Verify page is published
@@ -711,8 +697,7 @@ test('opens page link modal with Ctrl+L keyboard shortcut', {tag: '@pages'}, asy
     await fillCreatePageModal(page, 'Keyboard Shortcut Test');
 
     // # Wait for editor to be visible and ready
-    const editor = page.locator('.ProseMirror').first();
-    await editor.waitFor({state: 'visible', timeout: 5000});
+    const editor = await getEditorAndWait(page);
 
     // # Wait for previously created pages to load in hierarchy (confirms loadChannelPages completed)
     await waitForPageInHierarchy(page, 'Existing Page');
@@ -757,8 +742,7 @@ test('displays and filters pages in link modal', {tag: '@pages'}, async ({pw, sh
     await page.locator('[data-testid="wiki-page-publish-button"]').waitFor({state: 'visible', timeout: 10000});
 
     // # Wait for editor to load and for loadChannelPages to complete
-    const editor = page.locator('.ProseMirror').first();
-    await editor.waitFor({state: 'visible', timeout: 5000});
+    const editor = await getEditorAndWait(page);
 
     // # Wait for previously created pages to load in hierarchy (confirms loadChannelPages completed)
     await waitForPageInHierarchy(page, 'Getting Started Guide', 15000);
@@ -817,8 +801,7 @@ test('inserts page link when page selected from modal', {tag: '@pages'}, async (
     await page.locator('[data-testid="wiki-page-publish-button"]').waitFor({state: 'visible', timeout: 10000});
 
     // # Wait for editor to load and for loadChannelPages to complete
-    const editor = page.locator('.ProseMirror').first();
-    await editor.waitFor({state: 'visible', timeout: 5000});
+    const editor = await getEditorAndWait(page);
 
     // # Wait for previously created pages to load in hierarchy (confirms loadChannelPages completed)
     await waitForPageInHierarchy(page, 'Target Page', 15000);
@@ -878,8 +861,7 @@ test('navigates to linked page when link is clicked', {tag: '@pages'}, async ({p
     await page.locator('[data-testid="wiki-page-publish-button"]').waitFor({state: 'visible', timeout: 10000});
 
     // # Wait for editor to load and for loadChannelPages to complete
-    const editor = page.locator('.ProseMirror').first();
-    await editor.waitFor({state: 'visible', timeout: 5000});
+    const editor = await getEditorAndWait(page);
 
     // # Wait for previously created pages to load in hierarchy (confirms loadChannelPages completed)
     await waitForPageInHierarchy(page, 'Linked Target Page', 15000);
@@ -909,8 +891,7 @@ test('navigates to linked page when link is clicked', {tag: '@pages'}, async ({p
     const titleInput = page.locator('[data-testid="wiki-page-title-input"]').first();
     await titleInput.fill('Source Page with Link');
 
-    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
-    await publishButton.click();
+    await publishPage(page);
     await page.waitForLoadState('networkidle');
 
     // * Verify page is published
@@ -961,8 +942,7 @@ test('inserts multiple page links in same page', {tag: '@pages'}, async ({pw, sh
     await page.locator('[data-testid="wiki-page-publish-button"]').waitFor({state: 'visible', timeout: 10000});
 
     // # Wait for editor to load and for loadChannelPages to complete
-    const editor = page.locator('.ProseMirror').first();
-    await editor.waitFor({state: 'visible', timeout: 5000});
+    const editor = await getEditorAndWait(page);
 
     // # Wait for previously created pages to load in hierarchy (confirms loadChannelPages completed)
     await waitForPageInHierarchy(page, 'First Page', 15000);
@@ -971,7 +951,7 @@ test('inserts multiple page links in same page', {tag: '@pages'}, async ({pw, sh
 
     // # Type first word and convert to link
     await editor.type('link1');
-    await page.keyboard.press('Meta+A');
+    await selectTextInEditor(page);
     await page.keyboard.press('Meta+l');
 
     let linkModal = page.locator('[data-testid="page-link-modal"]').first();
@@ -1042,8 +1022,7 @@ test('inserts multiple page links in same page', {tag: '@pages'}, async ({pw, sh
     const titleInput = page.locator('[data-testid="wiki-page-title-input"]').first();
     await titleInput.fill('Page with Multiple Links');
 
-    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
-    await publishButton.click();
+    await publishPage(page);
     await page.waitForLoadState('networkidle');
 
     // * Verify all links persist after publish
@@ -1106,8 +1085,7 @@ test('displays empty state in link modal when no pages available', {tag: '@pages
     await fillCreatePageModal(page, 'Empty State Test');
 
     // # Wait for editor to be visible
-    const editor = page.locator('.ProseMirror').first();
-    await editor.waitFor({state: 'visible', timeout: 5000});
+    const editor = await getEditorAndWait(page);
 
     // # Open link modal via toolbar button
     const linkModal = await openPageLinkModalViaButton(page);
@@ -1143,8 +1121,7 @@ test('closes link modal with Escape key', {tag: '@pages'}, async ({pw, sharedPag
     await page.locator('[data-testid="wiki-page-publish-button"]').waitFor({state: 'visible', timeout: 10000});
 
     // # Wait for editor to load and for loadChannelPages to complete
-    const editor = page.locator('.ProseMirror').first();
-    await editor.waitFor({state: 'visible', timeout: 5000});
+    const editor = await getEditorAndWait(page);
 
     // # Wait for previously created pages to load in hierarchy (confirms loadChannelPages completed)
     await waitForPageInHierarchy(page, 'Test Page', 15000);
@@ -1187,7 +1164,6 @@ test('links to child pages in page hierarchy', {tag: '@pages'}, async ({pw, shar
     // Store the child page ID from the URL
     const childPageUrl = page.url();
     const childPageId = childPageUrl.split('/').pop();
-    console.log('Child page ID from URL:', childPageId);
 
     // # Create new page for linking
     const newPageButton = getNewPageButton(page);
@@ -1198,8 +1174,7 @@ test('links to child pages in page hierarchy', {tag: '@pages'}, async ({pw, shar
     await page.locator('[data-testid="wiki-page-publish-button"]').waitFor({state: 'visible', timeout: 10000});
 
     // # Wait for editor to load and for loadChannelPages to complete
-    const editor = page.locator('.ProseMirror').first();
-    await editor.waitFor({state: 'visible', timeout: 5000});
+    const editor = await getEditorAndWait(page);
 
     // # Wait for previously created pages to load in hierarchy (confirms loadChannelPages completed)
     await waitForPageInHierarchy(page, 'Child Page', 15000);
@@ -1233,8 +1208,7 @@ test('links to child pages in page hierarchy', {tag: '@pages'}, async ({pw, shar
     const titleInput = page.locator('[data-testid="wiki-page-title-input"]').first();
     await titleInput.fill('Link to Child Page');
 
-    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
-    await publishButton.click();
+    await publishPage(page);
     await page.waitForLoadState('networkidle');
 
     // # Wait for page viewer to show the published content and for edit button to appear (confirms publish complete)
@@ -1290,8 +1264,7 @@ test('formatting buttons show correct active state for text formatting', {tag: '
     await fillCreatePageModal(page, 'Formatting Test Page');
 
     // # Wait for editor to be visible
-    const editor = page.locator('.ProseMirror').first();
-    await editor.waitFor({state: 'visible', timeout: 5000});
+    const editor = await getEditorAndWait(page);
 
     // # Type test content with different formatting
     await editor.click();
@@ -1392,8 +1365,7 @@ test('publishes page with content exceeding 64KB TEXT column limit', {tag: '@pag
     await fillCreatePageModal(page, 'Character Limit Test');
 
     // # Wait for editor to be visible
-    const editor = page.locator('.ProseMirror').first();
-    await editor.waitFor({state: 'visible', timeout: 5000});
+    const editor = await getEditorAndWait(page);
 
     // # Generate content exceeding 64KB (65,535 bytes - the MySQL TEXT column limit)
     // Using 100,000 characters to clearly exceed both the post limit (16,383) and TEXT column limit (64KB)
@@ -1429,8 +1401,7 @@ test('publishes page with content exceeding 64KB TEXT column limit', {tag: '@pag
     await expect(editor).toContainText('Lorem ipsum');
 
     // # Publish page
-    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
-    await publishButton.click();
+    await publishPage(page);
 
     // # Wait for publish to complete (or for error to appear)
     await page.waitForTimeout(3000);
@@ -1487,8 +1458,7 @@ test('pastes image from clipboard without broken image icon', {tag: '@pages'}, a
     await fillCreatePageModal(page, 'Image Paste Test');
 
     // # Wait for editor to be visible
-    const editor = page.locator('.ProseMirror').first();
-    await editor.waitFor({state: 'visible', timeout: 5000});
+    const editor = await getEditorAndWait(page);
 
     // # Click into editor and add some initial text
     await editor.click();
@@ -1572,8 +1542,7 @@ test('pastes image from clipboard without broken image icon', {tag: '@pages'}, a
     expect(brokenIconCount).toBe(0);
 
     // # Publish the page
-    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
-    await publishButton.click();
+    await publishPage(page);
     await page.waitForLoadState('networkidle');
 
     // * Verify page publishes successfully with the image
@@ -1589,4 +1558,289 @@ test('pastes image from clipboard without broken image icon', {tag: '@pages'}, a
     const publishedImageSrc = await publishedImages.first().getAttribute('src');
     expect(publishedImageSrc).toBeTruthy();
     await expect(publishedImages.first()).toBeVisible();
+});
+
+/**
+ * @objective Verify slash command menu appears when typing / on blank line
+ */
+test('opens slash command menu when typing / on blank line', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki and page
+    const wiki = await createWikiThroughUI(page, `Slash Command Wiki ${pw.random.id()}`);
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Slash Command Test');
+
+    // # Open slash command menu
+    const slashMenu = await openSlashCommandMenu(page);
+
+    // * Verify menu contains expected items
+    await expect(slashMenu).toContainText('Heading 1');
+    await expect(slashMenu).toContainText('Heading 2');
+    await expect(slashMenu).toContainText('Bulleted list');
+    await expect(slashMenu).toContainText('Quote');
+    await expect(slashMenu).toContainText('Divider');
+});
+
+/**
+ * @objective Verify slash command menu filters items based on search query
+ */
+test('filters slash command menu items by typing search query', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki and page
+    const wiki = await createWikiThroughUI(page, `Slash Filter Wiki ${pw.random.id()}`);
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Slash Filter Test');
+
+    // # Open slash menu and verify it appears
+    const editorElement = page.locator('.tiptap.ProseMirror');
+    await editorElement.click();
+    await editorElement.press('/');
+
+    // * Verify slash menu opens with all items
+    let slashMenu = page.locator('.slash-command-menu');
+    await slashMenu.waitFor({state: 'visible', timeout: 5000});
+
+    // * Verify initial menu contains multiple items
+    await expect(slashMenu).toContainText('Bold');
+    await expect(slashMenu).toContainText('Heading 1');
+
+    // # Type 'h1' to filter the menu
+    await page.keyboard.type('h1', {delay: 50});
+
+    // * Wait for the menu to show filtered item
+    // The menu should show "Heading 1" after filtering
+    // Wait briefly to allow the filter to apply
+    await page.waitForTimeout(200);
+
+    // Re-get the menu locator in case it was recreated
+    slashMenu = page.locator('.slash-command-menu');
+    const heading1Item = slashMenu.locator('.slash-command-item').filter({hasText: 'Heading 1'});
+    // The menu should remain open with debounced exit (300ms)
+    await expect(heading1Item).toBeVisible({timeout: 2000});
+
+    // # Clear the filter and try a different one
+    await page.keyboard.press('Backspace');
+    await page.keyboard.press('Backspace');
+    await page.waitForTimeout(100);
+
+    // # Type 'list' to filter
+    await page.keyboard.type('list', {delay: 50});
+    await page.waitForTimeout(200);
+
+    // * Verify menu shows list options
+    slashMenu = page.locator('.slash-command-menu');
+    const bulletedItem = slashMenu.locator('.slash-command-item').filter({hasText: 'Bulleted list'});
+    const numberedItem = slashMenu.locator('.slash-command-item').filter({hasText: 'Numbered list'});
+    // Menu should remain open with debounced exit
+    await expect(bulletedItem).toBeVisible({timeout: 2000});
+    await expect(numberedItem).toBeVisible({timeout: 2000});
+});
+
+/**
+ * @objective Verify slash command inserts heading when selected from menu
+ */
+test('inserts heading 1 when selected from slash command menu', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki and page
+    const wiki = await createWikiThroughUI(page, `Slash Insert Wiki ${pw.random.id()}`);
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Slash Insert Test');
+
+    // # Insert H1 via slash command
+    await insertViaSlashCommand(page, 'Heading 1');
+
+    const editor = page.locator('.ProseMirror').first();
+
+    // * Verify "Heading 1" placeholder text is inserted and selected
+    await verifyEditorElement(editor, 'h1', 'Heading 1');
+
+    // # Type to replace the selected placeholder text
+    await page.keyboard.type('Test Heading');
+
+    // * Verify heading 1 exists in editor with new text
+    await verifyEditorElement(editor, 'h1', 'Test Heading');
+});
+
+/**
+ * @objective Verify slash command inserts bulleted list when selected
+ */
+test('inserts bulleted list when selected from slash command menu', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki and page
+    const wiki = await createWikiThroughUI(page, `Slash List Wiki ${pw.random.id()}`);
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Slash List Test');
+
+    // # Insert bulleted list via slash command
+    await insertViaSlashCommand(page, 'Bulleted list');
+
+    const editor = page.locator('.ProseMirror').first();
+
+    // * Verify bulleted list is inserted
+    const listElement = editor.locator('ul li');
+    await expect(listElement.first()).toBeVisible();
+
+    // # Select all text in the list item and type new text
+    await selectAllText(page);
+    await page.keyboard.type('First item');
+
+    // * Verify bulleted list has new text
+    await expect(listElement.first()).toHaveText('First item');
+});
+
+/**
+ * @objective Verify slash command keyboard navigation with arrow keys
+ */
+test('navigates slash command menu with arrow keys and selects with Enter', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki and page
+    const wiki = await createWikiThroughUI(page, `Slash Nav Wiki ${pw.random.id()}`);
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Slash Nav Test');
+
+    // # Open slash menu
+    const slashMenu = await openSlashCommandMenu(page);
+
+    // # Navigate with arrow keys and select
+    await page.keyboard.press('ArrowDown');
+    await page.waitForTimeout(200);
+    await page.keyboard.press('ArrowDown');
+    await page.waitForTimeout(200);
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(300);
+
+    // * Verify menu closed after selection
+    await expect(slashMenu).not.toBeVisible();
+
+    // * Verify content was modified
+    const editor = page.locator('.ProseMirror').first();
+    const editorContent = await editor.textContent();
+    expect(editorContent).not.toBe('/');
+});
+
+/**
+ * @objective Verify slash command menu closes when pressing Escape
+ */
+test('closes slash command menu when pressing Escape', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki and page
+    const wiki = await createWikiThroughUI(page, `Slash Escape Wiki ${pw.random.id()}`);
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Slash Escape Test');
+
+    // # Open slash menu
+    const slashMenu = await openSlashCommandMenu(page);
+
+    // # Press Escape to close menu
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(300);
+
+    // * Verify menu is closed
+    await expect(slashMenu).not.toBeVisible();
+});
+
+/**
+ * @objective Verify placeholder text displays in empty editor to invite slash command usage
+ */
+test('displays placeholder text in empty editor', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki and page
+    const wiki = await createWikiThroughUI(page, `Placeholder Test Wiki ${pw.random.id()}`);
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Placeholder Test Page');
+
+    // * Verify placeholder text is visible in empty editor
+    const editorElement = page.locator('.tiptap-editor-content');
+    const placeholder = editorElement.locator('.ProseMirror-placeholder');
+    await expect(placeholder).toBeVisible();
+    await expect(placeholder).toHaveText("Type '/' to insert objects or start writing...");
+
+    // # Type some content
+    await editorElement.click();
+    await editorElement.type('Some content');
+
+    // * Verify placeholder disappears when content exists
+    await expect(placeholder).not.toBeVisible();
+
+    // # Clear all content
+    await editorElement.click();
+    await page.keyboard.press('Control+A');
+    await page.keyboard.press('Backspace');
+
+    // * Verify placeholder reappears when editor is empty again
+    await expect(placeholder).toBeVisible();
+});
+
+/**
+ * @objective Verify divider button appears in formatting bar after refactoring
+ */
+test('formatting bar includes divider button from shared registry', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki and page
+    const wiki = await createWikiThroughUI(page, `Formatting Bar Wiki ${pw.random.id()}`);
+    const newPageButton = getNewPageButton(page);
+    await newPageButton.click();
+    await fillCreatePageModal(page, 'Formatting Bar Test');
+
+    // # Type and select text
+    const editor = page.locator('.ProseMirror').first();
+    await typeInEditor(page, editor, 'Test text for formatting');
+    await selectTextInEditor(page);
+    await page.waitForTimeout(500);
+
+    // # Wait for formatting bar
+    const formattingBar = await waitForFormattingBar(page);
+
+    // * Verify divider button exists (from shared registry)
+    await verifyFormattingButtonExists(formattingBar, 'icon-minus');
 });

@@ -114,13 +114,10 @@ test('navigates using breadcrumbs', {tag: '@pages'}, async ({pw, sharedPagesSetu
     const pageContent = page.locator('[data-testid="page-viewer-content"]');
     await expect(pageContent).toContainText('Parent content', {timeout: 15000});
 
-    // # Click wiki title in breadcrumb to go to wiki root
-    const wikiLink = breadcrumb.getByRole('link', {name: wikiName});
-    await wikiLink.click();
-    await page.waitForLoadState('networkidle');
-
-    // * Verify navigated to wiki root
-    await expect(page).toHaveURL(new RegExp(`/wiki/`));
+    // * Verify wiki name is displayed in breadcrumb but not clickable
+    const wikiNameElement = breadcrumb.locator('.PageBreadcrumb__wiki-name');
+    await expect(wikiNameElement).toBeVisible();
+    await expect(wikiNameElement).toContainText(wikiName);
 });
 
 /**
@@ -377,4 +374,91 @@ test('preserves page content after browser refresh', {tag: '@pages'}, async ({pw
     const pageTitle = page.locator('[data-testid="page-viewer-title"]').first();
     await expect(pageTitle).toBeVisible({timeout: 5000});
     await expect(pageTitle).toContainText('Refresh Test Page');
+});
+
+/**
+ * @objective Verify fullscreen mode allows toggling and viewing comments
+ */
+test('toggles fullscreen mode and accesses comments', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
+    const {team, user, adminClient} = sharedPagesSetup;
+    const channel = await adminClient.getChannelByName(team.id, 'town-square');
+
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name, channel.name);
+
+    // # Create wiki through UI
+    const wiki = await createWikiThroughUI(page, `Fullscreen Wiki ${pw.random.id()}`);
+
+    // # Create page with content
+    const testPage = await createPageThroughUI(page, 'Fullscreen Test Page', 'This is fullscreen test content');
+
+    // * Verify page is visible
+    const pageContent = page.locator('[data-testid="page-viewer-content"]');
+    await expect(pageContent).toBeVisible({timeout: 5000});
+    await expect(pageContent).toContainText('This is fullscreen test content');
+
+    // * Verify hierarchy panel is visible initially
+    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    await expect(hierarchyPanel).toBeVisible({timeout: 3000});
+
+    // # Click fullscreen button
+    const fullscreenButton = page.locator('[data-testid="wiki-page-fullscreen-button"]');
+    await expect(fullscreenButton).toBeVisible({timeout: 3000});
+    await fullscreenButton.click();
+    await page.waitForTimeout(500);
+
+    // * Verify hierarchy panel is hidden in fullscreen
+    await expect(hierarchyPanel).not.toBeVisible({timeout: 2000});
+
+    // * Verify body has fullscreen-mode class
+    const bodyClassList = await page.evaluate(() => document.body.className);
+    expect(bodyClassList).toContain('fullscreen-mode');
+
+    // * Verify page content is still visible
+    await expect(pageContent).toBeVisible();
+    await expect(pageContent).toContainText('This is fullscreen test content');
+
+    // # Toggle comments in fullscreen mode
+    const toggleCommentsButton = page.locator('[data-testid="wiki-page-toggle-comments"]');
+    await expect(toggleCommentsButton).toBeVisible({timeout: 3000});
+    await toggleCommentsButton.click();
+    await page.waitForTimeout(500);
+
+    // * Verify RHS (comments panel) is visible
+    const rhs = page.locator('#sidebar-right, .sidebar-right').first();
+    await expect(rhs).toBeVisible({timeout: 3000});
+
+    // * Verify RHS is positioned correctly in fullscreen
+    const rhsBox = await rhs.boundingBox();
+    expect(rhsBox).not.toBeNull();
+    if (rhsBox) {
+        expect(rhsBox.x).toBeGreaterThan(0);
+    }
+
+    // # Exit fullscreen using button
+    await fullscreenButton.click();
+    await page.waitForTimeout(500);
+
+    // * Verify hierarchy panel is visible again
+    await expect(hierarchyPanel).toBeVisible({timeout: 3000});
+
+    // * Verify body no longer has fullscreen-mode class
+    const bodyClassListAfter = await page.evaluate(() => document.body.className);
+    expect(bodyClassListAfter).not.toContain('fullscreen-mode');
+
+    // # Test Escape key to exit fullscreen
+    await fullscreenButton.click();
+    await page.waitForTimeout(500);
+
+    // * Verify in fullscreen mode
+    const bodyClassListFullscreen = await page.evaluate(() => document.body.className);
+    expect(bodyClassListFullscreen).toContain('fullscreen-mode');
+
+    // # Press Escape key
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(500);
+
+    // * Verify exited fullscreen
+    const bodyClassListEscaped = await page.evaluate(() => document.body.className);
+    expect(bodyClassListEscaped).not.toContain('fullscreen-mode');
 });

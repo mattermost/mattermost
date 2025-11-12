@@ -610,12 +610,12 @@ func TestDuplicatePage(t *testing.T) {
 
 		th.Context.Session().UserId = th.BasicUser.Id
 
-		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdTargetWiki.Id, nil, nil, th.BasicUser.Id)
+		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdTargetWiki.Id, nil, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		require.NotNil(t, duplicatedPage)
 
 		require.NotEqual(t, page.Id, duplicatedPage.Id, "Duplicated page should have new ID")
-		require.Equal(t, "Duplicate of Original Page", duplicatedPage.Props["title"], "Should have default duplicate title")
+		require.Equal(t, "Copy of Original Page", duplicatedPage.Props["title"], "Should have default duplicate title")
 		require.Equal(t, th.BasicChannel.Id, duplicatedPage.ChannelId, "Should be in same channel")
 		require.Empty(t, duplicatedPage.PageParentId, "Should be root level")
 
@@ -650,12 +650,12 @@ func TestDuplicatePage(t *testing.T) {
 
 		th.Context.Session().UserId = th.BasicUser.Id
 
-		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdWiki.Id, nil, nil, th.BasicUser.Id)
+		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdWiki.Id, nil, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		require.NotNil(t, duplicatedPage)
 
 		require.NotEqual(t, page.Id, duplicatedPage.Id)
-		require.Equal(t, "Duplicate of Page to Duplicate", duplicatedPage.Props["title"])
+		require.Equal(t, "Copy of Page to Duplicate", duplicatedPage.Props["title"])
 
 		wikiId, wikiErr := th.App.GetWikiIdForPage(th.Context, duplicatedPage.Id)
 		require.Nil(t, wikiErr)
@@ -681,7 +681,7 @@ func TestDuplicatePage(t *testing.T) {
 		th.Context.Session().UserId = th.BasicUser.Id
 
 		customTitle := "My Custom Title"
-		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdWiki.Id, nil, &customTitle, th.BasicUser.Id)
+		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdWiki.Id, &customTitle, th.BasicUser.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, customTitle, duplicatedPage.Props["title"], "Should use custom title")
 	})
@@ -702,14 +702,14 @@ func TestDuplicatePage(t *testing.T) {
 		parentPage, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Parent Page", "", th.BasicUser.Id, "")
 		require.Nil(t, err)
 
-		page, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Page to Duplicate", "", th.BasicUser.Id, "")
+		page, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, parentPage.Id, "Page to Duplicate", "", th.BasicUser.Id, "")
 		require.Nil(t, err)
 
 		th.Context.Session().UserId = th.BasicUser.Id
 
-		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdWiki.Id, &parentPage.Id, nil, th.BasicUser.Id)
+		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdWiki.Id, nil, th.BasicUser.Id)
 		require.Nil(t, appErr)
-		require.Equal(t, parentPage.Id, duplicatedPage.PageParentId, "Should have specified parent")
+		require.Equal(t, parentPage.Id, duplicatedPage.PageParentId, "Should preserve parent from source page")
 	})
 
 	t.Run("fails when title conflict exists", func(t *testing.T) {
@@ -728,12 +728,12 @@ func TestDuplicatePage(t *testing.T) {
 		page, err := th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Original", "", th.BasicUser.Id, "")
 		require.Nil(t, err)
 
-		_, err = th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Duplicate of Original", "", th.BasicUser.Id, "")
+		_, err = th.App.CreateWikiPage(th.Context, createdWiki.Id, "", "Copy of Original", "", th.BasicUser.Id, "")
 		require.Nil(t, err)
 
 		th.Context.Session().UserId = th.BasicUser.Id
 
-		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdWiki.Id, nil, nil, th.BasicUser.Id)
+		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdWiki.Id, nil, th.BasicUser.Id)
 		require.NotNil(t, appErr)
 		require.Nil(t, duplicatedPage)
 		require.Contains(t, appErr.Id, "title_conflict")
@@ -768,7 +768,7 @@ func TestDuplicatePage(t *testing.T) {
 
 		th.Context.Session().UserId = th.BasicUser.Id
 
-		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdTargetWiki.Id, nil, nil, th.BasicUser.Id)
+		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdTargetWiki.Id, nil, th.BasicUser.Id)
 		require.NotNil(t, appErr)
 		require.Nil(t, duplicatedPage)
 		require.Contains(t, appErr.Id, "cross_channel_not_supported")
@@ -789,7 +789,7 @@ func TestDuplicatePage(t *testing.T) {
 
 		th.Context.Session().UserId = th.BasicUser.Id
 
-		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, "nonexistent", createdWiki.Id, nil, nil, th.BasicUser.Id)
+		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, "nonexistent", createdWiki.Id, nil, th.BasicUser.Id)
 		require.NotNil(t, appErr)
 		require.Nil(t, duplicatedPage)
 		require.Contains(t, appErr.Id, "source_not_found")
@@ -813,7 +813,7 @@ func TestDuplicatePage(t *testing.T) {
 
 		th.Context.Session().UserId = th.BasicUser.Id
 
-		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, "nonexistent", nil, nil, th.BasicUser.Id)
+		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, "nonexistent", nil, th.BasicUser.Id)
 		require.NotNil(t, appErr)
 		require.Nil(t, duplicatedPage)
 		require.Contains(t, appErr.Id, "target_wiki_not_found")
@@ -842,7 +842,7 @@ func TestDuplicatePage(t *testing.T) {
 
 		th.Context.Session().UserId = th.BasicUser.Id
 
-		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdWiki.Id, nil, nil, th.BasicUser.Id)
+		duplicatedPage, appErr := th.App.DuplicatePage(th.Context, page.Id, createdWiki.Id, nil, th.BasicUser.Id)
 		require.Nil(t, appErr)
 
 		duplicateTitle := duplicatedPage.Props["title"].(string)

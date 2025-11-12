@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createTestChannel, getNewPageButton, fillCreatePageModal, waitForWikiViewLoad} from './test_helpers';
+import {createWikiThroughUI, createTestChannel, createDraftThroughUI, getEditor, publishPage, getPageViewerContent} from './test_helpers';
 
 /**
  * @objective Verify author avatar appears in wiki page draft editor
@@ -19,13 +19,7 @@ test('displays author avatar and username in draft editor', {tag: '@pages'}, asy
     const wiki = await createWikiThroughUI(page, `Avatar Wiki ${pw.random.id()}`);
 
     // # Create draft to see author avatar
-    const newPageButton = getNewPageButton(page);
-    await newPageButton.click();
-    await fillCreatePageModal(page, 'Draft Page for Avatar');
-
-    // # Wait for editor to appear (draft created and loaded)
-    const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
-    await editor.waitFor({state: 'visible', timeout: 5000});
+    await createDraftThroughUI(page, 'Draft Page for Avatar');
 
     // * Verify author section is visible
     const authorSection = page.locator('[data-testid="wiki-page-author"]');
@@ -58,13 +52,7 @@ test('includes accessibility label for author section', {tag: '@pages'}, async (
     const wiki = await createWikiThroughUI(page, `A11y Wiki ${pw.random.id()}`);
 
     // # Create draft
-    const newPageButton = getNewPageButton(page);
-    await newPageButton.click();
-    await fillCreatePageModal(page, 'Accessibility Test Page');
-
-    // # Wait for editor to appear
-    const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
-    await editor.waitFor({state: 'visible', timeout: 5000});
+    await createDraftThroughUI(page, 'Accessibility Test Page');
 
     // * Verify author section has aria-label
     const authorSection = page.locator('[data-testid="wiki-page-author"]');
@@ -88,14 +76,7 @@ test('persists author avatar after page reload', {tag: '@pages'}, async ({pw, sh
 
     // # Create wiki and draft
     const wiki = await createWikiThroughUI(page, `Persist Wiki ${pw.random.id()}`);
-
-    const newPageButton = getNewPageButton(page);
-    await newPageButton.click();
-    await fillCreatePageModal(page, 'Persistence Test Page');
-
-    // # Wait for editor
-    const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
-    await editor.waitFor({state: 'visible', timeout: 5000});
+    await createDraftThroughUI(page, 'Persistence Test Page');
 
     // * Verify author avatar is visible before reload
     const authorSection = page.locator('[data-testid="wiki-page-author"]');
@@ -105,10 +86,8 @@ test('persists author avatar after page reload', {tag: '@pages'}, async ({pw, sh
     await page.reload();
     await page.waitForLoadState('networkidle');
 
-    // # Wait for wiki view to load after reload
-    await waitForWikiViewLoad(page);
-
     // # Wait for editor to reappear after reload
+    const editor = getEditor(page);
     await editor.waitFor({state: 'visible', timeout: 5000});
 
     // * Verify author avatar is still visible after reload
@@ -132,33 +111,19 @@ test('does not show author avatar in published page view', {tag: '@pages'}, asyn
 
     // # Create wiki and draft
     const wiki = await createWikiThroughUI(page, `Published Wiki ${pw.random.id()}`);
-
-    const newPageButton = getNewPageButton(page);
-    await newPageButton.click();
-    await fillCreatePageModal(page, 'Page to Publish');
-
-    // # Wait for editor
-    const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
-    await editor.waitFor({state: 'visible', timeout: 5000});
-
-    // # Add some content
-    await editor.click();
-    await editor.type('Published content');
-
-    // Wait for auto-save
-    await page.waitForTimeout(2000);
+    await createDraftThroughUI(page, 'Page to Publish', 'Published content');
 
     // # Publish the page
-    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]');
-    await publishButton.waitFor({state: 'visible', timeout: 5000});
-    await publishButton.click();
-    await page.waitForTimeout(1000);
+    await publishPage(page);
+
+    // # Wait for navigation to published page
+    await page.waitForURL(/\/wiki\/[^/]+\/[^/]+\/[^/]+$/, {timeout: 10000});
 
     // * Verify author section is NOT visible in published view
     const authorSection = page.locator('[data-testid="wiki-page-author"]');
     await expect(authorSection).not.toBeVisible();
 
     // * Verify page content is visible (we're in view mode)
-    const pageViewer = page.locator('[data-testid="page-viewer-content"]');
+    const pageViewer = getPageViewerContent(page);
     await expect(pageViewer).toBeVisible();
 });

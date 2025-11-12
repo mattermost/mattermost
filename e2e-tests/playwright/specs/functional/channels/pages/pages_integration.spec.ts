@@ -3,7 +3,37 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton, fillCreatePageModal, addHeadingToEditor, waitForPageInHierarchy, selectAllText, waitForEditModeReady, addInlineCommentAndPublish, getBreadcrumb, verifyBreadcrumbContains, verifyBreadcrumbDoesNotContain, getHierarchyPanel, verifyHierarchyContains, getPageViewerContent, verifyPageContentContains, getEditor, enterEditMode, saveOrPublishPage, addInlineCommentInEditMode, verifyCommentMarkerVisible, clickCommentMarkerAndOpenRHS, verifyWikiRHSContent, openMovePageModal, confirmMoveToTarget, publishPage, openPageActionsMenu, clickPageContextMenuItem} from './test_helpers';
+import {
+    addInlineCommentAndPublish,
+    addInlineCommentInEditMode,
+    addReplyToCommentThread,
+    buildWikiPageUrl,
+    clickCommentMarkerAndOpenRHS,
+    clickPageContextMenuItem,
+    confirmMoveToTarget,
+    createChildPageThroughContextMenu,
+    createPageThroughUI,
+    createWikiThroughUI,
+    deletePageViaActionsMenu,
+    enterEditMode,
+    fillCreatePageModal,
+    getBreadcrumb,
+    getEditorAndWait,
+    getHierarchyPanel,
+    getNewPageButton,
+    navigateToPage,
+    openMovePageModal,
+    openPageActionsMenu,
+    publishCurrentPage,
+    publishPage,
+    toggleCommentResolution,
+    verifyBreadcrumbContains,
+    verifyBreadcrumbDoesNotContain,
+    verifyCommentMarkerVisible,
+    verifyHierarchyContains,
+    verifyPageContentContains,
+    verifyWikiRHSContent,
+} from './test_helpers';
 
 /**
  * @objective Verify complete workflow: create parent page, create child, verify hierarchy
@@ -53,7 +83,7 @@ test('saves draft, navigates away, returns to draft, then publishes', {tag: '@pa
     await newPageButton.click();
     await fillCreatePageModal(page, 'Draft Flow Test');
 
-    const editor = getEditor(page);
+    const editor = await getEditorAndWait(page);
     await editor.click();
     await editor.type('Draft content in progress');
 
@@ -85,7 +115,7 @@ test('saves draft, navigates away, returns to draft, then publishes', {tag: '@pa
     await editor.type(' - additional content');
 
     // # Step 6: Publish
-    await saveOrPublishPage(page, true);
+    await publishPage(page);
 
     // * Verify published
     await verifyPageContentContains(page, 'Draft content in progress - additional content');
@@ -127,25 +157,21 @@ test('moves page between wikis and inherits new permissions', {tag: '@pages'}, a
 
     // # Navigate back to the movable page in wiki1
     await channelsPage.goto(team.name, channel1.name);
-    await page.goto(`${pw.url}/${team.name}/channels/${channel1.name}/wikis/${wiki1.id}/pages/${movablePage.id}`);
+    const pageUrl = buildWikiPageUrl(pw.url, team.name, channel1.id, wiki1.id, movablePage.id);
+    await page.goto(pageUrl);
     await page.waitForLoadState('networkidle');
 
     // # Move page to wiki2
-    const pageActionsMenu = await openPageActionsMenu(page);
+    await openPageActionsMenu(page);
     await clickPageContextMenuItem(page, 'move');
 
     const moveModal = page.getByRole('dialog', {name: /Move/i});
     await expect(moveModal).toBeVisible({timeout: 3000});
-    const wiki2Option = moveModal.locator(`text="${wiki2.title}"`).first();
-    await wiki2Option.click();
-
-    const confirmButton = moveModal.locator('[data-testid="page-context-menu-move"], [data-testid="confirm-button"]').first();
-    await confirmButton.click();
-    await expect(moveModal).not.toBeVisible({timeout: 5000});
-    await page.waitForLoadState('networkidle');
+    await confirmMoveToTarget(page, moveModal, `text="${wiki2.title}"`);
 
     // * Verify page accessible in new wiki/channel
-    await page.goto(`${pw.url}/${team.name}/channels/${channel2.name}/wikis/${wiki2.id}/pages/${movablePage.id}`);
+    const newPageUrl = buildWikiPageUrl(pw.url, team.name, channel2.id, wiki2.id, movablePage.id);
+    await page.goto(newPageUrl);
     await page.waitForLoadState('networkidle');
 
     await verifyPageContentContains(page, 'Content to move');
@@ -167,7 +193,7 @@ test('applies last-write-wins when saving concurrent edits from multiple tabs', 
 
     await enterEditMode(page1);
 
-    const editor1 = getEditor(page1);
+    const editor1 = await getEditorAndWait(page1);
     await editor1.click();
     await editor1.type(' - Tab 1 edit');
 
@@ -179,20 +205,27 @@ test('applies last-write-wins when saving concurrent edits from multiple tabs', 
     const page2 = await context2.newPage();
 
     // # Navigate to the same page
-    await page2.goto(`${pw.url}/${team.name}/channels/${channel.name}/wikis/${wiki.id}/pages/${testPage.id}`);
+    const concurrentPageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, testPage.id);
+    await page2.goto(concurrentPageUrl);
     await page2.waitForLoadState('networkidle');
 
     await enterEditMode(page2);
 
-    const editor2 = getEditor(page2);
+    const editor2 = await getEditorAndWait(page2);
     await editor2.click();
     await editor2.type(' - Tab 2 edit');
 
+    // # Wait for editor transactions and autosave before saving
+    await page2.waitForTimeout(2000);
+
     // # Tab 2: Save first
-    await saveOrPublishPage(page2, false);
+    await publishPage(page2);
+
+    // # Wait for editor transactions and autosave before saving
+    await page1.waitForTimeout(2000);
 
     // # Tab 1: Save second (last write wins)
-    await saveOrPublishPage(page1, false);
+    await publishPage(page1);
 
     // * Verify Tab 1's content (last write) is what persisted
     const savedPage = await adminClient.getPost(testPage.id);
@@ -202,8 +235,7 @@ test('applies last-write-wins when saving concurrent edits from multiple tabs', 
     // * Verify via UI - refresh and check content
     await page1.reload();
     await page1.waitForLoadState('networkidle');
-    const pageContent = await getPageViewerContent(page1).textContent();
-    expect(pageContent).toContain('Tab 1 edit');
+    await verifyPageContentContains(page1, 'Tab 1 edit');
 
     await context2.close();
 });
@@ -227,7 +259,7 @@ test('preserves inline comments when editing page content', {tag: '@pages'}, asy
     await addInlineCommentInEditMode(page, 'Important comment to preserve');
 
     // # Publish the page (isNewPage=true because we're publishing edits)
-    await saveOrPublishPage(page, true);
+    await publishPage(page);
 
     // * Verify comment marker visible in viewer mode
     const commentMarker = await verifyCommentMarkerVisible(page);
@@ -235,19 +267,19 @@ test('preserves inline comments when editing page content', {tag: '@pages'}, asy
     // # Edit page content again to verify comment preservation
     await enterEditMode(page);
 
-    const editor2 = getEditor(page);
+    const editor2 = await getEditorAndWait(page);
     await editor2.click();
     await page.keyboard.press('End');
     await editor2.type(' - edited');
 
-    await saveOrPublishPage(page, true);
+    await publishPage(page);
 
     // * Verify comment marker still present after edit
-    const commentMarker2 = page.locator('[data-inline-comment-marker], .inline-comment-marker, [data-comment-id]').first();
-    await expect(commentMarker2).toBeVisible({timeout: 5000});
+    await verifyCommentMarkerVisible(page);
 
     // * Verify comment content accessible via RHS
-    const rhs = await clickCommentMarkerAndOpenRHS(page, commentMarker);
+    const commentMarker2 = await verifyCommentMarkerVisible(page);
+    const rhs = await clickCommentMarkerAndOpenRHS(page, commentMarker2);
     await verifyWikiRHSContent(page, rhs, ['Important comment to preserve']);
 });
 
@@ -272,8 +304,8 @@ test('searches page, opens result, adds comment, returns to search', {tag: '@pag
     await searchInput.fill(uniqueTerm);
     await page.waitForTimeout(500);
 
-    // # Click search result
-    const searchResult = page.locator(`text="${uniqueTerm}"`).first();
+    // # Click search result - use getByRole to find the button containing the search term
+    const searchResult = page.getByRole('button', {name: new RegExp(uniqueTerm)}).first();
     await expect(searchResult).toBeVisible({timeout: 3000});
     await searchResult.click();
     await page.waitForLoadState('networkidle');
@@ -285,7 +317,7 @@ test('searches page, opens result, adds comment, returns to search', {tag: '@pag
     // # Add comment
     await enterEditMode(page);
     await addInlineCommentInEditMode(page, 'Comment from search flow');
-    await saveOrPublishPage(page, true);
+    await publishPage(page);
 
     // # Navigate back
     await page.goBack();
@@ -314,7 +346,7 @@ test('creates multi-level hierarchy with comments and breadcrumb navigation', {t
     // # Add comment to level 1
     await enterEditMode(page);
     await addInlineCommentInEditMode(page, 'Level 1 comment');
-    await saveOrPublishPage(page, true);
+    await publishPage(page);
 
     // # Create level 2 page (child)
     const level2Page = await createChildPageThroughContextMenu(page, level1Page.id!, 'Level 2 Page', 'Level 2 content');
@@ -322,7 +354,7 @@ test('creates multi-level hierarchy with comments and breadcrumb navigation', {t
     // # Add comment to level 2
     await enterEditMode(page);
     await addInlineCommentInEditMode(page, 'Level 2 comment');
-    await saveOrPublishPage(page, true);
+    await publishPage(page);
 
     // # Navigate back to level 1 via breadcrumb
     const breadcrumb = getBreadcrumb(page);
@@ -358,22 +390,11 @@ test('deletes page with children and updates hierarchy', {tag: '@pages'}, async 
     const parent = await createPageThroughUI(page, 'Parent to Delete', 'Parent content');
     const child = await createChildPageThroughContextMenu(page, parent.id!, 'Child Page', 'Child content');
 
-    // # Delete parent page
-    await openPageActionsMenu(page);
-    await clickPageContextMenuItem(page, 'delete');
+    // # Navigate back to parent page (createChildPageThroughContextMenu leaves us on the child)
+    await navigateToPage(page, pw.url, team.name, channel.id, wiki.id, parent.id!);
 
-    // * Verify confirmation modal
-    const confirmModal = page.getByRole('dialog', {name: /Delete|Confirm/i});
-    await expect(confirmModal).toBeVisible({timeout: 3000});
-    // * Verify warning about children (if applicable)
-    const modalText = await confirmModal.textContent();
-    if (modalText?.includes('child')) {
-        expect(modalText).toContain('child');
-    }
-
-    const confirmButton = confirmModal.locator('[data-testid="delete-button"], [data-testid="confirm-button"]').first();
-    await confirmButton.click();
-    await page.waitForLoadState('networkidle');
+    // # Delete parent page via actions menu
+    await deletePageViaActionsMenu(page, 'cascade');
 
     // * Verify redirected away from deleted page
     const currentUrl = page.url();
@@ -388,6 +409,9 @@ test('deletes page with children and updates hierarchy', {tag: '@pages'}, async 
 
 /**
  * @objective Verify page rename with breadcrumb and hierarchy updates
+ *
+ * Note: This test uses the context menu rename feature which opens edit mode.
+ * Inline title editing (clicking title to edit) is not currently implemented.
  */
 test('renames page and updates breadcrumbs and hierarchy', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     const {team, user, adminClient} = sharedPagesSetup;
@@ -406,24 +430,32 @@ test('renames page and updates breadcrumbs and hierarchy', {tag: '@pages'}, asyn
     const renamePage = await createPageThroughUI(page, oldTitle, 'Page content');
     const child = await createChildPageThroughContextMenu(page, renamePage.id!, 'Child of Renamed', 'Child content');
 
-    // # Rename page
-    const pageTitle = page.locator('[data-testid="page-viewer-title"]');
-    await expect(pageTitle).toBeVisible({timeout: 3000});
-    // # Click to edit title
-    await pageTitle.click();
+    // # Rename page via context menu
+    const pageNode = page.locator(`[data-testid="page-tree-node"][data-page-id="${renamePage.id}"]`);
+    const menuButton = pageNode.locator('[data-testid="page-tree-node-menu-button"]');
+    await menuButton.click();
 
-    const titleInput = page.locator('input[value*="Original"]').first();
-    await expect(titleInput).toBeVisible({timeout: 2000});
+    const renameMenuItem = page.locator('[data-testid="page-context-menu-rename"]').first();
+    await renameMenuItem.click();
+
+    // * Verify edit mode opened
+    await expect(page.locator('[data-testid="wiki-page-title-input"]')).toBeVisible({timeout: 3000});
+
+    // # Change title in edit mode
+    const titleInput = page.locator('[data-testid="wiki-page-title-input"]');
     await titleInput.clear();
     await titleInput.fill(newTitle);
-    await page.keyboard.press('Enter');
-    await page.waitForTimeout(1000);
 
-    // * Verify title updated
+    // # Save/publish the page
+    await publishPage(page);
+
+    // * Verify title updated in viewer
+    const pageTitle = page.locator('[data-testid="page-viewer-title"]');
     await expect(pageTitle).toContainText(newTitle);
 
     // # Navigate to child page
-    await page.goto(`${pw.url}/${team.name}/channels/${channel.name}/wikis/${wiki.id}/pages/${child.id}`);
+    const childPageUrl = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, child.id);
+    await page.goto(childPageUrl);
     await page.waitForLoadState('networkidle');
 
     // * Verify breadcrumb shows new parent title
@@ -451,7 +483,7 @@ test('opens page via deep link, adds comment, edits, verifies hierarchy', {tag: 
     const child = await createChildPageThroughContextMenu(page, parent.id!, 'Deep Link Child', 'Child deep link content');
 
     // # Open child page via deep link
-    const deepLink = `${pw.url}/${team.name}/channels/${channel.name}/wikis/${wiki.id}/pages/${child.id}`;
+    const deepLink = buildWikiPageUrl(pw.url, team.name, channel.id, wiki.id, child.id);
     await page.goto(deepLink);
     await page.waitForLoadState('networkidle');
 
@@ -461,14 +493,14 @@ test('opens page via deep link, adds comment, edits, verifies hierarchy', {tag: 
     // # Add comment
     await enterEditMode(page);
     await addInlineCommentInEditMode(page, 'Deep link comment');
-    await saveOrPublishPage(page, true);
+    await publishPage(page);
 
     // # Edit page again
     await enterEditMode(page);
-    const editor = getEditor(page);
+    const editor = await getEditorAndWait(page);
     await editor.click();
     await editor.type(' - EDITED');
-    await saveOrPublishPage(page, false);
+    await publishPage(page);
 
     // * Verify breadcrumb shows hierarchy
     await verifyBreadcrumbContains(page, 'Deep Link Parent');
@@ -498,18 +530,19 @@ test('views version history modal with edit timestamps', {tag: '@pages'}, async 
 
     // # Make first edit
     await enterEditMode(page);
-    const editor = getEditor(page);
+    const editor = await getEditorAndWait(page);
     await editor.click();
     await editor.clear();
     await editor.type('Version 2 content');
-    await saveOrPublishPage(page, true);
+    await publishPage(page);
 
     // # Make second edit
     await enterEditMode(page);
-    await editor.click();
-    await editor.clear();
-    await editor.type('Version 3 content');
-    await saveOrPublishPage(page, true);
+    const editor2 = await getEditorAndWait(page);
+    await editor2.click();
+    await editor2.clear();
+    await editor2.type('Version 3 content');
+    await publishPage(page);
 
     // # Open version history
     await openPageActionsMenu(page);
@@ -549,8 +582,6 @@ test('executes complex multi-feature workflow end-to-end', {tag: '@pages'}, asyn
     // # Create wiki through UI
     const wiki = await createWikiThroughUI(page, `Complex Workflow Wiki ${pw.random.id()}`);
 
-    const editor = getEditor(page);
-
     // # Step 1: Create root page
     const rootPage = await createPageThroughUI(page, 'Root Project Page', 'Root project documentation');
 
@@ -571,7 +602,6 @@ test('executes complex multi-feature workflow end-to-end', {tag: '@pages'}, asyn
         // # Step 5: Resolve comment
         await toggleCommentResolution(page, rhs);
     } else {
-        console.log('Skipping comment interaction tests as inline comment could not be added');
         await page.waitForLoadState('networkidle');
     }
 
@@ -615,8 +645,7 @@ test('creates draft with auto-save, closes browser, recovers and publishes', {ta
     await fillCreatePageModal(page, 'Draft Recovery Test');
 
     // # Edit draft content
-    const editor = getEditor(page);
-    await editor.waitFor({state: 'visible', timeout: 5000});
+    const editor = await getEditorAndWait(page);
     await editor.click();
     await editor.type('Important draft content that must not be lost');
 
@@ -649,7 +678,7 @@ test('creates draft with auto-save, closes browser, recovers and publishes', {ta
     expect(editorContent).toContain('Important draft content that must not be lost');
 
     // # Publish draft
-    await saveOrPublishPage(page, true);
+    await publishPage(page);
 
     // * Verify published successfully
     await verifyPageContentContains(page, 'Important draft content that must not be lost');

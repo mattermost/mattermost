@@ -586,7 +586,7 @@ func (a *App) MovePageToWiki(rctx request.CTX, pageId, targetWikiId string, pare
 	return nil
 }
 
-func (a *App) DuplicatePage(rctx request.CTX, sourcePageId, targetWikiId string, parentPageId, customTitle *string, userId string) (*model.Post, *model.AppError) {
+func (a *App) DuplicatePage(rctx request.CTX, sourcePageId, targetWikiId string, customTitle *string, userId string) (*model.Post, *model.AppError) {
 	sourcePage, err := a.GetSinglePost(rctx, sourcePageId, false)
 	if err != nil {
 		return nil, model.NewAppError("DuplicatePage", "app.page.duplicate.source_not_found", nil, "", http.StatusNotFound).Wrap(err)
@@ -624,7 +624,7 @@ func (a *App) DuplicatePage(rctx request.CTX, sourcePageId, targetWikiId string,
 	if customTitle != nil && *customTitle != "" {
 		duplicateTitle = *customTitle
 	} else {
-		duplicateTitle = "Duplicate of " + originalTitle
+		duplicateTitle = "Copy of " + originalTitle
 		if len(duplicateTitle) > model.MaxPageTitleLength {
 			duplicateTitle = duplicateTitle[:model.MaxPageTitleLength-3] + "..."
 		}
@@ -643,35 +643,7 @@ func (a *App) DuplicatePage(rctx request.CTX, sourcePageId, targetWikiId string,
 		}
 	}
 
-	var parentId string
-	if parentPageId != nil && *parentPageId != "" {
-		parentPage, err := a.GetSinglePost(rctx, *parentPageId, false)
-		if err != nil {
-			return nil, model.NewAppError("DuplicatePage", "app.page.duplicate.parent_not_found", nil, "", http.StatusNotFound).Wrap(err)
-		}
-
-		if parentPage.Type != model.PostTypePage {
-			return nil, model.NewAppError("DuplicatePage", "app.page.duplicate.parent_not_a_page", nil, "", http.StatusBadRequest)
-		}
-
-		if parentPage.ChannelId != targetWiki.ChannelId {
-			return nil, model.NewAppError("DuplicatePage", "app.page.duplicate.parent_wrong_channel", nil, "", http.StatusBadRequest)
-		}
-
-		parentDepth, depthErr := a.calculatePageDepth(rctx, *parentPageId)
-		if depthErr != nil {
-			return nil, depthErr
-		}
-
-		newPageDepth := parentDepth + 1
-		if newPageDepth >= model.PostPageMaxDepth {
-			return nil, model.NewAppError("DuplicatePage", "app.page.duplicate.max_depth_exceeded",
-				map[string]any{"MaxDepth": model.PostPageMaxDepth},
-				"", http.StatusBadRequest)
-		}
-
-		parentId = *parentPageId
-	}
+	parentId := sourcePage.PageParentId
 
 	contentJSON, jsonErr := sourceContent.GetDocumentJSON()
 	if jsonErr != nil {

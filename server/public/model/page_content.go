@@ -5,7 +5,6 @@ package model
 
 import (
 	"encoding/json"
-	"html"
 	"net/http"
 	"regexp"
 	"strings"
@@ -156,11 +155,8 @@ func sanitizeTipTapNode(node map[string]any) {
 		return
 	}
 
-	if textVal, ok := node["text"]; ok {
-		if text, ok := textVal.(string); ok {
-			node["text"] = html.EscapeString(text)
-		}
-	}
+	// Text nodes in TipTap JSON are plain text - TipTap handles DOM escaping during render
+	// No need to HTML-escape here as it would cause double-escaping
 
 	if attrs, ok := node["attrs"].(map[string]any); ok {
 		if href, ok := attrs["href"].(string); ok {

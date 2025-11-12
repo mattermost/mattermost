@@ -4,6 +4,8 @@
 import React, {memo} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {Post} from '@mattermost/types/posts';
+
 import {PostTypes} from 'mattermost-redux/constants';
 
 import {usePost} from 'components/common/hooks/usePost';
@@ -16,7 +18,7 @@ import UserProfile from 'components/user_profile';
 import {isPageComment, getPageInlineAnchorText} from 'utils/page_utils';
 
 type Props = {
-    onCommentClick?: React.EventHandler<React.MouseEvent>;
+    onCommentClick?: (e: React.MouseEvent, pagePost: Post | null) => void;
     rootId: string;
     showUserHeader?: boolean;
 };
@@ -26,6 +28,24 @@ function PageCommentedOn({onCommentClick, rootId, showUserHeader = false}: Props
     const pagePost = usePost(isPageComment(rootPost) && rootPost?.props?.page_id ? rootPost.props.page_id as string : '');
 
     const shouldRender = isPageComment(rootPost) && pagePost;
+
+    const handleClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+
+        const wikiId = rootPost?.props?.wiki_id as string | undefined;
+
+        const pagePostWithWiki = pagePost && wikiId ? {
+            ...pagePost,
+            props: {
+                ...pagePost.props,
+                wiki_id: wikiId,
+            },
+        } : pagePost;
+
+        if (onCommentClick && pagePostWithWiki) {
+            onCommentClick(e, pagePostWithWiki);
+        }
+    };
 
     if (shouldRender) {
         const pageTitle = (pagePost.props?.title as string) || 'Untitled Page';
@@ -66,7 +86,9 @@ function PageCommentedOn({onCommentClick, rootId, showUserHeader = false}: Props
                         {' '}
                         <a
                             className='theme'
-                            onClick={onCommentClick}
+                            href='#'
+                            onClick={handleClick}
+                            style={{cursor: 'pointer'}}
                         >
                             {pageTitle}
                         </a>
@@ -104,7 +126,11 @@ function PageCommentedOn({onCommentClick, rootId, showUserHeader = false}: Props
                     {' '}
                     <a
                         className='theme'
-                        onClick={onCommentClick}
+                        href='#'
+                        onClick={(e) => {
+                            onCommentClick?.(e, rootPost);
+                        }}
+                        style={{cursor: 'pointer'}}
                     >
                         {pageTitle}
                     </a>

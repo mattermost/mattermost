@@ -729,10 +729,10 @@ export function movePageToWiki(pageId: string, sourceWikiId: string, targetWikiI
     };
 }
 
-export function duplicatePage(pageId: string, sourceWikiId: string, targetWikiId: string, parentPageId?: string, customTitle?: string): ActionFuncAsync<Post> {
+export function duplicatePage(pageId: string, sourceWikiId: string, targetWikiId: string, customTitle?: string): ActionFuncAsync<Post> {
     return async (dispatch, getState) => {
         try {
-            const duplicatedPage = await Client4.duplicatePage(sourceWikiId, pageId, targetWikiId, parentPageId, customTitle);
+            const duplicatedPage = await Client4.duplicatePage(sourceWikiId, pageId, targetWikiId, customTitle);
 
             dispatch({
                 type: PostActionTypes.RECEIVED_POST,

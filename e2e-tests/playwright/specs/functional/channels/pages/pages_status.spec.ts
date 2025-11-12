@@ -55,16 +55,6 @@ test('changes page status from in_progress to in_review', {tag: '@pages'}, async
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
 
-    // Capture console logs
-    const logs: string[] = [];
-    page.on('console', (msg) => {
-        const text = msg.text();
-        if (text.includes('[publishPageDraft]') || text.includes('[Client4.publishPageDraft]') || text.includes('[handlePublish]') || text.includes('[handleDraftStatusChange]') || text.includes('[useLayoutEffect]') || text.includes('[handlePagePublishedEvent]')) {
-            logs.push(`[CONSOLE ${msg.type()}] ${text}`);
-            console.log(`[BROWSER] ${text}`);
-        }
-    });
-
     await channelsPage.goto(team.name, channel.name);
 
     // # Create wiki and page through UI
@@ -102,13 +92,6 @@ test('changes page status from in_progress to in_review', {tag: '@pages'}, async
     const statusDisplay = page.locator('[data-testid="page-viewer-status"]');
     await expect(statusDisplay).toBeVisible();
     const statusText = await statusDisplay.textContent();
-
-    // Dump console logs if test fails
-    if (statusText?.trim() !== 'In review') {
-        console.log('\n=== CAPTURED CONSOLE LOGS ===');
-        logs.forEach((log) => console.log(log));
-        console.log('=== END CONSOLE LOGS ===\n');
-    }
 
     expect(statusText?.trim()).toBe('In review');
 });
@@ -610,17 +593,6 @@ test('persists status when updating existing page through draft', {tag: '@pages'
 
     const {page, channelsPage} = await pw.testBrowser.login(user);
 
-    // Capture console logs
-    const logs: string[] = [];
-    page.on('console', (msg) => {
-        const text = msg.text();
-        // Capture all logs that contain our debug markers
-        if (text.includes('[savePageDraft]') || text.includes('[hooks.ts]') || text.includes('[publishPageDraft]') || text.includes('[PageStatusSelector]')) {
-            logs.push(`[CONSOLE ${msg.type()}] ${text}`);
-            console.log(`[BROWSER] ${text}`);
-        }
-    });
-
     await channelsPage.goto(team.name, channel.name);
 
     // # Create wiki and initial page
@@ -669,13 +641,6 @@ test('persists status when updating existing page through draft', {tag: '@pages'
     await expect(publishedStatus).toBeVisible();
     const statusText = await publishedStatus.textContent();
     const statusLabel = statusText?.trim();
-
-    // Dump console logs if test fails
-    if (statusLabel !== 'Rough draft') {
-        console.log('\n=== CAPTURED CONSOLE LOGS ===');
-        logs.forEach((log) => console.log(log));
-        console.log('=== END CONSOLE LOGS ===\n');
-    }
 
     expect(statusLabel).toBe('Rough draft');
 });

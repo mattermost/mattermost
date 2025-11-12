@@ -340,7 +340,7 @@ func TestExtractSimpleText(t *testing.T) {
 		require.Contains(t, text, "Item 2")
 	})
 
-	t.Run("limits text to 5000 characters", func(t *testing.T) {
+	t.Run("does not truncate text for complete search coverage", func(t *testing.T) {
 		longText := strings.Repeat("a", 6000)
 		doc := TipTapDocument{
 			Type: "doc",
@@ -358,7 +358,7 @@ func TestExtractSimpleText(t *testing.T) {
 		}
 
 		text := extractSimpleText(doc)
-		require.Equal(t, 5000, len(text))
+		require.Equal(t, 6000, len(text))
 	})
 
 	t.Run("cleans whitespace", func(t *testing.T) {
@@ -538,20 +538,18 @@ func TestExtractTextFromNode(t *testing.T) {
 }
 
 func TestSanitizeTipTapDocument(t *testing.T) {
-	t.Run("escapes HTML in text content", func(t *testing.T) {
+	t.Run("preserves text content without HTML escaping", func(t *testing.T) {
 		pc := &PageContent{
 			PageId: NewId(),
 		}
 
-		jsonStr := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"<script>alert('xss')</script>"}]}]}`
+		jsonStr := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Test & verify <tags>"}]}]}`
 		err := pc.SetDocumentJSON(jsonStr)
 		require.NoError(t, err)
 
 		textNode := pc.Content.Content[0]["content"].([]any)[0].(map[string]any)
-		sanitizedText := textNode["text"].(string)
-		require.Contains(t, sanitizedText, "&lt;script&gt;")
-		require.Contains(t, sanitizedText, "&lt;/script&gt;")
-		require.NotContains(t, sanitizedText, "<script>")
+		text := textNode["text"].(string)
+		require.Equal(t, "Test & verify <tags>", text)
 	})
 
 	t.Run("removes javascript URLs from href attributes", func(t *testing.T) {
@@ -600,12 +598,12 @@ func TestSanitizeTipTapDocument(t *testing.T) {
 		require.Equal(t, "https://example.com", attrs["href"])
 	})
 
-	t.Run("sanitizes nested content", func(t *testing.T) {
+	t.Run("preserves text in nested content", func(t *testing.T) {
 		pc := &PageContent{
 			PageId: NewId(),
 		}
 
-		jsonStr := `{"type":"doc","content":[{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"<img src=x onerror=alert('xss')>"}]}]}]}]}`
+		jsonStr := `{"type":"doc","content":[{"type":"bulletList","content":[{"type":"listItem","content":[{"type":"paragraph","content":[{"type":"text","text":"Item with & symbol"}]}]}]}]}`
 		err := pc.SetDocumentJSON(jsonStr)
 		require.NoError(t, err)
 
@@ -613,8 +611,7 @@ func TestSanitizeTipTapDocument(t *testing.T) {
 		listItemNode := listNode["content"].([]any)[0].(map[string]any)
 		paragraphNode := listItemNode["content"].([]any)[0].(map[string]any)
 		textNode := paragraphNode["content"].([]any)[0].(map[string]any)
-		sanitizedText := textNode["text"].(string)
-		require.Contains(t, sanitizedText, "&lt;img")
-		require.NotContains(t, sanitizedText, "<img")
+		text := textNode["text"].(string)
+		require.Equal(t, "Item with & symbol", text)
 	})
 }

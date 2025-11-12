@@ -11,7 +11,7 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {loadPageDraftsForWiki} from 'actions/page_drafts';
 import {loadPages} from 'actions/pages';
-import {openPagesPanel} from 'actions/views/pages_hierarchy';
+import {openPagesPanel, closePagesPanel} from 'actions/views/pages_hierarchy';
 import {closeRightHandSide, openWikiRhs} from 'actions/views/rhs';
 import {setWikiRhsMode} from 'actions/views/wiki_rhs';
 import {getPageDraft, getPageDraftsForWiki} from 'selectors/page_drafts';
@@ -63,7 +63,16 @@ const WikiView = () => {
 
     // Toggle fullscreen
     const toggleFullscreen = () => {
-        setIsFullscreen(!isFullscreen);
+        const newFullscreenState = !isFullscreen;
+        setIsFullscreen(newFullscreenState);
+
+        // When entering fullscreen, collapse the pages panel
+        // When exiting fullscreen, restore it to open
+        if (newFullscreenState) {
+            dispatch(closePagesPanel());
+        } else {
+            dispatch(openPagesPanel());
+        }
     };
 
     // Handle version history
@@ -203,6 +212,21 @@ const WikiView = () => {
             }
         }
     }, [pageId, draftId, allDrafts, allPages, channelId, wikiId, location.pathname, history]);
+
+    // Check for openRhs query parameter and open RHS if requested
+    React.useEffect(() => {
+        const searchParams = new URLSearchParams(location.search);
+        if (searchParams.get('openRhs') === 'true' && pageId && !isWikiRhsOpen) {
+            dispatch(openWikiRhs(pageId, wikiId || '', undefined));
+            dispatch(setWikiRhsMode('comments'));
+
+            // Remove the query parameter from URL
+            searchParams.delete('openRhs');
+            const newSearch = searchParams.toString();
+            const newUrl = `${location.pathname}${newSearch ? `?${newSearch}` : ''}`;
+            history.replace(newUrl);
+        }
+    }, [location.search, location.pathname, pageId, wikiId, isWikiRhsOpen, dispatch, history]);
 
     // --------------------------------------------------------------------------
     // Clear editingDraftId when the draft is deleted or published while we are
@@ -455,7 +479,6 @@ const WikiView = () => {
                             pageTitle={menuHandlers.pageToDuplicate.pageTitle}
                             currentWikiId={wikiId || ''}
                             availableWikis={menuHandlers.availableWikis}
-                            fetchPagesForWiki={menuHandlers.fetchPagesForWiki}
                             hasChildren={menuHandlers.pageToDuplicate.hasChildren}
                             onConfirm={menuHandlers.handleDuplicateConfirm}
                             onCancel={menuHandlers.handleDuplicateCancel}

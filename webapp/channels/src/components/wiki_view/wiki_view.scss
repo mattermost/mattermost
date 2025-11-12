@@ -472,11 +472,15 @@ body.fullscreen-mode {
 
     .team-sidebar,
     .sidebar-left,
-    .sidebar-right,
-    .pages-hierarchy-panel,
     .channel-header,
     .channel-bookmarks {
         display: none;
+    }
+
+    .PagesHierarchyPanel {
+        &.PagesHierarchyPanel--collapsed {
+            display: none;
+        }
     }
 
     .WikiView {
@@ -492,5 +496,20 @@ body.fullscreen-mode {
     .PagePane {
         width: 100%;
         height: 100%;
+    }
+
+    #sidebar-right {
+        position: fixed;
+        z-index: 901;
+        top: 0;
+        right: 0;
+        height: 100vh;
+    }
+
+    &.rhs-open .WikiView,
+    &.rhs-open-expanded .WikiView {
+        .PagePane {
+            padding-right: 400px;
+        }
     }
 }

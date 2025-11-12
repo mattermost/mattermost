@@ -27,6 +27,29 @@ export async function selectAllText(page: Page): Promise<void> {
 }
 
 /**
+ * Extracts the page ID from a wiki URL
+ * Handles both draft URLs (/:team/wiki/:channelId/:wikiId/drafts/:draftId)
+ * and published URLs (/:team/wiki/:channelId/:wikiId/:pageId)
+ * @param url - The URL to extract the page ID from
+ * @returns The page ID or null if not found
+ */
+export function getPageIdFromUrl(url: string): string | null {
+    // Try draft URL pattern first: /wiki/:channelId/:wikiId/drafts/:draftId
+    const draftMatch = url.match(/\/wiki\/[^/]+\/[^/]+\/drafts\/([^/?]+)/);
+    if (draftMatch) {
+        return draftMatch[1];
+    }
+
+    // Try published URL pattern: /wiki/:channelId/:wikiId/:pageId
+    const publishedMatch = url.match(/\/wiki\/[^/]+\/[^/]+\/([^/?]+)$/);
+    if (publishedMatch) {
+        return publishedMatch[1];
+    }
+
+    return null;
+}
+
+/**
  * Performs a platform-aware keyboard shortcut (e.g., 'b' for bold, 'i' for italic)
  * @param page - Playwright page object
  * @param key - The key to press with the modifier (e.g., 'b', 'i', 'l')
@@ -154,6 +177,16 @@ export async function createWikiThroughUI(page: Page, wikiName: string) {
         }
     }
 
+    // # Wait for channel to be fully loaded by checking for the post list or center channel
+    // This ensures the app has finished initializing and is showing the channel content
+    try {
+        await page.locator('#centerChannelFooter, #postListContent, #post-list').first().waitFor({state: 'visible', timeout: 15000});
+    } catch (e) {
+        // If none of the typical channel elements are visible, wait a bit and continue
+        // (may be an empty channel or different UI state)
+        await page.waitForTimeout(2000);
+    }
+
     // # Click the "+" button in the channel tabs to open the add content menu
     const addContentButton = page.locator('#add-tab-content');
     await addContentButton.waitFor({state: 'visible', timeout: 15000});
@@ -254,6 +287,25 @@ export async function navigateToWikiView(page: Page, baseUrl: string, teamName: 
 }
 
 /**
+ * Navigates to a specific page in a wiki
+ * @param page - Playwright page object
+ * @param baseUrl - Base URL (pw.url)
+ * @param teamName - Team name
+ * @param channelId - Channel ID (not name!)
+ * @param wikiId - Wiki ID
+ * @param pageId - Page ID to navigate to
+ */
+export async function navigateToPage(page: Page, baseUrl: string, teamName: string, channelId: string, wikiId: string, pageId: string) {
+    await page.goto(`${baseUrl}/${teamName}/wiki/${channelId}/${wikiId}/${pageId}`);
+    await page.waitForLoadState('networkidle');
+
+    // Wait for wiki view and page to load
+    await waitForWikiViewLoad(page);
+    const pageViewer = page.locator('[data-testid="page-viewer-content"]');
+    await pageViewer.waitFor({state: 'visible', timeout: 10000});
+}
+
+/**
  * Constructs a wiki page URL
  * Matches the URL pattern used by the wiki router: /:team/wiki/:channelId/:wikiId/:pageId
  * @param baseUrl - Base URL (e.g., pw.url)
@@ -330,6 +382,9 @@ export async function createPageThroughUI(page: Page, pageTitle: string, pageCon
     // Type content directly into editor element
     await editor.type(pageContent);
 
+    // Wait for editor to process the typed content
+    await page.waitForTimeout(300);
+
     // Verify content was actually entered (skip validation for whitespace-only content)
     const enteredText = await editor.textContent();
     const contentIsWhitespaceOnly = pageContent.trim() === '';
@@ -363,8 +418,7 @@ export async function createPageThroughUI(page: Page, pageTitle: string, pageCon
 
     // Extract page ID from URL pattern: /:teamName/wiki/:channelId/:wikiId/:pageId
     const url = page.url();
-    const pageIdMatch = url.match(/\/wiki\/[^/]+\/[^/]+\/([^/?]+)/);
-    const pageId = pageIdMatch ? pageIdMatch[1] : null;
+    const pageId = getPageIdFromUrl(url);
 
     if (!pageId) {
         throw new Error(`Failed to extract page ID from URL: ${url}`);
@@ -419,6 +473,9 @@ export async function createChildPageThroughContextMenu(
     // Type content directly into editor element
     await editor.type(pageContent);
 
+    // Wait for editor to process the typed content
+    await page.waitForTimeout(300);
+
     // Verify content was actually entered (skip validation for whitespace-only content)
     const enteredText = await editor.textContent();
     const contentIsWhitespaceOnly = pageContent.trim() === '';
@@ -452,8 +509,7 @@ export async function createChildPageThroughContextMenu(
 
     // Extract page ID from URL pattern: /:teamName/wiki/:channelId/:wikiId/:pageId
     const url = page.url();
-    const pageIdMatch = url.match(/\/wiki\/[^/]+\/[^/]+\/([^/?]+)/);
-    const pageId = pageIdMatch ? pageIdMatch[1] : null;
+    const pageId = getPageIdFromUrl(url);
 
     if (!pageId) {
         throw new Error(`Failed to extract page ID from URL: ${url}`);
@@ -819,7 +875,6 @@ export async function addInlineCommentAndPublish(
     const buttonVisible = await commentButton.isVisible({timeout: 3000}).catch(() => false);
 
     if (!buttonVisible) {
-        console.log('Inline comment button not visible');
         return false;
     }
 
@@ -837,7 +892,6 @@ export async function addInlineCommentAndPublish(
     }
 
     if (!modalVisible) {
-        console.log('Comment modal did not appear');
         return false;
     }
 
@@ -875,6 +929,11 @@ export function getWikiTab(page: Page, wikiTitle: string): Locator {
  */
 export async function openWikiTabMenu(page: Page, wikiTitle: string) {
     const wikiTabWrapper = page.locator('.channel-tabs-container__tab-wrapper--wiki').filter({hasText: wikiTitle});
+
+    // Hover over the wiki tab to reveal the menu button
+    await wikiTabWrapper.hover();
+    await page.waitForTimeout(500);
+
     const menuButton = wikiTabWrapper.locator('[id^="wiki-tab-menu-"]').first();
     await menuButton.waitFor({state: 'visible', timeout: 5000});
     await menuButton.click();
@@ -1820,4 +1879,505 @@ export async function setupPageWithComment(
     const marker = await addInlineCommentAndVerify(page, commentText, undefined, true);
 
     return {wiki, page: testPage, marker};
+}
+
+/**
+ * Deletes a page through the UI using the sidebar context menu
+ * This is a reusable helper that encapsulates the deletion flow
+ * @param page - Playwright page object
+ * @param pageTitle - Title of the page to delete
+ */
+export async function deletePageThroughUI(page: Page, pageTitle: string) {
+    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const pageNode = hierarchyPanel.locator('[data-testid="page-tree-node"]', {hasText: pageTitle});
+
+    // Click the menu button on the page node
+    const menuButton = pageNode.locator('[data-testid="page-tree-node-menu-button"]');
+    await menuButton.click();
+
+    // Click delete from the context menu
+    const deleteMenuItem = page.locator('[data-testid="page-context-menu-delete"]');
+    await deleteMenuItem.click();
+
+    // Confirm deletion in modal
+    const deleteButton = page.locator('[data-testid="delete-button"]');
+    await deleteButton.waitFor({state: 'visible', timeout: 5000});
+    await deleteButton.click();
+
+    await page.waitForLoadState('networkidle');
+}
+
+/**
+ * Deletes the default draft page through the UI using the sidebar context menu
+ * This helper specifically targets draft nodes identified by the draft-badge
+ * @param page - Playwright page object
+ */
+export async function deleteDefaultDraftThroughUI(page: Page) {
+    const draftNode = page.locator('[data-testid="page-tree-node"]').filter({has: page.locator('[data-testid="draft-badge"]')});
+    await draftNode.waitFor({state: 'visible', timeout: 10000});
+
+    // Click the menu button on the draft node
+    const menuButton = draftNode.locator('[data-testid="page-tree-node-menu-button"]');
+    await menuButton.click();
+
+    // Click delete from the context menu
+    const deleteMenuItem = page.locator('[data-testid="page-context-menu-delete"]');
+    await deleteMenuItem.click();
+
+    // Confirm deletion in modal
+    const deleteButton = page.locator('[data-testid="delete-button"]');
+    await deleteButton.waitFor({state: 'visible', timeout: 5000});
+    await deleteButton.click();
+
+    await page.waitForLoadState('networkidle');
+}
+
+/**
+ * Opens the context menu for a page node by page ID
+ * This is a reusable helper for any context menu operation
+ * @param page - Playwright page object
+ * @param pageId - ID of the page
+ * @returns The context menu locator
+ */
+export async function openPageContextMenu(page: Page, pageId: string): Promise<Locator> {
+    const pageNode = page.locator(`[data-testid="page-tree-node"][data-page-id="${pageId}"]`);
+    const menuButton = pageNode.locator('[data-testid="page-tree-node-menu-button"]');
+    await expect(menuButton).toBeVisible();
+    await menuButton.click();
+
+    const contextMenu = page.locator('[data-testid="page-context-menu"]');
+    await contextMenu.waitFor({state: 'visible', timeout: 3000});
+
+    return contextMenu;
+}
+
+/**
+ * Deletes a page with specific options (cascade or move children)
+ * This helper supports the hierarchy deletion scenarios
+ * @param page - Playwright page object
+ * @param pageId - ID of the page to delete
+ * @param option - Deletion option: 'cascade' (delete with children) or 'move-to-parent' (move children up)
+ */
+export async function deletePageWithOption(page: Page, pageId: string, option: 'cascade' | 'move-to-parent') {
+    // Open context menu
+    await openPageContextMenu(page, pageId);
+
+    // Click delete option
+    const deleteOption = page.locator('[data-testid="page-context-menu-delete"]').first();
+    await deleteOption.click();
+
+    // Select the appropriate deletion option in modal
+    const optionId = option === 'cascade' ? 'delete-option-page-and-children' : 'delete-option-page-only';
+    const radioOption = page.locator(`input[id="${optionId}"]`);
+    await expect(radioOption).toBeVisible({timeout: 3000});
+    await radioOption.check();
+
+    // Confirm deletion
+    const deleteButton = page.locator('[data-testid="delete-button"]');
+    await deleteButton.click();
+
+    await page.waitForLoadState('networkidle');
+}
+
+/**
+ * Deletes a page via the page actions menu (top-right dropdown)
+ * This is different from tree context menu deletion
+ * @param page - Playwright page object
+ * @param option - Optional deletion option: 'cascade' (delete with children) or 'move-to-parent' (move children up)
+ */
+export async function deletePageViaActionsMenu(page: Page, option?: 'cascade' | 'move-to-parent') {
+    await openPageActionsMenu(page);
+    await clickPageContextMenuItem(page, 'delete');
+
+    const confirmModal = page.getByRole('dialog', {name: /Delete|Confirm/i});
+    await expect(confirmModal).toBeVisible({timeout: 3000});
+
+    if (option) {
+        const optionId = option === 'cascade' ? 'delete-option-page-and-children' : 'delete-option-page-only';
+        const radioOption = confirmModal.locator(`input[id="${optionId}"]`);
+
+        const radioExists = await radioOption.count() > 0;
+        if (radioExists) {
+            await expect(radioOption).toBeVisible({timeout: 3000});
+            await radioOption.check();
+        }
+    }
+
+    const currentUrl = page.url();
+    const confirmButton = confirmModal.locator('[data-testid="delete-button"], [data-testid="confirm-button"]').first();
+    await confirmButton.click();
+
+    // Wait for modal to close
+    await expect(confirmModal).not.toBeVisible({timeout: 5000});
+
+    // Wait for URL to change (deletion should redirect)
+    await page.waitForFunction((url) => window.location.href !== url, currentUrl, {timeout: 5000});
+
+    await page.waitForLoadState('networkidle');
+}
+
+/**
+ * Edits an existing page's content through the UI
+ * @param page - Playwright page object
+ * @param newContent - New content to add to the page
+ * @param clearExisting - Whether to clear existing content first (default: false)
+ */
+export async function editPageThroughUI(page: Page, newContent: string, clearExisting: boolean = false) {
+    // Click edit button
+    const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
+    await editButton.click();
+
+    // Wait for editor to appear
+    const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
+    await editor.waitFor({state: 'visible', timeout: 5000});
+    await editor.click();
+
+    // Clear existing content if requested
+    if (clearExisting) {
+        await page.keyboard.press('Control+A');
+        await page.keyboard.press('Backspace');
+        await page.waitForTimeout(200);
+    } else {
+        // Otherwise, move to end
+        await page.keyboard.press('End');
+    }
+
+    // Type new content
+    await editor.type(newContent);
+
+    // Publish the changes
+    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]');
+    await publishButton.click();
+    await page.waitForLoadState('networkidle');
+
+    // Wait for page viewer to appear
+    const pageViewer = page.locator('[data-testid="page-viewer-content"]');
+    await pageViewer.waitFor({state: 'visible', timeout: 5000});
+}
+
+/**
+ * Opens the duplicate page modal via context menu
+ * @param page - Playwright page object
+ * @param pageId - ID of the page to duplicate
+ * @returns The duplicate modal locator
+ */
+export async function openDuplicatePageModal(page: Page, pageId: string): Promise<Locator> {
+    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const pageNode = hierarchyPanel.locator(`[data-page-id="${pageId}"]`).first();
+    await pageNode.waitFor({state: 'visible', timeout: 15000});
+
+    // Hover to reveal menu button
+    await pageNode.hover();
+
+    // Click menu button
+    const menuButton = pageNode.locator('[data-testid="page-tree-node-menu-button"]').first();
+    await menuButton.click();
+
+    // Wait for context menu
+    const contextMenu = page.locator('[data-testid="page-context-menu"]');
+    await contextMenu.waitFor({state: 'visible', timeout: 5000});
+
+    // Click duplicate option
+    const duplicateOption = contextMenu.locator('[data-testid="page-context-menu-duplicate"]').first();
+    await duplicateOption.click();
+
+    // Wait for duplicate modal
+    const duplicateModal = page.getByRole('dialog', {name: /Duplicate/i});
+    await duplicateModal.waitFor({state: 'visible', timeout: 15000});
+
+    return duplicateModal;
+}
+
+/**
+ * Fills and confirms the duplicate page modal
+ * @param page - Playwright page object
+ * @param duplicateModal - The duplicate modal locator
+ * @param customTitle - Optional custom title for the duplicate (omit to use default "Copy of [original]")
+ * @param targetWikiId - Optional target wiki ID (omit to duplicate in same wiki)
+ */
+export async function confirmDuplicatePage(
+    page: Page,
+    duplicateModal: Locator,
+    customTitle?: string,
+    targetWikiId?: string,
+) {
+    // Enter custom title if provided
+    if (customTitle) {
+        const titleInput = duplicateModal.locator('#custom-title-input');
+        await titleInput.waitFor({state: 'visible', timeout: 5000});
+        await titleInput.fill(customTitle);
+    }
+
+    // Select target wiki if provided
+    if (targetWikiId) {
+        const wikiSelect = duplicateModal.locator('#target-wiki-select');
+        await wikiSelect.waitFor({state: 'visible', timeout: 5000});
+        await wikiSelect.selectOption(targetWikiId);
+    }
+
+    // Click confirm button
+    const confirmButton = duplicateModal.getByRole('button', {name: /Duplicate/i}).first();
+    await confirmButton.click();
+
+    // Wait for modal to close and duplication to complete
+    await duplicateModal.waitFor({state: 'hidden', timeout: 15000});
+    await page.waitForLoadState('networkidle');
+}
+
+/**
+ * Duplicates a page through the UI using the context menu
+ * This is a complete workflow helper that opens modal and confirms
+ * @param page - Playwright page object
+ * @param pageId - ID of the page to duplicate
+ * @param customTitle - Optional custom title for the duplicate
+ * @param targetWikiId - Optional target wiki ID
+ * @returns The duplicate page title (either custom or "Copy of [original]")
+ */
+export async function duplicatePageThroughUI(
+    page: Page,
+    pageId: string,
+    customTitle?: string,
+    targetWikiId?: string,
+) {
+    const duplicateModal = await openDuplicatePageModal(page, pageId);
+    await confirmDuplicatePage(page, duplicateModal, customTitle, targetWikiId);
+
+    // If custom title provided, use it, otherwise use "Copy of" prefix
+    // Note: We don't know the original title here, so caller should track it
+    return customTitle;
+}
+
+/**
+ * Waits for a duplicated page to appear in the hierarchy
+ * @param page - Playwright page object
+ * @param expectedTitle - Expected title of the duplicated page
+ * @param timeout - Optional timeout in milliseconds (default: 15000)
+ * @returns The page node locator
+ */
+export async function waitForDuplicatedPageInHierarchy(
+    page: Page,
+    expectedTitle: string,
+    timeout: number = 15000,
+): Promise<Locator> {
+    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]').first();
+    const duplicateNode = hierarchyPanel.locator('[data-page-id]').filter({hasText: expectedTitle}).first();
+    await duplicateNode.waitFor({state: 'visible', timeout});
+    return duplicateNode;
+}
+
+/**
+ * Opens the slash command menu by typing / in the editor
+ * @param page - Playwright page object
+ * @param editor - Optional editor locator (if not provided, will find default editor)
+ * @returns The slash command menu locator
+ */
+export async function openSlashCommandMenu(page: Page, editor?: Locator): Promise<Locator> {
+    const editorElement = editor || page.locator('.tiptap.ProseMirror');
+    await editorElement.click();
+    await page.waitForTimeout(100);
+    await editorElement.press('/');
+    const slashMenu = page.locator('.slash-command-menu');
+    await slashMenu.waitFor({state: 'visible', timeout: 5000});
+    return slashMenu;
+}
+
+/**
+ * Types a search query in the open slash command menu
+ * @param page - Playwright page object
+ * @param query - Search query to type
+ */
+export async function typeSlashCommandQuery(page: Page, query: string): Promise<void> {
+    // Type each character individually with a small delay to ensure proper suggestion handling
+    for (const char of query) {
+        await page.keyboard.type(char);
+        await page.waitForTimeout(100);
+    }
+    await page.waitForTimeout(300);
+}
+
+/**
+ * Selects a specific item from the slash command menu by clicking it
+ * @param page - Playwright page object
+ * @param slashMenu - The slash command menu locator
+ * @param itemText - Text of the item to select (matches title)
+ */
+export async function selectSlashCommandItem(page: Page, slashMenu: Locator, itemText: string): Promise<void> {
+    const item = slashMenu.locator('.slash-command-item').filter({hasText: itemText});
+    await item.waitFor({state: 'visible', timeout: 2000});
+    await item.click();
+}
+
+/**
+ * Complete workflow: opens slash menu, optionally filters, and selects an item
+ * @param page - Playwright page object
+ * @param itemText - Text of the item to select
+ * @param query - Optional search query to filter items
+ */
+export async function insertViaSlashCommand(page: Page, itemText: string, query?: string): Promise<void> {
+    const slashMenu = await openSlashCommandMenu(page);
+
+    if (query) {
+        await typeSlashCommandQuery(page, query);
+        // Wait for the menu to update with filtered results
+        await page.waitForTimeout(500);
+    }
+
+    // Wait for the specific item to be visible in the menu before trying to select it
+    const item = slashMenu.locator('.slash-command-item').filter({hasText: itemText});
+    await item.waitFor({state: 'visible', timeout: 5000});
+    await item.click();
+}
+
+/**
+ * Waits for the formatting bar (bubble menu) to appear
+ * @param page - Playwright page object
+ * @param timeout - Optional timeout in milliseconds (default: 5000)
+ * @returns The formatting bar locator
+ */
+export async function waitForFormattingBar(page: Page, timeout: number = 5000): Promise<Locator> {
+    const formattingBar = page.locator('.formatting-bar-bubble');
+    await formattingBar.waitFor({state: 'visible', timeout});
+    return formattingBar;
+}
+
+/**
+ * Clicks a button in the formatting bar by its title attribute
+ * @param page - Playwright page object
+ * @param formattingBar - The formatting bar locator
+ * @param buttonTitle - Title attribute of the button to click
+ */
+export async function clickFormattingButton(page: Page, formattingBar: Locator, buttonTitle: string): Promise<void> {
+    const button = formattingBar.locator(`button[title="${buttonTitle}"]`);
+    await button.waitFor({state: 'visible', timeout: 2000});
+    await button.click();
+}
+
+/**
+ * Checks if a formatting button is in active state
+ * @param formattingBar - The formatting bar locator
+ * @param buttonTitle - Title attribute of the button to check
+ * @returns True if button has active class
+ */
+export async function isFormattingButtonActive(formattingBar: Locator, buttonTitle: string): Promise<boolean> {
+    const button = formattingBar.locator(`button[title="${buttonTitle}"]`);
+    const classes = await button.getAttribute('class') || '';
+    return classes.includes('active');
+}
+
+/**
+ * Verifies that a formatting button exists in the formatting bar
+ * @param formattingBar - The formatting bar locator
+ * @param iconClass - Icon class to look for (e.g., 'icon-format-bold')
+ */
+export async function verifyFormattingButtonExists(formattingBar: Locator, iconClass: string): Promise<void> {
+    const button = formattingBar.locator(`button i.${iconClass}`);
+    await expect(button).toBeVisible();
+}
+
+/**
+ * Common setup: creates page, navigates to it, clicks edit
+ * @param page - Playwright page object
+ * @param pageTitle - Title of the page to create
+ * @param pageContent - Optional initial content for the page
+ * @returns Object containing page node and editor locators
+ */
+export async function setupPageInEditMode(
+    page: Page,
+    pageTitle: string,
+    pageContent?: string,
+): Promise<{pageNode: Locator; editor: Locator}> {
+    await openCreatePageModal(page);
+    await typePageTitle(page, pageTitle);
+    if (pageContent) {
+        await typePageContent(page, pageContent);
+    }
+    await submitCreatePageModal(page);
+    const pageNode = await waitForPageInHierarchy(page, pageTitle);
+    await pageNode.click();
+    await clickPageEditButton(page);
+    const editor = page.locator('.tiptap.ProseMirror');
+    await editor.waitFor({state: 'visible', timeout: 5000});
+    return {pageNode, editor};
+}
+
+/**
+ * Types text in the editor and waits for it to appear
+ * @param page - Playwright page object
+ * @param editor - The editor locator
+ * @param text - Text to type
+ */
+export async function typeInEditor(page: Page, editor: Locator, text: string): Promise<void> {
+    await editor.click();
+    await page.keyboard.type(text);
+    await page.waitForTimeout(300);
+}
+
+/**
+ * Verifies that a specific element type exists in the editor with optional text
+ * @param editor - The editor locator
+ * @param tagName - HTML tag name to check (e.g., 'h1', 'ul', 'blockquote')
+ * @param expectedText - Optional text that should be inside the element
+ */
+export async function verifyEditorElement(editor: Locator, tagName: string, expectedText?: string): Promise<void> {
+    const element = editor.locator(tagName);
+    await expect(element).toBeVisible();
+    if (expectedText) {
+        await expect(element).toHaveText(expectedText);
+    }
+}
+
+/**
+ * Clicks the edit button to enter edit mode for a page
+ * @param page - Playwright page object
+ */
+export async function clickPageEditButton(page: Page): Promise<void> {
+    const editButton = page.locator('[data-testid="wiki-page-edit-button"]').first();
+    await editButton.click();
+    await page.waitForTimeout(300);
+}
+
+/**
+ * Gets the TipTap editor locator and waits for it to be visible
+ * @param page - Playwright page object
+ * @returns The editor locator
+ */
+export async function getEditorAndWait(page: Page): Promise<Locator> {
+    const editor = page.locator('.ProseMirror').first();
+    await editor.waitFor({state: 'visible', timeout: 5000});
+    return editor;
+}
+
+/**
+ * Clicks a filter button in the page-level RHS comment filters
+ * @param page - Playwright page object
+ * @param rhs - Wiki RHS locator
+ * @param filterType - Type of filter to click ('all', 'open', 'resolved')
+ */
+export async function clickCommentFilter(page: Page, rhs: Locator, filterType: 'all' | 'open' | 'resolved'): Promise<void> {
+    const filterBtn = rhs.locator(`[data-testid="filter-${filterType}"]`).first();
+    await expect(filterBtn).toBeVisible({timeout: 3000});
+    await filterBtn.click();
+    await page.waitForTimeout(500);
+}
+
+/**
+ * Verifies that the comments empty state is shown with expected text
+ * @param rhs - Wiki RHS locator
+ * @param expectedText - Expected text in the empty state
+ */
+export async function verifyCommentsEmptyState(rhs: Locator, expectedText: string): Promise<void> {
+    const emptyState = rhs.locator('.WikiPageThreadViewer__empty').first();
+    await expect(emptyState).toBeVisible({timeout: 2000});
+    await expect(emptyState).toContainText(expectedText);
+}
+
+/**
+ * Gets the first thread item in the RHS and verifies it's visible
+ * @param rhs - Wiki RHS locator
+ * @returns The thread item locator
+ */
+export async function getThreadItemAndVerify(rhs: Locator): Promise<Locator> {
+    const threadItem = rhs.locator('.WikiPageThreadViewer__thread-item').first();
+    await expect(threadItem).toBeVisible({timeout: 3000});
+    return threadItem;
 }

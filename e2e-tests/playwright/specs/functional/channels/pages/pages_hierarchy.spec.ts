@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, addHeadingToEditor, fillCreatePageModal, renamePageViaContextMenu, createDraftThroughUI, openMovePageModal, confirmMoveToTarget, renamePageInline, waitForSearchDebounce, waitForEditModeReady, waitForWikiViewLoad, navigateToWikiView} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, addHeadingToEditor, fillCreatePageModal, renamePageViaContextMenu, createDraftThroughUI, openMovePageModal, confirmMoveToTarget, renamePageInline, waitForSearchDebounce, waitForEditModeReady, waitForWikiViewLoad, navigateToWikiView, getBreadcrumb, getHierarchyPanel, deletePageWithOption} from './test_helpers';
 
 /**
  * @objective Verify page hierarchy expansion and collapse functionality
@@ -135,13 +135,17 @@ test('moves page to new parent within same wiki', {tag: '@pages'}, async ({pw, s
     expect(page2Index).toBeGreaterThan(page1Index);
 
     // * Verify breadcrumbs reflect new hierarchy: Wiki > Page 1 > Page 2
-    const breadcrumb = page.locator('[data-testid="breadcrumb"]');
+    const breadcrumb = getBreadcrumb(page);
     await expect(breadcrumb).toBeVisible({timeout: 5000});
 
+    // * Verify wiki name (not a link anymore)
+    const wikiName = breadcrumb.locator('.PageBreadcrumb__wiki-name');
+    await expect(wikiName).toContainText(wiki.title);
+
+    // * Verify page links (only the ancestor pages, not wiki or current page)
     const breadcrumbLinks = breadcrumb.locator('.PageBreadcrumb__link');
-    await expect(breadcrumbLinks).toHaveCount(2);
-    await expect(breadcrumbLinks.nth(0)).toContainText(wiki.title);
-    await expect(breadcrumbLinks.nth(1)).toContainText('Page 1');
+    await expect(breadcrumbLinks).toHaveCount(1);
+    await expect(breadcrumbLinks.nth(0)).toContainText('Page 1');
 
     const currentPage = breadcrumb.locator('[aria-current="page"]');
     await expect(currentPage).toContainText('Page 2');
@@ -239,12 +243,16 @@ test('moves page between wikis', {tag: '@pages'}, async ({pw, sharedPagesSetup})
     await page.waitForLoadState('networkidle');
 
     // * Verify breadcrumbs show Wiki 2 > Page to Move
-    const breadcrumb = page.locator('[data-testid="breadcrumb"]');
+    const breadcrumb = getBreadcrumb(page);
     await expect(breadcrumb).toBeVisible({timeout: 5000});
 
+    // * Verify wiki name (not a link anymore)
+    const wikiName = breadcrumb.locator('.PageBreadcrumb__wiki-name');
+    await expect(wikiName).toContainText(wiki2.title);
+
+    // * Verify no page links (page is at wiki root)
     const breadcrumbLinks = breadcrumb.locator('.PageBreadcrumb__link');
-    await expect(breadcrumbLinks).toHaveCount(1);
-    await expect(breadcrumbLinks.nth(0)).toContainText(wiki2.title);
+    await expect(breadcrumbLinks).toHaveCount(0);
 
     const currentPage = breadcrumb.locator('[aria-current="page"]');
     await expect(currentPage).toContainText('Page to Move');
@@ -332,11 +340,15 @@ test('moves page to child of another page in same wiki', {tag: '@pages'}, async 
     const breadcrumb = page.locator('[data-testid="breadcrumb"]');
     await expect(breadcrumb).toBeVisible({timeout: 5000});
 
+    // * Verify wiki name (not a link anymore)
+    const wikiName = breadcrumb.locator('.PageBreadcrumb__wiki-name');
+    await expect(wikiName).toContainText(wiki.title);
+
+    // * Verify page links (only the ancestor pages, not wiki or current page)
     const breadcrumbLinks = breadcrumb.locator('.PageBreadcrumb__link');
-    await expect(breadcrumbLinks).toHaveCount(3);
-    await expect(breadcrumbLinks.nth(0)).toContainText(wiki.title);
-    await expect(breadcrumbLinks.nth(1)).toContainText('Parent Page');
-    await expect(breadcrumbLinks.nth(2)).toContainText('Existing Child');
+    await expect(breadcrumbLinks).toHaveCount(2);
+    await expect(breadcrumbLinks.nth(0)).toContainText('Parent Page');
+    await expect(breadcrumbLinks.nth(1)).toContainText('Existing Child');
 
     const currentPage = breadcrumb.locator('[aria-current="page"]');
     await expect(currentPage).toContainText('Page to Move');
@@ -421,14 +433,18 @@ test('moves page to child of another page in different wiki', {tag: '@pages'}, a
     await page.waitForLoadState('networkidle');
 
     // * Verify breadcrumbs reflect new hierarchy: Wiki 2 > Parent in Wiki 2 > Child in Wiki 2 > Page to Move
-    const breadcrumb = page.locator('[data-testid="breadcrumb"]');
+    const breadcrumb = getBreadcrumb(page);
     await expect(breadcrumb).toBeVisible({timeout: 5000});
 
+    // * Verify wiki name (not a link anymore)
+    const wikiName = breadcrumb.locator('.PageBreadcrumb__wiki-name');
+    await expect(wikiName).toContainText(wiki2.title);
+
+    // * Verify page links (only the ancestor pages, not wiki or current page)
     const breadcrumbLinks = breadcrumb.locator('.PageBreadcrumb__link');
-    await expect(breadcrumbLinks).toHaveCount(3);
-    await expect(breadcrumbLinks.nth(0)).toContainText(wiki2.title);
-    await expect(breadcrumbLinks.nth(1)).toContainText('Parent in Wiki 2');
-    await expect(breadcrumbLinks.nth(2)).toContainText('Child in Wiki 2');
+    await expect(breadcrumbLinks).toHaveCount(2);
+    await expect(breadcrumbLinks.nth(0)).toContainText('Parent in Wiki 2');
+    await expect(breadcrumbLinks.nth(1)).toContainText('Child in Wiki 2');
 
     const currentPage = breadcrumb.locator('[aria-current="page"]');
     await expect(currentPage).toContainText('Page to Move');
@@ -491,79 +507,6 @@ test.skip('renames page inline via double-click', {tag: '@pages'}, async ({pw, s
     const renamedNode = hierarchyPanel.locator('text="Inline Renamed"').first();
     await expect(renamedNode).toBeVisible();
 });
-
-/**
- * @objective Verify duplicate name validation during rename
- */
-test('validates duplicate page names during rename', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
-    const {team, user, adminClient} = sharedPagesSetup;
-    const channel = await createTestChannel(adminClient, team.id, `Test Channel ${pw.random.id()}`);
-
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-
-    // # Create wiki and two pages through UI
-    const wiki = await createWikiThroughUI(page, `Duplicate Name Wiki ${pw.random.id()}`);
-    const page1 = await createPageThroughUI(page, 'Page One', 'Content');
-    const page2 = await createPageThroughUI(page, 'Page Two', 'Content');
-
-    // Navigate back to wiki view to ensure hierarchy panel is visible
-    await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
-
-    // # Click rename from context menu to open page in edit mode
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
-    const page2Node = hierarchyPanel.locator('text="Page Two"').first();
-
-    await expect(page2Node).toBeVisible();
-    await page2Node.click({button: 'right'});
-
-    const contextMenu = page.locator('[data-testid="page-context-menu"]');
-    await expect(contextMenu).toBeVisible({timeout: 2000});
-    const renameButton = contextMenu.locator('[data-testid="page-context-menu-rename"]').first();
-    await expect(renameButton).toBeVisible();
-    await renameButton.click();
-
-    // * Wait for navigation to edit mode
-    await page.waitForURL(/\/drafts\//, {timeout: 5000});
-    await page.waitForTimeout(500); // Allow draft save to complete
-    await waitForWikiViewLoad(page);
-
-    // # Change title to duplicate name in editor
-    const titleInput = page.locator('[data-testid="wiki-page-title-input"]').first();
-    await titleInput.waitFor({state: 'visible', timeout: 5000});
-    await titleInput.clear();
-    await titleInput.fill('Page One');
-
-    // # Try to publish/update the page with duplicate name
-    const publishButton = page.getByRole('button', {name: /Publish|Update/i});
-    await expect(publishButton).toBeVisible();
-    await publishButton.click();
-
-    // * Verify duplicate name validation prevents the update
-    await page.waitForTimeout(3000);
-
-    // Navigate back to wiki view to check if validation worked
-    await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
-
-    // Count how many pages named "Page One" exist
-    const pageOneNodes = hierarchyPanel.locator('[role="treeitem"]').filter({hasText: /^Page One$/});
-    const pageOneCount = await pageOneNodes.count();
-
-    // Count how many pages named "Page Two" exist
-    const pageTwoNodes = hierarchyPanel.locator('[role="treeitem"]').filter({hasText: /^Page Two$/});
-    const pageTwoCount = await pageTwoNodes.count();
-
-    // * Verify: Either validation worked (Page Two still exists, only 1 Page One)
-    // OR validation failed and we need to report a bug
-    if (pageOneCount === 2) {
-        throw new Error(`BUG: Duplicate page names allowed! Found ${pageOneCount} pages named "Page One". Page Two count: ${pageTwoCount}. Duplicate name validation is not working.`);
-    }
-
-    // If validation worked correctly:
-    await expect(pageTwoNodes).toHaveCount(1); // Page Two should still exist
-    await expect(pageOneNodes).toHaveCount(1); // Only ONE Page One should exist
-});
-
 /**
  * @objective Verify special characters and Unicode in page names
  */
@@ -1004,25 +947,8 @@ test('deletes page with children - cascade option', {tag: '@pages'}, async ({pw,
     await createChildPageThroughContextMenu(page, parentPage.id!, 'Child Page 1', 'Child 1 content');
     await createChildPageThroughContextMenu(page, parentPage.id!, 'Child Page 2', 'Child 2 content');
 
-    // # Open parent page context menu
-    const parentNode = page.locator('[data-testid="page-tree-node"][data-page-id="' + parentPage.id + '"]');
-    const menuButton = parentNode.locator('[data-testid="page-tree-node-menu-button"]');
-    await expect(menuButton).toBeVisible();
-    await menuButton.click();
-
-    // # Click delete option
-    const deleteOption = page.locator('[data-testid="page-context-menu-delete"]').first();
-    await deleteOption.click();
-
-    // # Select cascade option in delete modal
-    const cascadeOption = page.locator('input[id="delete-option-page-and-children"]');
-    await expect(cascadeOption).toBeVisible({timeout: 3000});
-    await cascadeOption.check();
-
-    // # Confirm deletion
-    const confirmButton = page.locator('[data-testid="confirm-button"], [data-testid="delete-button"]').last();
-    await confirmButton.click();
-    await page.waitForLoadState('networkidle');
+    // # Delete parent page with cascade option (deletes parent and children)
+    await deletePageWithOption(page, parentPage.id!, 'cascade');
 
     // * Verify parent and children are no longer in hierarchy
     const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
@@ -1048,25 +974,8 @@ test('deletes page with children - move to root option', {tag: '@pages'}, async 
     const parentPage = await createPageThroughUI(page, 'Parent to Delete', 'Parent content');
     await createChildPageThroughContextMenu(page, parentPage.id!, 'Child to Preserve', 'Child content');
 
-    // # Open parent page context menu
-    const parentNode = page.locator('[data-testid="page-tree-node"][data-page-id="' + parentPage.id + '"]');
-    const menuButton = parentNode.locator('[data-testid="page-tree-node-menu-button"]');
-    await expect(menuButton).toBeVisible();
-    await menuButton.click();
-
-    // # Click delete option
-    const deleteOption = page.locator('[data-testid="page-context-menu-delete"]').first();
-    await deleteOption.click();
-
-    // # Select move-to-parent option in delete modal
-    const moveOption = page.locator('input[id="delete-option-page-only"]');
-    await expect(moveOption).toBeVisible({timeout: 3000});
-    await moveOption.check();
-
-    // # Confirm deletion
-    const confirmButton = page.locator('[data-testid="confirm-button"], [data-testid="delete-button"]').last();
-    await confirmButton.click();
-    await page.waitForLoadState('networkidle');
+    // # Delete parent page with move-to-parent option (preserves children)
+    await deletePageWithOption(page, parentPage.id!, 'move-to-parent');
 
     // * Verify parent is deleted but child is preserved
     const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');

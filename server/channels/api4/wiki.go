@@ -619,7 +619,6 @@ func duplicatePage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	type DuplicatePageRequest struct {
 		TargetWikiId string  `json:"target_wiki_id"`
-		ParentPageId *string `json:"parent_page_id,omitempty"`
 		Title        *string `json:"title,omitempty"`
 	}
 
@@ -634,18 +633,10 @@ func duplicatePage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.ParentPageId != nil && *req.ParentPageId != "" && !model.IsValidId(*req.ParentPageId) {
-		c.SetInvalidParam("parent_page_id")
-		return
-	}
-
 	auditRec := c.MakeAuditRecord("duplicatePage", model.AuditStatusFail)
 	model.AddEventParameterToAuditRec(auditRec, "page_id", c.Params.PageId)
 	model.AddEventParameterToAuditRec(auditRec, "source_wiki_id", c.Params.WikiId)
 	model.AddEventParameterToAuditRec(auditRec, "target_wiki_id", req.TargetWikiId)
-	if req.ParentPageId != nil && *req.ParentPageId != "" {
-		model.AddEventParameterToAuditRec(auditRec, "parent_page_id", *req.ParentPageId)
-	}
 	if req.Title != nil && *req.Title != "" {
 		model.AddEventParameterToAuditRec(auditRec, "custom_title", *req.Title)
 	}
@@ -697,7 +688,7 @@ func duplicatePage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	duplicatedPage, appErr := c.App.DuplicatePage(c.AppContext, c.Params.PageId, req.TargetWikiId, req.ParentPageId, req.Title, c.AppContext.Session().UserId)
+	duplicatedPage, appErr := c.App.DuplicatePage(c.AppContext, c.Params.PageId, req.TargetWikiId, req.Title, c.AppContext.Session().UserId)
 	if appErr != nil {
 		c.Err = appErr
 		return
