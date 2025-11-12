@@ -2904,6 +2904,7 @@
   "channel_bookmarks.editBookmarkLabel": "Bokmerkemeny",
   "channel_bookmarks.open": "Åpne",
   "channel_groups": "{channel} Grupper",
+  "channel_header.back": "Tilbake til kanalen",
   "channel_header.channelFiles": "Kanalfiler",
   "channel_header.channelHasGuests": "Kanalen har gjester",
   "channel_header.channelMembers": "Medlemmer",
