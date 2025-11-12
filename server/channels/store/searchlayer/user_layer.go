@@ -144,14 +144,7 @@ func (s *SearchUserStore) autocompleteUsersInChannelByEngine(rctx request.CTX, e
 	if result.NErr != nil {
 		return nil, errors.Wrap(result.NErr, "failed to get user profiles by ids")
 	}
-	// Filter bots out of in-channel results - they'll appear in the dedicated BOTS section
-	usersInChannelFiltered := make([]*model.User, 0, len(result.Data))
-	for _, user := range result.Data {
-		if !user.IsBot {
-			usersInChannelFiltered = append(usersInChannelFiltered, user)
-		}
-	}
-	autocomplete.InChannel = usersInChannelFiltered
+	autocomplete.InChannel = result.Data
 
 	result = <-nuchan
 	if result.NErr != nil {

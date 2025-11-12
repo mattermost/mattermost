@@ -1304,6 +1304,7 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		autocomplete.Users = result.InChannel
 		autocomplete.OutOfChannel = result.OutOfChannel
+		autocomplete.PluginBots = result.PluginBots
 	} else if teamId != "" {
 		result, err := c.App.AutocompleteUsersInTeam(c.AppContext, teamId, name, options)
 		if err != nil {

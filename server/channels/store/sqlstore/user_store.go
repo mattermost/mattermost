@@ -95,6 +95,7 @@ func getBotInfoColumns() []string {
 		"b.UserId IS NOT NULL AS IsBot",
 		"COALESCE(b.Description, '') AS BotDescription",
 		"COALESCE(b.LastIconUpdate, 0) AS BotLastIconUpdate",
+		"COALESCE(b.OwnerId, '') AS BotOwnerId",
 	}
 }
 
@@ -540,7 +541,7 @@ func (us SqlUserStore) Get(ctx context.Context, id string) (*model.User, error) 
 		&user.Nickname, &user.FirstName, &user.LastName, &user.Position, &user.Roles,
 		&user.AllowMarketing, &props, &notifyProps, &user.LastPasswordUpdate, &user.LastPictureUpdate,
 		&user.FailedAttempts, &user.Locale, &timezone, &user.MfaActive, &user.MfaSecret, &user.MfaUsedTimestamps,
-		&user.RemoteId, &user.LastLogin, &user.IsBot, &user.BotDescription, &user.BotLastIconUpdate)
+		&user.RemoteId, &user.LastLogin, &user.IsBot, &user.BotDescription, &user.BotLastIconUpdate, &user.BotOwnerId)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("User", id)
@@ -928,7 +929,7 @@ func (us SqlUserStore) GetAllProfilesInChannel(ctx context.Context, channelID st
 	for rows.Next() {
 		var user model.User
 		var props, notifyProps, timezone []byte
-		if err = rows.Scan(&user.Id, &user.CreateAt, &user.UpdateAt, &user.DeleteAt, &user.Username, &user.Password, &user.AuthData, &user.AuthService, &user.Email, &user.EmailVerified, &user.Nickname, &user.FirstName, &user.LastName, &user.Position, &user.Roles, &user.AllowMarketing, &props, &notifyProps, &user.LastPasswordUpdate, &user.LastPictureUpdate, &user.FailedAttempts, &user.Locale, &timezone, &user.MfaActive, &user.MfaSecret, &user.MfaUsedTimestamps, &user.RemoteId, &user.LastLogin, &user.IsBot, &user.BotDescription, &user.BotLastIconUpdate); err != nil {
+		if err = rows.Scan(&user.Id, &user.CreateAt, &user.UpdateAt, &user.DeleteAt, &user.Username, &user.Password, &user.AuthData, &user.AuthService, &user.Email, &user.EmailVerified, &user.Nickname, &user.FirstName, &user.LastName, &user.Position, &user.Roles, &user.AllowMarketing, &props, &notifyProps, &user.LastPasswordUpdate, &user.LastPictureUpdate, &user.FailedAttempts, &user.Locale, &timezone, &user.MfaActive, &user.MfaSecret, &user.MfaUsedTimestamps, &user.RemoteId, &user.LastLogin, &user.IsBot, &user.BotDescription, &user.BotLastIconUpdate, &user.BotOwnerId); err != nil {
 			return nil, errors.Wrap(err, "failed to scan values from rows into User entity")
 		}
 		if err = json.Unmarshal(props, &user.Props); err != nil {
@@ -1676,13 +1677,19 @@ func (us SqlUserStore) SearchInChannel(channelId string, term string, options *m
 }
 
 func (us SqlUserStore) SearchPluginBots(term string, options *model.UserSearchOptions) ([]*model.User, error) {
+	// usersQuery already has a LEFT JOIN with Bots table as 'b'
+	// Get all bots - filtering by active plugin IDs happens at the app layer
 	query := us.usersQuery.
-		Join("Bots b ON ( b.UserId = Users.Id )").
-		Where(sq.Eq{"Users.IsBot": true}).
+		Where("b.UserId IS NOT NULL").
 		OrderBy("Users.Username ASC").
 		Limit(uint64(options.Limit))
 
-	return us.performSearch(query, term, options)
+	// Plugin bots should be searchable regardless of team/channel membership
+	// so we remove view restrictions for this specific search
+	optionsWithoutRestrictions := *options
+	optionsWithoutRestrictions.ViewRestrictions = nil
+
+	return us.performSearch(query, term, &optionsWithoutRestrictions)
 }
 
 func (us SqlUserStore) SearchInGroup(groupID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
@@ -2294,17 +2301,8 @@ func (us SqlUserStore) AutocompleteUsersInChannel(rctx request.CTX, teamId, chan
 		return nil, err
 	}
 
-	// Filter bots out of in-channel results
-	// They'll appear in the dedicated "BOTS" section instead
-	usersInChannelFiltered := make([]*model.User, 0, len(usersInChannel))
-	for _, user := range usersInChannel {
-		if !user.IsBot {
-			usersInChannelFiltered = append(usersInChannelFiltered, user)
-		}
-	}
-
 	return &model.UserAutocompleteInChannel{
-		InChannel:    usersInChannelFiltered,
+		InChannel:    usersInChannel,
 		OutOfChannel: usersNotInChannel,
 		PluginBots:   pluginBots,
 	}, nil

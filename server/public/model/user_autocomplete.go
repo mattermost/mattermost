@@ -16,4 +16,5 @@ type UserAutocompleteInTeam struct {
 type UserAutocomplete struct {
 	Users        []*User `json:"users"`
 	OutOfChannel []*User `json:"out_of_channel,omitempty"`
+	PluginBots   []*User `json:"plugin_bots,omitempty"`
 }
