@@ -34,8 +34,8 @@ func (r InfiniteReader) Read(p []byte) (n int, err error) {
 func TestMoveCommand(t *testing.T) {
 	th := setup(t)
 
-	sourceTeam := th.CreateTeam(t)
-	targetTeam := th.CreateTeam(t)
+	sourceTeam := th.createTeam(t)
+	targetTeam := th.createTeam(t)
 	t.Cleanup(func() {
 		appErr := th.App.PermanentDeleteTeam(th.Context, sourceTeam)
 		require.Nil(t, appErr)
@@ -511,7 +511,7 @@ func TestDoCommandRequest(t *testing.T) {
 func TestMentionsToTeamMembers(t *testing.T) {
 	th := setup(t).initBasic(t)
 
-	otherTeam := th.CreateTeam(t)
+	otherTeam := th.createTeam(t)
 	otherUser := th.createUser(t)
 	th.LinkUserToTeam(t, t, otherUser, otherTeam)
 
