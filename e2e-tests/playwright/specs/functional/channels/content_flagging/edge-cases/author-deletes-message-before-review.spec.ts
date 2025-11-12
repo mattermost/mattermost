@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {expect, test} from '@mattermost/playwright-lib';
+
 import {createPost, verifyAuthorNotification, setupContentFlagging} from './../support';
 
 /**
@@ -37,7 +38,6 @@ test.skip('should not be able to restore flagged messages when author deletes me
     // verify the flag status is updated to "Removed"
     const flagReport = await adminClient.getFlaggedPost(post.id);
 
-    console.log('Flag Report:', flagReport);
     // Verify the delete_at timestamp is set (indicating deletion)
     expect(flagReport.delete_at).not.toBe(0);
 

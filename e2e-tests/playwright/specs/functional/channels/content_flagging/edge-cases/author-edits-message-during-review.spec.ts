@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {test} from '@mattermost/playwright-lib';
+
 import {createPost, verifyAuthorNotification, setupContentFlagging} from './../support';
 
 /** @objective Verify Post message is updated for the reviewer, if author updates the post before reviewer\'s action

@@ -9,7 +9,6 @@ const FLAG_REASON_INAPPROPRIATE_ALT: string = 'Inappropriate content';
 const FLAG_COMMENT: string = 'This message is inappropriate';
 const SYSTEM_MESSAGE = (username: string): string =>
     `The message from @${username} has been flagged for review. You will be notified once it is reviewed by a Content Reviewer. `;
-const CONTENT_MODERATED_MESSAGE: string = 'Content deleted as part of Content Flagging review process';
 
 // Helper to login and navigate to channel
 async function loginAndNavigate(pw: any, user: any, teamName?: string, channelName?: string): Promise<any> {

@@ -1,8 +1,9 @@
-// Copyright (c) 2015-present Mattermost, Inc.
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {wait} from '@/util';
 import {Page, Locator, expect} from '@playwright/test';
+
+import {wait} from '@/util';
 
 export default class ContentReviewPage {
     private readonly page: Page;

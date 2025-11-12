@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {test} from '@mattermost/playwright-lib';
+
 import {setupContentFlagging, createPost, verifyAuthorNotification} from './../support';
 
 /** @objective Verify that multiple reviewers receive the same flag notification

@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {test} from '@mattermost/playwright-lib';
+
 import {setupContentFlagging, createPost, verifyAuthorNotification} from './../support';
 
 /** @objective Verify Retained and Removed Flagged posts do not appear in RHS after once reviewed

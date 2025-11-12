@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {expect, test} from '@mattermost/playwright-lib';
+
 import {createPost} from './../support';
 
 async function setupContentFlagging(adminClient: any, userIds: string[], enable = true) {
