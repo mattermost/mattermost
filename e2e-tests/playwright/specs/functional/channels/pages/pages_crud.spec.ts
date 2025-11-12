@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, deletePageThroughUI, deleteDefaultDraftThroughUI, editPageThroughUI} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, deletePageThroughUI, deleteDefaultDraftThroughUI, editPageThroughUI, getHierarchyPanel} from './test_helpers';
 
 /**
  * @objective Verify full page creation flow: create wiki through bookmarks UI, then create page
@@ -120,7 +120,7 @@ test('deletes page', {tag: '@pages'}, async ({pw, sharedPagesSetup}) => {
     expect(currentUrl).not.toMatch(new RegExp(`/pages/${testPage.id}`));
 
     // * Verify page no longer appears in hierarchy panel
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page);
     await expect(hierarchyPanel).not.toContainText('Page to Delete');
 });
 
@@ -212,7 +212,7 @@ test('displays multiple pages in hierarchy', {tag: '@pages'}, async ({pw, shared
     await createPageThroughUI(page, 'Page 3', 'Content 3');
 
     // * Verify all pages appear in hierarchy
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page);
     await expect(hierarchyPanel).toContainText('Page 1');
     await expect(hierarchyPanel).toContainText('Page 2');
     await expect(hierarchyPanel).toContainText('Page 3');

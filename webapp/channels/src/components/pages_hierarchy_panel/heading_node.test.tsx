@@ -67,18 +67,20 @@ describe('HeadingNode', () => {
             expect(container.querySelector('.HeadingNode__text')).toHaveTextContent('Test Heading');
         });
 
-        test('should render with correct icon', () => {
+        test('should render button with text', () => {
             const {container} = renderWithContext(<HeadingNode {...baseProps}/>, initialState);
 
-            expect(container.querySelector('.icon-text-short')).toBeInTheDocument();
+            const button = container.querySelector('.HeadingNode__button');
+            expect(button).toBeInTheDocument();
+            expect(button).toHaveTextContent('Test Heading');
         });
 
         test('should apply correct padding based on depth and level', () => {
             const {container} = renderWithContext(<HeadingNode {...baseProps}/>, initialState);
 
-            const expectedPadding = ((baseProps.heading.level - 1) * 16) + 16;
-            const headingNode = container.querySelector('.HeadingNode');
-            expect(headingNode).toHaveStyle({
+            const expectedPadding = ((baseProps.heading.level - 1) * 12) + 18;
+            const button = container.querySelector('.HeadingNode__button');
+            expect(button).toHaveStyle({
                 paddingLeft: `${expectedPadding}px`,
             });
         });
@@ -91,9 +93,9 @@ describe('HeadingNode', () => {
             };
             const {container} = renderWithContext(<HeadingNode {...props}/>, initialState);
 
-            const expectedPadding = ((2 - 1) * 16) + 16;
-            const headingNode = container.querySelector('.HeadingNode');
-            expect(headingNode).toHaveStyle({
+            const expectedPadding = ((2 - 1) * 12) + 18;
+            const button = container.querySelector('.HeadingNode__button');
+            expect(button).toHaveStyle({
                 paddingLeft: `${expectedPadding}px`,
             });
         });
@@ -162,15 +164,14 @@ describe('HeadingNode', () => {
             expect(button?.tagName).toBe('BUTTON');
         });
 
-        test('should render icon and text in correct order', () => {
+        test('should render text within button', () => {
             const {container} = renderWithContext(<HeadingNode {...baseProps}/>, initialState);
 
             const button = container.querySelector('.HeadingNode__button');
-            const icon = button?.querySelector('.icon-text-short');
             const text = button?.querySelector('.HeadingNode__text');
 
-            expect(icon).toBeInTheDocument();
             expect(text).toBeInTheDocument();
+            expect(text).toHaveTextContent('Test Heading');
         });
     });
 
@@ -182,9 +183,9 @@ describe('HeadingNode', () => {
             };
             const {container} = renderWithContext(<HeadingNode {...props}/>, initialState);
 
-            const expectedPadding = ((1 - 1) * 16) + 16; // 16px
-            const headingNode = container.querySelector('.HeadingNode');
-            expect(headingNode).toHaveStyle({paddingLeft: `${expectedPadding}px`});
+            const expectedPadding = ((1 - 1) * 12) + 18; // 18px
+            const button = container.querySelector('.HeadingNode__button');
+            expect(button).toHaveStyle({paddingLeft: `${expectedPadding}px`});
         });
 
         test('should render level 2 heading with correct padding', () => {
@@ -194,9 +195,9 @@ describe('HeadingNode', () => {
             };
             const {container} = renderWithContext(<HeadingNode {...props}/>, initialState);
 
-            const expectedPadding = ((2 - 1) * 16) + 16; // 32px
-            const headingNode = container.querySelector('.HeadingNode');
-            expect(headingNode).toHaveStyle({paddingLeft: `${expectedPadding}px`});
+            const expectedPadding = ((2 - 1) * 12) + 18; // 30px
+            const button = container.querySelector('.HeadingNode__button');
+            expect(button).toHaveStyle({paddingLeft: `${expectedPadding}px`});
         });
 
         test('should render level 3 heading with correct padding', () => {
@@ -206,9 +207,9 @@ describe('HeadingNode', () => {
             };
             const {container} = renderWithContext(<HeadingNode {...props}/>, initialState);
 
-            const expectedPadding = ((3 - 1) * 16) + 16; // 48px
-            const headingNode = container.querySelector('.HeadingNode');
-            expect(headingNode).toHaveStyle({paddingLeft: `${expectedPadding}px`});
+            const expectedPadding = ((3 - 1) * 12) + 18; // 42px
+            const button = container.querySelector('.HeadingNode__button');
+            expect(button).toHaveStyle({paddingLeft: `${expectedPadding}px`});
         });
     });
 
@@ -244,9 +245,9 @@ describe('HeadingNode', () => {
             };
             const {container} = renderWithContext(<HeadingNode {...props}/>, initialState);
 
-            const expectedPadding = ((6 - 1) * 16) + 16; // 96px
-            const headingNode = container.querySelector('.HeadingNode');
-            expect(headingNode).toHaveStyle({paddingLeft: `${expectedPadding}px`});
+            const expectedPadding = ((6 - 1) * 12) + 18; // 78px
+            const button = container.querySelector('.HeadingNode__button');
+            expect(button).toHaveStyle({paddingLeft: `${expectedPadding}px`});
         });
     });
 });

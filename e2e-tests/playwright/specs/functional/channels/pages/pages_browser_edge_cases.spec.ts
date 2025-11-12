@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton, fillCreatePageModal} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton, fillCreatePageModal, publishCurrentPage, getEditorAndWait, typeInEditor, getHierarchyPanel} from './test_helpers';
 
 /**
  * @objective Verify warning when navigating away with unsaved changes
@@ -23,7 +23,7 @@ test.skip('warns when navigating away with unsaved changes', {tag: '@pages'}, as
 
     // # Create new page
     // Scope to pages hierarchy panel to avoid strict mode violations with duplicate elements
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]').first();
+    const hierarchyPanel = getHierarchyPanel(page).first();
     const newPageButton = hierarchyPanel.locator('[data-testid="new-page-button"]');
     await newPageButton.click();
 
@@ -31,9 +31,8 @@ test.skip('warns when navigating away with unsaved changes', {tag: '@pages'}, as
     const titleInput = page.locator('[data-testid="wiki-page-title-input"]').first();
     await titleInput.fill('Draft With Changes');
 
-    const editor = page.locator('.ProseMirror').first();
-    await editor.click();
-    await editor.type('Important unsaved content here');
+    const editor = await getEditorAndWait(page);
+    await typeInEditor(page, 'Important unsaved content here');
 
     // * Wait for auto-save indicator (if exists)
     await page.waitForTimeout(1000);
@@ -93,9 +92,8 @@ test.skip('warns when using browser back button with unsaved changes', {tag: '@p
     const editButton = page.locator('[data-testid="wiki-page-edit-button"]');
     await editButton.click();
 
-    const editor = page.locator('.ProseMirror').first();
-    await editor.click();
-    await editor.type(' - Modified content');
+    const editor = await getEditorAndWait(page);
+    await typeInEditor(page, ' - Modified content');
 
     // Wait for changes to register
     await page.waitForTimeout(1000);
@@ -132,7 +130,7 @@ test.skip('preserves scroll position when navigating back to page', {tag: '@page
     await newPageButton.click();
     await fillCreatePageModal(page, 'Long Page');
 
-    const editor = page.locator('.ProseMirror').first();
+    const editor = await getEditorAndWait(page);
     await editor.click();
 
     // Generate long content (50 paragraphs)
@@ -140,13 +138,9 @@ test.skip('preserves scroll position when navigating back to page', {tag: '@page
         `Paragraph ${i + 1} - Lorem ipsum dolor sit amet, consectetur adipiscing elit.`
     ).join('\n\n');
 
-    await editor.type(longContent);
+    await page.keyboard.type(longContent);
 
-    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
-    await publishButton.click();
-
-    // Wait for page to be published and visible
-    await page.waitForLoadState('networkidle');
+    await publishCurrentPage(page);
 
     // # Scroll down
     const pageContent = page.locator('[data-testid="page-viewer-content"]');
@@ -191,7 +185,7 @@ test('handles browser refresh during edit without data loss', {tag: '@pages'}, a
 
     // # Create new page
     // Scope to pages hierarchy panel to avoid strict mode violations with duplicate elements
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]').first();
+    const hierarchyPanel = getHierarchyPanel(page).first();
     await hierarchyPanel.waitFor({state: 'visible', timeout: 5000});
     const newPageButton = hierarchyPanel.locator('[data-testid="new-page-button"]');
     await newPageButton.waitFor({state: 'visible', timeout: 5000});
@@ -207,9 +201,8 @@ test('handles browser refresh during edit without data loss', {tag: '@pages'}, a
     const titleInput = page.locator('[data-testid="wiki-page-title-input"]').first();
     await titleInput.fill('Draft Before Refresh - Modified');
 
-    const editor = page.locator('.ProseMirror').first();
-    await editor.click();
-    await editor.type('Content that should survive refresh');
+    const editor = await getEditorAndWait(page);
+    await typeInEditor(page, 'Content that should survive refresh');
 
     // * Wait for auto-save (2s debounce + save operation)
     await page.waitForTimeout(3000);
@@ -221,11 +214,10 @@ test('handles browser refresh during edit without data loss', {tag: '@pages'}, a
     // * Verify draft recovered from localStorage or server
     await page.waitForTimeout(1000);
 
-    const editorAfterRefresh = page.locator('.ProseMirror').first();
+    const editorAfterRefresh = await getEditorAndWait(page);
     const titleAfterRefresh = page.locator('[data-testid="wiki-page-title-input"]').first();
 
     // Check if draft was recovered
-    await expect(editorAfterRefresh).toBeVisible();
     await expect(titleAfterRefresh).toBeVisible();
 
     // Draft should be recovered

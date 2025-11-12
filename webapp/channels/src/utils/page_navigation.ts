@@ -40,6 +40,7 @@ export function navigateToPageFromPost(
     // If we're in edit mode for THIS page, preserve the draft URL
     if (draftIdMatch) {
         const currentDraftId = draftIdMatch[1];
+
         // Check if the draft is for the page we're navigating to
         // by checking if the URL contains the same pageId
         if (currentPath.includes(`/${wikiId}/`) && currentPath.includes(pageId)) {

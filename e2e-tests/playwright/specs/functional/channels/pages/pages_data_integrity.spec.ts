@@ -4,7 +4,7 @@
 import {createPageViaDraft} from '@mattermost/playwright-lib';
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton, fillCreatePageModal} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton, fillCreatePageModal, publishCurrentPage, getEditorAndWait, typeInEditor, getHierarchyPanel} from './test_helpers';
 
 /**
  * @objective Verify XSS attempts in page content are sanitized
@@ -31,15 +31,12 @@ test('sanitizes XSS attempts in page content', {tag: '@pages'}, async ({pw, shar
 
     // # Attempt to inject script tag
     const xssAttempt = '<script>alert("XSS")</script>';
-    const editor = page.locator('.ProseMirror').first();
-    await editor.click();
-    await editor.type(xssAttempt);
+    const editor = await getEditorAndWait(page);
+    await typeInEditor(page, xssAttempt);
 
-    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
-    await publishButton.click();
+    await publishCurrentPage(page);
 
     // * Verify page loads without crashing
-    await page.waitForLoadState('networkidle');
 
     const pageContent = page.locator('[data-testid="page-viewer-content"]');
     await expect(pageContent).toBeVisible();
@@ -81,17 +78,13 @@ test('sanitizes XSS in page title', {tag: '@pages'}, async ({pw, sharedPagesSetu
 
     await page.waitForTimeout(1000); // Wait for editor to load
 
-    const editor = page.locator('.ProseMirror').first();
-    await editor.click();
-    await editor.type('Content here');
+    const editor = await getEditorAndWait(page);
+    await typeInEditor(page, 'Content here');
 
-    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
-    await publishButton.click();
-
-    await page.waitForLoadState('networkidle');
+    await publishCurrentPage(page);
 
     // * Verify title is escaped in hierarchy panel
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page);
     const hierarchyHTML = await hierarchyPanel.innerHTML();
 
     // * Verify the img tag is escaped (not an actual HTML element)
@@ -144,7 +137,7 @@ test('prevents SQL injection in page search', {tag: '@pages'}, async ({pw, share
     }
 
     // * Verify no error/crash (robust error handling)
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page);
     await expect(hierarchyPanel).toBeVisible();
 });
 
@@ -173,9 +166,8 @@ test('validates page title length and special characters', {tag: '@pages'}, asyn
     const titleInput = page.locator('[data-testid="wiki-page-title-input"]').first();
     await titleInput.fill(longTitle);
 
-    const editor = page.locator('.ProseMirror').first();
-    await editor.click();
-    await editor.type('Content');
+    const editor = await getEditorAndWait(page);
+    await typeInEditor(page, 'Content');
 
     // # Try to publish
     const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
@@ -273,7 +265,7 @@ test('handles malformed TipTap JSON gracefully', {tag: '@pages'}, async ({pw, sh
     const pageContent = page.locator('[data-testid="page-viewer-content"]');
     const pageViewer = page.locator('[data-testid="page-viewer"]');
     const emptyState = page.locator('.PagePane__emptyState');
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page);
 
     // Check what state we're in
     const hasContent = await pageContent.isVisible().catch(() => false);
@@ -305,7 +297,7 @@ test('handles malformed TipTap JSON gracefully', {tag: '@pages'}, async ({pw, sh
     }
 
     // * Verify editor handles gracefully (shows warning or empty editor)
-    const editor = page.locator('.ProseMirror').first();
+    const editor = await getEditorAndWait(page);
     const editorVisible = await editor.isVisible({timeout: 5000}).catch(() => false);
 
     if (editorVisible) {

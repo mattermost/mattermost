@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, ensurePanelOpen, waitForPageInHierarchy, fillCreatePageModal, getWikiTab, waitForWikiViewLoad, openDuplicatePageModal, confirmDuplicatePage, waitForDuplicatedPageInHierarchy, getPageIdFromUrl} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, ensurePanelOpen, waitForPageInHierarchy, fillCreatePageModal, getWikiTab, waitForWikiViewLoad, openDuplicatePageModal, confirmDuplicatePage, waitForDuplicatedPageInHierarchy, getPageIdFromUrl, publishCurrentPage, getEditorAndWait, typeInEditor, getHierarchyPanel} from './test_helpers';
 
 /**
  * @objective Verify page duplication creates a copy with default "Copy of [title]" naming at same level
@@ -138,7 +138,7 @@ test('duplicates page to different wiki in same channel', {tag: '@pages'}, async
     await ensurePanelOpen(page);
 
     // * Verify page appears in target wiki hierarchy
-    const hierarchyPanelTarget = page.locator('[data-testid="pages-hierarchy-panel"]').first();
+    const hierarchyPanelTarget = getHierarchyPanel(page).first();
     const duplicateNode = hierarchyPanelTarget.locator('[data-page-id]').filter({hasText: 'Copy of Page to Duplicate'}).first();
     await expect(duplicateNode).toBeVisible({timeout: 15000});
 
@@ -171,7 +171,7 @@ test('duplicates child page at same level as source', {tag: '@pages'}, async ({p
     // # Ensure hierarchy panel is open
     await ensurePanelOpen(page);
 
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]').first();
+    const hierarchyPanel = getHierarchyPanel(page).first();
 
     // # Wait for child page to appear in hierarchy
     await waitForPageInHierarchy(page, 'Child Page', 15000);
@@ -257,7 +257,7 @@ test('duplicates page with rich text content preserving formatting', {tag: '@pag
     await fillCreatePageModal(page, 'Rich Content Page');
 
     // # Wait for editor and add rich text content
-    const editor = page.locator('.ProseMirror').first();
+    const editor = await getEditorAndWait(page);
     await editor.waitFor({state: 'visible', timeout: 5000});
     await editor.click();
 
@@ -281,13 +281,7 @@ test('duplicates page with rich text content preserving formatting', {tag: '@pag
     await page.keyboard.press(`${modifierKey}+KeyI`);
 
     // # Publish the page
-    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]');
-    await publishButton.click();
-    await page.waitForLoadState('networkidle');
-
-    // # Wait for page viewer to appear (ensures publish succeeded and navigation completed)
-    const pageViewer = page.locator('[data-testid="page-viewer-content"]');
-    await pageViewer.waitFor({state: 'visible', timeout: 15000});
+    await publishCurrentPage(page);
 
     // # Get page ID from URL
     const url = page.url();
@@ -307,7 +301,7 @@ test('duplicates page with rich text content preserving formatting', {tag: '@pag
     await waitForPageInHierarchy(page, 'Rich Content Page', 10000);
 
     // # Wait for the page node with data-page-id attribute to be available (scope to hierarchy panel)
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]').first();
+    const hierarchyPanel = getHierarchyPanel(page).first();
     const pageNode = hierarchyPanel.locator(`[data-page-id="${pageId}"]`).first();
     await pageNode.waitFor({state: 'visible', timeout: 10000});
 

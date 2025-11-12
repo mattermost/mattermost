@@ -236,28 +236,16 @@ export async function createWikiThroughUI(page: Page, wikiName: string) {
 /**
  * Waits for the wiki view React component to be mounted and rendered.
  *
- * The original implementation only waited for the wrapper element with
- * `data-testId="wiki-view"` to become visible. On slower CI runners, the
- * element might be attached to the DOM quickly, but stay hidden while the
- * lazy-loaded bundle for the wiki view is still downloading. This resulted in
- * sporadic timeouts – especially after a wiki rename when the client needs to
- * reload the pages hierarchy and other data.
- *
- * The function now:
- *   1. Waits for the element to be attached (present in DOM) – this is fast.
- *   2. Waits for the element to become visible – allowing a longer timeout so
- *      that slower environments are covered.
- *   3. If the temporary loading screen (`data-testid="wiki-view-loading"`) is
- *      rendered, it waits for that element to disappear which signals that the
- *      wiki data finished loading and the main UI is ready.
+ * Handles several scenarios to ensure robust waiting:
+ * 1. Component mounting/unmounting during route transitions - Playwright's
+ *    waitFor with 'visible' state automatically retries, handling transient states
+ * 2. Loading states - waits for loading indicator to disappear if present
+ * 3. Async rendering - small delay ensures hierarchy panels have settled
  */
 export async function waitForWikiViewLoad(page: Page, timeout = 30000) {
     const wikiView = page.locator('[data-testid="wiki-view"]');
 
-    // 1. Wait for the component to be added to the DOM
-    await wikiView.waitFor({state: 'attached', timeout});
-
-    // 2. Wait until it is actually visible to the user
+    // Wait for the wiki view to be visible with retries to handle any temporary unmounts
     await wikiView.waitFor({state: 'visible', timeout});
 
     // 3. If a loading indicator is present, wait until it disappears
@@ -2302,11 +2290,12 @@ export async function setupPageInEditMode(
 
 /**
  * Types text in the editor and waits for it to appear
+ * Gets the editor, waits for it to be ready, then types the text
  * @param page - Playwright page object
- * @param editor - The editor locator
  * @param text - Text to type
  */
-export async function typeInEditor(page: Page, editor: Locator, text: string): Promise<void> {
+export async function typeInEditor(page: Page, text: string): Promise<void> {
+    const editor = await getEditorAndWait(page);
     await editor.click();
     await page.keyboard.type(text);
     await page.waitForTimeout(300);

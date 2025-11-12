@@ -687,7 +687,7 @@ test('creates draft with auto-save, closes browser, recovers and publishes', {ta
     await page.goto(`${pw.url}/${team.name}/wiki/${channel.id}/${wiki.id}`);
     await page.waitForLoadState('networkidle');
 
-    const hierarchyPanel2 = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel2 = getHierarchyPanel(page);
     await hierarchyPanel2.waitFor({state: 'visible', timeout: 5000});
     await page.waitForTimeout(1000);
 

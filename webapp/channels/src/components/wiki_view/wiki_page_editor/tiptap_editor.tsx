@@ -329,6 +329,7 @@ const TipTapEditor = ({
 
                     input.onchange = async (e) => {
                         const file = (e.target as HTMLInputElement).files?.[0];
+                        // eslint-disable-next-line no-underscore-dangle
                         const currentEditor = (window as any).__tiptapEditor;
                         if (file && currentEditor) {
                             await handleImageUpload(currentEditor, file);
@@ -542,9 +543,11 @@ const TipTapEditor = ({
 
     useEffect(() => {
         if (editor) {
+            // eslint-disable-next-line no-underscore-dangle
             (window as any).__tiptapEditor = editor;
         }
         return () => {
+            // eslint-disable-next-line no-underscore-dangle
             (window as any).__tiptapEditor = null;
         };
     }, [editor]);

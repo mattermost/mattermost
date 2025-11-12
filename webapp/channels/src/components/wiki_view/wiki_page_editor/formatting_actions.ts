@@ -64,12 +64,12 @@ export const FORMATTING_ACTIONS: FormattingAction[] = [
                 editor.chain().focus().toggleHeading({level: 1}).run();
             } else {
                 // Slash command case: insert placeholder text
-                editor.chain()
-                    .focus()
-                    .setHeading({level: 1})
-                    .insertContent('Heading 1')
-                    .setTextSelection({from, to: from + 9})
-                    .run();
+                editor.chain().
+                    focus().
+                    setHeading({level: 1}).
+                    insertContent('Heading 1').
+                    setTextSelection({from, to: from + 9}).
+                    run();
             }
         },
         isActive: (editor: Editor) => editor.isActive('heading', {level: 1}),
@@ -90,12 +90,12 @@ export const FORMATTING_ACTIONS: FormattingAction[] = [
                 editor.chain().focus().toggleHeading({level: 2}).run();
             } else {
                 // Slash command case: insert placeholder text
-                editor.chain()
-                    .focus()
-                    .setHeading({level: 2})
-                    .insertContent('Heading 2')
-                    .setTextSelection({from, to: from + 9})
-                    .run();
+                editor.chain().
+                    focus().
+                    setHeading({level: 2}).
+                    insertContent('Heading 2').
+                    setTextSelection({from, to: from + 9}).
+                    run();
             }
         },
         isActive: (editor: Editor) => editor.isActive('heading', {level: 2}),
@@ -116,12 +116,12 @@ export const FORMATTING_ACTIONS: FormattingAction[] = [
                 editor.chain().focus().toggleHeading({level: 3}).run();
             } else {
                 // Slash command case: insert placeholder text
-                editor.chain()
-                    .focus()
-                    .setHeading({level: 3})
-                    .insertContent('Heading 3')
-                    .setTextSelection({from, to: from + 9})
-                    .run();
+                editor.chain().
+                    focus().
+                    setHeading({level: 3}).
+                    insertContent('Heading 3').
+                    setTextSelection({from, to: from + 9}).
+                    run();
             }
         },
         isActive: (editor: Editor) => editor.isActive('heading', {level: 3}),
@@ -134,25 +134,10 @@ export const FORMATTING_ACTIONS: FormattingAction[] = [
         description: 'Simple bulleted list',
         icon: 'icon-format-list-bulleted',
         command: (editor: Editor) => {
-            const {from} = editor.state.selection;
-            editor.chain()
-                .focus()
-                .insertContent({
-                    type: 'bulletList',
-                    content: [
-                        {
-                            type: 'listItem',
-                            content: [
-                                {
-                                    type: 'paragraph',
-                                    content: [{type: 'text', text: 'List item'}],
-                                },
-                            ],
-                        },
-                    ],
-                })
-                .setTextSelection({from, to: from + 9})
-                .run();
+            editor.chain().
+                focus().
+                toggleBulletList().
+                run();
         },
         isActive: (editor: Editor) => editor.isActive('bulletList'),
         aliases: ['ul', 'bulletlist', 'unordered'],
@@ -164,25 +149,10 @@ export const FORMATTING_ACTIONS: FormattingAction[] = [
         description: 'List with numbering',
         icon: 'icon-format-list-numbered',
         command: (editor: Editor) => {
-            const {from} = editor.state.selection;
-            editor.chain()
-                .focus()
-                .insertContent({
-                    type: 'orderedList',
-                    content: [
-                        {
-                            type: 'listItem',
-                            content: [
-                                {
-                                    type: 'paragraph',
-                                    content: [{type: 'text', text: 'List item'}],
-                                },
-                            ],
-                        },
-                    ],
-                })
-                .setTextSelection({from, to: from + 9})
-                .run();
+            editor.chain().
+                focus().
+                toggleOrderedList().
+                run();
         },
         isActive: (editor: Editor) => editor.isActive('orderedList'),
         aliases: ['ol', 'orderedlist', 'numbered'],
@@ -195,9 +165,9 @@ export const FORMATTING_ACTIONS: FormattingAction[] = [
         icon: 'icon-format-quote-open',
         command: (editor: Editor) => {
             const {from} = editor.state.selection;
-            editor.chain()
-                .focus()
-                .insertContent({
+            editor.chain().
+                focus().
+                insertContent({
                     type: 'blockquote',
                     content: [
                         {
@@ -205,9 +175,9 @@ export const FORMATTING_ACTIONS: FormattingAction[] = [
                             content: [{type: 'text', text: 'Quote'}],
                         },
                     ],
-                })
-                .setTextSelection({from, to: from + 5})
-                .run();
+                }).
+                setTextSelection({from, to: from + 5}).
+                run();
         },
         isActive: (editor: Editor) => editor.isActive('blockquote'),
         aliases: ['quote', 'citation'],
@@ -220,14 +190,14 @@ export const FORMATTING_ACTIONS: FormattingAction[] = [
         icon: 'icon-code-tags',
         command: (editor: Editor) => {
             const {from} = editor.state.selection;
-            editor.chain()
-                .focus()
-                .insertContent({
+            editor.chain().
+                focus().
+                insertContent({
                     type: 'codeBlock',
                     content: [{type: 'text', text: 'Code'}],
-                })
-                .setTextSelection({from, to: from + 4})
-                .run();
+                }).
+                setTextSelection({from, to: from + 4}).
+                run();
         },
         isActive: (editor: Editor) => editor.isActive('codeBlock'),
         aliases: ['code', 'codeblock', 'pre'],

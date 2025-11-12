@@ -12,6 +12,8 @@ import {
     clickPageContextMenuItem,
     buildWikiPageUrl,
     waitForPageViewerLoad,
+    getEditorAndWait,
+    typeInEditor,
 } from './test_helpers';
 
 /**
@@ -40,8 +42,7 @@ test('allows channel member to create page', {tag: '@pages'}, async ({pw, shared
     await page.waitForTimeout(500);
 
     // * Verify editor opened
-    const editor = page.locator('.ProseMirror').first();
-    await expect(editor).toBeVisible();
+    const editor = await getEditorAndWait(page);
 });
 
 /**
@@ -134,8 +135,7 @@ test('allows channel member to edit page', {tag: '@pages'}, async ({pw, sharedPa
     await page.waitForTimeout(500);
 
     // * Verify editor opened
-    const editor = page.locator('.ProseMirror').first();
-    await expect(editor).toBeVisible();
+    const editor = await getEditorAndWait(page);
 });
 
 /**

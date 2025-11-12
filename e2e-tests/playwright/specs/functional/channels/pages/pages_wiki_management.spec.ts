@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createTestChannel, createPageThroughUI, createChildPageThroughContextMenu, waitForPageInHierarchy, getWikiTab, openWikiTabMenu, clickWikiTabMenuItem, waitForWikiViewLoad, getAllWikiTabs, renameWikiThroughModal, deleteWikiThroughModalConfirmation, navigateToChannelFromWiki, verifyWikiNameInBreadcrumb, verifyNavigatedToWiki, extractWikiIdFromUrl, verifyWikiDeleted, waitForWikiTab, openWikiByTab, moveWikiToChannel} from './test_helpers';
+import {createWikiThroughUI, createTestChannel, createPageThroughUI, createChildPageThroughContextMenu, waitForPageInHierarchy, getWikiTab, openWikiTabMenu, clickWikiTabMenuItem, waitForWikiViewLoad, getAllWikiTabs, renameWikiThroughModal, deleteWikiThroughModalConfirmation, navigateToChannelFromWiki, verifyWikiNameInBreadcrumb, verifyNavigatedToWiki, extractWikiIdFromUrl, verifyWikiDeleted, waitForWikiTab, openWikiByTab, moveWikiToChannel, getHierarchyPanel} from './test_helpers';
 
 /**
  * @objective Verify wiki can be renamed through channel tab bar menu
@@ -260,7 +260,7 @@ test('maintains breadcrumb navigation after wiki rename', {tag: '@pages'}, async
     await waitForPageInHierarchy(page, 'Parent Page', 15000);
 
     // # Expand parent node to make child visible
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page);
     const parentNode = hierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: 'Parent Page'}).first();
     const expandButton = parentNode.locator('[data-testid="page-tree-node-expand-button"]');
 
@@ -323,7 +323,7 @@ test('updates hierarchy panel after wiki rename', {tag: '@pages'}, async ({pw, s
     await createPageThroughUI(page, 'Page C', 'Content C');
 
     // * Verify all pages appear in hierarchy panel
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page);
     await expect(hierarchyPanel.getByRole('button', {name: 'Page A'}).first()).toBeVisible();
     await expect(hierarchyPanel.getByRole('button', {name: 'Page B'}).first()).toBeVisible();
     await expect(hierarchyPanel.getByRole('button', {name: 'Page C'}).first()).toBeVisible();

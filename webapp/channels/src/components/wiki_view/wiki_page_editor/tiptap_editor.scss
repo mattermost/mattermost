@@ -17,10 +17,13 @@
         line-height: 1.6;
         outline: none;
 
-        &[data-placeholder]:empty::before {
-            position: absolute;
+        // TipTap Placeholder extension adds .is-empty class to empty paragraph nodes
+        // Show placeholder in every empty paragraph block
+        p.is-empty::before {
             color: var(--center-channel-color-40);
             content: attr(data-placeholder);
+            float: left;
+            height: 0;
             pointer-events: none;
         }
 

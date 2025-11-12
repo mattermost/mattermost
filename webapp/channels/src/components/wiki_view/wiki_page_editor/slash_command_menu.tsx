@@ -41,7 +41,7 @@ const SlashCommandMenu = forwardRef<SlashCommandMenuRef, SlashCommandMenuProps>(
     };
 
     const upHandler = () => {
-        setSelectedIndex((selectedIndex + props.items.length - 1) % props.items.length);
+        setSelectedIndex(((selectedIndex + props.items.length) - 1) % props.items.length);
     };
 
     const downHandler = () => {

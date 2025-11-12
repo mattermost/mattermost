@@ -1,5 +1,5 @@
 import {expect, test} from './pages_test_fixture';
-import {createWikiThroughUI, createPageThroughUI, addHeadingToEditor, createTestChannel} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, addHeadingToEditor, createTestChannel, showPageOutline, getHierarchyPanel} from './test_helpers';
 
 /**
  * Test outline with navigation - does navigating away and back cause the issue?
@@ -18,7 +18,7 @@ test('shows outline after navigating away and back', {tag: '@pages'}, async ({pw
     const page1 = await createPageThroughUI(page, 'Page 1 with Headings', ' ');
     const page2 = await createPageThroughUI(page, 'Page 2', ' ');
 
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page);
 
     // # Edit and publish Page 1
     const page1Node = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${page1.id}"]`).first();
@@ -52,17 +52,7 @@ test('shows outline after navigating away and back', {tag: '@pages'}, async ({pw
     await page.waitForTimeout(500);
 
     // # NOW show outline for Page 1
-    const menuButton1 = page1Node.locator('[data-testid="page-tree-node-menu-button"]').first();
-    await menuButton1.click();
-
-    const contextMenu1 = page.locator('[data-testid="page-context-menu"]');
-    await expect(contextMenu1).toBeVisible({timeout: 3000});
-
-    const showOutlineButton = contextMenu1.locator('button:has-text("Show outline")').first();
-    await expect(showOutlineButton).toBeVisible({timeout: 3000});
-    await showOutlineButton.click();
-
-    await page.waitForTimeout(2000);
+    await showPageOutline(page, page1.id);
 
     // * Verify outline shows the heading
     const page1OutlineHeading = page.locator('[role="treeitem"]').filter({hasText: /Page 1 Heading/}).first();

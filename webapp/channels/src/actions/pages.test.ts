@@ -111,6 +111,7 @@ describe('actions/pages - Page Status', () => {
 
             for (const status of validStatuses) {
                 testStore.clearActions();
+                // eslint-disable-next-line no-await-in-loop
                 await testStore.dispatch(Actions.updatePageStatus(postId, status));
                 const actions = testStore.getActions();
 

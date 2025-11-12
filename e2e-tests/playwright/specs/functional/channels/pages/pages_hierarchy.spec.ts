@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, addHeadingToEditor, fillCreatePageModal, renamePageViaContextMenu, createDraftThroughUI, openMovePageModal, confirmMoveToTarget, renamePageInline, waitForSearchDebounce, waitForEditModeReady, waitForWikiViewLoad, navigateToWikiView, getBreadcrumb, getHierarchyPanel, deletePageWithOption} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, addHeadingToEditor, fillCreatePageModal, renamePageViaContextMenu, createDraftThroughUI, openMovePageModal, confirmMoveToTarget, renamePageInline, waitForSearchDebounce, waitForEditModeReady, waitForWikiViewLoad, navigateToWikiView, navigateToPage, getBreadcrumb, getHierarchyPanel, deletePageWithOption, getEditorAndWait, typeInEditor} from './test_helpers';
 
 /**
  * @objective Verify page hierarchy expansion and collapse functionality
@@ -23,7 +23,7 @@ test('expands and collapses page nodes', {tag: '@pages'}, async ({pw, sharedPage
     const childPage = await createChildPageThroughContextMenu(page, parentPage.id!, 'Child Page', 'Child content');
 
     // * Verify hierarchy panel is visible
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page);
     await expect(hierarchyPanel).toBeVisible();
 
     // # Locate parent page node
@@ -69,7 +69,7 @@ test('moves page to new parent within same wiki', {tag: '@pages'}, async ({pw, s
     const page2 = await createPageThroughUI(page, 'Page 2', 'Content 2');
 
     // # Right-click Page 2 to move it
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page);
     const page2Node = hierarchyPanel.locator('text="Page 2"').first();
 
     await expect(page2Node).toBeVisible();
@@ -228,7 +228,7 @@ test('moves page between wikis', {tag: '@pages'}, async ({pw, sharedPagesSetup})
     // * Verify page removed from Wiki 1
     await navigateToWikiView(page, pw.url, team.name, channel.id, wiki1.id);
 
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page);
     const pageInWiki1Still = hierarchyPanel.locator('text="Page to Move"').first();
     await expect(pageInWiki1Still).not.toBeVisible({timeout: 3000});
 
@@ -279,7 +279,7 @@ test('moves page to child of another page in same wiki', {tag: '@pages'}, async 
     const pageToMove = await createPageThroughUI(page, 'Page to Move', 'Content to move');
 
     // # Right-click the page to move
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page);
     const pageToMoveNode = hierarchyPanel.locator('text="Page to Move"').first();
 
     await expect(pageToMoveNode).toBeVisible();
@@ -395,7 +395,7 @@ test('moves page to child of another page in different wiki', {tag: '@pages'}, a
     // * Verify page removed from Wiki 1
     await navigateToWikiView(page, pw.url, team.name, channel.id, wiki1.id);
 
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page);
     const pageInWiki1Still = hierarchyPanel.locator('text="Page to Move"').first();
     await expect(pageInWiki1Still).not.toBeVisible({timeout: 3000});
 
@@ -471,7 +471,7 @@ test('renames page via context menu', {tag: '@pages'}, async ({pw, sharedPagesSe
     await page.waitForLoadState('networkidle');
 
     // * Verify page renamed in hierarchy
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page);
     const renamedNode = hierarchyPanel.locator('text="Updated Name"').first();
     await expect(renamedNode).toBeVisible();
 
@@ -503,7 +503,7 @@ test.skip('renames page inline via double-click', {tag: '@pages'}, async ({pw, s
     await renamePageInline(page, 'Original Title', 'Inline Renamed');
 
     // * Verify rename succeeded
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page);
     const renamedNode = hierarchyPanel.locator('text="Inline Renamed"').first();
     await expect(renamedNode).toBeVisible();
 });
@@ -526,7 +526,7 @@ test('handles special characters in page names', {tag: '@pages'}, async ({pw, sh
     await renamePageViaContextMenu(page, 'Simple Name', specialName);
 
     // * Verify special characters preserved in hierarchy
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page);
     const renamedNode = hierarchyPanel.locator(`text="${specialName}"`).first();
 
     await expect(renamedNode).toBeVisible({timeout: 5000});
@@ -566,7 +566,7 @@ test.skip('makes page a child via drag-drop', {tag: '@pages'}, async ({pw}) => {
     const siblingPage = await createPageThroughUI(page, 'Sibling Page', 'Sibling content');
 
     // * Verify both pages are visible in hierarchy panel
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page);
     const parentNode = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${parentPage.id}"]`);
     const siblingNode = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${siblingPage.id}"]`);
     await expect(parentNode).toBeVisible();
@@ -652,7 +652,7 @@ test.skip('promotes child page to root level via drag-drop', {tag: '@pages'}, as
     const rootPage2 = await createPageThroughUI(page, 'Root Page 2', 'Root content 2');
 
     // * Verify initial hierarchy
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page);
     const parentNode = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${parentPage.id}"]`);
     await expect(parentNode).toBeVisible();
 
@@ -816,8 +816,7 @@ test('enforces max hierarchy depth - 11th level fails', {tag: '@pages'}, async (
     await fillCreatePageModal(page, 'Level 11');
 
     // # Wait for draft editor to appear
-    const editor = page.locator('.ProseMirror').first();
-    await editor.waitFor({state: 'visible', timeout: 5000});
+    const editor = await getEditorAndWait(page);
     await editor.click();
     await page.keyboard.type('Level 11 content');
 
@@ -864,7 +863,7 @@ test('searches and filters pages in hierarchy', {tag: '@pages'}, async ({pw, sha
     await waitForSearchDebounce(page);
 
     // * Verify filtered results show only Apple pages
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page);
     await expect(hierarchyPanel).toContainText('Apple Documentation');
     await expect(hierarchyPanel).toContainText('Apple Tutorial');
 
@@ -891,7 +890,7 @@ test('preserves expansion state across navigation', {tag: '@pages'}, async ({pw,
     const childPage = await createChildPageThroughContextMenu(page, parentPage.id!, 'Child Page', 'Child content');
 
     // * Verify child is initially visible (parent auto-expanded after child creation)
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page);
     const parentNode = page.locator('[data-testid="page-tree-node"][data-page-id="' + parentPage.id + '"]');
     const childNode = page.locator('[data-testid="page-tree-node"][data-page-id="' + childPage.id + '"]');
     await expect(childNode).toBeVisible({timeout: 5000});
@@ -951,7 +950,7 @@ test('deletes page with children - cascade option', {tag: '@pages'}, async ({pw,
     await deletePageWithOption(page, parentPage.id!, 'cascade');
 
     // * Verify parent and children are no longer in hierarchy
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page);
     await expect(hierarchyPanel).not.toContainText('Parent Page');
     await expect(hierarchyPanel).not.toContainText('Child Page 1');
     await expect(hierarchyPanel).not.toContainText('Child Page 2');
@@ -978,7 +977,7 @@ test('deletes page with children - move to root option', {tag: '@pages'}, async 
     await deletePageWithOption(page, parentPage.id!, 'move-to-parent');
 
     // * Verify parent is deleted but child is preserved
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page);
     await expect(hierarchyPanel).not.toContainText('Parent to Delete');
     await expect(hierarchyPanel).toContainText('Child to Preserve');
 });
@@ -1003,7 +1002,7 @@ test('creates child page via context menu', {tag: '@pages'}, async ({pw, sharedP
     const childPage = await createChildPageThroughContextMenu(page, parentPage.id!, 'Child via Context Menu', 'Child content');
 
     // * Verify child page appears under parent in hierarchy
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page);
     await expect(hierarchyPanel).toContainText('Child via Context Menu');
 
     // * Verify child page is clickable and loads correctly
@@ -1040,10 +1039,9 @@ test('preserves node count and state after page refresh', {tag: '@pages'}, async
     const draft2 = await createDraftThroughUI(page, 'Draft Page 2', 'Draft content 2');
 
     // # Navigate to one of the published pages to see full hierarchy with panel open
-    await page.goto(`/${team.name}/wiki/${channel.id}/${wiki.id}/${publishedPage1.id}`);
-    await page.waitForLoadState('networkidle');
+    await navigateToPage(page, pw.url, team.name, channel.id, wiki.id, publishedPage1.id);
 
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page);
     await expect(hierarchyPanel).toBeVisible({timeout: 5000});
 
     // # Expand parent node to make child visible
@@ -1162,7 +1160,7 @@ test('maintains stable page order when selecting pages', {tag: '@pages'}, async 
     }
 
     // # Get initial order of pages in hierarchy
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page);
     await expect(hierarchyPanel).toBeVisible();
 
     const getPageOrder = async () => {
@@ -1221,7 +1219,7 @@ test('maintains stable order when adding new pages', {tag: '@pages'}, async ({pw
     }
 
     // # Get page IDs in order
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page);
     const getPageIds = async () => {
         const pageNodes = hierarchyPanel.locator('[data-testid="page-tree-node"]');
         const count = await pageNodes.count();

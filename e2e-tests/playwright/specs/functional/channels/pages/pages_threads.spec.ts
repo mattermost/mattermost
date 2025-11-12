@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createTestChannel, waitForEditModeReady} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, createTestChannel, waitForEditModeReady, getEditorAndWait, typeInEditor} from './test_helpers';
 
 /**
  * @objective Verify page posts display with title and excerpt in Threads panel instead of raw JSON
@@ -30,7 +30,7 @@ test('displays page with title and excerpt in Threads panel', {tag: '@pages'}, a
     // # Wait for edit mode to be fully ready (draft loaded with page_id)
     await waitForEditModeReady(page);
 
-    const editor = page.locator('.ProseMirror').first();
+    const editor = await getEditorAndWait(page);
 
     // # Select text using triple-click (selects paragraph in TipTap)
     await editor.click({clickCount: 3});
@@ -106,7 +106,7 @@ test('displays page comments and inline comments in Threads panel', {tag: '@page
     // # Wait for edit mode to be fully ready (draft loaded with page_id)
     await waitForEditModeReady(page);
 
-    const editor = page.locator('.ProseMirror').first();
+    const editor = await getEditorAndWait(page);
 
     // # Add inline comment - Select text using triple-click (selects paragraph in TipTap)
     await editor.click({clickCount: 3});
@@ -182,7 +182,7 @@ test('displays comment replies in Threads panel', {tag: '@pages'}, async ({pw, s
     // # Wait for edit mode to be fully ready (draft loaded with page_id)
     await waitForEditModeReady(page);
 
-    const editor = page.locator('.ProseMirror').first();
+    const editor = await getEditorAndWait(page);
 
     // # Select text using triple-click (selects paragraph in TipTap)
     await editor.click({clickCount: 3});
@@ -261,7 +261,7 @@ test('displays multiple inline comments in Threads panel', {tag: '@pages'}, asyn
     // # Wait for edit mode to be fully ready (draft loaded with page_id)
     await waitForEditModeReady(page);
 
-    const editor = page.locator('.ProseMirror').first();
+    const editor = await getEditorAndWait(page);
 
     // # Add first inline comment - Select text using triple-click (selects paragraph in TipTap)
     await editor.click({clickCount: 3});

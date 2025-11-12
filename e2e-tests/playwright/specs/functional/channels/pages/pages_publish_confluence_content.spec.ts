@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, getNewPageButton, fillCreatePageModal, waitForPageInHierarchy} from './test_helpers';
+import {createWikiThroughUI, getNewPageButton, fillCreatePageModal, waitForPageInHierarchy, publishCurrentPage, getEditorAndWait, typeInEditor, getHierarchyPanel} from './test_helpers';
 
 /**
  * @objective Verify publishing page with Confluence-copied content doesn't cause draggableId errors
@@ -28,8 +28,7 @@ test('publishes page with Confluence-like content without draggableId errors', {
     await fillCreatePageModal(page, 'Confluence Content Test');
 
     // # Wait for editor to be visible
-    const editor = page.locator('.ProseMirror').first();
-    await editor.waitFor({state: 'visible', timeout: 5000});
+    const editor = await getEditorAndWait(page);
 
     // # Simulate pasting complex Confluence-like HTML content
     // This mimics content copied from Confluence which includes:
@@ -94,11 +93,7 @@ test('publishes page with Confluence-like content without draggableId errors', {
     });
 
     // # Publish the page
-    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
-    await publishButton.click();
-
-    // # Wait for publish to complete
-    await page.waitForLoadState('networkidle', {timeout: 15000});
+    await publishCurrentPage(page);
 
     // * Verify no draggableId errors occurred
     const draggableErrors = consoleErrors.filter((error) =>
@@ -118,7 +113,7 @@ test('publishes page with Confluence-like content without draggableId errors', {
     await expect(pageContent).toContainText('Heading from Confluence');
 
     // * Verify hierarchy panel still works (no drag-and-drop errors)
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page);
     await expect(hierarchyPanel).toBeVisible();
 
     // * Verify the published page appears in hierarchy
@@ -151,12 +146,10 @@ test('shows proper error message when draft not found during publish', {tag: '@p
     await fillCreatePageModal(page, 'Test Page');
 
     // # Wait for editor to be visible
-    const editor = page.locator('.ProseMirror').first();
-    await editor.waitFor({state: 'visible', timeout: 5000});
+    const editor = await getEditorAndWait(page);
 
     // # Add some content
-    await editor.click();
-    await editor.type('Test content');
+    await typeInEditor(page, 'Test content');
 
     // # Monitor for console errors
     const consoleErrors: string[] = [];
@@ -189,11 +182,7 @@ test('shows proper error message when draft not found during publish', {tag: '@p
     await page.waitForTimeout(500);
 
     // # Attempt to publish
-    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
-    await publishButton.click();
-
-    // # Wait for network activity
-    await page.waitForTimeout(3000);
+    await publishCurrentPage(page);
 
     // * Verify no missing translation errors appear
     const translationErrors = consoleErrors.filter((error) =>
@@ -226,14 +215,10 @@ test('hierarchy drag-and-drop works after publishing page with complex content',
     await newPageButton.click();
     await fillCreatePageModal(page, 'Parent Page');
 
-    const editor = page.locator('.ProseMirror').first();
-    await editor.waitFor({state: 'visible', timeout: 5000});
-    await editor.click();
-    await editor.type('Parent content');
+    const editor = await getEditorAndWait(page);
+    await typeInEditor(page, 'Parent content');
 
-    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]').first();
-    await publishButton.click();
-    await page.waitForLoadState('networkidle');
+    await publishCurrentPage(page);
 
     // # Wait for parent page to appear in hierarchy
     await waitForPageInHierarchy(page, 'Parent Page', 10000);
@@ -242,8 +227,7 @@ test('hierarchy drag-and-drop works after publishing page with complex content',
     await newPageButton.click();
     await fillCreatePageModal(page, 'Child Page');
 
-    const childEditor = page.locator('.ProseMirror').first();
-    await childEditor.waitFor({state: 'visible', timeout: 5000});
+    const childEditor = await getEditorAndWait(page);
 
     // # Paste complex content
     const complexHTML = '<div><h2>Child Heading</h2><p>Some <strong>formatted</strong> content</p></div>';
@@ -265,8 +249,7 @@ test('hierarchy drag-and-drop works after publishing page with complex content',
     await page.waitForTimeout(1000);
 
     // # Publish child page
-    await publishButton.click();
-    await page.waitForLoadState('networkidle');
+    await publishCurrentPage(page);
 
     // * Verify child page appears in hierarchy
     await waitForPageInHierarchy(page, 'Child Page', 10000);
@@ -280,7 +263,7 @@ test('hierarchy drag-and-drop works after publishing page with complex content',
     });
 
     // # Attempt to view the hierarchy panel (this triggers Draggable rendering)
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page);
     await expect(hierarchyPanel).toBeVisible();
 
     // # Try to interact with the page nodes in hierarchy

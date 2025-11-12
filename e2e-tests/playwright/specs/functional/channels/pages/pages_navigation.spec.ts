@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, fillCreatePageModal, buildWikiPageUrl} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, createTestChannel, fillCreatePageModal, buildWikiPageUrl, getEditorAndWait, typeInEditor, getHierarchyPanel} from './test_helpers';
 
 /**
  * @objective Verify breadcrumb navigation displays correct page hierarchy
@@ -146,10 +146,8 @@ test('displays breadcrumbs for draft of child page', {tag: '@pages'}, async ({pw
 
     await page.waitForTimeout(1000); // Wait for editor to load
 
-    const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
-    await editor.waitFor({state: 'visible', timeout: 5000});
-    await editor.click();
-    await editor.type('Child content');
+    const editor = await getEditorAndWait(page);
+    await typeInEditor(page, 'Child content');
 
     await page.waitForTimeout(2000);
 
@@ -245,7 +243,7 @@ test('maintains page state with browser back and forward buttons', {tag: '@pages
     const page3 = await createPageThroughUI(page, 'Third Page', 'Third page content');
 
     // # Navigate to page1 using hierarchy panel
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page);
     const page1Node = hierarchyPanel.locator('text="First Page"').first();
     await page1Node.click();
     await page.waitForLoadState('networkidle');
@@ -398,7 +396,7 @@ test('toggles fullscreen mode and accesses comments', {tag: '@pages'}, async ({p
     await expect(pageContent).toContainText('This is fullscreen test content');
 
     // * Verify hierarchy panel is visible initially
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page);
     await expect(hierarchyPanel).toBeVisible({timeout: 3000});
 
     // # Click fullscreen button

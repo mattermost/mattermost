@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton, fillCreatePageModal} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, createChildPageThroughContextMenu, getNewPageButton, fillCreatePageModal, publishCurrentPage, getEditorAndWait, typeInEditor} from './test_helpers';
 
 /**
  * @objective Verify pages can be found using wiki tree panel search by title
@@ -63,14 +63,12 @@ test('wiki tree panel search filters by title only', {tag: '@pages'}, async ({pw
     await newPageButton.click();
     await fillCreatePageModal(page, pageTitle);
 
-    const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
+    const editor = await getEditorAndWait(page);
     await editor.click();
-    await editor.type(`Document\n\n${uniqueContent}`);
+    await page.keyboard.type(`Document\n\n${uniqueContent}`);
 
     // # Publish the page
-    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]');
-    await publishButton.click();
-    await page.waitForLoadState('networkidle');
+    await publishCurrentPage(page);
 
     // # Create another page
     await createPageThroughUI(page, 'Marketing Plans', 'Different content');
@@ -149,14 +147,12 @@ test('searches pages by content using global search', {tag: '@pages'}, async ({p
     await newPageButton.click();
     await fillCreatePageModal(page, pageTitle);
 
-    const editor = page.locator('[data-testid="tiptap-editor-content"] .ProseMirror').first();
+    const editor = await getEditorAndWait(page);
     await editor.click();
-    await editor.type(`Test Document\n\n${uniqueContent}`);
+    await page.keyboard.type(`Test Document\n\n${uniqueContent}`);
 
     // # Publish the page
-    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]');
-    await publishButton.click();
-    await page.waitForLoadState('networkidle');
+    await publishCurrentPage(page);
 
     // # Wait for page to be indexed
     await page.waitForTimeout(1000);

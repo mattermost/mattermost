@@ -19,6 +19,7 @@ import {
     clickOutlineHeading,
     publishCurrentPage,
     clearEditorContent,
+    getHierarchyPanel,
 } from './test_helpers';
 
 /**
@@ -75,7 +76,7 @@ test('toggles page outline visibility in hierarchy panel', {tag: '@pages'}, asyn
     await expect(outlineInTree).not.toBeVisible({timeout: 2000});
 
     // # Open context menu via right-click
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page);
     const pageNode = hierarchyPanel.locator('[data-testid="page-tree-node"]').filter({hasText: 'Feature Spec'}).first();
     await pageNode.click({button: 'right'});
 
@@ -137,7 +138,7 @@ test('updates outline in hierarchy when page headings change', {tag: '@pages'}, 
     await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
 
     // # Click on the page to view it, then edit
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page);
     const pageNode = hierarchyPanel.locator(`text="Page with Headings"`).first();
     await pageNode.click();
     await page.waitForLoadState('networkidle');
@@ -208,7 +209,7 @@ test('clicks outline item in hierarchy to navigate to heading', {tag: '@pages'},
     await navigateToWikiView(page, pw.url, team.name, channel.id, wiki.id);
 
     // # Click on the page to view it, then edit
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page);
     const pageNode = hierarchyPanel.locator(`text="Navigate to Headings"`).first();
     await pageNode.click();
     await page.waitForLoadState('networkidle');
@@ -283,7 +284,7 @@ test('preserves outline visibility setting when navigating between pages', {tag:
     // # Create page 1 and immediately add headings (before creating page 2)
     const page1 = await createPageThroughUI(page, 'Page 1 with Headings', ' ');
 
-    const hierarchyPanel = page.locator('[data-testid="pages-hierarchy-panel"]');
+    const hierarchyPanel = getHierarchyPanel(page);
     const page1Node = hierarchyPanel.locator(`[data-testid="page-tree-node"][data-page-id="${page1.id}"]`).first();
 
     // # Edit Page 1 immediately after creation (no navigation away yet)

@@ -3,7 +3,7 @@
 
 import {expect, test} from './pages_test_fixture';
 
-import {createWikiThroughUI, createPageThroughUI, createTestChannel, getNewPageButton, fillCreatePageModal} from './test_helpers';
+import {createWikiThroughUI, createPageThroughUI, createTestChannel, getNewPageButton, fillCreatePageModal, publishCurrentPage} from './test_helpers';
 
 /**
  * Page status display names
@@ -84,9 +84,7 @@ test('changes page status from in_progress to in_review', {tag: '@pages'}, async
     await page.waitForTimeout(1500);
 
     // # Click Update button
-    const updateButton = page.locator('[data-testid="wiki-page-publish-button"]');
-    await updateButton.click();
-    await page.waitForLoadState('networkidle');
+    await publishCurrentPage(page);
 
     // * Verify status changed to 'In review' in view mode
     const statusDisplay = page.locator('[data-testid="page-viewer-status"]');
@@ -132,9 +130,7 @@ test('persists page status after browser refresh', {tag: '@pages'}, async ({pw, 
     await page.waitForTimeout(1500);
 
     // # Update page
-    const updateButton = page.locator('[data-testid="wiki-page-publish-button"]');
-    await updateButton.click();
-    await page.waitForLoadState('networkidle');
+    await publishCurrentPage(page);
 
     // * Verify status is 'Done'
     let statusDisplay = page.locator('[data-testid="page-viewer-status"]');
@@ -193,8 +189,7 @@ test('allows selection of all valid status values', {tag: '@pages'}, async ({pw,
         await page.waitForTimeout(1500);
 
         // # Update page
-        const updateButton = page.locator('[data-testid="wiki-page-publish-button"]');
-        await updateButton.click();
+        await publishCurrentPage(page);
         await page.waitForLoadState('networkidle');
 
         // * Verify status changed to expected value
@@ -236,9 +231,7 @@ test('shows status selector in draft mode and status badge in view mode', {tag: 
 
     await page.waitForTimeout(1500);
 
-    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]');
-    await publishButton.click();
-    await page.waitForLoadState('networkidle');
+    await publishCurrentPage(page);
 
     // * Verify status is visible in view mode as a read-only display
     const statusDisplay = page.locator('[data-testid="page-viewer-status"]');
@@ -288,8 +281,7 @@ test('transitions through workflow states from rough_draft to done', {tag: '@pag
         await page.waitForTimeout(1500);
 
         // # Update page
-        const updateButton = page.locator('[data-testid="wiki-page-publish-button"]');
-        await updateButton.click();
+        await publishCurrentPage(page);
         await page.waitForLoadState('networkidle');
 
         // * Verify status changed to expected value
@@ -361,9 +353,7 @@ test('maintains independent status for multiple pages', {tag: '@pages'}, async (
     await roughDraftOption.click();
     await page.waitForTimeout(1500);
 
-    let updateButton = page.locator('[data-testid="wiki-page-publish-button"]');
-    await updateButton.click();
-    await page.waitForLoadState('networkidle');
+    await publishCurrentPage(page);
 
     // # Navigate back to wiki root
     await page.goto(`${pw.url}/${team.name}/wiki/${channel.id}/${wiki.id}`);
@@ -386,9 +376,7 @@ test('maintains independent status for multiple pages', {tag: '@pages'}, async (
     await doneOption.click();
     await page.waitForTimeout(1500);
 
-    updateButton = page.locator('[data-testid="wiki-page-publish-button"]');
-    await updateButton.click();
-    await page.waitForLoadState('networkidle');
+    await publishCurrentPage(page);
 
     // * Verify page 2 has status 'Done'
     let statusDisplay = page.locator('[data-testid="page-viewer-status"]');
@@ -451,9 +439,7 @@ test('updates status display after edit and update', {tag: '@pages'}, async ({pw
     await page.waitForTimeout(1500);
 
     // # Update page
-    const updateButton = page.locator('[data-testid="wiki-page-publish-button"]');
-    await updateButton.click();
-    await page.waitForLoadState('networkidle');
+    await publishCurrentPage(page);
 
     // * Verify status changed
     statusDisplay = page.locator('[data-testid="page-viewer-status"]');
@@ -505,9 +491,7 @@ test('persists status selected in draft mode after publishing', {tag: '@pages'},
     await page.waitForTimeout(1500);
 
     // # Publish the page
-    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]');
-    await publishButton.click();
-    await page.waitForLoadState('networkidle');
+    await publishCurrentPage(page);
 
     // * Verify status is 'Done' in the published page viewer
     const publishedStatus = page.locator('[data-testid="page-viewer-status"]');
@@ -573,9 +557,7 @@ test('persists status through draft autosave and browser refresh', {tag: '@pages
     expect(statusText).toBe('In review');
 
     // # Now publish to verify status transfers correctly
-    const publishButton = page.locator('[data-testid="wiki-page-publish-button"]');
-    await publishButton.click();
-    await page.waitForLoadState('networkidle');
+    await publishCurrentPage(page);
 
     // * Verify published page shows 'In review' status
     const publishedStatus = page.locator('[data-testid="page-viewer-status"]');
@@ -632,9 +614,7 @@ test('persists status when updating existing page through draft', {tag: '@pages'
     await page.waitForTimeout(1500);
 
     // # Click Update button
-    const updateButton = page.locator('[data-testid="wiki-page-publish-button"]');
-    await updateButton.click();
-    await page.waitForLoadState('networkidle');
+    await publishCurrentPage(page);
 
     // * Verify updated page shows 'Rough draft' status
     const publishedStatus = page.locator('[data-testid="page-viewer-status"]');
