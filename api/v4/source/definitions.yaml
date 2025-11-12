@@ -2487,6 +2487,112 @@ components:
           type: integer
           description: The last time of update for the application
           format: int64
+    ClientRegistrationRequest:
+      type: object
+      description: OAuth 2.0 Dynamic Client Registration request as defined in RFC 7591
+      required:
+        - redirect_uris
+      properties:
+        redirect_uris:
+          type: array
+          items:
+            type: string
+          description: Array of redirection URI strings for use in redirect-based flows such as the authorization code and implicit flows
+          minItems: 1
+        client_name:
+          type: string
+          description: Human-readable string name of the client to be presented to the end-user during authorization
+          maxLength: 64
+        client_uri:
+          type: string
+          description: URL string of a web page providing information about the client
+          maxLength: 256
+          format: uri
+    ClientRegistrationResponse:
+      type: object
+      description: OAuth 2.0 Dynamic Client Registration response as defined in RFC 7591
+      properties:
+        client_id:
+          type: string
+          description: OAuth 2.0 client identifier string
+        client_secret:
+          type: string
+          description: OAuth 2.0 client secret string
+        redirect_uris:
+          type: array
+          items:
+            type: string
+          description: Array of the registered redirection URI strings
+        token_endpoint_auth_method:
+          type: string
+          description: String indicator of the requested authentication method for the token endpoint
+          enum:
+            - client_secret_post
+            - none
+        grant_types:
+          type: array
+          items:
+            type: string
+          description: Array of OAuth 2.0 grant type strings that the client can use at the token endpoint
+        response_types:
+          type: array
+          items:
+            type: string
+          description: Array of the OAuth 2.0 response type strings that the client can use at the authorization endpoint
+        scope:
+          type: string
+          description: Space-separated list of scope values that the client can use when requesting access tokens
+        client_name:
+          type: string
+          description: Human-readable string name of the client to be presented to the end-user during authorization
+        client_uri:
+          type: string
+          description: URL string of a web page providing information about the client
+          format: uri
+    AuthorizationServerMetadata:
+      type: object
+      description: OAuth 2.0 Authorization Server Metadata as defined in RFC 8414
+      properties:
+        issuer:
+          type: string
+          description: The authorization server's issuer identifier, which is a URL that uses the "https" scheme
+        authorization_endpoint:
+          type: string
+          description: URL of the authorization server's authorization endpoint
+        token_endpoint:
+          type: string
+          description: URL of the authorization server's token endpoint
+        response_types_supported:
+          type: array
+          items:
+            type: string
+          description: JSON array containing a list of the OAuth 2.0 response_type values that this authorization server supports
+        registration_endpoint:
+          type: string
+          description: URL of the authorization server's OAuth 2.0 Dynamic Client Registration endpoint
+        scopes_supported:
+          type: array
+          items:
+            type: string
+          description: JSON array containing a list of the OAuth 2.0 scope values that this authorization server supports
+        grant_types_supported:
+          type: array
+          items:
+            type: string
+          description: JSON array containing a list of the OAuth 2.0 grant type values that this authorization server supports
+        token_endpoint_auth_methods_supported:
+          type: array
+          items:
+            type: string
+          description: JSON array containing a list of client authentication methods supported by the token endpoint
+        code_challenge_methods_supported:
+          type: array
+          items:
+            type: string
+          description: JSON array containing a list of PKCE code challenge methods supported by this authorization server
+      required:
+        - issuer
+        - response_types_supported
     Job:
       type: object
       properties:
