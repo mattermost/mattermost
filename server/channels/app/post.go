@@ -170,6 +170,11 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		return foundPost, nil
 	}
 
+	if post.Type == model.PostTypeBurnOnRead {
+		post.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(model.DefaultExpirySeconds*1000))
+		post.AddProp(model.PostPropsReadDurationSeconds, int64(model.DefaultReadDurationSeconds*1000))
+	}
+
 	// If we get this far, we've recorded the client-provided pending post id to the cache.
 	// Remove it if we fail below, allowing a proper retry by the client.
 	defer func() {
@@ -712,6 +717,10 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 		return nil, appErr
 	}
 
+	if oldPost.Type == model.PostTypeBurnOnRead {
+		return nil, model.NewAppError("UpdatePost", "api.post.update_post.burn_on_read.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if oldPost.IsSystemMessage() {
 		appErr = model.NewAppError("UpdatePost", "api.post.update_post.system_message.app_error", nil, "id="+receivedUpdatedPost.Id, http.StatusBadRequest)
 		return nil, appErr
@@ -1014,8 +1023,14 @@ func (a *App) GetPostsPage(rctx request.CTX, options model.GetPostsOptions) (*mo
 		}
 	}
 
+	var appErr *model.AppError
+	postList, appErr = a.RevealBurnOnReadPostsForUser(rctx, postList, options.UserId)
+	if appErr != nil {
+		return nil, appErr
+	}
+
 	// The postList is sorted as only rootPosts Order is included
-	if appErr := a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
+	if appErr = a.filterInaccessiblePosts(postList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
 
@@ -1036,7 +1051,13 @@ func (a *App) GetPosts(rctx request.CTX, channelID string, offset int, limit int
 		}
 	}
 
-	if appErr := a.filterInaccessiblePosts(postList, filterPostOptions{}); appErr != nil {
+	var appErr *model.AppError
+	postList, appErr = a.RevealBurnOnReadPostsForUser(rctx, postList, rctx.Session().UserId)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if appErr = a.filterInaccessiblePosts(postList, filterPostOptions{}); appErr != nil {
 		return nil, appErr
 	}
 
@@ -1076,6 +1097,22 @@ func (a *App) GetSinglePost(rctx request.CTX, postID string, includeDeleted bool
 		}
 	}
 
+	if post.Type == model.PostTypeBurnOnRead {
+		tmpPostList := model.NewPostList()
+		tmpPostList.Posts[post.Id] = post
+
+		postList, appErr := a.RevealBurnOnReadPostsForUser(rctx, tmpPostList, rctx.Session().UserId)
+		if appErr != nil {
+			return nil, appErr
+		}
+
+		var ok bool
+		post, ok = postList.Posts[post.Id]
+		if !ok {
+			return nil, model.NewAppError("GetSinglePost", "app.post.get.app_error", nil, "", http.StatusNotFound)
+		}
+	}
+
 	firstInaccessiblePostTime, appErr := a.isInaccessiblePost(post)
 	if appErr != nil {
 		return nil, appErr
@@ -1104,6 +1141,12 @@ func (a *App) GetPostThread(rctx request.CTX, postID string, opts model.GetPosts
 		}
 	}
 
+	var appErr *model.AppError
+	posts, appErr = a.RevealBurnOnReadPostsForUser(rctx, posts, userID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
 	// Get inserts the requested post first in the list, then adds the sorted threadPosts.
 	// So, the whole postList.Order is not sorted.
 	// The fully sorted list comes only when the CollapsedThreads is true and the Directions is not empty.
@@ -1112,7 +1155,7 @@ func (a *App) GetPostThread(rctx request.CTX, postID string, opts model.GetPosts
 		filterOptions.assumeSortedCreatedAt = true
 	}
 
-	if appErr := a.filterInaccessiblePosts(posts, filterOptions); appErr != nil {
+	if appErr = a.filterInaccessiblePosts(posts, filterOptions); appErr != nil {
 		return nil, appErr
 	}
 
@@ -1181,6 +1224,12 @@ func (a *App) GetPermalinkPost(rctx request.CTX, postID string, userID string) (
 		}
 	}
 
+	var appErr *model.AppError
+	list, appErr = a.RevealBurnOnReadPostsForUser(rctx, list, userID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
 	if len(list.Order) != 1 {
 		return nil, model.NewAppError("getPermalinkTmp", "api.post_get_post_by_id.get.app_error", nil, "", http.StatusNotFound)
 	}
@@ -1216,6 +1265,12 @@ func (a *App) GetPostsBeforePost(rctx request.CTX, options model.GetPostsOptions
 		}
 	}
 
+	var appErr *model.AppError
+	postList, appErr = a.RevealBurnOnReadPostsForUser(rctx, postList, options.UserId)
+	if appErr != nil {
+		return nil, appErr
+	}
+
 	// GetPostsBefore orders by channel id and deleted at,
 	// before sorting based on created at.
 	// but the deleted at is only ever where deleted at = 0,
@@ -1244,6 +1299,12 @@ func (a *App) GetPostsAfterPost(rctx request.CTX, options model.GetPostsOptions)
 		default:
 			return nil, model.NewAppError("GetPostsAfterPost", "app.post.get_posts_around.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+	}
+
+	var appErr *model.AppError
+	postList, appErr = a.RevealBurnOnReadPostsForUser(rctx, postList, options.UserId)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	// GetPostsAfter orders by channel id and deleted at,
@@ -1282,6 +1343,12 @@ func (a *App) GetPostsAroundPost(rctx request.CTX, before bool, options model.Ge
 		default:
 			return nil, model.NewAppError("GetPostsAroundPost", "app.post.get_posts_around.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+	}
+
+	var appErr *model.AppError
+	postList, appErr = a.RevealBurnOnReadPostsForUser(rctx, postList, options.UserId)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	// GetPostsBefore and GetPostsAfter order by channel id and deleted at,
@@ -2894,4 +2961,124 @@ func getRewritePromptForAction(action model.RewriteAction, message string, custo
 	}
 
 	return ""
+}
+
+func (a *App) RevealPost(rctx request.CTX, post *model.Post, userID string) (*model.Post, *model.AppError) {
+	if post.Type != model.PostTypeBurnOnRead {
+		return nil, model.NewAppError("RevealPost", "app.reveal_post.not_burn_on_read.app_error", nil, fmt.Sprintf("postId=%s", post.Id), http.StatusBadRequest)
+	}
+
+	var expireAt int64
+	exp := post.GetProp(model.PostPropsExpireAt)
+	switch exp := exp.(type) {
+	case int64:
+		expireAt = exp
+	case float64:
+		expireAt = int64(exp)
+	default:
+		return nil, model.NewAppError("RevealPost", "app.reveal_post.missing_expire_at.app_error", nil, fmt.Sprintf("postId=%s", post.Id), http.StatusBadRequest)
+	}
+	if expireAt == 0 {
+		return nil, model.NewAppError("RevealPost", "app.reveal_post.missing_expire_at.app_error", nil, fmt.Sprintf("postId=%s", post.Id), http.StatusBadRequest)
+	}
+
+	now := model.GetMillis()
+	if now >= expireAt {
+		return nil, model.NewAppError("RevealPost", "app.reveal_post.post_expired.app_error", nil, fmt.Sprintf("postId=%s", post.Id), http.StatusBadRequest)
+	}
+
+	receipt, err := a.Srv().Store().ReadReceipt().Get(rctx, post.Id, userID)
+	if err != nil && !store.IsErrNotFound(err) {
+		return nil, model.NewAppError("RevealPost", "app.reveal_post.read_receipt.get.error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if receipt == nil {
+		expiryForUser := min(expireAt, now+model.DefaultReadDurationSeconds*1000)
+
+		receipt = &model.ReadReceipt{
+			UserID:   userID,
+			PostID:   post.Id,
+			ExpireAt: expiryForUser,
+		}
+		_, err = a.Srv().Store().ReadReceipt().Save(rctx, receipt)
+		if err != nil {
+			return nil, model.NewAppError("RevealPost", "app.reveal_post.read_receipt.save.error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	// in case if the user trying to reveal a message that is already expired
+	if receipt.ExpireAt < now {
+		return nil, model.NewAppError("RevealPost", "app.reveal_post.read_receipt_expired.error", nil, "", http.StatusForbidden)
+	}
+
+	post, appErr := a.getBurnOnReadPost(rctx, post)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if post.Metadata == nil {
+		post.Metadata = &model.PostMetadata{}
+	}
+	post.Metadata.ExpireAt = receipt.ExpireAt
+
+	return post, nil
+}
+
+func (a *App) getBurnOnReadPost(rctx request.CTX, post *model.Post) (*model.Post, *model.AppError) {
+	tmpPost, err := a.Srv().Store().TemporaryPost().Get(rctx, post.Id)
+	if err != nil {
+		return nil, model.NewAppError("getBurnOnReadPost", "app.post.get_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	post.Message = tmpPost.Message
+	post.FileIds = tmpPost.FileIDs
+	return post, nil
+}
+
+func (a *App) RevealBurnOnReadPostsForUser(rctx request.CTX, postList *model.PostList, userID string) (*model.PostList, *model.AppError) {
+	for _, post := range postList.BurnOnReadPosts {
+		if post.UserId == userID {
+			tmpPost, appErr := a.getBurnOnReadPost(rctx, post)
+			if appErr != nil {
+				return nil, appErr
+			}
+			postList.Posts[post.Id] = tmpPost
+			continue
+		}
+
+		receipt, err := a.Srv().Store().ReadReceipt().Get(rctx, post.Id, userID)
+		if err != nil && !store.IsErrNotFound(err) {
+			return nil, model.NewAppError("GetPostsPage", "app.post.get_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		if receipt == nil {
+			unrevealedPost := postList.Posts[post.Id].Clone()
+			unrevealedPost.Message = "This message has to be revealed"
+			postList.Posts[post.Id] = unrevealedPost
+			continue
+		}
+
+		if receipt.ExpireAt < model.GetMillis() {
+			for i, orderPostID := range postList.Order {
+				if orderPostID == post.Id {
+					postList.Order = append(postList.Order[:i], postList.Order[i+1:]...)
+					break
+				}
+			}
+			delete(postList.Posts, post.Id)
+			continue
+		}
+
+		tmpPost, appErr := a.getBurnOnReadPost(rctx, post)
+		if appErr != nil {
+			return nil, appErr
+		}
+		if tmpPost.Metadata == nil {
+			tmpPost.Metadata = &model.PostMetadata{}
+		}
+		tmpPost.Metadata.ExpireAt = receipt.ExpireAt
+		postList.Posts[post.Id] = tmpPost
+
+		continue
+	}
+
+	return postList, nil
 }
