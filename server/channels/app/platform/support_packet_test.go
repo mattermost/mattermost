@@ -29,7 +29,6 @@ func TestGenerateSupportPacket(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t)
-	defer th.TearDown()
 
 	dir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
@@ -161,8 +160,7 @@ func TestGenerateSupportPacket(t *testing.T) {
 }
 
 func TestGetSupportPacketDiagnostics(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Setenv(envVarInstallType, "docker")
 
@@ -422,7 +420,6 @@ func TestGetSanitizedConfigFile(t *testing.T) {
 	t.Setenv("MM_FEATUREFLAGS_TestFeature", "true")
 
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.Service.UpdateConfig(func(cfg *model.Config) {
 		cfg.ServiceSettings.AllowedUntrustedInternalConnections = model.NewPointer("example.com")
@@ -456,7 +453,6 @@ func TestGetSanitizedConfigFile(t *testing.T) {
 
 func TestGetCPUProfile(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	fileData, err := th.Service.getCPUProfile(th.Context)
 	require.NoError(t, err)
@@ -466,7 +462,6 @@ func TestGetCPUProfile(t *testing.T) {
 
 func TestGetHeapProfile(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	fileData, err := th.Service.getHeapProfile(th.Context)
 	require.NoError(t, err)
@@ -476,7 +471,6 @@ func TestGetHeapProfile(t *testing.T) {
 
 func TestGetGoroutineProfile(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	fileData, err := th.Service.getGoroutineProfile(th.Context)
 	require.NoError(t, err)
