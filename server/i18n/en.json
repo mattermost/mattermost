@@ -336,6 +336,10 @@
     "translation": "Your license does not support groups"
   },
   {
+    "id": "api.channel.common_teams.user_not_active_member.app_error",
+    "translation": "The user is not an active member of this channel."
+  },
+  {
     "id": "api.channel.create_channel.direct_channel.app_error",
     "translation": "Must use createDirectChannel API service for direct message channel creation."
   },

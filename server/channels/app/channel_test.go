@@ -2866,57 +2866,82 @@ func TestGetDirectOrGroupMessageMembersCommonTeams(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	teamsToCreate := 2
-	usersToCreate := 4 // at least 3 users to create a GM channel, last user is not in any team
-	teams := make([]string, 0, teamsToCreate)
-	for i := 0; i < cap(teams); i++ {
-		team := th.CreateTeam()
-		defer func(team *model.Team) {
-			appErr := th.App.PermanentDeleteTeam(th.Context, team)
-			require.Nil(t, appErr)
-		}(team)
-		teams = append(teams, team.Id)
-	}
+	team1 := th.CreateTeam()
+	team2 := th.CreateTeam()
 
-	users := make([]string, 0, usersToCreate)
-	for i := 0; i < cap(users); i++ {
-		user := th.CreateUser()
-		defer func(user *model.User) {
-			appErr := th.App.PermanentDeleteUser(th.Context, user)
-			require.Nil(t, appErr)
-		}(user)
-		users = append(users, user.Id)
-	}
+	user1 := th.CreateUser()
+	user2 := th.CreateUser()
+	user3 := th.CreateUser()
+	user4NotInAnyTeams := th.CreateUser()
 
-	for _, teamId := range teams {
-		// add first 3 users to each team, last user is not in any team
-		for i := range 3 {
-			_, _, appErr := th.App.AddUserToTeam(th.Context, teamId, users[i], "")
-			require.Nil(t, appErr)
-		}
-	}
+	_, _, appErr := th.App.AddUserToTeam(th.Context, team1.Id, user1.Id, "")
+	require.Nil(t, appErr)
+	_, _, appErr = th.App.AddUserToTeam(th.Context, team1.Id, user2.Id, "")
+	require.Nil(t, appErr)
+	_, _, appErr = th.App.AddUserToTeam(th.Context, team1.Id, user3.Id, "")
+	require.Nil(t, appErr)
 
-	// create GM channel with first 3 users who share common teams
-	gmChannel, appErr := th.App.createGroupChannel(th.Context, users[:3], users[0])
+	_, _, appErr = th.App.AddUserToTeam(th.Context, team2.Id, user1.Id, "")
+	require.Nil(t, appErr)
+	_, _, appErr = th.App.AddUserToTeam(th.Context, team2.Id, user2.Id, "")
+	require.Nil(t, appErr)
+	_, _, appErr = th.App.AddUserToTeam(th.Context, team2.Id, user3.Id, "")
+	require.Nil(t, appErr)
+
+	gmChannel, appErr := th.App.createGroupChannel(th.Context, []string{user1.Id, user2.Id, user3.Id}, user1.Id)
 	require.Nil(t, appErr)
 	require.NotNil(t, gmChannel)
 
-	// normally you can't create a GM channel with users that don't share any teams, but we do it here to test the edge case
-	// create GM channel with last 3 users, where last member is not in any team
-	otherGMChannel, appErr := th.App.createGroupChannel(th.Context, users[1:], users[0])
+	otherGMChannel, appErr := th.App.createGroupChannel(th.Context, []string{user2.Id, user3.Id, user4NotInAnyTeams.Id}, user1.Id)
 	require.Nil(t, appErr)
 	require.NotNil(t, otherGMChannel)
 
 	t.Run("Get teams for GM channel", func(t *testing.T) {
-		commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeams(th.Context, gmChannel.Id)
+		session := &model.Session{
+			UserId: user1.Id,
+		}
+		ctx := th.Context.WithSession(session)
+
+		commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeams(ctx, gmChannel.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, 2, len(commonTeams))
 	})
 
 	t.Run("No common teams", func(t *testing.T) {
-		commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeams(th.Context, otherGMChannel.Id)
+		session := &model.Session{
+			UserId: user2.Id,
+		}
+		ctx := th.Context.WithSession(session)
+
+		commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeams(ctx, otherGMChannel.Id)
 		require.Nil(t, appErr)
 		require.Equal(t, 0, len(commonTeams))
+	})
+
+	t.Run("Deactivated requesting user returns forbidden error", func(t *testing.T) {
+		deactivatedUser := th.CreateUser()
+
+		_, _, appErr := th.App.AddUserToTeam(th.Context, team1.Id, deactivatedUser.Id, "")
+		require.Nil(t, appErr)
+		_, _, appErr = th.App.AddUserToTeam(th.Context, team2.Id, deactivatedUser.Id, "")
+		require.Nil(t, appErr)
+
+		gmWithDeactivated, appErr := th.App.createGroupChannel(th.Context, []string{user1.Id, user2.Id, deactivatedUser.Id}, user1.Id)
+		require.Nil(t, appErr)
+		require.NotNil(t, gmWithDeactivated)
+
+		_, appErr = th.App.UpdateActive(th.Context, deactivatedUser, false)
+		require.Nil(t, appErr)
+
+		session := &model.Session{
+			UserId: deactivatedUser.Id,
+		}
+		ctx := th.Context.WithSession(session)
+
+		commonTeams, appErr := th.App.GetDirectOrGroupMessageMembersCommonTeams(ctx, gmWithDeactivated.Id)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		require.Nil(t, commonTeams)
 	})
 }
 

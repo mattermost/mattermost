@@ -3697,10 +3697,24 @@ func (a *App) GetDirectOrGroupMessageMembersCommonTeams(rctx request.CTX, channe
 		Inactive:    false,
 		Active:      true,
 	})
+	if appErr != nil {
+		return nil, appErr
+	}
 
+	// Ensure the requesting user is an active member of the channel.
+	// This prevents deactivated users from accessing team information.
+	requestingUserID := rctx.Session().UserId
+	requestingUserFound := false
 	userIDs := make([]string, len(users))
 	for i := range users {
 		userIDs[i] = users[i].Id
+		if users[i].Id == requestingUserID {
+			requestingUserFound = true
+		}
+	}
+
+	if !requestingUserFound {
+		return nil, model.NewAppError("GetDirectOrGroupMessageMembersCommonTeams", "api.channel.common_teams.user_not_active_member.app_error", nil, "userId="+requestingUserID, http.StatusForbidden)
 	}
 
 	commonTeamIDs, err := a.Srv().Store().Team().GetCommonTeamIDsForMultipleUsers(userIDs)
