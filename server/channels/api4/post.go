@@ -51,6 +51,7 @@ func (api *API) InitPost() {
 	api.BaseRoutes.Post.Handle("/move", api.APISessionRequired(moveThread)).Methods(http.MethodPost)
 
 	api.BaseRoutes.Posts.Handle("/rewrite", api.APISessionRequired(rewriteMessage)).Methods(http.MethodPost)
+	api.BaseRoutes.Post.Handle("/reveal", api.APISessionRequired(revealPost)).Methods(http.MethodGet)
 }
 
 func createPostChecks(where string, c *Context, post *model.Post) {
@@ -1410,5 +1411,65 @@ func rewriteMessage(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(*response); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func revealPost(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.Config().FeatureFlags.BurnOnRead || !model.MinimumEnterpriseAdvancedLicense(c.App.License()) {
+		c.Err = model.NewAppError("revealPost", "api.post.reveal_post.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	userId := c.AppContext.Session().UserId
+	postId := c.Params.PostId
+
+	auditRec := c.MakeAuditRecord(model.AuditEventRevealPost, model.AuditStatusFail)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+	model.AddEventParameterToAuditRec(auditRec, "post_id", postId)
+	model.AddEventParameterToAuditRec(auditRec, "user_id", userId)
+
+	post, err := c.App.GetPostIfAuthorized(c.AppContext, postId, c.AppContext.Session(), false)
+	if err != nil {
+		c.Err = err
+		if err.Id == "app.post.cloud.get.app_error" {
+			w.Header().Set(model.HeaderFirstInaccessiblePostTime, "1")
+		}
+		return
+	}
+
+	_, err = c.App.GetChannelMember(c.AppContext, post.ChannelId, userId)
+	if err != nil {
+		if err.Id == "app.channel.get_member.missing.app_error" {
+			c.Err = model.NewAppError("revealPost", "api.post.reveal_post.user_not_in_channel.app_error", nil, fmt.Sprintf("postId=%s", c.Params.PostId), http.StatusForbidden)
+		} else {
+			c.Err = err
+		}
+		return
+	}
+
+	if post.UserId == userId {
+		c.Err = model.NewAppError("revealPost", "api.post.reveal_post.cannot_reveal_own_post.app_error", nil, fmt.Sprintf("postId=%s", c.Params.PostId), http.StatusBadRequest)
+		return
+	}
+
+	// should reveal the post
+	// if it's already revealed, it should be a no-op if the post is not expired yet
+	// if it's expired, it should return an error
+	revealedPost, err := c.App.RevealPost(c.AppContext, post, userId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+	auditRec.AddEventResultState(revealedPost)
+
+	if jsErr := revealedPost.EncodeJSON(w); jsErr != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(jsErr))
 	}
 }
