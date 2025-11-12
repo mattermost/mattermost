@@ -114,7 +114,7 @@ func (a *App) FlagPost(rctx request.CTX, post *model.Post, teamId, reportingUser
 			TargetID:   post.Id,
 			TargetType: model.PropertyValueTargetTypePost,
 			GroupID:    groupId,
-			FieldID:    mappedFields[contentFlaggingPropertyNameStatus].ID,
+			FieldID:    mappedFields[ContentFlaggingPropertyNameStatus].ID,
 			Value:      json.RawMessage(fmt.Sprintf(`"%s"`, model.ContentFlaggingStatusPending)),
 		},
 		{
@@ -145,13 +145,16 @@ func (a *App) FlagPost(rctx request.CTX, post *model.Post, teamId, reportingUser
 			FieldID:    mappedFields[contentFlaggingPropertyNameReportingTime].ID,
 			Value:      json.RawMessage(fmt.Sprintf("%d", model.GetMillis())),
 		},
-		{
+	}
+
+	if *a.Config().ContentFlaggingSettings.AdditionalSettings.HideFlaggedContent {
+		propertyValues = append(propertyValues, &model.PropertyValue{
 			TargetID:   post.Id,
 			TargetType: model.PropertyValueTargetTypePost,
 			GroupID:    groupId,
 			FieldID:    mappedFields[contentFlaggingPropertyManageByContentFlagging].ID,
 			Value:      json.RawMessage("true"),
-		},
+		})
 	}
 
 	_, err = a.Srv().propertyService.CreatePropertyValues(propertyValues)
@@ -237,32 +240,32 @@ func (a *App) ContentFlaggingGroupId() (string, *model.AppError) {
 	return group.ID, nil
 }
 
-func (a *App) GetPostContentFlaggingStatusValue(postId string) (*model.PropertyValue, *model.AppError) {
+func (a *App) GetPostContentFlaggingPropertyValue(postId, propertyFieldName string) (*model.PropertyValue, *model.AppError) {
 	groupId, appErr := a.ContentFlaggingGroupId()
 	if appErr != nil {
 		return nil, appErr
 	}
 
-	statusPropertyField, err := a.Srv().propertyService.GetPropertyFieldByName(groupId, "", contentFlaggingPropertyNameStatus)
+	statusPropertyField, err := a.Srv().propertyService.GetPropertyFieldByName(groupId, "", propertyFieldName)
 	if err != nil {
-		return nil, model.NewAppError("GetPostContentFlaggingStatusValue", "app.content_flagging.get_status_property.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("GetPostContentFlaggingPropertyValue", "app.content_flagging.get_status_property.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	searchOptions := model.PropertyValueSearchOpts{TargetIDs: []string{postId}, PerPage: CONTENT_FLAGGING_MAX_PROPERTY_VALUES, FieldID: statusPropertyField.ID}
 	propertyValues, err := a.Srv().propertyService.SearchPropertyValues(groupId, searchOptions)
 	if err != nil {
-		return nil, model.NewAppError("GetPostContentFlaggingStatusValue", "app.content_flagging.search_status_property.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("GetPostContentFlaggingPropertyValue", "app.content_flagging.search_status_property.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	if len(propertyValues) == 0 {
-		return nil, model.NewAppError("GetPostContentFlaggingStatusValue", "app.content_flagging.no_status_property.app_error", nil, "", http.StatusNotFound)
+		return nil, model.NewAppError("GetPostContentFlaggingPropertyValue", "app.content_flagging.no_status_property.app_error", nil, "", http.StatusNotFound)
 	}
 
 	return propertyValues[0], nil
 }
 
 func (a *App) canFlagPost(groupId, postId, userLocal string) *model.AppError {
-	status, appErr := a.GetPostContentFlaggingStatusValue(postId)
+	status, appErr := a.GetPostContentFlaggingPropertyValue(postId, ContentFlaggingPropertyNameStatus)
 	if appErr != nil {
 		if appErr.StatusCode == http.StatusNotFound {
 			return nil
@@ -552,7 +555,7 @@ func (a *App) PermanentDeleteFlaggedPost(rctx request.CTX, actionRequest *model.
 	// generating unsafe JSON values
 	commentJsonValue := json.RawMessage(commentBytes)
 
-	status, appErr := a.GetPostContentFlaggingStatusValue(flaggedPost.Id)
+	status, appErr := a.GetPostContentFlaggingPropertyValue(flaggedPost.Id, ContentFlaggingPropertyNameStatus)
 	if appErr != nil {
 		return appErr
 	}
@@ -688,7 +691,7 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 	// for keeping a flagged flaggedPost we need to-
 	// 1. Undelete the flaggedPost if it was deleted, that's it
 
-	status, appErr := a.GetPostContentFlaggingStatusValue(flaggedPost.Id)
+	status, appErr := a.GetPostContentFlaggingPropertyValue(flaggedPost.Id, ContentFlaggingPropertyNameStatus)
 	if appErr != nil {
 		return appErr
 	}
@@ -708,8 +711,14 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 		return appErr
 	}
 
-	if flaggedPost.DeleteAt > 0 {
-		statusField, ok := mappedFields[contentFlaggingPropertyNameStatus]
+	contentFlaggingManaged, appErr := a.GetPostContentFlaggingPropertyValue(flaggedPost.Id, contentFlaggingPropertyManageByContentFlagging)
+	if appErr != nil {
+		return appErr
+	}
+
+	//if flaggedPost.DeleteAt > 0 {
+	if string(contentFlaggingManaged.Value) == string(json.RawMessage("true")) {
+		statusField, ok := mappedFields[ContentFlaggingPropertyNameStatus]
 		if !ok {
 			return model.NewAppError("KeepFlaggedPost", "app.content_flagging.missing_status_field.app_error", nil, "", http.StatusInternalServerError)
 		}
@@ -938,7 +947,7 @@ func (a *App) SearchReviewers(rctx request.CTX, term string, teamId string) ([]*
 }
 
 func (a *App) AssignFlaggedPostReviewer(rctx request.CTX, flaggedPostId, flaggedPostTeamId, reviewerId, assigneeId string) *model.AppError {
-	statusPropertyValue, appErr := a.GetPostContentFlaggingStatusValue(flaggedPostId)
+	statusPropertyValue, appErr := a.GetPostContentFlaggingPropertyValue(flaggedPostId, ContentFlaggingPropertyNameStatus)
 	if appErr != nil {
 		return appErr
 	}
