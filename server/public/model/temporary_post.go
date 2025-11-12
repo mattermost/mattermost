@@ -13,7 +13,7 @@ type TemporaryPost struct {
 	FileIDs  StringArray `json:"file_ids"`
 }
 
-func (o *TemporaryPost) PreSave() error {
+func (o *TemporaryPost) IsValid() error {
 	if o.ID == "" {
 		return errors.New("id is required")
 	}
@@ -21,6 +21,8 @@ func (o *TemporaryPost) PreSave() error {
 	return nil
 }
 
+// CreateTemporaryPost creates a temporary post from a post object. The post is modified in place.
+// It returns the temporary post and the post object with the message and file ids removed.
 func CreateTemporaryPost(post *Post, expireAt int64) (*TemporaryPost, *Post, error) {
 	temporaryPost := &TemporaryPost{
 		ID:       post.Id,
