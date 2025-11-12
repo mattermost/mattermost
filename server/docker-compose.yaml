@@ -130,8 +130,8 @@ services:
     depends_on:
       - start_dependencies
     volumes:
-      - './../:/home/mattermost-server'
-      - './../../enterprise:/home/enterprise'
+      - './../:/home/mattermost-server:Z'
+      - './../../enterprise:/home/enterprise:Z'
     restart: on-failure
     healthcheck:
       test: ["CMD", "curl", "-f", "http://leader:8065/api/v4/system/ping"]
