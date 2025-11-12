@@ -473,7 +473,7 @@ describe('components/login/Login', () => {
 
             // Mock the getUserLoginType to return 'magic_link'
             const mockGetUserLoginType = jest.fn().mockReturnValue(async () => ({
-                data: 'magic_link',
+                data: 'guest_magic_link',
             }));
             jest.spyOn(loginActions, 'getUserLoginType').mockImplementation(mockGetUserLoginType);
 
