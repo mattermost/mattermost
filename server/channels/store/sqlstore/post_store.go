@@ -1522,29 +1522,26 @@ func (s *SqlPostStore) GetPostsForReporting(rctx request.CTX, queryParams model.
 
 	// Build base query - request one extra to determine if there are more pages
 	query := s.getQueryBuilder().
-		Select("*").
+		Select(postSliceColumns()...).
 		From("Posts").
 		Where(sq.Eq{"ChannelId": queryParams.ChannelId}).
 		OrderBy(fmt.Sprintf("%s %s", timeField, sortDirection), fmt.Sprintf("Id %s", sortDirection)).
 		Limit(uint64(queryParams.PerPage + 1))
 
 	// Apply cursor pagination: continue from where the last query left off using time + ID
+	// Use row value comparison for efficient pagination: (timeField, Id) > (cursor_time, cursor_id)
 	if sortDirection == "ASC" {
-		query = query.Where(sq.Or{
-			sq.Gt{timeField: queryParams.CursorTime},
-			sq.And{
-				sq.Eq{timeField: queryParams.CursorTime},
-				sq.Gt{"Id": queryParams.CursorId},
-			},
-		})
+		query = query.Where(
+			fmt.Sprintf("(%s, Id) > (?, ?)", timeField),
+			queryParams.CursorTime,
+			queryParams.CursorId,
+		)
 	} else {
-		query = query.Where(sq.Or{
-			sq.Lt{timeField: queryParams.CursorTime},
-			sq.And{
-				sq.Eq{timeField: queryParams.CursorTime},
-				sq.Lt{"Id": queryParams.CursorId},
-			},
-		})
+		query = query.Where(
+			fmt.Sprintf("(%s, Id) < (?, ?)", timeField),
+			queryParams.CursorTime,
+			queryParams.CursorId,
+		)
 	}
 
 	// Add delete filter
