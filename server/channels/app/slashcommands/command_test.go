@@ -513,7 +513,7 @@ func TestMentionsToTeamMembers(t *testing.T) {
 
 	otherTeam := th.createTeam(t)
 	otherUser := th.createUser(t)
-	th.LinkUserToTeam(t, t, otherUser, otherTeam)
+	th.linkUserToTeam(t, otherUser, otherTeam)
 
 	fixture := []struct {
 		message     string
