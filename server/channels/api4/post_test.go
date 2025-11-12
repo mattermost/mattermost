@@ -5490,3 +5490,236 @@ func TestRestorePostVersion(t *testing.T) {
 		require.Nil(t, restoredPost)
 	})
 }
+
+func TestRevealPost(t *testing.T) {
+	th := SetupEnterprise(t).InitBasic(t)
+
+	th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
+	th.AddUserToChannel(t, th.SystemAdminUser, th.BasicChannel)
+
+	// Helper to enable feature with license
+	enableFeature := func() {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.BurnOnRead = true
+		})
+	}
+
+	// Helper to create burn-on-read post
+	createBurnOnReadPost := func(client *model.Client4, channel *model.Channel) *model.Post {
+		post := &model.Post{
+			ChannelId: channel.Id,
+			Message:   "burn on read message",
+			Type:      model.PostTypeBurnOnRead,
+		}
+		post.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(model.DefaultExpirySeconds*1000))
+
+		createdPost, resp, err := client.CreatePost(context.Background(), post)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		require.NotNil(t, createdPost)
+		return createdPost
+	}
+
+	// Helper to create and login second user
+	createSecondUser := func(channel *model.Channel) (*model.User, *model.Client4) {
+		user2 := th.CreateUser(t)
+		th.LinkUserToTeam(t, user2, th.BasicTeam)
+		if channel != nil {
+			th.AddUserToChannel(t, user2, channel)
+		}
+		client2 := th.CreateClient()
+		_, _, err := client2.Login(context.Background(), user2.Email, user2.Password)
+		require.NoError(t, err)
+
+		t.Cleanup(func() {
+			_, err = client2.Logout(context.Background())
+			require.NoError(t, err)
+		})
+		return user2, client2
+	}
+
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.BurnOnRead = true
+		})
+
+		// intentionally use th.Client to create the post
+		post := createBurnOnReadPost(th.Client, th.BasicChannel)
+
+		revealedPost, resp, err := client.RevealPost(context.Background(), post.Id)
+		require.Error(t, err)
+		if client == th.LocalClient {
+			CheckNotFoundStatus(t, resp)
+		} else {
+			CheckNotImplementedStatus(t, resp)
+			require.Contains(t, err.Error(), "api.post.reveal_post.disabled.app_error")
+		}
+		require.Nil(t, revealedPost)
+	}, "no enterprise license")
+
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.FeatureFlags.BurnOnRead = false
+		})
+
+		post := createBurnOnReadPost(th.Client, th.BasicChannel)
+
+		revealedPost, resp, err := client.RevealPost(context.Background(), post.Id)
+		require.Error(t, err)
+		if client == th.LocalClient {
+			CheckNotFoundStatus(t, resp)
+		} else {
+			CheckNotImplementedStatus(t, resp)
+			require.Contains(t, err.Error(), "api.post.reveal_post.disabled.app_error")
+		}
+		require.Nil(t, revealedPost)
+	}, "feature not enabled via feature flag")
+
+	th.TestForRegularAndSystemAdminClients(t, func(t *testing.T, client *model.Client4) {
+		enableFeature()
+
+		regularPost := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "regular message",
+		}
+		createdPost, resp, err := th.Client.CreatePost(context.Background(), regularPost)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		_, client2 := createSecondUser(th.BasicChannel)
+
+		revealedPost, resp, err := client2.RevealPost(context.Background(), createdPost.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		require.Contains(t, err.Error(), "app.reveal_post.not_burn_on_read.app_error")
+		require.Nil(t, revealedPost)
+	}, "reveal regular post")
+
+	th.TestForRegularAndSystemAdminClients(t, func(t *testing.T, client *model.Client4) {
+		enableFeature()
+
+		revealedPost, resp, err := th.Client.RevealPost(context.Background(), model.NewId())
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+		require.Nil(t, revealedPost)
+	}, "reveal non-existing post")
+
+	th.TestForRegularAndSystemAdminClients(t, func(t *testing.T, client *model.Client4) {
+		enableFeature()
+
+		post := createBurnOnReadPost(client, th.BasicChannel)
+
+		revealedPost, resp, err := client.RevealPost(context.Background(), post.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		require.Nil(t, revealedPost)
+		require.Contains(t, err.Error(), "api.post.reveal_post.cannot_reveal_own_post.app_error")
+	}, "try reveal own post")
+
+	th.TestForRegularAndSystemAdminClients(t, func(t *testing.T, client *model.Client4) {
+		enableFeature()
+		_, client2 := createSecondUser(th.BasicChannel)
+
+		post := createBurnOnReadPost(client2, th.BasicChannel)
+
+		revealedPost, resp, err := client.RevealPost(context.Background(), post.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotNil(t, revealedPost)
+		require.Equal(t, post.Id, revealedPost.Id)
+		require.Equal(t, "burn on read message", revealedPost.Message)
+		require.NotNil(t, revealedPost.Metadata)
+		require.NotZero(t, revealedPost.Metadata.ExpireAt)
+	}, "reveal someone elses post")
+
+	th.TestForRegularAndSystemAdminClients(t, func(t *testing.T, client *model.Client4) {
+		enableFeature()
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "burn on read message",
+			Type:      model.PostTypeBurnOnRead,
+		}
+		_, client2 := createSecondUser(th.BasicChannel)
+
+		createdPost, resp, err := client2.CreatePost(context.Background(), post)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		// Manually expire the post
+		storePost, err := th.App.Srv().Store().Post().Get(th.Context, createdPost.Id, model.GetPostsOptions{}, "", th.App.Config().GetSanitizeOptions())
+		require.NoError(t, err)
+		require.Len(t, storePost.Posts, 1)
+
+		postToUpdate := storePost.Posts[createdPost.Id]
+		postToUpdate.AddProp(model.PostPropsExpireAt, model.GetMillis()-1000)
+		_, err = th.App.Srv().Store().Post().Overwrite(th.Context, postToUpdate)
+		require.NoError(t, err)
+
+		revealedPost, resp, err := client.RevealPost(context.Background(), createdPost.Id)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		require.Nil(t, revealedPost)
+		require.Contains(t, err.Error(), "app.reveal_post.post_expired.app_error")
+	}, "reveal expired post")
+
+	th.TestForRegularAndSystemAdminClients(t, func(t *testing.T, client *model.Client4) {
+		enableFeature()
+
+		_, client2 := createSecondUser(th.BasicChannel)
+		post := createBurnOnReadPost(client2, th.BasicChannel)
+
+		user := th.BasicUser
+		if client == th.SystemAdminClient {
+			user = th.SystemAdminUser
+		}
+
+		// Create expired read receipt
+		readReceipt, err := th.App.Srv().Store().ReadReceipt().Save(th.Context, &model.ReadReceipt{
+			PostID:   post.Id,
+			UserID:   user.Id,
+			ExpireAt: model.GetMillis() - 1000,
+		})
+		require.NoError(t, err)
+		require.NotNil(t, readReceipt)
+
+		revealedPost, resp, err := client.RevealPost(context.Background(), post.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		require.Nil(t, revealedPost)
+		require.Contains(t, err.Error(), "app.reveal_post.read_receipt_expired.error")
+	}, "reveal post with expired read receipt")
+
+	th.TestForRegularAndSystemAdminClients(t, func(t *testing.T, client *model.Client4) {
+		enableFeature()
+
+		_, client2 := createSecondUser(nil)
+
+		privateChannel, resp, err := client2.CreateChannel(context.Background(), &model.Channel{
+			TeamId:      th.BasicTeam.Id,
+			Type:        model.ChannelTypePrivate,
+			Name:        GenerateTestChannelName(),
+			DisplayName: "Private Channel",
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		post := &model.Post{
+			ChannelId: privateChannel.Id,
+			Message:   "burn on read message",
+			Type:      model.PostTypeBurnOnRead,
+		}
+		post.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(model.DefaultExpirySeconds*1000))
+
+		createdPost, resp, err := client2.CreatePost(context.Background(), post)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+
+		revealedPost, resp, err := client.RevealPost(context.Background(), createdPost.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		require.Nil(t, revealedPost)
+	}, "user without channel access")
+}
