@@ -170,9 +170,9 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 		mockPost1 := &model.Post{Id: "post1", Message: "message1", UserId: userID, ChannelId: channelID}
 		mockPost2 := &model.Post{Id: "post2", Message: "message2", UserId: userID, ChannelId: channelID}
 		mockResponse := &model.ReportPostListResponse{
-			Posts: map[string]*model.Post{
-				"post1": mockPost1,
-				"post2": mockPost2,
+			Posts: []*model.Post{
+				mockPost1,
+				mockPost2,
 			},
 			NextCursor: nil,
 		}
@@ -221,8 +221,8 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 			Cursor: "MTphYmMxMjM6Y3JlYXRlX2F0OmZhbHNlOmZhbHNlOmFzYzoxNzM1NDg4MTIzNDU2OnBvc3Qx",
 		}
 		mockResponse := &model.ReportPostListResponse{
-			Posts: map[string]*model.Post{
-				"post1": mockPost1,
+			Posts: []*model.Post{
+				mockPost1,
 			},
 			NextCursor: nextCursor,
 		}
@@ -268,8 +268,8 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 		mockChannel := model.Channel{Name: channelName, Id: channelID}
 		mockPost1 := &model.Post{Id: "post1", Message: "message1", UserId: userID, ChannelId: channelID}
 		mockResponse := &model.ReportPostListResponse{
-			Posts: map[string]*model.Post{
-				"post1": mockPost1,
+			Posts: []*model.Post{
+				mockPost1,
 			},
 			NextCursor: nil,
 		}
@@ -318,8 +318,8 @@ func (s *MmctlUnitTestSuite) TestReportPostsCmdF() {
 		mockChannel := model.Channel{Name: channelName, Id: channelID}
 		mockPost1 := &model.Post{Id: "post1", Message: "message1", UserId: userID, ChannelId: channelID}
 		mockResponse := &model.ReportPostListResponse{
-			Posts: map[string]*model.Post{
-				"post1": mockPost1,
+			Posts: []*model.Post{
+				mockPost1,
 			},
 			NextCursor: nil,
 		}

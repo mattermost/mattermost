@@ -186,8 +186,7 @@ func TestFillUserReportOptions(t *testing.T) {
 
 func TestGetPostsForReporting(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	// Set up Enterprise license for compliance/reporting features
 	license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise)
@@ -220,7 +219,7 @@ func TestGetPostsForReporting(t *testing.T) {
 			th.App.Srv().SetLicense(license)
 		}()
 
-		th.LoginSystemAdmin()
+		th.LoginSystemAdmin(t)
 
 		requestBody := map[string]any{
 			"channel_id": th.BasicChannel.Id,
@@ -242,7 +241,7 @@ func TestGetPostsForReporting(t *testing.T) {
 			th.App.Srv().SetLicense(license)
 		}()
 
-		th.LoginSystemAdmin()
+		th.LoginSystemAdmin(t)
 
 		requestBody := map[string]any{
 			"channel_id": th.BasicChannel.Id,
@@ -255,7 +254,7 @@ func TestGetPostsForReporting(t *testing.T) {
 	})
 
 	t.Run("should return forbidden error when user lacks permission", func(t *testing.T) {
-		th.LoginBasic()
+		th.LoginBasic(t)
 
 		requestBody := map[string]any{
 			"channel_id": th.BasicChannel.Id,
@@ -268,7 +267,7 @@ func TestGetPostsForReporting(t *testing.T) {
 	})
 
 	t.Run("should return posts when system admin makes request", func(t *testing.T) {
-		th.LoginSystemAdmin()
+		th.LoginSystemAdmin(t)
 
 		requestBody := map[string]any{
 			"channel_id": th.BasicChannel.Id,
@@ -287,7 +286,7 @@ func TestGetPostsForReporting(t *testing.T) {
 	})
 
 	t.Run("should validate required channel_id parameter", func(t *testing.T) {
-		th.LoginSystemAdmin()
+		th.LoginSystemAdmin(t)
 
 		requestBody := map[string]any{
 			"cursor":   "",
@@ -299,7 +298,7 @@ func TestGetPostsForReporting(t *testing.T) {
 	})
 
 	t.Run("should return 404 for non-existent channel", func(t *testing.T) {
-		th.LoginSystemAdmin()
+		th.LoginSystemAdmin(t)
 
 		// Use a valid ID format but for a channel that doesn't exist
 		nonExistentChannelId := model.NewId()
@@ -315,7 +314,7 @@ func TestGetPostsForReporting(t *testing.T) {
 	})
 
 	t.Run("should accept empty cursor for first page", func(t *testing.T) {
-		th.LoginSystemAdmin()
+		th.LoginSystemAdmin(t)
 
 		// Empty cursor is valid for first page
 		// This is the documented behavior in OpenAPI spec and mmctl default
@@ -336,7 +335,7 @@ func TestGetPostsForReporting(t *testing.T) {
 	})
 
 	t.Run("should accept omitted cursor for first page", func(t *testing.T) {
-		th.LoginSystemAdmin()
+		th.LoginSystemAdmin(t)
 
 		// Cursor can be omitted entirely for first page
 		requestBody := map[string]any{
@@ -357,7 +356,7 @@ func TestGetPostsForReporting(t *testing.T) {
 	})
 
 	t.Run("should reject invalid cursor format", func(t *testing.T) {
-		th.LoginSystemAdmin()
+		th.LoginSystemAdmin(t)
 
 		requestBody := map[string]any{
 			"channel_id": th.BasicChannel.Id,
@@ -370,7 +369,7 @@ func TestGetPostsForReporting(t *testing.T) {
 	})
 
 	t.Run("should handle cursor pagination correctly", func(t *testing.T) {
-		th.LoginSystemAdmin()
+		th.LoginSystemAdmin(t)
 
 		// First page
 		requestBody1 := map[string]any{
@@ -412,7 +411,7 @@ func TestGetPostsForReporting(t *testing.T) {
 	})
 
 	t.Run("should support DESC sort order", func(t *testing.T) {
-		th.LoginSystemAdmin()
+		th.LoginSystemAdmin(t)
 
 		// Start from future time and go backwards
 		futureTime := baseTime + (20 * 1000) // Well after all test posts
@@ -444,7 +443,7 @@ func TestGetPostsForReporting(t *testing.T) {
 	})
 
 	t.Run("should use cursor parameters when cursor is provided (self-contained cursor)", func(t *testing.T) {
-		th.LoginSystemAdmin()
+		th.LoginSystemAdmin(t)
 
 		// Create a cursor with sort_direction=desc
 		cursor := model.EncodeReportPostCursor(
@@ -499,7 +498,7 @@ func TestGetPostsForReporting(t *testing.T) {
 	})
 
 	t.Run("should support update_at time field", func(t *testing.T) {
-		th.LoginSystemAdmin()
+		th.LoginSystemAdmin(t)
 
 		requestBody := map[string]any{
 			"channel_id": th.BasicChannel.Id,
@@ -518,7 +517,7 @@ func TestGetPostsForReporting(t *testing.T) {
 	})
 
 	t.Run("should include deleted posts when requested", func(t *testing.T) {
-		th.LoginSystemAdmin()
+		th.LoginSystemAdmin(t)
 
 		// Delete a post
 		deletedPost := testPosts[0]
@@ -578,7 +577,7 @@ func TestGetPostsForReporting(t *testing.T) {
 	})
 
 	t.Run("should exclude all system posts when requested", func(t *testing.T) {
-		th.LoginSystemAdmin()
+		th.LoginSystemAdmin(t)
 
 		// Create various types of system posts with controlled timestamps
 		systemPostTypes := []string{
@@ -623,7 +622,7 @@ func TestGetPostsForReporting(t *testing.T) {
 	})
 
 	t.Run("should enforce max per_page limit", func(t *testing.T) {
-		th.LoginSystemAdmin()
+		th.LoginSystemAdmin(t)
 
 		requestBody := map[string]any{
 			"channel_id": th.BasicChannel.Id,
@@ -642,7 +641,7 @@ func TestGetPostsForReporting(t *testing.T) {
 	})
 
 	t.Run("should validate invalid channel_id format", func(t *testing.T) {
-		th.LoginSystemAdmin()
+		th.LoginSystemAdmin(t)
 
 		// Invalid ID format (not a valid 26-character ID)
 		requestBody := map[string]any{
@@ -656,7 +655,7 @@ func TestGetPostsForReporting(t *testing.T) {
 	})
 
 	t.Run("should reject tampered cursor with invalid TimeField", func(t *testing.T) {
-		th.LoginSystemAdmin()
+		th.LoginSystemAdmin(t)
 
 		// Create a tampered cursor with invalid TimeField
 		tamperedCursor := encodeManualCursor("1", th.BasicChannel.Id, "DROP TABLE Posts", "false", "false", "asc", "1640000000000", model.NewId())
@@ -672,7 +671,7 @@ func TestGetPostsForReporting(t *testing.T) {
 	})
 
 	t.Run("should reject tampered cursor with invalid SortDirection", func(t *testing.T) {
-		th.LoginSystemAdmin()
+		th.LoginSystemAdmin(t)
 
 		// Create a tampered cursor with SQL injection in SortDirection
 		tamperedCursor := encodeManualCursor("1", th.BasicChannel.Id, "create_at", "false", "false", "ASC; DROP TABLE Posts--", "1640000000000", model.NewId())
@@ -688,7 +687,7 @@ func TestGetPostsForReporting(t *testing.T) {
 	})
 
 	t.Run("should reject tampered cursor with invalid ChannelId", func(t *testing.T) {
-		th.LoginSystemAdmin()
+		th.LoginSystemAdmin(t)
 
 		// Create a tampered cursor with invalid channel ID format
 		tamperedCursor := encodeManualCursor("1", "bad_id", "create_at", "false", "false", "asc", "1640000000000", model.NewId())
@@ -704,7 +703,7 @@ func TestGetPostsForReporting(t *testing.T) {
 	})
 
 	t.Run("should reject tampered cursor with invalid CursorId", func(t *testing.T) {
-		th.LoginSystemAdmin()
+		th.LoginSystemAdmin(t)
 
 		// Create a tampered cursor with invalid cursor ID format
 		tamperedCursor := encodeManualCursor("1", th.BasicChannel.Id, "create_at", "false", "false", "asc", "1640000000000", "bad_cursor_id")
