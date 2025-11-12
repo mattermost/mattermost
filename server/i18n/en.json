@@ -2473,6 +2473,10 @@
     "translation": "E10 or E20 license required to use this endpoint."
   },
   {
+    "id": "api.oauth.allow_oauth.pkce_required_public.app_error",
+    "translation": "PKCE (Proof Key for Code Exchange) is required for public OAuth clients using authorization code flow."
+  },
+  {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
     "translation": "invalid_request: Supplied redirect_uri did not match registered callback_url."
   },
@@ -2511,10 +2515,6 @@
   {
     "id": "api.oauth.get_access_token.bad_client_id.app_error",
     "translation": "invalid_request: Bad client_id."
-  },
-  {
-    "id": "api.oauth.get_access_token.bad_client_secret.app_error",
-    "translation": "invalid_request: Missing client_secret."
   },
   {
     "id": "api.oauth.get_access_token.bad_grant.app_error",
@@ -2569,12 +2569,20 @@
     "translation": "invalid_grant: Invalid refresh token."
   },
   {
+    "id": "api.oauth.get_access_token.resource_mismatch.app_error",
+    "translation": "Resource parameter mismatch between authorization and token requests."
+  },
+  {
     "id": "api.oauth.invalid_state_token.app_error",
     "translation": "Invalid state token."
   },
   {
     "id": "api.oauth.redirecting_back",
     "translation": "Redirecting you back to the app."
+  },
+  {
+    "id": "api.oauth.regenerate_secret.public_client.app_error",
+    "translation": "invalid_request: Cannot regenerate secret for public OAuth clients."
   },
   {
     "id": "api.oauth.register_oauth_app.turn_off.app_error",
@@ -9081,6 +9089,26 @@
     "translation": "Invalid client id."
   },
   {
+    "id": "model.authorize.is_valid.code_challenge.app_error",
+    "translation": "Code challenge is required when using PKCE."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge.format.app_error",
+    "translation": "Code challenge must be base64url-encoded (using characters A-Z, a-z, 0-9, -, _)."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge.length.app_error",
+    "translation": "Code challenge must be between 43 and 128 characters long."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge_method.app_error",
+    "translation": "Code challenge method is required when using PKCE."
+  },
+  {
+    "id": "model.authorize.is_valid.code_challenge_method.unsupported.app_error",
+    "translation": "Only 'S256' code challenge method is supported."
+  },
+  {
     "id": "model.authorize.is_valid.create_at.app_error",
     "translation": "Create at must be a valid time."
   },
@@ -9091,6 +9119,22 @@
   {
     "id": "model.authorize.is_valid.redirect_uri.app_error",
     "translation": "Invalid redirect uri."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.has_fragment.app_error",
+    "translation": "Resource parameter cannot contain a fragment component."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.invalid_uri.app_error",
+    "translation": "Resource parameter must be a valid URI."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.length.app_error",
+    "translation": "Resource parameter cannot exceed 512 characters."
+  },
+  {
+    "id": "model.authorize.is_valid.resource.not_absolute.app_error",
+    "translation": "Resource parameter must be an absolute URI."
   },
   {
     "id": "model.authorize.is_valid.response_type.app_error",
@@ -9107,6 +9151,22 @@
   {
     "id": "model.authorize.is_valid.user_id.app_error",
     "translation": "Invalid user id."
+  },
+  {
+    "id": "model.authorize.validate_pkce.not_used_in_auth.app_error",
+    "translation": "PKCE code verifier provided but PKCE was not used during authorization."
+  },
+  {
+    "id": "model.authorize.validate_pkce.public_client_required.app_error",
+    "translation": "PKCE (Proof Key for Code Exchange) is required for public clients."
+  },
+  {
+    "id": "model.authorize.validate_pkce.verification_failed.app_error",
+    "translation": "PKCE code verifier does not match the code challenge."
+  },
+  {
+    "id": "model.authorize.validate_pkce.verifier_required.app_error",
+    "translation": "PKCE code verifier is required when PKCE is used."
   },
   {
     "id": "model.bot.is_valid.create_at.app_error",
@@ -10347,6 +10407,22 @@
   {
     "id": "model.oauth.is_valid.update_at.app_error",
     "translation": "Update at must be a valid time."
+  },
+  {
+    "id": "model.oauth.validate_grant.credentials.app_error",
+    "translation": "Invalid client credentials."
+  },
+  {
+    "id": "model.oauth.validate_grant.pkce_required.app_error",
+    "translation": "PKCE (Proof Key for Code Exchange) is required for public clients."
+  },
+  {
+    "id": "model.oauth.validate_grant.public_client_refresh_token.app_error",
+    "translation": "Public clients cannot use refresh token grant type."
+  },
+  {
+    "id": "model.oauth.validate_grant.public_client_secret.app_error",
+    "translation": "Public clients must not provide a client secret."
   },
   {
     "id": "model.outgoing_hook.icon_url.app_error",

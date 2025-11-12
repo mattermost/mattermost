@@ -27,10 +27,20 @@ func (api *API) InitOAuth() {
 }
 
 func createOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
-	var oauthApp model.OAuthApp
-	if jsonErr := json.NewDecoder(r.Body).Decode(&oauthApp); jsonErr != nil {
+	var appRequest model.OAuthAppRequest
+	if jsonErr := json.NewDecoder(r.Body).Decode(&appRequest); jsonErr != nil {
 		c.SetInvalidParamWithErr("oauth_app", jsonErr)
 		return
+	}
+
+	// Build OAuthApp from request
+	oauthApp := model.OAuthApp{
+		Name:         appRequest.Name,
+		Description:  appRequest.Description,
+		IconURL:      appRequest.IconURL,
+		CallbackUrls: appRequest.CallbackUrls,
+		Homepage:     appRequest.Homepage,
+		IsTrusted:    appRequest.IsTrusted,
 	}
 
 	auditRec := c.MakeAuditRecord(model.AuditEventCreateOAuthApp, model.AuditStatusFail)
@@ -48,8 +58,13 @@ func createOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	oauthApp.CreatorId = c.AppContext.Session().UserId
+	oauthApp.IsDynamicallyRegistered = false
 
-	rapp, err := c.App.CreateOAuthApp(&oauthApp)
+	// Use internal method to control secret generation
+	// Public clients: generateSecret = false (keeps empty secret)
+	// Confidential clients: generateSecret = true (auto-generates secret)
+	generateSecret := !appRequest.IsPublic
+	rapp, err := c.App.CreateOAuthAppInternal(&oauthApp, generateSecret)
 	if err != nil {
 		c.Err = err
 		return
@@ -271,6 +286,12 @@ func regenerateOAuthAppSecret(c *Context, w http.ResponseWriter, r *http.Request
 
 	if oauthApp.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystemWideOAuth) {
 		c.SetPermissionError(model.PermissionManageSystemWideOAuth)
+		return
+	}
+
+	// Prevent regenerating secrets for public clients
+	if oauthApp.IsPublicClient() {
+		c.Err = model.NewAppError("regenerateOAuthAppSecret", "api.oauth.regenerate_secret.public_client.app_error", nil, "app_id="+oauthApp.Id, http.StatusBadRequest)
 		return
 	}
 
