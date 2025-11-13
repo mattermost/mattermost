@@ -596,7 +596,7 @@ export type EmailSettings = {
     SendPushNotifications: boolean;
     PushNotificationServer: string;
     PushNotificationServerType: 'off' | 'mhpns' | 'mtpns' | 'custom';
-    PushNotificationServerLocation: 'us' | 'de';
+    PushNotificationServerLocation: 'global' | 'us' | 'de' | 'jp';
     PushNotificationContents: string;
     PushNotificationBuffer: number;
     EnableEmailBatching: boolean;
@@ -737,6 +737,20 @@ export type LocalizationSettings = {
     DefaultClientLocale: string;
     AvailableLocales: string;
     EnableExperimentalLocales: boolean;
+};
+
+export type AutoTranslationSettings = {
+    Enable: boolean;
+    Provider: '' | 'libretranslate';
+    LibreTranslate: {
+        URL: string;
+        APIKey: string;
+    };
+    TimeoutMs: {
+        NewPost: number;
+        Fetch: number;
+        Notification: number;
+    };
 };
 
 export type SamlSettings = {
@@ -1052,6 +1066,7 @@ export type AdminConfig = {
     ConnectedWorkspacesSettings: ConnectedWorkspacesSettings;
     AccessControlSettings: AccessControlSettings;
     ContentFlaggingSettings: ContentFlaggingSettings;
+    AutoTranslationSettings: AutoTranslationSettings;
 };
 
 export type ReplicaLagSetting = {
