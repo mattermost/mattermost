@@ -10933,14 +10933,6 @@
     "translation": "Failed to serialize translation metadata to JSON."
   },
   {
-    "id": "store.sql_autotranslation.search.app_error",
-    "translation": "Unable to search translations."
-  },
-  {
-    "id": "store.sql_autotranslation.search_trigram.app_error",
-    "translation": "Unable to search translations using trigram."
-  },
-  {
     "id": "store.sql_autotranslation.set_channel_enabled.app_error",
     "translation": "Unable to set channel autotranslation enabled status."
   },

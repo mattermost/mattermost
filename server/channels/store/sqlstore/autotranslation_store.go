@@ -48,6 +48,9 @@ func newSqlAutoTranslationStore(sqlStore *SqlStore) store.AutoTranslationStore {
 	}
 }
 
+// IsChannelEnabled checks if auto-translation is enabled for a channel
+// Uses the existing Channel cache instead of maintaining a separate cache
+// Thus this method is really for completeness; callers should use the Channel cache
 func (s *SqlAutoTranslationStore) IsChannelEnabled(channelID string) (bool, *model.AppError) {
 	query := s.getQueryBuilder().
 		Select("autotranslation").
@@ -80,13 +83,7 @@ func (s *SqlAutoTranslationStore) SetChannelEnabled(channelID string, enabled bo
 		Set("updateAt", model.GetMillis()).
 		Where(sq.Eq{"id": channelID})
 
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return model.NewAppError("SqlAutoTranslationStore.SetChannelEnabled",
-			"store.sql_autotranslation.query_build_error", nil, err.Error(), 500)
-	}
-
-	result, err := s.GetMaster().Exec(queryString, args...)
+	result, err := s.GetMaster().ExecBuilder(query)
 	if err != nil {
 		return model.NewAppError("SqlAutoTranslationStore.SetChannelEnabled",
 			"store.sql_autotranslation.set_channel_enabled.app_error", nil, err.Error(), 500)
@@ -114,18 +111,11 @@ func (s *SqlAutoTranslationStore) IsUserEnabled(userID, channelID string) (bool,
 		Where(sq.Eq{"cm.userid": userID, "cm.channelid": channelID}).
 		Where("c.autotranslation = true")
 
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return false, model.NewAppError("SqlAutoTranslationStore.IsUserEnabled",
-			"store.sql_autotranslation.query_build_error", nil, err.Error(), 500)
-	}
-
 	var enabled bool
-	if err := s.GetReplica().Get(&enabled, queryString, args...); err != nil {
+	if err := s.GetReplica().GetBuilder(&enabled, query); err != nil {
 		if err == sql.ErrNoRows {
 			return false, nil
 		}
-
 		return false, model.NewAppError("SqlAutoTranslationStore.IsUserEnabled",
 			"store.sql_autotranslation.get_user_enabled.app_error", nil, err.Error(), 500)
 	}
@@ -139,13 +129,7 @@ func (s *SqlAutoTranslationStore) SetUserEnabled(userID, channelID string, enabl
 		Set("autotranslation", enabled).
 		Where(sq.Eq{"userid": userID, "channelid": channelID})
 
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return model.NewAppError("SqlAutoTranslationStore.SetUserEnabled",
-			"store.sql_autotranslation.query_build_error", nil, err.Error(), 500)
-	}
-
-	result, err := s.GetMaster().Exec(queryString, args...)
+	result, err := s.GetMaster().ExecBuilder(query)
 	if err != nil {
 		return model.NewAppError("SqlAutoTranslationStore.SetUserEnabled",
 			"store.sql_autotranslation.set_user_enabled.app_error", nil, err.Error(), 500)
@@ -176,14 +160,8 @@ func (s *SqlAutoTranslationStore) GetUserLanguage(userID, channelID string) (str
 		Where("c.autotranslation = true").
 		Where("cm.autotranslation = true")
 
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return "", model.NewAppError("SqlAutoTranslationStore.GetUserLanguage",
-			"store.sql_autotranslation.query_build_error", nil, err.Error(), 500)
-	}
-
 	var locale string
-	if err := s.GetReplica().Get(&locale, queryString, args...); err != nil {
+	if err := s.GetReplica().GetBuilder(&locale, query); err != nil {
 		if err == sql.ErrNoRows {
 			return "", nil
 		}
@@ -218,14 +196,8 @@ func (s *SqlAutoTranslationStore) GetActiveDestinationLanguages(channelID, exclu
 		query = query.Where(sq.NotEq{"cm.userid": excludeUserID})
 	}
 
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return nil, model.NewAppError("SqlAutoTranslationStore.GetActiveDestinationLanguages",
-			"store.sql_autotranslation.query_build_error", nil, err.Error(), 500)
-	}
-
 	var languages []string
-	if err := s.GetReplica().Select(&languages, queryString, args...); err != nil {
+	if err := s.GetReplica().SelectBuilder(&languages, query); err != nil {
 		return nil, model.NewAppError("SqlAutoTranslationStore.GetActiveDestinationLanguages",
 			"store.sql_autotranslation.get_active_languages.app_error", nil, err.Error(), 500)
 	}
@@ -239,14 +211,8 @@ func (s *SqlAutoTranslationStore) Get(objectID, dstLang string) (*model.Translat
 		From("translations").
 		Where(sq.Eq{"objectId": objectID, "dstLang": dstLang})
 
-	queryString, args, qErr := query.ToSql()
-	if qErr != nil {
-		return nil, model.NewAppError("SqlAutoTranslationStore.Get",
-			"store.sql_autotranslation.query_build_error", nil, qErr.Error(), 500)
-	}
-
 	var translation Translation
-	if err := s.GetReplica().Get(&translation, queryString, args...); err != nil {
+	if err := s.GetReplica().GetBuilder(&translation, query); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
@@ -341,13 +307,7 @@ func (s *SqlAutoTranslationStore) Save(translation *model.Translation) *model.Ap
 					updateAt = EXCLUDED.updateAt
 					WHERE translations.normHash IS DISTINCT FROM EXCLUDED.normHash`)
 
-	queryString, args, err := query.ToSql()
-	if err != nil {
-		return model.NewAppError("SqlAutoTranslationStore.Save",
-			"store.sql_autotranslation.query_build_error", nil, err.Error(), 500)
-	}
-
-	if _, err := s.GetMaster().Exec(queryString, args...); err != nil {
+	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
 		return model.NewAppError("SqlAutoTranslationStore.Save",
 			"store.sql_autotranslation.save.app_error", nil, err.Error(), 500)
 	}
