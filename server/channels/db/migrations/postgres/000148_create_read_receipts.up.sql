@@ -5,5 +5,5 @@ CREATE TABLE IF NOT EXISTS ReadReceipts (
     PRIMARY KEY (PostId, UserId)
 );
 
-CREATE INDEX IF NOT EXISTS idx_read_receipts_post_id ON ReadReceipts(postId);
-CREATE INDEX IF NOT EXISTS idx_read_receipts_user_id_post_id_expire_at ON ReadReceipts(userId, postId, expireAt);
+CREATE INDEX IF NOT EXISTS idx_read_receipts_post_id ON ReadReceipts(PostId);
+CREATE INDEX IF NOT EXISTS idx_read_receipts_user_id_post_id_expire_at ON ReadReceipts(UserId, PostId, ExpireAt);
