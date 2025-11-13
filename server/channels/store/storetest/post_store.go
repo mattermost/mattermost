@@ -5812,8 +5812,8 @@ func testGetPostsForReporting(t *testing.T, rctx request.CTX, ss store.Store, s 
 		require.NotNil(t, result1.NextCursor, "should have next cursor")
 
 		// Second page - decode cursor from first page
-		queryParams2, err := model.DecodeReportPostCursorV1(result1.NextCursor.Cursor)
-		require.NoError(t, err)
+		queryParams2, appErr := model.DecodeReportPostCursorV1(result1.NextCursor.Cursor)
+		require.Nil(t, appErr)
 		queryParams2.PerPage = 5
 		result2, err := ss.Post().GetPostsForReporting(rctx, *queryParams2)
 		require.NoError(t, err)
@@ -5932,8 +5932,8 @@ func testGetPostsForReporting(t *testing.T, rctx request.CTX, ss store.Store, s 
 				break
 			}
 			// Decode cursor for next page
-			qp, err := model.DecodeReportPostCursorV1(result.NextCursor.Cursor)
-			require.NoError(t, err)
+			qp, appErr := model.DecodeReportPostCursorV1(result.NextCursor.Cursor)
+			require.Nil(t, appErr)
 			qp.PerPage = 2
 			queryParams = *qp
 			iterations++
