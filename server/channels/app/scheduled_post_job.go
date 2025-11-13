@@ -160,14 +160,14 @@ func (a *App) processScheduledPostBatch(rctx request.CTX, batchNumber int, sched
 	var successfulScheduledPostIDs []string
 	var skippedCount int
 
-	for i := range scheduledPosts {
-		scheduledPost, wasSkipped, err := a.postScheduledPost(rctx, scheduledPosts[i])
+	for _, post := range scheduledPosts {
+		scheduledPost, err := a.postScheduledPost(rctx, post)
 		if err != nil {
 			rctx.Logger().Error(
 				"Scheduled post processing failed",
-				mlog.String("scheduled_post_id", scheduledPosts[i].Id),
-				mlog.String("user_id", scheduledPosts[i].UserId),
-				mlog.String("channel_id", scheduledPosts[i].ChannelId),
+				mlog.String("scheduled_post_id", post.Id),
+				mlog.String("user_id", post.UserId),
+				mlog.String("channel_id", post.ChannelId),
 				mlog.Err(err),
 			)
 			failedScheduledPosts = append(failedScheduledPosts, scheduledPost)
@@ -193,36 +193,26 @@ func (a *App) processScheduledPostBatch(rctx request.CTX, batchNumber int, sched
 	return len(successfulScheduledPostIDs), len(failedScheduledPosts) - skippedCount, skippedCount, nil
 }
 
-// postScheduledPost processes an individual scheduled post and returns the post, whether it was skipped, and error
-func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, bool, error) {
+// postScheduledPost processes an individual scheduled post
+func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.ScheduledPost) (*model.ScheduledPost, error) {
 	// we'll process scheduled posts one by one.
 	// If an error occurs, we'll log it and move onto the next scheduled post
+
+	rctx = rctx.WithLogger(rctx.Logger().With(
+		mlog.String("scheduled_post_id", scheduledPost.Id),
+		mlog.String("user_id", scheduledPost.UserId),
+		mlog.String("channel_id", scheduledPost.ChannelId),
+	))
 
 	channel, appErr := a.GetChannel(rctx, scheduledPost.ChannelId)
 	if appErr != nil {
 		if appErr.StatusCode == http.StatusNotFound {
-			rctx.Logger().Warn(
-				"Channel for scheduled post not found, setting error code",
-				mlog.String("scheduled_post_id", scheduledPost.Id),
-				mlog.String("channel_id", scheduledPost.ChannelId),
-				mlog.String("error_code", model.ScheduledPostErrorCodeChannelNotFound),
-				mlog.Err(appErr),
-			)
-
 			scheduledPost.ErrorCode = model.ScheduledPostErrorCodeChannelNotFound
-			return scheduledPost, true, nil
+			return scheduledPost, errors.Wrapf(appErr, "channel %s  for scheduled post not found  %s", scheduledPost.ChannelId, scheduledPost.Id)
 		}
 
-		rctx.Logger().Error(
-			"Failed to get channel for scheduled post",
-			mlog.String("scheduled_post_id", scheduledPost.Id),
-			mlog.String("channel_id", scheduledPost.ChannelId),
-			mlog.String("error_code", model.ScheduledPostErrorUnknownError),
-			mlog.Err(appErr),
-		)
-
 		scheduledPost.ErrorCode = model.ScheduledPostErrorUnknownError
-		return scheduledPost, false, errors.Wrapf(appErr, "failed to get channel %s for scheduled post %s", scheduledPost.ChannelId, scheduledPost.Id)
+		return scheduledPost, errors.Wrapf(appErr, "failed to get channel %s for scheduled post %s", scheduledPost.ChannelId, scheduledPost.Id)
 	}
 
 	errorCode, err := a.canPostScheduledPost(rctx, scheduledPost, channel)
@@ -230,26 +220,12 @@ func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 	if err != nil {
 		rctx.Logger().Error(
 			"Failed to check if scheduled post can be posted",
-			mlog.String("scheduled_post_id", scheduledPost.Id),
-			mlog.String("user_id", scheduledPost.UserId),
-			mlog.String("channel_id", scheduledPost.ChannelId),
+
 			mlog.String("error_code", errorCode),
 			mlog.Err(err),
 		)
 
-		return scheduledPost, false, errors.Wrapf(err, "failed permissions check for scheduled post %s", scheduledPost.Id)
-	}
-
-	if scheduledPost.ErrorCode != "" {
-		rctx.Logger().Warn(
-			"Skipping posting a scheduled post as validation check failed",
-			mlog.String("scheduled_post_id", scheduledPost.Id),
-			mlog.String("user_id", scheduledPost.UserId),
-			mlog.String("channel_id", scheduledPost.ChannelId),
-			mlog.String("error_code", scheduledPost.ErrorCode),
-		)
-
-		return scheduledPost, true, nil
+		return scheduledPost, errors.Wrapf(err, "failed permissions check post for scheduled post %s", scheduledPost.Id)
 	}
 
 	post, err := scheduledPost.ToPost()
@@ -262,7 +238,7 @@ func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 		)
 
 		scheduledPost.ErrorCode = model.ScheduledPostErrorUnknownError
-		return scheduledPost, false, errors.Wrapf(err, "failed to convert scheduled post %s to post", scheduledPost.Id)
+		return scheduledPost, errors.Wrapf(err, "failed to convert scheduled post %s to post", scheduledPost.Id)
 	}
 
 	createPostFlags := model.CreatePostFlags{
@@ -280,13 +256,13 @@ func (a *App) postScheduledPost(rctx request.CTX, scheduledPost *model.Scheduled
 		)
 
 		scheduledPost.ErrorCode = model.ScheduledPostErrorUnknownError
-		return scheduledPost, false, errors.Wrapf(appErr, "failed to create post for scheduled post %s", scheduledPost.Id)
+		return scheduledPost, errors.Wrapf(appErr, "failed to create post for scheduled post %s", scheduledPost.Id)
 	}
 
 	// send the WS event to delete the just posted scheduledPost from list
 	a.PublishScheduledPostEvent(rctx, model.WebsocketScheduledPostDeleted, scheduledPost, "")
 
-	return scheduledPost, false, nil
+	return scheduledPost, nil
 }
 
 // canPostScheduledPost checks whether the scheduled post be created based on permissions and other checks.
@@ -300,7 +276,7 @@ func (a *App) canPostScheduledPost(rctx request.CTX, scheduledPost *model.Schedu
 				mlog.String("user_id", scheduledPost.UserId),
 				mlog.String("error_code", model.ScheduledPostErrorCodeUserDoesNotExist),
 			)
-			return model.ScheduledPostErrorCodeUserDoesNotExist, nil
+			return model.ScheduledPostErrorCodeUserDoesNotExist, errors.Wrapf(appErr, "user %s not found", scheduledPost.UserId)
 		}
 
 		rctx.Logger().Error(
@@ -310,7 +286,7 @@ func (a *App) canPostScheduledPost(rctx request.CTX, scheduledPost *model.Schedu
 			mlog.String("error_code", model.ScheduledPostErrorUnknownError),
 			mlog.Err(appErr),
 		)
-		return model.ScheduledPostErrorUnknownError, errors.Wrapf(appErr, "failed to get user %s from database", scheduledPost.UserId)
+		return model.ScheduledPostErrorUnknownError, errors.Wrapf(appErr, "failed to get user %s", scheduledPost.UserId)
 	}
 
 	if user.DeleteAt != 0 {
