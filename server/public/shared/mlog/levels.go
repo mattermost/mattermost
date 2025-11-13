@@ -32,20 +32,39 @@ var (
 // !!!!! Custom ID's must be between 20 and 32,768 !!!!!!
 
 var (
-	/* used by the audit system */
+	/* Audit system */
 
-	LvlAuditAPI     = Level{ID: 100, Name: "audit-api"}
+	// LvlAuditAPI is used for auditing REST API endpoint access. This is the most commonly used
+	// audit level and should be applied whenever a REST API endpoint is accessed. It provides
+	// a record of API usage patterns and access.
+	//
+	// Example usage: Logging when a user accesses the /api/v4/posts endpoint.
+	LvlAuditAPI = Level{ID: 100, Name: "audit-api"}
+
+	// LvlAuditContent is used for auditing content-generating operations such as creating posts,
+	// adding reactions, or other actions that create new content in the system. Note that this
+	// level can generate a large volume of logs and is typically disabled by default in production
+	// environments.
+	//
+	// Example usage: Logging when a user creates a new post or adds a reaction.
 	LvlAuditContent = Level{ID: 101, Name: "audit-content"}
-	LvlAuditPerms   = Level{ID: 102, Name: "audit-permissions"}
-	LvlAuditCLI     = Level{ID: 103, Name: "audit-cli"}
-	MLvlAuditAll    = []Level{
+
+	// LvlAuditPerms is used for auditing permissions checks. This level is automatically applied
+	// when permission-related errors occur, helping to track authorization failures and access
+	// control issues.
+	//
+	// Example usage: Logging when a user attempts to access a resource they don't have permission for.
+	LvlAuditPerms = Level{ID: 102, Name: "audit-permissions"}
+
+	// LvlAuditCLI is intended for auditing command-line interface operations. This level was
+	// originally designed for the legacy CLI. It's mostly unused now.
+	LvlAuditCLI  = Level{ID: 103, Name: "audit-cli"}
+	MLvlAuditAll = []Level{
 		LvlAuditAPI,
 		LvlAuditContent,
 		LvlAuditPerms,
 		LvlAuditCLI,
 	}
-
-	/* used by Remote Cluster Service */
 
 	LvlRemoteClusterServiceDebug = Level{ID: 130, Name: "RemoteClusterServiceDebug"}
 	LvlRemoteClusterServiceError = Level{ID: 131, Name: "RemoteClusterServiceError"}
@@ -56,7 +75,7 @@ var (
 		LvlRemoteClusterServiceWarn,
 	}
 
-	/* used by LDAP sync job */
+	/* LDAP sync job */
 
 	LvlLDAPError = Level{ID: 140, Name: "LDAPError"}
 	LvlLDAPWarn  = Level{ID: 141, Name: "LDAPWarn"}
@@ -65,7 +84,7 @@ var (
 	LvlLDAPTrace = Level{ID: 144, Name: "LDAPTrace"}
 	MLvlLDAPAll  = []Level{LvlLDAPError, LvlLDAPWarn, LvlLDAPInfo, LvlLDAPDebug, LvlLDAPTrace}
 
-	/* used by Shared Channel Sync Service */
+	/* Shared Channel Sync Service */
 
 	LvlSharedChannelServiceDebug            = Level{ID: 200, Name: "SharedChannelServiceDebug"}
 	LvlSharedChannelServiceError            = Level{ID: 201, Name: "SharedChannelServiceError"}
@@ -80,7 +99,7 @@ var (
 		LvlSharedChannelServiceMessagesOutbound,
 	}
 
-	/*  used by Notification Service*/
+	/* Notification Service */
 
 	LvlNotificationError = Level{ID: 300, Name: "NotificationError"}
 	LvlNotificationWarn  = Level{ID: 301, Name: "NotificationWarn"}

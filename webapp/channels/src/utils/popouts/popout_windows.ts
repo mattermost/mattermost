@@ -8,6 +8,11 @@ import type {PopoutViewProps} from '@mattermost/desktop-api';
 import DesktopApp from 'utils/desktop_api';
 import {isDesktopApp} from 'utils/user_agent';
 
+import BrowserPopouts from './browser_popouts';
+import {sendToParent as sendToParentBrowser, onMessageFromParent as onMessageFromParentBrowser} from './use_browser_popout';
+
+export const canPopout = Boolean(!isDesktopApp() || DesktopApp.canPopout());
+
 export function popoutThread(intl: IntlShape, threadId: string, teamName: string) {
     return popout(
         `/_popout/thread/${teamName}/${threadId}`,
@@ -24,9 +29,9 @@ export function popoutThread(intl: IntlShape, threadId: string, teamName: string
  */
 
 type PopoutListeners = {
-    send: (channel: string, ...args: unknown[]) => void;
-    message: (listener: (channel: string, ...args: unknown[]) => void) => void;
-    closed: (listener: () => void) => void;
+    sendToPopout: (channel: string, ...args: unknown[]) => void;
+    onMessageFromPopout: (listener: (channel: string, ...args: unknown[]) => void) => void;
+    onClosePopout: (listener: () => void) => void;
 };
 
 async function popout(path: string, desktopProps?: PopoutViewProps): Promise<Partial<PopoutListeners>> {
@@ -34,23 +39,22 @@ async function popout(path: string, desktopProps?: PopoutViewProps): Promise<Par
         return DesktopApp.setupDesktopPopout(path, desktopProps);
     }
 
-    // Coming soon: browser popouts
-    return Promise.resolve({});
+    return Promise.resolve(BrowserPopouts.setupBrowserPopout(path));
 }
 
-export async function sendToParent(channel: string, ...args: unknown[]) {
+export function sendToParent(channel: string, ...args: unknown[]) {
     if (isDesktopApp()) {
-        DesktopApp.sendToParentWindow(channel, ...args);
+        return DesktopApp.sendToParentWindow(channel, ...args);
     }
 
-    // Coming soon: browser popouts
+    return sendToParentBrowser(channel, ...args);
 }
 
-export async function onMessageFromParent(listener: (channel: string, ...args: unknown[]) => void) {
+export function onMessageFromParent(listener: (channel: string, ...args: unknown[]) => void) {
     if (isDesktopApp()) {
-        DesktopApp.onMessageFromParentWindow(listener);
+        return DesktopApp.onMessageFromParentWindow(listener);
     }
 
-    // Coming soon: browser popouts
+    return onMessageFromParentBrowser(listener);
 }
 

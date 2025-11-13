@@ -31,7 +31,15 @@ func (a *App) canSendPushNotifications() bool {
 	}
 
 	pushServer := *a.Config().EmailSettings.PushNotificationServer
-	if license := a.Srv().License(); pushServer == model.MHPNS && (license == nil || !*license.Features.MHPNS) {
+	// Check for MHPNS servers (both current and legacy DNS aliases)
+	isMHPNSServer := pushServer == model.MHPNS ||
+		pushServer == model.MHPNSLegacyUS ||
+		pushServer == model.MHPNSLegacyDE ||
+		pushServer == model.MHPNSGlobal ||
+		pushServer == model.MHPNSUS ||
+		pushServer == model.MHPNSEU ||
+		pushServer == model.MHPNSAP
+	if license := a.Srv().License(); isMHPNSServer && (license == nil || !*license.Features.MHPNS) {
 		a.Log().LogM(mlog.MlvlNotificationWarn, "Push notifications are disabled - license missing",
 			mlog.String("status", model.NotificationStatusNotSent),
 			mlog.String("reason", "push_disabled_license"),
