@@ -1321,10 +1321,10 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		autocomplete.Users = result
 	}
 
-	// Fetch agents for autocomplete
-	agents, appErr := c.App.GetAgents(c.AppContext, c.AppContext.Session().UserId)
-	if appErr == nil && agents != nil {
-		autocomplete.Agents = agents
+	// Fetch agent users for autocomplete
+	agentUsers, appErr := c.App.GetUsersForAgents(c.AppContext, c.AppContext.Session().UserId)
+	if appErr == nil && agentUsers != nil {
+		autocomplete.Agents = agentUsers
 	}
 
 	if err := json.NewEncoder(w).Encode(autocomplete); err != nil {

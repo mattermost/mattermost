@@ -5,7 +5,6 @@ import React from 'react';
 import {defineMessage} from 'react-intl';
 
 import {CreationOutlineIcon} from '@mattermost/compass-icons/components';
-import type {Agent} from '@mattermost/types/agents';
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -308,43 +307,19 @@ export default class AtMentionProvider extends Provider {
         // Combine the local and remote members, sorting to mix the results together.
         const localAndRemoteMembers = localMembers.concat(remoteMembers).sort(orderUsers);
 
-        // Get agents and filter by search term
+        // Get agents - these are already User objects from the backend
         // Only show agents if bridge is enabled (indicated by presence of agents data)
         const agents: CreatedProfile[] = [];
         if (this.data && this.data.agents && Array.isArray(this.data.agents) && this.data.agents.length > 0) {
-            const rawAgents = this.data.agents as Agent[];
-            rawAgents.forEach((agent: Agent) => {
-                // Filter agents by username or displayName matching the search term
+            const agentUsers = this.data.agents as UserProfileWithLastViewAt[];
+            agentUsers.forEach((user: UserProfileWithLastViewAt) => {
+                // Filter agents by username or first_name matching the search term
                 const searchTerm = this.latestPrefix.toLowerCase();
-                const matchesUsername = agent.username.toLowerCase().includes(searchTerm);
-                const matchesDisplayName = agent.displayName.toLowerCase().includes(searchTerm);
+                const matchesUsername = user.username.toLowerCase().includes(searchTerm);
+                const matchesFirstName = user.first_name?.toLowerCase().includes(searchTerm);
 
-                if (matchesUsername || matchesDisplayName) {
-                    // Convert Agent to CreatedProfile format
-                    const agentProfile: any = {
-                        id: agent.id,
-                        username: agent.username,
-                        nickname: '',
-                        first_name: agent.displayName,
-                        last_name: '',
-                        email: '',
-                        roles: '',
-                        position: '',
-                        delete_at: 0,
-                        create_at: 0,
-                        update_at: 0,
-                        is_bot: true,
-                        locale: '',
-                        timezone: {
-                            useAutomaticTimezone: 'true',
-                            automaticTimezone: '',
-                            manualTimezone: '',
-                        },
-                        password: '',
-                        auth_service: '',
-                        props: {},
-                        notify_props: {},
-                    };
+                if (matchesUsername || matchesFirstName) {
+                    const agentProfile = this.createFromProfile(user);
                     agents.push(agentProfile);
                 }
             });

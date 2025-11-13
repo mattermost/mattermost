@@ -13,7 +13,7 @@ type UserAutocompleteInTeam struct {
 }
 
 type UserAutocomplete struct {
-	Users        []*User     `json:"users"`
-	OutOfChannel []*User     `json:"out_of_channel,omitempty"`
-	Agents       interface{} `json:"agents,omitempty"`
+	Users        []*User `json:"users"`
+	OutOfChannel []*User `json:"out_of_channel,omitempty"`
+	Agents       []*User `json:"agents,omitempty"`
 }
