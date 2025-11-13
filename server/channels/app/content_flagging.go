@@ -712,12 +712,14 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 	}
 
 	contentFlaggingManaged, appErr := a.GetPostContentFlaggingPropertyValue(flaggedPost.Id, contentFlaggingPropertyManageByContentFlagging)
-	if appErr != nil {
+	if appErr != nil && appErr.StatusCode != http.StatusNotFound {
 		return appErr
 	}
 
+	postHiddenByContentFlagging := contentFlaggingManaged != nil && string(contentFlaggingManaged.Value) == "true"
+
 	//if flaggedPost.DeleteAt > 0 {
-	if string(contentFlaggingManaged.Value) == string(json.RawMessage("true")) {
+	if postHiddenByContentFlagging {
 		statusField, ok := mappedFields[ContentFlaggingPropertyNameStatus]
 		if !ok {
 			return model.NewAppError("KeepFlaggedPost", "app.content_flagging.missing_status_field.app_error", nil, "", http.StatusInternalServerError)
@@ -792,12 +794,14 @@ func (a *App) KeepFlaggedPost(rctx request.CTX, actionRequest *model.FlagContent
 		}
 	})
 
-	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", flaggedPost.ChannelId, "", nil, "")
-	appErr = a.publishWebsocketEventForPost(rctx, flaggedPost, message)
-	if appErr != nil {
-		rctx.Logger().Error("Failed to publish websocket event for post edit while keeping flagged post", mlog.Err(appErr), mlog.String("post_id", flaggedPost.Id))
+	if postHiddenByContentFlagging {
+		message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", flaggedPost.ChannelId, "", nil, "")
+		appErr = a.publishWebsocketEventForPost(rctx, flaggedPost, message)
+		if appErr != nil {
+			rctx.Logger().Error("Failed to publish websocket event for post edit while keeping flagged post", mlog.Err(appErr), mlog.String("post_id", flaggedPost.Id))
+		}
+		a.invalidateCacheForChannelPosts(flaggedPost.ChannelId)
 	}
-	a.invalidateCacheForChannelPosts(flaggedPost.ChannelId)
 
 	a.Srv().Go(func() {
 		a.sendKeepFlaggedPostNotification(rctx, flaggedPost, reviewerId, actionRequest.Comment, groupId)
