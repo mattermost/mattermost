@@ -7727,3 +7727,12 @@ func (c *Client4) SearchChannelsForAccessControlPolicy(ctx context.Context, poli
 	defer closeBody(r)
 	return DecodeJSONFromResponse[*ChannelsWithCount](r)
 }
+
+func (c *Client4) RevealPost(ctx context.Context, postID string) (*Post, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.postRoute(postID)+"/reveal", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Post](r)
+}
