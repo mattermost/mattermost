@@ -732,6 +732,10 @@
     "translation": "Email invite(s) sent"
   },
   {
+    "id": "api.command.move_command.creator_no_permission.app_error",
+    "translation": "No permission to move command"
+  },
+  {
     "id": "api.command.team_mismatch.app_error",
     "translation": "Unable to update commands across teams."
   },
