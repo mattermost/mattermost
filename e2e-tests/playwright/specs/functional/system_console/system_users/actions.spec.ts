@@ -191,7 +191,7 @@ test('MM-T5520-6 should revoke sessions', async ({pw}) => {
 
     // # Open menu and revoke sessions
     await systemConsolePage.systemUsers.actionMenuButtons[0].click();
-    const removeSessions = await systemConsolePage.systemUsersActionMenus[0].getMenuItem('Remove sessions');
+    const removeSessions = await systemConsolePage.systemUsersActionMenus[0].getMenuItem('Revoke sessions');
     await removeSessions.click();
 
     // # Press confirm on the modal

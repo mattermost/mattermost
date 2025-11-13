@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/learn_more_trial_modal/learn_more_trial_modal_step should match snapshot 1`] = `
 <ContextProvider
