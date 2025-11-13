@@ -1219,21 +1219,15 @@ test('links to child pages in page hierarchy', {tag: '@pages'}, async ({pw, shar
     const linkHref = await pageLink.getAttribute('href');
     expect(linkHref).toContain(childPageId);
 
-    // * Click the link and handle new tab (links have target="_blank")
-    const [newPage] = await Promise.all([
-        page.context().waitForEvent('page'),
-        pageLink.click(),
-    ]);
+    // * Click the link and verify navigation to child page (links navigate in same tab)
+    await pageLink.click();
 
-    // Wait for the new tab to load
-    await newPage.waitForLoadState('networkidle');
+    // Wait for navigation to complete
+    await page.waitForLoadState('networkidle');
 
-    // * Verify the new tab shows the child page content
-    const childPageContent = newPage.locator('[data-testid="page-viewer-content"]');
+    // * Verify the page shows the child page content
+    const childPageContent = page.locator('[data-testid="page-viewer-content"]');
     await expect(childPageContent).toContainText('This is a child page', {timeout: 15000});
-
-    // Clean up - close the new tab
-    await newPage.close();
 });
 
 /**

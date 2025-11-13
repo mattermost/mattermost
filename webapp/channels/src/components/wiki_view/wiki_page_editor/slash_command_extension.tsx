@@ -105,9 +105,20 @@ export const SlashCommandExtension = Extension.create<{
                                         const rect = clientRect();
                                         if (rect) {
                                             popup.style.position = 'absolute';
-                                            popup.style.top = `${rect.bottom + window.scrollY}px`;
                                             popup.style.left = `${rect.left + window.scrollX}px`;
                                             popup.style.zIndex = '1000';
+
+                                            const menuHeight = 400;
+                                            const spaceBelow = window.innerHeight - rect.bottom;
+                                            const spaceAbove = rect.top;
+
+                                            if (spaceBelow < menuHeight && spaceAbove > spaceBelow) {
+                                                popup.style.bottom = `${window.innerHeight - rect.top - window.scrollY}px`;
+                                                popup.style.top = 'auto';
+                                            } else {
+                                                popup.style.top = `${rect.bottom + window.scrollY}px`;
+                                                popup.style.bottom = 'auto';
+                                            }
                                         }
                                     }
 
@@ -132,8 +143,19 @@ export const SlashCommandExtension = Extension.create<{
                                     if (popup && clientRect) {
                                         const rect = clientRect();
                                         if (rect) {
-                                            popup.style.top = `${rect.bottom + window.scrollY}px`;
                                             popup.style.left = `${rect.left + window.scrollX}px`;
+
+                                            const menuHeight = 400;
+                                            const spaceBelow = window.innerHeight - rect.bottom;
+                                            const spaceAbove = rect.top;
+
+                                            if (spaceBelow < menuHeight && spaceAbove > spaceBelow) {
+                                                popup.style.bottom = `${window.innerHeight - rect.top - window.scrollY}px`;
+                                                popup.style.top = 'auto';
+                                            } else {
+                                                popup.style.top = `${rect.bottom + window.scrollY}px`;
+                                                popup.style.bottom = 'auto';
+                                            }
                                         }
                                     }
 

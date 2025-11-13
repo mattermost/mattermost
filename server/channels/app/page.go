@@ -181,7 +181,7 @@ func (a *App) CreatePage(rctx request.CTX, channelID, title, pageParentID, conte
 			return nil, depthErr
 		}
 		newPageDepth := parentDepth + 1
-		if newPageDepth >= model.PostPageMaxDepth {
+		if newPageDepth > model.PostPageMaxDepth {
 			return nil, model.NewAppError("CreatePage", "app.page.create.max_depth_exceeded.app_error",
 				map[string]any{"MaxDepth": model.PostPageMaxDepth},
 				"page hierarchy cannot exceed maximum depth", http.StatusBadRequest)
@@ -674,7 +674,7 @@ func (a *App) ChangePageParent(rctx request.CTX, postID string, newParentID stri
 			return depthErr
 		}
 		newPageDepth := parentDepth + 1
-		if newPageDepth >= model.PostPageMaxDepth {
+		if newPageDepth > model.PostPageMaxDepth {
 			return model.NewAppError("ChangePageParent", "app.page.change_parent.max_depth_exceeded.app_error",
 				map[string]any{"MaxDepth": model.PostPageMaxDepth},
 				"page hierarchy cannot exceed maximum depth", http.StatusBadRequest)

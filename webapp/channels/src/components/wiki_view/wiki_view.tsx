@@ -57,23 +57,32 @@ const WikiView = () => {
     // Fullscreen state
     const [isFullscreen, setIsFullscreen] = React.useState(false);
 
+    // Store panel state before entering fullscreen
+    const panelStateBeforeFullscreenRef = React.useRef<boolean | null>(null);
+
     // Version history modal state
     const [showVersionHistory, setShowVersionHistory] = React.useState(false);
     const [versionHistoryPageId, setVersionHistoryPageId] = React.useState<string | null>(null);
 
     // Toggle fullscreen
-    const toggleFullscreen = () => {
+    const toggleFullscreen = React.useCallback(() => {
         const newFullscreenState = !isFullscreen;
         setIsFullscreen(newFullscreenState);
 
-        // When entering fullscreen, collapse the pages panel
-        // When exiting fullscreen, restore it to open
         if (newFullscreenState) {
+            // Entering fullscreen: save current panel state and close panel
+            panelStateBeforeFullscreenRef.current = isPanesPanelCollapsed;
             dispatch(closePagesPanel());
         } else {
-            dispatch(openPagesPanel());
+            // Exiting fullscreen: restore previous panel state
+            if (panelStateBeforeFullscreenRef.current === false) {
+                // Panel was open before fullscreen, restore to open
+                dispatch(openPagesPanel());
+            }
+            // If panel was closed before fullscreen (true), keep it closed
+            panelStateBeforeFullscreenRef.current = null;
         }
-    };
+    }, [isFullscreen, isPanesPanelCollapsed, dispatch]);
 
     // Handle version history
     const handleVersionHistory = (targetPageId: string) => {
@@ -90,13 +99,13 @@ const WikiView = () => {
     React.useEffect(() => {
         const handleKeydown = (event: KeyboardEvent) => {
             if (event.key === 'Escape' && isFullscreen) {
-                setIsFullscreen(false);
+                toggleFullscreen();
             }
         };
 
         window.addEventListener('keydown', handleKeydown);
         return () => window.removeEventListener('keydown', handleKeydown);
-    }, [isFullscreen]);
+    }, [isFullscreen, toggleFullscreen]);
 
     // Body class management
     React.useEffect(() => {
