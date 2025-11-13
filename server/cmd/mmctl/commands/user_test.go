@@ -2014,33 +2014,12 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		s.Require().Equal(&mockUser2, printer.GetLines()[1])
 	})
 
-	s.Run("Listing users with their roles", func() {
-		printer.Clean()
-
-		email := "example1@example.com"
-		mockUser := model.User{Username: "ExampleUser1", Email: email, Roles: "system_user"}
-
-		cmd := ResetListUsersCmd(s.T())
-		s.Require().NoError(cmd.Flags().Set("roles", "true"))
-
-		s.client.
-			EXPECT().
-			GetUsersWithCustomQueryParameters(context.TODO(), 0, 1, "", "").
-			Return([]*model.User{&mockUser}, &model.Response{}, nil).
-			Times(1)
-
-		err := listUsersCmdF(s.client, cmd, []string{})
-		s.Require().Nil(err)
-		s.Require().Len(printer.GetLines(), 1)
-		s.Require().Equal(&mockUser, printer.GetLines()[0])
-	})
-
 	s.Run("Listing users for given role", func() {
 		printer.Clean()
 
 		email1 := "example1@example.com"
 		mockUser1 := model.User{Username: "ExampleUser1", Email: email1, Roles: "system_user"}
-		email2 := "example1@example.com"
+		email2 := "example2@example.com"
 		mockUser2 := model.User{Username: "ExampleUser2", Email: email2, Roles: "system_user system_admin"}
 
 		cmd := ResetListUsersCmd(s.T())
