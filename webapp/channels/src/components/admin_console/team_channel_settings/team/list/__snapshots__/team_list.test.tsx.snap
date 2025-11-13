@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`admin_console/team_channel_settings/team/TeamList should match snapshot 1`] = `
 <div
@@ -127,6 +127,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
                 >
                   DN
                 </b>
+                
               </div>
             </div>,
           },
@@ -273,6 +274,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
                 >
                   DN0
                 </b>
+                
               </div>
             </div>,
           },
@@ -323,6 +325,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
                 >
                   DN1
                 </b>
+                
               </div>
             </div>,
           },
@@ -373,6 +376,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
                 >
                   DN2
                 </b>
+                
               </div>
             </div>,
           },
@@ -423,6 +427,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
                 >
                   DN3
                 </b>
+                
               </div>
             </div>,
           },
@@ -473,6 +478,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
                 >
                   DN4
                 </b>
+                
               </div>
             </div>,
           },
@@ -523,6 +529,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
                 >
                   DN5
                 </b>
+                
               </div>
             </div>,
           },
@@ -573,6 +580,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
                 >
                   DN6
                 </b>
+                
               </div>
             </div>,
           },
@@ -623,6 +631,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
                 >
                   DN7
                 </b>
+                
               </div>
             </div>,
           },
@@ -673,6 +682,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
                 >
                   DN8
                 </b>
+                
               </div>
             </div>,
           },
@@ -723,6 +733,7 @@ exports[`admin_console/team_channel_settings/team/TeamList should match snapshot
                 >
                   DN9
                 </b>
+                
               </div>
             </div>,
           },

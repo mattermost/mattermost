@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/admin_console/SchemaAdminSettings should match snapshot with custom component 1`] = `
 <component
@@ -620,7 +620,11 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
               }
             }
             disabled={false}
-            helpText={<span />}
+            helpText={
+              <span>
+                
+              </span>
+            }
             id="custom"
             key="Config_custom_custom"
             label=""
