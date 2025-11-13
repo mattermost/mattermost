@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestStatus(t *testing.T) {
@@ -31,9 +32,8 @@ func TestStatusListToJSON(t *testing.T) {
 	assert.NoError(t, err)
 
 	var dat []map[string]any
-	if err := json.Unmarshal(jsonStatuses, &dat); err != nil {
-		panic(err)
-	}
+	err = json.Unmarshal(jsonStatuses, &dat)
+	require.NoError(t, err)
 
 	assert.Len(t, dat, 2)
 

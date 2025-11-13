@@ -10921,10 +10921,6 @@
     "translation": "Failed to update flagged post status when permanently deleting flagged post."
   },
   {
-    "id": "app.content_flagging.restore_file_info.app_error",
-    "translation": "Failed to restore file info for the flagged post."
-  },
-  {
     "id": "app.content_flagging.save_reviewer_settings.app_error",
     "translation": "Failed to save content reviewer settings to the database."
   },
