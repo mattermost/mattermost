@@ -27,9 +27,10 @@ type Props = {
     id: string;
     onChange: SystemConsoleCustomSettingChangeHandler;
     value: ContentFlaggingAdditionalSettings;
+    disabled?: boolean;
 }
 
-export default function ContentFlaggingAdditionalSettingsSection({id, onChange, value}: Props) {
+export default function ContentFlaggingAdditionalSettingsSection({id, onChange, value, disabled = false}: Props) {
     const [additionalSettings, setAdditionalSettings] = React.useState<ContentFlaggingAdditionalSettings>(value as ContentFlaggingAdditionalSettings);
 
     const handleReasonsChange = useCallback((newValues: OnChangeValue<{ value: string }, true>) => {
@@ -129,6 +130,7 @@ export default function ContentFlaggingAdditionalSettingsSection({id, onChange, 
                                 value={reasonOptions}
                                 placeholder={'Type and press Tab to add a reason'}
                                 onChange={handleReasonsChange}
+                                isDisabled={disabled}
                                 components={{
                                     DropdownIndicator: () => null,
                                     Menu: () => null,
@@ -157,6 +159,7 @@ export default function ContentFlaggingAdditionalSettingsSection({id, onChange, 
                                 name='requireReporterComment'
                                 value='true'
                                 checked={additionalSettings.ReporterCommentRequired}
+                                disabled={disabled}
                                 handleChange={handleRequireReporterCommentChange}
                             />
 
@@ -167,6 +170,7 @@ export default function ContentFlaggingAdditionalSettingsSection({id, onChange, 
                                 name='requireReporterComment'
                                 value='false'
                                 checked={!additionalSettings.ReporterCommentRequired}
+                                disabled={disabled}
                                 handleChange={handleRequireReporterCommentChange}
                             />
                         </div>
@@ -188,6 +192,7 @@ export default function ContentFlaggingAdditionalSettingsSection({id, onChange, 
                                 name='requireReviewerComment'
                                 value='true'
                                 checked={additionalSettings.ReviewerCommentRequired}
+                                disabled={disabled}
                                 handleChange={handleRequireReviewerCommentChange}
                             />
 
@@ -198,6 +203,7 @@ export default function ContentFlaggingAdditionalSettingsSection({id, onChange, 
                                 name='requireReviewerComment'
                                 value='false'
                                 checked={!additionalSettings.ReviewerCommentRequired}
+                                disabled={disabled}
                                 handleChange={handleRequireReviewerCommentChange}
                             />
                         </div>
@@ -219,6 +225,7 @@ export default function ContentFlaggingAdditionalSettingsSection({id, onChange, 
                                 name='hideFlaggedPosts'
                                 value='true'
                                 checked={additionalSettings.HideFlaggedContent}
+                                disabled={disabled}
                                 handleChange={handleHideFlaggedPosts}
                             />
 
@@ -229,6 +236,7 @@ export default function ContentFlaggingAdditionalSettingsSection({id, onChange, 
                                 name='setHideFlaggedPosts'
                                 value='false'
                                 checked={!additionalSettings.HideFlaggedContent}
+                                disabled={disabled}
                                 handleChange={handleHideFlaggedPosts}
                             />
                         </div>

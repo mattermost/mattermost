@@ -22,11 +22,13 @@ if (!(/^\d+\.\d+\.\d+(\-\d+)?$/).test(version)) {
 const workspaces = [
     'channels',
     'platform/client',
+    'platform/design-system',
     'platform/mattermost-redux',
     'platform/types',
 ];
 const packages = [
     '@mattermost/client',
+    '@mattermost/design-system',
     '@mattermost/types',
 ];
 
