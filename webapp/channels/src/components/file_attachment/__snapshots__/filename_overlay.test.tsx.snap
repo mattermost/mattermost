@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/file_attachment/FilenameOverlay should match snapshot, compact display 1`] = `
 <WithTooltip

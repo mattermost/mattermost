@@ -68,6 +68,7 @@ type State = {
     icon_url: string;
     callbackUrls: string;
     is_trusted: boolean;
+    is_public: boolean;
     has_icon: boolean;
     saving: boolean;
     clientError: JSX.Element | null | string;
@@ -87,6 +88,10 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
     }
 
     getStateFromApp = (app: OAuthApp) => {
+        // Determine if this is a public client by checking if the secret is empty
+        // Only apply this detection if we have an existing app with an ID
+        const isPublicClient = app.id && (!app.client_secret || app.client_secret === '');
+
         return {
             name: app.name || '',
             description: app.description || '',
@@ -94,6 +99,7 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
             icon_url: app.icon_url || '',
             callbackUrls: app.callback_urls ? app.callback_urls.join('\n') : '',
             is_trusted: app.is_trusted || false,
+            is_public: app.is_public ?? (isPublicClient || false),
             has_icon: Boolean(app.icon_url),
             saving: false,
             clientError: null,
@@ -135,7 +141,9 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
             return;
         }
 
-        if (!this.state.description) {
+        const isDynamicallyRegistered = this.props.initialApp?.is_dynamically_registered || false;
+
+        if (!this.state.description && !isDynamicallyRegistered) {
             this.setState({
                 saving: false,
                 clientError: (
@@ -149,7 +157,7 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
             return;
         }
 
-        if (!this.state.homepage) {
+        if (!this.state.homepage && !isDynamicallyRegistered) {
             this.setState({
                 saving: false,
                 clientError: (
@@ -192,6 +200,7 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
             homepage: this.state.homepage,
             description: this.state.description,
             is_trusted: this.state.is_trusted,
+            is_public: this.state.is_public,
             icon_url: this.state.icon_url,
         } as OAuthApp;
 
@@ -207,6 +216,12 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
     updateTrusted = (e: ChangeEvent<HTMLInputElement>) => {
         this.setState({
             is_trusted: e.target.value === 'true',
+        });
+    };
+
+    updatePublic = (e: ChangeEvent<HTMLInputElement>) => {
+        this.setState({
+            is_public: e.target.value === 'true',
         });
     };
 
@@ -303,6 +318,54 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
             </SystemPermissionGate>
         );
 
+        const publicClient = (
+            <div className='form-group'>
+                <label
+                    className='control-label col-sm-4'
+                    htmlFor='is_public'
+                >
+                    <FormattedMessage
+                        id='installed_oauth_apps.public'
+                        defaultMessage='Is Public Client'
+                    />
+                </label>
+                <div className='col-md-5 col-sm-8'>
+                    <label className='radio-inline'>
+                        <input
+                            type='radio'
+                            value='true'
+                            name='is_public'
+                            checked={this.state.is_public}
+                            onChange={this.updatePublic}
+                        />
+                        <FormattedMessage
+                            id='installed_oauth_apps.public.yes'
+                            defaultMessage='Yes'
+                        />
+                    </label>
+                    <label className='radio-inline'>
+                        <input
+                            type='radio'
+                            value='false'
+                            name='is_public'
+                            checked={!this.state.is_public}
+                            onChange={this.updatePublic}
+                        />
+                        <FormattedMessage
+                            id='installed_oauth_apps.public.no'
+                            defaultMessage='No'
+                        />
+                    </label>
+                    <div className='form__help'>
+                        <FormattedMessage
+                            id='add_oauth_app.public.help'
+                            defaultMessage='If true, the OAuth 2.0 application is a public client (no client secret). Public clients must use PKCE for authorization. If false, the application is a confidential client with a client secret.'
+                        />
+                    </div>
+                </div>
+            </div>
+        );
+
         return (
             <div className='backstage-content'>
                 <BackstageHeader>
@@ -321,6 +384,7 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
                     {icon}
                     <form className='form-horizontal'>
                         {trusted}
+                        {publicClient}
                         <div className='form-group'>
                             <label
                                 className='control-label col-sm-4'

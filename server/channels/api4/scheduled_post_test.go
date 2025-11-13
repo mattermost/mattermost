@@ -13,8 +13,7 @@ import (
 
 func TestCreateScheduledPost(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
@@ -38,8 +37,8 @@ func TestCreateScheduledPost(t *testing.T) {
 	})
 
 	t.Run("should not allow created scheduled post in read-only channel", func(t *testing.T) {
-		channel := th.CreatePublicChannel()
-		th.AddUserToChannel(th.BasicUser, channel)
+		channel := th.CreatePublicChannel(t)
+		th.AddUserToChannel(t, th.BasicUser, channel)
 
 		channelModerationPatches := []*model.ChannelModerationPatch{
 			{

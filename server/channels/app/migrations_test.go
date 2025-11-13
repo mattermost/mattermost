@@ -17,7 +17,6 @@ func TestDoSetupContentFlaggingProperties(t *testing.T) {
 		//also takes care of using the correct database DSN based on environment,
 		//settings, setting up the store and initializing services used in store such as property services.
 		th := Setup(t)
-		defer th.TearDown()
 
 		group, err := th.Server.propertyService.GetPropertyGroup(model.ContentFlaggingGroupName)
 		require.NoError(t, err)
@@ -35,7 +34,6 @@ func TestDoSetupContentFlaggingProperties(t *testing.T) {
 
 	t.Run("the migration is idempotent", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		// Now we will remove the migration done key from systems table to allow the data migration to run again
 		_, err := th.Store.System().PermanentDeleteByName(contentFlaggingSetupDoneKey)

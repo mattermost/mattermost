@@ -70,7 +70,7 @@ describe('components/IntlProvider', () => {
 
         shallow(<IntlProvider {...props}/>);
 
-        expect(props.actions.loadTranslations).toBeCalledWith('fr', getLanguageInfo('fr').url);
+        expect(props.actions.loadTranslations).toHaveBeenCalledWith('fr', getLanguageInfo('fr').url);
     });
 
     test('on mount, should not attempt to load when given translations', () => {
@@ -85,7 +85,7 @@ describe('components/IntlProvider', () => {
 
         shallow(<IntlProvider {...props}/>);
 
-        expect(props.actions.loadTranslations).not.toBeCalled();
+        expect(props.actions.loadTranslations).not.toHaveBeenCalled();
     });
 
     test('on locale change, should attempt to load missing translations', () => {
@@ -98,14 +98,14 @@ describe('components/IntlProvider', () => {
 
         const wrapper = shallow(<IntlProvider {...props}/>);
 
-        expect(props.actions.loadTranslations).not.toBeCalled();
+        expect(props.actions.loadTranslations).not.toHaveBeenCalled();
 
         wrapper.setProps({
             locale: 'fr',
             translations: null,
         });
 
-        expect(props.actions.loadTranslations).toBeCalledWith('fr', getLanguageInfo('fr').url);
+        expect(props.actions.loadTranslations).toHaveBeenCalledWith('fr', getLanguageInfo('fr').url);
     });
 
     test('on locale change, should not attempt to load when given translations', () => {
@@ -118,13 +118,13 @@ describe('components/IntlProvider', () => {
 
         const wrapper = shallow(<IntlProvider {...props}/>);
 
-        expect(props.actions.loadTranslations).not.toBeCalled();
+        expect(props.actions.loadTranslations).not.toHaveBeenCalled();
 
         wrapper.setProps({
             locale: 'fr',
             translations: {},
         });
 
-        expect(props.actions.loadTranslations).not.toBeCalled();
+        expect(props.actions.loadTranslations).not.toHaveBeenCalled();
     });
 });
