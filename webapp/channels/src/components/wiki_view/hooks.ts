@@ -96,6 +96,7 @@ export function useWikiPageData(
                     if (result.error) {
                         const defaultChannel = 'town-square';
                         const teamName = currentTeamRef.current?.name || '';
+                        setLoading(false);
                         historyRef.current.push(`/error?type=channel_not_found&returnTo=/${teamName}/channels/${defaultChannel}`);
                         return;
                     }
@@ -106,6 +107,7 @@ export function useWikiPageData(
                 // Handle unexpected errors with redirect
                 const defaultChannel = 'town-square';
                 const teamName = currentTeamRef.current?.name || '';
+                setLoading(false);
                 historyRef.current.push(`/error?type=channel_not_found&returnTo=/${teamName}/channels/${defaultChannel}`);
                 return;
             }

@@ -8,6 +8,22 @@
     border-radius: 4px;
     background: var(--center-channel-bg);
 
+    // Position the RewriteMenu's trigger button near the formatting toolbar
+    // The button is visually hidden but needed for menu positioning
+    #rewrite-button {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        opacity: 0;
+        pointer-events: none;
+        z-index: 1000;
+
+        // Make it visible for debugging if needed
+        // opacity: 1;
+        // pointer-events: auto;
+    }
+
     .tiptap-editor-content {
         min-height: 400px;
         flex: 1;

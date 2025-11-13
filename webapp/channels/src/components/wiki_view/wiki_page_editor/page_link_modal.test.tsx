@@ -202,6 +202,9 @@ describe('PageLinkModal', () => {
     test('calls onSelect with correct parameters when page is selected and Insert Link clicked', () => {
         renderWithContext(<PageLinkModal {...baseProps}/>);
 
+        const linkTextInput = screen.getByLabelText('Link text (optional)');
+        fireEvent.change(linkTextInput, {target: {value: 'API Documentation'}});
+
         const pageItem = screen.getByText('API Documentation').closest('[role="option"]');
         fireEvent.click(pageItem!);
 
@@ -271,6 +274,9 @@ describe('PageLinkModal', () => {
 
     test('keyboard navigation: Enter selects current page', () => {
         renderWithContext(<PageLinkModal {...baseProps}/>);
+
+        const linkTextInput = screen.getByLabelText('Link text (optional)');
+        fireEvent.change(linkTextInput, {target: {value: 'API Documentation'}});
 
         const searchInput = screen.getByPlaceholderText('Type to search...');
 
@@ -384,6 +390,9 @@ describe('PageLinkModal', () => {
 
     test('Insert Link button calls onSelect when clicked', () => {
         renderWithContext(<PageLinkModal {...baseProps}/>);
+
+        const linkTextInput = screen.getByLabelText('Link text (optional)');
+        fireEvent.change(linkTextInput, {target: {value: 'Getting Started Guide'}});
 
         const insertButton = screen.getByText('Insert Link');
         fireEvent.click(insertButton);

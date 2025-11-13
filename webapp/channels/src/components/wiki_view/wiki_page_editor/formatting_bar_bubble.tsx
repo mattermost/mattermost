@@ -17,10 +17,10 @@ type Props = {
     onSetLink: () => void;
     onAddImage: () => void;
     onAddComment?: (selection: {text: string; from: number; to: number}) => void;
-    onAIAssist?: (selection: {text: string; from: number; to: number}) => void;
+    onAIRewrite?: () => void;
 };
 
-const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddImage, onAddComment, onAIAssist}: Props) => {
+const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddImage, onAddComment, onAIRewrite}: Props) => {
     const [, setUpdateTrigger] = useState(0);
 
     useEffect(() => {
@@ -248,9 +248,27 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddImage, onA
                     </>
                 )}
 
-                {onAddComment && (
+                {onAIRewrite && (
                     <>
                         <span className='toolbar-divider'/>
+                        <WithTooltip title='AI Rewrite'>
+                            <button
+                                type='button'
+                                onMouseDown={handleMouseDown}
+                                onClick={onAIRewrite}
+                                className='formatting-btn'
+                                aria-label='AI Rewrite'
+                                title='AI Rewrite'
+                                data-testid='ai-rewrite-button'
+                            >
+                                <i className='icon icon-creation-outline'/>
+                            </button>
+                        </WithTooltip>
+                    </>
+                )}
+
+                {onAddComment && (
+                    <>
                         <WithTooltip title='Add Comment'>
                             <button
                                 type='button'
@@ -272,34 +290,6 @@ const FormattingBarBubble = ({editor, uploadsEnabled, onSetLink, onAddImage, onA
                                 data-testid='inline-comment-submit'
                             >
                                 <i className='icon icon-message-text-outline'/>
-                            </button>
-                        </WithTooltip>
-                    </>
-                )}
-
-                {onAIAssist && (
-                    <>
-                        <WithTooltip title='AI Assist'>
-                            <button
-                                type='button'
-                                onMouseDown={handleMouseDown}
-                                onClick={() => {
-                                    const {state} = editor;
-                                    const {selection} = state;
-                                    const text = state.doc.textBetween(selection.from, selection.to);
-
-                                    onAIAssist({
-                                        text,
-                                        from: selection.from,
-                                        to: selection.to,
-                                    });
-                                }}
-                                className='formatting-btn'
-                                aria-label='AI Assist'
-                                title='AI Assist'
-                                data-testid='ai-assist-button'
-                            >
-                                <i className='icon icon-creation-outline'/>
                             </button>
                         </WithTooltip>
                     </>

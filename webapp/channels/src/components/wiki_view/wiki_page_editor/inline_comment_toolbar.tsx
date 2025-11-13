@@ -10,10 +10,10 @@ import './inline_comment_toolbar.scss';
 type Props = {
     editor: any;
     onCreateComment: (selection: {text: string; from: number; to: number}) => void;
-    onAIAssist?: (selection: {text: string; from: number; to: number}) => void;
+    onAIRewrite?: () => void;
 };
 
-const InlineCommentToolbar = ({editor, onCreateComment, onAIAssist}: Props) => {
+const InlineCommentToolbar = ({editor, onCreateComment, onAIRewrite}: Props) => {
     if (!editor) {
         return null;
     }
@@ -31,19 +31,10 @@ const InlineCommentToolbar = ({editor, onCreateComment, onAIAssist}: Props) => {
     };
 
     const handleAIClick = () => {
-        if (!onAIAssist) {
+        if (!onAIRewrite) {
             return;
         }
-
-        const {state} = editor;
-        const {selection} = state;
-        const text = state.doc.textBetween(selection.from, selection.to);
-
-        onAIAssist({
-            text,
-            from: selection.from,
-            to: selection.to,
-        });
+        onAIRewrite();
     };
 
     return (

@@ -23,6 +23,8 @@ export class TestConfig {
     workers: number;
     snapshotEnabled: boolean;
     percyEnabled: boolean;
+    aiPluginApiKey: string;
+    aiPluginEnabled: boolean;
 
     constructor() {
         // Server
@@ -48,6 +50,9 @@ export class TestConfig {
         // Visual tests
         this.snapshotEnabled = parseBool(process.env.PW_SNAPSHOT_ENABLE, false);
         this.percyEnabled = parseBool(process.env.PW_PERCY_ENABLE, false);
+        // AI Plugin
+        this.aiPluginApiKey = process.env.PW_AI_PLUGIN_OPENAI_KEY || '';
+        this.aiPluginEnabled = parseBool(process.env.PW_AI_PLUGIN_ENABLED, false);
     }
 }
 

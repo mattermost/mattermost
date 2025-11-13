@@ -135,8 +135,9 @@ export default function RewriteMenu({
     }
 
     return (
-        <Menu.Container
-            menuHeader={(
+        <div data-testid='rewrite-menu'>
+            <Menu.Container
+                menuHeader={(
                 <div className='rewrite-menu-header'>
                     {!isProcessing && agents && agents.length > 0 && (
                         <AgentDropdown
@@ -262,6 +263,7 @@ export default function RewriteMenu({
                 />
             ))}
         </Menu.Container>
+        </div>
     );
 }
 

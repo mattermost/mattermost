@@ -8,6 +8,8 @@ export {TestBrowser} from './browser_context';
 export {getBlobFromAsset, getFileFromAsset} from './file';
 export {duration, wait} from './util';
 export {
+    configureAIPlugin,
+    shouldSkipAITests,
     createPageViaDraft,
     getAdminClient,
     createRandomTeam,

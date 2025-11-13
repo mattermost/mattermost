@@ -4548,10 +4548,16 @@ export default class Client4 {
     };
 
     getAIRewrittenMessage = (agentId: string, message: string, action?: string, customPrompt?: string) => {
-        return this.doFetch<{rewritten_text: string; changes_made: string[]}>(
+        return this.doFetch<{rewritten_text: string}>(
             `${this.getPostsRoute()}/rewrite`,
             {method: 'post', body: JSON.stringify({agent_id: agentId, message, action, custom_prompt: customPrompt})},
-        ).then((response) => response.rewritten_text);
+        ).then((response) => {
+            if (!response || typeof response.rewritten_text === 'undefined') {
+                console.error('[Rewrite API] Invalid response:', response);
+                throw new Error('Invalid response from rewrite API: missing rewritten_text field');
+            }
+            return response.rewritten_text;
+        });
     };
 
     // Client Helpers

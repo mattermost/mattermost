@@ -76,10 +76,9 @@ const WikiView = () => {
         } else {
             // Exiting fullscreen: restore previous panel state
             if (panelStateBeforeFullscreenRef.current === false) {
-                // Panel was open before fullscreen, restore to open
                 dispatch(openPagesPanel());
             }
-            // If panel was closed before fullscreen (true), keep it closed
+
             panelStateBeforeFullscreenRef.current = null;
         }
     }, [isFullscreen, isPanesPanelCollapsed, dispatch]);
@@ -163,6 +162,19 @@ const WikiView = () => {
     const currentPage = useSelector((state: GlobalState) => {
         const page = pageId ? getPage(state, pageId) : null;
         return page;
+    });
+
+    // Get published page when editing a draft of an existing page
+    const publishedPageForDraft = useSelector((state: GlobalState) => {
+        if (!currentDraft) {
+            return null;
+        }
+        const isExisting = isEditingExistingPage(currentDraft);
+        if (!isExisting) {
+            return null;
+        }
+        const pubPageId = getPublishedPageIdFromDraft(currentDraft);
+        return pubPageId ? getPage(state, pubPageId) : null;
     });
 
     const pageParentIdRef = React.useRef<string | undefined>(undefined);
@@ -444,13 +456,16 @@ const WikiView = () => {
                                 const isExistingPage = isEditingExistingPage(currentDraft);
                                 const publishedPageId = getPublishedPageIdFromDraft(currentDraft);
 
+                                // Determine author: use original author if editing existing page, otherwise current user
+                                const authorId = isExistingPage && publishedPageForDraft ? publishedPageForDraft.user_id : currentUserId;
+
                                 const editorProps = {
                                     key: draftId,
                                     title: currentDraft.props?.title || '',
                                     content: currentDraft.message || '',
                                     onTitleChange: handleTitleChange,
                                     onContentChange: handleContentChange,
-                                    authorId: currentDraft.userId || currentUserId,
+                                    authorId,
                                     currentUserId,
                                     channelId: actualChannelId,
                                     teamId,

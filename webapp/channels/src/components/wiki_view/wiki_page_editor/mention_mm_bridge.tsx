@@ -61,14 +61,6 @@ class MentionSuggestionList extends React.Component<{
 }
 
 export function createMMentionSuggestion(props: MentionBridgeProps): Partial<SuggestionOptions<Item>> {
-    // eslint-disable-next-line no-console
-    console.log('[TipTap Mention] Creating mention suggestion with props:', {
-        currentUserId: props.currentUserId,
-        channelId: props.channelId,
-        teamId: props.teamId,
-        useChannelMentions: props.useChannelMentions,
-    });
-
     const provider = new AtMentionProvider({
         currentUserId: props.currentUserId,
         channelId: props.channelId,
@@ -81,20 +73,12 @@ export function createMMentionSuggestion(props: MentionBridgeProps): Partial<Sug
 
     return {
         items: async ({query}: {query: string}): Promise<Item[]> => {
-            // eslint-disable-next-line no-console
-            console.log('[TipTap Mention] items() called with query:', query);
             return new Promise((resolve) => {
                 let callbackCount = 0;
                 let pendingTimeout: NodeJS.Timeout | null = null;
 
                 provider.handlePretextChanged(`@${query}`, (results: any) => {
                     callbackCount++;
-                    // eslint-disable-next-line no-console
-                    console.log('[TipTap Mention] Provider callback #' + callbackCount, {
-                        resultsExists: !!results,
-                        groupsExists: !!results?.groups,
-                        groupCount: results?.groups?.length,
-                    });
 
                     if (!results || !results.groups) {
                         resolve([]);
@@ -161,8 +145,6 @@ export function createMMentionSuggestion(props: MentionBridgeProps): Partial<Sug
 
             return {
                 onStart: (mentionProps: any) => {
-                    // eslint-disable-next-line no-console
-                    console.log('[TipTap Mention] onStart called with items:', mentionProps.items);
                     startTime = Date.now();
 
                     const {items, command, clientRect} = mentionProps;
@@ -173,8 +155,6 @@ export function createMMentionSuggestion(props: MentionBridgeProps): Partial<Sug
                     popup = document.createElement('div');
                     popup.className = 'tiptap-mention-popup';
                     document.body.appendChild(popup);
-                    // eslint-disable-next-line no-console
-                    console.log('[TipTap Mention] Popup created and added to body');
 
                     clickOutsideHandler = (event: MouseEvent) => {
                         if (popup && !popup.contains(event.target as Node)) {
@@ -213,10 +193,6 @@ export function createMMentionSuggestion(props: MentionBridgeProps): Partial<Sug
                                             selectItem={(index: number) => {
                                                 const item = componentItems[index];
                                                 if (commandFunction) {
-                                                    // eslint-disable-next-line no-console
-                                                    console.log('[TipTap Mention] Selected item:', item);
-                                                    // eslint-disable-next-line no-console
-                                                    console.log('[TipTap Mention] Command data:', {id: item.id || item.username, label: item.username});
                                                     commandFunction({id: item.id || item.username, label: item.username});
                                                 }
                                                 closePopup();
@@ -302,11 +278,7 @@ export function createMMentionSuggestion(props: MentionBridgeProps): Partial<Sug
                     if (event.key === 'Enter' || event.key === 'Tab') {
                         const item = currentItems[currentSelectedIndex];
                         if (item && commandFunction) {
-                            // eslint-disable-next-line no-console
-                            console.log('[TipTap Mention] Selected item (keyboard):', item);
                             const commandData = {id: item.id || item.username, label: item.username};
-                            // eslint-disable-next-line no-console
-                            console.log('[TipTap Mention] Command data (keyboard):', commandData);
                             commandFunction(commandData);
                             closePopup();
                             return true;

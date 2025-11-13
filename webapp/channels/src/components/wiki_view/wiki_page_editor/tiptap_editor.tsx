@@ -29,6 +29,7 @@ import {autocompleteUsersInChannel} from 'actions/views/channel';
 import {searchAssociatedGroupsForReference} from 'actions/views/group';
 import store from 'stores/redux_store';
 
+import useGetAgentsBridgeEnabled from 'components/common/hooks/useGetAgentsBridgeEnabled';
 import TextInputModal from 'components/text_input_modal';
 
 import {getHistory} from 'utils/browser_history';
@@ -46,8 +47,10 @@ import InlineCommentToolbar from './inline_comment_toolbar';
 import {createMMentionSuggestion} from './mention_mm_bridge';
 import PageLinkModal from './page_link_modal';
 import {SlashCommandExtension} from './slash_command_extension';
+import usePageRewrite from './use_page_rewrite';
 
 import './tiptap_editor.scss';
+import 'components/advanced_text_editor/use_rewrite.scss';
 
 // Custom heading extension that stores ID as an attribute
 const HeadingWithId = Heading.extend({
@@ -190,6 +193,7 @@ const TipTapEditor = ({
     const [showLinkModal, setShowLinkModal] = useState(false);
     const [selectedText, setSelectedText] = useState('');
     const [showImageUrlModal, setShowImageUrlModal] = useState(false);
+    const [serverError, setServerError] = useState<any>(null);
 
     const autocompleteGroups = useSelector((state: GlobalState) => {
         if (!teamId || !channelId) {
@@ -414,14 +418,6 @@ const TipTapEditor = ({
         }
 
         if (currentUserId && teamId) {
-            // eslint-disable-next-line no-console
-            console.log('[TipTap Editor] Adding user mention extension', {
-                currentUserId,
-                channelId,
-                teamId,
-                editable,
-            });
-
             // User mentions (@username)
             exts.push(
                 Mention.extend({
@@ -512,14 +508,6 @@ const TipTapEditor = ({
                     }) as any,
                 }) as any,
             );
-        } else {
-            // eslint-disable-next-line no-console
-            console.log('[TipTap Editor] NOT adding mention extensions - missing required props', {
-                currentUserId,
-                channelId,
-                teamId,
-                editable,
-            });
         }
 
         return exts;
@@ -557,6 +545,10 @@ const TipTapEditor = ({
             },
         },
     }, [editable, placeholder]);
+
+    // AI rewrite functionality
+    const isAIAvailable = useGetAgentsBridgeEnabled();
+    const {additionalControl: rewriteControl, openRewriteMenu} = usePageRewrite(editor, setServerError);
 
     useEffect(() => {
         if (editor) {
@@ -807,21 +799,11 @@ const TipTapEditor = ({
         onCreateInlineComment(anchor);
     };
 
-    const handleAIAssist = (selection: {text: string; from: number; to: number}) => {
+    const handleAIRewrite = () => {
         if (!editor) {
             return;
         }
-
-        // eslint-disable-next-line no-console
-        console.log('AI Assist triggered with selection:', {
-            text: selection.text,
-            from: selection.from,
-            to: selection.to,
-        });
-
-        // TODO: Implement AI assistance logic here
-        // eslint-disable-next-line no-alert
-        alert(`AI Assist clicked!\nSelected text: "${selection.text}"\n\nImplement your AI logic here.`);
+        openRewriteMenu();
     };
 
     return (
@@ -836,6 +818,7 @@ const TipTapEditor = ({
             />
             {editor && editable && (() => {
                 const commentHandler = onCreateInlineComment ? handleCreateComment : undefined;
+                const aiRewriteHandler = isAIAvailable ? handleAIRewrite : undefined;
                 return (
                     <FormattingBarBubble
                         editor={editor}
@@ -843,7 +826,7 @@ const TipTapEditor = ({
                         onSetLink={setLink}
                         onAddImage={addImage}
                         onAddComment={commentHandler}
-                        onAIAssist={handleAIAssist}
+                        onAIRewrite={aiRewriteHandler}
                     />
                 );
             })()}
@@ -851,9 +834,10 @@ const TipTapEditor = ({
                 <InlineCommentToolbar
                     editor={editor}
                     onCreateComment={handleCreateComment}
-                    onAIAssist={handleAIAssist}
+                    onAIRewrite={isAIAvailable ? handleAIRewrite : undefined}
                 />
             )}
+            {editor && isAIAvailable && rewriteControl}
 
             {showLinkModal && pages && (
                 <PageLinkModal
