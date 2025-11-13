@@ -48,10 +48,14 @@ func testCreatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.ErrorContains(t, err, "model.property_field.is_valid.app_error")
 	})
 
+	creatorUserID := model.NewId()
+
 	newField := &model.PropertyField{
-		GroupID: model.NewId(),
-		Name:    "My new property field",
-		Type:    model.PropertyFieldTypeText,
+		GroupID:   model.NewId(),
+		Name:      "My new property field",
+		Type:      model.PropertyFieldTypeText,
+		CreatedBy: creatorUserID,
+		UpdatedBy: creatorUserID,
 		Attrs: map[string]any{
 			"locked":  true,
 			"special": "value",
@@ -65,6 +69,8 @@ func testCreatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		require.NotZero(t, field.CreateAt)
 		require.NotZero(t, field.UpdateAt)
 		require.Zero(t, field.DeleteAt)
+		require.Equal(t, creatorUserID, field.CreatedBy)
+		require.Equal(t, creatorUserID, field.UpdatedBy)
 	})
 
 	t.Run("should enforce the field's uniqueness", func(t *testing.T) {
@@ -72,6 +78,18 @@ func testCreatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		field, err := ss.PropertyField().Create(newField)
 		require.Error(t, err)
 		require.Empty(t, field)
+	})
+
+	t.Run("should allow empty CreatedBy and UpdatedBy", func(t *testing.T) {
+		fieldWithoutTracking := &model.PropertyField{
+			GroupID: model.NewId(),
+			Name:    "Field without user tracking",
+			Type:    model.PropertyFieldTypeText,
+		}
+		field, err := ss.PropertyField().Create(fieldWithoutTracking)
+		require.NoError(t, err)
+		require.Empty(t, field.CreatedBy)
+		require.Empty(t, field.UpdatedBy)
 	})
 }
 
@@ -591,6 +609,83 @@ func testUpdatePropertyField(t *testing.T, _ request.CTX, ss store.Store) {
 		updated2, err := ss.PropertyField().Get("", field2.ID)
 		require.NoError(t, err)
 		require.Equal(t, originalName2, updated2.Name)
+	})
+
+	t.Run("should update UpdatedBy but not CreatedBy on update", func(t *testing.T) {
+		creatorUserID := model.NewId()
+		updaterUserID := model.NewId()
+
+		field := &model.PropertyField{
+			GroupID:   model.NewId(),
+			Name:      "Original Name",
+			Type:      model.PropertyFieldTypeText,
+			CreatedBy: creatorUserID,
+			UpdatedBy: creatorUserID,
+		}
+
+		_, err := ss.PropertyField().Create(field)
+		require.NoError(t, err)
+
+		// Update the field with a different user
+		field.Name = "Updated Name"
+		field.UpdatedBy = updaterUserID
+
+		_, err = ss.PropertyField().Update("", []*model.PropertyField{field})
+		require.NoError(t, err)
+
+		// Verify CreatedBy stays the same but UpdatedBy changes
+		fetched, err := ss.PropertyField().Get("", field.ID)
+		require.NoError(t, err)
+		require.Equal(t, creatorUserID, fetched.CreatedBy, "CreatedBy should not change on update")
+		require.Equal(t, updaterUserID, fetched.UpdatedBy, "UpdatedBy should change on update")
+		require.Equal(t, "Updated Name", fetched.Name)
+	})
+
+	t.Run("should handle bulk updates with different UpdatedBy values", func(t *testing.T) {
+		creatorUserID := model.NewId()
+		user1 := model.NewId()
+		user2 := model.NewId()
+		groupID := model.NewId()
+
+		field1 := &model.PropertyField{
+			GroupID:   groupID,
+			Name:      "Field 1",
+			Type:      model.PropertyFieldTypeText,
+			CreatedBy: creatorUserID,
+			UpdatedBy: creatorUserID,
+		}
+		field2 := &model.PropertyField{
+			GroupID:   groupID,
+			Name:      "Field 2",
+			Type:      model.PropertyFieldTypeText,
+			CreatedBy: creatorUserID,
+			UpdatedBy: creatorUserID,
+		}
+
+		_, err := ss.PropertyField().Create(field1)
+		require.NoError(t, err)
+		_, err = ss.PropertyField().Create(field2)
+		require.NoError(t, err)
+
+		// Update with different users
+		field1.Name = "Field 1 Updated"
+		field1.UpdatedBy = user1
+		field2.Name = "Field 2 Updated"
+		field2.UpdatedBy = user2
+
+		_, err = ss.PropertyField().Update("", []*model.PropertyField{field1, field2})
+		require.NoError(t, err)
+
+		// Verify both fields have correct UpdatedBy
+		fetched1, err := ss.PropertyField().Get("", field1.ID)
+		require.NoError(t, err)
+		require.Equal(t, user1, fetched1.UpdatedBy)
+		require.Equal(t, creatorUserID, fetched1.CreatedBy)
+
+		fetched2, err := ss.PropertyField().Get("", field2.ID)
+		require.NoError(t, err)
+		require.Equal(t, user2, fetched2.UpdatedBy)
+		require.Equal(t, creatorUserID, fetched2.CreatedBy)
 	})
 }
 
