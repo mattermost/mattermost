@@ -17,12 +17,11 @@ import (
 func TestPagePublishWebSocketEvent(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	th.AddPermissionToRole(model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
 
 	wiki := &model.Wiki{
 		ChannelId:   th.BasicChannel.Id,
@@ -84,7 +83,7 @@ func TestPagePublishWebSocketEvent(t *testing.T) {
 	t.Run("page_published event not received by non-channel-members", func(t *testing.T) {
 		th.Context.Session().UserId = th.BasicUser.Id
 
-		user2 := th.CreateUser()
+		user2 := th.CreateUser(t)
 		client2 := th.CreateClient()
 		_, _, err := client2.Login(context.Background(), user2.Email, user2.Password)
 		require.NoError(t, err)
@@ -121,15 +120,14 @@ func TestPagePublishWebSocketEvent(t *testing.T) {
 func TestMultiUserPageEditing(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	th.AddPermissionToRole(model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
 
-	th.LinkUserToTeam(th.BasicUser2, th.BasicTeam)
-	th.AddUserToChannel(th.BasicUser2, th.BasicChannel)
+	th.LinkUserToTeam(t, th.BasicUser2, th.BasicTeam)
+	th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
 
 	wiki := &model.Wiki{
 		ChannelId:   th.BasicChannel.Id,
@@ -231,12 +229,11 @@ func TestMultiUserPageEditing(t *testing.T) {
 func TestConcurrentPageHierarchyOperations(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	th.AddPermissionToRole(model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
 
 	wiki := &model.Wiki{
 		ChannelId:   th.BasicChannel.Id,
@@ -332,16 +329,15 @@ func TestConcurrentPageHierarchyOperations(t *testing.T) {
 func TestPagePermissionsMultiUser(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	th.AddPermissionToRole(model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(model.PermissionCreateWikiPrivateChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreatePagePublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreateWikiPrivateChannel.Id, model.ChannelUserRoleId)
 
-	privateChannel := th.CreatePrivateChannel()
-	th.AddUserToChannel(th.BasicUser, privateChannel)
+	privateChannel := th.CreatePrivateChannel(t)
+	th.AddUserToChannel(t, th.BasicUser, privateChannel)
 
 	privateWiki := &model.Wiki{
 		ChannelId:   privateChannel.Id,
@@ -368,7 +364,7 @@ func TestPagePermissionsMultiUser(t *testing.T) {
 	})
 
 	t.Run("user2 can access after being added to private channel", func(t *testing.T) {
-		th.AddUserToChannel(th.BasicUser2, privateChannel)
+		th.AddUserToChannel(t, th.BasicUser2, privateChannel)
 
 		th.Context.Session().UserId = th.BasicUser2.Id
 		retrievedPage, appErr := th.App.GetPage(th.Context, privatePage.Id)

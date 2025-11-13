@@ -1172,3 +1172,30 @@ type PreparePostForClientOpts struct {
 	RetainContent   bool
 	IncludeDeleted  bool
 }
+
+type RewriteAction string
+
+const (
+	RewriteActionCustom         RewriteAction = "custom"
+	RewriteActionShorten        RewriteAction = "shorten"
+	RewriteActionElaborate      RewriteAction = "elaborate"
+	RewriteActionImproveWriting RewriteAction = "improve_writing"
+	RewriteActionFixSpelling    RewriteAction = "fix_spelling"
+	RewriteActionSimplify       RewriteAction = "simplify"
+	RewriteActionSummarize      RewriteAction = "summarize"
+)
+
+type RewriteRequest struct {
+	AgentID      string        `json:"agent_id"`
+	Message      string        `json:"message"`
+	Action       RewriteAction `json:"action"`
+	CustomPrompt string        `json:"custom_prompt,omitempty"`
+}
+
+type RewriteResponse struct {
+	RewrittenText string `json:"rewritten_text"`
+}
+
+const RewriteSystemPrompt = `You are a JSON API that rewrites text. Your response must be valid JSON only. 
+Return this exact format: {"rewritten_text":"content"}. 
+Do not use markdown, code blocks, or any formatting. Start with { and end with }.`

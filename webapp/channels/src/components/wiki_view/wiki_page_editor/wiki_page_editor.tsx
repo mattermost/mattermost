@@ -29,6 +29,7 @@ type Props = {
     content: string;
     onTitleChange: (title: string) => void;
     onContentChange: (content: string) => void;
+    authorId?: string;
     currentUserId?: string;
     channelId?: string;
     teamId?: string;
@@ -45,6 +46,7 @@ const WikiPageEditor = ({
     content,
     onTitleChange,
     onContentChange,
+    authorId,
     currentUserId,
     channelId,
     teamId,
@@ -63,15 +65,15 @@ const WikiPageEditor = ({
 
     // Fetch author user data for ProfilePicture component
     const authorUser = useSelector((state: GlobalState) =>
-        (currentUserId ? getUser(state, currentUserId) : undefined),
+        (authorId ? getUser(state, authorId) : undefined),
     );
 
     // Load user data if not in store
     useEffect(() => {
-        if (currentUserId && !authorUser) {
-            dispatch(getUserAction(currentUserId));
+        if (authorId && !authorUser) {
+            dispatch(getUserAction(authorId));
         }
-    }, [currentUserId, authorUser, dispatch]);
+    }, [authorId, authorUser, dispatch]);
 
     // Fetch all pages in the channel for cross-wiki linking
     useEffect(() => {
@@ -125,29 +127,31 @@ const WikiPageEditor = ({
                     className='page-meta'
                     data-testid='wiki-page-meta'
                 >
-                    {showAuthor && currentUserId && authorUser && (
+                    {showAuthor && authorId && (
                         <div
                             className='WikiPageEditor__author'
                             data-testid='wiki-page-author'
-                            aria-label={formatMessage(
+                            aria-label={authorUser ? formatMessage(
                                 {id: 'wiki.author.aria_label', defaultMessage: 'Author: {username}'},
                                 {username: authorUser.username},
-                            )}
+                            ) : undefined}
                         >
-                            <ProfilePicture
-                                src={Utils.imageURLForUser(currentUserId, authorUser.last_picture_update)}
-                                userId={currentUserId}
-                                username={authorUser.username}
-                                size='xs'
-                                channelId={channelId}
-                            />
+                            {authorUser && (
+                                <ProfilePicture
+                                    src={Utils.imageURLForUser(authorId, authorUser.last_picture_update)}
+                                    userId={authorId}
+                                    username={authorUser.username}
+                                    size='xs'
+                                    channelId={channelId}
+                                />
+                            )}
                             <span className='WikiPageEditor__authorText'>
                                 {formatMessage(
                                     {id: 'wiki.author.by', defaultMessage: 'By {name}'},
                                     {
                                         name: (
                                             <UserProfile
-                                                userId={currentUserId}
+                                                userId={authorId}
                                                 channelId={channelId}
                                             />
                                         ),

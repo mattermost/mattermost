@@ -23,7 +23,7 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
         content: '{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Test content"}]}]}',
         onTitleChange: jest.fn(),
         onContentChange: jest.fn(),
-        currentUserId: 'current_user_id',
+        authorId: 'current_user_id',
         channelId: 'channel_id_1',
         teamId: 'team_id_1',
     };
@@ -132,7 +132,7 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
             const props = {
                 ...baseProps,
                 showAuthor: true,
-                currentUserId: 'current_user_id',
+                authorId: 'current_user_id',
             };
             const {container} = renderWithContext(<WikiPageEditor {...props}/>, initialState);
 
@@ -156,7 +156,7 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
             const props = {
                 ...baseProps,
                 showAuthor: true,
-                currentUserId: 'current_user_id',
+                authorId: 'current_user_id',
             };
             renderWithContext(<WikiPageEditor {...props}/>, initialState);
 
@@ -170,7 +170,7 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
             const props = {
                 ...baseProps,
                 showAuthor: true,
-                currentUserId: 'current_user_id',
+                authorId: 'current_user_id',
             };
             renderWithContext(<WikiPageEditor {...props}/>, initialState);
 
@@ -194,7 +194,7 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
             const props = {
                 ...baseProps,
                 showAuthor: true,
-                currentUserId: 'missing_user_id',
+                authorId: 'missing_user_id',
             };
 
             const {container} = renderWithContext(<WikiPageEditor {...props}/>, stateWithoutUser);
@@ -226,7 +226,7 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
             const props = {
                 ...baseProps,
                 showAuthor: true,
-                currentUserId: 'current_user_id',
+                authorId: 'current_user_id',
             };
 
             const {container} = renderWithContext(<WikiPageEditor {...props}/>, stateWithLongUsername);
@@ -242,7 +242,7 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
             const props = {
                 ...baseProps,
                 showAuthor: true,
-                currentUserId: undefined,
+                authorId: undefined,
             };
             const {container} = renderWithContext(<WikiPageEditor {...props}/>, initialState);
 
@@ -253,7 +253,7 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
             const props = {
                 ...baseProps,
                 showAuthor: true,
-                currentUserId: 'current_user_id',
+                authorId: 'current_user_id',
                 channelId: 'channel_id_1',
             };
             renderWithContext(<WikiPageEditor {...props}/>, initialState);
@@ -352,7 +352,7 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
                 content: '{"type":"doc","content":[{"type":"paragraph"}]}',
                 onTitleChange: jest.fn(),
                 onContentChange: jest.fn(),
-                currentUserId: 'current_user_id',
+                authorId: 'current_user_id',
                 channelId: 'channel_id_1',
                 teamId: 'team_id_1',
             };

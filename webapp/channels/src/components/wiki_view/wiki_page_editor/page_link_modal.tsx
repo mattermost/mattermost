@@ -11,7 +11,7 @@ type Props = {
     wikiId: string;
     channelId: string;
     teamName: string;
-    onSelect: (pageId: string, pageTitle: string, pageWikiId: string, linkText?: string) => void;
+    onSelect: (pageId: string, pageTitle: string, pageWikiId: string, linkText: string) => void;
     onCancel: () => void;
     initialLinkText?: string;
 };
@@ -41,10 +41,10 @@ const PageLinkModal = ({
     const handleConfirm = useCallback((indexOverride?: number) => {
         const idx = indexOverride === undefined ? selectedIndex : indexOverride;
         const selectedPage = filteredPages[idx];
-        if (selectedPage) {
+        if (selectedPage && linkText.trim()) {
             const title = (selectedPage.props?.title as string) || 'Untitled';
             const pageWikiId = (selectedPage as any).wiki_id || wikiId;
-            onSelect(selectedPage.id, title, pageWikiId, linkText || title);
+            onSelect(selectedPage.id, title, pageWikiId, linkText.trim());
         }
     }, [filteredPages, selectedIndex, linkText, wikiId, onSelect]);
 
@@ -79,7 +79,7 @@ const PageLinkModal = ({
             onExited={onCancel}
             confirmButtonText='Insert Link'
             cancelButtonText='Cancel'
-            isConfirmDisabled={filteredPages.length === 0}
+            isConfirmDisabled={filteredPages.length === 0 || !linkText.trim()}
             autoCloseOnConfirmButton={true}
         >
             <div style={{padding: '16px 0'}}>

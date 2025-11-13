@@ -450,6 +450,7 @@ const WikiView = () => {
                                     content: currentDraft.message || '',
                                     onTitleChange: handleTitleChange,
                                     onContentChange: handleContentChange,
+                                    authorId: currentDraft.userId || currentUserId,
                                     currentUserId,
                                     channelId: actualChannelId,
                                     teamId,

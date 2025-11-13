@@ -13,9 +13,8 @@ import (
 )
 
 func TestHandlePageCommentThreadCreation(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	setupPagePermissions(th)
-	defer th.TearDown()
 
 	rctx := createSessionContext(th)
 
@@ -310,9 +309,8 @@ func TestHandlePageCommentThreadCreation(t *testing.T) {
 }
 
 func TestCreateThreadEntryForPageComment(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	setupPagePermissions(th)
-	defer th.TearDown()
 
 	t.Run("successfully creates thread entry with all required fields", func(t *testing.T) {
 		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Thread Entry Test", "", "", th.BasicUser.Id, "")
@@ -397,9 +395,9 @@ func TestCreateThreadEntryForPageComment(t *testing.T) {
 		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Multi-User Thread Test", "", "", th.BasicUser.Id, "")
 		require.Nil(t, err)
 
-		user2 := th.CreateUser()
-		th.LinkUserToTeam(user2, th.BasicTeam)
-		th.AddUserToChannel(user2, th.BasicChannel)
+		user2 := th.CreateUser(t)
+		th.LinkUserToTeam(t, user2, th.BasicTeam)
+		th.AddUserToChannel(t, user2, th.BasicChannel)
 
 		comment := &model.Post{
 			Id:        model.NewId(),

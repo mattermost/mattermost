@@ -173,7 +173,8 @@ test('handles @user mentions in editor', {tag: '@pages'}, async ({pw, sharedPage
     const editor = await getEditorAndWait(page);
 
     // # Type @ mention in editor
-    await typeInEditor(page, `Hello @${mentionedUser.username}`);
+    await editor.click();
+    await editor.type(`Hello @${mentionedUser.username}`);
 
     // * Verify mention suggestion dropdown appears
     const mentionDropdown = page.locator('.tiptap-mention-popup').first();
@@ -966,7 +967,7 @@ test('inserts multiple page links in same page', {tag: '@pages'}, async ({pw, sh
 
     // # Type separator and second word, then convert second word to link
     await editor.type(' and link2');
-    await page.keyboard.press('Shift+Meta+ArrowLeft');
+    await page.keyboard.press('Shift+Alt+ArrowLeft');
     await page.keyboard.press('Meta+l');
 
     linkModal = page.locator('[data-testid="page-link-modal"]').first();
@@ -983,13 +984,17 @@ test('inserts multiple page links in same page', {tag: '@pages'}, async ({pw, sh
     await secondPageOption.click();
     await expect(secondPageOption.locator('.icon-check')).toBeVisible({timeout: 1000});
 
+    // Fill in the link text field
+    let linkTextInput = linkModal.locator('input[id="link-text-input"]');
+    await linkTextInput.fill('link2');
+
     await linkModal.locator('button:has-text("Insert Link")').click();
     await linkModal.waitFor({state: 'hidden', timeout: 5000});
     await page.waitForTimeout(300);
 
     // # Type separator and third word, then convert third word to link
     await editor.type(' also link3');
-    await page.keyboard.press('Shift+Meta+ArrowLeft');
+    await page.keyboard.press('Shift+Alt+ArrowLeft');
     await page.keyboard.press('Meta+l');
 
     linkModal = page.locator('[data-testid="page-link-modal"]').first();
@@ -1006,6 +1011,10 @@ test('inserts multiple page links in same page', {tag: '@pages'}, async ({pw, sh
     await thirdPageOption.click();
     await expect(thirdPageOption.locator('.icon-check')).toBeVisible({timeout: 1000});
 
+    // Fill in the link text field
+    linkTextInput = linkModal.locator('input[id="link-text-input"]');
+    await linkTextInput.fill('link3');
+
     await linkModal.locator('button:has-text("Insert Link")').click();
     await linkModal.waitFor({state: 'hidden', timeout: 5000});
     await page.waitForTimeout(300);
@@ -1021,20 +1030,18 @@ test('inserts multiple page links in same page', {tag: '@pages'}, async ({pw, sh
     const pageContent = page.locator('[data-testid="page-viewer-content"]');
     await expect(pageContent).toBeVisible();
 
-    // * Verify all three links are present and clickable
-    // Note: When converting selected text to a link without providing custom link text,
-    // the modal uses the page title as the link text (not the originally selected text)
+    // * Verify all three links are present and clickable with their selected text
     const link1 = pageContent.locator('a:has-text("link1")');
-    const link2 = pageContent.locator('a:has-text("Second Page")');
-    const link3 = pageContent.locator('a:has-text("Third Page")');
+    const link2 = pageContent.locator('a:has-text("link2")');
+    const link3 = pageContent.locator('a:has-text("link3")');
 
     await expect(link1).toBeVisible();
     await expect(link2).toBeVisible();
     await expect(link3).toBeVisible();
 
-    // * Verify the separator text and original selected text are present as plain text
-    await expect(pageContent).toContainText('and link2');
-    await expect(pageContent).toContainText('also link3');
+    // * Verify the separator text is present as plain text
+    await expect(pageContent).toContainText(' and ');
+    await expect(pageContent).toContainText(' also ');
 
     // * Verify links have valid href attributes pointing to the correct pages
     const link1Href = await link1.getAttribute('href');

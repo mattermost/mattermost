@@ -12,9 +12,8 @@ import (
 
 func TestSavePageDraftWithMetadata(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	setupPagePermissions(th)
-	defer th.TearDown()
 
 	wiki := &model.Wiki{
 		ChannelId: th.BasicChannel.Id,
@@ -127,9 +126,8 @@ func TestSavePageDraftWithMetadata(t *testing.T) {
 
 func TestGetPageDraft(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	setupPagePermissions(th)
-	defer th.TearDown()
 
 	wiki := &model.Wiki{
 		ChannelId: th.BasicChannel.Id,
@@ -164,7 +162,7 @@ func TestGetPageDraft(t *testing.T) {
 	})
 
 	t.Run("fails with wrong user id", func(t *testing.T) {
-		otherUser := th.CreateUser()
+		otherUser := th.CreateUser(t)
 		draft, appErr := th.App.GetPageDraft(th.Context, otherUser.Id, createdWiki.Id, "draft-1")
 		require.NotNil(t, appErr)
 		require.Nil(t, draft)
@@ -181,9 +179,8 @@ func TestGetPageDraft(t *testing.T) {
 
 func TestDeletePageDraft(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	setupPagePermissions(th)
-	defer th.TearDown()
 
 	wiki := &model.Wiki{
 		ChannelId: th.BasicChannel.Id,
@@ -220,7 +217,7 @@ func TestDeletePageDraft(t *testing.T) {
 		_, appErr := th.App.SavePageDraftWithMetadata(th.Context, th.BasicUser.Id, createdWiki.Id, "draft-2", validContent, "Test Draft", "", nil)
 		require.Nil(t, appErr)
 
-		otherUser := th.CreateUser()
+		otherUser := th.CreateUser(t)
 		appErr = th.App.DeletePageDraft(th.Context, otherUser.Id, createdWiki.Id, "draft-2")
 		require.NotNil(t, appErr)
 
@@ -232,9 +229,8 @@ func TestDeletePageDraft(t *testing.T) {
 
 func TestGetPageDraftsForWiki(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	setupPagePermissions(th)
-	defer th.TearDown()
 
 	t.Run("successfully retrieves all drafts for wiki", func(t *testing.T) {
 		wiki1 := &model.Wiki{
@@ -301,9 +297,9 @@ func TestGetPageDraftsForWiki(t *testing.T) {
 		createdWiki3, err := th.App.CreateWiki(th.Context, wiki3, th.BasicUser.Id)
 		require.Nil(t, err)
 
-		otherUser := th.CreateUser()
-		th.LinkUserToTeam(otherUser, th.BasicTeam)
-		th.AddUserToChannel(otherUser, th.BasicChannel)
+		otherUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, otherUser, th.BasicTeam)
+		th.AddUserToChannel(t, otherUser, th.BasicChannel)
 
 		validContent := `{"type":"doc","content":[{"type":"paragraph","content":[{"type":"text","text":"Other user draft"}]}]}`
 		_, appErr := th.App.SavePageDraftWithMetadata(th.Context, otherUser.Id, createdWiki3.Id, "other-draft", validContent, "Other Draft", "", nil)

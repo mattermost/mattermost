@@ -12,8 +12,7 @@ import (
 )
 
 func TestGetWikisForChannel_SoftDelete(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	wiki1 := &model.Wiki{
 		ChannelId:   th.BasicChannel.Id,
@@ -67,8 +66,7 @@ func TestGetWikisForChannel_SoftDelete(t *testing.T) {
 }
 
 func TestUpdateWiki(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	wiki := &model.Wiki{
 		ChannelId:   th.BasicChannel.Id,
@@ -97,8 +95,7 @@ func TestUpdateWiki(t *testing.T) {
 }
 
 func TestCreateWikiWithDefaultPage(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	wiki := &model.Wiki{
 		ChannelId:   th.BasicChannel.Id,
@@ -132,8 +129,7 @@ func TestCreateWikiWithDefaultPage(t *testing.T) {
 
 func TestCreatePage(t *testing.T) {
 	t.Run("creates page with no parent", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 		th.SetupPagePermissions()
 
 		wiki := &model.Wiki{
@@ -160,8 +156,7 @@ func TestCreatePage(t *testing.T) {
 	})
 
 	t.Run("creates child page with parent", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 		th.SetupPagePermissions()
 
 		wiki := &model.Wiki{
@@ -186,8 +181,7 @@ func TestCreatePage(t *testing.T) {
 	})
 
 	t.Run("fails when parent is not a page", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 		th.SetupPagePermissions()
 
 		wiki := &model.Wiki{
@@ -213,8 +207,7 @@ func TestCreatePage(t *testing.T) {
 	})
 
 	t.Run("fails when parent is in different channel", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 		th.SetupPagePermissions()
 
 		wiki := &model.Wiki{
@@ -257,8 +250,7 @@ func TestCreatePage(t *testing.T) {
 
 func TestMovePageToWiki(t *testing.T) {
 	t.Run("successfully moves page to target wiki in same channel", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 		th.SetupPagePermissions()
 
 		sourceWiki := &model.Wiki{
@@ -298,8 +290,7 @@ func TestMovePageToWiki(t *testing.T) {
 	})
 
 	t.Run("successfully moves page with children (entire subtree)", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 		th.SetupPagePermissions()
 
 		sourceWiki := &model.Wiki{
@@ -369,8 +360,7 @@ func TestMovePageToWiki(t *testing.T) {
 	})
 
 	t.Run("fails when page does not exist", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 		th.SetupPagePermissions()
 
 		targetWiki := &model.Wiki{
@@ -387,8 +377,7 @@ func TestMovePageToWiki(t *testing.T) {
 	})
 
 	t.Run("fails when target wiki does not exist", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 		th.SetupPagePermissions()
 
 		sourceWiki := &model.Wiki{
@@ -408,8 +397,7 @@ func TestMovePageToWiki(t *testing.T) {
 	})
 
 	t.Run("fails when source and target wiki are the same (idempotent check)", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 		th.SetupPagePermissions()
 
 		wiki := &model.Wiki{
@@ -428,8 +416,7 @@ func TestMovePageToWiki(t *testing.T) {
 	})
 
 	t.Run("fails when wikis are in different channels (Phase 1 constraint)", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 		th.SetupPagePermissions()
 
 		sourceWiki := &model.Wiki{
@@ -468,8 +455,7 @@ func TestMovePageToWiki(t *testing.T) {
 	})
 
 	t.Run("fails when page title conflicts with existing page in target wiki", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 		th.SetupPagePermissions()
 
 		sourceWiki := &model.Wiki{
@@ -502,8 +488,7 @@ func TestMovePageToWiki(t *testing.T) {
 	})
 
 	t.Run("fails when user has no permission to edit source wiki", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 		th.SetupPagePermissions()
 
 		sourceWiki := &model.Wiki{
@@ -525,7 +510,7 @@ func TestMovePageToWiki(t *testing.T) {
 		page, err := th.App.CreateWikiPage(th.Context, createdSourceWiki.Id, "", "Page to Move", "", th.BasicUser.Id, "")
 		require.Nil(t, err)
 
-		otherUser := th.CreateUser()
+		otherUser := th.CreateUser(t)
 		_, _, addTeamErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, otherUser.Id, "")
 		require.Nil(t, addTeamErr)
 		_, memberErr := th.App.AddUserToChannel(th.Context, otherUser, th.BasicChannel, false)
@@ -539,8 +524,7 @@ func TestMovePageToWiki(t *testing.T) {
 	})
 
 	t.Run("fails when user has no permission to create in target wiki", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 		th.SetupPagePermissions()
 
 		sourceWiki := &model.Wiki{
@@ -562,7 +546,7 @@ func TestMovePageToWiki(t *testing.T) {
 		page, err := th.App.CreateWikiPage(th.Context, createdSourceWiki.Id, "", "Page to Move", "", th.BasicUser.Id, "")
 		require.Nil(t, err)
 
-		otherUser := th.CreateUser()
+		otherUser := th.CreateUser(t)
 		_, _, addTeamErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, otherUser.Id, "")
 		require.Nil(t, addTeamErr)
 		_, memberErr := th.App.AddUserToChannel(th.Context, otherUser, th.BasicChannel, false)
@@ -581,8 +565,7 @@ func TestMovePageToWiki(t *testing.T) {
 
 func TestDuplicatePage(t *testing.T) {
 	t.Run("successfully duplicates page to target wiki", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 		th.SetupPagePermissions()
 
 		sourceWiki := &model.Wiki{
@@ -633,8 +616,7 @@ func TestDuplicatePage(t *testing.T) {
 	})
 
 	t.Run("successfully duplicates page within same wiki", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 		th.SetupPagePermissions()
 
 		wiki := &model.Wiki{
@@ -663,8 +645,7 @@ func TestDuplicatePage(t *testing.T) {
 	})
 
 	t.Run("successfully duplicates page with custom title", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 		th.SetupPagePermissions()
 
 		wiki := &model.Wiki{
@@ -687,8 +668,7 @@ func TestDuplicatePage(t *testing.T) {
 	})
 
 	t.Run("successfully duplicates page with parent", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 		th.SetupPagePermissions()
 
 		wiki := &model.Wiki{
@@ -713,8 +693,7 @@ func TestDuplicatePage(t *testing.T) {
 	})
 
 	t.Run("fails when title conflict exists", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 		th.SetupPagePermissions()
 
 		wiki := &model.Wiki{
@@ -740,12 +719,11 @@ func TestDuplicatePage(t *testing.T) {
 	})
 
 	t.Run("fails when duplicating across channels", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 		th.SetupPagePermissions()
 
 		channel1 := th.BasicChannel
-		channel2 := th.CreateChannel(th.Context, th.BasicTeam)
+		channel2 := th.CreateChannel(t, th.BasicTeam)
 
 		sourceWiki := &model.Wiki{
 			ChannelId: channel1.Id,
@@ -775,8 +753,7 @@ func TestDuplicatePage(t *testing.T) {
 	})
 
 	t.Run("fails when source page not found", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 		th.SetupPagePermissions()
 
 		wiki := &model.Wiki{
@@ -796,8 +773,7 @@ func TestDuplicatePage(t *testing.T) {
 	})
 
 	t.Run("fails when target wiki not found", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 		th.SetupPagePermissions()
 
 		wiki := &model.Wiki{
@@ -820,8 +796,7 @@ func TestDuplicatePage(t *testing.T) {
 	})
 
 	t.Run("truncates title when exceeding max length", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 		th.SetupPagePermissions()
 
 		wiki := &model.Wiki{
@@ -852,8 +827,7 @@ func TestDuplicatePage(t *testing.T) {
 }
 
 func TestSystemMessages_WikiAdded(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("creates system message when wiki is added to channel", func(t *testing.T) {
 		wiki := &model.Wiki{
@@ -933,8 +907,7 @@ func TestSystemMessages_WikiAdded(t *testing.T) {
 }
 
 func TestSystemMessages_PageAdded(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	th.SetupPagePermissions()
 
 	wiki := &model.Wiki{
@@ -979,8 +952,7 @@ func TestSystemMessages_PageAdded(t *testing.T) {
 }
 
 func TestSystemMessages_PageUpdated(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	th.SetupPagePermissions()
 
 	wiki := &model.Wiki{
@@ -1090,7 +1062,7 @@ func TestSystemMessages_PageUpdated(t *testing.T) {
 	})
 
 	t.Run("tracks multiple updaters in consolidated notification", func(t *testing.T) {
-		th.AddUserToChannel(th.BasicUser2, th.BasicChannel)
+		th.AddUserToChannel(t, th.BasicUser2, th.BasicChannel)
 		_, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, th.BasicUser2.Id, model.ChannelAdminRoleId)
 		require.Nil(t, appErr)
 
@@ -1141,11 +1113,10 @@ func TestSystemMessages_PageUpdated(t *testing.T) {
 }
 
 func TestMoveWikiToChannel(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	sourceChannel := th.CreateChannel(th.Context, th.BasicTeam)
-	targetChannel := th.CreateChannel(th.Context, th.BasicTeam)
+	sourceChannel := th.CreateChannel(t, th.BasicTeam)
+	targetChannel := th.CreateChannel(t, th.BasicTeam)
 
 	wiki := &model.Wiki{
 		ChannelId:   sourceChannel.Id,
@@ -1188,8 +1159,8 @@ func TestMoveWikiToChannel(t *testing.T) {
 	})
 
 	t.Run("fails when moving to different team", func(t *testing.T) {
-		differentTeam := th.CreateTeam()
-		differentChannel := th.CreateChannel(th.Context, differentTeam)
+		differentTeam := th.CreateTeam(t)
+		differentChannel := th.CreateChannel(t, differentTeam)
 
 		_, appErr := th.App.MoveWikiToChannel(th.Context, movedWiki, differentChannel, th.BasicUser.Id)
 		require.NotNil(t, appErr)
@@ -1197,7 +1168,7 @@ func TestMoveWikiToChannel(t *testing.T) {
 	})
 
 	t.Run("fails when target channel already has wiki with same title", func(t *testing.T) {
-		conflictChannel := th.CreateChannel(th.Context, th.BasicTeam)
+		conflictChannel := th.CreateChannel(t, th.BasicTeam)
 
 		conflictWiki := &model.Wiki{
 			ChannelId:   conflictChannel.Id,

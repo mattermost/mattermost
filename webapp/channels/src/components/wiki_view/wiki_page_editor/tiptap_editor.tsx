@@ -414,6 +414,14 @@ const TipTapEditor = ({
         }
 
         if (currentUserId && teamId) {
+            // eslint-disable-next-line no-console
+            console.log('[TipTap Editor] Adding user mention extension', {
+                currentUserId,
+                channelId,
+                teamId,
+                editable,
+            });
+
             // User mentions (@username)
             exts.push(
                 Mention.extend({
@@ -504,6 +512,14 @@ const TipTapEditor = ({
                     }) as any,
                 }) as any,
             );
+        } else {
+            // eslint-disable-next-line no-console
+            console.log('[TipTap Editor] NOT adding mention extensions - missing required props', {
+                currentUserId,
+                channelId,
+                teamId,
+                editable,
+            });
         }
 
         return exts;
@@ -692,7 +708,7 @@ const TipTapEditor = ({
         };
     }, [editor]);
 
-    const handlePageSelect = useCallback((pageId: string, pageTitle: string, pageWikiId: string, linkText?: string) => {
+    const handlePageSelect = useCallback((pageId: string, pageTitle: string, pageWikiId: string, linkText: string) => {
         if (!editor) {
             return;
         }
@@ -701,14 +717,6 @@ const TipTapEditor = ({
         const url = `/${currentTeam?.name || 'team'}/wiki/${channelId}/${pageWikiId}/${pageId}`;
 
         const {from, to} = editor.state.selection;
-        const hasSelection = from !== to;
-        const selectedText = editor.state.doc.textBetween(from, to, '');
-
-        // Determine final link text:
-        // 1. If user provided custom link text in modal, use that
-        // 2. Otherwise, if there's selected text, keep it (user wants to convert existing text to link)
-        // 3. Otherwise, use the page title
-        const finalLinkText = linkText || (hasSelection ? selectedText : pageTitle);
 
         // Always delete selection first (if any) and insert new link
         editor.
@@ -717,7 +725,7 @@ const TipTapEditor = ({
             deleteRange({from, to}).
             insertContent({
                 type: 'text',
-                text: finalLinkText,
+                text: linkText,
                 marks: [{type: 'link', attrs: {href: url}}],
             }).
 

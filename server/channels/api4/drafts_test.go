@@ -18,8 +18,7 @@ import (
 func TestUpsertDraft(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	// set config
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
@@ -82,8 +81,7 @@ func TestUpsertDraft(t *testing.T) {
 func TestGetDrafts(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
@@ -149,8 +147,7 @@ func TestGetDrafts(t *testing.T) {
 func TestDeleteDraft(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
@@ -216,12 +213,11 @@ func TestDeleteDraft(t *testing.T) {
 func TestPageDraftPermissions(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	th.AddPermissionToRole(model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
-	th.AddPermissionToRole(model.PermissionDeleteWikiPublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreateWikiPublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionEditWikiPublicChannel.Id, model.ChannelUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionDeleteWikiPublicChannel.Id, model.ChannelUserRoleId)
 	th.Context.Session().UserId = th.BasicUser.Id
 
 	wiki := &model.Wiki{
@@ -250,7 +246,7 @@ func TestPageDraftPermissions(t *testing.T) {
 	})
 
 	t.Run("fail to get page draft without read permission", func(t *testing.T) {
-		privateChannel := th.CreatePrivateChannel()
+		privateChannel := th.CreatePrivateChannel(t)
 		th.Context.Session().UserId = th.BasicUser.Id
 
 		privateWiki := &model.Wiki{
@@ -274,7 +270,7 @@ func TestPageDraftPermissions(t *testing.T) {
 	})
 
 	t.Run("fail to save page draft without edit wiki permission", func(t *testing.T) {
-		privateChannel := th.CreatePrivateChannel()
+		privateChannel := th.CreatePrivateChannel(t)
 		th.Context.Session().UserId = th.BasicUser.Id
 
 		privateWiki := &model.Wiki{
@@ -294,7 +290,7 @@ func TestPageDraftPermissions(t *testing.T) {
 	})
 
 	t.Run("fail to delete page draft without edit wiki permission", func(t *testing.T) {
-		privateChannel := th.CreatePrivateChannel()
+		privateChannel := th.CreatePrivateChannel(t)
 		th.Context.Session().UserId = th.BasicUser.Id
 
 		privateWiki := &model.Wiki{
@@ -318,7 +314,7 @@ func TestPageDraftPermissions(t *testing.T) {
 	})
 
 	t.Run("fail to get page drafts for wiki without read permission", func(t *testing.T) {
-		privateChannel := th.CreatePrivateChannel()
+		privateChannel := th.CreatePrivateChannel(t)
 		th.Context.Session().UserId = th.BasicUser.Id
 
 		privateWiki := &model.Wiki{

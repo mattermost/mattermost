@@ -44,9 +44,8 @@ func setupPagePermissions(th *TestHelper) {
 }
 
 func TestCreatePageWithContent(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	setupPagePermissions(th)
-	defer th.TearDown()
 
 	t.Run("creates page with empty content", func(t *testing.T) {
 		page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "")
@@ -133,9 +132,8 @@ func TestCreatePageWithContent(t *testing.T) {
 }
 
 func TestGetPage(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	setupPagePermissions(th)
-	defer th.TearDown()
 
 	sessionCtx := createSessionContext(th)
 
@@ -173,9 +171,8 @@ func TestGetPage(t *testing.T) {
 }
 
 func TestUpdatePage(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	setupPagePermissions(th)
-	defer th.TearDown()
 
 	sessionCtx := createSessionContext(th)
 
@@ -215,9 +212,8 @@ func TestUpdatePage(t *testing.T) {
 }
 
 func TestDeletePage(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	setupPagePermissions(th)
-	defer th.TearDown()
 
 	sessionCtx := createSessionContext(th)
 
@@ -319,9 +315,8 @@ func TestDeletePage(t *testing.T) {
 }
 
 func TestRestorePage(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	setupPagePermissions(th)
-	defer th.TearDown()
 
 	sessionCtx := createSessionContext(th)
 
@@ -383,9 +378,8 @@ func TestRestorePage(t *testing.T) {
 }
 
 func TestPermanentDeletePage(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	setupPagePermissions(th)
-	defer th.TearDown()
 
 	sessionCtx := createSessionContext(th)
 
@@ -418,9 +412,8 @@ func TestPermanentDeletePage(t *testing.T) {
 }
 
 func TestGetPageChildren(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	setupPagePermissions(th)
-	defer th.TearDown()
 
 	sessionCtx := createSessionContext(th)
 
@@ -454,9 +447,8 @@ func TestGetPageChildren(t *testing.T) {
 }
 
 func TestGetPageAncestors(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	setupPagePermissions(th)
-	defer th.TearDown()
 
 	sessionCtx := createSessionContext(th)
 
@@ -490,9 +482,8 @@ func TestGetPageAncestors(t *testing.T) {
 }
 
 func TestGetPageDescendants(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	setupPagePermissions(th)
-	defer th.TearDown()
 
 	sessionCtx := createSessionContext(th)
 
@@ -520,9 +511,8 @@ func TestGetPageDescendants(t *testing.T) {
 }
 
 func TestGetChannelPages(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	setupPagePermissions(th)
-	defer th.TearDown()
 
 	sessionCtx := createSessionContext(th)
 
@@ -561,9 +551,8 @@ func TestGetChannelPages(t *testing.T) {
 }
 
 func TestChangePageParent(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	setupPagePermissions(th)
-	defer th.TearDown()
 
 	sessionCtx := createSessionContext(th)
 
@@ -674,9 +663,8 @@ func TestChangePageParent(t *testing.T) {
 }
 
 func TestPageDepthLimit(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	setupPagePermissions(th)
-	defer th.TearDown()
 
 	sessionCtx := createSessionContext(th)
 
@@ -684,7 +672,9 @@ func TestPageDepthLimit(t *testing.T) {
 		var parentID string
 		var lastPage *model.Post
 
-		for i := range model.PostPageMaxDepth {
+		// Create PostPageMaxDepth + 1 pages (to reach depth PostPageMaxDepth)
+		// This creates depths 0, 1, 2, ..., PostPageMaxDepth
+		for i := 0; i <= model.PostPageMaxDepth; i++ {
 			page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Page Level "+string(rune('0'+i)), parentID, "", th.BasicUser.Id, "")
 			require.Nil(t, err, "Failed to create page at depth %d", i)
 			require.NotNil(t, page)
@@ -695,37 +685,53 @@ func TestPageDepthLimit(t *testing.T) {
 		require.NotNil(t, lastPage)
 		depth, err := th.App.calculatePageDepth(th.Context, lastPage.Id)
 		require.Nil(t, err)
-		require.Equal(t, model.PostPageMaxDepth-1, depth, "Last page should be at max depth-1")
+		require.Equal(t, model.PostPageMaxDepth, depth, "Last page should be at max depth")
 	})
 
 	t.Run("prevents creating page beyond max depth", func(t *testing.T) {
 		var parentID string
 
-		for i := range model.PostPageMaxDepth {
+		// Create pages up to depth PostPageMaxDepth (which is the maximum allowed)
+		// This creates PostPageMaxDepth + 1 pages: depths 0, 1, 2, ..., PostPageMaxDepth
+		for i := 0; i <= model.PostPageMaxDepth; i++ {
 			page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Depth Page "+string(rune('A'+i)), parentID, "", th.BasicUser.Id, "")
 			require.Nil(t, err)
 			parentID = page.Id
 		}
 
+		// Verify the last page is at depth PostPageMaxDepth (the maximum)
+		depth, err := th.App.calculatePageDepth(th.Context, parentID)
+		require.Nil(t, err)
+		require.Equal(t, model.PostPageMaxDepth, depth, "Last created page should be at max depth")
+
+		// Now try to create one more level - this should fail because it would be at depth PostPageMaxDepth + 1
 		tooDeepPage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Too Deep Page", parentID, "", th.BasicUser.Id, "")
-		require.NotNil(t, err)
+		require.NotNil(t, err, "Should not allow creating page at depth > PostPageMaxDepth")
 		require.Nil(t, tooDeepPage)
 		require.Equal(t, "app.page.create.max_depth_exceeded.app_error", err.Id)
 	})
 
 	t.Run("prevents moving page to exceed max depth", func(t *testing.T) {
 		var deepParentID string
-		for i := range model.PostPageMaxDepth {
+		// Create a chain at maximum depth: depths 0, 1, 2, ..., PostPageMaxDepth
+		for i := 0; i <= model.PostPageMaxDepth; i++ {
 			page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Deep Chain "+string(rune('0'+i)), deepParentID, "", th.BasicUser.Id, "")
 			require.Nil(t, err)
 			deepParentID = page.Id
 		}
 
+		// Verify the last page in chain is at max depth
+		depth, err := th.App.calculatePageDepth(th.Context, deepParentID)
+		require.Nil(t, err)
+		require.Equal(t, model.PostPageMaxDepth, depth, "Last page in chain should be at max depth")
+
+		// Create a separate page (depth 0)
 		separatePage, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Separate Page", "", "", th.BasicUser.Id, "")
 		require.Nil(t, err)
 
+		// Try to move it under the deepest page - this would make it depth PostPageMaxDepth + 1, which should fail
 		err = th.App.ChangePageParent(sessionCtx, separatePage.Id, deepParentID)
-		require.NotNil(t, err)
+		require.NotNil(t, err, "Should not allow moving page to depth > PostPageMaxDepth")
 		require.Equal(t, "app.page.change_parent.max_depth_exceeded.app_error", err.Id)
 	})
 
@@ -769,8 +775,7 @@ func TestPageDepthLimit(t *testing.T) {
 }
 
 func TestHasPermissionToModifyPage(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.SetupPagePermissions()
 
@@ -797,9 +802,9 @@ func TestHasPermissionToModifyPage(t *testing.T) {
 				_, _ = th.App.UpdateRole(guestRole)
 			}()
 
-			guest := th.CreateGuest()
-			th.LinkUserToTeam(guest, th.BasicTeam)
-			th.AddUserToChannel(guest, th.BasicChannel)
+			guest := th.CreateGuest(t)
+			th.LinkUserToTeam(t, guest, th.BasicTeam)
+			th.AddUserToChannel(t, guest, th.BasicChannel)
 
 			session, _ := th.App.CreateSession(th.Context, &model.Session{UserId: guest.Id})
 			err = th.App.HasPermissionToModifyPage(th.Context, session, page, PageOperationCreate, "test")
@@ -831,15 +836,15 @@ func TestHasPermissionToModifyPage(t *testing.T) {
 
 		t.Run("non-author with edit_page_public_channel but not channel admin fails", func(t *testing.T) {
 			// Ensure channel_user role doesn't have admin permission
-			th.RemovePermissionFromRole(model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
-			defer th.AddPermissionToRole(model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+			th.RemovePermissionFromRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+			defer th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
 
 			page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "")
 			require.Nil(t, err)
 
-			otherUser := th.CreateUser()
-			th.LinkUserToTeam(otherUser, th.BasicTeam)
-			th.AddUserToChannel(otherUser, th.BasicChannel)
+			otherUser := th.CreateUser(t)
+			th.LinkUserToTeam(t, otherUser, th.BasicTeam)
+			th.AddUserToChannel(t, otherUser, th.BasicChannel)
 
 			session, _ := th.App.CreateSession(th.Context, &model.Session{UserId: otherUser.Id})
 			err = th.App.HasPermissionToModifyPage(th.Context, session, page, PageOperationEdit, "test")
@@ -851,9 +856,9 @@ func TestHasPermissionToModifyPage(t *testing.T) {
 			page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "")
 			require.Nil(t, err)
 
-			admin := th.CreateUser()
-			th.LinkUserToTeam(admin, th.BasicTeam)
-			th.AddUserToChannel(admin, th.BasicChannel)
+			admin := th.CreateUser(t)
+			th.LinkUserToTeam(t, admin, th.BasicTeam)
+			th.AddUserToChannel(t, admin, th.BasicChannel)
 			_, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, admin.Id, "channel_user channel_admin")
 			require.Nil(t, appErr)
 
@@ -875,15 +880,15 @@ func TestHasPermissionToModifyPage(t *testing.T) {
 
 		t.Run("non-author with delete_page_public_channel but not channel admin fails", func(t *testing.T) {
 			// Ensure channel_user role doesn't have admin permission
-			th.RemovePermissionFromRole(model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
-			defer th.AddPermissionToRole(model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+			th.RemovePermissionFromRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
+			defer th.AddPermissionToRole(t, model.PermissionManagePublicChannelProperties.Id, model.ChannelUserRoleId)
 
 			page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "")
 			require.Nil(t, err)
 
-			otherUser := th.CreateUser()
-			th.LinkUserToTeam(otherUser, th.BasicTeam)
-			th.AddUserToChannel(otherUser, th.BasicChannel)
+			otherUser := th.CreateUser(t)
+			th.LinkUserToTeam(t, otherUser, th.BasicTeam)
+			th.AddUserToChannel(t, otherUser, th.BasicChannel)
 
 			session, _ := th.App.CreateSession(th.Context, &model.Session{UserId: otherUser.Id})
 			err = th.App.HasPermissionToModifyPage(th.Context, session, page, PageOperationDelete, "test")
@@ -895,9 +900,9 @@ func TestHasPermissionToModifyPage(t *testing.T) {
 			page, err := th.App.CreatePage(th.Context, th.BasicChannel.Id, "Test Page", "", "", th.BasicUser.Id, "")
 			require.Nil(t, err)
 
-			admin := th.CreateUser()
-			th.LinkUserToTeam(admin, th.BasicTeam)
-			th.AddUserToChannel(admin, th.BasicChannel)
+			admin := th.CreateUser(t)
+			th.LinkUserToTeam(t, admin, th.BasicTeam)
+			th.AddUserToChannel(t, admin, th.BasicChannel)
 			_, appErr := th.App.UpdateChannelMemberRoles(th.Context, th.BasicChannel.Id, admin.Id, "channel_user channel_admin")
 			require.Nil(t, appErr)
 
@@ -930,7 +935,7 @@ func TestHasPermissionToModifyPage(t *testing.T) {
 	})
 
 	t.Run("DM and GM channels allow all operations for non-guests", func(t *testing.T) {
-		otherUser := th.CreateUser()
+		otherUser := th.CreateUser(t)
 		dmChannel, err := th.App.GetOrCreateDirectChannel(th.Context, th.BasicUser.Id, otherUser.Id)
 		require.Nil(t, err)
 
@@ -949,7 +954,6 @@ func TestHasPermissionToModifyPage(t *testing.T) {
 
 func TestExtractMentionsFromTipTapContent(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	t.Run("extracts single mention from simple paragraph", func(t *testing.T) {
 		content := `{
@@ -1276,9 +1280,8 @@ func TestExtractMentionsFromTipTapContent(t *testing.T) {
 }
 
 func TestCreatePageComment(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	setupPagePermissions(th)
-	defer th.TearDown()
 
 	rctx := createSessionContext(th)
 
@@ -1339,9 +1342,8 @@ func TestCreatePageComment(t *testing.T) {
 }
 
 func TestCreatePageCommentReply(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	setupPagePermissions(th)
-	defer th.TearDown()
 
 	rctx := createSessionContext(th)
 
@@ -1421,9 +1423,8 @@ func TestCreatePageCommentReply(t *testing.T) {
 }
 
 func TestGetPageStatus(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	setupPagePermissions(th)
-	defer th.TearDown()
 
 	rctx := createSessionContext(th)
 
@@ -1469,9 +1470,8 @@ func TestGetPageStatus(t *testing.T) {
 }
 
 func TestSetPageStatus(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	setupPagePermissions(th)
-	defer th.TearDown()
 
 	rctx := createSessionContext(th)
 
@@ -1536,9 +1536,8 @@ func TestSetPageStatus(t *testing.T) {
 }
 
 func TestGetPageStatusField(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	setupPagePermissions(th)
-	defer th.TearDown()
 
 	t.Run("successfully retrieves page status field definition", func(t *testing.T) {
 		field, appErr := th.App.GetPageStatusField()
@@ -1583,19 +1582,18 @@ func TestGetPageStatusField(t *testing.T) {
 }
 
 func TestPageMentionSystemMessages(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t).InitBasic(t)
 	setupPagePermissions(th)
-	defer th.TearDown()
 
 	rctx := createSessionContext(th)
 
-	user2 := th.CreateUser()
-	th.LinkUserToTeam(user2, th.BasicTeam)
-	th.AddUserToChannel(user2, th.BasicChannel)
+	user2 := th.CreateUser(t)
+	th.LinkUserToTeam(t, user2, th.BasicTeam)
+	th.AddUserToChannel(t, user2, th.BasicChannel)
 
-	user3 := th.CreateUser()
-	th.LinkUserToTeam(user3, th.BasicTeam)
-	th.AddUserToChannel(user3, th.BasicChannel)
+	user3 := th.CreateUser(t)
+	th.LinkUserToTeam(t, user3, th.BasicTeam)
+	th.AddUserToChannel(t, user3, th.BasicChannel)
 
 	wiki := &model.Wiki{
 		ChannelId:   th.BasicChannel.Id,
