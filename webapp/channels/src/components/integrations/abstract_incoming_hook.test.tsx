@@ -89,7 +89,7 @@ describe('components/integrations/AbstractIncomingWebhook', () => {
             return jest.fn();
         }});
 
-        expect(action).not.toBeCalled();
+        expect(action).not.toHaveBeenCalled();
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -120,7 +120,7 @@ describe('components/integrations/AbstractIncomingWebhook', () => {
             return jest.fn();
         }});
 
-        expect(action).toBeCalled();
+        expect(action).toHaveBeenCalled();
         expect(action).toHaveBeenCalledTimes(1);
     });
 
