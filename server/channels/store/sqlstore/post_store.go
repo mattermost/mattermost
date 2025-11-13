@@ -2073,20 +2073,6 @@ func (s *SqlPostStore) search(teamId string, userId string, params *model.Search
 
 	if terms == "" && excludedTerms == "" {
 		// we've already confirmed that we have a channel or user to search for
-	} else if true {
-		// Query generation customized for Japanese by bypassing the original implementation
-		// build LIKE search query using pg_bigm index
-
-		// Escape wildcards of LIKE searches used within strings with a backslash("\").
-		terms = sanitizeSearchTerm(terms, "\\")
-		excludedTerms = sanitizeSearchTerm(excludedTerms, "\\")
-
-		phrases := quotedStringsRegex.FindAllString(terms, -1)
-		terms = quotedStringsRegex.ReplaceAllString(terms, " ")
-		excludedPhrases := quotedStringsRegex.FindAllString(excludedTerms, -1)
-		excludedTerms = quotedStringsRegex.ReplaceAllLiteralString(excludedTerms, " ")
-
-		baseQuery = s.generateLikeSearchQueryForPosts(baseQuery, params, phrases, terms, excludedTerms, excludedPhrases, searchType)
 	} else {
 		// Parse text for wildcards
 		terms = wildCardRegex.ReplaceAllLiteralString(terms, ":* ")
@@ -2810,50 +2796,24 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 	return result, nil
 }
 
-//nolint:unparam
 func (s *SqlPostStore) SearchPostsForUser(rctx request.CTX, paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.PostSearchResults, error) {
-	// Since we don't support paging for DB search, we just return nothing for later pages
-	if page > 0 {
-		return model.MakePostSearchResults(model.NewPostList(), nil), nil
-	}
-
 	if err := model.IsSearchParamsListValid(paramsList); err != nil {
 		return nil, err
 	}
-
-	var wg sync.WaitGroup
-
-	pchan := make(chan store.StoreResult[*model.PostList], len(paramsList))
 
 	for _, params := range paramsList {
 		// remove any unquoted term that contains only non-alphanumeric chars
 		// ex: abcd "**" && abc     >>     abcd "**" abc
 		params.Terms = removeNonAlphaNumericUnquotedTerms(params.Terms, " ")
-
-		wg.Add(1)
-
-		go func(params *model.SearchParams) {
-			defer wg.Done()
-			postList, err := s.search(teamId, userId, params, false, false)
-			pchan <- store.StoreResult[*model.PostList]{Data: postList, NErr: err}
-		}(params)
 	}
 
-	wg.Wait()
-	close(pchan)
+	postList, err := s.likesearch(teamId, userId, paramsList, false, false, page, perPage)
 
-	posts := model.NewPostList()
-
-	for result := range pchan {
-		if result.NErr != nil {
-			return nil, result.NErr
-		}
-		posts.Extend(result.Data)
+	if err != nil {
+		return nil, err
 	}
 
-	posts.SortByCreateAt()
-
-	return model.MakePostSearchResults(posts, nil), nil
+	return model.MakePostSearchResults(postList, nil), nil
 }
 
 func (s *SqlPostStore) GetOldestEntityCreationTime() (int64, error) {
