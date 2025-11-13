@@ -484,6 +484,8 @@ func (es *Service) SendInviteEmails(
 	return nil
 }
 
+const magicLinkURL = "%s/landing#/login/one_time_link?t=%s"
+
 func (es *Service) SendGuestInviteEmails(
 	team *model.Team,
 	channels []*model.Channel,
@@ -567,7 +569,7 @@ func (es *Service) SendGuestInviteEmails(
 
 			if isGuestMagicLink {
 				// Guest magic link uses SSO-style authentication - clicking the link sends them to the landing page and logs them in directly
-				data.Props["ButtonURL"] = fmt.Sprintf("%s/landing#/login/one_time_link?t=%s", siteURL, url.QueryEscape(token.Token))
+				data.Props["ButtonURL"] = fmt.Sprintf(magicLinkURL, siteURL, url.QueryEscape(token.Token))
 			} else {
 				data.Props["ButtonURL"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s&sbr=%s", siteURL, url.QueryEscape(tokenData), url.QueryEscape(token.Token), es.GetTrackFlowStartedByRole(isFirstAdmin, isSystemAdmin))
 			}
@@ -667,7 +669,7 @@ func (es *Service) SendMagicLinkEmailSelfService(
 	}
 
 	// Guest magic link uses SSO-style authentication - clicking the link sends them to the landing page and logs them in directly
-	data.Props["ButtonURL"] = fmt.Sprintf("%s/landing#/login/one_time_link?t=%s", siteURL, url.QueryEscape(token.Token))
+	data.Props["ButtonURL"] = fmt.Sprintf(magicLinkURL, siteURL, url.QueryEscape(token.Token))
 
 	if !*es.config().EmailSettings.SendEmailNotifications {
 		mlog.Info("sending guest magic link", mlog.String("to", invite))

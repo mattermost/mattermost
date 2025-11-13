@@ -608,7 +608,7 @@ func (a *App) AddUserToTeamByToken(rctx request.CTX, userID string, tokenID stri
 }
 
 func (a *App) AddUserToTeamWithToken(rctx request.CTX, userID string, token *model.Token) (*model.Team, *model.TeamMember, *model.AppError) {
-	if token.Type != model.TokenTypeTeamInvitation && token.Type != model.TokenTypeGuestInvitation && token.Type != model.TokenTypeGuestMagicLinkInvitation {
+	if !token.IsInvitationToken() {
 		return nil, nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -1890,7 +1890,7 @@ func (a *App) GetTeamIdFromQuery(rctx request.CTX, query url.Values) (string, *m
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 
-		if token.Type != model.TokenTypeTeamInvitation && token.Type != model.TokenTypeGuestInvitation {
+		if !token.IsInvitationToken() {
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest)
 		}
 

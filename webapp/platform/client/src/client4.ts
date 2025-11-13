@@ -838,7 +838,7 @@ export default class Client4 {
         );
     };
 
-    loginPasswordless = (token: string) => {
+    loginWithMagicLink = (token: string) => {
         const body = {
             token,
         };

@@ -20,6 +20,11 @@ func loginWithMagicLinkToken(c *Context, w http.ResponseWriter, r *http.Request)
 	auditRec.AddMeta("login_method", "guest_magic_link")
 	defer c.LogAuditRec(auditRec)
 
+	if !*c.App.Config().GuestAccountsSettings.EnableGuestMagicLink {
+		http.Redirect(w, r, c.GetSiteURLHeader()+"/login?extra=login_error&message="+html.EscapeString("Magic link is disabled"), http.StatusFound)
+		return
+	}
+
 	tokenString := r.URL.Query().Get("t")
 	if tokenString == "" {
 		c.Err = model.NewAppError("loginWithMagicLinkToken", "api.user.guest_magic_link.missing_token.app_error", nil, "", http.StatusBadRequest)

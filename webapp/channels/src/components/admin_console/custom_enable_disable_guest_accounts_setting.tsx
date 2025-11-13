@@ -12,7 +12,7 @@ import BooleanSetting from './boolean_setting';
 type Props = {
     id: string;
     value: boolean;
-    onChange: (id: string, value: boolean, confirm?: boolean, doSubmit?: boolean, warning?: React.ReactNode | string) => void;
+    onChange: (id: string, value: boolean, confirm?: boolean, doSubmit?: boolean, warning?: React.ReactNode) => void;
     cancelSubmit: () => void;
     disabled?: boolean;
     setByEnv: boolean;
@@ -30,7 +30,7 @@ const CustomEnableDisableGuestAccountsSetting = ({
 }: Props) => {
     const handleChange = useCallback((targetId: string, newValue: boolean, submit = false) => {
         const confirmNeeded = newValue === false; // Requires confirmation if disabling guest accounts
-        let warning: React.ReactNode | string = '';
+        let warning: React.ReactNode;
         if (confirmNeeded) {
             warning = (
                 <FormattedMessage

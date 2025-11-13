@@ -79,3 +79,11 @@ func (t *Token) IsExpired() bool {
 	}
 	return GetMillis() > (t.CreateAt + expiryTime)
 }
+
+func (t *Token) IsGuestMagicLink() bool {
+	return t.Type == TokenTypeGuestMagicLink || t.Type == TokenTypeGuestMagicLinkInvitation
+}
+
+func (t *Token) IsInvitationToken() bool {
+	return t.Type == TokenTypeTeamInvitation || t.Type == TokenTypeGuestInvitation || t.Type == TokenTypeGuestMagicLinkInvitation
+}

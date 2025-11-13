@@ -41,7 +41,7 @@ func (a *App) CreateUserWithToken(rctx request.CTX, user *model.User, token *mod
 		return nil, err
 	}
 
-	if token.Type != model.TokenTypeTeamInvitation && token.Type != model.TokenTypeGuestInvitation && token.Type != model.TokenTypeGuestMagicLinkInvitation {
+	if !token.IsInvitationToken() {
 		return nil, model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -1275,6 +1275,8 @@ func (a *App) DeactivateMagicLinkGuests(rctx request.CTX) *model.AppError {
 		}
 	}
 
+	a.Srv().Store().Token().RemoveAllTokensByType(model.TokenTypeGuestMagicLinkInvitation)
+	a.Srv().Store().Token().RemoveAllTokensByType(model.TokenTypeGuestMagicLink)
 	a.Srv().Store().Channel().ClearCaches()
 	a.Srv().Store().User().ClearCaches()
 
