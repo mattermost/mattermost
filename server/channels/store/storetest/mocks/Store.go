@@ -1207,6 +1207,26 @@ func (_m *Store) Team() store.TeamStore {
 	return r0
 }
 
+// TemporaryPost provides a mock function with no fields
+func (_m *Store) TemporaryPost() store.TemporaryPostStore {
+	ret := _m.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for TemporaryPost")
+	}
+
+	var r0 store.TemporaryPostStore
+	if rf, ok := ret.Get(0).(func() store.TemporaryPostStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.TemporaryPostStore)
+		}
+	}
+
+	return r0
+}
+
 // TermsOfService provides a mock function with no fields
 func (_m *Store) TermsOfService() store.TermsOfServiceStore {
 	ret := _m.Called()

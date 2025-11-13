@@ -194,6 +194,9 @@ func getMockStore(t *testing.T) *mocks.Store {
 	mockReadReceiptStore := &mocks.ReadReceiptStore{}
 	mockStore.On("ReadReceipt").Return(mockReadReceiptStore)
 
+	mockTemporaryPostStore := mocks.TemporaryPostStore{}
+	mockStore.On("TemporaryPost").Return(&mockTemporaryPostStore)
+
 	return &mockStore
 }
 
