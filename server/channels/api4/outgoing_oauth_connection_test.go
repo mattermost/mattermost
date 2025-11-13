@@ -101,7 +101,7 @@ func TestCheckOutgoingOAuthConnectionReadPermissions(t *testing.T) {
 		c.App = th.App
 		c.Logger = th.App.Srv().Log()
 
-		th.AddPermissionToRole(model.PermissionManageSlashCommands.Id, model.TeamAdminRoleId)
+		th.AddPermissionToRole(model.PermissionManageOwnSlashCommands.Id, model.TeamAdminRoleId)
 
 		canRead := checkOutgoingOAuthConnectionReadPermissions(c, th.BasicTeam.Id)
 		require.True(t, canRead)
@@ -121,7 +121,7 @@ func TestCheckOutgoingOAuthConnectionReadPermissions(t *testing.T) {
 		c.App = th.App
 		c.Logger = th.App.Srv().Log()
 
-		th.AddPermissionToRole(model.PermissionManageOutgoingWebhooks.Id, model.TeamAdminRoleId)
+		th.AddPermissionToRole(model.PermissionManageOwnOutgoingWebhooks.Id, model.TeamAdminRoleId)
 
 		canRead := checkOutgoingOAuthConnectionReadPermissions(c, th.BasicTeam.Id)
 		require.True(t, canRead)
@@ -184,8 +184,8 @@ func TestClientOutgoingOAuthConnectionGet(t *testing.T) {
 		defer func() {
 			th.RestoreDefaultRolePermissions(defaultRolePermissions)
 		}()
-		th.AddPermissionToRole(model.PermissionManageOutgoingWebhooks.Id, model.TeamAdminRoleId)
-		th.AddPermissionToRole(model.PermissionManageSlashCommands.Id, model.TeamAdminRoleId)
+		th.AddPermissionToRole(model.PermissionManageOwnOutgoingWebhooks.Id, model.TeamAdminRoleId)
+		th.AddPermissionToRole(model.PermissionManageOwnSlashCommands.Id, model.TeamAdminRoleId)
 
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
 		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
@@ -215,8 +215,8 @@ func TestClientOutgoingOAuthConnectionGet(t *testing.T) {
 		defer func() {
 			th.RestoreDefaultRolePermissions(defaultRolePermissions)
 		}()
-		th.AddPermissionToRole(model.PermissionManageOutgoingWebhooks.Id, model.TeamAdminRoleId)
-		th.AddPermissionToRole(model.PermissionManageSlashCommands.Id, model.TeamAdminRoleId)
+		th.AddPermissionToRole(model.PermissionManageOwnOutgoingWebhooks.Id, model.TeamAdminRoleId)
+		th.AddPermissionToRole(model.PermissionManageOwnSlashCommands.Id, model.TeamAdminRoleId)
 
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
 		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
@@ -327,8 +327,8 @@ func TestClientListOutgoingOAuthConnection(t *testing.T) {
 		defer func() {
 			th.RestoreDefaultRolePermissions(defaultRolePermissions)
 		}()
-		th.AddPermissionToRole(model.PermissionManageOutgoingWebhooks.Id, model.SystemUserRoleId)
-		th.AddPermissionToRole(model.PermissionManageSlashCommands.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(model.PermissionManageOwnOutgoingWebhooks.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(model.PermissionManageOwnSlashCommands.Id, model.SystemUserRoleId)
 
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
@@ -365,8 +365,8 @@ func TestClientListOutgoingOAuthConnection(t *testing.T) {
 		defer func() {
 			th.RestoreDefaultRolePermissions(defaultRolePermissions)
 		}()
-		th.AddPermissionToRole(model.PermissionManageOutgoingWebhooks.Id, model.SystemUserRoleId)
-		th.AddPermissionToRole(model.PermissionManageSlashCommands.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(model.PermissionManageOwnOutgoingWebhooks.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(model.PermissionManageOwnSlashCommands.Id, model.SystemUserRoleId)
 
 		conn := newOutgoingOAuthConnection()
 		conn.Audiences = []string{"http://knowhere.com"}
@@ -411,8 +411,8 @@ func TestClientListOutgoingOAuthConnection(t *testing.T) {
 		defer func() {
 			th.RestoreDefaultRolePermissions(defaultRolePermissions)
 		}()
-		th.AddPermissionToRole(model.PermissionManageOutgoingWebhooks.Id, model.SystemUserRoleId)
-		th.AddPermissionToRole(model.PermissionManageSlashCommands.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(model.PermissionManageOwnOutgoingWebhooks.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(model.PermissionManageOwnSlashCommands.Id, model.SystemUserRoleId)
 
 		conn := newOutgoingOAuthConnection()
 		conn.CreatorId = model.NewId()
