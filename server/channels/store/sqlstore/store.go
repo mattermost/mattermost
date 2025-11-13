@@ -111,6 +111,7 @@ type SqlStoreStores struct {
 	accessControlPolicy        store.AccessControlPolicyStore
 	Attributes                 store.AttributesStore
 	ContentFlagging            store.ContentFlaggingStore
+	readReceipt                store.ReadReceiptStore
 }
 
 type SqlStore struct {
@@ -261,6 +262,7 @@ func New(settings model.SqlSettings, logger mlog.LoggerIFace, metrics einterface
 	store.stores.accessControlPolicy = newSqlAccessControlPolicyStore(store, metrics)
 	store.stores.Attributes = newSqlAttributesStore(store, metrics)
 	store.stores.ContentFlagging = newContentFlaggingStore(store)
+	store.stores.readReceipt = newSqlReadReceiptStore(store, metrics)
 
 	store.stores.preference.(*SqlPreferenceStore).deleteUnusedFeatures()
 
@@ -874,6 +876,10 @@ func (ss *SqlStore) AccessControlPolicy() store.AccessControlPolicyStore {
 
 func (ss *SqlStore) Attributes() store.AttributesStore {
 	return ss.stores.Attributes
+}
+
+func (ss *SqlStore) ReadReceipt() store.ReadReceiptStore {
+	return ss.stores.readReceipt
 }
 
 func (ss *SqlStore) DropAllTables() {
