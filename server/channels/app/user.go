@@ -1275,8 +1275,12 @@ func (a *App) DeactivateMagicLinkGuests(rctx request.CTX) *model.AppError {
 		}
 	}
 
-	a.Srv().Store().Token().RemoveAllTokensByType(model.TokenTypeGuestMagicLinkInvitation)
-	a.Srv().Store().Token().RemoveAllTokensByType(model.TokenTypeGuestMagicLink)
+	if err := a.Srv().Store().Token().RemoveAllTokensByType(model.TokenTypeGuestMagicLinkInvitation); err != nil {
+		rctx.Logger().Warn("Error while removing guest magic link invitation tokens", mlog.Err(err))
+	}
+	if err := a.Srv().Store().Token().RemoveAllTokensByType(model.TokenTypeGuestMagicLink); err != nil {
+		rctx.Logger().Warn("Error while removing guest magic link tokens", mlog.Err(err))
+	}
 	a.Srv().Store().Channel().ClearCaches()
 	a.Srv().Store().User().ClearCaches()
 
