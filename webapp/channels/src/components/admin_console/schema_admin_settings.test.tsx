@@ -2,17 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
 
 import type {CloudState} from '@mattermost/types/cloud';
 import type {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
 
-import SchemaText from 'components/admin_console/schema_text';
+import {defaultIntl} from 'tests/helpers/intl-test-helper';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
-import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
-
-import SchemaAdminSettings from './schema_admin_settings';
-import type {SchemaAdminSettings as SchemaAdminSettingsClass} from './schema_admin_settings';
+import SchemaAdminSettings, {SchemaAdminSettings as SchemaAdminSettingsClass} from './schema_admin_settings';
 import type {ConsoleAccess, AdminDefinitionSubSectionSchema, AdminDefinitionSettingInput} from './types';
 import ValidationResult from './validation';
 
@@ -249,8 +246,8 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         } as Partial<EnvironmentConfig>;
     });
 
-    test('should match snapshot with settings and plugin', () => {
-        const wrapper = shallowWithIntl(
+    test('should render settings from schema', () => {
+        const {container} = renderWithContext(
             <SchemaAdminSettings
                 {...DefaultProps}
                 config={config}
@@ -259,11 +256,19 @@ describe('components/admin_console/SchemaAdminSettings', () => {
                 patchConfig={jest.fn()}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+
+        // Verify the admin console wrapper is rendered
+        expect(container.querySelector('.admin-console__wrapper')).toBeInTheDocument();
+
+        // Verify the form is rendered
+        expect(container.querySelector('form')).toBeInTheDocument();
+
+        // Verify the settings section is present (the component renders when schema is provided)
+        expect(container.querySelector('.admin-console__content')).toBeInTheDocument();
     });
 
-    test('should match snapshot with custom component', () => {
-        const wrapper = shallowWithIntl(
+    test('should render custom component from schema', () => {
+        renderWithContext(
             <SchemaAdminSettings
                 {...DefaultProps}
                 config={config}
@@ -272,10 +277,12 @@ describe('components/admin_console/SchemaAdminSettings', () => {
                 patchConfig={jest.fn()}
             />,
         );
-        expect(wrapper).toMatchSnapshot();
+
+        // Verify the custom component is rendered
+        expect(screen.getByText('Test')).toBeInTheDocument();
     });
 
-    test('should render header using a SchemaText', () => {
+    test('should render header text with markdown links', () => {
         const headerText = 'This is [a link](!https://example.com) in the header';
         const props = {
             ...DefaultProps,
@@ -288,17 +295,19 @@ describe('components/admin_console/SchemaAdminSettings', () => {
             patchConfig: jest.fn(),
         };
 
-        const wrapper = shallowWithIntl(<SchemaAdminSettings {...props}/>);
+        const {container} = renderWithContext(<SchemaAdminSettings {...props}/>);
 
-        const header = wrapper.find(SchemaText);
-        expect(header.exists()).toBe(true);
-        expect(header.props()).toMatchObject({
-            text: headerText,
-            isMarkdown: true,
-        });
+        // Verify the markdown link is rendered as an anchor element with the correct text
+        const link = screen.getByRole('link', {name: 'a link'});
+        expect(link).toBeInTheDocument();
+        expect(link).toHaveAttribute('href', 'https://example.com');
+
+        // Verify the surrounding text is present
+        expect(container.textContent).toContain('This is');
+        expect(container.textContent).toContain('in the header');
     });
 
-    test('should render footer using a SchemaText', () => {
+    test('should render footer text with markdown links', () => {
         const footerText = 'This is [a link](https://example.com) in the footer';
         const props = {
             ...DefaultProps,
@@ -311,14 +320,16 @@ describe('components/admin_console/SchemaAdminSettings', () => {
             patchConfig: jest.fn(),
         };
 
-        const wrapper = shallowWithIntl(<SchemaAdminSettings {...props}/>);
+        const {container} = renderWithContext(<SchemaAdminSettings {...props}/>);
 
-        const footer = wrapper.find(SchemaText);
-        expect(footer.exists()).toBe(true);
-        expect(footer.props()).toMatchObject({
-            text: footerText,
-            isMarkdown: true,
-        });
+        // Verify the markdown link is rendered as an anchor element with the correct text
+        const link = screen.getByRole('link', {name: 'a link'});
+        expect(link).toBeInTheDocument();
+        expect(link).toHaveAttribute('href', 'https://example.com');
+
+        // Verify the surrounding text is present
+        expect(container.textContent).toContain('This is');
+        expect(container.textContent).toContain('in the footer');
     });
 
     test('should render page not found', () => {
@@ -330,14 +341,10 @@ describe('components/admin_console/SchemaAdminSettings', () => {
             patchConfig: jest.fn(),
         };
 
-        const wrapper = shallowWithIntl(<SchemaAdminSettings {...props}/>);
+        renderWithContext(<SchemaAdminSettings {...props}/>);
 
-        expect(wrapper.contains(
-            <FormattedMessage
-                id='error.plugin_not_found.title'
-                defaultMessage='Plugin Not Found'
-            />,
-        )).toEqual(true);
+        // Verify the "Plugin Not Found" message is rendered
+        expect(screen.getByText('Plugin Not Found')).toBeInTheDocument();
     });
 
     test('should not try to validate when a setting does not contain a key', () => {
@@ -361,12 +368,18 @@ describe('components/admin_console/SchemaAdminSettings', () => {
             environmentConfig,
             schema: localSchema,
             patchConfig: jest.fn(),
+            intl: defaultIntl,
         };
 
-        const wrapper = shallowWithIntl(<SchemaAdminSettings {...props}/>);
-        const instance = wrapper.instance() as SchemaAdminSettingsClass;
+        const ref = React.createRef<SchemaAdminSettingsClass>();
+        renderWithContext(
+            <SchemaAdminSettingsClass
+                ref={ref}
+                {...props}
+            />,
+        );
 
-        expect(instance.canSave()).toBe(true);
+        expect(ref.current?.canSave()).toBe(true);
         expect(mockValidate).not.toHaveBeenCalled();
     });
 
@@ -390,12 +403,18 @@ describe('components/admin_console/SchemaAdminSettings', () => {
             environmentConfig,
             schema: localSchema,
             patchConfig: jest.fn(),
+            intl: defaultIntl,
         };
 
-        const wrapper = shallowWithIntl(<SchemaAdminSettings {...props}/>);
-        const instance = wrapper.instance() as SchemaAdminSettingsClass;
+        const ref = React.createRef<SchemaAdminSettingsClass>();
+        renderWithContext(
+            <SchemaAdminSettingsClass
+                ref={ref}
+                {...props}
+            />,
+        );
 
-        expect(instance.canSave()).toBe(true);
+        expect(ref.current?.canSave()).toBe(true);
         expect(mockValidate).toHaveBeenCalled();
     });
 });

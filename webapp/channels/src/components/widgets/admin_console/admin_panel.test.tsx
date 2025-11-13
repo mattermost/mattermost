@@ -1,8 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
+
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import AdminPanel from './admin_panel';
 
@@ -15,47 +17,26 @@ describe('components/widgets/admin_console/AdminPanel', () => {
         subtitleValues: {foo: 'bar'},
     };
 
-    test('should match snapshot', () => {
-        const wrapper = shallow(
+    test('should render with title, subtitle, and children', () => {
+        const {container} = renderWithContext(
             <AdminPanel {...defaultProps}>{'Test'}</AdminPanel>,
         );
-        expect(wrapper).toMatchInlineSnapshot(`
-            <div
-              className="AdminPanel clearfix test-class-name"
-              id="test-id"
-            >
-              <div
-                className="header"
-              >
-                <div>
-                  <h3>
-                    <MemoizedFormattedMessage
-                      defaultMessage="test-title-default"
-                      id="test-title-id"
-                    />
-                  </h3>
-                  <div
-                    className="mt-2"
-                  >
-                    <MemoizedFormattedMessage
-                      defaultMessage="test-subtitle-default"
-                      id="test-subtitle-id"
-                      values={
-                        Object {
-                          "foo": "bar",
-                        }
-                      }
-                    />
-                  </div>
-                </div>
-              </div>
-              Test
-            </div>
-        `);
+
+        const panel = container.querySelector('#test-id');
+        expect(panel).toBeInTheDocument();
+        expect(panel).toHaveClass('AdminPanel', 'clearfix', 'test-class-name');
+
+        expect(screen.getByRole('heading', {level: 3})).toHaveTextContent('test-title-default');
+        expect(screen.getByText('test-subtitle-default')).toBeInTheDocument();
+        expect(screen.getByText('Test')).toBeInTheDocument();
+
+        const header = container.querySelector('.header');
+        expect(header).toBeInTheDocument();
+        expect(container.querySelector('.button')).not.toBeInTheDocument();
     });
 
-    test('should match snapshot with button', () => {
-        const wrapper = shallow(
+    test('should render with button when provided', () => {
+        const {container} = renderWithContext(
             <AdminPanel
                 {...defaultProps}
                 button={<span>{'TestButton'}</span>}
@@ -63,90 +44,29 @@ describe('components/widgets/admin_console/AdminPanel', () => {
                 {'Test'}
             </AdminPanel>,
         );
-        expect(wrapper).toMatchInlineSnapshot(`
-            <div
-              className="AdminPanel clearfix test-class-name"
-              id="test-id"
-            >
-              <div
-                className="header"
-              >
-                <div>
-                  <h3>
-                    <MemoizedFormattedMessage
-                      defaultMessage="test-title-default"
-                      id="test-title-id"
-                    />
-                  </h3>
-                  <div
-                    className="mt-2"
-                  >
-                    <MemoizedFormattedMessage
-                      defaultMessage="test-subtitle-default"
-                      id="test-subtitle-id"
-                      values={
-                        Object {
-                          "foo": "bar",
-                        }
-                      }
-                    />
-                  </div>
-                </div>
-                <div
-                  className="button"
-                >
-                  <span>
-                    TestButton
-                  </span>
-                </div>
-              </div>
-              Test
-            </div>
-        `);
+
+        expect(screen.getByText('TestButton')).toBeInTheDocument();
+        expect(container.querySelector('.button')).toBeInTheDocument();
+        expect(screen.getByText('test-title-default')).toBeInTheDocument();
+        expect(screen.getByText('Test')).toBeInTheDocument();
     });
 
-    test('should match snapshot with onHeaderClick', () => {
-        const wrapper = shallow(
+    test('should call onHeaderClick when header is clicked', async () => {
+        const onHeaderClick = jest.fn();
+        const {container} = renderWithContext(
             <AdminPanel
                 {...defaultProps}
-                onHeaderClick={jest.fn()}
+                onHeaderClick={onHeaderClick}
             >
                 {'Test'}
             </AdminPanel>,
         );
-        expect(wrapper).toMatchInlineSnapshot(`
-            <div
-              className="AdminPanel clearfix test-class-name"
-              id="test-id"
-            >
-              <div
-                className="header"
-                onClick={[MockFunction]}
-              >
-                <div>
-                  <h3>
-                    <MemoizedFormattedMessage
-                      defaultMessage="test-title-default"
-                      id="test-title-id"
-                    />
-                  </h3>
-                  <div
-                    className="mt-2"
-                  >
-                    <MemoizedFormattedMessage
-                      defaultMessage="test-subtitle-default"
-                      id="test-subtitle-id"
-                      values={
-                        Object {
-                          "foo": "bar",
-                        }
-                      }
-                    />
-                  </div>
-                </div>
-              </div>
-              Test
-            </div>
-        `);
+
+        const header = container.querySelector('.header');
+        expect(header).toBeInTheDocument();
+
+        await userEvent.click(header!);
+
+        expect(onHeaderClick).toHaveBeenCalledTimes(1);
     });
 });
