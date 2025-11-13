@@ -8,7 +8,7 @@
     &__header {
         display: flex;
         align-items: center;
-        padding: 14px 14px 13px 20px;
+        padding: 12px 14px 11px 20px;
         border-bottom: var(--border-default);
         gap: 8px;
 
@@ -28,10 +28,12 @@
     }
 
     &__page-title {
-        margin-left: 8px;
+        margin-left: 0px;
+        padding-left: 8px;
         margin-bottom: 2px;
         color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 12px;
+        border-left: var(--border-default);
     }
 
     &__expand-btn,
