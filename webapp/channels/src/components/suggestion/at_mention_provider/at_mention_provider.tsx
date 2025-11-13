@@ -382,19 +382,19 @@ export default class AtMentionProvider extends Provider {
         const prefix = captured[2];
 
         if (this.lastCompletedWord && prefix.trim().startsWith(this.lastCompletedWord.trim())) {
-        // Skip if we're still matching a mention that was already completed
+            // It appears we're still matching a channel handle that we already completed
             return false;
         }
 
         if (this.lastPrefixWithNoResults && prefix.startsWith(this.lastPrefixWithNoResults)) {
-        // Skip search when prefix extends a previous search with no results
+            // Just give up since we know it won't return any results
             return false;
         }
 
         this.startNewRequest(prefix);
         this.updateMatches(resultCallback, this.items(), matchedPretext);
 
-        // Display loading indicator if server response takes longer than 500ms
+        // If we haven't gotten server-side results in 500 ms, add the loading indicator.
         let showLoadingIndicator: NodeJS.Timeout | null = setTimeout(() => {
             if (this.shouldCancelDispatch(prefix)) {
                 return;
@@ -405,7 +405,7 @@ export default class AtMentionProvider extends Provider {
             showLoadingIndicator = null;
         }, 500);
 
-        // Fetch server-side user results and merge with local results
+        // Query the server for remote results to add to the local results.
         this.autocompleteUsersInChannel(prefix).then(({data}) => {
             if (showLoadingIndicator) {
                 clearTimeout(showLoadingIndicator);
