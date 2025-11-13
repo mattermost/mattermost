@@ -494,6 +494,14 @@ func (a *App) rawSendToPushProxy(msg *model.PushNotification) (model.PushRespons
 		return nil, err
 	}
 
+	// Add auth token and server ID headers if available
+	if a.Srv().PushProxy != nil {
+		if authToken := a.Srv().PushProxy.GetAuthToken(); authToken != "" {
+			request.Header.Set("X-Mattermost-Auth", authToken)
+			request.Header.Set("X-Mattermost-ServerID", a.ServerId())
+		}
+	}
+
 	resp, err := a.Srv().pushNotificationClient.Do(request)
 	if err != nil {
 		return nil, err
@@ -561,6 +569,14 @@ func (a *App) SendAckToPushProxy(rctx request.CTX, ack *model.PushNotificationAc
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
+	}
+
+	// Add auth token and server ID headers if available
+	if a.Srv().PushProxy != nil {
+		if authToken := a.Srv().PushProxy.GetAuthToken(); authToken != "" {
+			request.Header.Set("X-Mattermost-Auth", authToken)
+			request.Header.Set("X-Mattermost-ServerID", a.ServerId())
+		}
 	}
 
 	resp, err := a.Srv().pushNotificationClient.Do(request)

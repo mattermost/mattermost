@@ -3,8 +3,8 @@
 .channel_banner {
     display: flex;
     width: 100%;
-    min-height: variables.$announcement-bar-height;
-    max-height: variables.$announcement-bar-height;
+    min-height: variables.$channel-banner-height;
+    max-height: variables.$channel-banner-height;
     justify-content: center;
     padding-block: 6px;
     padding-inline: 24px;
@@ -14,12 +14,10 @@
         display: block;
         overflow: hidden;
         max-width: 100%;
+        font-size: 13px;
+        line-height: 20px;
         text-align: center;
         text-overflow: ellipsis;
-
-        &:has(p:first-child) {
-            margin-top: 3px;
-        }
 
         a {
             color: var(--channel-banner-text-color);
