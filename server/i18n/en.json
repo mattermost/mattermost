@@ -2149,8 +2149,16 @@
     "translation": "Unable to get the file size."
   },
   {
+    "id": "api.file.get_file.invalid_flagged_post.app_error",
+    "translation": "Mismatched flagged post ID specified."
+  },
+  {
     "id": "api.file.get_file.public_invalid.app_error",
     "translation": "The public link does not appear to be valid."
+  },
+  {
+    "id": "api.file.get_file_info.app_error",
+    "translation": "Failed to get file info."
   },
   {
     "id": "api.file.get_file_preview.no_preview.app_error",
