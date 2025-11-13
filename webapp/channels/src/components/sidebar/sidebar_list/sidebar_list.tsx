@@ -66,7 +66,8 @@ type Props = WrappedComponentProps & {
         setDraggingState: (data: DraggingState) => void;
         stopDragging: () => void;
         clearChannelSelection: () => void;
-        readMultipleChannels: (channelIds: string[]) => void;
+        readAllMessages: (userId: string) => void;
+        markAllInTeamAsRead: (userId: string, teamId: string) => void;
         setMarkAllAsReadWithoutConfirm: (userId: string, value: boolean) => void;
     };
 };
@@ -356,7 +357,7 @@ export class SidebarList extends React.PureComponent<Props, State> {
         if (!e.altKey && e.shiftKey && !e.ctrlKey && !e.metaKey && isKeyPressed(e, Constants.KeyCodes.ESCAPE)) {
             e.preventDefault();
             if (this.props.markAllAsReadWithoutConfirm) {
-                this.markAllMessagesAsRead();
+                this.markAllAsRead();
             } else {
                 this.setState({
                     showMarkAllReadModal: true,
@@ -447,14 +448,24 @@ export class SidebarList extends React.PureComponent<Props, State> {
         this.props.actions.stopDragging();
     };
 
-    markAllMessagesAsRead = () => {
-        if (this.props.unreadChannelIds && this.props.unreadChannelIds.length > 0) {
-            this.props.actions.readMultipleChannels(this.props.unreadChannelIds);
+    hasAnyUnreads = () => {
+        return this.props.unreadChannelIds.length > 0 || this.props.hasUnreadThreads;
+    };
+
+    markAllAsRead = () => {
+        if (this.hasAnyUnreads()) {
+            // I'm not sure if a user can ever _not_ be in a team, but this just
+            // feels safe in case that functionality is ever introduced, so the
+            // hotkey still marks all DMs as read.
+            if (this.props.currentTeam?.id) {
+                this.props.actions.markAllInTeamAsRead(this.props.currentUserId, this.props.currentTeam.id);
+            }
+            this.props.actions.readAllMessages(this.props.currentUserId);
         }
     };
 
     onMarkAllAsReadConfirm = (dontShowAgain: boolean) => {
-        this.markAllMessagesAsRead();
+        this.markAllAsRead();
         this.props.actions.setMarkAllAsReadWithoutConfirm(
             this.props.currentUserId,
             dontShowAgain,

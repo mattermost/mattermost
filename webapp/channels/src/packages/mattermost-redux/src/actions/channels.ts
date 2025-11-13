@@ -699,6 +699,23 @@ export function unsetActiveChannelOnServer(): ActionFuncAsync {
     };
 }
 
+export function readAllMessages(userId: string): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        let response;
+        try {
+            response = await Client4.markAllMessagesAsRead(userId);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch(markMultipleChannelsAsRead(response.last_viewed_at_times));
+
+        return {data: true};
+    };
+}
+
 export function readMultipleChannels(channelIds: string[]): ActionFuncAsync {
     return async (dispatch, getState) => {
         let response;

@@ -115,7 +115,8 @@ describe('SidebarList', () => {
             stopDragging: jest.fn(),
             clearChannelSelection: jest.fn(),
             multiSelectChannelAdd: jest.fn(),
-            readMultipleChannels: jest.fn(),
+            readAllMessages: jest.fn(),
+            markAllInTeamAsRead: jest.fn(),
             setMarkAllAsReadWithoutConfirm: jest.fn(),
         },
     };
