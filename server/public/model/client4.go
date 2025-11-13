@@ -1960,7 +1960,7 @@ func (c *Client4) GetTeam(ctx context.Context, teamId, etag string) (*Team, *Res
 // GetTeamAsContentReviewer returns a team based on the provided team id string, fetching it as a Content Reviewer for a flagged post.
 func (c *Client4) GetTeamAsContentReviewer(ctx context.Context, teamId, etag, flaggedPostId string) (*Team, *Response, error) {
 	values := url.Values{}
-	values.Set("as_content_reviewer", c.boolString(true))
+	values.Set(AsContentReviewerParam, c.boolString(true))
 	values.Set("flagged_post_id", flaggedPostId)
 
 	route := c.teamRoute(teamId) + "?" + values.Encode()
@@ -2644,7 +2644,7 @@ func (c *Client4) GetChannel(ctx context.Context, channelId, etag string) (*Chan
 // GetChannelAsContentReviewer returns a channel based on the provided channel id string, fetching it as a Content Reviewer for a flagged post.
 func (c *Client4) GetChannelAsContentReviewer(ctx context.Context, channelId, etag, flaggedPostId string) (*Channel, *Response, error) {
 	values := url.Values{}
-	values.Set("as_content_reviewer", c.boolString(true))
+	values.Set(AsContentReviewerParam, c.boolString(true))
 	values.Set("flagged_post_id", flaggedPostId)
 
 	route := c.channelRoute(channelId) + "?" + values.Encode()
