@@ -29,7 +29,7 @@ const CustomEnableDisableGuestAccountsMagicLinkSetting = ({
 }: Props) => {
     const handleChange = useCallback((targetId: string, newValue: boolean, submit = false) => {
         const confirmNeeded = newValue === false; // Requires confirmation if disabling magic links
-        let warning: React.ReactNode | string = '';
+        let warning: React.ReactNode = '';
         if (confirmNeeded) {
             warning = (
                 <FormattedMessage

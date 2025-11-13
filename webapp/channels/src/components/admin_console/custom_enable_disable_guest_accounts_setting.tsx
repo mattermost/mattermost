@@ -30,7 +30,7 @@ const CustomEnableDisableGuestAccountsSetting = ({
 }: Props) => {
     const handleChange = useCallback((targetId: string, newValue: boolean, submit = false) => {
         const confirmNeeded = newValue === false; // Requires confirmation if disabling guest accounts
-        let warning: React.ReactNode;
+        let warning: React.ReactNode | string = '';
         if (confirmNeeded) {
             warning = (
                 <FormattedMessage
