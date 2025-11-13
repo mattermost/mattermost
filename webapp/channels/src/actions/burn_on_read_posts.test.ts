@@ -1,0 +1,118 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import {PostTypes} from 'mattermost-redux/action_types';
+import {Client4} from 'mattermost-redux/client';
+
+import {revealBurnOnReadPost} from './burn_on_read_posts';
+
+jest.mock('mattermost-redux/client');
+
+describe('burn_on_read_posts actions', () => {
+    const mockPost = {
+        id: 'post123',
+        type: 'burn_on_read',
+        user_id: 'user1',
+        channel_id: 'channel1',
+        message: 'revealed content',
+        create_at: 1234567890,
+        update_at: 1234567890,
+        delete_at: 0,
+        props: {
+            revealed: true,
+            expire_at: 9999999999999,
+        },
+    };
+
+    const mockResponse = {
+        post: mockPost,
+        expire_at: 9999999999999,
+    };
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    describe('revealBurnOnReadPost', () => {
+        const mockState = {
+            entities: {
+                users: {
+                    currentUserId: 'user1',
+                },
+            },
+        };
+
+        it('should dispatch request and success actions on successful reveal', async () => {
+            (Client4.revealBurnOnReadPost as jest.Mock) = jest.fn().mockResolvedValue(mockResponse);
+
+            const dispatch = jest.fn();
+            const getState = jest.fn().mockReturnValue(mockState);
+
+            const result = await revealBurnOnReadPost('post123')(dispatch, getState, undefined);
+
+            expect(dispatch).toHaveBeenCalledWith({
+                type: PostTypes.REVEAL_BURN_ON_READ_REQUEST,
+                data: {postId: 'post123'},
+            });
+
+            expect(Client4.revealBurnOnReadPost).toHaveBeenCalledWith('post123');
+
+            expect(dispatch).toHaveBeenCalledWith({
+                type: PostTypes.REVEAL_BURN_ON_READ_SUCCESS,
+                data: {
+                    post: mockPost,
+                    expireAt: 9999999999999,
+                },
+            });
+
+            expect(result).toEqual({data: mockResponse});
+        });
+
+        it('should dispatch request and failure actions on error', async () => {
+            const mockError = {
+                message: 'Not found',
+                status_code: 404,
+            };
+
+            (Client4.revealBurnOnReadPost as jest.Mock) = jest.fn().mockRejectedValue(mockError);
+
+            const dispatch = jest.fn();
+            const getState = jest.fn().mockReturnValue(mockState);
+
+            const result = await revealBurnOnReadPost('post123')(dispatch, getState, undefined);
+
+            expect(dispatch).toHaveBeenCalledWith({
+                type: PostTypes.REVEAL_BURN_ON_READ_REQUEST,
+                data: {postId: 'post123'},
+            });
+
+            expect(dispatch).toHaveBeenCalledWith({
+                type: PostTypes.REVEAL_BURN_ON_READ_FAILURE,
+                data: {postId: 'post123'},
+                error: mockError,
+            });
+
+            // Should also dispatch logError action
+            expect(dispatch).toHaveBeenCalledTimes(3); // REQUEST, FAILURE, logError
+
+            expect(result).toEqual({error: mockError});
+        });
+
+        it('should handle network errors', async () => {
+            const networkError = new Error('Network error');
+
+            (Client4.revealBurnOnReadPost as jest.Mock) = jest.fn().mockRejectedValue(networkError);
+
+            const dispatch = jest.fn();
+            const getState = jest.fn().mockReturnValue(mockState);
+
+            const result = await revealBurnOnReadPost('post123')(dispatch, getState, undefined);
+
+            expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({
+                type: PostTypes.REVEAL_BURN_ON_READ_FAILURE,
+            }));
+
+            expect(result.error).toBe(networkError);
+        });
+    });
+});

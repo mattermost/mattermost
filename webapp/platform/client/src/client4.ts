@@ -2283,6 +2283,13 @@ export default class Client4 {
         );
     };
 
+    revealBurnOnReadPost = (postId: string) => {
+        return this.doFetch<{post: Post; expire_at: number}>(
+            `${this.getPostRoute(postId)}/read`,
+            {method: 'post'},
+        );
+    };
+
     getPostThread = (postId: string, fetchThreads = true, collapsedThreads = false, collapsedThreadsExtended = false) => {
         // this is to ensure we have backwards compatibility for `getPostThread`
         return this.getPaginatedPostThread(postId, {fetchThreads, collapsedThreads, collapsedThreadsExtended});

@@ -22,15 +22,18 @@ import {
 import {getCurrentTeam, getTeam, getTeamMemberships} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 
+import {revealBurnOnReadPost} from 'actions/burn_on_read_posts';
 import {markPostAsUnread, emitShortcutReactToLastPostFrom} from 'actions/post_actions';
 import {closeRightHandSide, selectPost, setRhsExpanded, selectPostCard, selectPostFromRightHandSideSearch} from 'actions/views/rhs';
+import {isBurnOnReadEnabled} from 'selectors/burn_on_read';
+import {shouldDisplayConcealedPlaceholder} from 'selectors/burn_on_read_posts';
 import {getShortcutReactToLastPostEmittedFrom, getOneClickReactionEmojis} from 'selectors/emojis';
 import {getIsPostBeingEdited, getIsPostBeingEditedInRHS, isEmbedVisible} from 'selectors/posts';
 import {getHighlightedPostId, getRhsState, getSelectedPostCard} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 
 import {isArchivedChannel} from 'utils/channel_utils';
-import {Locations, Preferences, RHSStates} from 'utils/constants';
+import {Locations, PostTypes, Preferences, RHSStates} from 'utils/constants';
 import {areConsecutivePostsBySameUser, canDeletePost, shouldShowActionsMenu, shouldShowDotMenu} from 'utils/post_utils';
 import {getDisplayNameByUser} from 'utils/utils';
 
@@ -147,7 +150,9 @@ function makeMapStateToProps() {
             teamName = team?.name || currentTeam?.name;
         }
 
-        const canReply = isDMorGM || (channel.team_id === currentTeam?.id);
+        const burnOnReadFeatureEnabled = isBurnOnReadEnabled(state);
+        const isBurnOnReadPost = burnOnReadFeatureEnabled && post.type === PostTypes.BURN_ON_READ;
+        const canReply = !isBurnOnReadPost && (isDMorGM || (channel.team_id === currentTeam?.id));
         const directTeammate = getDirectTeammate(state, channel.id);
 
         const previewCollapsed = get(
@@ -216,6 +221,8 @@ function makeMapStateToProps() {
             shouldShowDotMenu: shouldShowDotMenu(state, post, channel),
             canDelete: canDeletePost(state, post, channel),
             pluginActions: state.plugins.components.PostAction,
+            shouldDisplayBurnOnReadConcealed: shouldDisplayConcealedPlaceholder(state, post.id),
+            isBurnOnReadEnabled: isBurnOnReadEnabled(state),
         };
     };
 }
@@ -231,6 +238,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             removePost: removePostCloseRHSDeleteDraft,
             closeRightHandSide,
             selectPostCard,
+            revealBurnOnReadPost,
         }, dispatch),
     };
 }
