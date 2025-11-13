@@ -526,13 +526,6 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	fileInfo := fileInfos[0]
 
-	//fileInfo, err := c.App.GetFileInfo(c.AppContext, c.Params.FileId, true)
-	//if err != nil {
-	//	c.Err = err
-	//	setInaccessibleFileHeader(w, err)
-	//	return
-	//}
-
 	channel, err := c.App.GetChannel(c.AppContext, fileInfo.ChannelId)
 	if err != nil {
 		c.Err = err
