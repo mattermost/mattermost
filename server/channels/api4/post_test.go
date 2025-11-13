@@ -5553,7 +5553,7 @@ func TestRevealPost(t *testing.T) {
 			CheckNotFoundStatus(t, resp)
 		} else {
 			CheckNotImplementedStatus(t, resp)
-			require.Contains(t, err.Error(), "api.post.reveal_post.disabled.app_error")
+			CheckErrorID(t, err, "api.post.reveal_post.disabled.app_error")
 		}
 		require.Nil(t, revealedPost)
 	}, "no enterprise license")
@@ -5572,7 +5572,7 @@ func TestRevealPost(t *testing.T) {
 			CheckNotFoundStatus(t, resp)
 		} else {
 			CheckNotImplementedStatus(t, resp)
-			require.Contains(t, err.Error(), "api.post.reveal_post.disabled.app_error")
+			CheckErrorID(t, err, "api.post.reveal_post.disabled.app_error")
 		}
 		require.Nil(t, revealedPost)
 	}, "feature not enabled via feature flag")
@@ -5593,7 +5593,7 @@ func TestRevealPost(t *testing.T) {
 		revealedPost, resp, err := client2.RevealPost(context.Background(), createdPost.Id)
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
-		require.Contains(t, err.Error(), "app.reveal_post.not_burn_on_read.app_error")
+		CheckErrorID(t, err, "app.reveal_post.not_burn_on_read.app_error")
 		require.Nil(t, revealedPost)
 	}, "reveal regular post")
 
@@ -5615,7 +5615,7 @@ func TestRevealPost(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 		require.Nil(t, revealedPost)
-		require.Contains(t, err.Error(), "api.post.reveal_post.cannot_reveal_own_post.app_error")
+		CheckErrorID(t, err, "api.post.reveal_post.cannot_reveal_own_post.app_error")
 	}, "try reveal own post")
 
 	th.TestForRegularAndSystemAdminClients(t, func(t *testing.T, client *model.Client4) {
@@ -5662,7 +5662,7 @@ func TestRevealPost(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 		require.Nil(t, revealedPost)
-		require.Contains(t, err.Error(), "app.reveal_post.post_expired.app_error")
+		CheckErrorID(t, err, "app.reveal_post.post_expired.app_error")
 	}, "reveal expired post")
 
 	th.TestForRegularAndSystemAdminClients(t, func(t *testing.T, client *model.Client4) {
@@ -5689,7 +5689,7 @@ func TestRevealPost(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 		require.Nil(t, revealedPost)
-		require.Contains(t, err.Error(), "app.reveal_post.read_receipt_expired.error")
+		CheckErrorID(t, err, "app.reveal_post.read_receipt_expired.error")
 	}, "reveal post with expired read receipt")
 
 	th.TestForRegularAndSystemAdminClients(t, func(t *testing.T, client *model.Client4) {
