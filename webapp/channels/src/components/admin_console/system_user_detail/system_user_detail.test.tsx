@@ -3,7 +3,7 @@
 
 import '@testing-library/jest-dom';
 
-import {fireEvent} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 import type {IntlShape} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
@@ -45,7 +45,7 @@ describe('SystemUserDetail', () => {
         getCustomProfileAttributeValues: jest.fn().mockResolvedValue({data: {}}),
         saveCustomProfileAttribute: jest.fn().mockResolvedValue({data: {}}),
         intl: {
-            formatMessage: jest.fn(),
+            formatMessage: jest.fn().mockImplementation(({defaultMessage}) => defaultMessage),
         } as MockIntl,
         ...({
             match: {
@@ -136,15 +136,8 @@ describe('SystemUserDetail', () => {
 
     describe('change detection', () => {
         test('should detect email changes and enable save', async () => {
-            const setNavigationBlockedMock = jest.fn();
-            const props = {
-                ...defaultProps,
-                setNavigationBlocked: setNavigationBlockedMock,
-                intl: {
-                    formatMessage: jest.fn().mockImplementation(({defaultMessage}) => defaultMessage),
-                } as MockIntl,
-            };
-            renderWithContext(<SystemUserDetail {...props}/>);
+            const userEventInstance = userEvent.setup();
+            renderWithContext(<SystemUserDetail {...defaultProps}/>);
 
             await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
 
@@ -152,21 +145,15 @@ describe('SystemUserDetail', () => {
             const emailInput = emailInputs.find((input) => !(input as HTMLInputElement).disabled);
 
             if (emailInput) {
-                fireEvent.change(emailInput, {target: {value: 'newemail@example.com'}});
-                expect(setNavigationBlockedMock).toHaveBeenCalledWith(true);
+                await userEventInstance.clear(emailInput);
+                await userEventInstance.type(emailInput, 'newemail@example.com');
+                expect(defaultProps.setNavigationBlocked).toHaveBeenCalledWith(true);
             }
         });
 
         test('should detect username changes and enable save', async () => {
-            const setNavigationBlockedMock = jest.fn();
-            const props = {
-                ...defaultProps,
-                setNavigationBlocked: setNavigationBlockedMock,
-                intl: {
-                    formatMessage: jest.fn().mockImplementation(({defaultMessage}) => defaultMessage),
-                } as MockIntl,
-            };
-            renderWithContext(<SystemUserDetail {...props}/>);
+            const userEventInstance = userEvent.setup();
+            renderWithContext(<SystemUserDetail {...defaultProps}/>);
 
             await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
 
@@ -174,23 +161,17 @@ describe('SystemUserDetail', () => {
             const usernameInput = usernameInputs.find((input) => !(input as HTMLInputElement).disabled);
 
             if (usernameInput) {
-                fireEvent.change(usernameInput, {target: {value: 'newusername'}});
-                expect(setNavigationBlockedMock).toHaveBeenCalledWith(true);
+                await userEventInstance.clear(usernameInput);
+                await userEventInstance.type(usernameInput, 'newusername');
+                expect(defaultProps.setNavigationBlocked).toHaveBeenCalledWith(true);
             }
         });
     });
 
     describe('email validation', () => {
         test('should handle email validation and still set navigation blocking', async () => {
-            const setNavigationBlockedMock = jest.fn();
-            const props = {
-                ...defaultProps,
-                setNavigationBlocked: setNavigationBlockedMock,
-                intl: {
-                    formatMessage: jest.fn().mockImplementation(({defaultMessage}) => defaultMessage),
-                } as MockIntl,
-            };
-            renderWithContext(<SystemUserDetail {...props}/>);
+            const userEventInstance = userEvent.setup();
+            renderWithContext(<SystemUserDetail {...defaultProps}/>);
 
             await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
 
@@ -198,21 +179,17 @@ describe('SystemUserDetail', () => {
             const emailInput = emailInputs.find((input) => !(input as HTMLInputElement).disabled);
 
             if (emailInput) {
-                fireEvent.change(emailInput, {target: {value: 'invalid-email'}});
+                await userEventInstance.clear(emailInput);
+                await userEventInstance.type(emailInput, 'invalid-email');
 
                 // Navigation should still be blocked even with invalid email
-                expect(setNavigationBlockedMock).toHaveBeenCalledWith(true);
+                expect(defaultProps.setNavigationBlocked).toHaveBeenCalledWith(true);
             }
         });
 
         test('should not show validation error for valid email', async () => {
-            const props = {
-                ...defaultProps,
-                intl: {
-                    formatMessage: jest.fn().mockImplementation(({defaultMessage}) => defaultMessage),
-                } as MockIntl,
-            };
-            renderWithContext(<SystemUserDetail {...props}/>);
+            const userEventInstance = userEvent.setup();
+            renderWithContext(<SystemUserDetail {...defaultProps}/>);
 
             await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
 
@@ -220,7 +197,8 @@ describe('SystemUserDetail', () => {
             const emailInput = emailInputs.find((input) => !(input as HTMLInputElement).disabled);
 
             if (emailInput) {
-                fireEvent.change(emailInput, {target: {value: 'valid@email.com'}});
+                await userEventInstance.clear(emailInput);
+                await userEventInstance.type(emailInput, 'valid@email.com');
 
                 await waitFor(() => {
                     expect(screen.queryByText('Invalid email address')).not.toBeInTheDocument();
@@ -229,13 +207,8 @@ describe('SystemUserDetail', () => {
         });
 
         test('should show validation error for empty email', async () => {
-            const props = {
-                ...defaultProps,
-                intl: {
-                    formatMessage: jest.fn().mockImplementation(({defaultMessage}) => defaultMessage),
-                } as MockIntl,
-            };
-            renderWithContext(<SystemUserDetail {...props}/>);
+            const userEventInstance = userEvent.setup();
+            renderWithContext(<SystemUserDetail {...defaultProps}/>);
 
             await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
 
@@ -243,7 +216,8 @@ describe('SystemUserDetail', () => {
             const emailInput = emailInputs.find((input) => !(input as HTMLInputElement).disabled);
 
             if (emailInput) {
-                fireEvent.change(emailInput, {target: {value: '  '}});
+                await userEventInstance.clear(emailInput);
+                await userEventInstance.type(emailInput, '  ');
 
                 await waitFor(() => {
                     expect(screen.getByText('Email cannot be empty')).toBeInTheDocument();
@@ -254,13 +228,8 @@ describe('SystemUserDetail', () => {
 
     describe('username validation', () => {
         test('should show validation error for empty username', async () => {
-            const props = {
-                ...defaultProps,
-                intl: {
-                    formatMessage: jest.fn().mockImplementation(({defaultMessage}) => defaultMessage),
-                } as MockIntl,
-            };
-            renderWithContext(<SystemUserDetail {...props}/>);
+            const userEventInstance = userEvent.setup();
+            renderWithContext(<SystemUserDetail {...defaultProps}/>);
 
             await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
 
@@ -268,7 +237,8 @@ describe('SystemUserDetail', () => {
             const usernameInput = usernameInputs.find((input) => !(input as HTMLInputElement).disabled);
 
             if (usernameInput) {
-                fireEvent.change(usernameInput, {target: {value: '  '}});
+                await userEventInstance.clear(usernameInput);
+                await userEventInstance.type(usernameInput, '  ');
 
                 await waitFor(() => {
                     expect(screen.getByText('Username cannot be empty')).toBeInTheDocument();
@@ -282,12 +252,10 @@ describe('SystemUserDetail', () => {
         const getSamlUserMock = jest.fn().mockResolvedValue({data: samlUser, error: null});
 
         test('should show validation error for empty authData', async () => {
+            const userEventInstance = userEvent.setup();
             const props = {
                 ...defaultProps,
                 getUser: getSamlUserMock,
-                intl: {
-                    formatMessage: jest.fn().mockImplementation(({defaultMessage}) => defaultMessage),
-                } as MockIntl,
             };
             renderWithContext(<SystemUserDetail {...props}/>);
 
@@ -296,7 +264,8 @@ describe('SystemUserDetail', () => {
             const authDataInput = screen.getByPlaceholderText('Enter auth data');
 
             if (authDataInput) {
-                fireEvent.change(authDataInput, {target: {value: '  '}});
+                await userEventInstance.clear(authDataInput);
+                await userEventInstance.type(authDataInput, '  ');
 
                 await waitFor(() => {
                     expect(screen.getByText('Auth Data cannot be empty')).toBeInTheDocument();
@@ -305,12 +274,10 @@ describe('SystemUserDetail', () => {
         });
 
         test('should show validation error for authData exceeding 128 characters', async () => {
+            const userEventInstance = userEvent.setup();
             const props = {
                 ...defaultProps,
                 getUser: getSamlUserMock,
-                intl: {
-                    formatMessage: jest.fn().mockImplementation(({defaultMessage}) => defaultMessage),
-                } as MockIntl,
             };
             renderWithContext(<SystemUserDetail {...props}/>);
 
@@ -320,7 +287,8 @@ describe('SystemUserDetail', () => {
 
             if (authDataInput) {
                 const longAuthData = 'a'.repeat(129); // 129 characters, exceeds max
-                fireEvent.change(authDataInput, {target: {value: longAuthData}});
+                await userEventInstance.clear(authDataInput);
+                await userEventInstance.type(authDataInput, longAuthData);
 
                 await waitFor(() => {
                     expect(screen.getByText('Auth Data must be 128 characters or less')).toBeInTheDocument();
@@ -329,12 +297,10 @@ describe('SystemUserDetail', () => {
         });
 
         test('should not show validation error for valid authData', async () => {
+            const userEventInstance = userEvent.setup();
             const props = {
                 ...defaultProps,
                 getUser: getSamlUserMock,
-                intl: {
-                    formatMessage: jest.fn().mockImplementation(({defaultMessage}) => defaultMessage),
-                } as MockIntl,
             };
             renderWithContext(<SystemUserDetail {...props}/>);
 
@@ -344,7 +310,8 @@ describe('SystemUserDetail', () => {
 
             if (authDataInput) {
                 const validAuthData = 'a'.repeat(128); // Exactly 128 characters
-                fireEvent.change(authDataInput, {target: {value: validAuthData}});
+                await userEventInstance.clear(authDataInput);
+                await userEventInstance.type(authDataInput, validAuthData);
 
                 await waitFor(() => {
                     expect(screen.queryByText('Auth Data must be 128 characters or less')).not.toBeInTheDocument();
@@ -367,9 +334,6 @@ describe('SystemUserDetail', () => {
             const props = {
                 ...defaultProps,
                 getUser: getUserErrorMock,
-                intl: {
-                    formatMessage: jest.fn().mockImplementation(({defaultMessage}) => defaultMessage),
-                } as MockIntl,
             };
 
             renderWithContext(<SystemUserDetail {...props}/>);
@@ -382,6 +346,8 @@ describe('SystemUserDetail', () => {
         });
 
         test('should handle updateUserActive error correctly', async () => {
+            const userEventInstance = userEvent.setup();
+
             // Suppress expected console errors
             const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -398,9 +364,6 @@ describe('SystemUserDetail', () => {
                 ...defaultProps,
                 getUser: getUserDeactivatedMock,
                 updateUserActive: updateUserActiveMock,
-                intl: {
-                    formatMessage: jest.fn().mockImplementation(({defaultMessage}) => defaultMessage),
-                } as MockIntl,
             };
 
             renderWithContext(<SystemUserDetail {...props}/>);
@@ -409,7 +372,7 @@ describe('SystemUserDetail', () => {
 
             // Find and click activate button
             const activateButton = screen.getByText('Activate');
-            fireEvent.click(activateButton);
+            await userEventInstance.click(activateButton);
 
             await waitFor(() => {
                 expect(screen.getByText('Activation failed')).toBeInTheDocument();
