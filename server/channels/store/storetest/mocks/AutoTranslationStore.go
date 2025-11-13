@@ -203,38 +203,6 @@ func (_m *AutoTranslationStore) Save(translation *model.Translation) *model.AppE
 	return r0
 }
 
-// Search provides a mock function with given fields: dstLang, searchTerm, limit
-func (_m *AutoTranslationStore) Search(dstLang string, searchTerm string, limit int) ([]*model.Translation, *model.AppError) {
-	ret := _m.Called(dstLang, searchTerm, limit)
-
-	if len(ret) == 0 {
-		panic("no return value specified for Search")
-	}
-
-	var r0 []*model.Translation
-	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(string, string, int) ([]*model.Translation, *model.AppError)); ok {
-		return rf(dstLang, searchTerm, limit)
-	}
-	if rf, ok := ret.Get(0).(func(string, string, int) []*model.Translation); ok {
-		r0 = rf(dstLang, searchTerm, limit)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.Translation)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string, string, int) *model.AppError); ok {
-		r1 = rf(dstLang, searchTerm, limit)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
-}
-
 // SetChannelEnabled provides a mock function with given fields: channelID, enabled
 func (_m *AutoTranslationStore) SetChannelEnabled(channelID string, enabled bool) *model.AppError {
 	ret := _m.Called(channelID, enabled)

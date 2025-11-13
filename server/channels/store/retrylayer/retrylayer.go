@@ -869,12 +869,6 @@ func (s *RetryLayerAutoTranslationStore) Save(translation *model.Translation) *m
 
 }
 
-func (s *RetryLayerAutoTranslationStore) Search(dstLang string, searchTerm string, limit int) ([]*model.Translation, *model.AppError) {
-
-	return s.AutoTranslationStore.Search(dstLang, searchTerm, limit)
-
-}
-
 func (s *RetryLayerAutoTranslationStore) SetChannelEnabled(channelID string, enabled bool) *model.AppError {
 
 	return s.AutoTranslationStore.SetChannelEnabled(channelID, enabled)
@@ -8618,11 +8612,11 @@ func (s *RetryLayerPostStore) RefreshPostStats() error {
 
 }
 
-func (s *RetryLayerPostStore) RestoreContentFlaggedPost(post *model.Post, deletedBy string, statusFieldId string) error {
+func (s *RetryLayerPostStore) RestoreContentFlaggedPost(post *model.Post, statusFieldId string, contentFlaggingManagedFieldId string) error {
 
 	tries := 0
 	for {
-		err := s.PostStore.RestoreContentFlaggedPost(post, deletedBy, statusFieldId)
+		err := s.PostStore.RestoreContentFlaggedPost(post, statusFieldId, contentFlaggingManagedFieldId)
 		if err == nil {
 			return nil
 		}

@@ -1,7 +1,3 @@
--- Create extensions for hybrid search
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
-CREATE EXTENSION IF NOT EXISTS unaccent;
-
 -- Create translations table
 CREATE TABLE IF NOT EXISTS translations (
     objectId            varchar(26)    NOT NULL,    -- object ID (e.g., post ID)
@@ -13,25 +9,12 @@ CREATE TABLE IF NOT EXISTS translations (
     confidence          real                     ,  -- provider confidence 0..1 (nullable)
     meta                jsonb                    ,  -- provider metadata (nullable)
     updateAt            bigint         NOT NULL,    -- epoch millis
-    contentSearchText   text                    ,  -- helper column for normalized search
     PRIMARY KEY (objectId, dstLang)
 );
 
--- Indexes for recency and lookup performance
+-- Index for recency and lookup performance
 CREATE INDEX IF NOT EXISTS idx_translations_updateat
     ON translations (updateAt DESC);
-
--- Hybrid search indexes - FTS (full text search)
-CREATE INDEX IF NOT EXISTS idx_translations_fts
-    ON translations USING GIN (
-        to_tsvector('simple', COALESCE(contentSearchText, text))
-    );
-
--- Hybrid search indexes - Trigram for substring/typos/unsupported locales
-CREATE INDEX IF NOT EXISTS idx_translations_trgm
-    ON translations USING GIN (
-        COALESCE(contentSearchText, text) gin_trgm_ops
-    );
 
 -- Add autotranslation boolean column to channels table
 ALTER TABLE channels

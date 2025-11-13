@@ -20,16 +20,15 @@ type SqlAutoTranslationStore struct {
 type TranslationMeta json.RawMessage
 
 type Translation struct {
-	ObjectType        string          `db:"objectType"`
-	ObjectID          string          `db:"objectId"`
-	DstLang           string          `db:"dstLang"`
-	ProviderID        string          `db:"providerId"`
-	NormHash          string          `db:"normHash"`
-	Text              string          `db:"text"`
-	Confidence        *float64        `db:"confidence"`
-	Meta              TranslationMeta `db:"meta"`
-	UpdateAt          int64           `db:"updateAt"`
-	ContentSearchText *string         `db:"contentSearchText"`
+	ObjectType string          `db:"objectType"`
+	ObjectID   string          `db:"objectId"`
+	DstLang    string          `db:"dstLang"`
+	ProviderID string          `db:"providerId"`
+	NormHash   string          `db:"normHash"`
+	Text       string          `db:"text"`
+	Confidence *float64        `db:"confidence"`
+	Meta       TranslationMeta `db:"meta"`
+	UpdateAt   int64           `db:"updateAt"`
 }
 
 func (m *TranslationMeta) ToMap() (map[string]any, error) {
@@ -302,9 +301,9 @@ func (s *SqlAutoTranslationStore) Save(translation *model.Translation) *model.Ap
 	now := model.GetMillis()
 
 	var err error
-	contentSearchText := translation.Text
+	text := translation.Text
 	if translation.Type == model.TranslationTypeObject && len(translation.ObjectJSON) > 0 {
-		contentSearchText = string(translation.ObjectJSON)
+		text = string(translation.ObjectJSON)
 	}
 
 	var objectType *string
@@ -325,13 +324,12 @@ func (s *SqlAutoTranslationStore) Save(translation *model.Translation) *model.Ap
 
 	dstLang := translation.Lang
 	providerID := translation.Provider
-	text := contentSearchText
 	confidence := translation.Confidence
 
 	query := s.getQueryBuilder().
 		Insert("translations").
-		Columns("objectId", "dstLang", "objectType", "providerId", "normHash", "text", "confidence", "meta", "updateAt", "contentSearchText").
-		Values(objectID, dstLang, objectType, providerID, translation.NormHash, text, confidence, json.RawMessage(metaBytes), now, contentSearchText).
+		Columns("objectId", "dstLang", "objectType", "providerId", "normHash", "text", "confidence", "meta", "updateAt").
+		Values(objectID, dstLang, objectType, providerID, translation.NormHash, text, confidence, json.RawMessage(metaBytes), now).
 		Suffix(`ON CONFLICT (objectId, dstLang)
 				DO UPDATE SET
 					objectType = EXCLUDED.objectType,
@@ -340,8 +338,7 @@ func (s *SqlAutoTranslationStore) Save(translation *model.Translation) *model.Ap
 					text = EXCLUDED.text,
 					confidence = EXCLUDED.confidence,
 					meta = EXCLUDED.meta,
-					updateAt = EXCLUDED.updateAt,
-					contentSearchText = EXCLUDED.contentSearchText
+					updateAt = EXCLUDED.updateAt
 					WHERE translations.normHash IS DISTINCT FROM EXCLUDED.normHash`)
 
 	queryString, args, err := query.ToSql()
@@ -356,89 +353,6 @@ func (s *SqlAutoTranslationStore) Save(translation *model.Translation) *model.Ap
 	}
 
 	return nil
-}
-
-func (s *SqlAutoTranslationStore) Search(dstLang, searchTerm string, limit int) ([]*model.Translation, *model.AppError) {
-	ftsQuery := s.getQueryBuilder().
-		Select("objectType", "objectId", "dstLang", "text", "confidence", "meta").
-		Column("ts_rank(to_tsvector('simple', COALESCE(contentSearchText, text)), plainto_tsquery('simple', ?)) AS score", searchTerm).
-		From("translations").
-		Where(sq.Eq{"dstLang": dstLang}).
-		Where("to_tsvector('simple', COALESCE(contentSearchText, text)) @@ plainto_tsquery('simple', ?)", searchTerm).
-		OrderBy("score DESC").
-		Limit(uint64(limit))
-
-	queryString, args, err := ftsQuery.ToSql()
-	if err != nil {
-		return nil, model.NewAppError("SqlAutoTranslationStore.Search",
-			"store.sql_autotranslation.query_build_error", nil, err.Error(), 500)
-	}
-
-	type searchResult struct {
-		ObjectType string          `db:"objectType"`
-		ObjectID   string          `db:"objectId"`
-		DstLang    string          `db:"dstLang"`
-		Text       string          `db:"text"`
-		Confidence *float64        `db:"confidence"`
-		Score      float64         `db:"score"`
-		Meta       TranslationMeta `db:"meta"`
-	}
-
-	var results []searchResult
-	if err := s.GetReplica().Select(&results, queryString, args...); err != nil {
-		return nil, model.NewAppError("SqlAutoTranslationStore.Search",
-			"store.sql_autotranslation.search.app_error", nil, err.Error(), 500)
-	}
-
-	// Fallback to trigram similarity search if FTS returns no results
-	if len(results) == 0 {
-		trigramQuery := s.getQueryBuilder().
-			Select("objectType", "objectId", "dstLang", "text", "confidence", "meta").
-			Column("similarity(COALESCE(contentSearchText, text), ?) AS score", searchTerm).
-			From("translations").
-			Where(sq.Eq{"dstLang": dstLang}).
-			Where("COALESCE(contentSearchText, text) ILIKE '%' || ? || '%'", searchTerm).
-			OrderBy("score DESC").
-			Limit(uint64(limit))
-
-		queryString, args, err := trigramQuery.ToSql()
-		if err != nil {
-			return nil, model.NewAppError("SqlAutoTranslationStore.Search",
-				"store.sql_autotranslation.query_build_error", nil, err.Error(), 500)
-		}
-
-		if err := s.GetReplica().Select(&results, queryString, args...); err != nil {
-			return nil, model.NewAppError("SqlAutoTranslationStore.Search",
-				"store.sql_autotranslation.search_trigram.app_error", nil, err.Error(), 500)
-		}
-	}
-
-	translations := make([]*model.Translation, len(results))
-	for i, result := range results {
-		meta, err := result.Meta.ToMap()
-		if err != nil {
-			return nil, model.NewAppError("SqlAutoTranslationStore.Search",
-				"store.sql_autotranslation.meta_json.app_error", nil, err.Error(), 500)
-		}
-
-		// Default objectType to "post" if not set
-		objectType := result.ObjectType
-		if objectType == "" {
-			objectType = "post"
-		}
-
-		translations[i] = &model.Translation{
-			ObjectID:   result.ObjectID,
-			ObjectType: objectType,
-			Lang:       result.DstLang,
-			Type:       model.TranslationType(meta["type"].(string)),
-			Text:       result.Text,
-			Confidence: result.Confidence,
-			State:      model.TranslationStateReady,
-		}
-	}
-
-	return translations, nil
 }
 
 func (s *SqlAutoTranslationStore) ClearCaches() {}
