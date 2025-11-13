@@ -43,6 +43,7 @@ type Props = WrappedComponentProps & {
     closeRightHandSide: (e?: React.MouseEvent) => void;
     toggleRhsExpanded: (e: React.MouseEvent) => void;
     setThreadFollow: (userId: string, teamId: string, threadId: string, newState: boolean) => void;
+    focusPost: (postId: string, returnTo: string, currentUserId: string, option?: {skipRedirectReplyPermalink: boolean}) => Promise<void>;
 };
 
 class RhsHeaderPost extends React.PureComponent<Props> {
@@ -79,11 +80,14 @@ class RhsHeaderPost extends React.PureComponent<Props> {
         this.props.setThreadFollow(currentUserId, currentTeam.id, rootPostId, !isFollowingThread);
     };
 
-    popout = () => {
-        if (!this.props.currentTeam) {
+    popout = async () => {
+        const {currentTeam, intl, rootPostId, focusPost, currentUserId} = this.props;
+        if (!currentTeam) {
             return;
         }
-        popoutThread(this.props.intl, this.props.rootPostId, this.props.currentTeam.name);
+        await popoutThread(intl, rootPostId, currentTeam.name, (postId, returnTo) => {
+            focusPost(postId, returnTo, currentUserId, {skipRedirectReplyPermalink: true});
+        });
     };
 
     render() {
