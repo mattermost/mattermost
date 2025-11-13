@@ -903,7 +903,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
     it('should suggest for first_name match "@X"', async () => {
         const pretext = '@X';
-        const matchedPretext = '@X';
+        const matchedPretext = '@x';
         const itemsCall3 = [
             membersGroup([
                 userid3,
@@ -963,7 +963,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
     it('should suggest for last_name match "@Y"', async () => {
         const pretext = '@Y';
-        const matchedPretext = '@Y';
+        const matchedPretext = '@y';
         const itemsCall3 = [
             membersGroup([
                 userid3,
@@ -1023,7 +1023,7 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
 
     it('should suggest for nickname match "@Z"', async () => {
         const pretext = '@Z';
-        const matchedPretext = '@Z';
+        const matchedPretext = '@z';
         const itemsCall3 = [
             membersGroup([
                 userid10,

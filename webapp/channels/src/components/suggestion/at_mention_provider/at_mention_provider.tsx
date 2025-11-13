@@ -25,7 +25,7 @@ import Provider from '../provider';
 import type {Loading, ProviderResultsGroup} from '../suggestion_results';
 
 const profilesInChannelOptions = {active: true};
-const regexForAtMention = /(?:^|\W)[@＠]([\p{L}\d\-_. ]*)$/iu;
+const regexForAtMention = /(?:^|\W)([@＠]([\p{L}\d\-_. ]*))$/iu;
 
 type UserProfileWithLastViewAt = UserProfile & {last_viewed_at?: number};
 
@@ -378,16 +378,8 @@ export default class AtMentionProvider extends Provider {
             return false;
         }
 
-        // Extract the actual matched text including the trigger character from the ORIGINAL pretext
-        // Find the @ or ＠ position within the matched text
-        const fullMatchIndex = captured.index;
-        const fullMatch = captured[0];
-        const atSymbolMatch = fullMatch.match(/[@＠]/);
-        const atSymbolOffset = atSymbolMatch ? fullMatch.indexOf(atSymbolMatch[0]) : 0;
-        const matchedPretextStart = fullMatchIndex + atSymbolOffset;
-        const matchedPretext = pretext.substring(matchedPretextStart);
-
-        const prefix = captured[1];
+        const matchedPretext = captured[1];
+        const prefix = captured[2];
 
         if (this.lastCompletedWord && prefix.trim().startsWith(this.lastCompletedWord.trim())) {
         // Skip if we're still matching a mention that was already completed
