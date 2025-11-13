@@ -732,6 +732,10 @@
     "translation": "Email invite(s) sent"
   },
   {
+    "id": "api.command.move_command.creator_no_permission.app_error",
+    "translation": "No permission to move command"
+  },
+  {
     "id": "api.command.team_mismatch.app_error",
     "translation": "Unable to update commands across teams."
   },
@@ -5435,6 +5439,10 @@
     "translation": "Unable to get custom profile attribute values"
   },
   {
+    "id": "app.custom_profile_attributes.patch_field.app_error",
+    "translation": "Unable to patch Custom Profile Attribute field"
+  },
+  {
     "id": "app.custom_profile_attributes.property_field_conversion.app_error",
     "translation": "Unable to convert the property field to a custom profile attribute field"
   },
@@ -8751,6 +8759,54 @@
   {
     "id": "ent.outgoing_oauth_connections.update_connection.audience_invalid",
     "translation": "The provided audience is invalid: {{ .Error }}"
+  },
+  {
+    "id": "ent.push_proxy.delete.app_error",
+    "translation": "Failed to delete push proxy auth token."
+  },
+  {
+    "id": "ent.push_proxy.generate.bad_status.app_error",
+    "translation": "Failed to get auth token from push proxy server."
+  },
+  {
+    "id": "ent.push_proxy.generate.create_request.app_error",
+    "translation": "Failed to create HTTP request for push proxy auth."
+  },
+  {
+    "id": "ent.push_proxy.generate.empty_token.app_error",
+    "translation": "Push proxy returned empty auth token."
+  },
+  {
+    "id": "ent.push_proxy.generate.encrypt.app_error",
+    "translation": "Failed to encrypt payload for push proxy auth."
+  },
+  {
+    "id": "ent.push_proxy.generate.http_request.app_error",
+    "translation": "Failed to send HTTP request to push proxy."
+  },
+  {
+    "id": "ent.push_proxy.generate.marshal.app_error",
+    "translation": "Failed to marshal payload for push proxy auth."
+  },
+  {
+    "id": "ent.push_proxy.generate.marshal_request.app_error",
+    "translation": "Failed to marshal request body for push proxy auth."
+  },
+  {
+    "id": "ent.push_proxy.generate.no_key.app_error",
+    "translation": "No encryption key available for push proxy auth."
+  },
+  {
+    "id": "ent.push_proxy.generate.parse_response.app_error",
+    "translation": "Failed to parse response from push proxy auth endpoint."
+  },
+  {
+    "id": "ent.push_proxy.generate.save_system.app_error",
+    "translation": "Failed to save auth token."
+  },
+  {
+    "id": "ent.push_proxy.worker.interface_nil.app_error",
+    "translation": "Push proxy interface is nil."
   },
   {
     "id": "ent.saml.attribute.app_error",
