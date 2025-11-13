@@ -312,7 +312,7 @@ func TestPatchCPAField(t *testing.T) {
 		require.NotNil(t, createdField)
 
 		// Verify field is not isManaged initially
-		require.Empty(t, createdField.Attrs[model.CustomProfileAttributesPropertyAttrsManaged])
+		require.Empty(t, createdField.Attrs.Managed)
 
 		// Patch to make it managed
 		managedPatch := &model.PropertyFieldPatch{
