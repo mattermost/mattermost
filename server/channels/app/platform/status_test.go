@@ -14,8 +14,7 @@ import (
 )
 
 func TestSaveStatus(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	user := th.BasicUser
 
@@ -55,22 +54,7 @@ func TestTruncateDNDEndTime(t *testing.T) {
 }
 
 func TestQueueSetStatusOffline(t *testing.T) {
-	th := Setup(t).InitBasic()
-
-	defer func() {
-		// First tear down the test environment
-		th.TearDown()
-
-		// Then verify that the status update processor has properly shut down
-		// by checking that the done signal channel is closed
-		select {
-		case _, ok := <-th.Service.statusUpdateDoneSignal:
-			// If channel is closed, ok will be false
-			assert.False(t, ok, "statusUpdateDoneSignal channel should be closed after teardown")
-		case <-time.After(5 * time.Second):
-			require.Fail(t, "Timed out waiting for status update processor to shut down")
-		}
-	}()
+	th := Setup(t).InitBasic(t)
 
 	// Create multiple user IDs
 	userIDs := []string{
@@ -132,11 +116,23 @@ func TestQueueSetStatusOffline(t *testing.T) {
 		require.Equal(t, model.StatusOffline, status.Status, "User should be offline")
 		require.Equal(t, "", status.ActiveChannel, "ActiveChannel should be empty")
 	}
+
+	// First shut down the test environment
+	th.Shutdown(t)
+
+	// Then verify that the status update processor has properly shut down
+	// by checking that the done signal channel is closed
+	select {
+	case _, ok := <-th.Service.statusUpdateDoneSignal:
+		// If channel is closed, ok will be false
+		assert.False(t, ok, "statusUpdateDoneSignal channel should be closed after teardown")
+	case <-time.After(5 * time.Second):
+		require.Fail(t, "Timed out waiting for status update processor to shut down")
+	}
 }
 
 func TestSetStatusOffline(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	user := th.BasicUser
 
