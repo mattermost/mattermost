@@ -11,6 +11,7 @@ import {
     CLOSE_PAGES_PANEL,
     SET_OUTLINE_EXPANDED,
     CLEAR_OUTLINE_CACHE,
+    SET_LAST_VIEWED_PAGE,
 } from 'reducers/views/pages_hierarchy';
 
 import {extractHeadingsFromContent} from 'utils/page_outline';
@@ -134,6 +135,17 @@ export function clearOutlineCache(pageId: string): ActionFunc {
         dispatch({
             type: CLEAR_OUTLINE_CACHE,
             data: {pageId},
+        });
+
+        return {data: true};
+    };
+}
+
+export function setLastViewedPage(wikiId: string, pageId: string): ActionFunc {
+    return (dispatch) => {
+        dispatch({
+            type: SET_LAST_VIEWED_PAGE,
+            data: {wikiId, pageId},
         });
 
         return {data: true};

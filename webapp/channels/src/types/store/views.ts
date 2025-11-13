@@ -233,6 +233,7 @@ export type ViewsState = {
         isPanelCollapsed: boolean;
         outlineExpandedNodes: {[pageId: string]: boolean};
         outlineCache: {[pageId: string]: Heading[]};
+        lastViewedPage: {[wikiId: string]: string};
     };
 
     wikiRhs: {

@@ -4,10 +4,8 @@
 import React, {useEffect, useCallback} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {loadPage} from 'actions/pages';
 import {getPage, getPageStatus} from 'selectors/pages';
@@ -15,6 +13,7 @@ import {getPage, getPageStatus} from 'selectors/pages';
 import {useUser} from 'components/common/hooks/useUser';
 import LoadingScreen from 'components/loading_screen';
 import ProfilePicture from 'components/profile_picture';
+import UserProfile from 'components/user_profile';
 
 import * as Utils from 'utils/utils';
 
@@ -48,7 +47,6 @@ const PageViewer = ({pageId, wikiId}: Props) => {
     const pageStatus = useSelector((state: GlobalState) => getPageStatus(state, pageId));
     const currentUserId = useSelector(getCurrentUserId);
     const currentTeamId = useSelector(getCurrentTeamId);
-    const teammateNameDisplay = useSelector(getTeammateNameDisplaySetting);
 
     const author = useUser(page?.user_id || '');
 
@@ -111,7 +109,6 @@ const PageViewer = ({pageId, wikiId}: Props) => {
     }
 
     const pageTitle = (page.props?.title as string | undefined) || 'Untitled Page';
-    const authorName = author ? displayUsername(author, teammateNameDisplay) : 'Unknown';
 
     return (
         <div
@@ -145,7 +142,11 @@ const PageViewer = ({pageId, wikiId}: Props) => {
                                 channelId={page.channel_id}
                             />
                             <span className='PageViewer__authorText'>
-                                {`By ${authorName}`}
+                                {'By '}
+                                <UserProfile
+                                    userId={page.user_id}
+                                    channelId={page.channel_id}
+                                />
                             </span>
                         </div>
                     )}

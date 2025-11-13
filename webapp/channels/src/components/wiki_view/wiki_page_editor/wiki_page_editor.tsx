@@ -12,6 +12,7 @@ import {loadChannelPages} from 'actions/pages';
 import {getChannelPages} from 'selectors/pages';
 
 import ProfilePicture from 'components/profile_picture';
+import UserProfile from 'components/user_profile';
 
 import * as Utils from 'utils/utils';
 
@@ -60,7 +61,7 @@ const WikiPageEditor = ({
 
     const pages = useSelector((state: GlobalState) => getChannelPages(state, channelId || ''));
 
-    // Fetch author user data
+    // Fetch author user data for ProfilePicture component
     const authorUser = useSelector((state: GlobalState) =>
         (currentUserId ? getUser(state, currentUserId) : undefined),
     );
@@ -124,43 +125,36 @@ const WikiPageEditor = ({
                     className='page-meta'
                     data-testid='wiki-page-meta'
                 >
-                    {showAuthor && currentUserId && (
-                        <>
-                            {authorUser ? (
-                                <div
-                                    className='WikiPageEditor__author'
-                                    data-testid='wiki-page-author'
-                                    aria-label={formatMessage(
-                                        {id: 'wiki.author.aria', defaultMessage: 'Author: {username}'},
-                                        {username: authorUser.username},
-                                    )}
-                                >
-                                    <ProfilePicture
-                                        src={Utils.imageURLForUser(currentUserId, authorUser.last_picture_update)}
-                                        userId={currentUserId}
-                                        username={authorUser.username}
-                                        size='xs'
-                                        channelId={channelId}
-                                    />
-                                    <span className='WikiPageEditor__authorText'>
-                                        {formatMessage(
-                                            {id: 'wiki.author.by', defaultMessage: 'By {username}'},
-                                            {username: authorUser.username},
-                                        )}
-                                    </span>
-                                </div>
-                            ) : (
-                                <div
-                                    className='WikiPageEditor__authorLoading'
-                                    data-testid='wiki-page-author-loading'
-                                >
-                                    <div
-                                        className='skeleton-loader'
-                                        aria-label='Loading author'
-                                    />
-                                </div>
+                    {showAuthor && currentUserId && authorUser && (
+                        <div
+                            className='WikiPageEditor__author'
+                            data-testid='wiki-page-author'
+                            aria-label={formatMessage(
+                                {id: 'wiki.author.aria_label', defaultMessage: 'Author: {username}'},
+                                {username: authorUser.username},
                             )}
-                        </>
+                        >
+                            <ProfilePicture
+                                src={Utils.imageURLForUser(currentUserId, authorUser.last_picture_update)}
+                                userId={currentUserId}
+                                username={authorUser.username}
+                                size='xs'
+                                channelId={channelId}
+                            />
+                            <span className='WikiPageEditor__authorText'>
+                                {formatMessage(
+                                    {id: 'wiki.author.by', defaultMessage: 'By {name}'},
+                                    {
+                                        name: (
+                                            <UserProfile
+                                                userId={currentUserId}
+                                                channelId={channelId}
+                                            />
+                                        ),
+                                    },
+                                )}
+                            </span>
+                        </div>
                     )}
                     {!isExistingPage && (
                         <span

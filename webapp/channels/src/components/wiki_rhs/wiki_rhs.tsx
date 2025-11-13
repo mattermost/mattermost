@@ -18,15 +18,17 @@ type Props = {
     channelLoaded: boolean;
     activeTab: 'page_comments' | 'all_threads';
     focusedInlineCommentId: string | null;
+    isExpanded: boolean;
     actions: {
         publishPage: (wikiId: string, pageId: string) => Promise<any>;
         closeRightHandSide: () => void;
         setWikiRhsActiveTab: (tab: 'page_comments' | 'all_threads') => void;
         openWikiRhs: (pageId: string, wikiId: string, focusedInlineCommentId?: string) => void;
+        toggleRhsExpanded: () => void;
     };
 };
 
-const WikiRHS = ({pageId, wikiId, pageTitle, channelLoaded, activeTab, focusedInlineCommentId, actions}: Props) => {
+const WikiRHS = ({pageId, wikiId, pageTitle, channelLoaded, activeTab, focusedInlineCommentId, isExpanded, actions}: Props) => {
     const handleTabSwitch = useCallback((key: any) => {
         if (typeof key === 'string') {
             actions.setWikiRhsActiveTab(key as 'page_comments' | 'all_threads');
@@ -57,11 +59,20 @@ const WikiRHS = ({pageId, wikiId, pageTitle, channelLoaded, activeTab, focusedIn
                         data-testid='wiki-rhs-header-actions'
                     >
                         <button
-                            className='WikiRHS__expand-btn'
-                            aria-label='Expand'
+                            type='button'
+                            className='sidebar--right__expand btn btn-icon btn-sm'
+                            aria-label={isExpanded ? 'Collapse Sidebar Icon' : 'Expand Sidebar Icon'}
+                            onClick={actions.toggleRhsExpanded}
                             data-testid='wiki-rhs-expand-button'
                         >
-                            <i className='icon-arrow-expand'/>
+                            <i
+                                className='icon icon-arrow-expand'
+                                aria-hidden='true'
+                            />
+                            <i
+                                className='icon icon-arrow-collapse'
+                                aria-hidden='true'
+                            />
                         </button>
                         <button
                             className='WikiRHS__close-btn'
@@ -115,11 +126,20 @@ const WikiRHS = ({pageId, wikiId, pageTitle, channelLoaded, activeTab, focusedIn
                     data-testid='wiki-rhs-header-actions'
                 >
                     <button
-                        className='WikiRHS__expand-btn'
-                        aria-label='Expand'
+                        type='button'
+                        className='sidebar--right__expand btn btn-icon btn-sm'
+                        aria-label={isExpanded ? 'Collapse Sidebar Icon' : 'Expand Sidebar Icon'}
+                        onClick={actions.toggleRhsExpanded}
                         data-testid='wiki-rhs-expand-button'
                     >
-                        <i className='icon-arrow-expand'/>
+                        <i
+                            className='icon icon-arrow-expand'
+                            aria-hidden='true'
+                        />
+                        <i
+                            className='icon icon-arrow-collapse'
+                            aria-hidden='true'
+                        />
                     </button>
                     <button
                         className='WikiRHS__close-btn'

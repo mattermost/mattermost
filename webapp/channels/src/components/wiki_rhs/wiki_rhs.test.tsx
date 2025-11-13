@@ -54,11 +54,13 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 channelLoaded: true,
                 activeTab: 'page_comments' as const,
                 focusedInlineCommentId: null,
+                isExpanded: false,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
                     setWikiRhsActiveTab: jest.fn(),
                     openWikiRhs: jest.fn(),
+                    toggleRhsExpanded: jest.fn(),
                 },
             };
 
@@ -76,11 +78,13 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 channelLoaded: true,
                 activeTab: 'page_comments' as const,
                 focusedInlineCommentId: null,
+                isExpanded: false,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
                     setWikiRhsActiveTab: jest.fn(),
                     openWikiRhs: jest.fn(),
+                    toggleRhsExpanded: jest.fn(),
                 },
             };
 
@@ -97,11 +101,13 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 channelLoaded: true,
                 activeTab: 'page_comments' as const,
                 focusedInlineCommentId: null,
+                isExpanded: false,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
                     setWikiRhsActiveTab: jest.fn(),
                     openWikiRhs: jest.fn(),
+                    toggleRhsExpanded: jest.fn(),
                 },
             };
 
@@ -119,21 +125,23 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 channelLoaded: true,
                 activeTab: 'page_comments' as const,
                 focusedInlineCommentId: null,
+                isExpanded: false,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
                     setWikiRhsActiveTab: jest.fn(),
                     openWikiRhs: jest.fn(),
+                    toggleRhsExpanded: jest.fn(),
                 },
             };
 
             renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
 
-            expect(screen.getByLabelText('Expand')).toBeInTheDocument();
+            expect(screen.getByLabelText('Expand Sidebar Icon')).toBeInTheDocument();
             expect(screen.getByLabelText('Close')).toBeInTheDocument();
         });
 
-        test('should render expand button with icon', () => {
+        test('should render expand button with both icons', () => {
             const baseProps = {
                 pageId,
                 wikiId: testContext.wikiId,
@@ -141,18 +149,21 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 channelLoaded: true,
                 activeTab: 'page_comments' as const,
                 focusedInlineCommentId: null,
+                isExpanded: false,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
                     setWikiRhsActiveTab: jest.fn(),
                     openWikiRhs: jest.fn(),
+                    toggleRhsExpanded: jest.fn(),
                 },
             };
 
             renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
 
-            const expandBtn = screen.getByLabelText('Expand');
+            const expandBtn = screen.getByLabelText('Expand Sidebar Icon');
             expect(expandBtn.querySelector('.icon-arrow-expand')).toBeInTheDocument();
+            expect(expandBtn.querySelector('.icon-arrow-collapse')).toBeInTheDocument();
         });
 
         test('should render close button with icon', () => {
@@ -163,11 +174,13 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 channelLoaded: true,
                 activeTab: 'page_comments' as const,
                 focusedInlineCommentId: null,
+                isExpanded: false,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
                     setWikiRhsActiveTab: jest.fn(),
                     openWikiRhs: jest.fn(),
+                    toggleRhsExpanded: jest.fn(),
                 },
             };
 
@@ -187,11 +200,13 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 channelLoaded: true,
                 activeTab: 'page_comments' as const,
                 focusedInlineCommentId: null,
+                isExpanded: false,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
                     setWikiRhsActiveTab: jest.fn(),
                     openWikiRhs: jest.fn(),
+                    toggleRhsExpanded: jest.fn(),
                 },
             };
 
@@ -209,11 +224,13 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 channelLoaded: true,
                 activeTab: 'all_threads' as const,
                 focusedInlineCommentId: null,
+                isExpanded: false,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
                     setWikiRhsActiveTab: jest.fn(),
                     openWikiRhs: jest.fn(),
+                    toggleRhsExpanded: jest.fn(),
                 },
             };
 
@@ -233,11 +250,13 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 channelLoaded: true,
                 activeTab: 'page_comments' as const,
                 focusedInlineCommentId: null,
+                isExpanded: false,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
                     setWikiRhsActiveTab,
                     openWikiRhs: jest.fn(),
+                    toggleRhsExpanded: jest.fn(),
                 },
             };
 
@@ -257,11 +276,13 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 channelLoaded: true,
                 activeTab: 'all_threads' as const,
                 focusedInlineCommentId: null,
+                isExpanded: false,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
                     setWikiRhsActiveTab: jest.fn(),
                     openWikiRhs: jest.fn(),
+                    toggleRhsExpanded: jest.fn(),
                 },
             };
 
@@ -278,11 +299,13 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 channelLoaded: true,
                 activeTab: 'page_comments' as const,
                 focusedInlineCommentId: null,
+                isExpanded: false,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
                     setWikiRhsActiveTab: jest.fn(),
                     openWikiRhs: jest.fn(),
+                    toggleRhsExpanded: jest.fn(),
                 },
             };
 
@@ -301,11 +324,13 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 channelLoaded: true,
                 activeTab: 'page_comments' as const,
                 focusedInlineCommentId: null,
+                isExpanded: false,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
                     setWikiRhsActiveTab: jest.fn(),
                     openWikiRhs: jest.fn(),
+                    toggleRhsExpanded: jest.fn(),
                 },
             };
 
@@ -325,11 +350,13 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 channelLoaded: true,
                 activeTab: 'page_comments' as const,
                 focusedInlineCommentId: null,
+                isExpanded: false,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
                     setWikiRhsActiveTab: jest.fn(),
                     openWikiRhs: jest.fn(),
+                    toggleRhsExpanded: jest.fn(),
                 },
             };
 
@@ -346,11 +373,13 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 channelLoaded: false,
                 activeTab: 'page_comments' as const,
                 focusedInlineCommentId: null,
+                isExpanded: false,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
                     setWikiRhsActiveTab: jest.fn(),
                     openWikiRhs: jest.fn(),
+                    toggleRhsExpanded: jest.fn(),
                 },
             };
 
@@ -369,11 +398,13 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 channelLoaded: true,
                 activeTab: 'all_threads' as const,
                 focusedInlineCommentId: null,
+                isExpanded: false,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
                     setWikiRhsActiveTab: jest.fn(),
                     openWikiRhs: jest.fn(),
+                    toggleRhsExpanded: jest.fn(),
                 },
             };
 
@@ -391,11 +422,13 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 channelLoaded: true,
                 activeTab: 'all_threads' as const,
                 focusedInlineCommentId: null,
+                isExpanded: false,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
                     setWikiRhsActiveTab: jest.fn(),
                     openWikiRhs: jest.fn(),
+                    toggleRhsExpanded: jest.fn(),
                 },
             };
 
@@ -416,11 +449,13 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 channelLoaded: true,
                 activeTab: 'page_comments' as const,
                 focusedInlineCommentId: null,
+                isExpanded: false,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide,
                     setWikiRhsActiveTab: jest.fn(),
                     openWikiRhs: jest.fn(),
+                    toggleRhsExpanded: jest.fn(),
                 },
             };
 
@@ -430,6 +465,57 @@ describe('components/wiki_rhs/WikiRHS', () => {
             await user.click(closeBtn);
 
             expect(closeRightHandSide).toHaveBeenCalledTimes(1);
+        });
+
+        test('should call toggleRhsExpanded when expand button clicked', async () => {
+            const user = userEvent.setup();
+            const toggleRhsExpanded = jest.fn();
+            const baseProps = {
+                pageId,
+                wikiId: testContext.wikiId,
+                pageTitle: 'Test Page',
+                channelLoaded: true,
+                activeTab: 'page_comments' as const,
+                focusedInlineCommentId: null,
+                isExpanded: false,
+                actions: {
+                    publishPage: jest.fn(),
+                    closeRightHandSide: jest.fn(),
+                    setWikiRhsActiveTab: jest.fn(),
+                    openWikiRhs: jest.fn(),
+                    toggleRhsExpanded,
+                },
+            };
+
+            renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
+
+            const expandBtn = screen.getByLabelText('Expand Sidebar Icon');
+            await user.click(expandBtn);
+
+            expect(toggleRhsExpanded).toHaveBeenCalledTimes(1);
+        });
+
+        test('should show collapse label when expanded', () => {
+            const baseProps = {
+                pageId,
+                wikiId: testContext.wikiId,
+                pageTitle: 'Test Page',
+                channelLoaded: true,
+                activeTab: 'page_comments' as const,
+                focusedInlineCommentId: null,
+                isExpanded: true,
+                actions: {
+                    publishPage: jest.fn(),
+                    closeRightHandSide: jest.fn(),
+                    setWikiRhsActiveTab: jest.fn(),
+                    openWikiRhs: jest.fn(),
+                    toggleRhsExpanded: jest.fn(),
+                },
+            };
+
+            renderWithContext(<WikiRHS {...baseProps}/>, getInitialState());
+
+            expect(screen.getByLabelText('Collapse Sidebar Icon')).toBeInTheDocument();
         });
     });
 
@@ -442,11 +528,13 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 channelLoaded: true,
                 activeTab: 'page_comments' as const,
                 focusedInlineCommentId: null,
+                isExpanded: false,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
                     setWikiRhsActiveTab: jest.fn(),
                     openWikiRhs: jest.fn(),
+                    toggleRhsExpanded: jest.fn(),
                 },
             };
 
@@ -464,11 +552,13 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 channelLoaded: true,
                 activeTab: 'page_comments' as const,
                 focusedInlineCommentId: null,
+                isExpanded: false,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
                     setWikiRhsActiveTab: jest.fn(),
                     openWikiRhs: jest.fn(),
+                    toggleRhsExpanded: jest.fn(),
                 },
             };
 
@@ -486,11 +576,13 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 channelLoaded: true,
                 activeTab: 'page_comments' as const,
                 focusedInlineCommentId: null,
+                isExpanded: false,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
                     setWikiRhsActiveTab: jest.fn(),
                     openWikiRhs: jest.fn(),
+                    toggleRhsExpanded: jest.fn(),
                 },
             };
 
@@ -509,11 +601,13 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 channelLoaded: true,
                 activeTab: 'page_comments' as const,
                 focusedInlineCommentId: null,
+                isExpanded: false,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
                     setWikiRhsActiveTab: jest.fn(),
                     openWikiRhs: jest.fn(),
+                    toggleRhsExpanded: jest.fn(),
                 },
             };
 
@@ -531,11 +625,13 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 channelLoaded: true,
                 activeTab: 'page_comments' as const,
                 focusedInlineCommentId: null,
+                isExpanded: false,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
                     setWikiRhsActiveTab: jest.fn(),
                     openWikiRhs: jest.fn(),
+                    toggleRhsExpanded: jest.fn(),
                 },
             };
 
@@ -553,11 +649,13 @@ describe('components/wiki_rhs/WikiRHS', () => {
                 channelLoaded: true,
                 activeTab: 'page_comments' as const,
                 focusedInlineCommentId: null,
+                isExpanded: false,
                 actions: {
                     publishPage: jest.fn(),
                     closeRightHandSide: jest.fn(),
                     setWikiRhsActiveTab: jest.fn(),
                     openWikiRhs: jest.fn(),
+                    toggleRhsExpanded: jest.fn(),
                 },
             };
 

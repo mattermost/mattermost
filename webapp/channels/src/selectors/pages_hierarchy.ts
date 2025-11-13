@@ -23,3 +23,8 @@ export function isNodeExpanded(state: GlobalState, wikiId: string, nodeId: strin
 export function getIsPanesPanelCollapsed(state: GlobalState): boolean {
     return state.views.pagesHierarchy.isPanelCollapsed;
 }
+
+// Get last viewed page for a wiki
+export function getLastViewedPage(state: GlobalState, wikiId: string): string | null {
+    return state.views.pagesHierarchy.lastViewedPage[wikiId] || null;
+}

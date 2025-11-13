@@ -166,7 +166,7 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
             expect(avatar).toHaveClass('WikiPageEditor__author');
         });
 
-        test('should display username using internationalization', () => {
+        test('should display username using UserProfile component', () => {
             const props = {
                 ...baseProps,
                 showAuthor: true,
@@ -174,39 +174,12 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
             };
             renderWithContext(<WikiPageEditor {...props}/>, initialState);
 
-            // Should display "By testuser" (using the username from initialState)
-            expect(screen.getByText(/By testuser/i)).toBeInTheDocument();
+            // Should display "By" text with UserProfile component showing username
+            expect(screen.getByText(/By/i)).toBeInTheDocument();
+            expect(screen.getByText(/testuser/i)).toBeInTheDocument();
         });
 
-        test('should show loading state when user is not in Redux store', () => {
-            const stateWithoutUser: DeepPartial<GlobalState> = {
-                entities: {
-                    users: {
-                        currentUserId: 'current_user_id',
-                        profiles: {}, // Empty profiles - user not loaded yet
-                    },
-                    teams: initialState.entities?.teams,
-                    channels: initialState.entities?.channels,
-                },
-            };
-
-            const props = {
-                ...baseProps,
-                showAuthor: true,
-                currentUserId: 'missing_user_id',
-            };
-
-            const {container} = renderWithContext(<WikiPageEditor {...props}/>, stateWithoutUser);
-
-            // Should show loading skeleton
-            const loadingElement = container.querySelector('.WikiPageEditor__authorLoading');
-            expect(loadingElement).toBeInTheDocument();
-
-            const skeleton = container.querySelector('.skeleton-loader');
-            expect(skeleton).toBeInTheDocument();
-        });
-
-        test('should show loading state when user fetch is needed', async () => {
+        test('should render UserProfile component when user is not in Redux store', () => {
             const stateWithoutUser: DeepPartial<GlobalState> = {
                 entities: {
                     users: {
@@ -226,26 +199,12 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
 
             const {container} = renderWithContext(<WikiPageEditor {...props}/>, stateWithoutUser);
 
-            // When user is not in store, useEffect should trigger and show loading
-            await waitFor(() => {
-                const loadingElement = container.querySelector('.WikiPageEditor__authorLoading');
-                expect(loadingElement).toBeInTheDocument();
-            });
+            // UserProfile component handles loading internally, so author section should still exist
+            const authorSection = container.querySelector('.WikiPageEditor__author');
+            expect(authorSection).toBeInTheDocument();
         });
 
-        test('should include ARIA label for accessibility', () => {
-            const props = {
-                ...baseProps,
-                showAuthor: true,
-                currentUserId: 'current_user_id',
-            };
-            renderWithContext(<WikiPageEditor {...props}/>, initialState);
-
-            const authorSection = screen.getByTestId('wiki-page-author');
-            expect(authorSection).toHaveAttribute('aria-label', 'Author: testuser');
-        });
-
-        test('should handle very long usernames with truncation', () => {
+        test('should handle very long usernames', () => {
             const longUsername = 'a'.repeat(300);
             const stateWithLongUsername: DeepPartial<GlobalState> = {
                 ...initialState,
@@ -275,10 +234,7 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
             const authorText = container.querySelector('.WikiPageEditor__authorText');
             expect(authorText).toBeInTheDocument();
 
-            // Check that the correct CSS class is applied for truncation
-            expect(authorText).toHaveClass('WikiPageEditor__authorText');
-
-            // Verify the long username is displayed (will be truncated by CSS)
+            // UserProfile component will display the username (truncation handled by CSS)
             expect(authorText?.textContent).toContain(longUsername);
         });
 
@@ -291,34 +247,9 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
             const {container} = renderWithContext(<WikiPageEditor {...props}/>, initialState);
 
             expect(container.querySelector('.WikiPageEditor__author')).not.toBeInTheDocument();
-            expect(container.querySelector('.WikiPageEditor__authorLoading')).not.toBeInTheDocument();
         });
 
-        test('should render loading state with proper accessibility label', () => {
-            const stateWithoutUser: DeepPartial<GlobalState> = {
-                entities: {
-                    users: {
-                        currentUserId: 'current_user_id',
-                        profiles: {},
-                    },
-                    teams: initialState.entities?.teams,
-                    channels: initialState.entities?.channels,
-                },
-            };
-
-            const props = {
-                ...baseProps,
-                showAuthor: true,
-                currentUserId: 'missing_user_id',
-            };
-
-            const {container} = renderWithContext(<WikiPageEditor {...props}/>, stateWithoutUser);
-
-            const skeleton = container.querySelector('.skeleton-loader');
-            expect(skeleton).toHaveAttribute('aria-label', 'Loading author');
-        });
-
-        test('should pass correct props to ProfilePicture component', () => {
+        test('should render ProfilePicture and UserProfile components', () => {
             const props = {
                 ...baseProps,
                 showAuthor: true,
@@ -327,11 +258,11 @@ describe('components/wiki_view/wiki_page_editor/WikiPageEditor', () => {
             };
             renderWithContext(<WikiPageEditor {...props}/>, initialState);
 
-            // Verify ProfilePicture is rendered with user data
+            // Verify author section is rendered
             const authorSection = screen.getByTestId('wiki-page-author');
             expect(authorSection).toBeInTheDocument();
 
-            // Check that username is displayed (ProfilePicture receives username prop)
+            // Check that username is displayed via UserProfile component
             expect(screen.getByText(/testuser/i)).toBeInTheDocument();
         });
     });

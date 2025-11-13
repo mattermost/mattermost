@@ -87,6 +87,13 @@
                 display: none !important;
             }
         }
+
+        // Fix post-menu positioning to align with top-right corner
+        .post {
+            .post-menu {
+                top: 0;
+            }
+        }
     }
 
     &__filter-bar {

@@ -16,12 +16,10 @@ let globalExitTimeout: ReturnType<typeof setTimeout> | null = null;
 let globalLastValidRange: {from: number; to: number} | null = null;
 let globalExtensionOptions: {onOpenLinkModal: () => void; onOpenImageModal: () => void} | null = null;
 
-// eslint-disable-next-line func-call-spacing, no-spaced-func
 export const SlashCommandExtension = Extension.create<{
     onOpenLinkModal: () => void;
     onOpenImageModal: () => void;
     suggestion: Partial<SuggestionOptions>;
-// eslint-disable-next-line func-call-spacing
 }>({
             name: 'slashCommand',
 

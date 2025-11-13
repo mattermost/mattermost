@@ -14,6 +14,7 @@ export const CLOSE_PAGES_PANEL = 'pages_hierarchy/CLOSE_PAGES_PANEL';
 export const SET_OUTLINE_EXPANDED = 'pages_hierarchy/SET_OUTLINE_EXPANDED';
 export const TOGGLE_OUTLINE_EXPANDED = 'pages_hierarchy/TOGGLE_OUTLINE_EXPANDED';
 export const CLEAR_OUTLINE_CACHE = 'pages_hierarchy/CLEAR_OUTLINE_CACHE';
+export const SET_LAST_VIEWED_PAGE = 'pages_hierarchy/SET_LAST_VIEWED_PAGE';
 
 type PagesHierarchyViewState = {
     expandedNodes: {[wikiId: string]: {[pageId: string]: boolean}};
@@ -21,6 +22,7 @@ type PagesHierarchyViewState = {
     isPanelCollapsed: boolean;
     outlineExpandedNodes: {[pageId: string]: boolean};
     outlineCache: {[pageId: string]: Heading[]};
+    lastViewedPage: {[wikiId: string]: string};
 };
 
 const initialState: PagesHierarchyViewState = {
@@ -29,6 +31,7 @@ const initialState: PagesHierarchyViewState = {
     isPanelCollapsed: false,
     outlineExpandedNodes: {},
     outlineCache: {},
+    lastViewedPage: {},
 };
 
 export default function pagesHierarchyReducer(state = initialState, action: AnyAction): PagesHierarchyViewState {
@@ -140,6 +143,17 @@ export default function pagesHierarchyReducer(state = initialState, action: AnyA
             ...state,
             outlineCache: restCache,
             outlineExpandedNodes: newExpandedNodes,
+        };
+    }
+
+    case SET_LAST_VIEWED_PAGE: {
+        const {wikiId, pageId} = action.data;
+        return {
+            ...state,
+            lastViewedPage: {
+                ...state.lastViewedPage,
+                [wikiId]: pageId,
+            },
         };
     }
 

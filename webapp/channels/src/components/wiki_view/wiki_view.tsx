@@ -11,12 +11,12 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {loadPageDraftsForWiki} from 'actions/page_drafts';
 import {loadPages} from 'actions/pages';
-import {openPagesPanel, closePagesPanel} from 'actions/views/pages_hierarchy';
+import {openPagesPanel, closePagesPanel, setLastViewedPage} from 'actions/views/pages_hierarchy';
 import {closeRightHandSide, openWikiRhs} from 'actions/views/rhs';
 import {setWikiRhsMode} from 'actions/views/wiki_rhs';
 import {getPageDraft, getPageDraftsForWiki} from 'selectors/page_drafts';
 import {getPage, getPages, getPagesLastInvalidated, getDraftsLastInvalidated} from 'selectors/pages';
-import {getIsPanesPanelCollapsed} from 'selectors/pages_hierarchy';
+import {getIsPanesPanelCollapsed, getLastViewedPage} from 'selectors/pages_hierarchy';
 import {getRhsState} from 'selectors/rhs';
 
 import LoadingScreen from 'components/loading_screen';
@@ -52,6 +52,7 @@ const WikiView = () => {
     const rhsState = useSelector((state: GlobalState) => getRhsState(state));
     const isWikiRhsOpen = rhsState === 'wiki';
     const isPanesPanelCollapsed = useSelector((state: GlobalState) => getIsPanesPanelCollapsed(state));
+    const lastViewedPageId = useSelector((state: GlobalState) => (wikiId ? getLastViewedPage(state, wikiId) : null));
 
     // Fullscreen state
     const [isFullscreen, setIsFullscreen] = React.useState(false);
@@ -186,12 +187,38 @@ const WikiView = () => {
     // Single source of truth for empty state (no drafts, no pages)
     const isEmptyState = !currentDraft && !pageId && allDrafts.length === 0 && allPages.length === 0;
 
+    // Store last viewed page when pageId or draftId changes
+    React.useEffect(() => {
+        if (wikiId && (pageId || draftId)) {
+            const viewedPageId = pageId || draftId;
+            if (viewedPageId) {
+                dispatch(setLastViewedPage(wikiId, viewedPageId));
+            }
+        }
+    }, [pageId, draftId, wikiId, dispatch]);
+
     // Auto-select draft or page when at wiki root
     React.useEffect(() => {
         if (!pageId && !draftId) {
             const teamName = getTeamNameFromPath(location.pathname);
 
-            // Priority 1: Select first draft if drafts exist
+            // Priority 1: Try to restore last viewed page if it exists
+            if (lastViewedPageId) {
+                const lastViewedDraft = allDrafts.find((d) => d.rootId === lastViewedPageId);
+                const lastViewedPage = allPages.find((p) => p.id === lastViewedPageId);
+
+                if (lastViewedDraft) {
+                    const draftUrl = getWikiUrl(teamName, channelId, wikiId, lastViewedDraft.rootId, true);
+                    history.replace(draftUrl);
+                    return;
+                } else if (lastViewedPage) {
+                    const pageUrl = getWikiUrl(teamName, channelId, wikiId, lastViewedPage.id, false);
+                    history.replace(pageUrl);
+                    return;
+                }
+            }
+
+            // Priority 2: Select first draft if drafts exist
             if (allDrafts.length > 0) {
                 const firstDraft = allDrafts[0];
                 if (firstDraft) {
@@ -201,7 +228,7 @@ const WikiView = () => {
                 }
             }
 
-            // Priority 2: Select first published page if no drafts but pages exist
+            // Priority 3: Select first published page if no drafts but pages exist
             if (allPages.length > 0) {
                 const firstPage = allPages[0];
                 if (firstPage) {
@@ -210,7 +237,7 @@ const WikiView = () => {
                 }
             }
         }
-    }, [pageId, draftId, allDrafts, allPages, channelId, wikiId, location.pathname, history]);
+    }, [pageId, draftId, allDrafts, allPages, channelId, wikiId, location.pathname, history, lastViewedPageId]);
 
     // Check for openRhs query parameter and open RHS if requested
     React.useEffect(() => {
