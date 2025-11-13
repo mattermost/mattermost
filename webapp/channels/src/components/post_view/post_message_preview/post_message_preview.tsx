@@ -36,13 +36,14 @@ export type Props = OwnProps & {
     isPostPriorityEnabled: boolean;
     handleFileDropdownOpened?: (open: boolean) => void;
     overrideGenerateFileDownloadUrl?: (fileId: string) => string;
+    disableActions?: boolean;
     actions: {
         toggleEmbedVisibility: (id: string) => void;
     };
 };
 
 const PostMessagePreview = (props: Props) => {
-    const {currentTeamUrl, channelDisplayName, user, previewPost, metadata, isEmbedVisible, compactDisplay, preventClickAction, previewFooterMessage, handleFileDropdownOpened, isPostPriorityEnabled, overrideGenerateFileDownloadUrl} = props;
+    const {currentTeamUrl, channelDisplayName, user, previewPost, metadata, isEmbedVisible, compactDisplay, preventClickAction, previewFooterMessage, handleFileDropdownOpened, isPostPriorityEnabled, overrideGenerateFileDownloadUrl, disableActions} = props;
 
     const toggleEmbedVisibility = () => {
         if (previewPost) {
@@ -65,6 +66,7 @@ const PostMessagePreview = (props: Props) => {
                 handleFileDropdownOpened={handleFileDropdownOpened}
                 usePostAsSource={props.usePostAsSource}
                 overrideGenerateFileDownloadUrl={overrideGenerateFileDownloadUrl}
+                disableActions={disableActions}
             />
         );
     }
