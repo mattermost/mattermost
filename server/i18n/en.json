@@ -732,6 +732,10 @@
     "translation": "Email invite(s) sent"
   },
   {
+    "id": "api.command.move_command.creator_no_permission.app_error",
+    "translation": "No permission to move command"
+  },
+  {
     "id": "api.command.team_mismatch.app_error",
     "translation": "Unable to update commands across teams."
   },
@@ -5437,6 +5441,10 @@
   {
     "id": "app.custom_profile_attributes.list_property_values.app_error",
     "translation": "Unable to get custom profile attribute values"
+  },
+  {
+    "id": "app.custom_profile_attributes.patch_field.app_error",
+    "translation": "Unable to patch Custom Profile Attribute field"
   },
   {
     "id": "app.custom_profile_attributes.property_field_conversion.app_error",
