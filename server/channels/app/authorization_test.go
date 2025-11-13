@@ -130,8 +130,8 @@ func TestCheckIfRolesGrantPermission(t *testing.T) {
 		{[]string{model.ChannelUserRoleId}, model.PermissionManageSystem.Id, false},
 		{[]string{model.SystemAdminRoleId, model.ChannelUserRoleId}, model.PermissionManageSystem.Id, true},
 		{[]string{model.ChannelUserRoleId, model.SystemAdminRoleId}, model.PermissionManageSystem.Id, true},
-		{[]string{model.TeamUserRoleId, model.TeamAdminRoleId}, model.PermissionManageSlashCommands.Id, true},
-		{[]string{model.TeamAdminRoleId, model.TeamUserRoleId}, model.PermissionManageSlashCommands.Id, true},
+		{[]string{model.TeamUserRoleId, model.TeamAdminRoleId}, model.PermissionManageOwnSlashCommands.Id, true},
+		{[]string{model.TeamAdminRoleId, model.TeamUserRoleId}, model.PermissionManageOwnSlashCommands.Id, true},
 		{[]string{model.ChannelGuestRoleId}, model.PermissionReadChannelContent.Id, true},
 	}
 
