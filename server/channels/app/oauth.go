@@ -794,6 +794,90 @@ func (a *App) LoginByOAuth(rctx request.CTX, service string, userData io.Reader,
 	return user, nil
 }
 
+// LoginByEntraIdToken authenticates a user using an MSAL id_token from Azure AD/Entra
+func (a *App) LoginByEntraIdToken(rctx request.CTX, idToken string) (*model.User, *model.AppError) {
+	// Get Office365 provider
+	provider, err := a.getSSOProvider(model.ServiceOffice365)
+	if err != nil {
+		return nil, err
+	}
+
+	// Attach config, license, and entra validation flag to context for the provider to use
+	ctx := rctx.Context()
+	ctx = context.WithValue(ctx, model.ServerConfigContextKey, a.Srv().Config())
+	ctx = context.WithValue(ctx, model.ServerLicenseContextKey, a.Srv().License())
+	ctx = context.WithValue(ctx, model.EntraTokenValidationContextKey, true)
+	rctxWithConfig := rctx.WithContext(ctx)
+
+	// Validate token and extract user data from id_token
+	authUser, err2 := provider.GetUserFromIdToken(rctxWithConfig, idToken)
+	if err2 != nil {
+		if appErr, ok := err2.(*model.AppError); ok {
+			return nil, appErr
+		}
+		return nil, model.NewAppError(
+			"LoginByEntraIdToken",
+			"api.user.login_by_entra.parse.app_error",
+			nil,
+			err2.Error(),
+			http.StatusBadRequest,
+		)
+	}
+
+	if authUser.AuthData == nil || *authUser.AuthData == "" {
+		return nil, model.NewAppError(
+			"LoginByEntraIdToken",
+			"api.user.login_by_entra.invalid_auth_data.app_error",
+			nil,
+			"Missing user ID from id_token",
+			http.StatusBadRequest,
+		)
+	}
+
+	// Get or create user
+	user, err := a.GetUserByAuth(authUser.AuthData, model.ServiceOffice365)
+	if err != nil {
+		if err.Id == MissingAuthAccountError {
+			// Create new OAuth user
+			user, err = a.CreateOAuthUser(rctx, model.ServiceOffice365, nil, "", "", authUser)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			return nil, err
+		}
+	} else {
+		// Prevent bot login
+		if user.IsBot {
+			return nil, model.NewAppError(
+				"LoginByEntraIdToken",
+				"api.user.login_by_entra.bot_login_forbidden.app_error",
+				nil,
+				"",
+				http.StatusForbidden,
+			)
+		}
+
+		// Check if account is locked/disabled
+		if user.DeleteAt != 0 {
+			return nil, model.NewAppError(
+				"LoginByEntraIdToken",
+				"api.user.login_by_entra.account_locked.app_error",
+				nil,
+				"user_id="+user.Id,
+				http.StatusConflict, // 409, to match client behavior for disabled/blocked accounts
+			)
+		}
+
+		// Update user attributes from token
+		if err = a.UpdateOAuthUserAttrs(rctx, nil, user, provider, model.ServiceOffice365, authUser); err != nil {
+			return nil, err
+		}
+	}
+
+	return user, nil
+}
+
 func (a *App) CompleteSwitchWithOAuth(rctx request.CTX, service string, userData io.Reader, email string, tokenUser *model.User) (*model.User, *model.AppError) {
 	provider, e := a.getSSOProvider(service)
 	if e != nil {

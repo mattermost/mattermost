@@ -1586,3 +1586,38 @@ func TestAuthorizeOAuthUser_InvalidToken(t *testing.T) {
 		assert.Equal(t, "api.user.authorize_oauth_user.invalid_state.app_error", appErr.Id)
 	})
 }
+
+func TestLoginByEntraIdToken(t *testing.T) {
+	mainHelper.Parallel(t)
+	// Since LoginByEntraIdToken requires enterprise OAuth provider, use SetupEnterprise
+	th := SetupEnterprise(t).InitBasic(t)
+
+	t.Run("Office365NotEnabled_ShouldFail", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.Office365Settings.Enable = false
+		})
+
+		user, err := th.App.LoginByEntraIdToken(th.Context, "fake-token")
+		assert.NotNil(t, err)
+		assert.Nil(t, user)
+		assert.Equal(t, "api.user.authorize_oauth_user.unsupported.app_error", err.Id)
+	})
+
+	t.Run("Office365Enabled_InvalidToken_ShouldFail", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.Office365Settings.Enable = true
+			*cfg.Office365Settings.DirectoryId = "test-directory-id"
+			*cfg.Office365Settings.Id = "test-client-id"
+			cfg.Office365Settings.Secret = model.NewPointer("test-secret")
+			// Ensure scope contains openid so it routes to OpenID provider
+			cfg.Office365Settings.Scope = model.NewPointer("openid profile email")
+			*cfg.NativeAppSettings.EnableIntuneMAM = true
+		})
+
+		// The enterprise provider is available, but the token is invalid
+		// so it should fail during token validation
+		user, err := th.App.LoginByEntraIdToken(th.Context, "invalid-jwt-token")
+		assert.NotNil(t, err)
+		assert.Nil(t, user)
+	})
+}

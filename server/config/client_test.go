@@ -423,6 +423,126 @@ func TestGetClientConfig(t *testing.T) {
 				"BurnOnReadDurationMinutes": "10",
 			},
 		},
+		{
+			"Intune MAM enabled with Enterprise Advanced license and Office365 configured",
+			&model.Config{
+				NativeAppSettings: model.NativeAppSettings{
+					EnableIntuneMAM: model.NewPointer(true),
+				},
+				Office365Settings: model.Office365Settings{
+					Enable:      model.NewPointer(true),
+					DirectoryId: model.NewPointer("test-directory-id"),
+					Id:          model.NewPointer("test-client-id"),
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuEnterpriseAdvanced,
+			},
+			map[string]string{
+				"IntuneMAMEnabled": "true",
+				"IntuneScope":      "api://test-client-id/login.mattermost",
+			},
+		},
+		{
+			"Intune MAM disabled when Office365 is disabled",
+			&model.Config{
+				NativeAppSettings: model.NativeAppSettings{
+					EnableIntuneMAM: model.NewPointer(true),
+				},
+				Office365Settings: model.Office365Settings{
+					Enable:      model.NewPointer(false),
+					DirectoryId: model.NewPointer("test-directory-id"),
+					Id:          model.NewPointer("test-client-id"),
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuEnterpriseAdvanced,
+			},
+			map[string]string{
+				"IntuneMAMEnabled": "false",
+			},
+		},
+		{
+			"Intune MAM disabled when DirectoryId is missing",
+			&model.Config{
+				NativeAppSettings: model.NativeAppSettings{
+					EnableIntuneMAM: model.NewPointer(true),
+				},
+				Office365Settings: model.Office365Settings{
+					Enable:      model.NewPointer(true),
+					DirectoryId: model.NewPointer(""),
+					Id:          model.NewPointer("test-client-id"),
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuEnterpriseAdvanced,
+			},
+			map[string]string{
+				"IntuneMAMEnabled": "false",
+			},
+		},
+		{
+			"Intune MAM disabled when Client ID is missing",
+			&model.Config{
+				NativeAppSettings: model.NativeAppSettings{
+					EnableIntuneMAM: model.NewPointer(true),
+				},
+				Office365Settings: model.Office365Settings{
+					Enable:      model.NewPointer(true),
+					DirectoryId: model.NewPointer("test-directory-id"),
+					Id:          model.NewPointer(""),
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuEnterpriseAdvanced,
+			},
+			map[string]string{
+				"IntuneMAMEnabled": "false",
+			},
+		},
+		{
+			"Intune MAM not exposed with lower license tier",
+			&model.Config{
+				NativeAppSettings: model.NativeAppSettings{
+					EnableIntuneMAM: model.NewPointer(true),
+				},
+				Office365Settings: model.Office365Settings{
+					Enable:      model.NewPointer(true),
+					DirectoryId: model.NewPointer("test-directory-id"),
+					Id:          model.NewPointer("test-client-id"),
+				},
+			},
+			"",
+			&model.License{
+				Features:     &model.Features{},
+				SkuShortName: model.LicenseShortSkuProfessional,
+			},
+			map[string]string{},
+		},
+		{
+			"Intune MAM not exposed without license",
+			&model.Config{
+				NativeAppSettings: model.NativeAppSettings{
+					EnableIntuneMAM: model.NewPointer(true),
+				},
+				Office365Settings: model.Office365Settings{
+					Enable:      model.NewPointer(true),
+					DirectoryId: model.NewPointer("test-directory-id"),
+					Id:          model.NewPointer("test-client-id"),
+				},
+			},
+			"",
+			nil,
+			map[string]string{},
+		},
 	}
 
 	for _, testCase := range testCases {

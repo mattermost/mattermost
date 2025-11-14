@@ -4,6 +4,7 @@
 package config
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -416,6 +417,16 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 			props["MobileEnableBiometrics"] = strconv.FormatBool(*c.NativeAppSettings.MobileEnableBiometrics)
 			props["MobilePreventScreenCapture"] = strconv.FormatBool(*c.NativeAppSettings.MobilePreventScreenCapture)
 			props["MobileJailbreakProtection"] = strconv.FormatBool(*c.NativeAppSettings.MobileJailbreakProtection)
+		}
+
+		if model.MinimumEnterpriseAdvancedLicense(license) {
+			intuneEnabled := *c.NativeAppSettings.EnableIntuneMAM &&
+				*c.Office365Settings.Enable &&
+				*c.Office365Settings.DirectoryId != "" && *c.Office365Settings.Id != ""
+			props["IntuneMAMEnabled"] = strconv.FormatBool(intuneEnabled)
+			if intuneEnabled {
+				props["IntuneScope"] = fmt.Sprintf("api://%s/login.mattermost", *c.Office365Settings.Id)
+			}
 		}
 	}
 

@@ -44,6 +44,9 @@ func (w *Web) InitOAuth() {
 	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/mobile_login", w.APIHandler(mobileLoginWithOAuth)).Methods(http.MethodGet)
 	w.MainRouter.Handle("/oauth/{service:[A-Za-z0-9]+}/signup", w.APIHandler(signupWithOAuth)).Methods(http.MethodGet)
 
+	// Entra ID (Office365) token-based authentication endpoint
+	w.MainRouter.Handle("/oauth/entra", w.APIHandler(loginWithEntraIdToken)).Methods(http.MethodPost)
+
 	// Old endpoints for backwards compatibility, needed to not break SSO for any old setups
 	w.MainRouter.Handle("/api/v3/oauth/{service:[A-Za-z0-9]+}/complete", w.APIHandler(completeOAuth)).Methods(http.MethodGet)
 	w.MainRouter.Handle("/signup/{service:[A-Za-z0-9]+}/complete", w.APIHandler(completeOAuth)).Methods(http.MethodGet)
@@ -623,5 +626,45 @@ func getAuthorizationServerMetadata(c *Context, w http.ResponseWriter, r *http.R
 
 	if err := json.NewEncoder(w).Encode(metadata); err != nil {
 		c.Logger.Warn("Error writing authorization server metadata response", mlog.Err(err))
+	}
+}
+
+func loginWithEntraIdToken(c *Context, w http.ResponseWriter, r *http.Request) {
+	var req model.EntraLoginRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		c.SetInvalidParamWithErr("request_body", err)
+		return
+	}
+
+	if req.IdToken == "" {
+		c.SetInvalidParam("id_token")
+		return
+	}
+
+	// Authenticate user via id_token
+	user, err := c.App.LoginByEntraIdToken(c.AppContext, req.IdToken)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	isMobile := req.DeviceId != ""
+	session, err := c.App.DoLogin(c.AppContext, w, r, user, req.DeviceId, isMobile, true, false)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	c.AppContext = c.AppContext.WithSession(session)
+
+	w.Header().Set(model.HeaderToken, session.Token)
+
+	c.App.AttachSessionCookies(c.AppContext, w, r)
+
+	user.Sanitize(map[string]bool{})
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(user); err != nil {
+		c.Logger.Warn("Failed to encode user response", mlog.Err(err))
 	}
 }
