@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/delete_post_modal should match snapshot for delete_post_modal with 0 comments 1`] = `
 <Modal

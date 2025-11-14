@@ -26,6 +26,15 @@ jest.mock('components/thread_popout', () => ({
     __esModule: true,
     default: () => <div data-testid='thread-popout'>{'Thread Popout'}</div>,
 }));
+jest.mock('utils/popouts/use_browser_popout', () => ({
+    __esModule: true,
+    useBrowserPopout: jest.fn(),
+}));
+
+jest.mock('components/logged_in', () => ({
+    __esModule: true,
+    default: ({children}: {children: React.ReactNode}) => <div data-testid='logged-in'>{children}</div>,
+}));
 
 const mockGetProfiles = getProfiles as jest.MockedFunction<typeof getProfiles>;
 
