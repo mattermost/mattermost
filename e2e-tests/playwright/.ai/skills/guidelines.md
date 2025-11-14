@@ -277,14 +277,18 @@ test('MM-TXXXX descriptive test name', {tag: '@feature-area'}, async ({pw}) => {
 1. `test.describe()` - Don't use describe blocks
 2. `async ({pw, page})` - Don't use both pw and page
 3. `{tag: ['@tag1', '@tag2']}` - Don't use array of tags
-4. Test name without `MM-TXXXX` prefix
+4. Missing JSDoc `@objective` comment
+5. Using wrong comment prefixes (not using `// #` and `// *`)
 
 **✅ ALWAYS DO:**
-1. `test('MM-TXXXX name', {tag: '@feature'}, async ({pw}) => {})` - Standalone tests only
-2. ONLY use `{pw}` parameter, access page via `channelsPage.page` or `systemConsolePage.page`
-3. Single tag string: `{tag: '@feature-area'}`
-4. Start test names with `MM-TXXXX` (or actual Jira ticket ID)
-5. Each test is completely independent with its own setup
+1. Include JSDoc with `@objective` (required) and `@precondition` (optional)
+2. `test('descriptive title', {tag: '@feature'}, async ({pw}) => {})` - Standalone tests only
+3. ONLY use `{pw}` parameter, access page via `channelsPage.page` or `systemConsolePage.page`
+4. Single tag string: `{tag: '@feature-area'}`
+5. Test titles must be action-oriented: `"creates channel and posts message"`
+6. Use `// #` for action comments, `// *` for verification comments
+7. Each test is completely independent with its own setup
+8. MM-T IDs are OPTIONAL for new tests (will be auto-assigned later)
 
 ### Tags System
 
@@ -305,6 +309,196 @@ test(
     {tag: ['@functional', '@channels', '@smoke']},
     async ({pw, page}) => { /* ... */ }
 );
+```
+
+---
+
+## Test Documentation Requirements
+
+Every test MUST follow Mattermost's documentation standards to ensure maintainability and automated validation.
+
+### JSDoc Format (Required)
+
+Every test must include JSDoc with the `@objective` tag:
+
+```typescript
+/**
+ * @objective Clear description of what the test verifies
+ */
+test('creates channel and posts first message', {tag: '@channels'}, async ({pw}) => {
+    // Test implementation
+});
+```
+
+### Optional @precondition Tag
+
+Include `@precondition` only for special setup requirements beyond the standard test environment:
+
+```typescript
+/**
+ * @objective Verify scheduled message posts at the correct time
+ *
+ * @precondition
+ * Server time zone is set to UTC
+ * User has permission to schedule messages
+ */
+test('scheduled message posts at specified time', {tag: '@messaging'}, async ({pw}) => {
+    // Test implementation
+});
+```
+
+**When to omit @precondition:**
+- Standard conditions like "test server is running" - omit these
+- Default user permissions - omit these
+- Normal test setup via `pw.initSetup()` - omit this
+- Only include truly special prerequisites
+
+### Test Title Format
+
+Test titles must be **action-oriented**, **feature-specific**, **context-aware**, and **outcome-focused**.
+
+**Good Examples:**
+```typescript
+test('creates scheduled message from channel and posts at scheduled time', ...)
+test('edits scheduled message content while preserving send date', ...)
+test('reschedules message to a future date from scheduled posts page', ...)
+test('deletes scheduled message from scheduled posts page', ...)
+test('converts draft message to scheduled message', ...)
+```
+
+**Title Format Pattern:**
+1. **Start with a verb**: creates, edits, deletes, displays, shows, opens, closes, etc.
+2. **Include the feature**: channel, message, user profile, etc.
+3. **Add context**: from where, using what, when, etc.
+4. **Specify outcome**: what the expected result is
+
+**Bad Examples:**
+```typescript
+test('test channel creation', ...)  // ❌ Not action-oriented
+test('should create a channel', ...)  // ❌ Don't use "should"
+test('channel', ...)  // ❌ Too vague
+test('create', ...)  // ❌ Missing context
+```
+
+### MM-T ID Requirement
+
+**MM-T IDs are OPTIONAL for new tests:**
+- New tests: Use descriptive titles without IDs
+- IDs will be auto-assigned after merge via automated process
+- If you have an existing Jira ticket: Include it as `'MM-T5521 descriptive title'`
+
+**Examples:**
+```typescript
+// ✅ New test without ID (preferred)
+test('creates channel and invites team members', {tag: '@channels'}, async ({pw}) => {
+
+// ✅ Existing ticket with ID
+test('MM-T5521 searches users by first name in system console', {tag: '@system_console'}, async ({pw}) => {
+```
+
+### Comment Prefixes (Required)
+
+Use specific prefixes to distinguish actions from verifications:
+
+- `// #` = Action/step being performed
+- `// *` = Verification/assertion/check
+
+**Example:**
+```typescript
+test('sends direct message to team member', {tag: '@messaging'}, async ({pw}) => {
+    // # Initialize user and login
+    const {user, otherUser} = await pw.initSetup();
+    const {channelsPage} = await pw.testBrowser.login(user);
+
+    // # Open direct message modal
+    await channelsPage.page.click('[data-testid="add-dm-button"]');
+    await channelsPage.page.locator('[data-testid="dm-modal"]').waitFor();
+
+    // # Search for user and select
+    await channelsPage.page.fill('[data-testid="user-search"]', otherUser.username);
+    await channelsPage.page.click(`[data-testid="user-${otherUser.id}"]`);
+
+    // # Send message
+    const messageText = `Test message ${pw.random.id()}`;
+    await channelsPage.page.fill('[data-testid="post-textbox"]', messageText);
+    await channelsPage.page.press('[data-testid="post-textbox"]', 'Enter');
+
+    // * Verify message appears in DM channel
+    await expect(channelsPage.page.locator(`text=${messageText}`)).toBeVisible();
+
+    // * Verify DM channel appears in sidebar
+    await expect(channelsPage.page.locator(`[data-testid="dm-${otherUser.id}"]`)).toBeVisible();
+});
+```
+
+### Test Documentation Linting
+
+Mattermost enforces documentation standards via automated linting:
+
+**Run Linting:**
+```bash
+# Check test documentation format
+npm run lint:test-docs
+
+# Run all checks (includes test docs)
+npm run check
+```
+
+**What the linter checks:**
+- JSDoc `@objective` tag is present
+- Test titles follow format guidelines
+- Feature tags are included
+- Action/verification comment prefixes are used
+- No common anti-patterns
+
+**All generated tests MUST pass linting before being committed.**
+
+### Complete Documentation Example
+
+```typescript
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+import {test} from '@mattermost/playwright-lib';
+
+/**
+ * @objective Verify user can create a public channel and post a message
+ */
+test('creates public channel and posts first message', {tag: '@channels'}, async ({pw}) => {
+    // # Initialize test setup
+    const {adminClient, user, team} = await pw.initSetup();
+
+    // # Login as user
+    const {channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto();
+    await channelsPage.toBeVisible();
+
+    // # Open create channel modal
+    await channelsPage.sidebarLeft.createPublicChannel.click();
+    await channelsPage.page.locator('[data-testid="new-channel-modal"]').waitFor();
+
+    // # Fill channel details
+    const channelName = `test-channel-${pw.random.id()}`;
+    await channelsPage.page.fill('[data-testid="channel-name"]', channelName);
+    await channelsPage.page.fill('[data-testid="channel-purpose"]', 'Test channel purpose');
+
+    // # Create channel
+    await channelsPage.page.click('[data-testid="create-channel-button"]');
+
+    // * Verify channel is created and visible
+    await expect(channelsPage.page.locator('[data-testid="channel-header"]')).toContainText(channelName);
+
+    // # Post first message
+    const messageText = `First message ${pw.random.id()}`;
+    await channelsPage.page.fill('[data-testid="post-textbox"]', messageText);
+    await channelsPage.page.press('[data-testid="post-textbox"]', 'Enter');
+
+    // * Verify message appears in channel
+    await expect(channelsPage.page.locator(`text=${messageText}`)).toBeVisible();
+
+    // * Verify message is from current user
+    await expect(channelsPage.page.locator('[data-testid="post-author"]')).toContainText(user.username);
+});
 ```
 
 ---

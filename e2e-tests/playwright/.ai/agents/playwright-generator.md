@@ -60,12 +60,14 @@ Use appropriate tags for test organization:
 
 **DO:**
 - Use descriptive test names that describe user behavior
-- Add comments with `#` for actions and `*` for assertions
-- Group related tests with `test.describe()`
+- Add JSDoc with `@objective` (required) and `@precondition` (optional)
+- Add comments with `// #` for actions and `// *` for verifications
+- Each test should be standalone (NO `test.describe()`)
 - Use proper TypeScript types
 - Include copyright header
 
 **DON'T:**
+- Use `test.describe()` - Each test should be standalone
 - Mix visual and functional tests in the same file
 - Create tests that depend on each other
 - Use hardcoded waits (`page.waitForTimeout()`)
@@ -133,6 +135,98 @@ test.describe('Feature Tests', () => {
     });
 });
 ```
+
+## Test Documentation Requirements
+
+### JSDoc Format
+Every test MUST include JSDoc documentation:
+
+```typescript
+/**
+ * @objective Clear description of what the test verifies
+ */
+test('test title here', {tag: '@feature'}, async ({pw}) => {
+    // Test implementation
+});
+```
+
+**Optional @precondition:**
+```typescript
+/**
+ * @objective Verify scheduled message posts at the correct time
+ *
+ * @precondition
+ * Server time zone is set to UTC
+ * User has permission to schedule messages
+ */
+test('scheduled message posts at specified time', {tag: '@messaging'}, async ({pw}) => {
+    // Test implementation
+});
+```
+
+**Note:** Only include `@precondition` for special setup requirements beyond the default test environment. Omit if no special conditions are needed.
+
+### Test Title Format
+
+Test titles should be **action-oriented**, **feature-specific**, **context-aware**, and **outcome-focused**.
+
+**Good Examples:**
+- `"creates scheduled message from channel and posts at scheduled time"`
+- `"edits scheduled message content while preserving send date"`
+- `"reschedules message to a future date from scheduled posts page"`
+- `"deletes scheduled message from scheduled posts page"`
+- `"converts draft message to scheduled message"`
+
+**Format Pattern:**
+- Start with a **verb** (creates, edits, deletes, displays, shows, etc.)
+- Include the **feature** being tested
+- Add **context** (where/how it's performed)
+- Specify the **outcome** or behavior
+
+**MM-T ID Requirement:**
+- MM-T IDs (e.g., `MM-T1234`) are **OPTIONAL** for new tests
+- New tests without IDs will automatically be registered after merge
+- Test IDs will be assigned later through automated process
+- If you have a Jira ticket ID, use it: `'MM-T5521 test title'`
+- Otherwise, omit the prefix: `'test title'`
+
+### Comment Prefixes
+
+Use specific comment prefixes to indicate actions vs verifications:
+
+```typescript
+test('example test', {tag: '@feature'}, async ({pw}) => {
+    // # Initialize user and login
+    const {user} = await pw.initSetup();
+    const {channelsPage} = await pw.testBrowser.login(user);
+
+    // # Navigate to channels page
+    await channelsPage.goto();
+    await channelsPage.toBeVisible();
+
+    // # Perform user action
+    await channelsPage.page.click('[data-testid="action-button"]');
+
+    // * Verify expected result appears
+    await expect(channelsPage.page.locator('[data-testid="result"]')).toBeVisible();
+
+    // * Verify result contains expected text
+    await expect(channelsPage.page.locator('[data-testid="result"]')).toHaveText('Success');
+});
+```
+
+**Comment Rules:**
+- `// #` prefix = Actions, steps being performed
+- `// *` prefix = Verifications, assertions, checks
+- Makes test flow easy to understand at a glance
+
+### Test Documentation Linting
+
+Mattermost has automated linting for test documentation:
+- Run `npm run lint:test-docs` to verify format compliance
+- Checks for proper JSDoc tags, test titles, and comment prefixes
+- Included in `npm run check` command
+- All generated tests MUST pass this linting
 
 ## Code Generation Templates
 
