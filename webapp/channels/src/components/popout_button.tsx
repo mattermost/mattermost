@@ -20,7 +20,7 @@ export default function PopoutButton({
 }: Props) {
     const intl = useIntl();
 
-    if (!canPopout) {
+    if (!canPopout()) {
         return null;
     }
 
