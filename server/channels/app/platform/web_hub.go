@@ -10,6 +10,7 @@ import (
 	"maps"
 	"runtime"
 	"runtime/debug"
+	"slices"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -388,8 +389,7 @@ func (ps *PlatformService) GetActiveUserIDsForChannel(channelID, excludeUserID s
 		return []string{}
 	}
 
-	// Use map[string]struct{} for memory efficiency (follows model.StringSet pattern)
-	userIDMap := make(map[string]struct{}, 256)
+	userIDMap := make(map[string]struct{})
 
 	// Iterate through all hubs to collect active users
 	for _, hub := range ps.hubs {
@@ -400,12 +400,7 @@ func (ps *PlatformService) GetActiveUserIDsForChannel(channelID, excludeUserID s
 	}
 
 	// Convert map to slice
-	userIDs := make([]string, 0, len(userIDMap))
-	for userID := range userIDMap {
-		userIDs = append(userIDs, userID)
-	}
-
-	return userIDs
+	return slices.Collect(maps.Keys(userIDMap))
 }
 
 // Register registers a connection to the hub.
@@ -669,10 +664,7 @@ func (h *Hub) Start() {
 				}
 
 				// Convert map to slice
-				userIDs := make([]string, 0, len(userIDMap))
-				for userID := range userIDMap {
-					userIDs = append(userIDs, userID)
-				}
+				userIDs := slices.Collect(maps.Keys(userIDMap))
 
 				// Return map to pool before sending result
 				h.stringStructMapPool.Put(userIDMap)

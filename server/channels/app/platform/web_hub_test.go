@@ -1016,43 +1016,28 @@ func BenchmarkGetActiveUserIDsForChannel(b *testing.B) {
 
 		// Wait for all registrations to complete
 		// The hub event loop needs to process each connection and fetch channel memberships
-		// Wait for all connections to be registered in the hub for the channel.
-		// Poll until all users have at least one active connection, or timeout.
-		const pollTimeout = 5 * time.Second
-		const pollInterval = 50 * time.Millisecond
-		start := time.Now()
-		for {
-			allRegistered := true
+		require.Eventually(b, func() bool {
 			for _, user := range users {
 				if th.Service.WebConnCountForUser(user.Id) == 0 {
-					allRegistered = false
-					break
+					return false
 				}
 			}
-			if allRegistered {
-				break
-			}
-			if time.Since(start) > pollTimeout {
-				b.Fatalf("Timeout waiting for all connections to be registered")
-			}
-			time.Sleep(pollInterval)
-		}
+			return true
+		}, 5*time.Second, 50*time.Millisecond, "Timeout waiting for all connections to be registered")
 
 		// Verify at least one connection worked
 		sampleCount := th.Service.WebConnCountForUser(users[0].Id)
-		if sampleCount == 0 {
-			b.Fatal("No connections registered - benchmark setup failed")
-		}
+		require.NotEqual(b, 0, sampleCount, "No connections registered - benchmark setup failed")
 
 		return users, wcs
 	}
 
 	b.Run("fast_iteration", func(b *testing.B) {
 		// Setup with fast iteration enabled from the start
-		th := setupWithFastIteration(b).InitBasic()
-		defer th.TearDown()
+		th := setupWithFastIteration(b).InitBasic(b)
+		defer th.Shutdown(b)
 
-		users, wcs := setupConnections(b, th, 100)
+		_, wcs := setupConnections(b, th, 100)
 		defer func() {
 			for _, wc := range wcs {
 				wc.Close()
@@ -1061,9 +1046,7 @@ func BenchmarkGetActiveUserIDsForChannel(b *testing.B) {
 
 		// Warmup call
 		result := th.Service.GetActiveUserIDsForChannel(th.BasicChannel.Id, "")
-		if len(result) == 0 {
-			b.Fatal("Fast iteration returned 0 users")
-		}
+		require.NotEmpty(b, result, "Fast iteration returned 0 users")
 
 		b.ReportAllocs()
 		b.ResetTimer()
@@ -1073,15 +1056,14 @@ func BenchmarkGetActiveUserIDsForChannel(b *testing.B) {
 		}
 
 		b.StopTimer()
-		_ = users // Keep reference
 	})
 
 	b.Run("fallback_iteration", func(b *testing.B) {
 		// Setup with fast iteration disabled (default)
-		th := Setup(b).InitBasic()
-		defer th.TearDown()
+		th := Setup(b).InitBasic(b)
+		defer th.Shutdown(b)
 
-		users, wcs := setupConnections(b, th, 100)
+		_, wcs := setupConnections(b, th, 100)
 		defer func() {
 			for _, wc := range wcs {
 				wc.Close()
@@ -1090,9 +1072,7 @@ func BenchmarkGetActiveUserIDsForChannel(b *testing.B) {
 
 		// Warmup call
 		result := th.Service.GetActiveUserIDsForChannel(th.BasicChannel.Id, "")
-		if len(result) == 0 {
-			b.Fatal("Fallback iteration returned 0 users")
-		}
+		require.NotEmpty(b, result, "Fallback iteration returned 0 users")
 
 		b.ReportAllocs()
 		b.ResetTimer()
@@ -1102,28 +1082,20 @@ func BenchmarkGetActiveUserIDsForChannel(b *testing.B) {
 		}
 
 		b.StopTimer()
-		_ = users // Keep reference
 	})
 }
 
 func waitForActiveConnections(tb testing.TB, svc *PlatformService, userID string, expected int, timeout time.Duration) {
-	start := time.Now()
-	for {
-		if svc.WebConnCountForUser(userID) == expected {
-			return
-		}
-		if time.Since(start) > timeout {
-			tb.Fatalf("Timeout waiting for %d active connections for user %s", expected, userID)
-		}
-		time.Sleep(50 * time.Millisecond)
-	}
+	require.Eventually(tb, func() bool {
+		return svc.WebConnCountForUser(userID) == expected
+	}, timeout, 50*time.Millisecond, "Timeout waiting for %d active connections for user %s", expected, userID)
 }
 
 func TestGetActiveUserIDsForChannel(t *testing.T) {
 	t.Run("basic connection test", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.Shutdown(t)
 
 		_, err := th.Service.Store.Channel().SaveMember(th.Context, &model.ChannelMember{
 			ChannelId:   th.BasicChannel.Id,
@@ -1155,8 +1127,8 @@ func TestGetActiveUserIDsForChannel(t *testing.T) {
 
 	t.Run("with fast iteration enabled", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := setupWithFastIteration(t).InitBasic()
-		defer th.TearDown()
+		th := setupWithFastIteration(t).InitBasic(t)
+		defer th.Shutdown(t)
 
 		assert.True(t, *th.Service.Config().ServiceSettings.EnableWebHubChannelIteration,
 			"Fast iteration should be enabled for this test")
@@ -1245,8 +1217,8 @@ func TestGetActiveUserIDsForChannel(t *testing.T) {
 
 	t.Run("with fast iteration disabled", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.Shutdown(t)
 
 		user1, err := th.Service.Store.User().Save(th.Context, &model.User{
 			Username: "user1_" + model.NewId(),
@@ -1302,8 +1274,8 @@ func TestGetActiveUserIDsForChannel(t *testing.T) {
 
 	t.Run("empty channel returns empty list", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.Shutdown(t)
 
 		channel, err := th.Service.Store.Channel().Save(th.Context, &model.Channel{
 			Name:        "test_" + model.NewId(),
@@ -1319,8 +1291,8 @@ func TestGetActiveUserIDsForChannel(t *testing.T) {
 
 	t.Run("empty channelID returns empty list", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
+		defer th.Shutdown(t)
 
 		activeUserIDs := th.Service.GetActiveUserIDsForChannel("", "")
 		assert.NotNil(t, activeUserIDs)
