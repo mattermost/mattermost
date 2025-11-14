@@ -264,7 +264,7 @@ func (c *CommonTestSuite) TestDeleteChannelPosts() {
 
 func (c *CommonTestSuite) TestDeleteUserPosts() {
 	c.Run("Should remove all the user posts", func() {
-		anotherTeam := c.TH.CreateTeam()
+		anotherTeam := c.TH.CreateTeam(c.T())
 		anotherTeamChannel := createChannel(anotherTeam.Id, "anotherteamchannel", "", model.ChannelTypeOpen)
 		userPosts := make([]*model.Post, 0)
 		post := createPost(c.TH.BasicUser.Id, c.TH.BasicChannel.Id, model.NewId())
@@ -468,8 +468,8 @@ func (c *CommonTestSuite) TestSearchUsersInChannel() {
 
 func (c *CommonTestSuite) TestSearchUsersInTeam() {
 	// Create additional teams
-	team1 := c.TH.CreateTeam()
-	team2 := c.TH.CreateTeam()
+	team1 := c.TH.CreateTeam(c.T())
+	team2 := c.TH.CreateTeam(c.T())
 
 	// Create and index users with different team memberships
 	user1 := createUser("test.user1", "testuser1", "Test", "User1")

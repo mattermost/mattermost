@@ -23,6 +23,7 @@ import MessageWithAdditionalContent from 'components/message_with_additional_con
 import PriorityLabel from 'components/post_priority/post_priority_label';
 import PostProfilePicture from 'components/post_profile_picture';
 import PostAcknowledgements from 'components/post_view/acknowledgements';
+import AiGeneratedIndicator from 'components/post_view/ai_generated_indicator/ai_generated_indicator';
 import CommentedOn from 'components/post_view/commented_on/commented_on';
 import FailedPostOptions from 'components/post_view/failed_post_options';
 import PostAriaLabelDiv from 'components/post_view/post_aria_label_div';
@@ -588,6 +589,15 @@ function PostComponent(props: Props) {
                                     />
                                 }
                                 {priority}
+                                {Boolean(post.props && post.props.ai_generated_by && post.props.ai_generated_by_username) &&
+                                    typeof post.props.ai_generated_by === 'string' &&
+                                    typeof post.props.ai_generated_by_username === 'string' && (
+                                    <AiGeneratedIndicator
+                                        userId={post.props.ai_generated_by}
+                                        username={post.props.ai_generated_by_username}
+                                        postAuthorId={post.user_id}
+                                    />
+                                )}
                                 {Boolean(post.props && post.props.card) &&
                                     <WithTooltip
                                         title={
