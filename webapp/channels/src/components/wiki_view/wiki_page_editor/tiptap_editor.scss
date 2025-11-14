@@ -186,11 +186,12 @@
         table {
             overflow: hidden;
             width: 100%;
-            border: 1px solid var(--center-channel-color-16);
+            border-color: rgba(var(--center-channel-color-rgb), 0.12);
             border-radius: 4px;
             margin: 1em 0;
             border-collapse: collapse;
             table-layout: fixed;
+            
 
             td,
             th {
@@ -198,7 +199,7 @@
                 min-width: 1em;
                 box-sizing: border-box;
                 padding: 8px 12px;
-                border: 1px solid var(--center-channel-color-16);
+                border: var(--border-default);
                 background-color: var(--center-channel-bg);
                 vertical-align: top;
 
