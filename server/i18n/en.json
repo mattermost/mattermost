@@ -4411,6 +4411,90 @@
     "translation": "CWS token is not valid"
   },
   {
+    "id": "api.user.login_by_entra.account_locked.app_error",
+    "translation": "Your account is locked. Please contact your system administrator."
+  },
+  {
+    "id": "api.user.login_by_entra.bot_login_forbidden.app_error",
+    "translation": "Bot accounts cannot login via Entra ID."
+  },
+  {
+    "id": "api.user.login_by_entra.config_not_found.app_error",
+    "translation": "Server configuration not found."
+  },
+  {
+    "id": "api.user.login_by_entra.invalid_audience.app_error",
+    "translation": "Invalid token audience."
+  },
+  {
+    "id": "api.user.login_by_entra.invalid_auth_data.app_error",
+    "translation": "Missing user ID from authentication token."
+  },
+  {
+    "id": "api.user.login_by_entra.invalid_claims.app_error",
+    "translation": "Failed to extract token claims."
+  },
+  {
+    "id": "api.user.login_by_entra.invalid_config.app_error",
+    "translation": "Invalid server configuration."
+  },
+  {
+    "id": "api.user.login_by_entra.invalid_issuer.app_error",
+    "translation": "Invalid token issuer."
+  },
+  {
+    "id": "api.user.login_by_entra.invalid_license.app_error",
+    "translation": "Invalid server license."
+  },
+  {
+    "id": "api.user.login_by_entra.invalid_tenant.app_error",
+    "translation": "Token tenant does not match configured tenant."
+  },
+  {
+    "id": "api.user.login_by_entra.invalid_tenant_id.app_error",
+    "translation": "Invalid tenant ID configuration."
+  },
+  {
+    "id": "api.user.login_by_entra.invalid_token.app_error",
+    "translation": "Invalid authentication token."
+  },
+  {
+    "id": "api.user.login_by_entra.license_not_found.app_error",
+    "translation": "Server license not found."
+  },
+  {
+    "id": "api.user.login_by_entra.license_required.app_error",
+    "translation": "Enterprise Advanced license required for Entra ID authentication."
+  },
+  {
+    "id": "api.user.login_by_entra.mam_not_enabled.app_error",
+    "translation": "Intune MAM is not enabled."
+  },
+  {
+    "id": "api.user.login_by_entra.missing_email.app_error",
+    "translation": "Missing email or username in token."
+  },
+  {
+    "id": "api.user.login_by_entra.missing_oid.app_error",
+    "translation": "Missing user ID in token."
+  },
+  {
+    "id": "api.user.login_by_entra.office365_not_configured.app_error",
+    "translation": "Office365 authentication is not configured."
+  },
+  {
+    "id": "api.user.login_by_entra.office365_not_enabled.app_error",
+    "translation": "Office365 authentication is not enabled."
+  },
+  {
+    "id": "api.user.login_by_entra.parse.app_error",
+    "translation": "Failed to parse authentication token."
+  },
+  {
+    "id": "api.user.login_by_entra.token_expired.app_error",
+    "translation": "Authentication token has expired."
+  },
+  {
     "id": "api.user.login_by_oauth.bot_login_forbidden.app_error",
     "translation": "Bot login is forbidden."
   },

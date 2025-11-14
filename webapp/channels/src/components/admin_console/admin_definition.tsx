@@ -2178,6 +2178,18 @@ const AdminDefinition: AdminDefinitionType = {
                             isDisabled: it.stateIsFalse('NativeAppSettings.MobileEnableSecureFilePreview'),
                             isHidden: it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
                         },
+                        {
+                            type: 'bool',
+                            key: 'NativeAppSettings.EnableIntuneMAM',
+                            label: defineMessage({id: 'admin.mobileSecurity.enableIntuneMAMTitle', defaultMessage: 'Enable Microsoft Intune MAM:'}),
+                            help_text: defineMessage({id: 'admin.mobileSecurity.enableIntuneMAMDescription', defaultMessage: 'When true, enables Microsoft Intune Mobile Application Management (MAM) for the Mattermost mobile app. Users can authenticate using their Azure AD/Entra ID credentials via MSAL tokens. Requires Azure AD/Entra ID (Office365) to be configured with a valid Directory ID and Client ID.'}),
+                            isHidden: it.not(it.all(
+                                it.minLicenseTier(LicenseSkus.EnterpriseAdvanced),
+                                it.configIsTrue('Office365Settings', 'Enable'),
+                                it.configIsTrue('Office365Settings', 'DirectoryId'),
+                                it.configIsTrue('Office365Settings', 'Id'),
+                            )),
+                        },
                     ],
                 },
             },

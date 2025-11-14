@@ -19,6 +19,8 @@ export default class MobileSecurity {
     readonly enableSecureFilePreviewToggleFalse: Locator;
     readonly allowPdfLinkNavigationToggleTrue: Locator;
     readonly allowPdfLinkNavigationToggleFalse: Locator;
+    readonly enableIntuneMAMToggleTrue: Locator;
+    readonly enableIntuneMAMToggleFalse: Locator;
 
     readonly saveButton: Locator;
 
@@ -67,6 +69,13 @@ export default class MobileSecurity {
             'NativeAppSettings.MobileAllowPdfLinkNavigationfalse',
         );
 
+        this.enableIntuneMAMToggleTrue = this.container.getByTestId(
+            'NativeAppSettings.EnableIntuneMAMtrue',
+        );
+        this.enableIntuneMAMToggleFalse = this.container.getByTestId(
+            'NativeAppSettings.EnableIntuneMAMfalse',
+        );
+
         this.saveButton = this.container.getByRole('button', {name: 'Save'});
     }
 
@@ -112,6 +121,14 @@ export default class MobileSecurity {
 
     async clickAllowPdfLinkNavigationToggleFalse() {
         await this.allowPdfLinkNavigationToggleFalse.click();
+    }
+
+    async clickEnableIntuneMAMToggleTrue() {
+        await this.enableIntuneMAMToggleTrue.click();
+    }
+
+    async clickEnableIntuneMAMToggleFalse() {
+        await this.enableIntuneMAMToggleFalse.click();
     }
 
     async clickSaveButton() {

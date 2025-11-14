@@ -815,11 +815,15 @@ func (a *App) LoginByEntraIdToken(rctx request.CTX, idToken string) (*model.User
 		if appErr, ok := err2.(*model.AppError); ok {
 			return nil, appErr
 		}
+		rctx.Logger().Error("Failed to validate Entra ID token",
+			mlog.Err(err2),
+			mlog.String("error_type", fmt.Sprintf("%T", err2)),
+		)
 		return nil, model.NewAppError(
 			"LoginByEntraIdToken",
 			"api.user.login_by_entra.parse.app_error",
 			nil,
-			err2.Error(),
+			fmt.Sprintf("token validation failed: %v", err2),
 			http.StatusBadRequest,
 		)
 	}

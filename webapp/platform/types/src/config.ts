@@ -807,6 +807,7 @@ export type NativeAppSettings = {
     MobileJailbreakProtection: boolean;
     MobileEnableSecureFilePreview: boolean;
     MobileAllowPdfLinkNavigation: boolean;
+    EnableIntuneMAM: boolean;
 };
 
 export type ClusterSettings = {
