@@ -11,7 +11,7 @@ import {getBool as getBoolPreference} from 'mattermost-redux/selectors/entities/
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import AlertBanner from 'components/alert_banner';
-import withOpenStartTrialFormModal from 'components/common/hocs/cloud/with_open_start_trial_form_modal';
+import withOpenStartTrialFormModal from 'components/with_open_start_trial_form_modal';
 import ExternalLink from 'components/external_link';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 

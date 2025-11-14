@@ -5,7 +5,7 @@ import {mount} from 'enzyme';
 import React from 'react';
 import type {ComponentType} from 'react';
 
-import withUseGetUsageDeltas from './with_use_get_usage_deltas';
+import withUseGetUsageDeltas from './index';
 
 jest.mock('components/common/hooks/useGetUsageDeltas', () => jest.fn(() => ({
     teams: {
@@ -13,7 +13,7 @@ jest.mock('components/common/hooks/useGetUsageDeltas', () => jest.fn(() => ({
     },
 })));
 
-describe('/components/common/hocs/cloud/with_use_get_usage_deltas', () => {
+describe('/components/with_use_get_usage_deltas', () => {
     const TestComponent: ComponentType = jest.fn(() => <div/>);
 
     test('should pass the useGetUsageDeltas', () => {

@@ -5,9 +5,9 @@ import {mount} from 'enzyme';
 import React from 'react';
 import type {ComponentType} from 'react';
 
-import withGetCloudSubscription from './with_get_cloud_subscription';
+import withGetCloudSubscription from './index';
 
-describe('/components/common/hocs/with_get_cloud_subcription', () => {
+describe('/components/with_get_cloud_subscription', () => {
     let TestComponent: ComponentType;
 
     beforeEach(() => {
