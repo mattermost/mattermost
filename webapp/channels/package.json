@@ -190,6 +190,7 @@
     "stats": "cross-env NODE_ENV=production webpack --profile --json > webpack_stats.json",
     "i18n-extract": "formatjs extract 'src/**/*.{js,jsx,ts,tsx}' --additional-function-names defineMessage,localizeMessage --ignore 'src/**/*.d.ts' --out-file src/i18n/en.json --format simple --id-interpolation-pattern '[id]'",
     "i18n-extract:check": "formatjs extract 'src/**/*.{js,jsx,ts,tsx}' --additional-function-names defineMessage,localizeMessage --ignore 'src/**/*.d.ts' --out-file /tmp/en.json.new --format simple --id-interpolation-pattern '[id]' && diff -u src/i18n/en.json /tmp/en.json.new",
+    "i18n-reconcile": "node scripts/i18n-reconcile-conflicts.js",
     "check-types": "tsc -b",
     "make-emojis": "node --experimental-json-modules build/emoji/make_emojis.mjs"
   }
