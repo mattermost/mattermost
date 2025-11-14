@@ -16,7 +16,9 @@ describe('components/widgets/tag/Tag', () => {
             />,
         );
 
-        const tag = screen.getByText('Test text').parentElement;
+        // Get the tag container (parent element of the text)
+        const tagText = screen.getByText('Test text');
+        const tag = tagText.parentElement;
         expect(tag).toBeInTheDocument();
         expect(tag).toHaveClass('Tag', 'Tag--xs', 'test');
     });
@@ -30,7 +32,9 @@ describe('components/widgets/tag/Tag', () => {
             />,
         );
 
-        const tag = screen.getByText('Test text').parentElement;
+        // Get the tag container (parent element of the text)
+        const tagText = screen.getByText('Test text');
+        const tag = tagText.parentElement;
         expect(tag).toBeInTheDocument();
         expect(tag).toHaveClass('Tag', 'Tag--xs', 'test');
 
@@ -48,7 +52,9 @@ describe('components/widgets/tag/Tag', () => {
             />,
         );
 
-        const tag = screen.getByText('Test text').parentElement;
+        // Get the tag container (parent element of the text)
+        const tagText = screen.getByText('Test text');
+        const tag = tagText.parentElement;
         expect(tag).toBeInTheDocument();
         expect(tag).toHaveClass('Tag', 'Tag--xs', 'test');
 
@@ -65,7 +71,9 @@ describe('components/widgets/tag/Tag', () => {
             />,
         );
 
-        const tag = screen.getByText('Test text').parentElement;
+        // Get the tag container (parent element of the text)
+        const tagText = screen.getByText('Test text');
+        const tag = tagText.parentElement;
         expect(tag).toBeInTheDocument();
         expect(tag).toHaveClass('Tag', 'Tag--sm', 'test');
     });
@@ -79,7 +87,9 @@ describe('components/widgets/tag/Tag', () => {
             />,
         );
 
-        const tag = screen.getByText('Test text').parentElement;
+        // Get the tag container (parent element of the text)
+        const tagText = screen.getByText('Test text');
+        const tag = tagText.parentElement;
         expect(tag).toBeInTheDocument();
         expect(tag).toHaveClass('Tag', 'Tag--success', 'Tag--xs', 'test');
     });

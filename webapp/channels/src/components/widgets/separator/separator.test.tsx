@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, screen} from '@testing-library/react';
+import {render, screen, within} from '@testing-library/react';
 import React from 'react';
 
 import BasicSeparator from './basic-separator';
@@ -21,8 +21,8 @@ describe('components/widgets/separator', () => {
             expect(separator).toBeInTheDocument();
             expect(separator).toHaveClass('Separator', 'BasicSeparator');
 
-            // Verify horizontal line renders
-            const hr = separator.querySelector('hr');
+            // Verify horizontal line renders (hr has implicit role="separator")
+            const hr = within(separator).getByRole('separator');
             expect(hr).toBeInTheDocument();
             expect(hr).toHaveClass('separator__hr');
 
@@ -38,8 +38,8 @@ describe('components/widgets/separator', () => {
             const separator = screen.getByTestId('basicSeparator');
             expect(separator).toBeInTheDocument();
 
-            // Verify horizontal line renders
-            expect(separator.querySelector('hr')).toBeInTheDocument();
+            // Verify horizontal line renders (hr has implicit role="separator")
+            expect(within(separator).getByRole('separator')).toBeInTheDocument();
 
             // Verify no text element is rendered
             const textDiv = separator.querySelector('.separator__text');
@@ -56,8 +56,8 @@ describe('components/widgets/separator', () => {
             expect(separator).toBeInTheDocument();
             expect(separator).toHaveClass('Separator', 'NotificationSeparator');
 
-            // Verify horizontal line renders
-            const hr = separator.querySelector('hr');
+            // Verify horizontal line renders (hr has implicit role="separator")
+            const hr = within(separator).getByRole('separator');
             expect(hr).toBeInTheDocument();
             expect(hr).toHaveClass('separator__hr');
 
