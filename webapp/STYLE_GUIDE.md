@@ -23,9 +23,22 @@ The following guidelines should be applied to both new and existing code. Howeve
 - **Component Memoization**: Use `React.memo` to wrap components with a lot of internal logic that happens on render, but avoid it for components that are cheap to render.
 - **Code Splitting**: Use the `makeAsyncComponent` wrapper to allow for code splitting to separate out heavy routes and components into separate bundles.
 
+### Styling & Theming
+
+- **Co-location**: Prefer putting styles for a component in a SCSS file alongside the corresponding component. For example, `my_component.scss` should be next to `my_component.tsx`. Import those styles directly into the corresponding component.
+- **Scope & Naming**:
+    - **Root Classes**: All styles for a component should be wrapped in a root class matching the name of the component in PascalCase (e.g. `MyComponent`).
+    - **Child Elements**: Classes for child elements should be written as a BEM-style suffix on the component's root class. For example, a title of a component named `MyComponent` would have the class `MyComponent__title`.
+    - **Modifiers**: When applying a class to modify a component, that should be done as a separate CSS class applied to styled element. For example, a compact verison of `MyComponent` would be styled by putting a `&.compact` rule inside of `.MyComponent`.
+    - **Internal Consistency**: Class names in our existing code aren't always consistent. While the guidelines above should be applied to new code, try to follow the established naming conventions in a file when working on that file.
+- **Avoid !important**: Avoid using `!important`. The naming conventions above should help prevent conflicts, but if they don't, consider renaming classes or reducing the specificity of the conflicting CSS.
+- **Theming and Colors**:
+    - **Colors**: In themed areas of the app, always use theme variables for colors (e.g. `color: var(--link-color)`). Don't hard code color values in those areas. A list of all of those variables are available in `channels/src/sass/base/_css_variables.scss`.
+    - **Transparency**: For non-opaque colors, use `rgba` with the versions of theme variables suffixed with `-rgb` (e.g. `color: rgba(var(--link-color-rgb), 0.8))`).
+
 ### Accessibility
 
-- **Reusing Components**: Whenever possible, use existing components (for example `GenericModal` or `Menu`) instead of writing new components because those components should already follow standard accessibility patterns.
+- **Reusing Components**: Whenever possible, use existing components (for example, `GenericModal` or `Menu`) instead of writing new components because those components should already follow standard accessibility patterns.
 - **Prefer Semantic HTML**: When writing a new component, use semantic HTML elements such as `button`, `input`, `h2`, or `ul` instead of more general ones like `div` or `span`. Those elements are accessible by default, and more general elements need additional attributes and logic to be similarly accessible.
 - **Accessible Names**:
     - Interactive elements and some other elements like tables or regions must have an accessible name. An accessible name should be short (only 1 to 3 words long), explain the purpose of an element, and be able to be differentiated between other elements on a page. Additional information about the element can go in the description (see below).
@@ -59,10 +72,23 @@ The following guidelines should be applied to both new and existing code. Howeve
 
 - **Translatable Text**: All UI text should be translatable.
 - **FormattedMessage vs useIntl**: Prefer the `FormattedMessage` over `useIntl` unless you specifically need a string for a prop.
-- **I18n Outside Of React**: When working with translatable text outside of a React component, try to return or store `MessageDescriptor` objects (eg. `{id: 'test.string', defaultMessage: 'Test String}`). If that's not possible, an `IntlShape` object may be provided.
+- **I18n Outside Of React**: When working with translatable text outside of a React component, try to return or store `MessageDescriptor` objects (e.g. `{id: 'test.string', defaultMessage: 'Test String}`). If that's not possible, an `IntlShape` object may be provided.
 - **Deprecated APIs**: Don't use `localizeMessage`.
 - **Formatting UI Text**: When UI text needs mixed formatting (such as one word bolded), use React Intl's rich text formatting feature instead of Markdown.
 - **Combining Translated Text**: When combining multiple translated strings, use React Intl's rich text formatting instead of concatenating or nesting translated strings.
+
+### Testing
+
+- **Testing Framework**: Use React Testing Library (RTL) for all component tests. Don't use Enzyme as it is deprecated and we are working to remove it.
+- **Helpers**: Import testing functions from `utils/react_testing_utils` instead of importing them directly from RTL. Use `renderWithContext` for any components that need access to Redux, I18n, or React Router context.
+- **Test Philosophy**: Prefer testing how a user would interact with and experience the component rather than testing implementation details. In other words, prefer to interact with the element by simulating user events (e.g. using `userEvent.click` instead of calling methods directly) and testing expected behavior by writing assertions about visible characteristics (e.g. asserting that an element is visible versus checking a component's internal `state`).
+    - **No Snapshots**: As an extension of the above, don't use snapshot tests. Instead, be explicit about what is expected to be visible by using `expect(...).toBeVisible(...)` to ensure that others don't unintentionally break the component or its tests in the future.
+    - **Testing A11y**: Use RTL to assert that ARIA attributes when necessary (e.g. `expect(...).toHaveAttribute('aria-expanded', 'true')`). See the section above on accessibility for more information.
+- **Selectors**: Prefer using accessible RTL selectors to help ensure that components are accessible, roughly in this order: `getByRole` > `getByText`/`getByPlaceholderText` > `getByLabelText`/`getByAltText`/`getByTitle` > `getByTestId`. Usage of `getByTestId` should be rare.
+- **User Interactions**: Prefer `userEvent` over `fireEvent` for user interactions, and don't directly call methods on DOM elements to simulate events. RTL's `userEvent` simulates events the most realistically, and it ensures that component changes are properly wrapped in `act`.
+    - **Async Interactions**: Always wait for all methods of `userEvent` as those methods are all asynchronous (e.g. `await userEvent.click(...)`).
+- **Usage of act**: `act` should only be used when performing any action that causes React to update and when that action does not alreadu go through a helper provided by RTL such as `userEvent`. Typically, most tests can be written without using `act` explicitly.
+
 
 ### Dependencies & Packages
 
@@ -89,40 +115,10 @@ The following guidelines should be applied to both new and existing code. Howeve
 - **Client4**: All HTTP should use the singleton `Client4` instance, preferably in a Redux action. In cases where it needs to be bypassed, document the reason for that.
 - **New Endpoints**: New API endpoints should be added to the `Client4` class in the Client package (`platform/client`).
 
----
-
-### Styling & Theming (SCSS)
-
-- **File Type & Tooling**: Use SCSS (.scss) for all component styles. Do not use plain CSS. Use @use 'utils/mixins' for shared variables and mixins, not the deprecated @import.
-- **Co-location & Import**: Create a .scss file alongside its component (e.g., header_footer_route.scss next to header_footer_route.tsx).
-- **Import**: Import the component's .scss file directly into the component's .tsx file (e.g., `import './header_footer_route.scss';`).
-- **Scope & Naming**:
-  - **Root**: Scope all styles under a unique root class named after the component (e.g., .header-footer-route).
-  - **BEM**: Use BEM-inspired naming in kebab-case. For root classes use PascalCase for blocks to match with the component name.
-  - **Elements**: Use the &__element suffix (e.g., .system-policy-indicator__title).
-  - **Modifiers**: Use modifier classes for variants (e.g., &.compact).
-- **Theme Tokens (CSS Variables)**:
-  - **Colors**: Always use CSS custom properties for colors (e.g., `color: var(--link-color);`). Do not hard-code hex values.
-  - **Transparency**: For transparent colors, use the RGB-tuple variable (e.g., `background: rgba(var(--sidebar-header-text-color-rgb), 0.08);)`.
-- **Layout**: Prefer display: flex for layouts; use `display: grid` for more complex grids
-- **Win specificity by:**
-  - Scoping under the component root class
-  - Using variant classes (e.g., .Component--compact)
-  - If you must override third-party/legacy, create a narrowly scoped wrapper class instead of !important.
-
 ### Plugin Development
 
 - **APIs**: When exposing components or APIs for plugins, be extra sure it's necessary and limit the number of props to reduce the risk of breakage.
 - **Libraries**: Do not add new libraries for plugins to consume.
-
-### Testing
-
-- **Library**: Use React Testing Library (RTL) instead of Enzyme for all component unit tests.
-- **Helpers**: Import testing functions from utils/react_testing_utils and use renderWithContext for components that need Redux, I18n, or Router context.
-- **Method**: Test the functionality and behavior of the component. Do not use snapshot tests.
-- **Selectors**: Prefer accessible selectors in this order: `getByRole` > `getByLabelText` > `getByPlaceholderText` > `getByText` > `getByTestId` (last resort).
-- **Keyboard Testing**: Use `userEvent.keyboard('{Enter}')` and `userEvent.tab()` to test keyboard interactions.
-- **ARIA Verification**: Assert ARIA attributes are correct (e.g., `expect(el).toHaveAttribute('aria-expanded', 'true')`).
 
 ---
 
