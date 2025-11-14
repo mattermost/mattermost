@@ -869,12 +869,6 @@ func (s *RetryLayerAutoTranslationStore) Save(translation *model.Translation) *m
 
 }
 
-func (s *RetryLayerAutoTranslationStore) Search(dstLang string, searchTerm string, limit int) ([]*model.Translation, *model.AppError) {
-
-	return s.AutoTranslationStore.Search(dstLang, searchTerm, limit)
-
-}
-
 func (s *RetryLayerAutoTranslationStore) SetChannelEnabled(channelID string, enabled bool) *model.AppError {
 
 	return s.AutoTranslationStore.SetChannelEnabled(channelID, enabled)
@@ -8602,6 +8596,27 @@ func (s *RetryLayerPostStore) RefreshPostStats() error {
 	tries := 0
 	for {
 		err := s.PostStore.RefreshPostStats()
+		if err == nil {
+			return nil
+		}
+		if !isRepeatableError(err) {
+			return err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerPostStore) RestoreContentFlaggedPost(post *model.Post, statusFieldId string, contentFlaggingManagedFieldId string) error {
+
+	tries := 0
+	for {
+		err := s.PostStore.RestoreContentFlaggedPost(post, statusFieldId, contentFlaggingManagedFieldId)
 		if err == nil {
 			return nil
 		}
@@ -17110,10 +17125,6 @@ func (s *RetryLayer) LockToMaster() {
 
 func (s *RetryLayer) MarkSystemRanUnitTests() {
 	s.Store.MarkSystemRanUnitTests()
-}
-
-func (s *RetryLayer) SetContext(context context.Context) {
-	s.Store.SetContext(context)
 }
 
 func (s *RetryLayer) TotalMasterDbConnections() int {

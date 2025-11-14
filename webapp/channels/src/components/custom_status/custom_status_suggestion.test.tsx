@@ -48,7 +48,7 @@ describe('components/custom_status/custom_status_emoji', () => {
         );
 
         wrapper.find('.statusSuggestion__row').simulate('click');
-        expect(baseProps.handleSuggestionClick).toBeCalledTimes(1);
+        expect(baseProps.handleSuggestionClick).toHaveBeenCalledTimes(1);
     });
 
     it('should render clearButton when hover occurs on div', () => {
