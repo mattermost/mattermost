@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`/components/common/InfiniteScroll should match snapshot 1`] = `
+exports[`/components/select_team/InfiniteScroll should match snapshot 1`] = `
 <InfiniteScroll
   bufferValue={100}
   callBack={[MockFunction]}
@@ -21,7 +21,7 @@ exports[`/components/common/InfiniteScroll should match snapshot 1`] = `
 </InfiniteScroll>
 `;
 
-exports[`/components/common/InfiniteScroll should not show loading screen if there is no data 1`] = `
+exports[`/components/select_team/InfiniteScroll should not show loading screen if there is no data 1`] = `
 <InfiniteScroll
   bufferValue={100}
   callBack={[MockFunction]}
