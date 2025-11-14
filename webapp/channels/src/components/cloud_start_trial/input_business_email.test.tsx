@@ -71,6 +71,6 @@ describe('/components/cloud_start_trial/input_business_email', () => {
         const inputElement = wrapper.find('.Input');
 
         inputElement.find('input').simulate('change', event);
-        expect(handleEmailValuesMockFn).toBeCalled();
+        expect(handleEmailValuesMockFn).toHaveBeenCalled();
     });
 });

@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/manage_tokens_modal/manage_tokens_modal.tsx initial call should match snapshot 1`] = `
 <Modal

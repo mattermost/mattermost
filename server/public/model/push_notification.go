@@ -26,7 +26,16 @@ const (
 	// with the push notifications
 	CategoryCanReply = "CAN_REPLY"
 
-	MHPNS = "https://push.mattermost.com"
+	// Push notification server URLs
+	// Legacy URLs are DNS aliases that automatically route to the regional endpoints
+	MHPNSLegacyUS = "https://push.mattermost.com"
+	MHPNSLegacyDE = "https://hpns-de.mattermost.com"
+	// Current regional URLs
+	MHPNSGlobal = "https://global.push.mattermost.com"
+	MHPNSUS     = "https://us.push.mattermost.com"
+	MHPNSEU     = "https://eu.push.mattermost.com"
+	MHPNSAP     = "https://ap.push.mattermost.com"
+	MHPNS       = MHPNSUS // Legacy constant for backwards compatibility
 
 	PushSendPrepare = "Prepared to send"
 	PushSendSuccess = "Successful"

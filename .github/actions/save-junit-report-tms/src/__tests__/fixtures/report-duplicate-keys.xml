@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites tests="6" failures="2" errors="0" skipped="0" time="15.0">
+  <testsuite name="Duplicate Key Tests" tests="6" failures="2" errors="0" skipped="0" time="15.0" timestamp="2024-01-15T11:00:00Z">
+    <testcase name="MM-T4001 Test with retry - attempt 1" classname="retry" time="2.0">
+      <failure message="First attempt failed"/>
+    </testcase>
+    <testcase name="MM-T4001 Test with retry - attempt 2" classname="retry" time="2.5"/>
+    <testcase name="MM-T4002 Another test - run 1" classname="retry" time="3.0"/>
+    <testcase name="MM-T4002 Another test - run 2" classname="retry" time="3.5">
+      <failure message="Second run failed"/>
+    </testcase>
+    <testcase name="MM-T4003 Single test" classname="single" time="2.0"/>
+    <testcase name="Test without MM key" classname="nokey" time="2.0"/>
+  </testsuite>
+</testsuites>

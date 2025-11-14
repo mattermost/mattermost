@@ -20,7 +20,6 @@ import (
 func TestGetImage(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	// Prevent the test client from following a redirect
 	th.Client.HTTPClient.CheckRedirect = func(*http.Request, []*http.Request) error {

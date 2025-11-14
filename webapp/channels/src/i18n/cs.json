@@ -3710,7 +3710,6 @@
   "channel_settings.access_rules.confirm_modal.question": "Opravdu chcete uložit a použít pravidla přístupu?",
   "channel_settings.access_rules.confirm_modal.restricted_tab": "Omezeno ({count})",
   "channel_settings.access_rules.confirm_modal.saving": "Ukládám...",
-  "channel_settings.access_rules.confirm_modal.title": "Uložit a aplikovat pravidla",
   "channel_settings.access_rules.confirm_modal.view_users": "Zobrazit uživatele",
   "channel_settings.access_rules.error.back_to_editing": "Zpět na úpravy",
   "channel_settings.access_rules.error.no_current_user": "Nelze ověřit pravidla přístupu: aktuální uživatel nebyl nalezen",

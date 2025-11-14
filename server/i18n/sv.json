@@ -10980,10 +10980,6 @@
     "translation": "Misslyckades med att uppdatera statusen för flaggade inlägg när flaggade inlägg raderades permanent."
   },
   {
-    "id": "app.content_flagging.restore_file_info.app_error",
-    "translation": "Misslyckades med att återställa filinformation för det flaggade inlägget."
-  },
-  {
     "id": "app.content_flagging.save_reviewer_settings.app_error",
     "translation": "Misslyckades med att spara inställningar för innehållsgranskare i databasen."
   },

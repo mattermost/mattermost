@@ -55,6 +55,7 @@ import BillingSubscriptions, {searchableStrings as billingSubscriptionSearchable
 import CompanyInfo, {searchableStrings as billingCompanyInfoSearchableStrings} from './billing/company_info';
 import CompanyInfoEdit from './billing/company_info_edit';
 import BrandImageSetting from './brand_image_setting/brand_image_setting';
+import BurnOnReadUserGroupSelector from './burn_on_read_user_group_selector';
 import ClientSideUserIdsSetting from './client_side_userids_setting';
 import ClusterSettings, {searchableStrings as clusterSearchableStrings} from './cluster_settings';
 import CustomEnableDisableGuestAccountsSetting from './custom_enable_disable_guest_accounts_setting';
@@ -84,6 +85,7 @@ import {
 } from './feature_discovery/features';
 import AttributeBasedAccessControlFeatureDiscovery from './feature_discovery/features/attribute_based_access_control';
 import AutoTranslationFeatureDiscovery from './feature_discovery/features/auto_translation';
+import BurnOnReadSVG from './feature_discovery/features/images/burn_on_read_svg';
 import UserAttributesFeatureDiscovery from './feature_discovery/features/user_attributes';
 import FeatureFlags, {messages as featureFlagsMessages} from './feature_flags';
 import GroupDetails from './group_settings/group_details';
@@ -92,6 +94,7 @@ import IPFiltering from './ip_filtering';
 import LDAPWizard from './ldap_wizard';
 import LicenseSettings from './license_settings';
 import {searchableStrings as licenseSettingsSearchableStrings} from './license_settings/license_settings';
+import LicensedSectionContainer from './licensed_section_container';
 import AutoTranslation, {searchableStrings as autoTranslationSearchableStrings} from './localization/auto_translation';
 import Localization, {searchableStrings as localizationSearchableStrings} from './localization/localization';
 import MessageExportSettings, {searchableStrings as messageExportSearchableStrings} from './message_export_settings';
@@ -666,7 +669,6 @@ const AdminDefinition: AdminDefinitionType = {
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.SYSTEM_ROLES)),
                 schema: {
                     id: 'AttributeBasedAccessControl',
-                    isBeta: true,
                     name: defineMessage({id: 'admin.accesscontrol.title', defaultMessage: 'Attribute-Based Access'}),
                     sections: [
                         {
@@ -2911,332 +2913,488 @@ const AdminDefinition: AdminDefinitionType = {
                 schema: {
                     id: 'PostSettings',
                     name: defineMessage({id: 'admin.site.posts', defaultMessage: 'Posts'}),
-                    settings: [
+                    sections: [
                         {
-                            type: 'bool',
-                            key: 'ServiceSettings.ThreadAutoFollow',
-                            label: defineMessage({id: 'admin.experimental.threadAutoFollow.title', defaultMessage: 'Automatically Follow Threads'}),
-                            help_text: defineMessage({id: 'admin.experimental.threadAutoFollow.desc', defaultMessage: 'This setting must be enabled in order to enable Threaded Discussions. When enabled, threads a user starts, participates in, or is mentioned in are automatically followed. A new `Threads` table is added in the database that tracks threads and thread participants, and a `ThreadMembership` table tracks followed threads for each user and the read or unread state of each followed thread. When false, all backend operations to support Threaded Discussions are disabled.'}),
-                            help_text_markdown: true,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                            isHidden: it.licensedForFeature('Cloud'),
-                        },
-                        {
-                            type: 'dropdown',
-                            key: 'ServiceSettings.CollapsedThreads',
-                            label: defineMessage({id: 'admin.experimental.collapsedThreads.title', defaultMessage: 'Threaded Discussions'}),
-                            help_text: defineMessage({id: 'admin.experimental.collapsedThreads.desc', defaultMessage: 'When enabled (default off), users must enable Threaded Discussions in Settings. When disabled, users cannot access Threaded Discussions. Please review our <linkKnownIssues>documentation for known issues</linkKnownIssues> and help provide feedback in our <linkCommunityChannel>Community Channel</linkCommunityChannel>.'}),
-                            help_text_values: {
-                                linkKnownIssues: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href='https://support.mattermost.com/hc/en-us/articles/4413183568276'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                                linkCommunityChannel: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href='https://community-daily.mattermost.com/core/channels/folded-reply-threads'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            help_text_markdown: false,
-                            options: [
+                            key: 'PostSettings.Threads',
+                            title: 'Threads',
+                            description: defineMessage({id: 'admin.posts.sections.threads.description', defaultMessage: 'Configure threaded discussions and auto-follow defaults.'}),
+                            settings: [
                                 {
-                                    value: 'disabled',
-                                    display_name: defineMessage({id: 'admin.experimental.collapsedThreads.off', defaultMessage: 'Disabled'}),
+                                    type: 'bool',
+                                    key: 'ServiceSettings.ThreadAutoFollow',
+                                    label: defineMessage({id: 'admin.experimental.threadAutoFollow.title', defaultMessage: 'Automatically Follow Threads'}),
+                                    help_text: defineMessage({id: 'admin.experimental.threadAutoFollow.desc', defaultMessage: 'This setting must be enabled in order to enable Threaded Discussions. When enabled, threads a user starts, participates in, or is mentioned in are automatically followed. A new `Threads` table is added in the database that tracks threads and thread participants, and a `ThreadMembership` table tracks followed threads for each user and the read or unread state of each followed thread. When false, all backend operations to support Threaded Discussions are disabled.'}),
+                                    help_text_markdown: true,
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                                    isHidden: it.licensedForFeature('Cloud'),
                                 },
                                 {
-                                    value: 'default_off',
-                                    display_name: defineMessage({id: 'admin.experimental.collapsedThreads.default_off', defaultMessage: 'Enabled (Default Off)'}),
-                                },
-                                {
-                                    value: 'default_on',
-                                    display_name: defineMessage({id: 'admin.experimental.collapsedThreads.default_on', defaultMessage: 'Enabled (Default On)'}),
-                                },
-                                {
-                                    value: 'always_on',
-                                    display_name: defineMessage({id: 'admin.experimental.collapsedThreads.always_on', defaultMessage: 'Always On'}),
+                                    type: 'dropdown',
+                                    key: 'ServiceSettings.CollapsedThreads',
+                                    label: defineMessage({id: 'admin.experimental.collapsedThreads.title', defaultMessage: 'Threaded Discussions'}),
+                                    help_text: defineMessage({id: 'admin.experimental.collapsedThreads.desc', defaultMessage: 'When enabled (default off), users must enable Threaded Discussions in Settings. When disabled, users cannot access Threaded Discussions. Please review our <linkKnownIssues>documentation for known issues</linkKnownIssues> and help provide feedback in our <linkCommunityChannel>Community Channel</linkCommunityChannel>.'}),
+                                    help_text_values: {
+                                        linkKnownIssues: (msg: string) => (
+                                            <ExternalLink
+                                                location='admin_console'
+                                                href='https://support.mattermost.com/hc/en-us/articles/4413183568276'
+                                            >
+                                                {msg}
+                                            </ExternalLink>
+                                        ),
+                                        linkCommunityChannel: (msg: string) => (
+                                            <ExternalLink
+                                                location='admin_console'
+                                                href='https://community-daily.mattermost.com/core/channels/folded-reply-threads'
+                                            >
+                                                {msg}
+                                            </ExternalLink>
+                                        ),
+                                    },
+                                    help_text_markdown: false,
+                                    options: [
+                                        {
+                                            value: 'disabled',
+                                            display_name: defineMessage({id: 'admin.experimental.collapsedThreads.off', defaultMessage: 'Disabled'}),
+                                        },
+                                        {
+                                            value: 'default_off',
+                                            display_name: defineMessage({id: 'admin.experimental.collapsedThreads.default_off', defaultMessage: 'Enabled (Default Off)'}),
+                                        },
+                                        {
+                                            value: 'default_on',
+                                            display_name: defineMessage({id: 'admin.experimental.collapsedThreads.default_on', defaultMessage: 'Enabled (Default On)'}),
+                                        },
+                                        {
+                                            value: 'always_on',
+                                            display_name: defineMessage({id: 'admin.experimental.collapsedThreads.always_on', defaultMessage: 'Always On'}),
+                                        },
+                                    ],
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                                 },
                             ],
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                         {
-                            type: 'bool',
-                            key: 'ServiceSettings.PostPriority',
-                            label: defineMessage({id: 'admin.posts.postPriority.title', defaultMessage: 'Message Priority'}),
-                            help_text: defineMessage({id: 'admin.posts.postPriority.desc', defaultMessage: 'When enabled, users can configure a visual indicator to communicate messages that are important or urgent. Learn more about message priority in our <link>documentation</link>.'}),
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href='https://mattermost.com/pl/message-priority/'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
+                            key: 'PostSettings.Drafts',
+                            title: 'Drafts and Scheduled Posts',
+                            description: defineMessage({id: 'admin.posts.sections.drafts.description', defaultMessage: 'Control draft syncing and scheduled sending.'}),
+                            settings: [
+                                {
+                                    type: 'bool',
+                                    key: 'ServiceSettings.AllowSyncedDrafts',
+                                    label: defineMessage({id: 'admin.customization.allowSyncedDrafts', defaultMessage: 'Enable server syncing of message drafts:'}),
+                                    help_text: defineMessage({id: 'admin.customization.allowSyncedDraftsDesc', defaultMessage: 'When enabled, users message drafts will sync with the server so they can be accessed from any device. Users may opt out of this behaviour in Account settings.'}),
+                                    help_text_markdown: false,
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'ServiceSettings.ScheduledPosts',
+                                    label: defineMessage({id: 'admin.posts.scheduledPosts.title', defaultMessage: 'Scheduled Posts'}),
+                                    help_text: defineMessage({id: 'admin.posts.scheduledPosts.description', defaultMessage: 'When enabled, users can schedule and send messages in the future.'}),
+                                    help_text_markdown: false,
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                    isHidden: it.not(it.licensed),
+                                },
+                            ],
+                        },
+                        {
+                            key: 'PostSettings.Priority',
+                            title: 'Priority & Urgent Notifications',
+                            description: defineMessage({id: 'admin.posts.sections.priority.description', defaultMessage: 'Set message priority and repeating notifications for urgent delivery.'}),
+                            settings: [
+                                {
+                                    type: 'bool',
+                                    key: 'ServiceSettings.PostPriority',
+                                    label: defineMessage({id: 'admin.posts.postPriority.title', defaultMessage: 'Message Priority'}),
+                                    help_text: defineMessage({id: 'admin.posts.postPriority.desc', defaultMessage: 'When enabled, users can configure a visual indicator to communicate messages that are important or urgent. Learn more about message priority in our <link>documentation</link>.'}),
+                                    help_text_values: {
+                                        link: (msg: string) => (
+                                            <ExternalLink
+                                                location='admin_console'
+                                                href='https://mattermost.com/pl/message-priority/'
+                                            >
+                                                {msg}
+                                            </ExternalLink>
+                                        ),
+                                    },
+                                    help_text_markdown: false,
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'ServiceSettings.AllowPersistentNotifications',
+                                    label: defineMessage({id: 'admin.posts.persistentNotifications.title', defaultMessage: 'Persistent Notifications'}),
+                                    help_text: defineMessage({id: 'admin.posts.persistentNotifications.desc', defaultMessage: 'When enabled, users can trigger repeating notifications for the recipients of urgent messages. Learn more about message priority and persistent notifications in our <link>documentation</link>.'}),
+                                    help_text_values: {
+                                        link: (msg: string) => (
+                                            <ExternalLink
+                                                location='admin_console'
+                                                href='https://mattermost.com/pl/message-priority/'
+                                            >
+                                                {msg}
+                                            </ExternalLink>
+                                        ),
+                                    },
+                                    help_text_markdown: false,
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                    isHidden: it.configIsFalse('ServiceSettings', 'PostPriority'),
+                                },
+                                {
+                                    type: 'number',
+                                    key: 'ServiceSettings.PersistentNotificationMaxRecipients',
+                                    label: defineMessage({id: 'admin.posts.persistentNotificationsMaxRecipients.title', defaultMessage: 'Maximum number of recipients for persistent notifications'}),
+                                    help_text: defineMessage({id: 'admin.posts.persistentNotificationsMaxRecipients.desc', defaultMessage: 'Configure the maximum number of recipients to which users may send persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.'}),
+                                    help_text_values: {
+                                        link: (msg: string) => (
+                                            <ExternalLink
+                                                location='admin_console'
+                                                href='https://mattermost.com/pl/message-priority/'
+                                            >
+                                                {msg}
+                                            </ExternalLink>
+                                        ),
+                                    },
+                                    help_text_markdown: false,
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                    isHidden: it.any(
+                                        it.configIsFalse('ServiceSettings', 'PostPriority'),
+                                        it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
+                                    ),
+                                },
+                                {
+                                    type: 'number',
+                                    key: 'ServiceSettings.PersistentNotificationIntervalMinutes',
+                                    label: defineMessage({id: 'admin.posts.persistentNotificationsInterval.title', defaultMessage: 'Frequency of persistent notifications'}),
+                                    help_text: defineMessage({id: 'admin.posts.persistentNotificationsInterval.desc', defaultMessage: 'Configure the number of minutes between repeated notifications for urgent messages send with persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.'}),
+                                    help_text_values: {
+                                        link: (msg: string) => (
+                                            <ExternalLink
+                                                location='admin_console'
+                                                href='https://mattermost.com/pl/message-priority/'
+                                            >
+                                                {msg}
+                                            </ExternalLink>
+                                        ),
+                                    },
+                                    help_text_markdown: false,
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                    isHidden: it.any(
+                                        it.configIsFalse('ServiceSettings', 'PostPriority'),
+                                        it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
+                                    ),
+                                    validate: validators.minValue(2, defineMessage({id: 'admin.posts.persistentNotificationsInterval.minValue', defaultMessage: 'Frequency cannot not be set to less than 2 minutes'})),
+                                },
+                                {
+                                    type: 'number',
+                                    key: 'ServiceSettings.PersistentNotificationMaxCount',
+                                    label: defineMessage({id: 'admin.posts.persistentNotificationsMaxCount.title', defaultMessage: 'Total number of persistent notification per post'}),
+                                    help_text: defineMessage({id: 'admin.posts.persistentNotificationsMaxCount.desc', defaultMessage: 'Configure the maximum number of times users may receive persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.'}),
+                                    help_text_values: {
+                                        link: (msg: string) => (
+                                            <ExternalLink
+                                                location='admin_console'
+                                                href='https://mattermost.com/pl/message-priority/'
+                                            >
+                                                {msg}
+                                            </ExternalLink>
+                                        ),
+                                    },
+                                    help_text_markdown: false,
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                    isHidden: it.any(
+                                        it.configIsFalse('ServiceSettings', 'PostPriority'),
+                                        it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
+                                    ),
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'ServiceSettings.AllowPersistentNotificationsForGuests',
+                                    label: defineMessage({id: 'admin.posts.persistentNotificationsGuests.title', defaultMessage: 'Allow guests to send persistent notifications'}),
+                                    help_text: defineMessage({id: 'admin.posts.persistentNotificationsGuests.desc', defaultMessage: 'Whether a guest is able to require persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.'}),
+                                    help_text_values: {
+                                        link: (msg: string) => (
+                                            <ExternalLink
+                                                location='admin_console'
+                                                href='https://mattermost.com/pl/message-priority/'
+                                            >
+                                                {msg}
+                                            </ExternalLink>
+                                        ),
+                                    },
+                                    help_text_markdown: false,
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                    isHidden: it.any(
+                                        it.configIsFalse('GuestAccountsSettings', 'Enable'),
+                                        it.configIsFalse('ServiceSettings', 'PostPriority'),
+                                        it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
+                                    ),
+                                },
+                            ],
+                        },
+                        {
+                            key: 'PostSettings.BurnOnRead',
+                            title: 'Self-Deleting Messages',
+                            description: defineMessage({id: 'admin.posts.sections.burnOnRead.description', defaultMessage: 'Controls for messages that delete automatically a certain time after being sent or read.'}),
+                            license_sku: LicenseSkus.EnterpriseAdvanced,
+                            component: LicensedSectionContainer,
+                            componentProps: {
+                                requiredSku: LicenseSkus.EnterpriseAdvanced,
+                                featureDiscoveryConfig: {
+                                    featureName: 'burn_on_read',
+                                    title: defineMessage({id: 'admin.burn_on_read_feature_discovery.title', defaultMessage: 'Send burn-on-read messages that are automatically deleted after being read'}),
+                                    description: defineMessage({id: 'admin.burn_on_read_feature_discovery.description', defaultMessage: 'With Mattermost Enterprise Advanced, users can send transient messages that are automatically deleted a fixed time after they are read by a recipient.'}),
+                                    learnMoreURL: 'https://docs.mattermost.com/deployment/burn-on-read-messages.html',
+                                    svgImage: BurnOnReadSVG,
+                                },
                             },
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.AllowPersistentNotifications',
-                            label: defineMessage({id: 'admin.posts.persistentNotifications.title', defaultMessage: 'Persistent Notifications'}),
-                            help_text: defineMessage({id: 'admin.posts.persistentNotifications.desc', defaultMessage: 'When enabled, users can trigger repeating notifications for the recipients of urgent messages. Learn more about message priority and persistent notifications in our <link>documentation</link>.'}),
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href='https://mattermost.com/pl/message-priority/'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                            isHidden: it.configIsFalse('ServiceSettings', 'PostPriority'),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.ScheduledPosts',
-                            label: defineMessage({id: 'admin.posts.scheduledPosts.title', defaultMessage: 'Scheduled Posts'}),
-                            help_text: defineMessage({id: 'admin.posts.scheduledPosts.description', defaultMessage: 'When enabled, users can schedule and send messages in the future.'}),
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                            isHidden: it.not(it.licensed),
-                        },
-                        {
-                            type: 'number',
-                            key: 'ServiceSettings.PersistentNotificationMaxRecipients',
-                            label: defineMessage({id: 'admin.posts.persistentNotificationsMaxRecipients.title', defaultMessage: 'Maximum number of recipients for persistent notifications'}),
-                            help_text: defineMessage({id: 'admin.posts.persistentNotificationsMaxRecipients.desc', defaultMessage: 'Configure the maximum number of recipients to which users may send persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.'}),
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href='https://mattermost.com/pl/message-priority/'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                            isHidden: it.any(
-                                it.configIsFalse('ServiceSettings', 'PostPriority'),
-                                it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
-                            ),
-                        },
-                        {
-                            type: 'number',
-                            key: 'ServiceSettings.PersistentNotificationIntervalMinutes',
-                            label: defineMessage({id: 'admin.posts.persistentNotificationsInterval.title', defaultMessage: 'Frequency of persistent notifications'}),
-                            help_text: defineMessage({id: 'admin.posts.persistentNotificationsInterval.desc', defaultMessage: 'Configure the number of minutes between repeated notifications for urgent messages send with persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.'}),
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href='https://mattermost.com/pl/message-priority/'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                            isHidden: it.any(
-                                it.configIsFalse('ServiceSettings', 'PostPriority'),
-                                it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
-                            ),
-                            validate: validators.minValue(2, defineMessage({id: 'admin.posts.persistentNotificationsInterval.minValue', defaultMessage: 'Frequency cannot not be set to less than 2 minutes'})),
-                        },
-                        {
-                            type: 'number',
-                            key: 'ServiceSettings.PersistentNotificationMaxCount',
-                            label: defineMessage({id: 'admin.posts.persistentNotificationsMaxCount.title', defaultMessage: 'Total number of persistent notification per post'}),
-                            help_text: defineMessage({id: 'admin.posts.persistentNotificationsMaxCount.desc', defaultMessage: 'Configure the maximum number of times users may receive persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.'}),
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href='https://mattermost.com/pl/message-priority/'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                            isHidden: it.any(
-                                it.configIsFalse('ServiceSettings', 'PostPriority'),
-                                it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
-                            ),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.AllowPersistentNotificationsForGuests',
-                            label: defineMessage({id: 'admin.posts.persistentNotificationsGuests.title', defaultMessage: 'Allow guests to send persistent notifications'}),
-                            help_text: defineMessage({id: 'admin.posts.persistentNotificationsGuests.desc', defaultMessage: 'Whether a guest is able to require persistent notifications. Learn more about message priority and persistent notifications in our <link>documentation</link>.'}),
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href='https://mattermost.com/pl/message-priority/'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                            isHidden: it.any(
-                                it.configIsFalse('GuestAccountsSettings', 'Enable'),
-                                it.configIsFalse('ServiceSettings', 'PostPriority'),
-                                it.configIsFalse('ServiceSettings', 'AllowPersistentNotifications'),
-                            ),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.EnableLinkPreviews',
-                            label: defineMessage({id: 'admin.customization.enableLinkPreviewsTitle', defaultMessage: 'Enable website link previews:'}),
-                            help_text: defineMessage({id: 'admin.customization.enableLinkPreviewsDesc', defaultMessage: 'Display a preview of website content, image links and YouTube links below the message when available. The server must be connected to the internet and have access through the firewall (if applicable) to the websites from which previews are expected. Users can disable these previews from Settings > Display > Website Link Previews.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                        },
-                        {
-                            type: 'text',
-                            key: 'ServiceSettings.RestrictLinkPreviews',
-                            label: defineMessage({id: 'admin.customization.restrictLinkPreviewsTitle', defaultMessage: 'Disable website link previews from these domains:'}),
-                            help_text: defineMessage({id: 'admin.customization.restrictLinkPreviewsDesc', defaultMessage: 'Link previews and image link previews will not be shown for the above list of comma-separated domains.'}),
-                            placeholder: defineMessage({id: 'admin.customization.restrictLinkPreviewsExample', defaultMessage: 'E.g.: "internal.mycompany.com, images.example.com"'}),
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                                it.configIsFalse('ServiceSettings', 'EnableLinkPreviews'),
-                            ),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.EnablePermalinkPreviews',
-                            label: defineMessage({id: 'admin.customization.enablePermalinkPreviewsTitle', defaultMessage: 'Enable message link previews:'}),
-                            help_text: defineMessage({id: 'admin.customization.enablePermalinkPreviewsDesc', defaultMessage: 'When enabled, links to Mattermost messages will generate a preview for any users that have access to the original message. Please review our <link>documentation</link> for details.'}),
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href={DocLinks.SHARE_LINKS_TO_MESSAGES}
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            help_text_markdown: false,
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.EnableSVGs',
-                            label: defineMessage({id: 'admin.customization.enableSVGsTitle', defaultMessage: 'Enable SVGs:'}),
-                            help_text: defineMessage({id: 'admin.customization.enableSVGsDesc', defaultMessage: 'Enable previews for SVG file attachments and allow them to appear in messages. Enabling SVGs is not recommended in environments where not all users are trusted.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.EnableLatex',
-                            label: defineMessage({id: 'admin.customization.enableLatexTitle', defaultMessage: 'Enable Latex Rendering:'}),
-                            help_text: defineMessage({id: 'admin.customization.enableLatexDesc', defaultMessage: 'Enable rendering of Latex in code blocks. If false, Latex code will be highlighted only. Enabling Latex is not recommended in environments where not all users are trusted.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.EnableInlineLatex',
-                            label: defineMessage({id: 'admin.customization.enableInlineLatexTitle', defaultMessage: 'Enable Inline Latex Rendering:'}),
-                            help_text: defineMessage({id: 'admin.customization.enableInlineLatexDesc', defaultMessage: 'Enable rendering of inline Latex code. If false, Latex can only be rendered in a code block using syntax highlighting. Please review our <link>documentation</link> for details about text formatting.'}),
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href={DocLinks.FORMAT_MESSAGES}
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            help_text_markdown: false,
-                            isDisabled: it.any(
-                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                                it.stateIsFalse('ServiceSettings.EnableLatex'),
-                            ),
-                        },
-                        {
-                            type: 'custom',
-                            component: CustomURLSchemesSetting,
-                            key: 'DisplaySettings.CustomURLSchemes',
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                        },
-                        {
-                            type: 'number',
-                            key: 'DisplaySettings.MaxMarkdownNodes',
-                            label: defineMessage({id: 'admin.customization.maxMarkdownNodesTitle', defaultMessage: 'Max Markdown Nodes:'}),
-                            help_text: defineMessage({id: 'admin.customization.maxMarkdownNodesDesc', defaultMessage: 'When rendering Markdown text in the mobile app, controls the maximum number of Markdown elements (eg. emojis, links, table cells, etc) that can be in a single piece of text. If set to 0, a default limit will be used.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                        },
-                        {
-                            type: 'text',
-                            key: 'ServiceSettings.GoogleDeveloperKey',
-                            label: defineMessage({id: 'admin.service.googleTitle', defaultMessage: 'Google API Key:'}),
-                            placeholder: defineMessage({id: 'admin.service.googleExample', defaultMessage: 'E.g.: "7rAh6iwQCkV4cA1Gsg3fgGOXJAQ43QV"'}),
-                            help_text: defineMessage({id: 'admin.service.googleDescription', defaultMessage: 'Set this key to enable the display of titles for embedded YouTube video previews. Without the key, YouTube previews will still be created based on hyperlinks appearing in messages or comments but they will not show the video title. View a <link>Google Developers Tutorial</link> for instructions on how to obtain a key and add YouTube Data API v3 as a service to your key.'}),
-                            help_text_values: {
-                                link: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href='https://www.youtube.com/watch?v=Im69kzhpR3I'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            help_text_markdown: false,
-                            isHidden: it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ServiceSettings.AllowSyncedDrafts',
-                            label: defineMessage({id: 'admin.customization.allowSyncedDrafts', defaultMessage: 'Enable server syncing of message drafts:'}),
-                            help_text: defineMessage({id: 'admin.customization.allowSyncedDraftsDesc', defaultMessage: 'When enabled, users message drafts will sync with the server so they can be accessed from any device. Users may opt out of this behaviour in Account settings.'}),
-                            help_text_markdown: false,
-                        },
-                        {
-                            type: 'number',
-                            key: 'ServiceSettings.UniqueEmojiReactionLimitPerPost',
-                            label: defineMessage({id: 'admin.customization.uniqueEmojiReactionLimitPerPost', defaultMessage: 'Unique Emoji Reaction Limit:'}),
-                            placeholder: defineMessage({id: 'admin.customization.uniqueEmojiReactionLimitPerPostPlaceholder', defaultMessage: 'E.g.: 25'}),
-                            help_text: defineMessage({id: 'admin.customization.uniqueEmojiReactionLimitPerPostDesc', defaultMessage: 'The number of unique emoji reactions that can be added to a post. Increasing this limit could lead to poor client performance. Maximum is 500.'}),
-                            help_text_markdown: false,
-                            validate: (value) => {
-                                const maxResult = validators.maxValue(
-                                    500,
-                                    defineMessage({id: 'admin.customization.uniqueEmojiReactionLimitPerPost.maxValue', defaultMessage: 'Cannot increase the limit to a value above 500.'}),
-                                )(value);
-                                if (!maxResult.isValid()) {
-                                    return maxResult;
-                                }
-                                const minResult = validators.minValue(
-                                    0,
-                                    defineMessage({id: 'admin.customization.uniqueEmojiReactionLimitPerPost.minValue', defaultMessage: 'Cannot decrease the limit below 0.'}),
-                                )(value);
-                                if (!minResult.isValid()) {
-                                    return minResult;
-                                }
+                            settings: [
+                                {
+                                    type: 'bool',
+                                    key: 'ServiceSettings.EnableBurnOnRead',
+                                    label: defineMessage({id: 'admin.posts.burnOnRead.enable.title', defaultMessage: 'Enable Burn-on-Read Messages'}),
+                                    help_text: defineMessage({id: 'admin.posts.burnOnRead.enable.desc', defaultMessage: 'When enabled, users are allowed to send burn-on-read messages in channels, direct messages, and group messages. If disabled, the option to send a Burn-on-Read message will not be available.'}),
+                                    help_text_markdown: false,
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                },
+                                {
+                                    type: 'dropdown',
+                                    key: 'ServiceSettings.BurnOnReadDurationMinutes',
+                                    label: defineMessage({id: 'admin.posts.burnOnRead.duration.title', defaultMessage: 'Burn-on-Read Duration'}),
+                                    help_text: defineMessage({id: 'admin.posts.burnOnRead.duration.desc', defaultMessage: 'Sets the countdown duration for Burn-on-Read messages once they are revealed. After a recipient clicks to reveal a BoR message, the message will delete itself for that user after the specified duration. This setting applies to all Burn-on-Read messages.'}),
+                                    help_text_markdown: false,
+                                    options: [
+                                        {
+                                            value: '1',
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.duration.1min', defaultMessage: '1 minute'}),
+                                        },
+                                        {
+                                            value: '5',
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.duration.5min', defaultMessage: '5 minutes'}),
+                                        },
+                                        {
+                                            value: '10',
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.duration.10min', defaultMessage: '10 minutes'}),
+                                        },
+                                        {
+                                            value: '30',
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.duration.30min', defaultMessage: '30 minutes'}),
+                                        },
+                                        {
+                                            value: '60',
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.duration.1hour', defaultMessage: '1 hour'}),
+                                        },
+                                        {
+                                            value: '480',
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.duration.8hours', defaultMessage: '8 hours'}),
+                                        },
+                                    ],
+                                    onConfigLoad: (value: any) => value ?? '10',
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                        it.stateIsFalse('ServiceSettings.EnableBurnOnRead'),
+                                    ),
+                                },
+                                {
+                                    type: 'radio',
+                                    key: 'ServiceSettings.BurnOnReadAllowedUsers',
+                                    label: defineMessage({id: 'admin.posts.burnOnRead.allowedUsers.title', defaultMessage: 'Users Allowed to Send Burn-on-Read Messages'}),
+                                    options: [
+                                        {
+                                            value: 'all',
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.allowedUsers.all', defaultMessage: 'Allow for all users'}),
+                                        },
+                                        {
+                                            value: 'allow_selected',
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.allowedUsers.allowSelected', defaultMessage: 'Allow selected users'}),
+                                        },
+                                        {
+                                            value: 'block_selected',
+                                            display_name: defineMessage({id: 'admin.posts.burnOnRead.allowedUsers.blockSelected', defaultMessage: 'Block selected users'}),
+                                        },
+                                    ],
+                                    onConfigLoad: (value: any) => value ?? 'all',
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                        it.stateIsFalse('ServiceSettings.EnableBurnOnRead'),
+                                    ),
+                                },
+                                {
+                                    type: 'custom',
+                                    key: 'ServiceSettings.BurnOnReadAllowedUsersList',
+                                    label: defineMessage({id: 'admin.posts.burnOnRead.usersList.title', defaultMessage: 'Selected users and groups'}),
+                                    help_text: defineMessage({id: 'admin.posts.burnOnRead.usersList.desc', defaultMessage: 'Choose users or groups that will be allowed or blocked from sending burn-on-read messages, depending on your selection above.'}),
+                                    component: BurnOnReadUserGroupSelector,
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                        it.stateIsFalse('ServiceSettings.EnableBurnOnRead'),
+                                    ),
+                                    isHidden: it.any(
+                                        it.stateEqualsOrDefault('ServiceSettings.BurnOnReadAllowedUsers', 'all', 'all'),
+                                        it.stateIsFalse('ServiceSettings.EnableBurnOnRead'),
+                                    ),
+                                    validate: (value) => {
+                                        const isEmpty = !value ||
+                                            (typeof value === 'string' && value.trim() === '') ||
+                                            (Array.isArray(value) && value.length === 0);
 
-                                return new ValidationResult(true, '');
-                            },
+                                        if (isEmpty) {
+                                            return new ValidationResult(
+                                                false,
+                                                defineMessage({
+                                                    id: 'admin.posts.burnOnRead.usersList.required',
+                                                    defaultMessage: 'At least one user or group must be selected.',
+                                                }),
+                                            );
+                                        }
+
+                                        return new ValidationResult(true, '');
+                                    },
+                                },
+                            ],
+                        },
+                        {
+                            key: 'PostSettings.Previews',
+                            title: 'Content & Previews',
+                            description: defineMessage({id: 'admin.posts.sections.previews.description', defaultMessage: 'Configure link previews and how advanced formatting renders.'}),
+                            settings: [
+                                {
+                                    type: 'bool',
+                                    key: 'ServiceSettings.EnableLinkPreviews',
+                                    label: defineMessage({id: 'admin.customization.enableLinkPreviewsTitle', defaultMessage: 'Enable website link previews:'}),
+                                    help_text: defineMessage({id: 'admin.customization.enableLinkPreviewsDesc', defaultMessage: 'Display a preview of website content, image links and YouTube links below the message when available. The server must be connected to the internet and have access through the firewall (if applicable) to the websites from which previews are expected. Users can disable these previews from Settings > Display > Website Link Previews.'}),
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                },
+                                {
+                                    type: 'text',
+                                    key: 'ServiceSettings.RestrictLinkPreviews',
+                                    label: defineMessage({id: 'admin.customization.restrictLinkPreviewsTitle', defaultMessage: 'Disable website link previews from these domains:'}),
+                                    help_text: defineMessage({id: 'admin.customization.restrictLinkPreviewsDesc', defaultMessage: 'Link previews and image link previews will not be shown for the above list of comma-separated domains.'}),
+                                    placeholder: defineMessage({id: 'admin.customization.restrictLinkPreviewsExample', defaultMessage: 'E.g.: "internal.mycompany.com, images.example.com"'}),
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                        it.configIsFalse('ServiceSettings', 'EnableLinkPreviews'),
+                                    ),
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'ServiceSettings.EnablePermalinkPreviews',
+                                    label: defineMessage({id: 'admin.customization.enablePermalinkPreviewsTitle', defaultMessage: 'Enable message link previews:'}),
+                                    help_text: defineMessage({id: 'admin.customization.enablePermalinkPreviewsDesc', defaultMessage: 'When enabled, links to Mattermost messages will generate a preview for any users that have access to the original message. Please review our <link>documentation</link> for details.'}),
+                                    help_text_values: {
+                                        link: (msg: string) => (
+                                            <ExternalLink
+                                                location='admin_console'
+                                                href={DocLinks.SHARE_LINKS_TO_MESSAGES}
+                                            >
+                                                {msg}
+                                            </ExternalLink>
+                                        ),
+                                    },
+                                    help_text_markdown: false,
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'ServiceSettings.EnableSVGs',
+                                    label: defineMessage({id: 'admin.customization.enableSVGsTitle', defaultMessage: 'Enable SVGs:'}),
+                                    help_text: defineMessage({id: 'admin.customization.enableSVGsDesc', defaultMessage: 'Enable previews for SVG file attachments and allow them to appear in messages. Enabling SVGs is not recommended in environments where not all users are trusted.'}),
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'ServiceSettings.EnableLatex',
+                                    label: defineMessage({id: 'admin.customization.enableLatexTitle', defaultMessage: 'Enable Latex Rendering:'}),
+                                    help_text: defineMessage({id: 'admin.customization.enableLatexDesc', defaultMessage: 'Enable rendering of Latex in code blocks. If false, Latex code will be highlighted only. Enabling Latex is not recommended in environments where not all users are trusted.'}),
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                },
+                                {
+                                    type: 'bool',
+                                    key: 'ServiceSettings.EnableInlineLatex',
+                                    label: defineMessage({id: 'admin.customization.enableInlineLatexTitle', defaultMessage: 'Enable Inline Latex Rendering:'}),
+                                    help_text: defineMessage({id: 'admin.customization.enableInlineLatexDesc', defaultMessage: 'Enable rendering of inline Latex code. If false, Latex can only be rendered in a code block using syntax highlighting. Please review our <link>documentation</link> for details about text formatting.'}),
+                                    help_text_values: {
+                                        link: (msg: string) => (
+                                            <ExternalLink
+                                                location='admin_console'
+                                                href={DocLinks.FORMAT_MESSAGES}
+                                            >
+                                                {msg}
+                                            </ExternalLink>
+                                        ),
+                                    },
+                                    help_text_markdown: false,
+                                    isDisabled: it.any(
+                                        it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                        it.stateIsFalse('ServiceSettings.EnableLatex'),
+                                    ),
+                                },
+                                {
+                                    type: 'custom',
+                                    component: CustomURLSchemesSetting,
+                                    key: 'DisplaySettings.CustomURLSchemes',
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                },
+                                {
+                                    type: 'text',
+                                    key: 'ServiceSettings.GoogleDeveloperKey',
+                                    label: defineMessage({id: 'admin.service.googleTitle', defaultMessage: 'Google API Key:'}),
+                                    placeholder: defineMessage({id: 'admin.service.googleExample', defaultMessage: 'E.g.: "7rAh6iwQCkV4cA1Gsg3fgGOXJAQ43QV"'}),
+                                    help_text: defineMessage({id: 'admin.service.googleDescription', defaultMessage: 'Set this key to enable the display of titles for embedded YouTube video previews. Without the key, YouTube previews will still be created based on hyperlinks appearing in messages or comments but they will not show the video title. View a <link>Google Developers Tutorial</link> for instructions on how to obtain a key and add YouTube Data API v3 as a service to your key.'}),
+                                    help_text_values: {
+                                        link: (msg: string) => (
+                                            <ExternalLink
+                                                location='admin_console'
+                                                href='https://www.youtube.com/watch?v=Im69kzhpR3I'
+                                            >
+                                                {msg}
+                                            </ExternalLink>
+                                        ),
+                                    },
+                                    help_text_markdown: false,
+                                    isHidden: it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                },
+                            ],
+                        },
+                        {
+                            key: 'PostSettings.Performance',
+                            title: 'Performance & Limits',
+                            description: defineMessage({id: 'admin.posts.sections.performance.description', defaultMessage: 'Configure limits that protect client performance and rendering.'}),
+                            settings: [
+                                {
+                                    type: 'number',
+                                    key: 'DisplaySettings.MaxMarkdownNodes',
+                                    label: defineMessage({id: 'admin.customization.maxMarkdownNodesTitle', defaultMessage: 'Max Markdown Nodes:'}),
+                                    help_text: defineMessage({id: 'admin.customization.maxMarkdownNodesDesc', defaultMessage: 'When rendering Markdown text in the mobile app, controls the maximum number of Markdown elements (eg. emojis, links, table cells, etc) that can be in a single piece of text. If set to 0, a default limit will be used.'}),
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                },
+                                {
+                                    type: 'number',
+                                    key: 'ServiceSettings.UniqueEmojiReactionLimitPerPost',
+                                    label: defineMessage({id: 'admin.customization.uniqueEmojiReactionLimitPerPost', defaultMessage: 'Unique Emoji Reaction Limit:'}),
+                                    placeholder: defineMessage({id: 'admin.customization.uniqueEmojiReactionLimitPerPostPlaceholder', defaultMessage: 'E.g.: 25'}),
+                                    help_text: defineMessage({id: 'admin.customization.uniqueEmojiReactionLimitPerPostDesc', defaultMessage: 'The number of unique emoji reactions that can be added to a post. Increasing this limit could lead to poor client performance. Maximum is 500.'}),
+                                    help_text_markdown: false,
+                                    validate: (value) => {
+                                        const maxResult = validators.maxValue(
+                                            500,
+                                            defineMessage({id: 'admin.customization.uniqueEmojiReactionLimitPerPost.maxValue', defaultMessage: 'Cannot increase the limit to a value above 500.'}),
+                                        )(value);
+                                        if (!maxResult.isValid()) {
+                                            return maxResult;
+                                        }
+                                        const minResult = validators.minValue(
+                                            0,
+                                            defineMessage({id: 'admin.customization.uniqueEmojiReactionLimitPerPost.minValue', defaultMessage: 'Cannot decrease the limit below 0.'}),
+                                        )(value);
+                                        if (!minResult.isValid()) {
+                                            return minResult;
+                                        }
+
+                                        return new ValidationResult(true, '');
+                                    },
+                                },
+                            ],
                         },
                     ],
                 },
@@ -5122,6 +5280,18 @@ const AdminDefinition: AdminDefinitionType = {
                             },
                             help_text_markdown: false,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.INTEGRATION_MANAGEMENT)),
+                            isHidden: it.licensedForFeature('Cloud'),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'ServiceSettings.EnableDynamicClientRegistration',
+                            label: defineMessage({id: 'admin.oauth.dcrTitle', defaultMessage: 'Enable OAuth 2.0 Dynamic Client Registration: '}),
+                            help_text: defineMessage({id: 'admin.oauth.dcrDescription', defaultMessage: 'When true, external applications can dynamically register as OAuth 2.0 clients with Mattermost. Only enable this if you need third-party applications to register OAuth clients programmatically.'}),
+                            help_text_markdown: false,
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.INTEGRATION_MANAGEMENT)),
+                                it.stateIsFalse('ServiceSettings.EnableOAuthServiceProvider'),
+                            ),
                             isHidden: it.licensedForFeature('Cloud'),
                         },
                         {

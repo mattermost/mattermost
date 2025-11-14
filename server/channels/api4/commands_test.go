@@ -18,8 +18,7 @@ import (
 
 func TestEchoCommand(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	channel1 := th.BasicChannel
@@ -43,22 +42,21 @@ func TestEchoCommand(t *testing.T) {
 
 func TestGroupmsgCommands(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	team := th.BasicTeam
 	user1 := th.BasicUser
 	user2 := th.BasicUser2
-	user3 := th.CreateUser()
-	user4 := th.CreateUser()
-	user5 := th.CreateUser()
-	user6 := th.CreateUser()
-	user7 := th.CreateUser()
-	user8 := th.CreateUser()
-	user9 := th.CreateUser()
-	th.LinkUserToTeam(user3, team)
-	th.LinkUserToTeam(user4, team)
+	user3 := th.CreateUser(t)
+	user4 := th.CreateUser(t)
+	user5 := th.CreateUser(t)
+	user6 := th.CreateUser(t)
+	user7 := th.CreateUser(t)
+	user8 := th.CreateUser(t)
+	user9 := th.CreateUser(t)
+	th.LinkUserToTeam(t, user3, team)
+	th.LinkUserToTeam(t, user4, team)
 
 	rs1, _, err := client.ExecuteCommand(context.Background(), th.BasicChannel.Id, "/groupmsg "+user2.Username+","+user3.Username)
 	require.NoError(t, err)
@@ -92,8 +90,7 @@ func TestGroupmsgCommands(t *testing.T) {
 
 func TestInvitePeopleCommand(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	channel := th.BasicChannel
@@ -113,8 +110,7 @@ func TestInvitePeopleCommand(t *testing.T) {
 
 // also used to test /open (see command_open_test.go)
 func testJoinCommands(t *testing.T, alias string) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	team := th.BasicTeam
@@ -176,8 +172,7 @@ func TestJoinCommands(t *testing.T) {
 
 func TestLoadTestHelpCommands(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	channel := th.BasicChannel
@@ -196,8 +191,7 @@ func TestLoadTestHelpCommands(t *testing.T) {
 
 func TestLoadTestSetupCommands(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	channel := th.BasicChannel
@@ -216,8 +210,7 @@ func TestLoadTestSetupCommands(t *testing.T) {
 
 func TestLoadTestUsersCommands(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	channel := th.BasicChannel
@@ -236,8 +229,7 @@ func TestLoadTestUsersCommands(t *testing.T) {
 
 func TestLoadTestChannelsCommands(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	channel := th.BasicChannel
@@ -256,8 +248,7 @@ func TestLoadTestChannelsCommands(t *testing.T) {
 
 func TestLoadTestPostsCommands(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	channel := th.BasicChannel
@@ -276,8 +267,7 @@ func TestLoadTestPostsCommands(t *testing.T) {
 
 func TestLeaveCommands(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	team := th.BasicTeam
@@ -333,8 +323,7 @@ func TestLeaveCommands(t *testing.T) {
 
 func TestLogoutTestCommand(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	_, _, err := th.Client.ExecuteCommand(context.Background(), th.BasicChannel.Id, "/logout")
 	require.NoError(t, err)
@@ -342,8 +331,7 @@ func TestLogoutTestCommand(t *testing.T) {
 
 func TestMeCommand(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	channel := th.BasicChannel
@@ -370,15 +358,14 @@ func TestMeCommand(t *testing.T) {
 
 func TestMsgCommands(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	team := th.BasicTeam
 	user1 := th.BasicUser
 	user2 := th.BasicUser2
-	user3 := th.CreateUser()
-	th.LinkUserToTeam(user3, team)
+	user3 := th.CreateUser(t)
+	th.LinkUserToTeam(t, user3, team)
 
 	_, _, err := client.CreateDirectChannel(context.Background(), th.BasicUser.Id, user2.Id)
 	require.NoError(t, err)
@@ -423,8 +410,7 @@ func TestOpenCommands(t *testing.T) {
 
 func TestSearchCommand(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	_, _, err := th.Client.ExecuteCommand(context.Background(), th.BasicChannel.Id, "/search")
 	require.NoError(t, err)
@@ -432,8 +418,7 @@ func TestSearchCommand(t *testing.T) {
 
 func TestSettingsCommand(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	_, _, err := th.Client.ExecuteCommand(context.Background(), th.BasicChannel.Id, "/settings")
 	require.NoError(t, err)
@@ -441,8 +426,7 @@ func TestSettingsCommand(t *testing.T) {
 
 func TestShortcutsCommand(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	_, _, err := th.Client.ExecuteCommand(context.Background(), th.BasicChannel.Id, "/shortcuts")
 	require.NoError(t, err)
@@ -450,8 +434,7 @@ func TestShortcutsCommand(t *testing.T) {
 
 func TestShrugCommand(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	channel := th.BasicChannel
@@ -471,8 +454,7 @@ func TestShrugCommand(t *testing.T) {
 
 func TestStatusCommands(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	commandAndTest(t, th, "away")
 	commandAndTest(t, th, "offline")

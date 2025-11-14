@@ -24,7 +24,6 @@ import (
 func TestWebSocketTrailingSlash(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	url := fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port)
 	_, _, err := websocket.DefaultDialer.Dial(url+model.APIURLSuffix+"/websocket/", nil)
@@ -33,8 +32,7 @@ func TestWebSocketTrailingSlash(t *testing.T) {
 
 func TestWebSocketEvent(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	WebSocketClient := th.CreateConnectedWebSocketClient(t)
 
@@ -99,8 +97,7 @@ func TestWebSocketEvent(t *testing.T) {
 
 func TestCreateDirectChannelWithSocket(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	user2 := th.BasicUser2
@@ -109,7 +106,7 @@ func TestCreateDirectChannelWithSocket(t *testing.T) {
 	users = append(users, user2)
 
 	for range 10 {
-		users = append(users, th.CreateUser())
+		users = append(users, th.CreateUser(t))
 	}
 
 	WebSocketClient, err := th.CreateWebSocketClient()
@@ -156,7 +153,6 @@ func TestCreateDirectChannelWithSocket(t *testing.T) {
 func TestWebsocketOriginSecurity(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	url := fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port)
 
@@ -206,8 +202,7 @@ func TestWebsocketOriginSecurity(t *testing.T) {
 
 func TestWebSocketReconnectRace(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	WebSocketClient, err := th.CreateWebSocketClient()
 	require.NoError(t, err)
@@ -241,17 +236,16 @@ func TestWebSocketReconnectRace(t *testing.T) {
 
 func TestWebSocketSendBinary(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	client := th.CreateClient()
-	th.LoginBasicWithClient(client)
+	th.LoginBasicWithClient(t, client)
 	WebSocketClient := th.CreateConnectedWebSocketClientWithClient(t, client)
 	resp := <-WebSocketClient.ResponseChannel
 	require.Equal(t, resp.Status, model.StatusOk)
 
 	client2 := th.CreateClient()
-	th.LoginBasic2WithClient(client2)
+	th.LoginBasic2WithClient(t, client2)
 	_ = th.CreateConnectedWebSocketClientWithClient(t, client2)
 
 	// Wait for statuses to be updated
@@ -281,8 +275,7 @@ func TestWebSocketSendBinary(t *testing.T) {
 
 func TestWebSocketStatuses(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	WebSocketClient := th.CreateConnectedWebSocketClient(t)
@@ -296,21 +289,21 @@ func TestWebSocketStatuses(t *testing.T) {
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	ruser, _, err := client.CreateUser(context.Background(), &user)
 	require.NoError(t, err)
-	th.LinkUserToTeam(ruser, rteam)
+	th.LinkUserToTeam(t, ruser, rteam)
 	_, err = th.App.Srv().Store().User().VerifyEmail(ruser.Id, ruser.Email)
 	require.NoError(t, err)
 
 	user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
 	ruser2, _, err := client.CreateUser(context.Background(), &user2)
 	require.NoError(t, err)
-	th.LinkUserToTeam(ruser2, rteam)
+	th.LinkUserToTeam(t, ruser2, rteam)
 	_, err = th.App.Srv().Store().User().VerifyEmail(ruser2.Id, ruser2.Email)
 	require.NoError(t, err)
 
 	_, _, err = client.Login(context.Background(), user.Email, user.Password)
 	require.NoError(t, err)
 
-	th.LoginBasic2()
+	th.LoginBasic2(t)
 
 	WebSocketClient2 := th.CreateConnectedWebSocketClient(t)
 
@@ -421,8 +414,7 @@ func TestWebSocketStatuses(t *testing.T) {
 
 func TestWebSocketPresence(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	wsClient := th.CreateConnectedWebSocketClient(t)
 
@@ -453,7 +445,6 @@ func TestWebSocketPresence(t *testing.T) {
 func TestWebSocketUpgrade(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	buffer := &mlog.Buffer{}
 	err := mlog.AddWriterTarget(th.TestLogger, buffer, true, mlog.StdAll...)
@@ -562,8 +553,7 @@ func TestWebSocketMFAEnforcement(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	t.Run("WebSocket works when MFA enforcement is disabled", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		// MFA enforcement disabled - should work normally
 		webSocketClient := th.CreateConnectedWebSocketClient(t)
@@ -581,8 +571,7 @@ func TestWebSocketMFAEnforcement(t *testing.T) {
 	})
 
 	t.Run("WebSocket blocked when MFA required but user has no MFA", func(t *testing.T) {
-		th := SetupEnterprise(t).InitBasic()
-		defer th.TearDown()
+		th := SetupEnterprise(t).InitBasic(t)
 
 		// Enable MFA enforcement in config
 		enableMFAEnforcement(th)
@@ -629,8 +618,7 @@ func TestWebSocketMFAEnforcement(t *testing.T) {
 	})
 
 	t.Run("WebSocket connection allowed when user has MFA active", func(t *testing.T) {
-		th := SetupEnterprise(t).InitBasic()
-		defer th.TearDown()
+		th := SetupEnterprise(t).InitBasic(t)
 
 		// Enable MFA enforcement in config
 		enableMFAEnforcement(th)
@@ -650,7 +638,7 @@ func TestWebSocketMFAEnforcement(t *testing.T) {
 		ruser, _, err := th.Client.CreateUser(context.Background(), user)
 		require.NoError(t, err)
 
-		th.LinkUserToTeam(ruser, th.BasicTeam)
+		th.LinkUserToTeam(t, ruser, th.BasicTeam)
 		_, err = th.App.Srv().Store().User().VerifyEmail(ruser.Id, ruser.Email)
 		require.NoError(t, err)
 

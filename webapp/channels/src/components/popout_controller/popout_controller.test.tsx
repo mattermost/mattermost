@@ -6,7 +6,7 @@ import React from 'react';
 import {MemoryRouter} from 'react-router-dom';
 import type {RouteComponentProps} from 'react-router-dom';
 
-import {getProfiles} from 'mattermost-redux/actions/users';
+import {getProfiles, getStatusesByIds} from 'mattermost-redux/actions/users';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 
@@ -15,6 +15,7 @@ import PopoutController from './popout_controller';
 // Mock dependencies
 jest.mock('mattermost-redux/actions/users', () => ({
     getProfiles: jest.fn().mockReturnValue(() => ({type: 'GET_PROFILES'})),
+    getStatusesByIds: jest.fn().mockReturnValue(() => ({type: 'GET_STATUSES_BY_IDS'})),
 }));
 
 jest.mock('components/modal_controller', () => ({
@@ -26,6 +27,10 @@ jest.mock('components/thread_popout', () => ({
     __esModule: true,
     default: () => <div data-testid='thread-popout'>{'Thread Popout'}</div>,
 }));
+jest.mock('utils/popouts/use_browser_popout', () => ({
+    __esModule: true,
+    useBrowserPopout: jest.fn(),
+}));
 
 jest.mock('components/logged_in', () => ({
     __esModule: true,
@@ -33,6 +38,7 @@ jest.mock('components/logged_in', () => ({
 }));
 
 const mockGetProfiles = getProfiles as jest.MockedFunction<typeof getProfiles>;
+const mockGetStatusesByIds = getStatusesByIds as jest.MockedFunction<typeof getStatusesByIds>;
 
 // Base mock route props with meaningful route data
 const baseRouteProps: RouteComponentProps = {
@@ -132,5 +138,24 @@ describe('PopoutController', () => {
         // Classes should still be there
         expect(document.body.classList.contains('app__body')).toBe(true);
         expect(document.body.classList.contains('popout')).toBe(true);
+    });
+
+    it('should dispatch getStatusesByIds with current user ID', () => {
+        const currentUserId = 'current-user-id-123';
+        const initialState = {
+            entities: {
+                users: {
+                    currentUserId,
+                },
+            },
+        };
+
+        renderWithContext(
+            <PopoutController {...baseRouteProps}/>,
+            initialState,
+        );
+
+        expect(mockGetStatusesByIds).toHaveBeenCalledTimes(1);
+        expect(mockGetStatusesByIds).toHaveBeenCalledWith([currentUserId]);
     });
 });

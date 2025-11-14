@@ -94,6 +94,14 @@ jobs:
           cd server/build
           docker compose --ansi never stop
 
+      - name: Save mmctl test report to Zephyr Scale
+        if: ${{ always() && hashFiles('server/report.xml') != '' && github.event_name != 'pull_request' && (github.ref_name == 'master' || startsWith(github.ref_name, 'release-')) }}
+        uses: ./.github/actions/save-junit-report-tms
+        with:
+          report-path: server/report.xml
+          zephyr-api-key: ${{ secrets.MM_E2E_ZEPHYR_API_KEY }}
+          build-image: ${{ steps.build.outputs.BUILD_IMAGE }}
+
       - name: Archive logs
         if: ${{ always() }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2

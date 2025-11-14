@@ -14,7 +14,6 @@ import (
 
 func TestCreateTeam(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	id := model.NewId()
 	team := &model.Team{
@@ -36,7 +35,6 @@ func TestCreateTeamWithExperimentalDefaultChannels(t *testing.T) {
 	th.UpdateConfig(func(cfg *model.Config) {
 		cfg.TeamSettings.ExperimentalDefaultChannels = []string{"channel-1", "channel-2"}
 	})
-	defer th.TearDown()
 
 	id := model.NewId()
 	team := &model.Team{
@@ -74,7 +72,6 @@ func TestCreateTeamWithExperimentalDefaultChannels(t *testing.T) {
 
 func TestJoinUserToTeam(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
 	id := model.NewId()
 	team := &model.Team{

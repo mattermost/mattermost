@@ -19,8 +19,11 @@
     "directory": "webapp/platform/client"
   },
   "devDependencies": {
-    "@types/jest": "28.1.8",
-    "jest": "27.1.0",
+    "@types/jest": "30.0.0",
+    "@types/node-fetch": "2.6.13",
+    "jest": "30.1.3",
+    "nock": "13.2.8",
+    "node-fetch": "2.7.0",
     "typescript": "^5.0.0"
   },
   "peerDependencies": {

@@ -10926,10 +10926,6 @@
     "translation": "フラグ立てした投稿を完全に削除する際、投稿のステータスを更新できませんでした。"
   },
   {
-    "id": "app.content_flagging.restore_file_info.app_error",
-    "translation": "フラグ立てした投稿のファイル情報を復元できませんでした。"
-  },
-  {
     "id": "app.content_flagging.search_property_fields.app_error",
     "translation": "Content Flaggingプロパティフィールドを検索できませんでした。"
   },

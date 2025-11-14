@@ -19,7 +19,7 @@ import (
 )
 
 func (s *MmctlE2ETestSuite) TestListChannelsCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	var assertChannelNames = func(want []string, lines []any) {
 		var got []string
@@ -84,7 +84,7 @@ func (s *MmctlE2ETestSuite) TestListChannelsCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestSearchChannelCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.RunForAllClients("Search nonexistent channel", func(c client.Client) {
 		printer.Clean()
@@ -161,7 +161,7 @@ func (s *MmctlE2ETestSuite) TestSearchChannelCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestCreateChannelCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.RunForAllClients("create channel successfully", func(c client.Client) {
 		printer.Clean()
@@ -234,7 +234,7 @@ func (s *MmctlE2ETestSuite) TestCreateChannelCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestArchiveChannelsCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.Run("Archive channel", func() {
 		printer.Clean()
@@ -272,7 +272,7 @@ func (s *MmctlE2ETestSuite) TestArchiveChannelsCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestUnarchiveChannelsCmdF() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	s.Run("Unarchive channel", func() {
 		printer.Clean()
@@ -318,7 +318,7 @@ func (s *MmctlE2ETestSuite) TestUnarchiveChannelsCmdF() {
 }
 
 func (s *MmctlE2ETestSuite) TestDeleteChannelsCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	previousConfig := s.th.App.Config().ServiceSettings.EnableAPIChannelDeletion
 	s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIChannelDeletion = true })
@@ -356,6 +356,63 @@ func (s *MmctlE2ETestSuite) TestDeleteChannelsCmd() {
 
 		_, err = s.th.App.GetChannel(s.th.Context, channel.Id)
 
+		s.Require().NotNil(err)
+		s.CheckErrorID(err, "app.channel.get.existing.app_error")
+	})
+
+	s.Run("Delete channel with disabled config as system admin", func() {
+		channel, appErr := s.th.App.CreateChannel(s.th.Context, &model.Channel{Type: model.ChannelTypeOpen, Name: "channel_name_you_cannot_delete", CreatorId: user.Id}, true)
+		s.Require().Nil(appErr)
+
+		previousVal := s.th.App.Config().ServiceSettings.EnableAPIChannelDeletion
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIChannelDeletion = false })
+		defer func() {
+			s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIChannelDeletion = *previousVal })
+		}()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+		args := []string{team.Id + ":" + channel.Id}
+
+		printer.Clean()
+		err := deleteChannelsCmdF(s.th.SystemAdminClient, cmd, args)
+
+		var expected error
+		expected = multierror.Append(expected, errors.New("unable to delete channel '\""+channel.Name+"\"' error: Permanent channel deletion feature is not enabled. ServiceSettings.EnableAPIChannelDeletion must be set to true to use this command. See https://mattermost.com/pl/environment-configuration-settings for more information"))
+
+		s.Require().NotNil(err)
+		s.Require().EqualError(err, expected.Error())
+
+		channel, err = s.th.App.GetChannel(s.th.Context, channel.Id)
+
+		s.Require().Nil(err)
+		s.Require().NotNil(channel)
+	})
+
+	s.Run("Delete channel with disabled config as local client", func() {
+		channel, appErr := s.th.App.CreateChannel(s.th.Context, &model.Channel{Type: model.ChannelTypeOpen, Name: "channel_name", CreatorId: user.Id}, true)
+		s.Require().Nil(appErr)
+
+		previousVal := s.th.App.Config().ServiceSettings.EnableAPIChannelDeletion
+		s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIChannelDeletion = false })
+		defer func() {
+			s.th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIChannelDeletion = *previousVal })
+		}()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().Bool("confirm", true, "")
+		args := []string{team.Id + ":" + channel.Id}
+
+		printer.Clean()
+		err := deleteChannelsCmdF(s.th.LocalClient, cmd, args)
+
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(channel, printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		// expect the channel deleted
+		_, err = s.th.App.GetChannel(s.th.Context, channel.Id)
 		s.Require().NotNil(err)
 		s.CheckErrorID(err, "app.channel.get.existing.app_error")
 	})
@@ -406,7 +463,7 @@ func (s *MmctlE2ETestSuite) TestDeleteChannelsCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestChannelRenameCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 
 	initChannelName := api4.GenerateTestChannelName()
 	initChannelDisplayName := "dn_" + initChannelName
@@ -517,7 +574,7 @@ func (s *MmctlE2ETestSuite) TestChannelRenameCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
-	s.SetupTestHelper().InitBasic()
+	s.SetupTestHelper().InitBasic(s.T())
 	initChannelName := api4.GenerateTestChannelName()
 	channel, appErr := s.th.App.CreateChannel(s.th.Context, &model.Channel{
 		TeamId:      s.th.BasicTeam.Id,
@@ -580,7 +637,6 @@ func (s *MmctlE2ETestSuite) TestMoveChannelCmd() {
 	s.RunForSystemAdminAndLocal("Moving channel which is already moved to particular team", func(c client.Client) {
 		printer.Clean()
 
-		s.SetupTestHelper().InitBasic()
 		initChannelName := api4.GenerateTestChannelName()
 		channel, appErr = s.th.App.CreateChannel(s.th.Context, &model.Channel{
 			TeamId:      s.th.BasicTeam.Id,

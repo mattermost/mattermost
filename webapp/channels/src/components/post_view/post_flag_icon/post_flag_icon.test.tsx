@@ -24,8 +24,8 @@ describe('components/post_view/PostFlagIcon', () => {
         expect(wrapper.find('button').hasClass('post-menu__item')).toBe(true);
         wrapper.find('button').simulate('click', {preventDefault: jest.fn});
         expect(baseProps.actions.flagPost).toHaveBeenCalledTimes(1);
-        expect(baseProps.actions.flagPost).toBeCalledWith('post_id');
-        expect(baseProps.actions.unflagPost).not.toBeCalled();
+        expect(baseProps.actions.flagPost).toHaveBeenCalledWith('post_id');
+        expect(baseProps.actions.unflagPost).not.toHaveBeenCalled();
 
         // for flagged icon
         wrapper.setProps({isFlagged: true});
@@ -34,6 +34,6 @@ describe('components/post_view/PostFlagIcon', () => {
         wrapper.find('button').simulate('click', {preventDefault: jest.fn});
         expect(baseProps.actions.flagPost).toHaveBeenCalledTimes(1);
         expect(baseProps.actions.unflagPost).toHaveBeenCalledTimes(1);
-        expect(baseProps.actions.unflagPost).toBeCalledWith('post_id');
+        expect(baseProps.actions.unflagPost).toHaveBeenCalledWith('post_id');
     });
 });

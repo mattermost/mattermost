@@ -19,28 +19,6 @@ const (
 	CustomProfileAttributesFieldLimit = 20
 )
 
-// ensureCPAFieldAttrs ensures that PropertyField.Attrs has default values for CPA fields
-// that were created before default attrs were enforced. This provides backward compatibility.
-func ensureCPAFieldAttrs(field *model.PropertyField) {
-	if field == nil {
-		return
-	}
-
-	if field.Attrs == nil {
-		field.Attrs = model.StringInterface{}
-	}
-
-	// Ensure visibility has a default value (this is the most critical attr)
-	if visibility, ok := field.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility]; !ok || visibility == "" {
-		field.Attrs[model.CustomProfileAttributesPropertyAttrsVisibility] = model.CustomProfileAttributesVisibilityDefault
-	}
-
-	// Ensure sort_order exists (defaults to 0 if missing, which is fine)
-	if _, ok := field.Attrs[model.CustomProfileAttributesPropertyAttrsSortOrder]; !ok {
-		field.Attrs[model.CustomProfileAttributesPropertyAttrsSortOrder] = float64(0)
-	}
-}
-
 var cpaGroupID string
 
 // ToDo: we should explore moving this to the database cache layer
@@ -59,7 +37,7 @@ func (a *App) CpaGroupID() (string, error) {
 	return cpaGroupID, nil
 }
 
-func (a *App) GetCPAField(fieldID string) (*model.PropertyField, *model.AppError) {
+func (a *App) GetCPAField(fieldID string) (*model.CPAField, *model.AppError) {
 	groupID, err := a.CpaGroupID()
 	if err != nil {
 		return nil, model.NewAppError("GetCPAField", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -75,15 +53,18 @@ func (a *App) GetCPAField(fieldID string) (*model.PropertyField, *model.AppError
 		}
 	}
 
-	ensureCPAFieldAttrs(field)
+	cpaField, err := model.NewCPAFieldFromPropertyField(field)
+	if err != nil {
+		return nil, model.NewAppError("GetCPAField", "app.custom_profile_attributes.property_field_conversion.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
 
-	return field, nil
+	return cpaField, nil
 }
 
-func (a *App) ListCPAFields() ([]*model.PropertyField, *model.AppError) {
+func (a *App) ListCPAFields() ([]*model.CPAField, *model.AppError) {
 	groupID, err := a.CpaGroupID()
 	if err != nil {
-		return nil, model.NewAppError("GetCPAFields", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("ListCPAFields", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	opts := model.PropertyFieldSearchOpts{
@@ -93,21 +74,27 @@ func (a *App) ListCPAFields() ([]*model.PropertyField, *model.AppError) {
 
 	fields, err := a.Srv().propertyService.SearchPropertyFields(groupID, opts)
 	if err != nil {
-		return nil, model.NewAppError("GetCPAFields", "app.custom_profile_attributes.search_property_fields.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("ListCPAFields", "app.custom_profile_attributes.search_property_fields.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// Convert PropertyFields to CPAFields
+	cpaFields := make([]*model.CPAField, 0, len(fields))
 	for _, field := range fields {
-		ensureCPAFieldAttrs(field)
+		cpaField, convErr := model.NewCPAFieldFromPropertyField(field)
+		if convErr != nil {
+			return nil, model.NewAppError("ListCPAFields", "app.custom_profile_attributes.property_field_conversion.app_error", nil, "", http.StatusInternalServerError).Wrap(convErr)
+		}
+		cpaFields = append(cpaFields, cpaField)
 	}
 
-	sort.Slice(fields, func(i, j int) bool {
-		return model.CPASortOrder(fields[i]) < model.CPASortOrder(fields[j])
+	sort.Slice(cpaFields, func(i, j int) bool {
+		return cpaFields[i].Attrs.SortOrder < cpaFields[j].Attrs.SortOrder
 	})
 
-	return fields, nil
+	return cpaFields, nil
 }
 
-func (a *App) CreateCPAField(field *model.CPAField) (*model.PropertyField, *model.AppError) {
+func (a *App) CreateCPAField(field *model.CPAField) (*model.CPAField, *model.AppError) {
 	groupID, err := a.CpaGroupID()
 	if err != nil {
 		return nil, model.NewAppError("CreateCPAField", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -139,14 +126,19 @@ func (a *App) CreateCPAField(field *model.CPAField) (*model.PropertyField, *mode
 		}
 	}
 
+	cpaField, err := model.NewCPAFieldFromPropertyField(newField)
+	if err != nil {
+		return nil, model.NewAppError("CreateCPAField", "app.custom_profile_attributes.property_field_conversion.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
 	message := model.NewWebSocketEvent(model.WebsocketEventCPAFieldCreated, "", "", "", nil, "")
-	message.Add("field", newField)
+	message.Add("field", cpaField)
 	a.Publish(message)
 
-	return newField, nil
+	return cpaField, nil
 }
 
-func (a *App) PatchCPAField(fieldID string, patch *model.PropertyFieldPatch) (*model.PropertyField, *model.AppError) {
+func (a *App) PatchCPAField(fieldID string, patch *model.PropertyFieldPatch) (*model.CPAField, *model.AppError) {
 	existingField, appErr := a.GetCPAField(fieldID)
 	if appErr != nil {
 		return nil, appErr
@@ -157,17 +149,11 @@ func (a *App) PatchCPAField(fieldID string, patch *model.PropertyFieldPatch) (*m
 		shouldDeleteValues = true
 	}
 
-	// custom profile attributes doesn't use targets
-	patch.TargetID = nil
-	patch.TargetType = nil
-	existingField.Patch(patch)
-
-	cpaField, err := model.NewCPAFieldFromPropertyField(existingField)
-	if err != nil {
-		return nil, model.NewAppError("PatchCPAField", "app.custom_profile_attributes.property_field_conversion.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	if err := existingField.Patch(patch); err != nil {
+		return nil, model.NewAppError("PatchCPAField", "app.custom_profile_attributes.patch_field.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if appErr := cpaField.SanitizeAndValidate(); appErr != nil {
+	if appErr := existingField.SanitizeAndValidate(); appErr != nil {
 		return nil, appErr
 	}
 
@@ -176,7 +162,7 @@ func (a *App) PatchCPAField(fieldID string, patch *model.PropertyFieldPatch) (*m
 		return nil, model.NewAppError("PatchCPAField", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	patchedField, err := a.Srv().propertyService.UpdatePropertyField(groupID, cpaField.ToPropertyField())
+	patchedField, err := a.Srv().propertyService.UpdatePropertyField(groupID, existingField.ToPropertyField())
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
@@ -187,21 +173,26 @@ func (a *App) PatchCPAField(fieldID string, patch *model.PropertyFieldPatch) (*m
 		}
 	}
 
+	cpaField, err := model.NewCPAFieldFromPropertyField(patchedField)
+	if err != nil {
+		return nil, model.NewAppError("PatchCPAField", "app.custom_profile_attributes.property_field_conversion.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
 	if shouldDeleteValues {
-		if dErr := a.Srv().propertyService.DeletePropertyValuesForField(groupID, patchedField.ID); dErr != nil {
+		if dErr := a.Srv().propertyService.DeletePropertyValuesForField(groupID, cpaField.ID); dErr != nil {
 			a.Log().Error("Error deleting property values when updating field",
-				mlog.String("fieldID", patchedField.ID),
+				mlog.String("fieldID", cpaField.ID),
 				mlog.Err(dErr),
 			)
 		}
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventCPAFieldUpdated, "", "", "", nil, "")
-	message.Add("field", patchedField)
+	message.Add("field", cpaField)
 	message.Add("delete_values", shouldDeleteValues)
 	a.Publish(message)
 
-	return patchedField, nil
+	return cpaField, nil
 }
 
 func (a *App) DeleteCPAField(id string) *model.AppError {
@@ -230,7 +221,7 @@ func (a *App) DeleteCPAField(id string) *model.AppError {
 func (a *App) ListCPAValues(userID string) ([]*model.PropertyValue, *model.AppError) {
 	groupID, err := a.CpaGroupID()
 	if err != nil {
-		return nil, model.NewAppError("GetCPAFields", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("ListCPAValues", "app.custom_profile_attributes.cpa_group_id.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	values, err := a.Srv().propertyService.SearchPropertyValues(groupID, model.PropertyValueSearchOpts{
@@ -276,16 +267,11 @@ func (a *App) PatchCPAValues(userID string, fieldValueMap map[string]json.RawMes
 	valuesToUpdate := []*model.PropertyValue{}
 	for fieldID, rawValue := range fieldValueMap {
 		// make sure field exists in this group
-		existingField, appErr := a.GetCPAField(fieldID)
+		cpaField, appErr := a.GetCPAField(fieldID)
 		if appErr != nil {
 			return nil, model.NewAppError("PatchCPAValues", "app.custom_profile_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound).Wrap(appErr)
-		} else if existingField.DeleteAt > 0 {
+		} else if cpaField.DeleteAt > 0 {
 			return nil, model.NewAppError("PatchCPAValues", "app.custom_profile_attributes.property_field_not_found.app_error", nil, "", http.StatusNotFound)
-		}
-
-		cpaField, fErr := model.NewCPAFieldFromPropertyField(existingField)
-		if fErr != nil {
-			return nil, model.NewAppError("PatchCPAValues", "app.custom_profile_attributes.property_field_conversion.app_error", nil, "", http.StatusInternalServerError).Wrap(fErr)
 		}
 
 		if !allowSynced && cpaField.IsSynced() {

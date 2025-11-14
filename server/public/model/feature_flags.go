@@ -83,6 +83,9 @@ type FeatureFlags struct {
 	// Enable auto-translation feature for messages in channels
 	AutoTranslation bool
 
+	// Enable burn-on-read messages that automatically delete after viewing
+	BurnOnRead bool
+
 	// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge
 	EnableAIPluginBridge bool
 }
@@ -121,6 +124,8 @@ func (f *FeatureFlags) SetDefaults() {
 
 	// FEATURE_FLAG_REMOVAL: AutoTranslation - Remove this default when MVP is to be released
 	f.AutoTranslation = false
+
+	f.BurnOnRead = false
 
 	// FEATURE_FLAG_REMOVAL: EnableAIPluginBridge - Remove this default when MVP is to be released
 	f.EnableAIPluginBridge = false

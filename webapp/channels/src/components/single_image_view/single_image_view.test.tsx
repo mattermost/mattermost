@@ -80,7 +80,7 @@ describe('components/SingleImageView', () => {
         } as unknown as React.MouseEvent<HTMLButtonElement>;
         instance.toggleEmbedVisibility(event);
         expect(props.actions.toggleEmbedVisibility).toHaveBeenCalledTimes(1);
-        expect(props.actions.toggleEmbedVisibility).toBeCalledWith('original_post_id');
+        expect(props.actions.toggleEmbedVisibility).toHaveBeenCalledWith('original_post_id');
     });
 
     test('should set loaded state on callback of onImageLoaded on SizeAwareImage component', () => {

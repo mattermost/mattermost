@@ -110,7 +110,7 @@ describe('components/integrations/AbstractOutgoingOAuthConnection', () => {
             return jest.fn();
         }});
 
-        expect(submitAction).not.toBeCalled();
+        expect(submitAction).not.toHaveBeenCalled();
         expect(wrapper).toMatchSnapshot();
         expect(wrapper.find('Memo(FormError)').exists()).toBe(true);
     });
@@ -134,7 +134,7 @@ describe('components/integrations/AbstractOutgoingOAuthConnection', () => {
                 return jest.fn();
             }});
 
-            expect(submitAction).toBeCalled();
+            expect(submitAction).toHaveBeenCalled();
         });
     });
 });

@@ -39,7 +39,6 @@ import (
 func TestCreateUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	user := model.User{
 		Id:       model.NewId(),
@@ -172,7 +171,6 @@ func TestCreateUser(t *testing.T) {
 func TestCreateUserPasswordValidation(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	ruser := model.User{
 		Nickname:      "Corey Hulen",
@@ -313,7 +311,6 @@ func TestCreateUserAudit(t *testing.T) {
 
 	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
 	th := SetupWithServerOptions(t, options)
-	defer th.TearDown()
 
 	email := th.GenerateTestEmail()
 	password := "this_is_the_password"
@@ -352,7 +349,7 @@ func TestUserLoginAudit(t *testing.T) {
 
 	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
 	th := SetupWithServerOptions(t, options)
-	defer th.TearDown()
+
 	_, err = th.Client.Logout(context.Background())
 	require.NoError(t, err)
 
@@ -384,7 +381,6 @@ func TestUserLoginAudit(t *testing.T) {
 func TestCreateUserInputFilter(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	t.Run("DomainRestriction", func(t *testing.T) {
 		enableAPIUserDeletion := th.App.Config().ServiceSettings.EnableAPIUserDeletion
@@ -485,8 +481,7 @@ func TestCreateUserInputFilter(t *testing.T) {
 
 func TestCreateUserWithToken(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("CreateWithTokenHappyPath", func(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId}
@@ -746,8 +741,7 @@ func TestCreateUserWithToken(t *testing.T) {
 
 func TestCreateUserWebSocketEvent(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("guest should not received new_user event but user should", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicense("guests"))
@@ -816,8 +810,7 @@ func TestCreateUserWebSocketEvent(t *testing.T) {
 
 func TestCreateUserWithInviteId(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("CreateWithInviteIdHappyPath", func(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId}
@@ -981,8 +974,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 
 func TestGetMe(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	ruser, _, err := th.Client.GetMe(context.Background(), "")
 	require.NoError(t, err)
@@ -999,9 +991,8 @@ func TestGetMe(t *testing.T) {
 func TestGetUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
-	user := th.CreateUser()
+	user := th.CreateUser(t)
 	user.Props = map[string]string{"testpropkey": "testpropvalue"}
 
 	_, appErr := th.App.UpdateUser(th.Context, user, false)
@@ -1057,9 +1048,8 @@ func TestGetUser(t *testing.T) {
 func TestGetUserWithAcceptedTermsOfServiceForOtherUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
-	user := th.CreateUser()
+	user := th.CreateUser(t)
 
 	tos, _ := th.App.CreateTermsOfService("Dummy TOS", user.Id)
 
@@ -1089,8 +1079,7 @@ func TestGetUserWithAcceptedTermsOfServiceForOtherUser(t *testing.T) {
 
 func TestGetUserWithAcceptedTermsOfService(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	user := th.BasicUser
 
@@ -1119,13 +1108,13 @@ func TestGetUserWithAcceptedTermsOfService(t *testing.T) {
 
 func TestGetUserWithAcceptedTermsOfServiceWithAdminUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	th.LoginSystemAdmin()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
+	th.LoginSystemAdmin(t)
 	user := th.BasicUser
 
-	tos, _ := th.App.CreateTermsOfService("Dummy TOS", user.Id)
+	tos, appErr := th.App.CreateTermsOfService("Dummy TOS", user.Id)
+	require.Nil(t, appErr)
 
 	ruser, _, err := th.SystemAdminClient.GetUser(context.Background(), user.Id, "")
 	require.NoError(t, err)
@@ -1135,7 +1124,7 @@ func TestGetUserWithAcceptedTermsOfServiceWithAdminUser(t *testing.T) {
 
 	assert.Empty(t, ruser.TermsOfServiceId)
 
-	appErr := th.App.SaveUserTermsOfService(user.Id, tos.Id, true)
+	appErr = th.App.SaveUserTermsOfService(user.Id, tos.Id, true)
 	require.Nil(t, appErr)
 
 	ruser, _, err = th.SystemAdminClient.GetUser(context.Background(), user.Id, "")
@@ -1150,13 +1139,12 @@ func TestGetUserWithAcceptedTermsOfServiceWithAdminUser(t *testing.T) {
 
 func TestGetBotUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	defaultPerms := th.SaveDefaultRolePermissions()
-	defer th.RestoreDefaultRolePermissions(defaultPerms)
+	defaultPerms := th.SaveDefaultRolePermissions(t)
+	defer th.RestoreDefaultRolePermissions(t, defaultPerms)
 
-	th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionCreateBot.Id, model.TeamUserRoleId)
 	_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.TeamUserRoleId, false)
 	require.Nil(t, appErr)
 
@@ -1186,8 +1174,7 @@ func TestGetBotUser(t *testing.T) {
 
 func TestGetUserByUsername(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	user := th.BasicUser
 
@@ -1238,8 +1225,7 @@ func TestGetUserByUsername(t *testing.T) {
 
 func TestGetUserByUsernameWithAcceptedTermsOfService(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	user := th.BasicUser
 
@@ -1266,7 +1252,6 @@ func TestGetUserByUsernameWithAcceptedTermsOfService(t *testing.T) {
 func TestSaveUserTermsOfService(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	t.Run("Invalid data", func(t *testing.T) {
 		resp, err := th.Client.DoAPIPost(context.Background(), "/users/"+th.BasicUser.Id+"/terms_of_service", "{}")
@@ -1278,9 +1263,8 @@ func TestSaveUserTermsOfService(t *testing.T) {
 func TestGetUserByEmail(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
-	user := th.CreateUser()
+	user := th.CreateUser(t)
 	userWithSlash, _, err := th.SystemAdminClient.CreateUser(context.Background(), &model.User{
 		Email:    "email/with/slashes@example.com",
 		Username: GenerateTestUsername(),
@@ -1414,8 +1398,7 @@ func TestGetUserByEmail(t *testing.T) {
 // Not much can be done about it.
 func TestSearchUsers(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	search := &model.UserSearch{Term: th.BasicUser.Username}
 
@@ -1502,7 +1485,7 @@ func TestSearchUsers(t *testing.T) {
 
 	require.False(t, findUserInList(th.BasicUser.Id, users), "should not have found user")
 
-	oddUser := th.CreateUser()
+	oddUser := th.CreateUser(t)
 	search.Term = oddUser.Username
 
 	users, _, err = th.Client.SearchUsers(context.Background(), search)
@@ -1685,12 +1668,11 @@ func findUserInList(id string, users []*model.User) bool { //nolint:unused
 
 func TestAutocompleteUsersInChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	teamId := th.BasicTeam.Id
 	channelId := th.BasicChannel.Id
 	username := th.BasicUser.Username
-	newUser := th.CreateUser()
+	newUser := th.CreateUser(t)
 
 	tt := []struct {
 		Name            string
@@ -1741,7 +1723,7 @@ func TestAutocompleteUsersInChannel(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.Name, func(t *testing.T) {
-			th.LoginBasic()
+			th.LoginBasic(t)
 			rusers, _, err := th.Client.AutocompleteUsersInChannel(context.Background(), tc.TeamId, tc.ChannelId, tc.Username, model.UserSearchDefaultLimit, "")
 			if tc.ShouldFail {
 				CheckErrorID(t, err, "api.user.autocomplete_users.missing_team_id.app_error")
@@ -1771,7 +1753,7 @@ func TestAutocompleteUsersInChannel(t *testing.T) {
 	t.Run("Check against privacy config settings", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowFullName = false })
 
-		th.LoginBasic()
+		th.LoginBasic(t)
 		rusers, _, err := th.Client.AutocompleteUsersInChannel(context.Background(), teamId, channelId, username, model.UserSearchDefaultLimit, "")
 		require.NoError(t, err)
 
@@ -1789,15 +1771,15 @@ func TestAutocompleteUsersInChannel(t *testing.T) {
 			require.Nil(t, appErr)
 			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = false })
 		}()
-		permissionsUser := th.CreateUser()
+		permissionsUser := th.CreateUser(t)
 		_, err := th.SystemAdminClient.DemoteUserToGuest(context.Background(), permissionsUser.Id)
 		require.NoError(t, err)
 		permissionsUser.Roles = "system_guest"
-		th.LinkUserToTeam(permissionsUser, th.BasicTeam)
-		th.AddUserToChannel(permissionsUser, th.BasicChannel)
+		th.LinkUserToTeam(t, permissionsUser, th.BasicTeam)
+		th.AddUserToChannel(t, permissionsUser, th.BasicChannel)
 
-		otherUser := th.CreateUser()
-		th.LinkUserToTeam(otherUser, th.BasicTeam)
+		otherUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, otherUser, th.BasicTeam)
 
 		_, _, err = th.Client.Login(context.Background(), permissionsUser.Email, permissionsUser.Password)
 		require.NoError(t, err)
@@ -1806,13 +1788,13 @@ func TestAutocompleteUsersInChannel(t *testing.T) {
 		require.NoError(t, err)
 		assert.Len(t, rusers.OutOfChannel, 1)
 
-		defaultRolePermissions := th.SaveDefaultRolePermissions()
+		defaultRolePermissions := th.SaveDefaultRolePermissions(t)
 		defer func() {
-			th.RestoreDefaultRolePermissions(defaultRolePermissions)
+			th.RestoreDefaultRolePermissions(t, defaultRolePermissions)
 		}()
 
-		th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.SystemUserRoleId)
-		th.RemovePermissionFromRole(model.PermissionViewMembers.Id, model.TeamUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionViewMembers.Id, model.SystemUserRoleId)
+		th.RemovePermissionFromRole(t, model.PermissionViewMembers.Id, model.TeamUserRoleId)
 
 		rusers, _, err = th.Client.AutocompleteUsersInChannel(context.Background(), teamId, channelId, "", model.UserSearchDefaultLimit, "")
 		require.NoError(t, err)
@@ -1834,11 +1816,10 @@ func TestAutocompleteUsersInChannel(t *testing.T) {
 
 func TestAutocompleteUsersInTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	teamId := th.BasicTeam.Id
 	username := th.BasicUser.Username
-	newUser := th.CreateUser()
+	newUser := th.CreateUser(t)
 
 	tt := []struct {
 		Name            string
@@ -1872,7 +1853,7 @@ func TestAutocompleteUsersInTeam(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.Name, func(t *testing.T) {
-			th.LoginBasic()
+			th.LoginBasic(t)
 			rusers, _, err := th.Client.AutocompleteUsersInTeam(context.Background(), tc.TeamId, tc.Username, model.UserSearchDefaultLimit, "")
 			require.NoError(t, err)
 			if tc.MoreThan {
@@ -1897,7 +1878,7 @@ func TestAutocompleteUsersInTeam(t *testing.T) {
 	t.Run("Check against privacy config settings", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowFullName = false })
 
-		th.LoginBasic()
+		th.LoginBasic(t)
 		rusers, _, err := th.Client.AutocompleteUsersInTeam(context.Background(), teamId, username, model.UserSearchDefaultLimit, "")
 		require.NoError(t, err)
 
@@ -1908,10 +1889,9 @@ func TestAutocompleteUsersInTeam(t *testing.T) {
 
 func TestAutocompleteUsers(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	username := th.BasicUser.Username
-	newUser := th.CreateUser()
+	newUser := th.CreateUser(t)
 
 	tt := []struct {
 		Name            string
@@ -1941,7 +1921,7 @@ func TestAutocompleteUsers(t *testing.T) {
 
 	for _, tc := range tt {
 		t.Run(tc.Name, func(t *testing.T) {
-			th.LoginBasic()
+			th.LoginBasic(t)
 			rusers, _, err := th.Client.AutocompleteUsers(context.Background(), tc.Username, model.UserSearchDefaultLimit, "")
 			require.NoError(t, err)
 			if tc.MoreThan {
@@ -1966,7 +1946,7 @@ func TestAutocompleteUsers(t *testing.T) {
 	t.Run("Check against privacy config settings", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowFullName = false })
 
-		th.LoginBasic()
+		th.LoginBasic(t)
 		rusers, _, err := th.Client.AutocompleteUsers(context.Background(), username, model.UserSearchDefaultLimit, "")
 		require.NoError(t, err)
 
@@ -1977,12 +1957,11 @@ func TestAutocompleteUsers(t *testing.T) {
 
 func TestGetProfileImage(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	// recreate basic user
-	th.BasicUser = th.CreateUser()
-	th.LoginBasic()
+	th.BasicUser = th.CreateUser(t)
+	th.LoginBasic(t)
 	user := th.BasicUser
 
 	data, resp, err := th.Client.GetProfileImage(context.Background(), user.Id, "")
@@ -2016,8 +1995,7 @@ func TestGetProfileImage(t *testing.T) {
 
 func TestGetUsersByIds(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		t.Run("should return the user", func(t *testing.T) {
@@ -2069,7 +2047,6 @@ func TestGetUsersByIdsWithOptions(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should only return specified users that have been updated since the given time", func(t *testing.T) {
 		th := Setup(t)
-		defer th.TearDown()
 
 		// Users before the timestamp shouldn't be returned
 		user1, appErr := th.App.CreateUser(th.Context, &model.User{Email: th.GenerateTestEmail(), Username: model.NewUsername(), Password: model.NewId()})
@@ -2094,8 +2071,7 @@ func TestGetUsersByIdsWithOptions(t *testing.T) {
 
 func TestGetUsersByGroupChannelIds(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	gc1, appErr := th.App.CreateGroupChannel(th.Context, []string{th.BasicUser.Id, th.SystemAdminUser.Id, th.TeamAdminUser.Id}, th.BasicUser.Id)
 	require.Nil(t, appErr)
@@ -2112,7 +2088,7 @@ func TestGetUsersByGroupChannelIds(t *testing.T) {
 
 	require.ElementsMatch(t, []string{th.SystemAdminUser.Id, th.TeamAdminUser.Id}, userIds)
 
-	th.LoginBasic2()
+	th.LoginBasic2(t)
 	usersByChannelId, _, err = th.Client.GetUsersByGroupChannelIds(context.Background(), []string{gc1.Id})
 	require.NoError(t, err)
 
@@ -2128,8 +2104,7 @@ func TestGetUsersByGroupChannelIds(t *testing.T) {
 
 func TestGetUsersByUsernames(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	users, _, err := th.Client.GetUsersByUsernames(context.Background(), []string{th.BasicUser.Username})
 	require.NoError(t, err)
@@ -2159,7 +2134,6 @@ func TestGetUsersByUsernames(t *testing.T) {
 func TestGetTotalUsersStat(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	total, _ := th.Server.Store().User().Count(model.UserCountOptions{
 		IncludeDeleted:     false,
@@ -2175,9 +2149,8 @@ func TestGetTotalUsersStat(t *testing.T) {
 func TestUpdateUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
-	user := th.CreateUser()
+	user := th.CreateUser(t)
 	_, _, err := th.Client.Login(context.Background(), user.Email, user.Password)
 	require.NoError(t, err)
 
@@ -2239,7 +2212,7 @@ func TestUpdateUser(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	th.LoginBasic()
+	th.LoginBasic(t)
 	_, resp, err = th.Client.UpdateUser(context.Background(), user)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
@@ -2252,15 +2225,14 @@ func TestUpdateUser(t *testing.T) {
 
 func TestUpdateAdminUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	user := th.CreateUser()
+	user := th.CreateUser(t)
 	_, appErr := th.App.UpdateUserRoles(th.Context, user.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 	require.Nil(t, appErr)
 	user.Email = th.GenerateTestEmail()
 
-	th.AddPermissionToRole(model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
+	th.AddPermissionToRole(t, model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
 	_, appErr = th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserManagerRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 	require.Nil(t, appErr)
 
@@ -2275,14 +2247,13 @@ func TestUpdateAdminUser(t *testing.T) {
 
 func TestUpdateBotUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(c *model.Config) {
 		*c.ServiceSettings.EnableBotAccountCreation = true
 	})
 
-	bot := th.CreateBotWithSystemAdminClient()
+	bot := th.CreateBotWithSystemAdminClient(t)
 	botUser, _, err := th.SystemAdminClient.GetUser(context.Background(), bot.UserId, "")
 	require.NoError(t, err)
 
@@ -2297,10 +2268,9 @@ func TestUpdateBotUser(t *testing.T) {
 
 func TestPatchUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	user := th.CreateUser()
+	user := th.CreateUser(t)
 	_, _, err := th.Client.Login(context.Background(), user.Email, user.Password)
 	require.NoError(t, err)
 
@@ -2402,7 +2372,7 @@ func TestPatchUser(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	th.LoginBasic()
+	th.LoginBasic(t)
 	_, resp, err = th.Client.PatchUser(context.Background(), user.Id, patch)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
@@ -2413,14 +2383,13 @@ func TestPatchUser(t *testing.T) {
 
 func TestPatchBotUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(c *model.Config) {
 		*c.ServiceSettings.EnableBotAccountCreation = true
 	})
 
-	bot := th.CreateBotWithSystemAdminClient()
+	bot := th.CreateBotWithSystemAdminClient(t)
 	patch := &model.UserPatch{}
 	patch.Email = model.NewPointer("newemail@test.com")
 
@@ -2435,17 +2404,16 @@ func TestPatchBotUser(t *testing.T) {
 
 func TestPatchAdminUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	user := th.CreateUser()
+	user := th.CreateUser(t)
 	_, appErr := th.App.UpdateUserRoles(th.Context, user.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 	require.Nil(t, appErr)
 
 	patch := &model.UserPatch{}
 	patch.Email = model.NewPointer(th.GenerateTestEmail())
 
-	th.AddPermissionToRole(model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
+	th.AddPermissionToRole(t, model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
 	_, appErr = th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserManagerRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 	require.Nil(t, appErr)
 
@@ -2460,7 +2428,6 @@ func TestPatchAdminUser(t *testing.T) {
 func TestUserUnicodeNames(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 	client := th.Client
 
 	t.Run("create user unicode", func(t *testing.T) {
@@ -2487,7 +2454,7 @@ func TestUserUnicodeNames(t *testing.T) {
 	})
 
 	t.Run("update user unicode", func(t *testing.T) {
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 		_, _, err := client.Login(context.Background(), user.Email, user.Password)
 		require.NoError(t, err)
 
@@ -2505,7 +2472,7 @@ func TestUserUnicodeNames(t *testing.T) {
 	})
 
 	t.Run("patch user unicode", func(t *testing.T) {
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 		_, _, err := client.Login(context.Background(), user.Email, user.Password)
 		require.NoError(t, err)
 
@@ -2528,13 +2495,12 @@ func TestUserUnicodeNames(t *testing.T) {
 func TestUpdateUserAuth(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
-	team := th.CreateTeamWithClient(th.SystemAdminClient)
+	team := th.CreateTeamWithClient(t, th.SystemAdminClient)
 
-	user := th.CreateUser()
+	user := th.CreateUser(t)
 
-	th.LinkUserToTeam(user, team)
+	th.LinkUserToTeam(t, user, team)
 	_, err := th.App.Srv().Store().User().VerifyEmail(user.Id, user.Email)
 	require.NoError(t, err)
 
@@ -2562,8 +2528,8 @@ func TestUpdateUserAuth(t *testing.T) {
 	require.Error(t, err)
 
 	// Regular user can not use endpoint
-	user2 := th.CreateUser()
-	th.LinkUserToTeam(user2, team)
+	user2 := th.CreateUser(t)
+	th.LinkUserToTeam(t, user2, team)
 	_, err = th.App.Srv().Store().User().VerifyEmail(user2.Id, user2.Email)
 	require.NoError(t, err)
 
@@ -2578,10 +2544,9 @@ func TestUpdateUserAuth(t *testing.T) {
 
 func TestDeleteUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
-	th.LoginBasic()
+	th.LoginBasic(t)
 	resp, err := th.Client.DeleteUser(context.Background(), th.SystemAdminUser.Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
@@ -2601,13 +2566,13 @@ func TestDeleteUser(t *testing.T) {
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
-		userToDelete := th.CreateUser()
+		userToDelete := th.CreateUser(t)
 		_, err = c.DeleteUser(context.Background(), userToDelete.Id)
 		require.NoError(t, err)
 	})
 
-	selfDeleteUser := th.CreateUser()
-	th.LoginBasic()
+	selfDeleteUser := th.CreateUser(t)
+	th.LoginBasic(t)
 	resp, err = th.Client.DeleteUser(context.Background(), selfDeleteUser.Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
@@ -2630,14 +2595,13 @@ func TestDeleteUser(t *testing.T) {
 
 func TestDeleteBotUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(c *model.Config) {
 		*c.ServiceSettings.EnableBotAccountCreation = true
 	})
 
-	bot := th.CreateBotWithSystemAdminClient()
+	bot := th.CreateBotWithSystemAdminClient(t)
 
 	_, err := th.Client.DeleteUser(context.Background(), bot.UserId)
 	require.Error(t, err)
@@ -2646,8 +2610,7 @@ func TestDeleteBotUser(t *testing.T) {
 
 func TestPermanentDeleteUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	enableAPIUserDeletion := *th.App.Config().ServiceSettings.EnableAPIUserDeletion
 	defer func() {
@@ -2656,7 +2619,7 @@ func TestPermanentDeleteUser(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIUserDeletion = false })
 
-	userToDelete := th.CreateUser()
+	userToDelete := th.CreateUser(t)
 
 	t.Run("Permanent deletion not available through API if EnableAPIUserDeletion is not set", func(t *testing.T) {
 		resp, err := th.SystemAdminClient.PermanentDeleteUser(context.Background(), userToDelete.Id)
@@ -2671,7 +2634,7 @@ func TestPermanentDeleteUser(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableAPIUserDeletion = true })
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, c *model.Client4) {
-		userToDelete = th.CreateUser()
+		userToDelete = th.CreateUser(t)
 		_, err := c.PermanentDeleteUser(context.Background(), userToDelete.Id)
 		require.NoError(t, err)
 
@@ -2686,8 +2649,7 @@ func TestPermanentDeleteUser(t *testing.T) {
 
 func TestPermanentDeleteAllUsers(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("The endpoint should not be available for neither normal nor sysadmin users", func(t *testing.T) {
 		resp, err := th.Client.PermanentDeleteAllUsers(context.Background())
@@ -2754,8 +2716,7 @@ func TestPermanentDeleteAllUsers(t *testing.T) {
 
 func TestUpdateUserRoles(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	resp, err := th.Client.UpdateUserRoles(context.Background(), th.SystemAdminUser.Id, model.SystemUserRoleId)
 	require.Error(t, err)
@@ -2809,8 +2770,7 @@ func TestUpdateUserActive(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("basic tests", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		user := th.BasicUser
 
@@ -2828,7 +2788,7 @@ func TestUpdateUserActive(t *testing.T) {
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 
-		th.LoginBasic2()
+		th.LoginBasic2(t)
 
 		resp, err = th.Client.UpdateUserActive(context.Background(), user.Id, true)
 		require.Error(t, err)
@@ -2867,8 +2827,7 @@ func TestUpdateUserActive(t *testing.T) {
 
 	t.Run("websocket events", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		user := th.BasicUser2
 
@@ -2906,8 +2865,7 @@ func TestUpdateUserActive(t *testing.T) {
 
 	t.Run("activate guest should fail when guests feature is disable", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		id := model.NewId()
 		guest := &model.User{
@@ -2934,8 +2892,7 @@ func TestUpdateUserActive(t *testing.T) {
 
 	t.Run("activate guest should work when guests feature is enabled", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		id := model.NewId()
 		guest := &model.User{
@@ -2959,8 +2916,7 @@ func TestUpdateUserActive(t *testing.T) {
 
 	t.Run("update active status of LDAP user should fail", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		ldapUser := &model.User{
 			Email:         "ldapuser@mattermost-customer.com",
@@ -2987,7 +2943,6 @@ func TestUpdateUserActive(t *testing.T) {
 func TestGetUsers(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		rusers, _, err := client.GetUsers(context.Background(), 0, 60, "")
@@ -3057,8 +3012,7 @@ func TestGetUsers(t *testing.T) {
 
 func TestGetNewUsersInTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	teamId := th.BasicTeam.Id
 
 	rusers, _, err := th.Client.GetNewUsersInTeam(context.Background(), teamId, 0, 60, "")
@@ -3084,8 +3038,7 @@ func TestGetNewUsersInTeam(t *testing.T) {
 
 func TestGetRecentlyActiveUsersInTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	teamId := th.BasicTeam.Id
 
 	th.App.SetStatusOnline(th.BasicUser.Id, true)
@@ -3111,8 +3064,7 @@ func TestGetRecentlyActiveUsersInTeam(t *testing.T) {
 
 func TestGetActiveUsersInTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	teamId := th.BasicTeam.Id
 
 	_, err := th.SystemAdminClient.UpdateUserActive(context.Background(), th.BasicUser2.Id, false)
@@ -3144,8 +3096,7 @@ func TestGetActiveUsersInTeam(t *testing.T) {
 
 func TestGetUsersWithoutTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	_, _, err := th.Client.GetUsersWithoutTeam(context.Background(), 0, 100, "")
 	require.Error(t, err, "should prevent non-admin user from getting users without a team")
@@ -3158,7 +3109,7 @@ func TestGetUsersWithoutTeam(t *testing.T) {
 		Password: "Password1",
 	})
 	require.NoError(t, err)
-	th.LinkUserToTeam(user, th.BasicTeam)
+	th.LinkUserToTeam(t, user, th.BasicTeam)
 	defer func() {
 		err = th.App.Srv().Store().User().PermanentDelete(th.Context, user.Id)
 		require.NoError(t, err)
@@ -3195,8 +3146,7 @@ func TestGetUsersWithoutTeam(t *testing.T) {
 
 func TestGetUsersInTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	teamId := th.BasicTeam.Id
 
 	rusers, resp, err := th.Client.GetUsersInTeam(context.Background(), teamId, 0, 60, "")
@@ -3226,7 +3176,7 @@ func TestGetUsersInTeam(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	user := th.CreateUser()
+	user := th.CreateUser(t)
 	_, _, err = th.Client.Login(context.Background(), user.Email, user.Password)
 	require.NoError(t, err)
 	_, resp, err = th.Client.GetUsersInTeam(context.Background(), teamId, 0, 60, "")
@@ -3239,8 +3189,8 @@ func TestGetUsersInTeam(t *testing.T) {
 
 func TestGetUsersNotInTeam(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic().DeleteBots()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t).DeleteBots(t)
+
 	teamId := th.BasicTeam.Id
 
 	rusers, resp, err := th.Client.GetUsersNotInTeam(context.Background(), teamId, 0, 60, "")
@@ -3271,7 +3221,7 @@ func TestGetUsersNotInTeam(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	user := th.CreateUser()
+	user := th.CreateUser(t)
 	_, _, err = th.Client.Login(context.Background(), user.Email, user.Password)
 	require.NoError(t, err)
 	_, resp, err = th.Client.GetUsersNotInTeam(context.Background(), teamId, 0, 60, "")
@@ -3284,8 +3234,7 @@ func TestGetUsersNotInTeam(t *testing.T) {
 
 func TestGetUsersInChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	channelId := th.BasicChannel.Id
 
 	rusers, _, err := th.Client.GetUsersInChannel(context.Background(), channelId, 0, 60, "")
@@ -3312,7 +3261,7 @@ func TestGetUsersInChannel(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	user := th.CreateUser()
+	user := th.CreateUser(t)
 	_, _, err = th.Client.Login(context.Background(), user.Email, user.Password)
 	require.NoError(t, err)
 	_, resp, err = th.Client.GetUsersInChannel(context.Background(), channelId, 0, 60, "")
@@ -3323,7 +3272,7 @@ func TestGetUsersInChannel(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("Should allow getting the members of an archived channel", func(t *testing.T) {
-		th.LoginBasic()
+		th.LoginBasic(t)
 		channel, _, appErr := th.SystemAdminClient.CreateChannel(context.Background(), &model.Channel{
 			DisplayName: "User Created Channel",
 			Name:        model.NewId(),
@@ -3348,13 +3297,12 @@ func TestGetUsersInChannel(t *testing.T) {
 
 func TestGetUsersNotInChannel(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	teamId := th.BasicTeam.Id
 	channelId := th.BasicChannel.Id
 
-	user := th.CreateUser()
-	th.LinkUserToTeam(user, th.BasicTeam)
+	user := th.CreateUser(t)
+	th.LinkUserToTeam(t, user, th.BasicTeam)
 
 	rusers, _, err := th.Client.GetUsersNotInChannel(context.Background(), teamId, channelId, 0, 60, "")
 	require.NoError(t, err)
@@ -3388,8 +3336,7 @@ func TestGetUsersNotInChannel(t *testing.T) {
 
 func TestGetUsersInGroup(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	id := model.NewId()
 	group, appErr := th.App.CreateGroup(&model.Group{
@@ -3471,8 +3418,7 @@ func TestGetUsersInGroup(t *testing.T) {
 
 func TestGetUsersInGroupByDisplayName(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	id := model.NewId()
 	group, appErr := th.App.CreateGroup(&model.Group{
@@ -3529,8 +3475,7 @@ func TestGetUsersInGroupByDisplayName(t *testing.T) {
 
 func TestUpdateUserMfa(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.Srv().SetLicense(model.NewTestLicense("mfa"))
 	t.Run("Without enforcing", func(t *testing.T) {
@@ -3575,8 +3520,7 @@ func TestUpdateUserMfa(t *testing.T) {
 
 func TestUserLoginMFAFlow(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(c *model.Config) {
 		*c.ServiceSettings.EnableMultifactorAuthentication = true
@@ -3641,8 +3585,7 @@ func TestUserLoginMFAFlow(t *testing.T) {
 
 func TestGenerateMfaSecret(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = false })
 
@@ -3683,8 +3626,7 @@ func TestGenerateMfaSecret(t *testing.T) {
 
 func TestUpdateUserPassword(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	password := "newpassword1"
 	_, err := th.Client.UpdateUserPassword(context.Background(), th.BasicUser.Id, th.BasicUser.Password, password)
@@ -3719,12 +3661,12 @@ func TestUpdateUserPassword(t *testing.T) {
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
 
-	th.LoginBasic2()
+	th.LoginBasic2(t)
 	resp, err = th.Client.UpdateUserPassword(context.Background(), th.BasicUser.Id, password, password)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	th.LoginBasic()
+	th.LoginBasic(t)
 
 	// Test lockout
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.MaximumLoginAttempts = 2 })
@@ -3753,8 +3695,7 @@ func TestUpdateUserPassword(t *testing.T) {
 
 func TestUpdateUserHashedPassword(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.Client
 
 	password := "SuperSecurePass23!"
@@ -3777,8 +3718,7 @@ func TestUpdateUserHashedPassword(t *testing.T) {
 func TestResetPassword(t *testing.T) {
 	t.Skip("test disabled during old build server changes, should be investigated")
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	_, err := th.Client.Logout(context.Background())
 	require.NoError(t, err)
 	user := th.BasicUser
@@ -3859,8 +3799,7 @@ func TestResetPassword(t *testing.T) {
 
 func TestGetSessions(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	user := th.BasicUser
 
@@ -3903,8 +3842,7 @@ func TestGetSessions(t *testing.T) {
 
 func TestRevokeSessions(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	user := th.BasicUser
 	_, _, err := th.Client.Login(context.Background(), user.Email, user.Password)
@@ -3931,7 +3869,7 @@ func TestRevokeSessions(t *testing.T) {
 	_, err = th.Client.RevokeSession(context.Background(), user.Id, session.Id)
 	require.NoError(t, err)
 
-	th.LoginBasic()
+	th.LoginBasic(t)
 
 	sessions, _ = th.App.GetSessions(th.Context, th.SystemAdminUser.Id)
 	session = sessions[0]
@@ -3963,8 +3901,7 @@ func TestRevokeSessions(t *testing.T) {
 
 func TestRevokeAllSessions(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	user := th.BasicUser
 	_, _, err := th.Client.Login(context.Background(), user.Email, user.Password)
@@ -4007,8 +3944,7 @@ func TestRevokeAllSessions(t *testing.T) {
 func TestRevokeSessionsFromAllUsers(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	user := th.BasicUser
 	_, _, err := th.Client.Login(context.Background(), user.Email, user.Password)
@@ -4054,8 +3990,7 @@ func TestRevokeSessionsFromAllUsers(t *testing.T) {
 
 func TestAttachDeviceId(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	deviceId := model.PushNotifyApple + ":1234567890"
 
@@ -4100,7 +4035,7 @@ func TestAttachDeviceId(t *testing.T) {
 	// Props related tests
 
 	client := th.CreateClient()
-	th.LoginBasicWithClient(client)
+	th.LoginBasicWithClient(t, client)
 
 	resetSession := func(session *model.Session) {
 		session.AddProp(model.SessionPropDeviceNotificationDisabled, "")
@@ -4176,8 +4111,7 @@ func TestAttachDeviceId(t *testing.T) {
 
 func TestGetUserAudits(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	user := th.BasicUser
 
 	audits, _, err := th.Client.GetUserAudits(context.Background(), user.Id, 0, 100, "")
@@ -4203,7 +4137,6 @@ func TestGetUserAudits(t *testing.T) {
 func TestVerifyUserEmail(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	email := th.GenerateTestEmail()
 	user := model.User{Email: email, Nickname: "Darth Vader", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SystemAdminRoleId + " " + model.SystemUserRoleId}
@@ -4227,8 +4160,7 @@ func TestVerifyUserEmail(t *testing.T) {
 
 func TestSendVerificationEmail(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	_, err := th.Client.SendVerificationEmail(context.Background(), th.BasicUser.Email)
 	require.NoError(t, err)
@@ -4249,8 +4181,7 @@ func TestSendVerificationEmail(t *testing.T) {
 
 func TestSetProfileImage(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	user := th.BasicUser
 
 	data, err := testutils.ReadTestFile("test.png")
@@ -4305,8 +4236,7 @@ func TestSetProfileImage(t *testing.T) {
 
 func TestSetDefaultProfileImage(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	user := th.BasicUser
 
 	startTime := model.GetMillis()
@@ -4343,7 +4273,7 @@ func TestSetDefaultProfileImage(t *testing.T) {
 	require.NoError(t, err)
 
 	// Check that a system admin can set the default profile image for another system admin
-	anotherAdmin := th.CreateUser()
+	anotherAdmin := th.CreateUser(t)
 	_, appErr := th.App.UpdateUserRoles(th.Context, anotherAdmin.Id, model.SystemAdminRoleId+" "+model.SystemUserRoleId, false)
 	require.Nil(t, appErr)
 
@@ -4361,8 +4291,7 @@ func TestSetDefaultProfileImage(t *testing.T) {
 
 func TestLogin(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	_, err := th.Client.Logout(context.Background())
 	require.NoError(t, err)
 
@@ -4437,8 +4366,7 @@ func TestLogin(t *testing.T) {
 func TestLoginCookies(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("should return cookies with X-Requested-With header", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.Client.HTTPHeader[model.HeaderRequestedWith] = model.HeaderRequestedWithXML
 
@@ -4466,8 +4394,7 @@ func TestLoginCookies(t *testing.T) {
 	})
 
 	t.Run("should not return cookies without X-Requested-With header", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		_, resp, _ := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 
@@ -4475,8 +4402,7 @@ func TestLoginCookies(t *testing.T) {
 	})
 
 	t.Run("should include subpath in path", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.Client.HTTPHeader[model.HeaderRequestedWith] = model.HeaderRequestedWithXML
 
@@ -4509,8 +4435,7 @@ func TestLoginCookies(t *testing.T) {
 		updateConfig := func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "https://testchips.cloud.mattermost.com"
 		}
-		th := SetupAndApplyConfigBeforeLogin(t, updateConfig).InitBasic()
-		defer th.TearDown()
+		th := SetupAndApplyConfigBeforeLogin(t, updateConfig).InitBasic(t)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
@@ -4537,8 +4462,7 @@ func TestLoginCookies(t *testing.T) {
 		updateConfig := func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "https://testchips.cloud.mattermost.com"
 		}
-		th := SetupAndApplyConfigBeforeLogin(t, updateConfig).InitBasic()
-		defer th.TearDown()
+		th := SetupAndApplyConfigBeforeLogin(t, updateConfig).InitBasic(t)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
@@ -4575,8 +4499,7 @@ func TestLoginCookies(t *testing.T) {
 		updateConfig := func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "https://testchips.com" // correct cloud URL would be https://testchips.cloud.mattermost.com
 		}
-		th := SetupAndApplyConfigBeforeLogin(t, updateConfig).InitBasic()
-		defer th.TearDown()
+		th := SetupAndApplyConfigBeforeLogin(t, updateConfig).InitBasic(t)
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
@@ -4596,8 +4519,7 @@ func TestLoginCookies(t *testing.T) {
 		updateConfig := func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "https://testchips.com"
 		}
-		th := SetupAndApplyConfigBeforeLogin(t, updateConfig).InitBasic()
-		defer th.TearDown()
+		th := SetupAndApplyConfigBeforeLogin(t, updateConfig).InitBasic(t)
 
 		_, resp, _ := th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 
@@ -4614,8 +4536,7 @@ func TestLoginCookies(t *testing.T) {
 
 func TestSwitchAccount(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Enable = true })
 
@@ -4646,7 +4567,7 @@ func TestSwitchAccount(t *testing.T) {
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	th.LoginBasic()
+	th.LoginBasic(t)
 
 	sr = &model.SwitchRequest{
 		CurrentService: model.UserAuthServiceSaml,
@@ -4679,7 +4600,7 @@ func TestSwitchAccount(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ExperimentalEnableAuthenticationTransfer = true })
 
-	th.LoginBasic()
+	th.LoginBasic(t)
 
 	fakeAuthData := model.NewId()
 	_, appErr := th.App.Srv().Store().User().UpdateAuthData(th.BasicUser.Id, model.UserAuthServiceGitlab, &fakeAuthData, th.BasicUser.Email, true)
@@ -4877,8 +4798,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 	t.Run("create token without permission", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
@@ -4889,8 +4809,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 	t.Run("system admin and local mode can create access token", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
@@ -4909,8 +4828,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 	t.Run("create token for invalid user id", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
@@ -4923,8 +4841,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 	t.Run("create token with invalid value", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
@@ -4937,8 +4854,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 	t.Run("create token with user access tokens disabled", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = false })
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
@@ -4953,8 +4869,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 	t.Run("create user access token", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
@@ -4974,8 +4889,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 	t.Run("create user access token as second user, without permission", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
@@ -4986,11 +4900,10 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 	t.Run("create user access token for another user, with permission", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
-		th.AddPermissionToRole(model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
+		th.AddPermissionToRole(t, model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserManagerRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 		require.Nil(t, appErr)
 
@@ -5006,11 +4919,10 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 	t.Run("create user access token for system admin, as system user manager", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
-		th.AddPermissionToRole(model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
+		th.AddPermissionToRole(t, model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserManagerRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 		require.Nil(t, appErr)
 
@@ -5021,8 +4933,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 	t.Run("create user access token for basic user as a system admin", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
@@ -5038,8 +4949,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 	t.Run("create user access token for remote user as a system admin", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
@@ -5059,8 +4969,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 	t.Run("create access token as oauth session", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
@@ -5075,15 +4984,14 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 	t.Run("create access token for bot created by user", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		defaultPerms := th.SaveDefaultRolePermissions()
-		defer th.RestoreDefaultRolePermissions(defaultPerms)
-		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
-		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
+		defaultPerms := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+		th.AddPermissionToRole(t, model.PermissionCreateBot.Id, model.TeamUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		require.Nil(t, appErr)
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -5103,7 +5011,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 		}()
 
 		t.Run("without MANAGE_BOT permission", func(t *testing.T) {
-			th.RemovePermissionFromRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
+			th.RemovePermissionFromRole(t, model.PermissionManageBots.Id, model.TeamUserRoleId)
 
 			_, resp, err = th.Client.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token")
 			require.Error(t, err)
@@ -5111,7 +5019,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 		})
 
 		t.Run("with MANAGE_BOTS permission", func(t *testing.T) {
-			th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
+			th.AddPermissionToRole(t, model.PermissionManageBots.Id, model.TeamUserRoleId)
 
 			token, _, err := th.Client.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token")
 			require.NoError(t, err)
@@ -5122,16 +5030,15 @@ func TestCreateUserAccessToken(t *testing.T) {
 
 	t.Run("create access token for bot created by another user, only having MANAGE_BOTS permission", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		defaultPerms := th.SaveDefaultRolePermissions()
-		defer th.RestoreDefaultRolePermissions(defaultPerms)
-		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
-		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
-		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
+		defaultPerms := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+		th.AddPermissionToRole(t, model.PermissionCreateBot.Id, model.TeamUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageBots.Id, model.TeamUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		require.Nil(t, appErr)
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -5157,7 +5064,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 		})
 
 		t.Run("with MANAGE_OTHERS_BOTS permission", func(t *testing.T) {
-			th.AddPermissionToRole(model.PermissionManageOthersBots.Id, model.TeamUserRoleId)
+			th.AddPermissionToRole(t, model.PermissionManageOthersBots.Id, model.TeamUserRoleId)
 
 			rtoken, _, err := th.Client.CreateUserAccessToken(context.Background(), createdBot.UserId, "test token")
 			require.NoError(t, err)
@@ -5173,8 +5080,7 @@ func TestGetUserAccessToken(t *testing.T) {
 
 	t.Run("get for invalid user id", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
@@ -5185,8 +5091,7 @@ func TestGetUserAccessToken(t *testing.T) {
 
 	t.Run("get for unknown user id", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
@@ -5197,8 +5102,7 @@ func TestGetUserAccessToken(t *testing.T) {
 
 	t.Run("get my token", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
@@ -5218,8 +5122,7 @@ func TestGetUserAccessToken(t *testing.T) {
 
 	t.Run("get user token as system admin", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
@@ -5240,17 +5143,16 @@ func TestGetUserAccessToken(t *testing.T) {
 
 	t.Run("get token for bot created by user", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		defaultPerms := th.SaveDefaultRolePermissions()
-		defer th.RestoreDefaultRolePermissions(defaultPerms)
-		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
-		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
-		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
-		th.AddPermissionToRole(model.PermissionReadUserAccessToken.Id, model.TeamUserRoleId)
+		defaultPerms := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+		th.AddPermissionToRole(t, model.PermissionCreateBot.Id, model.TeamUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageBots.Id, model.TeamUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionReadUserAccessToken.Id, model.TeamUserRoleId)
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		require.Nil(t, appErr)
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -5273,7 +5175,7 @@ func TestGetUserAccessToken(t *testing.T) {
 		require.NoError(t, err)
 
 		t.Run("without MANAGE_BOTS permission", func(t *testing.T) {
-			th.RemovePermissionFromRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
+			th.RemovePermissionFromRole(t, model.PermissionManageBots.Id, model.TeamUserRoleId)
 
 			_, resp, err := th.Client.GetUserAccessToken(context.Background(), token.Id)
 			require.Error(t, err)
@@ -5281,7 +5183,7 @@ func TestGetUserAccessToken(t *testing.T) {
 		})
 
 		t.Run("with MANAGE_BOTS permission", func(t *testing.T) {
-			th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
+			th.AddPermissionToRole(t, model.PermissionManageBots.Id, model.TeamUserRoleId)
 
 			returnedToken, _, err := th.Client.GetUserAccessToken(context.Background(), token.Id)
 			require.NoError(t, err)
@@ -5294,17 +5196,16 @@ func TestGetUserAccessToken(t *testing.T) {
 
 	t.Run("get token for bot created by another user", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		defaultPerms := th.SaveDefaultRolePermissions()
-		defer th.RestoreDefaultRolePermissions(defaultPerms)
-		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
-		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
-		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
-		th.AddPermissionToRole(model.PermissionReadUserAccessToken.Id, model.TeamUserRoleId)
+		defaultPerms := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+		th.AddPermissionToRole(t, model.PermissionCreateBot.Id, model.TeamUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageBots.Id, model.TeamUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionReadUserAccessToken.Id, model.TeamUserRoleId)
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		require.Nil(t, appErr)
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -5333,7 +5234,7 @@ func TestGetUserAccessToken(t *testing.T) {
 		})
 
 		t.Run("with MANAGE_OTHERS_BOTS permission", func(t *testing.T) {
-			th.AddPermissionToRole(model.PermissionManageOthersBots.Id, model.TeamUserRoleId)
+			th.AddPermissionToRole(t, model.PermissionManageOthersBots.Id, model.TeamUserRoleId)
 
 			returnedToken, _, err := th.Client.GetUserAccessToken(context.Background(), token.Id)
 			require.NoError(t, err)
@@ -5350,8 +5251,7 @@ func TestGetUserAccessTokensForUser(t *testing.T) {
 
 	t.Run("multiple tokens, offset 0, limit 100", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
@@ -5377,8 +5277,7 @@ func TestGetUserAccessTokensForUser(t *testing.T) {
 
 	t.Run("multiple tokens, offset 1, limit 1", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
@@ -5408,8 +5307,7 @@ func TestGetUserAccessTokens(t *testing.T) {
 
 	t.Run("GetUserAccessTokens, not a system admin", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
@@ -5423,8 +5321,7 @@ func TestGetUserAccessTokens(t *testing.T) {
 
 	t.Run("GetUserAccessTokens, as a system admin, page 1, perPage 1", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
@@ -5445,8 +5342,7 @@ func TestGetUserAccessTokens(t *testing.T) {
 
 	t.Run("GetUserAccessTokens, as a system admin, page 0, perPage 2", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
@@ -5469,8 +5365,7 @@ func TestGetUserAccessTokens(t *testing.T) {
 func TestSearchUserAccessToken(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	testDescription := "test token"
 
@@ -5511,8 +5406,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 
 	t.Run("revoke user token", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
@@ -5532,8 +5426,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 
 	t.Run("revoke token belonging to another user", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
@@ -5547,17 +5440,16 @@ func TestRevokeUserAccessToken(t *testing.T) {
 
 	t.Run("revoke token for bot created by user", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		defaultPerms := th.SaveDefaultRolePermissions()
-		defer th.RestoreDefaultRolePermissions(defaultPerms)
-		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
-		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
-		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
-		th.AddPermissionToRole(model.PermissionRevokeUserAccessToken.Id, model.TeamUserRoleId)
+		defaultPerms := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+		th.AddPermissionToRole(t, model.PermissionCreateBot.Id, model.TeamUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageBots.Id, model.TeamUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionRevokeUserAccessToken.Id, model.TeamUserRoleId)
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		require.Nil(t, appErr)
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -5580,7 +5472,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 		require.NoError(t, err)
 
 		t.Run("without MANAGE_BOTS permission", func(t *testing.T) {
-			th.RemovePermissionFromRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
+			th.RemovePermissionFromRole(t, model.PermissionManageBots.Id, model.TeamUserRoleId)
 
 			resp, err := th.Client.RevokeUserAccessToken(context.Background(), token.Id)
 			require.Error(t, err)
@@ -5588,7 +5480,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 		})
 
 		t.Run("with MANAGE_BOTS permission", func(t *testing.T) {
-			th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
+			th.AddPermissionToRole(t, model.PermissionManageBots.Id, model.TeamUserRoleId)
 
 			_, err := th.Client.RevokeUserAccessToken(context.Background(), token.Id)
 			require.NoError(t, err)
@@ -5597,17 +5489,16 @@ func TestRevokeUserAccessToken(t *testing.T) {
 
 	t.Run("revoke token for bot created by another user", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		defaultPerms := th.SaveDefaultRolePermissions()
-		defer th.RestoreDefaultRolePermissions(defaultPerms)
-		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
-		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
-		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
-		th.AddPermissionToRole(model.PermissionRevokeUserAccessToken.Id, model.TeamUserRoleId)
+		defaultPerms := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+		th.AddPermissionToRole(t, model.PermissionCreateBot.Id, model.TeamUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageBots.Id, model.TeamUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionRevokeUserAccessToken.Id, model.TeamUserRoleId)
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		require.Nil(t, appErr)
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -5636,7 +5527,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 		})
 
 		t.Run("with MANAGE_OTHERS_BOTS permission", func(t *testing.T) {
-			th.AddPermissionToRole(model.PermissionManageOthersBots.Id, model.TeamUserRoleId)
+			th.AddPermissionToRole(t, model.PermissionManageOthersBots.Id, model.TeamUserRoleId)
 
 			_, err := th.Client.RevokeUserAccessToken(context.Background(), token.Id)
 			require.NoError(t, err)
@@ -5649,8 +5540,7 @@ func TestDisableUserAccessToken(t *testing.T) {
 
 	t.Run("disable user token", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
@@ -5668,8 +5558,7 @@ func TestDisableUserAccessToken(t *testing.T) {
 
 	t.Run("disable token belonging to another user", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
@@ -5683,17 +5572,16 @@ func TestDisableUserAccessToken(t *testing.T) {
 
 	t.Run("disable token for bot created by user", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		defaultPerms := th.SaveDefaultRolePermissions()
-		defer th.RestoreDefaultRolePermissions(defaultPerms)
-		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
-		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
-		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
-		th.AddPermissionToRole(model.PermissionRevokeUserAccessToken.Id, model.TeamUserRoleId)
+		defaultPerms := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+		th.AddPermissionToRole(t, model.PermissionCreateBot.Id, model.TeamUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageBots.Id, model.TeamUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionRevokeUserAccessToken.Id, model.TeamUserRoleId)
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		require.Nil(t, appErr)
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -5716,7 +5604,7 @@ func TestDisableUserAccessToken(t *testing.T) {
 		require.NoError(t, err)
 
 		t.Run("without MANAGE_BOTS permission", func(t *testing.T) {
-			th.RemovePermissionFromRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
+			th.RemovePermissionFromRole(t, model.PermissionManageBots.Id, model.TeamUserRoleId)
 
 			resp, err := th.Client.DisableUserAccessToken(context.Background(), token.Id)
 			require.Error(t, err)
@@ -5724,7 +5612,7 @@ func TestDisableUserAccessToken(t *testing.T) {
 		})
 
 		t.Run("with MANAGE_BOTS permission", func(t *testing.T) {
-			th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
+			th.AddPermissionToRole(t, model.PermissionManageBots.Id, model.TeamUserRoleId)
 
 			_, err := th.Client.DisableUserAccessToken(context.Background(), token.Id)
 			require.NoError(t, err)
@@ -5732,17 +5620,16 @@ func TestDisableUserAccessToken(t *testing.T) {
 	})
 
 	t.Run("disable token for bot created by another user", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		defaultPerms := th.SaveDefaultRolePermissions()
-		defer th.RestoreDefaultRolePermissions(defaultPerms)
-		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
-		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
-		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
-		th.AddPermissionToRole(model.PermissionRevokeUserAccessToken.Id, model.TeamUserRoleId)
+		defaultPerms := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+		th.AddPermissionToRole(t, model.PermissionCreateBot.Id, model.TeamUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageBots.Id, model.TeamUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionRevokeUserAccessToken.Id, model.TeamUserRoleId)
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		require.Nil(t, appErr)
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -5771,7 +5658,7 @@ func TestDisableUserAccessToken(t *testing.T) {
 		})
 
 		t.Run("with MANAGE_OTHERS_BOTS permission", func(t *testing.T) {
-			th.AddPermissionToRole(model.PermissionManageOthersBots.Id, model.TeamUserRoleId)
+			th.AddPermissionToRole(t, model.PermissionManageOthersBots.Id, model.TeamUserRoleId)
 
 			_, err := th.Client.DisableUserAccessToken(context.Background(), token.Id)
 			require.NoError(t, err)
@@ -5783,8 +5670,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("enable user token", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
@@ -5807,8 +5693,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 
 	t.Run("enable token belonging to another user", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
@@ -5825,17 +5710,16 @@ func TestEnableUserAccessToken(t *testing.T) {
 
 	t.Run("enable token for bot created by user", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		defaultPerms := th.SaveDefaultRolePermissions()
-		defer th.RestoreDefaultRolePermissions(defaultPerms)
-		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
-		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
-		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
-		th.AddPermissionToRole(model.PermissionRevokeUserAccessToken.Id, model.TeamUserRoleId)
+		defaultPerms := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+		th.AddPermissionToRole(t, model.PermissionCreateBot.Id, model.TeamUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageBots.Id, model.TeamUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionRevokeUserAccessToken.Id, model.TeamUserRoleId)
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		require.Nil(t, appErr)
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -5861,7 +5745,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 		require.NoError(t, err)
 
 		t.Run("without MANAGE_BOTS permission", func(t *testing.T) {
-			th.RemovePermissionFromRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
+			th.RemovePermissionFromRole(t, model.PermissionManageBots.Id, model.TeamUserRoleId)
 
 			resp, err2 := th.Client.EnableUserAccessToken(context.Background(), token.Id)
 			require.Error(t, err2)
@@ -5869,7 +5753,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 		})
 
 		t.Run("with MANAGE_BOTS permission", func(t *testing.T) {
-			th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
+			th.AddPermissionToRole(t, model.PermissionManageBots.Id, model.TeamUserRoleId)
 
 			_, err = th.Client.EnableUserAccessToken(context.Background(), token.Id)
 			require.NoError(t, err)
@@ -5878,17 +5762,16 @@ func TestEnableUserAccessToken(t *testing.T) {
 
 	t.Run("enable token for bot created by another user", func(t *testing.T) {
 		mainHelper.Parallel(t)
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
+		th := Setup(t).InitBasic(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-		defaultPerms := th.SaveDefaultRolePermissions()
-		defer th.RestoreDefaultRolePermissions(defaultPerms)
-		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
-		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
-		th.AddPermissionToRole(model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
-		th.AddPermissionToRole(model.PermissionRevokeUserAccessToken.Id, model.TeamUserRoleId)
+		defaultPerms := th.SaveDefaultRolePermissions(t)
+		defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+		th.AddPermissionToRole(t, model.PermissionCreateBot.Id, model.TeamUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionManageBots.Id, model.TeamUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionCreateUserAccessToken.Id, model.TeamUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionRevokeUserAccessToken.Id, model.TeamUserRoleId)
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
 		require.Nil(t, appErr)
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -5920,7 +5803,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 		})
 
 		t.Run("with MANAGE_OTHERS_BOTS permission", func(t *testing.T) {
-			th.AddPermissionToRole(model.PermissionManageOthersBots.Id, model.TeamUserRoleId)
+			th.AddPermissionToRole(t, model.PermissionManageOthersBots.Id, model.TeamUserRoleId)
 
 			_, err = th.Client.EnableUserAccessToken(context.Background(), token.Id)
 			require.NoError(t, err)
@@ -5931,8 +5814,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 func TestUserAccessTokenInactiveUser(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	testDescription := "test token"
 
@@ -5958,8 +5840,7 @@ func TestUserAccessTokenInactiveUser(t *testing.T) {
 func TestUserAccessTokenDisableConfig(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	testDescription := "test token"
 
@@ -5990,7 +5871,6 @@ func TestUserAccessTokenDisableConfigBotsExcluded(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableBotAccountCreation = true
@@ -6017,7 +5897,6 @@ func TestGetUsersByStatus(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t)
-	defer th.TearDown()
 
 	team, appErr := th.App.CreateTeam(th.Context, &model.Team{
 		DisplayName: "dn_" + model.NewId(),
@@ -6048,8 +5927,8 @@ func TestGetUsersByStatus(t *testing.T) {
 		})
 		require.Nil(t, err, "failed to create user")
 
-		th.LinkUserToTeam(user, team)
-		th.AddUserToChannel(user, channel)
+		th.LinkUserToTeam(t, user, team)
+		th.AddUserToChannel(t, user, channel)
 
 		th.App.Srv().Platform().SaveAndBroadcastStatus(&model.Status{
 			UserId: user.Id,
@@ -6125,8 +6004,7 @@ func TestGetUsersByStatus(t *testing.T) {
 func TestRegisterTermsOfServiceAction(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	_, err := th.Client.RegisterTermsOfServiceAction(context.Background(), th.BasicUser.Id, "st_1", true)
 	CheckErrorID(t, err, "app.terms_of_service.get.no_rows.app_error")
@@ -6144,8 +6022,7 @@ func TestRegisterTermsOfServiceAction(t *testing.T) {
 func TestGetUserTermsOfService(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	_, _, err := th.Client.GetUserTermsOfService(context.Background(), th.BasicUser.Id, "")
 	CheckErrorID(t, err, "app.user_terms_of_service.get_by_user.no_rows.app_error")
@@ -6167,8 +6044,7 @@ func TestGetUserTermsOfService(t *testing.T) {
 func TestLoginErrorMessage(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	_, err := th.Client.Logout(context.Background())
 	require.NoError(t, err)
@@ -6225,8 +6101,7 @@ func TestLoginErrorMessage(t *testing.T) {
 func TestLoginLockout(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	_, err := th.Client.Logout(context.Background())
 	require.NoError(t, err)
@@ -6275,8 +6150,7 @@ func TestLoginLockout(t *testing.T) {
 func TestDemoteUserToGuest(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
 	defer func() {
@@ -6351,8 +6225,7 @@ func TestDemoteUserToGuest(t *testing.T) {
 func TestPromoteGuestToUser(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
 	defer func() {
@@ -6409,7 +6282,6 @@ func TestVerifyUserEmailWithoutToken(t *testing.T) {
 	mainHelper.Parallel(t)
 
 	th := Setup(t)
-	defer th.TearDown()
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		email := th.GenerateTestEmail()
@@ -6474,7 +6346,7 @@ func TestVerifyUserEmailWithoutToken(t *testing.T) {
 	}, "Should not be able to find user")
 
 	t.Run("Should not be able to verify user due to permissions", func(t *testing.T) {
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 		vuser, _, err := th.Client.VerifyUserEmailWithoutToken(context.Background(), user.Id)
 		require.Error(t, err)
 		CheckErrorID(t, err, "api.context.permissions.app_error")
@@ -6485,7 +6357,6 @@ func TestVerifyUserEmailWithoutToken(t *testing.T) {
 func TestGetKnownUsers(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	t1, err := th.App.CreateTeam(th.Context, &model.Team{
 		DisplayName: "dn_" + model.NewId(),
@@ -6538,32 +6409,32 @@ func TestGetKnownUsers(t *testing.T) {
 	}, false)
 	require.Nil(t, err, "failed to create channel")
 
-	u1 := th.CreateUser()
+	u1 := th.CreateUser(t)
 	defer func() {
 		appErr := th.App.PermanentDeleteUser(th.Context, u1)
 		require.Nil(t, appErr)
 	}()
-	u2 := th.CreateUser()
+	u2 := th.CreateUser(t)
 	defer func() {
 		appErr := th.App.PermanentDeleteUser(th.Context, u2)
 		require.Nil(t, appErr)
 	}()
-	u3 := th.CreateUser()
+	u3 := th.CreateUser(t)
 	defer func() {
 		appErr := th.App.PermanentDeleteUser(th.Context, u3)
 		require.Nil(t, appErr)
 	}()
-	u4 := th.CreateUser()
+	u4 := th.CreateUser(t)
 	defer func() {
 		appErr := th.App.PermanentDeleteUser(th.Context, u4)
 		require.Nil(t, appErr)
 	}()
 
-	th.LinkUserToTeam(u1, t1)
-	th.LinkUserToTeam(u1, t2)
-	th.LinkUserToTeam(u2, t1)
-	th.LinkUserToTeam(u3, t2)
-	th.LinkUserToTeam(u4, t3)
+	th.LinkUserToTeam(t, u1, t1)
+	th.LinkUserToTeam(t, u1, t2)
+	th.LinkUserToTeam(t, u2, t1)
+	th.LinkUserToTeam(t, u3, t2)
+	th.LinkUserToTeam(t, u4, t3)
 
 	_, appErr := th.App.AddUserToChannel(th.Context, u1, c1, false)
 	require.Nil(t, appErr)
@@ -6602,8 +6473,7 @@ func TestGetKnownUsers(t *testing.T) {
 
 func TestPublishUserTyping(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	tr := model.TypingRequest{
 		ChannelId: th.BasicChannel.Id,
@@ -6616,8 +6486,8 @@ func TestPublishUserTyping(t *testing.T) {
 	})
 
 	t.Run("should return ok for system admin when triggering typing event for own user", func(t *testing.T) {
-		th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
-		th.AddUserToChannel(th.SystemAdminUser, th.BasicChannel)
+		th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
+		th.AddUserToChannel(t, th.SystemAdminUser, th.BasicChannel)
 
 		_, err := th.SystemAdminClient.PublishUserTyping(context.Background(), th.SystemAdminUser.Id, tr)
 		require.NoError(t, err)
@@ -6677,8 +6547,7 @@ func TestPublishUserTyping(t *testing.T) {
 
 func TestConvertUserToBot(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	bot, resp, err := th.Client.ConvertUserToBot(context.Background(), th.BasicUser.Id)
 	require.Error(t, err)
@@ -6704,7 +6573,7 @@ func TestConvertUserToBot(t *testing.T) {
 
 	t.Run("user cannot login after being converted to bot", func(t *testing.T) {
 		// Create a new user
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 
 		// Login as the new user to verify login works initially
 		_, _, err := th.Client.Login(context.Background(), user.Email, user.Password)
@@ -6724,8 +6593,7 @@ func TestConvertUserToBot(t *testing.T) {
 
 func TestGetChannelMembersWithTeamData(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	channels, resp, err := th.Client.GetChannelMembersWithTeamData(context.Background(), th.BasicUser.Id, 0, 5)
 	require.NoError(t, err)
@@ -6756,8 +6624,7 @@ func TestGetChannelMembersWithTeamData(t *testing.T) {
 
 func TestMigrateAuthToLDAP(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	resp, err := th.Client.MigrateAuthToLdap(context.Background(), "email", "a", false)
 	require.Error(t, err)
@@ -6772,8 +6639,7 @@ func TestMigrateAuthToLDAP(t *testing.T) {
 
 func TestMigrateAuthToSAML(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	resp, err := th.Client.MigrateAuthToSaml(context.Background(), "email", map[string]string{"1": "a"}, true)
 	require.Error(t, err)
@@ -6789,7 +6655,6 @@ func TestMigrateAuthToSAML(t *testing.T) {
 func TestUpdatePassword(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	t.Run("Forbidden when request performed by system user on a system admin", func(t *testing.T) {
 		res, err := th.Client.UpdatePassword(context.Background(), th.SystemAdminUser.Id, "Pa$$word11", "foobar")
@@ -6798,8 +6663,8 @@ func TestUpdatePassword(t *testing.T) {
 	})
 
 	t.Run("OK when request performed by system user with requisite system permission, except if requested user is system admin", func(t *testing.T) {
-		th.AddPermissionToRole(model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
-		defer th.RemovePermissionFromRole(model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
 
 		res, _ := th.Client.UpdatePassword(context.Background(), th.TeamAdminUser.Id, "Pa$$word11", "foobar")
 		CheckOKStatus(t, res)
@@ -6827,10 +6692,9 @@ func TestUpdatePasswordAudit(t *testing.T) {
 
 	options := []app.Option{app.WithLicense(model.NewTestLicense("advanced_logging"))}
 	th := SetupWithServerOptions(t, options)
-	defer th.TearDown()
 
 	password := "this_is_the_password"
-	th.LoginBasic()
+	th.LoginBasic(t)
 	resp, err := th.Client.UpdatePassword(context.Background(), th.BasicUser.Id, th.BasicUser.Password, password)
 	require.NoError(t, err)
 	CheckOKStatus(t, resp)
@@ -6851,8 +6715,7 @@ func TestUpdatePasswordAudit(t *testing.T) {
 
 func TestGetThreadsForUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -7310,8 +7173,8 @@ func TestGetThreadsForUser(t *testing.T) {
 	})
 
 	t.Run("should error when not a team member", func(t *testing.T) {
-		th.UnlinkUserFromTeam(th.BasicUser, th.BasicTeam)
-		defer th.LinkUserToTeam(th.BasicUser, th.BasicTeam)
+		th.UnlinkUserFromTeam(t, th.BasicUser, th.BasicTeam)
+		defer th.LinkUserToTeam(t, th.BasicUser, th.BasicTeam)
 
 		_, resp, err := th.Client.GetUserThreads(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, model.GetUserThreadsOpts{})
 		require.Error(t, err)
@@ -7321,8 +7184,7 @@ func TestGetThreadsForUser(t *testing.T) {
 
 func TestThreadSocketEvents(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.ConfigStore.SetReadOnlyFF(false)
 	defer th.ConfigStore.SetReadOnlyFF(true)
@@ -7594,8 +7456,7 @@ func TestThreadSocketEvents(t *testing.T) {
 
 func TestFollowThreads(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -7707,12 +7568,11 @@ func postAndCheck(t *testing.T, client *model.Client4, post *model.Post) (*model
 func TestMaintainUnreadRepliesInThread(t *testing.T) {
 	mainHelper.Parallel(t)
 
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
-	defer th.UnlinkUserFromTeam(th.SystemAdminUser, th.BasicTeam)
-	th.AddUserToChannel(th.SystemAdminUser, th.BasicChannel)
-	defer th.RemoveUserFromChannel(th.SystemAdminUser, th.BasicChannel)
+	th := Setup(t).InitBasic(t)
+	th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
+	defer th.UnlinkUserFromTeam(t, th.SystemAdminUser, th.BasicTeam)
+	th.AddUserToChannel(t, th.SystemAdminUser, th.BasicChannel)
+	defer th.RemoveUserFromChannel(t, th.SystemAdminUser, th.BasicChannel)
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
 		*cfg.ServiceSettings.CollapsedThreads = model.CollapsedThreadsDefaultOn
@@ -7770,8 +7630,7 @@ func TestMaintainUnreadRepliesInThread(t *testing.T) {
 
 func TestThreadCounts(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -7818,8 +7677,7 @@ func TestThreadCounts(t *testing.T) {
 
 func TestSingleThreadGet(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
@@ -7884,8 +7742,8 @@ func TestSingleThreadGet(t *testing.T) {
 	})
 
 	t.Run("should error when not a team member", func(t *testing.T) {
-		th.UnlinkUserFromTeam(th.BasicUser, th.BasicTeam)
-		defer th.LinkUserToTeam(th.BasicUser, th.BasicTeam)
+		th.UnlinkUserFromTeam(t, th.BasicUser, th.BasicTeam)
+		defer th.LinkUserToTeam(t, th.BasicUser, th.BasicTeam)
 
 		_, resp, err := th.Client.GetUserThread(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, model.NewId(), false)
 		require.Error(t, err)
@@ -7895,12 +7753,11 @@ func TestSingleThreadGet(t *testing.T) {
 
 func TestMaintainUnreadMentionsInThread(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
-	defer th.UnlinkUserFromTeam(th.SystemAdminUser, th.BasicTeam)
-	th.AddUserToChannel(th.SystemAdminUser, th.BasicChannel)
-	defer th.RemoveUserFromChannel(th.SystemAdminUser, th.BasicChannel)
+	th := Setup(t).InitBasic(t)
+	th.LinkUserToTeam(t, th.SystemAdminUser, th.BasicTeam)
+	defer th.UnlinkUserFromTeam(t, th.SystemAdminUser, th.BasicTeam)
+	th.AddUserToChannel(t, th.SystemAdminUser, th.BasicChannel)
+	defer th.RemoveUserFromChannel(t, th.SystemAdminUser, th.BasicChannel)
 	client := th.Client
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -7947,7 +7804,7 @@ func TestMaintainUnreadMentionsInThread(t *testing.T) {
 	checkThreadList(th.Client, th.BasicUser.Id, 0, 1)
 
 	// test DM
-	dm := th.CreateDmChannel(th.SystemAdminUser)
+	dm := th.CreateDmChannel(t, th.SystemAdminUser)
 	dm_root_post, _ := postAndCheck(t, client, &model.Post{ChannelId: dm.Id, Message: "hi @" + th.SystemAdminUser.Username})
 
 	// no changes
@@ -7968,8 +7825,7 @@ func TestMaintainUnreadMentionsInThread(t *testing.T) {
 
 func TestReadThreads(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -8080,8 +7936,8 @@ func TestReadThreads(t *testing.T) {
 	})
 
 	t.Run("should error when not a team member", func(t *testing.T) {
-		th.UnlinkUserFromTeam(th.BasicUser, th.BasicTeam)
-		defer th.LinkUserToTeam(th.BasicUser, th.BasicTeam)
+		th.UnlinkUserFromTeam(t, th.BasicUser, th.BasicTeam)
+		defer th.LinkUserToTeam(t, th.BasicUser, th.BasicTeam)
 
 		_, resp, err := th.Client.UpdateThreadReadForUser(context.Background(), th.BasicUser.Id, th.BasicTeam.Id, model.NewId(), model.GetMillis())
 		require.Error(t, err)
@@ -8099,8 +7955,7 @@ func TestReadThreads(t *testing.T) {
 
 func TestMarkThreadUnreadMentionCount(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ThreadAutoFollow = true
@@ -8148,9 +8003,9 @@ func TestMarkThreadUnreadMentionCount(t *testing.T) {
 func TestPatchAndUpdateWithProviderAttributes(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("LDAP user", func(t *testing.T) {
-		th := SetupEnterprise(t).InitBasic()
-		defer th.TearDown()
-		user := th.CreateUserWithAuth(model.UserAuthServiceLdap)
+		th := SetupEnterprise(t).InitBasic(t)
+
+		user := th.CreateUserWithAuth(t, model.UserAuthServiceLdap)
 		ldapMock := &mocks.LdapInterface{}
 		ldapMock.Mock.On(
 			"CheckProviderAttributes",
@@ -8170,14 +8025,14 @@ func TestPatchAndUpdateWithProviderAttributes(t *testing.T) {
 	})
 	t.Run("SAML user", func(t *testing.T) {
 		t.Run("with LDAP sync", func(t *testing.T) {
-			th := SetupEnterprise(t).InitBasic()
-			defer th.TearDown()
+			th := SetupEnterprise(t).InitBasic(t)
 			th.SetupLdapConfig()
 			th.SetupSamlConfig()
 			th.App.UpdateConfig(func(cfg *model.Config) {
 				*cfg.SamlSettings.EnableSyncWithLdap = true
 			})
-			user := th.CreateUserWithAuth(model.UserAuthServiceSaml)
+
+			user := th.CreateUserWithAuth(t, model.UserAuthServiceSaml)
 			ldapMock := &mocks.LdapInterface{}
 			ldapMock.Mock.On(
 				"CheckProviderAttributes", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.LdapSettings"), mock.AnythingOfType("*model.User"), mock.AnythingOfType("*model.UserPatch"),
@@ -8191,9 +8046,9 @@ func TestPatchAndUpdateWithProviderAttributes(t *testing.T) {
 			ldapMock.AssertNumberOfCalls(t, "CheckProviderAttributes", 2)
 		})
 		t.Run("without LDAP sync", func(t *testing.T) {
-			th := SetupEnterprise(t).InitBasic()
-			defer th.TearDown()
-			user := th.CreateUserWithAuth(model.UserAuthServiceSaml)
+			th := SetupEnterprise(t).InitBasic(t)
+
+			user := th.CreateUserWithAuth(t, model.UserAuthServiceSaml)
 			samlMock := &mocks.SamlInterface{}
 			samlMock.Mock.On(
 				"CheckProviderAttributes", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.SamlSettings"), mock.AnythingOfType("*model.User"), mock.AnythingOfType("*model.UserPatch"),
@@ -8208,9 +8063,9 @@ func TestPatchAndUpdateWithProviderAttributes(t *testing.T) {
 		})
 	})
 	t.Run("OpenID user", func(t *testing.T) {
-		th := SetupEnterprise(t).InitBasic()
-		defer th.TearDown()
-		user := th.CreateUserWithAuth(model.ServiceOpenid)
+		th := SetupEnterprise(t).InitBasic(t)
+
+		user := th.CreateUserWithAuth(t, model.ServiceOpenid)
 		// OAUTH users cannot change these fields
 		for _, fieldName := range []string{
 			"FirstName",
@@ -8223,15 +8078,15 @@ func TestPatchAndUpdateWithProviderAttributes(t *testing.T) {
 		}
 	})
 	t.Run("Patch username", func(t *testing.T) {
-		th := SetupEnterprise(t).InitBasic()
-		defer th.TearDown()
+		th := SetupEnterprise(t).InitBasic(t)
+
 		// For non-email users, the username must be changed through the provider
 		for _, authService := range []string{
 			model.UserAuthServiceLdap,
 			model.UserAuthServiceSaml,
 			model.ServiceOpenid,
 		} {
-			user := th.CreateUserWithAuth(authService)
+			user := th.CreateUserWithAuth(t, authService)
 			patch := &model.UserPatch{Username: model.NewPointer("something new")}
 			conflictField := th.App.CheckProviderAttributes(th.Context, user, patch)
 			require.NotEqual(t, "", conflictField)
@@ -8280,10 +8135,10 @@ func TestSetProfileImageWithProviderAttributes(t *testing.T) {
 			{"profile picture attribute is set", true, false},
 			{"profile picture attribute is not set", false, true},
 		}
-		th := SetupEnterprise(t).InitBasic()
-		defer th.TearDown()
+		th := SetupEnterprise(t).InitBasic(t)
 		th.SetupLdapConfig()
-		user := th.CreateUserWithAuth(model.UserAuthServiceLdap)
+
+		user := th.CreateUserWithAuth(t, model.UserAuthServiceLdap)
 		for _, testCase := range testCases {
 			doImageTest(t, th, user, testCase)
 		}
@@ -8291,11 +8146,10 @@ func TestSetProfileImageWithProviderAttributes(t *testing.T) {
 	})
 
 	t.Run("SAML user", func(t *testing.T) {
-		th := SetupEnterprise(t).InitBasic()
-		defer th.TearDown()
+		th := SetupEnterprise(t).InitBasic(t)
 		th.SetupLdapConfig()
 		th.SetupSamlConfig()
-		user := th.CreateUserWithAuth(model.UserAuthServiceSaml)
+		user := th.CreateUserWithAuth(t, model.UserAuthServiceSaml)
 
 		t.Run("with LDAP sync", func(t *testing.T) {
 			th.App.UpdateConfig(func(cfg *model.Config) {
@@ -8327,8 +8181,7 @@ func TestSetProfileImageWithProviderAttributes(t *testing.T) {
 
 func TestGetUsersWithInvalidEmails(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 	client := th.SystemAdminClient
 
 	user := model.User{
@@ -8376,17 +8229,16 @@ func TestGetUsersWithInvalidEmails(t *testing.T) {
 
 func TestUserUpdateEvents(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	client1 := th.CreateClient()
-	th.LoginBasicWithClient(client1)
+	th.LoginBasicWithClient(t, client1)
 	WebSocketClient := th.CreateConnectedWebSocketClientWithClient(t, client1)
 	resp := <-WebSocketClient.ResponseChannel
 	require.Equal(t, resp.Status, model.StatusOk)
 
 	client2 := th.CreateClient()
-	th.LoginBasic2WithClient(client2)
+	th.LoginBasic2WithClient(t, client2)
 	WebSocketClient2 := th.CreateConnectedWebSocketClientWithClient(t, client2)
 	resp = <-WebSocketClient2.ResponseChannel
 	require.Equal(t, resp.Status, model.StatusOk)
@@ -8421,11 +8273,10 @@ func TestUserUpdateEvents(t *testing.T) {
 
 func TestLoginWithDesktopToken(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("login SAML User with desktop token", func(t *testing.T) {
-		samlUser := th.CreateUserWithAuth(model.UserAuthServiceSaml)
+		samlUser := th.CreateUserWithAuth(t, model.UserAuthServiceSaml)
 
 		token, appErr := th.App.GenerateAndSaveDesktopToken(time.Now().Unix(), samlUser)
 		assert.Nil(t, appErr)
@@ -8443,7 +8294,7 @@ func TestLoginWithDesktopToken(t *testing.T) {
 	})
 
 	t.Run("login OAuth User with desktop token", func(t *testing.T) {
-		gitlabUser := th.CreateUserWithAuth(model.UserAuthServiceGitlab)
+		gitlabUser := th.CreateUserWithAuth(t, model.UserAuthServiceGitlab)
 
 		token, appErr := th.App.GenerateAndSaveDesktopToken(time.Now().Unix(), gitlabUser)
 		assert.Nil(t, appErr)
@@ -8463,7 +8314,7 @@ func TestLoginWithDesktopToken(t *testing.T) {
 	t.Run("login email user with desktop token", func(t *testing.T) {
 		// Sleep to avoid rate limit error
 		time.Sleep(time.Second)
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 
 		token, appErr := th.App.GenerateAndSaveDesktopToken(time.Now().Unix(), user)
 		assert.Nil(t, appErr)
@@ -8474,7 +8325,7 @@ func TestLoginWithDesktopToken(t *testing.T) {
 	})
 
 	t.Run("invalid desktop token on login", func(t *testing.T) {
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 
 		_, appErr := th.App.GenerateAndSaveDesktopToken(time.Now().Unix(), user)
 		assert.Nil(t, appErr)
@@ -8494,8 +8345,7 @@ func TestLoginWithDesktopToken(t *testing.T) {
 
 func TestLoginSSOCodeExchange(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("wrong token type cannot be used for code exchange", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -8524,7 +8374,7 @@ func TestLoginSSOCodeExchange(t *testing.T) {
 			cfg.FeatureFlags.MobileSSOCodeExchange = true
 		})
 
-		samlUser := th.CreateUserWithAuth(model.UserAuthServiceSaml)
+		samlUser := th.CreateUserWithAuth(t, model.UserAuthServiceSaml)
 
 		codeVerifier := "test_code_verifier_123456789"
 		state := "test_state_value"
@@ -8573,8 +8423,7 @@ func TestLoginSSOCodeExchange(t *testing.T) {
 
 func TestGetUsersByNames(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("Get users by valid usernames", func(t *testing.T) {
 		users, _, err := th.Client.GetUsersByUsernames(context.Background(), []string{th.BasicUser.Username, th.BasicUser2.Username})
@@ -8613,7 +8462,7 @@ func TestGetUsersByNames(t *testing.T) {
 	t.Run("Get users without permissions", func(t *testing.T) {
 		_, err := th.Client.Logout(context.Background())
 		require.NoError(t, err)
-		defer th.LoginBasic() // Ensure the client is logged back in after the test
+		defer th.LoginBasic(t) // Ensure the client is logged back in after the test
 
 		_, resp, err := th.Client.GetUsersByUsernames(context.Background(), []string{th.BasicUser.Username})
 		require.Error(t, err)
@@ -8632,13 +8481,12 @@ func TestGetUsersByNames(t *testing.T) {
 
 func TestGetFilteredUsersStats(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("Get filtered users stats as system admin", func(t *testing.T) {
 		// Create an additional user and link them to the team
-		regularUser := th.CreateUser()
-		th.LinkUserToTeam(regularUser, th.BasicTeam)
+		regularUser := th.CreateUser(t)
+		th.LinkUserToTeam(t, regularUser, th.BasicTeam)
 
 		options := &model.UserCountOptions{
 			TeamId:             th.BasicTeam.Id,
@@ -8736,8 +8584,7 @@ func TestGetFilteredUsersStats(t *testing.T) {
 
 func TestGetDefaultProfileImage(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("Get default profile image for existing user", func(t *testing.T) {
 		user := th.BasicUser
@@ -8761,7 +8608,7 @@ func TestGetDefaultProfileImage(t *testing.T) {
 	})
 
 	t.Run("Get default profile image without proper permissions", func(t *testing.T) {
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 
 		_, err := th.Client.Logout(context.Background())
 		require.NoError(t, err)
@@ -8771,7 +8618,7 @@ func TestGetDefaultProfileImage(t *testing.T) {
 	})
 
 	t.Run("Get default profile image as system admin", func(t *testing.T) {
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 
 		img, resp, err := th.SystemAdminClient.GetDefaultProfileImage(context.Background(), user.Id)
 		require.NoError(t, err)
@@ -8782,7 +8629,7 @@ func TestGetDefaultProfileImage(t *testing.T) {
 	})
 
 	t.Run("Consistent default image for the same user", func(t *testing.T) {
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 
 		// Login as the newly created user
 		_, _, err := th.Client.Login(context.Background(), user.Email, user.Password)
@@ -8806,8 +8653,7 @@ func TestGetDefaultProfileImage(t *testing.T) {
 
 func TestGetUserThread(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	user := th.BasicUser
@@ -8927,8 +8773,7 @@ func TestGetUserThread(t *testing.T) {
 
 func TestUpdateReadStateThreadByUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	user := th.BasicUser
@@ -9005,8 +8850,7 @@ func TestUpdateReadStateThreadByUser(t *testing.T) {
 
 func TestSetUnreadThreadByPostId(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	client := th.Client
 	user := th.BasicUser
@@ -9119,8 +8963,7 @@ func TestSetUnreadThreadByPostId(t *testing.T) {
 
 func TestRevokeAllSessionsForUser(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	user := th.BasicUser
 	user2 := th.BasicUser2 // Additional user for permission testing
@@ -9165,8 +9008,7 @@ func TestRevokeAllSessionsForUser(t *testing.T) {
 }
 
 func TestResetPasswordFailedAttempts(t *testing.T) {
-	th := SetupEnterprise(t).InitBasic()
-	defer th.TearDown()
+	th := SetupEnterprise(t).InitBasic(t)
 	th.SetupLdapConfig()
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
@@ -9178,7 +9020,7 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 		})
 		maxAttempts := th.App.Config().ServiceSettings.MaximumLoginAttempts
 
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 
 		for i := 0; i < *maxAttempts; i++ {
 			_, _, err := client.Login(context.Background(), user.Email, "wrongpassword")
@@ -9257,7 +9099,7 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 		})
 		maxAttempts := th.App.Config().ServiceSettings.MaximumLoginAttempts
 
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 
 		for i := 0; i < *maxAttempts; i++ {
 			_, _, err := client.Login(context.Background(), user.Email, "wrongpassword")
@@ -9280,8 +9122,8 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 	})
 
 	t.Run("Reset password failed attempts when user has PermissionSysconsoleWriteUserManagementUsers", func(t *testing.T) {
-		th.AddPermissionToRole(model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
-		defer th.RemovePermissionFromRole(model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
 
 		client := th.CreateClient()
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -9289,7 +9131,7 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 		})
 		maxAttempts := th.App.Config().ServiceSettings.MaximumLoginAttempts
 
-		user := th.CreateUser()
+		user := th.CreateUser(t)
 
 		for i := 0; i < *maxAttempts; i++ {
 			_, _, err := client.Login(context.Background(), user.Email, "wrongpassword")
@@ -9312,8 +9154,8 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 	})
 
 	t.Run("Unable to reset password failed attempts for sysadmin when user has PermissionSysconsoleWriteUserManagementUsers", func(t *testing.T) {
-		th.AddPermissionToRole(model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
-		defer th.RemovePermissionFromRole(model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteUserManagementUsers.Id, model.SystemUserRoleId)
 
 		client := th.CreateClient()
 
@@ -9323,7 +9165,7 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 		maxAttempts := th.App.Config().ServiceSettings.MaximumLoginAttempts
 
 		// create sysadmin user
-		sysadmin := th.CreateUser()
+		sysadmin := th.CreateUser(t)
 		_, appErr := th.App.UpdateUserRoles(th.Context, sysadmin.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 		require.Nil(t, appErr)
 
@@ -9355,7 +9197,7 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 		})
 		maxAttempts := th.App.Config().ServiceSettings.MaximumLoginAttempts
 
-		sysadmin := th.CreateUser()
+		sysadmin := th.CreateUser(t)
 		_, appErr := th.App.UpdateUserRoles(th.Context, sysadmin.Id, model.SystemUserRoleId+" "+model.SystemAdminRoleId, false)
 		require.Nil(t, appErr)
 
@@ -9381,8 +9223,7 @@ func TestResetPasswordFailedAttempts(t *testing.T) {
 }
 
 func TestSearchUsersWithMfaEnforced(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	th.App.Srv().SetLicense(model.NewTestLicense("mfa"))
 

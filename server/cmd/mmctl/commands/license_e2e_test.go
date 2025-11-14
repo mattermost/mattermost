@@ -15,7 +15,7 @@ import (
 )
 
 func (s *MmctlE2ETestSuite) TestRemoveLicenseCmd() {
-	s.SetupEnterpriseTestHelper().InitBasic()
+	s.SetupEnterpriseTestHelper().InitBasic(s.T())
 
 	s.Require().True(s.th.App.Srv().SetLicense(model.NewTestLicense()))
 
@@ -53,7 +53,7 @@ func (s *MmctlE2ETestSuite) TestRemoveLicenseCmd() {
 }
 
 func (s *MmctlE2ETestSuite) TestUploadLicenseCmdF() {
-	s.SetupEnterpriseTestHelper().InitBasic()
+	s.SetupEnterpriseTestHelper().InitBasic(s.T())
 
 	// create temporary file
 	tmpFile, err := os.CreateTemp(os.TempDir(), "testLicense-")

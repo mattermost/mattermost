@@ -110,6 +110,12 @@ func RegisterJobsAccessControlSyncJobInterface(f func(*Server) ejobs.AccessContr
 	jobsAccessControlSyncJobInterface = f
 }
 
+var pushProxyInterface func(*App) einterfaces.PushProxyInterface
+
+func RegisterPushProxyInterface(f func(*App) einterfaces.PushProxyInterface) {
+	pushProxyInterface = f
+}
+
 func (s *Server) initEnterprise() {
 	if cloudInterface != nil {
 		s.Cloud = cloudInterface(s)

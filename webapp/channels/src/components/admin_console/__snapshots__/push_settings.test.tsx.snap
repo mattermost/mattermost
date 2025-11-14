@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/PushSettings should match snapshot, licensed 1`] = `
 <form
@@ -50,6 +50,12 @@ exports[`components/PushSettings should match snapshot, licensed 1`] = `
         }
       />
       <Memo(DropdownSetting)
+        helpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Location of the push notification server. Global uses geobalancing to route requests to the nearest server for optimal performance."
+            id="admin.email.pushServerLocationHelp"
+          />
+        }
         id="pushNotificationServerLocation"
         label={
           <Memo(MemoizedFormattedMessage)
@@ -59,9 +65,13 @@ exports[`components/PushSettings should match snapshot, licensed 1`] = `
         }
         onChange={[Function]}
         setByEnv={false}
-        value="us"
+        value="global"
         values={
           Array [
+            Object {
+              "text": "Global",
+              "value": "global",
+            },
             Object {
               "text": "US",
               "value": "us",
@@ -69,6 +79,10 @@ exports[`components/PushSettings should match snapshot, licensed 1`] = `
             Object {
               "text": "Germany",
               "value": "de",
+            },
+            Object {
+              "text": "Japan",
+              "value": "jp",
             },
           ]
         }
@@ -129,7 +143,7 @@ exports[`components/PushSettings should match snapshot, licensed 1`] = `
           }
         }
         setByEnv={false}
-        value="https://push.mattermost.com"
+        value="https://global.push.mattermost.com"
       />
       <AdminTextSetting
         helpText={
@@ -260,7 +274,7 @@ exports[`components/PushSettings should match snapshot, unlicensed 1`] = `
           }
         }
         setByEnv={false}
-        value="https://push.mattermost.com"
+        value="https://global.push.mattermost.com"
       />
       <AdminTextSetting
         helpText={

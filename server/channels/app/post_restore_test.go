@@ -13,15 +13,14 @@ import (
 
 func TestRestorePostVersion(t *testing.T) {
 	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
+	th := Setup(t).InitBasic(t)
 
 	t.Run("is able to restore a post version", func(t *testing.T) {
-		post := th.CreatePost(th.BasicChannel, func(p *model.Post) {
+		post := th.CreatePost(t, th.BasicChannel, func(p *model.Post) {
 			p.Message = "original message"
 		})
-		th.PostPatch(post, "new message 2")
-		th.PostPatch(post, "new message 3")
+		th.PostPatch(t, post, "new message 2")
+		th.PostPatch(t, post, "new message 3")
 
 		// verify post's state
 		fetchedPost, err := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, true)
@@ -57,17 +56,17 @@ func TestRestorePostVersion(t *testing.T) {
 		fileInfo, appErr := th.App.UploadFile(th.Context, fileBytes, th.BasicChannel.Id, "file.txt")
 		require.Nil(t, appErr)
 
-		post := th.CreatePost(th.BasicChannel, func(p *model.Post) {
+		post := th.CreatePost(t, th.BasicChannel, func(p *model.Post) {
 			p.FileIds = []string{fileInfo.Id}
 			p.Message = "original message"
 		})
 
 		// this update removes all files
-		th.PostPatch(post, "new message 2", func(p *model.PostPatch) {
+		th.PostPatch(t, post, "new message 2", func(p *model.PostPatch) {
 			p.FileIds = &model.StringArray{}
 		})
 		// this update only changes the message
-		th.PostPatch(post, "new message 3")
+		th.PostPatch(t, post, "new message 3")
 
 		// verify post's state
 		fetchedPost, err := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, true)
@@ -112,11 +111,11 @@ func TestRestorePostVersion(t *testing.T) {
 	})
 
 	t.Run("should return an error if trying to restore a post that is not in any edit history", func(t *testing.T) {
-		post := th.CreatePost(th.BasicChannel, func(p *model.Post) {
+		post := th.CreatePost(t, th.BasicChannel, func(p *model.Post) {
 			p.Message = "original message"
 		})
-		th.PostPatch(post, "new message 2")
-		th.PostPatch(post, "new message 3")
+		th.PostPatch(t, post, "new message 2")
+		th.PostPatch(t, post, "new message 3")
 
 		// verify post's state
 		fetchedPost, err := th.App.Srv().Store().Post().GetSingle(th.Context, post.Id, true)
@@ -124,7 +123,7 @@ func TestRestorePostVersion(t *testing.T) {
 		require.Equal(t, "new message 3", fetchedPost.Message)
 
 		// now we'll restore a post version
-		otherPost := th.CreatePost(th.BasicChannel)
+		otherPost := th.CreatePost(t, th.BasicChannel)
 		restoredPost, appErr := th.App.RestorePostVersion(th.Context, th.BasicUser.Id, post.Id, otherPost.Id)
 		require.NotNil(t, appErr)
 		require.Equal(t, http.StatusBadRequest, appErr.StatusCode)
@@ -146,7 +145,7 @@ func TestRestorePostVersion(t *testing.T) {
 	})
 
 	t.Run("should return an error if the restore post does not exist", func(t *testing.T) {
-		post := th.CreatePost(th.BasicChannel)
+		post := th.CreatePost(t, th.BasicChannel)
 
 		// now we'll restore a post version
 		invalidRestorePostIUd := model.NewId()
@@ -158,13 +157,13 @@ func TestRestorePostVersion(t *testing.T) {
 	})
 
 	t.Run("should return an error if trying to restore a post that is in some other posts edit history", func(t *testing.T) {
-		post := th.CreatePost(th.BasicChannel)
-		th.PostPatch(post, "new message 2")
+		post := th.CreatePost(t, th.BasicChannel)
+		th.PostPatch(t, post, "new message 2")
 
-		otherPost := th.CreatePost(th.BasicChannel, func(post *model.Post) {
+		otherPost := th.CreatePost(t, th.BasicChannel, func(post *model.Post) {
 			post.Message = "other post original message"
 		})
-		th.PostPatch(otherPost, "other post new message 2")
+		th.PostPatch(t, otherPost, "other post new message 2")
 
 		otherPostEditHistory, appErr := th.App.GetEditHistoryForPost(otherPost.Id)
 		require.Nil(t, appErr)

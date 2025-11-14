@@ -17,6 +17,8 @@ function agents(state: Agent[] = [], action: MMReduxAction): Agent[] {
     switch (action.type) {
     case AgentTypes.RECEIVED_AGENTS:
         return action.data || [];
+    case AgentTypes.AGENTS_FAILURE:
+        return [];
     default:
         return state;
     }

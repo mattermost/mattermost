@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/admin_console/data_retention_settings/data_retention_settings should match snapshot with Global Policies disabled 1`] = `
 <div

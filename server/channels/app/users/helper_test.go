@@ -7,7 +7,6 @@ import (
 	"bytes"
 	"os"
 	"path/filepath"
-	"sync"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -17,8 +16,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/stretchr/testify/require"
 )
-
-var initBasicOnce sync.Once
 
 type TestHelper struct {
 	service     *UserService
@@ -48,9 +45,7 @@ func Setup(tb testing.TB) *TestHelper {
 
 func setupTestHelper(s store.Store, _ bool, tb testing.TB) *TestHelper {
 	tempWorkspace, err := os.MkdirTemp("", "userservicetest")
-	if err != nil {
-		panic(err)
-	}
+	require.NoError(tb, err)
 
 	configStore := config.NewTestMemoryStore()
 
@@ -74,6 +69,18 @@ func setupTestHelper(s store.Store, _ bool, tb testing.TB) *TestHelper {
 	require.NoError(tb, err)
 
 	buffer := &bytes.Buffer{}
+
+	tb.Cleanup(func() {
+		err := configStore.Close()
+		require.NoError(tb, err)
+
+		s.Close()
+
+		if tempWorkspace != "" {
+			os.RemoveAll(tempWorkspace)
+		}
+	})
+
 	return &TestHelper{
 		service: &UserService{
 			store:        s.User(),
@@ -89,31 +96,33 @@ func setupTestHelper(s store.Store, _ bool, tb testing.TB) *TestHelper {
 	}
 }
 
-func (th *TestHelper) InitBasic() *TestHelper {
-	// create users once and cache them because password hashing is slow
-	initBasicOnce.Do(func() {
-		th.SystemAdminUser = th.CreateUser()
-		th.SystemAdminUser, _ = th.service.GetUser(th.SystemAdminUser.Id)
+func (th *TestHelper) InitBasic(tb testing.TB) *TestHelper {
+	var err error
 
-		th.BasicUser = th.CreateUser()
-		th.BasicUser, _ = th.service.GetUser(th.BasicUser.Id)
+	th.SystemAdminUser = th.CreateUser(tb)
+	th.SystemAdminUser, err = th.service.GetUser(th.SystemAdminUser.Id)
+	require.NoError(tb, err)
 
-		th.BasicUser2 = th.CreateUser()
-		th.BasicUser2, _ = th.service.GetUser(th.BasicUser2.Id)
-	})
+	th.BasicUser = th.CreateUser(tb)
+	th.BasicUser, err = th.service.GetUser(th.BasicUser.Id)
+	require.NoError(tb, err)
+
+	th.BasicUser2 = th.CreateUser(tb)
+	th.BasicUser2, err = th.service.GetUser(th.BasicUser2.Id)
+	require.NoError(tb, err)
 
 	return th
 }
 
-func (th *TestHelper) CreateUser() *model.User {
-	return th.CreateUserOrGuest(false)
+func (th *TestHelper) CreateUser(tb testing.TB) *model.User {
+	return th.CreateUserOrGuest(tb, false)
 }
 
-func (th *TestHelper) CreateGuest() *model.User {
-	return th.CreateUserOrGuest(true)
+func (th *TestHelper) CreateGuest(tb testing.TB) *model.User {
+	return th.CreateUserOrGuest(tb, true)
 }
 
-func (th *TestHelper) CreateUserOrGuest(guest bool) *model.User {
+func (th *TestHelper) CreateUserOrGuest(tb testing.TB, guest bool) *model.User {
 	id := model.NewId()
 
 	user := &model.User{
@@ -126,35 +135,12 @@ func (th *TestHelper) CreateUserOrGuest(guest bool) *model.User {
 
 	var err error
 	if guest {
-		if user, err = th.service.CreateUser(th.Context, user, UserCreateOptions{Guest: true}); err != nil {
-			panic(err)
-		}
+		user, err = th.service.CreateUser(th.Context, user, UserCreateOptions{Guest: true})
+		require.NoError(tb, err)
 	} else {
-		if user, err = th.service.CreateUser(th.Context, user, UserCreateOptions{}); err != nil {
-			panic(err)
-		}
+		user, err = th.service.CreateUser(th.Context, user, UserCreateOptions{})
+		require.NoError(tb, err)
 	}
+
 	return user
-}
-
-func (th *TestHelper) TearDown() {
-	th.configStore.Close()
-
-	th.dbStore.Close()
-
-	if th.workspace != "" {
-		os.RemoveAll(th.workspace)
-	}
-}
-
-func (th *TestHelper) UpdateConfig(f func(*model.Config)) {
-	if th.configStore.IsReadOnly() {
-		return
-	}
-	old := th.configStore.Get()
-	updated := old.Clone()
-	f(updated)
-	if _, _, err := th.configStore.Set(updated); err != nil {
-		panic(err)
-	}
 }

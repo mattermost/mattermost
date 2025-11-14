@@ -408,7 +408,7 @@ export function removeUsersFromGroup(groupId: string, userIds: string[]): Action
     };
 }
 
-export function searchGroups(params: GroupSearchParams): ActionFuncAsync {
+export function searchGroups(params: GroupSearchParams): ActionFuncAsync<Group[]> {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -429,7 +429,7 @@ export function searchGroups(params: GroupSearchParams): ActionFuncAsync {
         }
         dispatch(batchActions(dispatches));
 
-        return {data: true};
+        return {data};
     };
 }
 

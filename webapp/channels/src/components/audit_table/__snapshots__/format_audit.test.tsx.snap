@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`components/audit_table/audit_row/AuditRow should match snapshot with channel audit 1`] = `
 <Provider

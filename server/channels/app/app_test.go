@@ -41,7 +41,6 @@ func init() {
 func TestUnitUpdateConfig(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := SetupWithStoreMock(t)
-	defer th.TearDown()
 
 	mockStore := th.App.Srv().Store().(*mocks.Store)
 	mockUserStore := mocks.UserStore{}
@@ -81,9 +80,8 @@ func TestUnitUpdateConfig(t *testing.T) {
 
 func TestDoAdvancedPermissionsMigration(t *testing.T) {
 	th := Setup(t)
-	defer th.TearDown()
 
-	th.ResetRoleMigration()
+	th.ResetRoleMigration(t)
 
 	err := th.App.DoAdvancedPermissionsMigration()
 	require.NoError(t, err)
@@ -176,12 +174,13 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PermissionImportTeam.Id,
 			model.PermissionManageTeamRoles.Id,
 			model.PermissionManageChannelRoles.Id,
+			model.PermissionManageOwnIncomingWebhooks.Id,
 			model.PermissionManageOthersIncomingWebhooks.Id,
+			model.PermissionManageOwnOutgoingWebhooks.Id,
 			model.PermissionManageOthersOutgoingWebhooks.Id,
-			model.PermissionManageSlashCommands.Id,
+			model.PermissionManageOwnSlashCommands.Id,
 			model.PermissionManageOthersSlashCommands.Id,
-			model.PermissionManageIncomingWebhooks.Id,
-			model.PermissionManageOutgoingWebhooks.Id,
+			model.PermissionBypassIncomingWebhookChannelLock.Id,
 			model.PermissionConvertPublicChannelToPrivate.Id,
 			model.PermissionConvertPrivateChannelToPublic.Id,
 			model.PermissionDeletePost.Id,
@@ -255,12 +254,11 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 
 func TestDoEmojisPermissionsMigration(t *testing.T) {
 	th := SetupWithoutPreloadMigrations(t)
-	defer th.TearDown()
 
 	expectedSystemAdmin := allPermissionIDs
 	sort.Strings(expectedSystemAdmin)
 
-	th.ResetEmojisMigration()
+	th.ResetEmojisMigration(t)
 	err := th.App.DoEmojisPermissionsMigration()
 	require.NoError(t, err)
 
@@ -294,7 +292,6 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 func TestDBHealthCheckWriteAndDelete(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
-	defer th.TearDown()
 
 	expectedKey := "health_check_" + th.App.GetClusterId()
 	assert.Equal(t, expectedKey, th.App.dbHealthCheckKey())

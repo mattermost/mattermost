@@ -73,30 +73,30 @@ describe('components/post_view/ShowMore', () => {
         const instance = wrapper.instance() as ShowMore;
         instance.checkTextOverflow = jest.fn();
 
-        expect(instance.checkTextOverflow).not.toBeCalled();
+        expect(instance.checkTextOverflow).not.toHaveBeenCalled();
 
         wrapper.setProps({isRHSExpanded: true});
-        expect(instance.checkTextOverflow).toBeCalledTimes(1);
+        expect(instance.checkTextOverflow).toHaveBeenCalledTimes(1);
 
         wrapper.setProps({isRHSExpanded: false});
-        expect(instance.checkTextOverflow).toBeCalledTimes(2);
+        expect(instance.checkTextOverflow).toHaveBeenCalledTimes(2);
 
         wrapper.setProps({isRHSOpen: true});
-        expect(instance.checkTextOverflow).toBeCalledTimes(3);
+        expect(instance.checkTextOverflow).toHaveBeenCalledTimes(3);
 
         wrapper.setProps({isRHSOpen: false});
-        expect(instance.checkTextOverflow).toBeCalledTimes(4);
+        expect(instance.checkTextOverflow).toHaveBeenCalledTimes(4);
 
         wrapper.setProps({text: 'text change'});
-        expect(instance.checkTextOverflow).toBeCalledTimes(5);
+        expect(instance.checkTextOverflow).toHaveBeenCalledTimes(5);
 
         wrapper.setProps({text: 'text another change'});
-        expect(instance.checkTextOverflow).toBeCalledTimes(6);
+        expect(instance.checkTextOverflow).toHaveBeenCalledTimes(6);
 
         wrapper.setProps({checkOverflow: 1});
-        expect(instance.checkTextOverflow).toBeCalledTimes(7);
+        expect(instance.checkTextOverflow).toHaveBeenCalledTimes(7);
 
         wrapper.setProps({checkOverflow: 1});
-        expect(instance.checkTextOverflow).toBeCalledTimes(7);
+        expect(instance.checkTextOverflow).toHaveBeenCalledTimes(7);
     });
 });

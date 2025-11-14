@@ -42,6 +42,7 @@ func GetMockStoreForSetupFunctions() *mocks.Store {
 	systemStore.On("GetByName", "content_flagging_setup_done").Return(&model.System{Name: "content_flagging_setup_done", Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyEmojiPermissionsSplit).Return(&model.System{Name: model.MigrationKeyEmojiPermissionsSplit, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyWebhookPermissionsSplit).Return(&model.System{Name: model.MigrationKeyWebhookPermissionsSplit, Value: "true"}, nil)
+	systemStore.On("GetByName", model.MigrationKeyIntegrationsOwnPermissions).Return(&model.System{Name: model.MigrationKeyIntegrationsOwnPermissions, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyListJoinPublicPrivateTeams).Return(&model.System{Name: model.MigrationKeyListJoinPublicPrivateTeams, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyRemovePermanentDeleteUser).Return(&model.System{Name: model.MigrationKeyRemovePermanentDeleteUser, Value: "true"}, nil)
 	systemStore.On("GetByName", model.MigrationKeyAddBotPermissions).Return(&model.System{Name: model.MigrationKeyAddBotPermissions, Value: "true"}, nil)

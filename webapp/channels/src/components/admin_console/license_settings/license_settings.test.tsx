@@ -118,8 +118,8 @@ describe('components/admin_console/license_settings/LicenseSettings', () => {
         const wrapper = shallow<LicenseSettings>(<LicenseSettings {...props}/>);
         await promise;
 
-        expect(actions.getLicenseConfig).toBeCalledTimes(1);
-        expect(actions.upgradeToE0Status).toBeCalledTimes(1);
+        expect(actions.getLicenseConfig).toHaveBeenCalledTimes(1);
+        expect(actions.upgradeToE0Status).toHaveBeenCalledTimes(1);
         actions.upgradeToE0Status = jest.fn().mockImplementation(() => Promise.resolve({percentage: 1, error: null}));
 
         const instance = wrapper.instance();
@@ -129,8 +129,8 @@ describe('components/admin_console/license_settings/LicenseSettings', () => {
         expect(wrapper.state('upgradingPercentage')).toBe(0);
 
         await instance.handleUpgrade({preventDefault: jest.fn()} as unknown as React.MouseEvent<HTMLButtonElement>);
-        expect(actions.upgradeToE0).toBeCalledTimes(1);
-        expect(actions.upgradeToE0Status).toBeCalledTimes(1);
+        expect(actions.upgradeToE0).toHaveBeenCalledTimes(1);
+        expect(actions.upgradeToE0Status).toHaveBeenCalledTimes(1);
         wrapper.update();
         expect(wrapper.update().state('upgradingPercentage')).toBe(1);
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment

@@ -25,6 +25,8 @@ import {
 import {getIsRhsExpanded} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 
+import {focusPost} from 'components/permalink_view/actions';
+
 import {CrtThreadPaneSteps, Preferences} from 'utils/constants';
 import {matchUserMentionTriggersWithMessageMentions} from 'utils/post_utils';
 import {allAtMentions} from 'utils/text_formatting';
@@ -84,6 +86,7 @@ const actions = {
     toggleRhsExpanded,
     setThreadFollow,
     goBack,
+    focusPost,
 };
 
 export default connect(makeMapStateToProps, actions)(RhsHeaderPost);

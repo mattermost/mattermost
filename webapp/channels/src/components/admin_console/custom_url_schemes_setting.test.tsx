@@ -73,7 +73,7 @@ describe('components/AdminConsole/CustomUrlSchemeSetting', () => {
 
             wrapper.find('input').simulate('change', {target: {value: ''}});
 
-            expect(props.onChange).toBeCalledWith(baseProps.id, []);
+            expect(props.onChange).toHaveBeenCalledWith(baseProps.id, []);
         });
 
         test('called on change to one item', () => {
@@ -88,7 +88,7 @@ describe('components/AdminConsole/CustomUrlSchemeSetting', () => {
 
             wrapper.find('input').simulate('change', {target: {value: '  steam  '}});
 
-            expect(props.onChange).toBeCalledWith(baseProps.id, ['steam']);
+            expect(props.onChange).toHaveBeenCalledWith(baseProps.id, ['steam']);
         });
 
         test('called on change to two items', () => {
@@ -103,7 +103,7 @@ describe('components/AdminConsole/CustomUrlSchemeSetting', () => {
 
             wrapper.find('input').simulate('change', {target: {value: 'steam, git'}});
 
-            expect(props.onChange).toBeCalledWith(baseProps.id, ['steam', 'git']);
+            expect(props.onChange).toHaveBeenCalledWith(baseProps.id, ['steam', 'git']);
         });
 
         test('called on change to more items', () => {
@@ -118,7 +118,7 @@ describe('components/AdminConsole/CustomUrlSchemeSetting', () => {
 
             wrapper.find('input').simulate('change', {target: {value: 'ts3server, smtp, ms-excel'}});
 
-            expect(props.onChange).toBeCalledWith(baseProps.id, ['ts3server', 'smtp', 'ms-excel']);
+            expect(props.onChange).toHaveBeenCalledWith(baseProps.id, ['ts3server', 'smtp', 'ms-excel']);
         });
 
         test('called on change with extra commas', () => {
@@ -133,7 +133,7 @@ describe('components/AdminConsole/CustomUrlSchemeSetting', () => {
 
             wrapper.find('input').simulate('change', {target: {value: ',,,,,chrome,,,,ms-excel,,'}});
 
-            expect(props.onChange).toBeCalledWith(baseProps.id, ['chrome', 'ms-excel']);
+            expect(props.onChange).toHaveBeenCalledWith(baseProps.id, ['chrome', 'ms-excel']);
         });
     });
 
