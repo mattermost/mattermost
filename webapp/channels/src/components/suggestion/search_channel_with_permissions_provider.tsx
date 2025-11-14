@@ -20,8 +20,7 @@ import {sortChannelsByTypeAndDisplayName} from 'mattermost-redux/utils/channel_u
 
 import store from 'stores/redux_store';
 
-import usePrefixedIds from 'components/common/hooks/usePrefixedIds';
-
+import usePrefixedIds from 'hooks/usePrefixedIds';
 import {Constants} from 'utils/constants';
 
 import Provider from './provider';

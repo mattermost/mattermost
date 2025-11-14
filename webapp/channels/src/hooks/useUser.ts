@@ -6,7 +6,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 
-import {makeUseEntity} from './useEntity';
+import {makeUseEntity} from 'hooks/useEntity';
 
 export const useUser = makeUseEntity<UserProfile>({
     name: 'useUser',

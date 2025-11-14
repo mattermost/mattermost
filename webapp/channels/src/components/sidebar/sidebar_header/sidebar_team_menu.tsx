@@ -30,7 +30,6 @@ import {openModal} from 'actions/views/modals';
 import {getMainMenuPluginComponents} from 'selectors/plugins';
 
 import AddGroupsToTeamModal from 'components/add_groups_to_team_modal';
-import useGetUsageDeltas from 'components/common/hooks/useGetUsageDeltas';
 import InvitationModal from 'components/invitation_modal';
 import LeaveTeamModal from 'components/leave_team_modal';
 import * as Menu from 'components/menu';
@@ -39,6 +38,7 @@ import TeamMembersModal from 'components/team_members_modal';
 import TeamSettingsModal from 'components/team_settings_modal';
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 
+import useGetUsageDeltas from 'hooks/useGetUsageDeltas';
 import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
 import {LicenseSkus, ModalIdentifiers, MattermostFeatures, CloudProducts} from 'utils/constants';
 import {isCloudLicense} from 'utils/license_utils';

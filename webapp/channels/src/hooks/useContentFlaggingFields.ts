@@ -15,7 +15,7 @@ import {
     postContentFlaggingValues,
 } from 'mattermost-redux/selectors/entities/content_flagging';
 
-import {makeUseEntity} from 'components/common/hooks/useEntity';
+import {makeUseEntity} from 'hooks/useEntity';
 
 export const useContentFlaggingFields = makeUseEntity<NameMappedPropertyFields | undefined>({
     name: 'useContentFlaggingFields',

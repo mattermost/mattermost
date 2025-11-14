@@ -3,8 +3,7 @@
 
 import React from 'react';
 
-import * as controlModalHooks from 'components/common/hooks/useControlModal';
-
+import * as controlModalHooks from 'hooks/useControlModal';
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import ScreeningInProgressModal from './';

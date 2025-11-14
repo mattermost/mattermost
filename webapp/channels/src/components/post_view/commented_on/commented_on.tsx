@@ -8,11 +8,11 @@ import {isMessageAttachmentArray} from '@mattermost/types/message_attachments';
 
 import {ensureString} from 'mattermost-redux/utils/post_utils';
 
-import {usePost} from 'components/common/hooks/usePost';
-import {useUser} from 'components/common/hooks/useUser';
 import CommentedOnFilesMessage from 'components/post_view/commented_on_files_message';
 import UserProfile from 'components/user_profile';
 
+import {usePost} from 'hooks/usePost';
+import {useUser} from 'hooks/useUser';
 import {stripMarkdown} from 'utils/markdown';
 import {isFromWebhook} from 'utils/post_utils';
 import * as Utils from 'utils/utils';

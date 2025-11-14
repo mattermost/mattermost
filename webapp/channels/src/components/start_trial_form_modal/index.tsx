@@ -19,12 +19,12 @@ import {closeModal, openModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
 import {makeAsyncComponent} from 'components/async_load';
-import useCWSAvailabilityCheck, {CSWAvailabilityCheckTypes} from 'components/common/hooks/useCWSAvailabilityCheck';
-import useGetTotalUsersNoBots from 'components/common/hooks/useGetTotalUsersNoBots';
 import DropdownInput from 'components/dropdown_input';
 import ExternalLink from 'components/external_link';
 import CountrySelector from 'components/payment_form/country_selector';
 
+import useCWSAvailabilityCheck, {CSWAvailabilityCheckTypes} from 'hooks/useCWSAvailabilityCheck';
+import useGetTotalUsersNoBots from 'hooks/useGetTotalUsersNoBots';
 import {AboutLinks, LicenseLinks, ModalIdentifiers} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';

@@ -10,7 +10,7 @@ import WithTooltip from '@mattermost/design-system/src/components/primitives/wit
 
 import {removeAuditCertificate, uploadAuditCertificate} from 'actions/admin_actions';
 
-import useGetCloudInstallationStatus from 'components/common/hooks/useGetCloudInstallationStatus';
+import useGetCloudInstallationStatus from 'hooks/useGetCloudInstallationStatus';
 
 import FileUploadSetting from '../file_upload_setting';
 import RemoveFileSetting from '../remove_file_setting';

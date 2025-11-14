@@ -9,7 +9,6 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {isGuest} from 'mattermost-redux/utils/user_utils';
 
-import usePrefixedIds, {joinIds} from 'components/common/hooks/usePrefixedIds';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import SharedUserIndicator from 'components/shared_user_indicator';
 import StatusIcon from 'components/status_icon';
@@ -18,6 +17,7 @@ import GuestTag from 'components/widgets/tag/guest_tag';
 import Tag from 'components/widgets/tag/tag';
 import Avatar from 'components/widgets/users/avatar';
 
+import usePrefixedIds, {joinIds} from 'hooks/usePrefixedIds';
 import * as Utils from 'utils/utils';
 
 import {SuggestionContainer} from '../suggestion';

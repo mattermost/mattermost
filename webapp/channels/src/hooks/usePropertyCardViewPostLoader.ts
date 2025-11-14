@@ -5,7 +5,7 @@ import {useEffect, useRef, useState} from 'react';
 
 import type {Post} from '@mattermost/types/posts';
 
-import {usePost} from 'components/common/hooks/usePost';
+import {usePost} from 'hooks/usePost';
 
 export function usePropertyCardViewPostLoader(postId: string, getPost?: (postId: string) => Promise<Post>, fetchDeletedPost?: boolean) {
     const loadedPost = useRef(false);

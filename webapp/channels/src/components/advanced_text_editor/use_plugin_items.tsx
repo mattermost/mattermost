@@ -4,8 +4,9 @@
 import React, {useCallback, useMemo} from 'react';
 import {useSelector} from 'react-redux';
 
-import {usePluginVisibilityInSharedChannel} from 'components/common/hooks/usePluginVisibilityInSharedChannel';
 import type TextboxClass from 'components/textbox/textbox';
+
+import {usePluginVisibilityInSharedChannel} from 'hooks/usePluginVisibilityInSharedChannel';
 
 import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';

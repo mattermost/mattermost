@@ -5,7 +5,7 @@ import {useEffect, useRef, useState} from 'react';
 
 import type {Team} from '@mattermost/types/teams';
 
-import {useTeam} from 'components/common/hooks/use_team';
+import {useTeam} from 'hooks/use_team';
 
 export function usePropertyCardViewTeamLoader(teamId?: string, getTeam?: (teamId: string) => Promise<Team>) {
     const loadedTeam = useRef(false);

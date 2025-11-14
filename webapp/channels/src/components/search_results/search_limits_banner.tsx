@@ -11,8 +11,8 @@ import {isSearchTruncated} from 'mattermost-redux/selectors/entities/search';
 import {getRhsState} from 'selectors/rhs';
 
 import CenterMessageLock from 'components/center_message_lock';
-import useGetServerLimits from 'components/common/hooks/useGetServerLimits';
 
+import useGetServerLimits from 'hooks/useGetServerLimits';
 import {DataSearchTypes, RHSStates} from 'utils/constants';
 
 import './search_limits_banner.scss';

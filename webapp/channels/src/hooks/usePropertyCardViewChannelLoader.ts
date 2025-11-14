@@ -5,7 +5,7 @@ import {useEffect, useRef, useState} from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
 
-import {useChannel} from 'components/common/hooks/useChannel';
+import {useChannel} from 'hooks/useChannel';
 
 export function usePropertyCardViewChannelLoader(channelId?: string, getChannel?: (channelId: string) => Promise<Channel>) {
     const channelLoaded = useRef(false);

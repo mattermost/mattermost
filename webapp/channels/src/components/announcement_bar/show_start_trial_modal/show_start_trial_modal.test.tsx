@@ -5,7 +5,8 @@ import {mount, shallow} from 'enzyme';
 import React from 'react';
 
 import ShowStartTrialModal from 'components/announcement_bar/show_start_trial_modal/show_start_trial_modal';
-import * as getTotalUsersHook from 'components/common/hooks/useGetTotalUsersNoBots';
+
+import * as getTotalUsersHook from 'hooks/useGetTotalUsersNoBots';
 
 let mockState: any;
 const mockDispatch = jest.fn();

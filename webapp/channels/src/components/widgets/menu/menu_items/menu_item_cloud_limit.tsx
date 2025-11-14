@@ -12,11 +12,11 @@ import {isAdmin} from 'mattermost-redux/utils/user_utils';
 import {openModal} from 'actions/views/modals';
 
 import LHSNearingLimitsModal from 'components/cloud_usage_modal/lhs_nearing_limit_modal';
-import useGetHighestThresholdCloudLimit from 'components/common/hooks/useGetHighestThresholdCloudLimit';
-import useGetLimits from 'components/common/hooks/useGetLimits';
-import useGetUsage from 'components/common/hooks/useGetUsage';
 
 import ProgressBar from 'design_system/components/primitives/progress_bar';
+import useGetHighestThresholdCloudLimit from 'hooks/useGetHighestThresholdCloudLimit';
+import useGetLimits from 'hooks/useGetLimits';
+import useGetUsage from 'hooks/useGetUsage';
 import {ModalIdentifiers} from 'utils/constants';
 import {limitThresholds} from 'utils/limits';
 

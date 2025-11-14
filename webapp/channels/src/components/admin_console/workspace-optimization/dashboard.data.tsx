@@ -18,8 +18,7 @@ import type {GlobalState} from '@mattermost/types/store';
 
 import {getLicense, getServerVersion} from 'mattermost-redux/selectors/entities/general';
 
-import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
-
+import useOpenSalesLink from 'hooks/useOpenSalesLink';
 import {ConsolePages} from 'utils/constants';
 
 import {ItemStatus} from './dashboard.type';

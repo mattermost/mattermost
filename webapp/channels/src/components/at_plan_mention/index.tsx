@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
+import useOpenPricingModal from 'hooks/useOpenPricingModal';
 
 type Props = {
     plan: string;

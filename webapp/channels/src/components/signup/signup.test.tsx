@@ -12,10 +12,10 @@ import type {ClientConfig} from '@mattermost/types/config';
 
 import {RequestStatus} from 'mattermost-redux/constants';
 
-import * as useCWSAvailabilityCheckAll from 'components/common/hooks/useCWSAvailabilityCheck';
 import SaveButton from 'components/save_button';
 import Signup from 'components/signup/signup';
 
+import * as useCWSAvailabilityCheckAll from 'hooks/useCWSAvailabilityCheck';
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import {act, renderWithContext, screen, fireEvent, waitFor} from 'tests/react_testing_utils';
 import {WindowSizes} from 'utils/constants';

@@ -14,10 +14,11 @@ import {getTeamByName} from 'mattermost-redux/selectors/entities/teams';
 import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {usePost} from 'components/common/hooks/usePost';
 import ThreadPane from 'components/threading/global_threads/thread_pane';
 import ThreadViewer from 'components/threading/thread_viewer';
 import UnreadsStatusHandler from 'components/unreads_status_handler';
+
+import {usePost} from 'hooks/usePost';
 
 export default function ThreadPopout() {
     const dispatch = useDispatch();

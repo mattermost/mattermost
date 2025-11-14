@@ -7,11 +7,12 @@ import {useIntl} from 'react-intl';
 import type {PostPreviewMetadata} from '@mattermost/types/posts';
 import type {PropertyValue} from '@mattermost/types/properties';
 
-import {usePropertyCardViewChannelLoader} from 'components/common/hooks/usePropertyCardViewChannelLoader';
-import {usePropertyCardViewPostLoader} from 'components/common/hooks/usePropertyCardViewPostLoader';
-import {usePropertyCardViewTeamLoader} from 'components/common/hooks/usePropertyCardViewTeamLoader';
 import PostMessagePreview from 'components/post_view/post_message_preview';
 import type {PostPreviewFieldMetadata} from 'components/properties_card_view/properties_card_view';
+
+import {usePropertyCardViewChannelLoader} from 'hooks/usePropertyCardViewChannelLoader';
+import {usePropertyCardViewPostLoader} from 'hooks/usePropertyCardViewPostLoader';
+import {usePropertyCardViewTeamLoader} from 'hooks/usePropertyCardViewTeamLoader';
 
 const noop = () => {};
 

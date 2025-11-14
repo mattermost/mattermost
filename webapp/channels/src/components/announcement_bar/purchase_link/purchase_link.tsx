@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
+import useOpenSalesLink from 'hooks/useOpenSalesLink';
 
 import './purchase_link.scss';
 

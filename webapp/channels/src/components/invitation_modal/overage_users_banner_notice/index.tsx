@@ -14,9 +14,9 @@ import {getOverageBannerPreferences} from 'mattermost-redux/selectors/entities/p
 import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import AlertBanner from 'components/alert_banner';
-import {useExpandOverageUsersCheck} from 'components/common/hooks/useExpandOverageUsersCheck';
 import ExternalLink from 'components/external_link';
 
+import {useExpandOverageUsersCheck} from 'hooks/useExpandOverageUsersCheck';
 import {LicenseLinks, StatTypes, Preferences} from 'utils/constants';
 import {getIsGovSku} from 'utils/license_utils';
 import {calculateOverageUserActivated} from 'utils/overage_team';

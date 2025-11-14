@@ -6,9 +6,8 @@ import React from 'react';
 import {GenericModal} from '@mattermost/components';
 import type {Limits} from '@mattermost/types/cloud';
 
-import useGetLimits from 'components/common/hooks/useGetLimits';
-import useGetUsage from 'components/common/hooks/useGetUsage';
-
+import useGetLimits from 'hooks/useGetLimits';
+import useGetUsage from 'hooks/useGetUsage';
 import type {Message} from 'utils/i18n';
 
 import WorkspaceLimitsPanel, {messageToElement} from './workspace_limits_panel';

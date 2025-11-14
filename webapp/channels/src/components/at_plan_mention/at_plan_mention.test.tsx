@@ -4,7 +4,7 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import * as useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
+import * as useOpenPricingModal from 'hooks/useOpenPricingModal';
 
 import AtPlanMention from './index';
 

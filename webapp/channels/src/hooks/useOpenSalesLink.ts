@@ -7,8 +7,7 @@ import {useSelector} from 'react-redux';
 import {getCloudCustomer, isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
-import {useExternalLink} from 'components/common/hooks/use_external_link';
-
+import {useExternalLink} from 'hooks/use_external_link';
 import {LicenseLinks} from 'utils/constants';
 import {buildMMURL, goToMattermostContactSalesForm} from 'utils/contact_support_sales';
 

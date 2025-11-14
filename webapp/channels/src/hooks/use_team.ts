@@ -6,7 +6,7 @@ import type {Team} from '@mattermost/types/teams';
 import {getTeam as getTeamAction} from 'mattermost-redux/actions/teams';
 import {getTeam as getTeamSelector} from 'mattermost-redux/selectors/entities/teams';
 
-import {makeUseEntity} from 'components/common/hooks/useEntity';
+import {makeUseEntity} from 'hooks/useEntity';
 
 export const useTeam = makeUseEntity<Team>({
     name: 'useTeam',

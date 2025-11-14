@@ -6,8 +6,8 @@ import {useIntl} from 'react-intl';
 
 import {EyeOffOutlineIcon} from '@mattermost/compass-icons/components';
 
-import useGetServerLimits from 'components/common/hooks/useGetServerLimits';
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
+import useGetServerLimits from 'hooks/useGetServerLimits';
+import useOpenPricingModal from 'hooks/useOpenPricingModal';
 
 import './index.scss';
 

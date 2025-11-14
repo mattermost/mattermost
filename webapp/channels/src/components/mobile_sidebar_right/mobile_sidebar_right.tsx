@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import React, {memo} from 'react';
 import {CSSTransition} from 'react-transition-group';
 
-import useGetUsageDeltas from 'components/common/hooks/useGetUsageDeltas';
+import useGetUsageDeltas from 'hooks/useGetUsageDeltas';
 
 import MobileRightDrawerItems from './mobile_sidebar_right_items';
 

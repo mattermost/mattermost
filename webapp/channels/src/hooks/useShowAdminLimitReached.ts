@@ -10,8 +10,8 @@ import {closeModal, openModal} from 'actions/views/modals';
 import {getNeedsLoggedInLimitReachedCheck} from 'selectors/views/admin';
 
 import CloudUsageModal from 'components/cloud_usage_modal';
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 
+import useOpenPricingModal from 'hooks/useOpenPricingModal';
 import {ModalIdentifiers, Preferences} from 'utils/constants';
 
 import useGetLimits from './useGetLimits';

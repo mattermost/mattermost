@@ -20,9 +20,9 @@ import LocalStorageStore from 'stores/local_storage_store';
 
 import {makeAsyncComponent, makeAsyncPluggableComponent} from 'components/async_load';
 import ChannelController from 'components/channel_layout/channel_controller';
-import useTelemetryIdentitySync from 'components/common/hooks/useTelemetryIdentifySync';
 import InitialLoadingScreen from 'components/initial_loading_screen';
 
+import useTelemetryIdentitySync from 'hooks/useTelemetryIdentifySync';
 import Constants from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
