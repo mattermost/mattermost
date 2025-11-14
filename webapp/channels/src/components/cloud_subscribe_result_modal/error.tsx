@@ -10,8 +10,8 @@ import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud'
 import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
-import PaymentFailedSvg from 'components/common/svg_images_components/payment_failed_svg';
 import IconMessage from 'components/purchase_modal/icon_message';
+import PaymentFailedSvg from 'components/svg_images_components/payment_failed_svg';
 import FullScreenModal from 'components/widgets/modals/full_screen_modal';
 
 import {useOpenCloudZendeskSupportForm} from 'hooks/useOpenZendeskForm';

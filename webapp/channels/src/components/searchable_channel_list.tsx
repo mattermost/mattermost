@@ -11,11 +11,11 @@ import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import {isPrivateChannel} from 'mattermost-redux/utils/channel_utils';
 
-import MagnifyingGlassSVG from 'components/common/svg_images_components/magnifying_glass_svg';
 import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';
 import QuickInput from 'components/quick_input';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
+import MagnifyingGlassSVG from 'components/svg_images_components/magnifying_glass_svg';
 import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 

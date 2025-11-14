@@ -9,8 +9,8 @@ import {getInvoices} from 'mattermost-redux/actions/cloud';
 import {getCloudErrors, getCloudInvoices, isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 
 import CloudFetchError from 'components/cloud_fetch_error';
-import EmptyBillingHistorySvg from 'components/common/svg_images_components/empty_billing_history_svg';
 import ExternalLink from 'components/external_link';
+import EmptyBillingHistorySvg from 'components/svg_images_components/empty_billing_history_svg';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 

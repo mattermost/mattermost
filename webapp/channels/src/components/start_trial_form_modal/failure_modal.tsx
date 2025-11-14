@@ -8,7 +8,7 @@ import {useDispatch} from 'react-redux';
 import {closeModal} from 'actions/views/modals';
 
 import ResultModal from 'components/admin_console/billing/delete_workspace/result_modal';
-import LaptopAlertSvg from 'components/common/svg_images_components/laptop_with_warning_symbol_svg';
+import LaptopAlertSvg from 'components/svg_images_components/laptop_with_warning_symbol_svg';
 
 import {ModalIdentifiers} from 'utils/constants';
 

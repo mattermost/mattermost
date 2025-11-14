@@ -21,14 +21,14 @@ import {
 import {setProductMenuSwitcherOpen} from 'actions/views/product_menu';
 import {getOnboardingTaskPreferences} from 'selectors/onboarding';
 
-import Channels from 'components/common/svg_images_components/channels_svg';
-import Gears from 'components/common/svg_images_components/gears_svg';
-import Handshake from 'components/common/svg_images_components/handshake_svg';
-import Phone from 'components/common/svg_images_components/phone_svg';
-import Security from 'components/common/svg_images_components/security_svg';
-import Sunglasses from 'components/common/svg_images_components/sunglasses_svg';
 import LearnMoreTrialModal from 'components/learn_more_trial_modal/learn_more_trial_modal';
 import {openMenu} from 'components/menu';
+import Channels from 'components/svg_images_components/channels_svg';
+import Gears from 'components/svg_images_components/gears_svg';
+import Handshake from 'components/svg_images_components/handshake_svg';
+import Phone from 'components/svg_images_components/phone_svg';
+import Security from 'components/svg_images_components/security_svg';
+import Sunglasses from 'components/svg_images_components/sunglasses_svg';
 import {
     AutoTourStatus,
     FINISHED,

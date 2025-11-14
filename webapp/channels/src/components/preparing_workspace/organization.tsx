@@ -12,8 +12,8 @@ import type {Team} from '@mattermost/types/teams';
 import {getTeams} from 'mattermost-redux/actions/teams';
 import {getActiveTeamsList} from 'mattermost-redux/selectors/entities/teams';
 
-import OrganizationSVG from 'components/common/svg_images_components/organization-building_svg';
 import QuickInput from 'components/quick_input';
+import OrganizationSVG from 'components/svg_images_components/organization-building_svg';
 
 import Constants from 'utils/constants';
 import {teamNameToUrl} from 'utils/url';

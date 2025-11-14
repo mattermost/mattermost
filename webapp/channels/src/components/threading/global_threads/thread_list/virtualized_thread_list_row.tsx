@@ -8,11 +8,11 @@ import {areEqual} from 'react-window';
 import {ShortcutKeyVariant} from '@mattermost/design-system/src/components/primitives/shortcut_key';
 import type {UserThread} from '@mattermost/types/threads';
 
-import SearchHintSVG from 'components/common/svg_images_components/search_hint_svg';
 import LoadingScreen from 'components/loading_screen';
 import NoResultsIndicator from 'components/no_results_indicator';
 import {NoResultsLayout} from 'components/no_results_indicator/types';
 import {SearchShortcut} from 'components/search_shortcut/search_shortcut';
+import SearchHintSVG from 'components/svg_images_components/search_hint_svg';
 
 import {Constants} from 'utils/constants';
 

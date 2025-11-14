@@ -5,8 +5,8 @@ import React from 'react';
 import {Button, Modal} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
 
-import AirgappedTrialActivationConfirmSvg from 'components/common/svg_images_components/airgapped_trial_activation_confirm_svg';
 import ExternalLink from 'components/external_link';
+import AirgappedTrialActivationConfirmSvg from 'components/svg_images_components/airgapped_trial_activation_confirm_svg';
 
 import './air_gapped_modal.scss';
 

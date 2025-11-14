@@ -4,11 +4,11 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import RadioButtonGroup from 'components/common/radio_group';
+import RadioButtonGroup from 'components/radio_group';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 
-describe('/components/common/RadioButtonGroup', () => {
+describe('/components/RadioButtonGroup', () => {
     const onChange = jest.fn();
     const baseProps = {
         id: 'test-string',
