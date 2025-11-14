@@ -227,6 +227,10 @@ export type ClientConfig = {
     DeleteAccountLink: string;
     ContentFlaggingEnabled: 'true' | 'false';
 
+    // Burn on Read Settings
+    EnableBurnOnRead: string;
+    BurnOnReadDurationMinutes: string;
+
     // Access Control Settings
     EnableAttributeBasedAccessControl: string;
     EnableChannelScopeAccessControl: string;

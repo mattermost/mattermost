@@ -195,6 +195,14 @@
         }
     }
 
+    &__labels {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        padding-left: 16px;
+        gap: 8px;
+    }
+
 }
 
 @media screen and (max-width: 768px) {
