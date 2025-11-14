@@ -7,7 +7,7 @@ import {Provider} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 
-import Carousel from 'components/common/carousel/carousel';
+import Carousel from 'components/carousel';
 import LearnMoreTrialModal from 'components/learn_more_trial_modal/learn_more_trial_modal';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';

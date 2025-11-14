@@ -3,8 +3,7 @@
 
 import React from 'react';
 
-import type {LimitSummary} from 'components/common/hooks/useGetHighestThresholdCloudLimit';
-
+import type {LimitSummary} from 'hooks/useGetHighestThresholdCloudLimit';
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {FileSizes} from 'utils/file_utils';
 import {LimitTypes} from 'utils/limits';

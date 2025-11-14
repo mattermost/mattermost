@@ -7,10 +7,10 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import type {ClientLicense} from '@mattermost/types/config';
 
 import ContactUsButton from 'components/announcement_bar/contact_sales/contact_us';
-import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
-import SetupSystemSvg from 'components/common/svg_images_components/setup_system';
 import ExternalLink from 'components/external_link';
+import SetupSystemSvg from 'components/svg_images_components/setup_system';
 
+import useOpenSalesLink from 'hooks/useOpenSalesLink';
 import {LicenseSkus, LicenseLinks} from 'utils/constants';
 
 export interface EnterpriseEditionProps {

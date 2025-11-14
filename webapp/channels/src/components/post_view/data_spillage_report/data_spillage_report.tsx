@@ -12,13 +12,13 @@ import type {NameMappedPropertyFields, PropertyValue} from '@mattermost/types/pr
 import {Client4} from 'mattermost-redux/client';
 
 import AtMention from 'components/at_mention';
-import {useChannel} from 'components/common/hooks/useChannel';
-import {useContentFlaggingFields, usePostContentFlaggingValues} from 'components/common/hooks/useContentFlaggingFields';
-import {useUser} from 'components/common/hooks/useUser';
 import DataSpillageAction from 'components/post_view/data_spillage_report/data_spillage_actions/data_spillage_actions';
 import type {PropertiesCardViewMetadata} from 'components/properties_card_view/properties_card_view';
 import PropertiesCardView from 'components/properties_card_view/properties_card_view';
 
+import {useChannel} from 'hooks/useChannel';
+import {useContentFlaggingFields, usePostContentFlaggingValues} from 'hooks/useContentFlaggingFields';
+import {useUser} from 'hooks/useUser';
 import {DataSpillagePropertyNames} from 'utils/constants';
 
 import './data_spillage_report.scss';

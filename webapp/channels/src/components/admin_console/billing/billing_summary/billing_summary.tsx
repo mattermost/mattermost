@@ -15,11 +15,11 @@ import {openModal} from 'actions/views/modals';
 
 import BlockableLink from 'components/admin_console/blockable_link';
 import CloudInvoicePreview from 'components/cloud_invoice_preview';
-import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
-import EmptyBillingHistorySvg from 'components/common/svg_images_components/empty_billing_history_svg';
-import UpgradeSvg from 'components/common/svg_images_components/upgrade_svg';
 import ExternalLink from 'components/external_link';
+import EmptyBillingHistorySvg from 'components/svg_images_components/empty_billing_history_svg';
+import UpgradeSvg from 'components/svg_images_components/upgrade_svg';
 
+import useOpenSalesLink from 'hooks/useOpenSalesLink';
 import {BillingSchemes, CloudLinks, TrialPeriodDays, ModalIdentifiers} from 'utils/constants';
 
 const messages = defineMessages({

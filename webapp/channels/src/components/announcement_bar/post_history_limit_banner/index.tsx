@@ -11,9 +11,9 @@ import {getPostHistoryLimitBannerPreferences} from 'mattermost-redux/selectors/e
 import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import AnnouncementBar from 'components/announcement_bar/default_announcement_bar';
-import useGetServerLimits from 'components/common/hooks/useGetServerLimits';
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 
+import useGetServerLimits from 'hooks/useGetServerLimits';
+import useOpenPricingModal from 'hooks/useOpenPricingModal';
 import {Preferences, AnnouncementBarTypes} from 'utils/constants';
 
 import './post_history_limit_banner.scss';

@@ -12,11 +12,11 @@ import {get as selectPreference} from 'mattermost-redux/selectors/entities/prefe
 import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 
 import AlertBanner from 'components/alert_banner';
-import useGetLimits from 'components/common/hooks/useGetLimits';
-import useGetUsage from 'components/common/hooks/useGetUsage';
-import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import NotifyAdminCTA from 'components/notify_admin_cta/notify_admin_cta';
 
+import useGetLimits from 'hooks/useGetLimits';
+import useGetUsage from 'hooks/useGetUsage';
+import useOpenPricingModal from 'hooks/useOpenPricingModal';
 import {CloudProducts, LicenseSkus, MattermostFeatures, Preferences} from 'utils/constants';
 import {asGBString} from 'utils/limits';
 

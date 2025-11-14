@@ -7,7 +7,7 @@ import styled from 'styled-components';
 
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
-import Logo from 'components/common/svg_images_components/logo_dark_blue_svg';
+import Logo from 'components/svg_images_components/logo_dark_blue_svg';
 
 import {LicenseSkus} from 'utils/constants';
 
