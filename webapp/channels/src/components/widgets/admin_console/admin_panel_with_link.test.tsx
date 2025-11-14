@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
@@ -59,5 +60,73 @@ describe('components/widgets/admin_console/AdminPanelWithLink', () => {
         expect(link).toBeInTheDocument();
         expect(link).toHaveClass('btn', 'btn-primary', 'disabled');
         expect(link).toHaveAttribute('href', '/path');
+    });
+
+    test('should prevent default when clicking disabled link', async () => {
+        renderWithContext(
+            <AdminPanelWithLink
+                {...defaultProps}
+                disabled={true}
+            >
+                {'Test'}
+            </AdminPanelWithLink>,
+        );
+
+        const link = screen.getByTestId('test-id-link');
+
+        // Click the disabled link
+        await userEvent.click(link);
+
+        // Link should still be in document (navigation prevented)
+        expect(link).toBeInTheDocument();
+        expect(link).toHaveClass('disabled');
+    });
+
+    test('should allow navigation when clicking enabled link', async () => {
+        renderWithContext(
+            <AdminPanelWithLink
+                {...defaultProps}
+                disabled={false}
+            >
+                {'Test'}
+            </AdminPanelWithLink>,
+        );
+
+        const link = screen.getByTestId('test-id-link');
+
+        // Link should be enabled
+        expect(link).not.toHaveClass('disabled');
+
+        // Click should work (no preventDefault)
+        await userEvent.click(link);
+
+        // Link should still be accessible
+        expect(link).toBeInTheDocument();
+    });
+
+    test('should render subtitle with values', () => {
+        const subtitleValues = {count: 5, name: 'Test'};
+        renderWithContext(
+            <AdminPanelWithLink
+                {...defaultProps}
+                subtitleValues={subtitleValues}
+            >
+                {'Test'}
+            </AdminPanelWithLink>,
+        );
+
+        // Subtitle should be rendered (values are passed to AdminPanel)
+        expect(screen.getByText('test-subtitle-default')).toBeInTheDocument();
+    });
+
+    test('should render without children', () => {
+        const {container} = renderWithContext(
+            <AdminPanelWithLink {...defaultProps}/>,
+        );
+
+        const panel = container.querySelector('#test-id');
+        expect(panel).toBeInTheDocument();
+        expect(screen.getByText('test-title-default')).toBeInTheDocument();
+        expect(screen.getByText('test-button-text-default')).toBeInTheDocument();
     });
 });

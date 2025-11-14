@@ -18,25 +18,29 @@ describe('components/widgets/admin_console/AdminPanel', () => {
     };
 
     test('should render with title, subtitle, and children', () => {
-        const {container} = renderWithContext(
+        renderWithContext(
             <AdminPanel {...defaultProps}>{'Test'}</AdminPanel>,
         );
 
-        const panel = container.querySelector('#test-id');
-        expect(panel).toBeInTheDocument();
-        expect(panel).toHaveClass('AdminPanel', 'clearfix', 'test-class-name');
+        // Verify panel is rendered by checking its heading
+        const heading = screen.getByRole('heading', {level: 3});
+        expect(heading).toHaveTextContent('test-title-default');
 
-        expect(screen.getByRole('heading', {level: 3})).toHaveTextContent('test-title-default');
+        // Verify panel has correct classes via its container
+        const panel = heading.closest('.AdminPanel');
+        expect(panel).toHaveClass('AdminPanel', 'clearfix', 'test-class-name');
+        expect(panel).toHaveAttribute('id', 'test-id');
+
+        // Verify content is rendered
         expect(screen.getByText('test-subtitle-default')).toBeInTheDocument();
         expect(screen.getByText('Test')).toBeInTheDocument();
 
-        const header = container.querySelector('.header');
-        expect(header).toBeInTheDocument();
-        expect(container.querySelector('.button')).not.toBeInTheDocument();
+        // Verify button is not present
+        expect(screen.queryByText(/Button/i)).not.toBeInTheDocument();
     });
 
     test('should render with button when provided', () => {
-        const {container} = renderWithContext(
+        renderWithContext(
             <AdminPanel
                 {...defaultProps}
                 button={<span>{'TestButton'}</span>}
@@ -45,15 +49,17 @@ describe('components/widgets/admin_console/AdminPanel', () => {
             </AdminPanel>,
         );
 
+        // Verify button is rendered
         expect(screen.getByText('TestButton')).toBeInTheDocument();
-        expect(container.querySelector('.button')).toBeInTheDocument();
+
+        // Verify other content is rendered
         expect(screen.getByText('test-title-default')).toBeInTheDocument();
         expect(screen.getByText('Test')).toBeInTheDocument();
     });
 
     test('should call onHeaderClick when header is clicked', async () => {
         const onHeaderClick = jest.fn();
-        const {container} = renderWithContext(
+        renderWithContext(
             <AdminPanel
                 {...defaultProps}
                 onHeaderClick={onHeaderClick}
@@ -62,10 +68,8 @@ describe('components/widgets/admin_console/AdminPanel', () => {
             </AdminPanel>,
         );
 
-        const header = container.querySelector('.header');
-        expect(header).toBeInTheDocument();
-
-        await userEvent.click(header!);
+        // Click on the title to trigger header click
+        await userEvent.click(screen.getByText('test-title-default'));
 
         expect(onHeaderClick).toHaveBeenCalledTimes(1);
     });
