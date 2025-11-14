@@ -9,6 +9,7 @@ import isNil from 'lodash/isNil';
 import moment from 'moment';
 import React from 'react';
 import type {LinkHTMLAttributes} from 'react';
+import type {MessageDescriptor} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Address} from '@mattermost/types/cloud';
@@ -1233,19 +1234,34 @@ export function clearFileInput(elm: HTMLInputElement) {
 }
 
 /**
- * @deprecated Use react-intl instead, only place its usage can be justified is in the redux actions
+ * localizeMessage provides a way to get localized strings outside of React components.
+ * It supports the MessageDescriptor format for proper i18n extraction with formatjs.
+ *
+ * Prefer using react-intl's `useIntl` hook or `FormattedMessage` component within React components.
+ * This function is mainly for use in Redux actions, utilities, and other non-React contexts.
+ *
+ * @param descriptor - Message descriptor with id, defaultMessage, and optional description
+ * @returns The localized string
+ *
+ * @example
+ * localizeMessage({
+ *   id: 'example.message',
+ *   defaultMessage: 'This is an example message',
+ *   description: 'An example message shown in the help section'
+ * })
  */
-export function localizeMessage({id, defaultMessage}: {id: string; defaultMessage?: string}) {
+export function localizeMessage(descriptor: MessageDescriptor): string;
+export function localizeMessage(descriptor: {id: string; defaultMessage?: string; description?: string}): string;
+export function localizeMessage(descriptor: MessageDescriptor | {id: string; defaultMessage?: string; description?: string}): string {
     const state = store.getState();
-
     const locale = getCurrentLocale(state);
     const translations = getTranslations(state, locale);
 
-    if (!translations || !(id in translations)) {
-        return defaultMessage || id;
+    if (!translations || !(descriptor.id in translations)) {
+        return descriptor.defaultMessage || descriptor.id;
     }
 
-    return translations[id];
+    return translations[descriptor.id];
 }
 
 /**
