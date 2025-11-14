@@ -4,12 +4,12 @@
 import type {ReactWrapper} from 'enzyme';
 import React from 'react';
 
-import InfiniteScroll from 'components/common/infinite_scroll';
-
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import {act, waitFor} from 'tests/react_testing_utils';
 
-describe('/components/common/InfiniteScroll', () => {
+import InfiniteScroll from './infinite_scroll';
+
+describe('/components/select_team/InfiniteScroll', () => {
     const baseProps = {
         callBack: jest.fn(),
         endOfData: false,

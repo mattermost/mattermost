@@ -15,7 +15,6 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 import {emitUserLoggedOutEvent} from 'actions/global_actions';
 
 import AnnouncementBar from 'components/announcement_bar';
-import InfiniteScroll from 'components/common/infinite_scroll';
 import ExternalLink from 'components/external_link';
 import LoadingScreen from 'components/loading_screen';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
@@ -27,7 +26,8 @@ import logoImage from 'images/logo.png';
 import Constants from 'utils/constants';
 import * as UserAgent from 'utils/user_agent';
 
-import SelectTeamItem from './components/select_team_item';
+import InfiniteScroll from './infinite_scroll';
+import SelectTeamItem from './select_team_item';
 
 import './select_team.scss';
 

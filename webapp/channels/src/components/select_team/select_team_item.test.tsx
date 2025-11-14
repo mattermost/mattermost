@@ -8,7 +8,7 @@ import type {Team} from '@mattermost/types/teams';
 
 import SelectTeamItem from './select_team_item';
 
-describe('components/select_team/components/SelectTeamItem', () => {
+describe('components/select_team/SelectTeamItem', () => {
     const baseProps = {
         team: {display_name: 'team_display_name', allow_open_invite: true} as Team,
         onTeamClick: jest.fn(),
