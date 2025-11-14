@@ -3783,6 +3783,19 @@ func (c *Client4) GetFile(ctx context.Context, fileId string) ([]byte, *Response
 	return ReadBytesFromResponse(r)
 }
 
+func (c *Client4) GetFileAsContentReviewer(ctx context.Context, fileId, flaggedPostId string) ([]byte, *Response, error) {
+	values := url.Values{}
+	values.Set(AsContentReviewerParam, c.boolString(true))
+	values.Set("flagged_post_id", flaggedPostId)
+
+	r, err := c.DoAPIGet(ctx, c.fileRoute(fileId)+"?"+values.Encode(), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return ReadBytesFromResponse(r)
+}
+
 // DownloadFile gets the bytes for a file by id, optionally adding headers to force the browser to download it.
 func (c *Client4) DownloadFile(ctx context.Context, fileId string, download bool) ([]byte, *Response, error) {
 	values := url.Values{}
