@@ -2487,6 +2487,112 @@ components:
           type: integer
           description: The last time of update for the application
           format: int64
+    ClientRegistrationRequest:
+      type: object
+      description: OAuth 2.0 Dynamic Client Registration request as defined in RFC 7591
+      required:
+        - redirect_uris
+      properties:
+        redirect_uris:
+          type: array
+          items:
+            type: string
+          description: Array of redirection URI strings for use in redirect-based flows such as the authorization code and implicit flows
+          minItems: 1
+        client_name:
+          type: string
+          description: Human-readable string name of the client to be presented to the end-user during authorization
+          maxLength: 64
+        client_uri:
+          type: string
+          description: URL string of a web page providing information about the client
+          maxLength: 256
+          format: uri
+    ClientRegistrationResponse:
+      type: object
+      description: OAuth 2.0 Dynamic Client Registration response as defined in RFC 7591
+      properties:
+        client_id:
+          type: string
+          description: OAuth 2.0 client identifier string
+        client_secret:
+          type: string
+          description: OAuth 2.0 client secret string
+        redirect_uris:
+          type: array
+          items:
+            type: string
+          description: Array of the registered redirection URI strings
+        token_endpoint_auth_method:
+          type: string
+          description: String indicator of the requested authentication method for the token endpoint
+          enum:
+            - client_secret_post
+            - none
+        grant_types:
+          type: array
+          items:
+            type: string
+          description: Array of OAuth 2.0 grant type strings that the client can use at the token endpoint
+        response_types:
+          type: array
+          items:
+            type: string
+          description: Array of the OAuth 2.0 response type strings that the client can use at the authorization endpoint
+        scope:
+          type: string
+          description: Space-separated list of scope values that the client can use when requesting access tokens
+        client_name:
+          type: string
+          description: Human-readable string name of the client to be presented to the end-user during authorization
+        client_uri:
+          type: string
+          description: URL string of a web page providing information about the client
+          format: uri
+    AuthorizationServerMetadata:
+      type: object
+      description: OAuth 2.0 Authorization Server Metadata as defined in RFC 8414
+      properties:
+        issuer:
+          type: string
+          description: The authorization server's issuer identifier, which is a URL that uses the "https" scheme
+        authorization_endpoint:
+          type: string
+          description: URL of the authorization server's authorization endpoint
+        token_endpoint:
+          type: string
+          description: URL of the authorization server's token endpoint
+        response_types_supported:
+          type: array
+          items:
+            type: string
+          description: JSON array containing a list of the OAuth 2.0 response_type values that this authorization server supports
+        registration_endpoint:
+          type: string
+          description: URL of the authorization server's OAuth 2.0 Dynamic Client Registration endpoint
+        scopes_supported:
+          type: array
+          items:
+            type: string
+          description: JSON array containing a list of the OAuth 2.0 scope values that this authorization server supports
+        grant_types_supported:
+          type: array
+          items:
+            type: string
+          description: JSON array containing a list of the OAuth 2.0 grant type values that this authorization server supports
+        token_endpoint_auth_methods_supported:
+          type: array
+          items:
+            type: string
+          description: JSON array containing a list of client authentication methods supported by the token endpoint
+        code_challenge_methods_supported:
+          type: array
+          items:
+            type: string
+          description: JSON array containing a list of PKCE code challenge methods supported by this authorization server
+      required:
+        - issuer
+        - response_types_supported
     Job:
       type: object
       properties:
@@ -3884,6 +3990,52 @@ components:
         bytes:
           type: number
           description: Total file storage usage for the instance in bytes rounded down to the most significant digit
+    BridgeAgentInfo:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the agent
+        displayName:
+          type: string
+          description: Human-readable name for the agent
+        username:
+          type: string
+          description: Username associated with the agent bot
+        service_id:
+          type: string
+          description: ID of the service providing this agent
+        service_type:
+          type: string
+          description: Type of the service (e.g., openai, anthropic)
+    BridgeServiceInfo:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the LLM service
+        name:
+          type: string
+          description: Name of the LLM service
+        type:
+          type: string
+          description: Type of the service (e.g., openai, anthropic, azure)
+    AgentsResponse:
+      type: object
+      properties:
+        agents:
+          type: array
+          items:
+            $ref: "#/components/schemas/BridgeAgentInfo"
+          description: List of available agents
+    ServicesResponse:
+      type: object
+      properties:
+        services:
+          type: array
+          items:
+            $ref: "#/components/schemas/BridgeServiceInfo"
+          description: List of available LLM services
     PostAcknowledgement:
       type: object
       properties:
@@ -4295,7 +4447,140 @@ components:
           description: text is the actual text that renders in the channel banner. Markdown is supported.
         background_color:
           type: string
-          description: background_color is the HEX color code for the banner's backgroubd
+          description: background_color is the HEX color code for the banner's background
+    ContentFlaggingConfig:
+      type: object
+      properties:
+        EnableContentFlagging:
+          type: boolean
+          description: Flag to enable or disable content flagging feature
+          example: true
+          NotificationSettings:
+            $ref: '#/components/schemas/NotificationSettings'
+          AdditionalSettings:
+            $ref: '#/components/schemas/AdditionalSettings'
+          ReviewerSettings:
+            $ref: '#/components/schemas/ReviewerSettings'
+    NotificationSettings:
+      type: object
+      properties:
+        EventTargetMapping:
+          $ref: '#/components/schemas/EventTargetMapping'
+      required:
+        - EventTargetMapping
+    EventTargetMapping:
+      type: object
+      properties:
+        assigned:
+          type: array
+          items:
+            type: string
+          description: List of targets to notify when content is assigned
+          example: [ ]
+        dismissed:
+          type: array
+          items:
+            type: string
+          description: List of targets to notify when content is dismissed
+          example: [ ]
+        flagged:
+          type: array
+          items:
+            type: string
+          description: List of targets to notify when content is flagged
+          example: [ "reviewers" ]
+        removed:
+          type: array
+          items:
+            type: string
+          description: List of targets to notify when content is removed
+          example: [ ]
+      required:
+        - assigned
+        - dismissed
+        - flagged
+        - removed
+    AdditionalSettings:
+      type: object
+      properties:
+        Reasons:
+          type: array
+          items:
+            type: string
+          description: Predefined reasons for flagging content
+          example: [ "reason 1", "reason 2", "reason 3" ]
+        ReporterCommentRequired:
+          type: boolean
+          description: Whether a comment is required from the reporter
+          example: false
+        ReviewerCommentRequired:
+          type: boolean
+          description: Whether a comment is required from the reviewer
+          example: false
+        HideFlaggedContent:
+          type: boolean
+          description: Whether to hide flagged content from general view
+          example: true
+      required:
+        - Reasons
+        - ReporterCommentRequired
+        - ReviewerCommentRequired
+        - HideFlaggedContent
+    ReviewerSettings:
+      type: object
+      properties:
+        CommonReviewers:
+          type: boolean
+          description: Whether to use common reviewers across all teams
+          example: true
+        SystemAdminsAsReviewers:
+          type: boolean
+          description: Whether system administrators can act as reviewers
+          example: false
+        TeamAdminsAsReviewers:
+          type: boolean
+          description: Whether team administrators can act as reviewers
+          example: true
+        CommonReviewerIds:
+          type: array
+          items:
+            type: string
+          description: List of user IDs designated as common reviewers
+          example: [ "onymzj7qcjnz7dcnhtjp1noc3w" ]
+        TeamReviewersSetting:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/TeamReviewerConfig'
+          description: Team-specific reviewer configuration, keyed by team ID
+          example:
+            "8guxic3sg7nijeu5dgxt1fh4ia":
+              Enabled: true
+              ReviewerIds: [ ]
+            "u1ujk34a47gfxp856pdczs9gey":
+              Enabled: false
+              ReviewerIds: [ ]
+      required:
+        - CommonReviewers
+        - SystemAdminsAsReviewers
+        - TeamAdminsAsReviewers
+        - CommonReviewerIds
+        - TeamReviewersSetting
+    TeamReviewerConfig:
+      type: object
+      properties:
+        Enabled:
+          type: boolean
+          description: Whether team-specific reviewers are enabled for this team
+          example: true
+        ReviewerIds:
+          type: array
+          items:
+            type: string
+          description: List of user IDs designated as reviewers for this specific team
+          example: [ ]
+      required:
+        - Enabled
+        - ReviewerIds
 externalDocs:
   description: Find out more about Mattermost
   url: 'https://about.mattermost.com'

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {render, screen, waitFor} from '@testing-library/react';
+import {act, render, screen, waitFor} from '@testing-library/react';
 import React from 'react';
 
 import {GenericModal} from './generic_modal';
@@ -50,7 +50,9 @@ describe('GenericModal', () => {
 
         // Find and click the close button to trigger modal exit
         const closeButton = screen.getByLabelText('Close');
-        closeButton.click();
+        act(() => {
+            closeButton.click();
+        });
 
         // Wait for onExited to be called
         await waitFor(() => {
@@ -76,7 +78,9 @@ describe('GenericModal', () => {
 
         // This should not throw
         expect(() => {
-            closeButton.click();
+            act(() => {
+                closeButton.click();
+            });
         }).not.toThrow();
     });
 
@@ -134,7 +138,9 @@ describe('GenericModal', () => {
 
         // Find and click the close button to trigger modal exit
         const closeButton = screen.getByLabelText('Close');
-        closeButton.click();
+        act(() => {
+            closeButton.click();
+        });
 
         // Wait for onHide to be called
         await waitFor(() => {
@@ -265,7 +271,9 @@ describe('GenericModal', () => {
 
             // Find and click the close button
             const closeButton = screen.getByLabelText('Close');
-            closeButton.click();
+            act(() => {
+                closeButton.click();
+            });
 
             // onHide should be called
             await waitFor(() => {
@@ -298,7 +306,9 @@ describe('GenericModal', () => {
 
             // Find and click the cancel button
             const cancelButton = screen.getByText('Cancel');
-            cancelButton.click();
+            act(() => {
+                cancelButton.click();
+            });
 
             // Both callbacks should be called
             await waitFor(() => {
@@ -341,7 +351,9 @@ describe('GenericModal', () => {
             );
 
             // Second click - should close modal
-            closeButton.click();
+            act(() => {
+                closeButton.click();
+            });
             await waitFor(() => {
                 expect(onHideMock).toHaveBeenCalledTimes(2);
             });

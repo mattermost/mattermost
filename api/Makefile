@@ -62,6 +62,7 @@ build-v4: node_modules playbooks
 	@cat $(V4_SRC)/audit_logging.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/access_control.yaml >> $(V4_YAML)
 	@cat $(V4_SRC)/content_flagging.yaml >> $(V4_YAML)
+	@cat $(V4_SRC)/agents.yaml >> $(V4_YAML)
 	@if [ -r $(PLAYBOOKS_SRC)/paths.yaml ]; then cat $(PLAYBOOKS_SRC)/paths.yaml >> $(V4_YAML); fi
 	@if [ -r $(PLAYBOOKS_SRC)/merged-definitions.yaml ]; then cat $(PLAYBOOKS_SRC)/merged-definitions.yaml >> $(V4_YAML); else cat $(V4_SRC)/definitions.yaml >> $(V4_YAML); fi
 	@echo Extracting code samples

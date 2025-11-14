@@ -1597,7 +1597,14 @@ func TestPluginSettingsSanitize(t *testing.T) {
 					SettingsSchema: nil,
 				},
 			},
-			expected: map[string]map[string]any{},
+			expected: map[string]map[string]any{
+				pluginID1: {
+					"someoldsettings": "some old value",
+					"somesetting":     "some value",
+					"secrettext":      "a secret",
+					"secretnumber":    123,
+				},
+			},
 		},
 		"one plugin installed empty settings schema": {
 			manifests: []*Manifest{
@@ -1608,10 +1615,10 @@ func TestPluginSettingsSanitize(t *testing.T) {
 			},
 			expected: map[string]map[string]any{
 				pluginID1: {
-					"someoldsettings": FakeSetting,
-					"somesetting":     FakeSetting,
-					"secrettext":      FakeSetting,
-					"secretnumber":    FakeSetting,
+					"someoldsettings": "some old value",
+					"somesetting":     "some value",
+					"secrettext":      "a secret",
+					"secretnumber":    123,
 				},
 			},
 		},
@@ -1626,10 +1633,10 @@ func TestPluginSettingsSanitize(t *testing.T) {
 			},
 			expected: map[string]map[string]any{
 				pluginID1: {
-					"someoldsettings": FakeSetting,
-					"somesetting":     FakeSetting,
-					"secrettext":      FakeSetting,
-					"secretnumber":    FakeSetting,
+					"someoldsettings": "some old value",
+					"somesetting":     "some value",
+					"secrettext":      "a secret",
+					"secretnumber":    123,
 				},
 			},
 		},
@@ -1660,7 +1667,7 @@ func TestPluginSettingsSanitize(t *testing.T) {
 			},
 			expected: map[string]map[string]any{
 				pluginID1: {
-					"someoldsettings": FakeSetting,
+					"someoldsettings": "some old value",
 					"somesetting":     "some value",
 					"secrettext":      FakeSetting,
 					"secretnumber":    FakeSetting,
@@ -1706,7 +1713,7 @@ func TestPluginSettingsSanitize(t *testing.T) {
 			},
 			expected: map[string]map[string]any{
 				pluginID1: {
-					"someoldsettings": FakeSetting,
+					"someoldsettings": "some old value",
 					"somesetting":     "some value",
 					"secrettext":      FakeSetting,
 					"secretnumber":    FakeSetting,

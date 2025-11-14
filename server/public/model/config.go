@@ -347,6 +347,7 @@ type ServiceSettings struct {
 	MaximumLoginAttempts                *int     `access:"authentication_password,write_restrictable,cloud_restrictable"`
 	GoroutineHealthThreshold            *int     `access:"write_restrictable,cloud_restrictable"` // telemetry: none
 	EnableOAuthServiceProvider          *bool    `access:"integrations_integration_management"`
+	EnableDynamicClientRegistration     *bool    `access:"integrations_integration_management"`
 	EnableIncomingWebhooks              *bool    `access:"integrations_integration_management"`
 	EnableOutgoingWebhooks              *bool    `access:"integrations_integration_management"`
 	EnableOutgoingOAuthConnections      *bool    `access:"integrations_integration_management"`
@@ -416,7 +417,7 @@ type ServiceSettings struct {
 	EnableAPIPostDeletion                             *bool
 	EnableDesktopLandingPage                          *bool
 	ExperimentalEnableHardenedMode                    *bool `access:"experimental_features"`
-	StrictCSRFEnforcement                             *bool `access:"experimental_features,write_restrictable,cloud_restrictable"`
+	ExperimentalStrictCSRFEnforcement                 *bool `access:"experimental_features,write_restrictable,cloud_restrictable"`
 	EnableEmailInvitations                            *bool `access:"authentication_signup"`
 	DisableBotsWhenOwnerIsDeactivated                 *bool `access:"integrations_bot_accounts"`
 	EnableBotAccountCreation                          *bool `access:"integrations_bot_accounts"`
@@ -545,6 +546,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableOAuthServiceProvider == nil {
 		s.EnableOAuthServiceProvider = NewPointer(true)
+	}
+
+	if s.EnableDynamicClientRegistration == nil {
+		s.EnableDynamicClientRegistration = NewPointer(false)
 	}
 
 	if s.EnableIncomingWebhooks == nil {
@@ -849,8 +854,8 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.ExperimentalEnableHardenedMode = NewPointer(false)
 	}
 
-	if s.StrictCSRFEnforcement == nil {
-		s.StrictCSRFEnforcement = NewPointer(true)
+	if s.ExperimentalStrictCSRFEnforcement == nil {
+		s.ExperimentalStrictCSRFEnforcement = NewPointer(false)
 	}
 
 	if s.DisableBotsWhenOwnerIsDeactivated == nil {
@@ -3421,7 +3426,7 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 // Sanitize cleans up the plugin settings by removing any sensitive information.
 // It does so by checking if the setting is marked as secret in the plugin manifest.
 // If it is, the setting is replaced with a fake value.
-// If a plugin is no longer installed or doesn't define any settings, no stored settings for that plugin are returned.
+// If a plugin is no longer installed, no stored settings for that plugin are returned.
 // If the list of manifests in nil, i.e. plugins are disabled, all settings are sanitized.
 func (s *PluginSettings) Sanitize(pluginManifests []*Manifest) {
 	manifestMap := make(map[string]*Manifest, len(pluginManifests))
@@ -3434,25 +3439,21 @@ func (s *PluginSettings) Sanitize(pluginManifests []*Manifest) {
 		manifest := manifestMap[id]
 
 		for key := range settings {
-			if manifest == nil ||
-				manifest.SettingsSchema == nil {
-				// Don't return any stored plugin settings if
-				//   - The plugin is no longer installed
-				//   - The plugin doesn't define any settings
+			if manifest == nil {
+				// Don't return plugin settings for plugins that are not installed
 				delete(s.Plugins, id)
 				break
 			}
+			if manifest.SettingsSchema == nil {
+				// If the plugin doesn't define any settings, none of them can be secrets.
+				break
+			}
 
-			// notASecret is true when the plugin declared the settings key and it's not declared as secret
-			var notASecret bool
 			for _, definedSetting := range manifest.SettingsSchema.Settings {
-				if strings.EqualFold(definedSetting.Key, key) && !definedSetting.Secret {
-					notASecret = true
+				if definedSetting.Secret && strings.EqualFold(definedSetting.Key, key) {
+					settings[key] = FakeSetting
 					break
 				}
-			}
-			if !notASecret {
-				settings[key] = FakeSetting
 			}
 		}
 	}

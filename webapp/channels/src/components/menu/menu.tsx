@@ -85,7 +85,7 @@ interface Props {
     menuHeader?: ReactNode;
     menuFooter?: ReactNode;
     menu: MenuProps;
-    children: ReactNode[];
+    children: ReactNode | ReactNode[];
     closeMenuOnTab?: boolean;
 
     // Use MUI Anchor Playgroup to try various anchorOrigin

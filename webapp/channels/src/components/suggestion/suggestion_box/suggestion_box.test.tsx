@@ -115,10 +115,10 @@ describe('SuggestionBox', () => {
             expect(providerSpy).toHaveBeenCalledTimes(1);
         });
 
-        expect(screen.queryByRole('listbox')).toBeVisible();
-
-        expect(screen.queryByRole('listbox')).toBeVisible();
-        expect(screen.getByText('Suggestion: testtest')).toBeVisible();
+        await waitFor(() => {
+            expect(screen.queryByRole('listbox')).toBeVisible();
+            expect(screen.getByText('Suggestion: testtest')).toBeVisible();
+        });
 
         // Typing more text should cause the suggestion to be updaetd
         await userEvent.keyboard('words');
@@ -242,10 +242,8 @@ describe('SuggestionBox', () => {
         await userEvent.keyboard('e{enter}');
 
         await waitFor(() => {
-            expect(onSuggestionsReceived).toHaveBeenCalledTimes(1);
+            expect(screen.getByPlaceholderText('test input')).toHaveValue('@use@use This is important');
         });
-
-        expect(screen.getByPlaceholderText('test input')).toHaveValue('@use@use This is important');
 
         // Wait for the second set of results has been received to ensure the contents of the textbox aren't lost
         await act(() => new Promise((resolve) => setTimeout(resolve, 20)));
