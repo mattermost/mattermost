@@ -3,22 +3,22 @@
 
 .BurnOnReadLabel {
     display: flex;
-    align-items: center;
-    gap: 4px;
-    padding: 16px 0px;
     width: fit-content;
+    align-items: center;
+    padding: 16px 0px;
+    gap: 4px;
 
     &__badge {
         display: flex;
+        height: 20px;
         align-items: center;
-        gap: 4px;
         padding: 2px 8px;
-        background-color: rgba(var(--error-text-color-rgb), 0.08);
         border-radius: 4px;
+        background-color: rgba(var(--error-text-color-rgb), 0.08);
+        color: var(--error-text);
         font-size: 11px;
         font-weight: 600;
-        color: var(--error-text);
-        height: 20px;
+        gap: 4px;
     }
 
     &__icon {
@@ -36,12 +36,12 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        border: none;
-        background: transparent;
         padding: 4px;
+        border: none;
+        border-radius: 4px;
+        background: transparent;
         color: rgba(var(--center-channel-color-rgb), 0.56);
         cursor: pointer;
-        border-radius: 4px;
         transition: background-color 0.15s ease, color 0.15s ease;
 
         &:hover {

@@ -1,12 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// Set fixed dimensions for the tour tip
-:global(.OnboardingTourTip.BurnOnReadTourTip) {
-    width: 352px !important;
-    height: 387px !important;
-}
-
 .BurnOnReadTourTip {
     &__title {
         display: flex;
@@ -18,9 +12,9 @@
         display: inline-flex;
         align-items: center;
         padding: 2px 6px;
+        border-radius: 3px;
         background-color: var(--online-indicator);
         color: var(--button-color);
-        border-radius: 3px;
         font-size: 10px;
         font-weight: 600;
         letter-spacing: 0.5px;
@@ -28,19 +22,19 @@
     }
 
     &__demo {
-        margin-top: 16px !important;
         display: flex;
-        background-color: rgba(var(--center-channel-color-rgb), 0.04);
         border-radius: 4px;
+        margin-top: 16px !important;
+        background-color: rgba(var(--center-channel-color-rgb), 0.04);
     }
 
     &__demo-placeholder {
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 8px;
         padding: 24px;
         color: rgba(var(--center-channel-color-rgb), 0.56);
+        gap: 8px;
     }
 
     &__demo-icon {

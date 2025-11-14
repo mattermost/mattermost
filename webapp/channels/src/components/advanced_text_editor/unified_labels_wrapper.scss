@@ -1,19 +1,19 @@
 .UnifiedLabelsWrapper {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 8px;
-    flex-wrap: wrap;
 
     &__close {
         display: flex;
         align-items: center;
         justify-content: center;
         padding: 4px;
-        background: transparent;
         border: none;
         border-radius: 4px;
-        cursor: pointer;
+        background: transparent;
         color: rgba(var(--center-channel-color-rgb), 0.56);
+        cursor: pointer;
         transition: all 0.15s ease;
 
         &:hover {
