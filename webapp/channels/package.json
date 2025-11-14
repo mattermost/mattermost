@@ -97,7 +97,6 @@
   "devDependencies": {
     "@cfaester/enzyme-adapter-react-18": "0.8.0",
     "@deanwhillier/jest-matchmedia-mock": "1.2.0",
-    "@formatjs/cli": "6.7.4",
     "@mattermost/calls-common": "0.27.0",
     "@mattermost/eslint-plugin": "*",
     "@stylistic/stylelint-plugin": "3.1.2",
