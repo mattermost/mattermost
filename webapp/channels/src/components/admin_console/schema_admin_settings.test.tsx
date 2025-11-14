@@ -436,7 +436,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
                     default: 'setting_default',
                 },
             ],
-        } as AdminDefinitionSubSectionSchema;
+        } as unknown as AdminDefinitionSubSectionSchema;
 
         renderWithContext(
             <SchemaAdminSettings
@@ -541,7 +541,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
                     default: 'setting_default',
                 },
             ],
-        } as AdminDefinitionSubSectionSchema;
+        } as unknown as AdminDefinitionSubSectionSchema;
 
         renderWithContext(
             <SchemaAdminSettings
@@ -623,7 +623,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
                     default: 'setting_default',
                 },
             ],
-        } as AdminDefinitionSubSectionSchema;
+        } as unknown as AdminDefinitionSubSectionSchema;
 
         renderWithContext(
             <SchemaAdminSettings
