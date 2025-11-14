@@ -828,7 +828,8 @@ func TestGetFile(t *testing.T) {
 		require.True(t, ok, "failed to set license")
 
 		defer func() {
-			th.App.Srv().RemoveLicense()
+			appErr := th.App.Srv().RemoveLicense()
+			require.Nil(t, appErr)
 		}()
 
 		newChannel := th.CreatePrivateChannel(t)
