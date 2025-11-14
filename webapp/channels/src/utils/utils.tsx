@@ -48,7 +48,6 @@ import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {searchForTerm} from 'actions/post_actions';
 import {addUserToTeam} from 'actions/team_actions';
-import {getCurrentLocale, getTranslations} from 'selectors/i18n';
 import store from 'stores/redux_store';
 
 import {focusPost} from 'components/permalink_view/actions';
@@ -58,6 +57,7 @@ import {getHistory} from 'utils/browser_history';
 import Constants, {FileTypes, ValidationErrors, A11yCustomEventTypes, AdvancedTextEditorTextboxIds} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
+import {getIntl} from 'utils/i18n';
 import * as Keyboard from 'utils/keyboard';
 import {FOCUS_REPLY_POST, isPopoutWindow, sendToParent} from 'utils/popouts/popout_windows';
 import * as UserAgent from 'utils/user_agent';
@@ -1234,50 +1234,34 @@ export function clearFileInput(elm: HTMLInputElement) {
 }
 
 /**
- * localizeMessage provides a way to get localized strings outside of React components.
- * It supports the MessageDescriptor format for proper i18n extraction with formatjs.
- *
- * Prefer using react-intl's `useIntl` hook or `FormattedMessage` component within React components.
+ * @deprecated Prefer using react-intl's `useIntl` hook or `FormattedMessage` component within React components.
  * This function is mainly for use in Redux actions, utilities, and other non-React contexts.
  *
  * @param descriptor - Message descriptor with id, defaultMessage, and optional description
- * @returns The localized string
+ * @param values - Optional values for placeholder interpolation
+ * @returns The localized string with interpolated values
  *
  * @example
+ * // Simple message
  * localizeMessage({
  *   id: 'example.message',
  *   defaultMessage: 'This is an example message',
  *   description: 'An example message shown in the help section'
  * })
+ *
+ * @example
+ * // Message with interpolation
+ * localizeMessage({
+ *   id: 'welcome.message',
+ *   defaultMessage: 'Welcome, {username}!',
+ *   description: 'Welcome message with username'
+ * }, {username: 'John'})
  */
-export function localizeMessage(descriptor: MessageDescriptor): string;
-export function localizeMessage(descriptor: {id: string; defaultMessage?: string; description?: string}): string;
-export function localizeMessage(descriptor: MessageDescriptor | {id: string; defaultMessage?: string; description?: string}): string {
-    const state = store.getState();
-    const locale = getCurrentLocale(state);
-    const translations = getTranslations(state, locale);
-
-    if (!translations || !(descriptor.id in translations)) {
-        return descriptor.defaultMessage || descriptor.id;
-    }
-
-    return translations[descriptor.id];
-}
-
-/**
- * @deprecated If possible, use intl.formatMessage instead. If you have to use this, remember to mark the id using `t`
- */
-export function localizeAndFormatMessage(descriptor: {id: string; defaultMessage?: string}, template: { [name: string]: any } | undefined) {
-    const base = localizeMessage(descriptor);
-
-    if (!template) {
-        return base;
-    }
-
-    return base.replace(/{[\w]+}/g, (match) => {
-        const key = match.substr(1, match.length - 2);
-        return template[key] || match;
-    });
+export function localizeMessage(descriptor: MessageDescriptor, values?: Record<string, any>): string;
+export function localizeMessage(descriptor: {id: string; defaultMessage?: string; description?: string}, values?: Record<string, any>): string;
+export function localizeMessage(descriptor: MessageDescriptor | {id: string; defaultMessage?: string; description?: string}, values?: Record<string, any>): string {
+    const intl = getIntl();
+    return intl.formatMessage(descriptor as MessageDescriptor, values);
 }
 
 export function mod(a: number, b: number): number {
