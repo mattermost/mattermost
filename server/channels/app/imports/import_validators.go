@@ -796,7 +796,6 @@ func isValidGuestRoles(data UserImportData) bool {
 
 	// basically we want to be sure if the user either fully guest in all 3 places or not at all
 	// (a | b | c) & !(a & b & c) -> 3-way XOR?
-	mlog.Info("guest status:", mlog.String("user", *data.Username), mlog.Bool("isSystemGuest", isSystemGuest), mlog.Bool("isTeamGuest", isTeamGuest), mlog.Bool("isChannelGuest", isChannelGuest))
 	if (isSystemGuest || isTeamGuest || isChannelGuest) && !(isSystemGuest && isTeamGuest && isChannelGuest) {
 		return false
 	}
