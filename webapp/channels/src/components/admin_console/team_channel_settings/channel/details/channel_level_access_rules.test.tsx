@@ -89,6 +89,8 @@ describe('ChannelLevelAccessRules', () => {
             create_at: 1000,
             update_at: 1000,
             delete_at: 0,
+            created_by: '',
+            updated_by: '',
         },
         {
             id: 'attr-2',
@@ -104,6 +106,8 @@ describe('ChannelLevelAccessRules', () => {
             create_at: 1000,
             update_at: 1000,
             delete_at: 0,
+            created_by: '',
+            updated_by: '',
         },
     ];
 

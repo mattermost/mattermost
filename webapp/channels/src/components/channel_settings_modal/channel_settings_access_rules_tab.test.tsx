@@ -52,6 +52,8 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             create_at: 1736541716295,
             update_at: 1736541716295,
             delete_at: 0,
+            created_by: '',
+            updated_by: '',
             attrs: {
                 sort_order: 0,
                 visibility: 'when_set',
@@ -70,6 +72,8 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             create_at: 1736541716295,
             update_at: 1736541716295,
             delete_at: 0,
+            created_by: '',
+            updated_by: '',
             attrs: {
                 sort_order: 1,
                 visibility: 'when_set',

@@ -37,6 +37,8 @@ type PropertyField struct {
 	CreateAt   int64             `json:"create_at"`
 	UpdateAt   int64             `json:"update_at"`
 	DeleteAt   int64             `json:"delete_at"`
+	CreatedBy  string            `json:"created_by"`
+	UpdatedBy  string            `json:"updated_by"`
 }
 
 func (pf *PropertyField) Auditable() map[string]any {
@@ -51,6 +53,8 @@ func (pf *PropertyField) Auditable() map[string]any {
 		"create_at":   pf.CreateAt,
 		"update_at":   pf.UpdateAt,
 		"delete_at":   pf.DeleteAt,
+		"created_by":  pf.CreatedBy,
+		"updated_by":  pf.UpdatedBy,
 	}
 }
 

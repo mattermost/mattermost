@@ -19,6 +19,8 @@ describe('UserPropertyValues', () => {
         create_at: 1736541716295,
         delete_at: 0,
         update_at: 0,
+        created_by: '',
+        updated_by: '',
         attrs: {
             sort_order: 0,
             visibility: 'when_set',

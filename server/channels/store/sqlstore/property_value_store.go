@@ -19,7 +19,7 @@ type SqlPropertyValueStore struct {
 	tableSelectQuery sq.SelectBuilder
 }
 
-var propertyValueColumns = []string{"ID", "TargetID", "TargetType", "GroupID", "FieldID", "Value", "CreateAt", "UpdateAt", "DeleteAt"}
+var propertyValueColumns = []string{"ID", "TargetID", "TargetType", "GroupID", "FieldID", "Value", "CreateAt", "UpdateAt", "DeleteAt", "CreatedBy", "UpdatedBy"}
 
 func newPropertyValueStore(sqlStore *SqlStore) store.PropertyValueStore {
 	s := SqlPropertyValueStore{SqlStore: sqlStore}
@@ -50,7 +50,7 @@ func (s *SqlPropertyValueStore) Create(value *model.PropertyValue) (*model.Prope
 	builder := s.getQueryBuilder().
 		Insert("PropertyValues").
 		Columns(propertyValueColumns...).
-		Values(value.ID, value.TargetID, value.TargetType, value.GroupID, value.FieldID, valueJSON, value.CreateAt, value.UpdateAt, value.DeleteAt)
+		Values(value.ID, value.TargetID, value.TargetType, value.GroupID, value.FieldID, valueJSON, value.CreateAt, value.UpdateAt, value.DeleteAt, value.CreatedBy, value.UpdatedBy)
 	if _, err := s.GetMaster().ExecBuilder(builder); err != nil {
 		return nil, errors.Wrap(err, "property_value_create_insert")
 	}
@@ -84,7 +84,7 @@ func (s *SqlPropertyValueStore) CreateMany(values []*model.PropertyValue) ([]*mo
 		builder := s.getQueryBuilder().
 			Insert("PropertyValues").
 			Columns(propertyValueColumns...).
-			Values(value.ID, value.TargetID, value.TargetType, value.GroupID, value.FieldID, valueJSON, value.CreateAt, value.UpdateAt, value.DeleteAt)
+			Values(value.ID, value.TargetID, value.TargetType, value.GroupID, value.FieldID, valueJSON, value.CreateAt, value.UpdateAt, value.DeleteAt, value.CreatedBy, value.UpdatedBy)
 
 		if _, err := transaction.ExecBuilder(builder); err != nil {
 			return nil, errors.Wrap(err, "property_value_create_many_exec")
@@ -206,6 +206,7 @@ func (s *SqlPropertyValueStore) Update(groupID string, values []*model.PropertyV
 	isPostgres := s.DriverName() == model.DatabaseDriverPostgres
 	valueCase := sq.Case("id")
 	deleteAtCase := sq.Case("id")
+	updatedByCase := sq.Case("id")
 	ids := make([]string, len(values))
 
 	for i, value := range values {
@@ -223,9 +224,11 @@ func (s *SqlPropertyValueStore) Update(groupID string, values []*model.PropertyV
 		if isPostgres {
 			valueCase = valueCase.When(sq.Expr("?", value.ID), sq.Expr("?::jsonb", valueJSON))
 			deleteAtCase = deleteAtCase.When(sq.Expr("?", value.ID), sq.Expr("?::bigint", value.DeleteAt))
+			updatedByCase = updatedByCase.When(sq.Expr("?", value.ID), sq.Expr("?::text", value.UpdatedBy))
 		} else {
 			valueCase = valueCase.When(sq.Expr("?", value.ID), sq.Expr("?", valueJSON))
 			deleteAtCase = deleteAtCase.When(sq.Expr("?", value.ID), sq.Expr("?", value.DeleteAt))
+			updatedByCase = updatedByCase.When(sq.Expr("?", value.ID), sq.Expr("?", value.UpdatedBy))
 		}
 	}
 
@@ -234,6 +237,7 @@ func (s *SqlPropertyValueStore) Update(groupID string, values []*model.PropertyV
 		Set("Value", valueCase).
 		Set("DeleteAt", deleteAtCase).
 		Set("UpdateAt", updateTime).
+		Set("UpdatedBy", updatedByCase).
 		Where(sq.Eq{"id": ids})
 
 	if groupID != "" {
@@ -289,13 +293,14 @@ func (s *SqlPropertyValueStore) Upsert(values []*model.PropertyValue) (_ []*mode
 		builder := s.getQueryBuilder().
 			Insert("PropertyValues").
 			Columns(propertyValueColumns...).
-			Values(value.ID, value.TargetID, value.TargetType, value.GroupID, value.FieldID, valueJSON, value.CreateAt, value.UpdateAt, value.DeleteAt)
+			Values(value.ID, value.TargetID, value.TargetType, value.GroupID, value.FieldID, valueJSON, value.CreateAt, value.UpdateAt, value.DeleteAt, value.CreatedBy, value.UpdatedBy)
 
 		builder = builder.SuffixExpr(sq.Expr(
-			"ON CONFLICT (GroupID, TargetID, FieldID) WHERE DeleteAt = 0 DO UPDATE SET Value = ?, UpdateAt = ?, DeleteAt = ? RETURNING *",
+			"ON CONFLICT (GroupID, TargetID, FieldID) WHERE DeleteAt = 0 DO UPDATE SET Value = ?, UpdateAt = ?, DeleteAt = ?, UpdatedBy = ? RETURNING *",
 			valueJSON,
 			value.UpdateAt,
 			0,
+			value.UpdatedBy,
 		))
 
 		var values []*model.PropertyValue
